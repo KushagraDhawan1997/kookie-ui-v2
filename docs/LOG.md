@@ -8,7 +8,15 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
-## 2026-08-25 The docs site had one distance doing four jobs
+## 2026-08-25 The light page is the seal's own white
+
+**What.** `--color-page` in light went `var(--neutral-1)` (#fcfcfc) → the seal's white, derived from `surfaceColor.light.rest` so the two share one home and cannot drift. Dark stays `--neutral-1`. This reverses the 2026-08-20 identity ("the palette's own end in each mode"); the identity is now "the mode's brightest ground". DECISIONS §10/§13 amended in the same commit; +4 gzipped bytes, baseline re-recorded.
+
+**Why.** Kushagra: #fcfcfc "reads dull as is". The 4-point gap between the page and the card seal bought almost nothing perceptually — a 1.2% luminance step — and read as dinge, not hierarchy.
+
+**The cost was named before it was paid.** Page = seal means a resting card on the page separates by cast (elevated, the default) or hairline (flat), never by fill. That is Apple's own light mode, and dark already accepted the identical collapse for ground-on-page (2026-08-20's stated consequence), so it is a precedented trade, not a new hazard. The surface ordering law's light arm pinned the old relationship (card strictly lighter than page) and is re-keyed to the agreement: card ≡ page at four decimal places, which the config derivation makes true by construction — the old assertion fails against the new config and the new one fails against the old, so the law moved with the design rather than being widened.
+
+**Rejected.** Moving `--neutral-1` itself to white (it feeds the whole ramp — every alpha composite and solved ink would move with it), and a second literal `#ffffff` beside the seal's (two homes for one value; the law asserting their agreement would be the only thing keeping them equal).
 
 **What.** apps/docs was re-composed for rhythm and hierarchy. The chapter renderer states four intervals instead of one, prose took a measured reading width while figures kept the column, the heading ladder gained real jumps, every page took a frame with air above the title and a centred column, the component index stopped being 42 near-empty Cards, and the front door stopped spelling 21 links as bordered buttons. One package change came out of it (below). Docs laws 533 → 533 green; package 1,923 green.
 
@@ -35,6 +43,19 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 **Found and NOT fixed, honestly:** the docs header overflows a phone — search, a GitHub link and a three-button appearance toggle do not fit at 420px, and the toggle is clipped off-screen. Pre-existing, unrelated to the rhythm work, and what to drop on a phone is a content decision rather than a spacing one.
 
 ---
+
+## 2026-08-25 The flight's pin is corrected to the room, and a constrained top-opening menu stops jumping at release
+
+**What.** Kushagra, after the caught-reopen fix missed his point: *"It opens when it opens to top, and after animation completes, it jumps to correct position."* Measured frame-by-frame on the preview's constrained "Jump to file" menu opening upward: the flight itself looked right for its whole ~500ms, and on the release frame the popup snapped to top −191 for a panel that rests at 5 — a 196px flash — then landed when floating-ui re-solved a frame later. 196 is exactly natural-minus-room (640 − 443.8), which is why the defect needs "opens to the top" AND "has to scroll" at once: below the trigger a too-tall positioner extends harmlessly downward, above it the anchored edge is the bottom, so a stale height holds the positioner's top exactly the excess too high.
+
+**The cause is a measurement the runner already knew was wrong, corrected in one place and not the other.** The pose pins the positioner at `natural` — measured in the microtask, through Base UI's seeded `--available-height: 100vh`, before floating-ui's promise resolves (the 2026-08-23 finding, in its own comment). `fitToRoom` corrects the flight's TARGETS at departure and never touched the PIN, so the flight flew right (a top-side flying popup is glued to the positioner's bottom, which is at the seam regardless of the height) and the release handed the popup back to flow against the positioner's top — the one edge the stale height moves.
+
+**Three mechanisms shipped, each earned by a measured failure of the previous spelling:**
+- **`fitPin`** corrects the pin to the clamped room at the aim — the first moment `data-side` exists and the seed is still invisible. Its first spelling `parseFloat`'d the seeded `100vh` as ONE HUNDRED, pinned the positioner at 100px, and the whole panel flipped to the wrong side (floating-ui found that box fits below); only a `px`-suffixed value is a room. It compares against the element's current inline pin, never a closure snapshot, because `begin` can run more than once per open and each closure has its own `natural` — and it leaves `--kui-pin-fit` on the element as the observable the gates read.
+- **The departure waits for stillness, re-aiming each frame** — the correction makes floating-ui re-solve the transform asynchronously, and a flight departed before that lands is anchored to a box the next frame takes away (measured: the seed at 651 for a trigger at 450, and the flight ran from there). Keyed on the marker, so an uncapped panel never spends a frame here. The first spelling compared rects across aim CALLS and two calls in one frame read the same rect — "stable" with no frame to move — which is the degenerate-comparison shape one instrument over.
+- **The glue observer** — a MutationObserver on the positioner's style re-lays the seed's translate in the same rendering update that moves the box, before paint, because floating-ui's write can land after any rAF-scheduled re-aim and the seed then paints one full-opacity frame 200px off its trigger. A rAF cannot order around it; a microtask can.
+
+**Laws.** Two deterministic and on CI — the pin is the clamped box mid-flight (an inline declaration, stable for the whole flight), and the popup does not move on the strip frame, read in the release's own microtask by an edge-anchored observer (the 2026-08-20 rule: a premise that is a window is seized or edge-anchored — a polling read sleeps through the one-frame flash on exactly the runner that matters). One `watchesFrames` and recorded in the registry with its transient — the aimed seed never leaves its trigger. All three falsified: reverting `fitPin` fails all three (the strip read reproduces the flash, −154 against 5), muting the glue observer fails exactly the seed law. **The existing release-seam law was the near-miss**: "nothing jumps on the frame the flight ends" drove start/end ALIGNMENT on panels small enough to fit, so the side axis — the one carrying the defect — was never driven. A law about one axis of a two-axis mechanism is half a law, third appearance.
 
 ## 2026-08-25 The catch keeps the box's flight, not the list's browsing
 

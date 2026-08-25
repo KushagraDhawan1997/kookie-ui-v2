@@ -853,6 +853,75 @@ function useFlight(plan: FlightPlan) {
           };
 
           /**
+           * …AND THE PIN IS CORRECTED TOO, at the aim, or the release inherits the lie
+           * (2026-08-25, Kushagra: a constrained top-opening menu, *"after animation
+           * completes, it jumps to correct position"*).
+           *
+           * The positioner is pinned at `natural` — measured in the microtask, through Base
+           * UI's seeded `100vh`, so on a panel with more content than room the pin holds the
+           * UNCLAMPED box for the whole flight. `fitToRoom` corrects the flight's TARGETS and
+           * never touched the pin, and which side pays depends on which edge the placement
+           * anchors: below the trigger the excess extends harmlessly downward, above it the
+           * anchored edge is the BOTTOM, so a stale height puts the positioner's top exactly
+           * the excess too high. The flight never shows it — a top-side flying popup is glued
+           * to the positioner's bottom (`inset-block-end: 0`, surfaces.css) — and the release
+           * does: the pose comes off, the popup returns to flow against the positioner's TOP,
+           * and floating-ui's re-solve is a frame behind. Measured: one painted frame at
+           * top = -191 for a panel that rests at 5, a 196px flash — natural 640 minus the
+           * room's 443.8, which is why it needs "opens upward" AND "has to scroll" at once.
+           *
+           * Corrected AT THE AIM, never at departure, and the moment is the mechanism: the
+           * seed is still invisible (`data-aimed` is not stamped), so floating-ui can re-solve
+           * the transform against the corrected box with nothing on screen to move. The same
+           * write at departure shifts the anchor edge under a panel that is already flying —
+           * the flash again, mid-flight. The aim then WAITS for the positioner to hold still
+           * (whenPlaced's own shape, capped the same way), because departing before the
+           * re-solve lands anchors the flight to a box still in motion.
+           *
+           * The guards are fitToRoom's, for fitToRoom's reasons: `heldHeight` skips a
+           * positioner whose height is Base UI's (the item-aligned select — correcting that
+           * one with a one-sided room is the 2026-08-23 bug by another door), and a positioner
+           * this runner never pinned is one it must not start managing.
+           */
+          const fitPin = () => {
+            if (!positioner?.hasAttribute("data-side") || heldHeight) return;
+            const room = getComputedStyle(positioner);
+            const fit = (prop: "height" | "width", axis: string) => {
+              /**
+               * ONLY a real length, and the suffix check is load-bearing: Base UI seeds
+               * `--available-height: 100vh` until floating-ui's promise resolves, and
+               * `parseFloat` reads that string as ONE HUNDRED — measured, the first spelling
+               * pinned the positioner at 100px, floating-ui found that box fits below the
+               * trigger, and the whole panel flipped to the wrong side. A seeded value means
+               * the room is not known yet; a later aim asks again. (`fitToRoom` runs at
+               * departure, where the values are always real — this runs at the aim, where
+               * they may not be.)
+               */
+              const raw = room.getPropertyValue(axis).trim();
+              if (!raw.endsWith("px")) return;
+              const available = parseFloat(raw);
+              /**
+               * Compared against the CURRENT inline pin, never a closure's snapshot: `begin`
+               * can run more than once for one open (the commit and the starting stamp), so
+               * there can be more than one of these closures alive, each with its own idea of
+               * `natural`. Reading the pin off the element makes the correction idempotent
+               * across all of them — the second caller finds `available >= pinned` and does
+               * nothing.
+               */
+              const pinned = parseFloat(positioner.style[prop]);
+              if (!Number.isFinite(available) || available <= 0) return;
+              if (!Number.isFinite(pinned) || available >= pinned) return;
+              positioner.style[prop] = `${available}px`;
+              // The observable that a correction happened — the departure gate reads it off
+              // the element for the same multi-closure reason. Removed at release with the
+              // pin it annotates.
+              positioner.style.setProperty("--kui-pin-fit", "1");
+            };
+            fit("height", "--available-height");
+            fit("width", "--available-width");
+          };
+
+          /**
            * Released on arrival BY THE CLOCK, never by a channel's `transitionend`
            * (2026-08-10): the morph's seed is the trigger's width and a select's trigger is
            * routinely exactly as wide as its panel — equal start and end means no transition,
@@ -886,9 +955,11 @@ function useFlight(plan: FlightPlan) {
              */
             if (positioner?.hasAttribute("data-side")) {
               // Put back what was found, which is `""` where the runner was the only writer
-              // and Base UI's own length where it was not (see the snapshot above).
+              // and Base UI's own length where it was not (see the snapshot above). The
+              // correction marker leaves with the pin it annotates (fitPin).
               positioner.style.width = heldWidth;
               positioner.style.height = heldHeight;
+              positioner.style.removeProperty("--kui-pin-fit");
             } else if (positioner && heldHeight) {
               /**
                * …AND THE HEIGHT IS PUT BACK EVEN WHERE BASE UI OWNS IT (2026-08-22, Kushagra:
@@ -981,6 +1052,12 @@ function useFlight(plan: FlightPlan) {
           const aim = () => {
             if (!trigger || !positioner?.hasAttribute("data-side")) return;
             if (!popup.hasAttribute("data-seed")) return;
+            // The pin correction rides the aim because this is the first moment `data-side`
+            // exists (see fitPin above). The offset written below is consistent with whatever
+            // geometry this frame holds — pin corrected, transform still settling included —
+            // because every read and the write are one synchronous block; it is the NEXT
+            // frame's geometry that can strand it, which is the departure gate's job.
+            fitPin();
             const positionerBox = positioner.getBoundingClientRect();
             const triggerBox = trigger.getBoundingClientRect();
             const insetLeft = popup.offsetLeft;
@@ -1028,7 +1105,41 @@ function useFlight(plan: FlightPlan) {
           };
           if (trigger) queueMicrotask(aim);
 
+          let departPrevious = "";
+          let departWaited = 0;
           const depart = () => {
+            /**
+             * A CORRECTED PIN'S FLIGHT DEPARTS ONLY FROM A STILL BOX (see fitPin). The
+             * correction makes floating-ui re-solve the transform a frame or two later, and a
+             * top-side seed is glued to the positioner by an offset measured on an earlier
+             * frame — so a departure while the box is still moving anchors the whole flight
+             * to a position the next frame takes away (measured: the seed at 651 for a
+             * trigger at 450, and the flight ran from there). Each waited frame RE-AIMS, so
+             * the seed keeps riding the geometry as it settles and the last frame before
+             * departure is always glued to the box the flight will actually fly on. Keyed on
+             * the element's own marker, not a closure flag (fitPin says why), and capped so a
+             * box that never settles departs anyway — the pre-correction behavior. Uncapped
+             * panels carry no marker and never spend a frame here.
+             */
+            if (
+              trigger &&
+              popup.hasAttribute("data-seed") &&
+              positioner?.style.getPropertyValue("--kui-pin-fit") &&
+              departWaited < 10
+            ) {
+              const box = positioner.getBoundingClientRect();
+              const key = `${Math.round(box.top)}x${Math.round(box.left)}x${Math.round(box.height)}x${Math.round(box.width)}`;
+              if (key !== departPrevious) {
+                departPrevious = key;
+                departWaited += 1;
+                aim();
+                return void requestAnimationFrame(depart);
+              }
+            }
+            // The glue watcher retires with the seed it glues (see below): after this frame
+            // the pose is off and a positioner write is floating-ui's ordinary business.
+            glueObserver?.disconnect();
+            glueObserver = null;
             // Before the pose comes off and before the listener below is armed — see fitToRoom.
             fitToRoom();
             popup.removeAttribute("data-seed");
@@ -1049,6 +1160,32 @@ function useFlight(plan: FlightPlan) {
               .map((d, i) => parseFloat(d) + parseFloat(delays[i % delays.length] ?? "0"));
             window.setTimeout(release, Math.max(...spans, 0) * 1000 + 50);
           };
+
+          /**
+           * THE GLUE FOLLOWS THE POSITIONER, in the microtask, never a frame behind
+           * (2026-08-25, with the pin correction). A seeded panel's translate is measured
+           * against the positioner's box, and floating-ui re-solves that box asynchronously
+           * after the pin correction — inside the SAME frame or the next one, in no order a
+           * rAF can stand on. A re-aim scheduled per frame loses exactly when the transform
+           * lands after it and before paint: the seed paints one frame wherever the moved box
+           * left it — 200px off its trigger, at full opacity. A MutationObserver on the
+           * positioner's style runs after the write and BEFORE the paint, so the glue is
+           * re-laid in the same rendering update that moved the box and no stale frame can
+           * exist. Self-terminating: the seed coming off is the last moment a stale glue can
+           * paint, and the departure disconnects it on that exact frame.
+           */
+          let glueObserver: MutationObserver | null = null;
+          if (trigger && positioner) {
+            glueObserver = new MutationObserver(() => {
+              if (!popup.hasAttribute("data-seed")) {
+                glueObserver?.disconnect();
+                glueObserver = null;
+                return;
+              }
+              aim();
+            });
+            glueObserver.observe(positioner, { attributes: true, attributeFilter: ["style"] });
+          }
 
           // The pose holds for one painted frame and then comes off, which is what starts the
           // flight. An ANCHORED panel spends a second frame first, and the frame is the

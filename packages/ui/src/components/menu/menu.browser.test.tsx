@@ -3428,6 +3428,150 @@ describe("the panel unfurls out of a seed (§22)", () => {
       expect(Math.abs(after.top - before.top), "it jumped vertically").toBeLessThan(1);
     });
   }
+
+  /**
+   * THE OTHER AXIS OF THE RELEASE SEAM (§22, 2026-08-25, Kushagra: a constrained menu opening
+   * upward, *"after animation completes, it jumps to correct position"*).
+   *
+   * The seam laws above drive ALIGNMENT on panels small enough to fit — so the side axis was
+   * never driven, and it is the side axis that carried the defect: the positioner is pinned at
+   * `natural`, `natural` is measured through Base UI's seeded `100vh` before floating-ui's
+   * promise resolves, and `fitToRoom` corrected the flight's targets while the PIN kept the
+   * unclamped box for the whole flight. Below the trigger the excess extends harmlessly
+   * downward; above it the anchored edge is the bottom, so the stale height held the
+   * positioner's top exactly the excess too high — measured, the release handed the popup to a
+   * positioner at top −191 for a panel that rests at 5, a 196px flash until floating-ui's
+   * re-solve landed a frame later. Which is why the defect needs "opens upward" AND "has to
+   * scroll" at once: the excess IS natural-minus-room, zero wherever the list fits.
+   */
+  describe("a constrained top-opening flight is anchored to the truth (§22, 2026-08-25)", () => {
+    /** A trigger held near the bottom of any viewport, with a list far taller than the room
+        above it: the panel must flip to `top` and must scroll — the two premises the defect
+        needs, asserted rather than assumed by every law here. */
+    async function openConstrainedUp() {
+      render(
+        <Theme>
+          <div style={{ position: "fixed", bottom: "120px", left: "16px" }}>
+            <Menu>
+              <MenuTrigger render={<Button>Open</Button>} />
+              <MenuContent>
+                {Array.from({ length: 40 }, (_, i) => (
+                  <MenuItem key={i}>{`Row ${i + 1}`}</MenuItem>
+                ))}
+              </MenuContent>
+            </Menu>
+          </div>
+        </Theme>,
+      );
+      inMotion();
+      const trigger = document.querySelector<HTMLElement>(".kui-button")!;
+      await press(trigger);
+      const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop();
+      if (!popup) throw new Error("the popup never opened");
+      return { popup, positioner: popup.parentElement!, trigger };
+    }
+
+    it("the pin the flight anchors to is the CLAMPED box, never the 100vh-capped natural (§22, 2026-08-25)", async () => {
+      /**
+       * The mechanism's own declaration, read mid-flight where it is load-bearing: by the
+       * time the flight departs, the positioner's inline height must be the room's answer,
+       * not the microtask measurement's. Deterministic — an inline style holds for the whole
+       * ~500ms flight. Falsified: delete `fitPin` in floating.tsx and the pin reads the
+       * unclamped ~1300px against a room under 700.
+       */
+      const { popup, positioner } = await openConstrainedUp();
+      await departed(popup);
+      expect(positioner.getAttribute("data-side"), "the premise: it opened upward").toBe("top");
+      const pin = parseFloat(positioner.style.height);
+      const room = parseFloat(getComputedStyle(positioner).getPropertyValue("--available-height"));
+      expect(Number.isFinite(pin), "the premise: the flight pinned the positioner").toBe(true);
+      expect(Number.isFinite(room), "the premise: the room is a real length by departure").toBe(true);
+      // Calibration: the list genuinely does not fit — a fitting list makes every spelling
+      // pass (the degenerate-fixture rule). scrollHeight is a layout value, so the flight's
+      // squish transform cannot hide it.
+      const body = popup.querySelector<HTMLElement>(".kui-floating-body")!;
+      expect(
+        body.scrollHeight,
+        "the premise: the content is far taller than the room",
+      ).toBeGreaterThan(pin + 100);
+      expect(pin, `the pin (${Math.round(pin)}) must be the clamped room (${Math.round(room)})`).toBeLessThanOrEqual(room + 1);
+      // And the correction's own observable, which is what the departure gate reads.
+      expect(positioner.style.getPropertyValue("--kui-pin-fit"), "the marker the gate keys on").toBeTruthy();
+    });
+
+    it("the box does not move on the frame the flight releases — read in the strip's own microtask (§22, 2026-08-25)", async () => {
+      /**
+       * Edge-anchored, never polled (the 2026-08-20 rule: a premise that is a window is
+       * seized or edge-anchored). The flash lives between the release's synchronous strip and
+       * floating-ui's next re-solve — one frame — and a polling read sleeps through it on
+       * exactly the runner that matters. A MutationObserver fires in the strip's own
+       * microtask, before anything can repair the geometry it reads, so the pre-fix state
+       * (popup handed to a positioner whose top is the excess too high) is caught every run
+       * or none. Falsified: revert `fitPin` and this reads −191 against a rest of 5.
+       */
+      const { popup } = await openConstrainedUp();
+      const stripTop = new Promise<number>((resolve) => {
+        const mo = new MutationObserver(() => {
+          // The depart probe toggles the attribute and puts it back in one synchronous
+          // block, so by this microtask it is present again — only the real strip stays off.
+          if (popup.hasAttribute("data-unfurling")) return;
+          mo.disconnect();
+          resolve(popup.getBoundingClientRect().top);
+        });
+        mo.observe(popup, { attributes: true, attributeFilter: ["data-unfurling"] });
+      });
+      await departed(popup);
+      const atStrip = await stripTop;
+      // The rest position, watched to stillness rather than slept to (stillWidth's argument,
+      // one axis over).
+      let last = Number.NaN;
+      let steady = 0;
+      await until(() => {
+        const top = Math.round(popup.getBoundingClientRect().top);
+        steady = top === last ? steady + 1 : 0;
+        last = top;
+        return steady >= 2;
+      }, 3000);
+      const rest = popup.getBoundingClientRect().top;
+      expect(
+        Math.abs(atStrip - rest),
+        `the release must hand the popup to a positioner already at the truth: ${Math.round(atStrip)} at the strip against ${Math.round(rest)} at rest`,
+      ).toBeLessThan(8);
+    });
+
+    watchesFrames("the seed of a pin-corrected flight never leaves its trigger (§22, 2026-08-25)", async () => {
+      /**
+       * The correction makes floating-ui re-solve the positioner while the seed is showing,
+       * and the seed's translate was measured against the box BEFORE it moved — so without
+       * the glue observer (floating.tsx) the seed paints wherever the moved box leaves it,
+       * measured 651 for a trigger at 450, one frame at full opacity. The glue observer
+       * re-lays the offset in the same rendering update that moved the box, so no such frame
+       * can exist. Sampled per frame because the stale frame IS the subject; the premise
+       * (at least one aimed seed frame) fails honestly on a runner that slept through the
+       * window.
+       */
+      const { popup, trigger } = await openConstrainedUp();
+      const offsets: number[] = [];
+      const tick = () => {
+        if (popup.hasAttribute("data-seed")) {
+          if (popup.hasAttribute("data-aimed")) {
+            offsets.push(
+              Math.abs(popup.getBoundingClientRect().top - trigger.getBoundingClientRect().top),
+            );
+          }
+          requestAnimationFrame(tick);
+        }
+      };
+      requestAnimationFrame(tick);
+      await departed(popup);
+      if (!offsets.length) throw new Error("no aimed seed frame was sampled — the premise, not the claim");
+      expect(
+        Math.max(...offsets),
+        "an aimed seed painted away from the trigger it is the silhouette of",
+      ).toBeLessThan(8);
+    });
+  });
+
   it("the side it opens on is decided ONCE, not re-decided as it grows (§22)", async () => {
     /**
      * Kushagra: *"it opens and then as it animates it realises it must open on the other side,

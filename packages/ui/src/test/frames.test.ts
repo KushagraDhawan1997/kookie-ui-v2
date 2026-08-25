@@ -36,6 +36,11 @@ const RECORDED: Record<string, string> = {
     "`--kui-anchor-w`, which exists only while the flight does — the runner strips it at release.",
   "the entry moves neither the page nor the panel's own contents (§8, §22)":
     "the entry's opening frames, where the page offset is taken and given back.",
+  "the seed of a pin-corrected flight never leaves its trigger (§22, 2026-08-25)":
+    "the aimed SEED frames of a flight whose positioner pin was corrected — a stale glue can " +
+    "exist only between floating-ui's write and the paint it precedes, and the glue observer " +
+    "closes exactly that window, so the claim is about frames by construction. Its " +
+    "deterministic siblings (the clamped pin, the strip-microtask read) run on CI.",
 };
 
 /** The marker at a call site, with the law's title exactly as it is written. */
