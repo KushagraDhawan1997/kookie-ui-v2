@@ -911,12 +911,15 @@ describe("high contrast leans on the glass, it does not unmake it (§7, §10)", 
       ).not.toBe("none");
       // …and it is the SAME recipe, not a lesser one: the setting trades the edge, not this.
       expect(computed(high, "background-image")).toBe(computed(normal, "background-image"));
-      // The trade it does make, asserted beside it so "keeps its light" cannot quietly become
-      // "changes nothing": the veil thickens, and the edge becomes pigment.
+      // The ONE trade it makes, asserted beside it so "keeps its light" cannot quietly
+      // become "changes nothing": the veil thickens. (Until 2026-08-26 this clause also
+      // demanded a pigment boundary — the edge trade, deleted with its premise: the ring
+      // carries pigment arcs since 2026-08-24 and is the boundary at every contrast, so
+      // the border stays absent under HC exactly as at rest.)
       expect(computed(high, "background-color"), "the veil never thickened").not.toBe(
         computed(normal, "background-color"),
       );
-      expect(computed(high, "border-top-color"), "no pigment boundary arrived").not.toBe(
+      expect(computed(high, "border-top-color"), "the pigment substitute is back").toBe(
         "rgba(0, 0, 0, 0)",
       );
     });
@@ -1487,29 +1490,44 @@ describe("the render escape stays inside the pane scope (§5, §10 — audit 202
   });
 });
 
-describe("contrast=high reaches a GLASS pane — pigment replaces the ring (§7, §10, 2026-08-19)", () => {
-  it.each(APPEARANCES)("%s: the HC glass edge is the tone hairline, and the ring yields", (appearance) => {
-    // Measured 2026-08-18: an HC glass card had border rgba(0,0,0,0), the conic ring
-    // painting byte-identical to standard, and 1.000:1 edge contrast on every side — the
-    // fallback the sheet's comment relied on was unreachable. The repair is two halves,
-    // read together here: the element-scoped HC arm hands the pane var(--tone-border) where
-    // the tone resolves, and --material-ring-opacity: 0 stands the light edge down.
+describe("contrast=high leaves a GLASS pane's light alone — only the veil moves (§10, 2026-08-26)", () => {
+  it.each(APPEARANCES)("%s: the ring stays lit, the border stays absent, the veil seals", (appearance) => {
+    // REVERSED 2026-08-26 (Kushagra: "None of normal contrast appearance reduces contrast.
+    // We increased veil, why should there any other difference"). This law used to assert
+    // the edge trade — border → tone hairline, ring ::after → opacity 0 — whose premise
+    // ("the ring is white, 1.000:1 on every side", audit 2026-08-18) died on 2026-08-24
+    // when the ring took pigment through its shade arc and the visibility law made it a
+    // boundary in both modes. Deleting the light was the rim's own 2026-08-20 mistake one
+    // part over. What high contrast now does to a pane is exactly one thing: the veil
+    // takes the alphaHigh floor, asserted here as the painted fill's alpha rising.
     const at = (contrast: "normal" | "high") =>
       mounted(<Card backdrop>B</Card>, {
         theme: { material: "regular", appearance, contrast },
         select: ".kui-surface",
       });
+    const alphaOf = (v: string): number => {
+      const slash = /\/\s*([\d.]+)\s*\)/.exec(v);
+      if (slash) return parseFloat(slash[1]!);
+      const comma = /^rgba\((?:[^,]+,){3}\s*([\d.]+)\)/.exec(v);
+      if (comma) return parseFloat(comma[1]!);
+      return 1;
+    };
     const normal = at("normal");
-    expect(computed(normal, "border-top-color"), "standard glass stays borderless").toBe(
-      "rgba(0, 0, 0, 0)",
-    );
-    expect(getComputedStyle(normal, "::after").opacity).toBe("1");
     const high = at("high");
-    expect(computed(high, "border-top-color"), "HC must draw a pigment edge").not.toBe(
-      "rgba(0, 0, 0, 0)",
+    for (const [label, el] of [["normal", normal], ["high", high]] as const) {
+      expect(computed(el, "border-top-color"), `${label}: glass stays borderless`).toBe(
+        "rgba(0, 0, 0, 0)",
+      );
+      expect(getComputedStyle(el, "::after").opacity, `${label}: the ring is lit`).toBe("1");
+    }
+    // The ring's painted layer is byte-identical across contrasts — no other difference.
+    expect(getComputedStyle(high, "::after").backgroundImage).toBe(
+      getComputedStyle(normal, "::after").backgroundImage,
     );
-    expect(computed(high, "border-top-color")).toBe(tokenOn(high, "--tone-border"));
-    expect(getComputedStyle(high, "::after").opacity, "the ring must yield to pigment").toBe("0");
+    const sealed = alphaOf(computed(high, "background-color"));
+    const rest = alphaOf(computed(normal, "background-color"));
+    expect(sealed, `${appearance}: the veil never took the floor`).toBeGreaterThan(rest + 0.05);
+    expect(sealed, `${appearance}: the floor unmade the glass`).toBeLessThan(1);
   });
 });
 

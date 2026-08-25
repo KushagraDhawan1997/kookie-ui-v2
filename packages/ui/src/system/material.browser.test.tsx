@@ -169,8 +169,11 @@ describe("a glass pane's ring draws a boundary on the ground it sits on (§10)",
  *
  * Falsified 2026-08-24: (a) with the hook's two setProperty calls removed, the presence law
  * fails on opacity 0 and an empty mask in all four cells; (b) with the ring-opacity factor
- * dropped from the ::before calc, the HC law fails on opacity 1; (c) with recipes.css's
- * ::after re-pointed back to the pane ring, the dark-control law fails byte-equal.
+ * dropped from the ::before calc, the then-HC law failed on opacity 1 — that law asserted
+ * the band DIES under contrast=high and is REVERSED 2026-08-26 (the edge trade is deleted;
+ * the band now stays lit and the law reads equality across contrasts); (c) with
+ * recipes.css's ::after re-pointed back to the pane ring, the dark-control law fails
+ * byte-equal.
  */
 describe("the glint band exists, wears the mode's ring, and stands down with it (§10)", () => {
   for (const appearance of APPEARANCES) {
@@ -202,14 +205,27 @@ describe("the glint band exists, wears the mode's ring, and stands down with it 
       expect(card.style.getPropertyValue("--kui-glint")).toBe("");
     });
 
-    it(`${appearance}: high contrast stands the band down through the ring's own lever`, () => {
-      const card = mounted(<Card backdrop>pane</Card>, {
-        theme: { appearance, material: "regular", contrast: "high" },
-      });
-      // The pigment edge takes over under HC and the ring dies with it (--material-ring-opacity
-      // is 0 there); the band must die through the SAME lever, or the accessibility surface
-      // gains a decorative light no setting can remove.
-      expect(Number(getComputedStyle(card, "::before").opacity), "the band survived contrast=high").toBe(0);
+    it(`${appearance}: high contrast leaves the band LIT — the ring's lever never moves (2026-08-26)`, () => {
+      // REVERSED 2026-08-26 (Kushagra: "None of normal contrast appearance reduces
+      // contrast. We increased veil, why should there any other difference"). This law used
+      // to assert the band dies under HC through --material-ring-opacity: 0 — the edge
+      // trade, deleted with its premise (the ring carries pigment arcs since 2026-08-24 and
+      // is a boundary in both modes; light inside the pane cannot lower any contrast). The
+      // band still rides the ring's lever — one shared factor — so this reads EQUALITY with
+      // the standard band, which is what catches any HC arm quietly touching the lever again.
+      const at = (contrast: "normal" | "high") =>
+        mounted(<Card backdrop>pane</Card>, {
+          theme: { appearance, material: "regular", contrast },
+        });
+      const normal = at("normal");
+      const high = at("high");
+      expect(
+        Number(getComputedStyle(high, "::before").opacity),
+        "the band died under contrast=high — the deleted trade is back",
+      ).toBeGreaterThan(0.5);
+      expect(getComputedStyle(high, "::before").opacity).toBe(
+        getComputedStyle(normal, "::before").opacity,
+      );
     });
   }
 });

@@ -1111,13 +1111,13 @@
        belonged. */
     /* The edge is the RING (lab port 2026-08-17): a 1px conic light painted by the ::after
        rule below, not a pigment hairline — the border stands down so the ring is the only
-       edge. Under contrast="high" the ring stands down instead (--material-ring-opacity: 0)
-       and the generated HC arm declares --kui-glass-hc-edge: var(--tone-border) ON this
-       element — the one scope where the tone resolves — so the conformance surface gets a
-       pigment hairline back. (The earlier sentence here claimed the -edge token survived
-       for HC to fall back to; measured 2026-08-18, that chain was unreachable and an HC
-       glass pane drew no edge at all — 1.000:1 on every side.) */
-    --kui-border-color: var(--kui-glass-hc-edge, transparent);
+       edge, at EVERY contrast. The HC trade (ring zeroed, --kui-glass-hc-edge handing
+       pigment back) lived here 2026-08-19 → 2026-08-26 and is deleted: its premise ("the
+       ring is white, 1.000:1 on every side", audit 2026-08-18) died on 2026-08-24 when the
+       ring took pigment through its shade arc and a mounted law made it VISIBLE against
+       the page — high contrast's one glass lever is the veil (Kushagra: "we increased
+       veil, why should there any other difference"). */
+    --kui-border-color: transparent;
     --kui-sf-pool: var(--kui-surface-pool, 0 0 0 0 transparent);
 
 
@@ -1131,13 +1131,13 @@
     /* Edge, rim and transmitted cast — see the thin block (§10). */
     /* The edge is the RING (lab port 2026-08-17): a 1px conic light painted by the ::after
        rule below, not a pigment hairline — the border stands down so the ring is the only
-       edge. Under contrast="high" the ring stands down instead (--material-ring-opacity: 0)
-       and the generated HC arm declares --kui-glass-hc-edge: var(--tone-border) ON this
-       element — the one scope where the tone resolves — so the conformance surface gets a
-       pigment hairline back. (The earlier sentence here claimed the -edge token survived
-       for HC to fall back to; measured 2026-08-18, that chain was unreachable and an HC
-       glass pane drew no edge at all — 1.000:1 on every side.) */
-    --kui-border-color: var(--kui-glass-hc-edge, transparent);
+       edge, at EVERY contrast. The HC trade (ring zeroed, --kui-glass-hc-edge handing
+       pigment back) lived here 2026-08-19 → 2026-08-26 and is deleted: its premise ("the
+       ring is white, 1.000:1 on every side", audit 2026-08-18) died on 2026-08-24 when the
+       ring took pigment through its shade arc and a mounted law made it VISIBLE against
+       the page — high contrast's one glass lever is the veil (Kushagra: "we increased
+       veil, why should there any other difference"). */
+    --kui-border-color: transparent;
     --kui-sf-pool: var(--kui-surface-pool, 0 0 0 0 transparent);
     --kui-sf-cast: var(--kui-surface-chrome-regular, none);
   }
@@ -1149,13 +1149,13 @@
     /* Edge, rim and transmitted cast — see the thin block (§10). */
     /* The edge is the RING (lab port 2026-08-17): a 1px conic light painted by the ::after
        rule below, not a pigment hairline — the border stands down so the ring is the only
-       edge. Under contrast="high" the ring stands down instead (--material-ring-opacity: 0)
-       and the generated HC arm declares --kui-glass-hc-edge: var(--tone-border) ON this
-       element — the one scope where the tone resolves — so the conformance surface gets a
-       pigment hairline back. (The earlier sentence here claimed the -edge token survived
-       for HC to fall back to; measured 2026-08-18, that chain was unreachable and an HC
-       glass pane drew no edge at all — 1.000:1 on every side.) */
-    --kui-border-color: var(--kui-glass-hc-edge, transparent);
+       edge, at EVERY contrast. The HC trade (ring zeroed, --kui-glass-hc-edge handing
+       pigment back) lived here 2026-08-19 → 2026-08-26 and is deleted: its premise ("the
+       ring is white, 1.000:1 on every side", audit 2026-08-18) died on 2026-08-24 when the
+       ring took pigment through its shade arc and a mounted law made it VISIBLE against
+       the page — high contrast's one glass lever is the veil (Kushagra: "we increased
+       veil, why should there any other difference"). */
+    --kui-border-color: transparent;
     --kui-sf-pool: var(--kui-surface-pool, 0 0 0 0 transparent);
     --kui-sf-cast: var(--kui-surface-chrome-thick, none);
   }

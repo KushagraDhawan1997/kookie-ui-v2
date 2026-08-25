@@ -3364,29 +3364,20 @@
   --material-thin-alpha: 72%;
   --material-thin-alpha-hover: 77%;
   --material-thin-alpha-active: 82%;
-  --material-thin-edge: initial;
   --material-thin-control-alpha: 68%;
   --material-regular-alpha: 80%;
   --material-regular-alpha-hover: 84%;
   --material-regular-alpha-active: 88%;
-  --material-regular-edge: initial;
   --material-regular-control-alpha: 79%;
   --material-thick-alpha: 86%;
   --material-thick-alpha-hover: 89%;
   --material-thick-alpha-active: 92%;
-  --material-thick-edge: initial;
   --material-thick-control-alpha: 87%;
   --surface-edge: initial;
   --dress-field-edge: initial;
   --dress-mark-edge: initial;
-  --material-ring-opacity: 0;
   --scrim-fill: rgb(0 0 0 / 0.62);
   --scrim-filter: initial;
-}
-:root[data-contrast="high"] [data-material], [data-appearance="light"][data-contrast="high"] [data-material] {
-  --kui-glass-hc-edge: var(--tone-border);
-  --kui-ct-glass-glint: initial;
-  --kui-ct-glass-ring: initial;
 }
 @media (prefers-contrast: more) {
   :root:not([data-contrast="normal"]), [data-appearance="light"]:not([data-contrast="normal"]) {
@@ -3477,29 +3468,20 @@
     --material-thin-alpha: 72%;
     --material-thin-alpha-hover: 77%;
     --material-thin-alpha-active: 82%;
-    --material-thin-edge: initial;
     --material-thin-control-alpha: 68%;
     --material-regular-alpha: 80%;
     --material-regular-alpha-hover: 84%;
     --material-regular-alpha-active: 88%;
-    --material-regular-edge: initial;
     --material-regular-control-alpha: 79%;
     --material-thick-alpha: 86%;
     --material-thick-alpha-hover: 89%;
     --material-thick-alpha-active: 92%;
-    --material-thick-edge: initial;
     --material-thick-control-alpha: 87%;
     --surface-edge: initial;
     --dress-field-edge: initial;
     --dress-mark-edge: initial;
-    --material-ring-opacity: 0;
     --scrim-fill: rgb(0 0 0 / 0.62);
     --scrim-filter: initial;
-  }
-  :root:not([data-contrast="normal"]) [data-material], [data-appearance="light"]:not([data-contrast="normal"]) [data-material] {
-    --kui-glass-hc-edge: var(--tone-border);
-    --kui-ct-glass-glint: initial;
-    --kui-ct-glass-ring: initial;
   }
 }
 
@@ -3591,32 +3573,23 @@
   --material-thin-alpha: 76%;
   --material-thin-alpha-hover: 80%;
   --material-thin-alpha-active: 84%;
-  --material-thin-edge: initial;
   --material-thin-control-alpha: 72%;
   --material-regular-alpha: 84%;
   --material-regular-alpha-hover: 87%;
   --material-regular-alpha-active: 90%;
-  --material-regular-edge: initial;
   --material-regular-control-alpha: 77%;
   --material-thick-alpha: 90%;
   --material-thick-alpha-hover: 92%;
   --material-thick-alpha-active: 94%;
-  --material-thick-edge: initial;
   --material-thick-control-alpha: 84%;
   --surface-edge: initial;
   --dress-field-edge: initial;
   --dress-mark-edge: initial;
-  --material-ring-opacity: 0;
   --material-thin-alpha-floating: 76%;
   --material-regular-alpha-floating: 84%;
   --material-thick-alpha-floating: 90%;
   --scrim-fill: rgb(0 0 0 / 0.75);
   --scrim-filter: initial;
-}
-[data-appearance="dark"][data-contrast="high"] [data-material] {
-  --kui-glass-hc-edge: var(--tone-border);
-  --kui-ct-glass-glint: initial;
-  --kui-ct-glass-ring: initial;
 }
 @media (prefers-contrast: more) {
   [data-appearance="dark"]:not([data-contrast="normal"]) {
@@ -3707,32 +3680,23 @@
     --material-thin-alpha: 76%;
     --material-thin-alpha-hover: 80%;
     --material-thin-alpha-active: 84%;
-    --material-thin-edge: initial;
     --material-thin-control-alpha: 72%;
     --material-regular-alpha: 84%;
     --material-regular-alpha-hover: 87%;
     --material-regular-alpha-active: 90%;
-    --material-regular-edge: initial;
     --material-regular-control-alpha: 77%;
     --material-thick-alpha: 90%;
     --material-thick-alpha-hover: 92%;
     --material-thick-alpha-active: 94%;
-    --material-thick-edge: initial;
     --material-thick-control-alpha: 84%;
     --surface-edge: initial;
     --dress-field-edge: initial;
     --dress-mark-edge: initial;
-    --material-ring-opacity: 0;
     --material-thin-alpha-floating: 76%;
     --material-regular-alpha-floating: 84%;
     --material-thick-alpha-floating: 90%;
     --scrim-fill: rgb(0 0 0 / 0.75);
     --scrim-filter: initial;
-  }
-  [data-appearance="dark"]:not([data-contrast="normal"]) [data-material] {
-    --kui-glass-hc-edge: var(--tone-border);
-    --kui-ct-glass-glint: initial;
-    --kui-ct-glass-ring: initial;
   }
 }
 

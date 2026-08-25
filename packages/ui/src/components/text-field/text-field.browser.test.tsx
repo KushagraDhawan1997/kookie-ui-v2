@@ -593,16 +593,30 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     expect(computed(disabled, "background-image")).not.toContain("conic-gradient");
   });
 
-  it("contrast=high trades the field's ring for the tone hairline — the panes' own HC deal", () => {
-    // The generated HC arm lands on every element carrying [data-material]: it declares
-    // --kui-glass-hc-edge (the pigment boundary back) and stands --kui-ct-glass-ring down —
-    // one declaration set for "a glass element's edge becomes a boundary again". A ring is
-    // light, and light cannot be strengthened; a user asking for high contrast is asking
-    // for pigment (audit 2026-08-18, the panes' finding, now the fields' too).
-    const el = mounted(<TextField backdrop />, { theme: { material: "thin", contrast: "high" } });
-    expect(computed(el, "border-top-color")).toBe(colorOn(el, "var(--tone-border)"));
-    expect(computed(el, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
-    expect(computed(el, "background-image")).not.toContain("conic-gradient");
+  it("contrast=high leaves the field's glass light alone — the trade is deleted (2026-08-26)", () => {
+    // REVERSED 2026-08-26 (Kushagra: "None of normal contrast appearance reduces contrast.
+    // We increased veil, why should there any other difference"). The HC arm this law used
+    // to assert (--kui-glass-hc-edge handing pigment back, --kui-ct-glass-ring stood down)
+    // is deleted with its premise: since 2026-08-24 the ring carries pigment arcs and IS a
+    // boundary, so replacing light with a flat hairline deleted information — the rim's
+    // 2026-08-20 sentence one part over. A glass field under high contrast wears exactly
+    // what it wears in standard, on a more sealed veil; the STATE arms above keep their
+    // ring stand-down, because a state is a signal and outranks dress at every contrast.
+    const at = (contrast: "normal" | "high") =>
+      mounted(<TextField backdrop />, { theme: { material: "thin", contrast } });
+    const normal = at("normal");
+    const high = at("high");
+    // The border is identical at both contrasts — in the border-area engine that is
+    // transparent outright (the ring is the edge), and the pigment substitute never arrives.
+    expect(computed(high, "border-top-color")).toBe(computed(normal, "border-top-color"));
+    expect(computed(high, "border-top-color"), "the pigment substitute is back").not.toBe(
+      colorOn(high, "var(--tone-border)"),
+    );
+    // The background-layer ring paints under HC exactly as in standard.
+    expect(computed(high, "background-image"), "the field's ring must stay lit").toContain(
+      "conic-gradient",
+    );
+    expect(computed(high, "background-image")).toBe(computed(normal, "background-image"));
   });
 
   it.each(GLASS_MATERIALS)(

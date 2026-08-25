@@ -1650,10 +1650,11 @@
      spelling is an ::after and a <textarea> — like every form control — renders no generated
      content (measured: the pseudo computes but never paints). `background-clip: border-area`
      paints a background layer in exactly the border band, corners and squircle included, ON
-     the element itself — so inside this guard the border goes transparent through the SAME
-     HC hop the panes use (--kui-glass-hc-edge arrives on every [data-material] element under
-     contrast="high" and brings the pigment boundary back, with the ring var stood down in
-     the same generated arm), and the ring joins the background stack above the rim. Outside
+     the element itself — so inside this guard the border goes transparent outright and the
+     ring joins the background stack above the rim. (2026-08-19 → 2026-08-26 the transparent
+     arrived through --kui-glass-hc-edge, the HC hop that traded the ring for a pigment
+     hairline; that trade is DELETED — the ring carries pigment arcs since 2026-08-24 and is
+     the boundary at every contrast, and high contrast's one glass lever is the veil.) Outside
      the guard the flat edge stands: older engines keep today's hairline, which is the honest
      fallback — a wash of conic across the whole field is not.
 
@@ -1664,7 +1665,7 @@
   @supports (background-clip: border-area) {
     .kui-field:where([data-material="thin"]),
     .kui-textarea:where([data-material="thin"]) {
-      --kui-ct-glass-edge: var(--kui-glass-hc-edge, transparent);
+      --kui-ct-glass-edge: transparent;
       --kui-ct-glass-ring: var(--material-thin-ring-control);
       --kui-ct-glass-glint: var(--material-thin-glint-control);
       background-image: var(--kui-ct-glass-ring, none), var(--material-thin-rim-control, none), var(--kui-ct-light, none);
@@ -1672,7 +1673,7 @@
     }
     .kui-field:where([data-material="regular"]),
     .kui-textarea:where([data-material="regular"]) {
-      --kui-ct-glass-edge: var(--kui-glass-hc-edge, transparent);
+      --kui-ct-glass-edge: transparent;
       --kui-ct-glass-ring: var(--material-regular-ring-control);
       --kui-ct-glass-glint: var(--material-regular-glint-control);
       background-image: var(--kui-ct-glass-ring, none), var(--material-regular-rim-control, none), var(--kui-ct-light, none);
@@ -1680,7 +1681,7 @@
     }
     .kui-field:where([data-material="thick"]),
     .kui-textarea:where([data-material="thick"]) {
-      --kui-ct-glass-edge: var(--kui-glass-hc-edge, transparent);
+      --kui-ct-glass-edge: transparent;
       --kui-ct-glass-ring: var(--material-thick-ring-control);
       --kui-ct-glass-glint: var(--material-thick-glint-control);
       background-image: var(--kui-ct-glass-ring, none), var(--material-thick-rim-control, none), var(--kui-ct-light, none);

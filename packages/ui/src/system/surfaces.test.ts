@@ -433,8 +433,16 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
     // The argument for keeping it is not aesthetic. The rim is a gradient painted INSIDE the
     // pane (grain, bloom, sheen, consumed as --kui-sf-light), so it cannot lower the contrast
     // of anything; emptying it only removes the cue that the pane is a physical thing
-    // catching light. What the setting still trades is the EDGE — the ring is white and
-    // vanishes over a bright backdrop, so pigment replaces it, one line and not two.
+    // catching light.
+    //
+    // AND SINCE 2026-08-26 THE SAME SENTENCE COVERS THE RING AND THE CONTROL HAIRLINE: the
+    // edge trade this clause used to hold ("one line, not two" — ring zeroed, pigment
+    // handed back) is deleted, because its premise died on 2026-08-24 when the ring took
+    // pigment through its shade arc and became a boundary the visibility law holds in both
+    // modes. Kushagra: "None of normal contrast appearance reduces contrast. We increased
+    // veil, why should there any other difference." High contrast's one glass lever is the
+    // veil, so this law now sweeps EVERY light part: nothing glass-lit may be emptied by
+    // the conformance surface.
     expect(tokens, "the rim is emptied again — the 2026-08-20 reversal is undone").not.toContain(
       "--material-thin-rim: initial",
     );
@@ -442,9 +450,12 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
     expect(tokens).not.toContain("--material-thick-rim: initial");
     // The lifted variant stays dead: this is the resting rim surviving, not the glint back.
     expect(tokens).not.toContain("rim-lifted");
-    // And the edge trade is still made, or "one line, not two" has quietly become none.
-    for (const t of GLASS_MATERIALS) expect(tokens).toContain(`--material-${t}-edge: initial`);
-    expect(tokens).toContain("--material-ring-opacity: 0");
+    // The ring stays lit and the control hairline stays translucent — the 2026-08-26
+    // deletion, held from this side too (tokens.test.ts holds the emitted-scope side).
+    for (const t of GLASS_MATERIALS) expect(tokens).not.toContain(`--material-${t}-edge: initial`);
+    // The semicolon is load-bearing: the standard value is a real decimal (0.35-ish), and
+    // "…: 0" without it is a prefix of "…: 0.35".
+    expect(tokens).not.toContain("--material-ring-opacity: 0;");
   });
 
   it("the palette's only stylesheet consumers are the world chrome roles", () => {

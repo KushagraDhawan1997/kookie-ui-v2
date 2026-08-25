@@ -1484,34 +1484,32 @@ describe("the look axis is DELETED; the dress and the surface edge survive it (�
     }
   });
 
-  it("contrast=high stands the glass ring down beside the pigment edges", () => {
-    // The pigment stand-downs are asserted in the surface-edge law above; the glass pane's
-    // light edge yields to pigment the same way — the ring stands down, and the
-    // element-scoped arm (asserted in its own law below) hands the pane --tone-border.
+  it("contrast=high leaves the glass ring LIT — the edge trade is deleted (2026-08-26)", () => {
+    // The trade (ring-opacity zeroed, a pigment hairline handed to every pane through an
+    // element-scoped --kui-glass-hc-edge arm) lived 2026-08-19 → 2026-08-26. Its premise —
+    // "the ring is white, 1.000:1 on every side" (audit 2026-08-18) — died on 2026-08-24
+    // when the ring took pigment through its shade arc and the visibility law made it a
+    // boundary in both modes. Kushagra: "None of normal contrast appearance reduces
+    // contrast. We increased veil, why should there any other difference." So high
+    // contrast's ONE glass lever is the veil, and this law holds the deletion in both
+    // directions: no HC scope re-declares the ring's opacity (the standard value carries),
+    // and the substitute-edge arm is gone from the emitted CSS and from the sheet that
+    // consumed it. Falsified by restoring either half of the trade in the generator.
     for (const scope of [
       ':root[data-contrast="high"], [data-appearance="light"][data-contrast="high"]',
       '[data-appearance="dark"][data-contrast="high"]',
     ]) {
-      expect(block(scope), `${scope}/ring`).toContain("--material-ring-opacity: 0;");
+      expect(block(scope), `${scope}/ring`).not.toContain("--material-ring-opacity");
+      expect(block(scope), `${scope}/control-edge`).not.toContain("--material-thin-edge: initial;");
     }
-  });
-
-  it("contrast=high reaches a GLASS pane's edge — the ring yields and pigment arrives at the element", () => {
-    // The 2026-08-18 audit measured an HC glass card at 1.000:1 on every side: the border was
-    // a literal `transparent`, the conic ring painted unchanged, and the fallback the sheet's
-    // comment relied on was unreachable. The repair is two halves and both are asserted: the
-    // ring opacity zeroes in the HC scopes (above), and an ELEMENT-scoped arm declares the
-    // hairline where the tone can resolve — a scope-level colour could never do that (§6).
-    for (const form of [
-      ':root[data-contrast="high"] [data-material], [data-appearance="light"][data-contrast="high"] [data-material]',
-      '[data-appearance="dark"][data-contrast="high"] [data-material]',
-    ]) {
-      expect(block(form), form).toContain("--kui-glass-hc-edge: var(--tone-border);");
-    }
-    // The consumption site: every glass thickness block's border consults the HC arm first.
+    expect(css, "the substitute-edge arm is gone").not.toContain("--kui-glass-hc-edge");
+    // Calibration: the ring opacity still EXISTS as a standard token, or the assertion
+    // above is about a name that no longer means anything.
+    expect(css).toContain("--material-ring-opacity:");
     const surfacesSheet = sheet("system/surfaces.css");
-    const hits = surfacesSheet.match(/--kui-border-color: var\(--kui-glass-hc-edge, transparent\);/g) ?? [];
-    expect(hits.length, "the three thickness blocks consume the HC edge").toBeGreaterThanOrEqual(3);
+    expect(surfacesSheet, "the sheet no longer consults the dead arm").not.toMatch(
+      /var\(--kui-glass-hc-edge/,
+    );
   });
 
   it("dark's floating veil is reachable by contrast=high — its alpha is a token, not a literal", () => {

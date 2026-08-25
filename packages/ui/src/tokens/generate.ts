@@ -442,9 +442,9 @@ export function generateTokens(): string {
       // because Theme co-locates data-appearance and data-contrast on one element (§5, §7).
       const bases = mode === "light" ? [":root", `[data-appearance="light"]`] : [`[data-appearance="dark"]`];
       const decls = [...contrastHighDeclarations(mode, gamut)];
-      /** Stand-downs that must land on the element a LOOK block writes to, not on the element
-          data-contrast sits on — see the note at the push site below. */
-      const scopedHigh: { attr: string; decls: string[] }[] = [];
+      // (The element-scoped `scopedHigh` arm mechanism lived here 2026-08-19 → 2026-08-26,
+      // carrying the glass edge trade; the trade died with its premise and the mechanism
+      // went with its last consumer — a mechanism with no consumer is entropy.)
       // High contrast leans on the glass, it does not unmake it (§7, §10, 2026-08-05):
       // each thickness takes its own designed alphaHigh triple — MORE opaque, never fully,
       // so the ladder keeps three distinct thicknesses. Emptying edge and rim sends the
@@ -455,9 +455,6 @@ export function generateTokens(): string {
         for (const t of ["thin", "regular", "thick"] as const) {
           decls.push(
             ...materialAlpha(t, material[mode][t].alphaHigh),
-            // The CONTROL's translucent hairline still stands down (recipes.css reads this
-            // name for a glass button, with a var(--tone-border) fallback at the element).
-            decl(`material-${t}-edge`, "initial"),
             // THE RIM STAYS (2026-08-20, Kushagra: high contrast made glass look "cheap and
             // incorrect… it's not taste"). It used to be emptied here, and the reason was
             // written beside it: "or high contrast would resurrect the glint it just
@@ -471,11 +468,17 @@ export function generateTokens(): string {
             // that the pane is a physical thing catching light. An accessibility setting
             // that removes information is wrong in its own terms, not merely to taste.
             //
-            // What high contrast still trades on a pane is the EDGE, and that trade is
-            // real: the ring is white, so over a bright backdrop it disappears exactly as
-            // the veil does (measured 1.00 against a pale sky at any opacity), and a ring
-            // plus a pigment border is two lines one pixel apart — the "why am I seeing
-            // this thicker top border" defect of 2026-08-07. One line, made of pigment.
+            // AND SINCE 2026-08-26 NOTHING ELSE TRADES (Kushagra: "None of normal contrast
+            // appearance reduces contrast. We increased veil, why should there any other
+            // difference"). The edge trade — ring-opacity zeroed, the control hairline
+            // stood down, a pigment border handed to every pane — is DELETED whole. Its
+            // premise ("the ring is white… 1.000:1 on every side", audit 2026-08-18) died
+            // on 2026-08-24 when the ring model was corrected: light keeps its catch and
+            // takes pigment through the shade arc and flanks, and a mounted law holds the
+            // ring VISIBLE against the page in both modes. A boundary the setting can
+            // trust already paints at rest; replacing light with a flat hairline was
+            // deleting information, the rim's own 2026-08-20 sentence one part over.
+            // High contrast's one glass lever is the VEIL.
             //
             // THE CONTROL-SCALE VEIL TAKES THE SAME FLOOR (2026-08-26, Kushagra from the
             // preview's hostile bed: "glass is also broken in HC in controls"). alphaHigh
@@ -509,26 +512,11 @@ export function generateTokens(): string {
           decl("dress-field-edge", "initial"),
           decl("dress-mark-edge", "initial"),
         );
-        // A glass pane's only edge is the conic RING — light, not pigment, so it cannot be
-        // strengthened; a user asking for high contrast is asking for a pigment boundary
-        // (audit 2026-08-18: HC reached a glass pane's edge with exactly zero effect —
-        // border a literal transparent, ring painting unchanged, 1.000:1 on every side).
-        // The ring stands down and the pane's border chain picks up --tone-border through
-        // the element-scoped arm below.
-        decls.push(decl("material-ring-opacity", "0"));
-        scopedHigh.push({
-          attr: "data-material",
-          decls: [
-            decl("kui-glass-hc-edge", "var(--tone-border)"),
-            decl("kui-ct-glass-glint", "initial"),
-            // The field family's background-layer ring (2026-08-24) cannot take the panes'
-            // ring-opacity — opacity is per-element and this ring is one layer of the
-            // element's own background — so the SAME arm that hands the pigment edge back
-            // stands the ring var down: one HC declaration set for "a glass element's edge
-            // becomes a boundary again".
-            decl("kui-ct-glass-ring", "initial"),
-          ],
-        });
+        // No ring stand-down and no pigment substitute here — deleted 2026-08-26, see the
+        // veil comment above. The specular ring, the glint band and the control hairline
+        // all paint under high contrast exactly as they do in standard: they are light
+        // INSIDE the pane and cannot lower any boundary's contrast, and since 2026-08-24
+        // the ring itself carries the pigment arcs that make it a boundary.
         // Dark floating panes take the same defence as in-flow glass under HC (see the
         // --material-*-alpha-floating emission).
         if (mode === "dark") {
@@ -577,27 +565,15 @@ export function generateTokens(): string {
       // base. BOTH forms are needed and neither replaces the other — the block above still
       // covers the co-located case, where these descendant selectors do not match the element
       // itself.
-      const scoped = scopedHigh.flatMap(({ attr, decls: d }) => [
-        `${bases.map((b) => `${b}[data-contrast="high"] [${attr}]`).join(", ")} {`,
-        ...d,
-        "}",
-      ]);
-      const scopedAuto = scopedHigh.flatMap(({ attr, decls: d }) => [
-        `  ${bases.map((b) => `${b}:not([data-contrast="normal"]) [${attr}]`).join(", ")} {`,
-        ...indent(d),
-        "  }",
-      ]);
       lines.push(
         ...wrap([
           `${high} {`,
           ...decls,
           "}",
-          ...scoped,
           `@media (prefers-contrast: more) {`,
           `  ${auto} {`,
           ...indent(decls),
           "  }",
-          ...scopedAuto,
           "}",
         ]),
         "",
