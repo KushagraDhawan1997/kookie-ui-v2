@@ -34,6 +34,56 @@ tells a reader what to do with it.
 **Never put a date, a version or a decision history in a blurb.** A reader has not seen an
 earlier version. `docs/LOG.md` holds that.
 
+## The register: write to a reader, not to the team
+
+This is the rule the whole document broke, and no test can catch it. Every sentence below is
+grammatical, short and active. Every one is also unreadable to a person who did not build the
+system. The fault is register, not grammar.
+
+**1. Do not write a verdict.** A sentence that sounds like a conclusion is not teaching.
+
+- Wrong: "A scale with an escape stops being a scale."
+- Right: "There is no `size="2.5"`. If one call site could invent a value, the scale would no
+  longer hold across the app."
+
+**2. Do not write a riddle.** If a phrase only makes sense once you already know the answer,
+cut it.
+
+- Wrong: "A mark's target grows to the container it never had."
+- Right: "A checkbox is small, so its tappable area extends past the box you can see, out to
+  the size a Button of the same size would occupy."
+- Wrong: "Code refuses from the other side."
+- Right: "`Code` does the opposite: its `size` is optional."
+
+**3. Do not equate two abstractions.** "X is Y" teaches nothing when the reader knows neither.
+
+- Wrong: "The mark ladder is the line box."
+- Right: "A checkbox is exactly as tall as one line of the text beside it."
+
+**4. Do not let components act like people.** Components do not read, refuse, own, leave,
+keep, take a rule or answer a question.
+
+- Wrong: "The height ladder is the geometry of a container, so these four leave it."
+- Right: "A checkbox has no text inside it, so it does not use the control height. It uses its
+  own set of sizes."
+
+**5. Name a thing the first time you use it.** "the reading ramp", "the handheld type band",
+"a designed set", "a cell", "one shared ladder" — a reader has met none of these. Either
+explain the term in the sentence that introduces it, or use a plain word.
+
+**6. Write to "you".** These pages are instructions. Apple writes "Use a slider when you want
+people to choose a value from a range." Write the same way. Do not write "one", "a call site"
+or "the reader" where you mean the person reading.
+
+**7. Open with what the thing does, not with what it is not.**
+
+- Wrong: "`size` is an index into a designed set, not a length."
+- Right: "`size` picks a step, not a measurement. `size="2"` means the second step on a
+  scale, and the theme decides what that step is worth."
+
+**The test.** Read the paragraph out loud to somebody who has not used this library. If you
+have to add a sentence of explanation as you read, the paragraph is not finished.
+
 ## Language: Simplified Technical English
 
 These pages follow ASD-STE100. Apply these rules to every sentence.
