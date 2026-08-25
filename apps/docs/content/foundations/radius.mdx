@@ -1,10 +1,10 @@
-Radius is a `Theme` axis. One word sets the corner for the whole application. There are five
-levels, and `full` is the default. Each family derives its own corner from that word, so a
-control becomes a pill while the card holding it stays a card. No component takes a corner prop.
+One word on your Theme sets how round your whole app is. There are five settings and `full` is
+the default. Each kind of component works out its own corner from that word, so a button
+becomes a pill while the card holding it stays a card. No component takes a corner prop.
 
-## One word, five palettes
+## One word, five sets of values
 
-Set the level one time, on the `Theme`:
+Set it once, on the Theme:
 
 ```tsx
 <Theme radius="medium">
@@ -12,29 +12,26 @@ Set the level one time, on the `Theme`:
 </Theme>
 ```
 
-The levels are `none`, `small`, `medium`, `large` and `full`. `full` is the default. Pill
-controls and capsule rows are this system's resting appearance.
+The settings are `none`, `small`, `medium`, `large` and `full`, and `full` is what you get by
+default. Pill-shaped buttons and capsule rows are this system's normal look.
 
-Each level is a set of hand-picked values that the generator emits at build time. A level is
-not a multiplier over one scale.
+Each setting is a set of hand-picked values rather than a multiplier over one number, and
+`full` is the clearest reason why. CSS caps a corner at half the shorter side of the box. So
+one very large number gives a button a perfect pill and turns a dialog into a lozenge. No single
+factor produces both results. Hand-picked values do: at `full`, buttons get a true capsule and
+cards hold at the values `large` uses.
 
-A multiplier moves every step together, so you cannot correct one corner alone. `full` shows why
-this matters. CSS limits `border-radius` to half the smaller dimension. A very large number
-therefore gives a control a correct pill, and turns a dialog into a lozenge. One factor cannot
-produce both results. A set of hand-picked values can. At `full`, the control band uses a true
-capsule and the surface band holds at the values of `large`.
+The values get further apart as they get bigger, because your eye reads roundness that way. At
+the small end 2 pixels is a visible difference; at the large end 30 and 32 pixels on a card look
+identical. That curve is a judgment.
 
-The palette is geometric rather than even, because the eye reads radius non-linearly. The steps
-are close together at the small end and far apart at the large end, where 30 pixels and 32
-pixels on a card look the same. That curve is a judgment.
+Why one word instead of a prop per component: in an app where one card is rounder than the next,
+the corner tells you nothing. Roundness only reads as a property of the product when no
+individual screen can change it.
 
-One word rather than one prop per component: in a system where one card is rounder than the
-next, the corner tells you nothing. A corner reads as a property of the product only when nothing
-local can change it.
+## Ask for the family, not the number
 
-## Reference the family, never the number
-
-There are five families and five bands.
+There are five families, each with its own set of values.
 
 ```css
 --radius-control-2   /* a size-2 button, field or select trigger */
@@ -44,62 +41,61 @@ There are five families and five bands.
 --radius-mark-2      /* a size-2 checkbox */
 ```
 
-Write `--radius-control-2` in a block you own. Do not write `--radius-2`. The numbers agree
-today. They stop agreeing when a scale is renumbered, and the wrong-family value is a shape
-error rather than a build error.
+In your own CSS, write `--radius-control-2` rather than `--radius-2`. The numbers happen to
+agree today. They will stop agreeing, and using the wrong family gives you a wrong shape rather
+than a build error.
 
-The bands use different indexes. Control radius belongs to the density set, because a control
-with more room reads square at a fixed corner. Surface radius and overlay radius follow the size
-index alone, because density reaches a card through its padding.
+The families are also indexed differently. Control corners follow density, because a control
+with more room inside it looks square at a fixed corner. Card and dialog corners follow only
+the size number, because density reaches a card through its padding instead.
 
-**A corner holds a near-constant fraction of the box it is drawn on.** That is why a mark and a
-row have bands of their own. A mark is not on the control height ladder, and a row's box is its
-text line plus one designed inset. A family that reads another family's band gets a corner
-computed against a box it does not have. The result is a circle where a square belongs, or a
-corner the browser refuses to paint.
+**A corner is always roughly the same fraction of the box it is drawn on.** That is why
+checkboxes and rows have their own values. A checkbox is not on the control height scale, and a
+row's height is its line of text plus a small inset. Give either of them another family's
+corner and you get a value calculated against a box they do not have — a circle where a square
+belongs, or a corner the browser refuses to draw.
 
 ## Curves nest
 
-A pane that holds rows derives the row's corner from its own corner:
+A panel that holds rows works out the row's corner from its own:
 
 **panel corner = row corner + panel padding**
 
-Two curves that share a centre nest correctly. Two curves that do not share a centre either cut
-into each other or leave a gap at every row.
+Two curves that share a centre nest cleanly. Two that do not either cut into each other or
+leave a visible gap beside every row.
 
-The system holds this relationship for each size and each level. You never calculate it, and
+The system holds that relationship at every size and every setting. You never calculate it and
 there is no offset to pass.
 
-The same rule applies one band over. An overlay takes the corner of the card one size above
-it, so a dialog has a larger corner than the cards inside it. `Surface` reads that same band,
-because anything holding panes needs a larger corner than the panes inside it.
+The same idea applies one level up. A dialog takes the corner of a card one size larger, so it
+is rounder than the cards inside it. `Surface` uses the same values, because anything holding
+panels needs to be rounder than the panels it holds.
 
-The arithmetic has no answer at zero, so `none` means none. It does not round a square panel by
-its own padding.
+At zero the arithmetic has no answer, so `none` really means none. It does not round a square
+panel by its own padding.
 
-## Four corners that `none` does not reach
+## Four shapes that `none` does not square
 
-`none` squares everything, including the pill. A switch with an exception is not a switch.
+`none` squares everything, including pills. A switch with an exception is not a switch.
 
-Four shapes survive `none`. Each one survives because the shape carries the role.
+Four shapes survive it, and each survives because the shape is carrying the meaning.
 
 - A **radio** is a circle. A square radio reads as a checkbox.
-- The **slider grip** and the **switch thumb** are circles. A square handle reads as a bead that
-  stopped moving. Every platform ships them round.
-- The **switch track** is a capsule. A circle nests only in a curve. A round thumb in a square
-  channel reads as a bead in a rail, which is a slider.
+- The **slider handle** and the **switch thumb** are circles. A square handle reads as a bead
+  that got stuck. Every platform ships them round.
+- The **switch track** is a capsule, because a circle only nests inside a curve. A round thumb
+  in a square channel reads as a bead in a rail, which is a slider.
 
-The system applies the same rule in the other direction. Under `full`, the checkbox stops at the
-corner of `large`, because a circular checkbox reads as a radio. A corner stops getting rounder.
-It never reverses.
+The same rule runs the other way. At `full`, a checkbox stops at the corner `large` uses,
+because a circular checkbox reads as a radio. Roundness stops increasing; it never reverses.
 
-There are four exceptions and there is no fifth. A shape that escapes `none` without a written
-reason is a defect.
+There are four exceptions and no fifth. A shape that escapes `none` without a written reason is
+a bug.
 
-## Change the corner for a region, not for a component
+## Change the corner for a region, not for one component
 
-No component takes a `radius` prop. When one region needs a different corner, nest a `Theme` on
-an element the layout already has:
+No component takes a `radius` prop. When one region genuinely needs a different corner, nest a
+Theme on an element your layout already has:
 
 ```tsx
 <Theme radius="medium">
@@ -121,9 +117,9 @@ an element the layout already has:
 </Theme>
 ```
 
-The first card, its field and its button all take the `medium` palette, each from its own band.
-The nested section squares every corner inside it, and the radio, the grips and the switch track
-keep their shapes.
+The first card, its field and its button all use the `medium` values, each from its own family.
+The nested section squares everything inside it, while the radio, the handles and the switch
+track keep their shapes.
 
-One line makes a decision about a region, and the reader of that file can see it. A per-card
-prop produces nine decisions on one screen, and no corner at all.
+One line makes a decision about a region, and anyone reading the file can see it. A prop on
+every card gives you nine decisions on one screen and no consistent corner at all.
