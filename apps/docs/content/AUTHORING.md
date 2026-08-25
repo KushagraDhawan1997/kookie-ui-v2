@@ -84,6 +84,23 @@ or "the reader" where you mean the person reading.
 **The test.** Read the paragraph out loud to somebody who has not used this library. If you
 have to add a sentence of explanation as you read, the paragraph is not finished.
 
+### What is checked, and what is not
+
+`app/(docs)/prose.test.ts` runs on every commit. It catches the half of these rules that is a
+word rather than a shape:
+
+- an internal noun a reader has not met (rung, veil, ladder, ramp, posture, the seal)
+- a component acting like a person (prices, rides, owes, stands down)
+- `by construction`, `by design`, `by derivation`
+- filler: simply, of course, it turns out, said plainly
+- "a call site" and "the reader", where the chapter means you
+- a date, which is development history and belongs in `docs/LOG.md`
+- a chapter that says "you" fewer than five times
+
+It cannot catch a verdict, a riddle, or two abstractions equated, because those are shapes and
+not strings. "The mark ladder is the line box" is six ordinary words in an ordinary order. That
+half is yours, and it is the half worth reading this section for.
+
 ## Language: Simplified Technical English
 
 These pages follow ASD-STE100. Apply these rules to every sentence.
