@@ -367,6 +367,61 @@ describe("a pane that holds a scroller still hides (§27)", () => {
 });
 
 /**
+ * ── THE PINNED STACK BREATHES AT THE PANE'S RHYTHM (§27, 2026-08-26) ──────────────────────
+ * A pane holding a scroller and pinned siblings is a flex column, and until this change the
+ * column had no gap: a sidebar's wordmark sat flush on the first nav row (found by Kushagra
+ * in the docs chrome, the pattern's first real consumer). The gap is `--kui-sf-p` — the air
+ * a pane gives its walls is the air between its regions, one currency, no new number.
+ *
+ * The negative control is the minimal composition: a scroller that is the pane's FIRST child
+ * bleeds that block edge, so it has no neighbour above and the gap has nothing to separate —
+ * a pane that IS a list must render exactly as it did before the declaration existed.
+ */
+describe("pinned siblings and the scroller are separated by the pane's own padding (§27)", () => {
+  const app = (pinned: boolean) =>
+    mounted(
+      <Shell style={{ height: 600, width: 1200 }}>
+        <ShellHeader>h</ShellHeader>
+        <ShellSidebar aria-label="Primary">
+          {pinned ? <Box data-testid="head">pinned head</Box> : null}
+          <ShellScroll>
+            <Box p="3">rows</Box>
+          </ShellScroll>
+          {pinned ? <Box data-testid="foot">pinned foot</Box> : null}
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+
+  // Falsified: with the `gap` declaration removed from the pane column rule, both distances
+  // measure 0 and the first two assertions fail.
+  it("a pinned block and the scroller sit one safe-area apart, both sides", () => {
+    const shell = app(true);
+    const pane = within(shell, ".kui-shell-sidebar");
+    const want = parseFloat(tokenOn(pane, "--kui-sf-p"));
+    expect(want, "the pane states no padding").toBeGreaterThan(0);
+    const head = within(pane, "[data-testid='head']").getBoundingClientRect();
+    const foot = within(pane, "[data-testid='foot']").getBoundingClientRect();
+    const scroll = within(pane, ".kui-shell-scroll").getBoundingClientRect();
+    expect(scroll.top - head.bottom, "above the scroller").toBeCloseTo(want, 1);
+    expect(foot.top - scroll.bottom, "below the scroller").toBeCloseTo(want, 1);
+  });
+
+  it("the minimal composition is untouched: a lone scroller still bleeds to the walls", () => {
+    const shell = app(false);
+    const pane = within(shell, ".kui-shell-sidebar");
+    const paneRect = pane.getBoundingClientRect();
+    const scroll = within(pane, ".kui-shell-scroll").getBoundingClientRect();
+    // The bleed reaches the border box's inside edge; a gap wrongly applied to a lone child
+    // could not move it (gap needs two items), so what this guards is the bleed surviving
+    // the column gaining a gap — the two declarations sit on one rule now.
+    expect(scroll.top - paneRect.top, "top").toBeCloseTo(pane.clientTop, 1);
+    expect(paneRect.bottom - scroll.bottom, "bottom").toBeCloseTo(pane.clientTop, 1);
+  });
+});
+
+/**
  * THE MIRROR ITSELF (added 2026-08-16, ultracode audit). §27, LOG and shell.css each claimed
  * the CSS/JS agreement was "law-pinned" — and the audit proved it false by sabotage: breaking
  * the mirror's explicit-overlay arm left all 33 laws green while an untouched
@@ -1637,11 +1692,11 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
 
   it("a nav row stands LEVEL with a real Button, at every size", () => {
     // The segmented control's law verbatim (§26) — measured against a mounted Button rather
-    // than compared as tokens, because "reads the same height" is a claim about pixels. The
-    // menu row is the family's shifted member and its reason (a panel opened for a second,
-    // scanned, dismissed, with no buttons near it) does not reach a permanent column that
-    // sits beside real buttons all day. So this member simply does not take the stand-down,
-    // and it costs no new designed number.
+    // than compared as tokens, because "reads the same height" is a claim about pixels.
+    // Since 2026-08-26 this is the FAMILY default rather than this member's carve-out (the
+    // notch is scoped to floating panels in recipes.css), so shell.css declares no height —
+    // this law is now the shell-side reader of the family guarantee, kept because a member
+    // that quietly re-grew a private height would fail here first.
     for (const size of ["1", "2", "3", "4"] as const) {
       const shell = nav({ size });
       const button = within(shell, ".kui-button").getBoundingClientRect().height;
@@ -1674,23 +1729,38 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
     );
   });
 
-  it("current is said in INK, not in fill — and the fill collision is deliberate", async () => {
+  it("rows with persistent fills get air: the nav group separates rows by the stated pick (2026-08-26)", () => {
+    // The tree's own gap law one container over — the pick is shared (`--layout-space-1`),
+    // the declaration is each container's. Falsified: with the gap removed from
+    // `.kui-shell-nav-group`, the distance measures 0 and this fails.
+    const shell = nav({ rows: 2 });
+    const [first, second] = rows(shell);
+    const want = parseFloat(tokenOn(shell, "--layout-space-1"));
+    expect(want, "the pick resolves to nothing").toBeGreaterThan(0);
+    const a = first!.getBoundingClientRect();
+    const b = second!.getBoundingClientRect();
+    expect(b.top - a.bottom, "adjacent nav rows touch").toBeCloseTo(want, 1);
+  });
+
+  it("current is said in INK, not in fill — and the persistent fill now OUTRANKS the transient one", async () => {
     /**
-     * REWRITTEN 2026-08-23, and the rewrite IS the decision (Kushagra: *"an accent never
-     * paints a 'faded' background… render selected state with neutral background + accent
-     * label"*).
+     * REWRITTEN 2026-08-23, and again 2026-08-26 — the second rewrite is the re-opening the
+     * first one demanded.
      *
-     * This law used to assert the opposite of what it asserts now, in its own words: "grey
-     * means the pointer is here and accent means this is where you are". That was true while
-     * a current row's fill was `--accent-soft`. Accent is undiluted now, so the medium rung
-     * resolves neutral, and a current row at REST is byte-identical to any row under the
-     * pointer — measured `rgb(0 0 15 / 0.067)` for both in light.
+     * 2026-08-23 (Kushagra: *"an accent never paints a 'faded' background… render selected
+     * state with neutral background + accent label"*): accent went undiluted, the medium
+     * rung resolved neutral, and a current row at rest was byte-identical to any row under
+     * the pointer. That collision was PINNED here with the message "re-open the decision
+     * before changing this".
      *
-     * The collision is PINNED rather than tolerated. It is the cost of the doctrine, it was
-     * paid knowingly, and a later hand that steps the row's fill to buy the distinction back
-     * must fail here and re-open the decision rather than quietly restore a fourth rung. What
-     * carries "you are here" instead is the LABEL, which is the half of the fill/ink split
-     * that survived — plus `aria-current`, which never depended on either.
+     * 2026-08-26 IS that re-opening (Kushagra, from the tree: a selected row painted the
+     * same pixels as a hovered one, and "the grey for hover feels darker" anyway). The
+     * repair went the direction his eye asked: the QUIET rung's transient light became a
+     * half-step — soft mixed toward transparent, §8's boundary-hover precedent, correct in
+     * both modes where a lighter rung does not exist (dark's a2 is transparent) — while a
+     * medium row still rests at full soft. So the ranking §10 demands now holds for free:
+     * current/selected rest > plain hover, with no fourth rung minted and no darker value
+     * anywhere. The INK half of the 2026-08-23 decision is untouched and still asserted.
      */
     const shell = nav({ rows: 2 });
     const [currentRow, plain] = [rows(shell)[0]!, rows(shell)[1]!];
@@ -1701,22 +1771,33 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
     // hover colour" is also true of transparent.
     expect(currentRest, "the current row rests unpainted").not.toBe(plainRest);
     expect(currentRest, "the current row rests transparent").not.toContain("rgba(0, 0, 0, 0)");
-    // THE INK is the signal, and it is the family's — read through the stamp, so a row that
-    // lost `data-tone="accent"` and fell back to neutral fails here rather than passing on a
-    // role name that resolves to whatever is in scope.
+    // THE CURRENT COLOUR is the signal, and it is the family's — read through the stamp, so
+    // a row that lost `data-tone="accent"` and fell back to neutral fails here rather than
+    // passing on a role name that resolves to whatever is in scope. (--tone-current since
+    // 2026-08-26: the per-mode ink/glyph pick the icon shares.)
     expect(computed(currentRow, "color"), "the current row's label is not accent").toBe(
-      colorOn(currentRow, "var(--accent-ink)"),
+      colorOn(currentRow, "var(--accent-current)"),
     );
     expect(
       computed(currentRow, "color"),
       "current and plain rows read the same ink, so nothing says which is current",
     ).not.toBe(computed(plain, "color"));
-    // THE COLLISION, stated as a measurement: rest-current and hovered-plain are one paint.
+    // THE RANKING, stated as a measurement: a hovered plain row paints LESS than the current
+    // row's rest — visible, but visibly lighter.
+    const alphaOf = (color: string): number => {
+      const slash = /\/\s*([\d.]+)\s*\)/.exec(color);
+      if (slash) return parseFloat(slash[1]!);
+      const comma = /^rgba\((?:[^,]+,){3}\s*([\d.]+)\)/.exec(color);
+      if (comma) return parseFloat(comma[1]!);
+      return 1;
+    };
     await userEvent.hover(plain);
+    const plainHover = computed(plain, "background-color");
+    expect(plainHover, "the plain row never lit").not.toBe(plainRest);
     expect(
-      computed(plain, "background-color"),
-      "the fills have separated again — re-open the 2026-08-23 decision before changing this",
-    ).toBe(currentRest);
+      alphaOf(plainHover),
+      `hovered (${plainHover}) must sit BELOW the current rest (${currentRest}) — the 2026-08-26 ranking`,
+    ).toBeLessThan(alphaOf(currentRest));
     // And the current row still MOVES under the pointer rather than being a dead end.
     await userEvent.hover(currentRow);
     expect(
@@ -1725,16 +1806,21 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
     ).not.toBe(currentRest);
   });
 
-  it("every nav icon is the accent, whether or not you are standing on it", () => {
+  for (const appearance of APPEARANCES)
+  it(`${appearance}: only the CURRENT nav icon is the accent; a resting icon keeps the label's grey`, () => {
     /**
-     * Kushagra, 2026-08-23: *"row and sidebar row render their icons in accent color always"* —
-     * and Apple states the same rule for sidebars in as many words: *"By default, sidebar icons
-     * use your app's accent color… people expect all sidebar icons to appear in that color."*
+     * REVERSED 2026-08-26 (Kushagra, with Finder held over the docs sidebar: "make resting
+     * icons neutral not accent"). The 2026-08-23 rule painted every nav icon accent, always,
+     * and the diff against the platform showed the cost: when every row is accent, accent
+     * stops meaning "you are here" — the current row has nothing to pop against. Apple's own
+     * sidebar is near-black icons with ONE vivid row.
      *
-     * ALWAYS is the load-bearing word and it is why the law reads the NON-current row first.
-     * The row stamps `data-tone="accent"` unconditionally now, which was an unsafe thing to do
-     * until the same day's `undilutedTones` change made a stamped row's fill resolve neutral at
-     * every rung. Reading only the current row's icon would pass on the old conditional stamp.
+     * Both arms are load-bearing: the resting arm is exactly what the replaced rule fails,
+     * and the current arm is what a rule painting NO icon would fail. BOTH appearances,
+     * and dark is the one that can fail alone: --tone-current is the ink in light, so a
+     * consumer quietly reverted to --tone-ink is invisible there and only dark — where the
+     * pick is the glyph — can tell the role from its candidate (the sabotage that taught
+     * this: the shell arm reverted to ink and the light-only law stayed green).
      */
     // Its own mount rather than the shared `nav()` fixture: the fixture's rows carry no icon,
     // and adding one there would perturb twenty geometry laws to serve this one.
@@ -1748,20 +1834,27 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
         </ShellSidebar>
         <ShellContent>c</ShellContent>
       </Shell>,
-      { theme: {}, select: ".kui-shell" },
+      { theme: { appearance }, select: ".kui-shell" },
     );
     const [currentRow, plain] = [...shell.querySelectorAll<HTMLElement>(".kui-shell-nav-item")];
     if (!currentRow || !plain) throw new Error("nav rows missing — the law would assert nothing");
     const icon = (row: HTMLElement) =>
       computed(within(row, '[data-slot="leading"]'), "color");
-    expect(icon(plain), "a row you are not on has a grey icon").toBe(
-      colorOn(plain, "var(--accent-glyph)"),
-    );
-    expect(icon(currentRow), "the two rows' icons disagree").toBe(icon(plain));
-    // And the icon is NOT the label — the row is stamped accent, so a law that read the label
-    // and called it the icon would pass on the current row and quietly fail on every other.
-    expect(icon(plain), "the icon is just inheriting the row's colour").not.toBe(
+    // A resting icon IS its stood-down label — the neutral ink, not the family.
+    expect(icon(plain), "a row you are not on still shouts the accent").toBe(
       computed(plain, "color"),
+    );
+    // The current row's icon takes the family back — at --tone-current, the per-mode
+    // ink/glyph pick, and it MATCHES the label beside it (2026-08-26: "the icon color and
+    // label not matching bothers me").
+    expect(icon(currentRow), "the current icon is not the family's current colour").toBe(
+      colorOn(currentRow, "var(--accent-current)"),
+    );
+    expect(icon(currentRow), "the current icon and label disagree").toBe(
+      computed(currentRow, "color"),
+    );
+    expect(icon(currentRow), "current and resting icons agree — nothing says here").not.toBe(
+      icon(plain),
     );
   });
 
@@ -1775,7 +1868,7 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
     expect(computed(plain, "color"), "an ordinary nav label went accent").toBe(
       colorOn(plain, "var(--color-text)"),
     );
-    expect(computed(currentRow, "color")).toBe(colorOn(currentRow, "var(--accent-ink)"));
+    expect(computed(currentRow, "color")).toBe(colorOn(currentRow, "var(--accent-current)"));
     expect(computed(currentRow, "color")).not.toBe(computed(plain, "color"));
   });
 
@@ -2024,7 +2117,7 @@ describe("the rail: a column of squares whose width is not the app's to state (�
     // the reason the rows moved (on a chroma family `--tone-label` is a brown), so a square, a
     // row and a button now name one colour.
     expect(computed(currentItem!, "color"), "the current square's glyph is not accent").toBe(
-      colorOn(currentItem!, "var(--accent-ink)"),
+      colorOn(currentItem!, "var(--accent-current)"),
     );
     expect(computed(currentItem!, "color")).not.toBe(computed(plain!, "color"));
     await userEvent.hover(plain!);

@@ -548,21 +548,23 @@
      sentence one family over): the skeleton's medium is a BUTTON-label decision, and a
      row is a line in a list you read. Every platform menu sets its items regular. */
   font-weight: var(--font-weight-regular);
-  /* The row's box is its text LINE plus one designed inset — it does not ride the height
-     ladder (§21, reversed 2026-08-09; Kushagra: the menu read uncomfortably sparse). A
-     button prices its box for standalone pressing; a row sits in a list, and the desktop
-     systems that feel right drop the height entirely and let the line carry the box
-     (shadcn's item is padding + line under an h-9 button; macOS runs ~24px rows under 28px
-     buttons) — the mark family's own argument, one member over: the box is a property of
-     the type beside it. The pointer answer arrives through the type bands (coarse raises
-     the line), so both worlds price through one derivation: fine default 24/28/32/34,
-     coarse default 36/40/42/44 — each a notch under its button, and coarse size 2 sits a
-     stated 4 under the button's 44 (the cost of tighter rows on touch; the locked 24 floor
-     holds everywhere by construction). The border term lives in the spelling (the checkbox
+  /* The row's box RIDES THE HEIGHT LADDER by family default (2026-08-26, Kushagra — the
+     exception flipped owners). The notch below the button's height was judged on a MENU
+     (2026-08-09: the panel read uncomfortably sparse) and became the family default only
+     because Menu was the family's first member; every standing member since has had to opt
+     back out — the sidebar row the day it existed (2026-08-21, "a sidebar row stands level
+     with a button"), and the Tree landed on the menu's number and sat 30 in a column of
+     32s. Two members in, the pattern is the reverse of the record: a row in a permanent
+     column stands level with the button beside it, and it is the row inside a floating
+     panel that takes its judged notch (the rule below). So the skeleton's min-height simply
+     applies here — no stand-down — and the corner stays the control band's, which at
+     radius="full" makes a standing row the same capsule as its button by construction.
+
+     The block padding stays the family's breathing in BOTH postures: on a standing row the
+     min-height binds and the flex centring absorbs the difference, and a label that wraps
+     still grows the box by its lines. The border term lives in the spelling (the checkbox
      target's own audit lesson): box-sizing is border-box, so the padding cedes what the
-     hairline occupies and the rendered box is exactly line + 2 x inset. Wins the tie with
-     the skeleton's min-height/padding-block on source order, the family's own mechanism. */
-  min-height: auto;
+     hairline occupies. */
   padding-block: calc(var(--kui-ct-row-inset) - var(--border-width));
   /* A row is `inline-size: 100%` of a panel that is itself capped at the room the positioner
      reports, and until this line nothing stopped its CONTENT from being wider than both
@@ -577,6 +579,11 @@
      needs, which is what a row that does not ride the height ladder can afford. */
   overflow-wrap: anywhere;
 }
+
+/* The floating row's NOTCH — height and corner together — lives in one rule after the size
+   join ("THE NOTCH IS THE FLOATING ROW'S", below), because the corner half must win a
+   source-order tie with the join and two blocks sharing one selector is the entropy this
+   file keeps paying for. */
 
 /* A shortcut hint or chevron sits at the far edge, not beside the label — the row's own
    layout fact, not a per-call-site margin (components never own outer spacing; this is
@@ -612,6 +619,26 @@
 .kui-row[data-highlighted]:not([data-disabled]),
 .kui-row[data-popup-open]:not([data-disabled]) {
   background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover));
+}
+
+/* A QUIET row's transient light is a HALF-step (2026-08-26, Kushagra: the hover grey "feels
+   darker" — and a selected tree row painted the same pixels as a hovered one, so the
+   persistent state never outranked the transient one, §10's own clause). The lit value mixes
+   toward transparent rather than reaching for a lighter rung, because there is no lighter
+   rung to reach: dark's --neutral-a2 is literally transparent (the 2026-08-24 field-fill
+   finding), and quiet's hover token is shared with quiet Buttons, which must not move. The
+   mix is §8's boundary-hover precedent — one percentage, correct in both modes by
+   construction, carrying the tone with it. Scoped to QUIET rows only: a medium row (a
+   selected tree row, a current nav row) rests at full soft and hovers to soft-hover, so the
+   ranking reads selected(soft) > hovered(65% of soft) everywhere rows exist. The percentage
+   is a judged lever (taste, one home: here). */
+.kui-row[data-highlighted]:where([data-emphasis="quiet"]):not([data-disabled]),
+.kui-row[data-popup-open]:where([data-emphasis="quiet"]):not([data-disabled]) {
+  background-color: color-mix(
+    in oklab,
+    var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover)) 65%,
+    transparent
+  );
 }
 
 /* The lit row is a SIGNAL, so contrast="high" reaches it (§19's standing rule, amended
@@ -789,15 +816,30 @@
   --kui-ct-mark: var(--kui-ct-mark-up);
 }
 
-/* And the row family consumes ITS entry, for the same reason and in the same place (§6, §21,
-   audit 2026-08-09). A row left the height ladder, so `--radius-control-N` — which at
-   `radius="full"` states half `--control-height-N` — was handing it half a box it does not
-   have: 18/20/24/28 declared onto rows that can only paint 12/14/17/19, and the floating
-   panel's concentric corner (row corner + panel padding) inherited the whole error in 21 of
-   24 cells. `--radius-row-N` is the identity at every other level, so nothing but `full`
-   moves. Stated after the join and at (0,2,0) for the switch's reason exactly: the join
-   declares --kui-ct-radius at the same specificity, and this wins the tie on source order. */
-.kui-control.kui-row {
+/* THE NOTCH IS THE FLOATING ROW'S (§6, §21; judged 2026-08-09, scoped 2026-08-26 — the
+   exception flipped owners). A row inside a panel that hugs rows drops the height ladder
+   and lets the line carry the box: fine default 24/28/32/34 under buttons at 24/32/40/48
+   (shadcn's item is padding + line under an h-9 button; macOS runs ~24px rows under 28px
+   buttons), coarse 36/40/42/44 with the locked 24 floor holding everywhere by
+   construction. That number was judged on a MENU and became the family default only
+   because Menu was the family's first member; every standing member since opted back out
+   (the sidebar row on the day it existed, and Tree landed on the menu's number and sat 30
+   in a column of 32s). So the family default rides the ladder, and the notch is stated
+   here, keyed on `.kui-floating-rows` — the panel class whose whole meaning is "hugs
+   rows" — which makes the notch set, the row-capsule set and the concentric-corner set
+   (surfaces.css derives the panel corner from the row corner) one set by one selector.
+
+   The corner FOLLOWS the height, which is why both halves are one rule: a floating row's
+   capsule is `--radius-row-N` (half the box it actually has — the join's
+   `--radius-control-N` at `full` states half a height the notch row does not have,
+   18/20/24/28 onto rows that can only paint 12/14/17/19, audit 2026-08-09), and a
+   standing row's corner is the join's — measured 2026-08-26, the bare-family re-point was
+   the same defect mirrored: 15px of row capsule on a nav row's 32px box while the tree
+   row beside it was a true pill. `--radius-row-N` is the identity at every other level,
+   so nothing but `full` moves in either direction. Stated after the join at the join's
+   own (0,2,0), winning the tie on source order. */
+.kui-floating-rows .kui-row {
+  min-height: auto;
   --kui-ct-radius: var(--kui-ct-row-radius);
 }
 
@@ -887,26 +929,29 @@
   --kui-ct-label-color: var(--tone-ink);
 }
 
-/* A ROW'S ICON READS ITS FAMILY (§7, §21, 2026-08-23 — Kushagra: "row and sidebar row render
-   their icons in accent color always"; Apple states the same rule for sidebars in as many
-   words). One declaration, no per-component exception, and each member gets the right answer
-   from the tone it already stamps: a nav row stamps accent so its icon is the accent, a menu
-   row stamps neutral so its icon is the ink, a destructive row's icon goes red with its words.
+/* A ROW IS MONOCHROME, AND THE CURRENT ONE SPEAKS THE FAMILY WHOLE (§7, §21 — reversed
+   2026-08-26 in two steps, both Kushagra with Finder held over the docs sidebar: "make
+   resting icons neutral not accent", then "the icon color and label not matching bothers
+   me"). The 2026-08-23 rule painted every leading icon in the family's glyph, always, and
+   the platform diff showed why that reads wrong twice over: when every row is accent,
+   accent stops meaning "you are here" — and an icon in one blue beside a label in another
+   is two claims where the row makes one.
 
-   LEADING ONLY. The leading slot is what IDENTIFIES a row — permanent, learned, and the only
-   thing left when a sidebar collapses to a rail. A trailing chevron or count is punctuation
-   and keeps the label's ink.
+   So a row's slots simply INHERIT its one colour and no slot rule exists at all. At rest
+   that colour is the label ink — a plain row is neutral, a destructive row is red on icon
+   and words together (the ink carries full chroma since the same day's chromaCurve change,
+   so ink-red is an actual red), and a dead row dims whole through the remap. The row that
+   IS the current place (`aria-current` — the announced attribute, so paint and semantics
+   cannot disagree) takes `--tone-current`: ONE value for icon and label, a per-mode pick
+   between the family's ink and its glyph made in color-config's currentInk, because the
+   two modes disagree about which of the pair is the better colour and the match itself is
+   structural — there is exactly one declaration for the state.
 
-   --tone-GLYPH rather than --tone-ink, because an icon is a mark and owes the non-text floor
-   while prose owes the reading floor: meeting the higher bar is paid for in saturation, so a
-   destructive icon in the ink is a brick red where the glyph is an actual red. For a GREY the
-   two are the same value by construction (a low-chroma family's glyph IS its ink — there is no
-   chroma to maximise), which is why this rule moves a neutral row's icon by exactly nothing.
-
-   Placed BEFORE the checked-indicator rule below: both are (0,2,0), so the tick wins on source
-   order and a checked row's mark still speaks selection rather than family. */
-.kui-row > [data-slot="leading"] {
-  color: var(--tone-glyph);
+   (0,2,0), beating the `.kui-row` ink re-point above on specificity. Keyed to aria-current
+   alone: a menu's checked row keeps its reading ink — its TICK carries the state through
+   the indicator rule below, which stays the one slot-coloured exception in the family. */
+.kui-row[aria-current] {
+  --kui-ct-label-color: var(--tone-current);
 }
 
 /* Selected speaks accent, written once for every member of the row family (§21) — and the
@@ -1075,6 +1120,17 @@
   .kui-row[data-hover-lit]:hover:not([data-disabled], [data-loading]) {
     background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover));
     --kui-ct-paint: var(--motion-hover-in);
+  }
+
+  /* The quiet half-step, restated for the pointer-driven arm — the same mix as the
+     data-highlighted rule above, same reason, same judged percentage. A medium row keeps its
+     full hover step, so a selected or current row still darkens under the pointer. */
+  .kui-row[data-hover-lit]:where([data-emphasis="quiet"]):hover:not([data-disabled], [data-loading]) {
+    background-color: color-mix(
+      in oklab,
+      var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover)) 65%,
+      transparent
+    );
   }
 
   /* The BOUNDARY hover rule died here 2026-08-17, and the fill-first flip is what killed it.
@@ -1304,6 +1360,9 @@
      next one to rediscover this, while a role that is part of the tone vocabulary belongs in
      the remap that stands the vocabulary down. */
   --tone-glyph: var(--disabled-ink);
+  /* The current colour dims with it (2026-08-26) — same vocabulary, same reason: a dead
+     current row must not keep the live family on its icon and label. */
+  --tone-current: var(--disabled-ink);
   /* State outranks dress (§19). The RULE is unchanged and still load-bearing; the sentence
      explaining it is rewritten (2026-08-20), because it named `look="filled"` — an axis
      deleted whole on 2026-08-19/20 — and described a transparent resting border the dress
@@ -1842,5 +1901,41 @@
     --kui-ct-cast-glass: initial;
     /* And the pool with it — a sealed pane has no glass matter to settle (2026-08-17). */
     --kui-ct-pool-glass: initial;
+  }
+}
+
+/* ── The atom under glass (Badge `backdrop`, 2026-08-26) ─────────────────────────────────
+   The inert chip, floating over content: the same veil formula as the controls, at the
+   control-scale alphas and filters, because a chip is control-scale. The source is
+   `--kui-atom-fill-src` (type.css) — the opaque twin, for the alpha-multiplication reason
+   the controls' twins exist. Only Badge stamps `data-material` in this family (Code and Kbd
+   live inside running text and never float), and only when it says `backdrop` over glass —
+   a solid badge writes no attribute and never matches here. Same three-environment shape:
+   fallback base, real recipe under @supports, reduced-transparency winning last. */
+.kui-atom[data-material="thin"],
+.kui-atom[data-material="regular"],
+.kui-atom[data-material="thick"] {
+  --kui-atom-fill: color-mix(in srgb, var(--kui-atom-fill-src) var(--material-opaque-alpha), transparent);
+}
+@supports (backdrop-filter: blur(1px)) {
+  .kui-atom[data-material="thin"] {
+    --kui-atom-fill: color-mix(in srgb, var(--kui-atom-fill-src) var(--material-thin-control-alpha), transparent);
+    backdrop-filter: var(--kui-lens, ) var(--material-thin-control-filter);
+  }
+  .kui-atom[data-material="regular"] {
+    --kui-atom-fill: color-mix(in srgb, var(--kui-atom-fill-src) var(--material-regular-control-alpha), transparent);
+    backdrop-filter: var(--kui-lens, ) var(--material-regular-control-filter);
+  }
+  .kui-atom[data-material="thick"] {
+    --kui-atom-fill: color-mix(in srgb, var(--kui-atom-fill-src) var(--material-thick-control-alpha), transparent);
+    backdrop-filter: var(--kui-lens, ) var(--material-thick-control-filter);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .kui-atom[data-material="thin"],
+  .kui-atom[data-material="regular"],
+  .kui-atom[data-material="thick"] {
+    --kui-atom-fill: color-mix(in srgb, var(--kui-atom-fill-src) var(--material-opaque-alpha), transparent);
+    backdrop-filter: none;
   }
 }

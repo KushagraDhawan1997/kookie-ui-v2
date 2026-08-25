@@ -63,67 +63,79 @@ function menuRow(size: (typeof SIZES)[number] = "2"): HTMLElement {
 
 describe("a Row IS a row — the family, not a lookalike (§21)", () => {
   for (const size of SIZES) {
-    it(`size ${size}: the same box, the same rest, the same corner as a menu row`, () => {
+    it(`size ${size}: the same rest and the same dress as a menu row — and NOT the same box`, () => {
       // Family-first was declared when Menu shipped, on the argument that four separately
-      // designed rows in one weight class WILL drift. This is that claim measured on the
-      // member that arrived last — and measured on the RENDERED box rather than on the tokens
-      // each one reads, because two rows reading one token and rendering two boxes is exactly
-      // the failure worth catching.
+      // designed rows in one weight class WILL drift. Since 2026-08-26 the family has two
+      // POSTURES and one dress: what is shared is the rest fill, the content weight and the
+      // state machine; the BOX is the posture's — a floating row takes the judged notch, a
+      // standing row rides the ladder. So the fill and weight are asserted equal, and the
+      // box is asserted DIFFERENT on purpose: a Row that came out at the menu row's height
+      // would mean the notch had leaked back out of its floating scope.
       const row = mounted(<Row size={size}>Duplicate</Row>, { theme: {} });
       const item = menuRow(size);
+      expect(computed(row, "background-color")).toBe(computed(item, "background-color"));
+      expect(computed(row, "font-weight")).toBe(computed(item, "font-weight"));
       expect(
         row.getBoundingClientRect().height,
-        `size ${size}: the standalone row left the family's box`,
-      ).toBeCloseTo(item.getBoundingClientRect().height, 1);
-      expect(computed(row, "background-color")).toBe(computed(item, "background-color"));
-      expect(computed(row, "border-top-left-radius")).toBe(
-        computed(item, "border-top-left-radius"),
-      );
-      expect(computed(row, "font-weight")).toBe(computed(item, "font-weight"));
+        `size ${size}: the standing row took the floating notch`,
+      ).toBeGreaterThan(item.getBoundingClientRect().height);
     });
   }
 
   for (const pointer of POINTERS) {
-    it(`${pointer}: a row stands SHORTER than the button at its index — it left the ladder`, () => {
-      // §21's one geometry departure: a button prices its box for standalone pressing, a row
-      // is a line in a list.
-      //
-      // ONE CELL IS AN EQUALITY AND IT IS ASSERTED AS ONE, not skipped — Switch's coarse size-4
-      // wrinkle set that rule. At coarse size 1 the row and the button both render 36px, which
-      // is the band's own arithmetic rather than a bug: §21 records the coarse rows as
-      // 36/40/44/48 against buttons at 36/44/52/60. A law that asserted `<` everywhere would
-      // have to be weakened to `<=`, and a `<=` everywhere is a law that no longer notices a row
-      // that has climbed back onto the ladder. So the relationship is stated per cell.
-      const level = pointer === "coarse" ? ["1"] : [];
+    it(`${pointer}: a standing row stands LEVEL with the button at its index (2026-08-26)`, () => {
+      // The exception flipped owners: the notch below the button was judged on a MENU
+      // (2026-08-09, "uncomfortably sparse") and was the family default only because Menu
+      // was the first member — the sidebar row opted back out the day it existed, and Tree
+      // landed on the menu's number and sat 30 in a column of 32s. A row in a permanent
+      // column stands level with the button beside it; only a floating panel's rows keep
+      // the notch (the law below). Asserted per cell in both worlds, against a mounted
+      // Button rather than a token — the shell's own law made that the family bar.
       for (const size of SIZES) {
         const row = mounted(<Row size={size}>Duplicate</Row>, { theme: { pointer } });
         const button = mounted(<Button size={size}>Duplicate</Button>, { theme: { pointer } });
-        const [r, b] = [row.getBoundingClientRect().height, button.getBoundingClientRect().height];
-        if (level.includes(size)) {
-          expect(r, `${pointer}/size ${size}: the recorded equality moved`).toBeCloseTo(b, 1);
-        } else {
-          expect(r, `${pointer}/size ${size}: the row is not under its button`).toBeLessThan(b);
-        }
+        expect(
+          row.getBoundingClientRect().height,
+          `${pointer}/size ${size}: the row is not level with its button`,
+        ).toBeCloseTo(button.getBoundingClientRect().height, 1);
       }
     });
   }
 
-  it("its box is the text LINE plus the designed inset, and nothing else", () => {
-    // The derivation stated as an equality rather than a bound: box = line + 2 × rowInset,
-    // with the border term already ceded in the padding (the checkbox target's audit lesson).
-    // A bound would go green on a row that had quietly gone back to the height ladder.
+  it("the MENU row keeps the notch: its box is the text LINE plus the designed inset", () => {
+    // The judged number stays with the member it was judged on. The derivation stated as an
+    // equality rather than a bound: box = line + 2 × rowInset, with the border term already
+    // ceded in the padding (the checkbox target's audit lesson). A bound would go green on a
+    // menu row that had quietly climbed onto the height ladder.
     for (const size of SIZES) {
-      const row = mounted(<Row size={size}>Duplicate</Row>, { theme: {} });
-      const line = parseFloat(computed(row, "line-height"));
+      const item = menuRow(size);
+      const line = parseFloat(computed(item, "line-height"));
       const pad =
-        parseFloat(computed(row, "padding-top")) + parseFloat(computed(row, "padding-bottom"));
+        parseFloat(computed(item, "padding-top")) + parseFloat(computed(item, "padding-bottom"));
       const border =
-        parseFloat(computed(row, "border-top-width")) +
-        parseFloat(computed(row, "border-bottom-width"));
+        parseFloat(computed(item, "border-top-width")) +
+        parseFloat(computed(item, "border-bottom-width"));
       expect(
-        row.getBoundingClientRect().height,
-        `size ${size}: the row's box is not line + inset`,
+        item.getBoundingClientRect().height,
+        `size ${size}: the menu row's box is not line + inset`,
       ).toBeCloseTo(line + pad + border, 1);
+    }
+  });
+
+  it("at radius='full', a standing row is a PILL of the box it actually has (2026-08-26)", () => {
+    // The law the 2026-08-26 finding was missing: nothing anywhere read a standing row's
+    // corner at the default radius. The bare-family corner re-point handed every row the
+    // ROW capsule — half the notch box — so a nav row painted 15px of corner on a 32px box
+    // while the tree row beside it was a true pill. The corner follows the height: a
+    // standing row wears the control band's entry, which at `full` is half the control
+    // height, i.e. half of exactly the box the row renders.
+    for (const size of SIZES) {
+      const row = mounted(<Row size={size}>Duplicate</Row>, { theme: { radius: "full" } });
+      const h = row.getBoundingClientRect().height;
+      expect(
+        parseFloat(computed(row, "border-top-left-radius")),
+        `size ${size}: the standing row's corner is not half its own box`,
+      ).toBeCloseTo(h / 2, 1);
     }
   });
 
@@ -341,17 +353,17 @@ describe("the row's anatomy and its element (§21, ENGINEERING §3)", () => {
 
 
 /**
- * A ROW'S ICON READS ITS FAMILY (§7, §21, 2026-08-23).
+ * THE CURRENT ROW'S ICON SPEAKS ITS FAMILY; A RESTING ICON KEEPS ITS LABEL'S INK (§7, §21 —
+ * reversed 2026-08-26, Kushagra, judging Finder over the docs sidebar: when every icon is
+ * accent, accent stops meaning "you are here").
  *
- * One declaration in the shared layer, and the whole claim is that no component needs an
- * exception: each member gets the right answer out of the tone it already stamps. So the law
- * is written as a COMPARISON across three families rather than as three assertions about
- * three colours — asserting "the accent row's icon is accent" alone would pass on a rule that
- * painted every icon accent, which is exactly the rule this is not.
+ * The law is a COMPARISON across states rather than assertions about single colours: a rule
+ * that painted every icon the family (the 2026-08-23 rule this replaces) must fail the
+ * resting arm, and a rule that painted none must fail the current arm.
  */
-describe("the leading icon speaks the row's family (§7, §21)", () => {
+describe("the leading icon: rests in the label's ink, speaks the family when current (§7, §21)", () => {
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: neutral reads the ink, a chosen family reads its glyph`, () => {
+    it(`${appearance}: resting icons inherit the label; the current row's takes the glyph`, () => {
       const root = mounted(
         <div>
           <Row data-t="plain" leading={<span>▲</span>}>Rename</Row>
@@ -363,55 +375,67 @@ describe("the leading icon speaks the row's family (§7, §21)", () => {
       const icon = (t: string) =>
         computed(within(root, `[data-t="${t}"] [data-slot="leading"]`), "color");
 
-      // A GREY MOVES BY NOTHING, and this is the half that makes the rule safe to state
-      // generally. A low-chroma family's glyph IS its ink by construction (there is no chroma
-      // to maximise, so the solve would otherwise return the palest legible grey — measured
-      // #8f9397 before that remap), which is why a menu row's icon is untouched by this.
+      // A RESTING ICON IS ITS LABEL — both families. The destructive arm is the load-bearing
+      // one: under the replaced rule it wore the glyph, so this assertion is exactly what the
+      // old stylesheet fails. (The ink carries full chroma since the same day's chromaCurve
+      // change, so ink-red is still an actual red — family survives, volume drops.)
       expect(icon("plain"), "a neutral row's icon left the ink").toBe(
         computed(within(root, '[data-t="plain"]'), "color"),
       );
-
-      // A CHROMA FAMILY MOVES, and to the glyph rather than to the ink beside it. An icon owes
-      // the non-text floor and prose owes the reading floor, so the ink over-pays and
-      // under-saturates: the difference is a brick red against an actual red.
-      const el = within(root, '[data-t="destructive"]');
-      expect(icon("destructive")).toBe(colorOn(el, "var(--destructive-glyph)"));
-      expect(icon("destructive"), "the icon settled for the label's ink").not.toBe(
-        computed(el, "color"),
+      const destructive = within(root, '[data-t="destructive"]');
+      expect(icon("destructive"), "a resting icon still shouts the glyph").toBe(
+        computed(destructive, "color"),
       );
 
-      // And the three genuinely differ, so a rule that painted ONE colour cannot pass.
-      expect(new Set([icon("plain"), icon("destructive"), icon("current")]).size).toBe(3);
+      // THE CURRENT ROW'S ICON TAKES THE FAMILY BACK — at --tone-current, the per-mode
+      // ink/glyph pick (2026-08-26: "the icon color and label not matching bothers me").
+      const current = within(root, '[data-t="current"]');
+      expect(icon("current")).toBe(colorOn(current, "var(--accent-current)"));
+      expect(icon("current"), "the current icon settled for the neutral ink").not.toBe(
+        icon("plain"),
+      );
+      // AND THE MATCH IS THE POINT: the current row's icon and label are ONE colour, in
+      // both appearances — which is what the shared role makes structural.
+      expect(icon("current"), "the current icon and label disagree").toBe(
+        computed(current, "color"),
+      );
     });
   }
 
-  it("a TRAILING adornment is punctuation and keeps the label's ink", () => {
-    // Leading identifies the row; trailing is a count or a chevron. Asserted because the rule
-    // is one selector away from covering both, and the difference would never be noticed on a
-    // neutral row — where the two values coincide.
-    const root = mounted(
-      <Row tone="destructive" leading={<span>▲</span>} trailing={<span>▶</span>}>
-        Delete
-      </Row>,
-      { theme: {} },
-    );
-    const lead = within(root, '[data-slot="leading"]');
-    const trail = within(root, '[data-slot="trailing"]');
-    expect(computed(trail, "color"), "the trailing slot took the family too").toBe(
-      computed(root, "color"),
-    );
-    expect(computed(lead, "color")).not.toBe(computed(trail, "color"));
-  });
-
-  it("a DEAD row's icon dims with its words", () => {
-    // The defect this rule introduced and the shared remap absorbed: the icon reads a tone
-    // ROLE, so `--tone-glyph` had to join the disabled stand-down beside the ink trio. Before
-    // that a dead row painted the live family at full chroma under a dimmed label. Third time
-    // this shape has appeared (the ink trio 2026-08-09, the slider handle 2026-08-07).
+  it("a row is MONOCHROME: both slots follow the label, at rest and current alike", () => {
+    // The doctrine stated as a measurement: no slot carries a colour of its own — the row's
+    // one colour reaches icon, words and trailing punctuation by inheritance, and the STATE
+    // decides which colour that is. Asserted on a toned resting row and a current row,
+    // because those are the two places the old rules painted a slot separately.
     const root = mounted(
       <div>
-        <Row data-t="live" tone="destructive" leading={<span>▲</span>}>Delete</Row>
-        <Row data-t="dead" tone="destructive" disabled leading={<span>▲</span>}>Delete</Row>
+        <Row data-t="destructive" tone="destructive" leading={<span>▲</span>} trailing={<span>▶</span>}>
+          Delete
+        </Row>
+        <Row data-t="current" current leading={<span>▲</span>} trailing={<span>▶</span>}>
+          Overview
+        </Row>
+      </div>,
+      { theme: {} },
+    );
+    for (const t of ["destructive", "current"] as const) {
+      const row = within(root, `[data-t="${t}"]`);
+      const label = computed(row, "color");
+      expect(computed(within(row, '[data-slot="leading"]'), "color"), `${t}: leading`).toBe(label);
+      expect(computed(within(row, '[data-slot="trailing"]'), "color"), `${t}: trailing`).toBe(label);
+    }
+  });
+
+  it("a DEAD current row's icon dims with its words", () => {
+    // The glyph is a tone ROLE, so `--tone-glyph` sits in the disabled stand-down beside the
+    // ink trio (the shape's third appearance: the ink trio 2026-08-09, the slider handle
+    // 2026-08-07). A resting dead icon dims by inheritance — it IS the label's ink — so the
+    // CURRENT row is where the stand-down is load-bearing: without it a dead current row
+    // would paint the live family at full chroma under a dimmed label.
+    const root = mounted(
+      <div>
+        <Row data-t="live" current leading={<span>▲</span>}>Overview</Row>
+        <Row data-t="dead" current disabled leading={<span>▲</span>}>Overview</Row>
       </div>,
       { theme: {} },
     );

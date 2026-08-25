@@ -590,6 +590,14 @@
   display: flex;
   flex-direction: column;
   overflow: clip;
+  /* THE STACK BREATHES AT THE PANE'S OWN RHYTHM (2026-08-26, Kushagra: the pinned-stack
+     anatomy exposed no gap between fixed items and the scroller — a wordmark sat flush on
+     the first nav row). The air a pane gives its walls is the air between its regions: one
+     currency, no new number. The gap only ever appears beside a PINNED sibling — a scroller
+     that is first or last child bleeds that block edge and has no neighbour there, so the
+     minimal composition (a pane that IS a list) renders byte-identical with or without
+     this declaration. */
+  gap: var(--kui-sf-p);
 }
 
 /* NOTHING LEFT TO SAY HERE (merge with main, 2026-08-20), and that is the good outcome. Both
@@ -602,13 +610,14 @@
    account chip. */
 
 /* ── Navigation (§21's second member, §27) ─────────────────────────────────────────────────
-   A SIDEBAR ROW STANDS LEVEL WITH A BUTTON, and it costs no new number — it is one
-   declaration, because the row family's height is a stand-DOWN (`min-height: auto`) and this
-   member simply does not take it. The menu row is the exception, with a written reason a
-   permanent nav column does not inherit; the padding-block stays the family's, so a label
-   that wraps to two lines still grows and still breathes. */
+   A SIDEBAR ROW STANDS LEVEL WITH A BUTTON — and since 2026-08-26 that is the FAMILY
+   default, not this member's carve-out. The 2026-08-21 `min-height: var(--kui-ct-h)`
+   declaration that lived here is deleted as redundant: the row family's height stand-down
+   is now scoped to floating panels (recipes.css, "THE NOTCH IS THE FLOATING ROW'S"), so a
+   nav row rides the ladder — and wears the control capsule at radius="full" — with no
+   declaration of its own. The padding-block stays the family's, so a label that wraps to
+   two lines still grows and still breathes. */
 .kui-shell-nav-item {
-  min-height: var(--kui-ct-h);
   /* THE PAINT IS INSET; THE TARGET IS NOT (Kushagra, 2026-08-20: "I think I still need inset
      on rail items too, like sidebar"). Apple's sidebar geometry since Big Sur — a Finder row
      paints a rounded rectangle with a margin either side while the whole row still takes the
@@ -635,7 +644,10 @@
 }
 
 .kui-shell-nav-item[aria-current] {
-  --kui-ct-label-color: var(--tone-ink);
+  /* --tone-CURRENT since 2026-08-26: the one value the current row's icon and label share —
+     a per-mode ink/glyph pick made in color-config's currentInk (recipes.css carries the
+     rule; this restates it past the resting stand-down above). */
+  --kui-ct-label-color: var(--tone-current);
 }
 
 /* AND A DEAD ROW DIMS (2026-08-23, ultracode audit — a defect the stand-down above introduced
@@ -692,6 +704,15 @@
   position: relative;
 }
 
+/* The current square wears the same one colour the current nav ROW does (2026-08-26): the
+   rail is the sidebar collapsed, so its "you are here" must resolve the identical value —
+   `--tone-current`, the per-mode ink/glyph pick. The rail item is not a `.kui-row`, so the
+   shared arm cannot reach it and it states its own. (0,2,0) beats the emphasis rung's
+   (0,1,0) label re-point on specificity. */
+.kui-shell-rail-item[aria-current] {
+  --kui-ct-label-color: var(--tone-current);
+}
+
 /* The rail is a column of squares, and it owns the distance between them for the same reason
    the group owns the distance between its rows: this is INNER spacing, not the outer kind a
    component may never have. */
@@ -737,6 +758,11 @@
 .kui-shell-nav-group {
   display: flex;
   flex-direction: column;
+  /* Rows with persistent fills get air (2026-08-26): a current row's capsule beside its
+     hovered neighbour needs a seam, exactly as a tree's selected run does — the same
+     `--layout-space-1` pick, stated by each container that holds such rows (tree.css carries
+     the argument). Menus deliberately do not take it. */
+  gap: var(--layout-space-1);
 }
 
 /* The heading keeps the FAMILY's short box — it is a caption, not a target, so it must not
@@ -761,6 +787,12 @@
   pointer-events: none;
   color: var(--color-text-muted);
   font-weight: var(--font-weight-medium);
+  /* A CAPTION KEEPS THE SHORT BOX (2026-08-26). The label wears `kui-row` for the shared
+     inline geometry, and until the family flip it inherited the notch for free — the row
+     stand-down was the family default. Now that a standing row rides the ladder, a heading
+     at the full control height would read as one more target in the column; a caption is
+     not a target, so this member states the stand-down the floating rows kept. */
+  min-height: auto;
 }
 
 /* ── The narrow window (§18's boundary — config's `narrowMedia`, law-pinned) ───────────────

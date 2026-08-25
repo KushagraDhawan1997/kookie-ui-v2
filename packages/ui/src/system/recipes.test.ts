@@ -428,17 +428,27 @@ describe("the row family lives in the shared layer, once (§21, declared with Me
     const box = block(recipes, ".kui-row {");
     expect(box).toContain("inline-size: 100%");
     expect(box).toContain("justify-content: flex-start");
-    // The row's ONE geometry departure (2026-08-09, reversing "geometry deliberately
-    // absent"): the box is the text line plus a designed inset, not the height ladder —
-    // min-height stands down and the block padding cedes the border term, so the rendered
-    // box is exactly line + 2 x inset. Everything else still arrives through the size join:
-    // no inline padding, no height, no font size may be re-declared here.
-    expect(box).toContain("min-height: auto");
+    // THE NOTCH LEFT THE FAMILY BLOCK (2026-08-26 — the exception flipped owners). The
+    // stand-down to line + inset was judged on a MENU (2026-08-09) and sat here as the
+    // family default only because Menu was the first member; a standing row (Row, Tree,
+    // nav) rides the ladder, so `.kui-row` itself may declare NO height in either
+    // direction — the skeleton's min-height applies. The block padding stays the family's
+    // breathing and cedes the border term. Everything else still arrives through the size
+    // join: no inline padding, no height, no font size may be re-declared here.
+    expect(box).not.toContain("min-height");
     expect(box).toContain("padding-block: calc(var(--kui-ct-row-inset) - var(--border-width))");
     expect(box).not.toMatch(/min-block-size|block-size:|[^-]height: var|padding-inline|font-size/);
-    // Order is load-bearing: the skeleton declares min-height and padding-block at the same
-    // (0,1,0), so the row's stand-down wins on source alone.
-    expect(recipes.indexOf(".kui-row {")).toBeGreaterThan(recipes.indexOf(".kui-control {"));
+    // The notch lives in the FLOATING-scoped rule, and only there: keyed on the panel class
+    // whose meaning is "hugs rows", so the concentric-corner set and the notch set are one
+    // selector. Both facts asserted — the stand-down present in the scoped block, and the
+    // corner re-point scoped the same way (a standing row wears the join's control corner,
+    // which at `full` is the capsule of the box it actually has).
+    const floatingRow = block(recipes, ".kui-floating-rows .kui-row {");
+    expect(floatingRow).toContain("min-height: auto");
+    expect(recipes).toContain("--kui-ct-radius: var(--kui-ct-row-radius)");
+    // The old unscoped spellings may not return: the bare-family re-point handed the row
+    // capsule to standing rows (15px of corner on a 32px box, measured 2026-08-26).
+    expect(recipes).not.toContain(".kui-control.kui-row {");
     // The lit row reads the state attribute (keyboard and pointer unified by Base UI), and
     // a submenu's open trigger stays lit by the same rule.
     expect(recipes).toContain(".kui-row[data-highlighted]:not([data-disabled])");
@@ -500,11 +510,17 @@ describe("the row family lives in the shared layer, once (§21, declared with Me
     // (#454648 neutral, #6c3230 destructive — a grey and a brown), and a row is a line in a
     // list you read. Both facts are the law, because the first spelling declared the ink in
     // the box block and SILENTLY LOST to the quiet rung at the same (0,1,0).
+    //
+    // The anchor is the rung's DEFINITION — `[data-emphasis="quiet"] {`, brace included —
+    // because a bare attribute search matches any compound selector that mentions the rung,
+    // and the 2026-08-26 half-step rules mention it 250 lines earlier: anchored there, the
+    // slice's first ".kui-row {" landed inside ".kui-control.kui-row {" (a substring hit)
+    // and this law failed on a radius block it was never about.
     const ink = ".kui-row {";
-    expect(block(recipes.slice(recipes.indexOf('[data-emphasis="quiet"]')), ink)).toContain(
-      "--kui-ct-label-color: var(--tone-ink)",
-    );
-    expect(recipes.lastIndexOf(ink)).toBeGreaterThan(recipes.indexOf('[data-emphasis="quiet"]'));
+    const rung = recipes.indexOf('[data-emphasis="quiet"] {');
+    expect(rung, "the quiet rung's definition is gone").toBeGreaterThan(-1);
+    expect(block(recipes.slice(rung), ink)).toContain("--kui-ct-label-color: var(--tone-ink)");
+    expect(recipes.lastIndexOf(ink)).toBeGreaterThan(rung);
     // The box block must NOT also declare it — one home, and the losing spelling stays gone.
     expect(block(recipes, ".kui-row {")).not.toContain("--kui-ct-label-color");
   });
@@ -569,12 +585,15 @@ describe("the icon box is a mechanism, declared once (§4, ENGINEERING §4)", ()
     // A field's icons sit inside `[data-slot]`, so they are grandchildren of the control and
     // the bare `.kui-control > svg` rule misses them. The fix belongs in the shared layer, not
     // in a fourth copy of three declarations when Select ships. Walked like the no-axis law
-    // (audit D14), with ONE exemption: spinner.css consumes --kui-ct-icon by design — the
-    // spinner IS the icon, so reading the icon box is its job, not a restatement of it.
+    // (audit D14), with TWO exemptions, each consuming the ladder rather than restating it:
+    // spinner.css because the spinner IS the icon, so reading the icon box is its job; and
+    // tree.css because the indent DERIVES from the icon box (§33 — one level is one glyph
+    // box, so the ladder is the indent's input, and a private indent ladder would be the
+    // invented number the derivation exists to avoid). Neither SIZES an adornment.
     expect(recipes).toContain("[data-slot] > svg");
     for (const p of allStylesheets("components")) {
       const name = p.split("/").pop()!;
-      if (name === "spinner.css") continue;
+      if (name === "spinner.css" || name === "tree.css") continue;
       expect(sheet(p), `${name} restates the icon box`).not.toContain("--kui-ct-icon");
     }
   });

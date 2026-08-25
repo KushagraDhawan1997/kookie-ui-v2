@@ -681,7 +681,13 @@ describe("rows ride the existing control cells in all 24 cells (§21)", () => {
 
 describe("row states are the quiet rung's, driven by the highlight attribute (§21)", () => {
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: highlighted paints the quiet-hover fill; un-highlighted rest is transparent`, () => {
+    it(`${appearance}: highlighted paints the quiet HALF-step; un-highlighted rest is transparent`, () => {
+      // Re-keyed 2026-08-26: this law used to pin lit ≡ full --tone-soft, which was the
+      // defect stated as a guarantee — full soft is what a SELECTED (medium-resting) row
+      // wears, so a hovered row and a selected one were byte-identical. The lit value is now
+      // the mixed half-step; the half-step law at the end of this file owns the "less than
+      // soft" claim, and this one keeps the two clauses only it can make: the highlight is
+      // VISIBLE, and the un-highlighted sibling rests transparent.
       const { popup, items } = openMenu({ appearance });
       // Base UI highlights on keyboard: ArrowDown from the open popup lands on Alpha.
       popup.focus();
@@ -691,7 +697,9 @@ describe("row states are the quiet rung's, driven by the highlight attribute (§
       const [alpha, beta] = items;
       if (!alpha || !beta) throw new Error("rows missing");
       expect(alpha.hasAttribute("data-highlighted"), "ArrowDown highlighted the first row").toBe(true);
-      expect(computed(alpha, "background-color")).toBe(colorOn(popup, "var(--tone-soft)"));
+      const lit = computed(alpha, "background-color");
+      expect(lit, "the highlight is invisible").not.toBe("rgba(0, 0, 0, 0)");
+      expect(lit, "the mix collapsed back to full soft").not.toBe(colorOn(popup, "var(--tone-soft)"));
       // The un-highlighted sibling rests transparent — quiet's rest, the stand-down's proof.
       expect(computed(beta, "background-color")).toBe("rgba(0, 0, 0, 0)");
     });
@@ -1034,15 +1042,19 @@ describe("behavior: the platform's menu, not a styled div", () => {
     const sub = document.querySelector<HTMLElement>('.kui-menu-item[aria-haspopup="menu"]');
     if (!sub) throw new Error("sub trigger missing");
     expect(sub.hasAttribute("data-popup-open")).toBe(true);
-    expect(computed(sub, "background-color")).toBe(colorOn(popup, "var(--tone-soft)"));
+    // 2026-08-26: the lit value became the quiet HALF-step (mixed toward transparent), so
+    // this law stopped pinning full --tone-soft and now records the LIT value itself, then
+    // proves the popup-open arm reaches it alone. What it must not be: transparent (unlit)
+    // or full soft (the mix collapsed).
+    const litFill = computed(sub, "background-color");
+    expect(litFill).not.toBe("rgba(0, 0, 0, 0)");
+    expect(litFill, "the mix collapsed back to full soft").not.toBe(colorOn(popup, "var(--tone-soft)"));
     // ...and it is [data-popup-open] that does it. Base UI sets data-highlighted on this row
     // too, so the assertion above passed with the popup-open arm of the rule DELETED (audit
     // 2026-08-09) — a law naming a mechanism it never reached. Isolated by hand: the
     // attribute alone, on a row the highlight has left.
     sub.removeAttribute("data-highlighted");
-    expect(computed(sub, "background-color"), "the popup-open arm must light it alone").toBe(
-      colorOn(popup, "var(--tone-soft)"),
-    );
+    expect(computed(sub, "background-color"), "the popup-open arm must light it alone").toBe(litFill);
     // The child panel mounted, re-themed, wearing the same popup identity.
     const panels = document.querySelectorAll(".kui-menu-popup");
     expect(panels.length).toBe(2);
@@ -1391,7 +1403,9 @@ describe("a focused row's ring survives the panel that scrolls it (§8)", () => 
         colorOn(high.popup, "var(--tone-contrast)"),
       );
       // Calibration: the normal-mode fill is a real colour, not the transparent rest.
-      expect(before, appearance).toBe(colorOn(normal.popup, "var(--tone-soft)"));
+      // (2026-08-26: the lit value is the quiet half-step, so this stopped pinning full
+      // --tone-soft — "not transparent" is the calibration this clause was always for.)
+      expect(before, appearance).not.toBe("rgba(0, 0, 0, 0)");
       expect(after, `${appearance}: high contrast must move the highlight`).not.toBe(before);
       expect(after, appearance).toBe(colorOn(high.popup, "var(--tone-solid)"));
     }
@@ -4354,5 +4368,42 @@ describe("reduced transparency SEALS a floating pane (§10 — audit 2026-08-18)
     } finally {
       await cdp().send("Emulation.setEmulatedMedia", { features: [] });
     }
+  });
+});
+
+/**
+ * ── THE LIT ROW IS A HALF-STEP (§21, 2026-08-26) ─────────────────────────────────────────
+ * A quiet row's transient light mixes `--tone-soft` toward transparent instead of painting
+ * it whole (Kushagra: the hover grey "feels darker" — and a tree's selected row, which rests
+ * at FULL soft, painted the same pixels as a hovered one, so persistent never outranked
+ * transient). This law exists because the mixed arm shipped with no reader: sabotaging the
+ * `data-highlighted` mix out of recipes.css failed nothing until this was written — the
+ * unfalsifiable-arm shape the audits keep naming, caught before commit this time.
+ */
+describe("a lit menu row paints LESS than full soft — the quiet half-step (§21)", () => {
+  it("the highlighted fill's alpha sits visibly below the resolved soft's", async () => {
+    const { popup } = openMenu({});
+    const row = popup.querySelector<HTMLElement>(".kui-menu-item");
+    if (!row) throw new Error("no row mounted");
+    // The keyboard route, the states law's own proven idiom — a synthetic pointermove does
+    // not reach Base UI's highlight tracking (measured: the wait below timed out on it).
+    popup.focus();
+    flushSync(() => {
+      popup.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    });
+    await until(() => row.hasAttribute("data-highlighted"));
+    const alphaOf = (color: string): number => {
+      const slash = /\/\s*([\d.]+)\s*\)/.exec(color);
+      if (slash) return parseFloat(slash[1]!);
+      const comma = /^rgba\((?:[^,]+,){3}\s*([\d.]+)\)/.exec(color);
+      if (comma) return parseFloat(comma[1]!);
+      return 1;
+    };
+    const lit = alphaOf(computed(row, "background-color"));
+    const soft = alphaOf(colorOn(row, "var(--tone-soft)"));
+    expect(lit, "the row never lit").toBeGreaterThan(0);
+    expect(soft, "soft resolved to nothing").toBeGreaterThan(0);
+    // Visibly below: at least a tenth under, so a rounding difference cannot satisfy it.
+    expect(lit, `lit ${lit} vs soft ${soft}`).toBeLessThan(soft * 0.9);
   });
 });
