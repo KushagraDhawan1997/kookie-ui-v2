@@ -1,11 +1,12 @@
-A theme is not a colour scheme. It is the set of app-level identities that every component
-resolves against. You state them one time at the root, and everything inside inherits them.
+A theme is not a colour scheme. It is where your app answers seven questions once, at the
+root, so that no screen has to answer them again. Everything inside the Theme picks up those
+answers automatically.
 
-There are seven axes. All of them are optional, and each default is the correct answer for an app
-that has not decided yet. That inversion is deliberate. Overriding an axis requires knowing
-something the library does not know.
+All seven are optional, and every default is the right answer for an app that has not decided
+yet. That is deliberate: to change one, you have to know something about your app that the
+library cannot know.
 
-## The seven axes
+## The seven settings
 
 ```tsx
 <Theme
@@ -21,99 +22,103 @@ something the library does not know.
 </Theme>
 ```
 
-**`appearance`** is light or dark. Use `inherit` at the root. `inherit` tells the theme to stamp
-no appearance of its own and to read the mode from `<html>`, where the pre-paint script wrote it.
-That is the whole dark-mode design. See [Installation](/start/installation).
+**`appearance`** is light or dark. Use `inherit` at the root. That tells the Theme not to
+choose a mode itself, and to take the one already written on `<html>` by the small script in
+[Installation](/start/installation). That script plus `inherit` is the whole of dark mode.
 
-**`density`** re-picks which step of the space palette each semantic distance uses. It scales
-nothing. A compact theme is not a smaller theme. Its gaps sit lower on the same ladder. Type does
-not move with density, and no corner moves with it.
+**`density`** changes how much space sits between things. It does not shrink anything. A
+compact theme uses smaller gaps from the same set of spacing values; the text stays the same
+size and the corners stay the same shape.
 
-**`radius`** is the corner identity for the whole app. Each component's corner derives from it in
-bands, so a control, a Card and a menu row stay in proportion at every level.
+**`radius`** sets how round your app is. Each kind of component works out its own corner from
+that one word, so a button, a card and a menu row stay in proportion at every setting.
 
-**`contrast`** is an accessibility preference, and it is the conformance surface. It also answers
-the platform signal, so a visitor who asked the operating system for more contrast gets it with
-no prop set.
+**`contrast`** raises contrast for people who need it. Set it to `high` yourself, or leave it
+alone: someone who has asked their operating system for more contrast gets it without you
+doing anything.
 
-**`pointer`** is what is touching the screen. `auto` follows the platform. Pinning it forces
-the whole coarse world: geometry, targets and the handheld type band together. Pin it to judge a
-phone's sizing on a desktop.
+**`pointer`** is whether people are using a mouse or a touch screen. `auto` follows the
+device. Setting it yourself switches everything at once, which is useful when you want to
+check phone sizing on your laptop.
 
-**`depth`** says whether light exists in this app. Surfaces either sit above the page and cast
-a shadow, or everything sits in one plane. This is an app-level statement, never a per-Card prop.
+**`depth`** is whether your app has light in it. Either surfaces sit above the page and cast a
+shadow, or everything sits flat. You decide once, for the whole app. There is no shadow prop
+on a Card.
 
-**`material`** is what the app is made of. One value covers the whole scope, because every
-pane in one app is made of the same thing.
+**`material`** is what your app is made of. One value covers everything, because every panel
+in one app is made of the same stuff.
 
-## A nested theme re-scopes
+## Nest a Theme to change one region
 
-A nested `Theme` overrides the axes it names and inherits the rest.
+A Theme inside a Theme changes only the settings it names and inherits the rest.
 
 ```tsx
 <Theme density="comfortable">
   <Page />
-  {/* A dense region inside a comfortable app. Everything else is unchanged. */}
+  {/* A dense region inside a roomy app. Nothing else changes. */}
   <Theme density="compact">
     <DataTable />
   </Theme>
 </Theme>
 ```
 
-Use nesting to make a region behave differently. A dark hero inside a light page, a compact
-inspector inside a comfortable app, and a glass panel over a photograph are the sanctioned cases.
+Use this when one region genuinely needs to behave differently: a dark hero on a light page, a
+tight inspector panel in a roomy app, or a glass panel sitting over a photograph.
 
-Nesting is also what makes portals correct. Every floating layer re-applies the theme inside its
-portal, so a menu opened from a dark section opens dark.
+Nesting is also what keeps menus and dialogs correct. Every floating layer applies the theme
+again inside itself, so a menu opened from a dark section opens dark.
 
-A nested theme does not create a query container. Layout measurement is the job of
-`<Box container>`, and you opt into it where something inside wants measuring.
+One thing nesting does not do is make a region measurable. If you want a component to respond
+to the width of its container rather than the window, use `<Box container>` around it.
 
-## The accent is set in config
+## You cannot set the accent colour as a prop
 
-There is no `accentColor` prop. This is the most common expectation the system does not meet.
+This is the thing people expect and do not find. There is no `accentColor` prop.
 
-The colour config authors the accent as a hue and a vividness. The generator solves the whole
-family from those two numbers: every step, every role, both appearances and all contrast targets.
-A prop could only pass a hex value, and a hex value is what the generator exists to avoid.
+Your accent is set in the colour config as a hue and a saturation, and every shade, every
+role, both light and dark, and every contrast level is worked out from those two numbers. A
+prop could only take a hex value, and a hex value is exactly what that generator exists to
+avoid: one hex cannot tell you what its hover state, its border or its readable text colour
+should be.
 
-An app therefore has one accent. A differently branded region inside one app is not expressible
-today.
+The consequence is that an app has one accent. A section with different branding inside the
+same app is not something you can express today.
 
-## Read the theme in JavaScript only where you must
+## Reading the theme in JavaScript
 
-Most code needs no hook. Components read the axes through CSS inheritance, which is why no
-JavaScript runs at interaction time. Two hooks exist for the cases that CSS cannot cover.
+Most code never needs to. Components pick up the settings through CSS, which is why nothing
+runs in JavaScript when you hover or press a control. Two hooks exist for the cases CSS cannot
+reach.
 
 ```tsx
 import { useMaterial, useWindowClass } from "@kookie-ui/react";
 
-// A pane of your own, made of whatever the app is made of.
+// Your own panel, made of whatever the app is made of.
 function Pane({ children }: { children: React.ReactNode }) {
   return <div className="kui-surface" data-material={useMaterial()}>{children}</div>;
 }
 
-// Which interface shape to show. Returns null on the server.
+// Which navigation shape to show.
 function Nav() {
   const windowClass = useWindowClass(); // "narrow" | "regular" | "wide" | null
   return windowClass === "narrow" ? <BottomTabs /> : <Sidebar />;
 }
 ```
 
-`useWindowClass` returns `null` on the server and through the first paint. The server cannot
-measure the window, and a hook that guessed would produce a hydration mismatch. Express the
-answer in CSS when you need it before paint. The library exports the boundary queries as
-`windowClassQueries`.
+`useWindowClass` returns `null` on the server and until the first paint, because the server
+cannot measure a window and a hook that guessed would make React complain that the server and
+the browser disagree. If you need the answer before anything paints, write it in CSS instead.
+The library exports the same boundaries as `windowClassQueries`.
 
-## The defaults and their reasons
+## Two defaults worth explaining
 
-The resting theme is light appearance, default density, `full` radius, normal contrast, automatic
-pointer, elevated depth and solid material. Two of those need a reason.
+The resting theme is light, normal density, fully rounded, normal contrast, automatic pointer,
+raised surfaces and solid material. Two of those are choices rather than obvious answers.
 
-`depth` defaults to `elevated`, because most apps have light in them. A flat world is the
-deliberate exception rather than the neutral starting point. This is a judgment.
+**`depth` starts at `elevated`** because most apps do have light in them. A flat app is the
+deliberate exception, not the neutral starting point. That is a judgment.
 
-`material` defaults to `solid`. Solid is a material. It is the level where light stops passing
-through, not the absence of a material. Glass takes two steps, and both are required. The theme
-must be made of glass, and something must sit behind the pane for the pane to bend it. A control
-in ordinary flow resolves `solid` and costs nothing.
+**`material` starts at `solid`**, and solid is a material rather than the absence of one. It is
+the setting where light stops passing through. Glass needs two things to be true: your theme
+has to be made of glass, and something has to be behind the panel for it to bend. A control
+sitting in ordinary page flow stays solid and costs you nothing.
