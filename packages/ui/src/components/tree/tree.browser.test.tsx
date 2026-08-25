@@ -11,8 +11,8 @@
 import { describe, expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
 
-import { SIZES, computed, mounted, tokenOn, until, within } from "../../test/browser.tsx";
-import { Tree, type TreeNode } from "./tree.tsx";
+import { SIZES, colorOn, computed, mounted, tokenOn, until, within } from "../../test/browser.tsx";
+import { NavTree, Tree, type TreeNode } from "./tree.tsx";
 
 /**
  * Alpha holds two children, the second of which holds one more — and Beta follows the WHOLE
@@ -287,5 +287,125 @@ describe("the disclosure: paint, not a control — and it toggles without select
     expect(alpha.getAttribute("aria-selected")).toBe("false");
     // The row IS the button; the glyph must never be a second one nested inside it.
     expect(alpha.querySelector("button, [role='button']")).toBeNull();
+  });
+});
+
+/**
+ * The NAV member (§33): same machine, different announcement — and the announcement is the
+ * whole point, so the first law is the over-claim law. The fixture is a two-section nav with
+ * a current page, the docs sidebar's own shallow shape.
+ */
+const NAV: readonly TreeNode[] = [
+  {
+    id: "start",
+    label: "Getting started",
+    children: [
+      { id: "install", label: "Installation", href: "/install" },
+      { id: "theming", label: "Theming", href: "/theming" },
+    ],
+  },
+  {
+    id: "components",
+    label: "Components",
+    children: [{ id: "button", label: "Button", href: "/components/button" }],
+  },
+];
+
+describe("NavTree announces as navigation, never as a tree (§33)", () => {
+  it("no tree roles anywhere: sections are buttons with aria-expanded, leaves are links", () => {
+    const nav = mounted(
+      <NavTree items={NAV} defaultExpandedIds={["start", "components"]} currentId="install" />,
+      { theme: {}, select: ".kui-tree-nav" },
+    );
+    // The over-claim law: role="tree" on navigation is the exact thing §33 refuses.
+    expect(nav.getAttribute("role")).toBeNull();
+    expect(nav.querySelector("[role='tree'], [role='treeitem']")).toBeNull();
+    const sections = [...nav.querySelectorAll<HTMLElement>("button[aria-expanded]")];
+    expect(sections.map((s) => s.textContent)).toEqual(["Getting started", "Components"]);
+    const links = [...nav.querySelectorAll<HTMLElement>("a[href]")];
+    expect(links.map((l) => l.getAttribute("href"))).toEqual([
+      "/install",
+      "/theming",
+      "/components/button",
+    ]);
+    // Exactly one row is the page you are on, and it is announced, not merely painted.
+    const current = [...nav.querySelectorAll("[aria-current='page']")];
+    expect(current).toHaveLength(1);
+    expect(current[0]!.textContent).toBe("Installation");
+  });
+
+  it("normal tab order — the roving tabindex is the instrument's, not navigation's", () => {
+    const nav = mounted(
+      <NavTree items={NAV} defaultExpandedIds={["start", "components"]} currentId="install" />,
+      { theme: {}, select: ".kui-tree-nav" },
+    );
+    for (const el of nav.querySelectorAll<HTMLElement>("a, button")) {
+      expect(el.tabIndex, `${el.textContent} left the tab order`).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it("a section row IS the disclosure: pressing it reveals and hides its children", async () => {
+    const nav = mounted(<NavTree items={NAV} />, { theme: {}, select: ".kui-tree-nav" });
+    expect(nav.querySelectorAll("a[href]")).toHaveLength(0);
+    const start = within(nav, "button[aria-expanded]");
+    await userEvent.click(start);
+    await until(() => nav.querySelectorAll("a[href]").length === 2);
+    expect(start.getAttribute("aria-expanded")).toBe("true");
+    await userEvent.click(start);
+    await until(() => nav.querySelectorAll("a[href]").length === 0);
+  });
+
+  it("current speaks in INK — the nav row identity (--tone-current), resting rows the neutral text", () => {
+    // ShellNavItem's pair, asserted through the resolved values rather than a mounted Shell:
+    // the current link's ink must BE --tone-current and a resting link's must BE --color-text,
+    // in both appearances — so the tree's nav member and the shell's nav row cannot disagree
+    // while both resolve the same roles.
+    for (const appearance of ["light", "dark"] as const) {
+      const nav = mounted(
+        <NavTree items={NAV} defaultExpandedIds={["start"]} currentId="install" />,
+        { theme: { appearance }, select: ".kui-tree-nav" },
+      );
+      const current = within(nav, "[aria-current='page']");
+      const resting = [...nav.querySelectorAll<HTMLElement>("a[href]")].find(
+        (a) => !a.hasAttribute("aria-current"),
+      )!;
+      expect(computed(current, "color"), `${appearance}: current ink`).toBe(
+        colorOn(current, "var(--tone-current)"),
+      );
+      expect(computed(resting, "color"), `${appearance}: resting ink`).toBe(
+        colorOn(resting, "var(--color-text)"),
+      );
+      expect(computed(current, "color")).not.toBe(computed(resting, "color"));
+    }
+  });
+
+  it("the link escape carries the row's identity onto the app's own element", () => {
+    const nav = mounted(
+      <NavTree
+        items={NAV}
+        defaultExpandedIds={["start"]}
+        renderLink={(node) => <a data-router="" href={`/base${node.href}`} />}
+      />,
+      { theme: {}, select: ".kui-tree-nav" },
+    );
+    const link = within(nav, "[data-router]");
+    expect(link.tagName).toBe("A");
+    expect(link.getAttribute("href")).toBe("/base/install");
+    expect(link.classList.contains("kui-tree-item")).toBe(true);
+    expect(link.textContent).toBe("Installation");
+  });
+
+  it("the indent is the machine's — a child link starts one icon box past its section", () => {
+    const nav = mounted(
+      <NavTree items={NAV} defaultExpandedIds={["start"]} />,
+      { theme: {}, select: ".kui-tree-nav" },
+    );
+    const section = within(nav, "button[aria-expanded]");
+    const leaf = within(nav, "a[href]");
+    const icon = parseFloat(tokenOn(leaf, "--kui-ct-icon"));
+    expect(
+      parseFloat(computed(leaf, "padding-inline-start")) -
+        parseFloat(computed(section, "padding-inline-start")),
+    ).toBeCloseTo(icon, 1);
   });
 });

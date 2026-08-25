@@ -3,7 +3,7 @@
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
-import { slot } from "../../system/render.ts";
+import { composeRender, slot, type RenderElement } from "../../system/render.ts";
 import { glyphStroke } from "../../tokens/config.ts";
 
 /**
@@ -25,6 +25,17 @@ export type TreeNode = {
   textValue?: string;
   /** Child nodes. Present (even empty) means the row is expandable and shows a disclosure. */
   children?: readonly TreeNode[];
+  /**
+   * NavTree only: where this leaf navigates. A leaf renders as a real link (the default `<a>`,
+   * or whatever `renderLink` supplies), which is what separates the NAV vocabulary from the
+   * instrument's — activation navigates rather than selects. Ignored by `Tree`.
+   */
+  href?: string;
+  /**
+   * NavTree only: an icon rendered in the row's leading slot. On an expandable row it sits
+   * after the disclosure. Ignored by `Tree`, whose leading slot is the disclosure's.
+   */
+  leading?: React.ReactNode;
 };
 
 export type TreeProps = Omit<
@@ -81,6 +92,49 @@ const flatten = (
 
 const words = (node: TreeNode): string =>
   typeof node.label === "string" ? node.label : (node.textValue ?? "");
+
+/**
+ * The one glyph the machine draws, shared by both members. Passive paint — never a button
+ * (the row is the interactive element and a control may not nest a control's element); the
+ * optional click handler is the instrument's Finder split (toggle without selecting), and the
+ * nav member passes none because its whole section row IS the disclosure.
+ */
+function DisclosureGlyph({
+  expandable,
+  expanded,
+  onToggle,
+}: {
+  expandable: boolean;
+  expanded: boolean;
+  onToggle?: (() => void) | undefined;
+}) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      aria-hidden
+      className="kui-tree-disclosure"
+      {...(expandable ? { "data-expandable": "" } : {})}
+      {...(expanded ? { "data-expanded": "" } : {})}
+      {...(onToggle
+        ? {
+            onClick: (event: React.MouseEvent) => {
+              event.stopPropagation();
+              if (expandable) onToggle();
+            },
+          }
+        : {})}
+    >
+      <path
+        d="M6 4l4 4-4 4"
+        stroke="currentColor"
+        strokeWidth={glyphStroke}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 /**
  * Tree (§33) — hierarchical content revealed and hidden by the person using it. The MACHINE
@@ -269,28 +323,11 @@ export function Tree({
         const isExpanded = isExpandable && expanded.has(node.id);
         const isSelected = selected.has(node.id);
         const disclosure = (
-          <svg
-            viewBox="0 0 16 16"
-            fill="none"
-            aria-hidden
-            className="kui-tree-disclosure"
-            {...(isExpandable ? { "data-expandable": "" } : {})}
-            {...(isExpanded ? { "data-expanded": "" } : {})}
-            onClick={(event) => {
-              // The chevron toggles WITHOUT selecting — Finder's split — so the click must
-              // not reach the row's own handler. Activation only; no pointer-time handler.
-              event.stopPropagation();
-              if (isExpandable) toggle(node.id);
-            }}
-          >
-            <path
-              d="M6 4l4 4-4 4"
-              stroke="currentColor"
-              strokeWidth={glyphStroke}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <DisclosureGlyph
+            expandable={isExpandable}
+            expanded={isExpanded}
+            onToggle={() => toggle(node.id)}
+          />
         );
         // A row renders its own button wearing the family classes — ShellNavItem's pattern,
         // NOT a `<Row>` composition: Row owns its emphasis stamp (quiet, or medium via
@@ -326,6 +363,130 @@ export function Tree({
             {slot(disclosure, "leading")}
             {node.label}
           </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export type NavTreeProps = Omit<React.ComponentPropsWithoutRef<"div">, "color" | "children"> & {
+  /** The hierarchy, as data. Leaves carry `href`; sections carry `children`. See `TreeNode`. */
+  items: readonly TreeNode[];
+  /** The rows' index — the row family's own `size`, stamped per row. Rests at 2. */
+  size?: Size;
+  /** Uncontrolled starting expansion. */
+  defaultExpandedIds?: readonly string[];
+  /** Controlled expansion, paired with `onExpandedChange`. */
+  expandedIds?: readonly string[];
+  /** Fires when a section opens or closes, with the whole expanded set. */
+  onExpandedChange?: (ids: string[]) => void;
+  /**
+   * The id of the node for the page the person is ON. That row announces
+   * `aria-current="page"` and paints the current identity (accent ink, the medium rung) —
+   * ShellNavItem's own pair. Location, not selection: a nav tree has no selection at all.
+   */
+  currentId?: string | null;
+  /**
+   * The link escape, per node — how a leaf becomes the app's router link
+   * (`renderLink={(node) => <Link href={node.href!} />}`). Without it a leaf renders a plain
+   * `<a href>`. The element's own props win, the Button-as-anchor lesson: the machine never
+   * writes `type` onto a link.
+   */
+  renderLink?: (node: TreeNode) => RenderElement;
+  ref?: React.Ref<HTMLDivElement>;
+};
+
+/**
+ * NavTree (§33) — the tree machine's NAVIGATION member. Same data, same flatten, same derived
+ * indent and disclosure glyph as `Tree`; what differs is the ANNOUNCEMENT, because the ARIA
+ * APG separates disclosure navigation from tree views and `role="tree"` on a nav is
+ * over-claiming. So: no tree roles anywhere — an expandable section is a real `<button
+ * aria-expanded>` whose whole row is the disclosure, a leaf is a real link, the current page
+ * is `aria-current="page"`, and the keyboard is the platform's (normal tab order, Enter
+ * follows the link) rather than the instrument's roving walk. Selection does not exist here;
+ * `currentId` is location.
+ *
+ * The current row's identity is ShellNavItem's, deliberately: accent stamped always (safe
+ * under `undilutedTones` — the fill stays grey, only ink and glyph arrive in colour), the
+ * label stood down to the neutral ink unless current (tree.css self-keys the pair; the third
+ * member promotes it to the shared layer).
+ */
+export function NavTree({
+  items,
+  size = "2",
+  defaultExpandedIds,
+  expandedIds,
+  onExpandedChange,
+  currentId,
+  renderLink,
+  className,
+  ref,
+  ...props
+}: NavTreeProps) {
+  const [expandedState, setExpandedState] = React.useState<ReadonlySet<string>>(
+    () => new Set(defaultExpandedIds),
+  );
+  const expanded = expandedIds !== undefined ? new Set(expandedIds) : expandedState;
+  const toggle = (id: string) => {
+    const next = new Set(expanded);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    if (expandedIds === undefined) setExpandedState(next);
+    onExpandedChange?.([...next]);
+  };
+
+  const rows = flatten(items, expanded);
+
+  return (
+    <div
+      {...props}
+      ref={ref}
+      className={className ? `kui-tree kui-tree-nav ${className}` : "kui-tree kui-tree-nav"}
+    >
+      {rows.map((row) => {
+        const { node, level } = row;
+        const isExpandable = node.children !== undefined;
+        const isExpanded = isExpandable && expanded.has(node.id);
+        const isCurrent = currentId != null && currentId === node.id;
+        const shared = {
+          "data-size": size,
+          // ShellNavItem's stamp verbatim (2026-08-23; see its comment for why the
+          // unconditional stamp is safe): the family is what the CURRENT row's ink and
+          // glyph read, and undilutedTones keeps every fill grey.
+          "data-tone": "accent",
+          "data-hover-lit": "",
+          ...(isCurrent
+            ? { "aria-current": "page" as const, "data-emphasis": "medium" }
+            : { "data-emphasis": "quiet" }),
+          className: "kui-control kui-row kui-tree-item",
+          style: { "--kui-tree-level": level - 1 } as React.CSSProperties,
+        };
+        if (isExpandable) {
+          // The whole section row is the disclosure — no separate chevron target, no
+          // selection to protect it from (the instrument's Finder split has no job here).
+          return (
+            <button
+              key={node.id}
+              type="button"
+              aria-expanded={isExpanded}
+              onClick={() => toggle(node.id)}
+              {...(shared as React.ComponentPropsWithoutRef<"button">)}
+            >
+              {slot(<DisclosureGlyph expandable expanded={isExpanded} />, "leading")}
+              {slot(node.leading, "leading")}
+              {node.label}
+            </button>
+          );
+        }
+        const content = (
+          <>
+            {slot(node.leading, "leading")}
+            {node.label}
+          </>
+        );
+        const link = renderLink?.(node) ?? <a {...(node.href ? { href: node.href } : {})} />;
+        return (
+          <React.Fragment key={node.id}>{composeRender(link, shared as never, content)}</React.Fragment>
         );
       })}
     </div>

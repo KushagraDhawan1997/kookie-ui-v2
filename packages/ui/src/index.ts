@@ -32,7 +32,7 @@ export { Radio, RadioGroup, type RadioProps, type RadioGroupProps } from "./comp
 export { Separator, type SeparatorProps } from "./components/separator/separator.tsx";
 export { SegmentedControl, SegmentedItem, type SegmentedControlProps, type SegmentedItemProps } from "./components/segmented-control/segmented-control.tsx";
 export { Row, type RowProps } from "./components/row/row.tsx";
-export { Tree, type TreeProps, type TreeNode } from "./components/tree/tree.tsx";
+export { Tree, NavTree, type TreeProps, type NavTreeProps, type TreeNode } from "./components/tree/tree.tsx";
 export { ScrollArea, type ScrollAreaProps } from "./components/scroll-area/scroll-area.tsx";
 export {
   Shell,

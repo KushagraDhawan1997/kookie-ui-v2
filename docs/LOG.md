@@ -8,6 +8,14 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-26 NavTree ships, and the docs sidebar becomes one tree
+
+The tree machine's NAVIGATION member — §33's staged half, built the day after the instrument because Kushagra asked for the docs sidebar's internals to be the tree ("swap docs shell sidebar's internals with tree"). Offered two scopes, he picked the whole nav: sections are collapsible level-0 nodes rather than caption headings, so the sidebar's look changes on purpose.
+
+What was decided in the building: NO tree roles (the §33 over-claim clause implemented — sections are `<button aria-expanded>`, leaves are real links, current is `aria-current="page"`); the whole section row is the disclosure, because the Finder split (chevron toggles without selecting) protects a selection navigation does not have; `currentId` is location with selection refused; the keyboard is the platform's — the roving walk, typeahead and Home/End stay the instrument's; the current identity is ShellNavItem's pair (`--tone-current` / stood-down neutral ink), self-keyed in tree.css as the second member with the third promoting; `renderLink` is the router escape, per node, with the element's own props winning. `TreeNode` gained `href` and `leading`; `Tree` ignores both, documented on the fields.
+
+Rejected: one Tree with a mode prop (the prop surfaces diverge — selection props mean nothing on a nav, `currentId`/`renderLink` nothing on an instrument — and §33's own "two vocabularies, per member" is the row family's shape: shared machine, separate members); deriving the vocabulary from whether nodes carry `href` (an implicit mode flip on data is the silent-inheritance family of defect). NavDisclosure deleted on its own instruction; the docs' `currentId={pathname}` works because a leaf's id IS its href. Six mounted laws, two sabotages (the role stamp back on; the current-ink arm deleted), each caught by exactly its law. Mid-work instrument note: a concurrent session's repo sync reverted three of the four files in flight — the laws' green run after reapplication is what proved the reapplication whole.
+
 ## 2026-08-26 The bright half of the wheel becomes brandable: the ring solves, and high contrast stops strangling cusp-parked brands
 
 **What.** Two generator mechanisms, forced by Kushagra's challenge ("I need green and yellow tones to work — Apple makes it work with Notes, Stocks") after yellow, green and cyan all refused as brands (3-4 laws red at every vividness) while blue, violet, purple, magenta and rose passed. Both are Apple's own arrangement read structurally: a bright brand's FILL carries dark text everywhere, and wherever the brand must be a LINE, the platform uses a darker cut of the same hue — never the bright fill.

@@ -56,3 +56,18 @@
 .kui-tree-disclosure:dir(rtl) {
   scale: -1 1;
 }
+
+/* ── The NAV member's ink (§33) ────────────────────────────────────────────────────────────
+   ShellNavItem's pair, self-keyed on the second member (the third promotes): the row stamps
+   accent always, so the LABEL stands back down to the neutral ink — a column of blue words is
+   not a sidebar — and the CURRENT row takes the family back through --tone-current, the one
+   value its icon and label share. Keyed on the announced attribute, never a private stamp, so
+   the painted state and the announced one cannot disagree. (0,2,0) both arms; the current arm
+   wins its sibling on the attribute's extra specificity. */
+.kui-tree-nav .kui-tree-item {
+  --kui-ct-label-color: var(--color-text);
+}
+
+.kui-tree-nav .kui-tree-item[aria-current] {
+  --kui-ct-label-color: var(--tone-current);
+}
