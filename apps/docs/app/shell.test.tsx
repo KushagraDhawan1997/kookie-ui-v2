@@ -61,15 +61,16 @@ describe("a page-shaped route gets the page chrome — including the one Next re
   //
   // THE INSET MOVED (2026-08-21). It used to be a `<Box p="6">` inside the scroller, and this
   // law matched the custom property that Box writes. Every shell pane pads itself now, so the
-  // page's air is the CONTENT PANE's — and the docs state `size="3"` on it deliberately,
-  // because a reading column wants more of a safe area than a list of links does. That
-  // statement is the thing a route can still lose, so it is what this clause reads; that the
-  // padding then really lands is the package's own law, measured in a mounted browser.
+  // page's air is the CONTENT PANE's. The frame went to size 3 for a day and came back to the
+  // default 2 (2026-08-26, Kushagra) — the shell states nothing and every pane resolves the
+  // default — so what a route can still lose is the pane resolving an index at all: the
+  // clause reads the resolved stamp; that the padding then really lands is the package's own
+  // law, measured in a mounted browser.
   const wearsChrome = (out: string) => ({
     nav: out.includes("<nav"),
     trigger: out.includes('aria-label="Toggle navigation"'),
     main: out.includes("<main"),
-    inset: /<main[^>]*data-size="3"/.test(out),
+    inset: /<main[^>]*data-size="2"/.test(out),
   });
 
   it("the (docs) group wears it", () => {

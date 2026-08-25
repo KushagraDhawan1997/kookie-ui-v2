@@ -86,6 +86,7 @@ import {
   TextField,
   type Tone,
   Select,
+  NavTree,
   ScrollArea,
   SelectTrigger,
   SelectContent,
@@ -2018,6 +2019,34 @@ function TreeSection() {
           },
         ]}
       />
+      {/* The NAV member (§33): same machine, announced as navigation — sections are buttons
+          with aria-expanded, pages are links, and the current page speaks in accent INK
+          (ShellNavItem's identity), not in a louder fill. The docs sidebar is this component. */}
+      <Demo label="NavTree — location, not selection; the current page is aria-current">
+        <Box minWidth="16rem" maxWidth="20rem">
+          <Card size="2">
+            <NavTree
+              items={[
+                {
+                  id: "start",
+                  label: "Getting started",
+                  children: [
+                    { id: "/install", label: "Installation", href: "#" },
+                    { id: "/theming", label: "Theming", href: "#" },
+                  ],
+                },
+                {
+                  id: "guides",
+                  label: "Guides",
+                  children: [{ id: "/composition", label: "Composition", href: "#" }],
+                },
+              ]}
+              defaultExpandedIds={["start"]}
+              currentId="/install"
+            />
+          </Card>
+        </Box>
+      </Demo>
     </Stack>
   );
 }

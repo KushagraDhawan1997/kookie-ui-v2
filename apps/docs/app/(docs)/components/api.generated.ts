@@ -1487,6 +1487,53 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "NavTree": {
+    "element": "div",
+    "props": [
+      {
+        "name": "currentId",
+        "type": "string | null",
+        "optional": true,
+        "doc": "The id of the node for the page the person is ON. That row announces `aria-current=\"page\"` and paints the current identity (accent ink, the medium rung) — ShellNavItem's own pair. Location, not selection: a nav tree has no selection at all."
+      },
+      {
+        "name": "defaultExpandedIds",
+        "type": "readonly string[]",
+        "optional": true,
+        "doc": "Uncontrolled starting expansion."
+      },
+      {
+        "name": "expandedIds",
+        "type": "readonly string[]",
+        "optional": true,
+        "doc": "Controlled expansion, paired with `onExpandedChange`."
+      },
+      {
+        "name": "items",
+        "type": "readonly TreeNode[]",
+        "optional": false,
+        "doc": "The hierarchy, as data. Leaves carry `href`; sections carry `children`. See `TreeNode`."
+      },
+      {
+        "name": "onExpandedChange",
+        "type": "(ids: string[]) => void",
+        "optional": true,
+        "doc": "Fires when a section opens or closes, with the whole expanded set."
+      },
+      {
+        "name": "renderLink",
+        "type": "(node: TreeNode) => RenderElement",
+        "optional": true,
+        "doc": "The link escape, per node — how a leaf becomes the app's router link (`renderLink={(node) => <Link href={node.href!} />}`). Without it a leaf renders a plain `<a href>`. The element's own props win, the Button-as-anchor lesson: the machine never writes `type` onto a link."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "optional": true,
+        "doc": "The rows' index — the row family's own `size`, stamped per row. Rests at 2."
+      }
+    ]
+  },
   "Notice": {
     "element": null,
     "props": [

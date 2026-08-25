@@ -80,7 +80,6 @@ export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
   return (
     <>
       <Button
-        size="3"
         emphasis="quiet"
         bordered
         leading={<SearchIcon />}
@@ -88,7 +87,7 @@ export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
         aria-label="Search the documentation"
       >
         <Flex align="center" gap="3">
-          <Text size="3" emphasis="quiet">
+          <Text size="2" emphasis="quiet">
             Search
           </Text>
           <Kbd>⌘K</Kbd>

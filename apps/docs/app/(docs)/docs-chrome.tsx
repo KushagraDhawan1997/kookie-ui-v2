@@ -69,7 +69,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
     // The frame takes the window; `100dvh` rather than `100vh` so a phone's collapsing
     // browser chrome does not leave the shell taller than the screen it is in.
     <Box style={{ blockSize: "100dvh" }}>
-      <Shell size="3">
+      <Shell>
         <ShellSidebar aria-label="Documentation">
           {/* The unofficial header — pinned above the scroller by position alone (§27's
               pinned-stack rule; no part names exist and none are needed). */}
@@ -92,7 +92,6 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
           {/* The unofficial footer — pinned below the scroller the same way. */}
           <Flex align="center" justify="space-between" gap="2">
             <Button
-              size="3"
               emphasis="quiet"
               render={<a href="https://github.com/KushagraDhawan1997/kookie-ui-v2" />}
             >
@@ -102,11 +101,10 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
           </Flex>
         </ShellSidebar>
 
-        {/* Inherits the shell's 3 (2026-08-26; the shell was 2 with this pane stating its own
-            3 — a reading column wants more safe area than a list of links. The whole frame is
-            at 3 now, so the pane says nothing). The padding used to be a `p="6"` on a Box
-            inside the scroller, which is the same distance said by hand — and said in the one
-            place the pane's own padding could not reach it.
+        {/* The shell rests at its default 2 (2026-08-26, Kushagra — it went to 3 for a day and
+            came back; the pane states nothing and follows). The padding used to be a `p="6"`
+            on a Box inside the scroller, which is the same distance said by hand — and said
+            in the one place the pane's own padding could not reach it.
 
             `position: relative` is the trigger's containing block, stated inline because the
             shell root is the nearest positioned ancestor otherwise and the trigger would
@@ -128,7 +126,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
             <ShellTrigger
               target="sidebar"
               render={
-                <Button size="3" emphasis="quiet" iconOnly aria-label="Toggle navigation">
+                <Button emphasis="quiet" iconOnly aria-label="Toggle navigation">
                   <PanelLeftIcon />
                 </Button>
               }

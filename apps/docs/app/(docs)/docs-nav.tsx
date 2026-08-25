@@ -1,9 +1,14 @@
 "use client";
 
 /**
- * The sidebar's contents. A client component for exactly one reason — `usePathname`, because
- * "you are here" is information and `ShellNavItem`'s `current` announces it as well as
- * painting it.
+ * The sidebar's contents — ONE NavTree since 2026-08-26 (Kushagra: "swap docs shell sidebar's
+ * internals with tree"). Sections are collapsible level-0 nodes, chapters and the component
+ * pages are their children, and the whole structure is data handed to the machine §33 ships:
+ * disclosure state, the announcement (buttons with aria-expanded, links with aria-current) and
+ * the derived indent are the package's, so this file is back to being a data table.
+ *
+ * A client component for exactly one reason — `usePathname`, because "you are here" is
+ * information and the tree announces it as `aria-current="page"` as well as painting it.
  *
  * DATA IS PASSED IN, not imported. The component registry's entries carry live React elements
  * for their examples, so importing it here would drag every documented component into the
@@ -13,9 +18,8 @@
 import type * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ShellNavGroup, ShellNavItem, ShellScroll, Stack } from "@kookie-ui/react";
+import { NavTree, ShellScroll, type TreeNode } from "@kookie-ui/react";
 
-import { NavDisclosure } from "./nav-disclosure";
 import {
   BlocksIcon,
   BoardIcon,
@@ -77,33 +81,22 @@ const CHAPTER_ICONS: Record<string, React.ComponentType> = {
 export type NavLink = { href: string; label: string };
 export type NavSection = { id: string; title: string; links: readonly NavLink[] };
 
-function Row({
-  href,
-  label,
-  current,
-  icon: Icon,
-}: NavLink & { current: boolean; icon?: React.ComponentType | undefined }) {
-  return (
-    <ShellNavItem
-      current={current}
-      {...(Icon ? { leading: <Icon /> } : {})}
-      render={<Link href={href} />}
-    >
-      {label}
-    </ShellNavItem>
-  );
-}
+/** A chapter or component page as a tree leaf: the href IS the id, which is also what makes
+    `currentId={pathname}` the whole current-page wiring. */
+const leaf = ({ href, label }: NavLink): TreeNode => {
+  const Icon = CHAPTER_ICONS[href];
+  return { id: href, label, href, ...(Icon ? { leading: <Icon /> } : {}) };
+};
 
 /**
  * The instruments, in the navigation rather than only in the header.
  *
  * They are public on purpose (LOG 2026-08-21): a system whose claim is "the guidelines are
  * enforced" owes a reader somewhere to go and watch that happen, and the builder's live review
- * is the shortest demonstration there is. A header link reads as an afterthought; a nav group
- * says they are part of the documentation.
+ * is the shortest demonstration there is.
  *
  * A plain array rather than a prop, because unlike the chapters and the components these are
- * not derived from anything — there are three of them and they are named here.
+ * not derived from anything — there are four of them and they are named here.
  */
 const WORKBENCH: (NavLink & { icon: React.ComponentType })[] = [
   { href: "/builder", label: "Builder", icon: BoardIcon },
@@ -127,43 +120,49 @@ export function DocsNav({
   // one real failure mode.
   const inComponents = pathname?.startsWith("/components") ?? false;
 
+  const items: TreeNode[] = [
+    ...sections.map(
+      (section): TreeNode => ({
+        id: section.id,
+        label: section.title,
+        children: section.links.map(leaf),
+      }),
+    ),
+    {
+      id: "components",
+      label: "Components",
+      children: [
+        leaf({ href: "/components", label: "All components" }),
+        ...components.map(leaf),
+      ],
+    },
+    {
+      id: "workbench",
+      label: "Workbench",
+      children: WORKBENCH.map(({ href, label, icon: Icon }) => ({
+        id: href,
+        label,
+        href,
+        leading: <Icon />,
+      })),
+    },
+  ];
+
   return (
     <ShellScroll>
-      {/* 24px between groups against 0 between the rows inside one — the proximity rule's two
-          distances, and they were 12 and 0 before 2026-08-25, which is one layout-space step
-          apart where §15 asks for two. The label's own weight step (shell.css) is the other
-          half of the same repair: distance says where a group ends, treatment says that the
-          line at the top of it is a heading rather than another link. */}
-      <Stack gap="6">
-        {sections.map((section) => (
-          <ShellNavGroup key={section.id} label={section.title}>
-            {section.links.map((link) => (
-              <Row
-                key={link.href}
-                {...link}
-                icon={CHAPTER_ICONS[link.href]}
-                current={pathname === link.href}
-              />
-            ))}
-          </ShellNavGroup>
-        ))}
-        <NavDisclosure label="Components" defaultOpen={inComponents}>
-          <Stack gap="1">
-            <Row href="/components" label="All components" current={pathname === "/components"} />
-            {components.map((link) => (
-              <Row key={link.href} {...link} current={pathname === link.href} />
-            ))}
-          </Stack>
-        </NavDisclosure>
-        <ShellNavGroup label="Workbench">
-          {WORKBENCH.map((link) => (
-            // Never `current`: these routes render outside this navigation entirely — each
-            // owns its own viewport — so a row here can only ever be a way out, and painting
-            // one as the page you are on would be a lie the moment you arrived.
-            <Row key={link.href} {...link} current={false} />
-          ))}
-        </ShellNavGroup>
-      </Stack>
+      <NavTree
+        items={items}
+        // Every section open on arrival; Components only when you are standing in it. The
+        // tree is uncontrolled past this, so a reader's open/closed choices stick while the
+        // page lives.
+        defaultExpandedIds={[
+          ...sections.map((s) => s.id),
+          "workbench",
+          ...(inComponents ? ["components"] : []),
+        ]}
+        currentId={pathname ?? null}
+        renderLink={(node) => <Link href={node.href!} />}
+      />
     </ShellScroll>
   );
 }

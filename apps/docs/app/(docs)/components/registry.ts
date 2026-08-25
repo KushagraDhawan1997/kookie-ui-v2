@@ -862,6 +862,36 @@ export const ENTRIES: Entry[] = [
     ],
   },
   {
+    slug: "nav-tree",
+    name: "NavTree",
+    family: "Control",
+    spec: "§33",
+    blurb:
+      "NavTree is the tree machine's navigation member: the same data, indent and disclosure as Tree, announced as navigation instead of a tree view — sections are real buttons with aria-expanded, pages are real links, and the page you are on says aria-current. Use it for a sidebar's navigation, a docs chapter list, anything where pressing a row goes somewhere. The docs sidebar you are reading is one. Use Tree when pressing a row selects it.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "the rows' index — the row family's own size. It rests at 2" },
+      { name: "currentId", values: "string | null", note: "the node for the page the person is on. It announces aria-current=\"page\" and takes the current identity: accent ink, the medium rung — ShellNavItem's own pair" },
+    ],
+    refusals: [
+      {
+        name: "role=\"tree\"",
+        why: "The ARIA APG separates disclosure navigation from tree views, and role=\"tree\" on a nav over-claims: it promises a selection model and a roving keyboard that navigation does not have. A section is a button that discloses, a page is a link — the platform's own vocabulary says everything true.",
+      },
+      {
+        name: "selection",
+        why: "A nav has location, not selection. currentId is where you ARE, announced as aria-current; a selectedIds prop here would blur the two meanings §33 keeps apart. If rows are chosen rather than visited, it is a Tree.",
+      },
+      {
+        name: "the tree keyboard",
+        why: "Roving focus, arrow traversal and typeahead belong to the tree view pattern. Links live in the normal tab order and Enter follows them — the keyboard every navigation on the web already has.",
+      },
+      {
+        name: "an indent prop",
+        why: "Tree's own refusal, inherited with the machine: one level is one icon box, derived.",
+      },
+    ],
+  },
+  {
     slug: "scroll-area",
     name: "ScrollArea",
     family: "Surface",
