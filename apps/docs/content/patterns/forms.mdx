@@ -1,16 +1,17 @@
-A form is a set of labelled values and one action that commits them. This system refuses three
-decisions inside that set. Fields do not rank, marks carry no label, and validity is not a prop.
-You write the words, the order and the grouping.
+A form is a set of labelled values and one action that saves them. This system takes three
+decisions out of your hands: fields do not rank against each other, checkboxes do not carry
+their own labels, and validity is not a prop. Everything else — the words, the order, the
+grouping — is yours.
 
-## The label is a sibling
+## The label is a separate element
 
-A label is prose. `Text` renders prose, and `Text` already resolves every ink role, step and
-weight that prose needs. No control in this package takes a `label` prop. A `label` prop would
-put a second type system inside a checkbox.
+A label is prose, and `Text` already handles every size, weight and colour prose needs. So no
+control here takes a `label` prop. Adding one would mean building a second, smaller text system
+inside a checkbox.
 
-Because the label is a sibling, something has to hold the two together. `Field` is that
-something. It supplies the name, the description and the error, and it wires all three to the
-control, so you state the words and never the plumbing.
+Because the label is a sibling, something has to tie the two together, and that is what `Field`
+does. It supplies the name, the description and the error message, and wires all three to the
+control, so you write the words and never the plumbing.
 
 ```tsx
 <Field>
@@ -21,18 +22,16 @@ control, so you state the words and never the plumbing.
 ```
 
 The order is fixed: label, control, description, error. The label sits on the control it names,
-and everything about that control sits underneath it.
+and everything about that control gathers underneath it.
 
-Write the association yourself only outside a `Field`. Point `htmlFor` at an `id`, or wrap the
-control in a `<label>`. Do not rely on proximity.
+You only write the association yourself outside a Field: point `htmlFor` at an `id`, or wrap the
+control in a `<label>`. Do not rely on things simply being near each other.
 
-A `placeholder` is not a label. It disappears when the person types. It renders in the muted ink
-role. A placeholder shows real information. It is not the name of the field.
+**A placeholder is not a label.** It disappears the moment somebody types, and it is grey. Use
+it for a real example of the value, not for the name of the field.
 
-A mark sits beside its label instead of containing it. The row sets the distance between them.
-`FieldItem` is that row. Use one for each option in a checkbox group or a radio group. A label
-inside an item names the mark beside it, and a description inside an item explains that option
-alone.
+A checkbox or radio sits beside its label rather than containing it, and the row between them
+sets the distance. `FieldItem` is that row — use one per option.
 
 ```tsx
 <Field>
@@ -54,21 +53,23 @@ alone.
 </Field>
 ```
 
+A label inside an item names the control beside it, and a description inside an item explains
+that one option.
+
 ## Fields do not rank
 
-`TextField` and `TextArea` take no `emphasis` and no `tone`. The family decides this, and the
-absence is not an oversight. Loudness ranks one action against the actions beside it. Every
-field is equally there to be filled in, so a form where one field is louder than the next says
-nothing.
+`TextField` and `TextArea` take no `emphasis` and no `tone`, and that absence is deliberate.
+Loudness ranks one action against another, and every field is equally there to be filled in. A
+form where one field shouts louder than the next is telling you nothing.
 
 Show importance in the label, in the order of the form, and in what you leave out. Mark a
-required field with `required` on the control. Repeat it in the label in a long form. Only the
-action row at the end ranks.
+required field with `required` on the control, and repeat that in the label if the form is long.
+Only the buttons at the end rank against each other.
 
-## One action commits the form
+## One button saves the form
 
-Use one loud button on each screen. Give it to the action the form is for. Set every other
-button to medium or quiet.
+Use one loud button per screen, and give it to the thing the form is for. Everything else is
+medium or quiet.
 
 ```tsx
 <Card size="3">
@@ -99,33 +100,32 @@ button to medium or quiet.
 </Card>
 ```
 
-Three gaps carry the structure: 3 from a label to its field, 5 between the rows of the form, and
-6 between the title, the form and the actions. Only the action row ranks.
+Three gaps carry the structure there: 3 from a label to its field, 5 between rows of the form,
+and 6 between the title, the form and the buttons.
 
-Put the actions at the end of the form. Align them to the end edge. A single action with nothing
-beside it may take the full width instead. That is a balance decision, and it is a judgment.
+Put the buttons at the end and align them to the end edge. A single button with nothing beside
+it can go full width instead — that is a balance decision, and a judgment.
 
-Write what the button does. Write "Create project", not "Submit". Keep the same name through the
-whole flow.
+Write what the button does. "Create project", not "Submit". Then keep that word through the rest
+of the flow.
 
 ## Group with space
 
-Put related rows closer together than unrelated rows. The house intervals are gap 3 from a label
+Put related rows closer together than unrelated ones. The house intervals are gap 3 from a label
 to its field, gap 5 between groups, and gap 6 between sections.
 
-Set the gap inside a group at least two steps below the gap around the group. A form where every
-gap is the same number reads as one undifferentiated column.
+Keep the gap inside a group at least two steps below the gap around it. A form where every gap
+is the same number reads as one undifferentiated column.
 
-Do not add a `Separator` or a `Card` to do work that the space already does. Enclosure and space
-both group, and using both shows the grouping twice. Add a rule only where space cannot group.
-A long settings list is the case: the groups already sit at the section interval and something
-still has to divide them.
+Do not add a Separator or a Card to do work the spacing has already done. A container groups and
+so does distance; using both says it twice. Add a line only where distance genuinely cannot do
+it — a long settings list is the real case, where the groups are already at the section interval
+and something still has to divide them.
 
-## Validity is a state
+## Validity is a state, not a prop
 
-There is no `invalid` prop, because nothing chooses to look invalid. The system reads
-`aria-invalid`. It also reads Base UI's `data-invalid`, which a control gets for free inside a
-`Field`.
+There is no `invalid` prop, because nothing chooses to *look* invalid. The system reads
+`aria-invalid`, and Base UI's `data-invalid`, which a control gets free inside a Field.
 
 ```tsx
 <TextField
@@ -135,42 +135,41 @@ There is no `invalid` prop, because nothing chooses to look invalid. The system 
 />
 ```
 
-A checked mark is a resting appearance. An invalid mark is a state. The state wins, so a checked
-`Checkbox` that is also invalid looks invalid. The stylesheet enforces this with specificity, not by
-which file loads last. The disabled state outranks both.
+A ticked checkbox is a resting appearance; being invalid is a state, and the state wins. So a
+ticked checkbox that is also invalid looks invalid. Disabled beats both.
 
-The border and the ring are the system's half of an error. The message is yours. Colour alone is not
-enough (WCAG 1.4.1), so a red field with no words beside it is a composition defect.
+The border and the ring are the system's half of an error message. The words are yours. Colour
+on its own is not enough (WCAG 1.4.1), so a red field with no text beside it is a composition
+problem rather than a missing feature.
 
 ## Use TextArea for a paragraph
 
-Use `TextArea` when the value is prose that the person reads back. A description, a note and an
-address are the cases. Its box carries the same inset on all four sides. `rows` sets the
-starting height in lines of text.
+Reach for `TextArea` when the value is prose somebody will read back: a description, a note, an
+address. Its padding is the same on all four sides, and `rows` sets how many lines tall it
+starts.
 
 There is no `cols`. Width belongs to the layout that owns the row. The `cols` attribute counts
-characters, it predates CSS, and it collides with CSS.
+characters, predates CSS, and fights with it.
 
-A composer is not a large `TextArea`. A box that needs a toolbar, attachments, a send button and
-a growth rule is its own component. Nobody has designed that anatomy. Building it out of a
-`TextArea` adds parts to a field.
+A message composer is not a big TextArea. A box that needs a toolbar, attachments, a send button
+and a growth rule is its own component, and building it out of a TextArea means bolting parts
+onto a field.
 
-## Helper text must change a decision
+## Helper text has to change a decision
 
-Write helper text that carries what the label cannot. A consequence, a scope, a constraint and
-the reason a control is disabled are the cases. Delete a line that repeats the control the reader
-can already read.
+Write helper text that carries what the label cannot: a consequence, a limit, a scope, or the
+reason a control is disabled. Delete any line that restates what the reader can already see.
 
 ```tsx
 // Filler. The label above already said this.
 <Text size="2" emphasis="medium">Enter your work email address.</Text>
 
-// Decision-relevant. A scope the label cannot carry.
+// Useful. A scope the label cannot carry.
 <Text size="2" emphasis="medium">Receipts and billing notices go here.</Text>
 ```
 
-Set helper text at size 2 in the muted ink role, the same step as the label. A helper line two
-steps under the controls beside it reads as a mistake.
+Set helper text at size 2 in the muted colour — the same size as the label. A helper line two
+steps smaller than everything around it reads as a mistake.
 
-Do not use size 1 on a composed screen. The muted ink role and the faint ink role say "this
-matters less" at a readable size.
+Do not drop to size 1 for it. The muted and faint colours already say "this matters less" at a
+size people can read.

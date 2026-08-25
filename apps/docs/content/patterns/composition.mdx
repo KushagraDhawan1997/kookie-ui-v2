@@ -1,17 +1,18 @@
-Primitives make a screen consistent. They do not make a screen good. Every distance answers to
-an axis, every colour answers to a tone, and every size answers to an index. You can still put
-nine components on one screen at nine different steps.
+Correct components make a screen consistent. They do not make it good. Every distance answers
+to a setting, every colour to a tone, and every size to a step — and you can still put nine
+components on one screen at nine different sizes.
 
-The house style is the set of rules for composing with the system, not for using one
-component. The [builder](/builder) runs most of them as live checks.
+These are the rules for putting things together, rather than for using any one component. The
+[builder](/builder) checks most of them for you as you work.
 
-## One focal action per screen
+## One obvious action per screen
 
-Use one loud control on each screen. Set `tone="accent"` and `emphasis="loud"` on that control.
-Set every other control to medium or quiet.
+Use one loud control per screen. Give it `tone="accent"` and `emphasis="loud"`, and set every
+other control to medium or quiet.
 
-Two loud controls cancel each other. The reader cannot tell which action is primary. This is a
-judgment, and it follows the figure and ground principle.
+Two loud controls cancel each other out, and nobody can tell which one is the point. This is a
+judgment, and it follows the figure-and-ground principle: something can only stand out if
+everything around it is quiet.
 
 ```tsx
 // Wrong. Two loud controls compete.
@@ -20,27 +21,27 @@ judgment, and it follows the figure and ground principle.
   <Button tone="accent" emphasis="loud">Publish</Button>
 </Flex>
 
-// Right. The reader still finds the second control.
+// Right. You can still find the second one.
 <Flex gap="3">
   <Button emphasis="medium">Save draft</Button>
   <Button tone="accent" emphasis="loud">Publish</Button>
 </Flex>
 ```
 
-No component defaults to loud and accent. You type a second focal point on purpose.
+Nothing defaults to loud and accent, so a second one is always something you typed on purpose.
 
-The unit is the screen, not the nearest container. A dialog is its own screen. It covers the
-page, so its loud control does not compete with the page below. Two tab panels never compete,
-because the reader sees one panel at a time.
+The unit is the screen, not the nearest box. A dialog counts as its own screen, because it
+covers the page and its loud button is not competing with anything underneath. Two tab panels
+never compete either, because you only ever see one at a time.
 
-## Space shows the grouping
+## Let space do the grouping
 
-Put related items closer together than unrelated items. Proximity is a Gestalt principle. It
-groups more reliably than a border, a fill or a rule. Set the space first. You then need none of
-the other three.
+Put related things closer together than unrelated things. Your eye groups by distance before it
+reads anything, more reliably than it groups by a border, a fill or a line — so set the spacing
+first, and you will usually find you need none of those three.
 
-Set the gap inside a group at least two steps below the gap around the group. One gap value
-repeated down a screen shows no structure.
+Make the gap inside a group at least two steps smaller than the gap around it. The same gap
+repeated down a screen shows no structure at all.
 
 ```tsx
 <Stack gap="6">
@@ -55,30 +56,30 @@ repeated down a screen shows no structure.
 </Stack>
 ```
 
-Two levels of rhythm between groups can sit one step apart. A section at gap 6 holds groups at
-gap 5. Both numbers separate groups, so they do not compete. The two-step rule compares the
+Two levels of separation can sit one step apart — a section at gap 6 holding groups at gap 5 is
+fine, because both are separating groups rather than competing. The two-step rule is about the
 inside of a group against the space around it.
 
-## The type ladder
+## Five type sizes and one floor
 
-Type answers to no axis. `size` is a free index, so a written rule is the only limit on it. Use
-five steps and one floor.
+Type is the one thing with no setting to answer to. `size` is a free number, so a written rule
+is the only limit on it. Use five steps:
 
 - **Size 8** for the page title.
 - **Size 7** for a section title.
-- **Size 6** for a card title or a dialog title.
+- **Size 6** for a card or dialog title.
 - **Size 3** for body text.
-- **Size 2** for a label and for metadata.
+- **Size 2** for labels and small print.
 
-Do not use size 1 on a composed screen. Size 1 is for marginal text. Use the muted ink role or
-the faint ink role at size 2 or size 3 when something matters less.
+Do not use size 1 on a real screen. Twelve pixels is for genuinely marginal text. When something
+matters less, say so with the muted or faint colour at size 2 or 3.
 
-Move at least two steps to state a rank. A title at size 4 above body text at size 3 reads as an
-accident.
+Move at least two steps to show a rank. A size 4 title above size 3 body text reads as an
+accident rather than a hierarchy.
 
-## Use a tone for its meaning
+## Use a tone because of what it means
 
-A tone carries a meaning. Do not pick a tone because a screen looks grey.
+A tone carries a meaning. Do not pick one because the screen looks grey.
 
 ```tsx
 // Wrong. Green because green is pleasant.
@@ -88,51 +89,53 @@ A tone carries a meaning. Do not pick a tone because a screen looks grey.
 <Text tone="success">Backup completed</Text>
 ```
 
-`success`, `warning`, `info` and `destructive` state meanings. `blue`, `green`, `orange` and
-`amber` are colour as data. Use them for a chart series, a project label or a category, where the
-colour is the information.
+`success`, `warning`, `info` and `destructive` mean things. `blue`, `green`, `orange` and `amber`
+are colour used as data — a chart series, a project label, a category — where the colour itself
+is the information.
 
-Use three tones or fewer on one surface. Four tones or more read as a palette rather than as a
-meaning. Three tones read as a legend.
+Use three tones at most on one surface. Four or more reads as a palette rather than a set of
+meanings; three reads as a legend.
 
-Colour is never the whole message. Write the words as well.
+And colour is never the whole message. Write the words too.
 
-## Same role, same size
+## Same job, same size
 
-Give every control that does the same job on one surface the same size. A row that holds a size 3
-button beside a size 2 button reads as two kinds of control. The reader then has to work out why
-the two differ.
+Every control doing the same job on one surface should be the same size. A row holding a size 3
+button next to a size 2 button reads as two different kinds of control, and the reader has to
+work out why.
 
-Match a control to the surface it sits on. A size 3 dialog holds size 3 fields and size 3
-buttons. A control two steps under its container reads as a mistake.
+Match controls to the surface they are on, as well. A size 3 dialog holds size 3 fields and size
+3 buttons. A control two steps smaller than its container reads as a mistake rather than as
+modesty.
 
 ## Write the real words
 
-Write the real content into a composition. Write content of the same shape and length when the
-real content does not exist yet. Placeholder text hides a heading that wraps to three lines on a
-phone. It hides a name longer than its column. It hides a button label that changes the rhythm of
-a row.
+Put real content into a layout. If the real content does not exist yet, write something of the
+same shape and length.
 
-Apply the same rule to helper text. Keep a helper line that changes what the reader does next.
-Delete a helper line that repeats the label.
+Placeholder text hides the problems: a heading that wraps onto three lines on a phone, a name
+longer than its column, a button label that changes the rhythm of a row.
+
+The same goes for helper text. Keep a line that changes what somebody does next. Delete a line
+that just restates the label.
 
 ## Run the reviewer
 
-Run the reviewer on a real screen before you ship it. Every rule on this page is a live check in
-the builder. Each finding cites the sentence it comes from, and each finding carries a fix.
+Run the reviewer over a real screen before you ship it. Every rule on this page is a live check
+in the builder, each finding quotes the sentence it comes from, and each one offers a fix.
 
-Every template the builder ships passes all of these rules with no findings. If a rule were
-impossible to satisfy, the templates would break the moment someone added it.
+All the templates that ship with the builder pass every one of these rules. That keeps the rules
+honest as well: a rule nobody could satisfy would break those templates the day it was added.
 
-The reviewer does not tell you whether a screen is good. It tells you whether a screen breaks a
-rule this system already settled.
+The reviewer will not tell you whether a screen is good. It tells you whether a screen breaks a
+rule this system has already settled.
 
 ## The full set of rules
 
-The list below comes straight from the reviewer. A rule added to the reviewer appears on this page the
-same day. The sentence you read here is the sentence the finding prints.
+The list below comes straight out of the reviewer, so a rule added there appears on this page
+the same day, and the sentence you read here is the sentence the finding prints.
 
 <ReviewRules />
 
-> The prose above this section can drift. This list cannot. The argument and the check read out
-> of one place.
+> The prose above can drift out of date. This list cannot, because the argument and the check
+> are reading from one place.
