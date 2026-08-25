@@ -476,6 +476,19 @@ export function generateTokens(): string {
             // the veil does (measured 1.00 against a pale sky at any opacity), and a ring
             // plus a pigment border is two lines one pixel apart — the "why am I seeing
             // this thicker top border" defect of 2026-08-07. One line, made of pigment.
+            //
+            // THE CONTROL-SCALE VEIL TAKES THE SAME FLOOR (2026-08-26, Kushagra from the
+            // preview's hostile bed: "glass is also broken in HC in controls"). alphaHigh
+            // raised every SURFACE pane and never named the control cell, so a glass
+            // button under contrast="high" kept its normal 30-66% veil — the baseline the
+            // setting promises never reached the smallest panes. The value DERIVES: the
+            // control's designed offset from the surface's resting alpha, carried onto the
+            // surface's own floor — a derivation, never a second judged number
+            // (glyphStroke's rule), so re-judging either designed row moves this with it.
+            decl(
+              `material-${t}-control-alpha`,
+              `${material[mode][t].alphaHigh[0] + (material[mode][t].control.alpha - material[mode][t].alpha[0])}%`,
+            ),
           );
         }
         // The resting edges yield for the same reason the material's does, and by the same

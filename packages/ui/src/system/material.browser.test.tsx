@@ -319,3 +319,47 @@ describe("a glass textarea is a glass field — parity by construction (§10)", 
     });
   }
 });
+
+/**
+ * §10 — high contrast's floor reaches the CONTROL-scale veil (2026-08-26).
+ *
+ * alphaHigh raised every SURFACE pane and never named the control cell, so a glass button
+ * under contrast="high" kept its normal 30-66% veil — as see-through as ever over the
+ * hostile bed (Kushagra: "glass is also broken in HC in controls"). The generator now
+ * derives the control floor (the control's designed offset from the surface's resting
+ * alpha, carried onto the surface's own floor — a derivation, never a second judged
+ * number), and this law reads the PAINTED fill of a mounted glass Button in every
+ * (appearance x thickness) cell: under high contrast the veil is MORE opaque than under
+ * normal, and never fully opaque — high contrast leans on the glass, it does not unmake
+ * it. Falsified by reverting the generator's control-alpha line: all six cells fail.
+ */
+describe("high contrast raises the control veil's floor (§10)", () => {
+  it("a glass button's fill is more opaque under contrast=high, never fully", () => {
+    for (const appearance of APPEARANCES) {
+      for (const m of GLASS_MATERIALS) {
+        const veil = (contrast?: "high") => {
+          const btn = mounted(
+            <Button data-t="btn" backdrop>
+              Save
+            </Button>,
+            {
+              theme: contrast
+                ? { appearance, material: m, contrast }
+                : { appearance, material: m },
+              select: '[data-t="btn"]',
+            },
+          );
+          return rgba(getComputedStyle(btn).backgroundColor).a;
+        };
+        const cell = `${appearance}/${m}`;
+        const normal = veil();
+        const high = veil("high");
+        // Calibration: the normal-mode veil is a real translucency, or this compares nothing.
+        expect(normal, `${cell}: the glass fill never mixed`).toBeGreaterThan(0.1);
+        expect(normal, `${cell}: the normal veil is already opaque`).toBeLessThan(0.95);
+        expect(high, `${cell}: high contrast never reached the control veil`).toBeGreaterThan(normal + 0.05);
+        expect(high, `${cell}: the floor unmade the glass`).toBeLessThan(1);
+      }
+    }
+  });
+});
