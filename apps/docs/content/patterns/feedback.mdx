@@ -1,49 +1,49 @@
-An interface says four things about work it is doing. It says that the work started, how far the
-work has got, how the work ended, and what went wrong. Each one has a single answer here. The
-common failure is the wrong answer, not an ugly one.
+An interface has four things to say about work it is doing: that it started, how far it has
+got, how it ended, and what went wrong. Each has one right answer here. The usual failure is
+picking the wrong one rather than making an ugly one.
 
 ## Four things to say
 
 | what you say | when | the answer |
 |---|---|---|
-| Busy | The work started and you cannot say how long | `Spinner`, or `loading` on the `Button` that started it |
+| Busy | It started and you cannot say how long | `Spinner`, or `loading` on the button that started it |
 | Progress | You know the fraction | `Progress` with a `value` |
-| Outcome | The work finished | Words where the action was, in the tone that names the result |
-| Error | The work failed, or the input was wrong | The invalid state of the control, plus a sentence |
+| Outcome | It finished | Words where the action was, in the tone that names the result |
+| Error | It failed, or the input was wrong | The control's invalid state, plus a sentence |
 
-Outcome is the one row with no component yet. The last section of this chapter says what to
-build instead.
+Outcome is the one row with no component. The last section of this chapter says what to build
+instead.
 
-## Busy keeps the label
+## A busy button keeps its label
 
-Set `loading` on a `Button`. The button swaps its leading slot for a `Spinner`. The slot reuses
-the box of the glyph, so nothing shifts. The label stays. A button that stops saying what it does
-is worse than a button that changes width.
+Set `loading` on a `Button`. It swaps its leading icon for a spinner, reusing the same box so
+nothing shifts, and the label stays. A button that stops saying what it does is worse than one
+that changes width.
 
 ```tsx
 <Button emphasis="loud" loading={saving}>Save changes</Button>
 ```
 
-A loading button keeps its focus and its place in the tab order. It announces `aria-busy`. It
-refuses activation. The `Spinner` inside it is hidden from assistive technology on purpose,
-because the button already carries the state.
+A loading button keeps focus and its place in the tab order, announces that it is busy, and
+refuses to be activated again. The spinner inside it is hidden from screen readers on purpose,
+because the button is already saying it.
 
-Use a standalone `Spinner` for a region that has nothing else to show yet. It fills with
-`currentColor` and it takes the icon box of the thing it sits in, so it needs neither a colour
-nor a size of its own.
+Use a standalone `Spinner` for a region with nothing to show yet. It takes its colour from the
+text around it and the icon size of whatever it sits in, so it needs neither a colour nor a size
+from you.
 
 ## Progress when you know the fraction
 
-`Progress` is a track with a fill in it. A number reports the fraction. `value={null}` sweeps as an
-indeterminate bar. The type requires the prop, so you have to say "I do not know how far
-along this is" instead of arriving there by forgetting one.
+`Progress` is a track with a fill in it. Give it a number and it shows a fraction; give it
+`value={null}` and it sweeps instead. The prop is required, so you have to say "I do not know how
+far along this is" rather than arriving there by forgetting.
 
-`Progress` has no `size`, and the absence is a decision. The ladder it could have used sizes a
-track as a fraction of a slider's thumb, and a bar has no thumb. Its extent comes from the
-container, so the `Box` that owns the row decides how wide the bar is.
+`Progress` has no `size`, and that absence is a decision. The nearest scale sizes a track as a
+fraction of a slider's handle, and a bar has no handle. Its width comes from whatever contains
+it, so the Box that owns the row decides.
 
-The three answers compose into one panel. The button says the work started, the bar says how far
-it has got, and the words say how it ended.
+All three answers compose into one panel: the button says it started, the bar says how far, and
+the words say how it ended.
 
 ```tsx
 <Card size="3">
@@ -66,62 +66,61 @@ it has got, and the words say how it ended.
 </Card>
 ```
 
-The outcome replaces the bar in the place the bar was. It does not arrive somewhere else on the
-screen.
+Notice the outcome replaces the bar exactly where the bar was, rather than appearing somewhere
+else on the screen.
 
-Name every bar. A bar with no accessible name and no heading wired to it reports a number that
-nobody can read. Use the determinate form wherever the fraction exists. This is a judgment.
-An indeterminate sweep says only that something is happening.
+Give every bar a name. A bar with no accessible name and no heading wired to it reports a number
+nobody can read. And use a real fraction wherever you have one — a sweeping bar only says that
+something is happening. That is a judgment.
 
-## Motion that is the message
+## When the movement is the message
 
-Everything else in this system stops moving under `prefers-reduced-motion`. A spinner and an
-indeterminate bar are the exception. Their movement is not a response to a state change. Their
-movement is the message. Stopping them would remove the only thing they tell you, so they slow
-down instead.
+Everything else here stops moving when someone asks their operating system for reduced motion. A
+spinner and a sweeping progress bar are the exception, because their movement is not a response
+to a state change — the movement *is* the message. Stopping them would remove the only thing they
+were saying, so they slow down instead.
 
-Carry that distinction into anything you compose. A skeleton shimmer, a pulsing dot and a
-sweeping bar all carry their message by moving. A hover fill, a panel opening and a ring landing
-respond to a state change, so they stop.
+Carry that distinction into anything you build. A shimmer, a pulsing dot and a sweeping bar all
+say what they say by moving. A hover colour, a panel opening and a focus ring landing are all
+responses to a change, so they stop.
 
-## Use a status tone for its meaning
+## Use a status tone for what it means
 
 Four names carry meaning: `success`, `warning`, `info` and `destructive`. Four more are colour as
 data: `blue`, `green`, `orange` and `amber`. Use the second set for a chart series, a project
-label or a category, where the colour is the information.
+label or a category, where the colour itself is the information.
 
-`success` and `green` render the same colour today and remain two separately generated families.
-A meaning has to stay independently correctable. Do not write `green` when you mean success. It
-looks right today and it is wrong on the day either name is re-judged.
+`success` and `green` render the same colour today and are still two separate families, because
+a meaning has to stay correctable on its own. Do not write `green` when you mean success — it
+looks right today and goes wrong the day either name is re-judged.
 
 ```tsx
 // The tone people reach for
 <Text size="2" tone="green">Deployed</Text>
 
-// The composed answer
+// The one that means it
 <Text size="2" tone="success">Deployed</Text>
 ```
 
-Keep the count down. Four data tones or more on one surface read as a palette rather than as a
-meaning. Three tones read as a legend, such as a status set or a three-series key.
+Keep the count down. Four or more data tones on one surface read as a palette rather than a set
+of meanings. Three reads as a legend.
 
 ## Colour is never the whole message
 
-Colour alone is not enough (WCAG 1.4.1). Every status this system paints is half a
-message. The border, the ring and the text colour are the half the system paints. You write the
-sentence.
+Colour on its own is not enough (WCAG 1.4.1), so every status the system paints is only half a
+message. The border, the ring and the text colour are the system's half. You write the sentence.
 
-A red field with nothing beside it fails this rule. A green dot with no label fails it. A chart
-keyed by hue alone fails it. All three fail worst for the people who cannot see the colour.
+A red field with nothing beside it fails this. A green dot with no label fails it. A chart keyed
+only by hue fails it. All three fail worst for exactly the people who cannot see the colour.
 
-Write what to do next in an error. A colour could never carry that instruction.
+In an error, write what to do next. A colour could never carry that.
 
-## Use a Notice for a condition that stays true
+## Use a Notice for something that stays true
 
-`Notice` is the component for a condition that is true right now. The person did not cause it,
-and it lasts while the condition lasts. It takes layout space and never floats, so it cannot
-cover the content it is telling you about. It rests neutral, because the tone is the category
-and not the volume.
+`Notice` is for a condition that is true right now. Nobody caused it, and it lasts as long as the
+condition does. It takes up layout space and never floats, so it cannot cover the thing it is
+telling you about. It rests neutral, because the tone says what kind of thing it is rather than
+how loudly to say it.
 
 ```tsx
 <Notice
@@ -133,33 +132,33 @@ and not the volume.
 </Notice>
 ```
 
-`action` holds one control that resolves the condition. `onDismiss` adds a dismissal that
-only acknowledges it. Those are two different verbs. `onDismiss` is a callback with no internal
-state, because a component cannot remember a dismissal across a reload. Your app has to.
+`action` holds one control that fixes the condition. `onDismiss` adds a dismissal that only
+acknowledges it. Those are two different verbs. `onDismiss` is a callback with no state of its
+own, because a component cannot remember a dismissal across a page reload. Your app has to.
 
 ## There is no toast
 
-`Toast` is refused, and it will not ship. An action that deserves attention gets that attention
-before it runs. An action that does not deserve attention does not need a report afterwards.
+`Toast` is refused and will not ship. Anything that deserves attention should get it *before* it
+runs, and anything that does not deserve attention does not need a report afterwards.
 
-The two cases people build a toast for both go somewhere else. Undo belongs in an undo stack, on
-a control the person can find later. A copy confirmation belongs on the button that copied.
+The two cases people build a toast for both belong somewhere else. Undo belongs in an undo
+stack, on a control people can find later. A copy confirmation belongs on the button that
+copied.
 
-Do not build a substitute. A `Card` at a fixed position gets neither the live region that makes
-the announcement nor the dismissal behaviour people expect from a toast.
+Do not build a substitute either. A Card pinned to a corner gets neither the live region that
+makes the announcement nor the dismissal behaviour people expect.
 
-`Callout` and `Banner` are dead names for `Notice`. Banner names a position, and no component in
-this system owns its own position.
+`Callout` and `Banner` are dead names for `Notice`. Banner names a position, and nothing here
+owns its own position.
 
 ## Where to put an outcome
 
 Put the result where the action was.
 
-- **Inline.** Use a `Text` in the matching tone beside or under the control. Move the tense of
-  the verb with it. A button that said "Publish" is followed by the word "Published", not by
-  "Success".
-- **With a heading.** Compose a `Card` that holds a `Heading` and a `Text`. Put the tone on the
-  words. Do not tint the card. The surface family takes no tone, and using `style` to fake one
-  writes a fixed colour into an app that then cannot change theme.
-- **A decision.** Use an `AlertDialog` when the moment needs an answer before anything else
-  happens.
+- **Inline.** A `Text` in the matching tone beside or under the control, with the verb moved into
+  the past. A button that said "Publish" is followed by "Published", not by "Success".
+- **With a heading.** A Card holding a `Heading` and a `Text`, with the tone on the words. Do not
+  tint the card: surfaces take no tone, and faking one with `style` writes a fixed colour into an
+  app that can then no longer change theme.
+- **A decision.** An `AlertDialog`, when the moment needs an answer before anything else can
+  happen.
