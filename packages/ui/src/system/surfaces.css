@@ -75,6 +75,19 @@
   inherits: false;
 }
 
+/* The flight's body SINK — how far a bottom-pinned flying body is pushed below its panel's
+   seam so that the rows riding the seam are the RESTING window's rows, not the list's last
+   (2026-08-25, Kushagra: a constrained top-opening menu showed the END of its list through
+   the whole flight and snapped to the top on the release frame — the box was long since
+   fixed, and the CONTENT was the jump). Written by the runner at departure, only where the
+   list overflows its landed viewport; registered so the pin below never goes invalid where
+   no flight has written it, and non-inheriting because a sink encodes ONE body's overflow. */
+@property --kui-body-sink {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 
 .kui-surface {
   box-sizing: border-box;
@@ -1776,7 +1789,11 @@
 .kui-surface.kui-floating[data-unfurling][data-seed] .kui-floating-body {
   opacity: 0;
   filter: blur(6px);
-  translate: 0 var(--floating-echo);
+  /* PLUS THE SINK (2026-08-25): the flight's resting translate carries the sink (the shared
+     rule below), so the seed must carry it additively or the echo's ~8px arrival becomes a
+     several-hundred-pixel translate ANIMATION of the whole list — the sink is geometry, the
+     echo is the only motion. Sink is 0px by registration wherever no runner wrote one. */
+  translate: 0 calc(var(--floating-echo) + var(--kui-body-sink));
 }
 
 /* And it is PINNED TO THE EDGE THE BOX IS NOT GROWING FROM (§22, 2026-08-10, Kushagra: *"why
@@ -1964,6 +1981,13 @@
   position: absolute;
   inset-block-start: var(--kui-sf-p);
   inset-inline-start: var(--kui-sf-p);
+  /* The sink's carrier (2026-08-25, see the [data-side="top"] arm below): a constant
+     post-scale translate, non-zero only where the runner measured an overflowing
+     bottom-pinned body, 0px by registration everywhere else — so this computes `0 0px` and
+     paints nothing on every other flight. Declared HERE, on the (0,4,1) rule, because the
+     seed's own translate (echo + sink, the (0,5,1) rule above) must keep outranking it while
+     seeded: the transition then travels exactly the echo, never the sink. */
+  translate: 0 var(--kui-body-sink);
 }
 /* The body is held against the same edge as its box — the case analysis above, restated for
    the element inside it (2026-08-22 audit). It carried the same two faults and for the same
@@ -1997,6 +2021,8 @@
 .kui-surface.kui-floating[data-unfurling][data-side="inline-start"][data-align="end"] .kui-floating-body {
   inset-block-start: auto;
   inset-block-end: var(--kui-sf-p);
+  /* The sink's origin — see the [data-side="top"] arm below for the whole argument. */
+  transform-origin: var(--kui-origin-x, left) calc(100% - var(--kui-body-sink));
 }
 .kui-surface.kui-floating[data-unfurling][data-side="right"][data-align="center"] .kui-floating-body,
 .kui-surface.kui-floating[data-unfurling][data-side="inline-end"][data-align="center"] .kui-floating-body,
@@ -2008,10 +2034,24 @@
 .kui-surface.kui-floating[data-unfurling][data-side="top"] .kui-floating-body {
   inset-block-start: auto;
   inset-block-end: var(--kui-sf-p);
-  /* The origin that went with this pin (2026-08-17: "the squish collapses toward the edge it
-     is PINNED to" — measured, the body's top edge sat 5px above the panel's own and was clipped
-     there for the squished frames) is no longer stated here. The panel's own `--kui-origin-y`
-     already says `bottom` for `[data-side="top"]`, and the body now reads that table whole. */
+  /* THE SINK'S ORIGIN (2026-08-25): a bottom-pinned body puts the list's LAST row at the
+     seam, and on a list taller than its landed viewport that is not what rest shows — rest
+     is scrollTop 0, the list's TOP window — so the flight ended on one set of rows and the
+     release frame teleported to another, by exactly the overflow (measured: the first row at
+     -113 through the flight and 41 at rest — Kushagra's two screenshots side by side). The
+     repair holds the RESTING window's last row at the seam for every frame instead, and it
+     takes both of these declarations plus the `translate` on the shared rule above, because
+     the squish is a scale: an inset sink is unscaled and lands the window somewhere new at
+     every squish factor (measured — the first spelling showed a blank panel that slid into
+     place). Scaling about the resting window's own end (`100% - sink`) keeps that line fixed
+     under any factor, and the constant post-scale translate carries it from its layout
+     position to the seam. Sink 0 makes the origin `100%` — exactly the `bottom` the panel's
+     `--kui-origin-y` table already answers for this arm — so every fitting list is
+     byte-identical.
+
+     The 2026-08-17 note this extends still holds: the squish collapses toward the edge the
+     body is pinned to; what the sink adds is WHICH content line that edge carries. */
+  transform-origin: var(--kui-origin-x, left) calc(100% - var(--kui-body-sink));
 }
 .kui-surface.kui-floating[data-unfurling][data-seed] .kui-floating-body {
   scale: 0.95 0.5;

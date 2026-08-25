@@ -3539,6 +3539,56 @@ describe("the panel unfurls out of a seed (§22)", () => {
       ).toBeLessThan(8);
     });
 
+    it("the rows the flight reveals are the rows the panel rests on (§22, 2026-08-25)", async () => {
+      /**
+       * Kushagra, with two screenshots of one open: *"Just see the shift"* — the flight
+       * showed the list's END (the group label clipped above the panel's edge) and the rest
+       * frame its TOP, the content teleporting by the overflow on the release frame while
+       * every box law stayed green. A bottom-pinned flying body holds the list's last row at
+       * the seam; rest is `scrollTop 0`. The sink (fitSink, floating.tsx; the origin and
+       * translate arms, surfaces.css) holds the RESTING window's last row at the seam
+       * instead, so the landing frame is the resting frame.
+       *
+       * Both halves are asserted, because each catches a different unmaking: mid-flight the
+       * list's end must hang BELOW the clip (without the sink it rides the seam — the first
+       * half fails at ~0 against a floor of 50), and the first row must not move across the
+       * strip (edge-anchored in the release's own microtask; without the sink it reads the
+       * end-window's coordinates against the top-window's rest, ~150px apart).
+       */
+      const { popup } = await openConstrainedUp();
+      const stripRow = new Promise<number>((resolve) => {
+        const mo = new MutationObserver(() => {
+          if (popup.hasAttribute("data-unfurling")) return; // the probes toggle and restore
+          mo.disconnect();
+          resolve(popup.querySelector('[role="menuitem"]')!.getBoundingClientRect().top);
+        });
+        mo.observe(popup, { attributes: true, attributeFilter: ["data-unfurling"] });
+      });
+      await departed(popup);
+      // Mid-flight: the seam carries the resting window, so the list's end is clipped away.
+      expect(popup.hasAttribute("data-unfurling"), "the premise: still airborne at the read").toBe(true);
+      const rows = popup.querySelectorAll<HTMLElement>('[role="menuitem"]');
+      const last = rows[rows.length - 1]!;
+      expect(
+        last.getBoundingClientRect().bottom - popup.getBoundingClientRect().bottom,
+        "the list's END must hang below the clip mid-flight — the seam belongs to the resting window",
+      ).toBeGreaterThan(50);
+      const atStrip = await stripRow;
+      let steady = 0;
+      let lastTop = Number.NaN;
+      await until(() => {
+        const top = Math.round(popup.querySelector('[role="menuitem"]')!.getBoundingClientRect().top);
+        steady = top === lastTop ? steady + 1 : 0;
+        lastTop = top;
+        return steady >= 2;
+      }, 3000);
+      const rest = popup.querySelector('[role="menuitem"]')!.getBoundingClientRect().top;
+      expect(
+        Math.abs(atStrip - rest),
+        `the content must not move across the release: first row at ${Math.round(atStrip)} at the strip against ${Math.round(rest)} at rest`,
+      ).toBeLessThan(8);
+    });
+
     watchesFrames("the seed of a pin-corrected flight never leaves its trigger (§22, 2026-08-25)", async () => {
       /**
        * The correction makes floating-ui re-solve the positioner while the seed is showing,
@@ -3550,20 +3600,42 @@ describe("the panel unfurls out of a seed (§22)", () => {
        * (at least one aimed seed frame) fails honestly on a runner that slept through the
        * window.
        */
-      const { popup, trigger } = await openConstrainedUp();
+      // The watcher is armed BEFORE the press (the file's own instrument lesson: real input
+      // is slow enough that a whole seed window fits between two statements — armed after
+      // `press` returned, this sampled nothing and failed its premise).
+      render(
+        <Theme>
+          <div style={{ position: "fixed", bottom: "120px", left: "16px" }}>
+            <Menu>
+              <MenuTrigger render={<Button>Open</Button>} />
+              <MenuContent>
+                {Array.from({ length: 40 }, (_, i) => (
+                  <MenuItem key={i}>{`Row ${i + 1}`}</MenuItem>
+                ))}
+              </MenuContent>
+            </Menu>
+          </div>
+        </Theme>,
+      );
+      inMotion();
+      const trigger = document.querySelector<HTMLElement>(".kui-button")!;
       const offsets: number[] = [];
+      let sampling = true;
       const tick = () => {
-        if (popup.hasAttribute("data-seed")) {
-          if (popup.hasAttribute("data-aimed")) {
-            offsets.push(
-              Math.abs(popup.getBoundingClientRect().top - trigger.getBoundingClientRect().top),
-            );
-          }
-          requestAnimationFrame(tick);
+        const popup = document.querySelector<HTMLElement>(".kui-menu-popup");
+        if (popup?.hasAttribute("data-seed") && popup.hasAttribute("data-aimed")) {
+          offsets.push(
+            Math.abs(popup.getBoundingClientRect().top - trigger.getBoundingClientRect().top),
+          );
         }
+        if (sampling) requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
+      await press(trigger);
+      const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop();
+      if (!popup) throw new Error("the popup never opened");
       await departed(popup);
+      sampling = false;
       if (!offsets.length) throw new Error("no aimed seed frame was sampled — the premise, not the claim");
       expect(
         Math.max(...offsets),

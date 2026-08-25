@@ -922,6 +922,79 @@ function useFlight(plan: FlightPlan) {
           };
 
           /**
+           * THE BODY'S SINK (2026-08-25, Kushagra: *"Just see the shift"* — two screenshots
+           * of one open, the flight showing the list's END and the rest frame its TOP).
+           *
+           * A bottom-pinned flying body (a top-opening panel, or a side panel aligned end)
+           * holds the list's LAST row at the seam, and rest is `scrollTop 0` — the TOP
+           * window. On a list that fits those are the same rows; on a list taller than its
+           * landed viewport they differ by exactly the overflow, and the release frame
+           * teleported the content by it (measured: the first row at -113 through the flight
+           * and 41 at rest — the box fix above had made this the only jump left). The sink is
+           * that overflow, and surfaces.css turns it into an origin-shift-plus-translate that
+           * holds the RESTING window's last row at the seam under every squish factor, so the
+           * landing frame IS the resting frame. (An inset was the first spelling and cannot
+           * work: the squish is a scale and an inset is unscaled, measured as a blank panel
+           * sliding into place.)
+           *
+           * MEASURED AT THE AIM AND BASELINED WITHOUT A CLOCK, and both halves were paid
+           * for. Written at departure, the transition's before-style had never held the sink,
+           * so the echo's ~8px arrival became a several-hundred-pixel slide of the whole
+           * list — the value must be the body's computed baseline BEFORE the depart frame
+           * retargets the channels. And the body's translate transition is live while
+           * seeded, so the write lands under `transition: none`, flushed, and handed back —
+           * the body is `opacity: 0` the whole time, so nothing shows. The overflow itself
+           * is read off the REST state (pose off, one synchronous block, nothing painted —
+           * the poseAndFly measure's own trick), because a posed viewport's scrollHeight is
+           * a lie by construction; and only once the room is a real length (fitPin's own
+           * suffix lesson), or the rest it measures is the 100vh-capped one.
+           *
+           * The side/align cases mirror surfaces.css's two bottom-pinned body arms by name —
+           * that file already restates the box's case analysis for the body, and this is the
+           * table's third home, kept adjacent by this comment so a widened arm widens here.
+           */
+          const fitSink = () => {
+            if (!flyingBody || flyingBody.style.getPropertyValue("--kui-body-sink")) return;
+            const side = positioner?.getAttribute("data-side") ?? "";
+            const align = positioner?.getAttribute("data-align") ?? "";
+            const bottomPinned =
+              side === "top" ||
+              (align === "end" &&
+                (side === "right" || side === "left" || side === "inline-end" || side === "inline-start"));
+            if (!bottomPinned || !positioner) return;
+            const raw = getComputedStyle(positioner).getPropertyValue("--available-height").trim();
+            if (!raw.endsWith("px")) return; // the room is not known yet — a later aim asks again
+            /**
+             * The WHOLE measure runs with the clocks suppressed, and that was paid for too:
+             * stripping the pose attributes is a style change on elements whose transition
+             * lists are live, so the "rest" box it exposes is the block-size transition's
+             * FIRST instant — the seed's own 32px, measured, and an overflow of the whole
+             * list minus a padding. The poseAndFly measure never met this because the pose's
+             * own `transition: none` inline suppression is still standing at that moment;
+             * this borrows the same window and hands back exactly what it found.
+             */
+            const suppressed: HTMLElement[] = [popup, flyingBody];
+            const held = suppressed.map((el) => el.style.transition);
+            for (const el of suppressed) el.style.transition = "none";
+            popup.removeAttribute("data-unfurling");
+            popup.removeAttribute("data-seed");
+            void popup.offsetWidth; // the natural box, with no clock running
+            const viewport = popup.querySelector<HTMLElement>(".kui-scroll-viewport");
+            const overflow = viewport
+              ? Math.max(0, viewport.scrollHeight - viewport.clientHeight)
+              : 0;
+            popup.setAttribute("data-unfurling", "");
+            popup.setAttribute("data-seed", "");
+            if (overflow > 0) flyingBody.style.setProperty("--kui-body-sink", `${overflow}px`);
+            void popup.offsetWidth; // the re-pose and the sink land as one baseline
+            suppressed.forEach((el, i) => {
+              const t = held[i];
+              if (t) el.style.transition = t;
+              else el.style.removeProperty("transition");
+            });
+          };
+
+          /**
            * Released on arrival BY THE CLOCK, never by a channel's `transitionend`
            * (2026-08-10): the morph's seed is the trigger's width and a select's trigger is
            * routinely exactly as wide as its panel — equal start and end means no transition,
@@ -1002,10 +1075,29 @@ function useFlight(plan: FlightPlan) {
             // it. Measured with the order reversed: the flight held the row perfectly and it
             // jumped 61px on the frame it landed — the original defect moved to the end.
             if (flyingBody) flyingBody.style.removeProperty("margin-block-start");
+            /**
+             * The sink leaves UNDER A SUPPRESSED CLOCK (see fitSink). The body's translate
+             * transition is declared at rest too, so removing the var — or the arm that
+             * consumes it — retargets translate by the whole overflow and ANIMATES it:
+             * measured, the settled list sliding several hundred pixels after the flight had
+             * said it was finished. The strip, the attributes and the reflow land in one
+             * unpainted block; the last flight frame and the first resting frame show the
+             * same rows at the same pixels, which is the sink's whole contract.
+             */
+            const bodyTransition = flyingBody?.style.transition ?? "";
+            if (flyingBody) {
+              flyingBody.style.transition = "none";
+              flyingBody.style.removeProperty("--kui-body-sink");
+            }
             if (heldScroll) popup.scrollTop = heldScroll;
             popup.removeAttribute("data-aimed");
             popup.removeAttribute("data-seed");
             popup.removeAttribute("data-unfurling");
+            if (flyingBody) {
+              void flyingBody.offsetWidth;
+              if (bodyTransition) flyingBody.style.transition = bodyTransition;
+              else flyingBody.style.removeProperty("transition");
+            }
             popup.removeEventListener("transitioncancel", onCancel);
           };
 
@@ -1058,6 +1150,7 @@ function useFlight(plan: FlightPlan) {
             // because every read and the write are one synchronous block; it is the NEXT
             // frame's geometry that can strand it, which is the departure gate's job.
             fitPin();
+            fitSink();
             const positionerBox = positioner.getBoundingClientRect();
             const triggerBox = trigger.getBoundingClientRect();
             const insetLeft = popup.offsetLeft;
