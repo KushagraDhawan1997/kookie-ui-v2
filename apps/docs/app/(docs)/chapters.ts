@@ -52,22 +52,22 @@ export const SECTIONS: readonly Section[] = [
   {
     id: "start",
     title: "Getting started",
-    blurb: "Install the package, set up a theme, and build the first screen.",
+    blurb: "Install the package, set up a theme, and build your first screen.",
   },
   {
     id: "philosophy",
     title: "Philosophy",
-    blurb: "What this system optimizes for, and how it sorts components into families.",
+    blurb: "Learn what this system optimizes for, and how it sorts every component into a family.",
   },
   {
     id: "foundations",
     title: "Foundations",
-    blurb: "Colour, type, space, size, material, depth and motion. Every other decision uses these.",
+    blurb: "Colour, type, space, size, material, depth and motion. Every other decision in the system is built from these seven.",
   },
   {
     id: "patterns",
     title: "Patterns",
-    blurb: "Structures that repeat, and how to build each one with this system.",
+    blurb: "Build the structures that repeat across an app, such as forms, dialogs, navigation and feedback.",
   },
 ];
 
@@ -108,7 +108,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Installation",
     section: "start",
     blurb:
-      "The package, one stylesheet, a Theme at the root, and the script that sets dark mode before the first paint.",
+      "Add the package to your app, import one stylesheet, and wrap your app in a Theme. You also add a small script so dark mode is correct on the first paint.",
     spec: ["§5", "§13"],
     source: "start/installation.mdx",
     Content: Installation,
@@ -118,7 +118,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Theming",
     section: "start",
     blurb:
-      "Seven app-level values, stated one time at the root. They set what the app is made of, how close its spacing is, and whether it has light.",
+      "A Theme sets seven values for your whole app. They control what the app is made of, how tight its spacing is, and whether its surfaces cast light.",
     spec: ["§5", "§12"],
     source: "start/theming.mdx",
     Content: Theming,
@@ -128,7 +128,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Your first screen",
     section: "start",
     blurb:
-      "One settings panel, built from start to finish, and a list of what the code never had to state.",
+      "Build a settings panel from an empty file. Along the way you can see how much of the screen you never had to describe.",
     spec: ["§3", "§15"],
     source: "start/your-first-screen.mdx",
     Content: YourFirstScreen,
@@ -139,7 +139,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Why Kookie exists",
     section: "philosophy",
     blurb:
-      "What this system optimizes for, and why a design system is a taxonomy before it is a component library.",
+      "This system sorts components before it styles them. This page explains why that order matters, and what it buys you.",
     spec: ["THESIS §1", "THESIS §2", "THESIS §3", "THESIS §4", "THESIS §5", "THESIS §6"],
     source: "philosophy/why-kookie-exists.mdx",
     Content: WhyKookieExists,
@@ -149,7 +149,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "The component families",
     section: "philosophy",
     blurb:
-      "Grounds, surfaces, controls, marks, rows and instruments. The family decides which props a component takes.",
+      "Every component belongs to one of six families: grounds, surfaces, controls, marks, rows and instruments. The family decides which props a component takes.",
     spec: ["THESIS §2", "THESIS §3", "§9", "§10", "§11"],
     source: "philosophy/component-families.mdx",
     Content: ComponentFamilies,
@@ -159,7 +159,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Why these rules hold",
     section: "philosophy",
     blurb:
-      "Which rules you cannot express incorrectly, which rules a test checks, and which parts are a judgment.",
+      "Some rules here are types you cannot write incorrectly. Some are checked automatically. The rest are judgments, and this page tells you which is which.",
     spec: ["ENGINEERING §1", "ENGINEERING §6", "THESIS §4"],
     source: "philosophy/why-these-rules-hold.mdx",
     Content: WhyTheseRulesHold,
@@ -170,7 +170,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Colour",
     section: "foundations",
     blurb:
-      "Name what a thing means, and let the theme resolve the colour. Ten generated families, a solved ink ladder, and one contrast setting.",
+      "Choose what a colour means, and the theme picks the exact value. You get ten families, text colours that always stay readable, and one setting for high contrast.",
     spec: ["§7", "§11"],
     source: "foundations/color.mdx",
     Content: Color,
@@ -180,7 +180,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Typography",
     section: "foundations",
     blurb:
-      "One scale shared by Text and Heading. The visual step and the document level are separate questions.",
+      "Text and Heading share one nine-step scale. The step you pick and the heading level you render are two separate choices.",
     spec: ["§15", "§17"],
     source: "foundations/typography.mdx",
     Content: Typography,
@@ -190,7 +190,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Space and layout",
     section: "foundations",
     blurb:
-      "A component sets no outer spacing. The container sets every distance, because the container knows the relationship.",
+      "A component never sets its own outer spacing. The container sets every distance, because only the container knows how its children relate.",
     spec: ["§3", "§12"],
     source: "foundations/space-and-layout.mdx",
     Content: SpaceAndLayout,
@@ -200,7 +200,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Size",
     section: "foundations",
     blurb:
-      "An index, not a measurement. The same number means different things on different ladders.",
+      "Every size prop is an index, not a measurement. The same number means different things on a button, a card and a heading.",
     spec: ["§4", "§16"],
     source: "foundations/size.mdx",
     Content: SizeChapter,
@@ -210,7 +210,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Radius",
     section: "foundations",
     blurb:
-      "One word sets the corner for the whole app. Each band holds a fraction of the box it is drawn on.",
+      "One word sets the corner radius for your whole app. Each kind of component then takes a corner that suits the box it is drawn on.",
     spec: ["§6"],
     source: "foundations/radius.mdx",
     Content: Radius,
@@ -220,7 +220,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Materials",
     section: "foundations",
     blurb:
-      "What the app is made of. One value covers the whole scope, and it takes effect where something passes behind a pane.",
+      "Decide whether your app is made of solid panels or glass. One value covers the whole app, and it only takes effect where something can pass behind a surface.",
     spec: ["§10"],
     source: "foundations/materials.mdx",
     Content: Materials,
@@ -230,7 +230,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Depth",
     section: "foundations",
     blurb:
-      "No component chooses a shadow. The app states one time whether this world has a light source.",
+      "No component picks its own shadow. You decide once whether your app has a light source, and every surface follows.",
     spec: ["§5", "§11"],
     source: "foundations/depth.mdx",
     Content: Depth,
@@ -240,7 +240,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Motion",
     section: "foundations",
     blurb:
-      "Two clocks. A colour change lands on the first frame. A movement follows a damped spring.",
+      "Motion runs on two clocks. A colour change lands on the very first frame, and anything that moves follows a spring.",
     spec: ["§8"],
     source: "foundations/motion.mdx",
     Content: Motion,
@@ -250,7 +250,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "States and interaction",
     section: "foundations",
     blurb:
-      "One state machine that every control shares. CSS resolves it, and no JavaScript runs on hover, press or focus.",
+      "Every control shares one set of states: hover, press, focus, disabled and invalid. CSS handles all of them, so no JavaScript runs when someone points at a control.",
     spec: ["§8", "§9"],
     source: "foundations/states.mdx",
     Content: States,
@@ -260,7 +260,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Responsiveness",
     section: "foundations",
     blurb:
-      "Adapt the interaction model to the person at the screen. That is a different job from reflowing a layout.",
+      "Adapt your interface to the person using it, not only to the width of the window. Touch and mouse need different targets, and that is a separate question from reflowing a layout.",
     spec: ["§2", "§17", "§18"],
     source: "foundations/responsiveness.mdx",
     Content: Responsiveness,
@@ -271,7 +271,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Composition",
     section: "patterns",
     blurb:
-      "The house style. One loud control, different gaps for different groups, a type ladder, and tone used as a vocabulary.",
+      "Correct components do not add up to a good screen on their own. These are the rules for putting them together, and the builder checks most of them for you.",
     spec: ["§15", "§11"],
     source: "patterns/composition.mdx",
     Content: Composition,
@@ -281,7 +281,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Forms",
     section: "patterns",
     blurb:
-      "Labelled values and one action that commits them. The label is a sibling, validity is a state, and no field is louder than the next.",
+      "A form is a set of labelled values and one action that saves them. Every label belongs to its field, and no field should be louder than the one beside it.",
     spec: ["§11", "§15"],
     source: "patterns/forms.mdx",
     Content: Forms,
@@ -291,7 +291,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Modality",
     section: "patterns",
     blurb:
-      "How much to interrupt, and the difference between a surface that holds your work and one that stops you with a question.",
+      "Decide how much to interrupt someone. This page covers the difference between a surface that holds their work and one that stops them to ask a question.",
     spec: ["§24", "§25"],
     source: "patterns/modality.mdx",
     Content: Modality,
@@ -301,7 +301,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Navigation",
     section: "patterns",
     blurb:
-      "The app frame is a pattern, not a component. This chapter states which shape it takes at each window class.",
+      "The app frame is a pattern you build, not a component you drop in. This page shows which shape it should take at each window size.",
     spec: ["§26", "§27", "§18"],
     source: "patterns/navigation.mdx",
     Content: Navigation,
@@ -311,7 +311,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Feedback",
     section: "patterns",
     blurb:
-      "The four things an interface says about its work: busy, progress, outcome and error. Each one has a single answer.",
+      "An interface has four things to say about its own work: it is busy, it has made progress, it finished, or it failed. Each one has a single right answer.",
     spec: ["§11", "§8"],
     source: "patterns/feedback.mdx",
     Content: Feedback,

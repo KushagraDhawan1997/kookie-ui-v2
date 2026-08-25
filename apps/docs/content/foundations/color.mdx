@@ -67,7 +67,7 @@ cost nothing.
 --accent-contrast                               /* the APCA-chosen text on a solid fill */
 --accent-ink / -ink-muted / -ink-faint          /* the ink ladder, below */
 --accent-glyph                                  /* icons and small marks */
---accent-a1 … --accent-a12                      /* alpha, composites over the surface seal */
+--accent-a1 … --accent-a12                      /* alpha, blends over the surface colour */
 ```
 
 Every family emits the same set. `--destructive-solid`, `--success-ink` and `--warning-border`
@@ -85,7 +85,7 @@ pale tint too, and a `bordered` button is a loudness step — quiet, then quiet 
 medium — which reads the same in grey. A checkbox's edge and a field's edge are unaffected: they
 have their own solved achromatic line and never read the family's.
 
-The solid fill keeps the colour, which is the point: that is the rung the rule protects.
+The solid fill keeps the colour, which is the point: that is the step the rule protects.
 
 ## The accent gives up more
 
@@ -201,7 +201,7 @@ Three named backgrounds sit under everything, from the bottom up.
 The library paints no page background. A `Theme` that painted one would repaint the page at
 every nested appearance scope. Paint the page yourself, and read `--color-page` for the value.
 
-`--color-ground` is the region an object sits on, such as a sidebar bed or a region that holds
+`--color-ground` is the region an object sits on, such as a sidebar background or a region that holds
 cards. `--color-surface` is the object itself, and it is opaque. The material axis is the only
 mechanism that makes a surface translucent.
 

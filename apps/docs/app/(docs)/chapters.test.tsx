@@ -104,7 +104,65 @@ describe("the registry and the content directory describe the same set", () => {
 /* ── Anti-stub: the cheapest way to satisfy a coverage law is an entry that says nothing ─── */
 
 describe("no entry is a placeholder", () => {
-  it("every blurb is a real sentence", () => {
+  /**
+   * The floor under a blurb, and it is deliberately only the floor.
+   *
+   * A blurb is the deck under a chapter's title and the line under it in the site index, so it
+   * is the most-read prose here — and until 2026-08-25 the law here claimed to check it was "a
+   * real sentence" while testing two things that are not sentencehood: that it ran past 40
+   * characters and that it ended in a full stop. Sixteen of twenty-five blurbs were headline
+   * fragments and every one passed. "The house style. One loud control, different gaps for
+   * different groups, a type ladder, and tone used as a vocabulary." is 116 characters, ends in
+   * a full stop, and cannot be parsed by a reader.
+   *
+   * WHAT THIS CHECKS IS ONE DIRECTION ONLY: an opener with no verb anywhere in it is certainly
+   * a fragment, because every English sentence has one. That catches "Two clocks.", "The house
+   * style." and "An index, not a measurement."
+   *
+   * WHAT IT CANNOT CHECK — stated because a law nobody knows the limits of gets trusted past
+   * them — is a fragment whose verb sits in a subordinate clause. "The package, one stylesheet,
+   * a Theme at the root, and the script that sets dark mode before the first paint." is a noun
+   * phrase, and `sets` belongs to `that sets …`. Telling a main clause from an embedded one
+   * needs a parser, not a regex, and a part-of-speech dependency is not worth it for twenty-five
+   * strings. That half of the rule lives in `content/AUTHORING.md`, where a person applies it.
+   * Falsified against the pre-2026-08-25 blurbs: this catches eight of the sixteen, and the
+   * eight it misses are the reason the prose rule exists.
+   *
+   * The verb list is a plain enumeration so that widening it is one obvious line. It was widened
+   * on its first run, by a real sentence it called a fragment ("This system sorts components
+   * before it styles them"), which is the cost of the approach and is preferable to the
+   * alternative: a check that passes on everything.
+   */
+  const FINITE_VERBS = new Set(
+    `is are was were be been being has have had does do did can could may might must shall will
+     should would sets set holds hold takes take uses use gives give makes make means mean
+     shows show tells tell resolves resolve states state carries carry names name opens open
+     closes close reads read writes write runs run lets let keeps keep puts put wears wear
+     needs need wants want announces announce chooses choose picks pick sits sit stands stand
+     lands land follows follow shares share covers cover adapts adapt comes come goes go
+     turns turn switches switch works work applies apply belongs belong appears appear
+     renders render paints paint draws draw fills fill scrolls scroll submits submit
+     supplies supply controls control decides decide learns learn gets get sees see
+     grows grow stops stop starts start ships ship adds add removes remove wraps wrap
+     sorts sort styles style explains explain buys buy matters matter happens happen
+     install build write add set use learn read pick choose decide see get`.split(/\s+/),
+  );
+
+  /** The first sentence, which is where a fragment announces itself. */
+  const opener = (blurb: string) => blurb.split(/(?<=[.!?])\s/)[0] ?? blurb;
+
+  it("no blurb opens with a verbless fragment", () => {
+    for (const chapter of CHAPTERS) {
+      const first = opener(chapter.blurb);
+      const words = first.toLowerCase().match(/[a-z']+/g) ?? [];
+      expect(
+        words.some((w) => FINITE_VERBS.has(w)),
+        `${chapter.slug}: the blurb opens with a fragment — "${first}"`,
+      ).toBe(true);
+    }
+  });
+
+  it("every blurb is finished prose", () => {
     for (const chapter of CHAPTERS) {
       expect(chapter.blurb.length, `${chapter.slug} blurb`).toBeGreaterThan(40);
       expect(chapter.blurb.trim().endsWith("."), `${chapter.slug} blurb ends mid-thought`).toBe(
