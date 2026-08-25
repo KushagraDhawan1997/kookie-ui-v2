@@ -1285,6 +1285,18 @@
 .kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-row[data-popup-open]:not([data-disabled]) {
   background-color: var(--material-row-wash);
 }
+/* The lit row is a SIGNAL, and the conformance surface must reach it on glass too (§19,
+   2026-08-26). The wash rule above ties recipes.css's high-contrast arm at (0,4,0) and wins
+   on source order — measured in the docs chrome (Theme material="thin", contrast="high"):
+   the fill stayed the wash while the label followed the HC arm to --tone-contrast, a
+   near-white word on a faint wash. So the glass world restates the signal at (0,5,0). The
+   VALUE's home is recipes.css's arm ("the lit row goes solid"); this rule only re-wins the
+   tie the pane created — the glass contract's own sentence, a pane may vary where a part is
+   painted, never what a signal is worth. */
+[data-contrast="high"] .kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-row[data-highlighted]:not([data-disabled]),
+[data-contrast="high"] .kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-row[data-popup-open]:not([data-disabled]) {
+  background-color: var(--tone-solid);
+}
 /* The keycap is a small filled box, so it takes the treatment too: relief IN the pane, not a
    sticker on it — fill, edge and ink all alpha, and no cast. */
 .kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-kbd {

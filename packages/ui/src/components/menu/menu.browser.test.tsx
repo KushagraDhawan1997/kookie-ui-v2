@@ -1386,28 +1386,42 @@ describe("a focused row's ring survives the panel that scrolls it (§8)", () => 
   });
 
   /* The lit row is a signal, not resting dress, so the conformance surface must reach it
-     (§19's rule, amended 2026-08-09). Falsified by deleting the [data-contrast="high"] arm. */
-  it("contrast=high moves the lit fill, in both appearances (§19)", () => {
+     (§19's rule, amended 2026-08-09). Falsified by deleting the [data-contrast="high"] arm.
+
+     BOTH WORLDS since 2026-08-26. This law's fixture was solid-only, and the glass shape is
+     where the arm actually lost: the pane's wash rule (surfaces.css) ties the HC arm at
+     (0,4,0) and wins on source order, so a glass menu under contrast="high" kept the wash
+     under a label that had already flipped to --tone-contrast — a near-white word on a faint
+     wash, found by eye in the docs chrome (Theme material="thin"). The degenerate-fixture
+     rule verbatim: the input never held the case where the general claim and the special one
+     answer differently. Falsified by deleting the glass HC arm in surfaces.css — the solid
+     cells stay green and only the glass cells fail, which is the defect's own shape. */
+  it("contrast=high moves the lit fill — both appearances, solid AND glass (§19)", () => {
     for (const appearance of APPEARANCES) {
-      const normal = openMenu({ appearance });
-      const high = openMenu({ appearance, contrast: "high" });
+    for (const material of [undefined, "thin" as const]) {
+      const normal = openMenu(material ? { appearance, material } : { appearance });
+      const high = openMenu(
+        material ? { appearance, contrast: "high", material } : { appearance, contrast: "high" },
+      );
       const lit = (m: ReturnType<typeof openMenu>) => {
         const row = m.items[0]!;
         row.setAttribute("data-highlighted", "");
         return computed(row, "background-color");
       };
+      const cell = `${appearance}/${material ?? "solid"}`;
       const before = lit(normal);
       const after = lit(high);
       // The ink follows the fill: a fill that moves under ink that does not is the half-fix.
-      expect(computed(high.items[0]!, "color"), appearance).toBe(
+      expect(computed(high.items[0]!, "color"), cell).toBe(
         colorOn(high.popup, "var(--tone-contrast)"),
       );
       // Calibration: the normal-mode fill is a real colour, not the transparent rest.
       // (2026-08-26: the lit value is the quiet half-step, so this stopped pinning full
       // --tone-soft — "not transparent" is the calibration this clause was always for.)
-      expect(before, appearance).not.toBe("rgba(0, 0, 0, 0)");
-      expect(after, `${appearance}: high contrast must move the highlight`).not.toBe(before);
-      expect(after, appearance).toBe(colorOn(high.popup, "var(--tone-solid)"));
+      expect(before, cell).not.toBe("rgba(0, 0, 0, 0)");
+      expect(after, `${cell}: high contrast must move the highlight`).not.toBe(before);
+      expect(after, cell).toBe(colorOn(high.popup, "var(--tone-solid)"));
+    }
     }
   });
 
