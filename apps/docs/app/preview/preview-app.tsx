@@ -351,15 +351,16 @@ export function PreviewShell({ children }: { children: React.ReactNode }) {
           purpose: its glass has to seal against the world it controls — a light toolbar over
           a pinned-dark canvas is unreadable murk (found on sight).
 
-          The page is --neutral-1 (2026-08-10, Kushagra — reversing the seal it was set to on
-          2026-08-09). The system paints no page background of its own — no `.kui-theme` rule
-          sets one — so this is the app's call either way. The seal was the harder bed on
-          purpose (white on white in light, a card's own colour in dark) and the components
-          held it; the reason to go back is that judging a card, a menu and a glass pane needs
-          a page they can sit ON, and a page that is also the seal makes every surface argue
-          with its own bed before it argues with the eye. */}
+          The page is --color-page (2026-08-25, Kushagra — the role, not a palette step). It
+          was --neutral-1 from 2026-08-10 (reversing the seal it was set to on 2026-08-09,
+          because a page that is also the seal made every surface argue with its own bed), but
+          --color-page did not exist then; the role landed 2026-08-20 and in light it is now
+          the seal's own white by his 2026-08-25 call — separation is cast and hairline, which
+          is exactly what a real app's page shows, so the judging surface paints the role and
+          tracks it. The system still paints no page background of its own — no `.kui-theme`
+          rule sets one — so this is the app's call either way. */}
       <style>{LANE_CSS}</style>
-      <Box style={{ background: "var(--neutral-1)", color: "var(--color-text)", minHeight: "100dvh" }}>
+      <Box style={{ background: "var(--color-page)", color: "var(--color-text)", minHeight: "100dvh" }}>
         <EnvPanel env={env} onChange={setEnv} />
         <Box px="6" pb="9" className="pv-lane">
           {/* 60rem, not the earlier 1120px: the densest table is ~850px intrinsic, so the wider

@@ -1839,7 +1839,9 @@ export const floatingChrome = {
 /**
  * §10 — the seal: what an opaque surface is filled with. Paper ABOVE the page, never the
  * page itself — a card sealed at --neutral-1 is invisible where it lives most. Light is
- * pure white over the #fcfcfc page; dark steps up the ladder. The Radix panel answer.
+ * pure white, and since 2026-08-25 the light PAGE derives from this rest value, so card and
+ * page share one white and a card separates by cast or hairline, never by fill; dark steps
+ * up the ladder. The Radix panel answer.
  *
  * All three rungs live here per mode, because the hover and active steps were previously
  * hard-coded to --neutral-2 and --neutral-3 for BOTH modes while the dark seal itself was
@@ -1935,11 +1937,16 @@ export const groundColor = {
  * the dark ground had collapsed onto the page, and it stopped being true on 2026-08-21 — the
  * argument for ONE name never rested on the two being equal, only on their meaning one thing.)
  *
- * `--neutral-1` in BOTH modes, and it is the palette's own end in each: the lightest step in
- * light, the darkest in dark. There is nowhere further to go, which is what makes it a page.
+ * THE MODE'S BRIGHTEST GROUND, not a palette step (2026-08-25, Kushagra: --neutral-1's
+ * #fcfcfc "reads dull as is"). Light is the seal's own white — DERIVED from
+ * `surfaceColor.light.rest`, one home, so the two cannot drift — which means a resting card
+ * on the page separates by cast (elevated, the default) or hairline (flat), never by fill:
+ * Apple's own light mode, and the collapse dark already accepted for ground-on-page
+ * (2026-08-20). Dark stays `--neutral-1`, the palette's darkest step. In each mode there is
+ * nowhere further to go, which is what makes it a page.
  */
 export const pageColor = {
-  light: "var(--neutral-1)",
+  light: surfaceColor.light.rest,
   dark: "var(--neutral-1)",
 } as const;
 

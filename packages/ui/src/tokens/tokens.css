@@ -891,7 +891,7 @@
      is the app's call, no component reads this, and a law forbids one from starting. A
      page made of CARDS is --color-ground above — the pair Apple splits into two page
      colours collapses here, because a ground already is the second one. */
-  --color-page: var(--neutral-1);
+  --color-page: #ffffff;
 
   /* the tone-independent hairline (§7, §11). --tone-border answers "the edge of a thing in
      THIS family"; this answers "the edge of a thing that has no family" — a Separator, and
@@ -1540,7 +1540,7 @@
      is the app's call, no component reads this, and a law forbids one from starting. A
      page made of CARDS is --color-ground above — the pair Apple splits into two page
      colours collapses here, because a ground already is the second one. */
-  --color-page: var(--neutral-1);
+  --color-page: #ffffff;
 
   /* the tone-independent hairline (§7, §11). --tone-border answers "the edge of a thing in
      THIS family"; this answers "the edge of a thing that has no family" — a Separator, and

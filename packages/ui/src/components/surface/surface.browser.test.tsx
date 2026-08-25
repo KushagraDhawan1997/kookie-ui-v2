@@ -90,8 +90,11 @@ describe("a ground, not an object (§10, 2026-08-20)", () => {
         expect(bed, "dark: the page is the floor, so a ground steps UP").toBeGreaterThan(page);
         expect(bed, "dark: …and stops short of the card").toBeLessThan(card);
       } else {
-        expect(bed, "light: the page is near white, so a ground steps DOWN").toBeLessThan(page);
-        expect(card, "light: the card is the lightest of the three").toBeGreaterThan(page);
+        expect(bed, "light: the page is white, so a ground steps DOWN").toBeLessThan(page);
+        // 2026-08-25: the light page derives from the seal's rest, so card and page share one
+        // white BY CONSTRUCTION and a card on the page separates by cast or hairline, never by
+        // fill. The old assertion (card strictly lighter than page) pinned the #fcfcfc page.
+        expect(card, "light: the card seals at the page's own white").toBeCloseTo(page, 4);
       }
     }
   });
