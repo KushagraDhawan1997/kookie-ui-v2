@@ -188,7 +188,15 @@ time you nested another Theme. Paint it yourself and read `--color-page` for the
 cards. `--color-surface` is the object itself, and it is opaque. The material setting is the
 only thing that makes a surface see-through.
 
-Expect one thing in dark mode: a ground sitting directly on the page comes out the same colour
-as the page, so only its hairline bounds it. Dark colours are built up from white, so a ground
-defined as a step away from its parent would come out *lighter* than the cards on it, and the
-cards would look darker than the region holding them.
+The two modes stack these three differently, and it changes how you compose.
+
+**In light, the page and a card are the same white.** A card sitting straight on the page has no
+fill of its own to distinguish it, so what separates it is its shadow — or its hairline, in a
+flat theme. That is how light mode works on Apple's platforms too, and it is why `depth` carries
+more weight in light than you might expect. A ground is a step darker than both, so of the three
+it is the only one that separates by colour.
+
+**In dark, all three differ.** The page is darkest, a ground sits above it, and a card is
+lightest. Each step is small and deliberate: the ground is a hand-picked value rather than a
+step off the palette, because the nearest palette step landed above the card and would have made
+cards look darker than the region holding them.
