@@ -1,14 +1,15 @@
-Most design systems ship guidelines as advice. The document sits beside the code and describes
-what the code would do if every developer remembered every rule. The two drift apart, and
-nothing measures the gap.
+Most design systems ship their guidelines as advice. The document sits next to the code and
+describes what the code would do if everyone remembered every rule. Over time the two drift
+apart, and nothing tells you how far.
 
-The rules on this site work differently. You cannot express most of them incorrectly. A test
-checks the rest. This chapter says which rule is which. It also says which parts are
-judgment, because presenting a judgment as a measured rule is a fault.
+The rules on this site work differently. Most of them you cannot get wrong, because the types
+will not let you. Some are checked automatically. The rest are judgments, and this chapter
+tells you which is which — because dressing a judgment up as a measured rule is how a system
+stops being trustworthy.
 
-## The types state the refusals
+## Most refusals live in the types
 
-You cannot write most forbidden code.
+You cannot write the code the system refuses.
 
 ```tsx
 // This prop does not exist.
@@ -16,36 +17,37 @@ You cannot write most forbidden code.
 ```
 
 `ButtonProps` has no `margin`, no `variant`, no `color` and no shadow prop. A component does
-not set outer spacing, so the type offers no margin. `tone` and `emphasis` are separate axes,
-so no prop combines them.
+not set its own outer spacing, so there is no margin to set. `tone` and `emphasis` are
+separate, so there is no prop that combines them.
 
-Every scale is a closed union. `size` is `"1" | "2" | "3" | "4"`. It is not a number. You
-cannot type a value between two steps.
+Every scale is a fixed list. `size` is `"1" | "2" | "3" | "4"` — not a number, so you cannot
+type a value in between.
 
-A type is stronger than a lint rule, and much stronger than a paragraph. You can disable a
-lint rule. You can skip a paragraph. A prop that does not exist produces an editor error
-before you run anything.
+A type is stronger than a lint rule and much stronger than a paragraph. You can turn a lint
+rule off and you can skip a paragraph. A prop that does not exist shows up as an error in your
+editor before you run anything.
 
-**A missing prop tells you something.** When a component does not take a prop you expect, the
-system usually refuses it for a reason. Each component page lists its refusals and the reason
-for each one. If you find a refusal with no entry, the documentation has a gap.
+**When a prop is missing, that usually means something.** If a component does not take a prop
+you expected, it is normally a refusal rather than an oversight, and every component page
+lists its refusals with the reason for each. If you find one with no entry, that is a gap in
+these pages.
 
-## The escapes are visible
+## The ways out are meant to be visible
 
-A refusal with no escape is not a design. It is an obstruction.
+A refusal with no way around it is not a design, it is an obstruction.
 
-Every component forwards `className` and `style`. Your `style` merges last, so your value
-always wins.
+Every component forwards `className` and `style`, and your `style` is applied last, so your
+value wins.
 
 ```tsx
-// The reading column has no token, so state it with style. Everything inside it does.
+// There is no token for a reading column width, so state it directly.
 <Box style={{ maxInlineSize: "42rem" }}>
   <Card size="3">
     <Stack gap="4">
       <Heading size="6">Workspace name</Heading>
       <TextField id="workspace" defaultValue="Kookie Studio" />
 
-      {/* One control, placed by the layout that owns the relationship. */}
+      {/* One control, spaced by a wrapper you can see. */}
       <Box mt="2">
         <Button emphasis="loud">Rename</Button>
       </Box>
@@ -54,63 +56,66 @@ always wins.
 </Box>
 ```
 
-An escape is visible in a diff. One escape is normal. A file full of escapes means the system
-lacks something. That missing thing is usually a token or a tone family, not a prop.
+The point is that an escape shows up in a diff. One is normal. A file full of them means the
+system is missing something, and what it is missing is usually a token or a tone rather than a
+prop.
 
-## The tests check what the system promises
+## What the tests actually check
 
-There are no snapshot tests, because a snapshot checks nothing that anyone decided.
+There are no snapshot tests here, because a snapshot only tells you that something changed,
+not that anything was ever decided.
 
-- Every size-2 control resolves the same height, padding and radius tokens.
-- Every recipe moves one step on hover and two steps on press.
-- Every generated fill meets its contrast target against its own label colour.
-- CI measures the gzipped CSS on every commit and fails the build when it grows.
-- Margin and position props do not exist on control types. A type-level test asserts this.
+- Every size 2 control resolves to the same height, padding and corner.
+- Every control moves one step on hover and two on press.
+- Every generated colour meets its contrast target against the text that sits on it.
+- The gzipped CSS is measured on every commit, and the build fails if it grows.
+- Margin and position props do not exist on control types, and a type-level test proves it.
 
-One rule governs how these tests are written. **A test reads the value the browser computes,
-from a mounted component, in both light and dark.**
+One rule governs how all of these are written. **A test reads the value the browser actually
+computed, from a real mounted component, in both light and dark.**
 
-A test that reads an attribute string, a token name or an object in memory stops one step short
-of the value that can be wrong. It passes while the rendered result is incorrect.
+A test that reads an attribute, a token name or an object in memory stops one step short of the
+thing that can be wrong, and it will happily pass while the rendered result is broken.
 
-## The reviewer checks the composition
+## Some rules are about a whole screen
 
-Some rules describe a whole screen, not one component. A type cannot hold them.
+A few rules describe a screen rather than a component, so no type can hold them.
 
-- Use one loud control on each screen.
-- Use different gap values for different relationships.
-- Use a tone for its meaning.
-- Step each heading down from the heading above it.
+- Use one loud control per screen.
+- Use different gaps for different relationships.
+- Use a tone because of what it means.
+- Step each heading down from the one above it.
 
-The [builder](/builder) runs these rules over a live document. Each finding cites the rule and
-carries a fix. A test holds the shipped templates to zero findings. That test also checks the
-rules: a rule that nobody can satisfy fails on the day someone writes it.
+The [builder](/builder) runs these over a live document. Every finding quotes the rule it comes
+from and offers a fix. All the templates that ship with the builder are held to zero findings,
+which also keeps the rules honest: a rule nobody could satisfy would break those templates the
+day it was added.
 
-## What the system does not check
+## What is not checked, on purpose
 
-The system does not check taste. This is deliberate, and taste decides most of the quality of
-an interface.
+Nothing here checks taste, and taste is most of what makes an interface good.
 
-The system holds measured limits and does not move them. Target sizes come from touch
-anthropometry. Contrast comes from measured models. Grouping comes from documented perceptual
-behaviour.
+What the system does hold, and will not move, are the measured limits: tap target sizes come
+from how big fingertips are, contrast comes from measured models of vision, and grouping comes
+from documented research on perception.
 
-Above those limits, the exact radius, the saturation of a material, the accent colour and the
-rhythm of one screen are judgments. The documentation calls them judgments, and every one of
-them is a value in the colour configuration rather than a number in a component. No test asserts
+Above those, the exact corner radius, how saturated a glass panel is, which blue is the accent,
+and the rhythm of any one screen are judgments. These pages say so, and each of those values
+lives in one configuration file rather than being buried in a component. No test asserts any of
 them.
 
-Say which is which. A system that called its judgments measurements would be making a claim
-nobody can check.
+Saying which is which matters. A system that called its judgments measurements would be making
+a claim nobody could check.
 
-## The documentation cannot drift
+## These pages cannot quietly go stale
 
-When code forces a decision to change, the document changes in the same commit.
+When a change to the code forces a decision to change, the documentation changes in the same
+commit.
 
-These pages are checked against the specification they publish. Each chapter names the sections
-it comes from, and a test resolves every one of those references against the real document. A
-chapter about a decision that the specification does not contain fails before you read it.
+Every chapter names the parts of the specification it comes from, and a test resolves each of
+those references against the real document. A chapter describing a decision the specification
+does not contain fails before anybody reads it.
 
-A script generates the props table on each component page from the package types. A test
-regenerates the table and compares it. The table cannot describe a prop that no longer exists,
-and it cannot omit one that does.
+The props table on each component page is generated from the package's own types, and a test
+regenerates it and compares. It cannot describe a prop that no longer exists, and it cannot
+leave out one that does.
