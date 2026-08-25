@@ -187,44 +187,6 @@
   }
 }
 
-/* ── The code theme ────────────────────────────────────────────────────────────────────────
-   Shiki emits `var(--kd-code-token-*)`; this is where those names become KookieUI colours.
-
-   Every one of them resolves to a SOLVED value — the ink ladder (§15, 2026-08-10) states two
-   contrast targets and the generator solves each family's fade against the harder of the seal
-   and the page, in both appearances. So the syntax colours are not a palette anybody picked:
-   they are the same numbers the rest of the type on the page is held to, which is the whole
-   argument for not shipping a stock highlight theme. Nothing here needs a dark variant,
-   because every token on the right-hand side already has one.
-
-   The assignments themselves are taste, like every other pigment decision in this system,
-   and they are judged here. What is NOT taste is the shape: a token colour is a family's ink, and
-   a family means what §7 says it means. Strings are green because a string is data; a keyword
-   is the brand because the language's own vocabulary is the one constant in every sample;
-   inserted/deleted/changed are the three status families, so a diff in the docs reads with the
-   same three colours a status callout would. */
-.kd-code {
-  --kd-code-foreground: var(--color-text);
-  --kd-code-background: transparent;
-
-  --kd-code-token-comment: var(--color-text-faint);
-  --kd-code-token-keyword: var(--accent-ink);
-  --kd-code-token-string: var(--green-ink);
-  --kd-code-token-string-expression: var(--green-ink);
-  --kd-code-token-function: var(--blue-ink);
-  --kd-code-token-constant: var(--orange-ink);
-  --kd-code-token-parameter: var(--color-text);
-  --kd-code-token-punctuation: var(--color-text-muted);
-  --kd-code-token-link: var(--accent-ink);
-
-  --kd-code-token-inserted: var(--success-ink);
-  --kd-code-token-deleted: var(--destructive-ink);
-  --kd-code-token-changed: var(--warning-ink);
-}
-
-/* A fence sets its own measure — code is not reading-length text, and wrapping it would put a
-   line break somewhere the language does not have one. The ScrollArea around it is what makes
-   that safe. */
-.kd-code {
-  white-space: pre;
-}
+/* The code theme (`.kd-code`) lives in `blocks/code.css`, beside the highlighter it is the
+   other half of — moved 2026-08-26 when the code element became a block, so the theme arrives
+   wherever the element renders rather than only where the docs chrome is imported. */

@@ -1,0 +1,160 @@
+/* ── The code theme ────────────────────────────────────────────────────────────────────────
+   Shiki emits `var(--kd-code-token-*)`; this is where those names become KookieUI colours.
+   Moved here from `prose.css` (2026-08-26) when the code element became a block: the theme is
+   the highlight mechanism's other half, so it lives beside `highlight.ts` and arrives wherever
+   the element renders — a /blocks page as much as a chapter — rather than only where the docs
+   chrome happened to import it.
+
+   Every one of them resolves to a SOLVED value — the ink ladder (§15, 2026-08-10) states two
+   contrast targets and the generator solves each family's fade against the harder of the seal
+   and the page, in both appearances. So the syntax colours are not a palette anybody picked:
+   they are the same numbers the rest of the type on the page is held to, which is the whole
+   argument for not shipping a stock highlight theme. Nothing here needs a dark variant,
+   because every token on the right-hand side already has one.
+
+   The assignments themselves are taste, like every other pigment decision in this system,
+   and they are judged here. What is NOT taste is the shape: a token colour is a family's ink, and
+   a family means what §7 says it means. Strings are green because a string is data; a keyword
+   is the brand because the language's own vocabulary is the one constant in every sample;
+   inserted/deleted/changed are the three status families, so a diff in the docs reads with the
+   same three colours a status callout would. */
+.kd-code {
+  --kd-code-foreground: var(--color-text);
+  --kd-code-background: transparent;
+
+  --kd-code-token-comment: var(--color-text-faint);
+  --kd-code-token-keyword: var(--accent-ink);
+  --kd-code-token-string: var(--green-ink);
+  --kd-code-token-string-expression: var(--green-ink);
+  --kd-code-token-function: var(--blue-ink);
+  --kd-code-token-constant: var(--orange-ink);
+  --kd-code-token-parameter: var(--color-text);
+  --kd-code-token-punctuation: var(--color-text-muted);
+  --kd-code-token-link: var(--accent-ink);
+
+  --kd-code-token-inserted: var(--success-ink);
+  --kd-code-token-deleted: var(--destructive-ink);
+  --kd-code-token-changed: var(--warning-ink);
+}
+
+/* A fence sets its own measure — code is not reading-length text, and wrapping it would put a
+   line break somewhere the language does not have one. The ScrollArea around it is what makes
+   that safe. */
+.kd-code {
+  white-space: pre;
+}
+
+/* ── The scroller's focus ring follows the pane's corner ───────────────────────────────────
+   The well's ScrollArea viewport is a keyboard tab stop, and the surface layer pulls it out
+   to the pane's edges — so its focus ring drew a sharp rectangle inside a squircle pane
+   (Kushagra, 2026-08-26). The viewport takes the pane's own corner expression (both hooks
+   inherit from the pane, and `corner-shape` shapes the outline as well as the box), so the
+   ring bends exactly as the pane does. A PACKAGE GAP wearing a local fix: every focusable
+   scroller directly inside any pane has this; the surface layer's own scroller rule should
+   own it — promote at integration. */
+.kd-code-well > .kui-scroll-area > .kui-scroll-viewport {
+  border-radius: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1));
+}
+
+@supports (corner-shape: squircle) {
+  .kd-code-well > .kui-scroll-area > .kui-scroll-viewport {
+    corner-shape: squircle;
+  }
+}
+
+/* ── Lines ─────────────────────────────────────────────────────────────────────────────────
+   Each line is a block-level span (the renderer emits no "\n" between them), because a line
+   is the unit the author points at: a wash, a marker gutter and a number all belong to the
+   LINE, and an inline run has no box to carry them.
+
+   The wash reaches the well's edges through the surface-padding hook — the `m="bleed"`
+   mechanism (§3) said in CSS: the negative margin undoes the pane's inset, the padding puts
+   the text back, so an unwashed line renders byte-identically and a washed one paints
+   edge to edge. `max-content` + `min-inline-size` keep the wash covering the full scrolled
+   width rather than stopping at the viewport.
+
+   `min-block-size: 1lh` is what keeps an EMPTY line one line tall — a block span with no
+   text has no line box of its own. */
+.kd-line {
+  display: block;
+  inline-size: max-content;
+  min-inline-size: 100%;
+  min-block-size: 1lh;
+  margin-inline: calc(-1 * var(--kui-sf-p, 0px));
+  padding-inline: var(--kui-sf-p, 0px);
+}
+
+/* ── The author's annotations ──────────────────────────────────────────────────────────────
+   Five ways to say "look here", every colour a token. The washes are the families' own alpha
+   steps so they composite against the well's local ground; a diff's added and removed lines
+   are the status families — the same vocabulary the token colours below already speak
+   (inserted/deleted/changed). */
+.kd-line-highlight {
+  background: var(--neutral-a3);
+}
+.kd-line-add {
+  background: var(--success-a3);
+}
+.kd-line-remove {
+  background: var(--destructive-a3);
+}
+.kd-line-error {
+  background: var(--destructive-a3);
+}
+.kd-line-warning {
+  background: var(--warning-a3);
+}
+
+/* Focus stands the OTHER lines down rather than raising the focused ones — the same shape as
+   every stand-down in the system, and `--disabled-dim` is the one token that already means
+   "present, not current". A hover restores the whole block, because a reader leaning in has
+   asked to inspect. */
+.kd-code.kd-focused .kd-line:not(.kd-line-focus) {
+  opacity: var(--disabled-dim);
+}
+.kd-code.kd-focused:hover .kd-line {
+  opacity: 1;
+}
+
+/* A pointed-at word. The pad-and-negative-margin pair keeps the glyph advance untouched, so
+   the mono grid does not shift around the chip; `em` because the chip's breathing room is a
+   property of the glyphs inside it (the atoms' rule, §15). */
+.kd-word {
+  background: var(--accent-a3);
+  border-radius: 0.25em;
+  padding-inline: 0.2em;
+  margin-inline: -0.2em;
+}
+
+/* The diff gutter. A real span rather than a pseudo — ::before belongs to the line-number
+   counter — hidden from AT by the renderer and from selection here, so the clipboard never
+   grows a column of plus signs. Every line in a diff block carries one (context lines get an
+   empty span) so marked and unmarked lines stay aligned. */
+.kd-line-marker {
+  display: inline-block;
+  inline-size: 2ch;
+  user-select: none;
+}
+.kd-line-add > .kd-line-marker {
+  color: var(--success-ink);
+}
+.kd-line-remove > .kd-line-marker {
+  color: var(--destructive-ink);
+}
+
+/* ── Line numbers ──────────────────────────────────────────────────────────────────────────
+   CSS counters, never markup — the ecosystem's one unanimous answer — which is also what
+   keeps a number out of every selection and every copy. Faint: a number is wayfinding, not
+   content. */
+.kd-code.kd-numbered {
+  counter-reset: kd-line;
+}
+.kd-code.kd-numbered .kd-line::before {
+  counter-increment: kd-line;
+  content: counter(kd-line);
+  display: inline-block;
+  inline-size: 2.5ch;
+  margin-inline-end: 1.5ch;
+  text-align: end;
+  color: var(--color-text-faint);
+}

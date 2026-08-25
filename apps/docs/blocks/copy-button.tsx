@@ -11,11 +11,20 @@
  * is state, not motion — nothing here reads a motion token.
  */
 import * as React from "react";
-import { Button } from "@kookie-ui/react";
+import { Button, type Size } from "@kookie-ui/react";
 
-import { CheckIcon, CopyIcon } from "../icons";
+import { CheckIcon, CopyIcon } from "../app/icons";
 
-export function CopyButton({ code, label = "Copy" }: { code: string; label?: string }) {
+export function CopyButton({
+  code,
+  label = "Copy",
+  size = "1",
+}: {
+  code: string;
+  label?: string;
+  /** The block's index, passed through — the chrome rides the same ladder as the pane. */
+  size?: Size;
+}) {
   const [copied, setCopied] = React.useState(false);
   // Held in a ref so a second press restarts one timer rather than racing two, and so the
   // pending one is cleared on unmount — a page can navigate away mid-timeout.
@@ -23,9 +32,11 @@ export function CopyButton({ code, label = "Copy" }: { code: string; label?: str
   React.useEffect(() => () => clearTimeout(timer.current), []);
 
   return (
+    // Medium is Button's own default, so no emphasis is stated; `backdrop` because this
+    // button FLOATS over the code — a floating control takes the theme's material (glass).
     <Button
-      size="1"
-      emphasis="quiet"
+      size={size}
+      backdrop
       leading={copied ? <CheckIcon /> : <CopyIcon />}
       onClick={() => {
         // `?.` because clipboard access is absent on insecure origins — a docs site served

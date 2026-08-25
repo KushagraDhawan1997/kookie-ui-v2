@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint app next.config.ts scripts && tsc -p tsconfig.json",
+    "lint": "eslint app blocks examples mdx-components.tsx mdx-plugins next.config.ts scripts && tsc -p tsconfig.json",
     "test": "vitest run",
     "api": "node --disable-warning=ExperimentalWarning --experimental-strip-types scripts/generate-api.ts",
     "api:check": "node --disable-warning=ExperimentalWarning --experimental-strip-types scripts/generate-api.ts --check"
@@ -16,6 +16,7 @@
     "@hugeicons/core-free-icons": "^4.2.3",
     "@hugeicons/react": "^1.1.9",
     "@kookie-ui/react": "workspace:*",
+    "@shikijs/transformers": "^4.4.3",
     "next": "^16.3.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

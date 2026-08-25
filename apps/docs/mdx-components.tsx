@@ -4,7 +4,7 @@
  * This file is the whole reason the docs can use a compiler without using a framework: MDX
  * hands over an element name, and every answer here is a component from the package. A `##`
  * is a `<Heading>` on the house ladder (§15: page 8, section 7, subsection 6), a paragraph is
- * `<Text>` at the reading step, a fence is the same `CodeBlock` the component pages use, a
+ * `<Text>` at the reading step, a fence is the same `CodeSample` the component pages use, a
  * rule is a `<Separator>`. Nothing in a chapter can paint a colour or invent a distance,
  * because a chapter has no vocabulary for either.
  *
@@ -62,7 +62,8 @@ import {
   Text,
 } from "@kookie-ui/react";
 
-import { CodeBlock } from "./app/(docs)/code-block";
+import { CodeSample } from "./blocks/code-sample";
+import { parseMeta } from "./blocks/highlight";
 import { Example } from "./app/(docs)/example";
 import { ReviewRules } from "./app/(docs)/review-rules";
 import { nodeText, slugify } from "./app/(docs)/slug";
@@ -113,20 +114,33 @@ function Figure({ children }: { children: React.ReactNode }) {
 /**
  * Pull the fence apart. MDX gives `<pre>` exactly one child — a `<code>` carrying the source
  * as text and the language as `language-*` — so this reads both off that child and renders
- * `CodeBlock` instead of either element. The `code` mapping below therefore never sees a
+ * `CodeSample` instead of either element. The `code` mapping below therefore never sees a
  * fenced block: it is the INLINE case only, which is why it can be `<Code>` unconditionally.
  */
 function fence(props: { children?: React.ReactNode }): React.ReactElement {
   const child = React.Children.only(props.children) as React.ReactElement<{
     className?: string;
     children?: string;
+    metastring?: string;
   }>;
   const className = child.props.className ?? "";
   const lang = className.replace(/^language-/, "") || "tsx";
   const code = typeof child.props.children === "string" ? child.props.children : "";
+  // The fence's meta string — ```ts title="x.ts" lineNumbers maxLines=20 {1,3} /word/ —
+  // put on the element by our remark plugin (MDX drops it otherwise). The chrome facts
+  // become props; what parseMeta does not claim rides through to Shiki's own directives.
+  const meta = parseMeta(child.props.metastring);
   return (
     <Figure>
-      <CodeBlock code={code} lang={lang} />
+      <CodeSample
+        code={code}
+        lang={lang}
+        {...(meta.title !== undefined ? { title: meta.title } : {})}
+        {...(meta.bare ? { bare: true } : {})}
+        {...(meta.lineNumbers ? { lineNumbers: true } : {})}
+        {...(meta.maxLines !== undefined ? { maxLines: meta.maxLines } : {})}
+        {...(meta.rest ? { meta: meta.rest } : {})}
+      />
     </Figure>
   );
 }

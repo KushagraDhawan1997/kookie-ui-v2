@@ -30,7 +30,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { CHAPTERS, READING_ORDER, SECTIONS, type Chapter } from "./chapters";
-import { LANGS, isLang, tokenize } from "./highlight";
+import { LANGS, isLang, parseMeta, tokenize } from "../../blocks/highlight";
 import { slugify } from "./slug";
 import { tableOfContents } from "./toc";
 import { useMDXComponents } from "../../mdx-components";
@@ -378,10 +378,14 @@ describe("the public tokens the chapters name are real", () => {
 /* ── The code in the chapters ──────────────────────────────────────────────────────────── */
 
 /** Every fenced block, with the language it declared. */
-function fences(markdown: string): { lang: string; code: string }[] {
-  return [...markdown.matchAll(/^```([a-z]*)\n([\s\S]*?)^```/gm)].map((m) => ({
+function fences(markdown: string): { lang: string; meta: string; code: string }[] {
+  // The info string is a language and then a meta string (```json title="package.json").
+  // The first spelling required the newline right after the language, so a fence WITH meta
+  // silently vanished from the walk — and the scan then took its closing ``` as an opener.
+  return [...markdown.matchAll(/^```([a-z]*)([^\n]*)\n([\s\S]*?)^```/gm)].map((m) => ({
     lang: m[1]!,
-    code: m[2]!,
+    meta: m[2]!.trim(),
+    code: m[3]!,
   }));
 }
 
@@ -409,14 +413,18 @@ describe("every code fence is real code in a language we ship", () => {
 
   it("tokenizes every fence", async () => {
     // The fences are checked HERE rather than by rendering the chapter, and that is the
-    // stronger arrangement: CodeBlock is an async server component, which no non-RSC renderer
+    // stronger arrangement: CodeSample is an async server component, which no non-RSC renderer
     // will mount, and a law that stubbed it out would assert nothing about the code samples
     // at all. Running the real tokenizer over every fence individually names the chapter and
     // the language when one fails.
     for (const chapter of CHAPTERS) {
       for (const fence of fences(sourceOf(chapter))) {
         if (!isLang(fence.lang)) continue;
-        const lines = await tokenize(fence.code, fence.lang);
+        // The meta rides through exactly as the fence renderer sends it — the chrome facts
+        // parsed away, Shiki's own directives kept — so a bad directive fails the build here
+        // with the chapter's name on it.
+        const { rest } = parseMeta(fence.meta);
+        const { lines } = await tokenize(fence.code, fence.lang, rest || undefined);
         expect(lines.length, `${chapter.slug}: an empty fence`).toBeGreaterThan(0);
       }
     }
@@ -424,7 +432,7 @@ describe("every code fence is real code in a language we ship", () => {
 });
 
 /**
- * The real component map, with ONE substitution: `pre`. `CodeBlock` is async — it awaits the
+ * The real component map, with ONE substitution: `pre`. `CodeSample` is async — it awaits the
  * tokenizer — and `renderToStaticMarkup` cannot mount an async component, so the fence is
  * stood in for by a synchronous element that keeps the code visible in the output. Nothing
  * else is stubbed: the headings, paragraphs, lists, links, quotes, tables and inline code that

@@ -35,7 +35,19 @@ const nextConfig: NextConfig = {
  * highlight through one function, or they drift.
  */
 const withMDX = createMDX({
-  options: { remarkPlugins: [["remark-gfm", {}]] },
+  // The second plugin is ours (`mdx-plugins/remark-fence-meta.mjs`): MDX drops a fence's
+  // meta string, and the fence renderer needs it for `title=` / `lineNumbers` / `{1,3}`.
+  // A path STRING for the same serialization reason remark-gfm is one — and an ABSOLUTE
+  // path, because Turbopack's loader workers resolve a plugin string as a module specifier
+  // from their own context, where a relative one finds nothing (measured: 21 build errors).
+  // vitest.config.ts imports the same file — the blocks law holds the two configs to
+  // agreement.
+  options: {
+    remarkPlugins: [
+      ["remark-gfm", {}],
+      new URL("./mdx-plugins/remark-fence-meta.mjs", import.meta.url).pathname,
+    ],
+  },
 });
 
 export default withMDX(nextConfig);

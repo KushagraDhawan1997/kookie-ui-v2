@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { Card, Stack } from "@kookie-ui/react";
 
-import { CodeBlock } from "./code-block";
+import { CodeSample } from "../../blocks/code-sample";
 import { EXAMPLES } from "../../examples";
 
 /**
@@ -66,7 +66,7 @@ export function Example({ name, quiet }: ExampleProps) {
   // to sit 8px apart with the source's own label 4px above the well — one step between the
   // two halves and one step inside the second half, so the label belonged to neither and the
   // pair read as two boxes that had drifted into each other rather than as a thing and its
-  // code. §15 asks group and sibling distances to differ by two steps at minimum; `code-block`
+  // code. §15 asks group and sibling distances to differ by two steps at minimum; `code-sample`
   // binds its label to its well at 4px, and the 16px here is what separates the specimen from
   // that pair. The figure's air from the prose around it is the chapter renderer's, and it is
   // now 32px a side, which is what lets a tighter inside read as one unit.
@@ -86,7 +86,7 @@ export function Example({ name, quiet }: ExampleProps) {
           second place for the answer to go stale. */}
       {rootsOwnPane(source) ? specimen : <Card size="4">{specimen}</Card>}
       {quiet ? null : (
-        <CodeBlock code={source} lang="tsx" title={`examples/${name}.tsx`} />
+        <CodeSample code={source} lang="tsx" title={`examples/${name}.tsx`} />
       )}
     </Stack>
   );

@@ -2,6 +2,8 @@ import mdx from "@mdx-js/rollup";
 import remarkGfm from "remark-gfm";
 import { defineConfig } from "vitest/config";
 
+import remarkFenceMeta from "./mdx-plugins/remark-fence-meta.mjs";
+
 /**
  * One node project. The docs app had no test harness at all until 2026-08-06, and the audit
  * that found that also found what it cost: the appearance mechanism — the thing the whole
@@ -27,7 +29,7 @@ export default defineConfig({
   // compiler differs from the site's is a suite asserting things about a pipeline nobody
   // ships — and the divergence would be silent in exactly the direction that matters, since
   // a chapter's table would render here and not there.
-  plugins: [mdx({ remarkPlugins: [remarkGfm] })],
+  plugins: [mdx({ remarkPlugins: [remarkGfm, remarkFenceMeta] })],
   test: {
     name: "docs",
     // .tsx as well: a law that renders a layout is JSX, and the app's only laws until
