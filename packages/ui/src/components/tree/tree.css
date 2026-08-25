@@ -1,0 +1,58 @@
+/* Tree (§33). The MACHINE's stylesheet, and deliberately almost nothing: rows are row-family
+   members (`kui-control kui-row`), so the box, the paint, the states and the size join all
+   arrive from the shared layers. What this sheet states is the two facts only a tree has —
+   the indent, and the disclosure glyph's posture.
+
+   No motion yet, on Menu's own precedent (shipped instant, moved later): the chevron's turn
+   and the reveal's entrance are the recorded follow-up, so the reduced-motion laws have
+   nothing here to stand down. */
+
+/* The level must not inherit — the `--kui-h` trap (§12): every row SETS its own level, but a
+   tree composed inside any container that carried the name would hand rows a level they did
+   not state. `inherits: false` makes the per-row inline declaration the only source. */
+@property --kui-tree-level {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+/* ROWS WITH PERSISTENT FILLS GET AIR (2026-08-26, Kushagra: two selected rows had no visual
+   gap — five adjacent capsules read as one smear). The gap is the CONTAINER's fact, never the
+   row's (the non-negotiable): the tree declares it because a tree is where persistent fills
+   stack adjacently. Menus deliberately do not — one transient lit row at a time, rhythm
+   judged repeatedly. The shell's nav group states the same pick for the same reason. */
+.kui-tree {
+  display: flex;
+  flex-direction: column;
+  gap: var(--layout-space-1);
+}
+
+/* THE INDENT IS DERIVED, NOT INVENTED (§33): one level is one icon box. `--kui-ct-icon` is
+   the designed glyph ladder (§4), already priced per size AND per pointer world — so a child
+   row's words start where its parent's words start plus exactly the box the disclosure
+   occupies, the indent answers coarse for free, and this file adds zero new numbers. Stated
+   as the control family's own padding plus the shift, because the family prices `--kui-ct-px`
+   for where TEXT starts and an indent moves that start, never the row's box. */
+.kui-control.kui-tree-item {
+  padding-inline-start: calc(var(--kui-ct-px) + var(--kui-tree-level) * var(--kui-ct-icon));
+}
+
+/* The disclosure: passive paint in the leading slot (the row IS a button, and a control may
+   not nest a control's element — the keyboard's Left/Right is the accessible route). A LEAF
+   keeps the hidden box so every label at one level shares a left edge — alignment by
+   geometry, not by per-node judgement. */
+.kui-tree-disclosure:not([data-expandable]) {
+  visibility: hidden;
+}
+
+/* Expanded turns the glyph down. `rotate`, not `transform`, so a future motion pass can
+   spring the channel without restating the pose. */
+.kui-tree-disclosure[data-expanded] {
+  rotate: 90deg;
+}
+
+/* The glyph points INTO the reading direction; RTL mirrors it. Composes with the expanded
+   rotation above — a mirrored chevron turned 90deg still points down. */
+.kui-tree-disclosure:dir(rtl) {
+  scale: -1 1;
+}

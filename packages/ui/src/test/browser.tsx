@@ -56,6 +56,7 @@ import tabsCss from "../components/tabs/tabs.css?raw";
 import textAreaCss from "../components/text-area/text-area.css?raw";
 import tooltipCss from "../components/tooltip/tooltip.css?raw";
 import textFieldCss from "../components/text-field/text-field.css?raw";
+import treeCss from "../components/tree/tree.css?raw";
 import layoutCss from "../system/layout.css?raw";
 import recipesCss from "../system/recipes.css?raw";
 import surfacesCss from "../system/surfaces.css?raw";
@@ -102,6 +103,7 @@ export function installStyles(): void {
     textFieldCss,
     tooltipCss,
     textAreaCss,
+    treeCss,
   ].join("\n");
   document.head.append(sheet);
   installed = true;
