@@ -1,10 +1,10 @@
-This chapter builds one settings panel: a title, two groups of controls, and two actions. The
-code sets no colour, no length and no breakpoint.
+This chapter builds one settings panel: a title, two groups of controls, and two buttons. By
+the end you will have written no colour, no pixel value and no breakpoint.
 
-## Choose the containers first
+## Choose the containers before the components
 
-A container sets the distance between its children. Decide which container owns which
-relationship. Do this before you choose the components.
+In this system the container sets the distance between its children, so the first decision is
+which container owns which relationship.
 
 ```tsx
 import { Card, Heading, Stack, Text } from "@kookie-ui/react";
@@ -24,17 +24,17 @@ export function Settings() {
 }
 ```
 
-The two `Stack` components use different gaps. The outer gap of 6 separates the sections. The
-inner gap of 2 joins a heading to the sentence below it.
+Notice the two Stacks use different gaps. The outer one, at 6, separates whole sections. The
+inner one, at 2, ties the heading to the sentence underneath it.
 
-Put related items closer together than unrelated items. This is proximity. It is a measured
-grouping effect, not a preference. A screen that uses one gap value everywhere shows no
-structure.
+Keep related things closer together than unrelated things. Your eye groups by distance before
+it reads a word, so a screen that uses the same gap everywhere looks like one undifferentiated
+list. This is a measured effect, not a preference.
 
-The code sets no margin. A component does not set outer spacing, so the container sets every
-distance.
+There is no margin anywhere in that code. No component sets its own outer spacing, so every
+distance on the screen comes from a container you can see.
 
-## Put a mark beside its label
+## Put a checkbox beside its label
 
 ```tsx
 import { Checkbox, Flex, Stack, Switch, Text } from "@kookie-ui/react";
@@ -55,14 +55,15 @@ function Group() {
 }
 ```
 
-No mark takes a `label` prop. A label is text. `Text` resolves every size, weight and ink role
-that text needs. A `label` prop would add a second type system inside a checkbox.
+No checkbox or switch takes a `label` prop. A label is text, and `Text` already handles every
+size, weight and colour that text needs. Putting a `label` prop on a checkbox would mean
+building a second, smaller text system inside it.
 
-`render={<label htmlFor>}` changes the element without changing the component. The type keeps
-its size and its ink. The DOM gets a real `<label>`, so the browser toggles the control when
-the user clicks the text.
+`render={<label htmlFor="…" />}` swaps the element without changing the component. You keep
+the text size and colour, and the browser gets a real `<label>`, so clicking the words toggles
+the control.
 
-## Rank the two actions
+## Rank the two buttons
 
 ```tsx
 import { Button, Flex } from "@kookie-ui/react";
@@ -77,37 +78,39 @@ function Actions() {
 }
 ```
 
-`emphasis` sets loudness. `tone` sets meaning. They are separate axes. A system that combines
-them produces values such as `secondary-outline-destructive`. That value answers three
-questions at once, and you cannot change one answer alone.
+Two different props are doing two different jobs. `emphasis` is how loud the button is.
+`tone` is what it means. Keeping them apart is why you never see a value like
+`secondary-outline-destructive` here. That kind of value answers three questions at once, and
+you cannot change one answer without changing the others.
 
-No component defaults to loud and accent. A second loud control on this screen requires a
-deliberate edit. This is how the system guarantees one loud control per screen.
+Nothing defaults to loud and accent, so a second loud button on this screen is something you
+have to type on purpose. That is how one screen ends up with one obvious action.
 
-## What the code did not mention
+## What you never had to write
 
-The screen is about thirty lines. It never mentions any of the following.
+That screen is about thirty lines, and none of it mentions any of the following.
 
-- **No colour.** Every value comes from a tone and a role. The theme resolves the colour. The
-  result follows the appearance into dark mode, answers `contrast="high"`, and survives a
-  change of accent.
-- **No pixel sizes.** `size` is an index. One number sets the height, the padding, the corner,
-  the icon box and the label step together.
-- **No breakpoints.** Targets grow on a touch screen. Reading steps rise on a handheld screen.
-  The layout answers its container, not the window. You write none of these rules.
-- **No focus, hover or press styles.** CSS resolves every state. No JavaScript runs at
-  interaction time.
-- **No accessibility wiring beyond `htmlFor`.** The primitives supply the roles, the keyboard
-  behaviour and the state announcements.
+- **No colours.** You picked a tone and a loudness, and the theme worked out the value. It
+  follows dark mode, it responds to the high-contrast setting, and it survives you changing
+  your accent later.
+- **No pixel sizes.** `size` is a step. One number set the height, the padding, the corner, the
+  icon and the label size together.
+- **No breakpoints.** Targets get bigger on a touch screen and text gets bigger on a phone.
+  Layouts respond to the space they are given rather than the width of the window.
+- **No hover, focus or press styles.** CSS handles every state, so nothing runs in JavaScript
+  when someone points at a control.
+- **No accessibility wiring beyond `htmlFor`.** The roles, the keyboard behaviour and the
+  announcements come with the components.
 
-## Next
+## Where to go next
 
-Read [The component families](/philosophy/component-families). It says which component to use
-for which job. In this system, that question is rarely about appearance.
+Read [The component families](/philosophy/component-families). It tells you which component to
+reach for, which in this system is rarely a question about how something looks.
 
-Then read [Colour](/foundations/color) and
-[Space and layout](/foundations/space-and-layout). You use those two decisions most often.
+After that, [Colour](/foundations/color) and
+[Space and layout](/foundations/space-and-layout) are the two you will use most often.
 
-The [builder](/builder) is a live editor over the same components. Every distance is a token
-index. Every axis is a closed list. It exports the React code that a developer would write. It
-also runs the composition rules, so it reports a screen with two loud controls.
+The [builder](/builder) is a live editor over these same components. Every distance is a token
+step and every setting is a fixed list, so you cannot draw something the system cannot express.
+It exports the React code a developer would have written, and it checks your screen against the
+composition rules as you work.
