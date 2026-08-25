@@ -183,13 +183,17 @@ describe("the glint band exists, wears the mode's ring, and stands down with it 
       expect(before.maskImage, "the band's mask is not the minted image").toContain("data:image/png");
       expect(before.backgroundImage, "the band is not wearing the ring's conic").toContain("conic-gradient");
       expect(Number(before.opacity), "the band is dark on an ordinary glass pane").toBeGreaterThan(0.5);
-      // The band never carries the spectral fold — the split is the 1px lip's (its stops sit
-      // at the lip where light enters); across a wide band thick's red/blue stops read as
-      // pink haze on a plain ground, measured on the first render and corrected the same day.
+      // The spectral fold is DELETED (2026-08-25) — its red/blue stops read as pink haze
+      // across the band (2026-08-24) and as a blue hairline at the 1px lip on plain grounds
+      // the day after, so neither the ring nor the band may carry them anywhere. The old
+      // spelling asserted band ≠ ring, which held only WHILE the ring was spectral; with one
+      // shared palette the two are identical by construction, so the law reads the stops.
       const thick = mounted(<Card backdrop>pane</Card>, { theme: { appearance, material: "thick" } });
       const band = imageOn(thick, getComputedStyle(thick, "::before").backgroundImage);
       const ring = imageOn(thick, "var(--material-thick-ring)");
-      expect(band, "thick's band took the spectral ring — the haze returns").not.toBe(ring);
+      for (const [what, v] of [["band", band], ["ring", ring]] as const) {
+        expect(v, `thick's ${what} carries a spectral stop — the fold returns`).not.toMatch(/rgba?\(\s*1[678]\d[,\s]+2[01]\d[,\s]+255/);
+      }
     });
 
     it(`${appearance}: a solid pane has no band at all`, () => {
@@ -267,47 +271,51 @@ describe("a dark glass control's ring is the lab's doubled row (§10)", () => {
 });
 
 /**
- * §10 — THE BARE TEXTAREA'S FLAT BAND (2026-08-24, Kushagra: "text area still looks old").
- * The one glass element with no second surface for the masked band (a form control renders
- * no generated content — re-measured this day: the pseudo computes, zero pixels paint) takes
- * the approximation instead: the same palette feathered on the same curve, as gradients in
- * its own background stack, width from the hook's fitted bezel. Three claims: the band is
- * there and sized, the wrapper-bearing field does NOT double up (its band is the ::before),
- * and the disabled arm stands it down through the same hook as the ring.
- *
- * Falsified 2026-08-24: (a) hook band-width write removed → presence fails on an empty
- * `--kui-glint-band`; (b) the textarea re-point rule removed → presence fails on a missing
- * gradient; (c) the disabled arm's glint stand-down removed → the state law fails.
+ * §10 — TEXTAREA PARITY (2026-08-25, Kushagra: "Still doesnt have full parity"). The flat-band
+ * approximation is DELETED: a form control renders no generated content and a mask on the
+ * element takes its text, so a bare <textarea> could never paint the material's band — and
+ * two rounds of gradient approximation (a full-width bar, then a top-centre ellipse) were each
+ * judged short. TextArea grew TextField's wrapper instead, and the glass now arrives through
+ * the field family's own rules. These laws assert the parity BY COMPARISON — the two members
+ * mounted side by side must resolve one glass — because an approximation law can only measure
+ * distance from the real thing, and an agreement law makes the distance zero or red.
  */
-describe("the bare textarea wears the flat band, and only it (§10)", () => {
+describe("a glass textarea is a glass field — parity by construction (§10)", () => {
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: a glass textarea's stack carries the feathered band, sized by its bezel`, () => {
+    it(`${appearance}: wrapper stack, ring and band all agree with TextField's`, () => {
       const ta = mounted(<TextArea aria-label="notes" backdrop />, {
         theme: { appearance, material: "regular" },
       });
-      expect(ta.style.getPropertyValue("--kui-glint-band"), "the hook never sized the band").toMatch(/px$/);
-      const bg = getComputedStyle(ta).backgroundImage;
-      expect(bg, "the flat band's catch is not in the stack").toContain("linear-gradient(rgb");
-      expect(bg, "the crisp ring left with the band").toContain("conic-gradient");
-    });
-
-    it(`${appearance}: the FIELD keeps its band on the ::before and never doubles into the stack`, () => {
       const tf = mounted(<TextField aria-label="name" backdrop />, {
         theme: { appearance, material: "regular" },
       });
-      // The wrapper carries the real band; its background stack's glint-bg slot must stay
-      // empty, or the field wears two bands at once.
-      expect(getComputedStyle(tf, "::before").maskImage).toContain("data:image/png");
-      expect(getComputedStyle(tf).backgroundImage.match(/linear-gradient/g) ?? [], "the flat band leaked into the field").toHaveLength(0);
+      // The element stack (ring under border-area, rim, light) is the family's, verbatim.
+      expect(getComputedStyle(ta).backgroundImage, "the two members' stacks disagree").toBe(
+        getComputedStyle(tf).backgroundImage,
+      );
+      expect(getComputedStyle(ta).backgroundClip.startsWith("border-area")).toBe(true);
+      // The band: the hook minted a mask for this box, the ::before wears it over the glint
+      // conic, and it is lit — the same three facts the field's own band law reads.
+      expect(ta.style.getPropertyValue("--kui-glint"), "the hook never minted the band").toContain("data:image/png");
+      const before = getComputedStyle(ta, "::before");
+      expect(before.maskImage, "the band's mask is not the minted image").toContain("data:image/png");
+      expect(before.backgroundImage, "the band is not wearing the glint conic").toBe(
+        getComputedStyle(tf, "::before").backgroundImage,
+      );
+      expect(Number(before.opacity), "the band is dark on a live glass textarea").toBeGreaterThan(0.5);
+      // And the box is the band's containing block: without position:relative the ::before
+      // insets against some ancestor and paints the band OFF the pane — every computed style
+      // above stays identical, which is why this reads the mechanism the paint depends on.
+      expect(getComputedStyle(ta).position, "the band has no containing block").toBe("relative");
     });
 
     it(`${appearance}: a disabled glass textarea stands the band down with the ring`, () => {
       const ta = mounted(<TextArea aria-label="notes" backdrop disabled />, {
         theme: { appearance, material: "regular" },
       });
-      expect(getComputedStyle(ta).backgroundImage, "a dead textarea still wears its band").not.toContain(
-        "linear-gradient(rgb",
-      );
+      // The state arms stand --kui-ct-glass-glint down, and the ::before's background reads
+      // through it — one stand-down, both renderings, TextField's own behaviour.
+      expect(getComputedStyle(ta, "::before").backgroundImage, "a dead textarea still wears its band").toBe("none");
     });
   }
 });

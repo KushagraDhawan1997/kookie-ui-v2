@@ -1091,7 +1091,7 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§4, §11",
     blurb:
-      "One element, no wrapper and no slots. TextField needs a wrapper because an icon inside the border forces the border off the input. A textarea has no slots, so the border stays on the element. Its padding is the same inset on all four sides, because every real textarea is a paragraph.",
+      "A multi-line input. The visible control is a wrapper around the textarea — TextField's anatomy, adopted 2026-08-25 when glass forced it: a form control paints no generated content, so a bare textarea could never carry the material's band. No slots (an adornment floating over a scrolling paragraph is not a designed position). Its padding is the same inset on all four sides, because every real textarea is a paragraph. ref reaches the textarea; className and style dress the wrapper.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "the control height survives as a minimum height. Growth is rows" },
       { name: "rows", values: "number", note: "the starting height, in lines of text" },
@@ -1099,10 +1099,14 @@ export const ENTRIES: Entry[] = [
     ],
     refusals: [
       { name: "emphasis and tone", why: "A form where one field is louder than the next says nothing. The same argument as TextField." },
-      { name: "resize", why: "It would rename raw CSS. Vertical-only is the shipped behaviour, and style is the escape." },
+      { name: "resize", why: "It would rename raw CSS. Vertical-only is the shipped behaviour, and style on the wrapper is the escape — the handle inherits it." },
       {
         name: "cols",
         why: "The container sets the width. A textarea sized in characters uses a unit the type ramp does not use, so an 80-column box is a different width at every size step and every density.",
+      },
+      {
+        name: "render",
+        why: "TextField's sentence: there are two elements and neither can move — the wrapper holds the paint a textarea cannot, and the inner element must stay a textarea or the platform wiring goes with it.",
       },
     ],
   },

@@ -41,6 +41,10 @@ function stateFill(el: Element, state: "hover" | "active"): string {
 const onPlaceholder = (el: Element, prop: string): string =>
   getComputedStyle(el, "::placeholder").getPropertyValue(prop).trim();
 
+/** The inner textarea — the form element inside the wrapper (the wrapper is the control). */
+const inner = (el: Element): HTMLTextAreaElement =>
+  el.querySelector<HTMLTextAreaElement>(".kui-textarea-input")!;
+
 describe("padding is the dimension, and it is ONE inset (§4, reversed 2026-08-05)", () => {
   // The height ladder is for fixed-height controls, and this box grows with its content. The
   // first cut derived the block padding from the height token so a one-row textarea matched a
@@ -167,24 +171,37 @@ describe("one treatment: the field family's identity (§9, §11)", () => {
     expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--dress-field-edge"));
   });
 
-  it("offers the one resize axis that cannot break a layout, as raw CSS", () => {
+  it("offers the one resize axis that cannot break a layout — stated on the wrapper, handled by the inner", () => {
     // Vertical only: a horizontal handle makes the element wider than the column that owns
-    // it. No prop — resize is plain CSS and `style` already covers all of CSS.
-    expect(computed(render(<TextArea />), "resize")).toBe("vertical");
-    expect(computed(render(<TextArea style={{ resize: "none" }} />), "resize")).toBe("none");
+    // it. No prop — resize is plain CSS and `style` already covers all of CSS. With the
+    // wrapper anatomy (2026-08-25) `style` dresses the wrapper, so the wrapper STATES the
+    // axis and the inner textarea takes it by `resize: inherit` — the handle cannot live on
+    // the wrapper itself (resize needs an overflow other than visible, and a scrollable
+    // wrapper is the select flight's own hazard). Both halves law-read: the statement, and
+    // the escape reaching the handle through it.
+    const plain = render(<TextArea />);
+    expect(computed(plain, "resize")).toBe("vertical");
+    expect(computed(inner(plain), "resize"), "the handle did not take the statement").toBe("vertical");
+    const off = render(<TextArea style={{ resize: "none" }} />);
+    expect(computed(inner(off), "resize"), "the style escape no longer reaches the handle").toBe("none");
   });
 });
 
 describe("focus is a mode, not a keyboard affordance (§8)", () => {
-  it("rings on entry however you arrived — plain :focus, on the one element there is", () => {
-    const el = render(<TextArea />) as HTMLTextAreaElement;
+  it("rings on entry however you arrived — the wrapper draws it when the caret is inside", () => {
+    // TextField's 2026-08-05 repair, inherited with the wrapper (2026-08-25): the ring means
+    // "your keystrokes land here", keyed on the inner textarea holding focus, drawn by the box.
+    const el = render(<TextArea />);
+    const text = inner(el);
     expect(computed(el, "outline-style")).toBe("none");
-    el.focus();
-    expect(document.activeElement).toBe(el);
+    text.focus();
+    expect(document.activeElement).toBe(text);
     expect(computed(el, "outline-style")).toBe("solid");
     expect(computed(el, "outline-width")).toBe("2px");
     expect(computed(el, "outline-color")).toBe(tokenOn(el, "--focus-ring"));
-    el.blur();
+    // One box, one ring: the inner element never draws a second one.
+    expect(computed(text, "outline-style")).toBe("none");
+    text.blur();
   });
 });
 
@@ -198,13 +215,13 @@ describe("validity is state, never a prop (§8)", () => {
     expect(computed(invalid, "color")).toBe(computed(plain, "color"));
   });
 
-  it("data-invalid re-tones it too — what Base UI writes, landing on this element DIRECTLY", () => {
-    // No :has() hop here: the control is the element Base UI decorates, so this exercises the
-    // shared rule's direct arm — the arm that shipped with no law at all until 2026-08-05.
+  it("data-invalid re-tones it too — Base UI decorates the inner element, the :has() arm carries it", () => {
+    // Since the wrapper (2026-08-25) this is TextField's own path: the attribute lands on the
+    // textarea inside, and the shared rule's structural arm colours the box that paints.
     const el = render(<TextArea />);
-    el.setAttribute("data-invalid", "");
+    inner(el).setAttribute("data-invalid", "");
     expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--invalid-edge"));
-    el.removeAttribute("data-invalid");
+    inner(el).removeAttribute("data-invalid");
     // The DRESS edge (2026-08-17, the fill-first flip): the solved --field-edge was what a
     // bordered field was recognised BY, and the well took that job. The solved ladder still
     // exists and conformance still reaches it — contrast="high" stands the dress down.
@@ -212,38 +229,36 @@ describe("validity is state, never a prop (§8)", () => {
   });
 
   it("the ring moves with the border — the invalid state's own reversal of one-ring (§8)", () => {
-    const invalid = render(<TextArea aria-invalid="true" />) as HTMLTextAreaElement;
-    invalid.focus();
+    const invalid = render(<TextArea aria-invalid="true" />);
+    inner(invalid).focus();
     expect(computed(invalid, "outline-color")).toBe(tokenOn(invalid, "--invalid-edge"));
-    invalid.blur();
+    inner(invalid).blur();
   });
 });
 
 describe("disabled arrives as the native attribute, and the shared remap reads it (§8)", () => {
   it("goes flat by tone through the :disabled arm", () => {
-    // The third spelling of the disabled state, added with this component: no wrapper to tell —
-    // the element that paints IS the disabled form element, and the native attribute is the
-    // truth the arm reads. (Base UI stamps `data-disabled` here too, but the arm must not need
-    // it: the next law disables through the attribute alone.) Falsified against the shared
-    // layer without the arm: the colour assertions here failed.
+    // Since the wrapper (2026-08-25) this is the field's structural spelling: the native
+    // attribute lands on the inner textarea, and the shared layer's :has() arm carries it to
+    // the box that paints — the same one TextField rides.
     const el = render(<TextArea disabled placeholder="hint" />);
-    expect((el as HTMLTextAreaElement).disabled).toBe(true);
+    expect(inner(el).disabled).toBe(true);
     expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--disabled-border"));
     expect(computed(el, "color")).toBe(tokenOn(el, "--neutral-8"));
     expect(computed(el, "opacity")).toBe("1");
     expect(computed(el, "cursor")).toBe("default");
     // The hint goes flat with the value rather than ending up brighter than it.
-    expect(onPlaceholder(el, "color")).toBe(tokenOn(el, "--neutral-8"));
+    expect(onPlaceholder(inner(el), "color")).toBe(tokenOn(el, "--neutral-8"));
   });
 
   it("a Field.Root-computed disable reaches it the same way — the attribute is the one truth", () => {
     // Base UI computes `fieldDisabled || disabledProp` at the control; simulate the half that
     // never passes through this component by setting the native attribute directly.
-    const el = render(<TextArea />) as HTMLTextAreaElement;
+    const el = render(<TextArea />);
     const live = computed(el, "border-top-color");
-    el.disabled = true;
+    inner(el).disabled = true;
     expect(computed(el, "border-top-color")).toBe(tokenOn(el, "--disabled-border"));
-    el.disabled = false;
+    inner(el).disabled = false;
     expect(computed(el, "border-top-color")).toBe(live);
   });
 
@@ -256,15 +271,15 @@ describe("disabled arrives as the native attribute, and the shared remap reads i
 describe("readOnly drops the well, and keeps everything else (§8)", () => {
   it("the seal is the one thing gone", () => {
     const plain = render(<TextArea defaultValue="v" />);
-    const ro = render(<TextArea defaultValue="v" readOnly />) as HTMLTextAreaElement;
+    const ro = render(<TextArea defaultValue="v" readOnly />);
     expect(computed(ro, "background-color")).toBe("rgba(0, 0, 0, 0)");
     expect(computed(plain, "background-color")).not.toBe("rgba(0, 0, 0, 0)");
     expect(computed(ro, "border-top-color")).toBe(computed(plain, "border-top-color"));
     expect(computed(ro, "color")).toBe(computed(plain, "color"));
     expect(computed(ro, "cursor")).toBe("text");
-    ro.focus();
+    inner(ro).focus();
     expect(computed(ro, "outline-style")).toBe("solid");
-    ro.blur();
+    inner(ro).blur();
   });
 
   it("does not borrow the disabled vocabulary, and disabled does not borrow this", () => {
@@ -280,9 +295,9 @@ describe("readOnly drops the well, and keeps everything else (§8)", () => {
 describe("the placeholder is a designed role, not a UA default (§7, §15)", () => {
   it("reads the MUTED role at full opacity (faint until 2026-08-10, when faint became the exception rung)", () => {
     const el = render(<TextArea placeholder="Notes" />);
-    expect(onPlaceholder(el, "color")).toBe(tokenOn(el, "--color-text-muted"));
-    expect(onPlaceholder(el, "color")).not.toBe(tokenOn(el, "--color-text-faint"));
-    expect(onPlaceholder(el, "opacity")).toBe("1");
+    expect(onPlaceholder(inner(el), "color")).toBe(tokenOn(el, "--color-text-muted"));
+    expect(onPlaceholder(inner(el), "color")).not.toBe(tokenOn(el, "--color-text-faint"));
+    expect(onPlaceholder(inner(el), "opacity")).toBe("1");
   });
 });
 
@@ -394,15 +409,17 @@ describe("the zoom floor rides the pointer axis (§4, §16)", () => {
       </Theme>,
     );
     for (const el of coarse.querySelectorAll(".kui-textarea")) {
-      expect(px(computed(el, "font-size"))).toBeGreaterThanOrEqual(16);
+      // The floor lands on the INNER element alone since the wrapper (2026-08-25) —
+      // TextField's own shape: the box keeps its designed type, the text the caret enters floors.
+      expect(px(computed(inner(el), "font-size"))).toBeGreaterThanOrEqual(16);
     }
   });
 
   it("and is the identity on a fine pointer — nothing is paid where nothing zooms", () => {
     const fine = mounted(<TextArea size="1" />, { theme: { pointer: "fine" } });
-    expect(px(computed(fine, "font-size"))).toBeLessThan(16);
-    // One element means the floor moves the box's own type where it applies; the line height
-    // keeps its token, so the sizes still answer the index where the floor is inert.
+    expect(px(computed(inner(fine), "font-size"))).toBeLessThan(16);
+    // The box keeps its designed step in both worlds; the sizes still answer the index
+    // where the floor is inert.
     const coarse = render(
       <Theme pointer="coarse">
         <TextArea size="1" />
@@ -414,7 +431,7 @@ describe("the zoom floor rides the pointer axis (§4, §16)", () => {
   });
 
   it("clears the platform's own dress — appearance is the system's, not iOS's", () => {
-    expect(computed(render(<TextArea />), "appearance")).toBe("none");
+    expect(computed(inner(render(<TextArea />)), "appearance")).toBe("none");
   });
 });
 
@@ -492,22 +509,23 @@ describe("the boundary (§3, §5)", () => {
     node!.blur();
   });
 
-  it("form props, className and style all land on the element — there is no second place", () => {
+  it("className and style dress the wrapper; form props reach the textarea (TextField's split)", () => {
     const el = render(
       <TextArea className="mine" style={{ maxWidth: "300px" }} name="notes" id="probe" rows={3} />,
-    ) as HTMLTextAreaElement;
+    );
     expect(el.className.split(" ").sort()).toEqual(["kui-control", "kui-textarea", "mine"]);
     expect(computed(el, "max-width")).toBe("300px");
-    expect(el.name).toBe("notes");
-    expect(el.id).toBe("probe");
-    expect(el.rows).toBe(3);
+    const text = inner(el);
+    expect(text.name).toBe("notes");
+    expect(text.id).toBe("probe");
+    expect(text.rows).toBe(3);
   });
 
   it("accepts a value and reports changes like the native element it is", () => {
     let seen = "";
-    const el = render(
+    const el = inner(render(
       <TextArea defaultValue="hello" onChange={(e) => (seen = e.target.value)} />,
-    ) as HTMLTextAreaElement;
+    ));
     expect(el.value).toBe("hello");
     el.focus();
     // Through the prototype's own setter, because React tracks the value property — the same

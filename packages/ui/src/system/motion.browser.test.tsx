@@ -225,7 +225,9 @@ describe("the ring lands where landing reads as motion, and nowhere else (§8)",
     expect(computed(wrapper, "animation-name")).toBe("none");
     expect([...new Set(await track(wrapper, "outline-offset", 200))]).toEqual([`${rest}px`]);
 
-    area.focus();
+    // The wrapper draws the ring, the inner textarea holds the caret (2026-08-25, the
+    // wrapper anatomy) — TextField's own arrangement, so both members focus the same way.
+    root.querySelector<HTMLElement>(".kui-textarea-input")!.focus();
     expect(computed(area, "animation-name")).toBe("none");
     expect([...new Set(await track(area, "outline-offset", 200))]).toEqual([`${rest}px`]);
   });

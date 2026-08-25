@@ -2514,10 +2514,22 @@ export const API: Record<string, ApiEntry> = {
         "doc": "Says content passes behind this control, so the theme's material can show. Unset, it follows the surrounding `<Box backdrop>` region."
       },
       {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Applied to the wrapper, which is the element that is the control (TextField's rule)."
+      },
+      {
         "name": "size",
         "type": "Size",
         "optional": true,
         "doc": "The control index, minus the one part a growing box cannot take. The padding, the corner, the type and the border all come from it. The height does not, because the content decides that through `rows`. The block padding is derived so a one-row textarea is the same box as a TextField at the same index, and the control height survives as a minimum rather than a maximum."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": "Applied to the wrapper, so a `width` sizes the box rather than the text inside it — and so `resize: \"none\"` still reaches the handle, which the wrapper carries."
       }
     ]
   },

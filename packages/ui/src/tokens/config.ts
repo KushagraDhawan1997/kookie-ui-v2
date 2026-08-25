@@ -1123,10 +1123,10 @@ export const cursor = {
  * home or the curve drifts.
  */
 export const glint = {
-  /** the band's width as a fraction of the rung's bezel. 1.5 since 2026-08-24 (Kushagra:
-      "I'd like band width to be higher") — the glint reaches past the lens's lip: light
-      spreads wider on glass than the bend does. */
-  band: 1.5,
+  /** the band's width as a fraction of the rung's bezel. 0.5 since 2026-08-25 (Kushagra) —
+      judged back DOWN from 1.5 on the bench: the wide band read as a wash, and the light
+      belongs at the lip. */
+  band: 0.5,
   /** feather: alpha = (1 - t)^falloff across the band — HIGHER hugs the lip tighter, with a
       longer soft tail. 2.2 read as haze on a plain ground; 3 was the correction; 4 with the
       wider band (same day, same feedback) keeps the mass at the edge while the reach grows. */
@@ -1243,15 +1243,14 @@ export const material = {
     light: { a: "rgb(255 255 255 / 0.95)", b: "rgb(0 0 0 / 0.07)", c: "rgb(0 0 0 / 0.15)", d: "rgb(10 5 0 / 0.11)", opacity: 1 },
     dark: { a: "rgb(255 255 255 / 0.34)", b: "rgb(210 230 255 / 0.1)", c: "rgb(255 255 255 / 0.04)", d: "rgb(255 245 235 / 0.08)", opacity: 1 },
   },
-  /* Deep glass splits light: THICK's ring folds spectral stops into itself (the lab's
-     .l2-thick::after; dark is the corrected copy from the dialog — the audit's "dark thick
-     renders light's spectral rim" bug, fixed by taking the copy that was right). */
-  ringSpectral: {
-    /* Thick's shade side takes light's correction too (2026-08-24) — the spectral stops are
-       the SPLIT at the lip, which happens where light enters; the far side is still shade. */
-    light: ["rgb(255 255 255 / 0.97)", "rgb(255 190 170 / 0.4)", "rgb(170 205 255 / 0.34)", "rgb(0 0 0 / 0.15)", "rgb(10 5 0 / 0.11)"],
-    dark: ["rgb(255 255 255 / 0.44)", "rgb(255 200 180 / 0.14)", "rgb(180 210 255 / 0.12)", "rgb(255 255 255 / 0.05)", "rgb(255 245 235 / 0.1)"],
-  },
+  /* The SPECTRAL FOLD IS GONE (2026-08-25, Kushagra — three verdicts in one day: rim-saturate
+     off, "dont like this blue band", "text field isnt fixed still"). Thick's ring used to fold
+     red/blue split stops into itself (the lab's .l2-thick::after); at 1px on a plain ground the
+     blue arc read as a coloured hairline on every thick field and pane, and the band had already
+     refused the same stops as pink haze the day before. Every thickness now builds its ring from
+     the palette above; the `ringSpectral` table and the generator's spectral branch are deleted
+     rather than parked behind a flag (the curtain's rule — a mechanism with no consumer is the
+     entropy this repo keeps paying for). */
   /* DARK CONTROLS CARRY MORE SPECULAR, NOT LESS (lab 2026-08-15, Kushagra: "not enough";
      ported 2026-08-24 with the glint) — a small dark pane's rim is most of its evidence, and
      the one ring row was priced for 340px cards, so a dark glass button wore a card's faint

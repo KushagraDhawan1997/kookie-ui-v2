@@ -7,7 +7,6 @@
 
   /* the touch floor (§16) — raw px on purpose: a physical floor, not a zoomable length */
   --touch-target-min: 44px;
-  --kui-glint-band: 0px;
   /* and the zoom floor (§4), which is zero here: a fine pointer never zooms on focus.
      The coarse world re-declares it — see pointerWorld(). */
   --input-font-floor: 0px;
@@ -820,12 +819,11 @@
   --material-thick-control-filter-hover: blur(3.2px) saturate(180%) brightness(1.09);
   --material-thick-control-filter-loud: blur(3.2px) saturate(220%) brightness(1.1);
   --material-thick-fill-floating: color-mix(in srgb, var(--color-surface) var(--material-thick-alpha), transparent);
-  --material-thick-ring: conic-gradient(from 345deg, rgb(255 255 255 / 0.97), rgb(255 190 170 / 0.4) 12%, rgb(170 205 255 / 0.34) 24%, rgb(0 0 0 / 0.15) 36%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 64%, rgb(170 205 255 / 0.34) 76%, rgb(255 190 170 / 0.4) 88%, rgb(255 255 255 / 0.97));
-  --material-thick-ring-control: conic-gradient(from 345deg, rgb(255 255 255 / 0.97), rgb(255 190 170 / 0.4) 12%, rgb(170 205 255 / 0.34) 24%, rgb(0 0 0 / 0.15) 36%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 64%, rgb(170 205 255 / 0.34) 76%, rgb(255 190 170 / 0.4) 88%, rgb(255 255 255 / 0.97));
+  --material-thick-ring: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
+  --material-thick-ring-control: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
   --material-thick-glint: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
   --material-thick-glint-control: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
   --material-opaque-alpha: 95%;
-  --material-glint-flat: linear-gradient(180deg, rgb(255 255 255 / 0.95), rgb(255 255 255 / 0.301) calc(var(--kui-glint-band, 0px) * 0.25), rgb(255 255 255 / 0.059) calc(var(--kui-glint-band, 0px) * 0.5), transparent var(--kui-glint-band, 0px)), linear-gradient(0deg, rgb(10 5 0 / 0.077), transparent calc(var(--kui-glint-band, 0px) * 0.66));
   --material-pool-surface: inset 0 -10px 20px -14px rgb(0 0 0 / 0.06);
   --material-pool-control: inset 0 -6px 12px -10px rgb(0 0 0 / 0.06);
   --material-pool-solid: 0 0 0 0 transparent;
@@ -1470,12 +1468,11 @@
   --material-thick-control-filter-hover: blur(3.2px) saturate(180%) brightness(1.09);
   --material-thick-control-filter-loud: blur(3.2px) saturate(220%) brightness(1.1);
   --material-thick-fill-floating: color-mix(in srgb, var(--color-surface) var(--material-thick-alpha), transparent);
-  --material-thick-ring: conic-gradient(from 345deg, rgb(255 255 255 / 0.97), rgb(255 190 170 / 0.4) 12%, rgb(170 205 255 / 0.34) 24%, rgb(0 0 0 / 0.15) 36%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 64%, rgb(170 205 255 / 0.34) 76%, rgb(255 190 170 / 0.4) 88%, rgb(255 255 255 / 0.97));
-  --material-thick-ring-control: conic-gradient(from 345deg, rgb(255 255 255 / 0.97), rgb(255 190 170 / 0.4) 12%, rgb(170 205 255 / 0.34) 24%, rgb(0 0 0 / 0.15) 36%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 64%, rgb(170 205 255 / 0.34) 76%, rgb(255 190 170 / 0.4) 88%, rgb(255 255 255 / 0.97));
+  --material-thick-ring: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
+  --material-thick-ring-control: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
   --material-thick-glint: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
   --material-thick-glint-control: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
   --material-opaque-alpha: 95%;
-  --material-glint-flat: linear-gradient(180deg, rgb(255 255 255 / 0.95), rgb(255 255 255 / 0.301) calc(var(--kui-glint-band, 0px) * 0.25), rgb(255 255 255 / 0.059) calc(var(--kui-glint-band, 0px) * 0.5), transparent var(--kui-glint-band, 0px)), linear-gradient(0deg, rgb(10 5 0 / 0.077), transparent calc(var(--kui-glint-band, 0px) * 0.66));
   --material-pool-surface: inset 0 -10px 20px -14px rgb(0 0 0 / 0.06);
   --material-pool-control: inset 0 -6px 12px -10px rgb(0 0 0 / 0.06);
   --material-pool-solid: 0 0 0 0 transparent;
@@ -2123,12 +2120,11 @@
   --material-thick-control-filter-loud: blur(3.2px) saturate(180%) brightness(1);
   --material-thick-fill-floating: color-mix(in srgb, color-mix(in srgb, var(--color-surface) 88%, white) var(--material-thick-alpha-floating), transparent);
   --material-thick-alpha-floating: 78%;
-  --material-thick-ring: conic-gradient(from 345deg, rgb(255 255 255 / 0.44), rgb(255 200 180 / 0.14) 12%, rgb(180 210 255 / 0.12) 24%, rgb(255 255 255 / 0.05) 36%, rgb(255 245 235 / 0.1) 44%, rgb(255 245 235 / 0.1) 56%, rgb(255 255 255 / 0.05) 64%, rgb(180 210 255 / 0.12) 76%, rgb(255 200 180 / 0.14) 88%, rgb(255 255 255 / 0.44));
+  --material-thick-ring: conic-gradient(from 345deg, rgb(255 255 255 / 0.34), rgb(210 230 255 / 0.1) 22%, rgb(255 255 255 / 0.04) 34%, rgb(255 245 235 / 0.08) 44%, rgb(255 245 235 / 0.08) 56%, rgb(255 255 255 / 0.04) 66%, rgb(210 230 255 / 0.1) 78%, rgb(255 255 255 / 0.34));
   --material-thick-ring-control: conic-gradient(from 345deg, rgb(255 255 255 / 0.72), rgb(210 230 255 / 0.22) 22%, rgb(255 255 255 / 0.08) 34%, rgb(255 245 235 / 0.2) 44%, rgb(255 245 235 / 0.2) 56%, rgb(255 255 255 / 0.08) 66%, rgb(210 230 255 / 0.22) 78%, rgb(255 255 255 / 0.72));
   --material-thick-glint: conic-gradient(from 345deg, rgb(255 255 255 / 0.34), rgb(210 230 255 / 0.1) 22%, rgb(255 255 255 / 0.04) 34%, rgb(255 245 235 / 0.08) 44%, rgb(255 245 235 / 0.08) 56%, rgb(255 255 255 / 0.04) 66%, rgb(210 230 255 / 0.1) 78%, rgb(255 255 255 / 0.34));
   --material-thick-glint-control: conic-gradient(from 345deg, rgb(255 255 255 / 0.72), rgb(210 230 255 / 0.22) 22%, rgb(255 255 255 / 0.08) 34%, rgb(255 245 235 / 0.2) 44%, rgb(255 245 235 / 0.2) 56%, rgb(255 255 255 / 0.08) 66%, rgb(210 230 255 / 0.22) 78%, rgb(255 255 255 / 0.72));
   --material-opaque-alpha: 95%;
-  --material-glint-flat: linear-gradient(180deg, rgb(255 255 255 / 0.72), rgb(255 255 255 / 0.228) calc(var(--kui-glint-band, 0px) * 0.25), rgb(255 255 255 / 0.045) calc(var(--kui-glint-band, 0px) * 0.5), transparent var(--kui-glint-band, 0px)), linear-gradient(0deg, rgb(255 245 235 / 0.14), transparent calc(var(--kui-glint-band, 0px) * 0.66));
   --material-pool-surface: inset 0 -10px 20px -14px rgb(0 0 0 / 0.18);
   --material-pool-control: inset 0 -6px 12px -10px rgb(0 0 0 / 0.18);
   --material-pool-solid: 0 0 0 0 transparent;

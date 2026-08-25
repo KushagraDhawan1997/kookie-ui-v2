@@ -203,7 +203,11 @@ export type LensThickness = Exclude<Material, "solid">;
  * `boost` is the sanctioned override of the physics, and 2026-08-23 is the eye pass it was
  * reserved for (Kushagra, on the ported lens: *"I need it to be more glassy! more refracting
  * light"*, then 2x bend and 3x fringe judged live on the preview's lens bench, then *"these
- * work"*). It is 2 on every rung.
+ * work"*). It is 2 on every rung — 4 was tried 2026-08-25 (the bench's bend dial at 2x)
+ * and REVERTED the same day: at 4 every rung's displacement reaches far past the wash-out
+ * clamp below, and sampling outside the element's own backdrop smeared a blue band along
+ * the lip — worst on small controls, which are all lip (Kushagra: "text field isnt fixed
+ * still... lets go back to what I had").
  *
  * IT HAD TO BE THE MULTIPLIER, and the earlier preference for buying strength with the model
  * instead does not survive the arithmetic. `physicalMap` clamps its returned bend at the bezel
@@ -218,6 +222,8 @@ export type LensThickness = Exclude<Material, "solid">;
  * `fringe` is a straight 3x of the judged split. Its own note where the channels are built
  * used to say the three scales stay within ~8% "so the body stays registered"; at 30 they do
  * not, and the split at the lip is the thing that was asked for. Judged in the playground.
+ * (A halving to 9/15/24 was tried and reverted 2026-08-25 — the blue band it chased came
+ * from a 0.5px pre-blur, not the split; see the pre-blur note in `acquire`.)
  */
 export const lens: Record<LensThickness, LensParams> = {
   thin: { bezel: 12, thickness: 19, ior: 1.45, fringe: 18, boost: 2 },
@@ -777,8 +783,12 @@ function acquire(
   filter.appendChild(el("feGaussianBlur", { in: "map", stdDeviation: 3, result: "soft" }));
   /* The bench's pre-blur (kube's own order): frost applied BEFORE the displacement bends it,
      so the lens's edge stays crisp while the content softens — the stylesheet's chain blurs
-     the bent result instead, softening the bend it paid for. Bench-only until judged: at 0 the
-     source passes through untouched and the shipped chain is byte-identical. */
+     the bent result instead, softening the bend it paid for. Bench-only, and JUDGED OUT as a
+     shipped default (0.5px shipped for an hour on 2026-08-25 and painted a blue band over a
+     plain ground: a uniform backdrop shows no fringe at any bend, but the blur softens the
+     backdrop's clip boundary into gradients, which the channel split then separates into
+     colour — Kushagra: "still blue, lets go back"). At 0 the source passes through untouched
+     and the shipped chain is byte-identical. */
   const pre = tuning?.preBlur ?? 0;
   const source = pre > 0 ? "presoft" : "SourceGraphic";
   if (pre > 0) {
@@ -926,7 +936,6 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
         if (s.glint && s.node) {
           s.node.style.removeProperty("--kui-glint");
           s.node.style.removeProperty("--kui-glint-on");
-          s.node.style.removeProperty("--kui-glint-band");
         }
         s.glint = false;
       };
@@ -1036,17 +1045,13 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
         if (glintUrl && fit) {
           node.style.setProperty("--kui-glint", `url("${glintUrl}")`);
           node.style.setProperty("--kui-glint-on", "1");
-          // The band's width in CSS px — the fitted bezel, so a small box narrows the band
-          // exactly as the mask does. The bare textarea's flat-band gradients are its one
-          // consumer today; it is written on every glass element because the width is a fact
-          // about the element's bezel, not about who reads it.
-          node.style.setProperty("--kui-glint-band", `${Math.round(fit.bezel * bandX * 10) / 10}px`);
-
+          // `--kui-glint-band` was written here too (the fitted bezel in CSS px, for the bare
+          // textarea's flat-band gradients); the write left with its one consumer when
+          // TextArea grew the wrapper (2026-08-25) and the approximation was deleted whole.
           s.glint = true;
         } else if (s.glint) {
           node.style.removeProperty("--kui-glint");
           node.style.removeProperty("--kui-glint-on");
-          node.style.removeProperty("--kui-glint-band");
           s.glint = false;
         }
         if (!lensOK || box.sealed) {

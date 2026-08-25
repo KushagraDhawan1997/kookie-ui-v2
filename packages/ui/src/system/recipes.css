@@ -1608,43 +1608,26 @@
       --kui-ct-glass-edge: var(--kui-glass-hc-edge, transparent);
       --kui-ct-glass-ring: var(--material-thin-ring-control);
       --kui-ct-glass-glint: var(--material-thin-glint-control);
-      background-image: var(--kui-ct-glass-ring, none), var(--kui-ct-glass-glint-bg, none), var(--material-thin-rim-control, none), var(--kui-ct-light, none);
-      background-clip: border-area, border-box, border-box, border-box;
+      background-image: var(--kui-ct-glass-ring, none), var(--material-thin-rim-control, none), var(--kui-ct-light, none);
+      background-clip: border-area, border-box, border-box;
     }
     .kui-field:where([data-material="regular"]),
     .kui-textarea:where([data-material="regular"]) {
       --kui-ct-glass-edge: var(--kui-glass-hc-edge, transparent);
       --kui-ct-glass-ring: var(--material-regular-ring-control);
       --kui-ct-glass-glint: var(--material-regular-glint-control);
-      background-image: var(--kui-ct-glass-ring, none), var(--kui-ct-glass-glint-bg, none), var(--material-regular-rim-control, none), var(--kui-ct-light, none);
-      background-clip: border-area, border-box, border-box, border-box;
+      background-image: var(--kui-ct-glass-ring, none), var(--material-regular-rim-control, none), var(--kui-ct-light, none);
+      background-clip: border-area, border-box, border-box;
     }
     .kui-field:where([data-material="thick"]),
     .kui-textarea:where([data-material="thick"]) {
       --kui-ct-glass-edge: var(--kui-glass-hc-edge, transparent);
       --kui-ct-glass-ring: var(--material-thick-ring-control);
       --kui-ct-glass-glint: var(--material-thick-glint-control);
-      background-image: var(--kui-ct-glass-ring, none), var(--kui-ct-glass-glint-bg, none), var(--material-thick-rim-control, none), var(--kui-ct-light, none);
-      background-clip: border-area, border-box, border-box, border-box;
+      background-image: var(--kui-ct-glass-ring, none), var(--material-thick-rim-control, none), var(--kui-ct-light, none);
+      background-clip: border-area, border-box, border-box;
     }
 
-    /* THE BARE TEXTAREA'S BAND IS FLAT (§10, 2026-08-24, Kushagra: "text area still looks
-       old"). It is the one glass element with no second surface for the masked band: a
-       form control renders no generated content (re-measured this day — the pseudo computes
-       and paints zero pixels) and a mask on the element takes its text with it. So it takes
-       the approximation: `--material-glint-flat`, the same palette feathered on the same
-       curve as gradients, its width the element's own `--kui-glint-band` (the hook's fitted
-       bezel — 0px until measured, which collapses the layers instead of poisoning the list).
-       Routed THROUGH `--kui-ct-glass-glint`, the hook the field family's band already rides,
-       so the disabled and invalid arms and the generated HC arm stand this down with the
-       ring and no second stand-down exists. The wrapper-bearing members must NOT take this
-       layer — theirs is the real band on ::before, and both at once is a doubled light.
-       What the platform still withholds here: the corner wrap and the side arcs; the crisp
-       ring carries those. */
-    .kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
-      --kui-ct-glass-glint: var(--material-glint-flat);
-      --kui-ct-glass-glint-bg: var(--kui-ct-glass-glint, none);
-    }
   }
 
   /* LOUD GLASS RUNS HOT (lab l2-btn-loud, ported 2026-08-17). At the control veil alphas a
@@ -1749,13 +1732,16 @@
    the FIELD family takes it on the wrapper, whose ::before is the one pseudo the family has —
    its background rides `--kui-ct-glass-ring`, so the disabled and invalid arms that stand the
    ring down stand the glint down in the same breath, and an engine without border-area (where
-   that hook is never declared) never paints a band over the flat-hairline fallback. A bare
-   <textarea> stays ring-only: no wrapper, no pseudo — the family's one recorded exception.
+   that hook is never declared) never paints a band over the flat-hairline fallback. The bare
+   <textarea> exception is DELETED (2026-08-25): TextArea grew TextField's wrapper — glass was
+   the forcing case the one-element spelling never saw, and its flat-band approximation was
+   judged short of parity twice in one day — so the whole family now takes the real band.
    On-glass members mint no mask (no bezel to light), so the layer stays dark there by
    construction. */
 .kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before,
 .kui-segmented:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before,
-.kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before {
+.kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before,
+.kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -1770,7 +1756,8 @@
   mask-repeat: no-repeat;
   opacity: calc(var(--material-ring-opacity, 1) * var(--kui-glint-on, 0));
 }
-.kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
+.kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"]),
+.kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
   position: relative;
 }
 .kui-button:where([data-material="thin"])::before,
@@ -1785,7 +1772,8 @@
 .kui-segmented:where([data-material="thick"])::before {
   background: var(--material-thick-glint-control);
 }
-.kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before {
+.kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before,
+.kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before {
   background: var(--kui-ct-glass-glint, none);
 }
 /* AN ON-GLASS TRACK GETS A FLAT HAIRLINE, NOT A LIP (2026-08-24, Kushagra: "on a card theres

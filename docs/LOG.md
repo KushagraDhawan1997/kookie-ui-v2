@@ -5644,3 +5644,63 @@ law. Three sabotages, each caught by exactly its law.
 **High contrast is deliberately NOT a skip, and the refusal is the day's second decision.** The plan's step 5 — skip the glint under HC, since `--material-ring-opacity: 0` hides it — was refuted before building: HC's flip can arrive by a route nothing announces (the docs app's own toggle writes `data-contrast` onto `<html>`; no resize, no media event, no React render reaches the hook), so a pane mounted under HC that skipped its mask would come back to visibility with NO GLINT — the hover-continues bug class with an accessibility setting as the trigger. Every safe re-trigger costs three mechanisms plus their agreement law, against ~1 ms of hidden build the generator rewrite already collapsed. The negative-control law pins the refusal: a pane under emulated `prefers-contrast: more` still builds lens and mask, and a future widening of the skip fails there first.
 
 **Left open, stated**: the residual ~58 ms on the pathological all-unique-sizes screen is ~40% corner solves + PNG encodes + writes and ~irreducible React/style work; a cross-box corner-patch cache only pays where panes share a fitted bezel (scale-1 boxes — controls and menus — which the filter memo already makes near-free), and deferring off-screen panes and quantising the fitted bezel both move pixels, so they stay the audit's decisions 6-7, Kushagra's to make.
+
+## 2026-08-25 — TextArea grows TextField's wrapper: an approximation of a masked band cannot converge
+
+**The chain that forced it, all one day.** The flat band shipped 2026-08-24 as the bare
+textarea's approximation of the field's masked glint. Its first spelling painted at ZERO
+width — the gradient lived in a theme-scope token, and a custom property substitutes its
+var()s at the element that DECLARES it, so `--material-glint-flat` baked the 0px :root
+fallback and the band the hook wrote per element never reached the paint (Kushagra: "text
+area isnt fixed still"; the presence law had read the gradient's *existence* and never its
+width, green over an invisible band). Moving the gradients to the element's own rule fixed
+the width and exposed the second defect: a full-width 180deg catch painted 0.95 white edge
+to edge, corners included — "why does text area have so much white thing at top?" — because
+the field's white is confined TWICE, by the conic's arc and by the mask's feather, and a
+one-dimensional gradient reproduces neither. The ellipse that replaced the bar approximated
+both confinements and still could not spell the mask's corner wrap. Three verdicts in one
+day IS the measurement: "Still doesnt have full parity."
+
+**The wall is the platform, and the wrapper is the only door through it.** A form control
+renders no generated content (re-measured 2026-08-24: the pseudo computes, zero pixels
+paint) and a mask on the element takes the text with it — so full parity within one element
+does not exist. Asked what I would do with free reign: the wrapper. The 2026-08-05
+one-element decision was priced before the material existed; glass is the forcing case it
+never saw. The peers split exactly on this line — bare textarea where the treatment is a
+border (shadcn, Chakra), wrapped where the box carries paint the element cannot (Radix
+Themes, MUI, Spectrum, Ant) — so the move follows the fork every heavier system took, for
+the same reason. Cons stated before building: ~25 laws re-anchor, `className`/`style` move
+to the wrapper, the resize handle is the fiddly bit.
+
+**What shipped.** The wrapper wears `kui-control kui-textarea` — every shared-layer
+field-family arm (states, dress, glass, `:has()` disabled/invalid) applies unchanged — and
+joins the field's ::before band rules; the inner `.kui-textarea-input` is bare (TextField's
+input, minus slots), scrolls, holds the caret, and floors its own font at the zoom
+threshold. The whole flat-band subsystem is DELETED: the `--material-glint-flat-*` tokens,
+the generator's sampler, the hook's `--kui-glint-band` write and its :root default, the
+recipes re-point, and the dead `--kui-ct-glass-glint-bg` background slot (four-layer stacks
+became three). Parity is asserted by AGREEMENT laws — a mounted glass TextArea's element
+stack and ::before must equal a mounted glass TextField's, both appearances — because an
+approximation law can only measure distance from the real thing, and an agreement law makes
+the distance zero or red. CSS shrank 113 gzipped bytes; deletion as the fix, again.
+
+**The resize handle was the fiddly bit, exactly as priced.** First spelling put
+`resize: vertical; overflow: clip` on the wrapper — and a real drag moved nothing, because
+the handle needs an overflow other than visible and `clip` does not qualify; making the
+wrapper scrollable instead is the select flight's own hazard (a focused child scrolls a
+hidden ancestor). Settled as an inheritance: the wrapper STATES the axis (so the documented
+`style={{resize:"none"}}` escape keeps working now that `style` dresses the wrapper) and
+the inner textarea takes it by `resize: inherit` — the handle where it can exist, the
+statement where the caller reaches. A grown height wins over the flex stretch (stretch
+defers only while height is auto), so the drag grows the box and the wrapper hugs it —
+verified by a real 60px drag (66 → 139), not by computed values alone.
+
+**Laws.** The material trio became two parity laws plus the disabled stand-down, and the
+parity law gained a containing-block assertion after its own sabotage survived: removing
+`.kui-textarea` from the `position: relative` rule leaves every computed style identical
+while the band paints against some ancestor — the mechanism the paint depends on has to be
+read directly. Both sabotages (textarea out of the band rule; out of the position rule)
+fail on exactly their law. One motion law re-anchored (`area.focus()` on a span is a no-op
+— the law was silently asserting an unfocused element never rings). The docs API tables
+regenerated on the type change, and the one-element prose in DECISIONS, the registry and
+recipes.css was amended in the same change — doc-code drift ships together.
