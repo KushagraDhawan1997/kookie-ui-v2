@@ -184,12 +184,15 @@ export const solidPinBounds = { min: 0.42, max: 0.92 } as const;
  *
  * A named const rather than a row, because neutral DERIVES from it.
  */
-// Tried and reverted 2026-08-26, judged live: rose { hue: 15, vividness: 0.95 } (passed
-// every law; collides with destructive's hue) and yellow { hue: 100, .95/.85 } / amber-as-
-// brand { hue: 80, 0.9 } (REFUSED — 3-4 laws red at every vividness: the focus ring, the
-// HC spread and the solid measurement are signals the brand must carry, and the yellow band
-// cannot clear them on white; a data family can be amber, a brand cannot).
-const accent = { hue: 90, vividness: 0.9 } as const;
+// VIOLET since 2026-08-26 (Kushagra, judged live against a day of alternatives; blue was
+// { hue: 250, vividness: 1 } and remains one line away). The whole wheel is brandable now:
+// the bright half (yellow { hue: 100, 0.95 } lemon with a solved dark-gold ring, neon green
+// { hue: 150, 1 }) passes every law through the ring solve and the high-contrast flip solve
+// (LOG 2026-08-26 — the bright-brand mechanism); rose { hue: 15, 0.95 } passes but collides
+// with destructive's hue, so choosing it means moving destructive off the shared red. A
+// warmed yellow (hue 90) was tried for light mode's olive label and rejected — it dulled
+// dark mode's perfect lemon; the dark-gold label is the accepted cost of a bright brand.
+const accent = { hue: 295, vividness: 1 } as const;
 
 export const tones = {
   /** Not a brand colour: THE ACCENT'S OWN HUE at near-zero chroma, which is all a tinted

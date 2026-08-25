@@ -572,32 +572,45 @@ export function buildScaleFor(
   const preferredReach = reach(preferred);
   const oppositeReach = reach(-preferred);
   const labelFloor = hc ? apcaFloors.aaa : apcaFloors.body;
-  const flipClears = (floor: number) => {
-    const t = Math.min(oppositeReach, desired);
-    if (t <= preferredReach) return false;
-    const fillAt = (fraction: number) =>
+  // The flip's travel at a given label floor. Normal mode keeps the original all-or-nothing
+  // gate (test the full excursion, flip only if it clears — the shipped, judged behaviour).
+  // HIGH CONTRAST SOLVES INSTEAD (2026-08-26, the bright-brand work): its 1.6× excursion can
+  // overshoot what the label can absorb, and the all-or-nothing gate then refused the only
+  // direction with room — the widened spread came out NARROWER than normal mode's, under the
+  // floor the palette refused amber for. Under high the gate walks down from the full
+  // excursion to the LARGEST travel that still clears — "as much contrast as each colour
+  // permits", the setting's own contract — bounded below by the body floor the high-contrast
+  // label law holds every state to. A hue whose preferred side affords the full excursion
+  // never consults any of this, so blue-class brands are untouched by construction.
+  const flipTravel = (floor: number, solveDown: boolean): number => {
+    const max = Math.min(oppositeReach, desired);
+    if (max <= preferredReach) return 0;
+    const fillAt = (t: number, fraction: number) =>
       formatHex(toGamut(oklch(clampL(restL - preferred * t * fraction), restC, hue), "srgb"))!;
-    return [solidStateDeltas.hover / solidStateDeltas.active, 1].every(
-      (f) => Math.abs(apcaLc(contrast, fillAt(f))) >= floor,
-    );
+    const clearsAt = (t: number) =>
+      [solidStateDeltas.hover / solidStateDeltas.active, 1].every(
+        (f) => Math.abs(apcaLc(contrast, fillAt(t, f))) >= floor,
+      );
+    if (!solveDown) return clearsAt(max) ? max : 0;
+    for (let t = max; t > preferredReach; t -= 0.005) if (clearsAt(t)) return t;
+    return 0;
   };
-  const flippedStillClears =
-    flipClears(labelFloor) ||
-    // HIGH CONTRAST NEVER NARROWS THE STATES BELOW NORMAL (2026-08-26, the bright-brand
-    // work): the AAA aspiration on the flip trade is an ASPIRATION — for a cusp-parked
-    // brand (yellow) it blocked the only direction with room, and the widened spread came
-    // out NARROWER than normal mode's, under the floor the palette refused amber for. When
-    // refusing the flip would do that, the gate falls back to the body floor, which is the
-    // same bar the high-contrast label law itself holds every state to. Normal mode is
-    // untouched (spread === 1 short-circuits), and a hue whose preferred side affords the
-    // full excursion never reaches this expression at all.
-    (spread > 1 && flipClears(apcaFloors.body));
+  const flipT =
+    spread > 1
+      ? Math.max(flipTravel(labelFloor, true), flipTravel(apcaFloors.body, true))
+      : flipTravel(labelFloor, false);
+  const flippedStillClears = flipT > 0;
   const away = isLowChroma
     ? -preferred
     : preferredReach >= desired || !flippedStillClears
       ? preferred
       : -preferred;
-  const travel = Math.min(reach(away), desired);
+  // A solved flip travels exactly the distance the solve found — reach() would re-extend it
+  // past the label floor the solve just honoured.
+  const travel =
+    !isLowChroma && away === -preferred && preferredReach < desired && flipT > 0
+      ? flipT
+      : Math.min(reach(away), desired);
   const step = (fraction: number) =>
     format(toGamut(oklch(clampL(restL + away * travel * fraction), restC, hue), gamut), gamut);
   const solidHover = step(solidStateDeltas.hover / solidStateDeltas.active);
