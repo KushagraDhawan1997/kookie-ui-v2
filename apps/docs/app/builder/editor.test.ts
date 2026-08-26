@@ -61,6 +61,7 @@ import {
   canUndo,
   initialState,
   loadState,
+  newDocId,
   makeDoc,
   primaryId,
   reducer,
@@ -353,6 +354,49 @@ describe("the store keeps a document's history to itself", () => {
     expect(back.docs[0]!.roots.map((n) => n.type)).toEqual([CANVAS_TYPE]);
     expect(back.docs[0]!.roots[0]!.children!.map((n) => n.type)).toEqual(["Button"]);
     expect(back.docs[0]!.roots[0]!.children![0]!.props).toEqual({ emphasis: "loud" });
+  });
+
+  it("a document created after a reload cannot reuse a stored document's id", () => {
+    // The defect this pins (2026-08-26 audit): `docCounter` is a module counter that restarts
+    // at 0 on every mount, while `reviveDoc` keeps stored ids verbatim — so session two's first
+    // `docNew` minted an id session one already held. Everything downstream is keyed on that id
+    // with a DIFFERENT arity: `activeDoc` takes the first match, `commit` replaces every match,
+    // `docDelete` removes both. One keystroke overwrote the older document; deleting the stray
+    // tab deleted it too, with its history already reset. Unrecoverable, and silent.
+    //
+    // The stored ids deliberately COVER the range a fresh counter walks through, because that
+    // is the collision's real shape — a law that stored `doc900` would never land on top of
+    // anything and would pass with the repair deleted.
+    // Anchored to where the counter actually IS, and probed AFTER every helper that mints.
+    // Two earlier spellings of this law passed with the repair deleted: the first stored a
+    // guessed doc1..doc60 range the counter had already walked past, and the second probed the
+    // counter and then let `makeDoc(...)` and `start()` advance it five more times before the
+    // collision could happen. Both are the degenerate fixture — an input where the fixed and
+    // broken code give the SAME answer — committed inside the law written to catch one.
+    const theme = makeDoc("x").theme;
+    const base = start();
+    const at = Number(/^doc(\d+)$/.exec(newDocId())![1]);
+    const stored = Array.from({ length: 5 }, (_, i) => ({
+      id: `doc${at + 1 + i}`,
+      name: `Doc ${i + 1}`,
+      theme,
+      roots: [canvasNode()],
+    }));
+    saveState({ ...base, docs: stored, activeId: `doc${at + 1}` });
+
+    const back = loadState("Untitled")!;
+    expect(back.docs).toHaveLength(5);
+    const created = reducer(back, { type: "docNew", name: "Fresh" });
+
+    const all = created.docs.map((d) => d.id);
+    const dupes = all.filter((id, i) => all.indexOf(id) !== i);
+    expect(dupes, `the new document reused ${dupes.join(", ")}`).toEqual([]);
+
+    // And the consequence, asserted rather than assumed: editing the new document must leave
+    // every stored one exactly as it was.
+    const edited = reducer(created, { type: "edit", roots: [canvasNode()] });
+    expect(edited.docs.filter((d) => d.name === "Doc 1")).toHaveLength(1);
+    expect(edited.docs).toHaveLength(6);
   });
 
   it("storage denied leaves the editor working from memory", () => {

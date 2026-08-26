@@ -126,6 +126,29 @@ export const canRedo = (s: EditorState): boolean => (s.histories[s.activeId]?.fu
 let docCounter = 0;
 export const newDocId = (): string => `doc${++docCounter}`;
 
+/**
+ * Raise the id counter above every id already in play, before anything mints a new one.
+ *
+ * CHANGES 2026-08-26: without this, the first `docNew` after a reload minted an id the loaded
+ * state already held. A module counter restarts at 0 on every mount and `reviveDoc` keeps
+ * stored ids verbatim, so session two's `doc1`/`doc2` collided with session one's — and every
+ * downstream operation is keyed on that id with a DIFFERENT arity: `activeDoc` takes the first
+ * match, `commit` replaces every match, `docDelete` removes both. One keystroke overwrote the
+ * older document and deleting the stray tab deleted it, with its history already reset by
+ * `docNew`. `model.ts` states the identical rule one level down for node ids (`withStableIds`,
+ * `cloneWithNewIds`); document ids were the level that was missed.
+ *
+ * Claimed from the RAW stored ids rather than the revived ones, because `reviveDoc` mints a
+ * replacement for a falsy id — minting before the rest of the list is claimed would collide
+ * with a later stored id in exactly the same way.
+ */
+const claimDocIds = (stored: readonly { id?: string }[]): void => {
+  for (const d of stored) {
+    const n = /^doc(\d+)$/.exec(d.id ?? "");
+    if (n) docCounter = Math.max(docCounter, Number(n[1]));
+  }
+};
+
 export const makeDoc = (name: string, doc?: BuilderDoc): StoredDoc => ({
   id: newDocId(),
   name,
@@ -406,6 +429,7 @@ export const loadState = (fallbackName: string): EditorState | null => {
     const raw = localStorage.getItem(STORE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as Persisted;
+      claimDocIds(parsed.docs ?? []);
       const docs = (parsed.docs ?? []).map(reviveDoc);
       if (docs.length === 0) return null;
       const activeId = docs.some((d) => d.id === parsed.activeId) ? parsed.activeId : docs[0]!.id;
