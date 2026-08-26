@@ -8,6 +8,116 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-26 The audit's shared layer: three reversals, one promotion, and a role set that grew a twin
+
+The 2026-08-26 ultracode audit's second half — the shared layer, held back from the component
+sweep because those files have cross-cutting owners. Everything here is a choice that was open
+and got closed; the repairs that were merely repairs are in the commits, not here.
+
+**`ComposerRow` is EXPORTED, and the refusal is withdrawn.** §30 refused it as "a Flex wearing a
+part's name" — five of v1's eleven parts were layout, and that reading was right about four of
+them. It is wrong about this one: the row carries the composer's RHYTHM (the send button's seat,
+the gap the attachment strip bleeds through), which is a fact the component owns and a call site
+would otherwise re-derive. The export had shipped with real CSS, nine law uses and a registry
+entry while the spec still refused it, and no law could see the disagreement — `registry.test.ts`
+asks whether every export is EXPLAINED and was green either way. `index.test.ts` now asserts the
+barrel publishes no name DECISIONS refuses, so the spec and the code cannot drift apart silently
+again. Rejected: deleting the export to match the doc (it would take a shipped, tested, used part
+out to satisfy a sentence that was reasoning about four other parts).
+
+**The light palette shipped TWICE, and the fix splits `:root` rather than widening it.** 557
+byte-identical declarations in `:root` and again in `[data-appearance="light"]`; the P3 block had
+already merged the same pair, because there the bodies match and Lightning's merge is
+body-equality-gated. What blocked it at top level was `:root`'s other 222 declarations — the
+AXIS-INVARIANT layer (scale, space, radius, type, control family, motion), which is `:root`-only
+on purpose: a density or pointer scope re-declares members of that set NEARER the element, so
+re-stating them on any `[data-appearance]` element would let a nested appearance Theme clobber an
+ancestor's density answer by proximity. Two unrelated jobs in one selector is why the duplication
+looked load-bearing and was not. Proven by mounted measurement over 775 tokens in all four cases
+that matter — un-themed document, stated light, light inside dark, and OS-dark with nothing
+stamped — with the calibration arm that an UNESCAPED element under the same dark document must
+NOT agree. −223 gzipped bytes.
+
+**`contrast="high"` was making green and success WORSE, and the cause was arithmetic.** 67.4 →
+60.3 Lc on the loud label's press state, in both appearances — the one outcome the config calls a
+failure. The state solve bounded its travel with `Math.max(flipTravel(aaa), flipTravel(body))`,
+and clearing 75 always permits LESS travel than clearing 60, so `Math.max` took the looser bound
+and the AAA term was arithmetically dead in every call it had ever made. The floor is standard
+mode's own pairing, per state, computed by calling the same function at scale 1: a band that
+stays put is the setting working. Worst delta across every family x mode x state is now 0.00, and
+every tone other than the two that were regressing is byte-identical. Both laws that should have
+caught it read text-on-background only and could not see the solid/label pairing at all.
+
+**And the documented AAA guarantee was unreachable, so the contract is amended rather than
+chased.** `contrast="high"` promised loud labels clear Lc 75; six of ten families sit under it.
+Re-solving is impossible, not merely expensive: the label is already whichever of black and white
+reads harder on its own fill, so there is nothing left to spend without moving the brand pigment,
+which the setting refuses. The bar is now stated as what it is — 75 on the text band, 60 on the
+loud rung — with a carve-out COUNTER that fails if the day ever comes when 75 is reachable,
+forcing both documents back open rather than letting the exception ossify.
+
+**The print blur left `dialogEntry`, because a name that is true of one consumer is not a home.**
+Two raw `blur(6px)` literals — the floating body's seed and the alert body's — were the only raw
+px left in any hand-authored stylesheet, hiding behind a lookbehind in the no-raw-px law. The
+identical number already sat one rule over as `--dialog-blur`, and reaching for it from the menu
+family would have been the wrong-token-passed defect this repo keeps recording. So the number
+takes a name that says what it does (`printBlur`, `--print-blur`, three consumers); `depth` stays
+dialog's, because the 3% in z IS the dialog's own arrival. The exemption table the audit left
+behind is emptied rather than kept.
+
+**`a3` grew an opaque twin, and a glass Notice got its family back.** The veil is
+`color-mix(source alpha%, transparent)` and that formula assumes an opaque source, so the
+tone-forward rung's `--tone-a3` multiplied through it: a destructive thin strip painted
+`color(srgb .788 .051 0 / .0255)` against a designed 34% veil — the tint gone, the strip a grey
+smudge, which is the whole of what a Notice is for. The soft trio's 2026-08-19 twins could not
+serve, for two independent reasons: `soft` is a WASH_ROLE, so it resolves neutral for every family
+(no tone paints a faded fill), and it is a4's twin in dark. So `a3-solid` is minted, and unlike
+`soft` it does not shift by mode — a3 over the bed IS step 3 in both. It joins DILUTED_ROLES with
+the role it is a twin of: a twin that travelled alone would let an undiluted tone paint one family
+and another neutral for the same rung depending on the material, which is the material axis
+deciding a colour it has no business in.
+
+Its first spelling paired the axes — `[data-material][data-emphasis="medium"]` — and two shipped
+laws were right to refuse it: the surface layer states each rung exactly once and pairs no axis
+with another. It escaped one of them only because the material attribute happened to be written
+bare, which is a fact about the spelling and not about the rule. The sanctioned shape was already
+one layer over: `.kui-control[data-material]` re-points the ROLE names, so the rung's own
+declaration resolves through it and no selector multiplies anything.
+
+**A dead glass button was wearing a live one's lip.** Its ring is an `::after` reading the
+material token directly, while the field family's three stand-down hooks exist only inside the
+`background-clip: border-area` guard — so the disabled remap could not reach it, and a dead glass
+button computed byte-identically to a live one in both appearances. Routing the button through
+`--kui-ct-glass-ring` is NOT available: that hook does not exist outside the guard, so it would
+delete the ring on every engine without border-area rather than only on a dead control. The lever
+is `--material-ring-opacity`, which §10 already names as the one way every ring stand-down reaches
+the band. That made a shipped law fail — "disabled remaps the family and never reaches for
+opacity" was a bare substring check, and §8's rule is about the ELEMENT's opacity voiding contrast
+guarantees, not about a custom property whose name ends in the word. Narrowed to the property,
+with a calibration arm proving the real violation is still caught.
+
+**A law that raced a window got the window held open instead.** "The page underneath answers the
+hit test while the panel dissolves" polled for `scrim.opacity === 0` and then asserted the panel
+was still mounted — two wall-clock premises in the ~200ms before Base UI unmounts on the exits'
+`finished` promises. It passed alone and failed in full runs. `catchDissolve` pauses every exit
+the microtask the ending stamp lands, and a paused animation's `finished` never settles, so the
+panel is mounted BY MECHANISM. The rewrite also made the law state the rule the stylesheet keeps:
+the stand-down is keyed on `[data-ending-style]`, and surfaces.css says why in as many words —
+"once the box is leaving it is not a target, whatever its clocks are doing" — so waiting for
+opacity 0 was asking for a strictly later moment than the guarantee, and could not have caught a
+panel that stayed a target for the first half of its exit.
+
+**Recorded, not fixed:** `contrast="high"` still resolves no palette when a Theme's appearance is
+`"inherit"` — the attribute is stamped and no emitted arm looks at an ancestor for the appearance.
+The naive mirror is unsafe (it ties with the light/dark blocks for a co-located pair, and CSS
+cannot express "nearest appearance ancestor"), so what shipped is a dev warning that fires only on
+the broken shape, plus a law asserting no emitted arm matches a bare `data-contrast` — which is
+what makes the warning die the day the arm lands. And `exactOptionalPropertyTypes` still refuses
+`prop={cond ? x : undefined}` on ~195 property declarations across 31 files; the sweep was built
+for ThemeProps, measured, and reverted, because `Required<Pick<...>>` does not strip an explicitly
+written `undefined` and the published API tables grow a `| undefined` suffix on every optional
+prop. Both are recorded with their measurements rather than half-applied.
+
 ## 2026-08-26 High contrast stops trading the glass edge: the veil is the setting's whole answer
 
 **What.** The HC glass edge trade — `--material-ring-opacity: 0` in the HC scopes plus a generated element-scoped arm handing `--kui-glass-hc-edge: var(--tone-border)` to every `[data-material]` element and standing `--kui-ct-glass-ring`/`--kui-ct-glass-glint` down — is deleted whole, the `scopedHigh` emission mechanism with it (its last consumer). Under `contrast="high"` a glass pane, button and field now paint their ring, glint, rim and translucent hairline byte-identically to standard; what moves is the VEIL alone. Kushagra, from the preview: the HC controls read FLAT, less contrasty than normal mode — and then the ruling that closed it: *"None of normal contrast appearance reduces contrast. We increased veil, why should there any other difference."*

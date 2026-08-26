@@ -3,6 +3,10 @@
  * to provide — the shared ladder, APCA legibility, the low-chroma remap, the alpha ramp's
  * arithmetic — never specific hex values. A hex here would be a snapshot in disguise.
  */
+import { readFileSync, readdirSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { converter, formatHex } from "culori";
 import { describe, expect, it } from "vitest";
 
@@ -16,7 +20,7 @@ import {
   type Mode,
   type ToneName,
 } from "./color-config.ts";
-import { dress, surfaceColor } from "./config.ts";
+import { dress, groundColor, surfaceColor } from "./config.ts";
 import {
   alphaBackdrop,
   apcaLc,
@@ -28,6 +32,7 @@ import {
   resolveTone,
   solveRing,
   toneFromColor,
+  type Scale,
 } from "./color.ts";
 import { generateTokens } from "./generate.ts";
 
@@ -405,6 +410,9 @@ describe("contrast=high shifts values, it never remaps a role (§7)", () => {
   const AAA = apcaFloors.aaa;
 
   it("clears the AAA-equivalent bar where normal only has to clear AA", () => {
+    // SCOPE, stated because it used to be implied (2026-08-26, audit): this is the TEXT-BAND
+    // half of the bar. The loud rung — `contrast` on `solid` — cannot reach 75 and is held to
+    // `body` by the law directly below, which is where that carve-out is argued.
     for (const mode of MODES) {
       for (const tone of TONES) {
         const s = buildScale(tone, mode, "srgb", "high");
@@ -414,6 +422,53 @@ describe("contrast=high shifts values, it never remaps a role (§7)", () => {
         expect(Math.abs(apcaLc(s.steps[10]!, s.steps[2]!))).toBeGreaterThanOrEqual(AAA);
       }
     }
+  });
+
+  it("holds the LOUD rung to body, because 75 is unreachable on it by construction", () => {
+    // The header of `contrastHigh` said "the label pairings must clear the AAA-equivalent Lc
+    // 75 rather than the AA-equivalent Lc 60, which is law-tested", without qualification —
+    // and for the most prominent label pairing the system paints, a loud Button's own, that
+    // sentence was false in the code AND false about the law surface. Measured at high
+    // contrast: orange 60.8 light / 60.5 dark, blue and info 63.3, amber and warning 68.3,
+    // destructive 70.9 / 70.3 — six of ten families under 75, every one of them byte-identical
+    // to its standard-mode value, because a chromatic solid never moves. The law above could
+    // not have caught it: it reads `label` against the soft steps and `steps[10]` against
+    // `steps[2]`, and never touches the solid rung at all.
+    //
+    // The bar there is `body`, and this law pins WHY rather than just asserting the number:
+    // there is nothing left to spend. The label is already whichever of black and white reads
+    // harder on that fill — asserted here, from two emitted values rather than from the
+    // generator's own arithmetic — and the fill is the brand colour, which "leaves a chromatic
+    // solid alone" pins as untouched. Raising this pairing therefore means moving the brand,
+    // which the setting refuses. §7 and `contrastHigh`'s header now say the same thing.
+    let underTheAaaBar = 0;
+    for (const mode of MODES) {
+      for (const tone of TONES) {
+        const s = buildScale(tone, mode, "srgb", "high");
+        const harder =
+          Math.abs(apcaLc("#ffffff", s.solid)) >= Math.abs(apcaLc("#000000", s.solid))
+            ? "#ffffff"
+            : "#000000";
+        expect(
+          s.contrast,
+          `${mode}/${tone}: the loud label is not the harder of black and white on its own ` +
+            `fill, so the 75 carve-out's reason does not hold`,
+        ).toBe(harder);
+        expect(
+          Math.abs(apcaLc(s.contrast, s.solid)),
+          `${mode}/${tone}: the loud label is under the body floor`,
+        ).toBeGreaterThanOrEqual(BODY);
+        if (Math.abs(apcaLc(s.contrast, s.solid)) < AAA) underTheAaaBar++;
+      }
+    }
+    // And the carve-out is REAL rather than a theoretical allowance — the pattern "a band with
+    // no headroom stays put, and that is the setting working" one law over. If a later change
+    // ever does put every loud label over 75, this fails and sends the author back to the two
+    // documents that state the carve-out, instead of leaving a dead sentence behind in both.
+    expect(
+      underTheAaaBar,
+      "every loud label now clears AAA at high contrast — the documented carve-out is stale",
+    ).toBeGreaterThan(0);
   });
 
   it("moves the label pairing by a visible amount, not a token gesture", () => {
@@ -449,17 +504,78 @@ describe("contrast=high shifts values, it never remaps a role (§7)", () => {
   it("never lowers contrast anywhere — equal is allowed, worse is not", () => {
     // The claim is "as much contrast as this colour permits", not "always different". A band
     // already at its limit is right to stay put; only a regression is a failure.
+    //
+    // WIDENED 2026-08-26 (audit). The law was named "anywhere" and read ONE pairing — the
+    // label on the soft steps — while the pairing `contrast="high"` actually moves is the
+    // LABEL ON THE SOLID: the flip solve walks hover and press, and nothing here or anywhere
+    // else compared those against their standard-mode twins. Measured through the generator
+    // with the old bound (`apcaFloors.body`), `green` and `success` came out 74.55 -> 70.70 at
+    // hover and 67.37 -> 60.35 at press, in BOTH appearances — a loud Button's press 7 Lc
+    // LESS legible with the accessibility setting on, landing 0.35 above the body floor, which
+    // is the only bar the neighbouring law holds it to. That is the one outcome §7 names as a
+    // failure, shipped, with the suite green.
+    //
+    // THE FIXTURE IS HALF THE LAW. A hue whose preferred side affords the full 1.6x excursion
+    // never consults the flip solve at all, so a palette of blue-class families is an input on
+    // which this cannot fail whatever the generator does. The subjects therefore include
+    // CONSTRUCTED cusp-parked hues that are not in the config, and the guard at the bottom
+    // asserts that some subject really does travel toward its own label — so the day green
+    // leaves the tone set, this law says so instead of going quietly vacuous.
+    const CUSP_PARKED = {
+      "neon green h150": { hue: 150, vividness: 1 },
+      "lemon h100": { hue: 100, vividness: 0.95 },
+      "cyan h195": { hue: 195, vividness: 1 },
+    } as const;
+    let towardItsLabel = 0;
+
     for (const mode of MODES) {
-      for (const tone of TONES) {
-        const normal = buildScale(tone, mode);
-        const high = buildScale(tone, mode, "srgb", "high");
+      const subjects: Array<[string, Scale, Scale]> = [
+        ...TONES.map(
+          (t) =>
+            [t, buildScale(t, mode), buildScale(t, mode, "srgb", "high")] as [string, Scale, Scale],
+        ),
+        ...Object.entries(CUSP_PARKED).map(
+          ([name, spec]) =>
+            [name, buildScaleFor(spec, mode), buildScaleFor(spec, mode, "srgb", "high")] as [
+              string,
+              Scale,
+              Scale,
+            ],
+        ),
+      ];
+      for (const [name, normal, high] of subjects) {
         for (const step of [2, 3, 4]) {
-          expect(Math.abs(apcaLc(high.label, high.steps[step]!))).toBeGreaterThanOrEqual(
-            Math.abs(apcaLc(normal.label, normal.steps[step]!)) - 0.5,
-          );
+          expect(
+            Math.abs(apcaLc(high.label, high.steps[step]!)),
+            `${mode}/${name}: label on step ${step + 1} lost contrast under contrast="high"`,
+          ).toBeGreaterThanOrEqual(Math.abs(apcaLc(normal.label, normal.steps[step]!)) - 0.5);
         }
+        // The solid rung, per state. `contrast` is the label a loud Button paints on this fill
+        // (recipes.css's `[data-emphasis="loud"]`), so this pairing is the most prominent one
+        // in the system — and it is the one the flip solve moves.
+        const states = ["rest", "hover", "press"] as const;
+        const fills = (s: Scale) => [s.solid, s.solidHover, s.solidActive];
+        fills(high).forEach((fill, i) => {
+          const before = Math.abs(apcaLc(normal.contrast, fills(normal)[i]!));
+          const after = Math.abs(apcaLc(high.contrast, fill));
+          expect(
+            after,
+            `${mode}/${name}: the loud label on ${states[i]} went ${before.toFixed(2)} -> ` +
+              `${after.toFixed(2)} Lc when contrast="high" was turned ON`,
+          ).toBeGreaterThanOrEqual(before - 0.5);
+        });
+        // Vacuity guard: does this subject exercise the flip at all? "Toward the label" is
+        // read off the OUTPUT — a black label with a darkening press, or a white one with a
+        // lightening press — never off the generator's own direction arithmetic.
+        const towards =
+          (high.contrast === "#000000") === (L(high.solidActive) < L(high.solid));
+        if (towards && !high.isLowChroma) towardItsLabel++;
       }
     }
+    expect(
+      towardItsLabel,
+      "no subject travels toward its own label, so the flip solve this law guards is untested",
+    ).toBeGreaterThan(0);
   });
 
   it("a band with no headroom stays put, and that is the setting working", () => {
@@ -517,7 +633,17 @@ describe("contrast=high shifts values, it never remaps a role (§7)", () => {
       for (const tone of TONES) {
         const normal = buildScale(tone, mode);
         if (normal.isLowChroma) continue;
-        expect(buildScale(tone, mode, "srgb", "high").solid).toBe(normal.solid);
+        const high = buildScale(tone, mode, "srgb", "high");
+        expect(high.solid).toBe(normal.solid);
+        // AND ITS LABEL, which is a load-bearing premise rather than a bonus (2026-08-26):
+        // the flip solve's high-contrast floor is standard mode's own pairing, computed
+        // inside the high pass by re-running the excursion at the resting size. That is
+        // exact only because the rest fill and the label it carries do not move with the
+        // setting. If either ever does, the "floor" stops being standard mode's answer and
+        // silently becomes something else — so the premise is asserted where it is made.
+        expect(high.contrast, `${mode}/${tone}: the loud label moved with the setting`).toBe(
+          normal.contrast,
+        );
       }
     }
   });
@@ -789,6 +915,24 @@ describe("the control edge renders its stated targets, and the floors bind under
     const line = declarationsFor(mode).find((l) => l.includes(`--${name}:`))!;
     return line.match(/#[0-9a-fA-F]{6}/)![0];
   };
+  /**
+   * The beds, derived HERE from config rather than borrowed from the solver — the alpha ramp's
+   * own de-tautologization. A `var(--neutral-N)` resolves through the generated scale, a
+   * literal is used as-is, so if the solver's idea of a bed ever diverges from what the system
+   * paints, these laws miss their targets instead of agreeing with the divergence.
+   */
+  const bedsFor = (mode: (typeof MODES)[number]) => {
+    const neutral = buildScale("neutral", mode);
+    const resolve = (value: string) =>
+      value.startsWith("var(")
+        ? neutral.steps[Number(value.match(/--neutral-(\d+)/)![1]!) - 1]!
+        : value;
+    return {
+      page: neutral.steps[0]!,
+      seal: resolve(surfaceColor[mode].rest),
+      ground: resolve(groundColor[mode]),
+    };
+  };
   const FAMILIES = [
     { role: "control-edge", lc: controlEdgeLc.mark },
     // One tier down for the field family (2026-08-07): a field is a LARGE element, and the
@@ -799,27 +943,70 @@ describe("the control edge renders its stated targets, and the floors bind under
   for (const mode of MODES) {
     for (const { role, lc } of FAMILIES) {
       it(`${mode}/${role}: renders the stated taste value against both beds — floor AND ceiling`, () => {
-        const neutral = buildScale("neutral", mode);
+        // TWO beds, deliberately, and it is the split that says so: a resting edge is DRESS,
+        // held to no floor, and these two are the surfaces it was judged on. The ground is
+        // not among them because adding it would MOVE a value taste owns (2026-08-26 audit —
+        // where the ground lands at rest is printed by the advisory dress report instead).
+        const { page, seal } = bedsFor(mode);
         const edge = hexOf(mode, role);
-        const surfaces = [mode === "dark" ? neutral.steps[1]! : "#ffffff", neutral.steps[0]!];
-        const worst = Math.min(...surfaces.map((sf) => Math.abs(apcaLc(edge, sf))));
+        const worst = Math.min(...[seal, page].map((sf) => Math.abs(apcaLc(edge, sf))));
         expect(worst, `${mode} ${role} under its stated target`).toBeGreaterThanOrEqual(lc.normal[mode]);
         expect(worst, `${mode} ${role} overshoots — the solve regressed to a pick`).toBeLessThanOrEqual(
           lc.normal[mode] + 4,
         );
       });
 
-      it(`${mode}/${role}: the high-contrast variant is a designed tier, not a band accident`, () => {
-        const line = contrastHighDeclarations(mode).find((l) => l.includes(`--${role}:`))!;
-        const edge = line.match(/#[0-9a-fA-F]{6}/)![0];
-        const neutral = buildScale("neutral", mode);
-        const surfaces = [mode === "dark" ? neutral.steps[1]! : "#ffffff", neutral.steps[0]!];
-        const worst = Math.min(...surfaces.map((sf) => Math.abs(apcaLc(edge, sf))));
-        expect(worst).toBeGreaterThanOrEqual(lc.high);
-        expect(worst).toBeLessThanOrEqual(lc.high + 4);
+      it(`${mode}/${role}: the high-contrast variant clears its tier on EVERY bed the system paints`, () => {
+        // THREE beds since 2026-08-26 (audit), and the third is the finding. `--color-ground`
+        // was minted 2026-08-20 as a paintable bed — `.kui-surface.kui-ground` fills with it,
+        // and `<Surface>` holding a `<TextField>` is a composition the preview already ships —
+        // and it was never added to the search. Measured: light's high-contrast field edge
+        // `#a6a5aa` sat at |Lc| 43.37 on a ground against `apcaFloors.nonText`, the floor this
+        // setting is DEFINED to bind to, while measuring 48.15 on the seal and 46.35 on the
+        // page. So the miss was invisible to every check in the package, because every check —
+        // this one included — read the two beds the solve already knew.
+        const beds = bedsFor(mode);
+        const edge = contrastHighDeclarations(mode)
+          .find((l) => l.includes(`--${role}:`))!
+          .match(/#[0-9a-fA-F]{6}/)![0];
+        for (const [name, bed] of Object.entries(beds)) {
+          expect(
+            Math.abs(apcaLc(edge, bed)),
+            `${mode} ${role} ${edge} misses its high-contrast tier on the ${name} (${bed})`,
+          ).toBeGreaterThanOrEqual(lc.high);
+        }
+        const worst = Math.min(...Object.values(beds).map((bed) => Math.abs(apcaLc(edge, bed))));
+        expect(worst, `${mode} ${role} overshoots — the solve regressed to a pick`).toBeLessThanOrEqual(
+          lc.high + 4,
+        );
+        // Conformance, stated as itself rather than inferred from the tier: `high` is the
+        // surface WCAG 1.4.11 is answered on, so the emitted edge clears the non-text floor
+        // on every bed even if a later eye pass moves the tier numbers around.
+        expect(worst).toBeGreaterThanOrEqual(apcaFloors.nonText);
       });
     }
   }
+
+  it("the ground is a bed of its own, so the three-bed law above is not three copies of one", () => {
+    // The calibration arm. If `--color-ground` ever collapsed onto the page or the seal, the
+    // law above would keep passing while measuring two beds under three names — the
+    // degenerate-fixture failure, arriving by a config edit rather than by a test edit. In
+    // LIGHT the ground is the HARDEST of the three (it is a step off the page, and every
+    // solved edge is darker than all three beds), which is exactly why it binds there and why
+    // the finding was a light-mode one; in dark it sits between the page and the seal and
+    // legitimately never binds, so only light is asserted.
+    const { page, seal, ground } = bedsFor("light");
+    expect(ground).not.toBe(page);
+    expect(ground).not.toBe(seal);
+    const edge = contrastHighDeclarations("light")
+      .find((l) => l.includes("--field-edge:"))!
+      .match(/#[0-9a-fA-F]{6}/)![0];
+    const on = (bed: string) => Math.abs(apcaLc(edge, bed));
+    expect(
+      on(ground),
+      "the ground is no longer the hardest light bed, so the three-bed law may be vacuous",
+    ).toBeLessThan(Math.min(on(page), on(seal)));
+  });
 
   it("the floors bind the HIGH targets; the normal targets are taste (the 2026-08-07 mode split)", () => {
     // Kushagra: "APCA rule checks for high contrast mode, taste over APCA rules in
@@ -982,6 +1169,15 @@ describe("the standard-mode dress report — measured to know, never to validate
       const step = (n: number) => neutral.steps[n - 1]!;
       const page = step(1);
       const seal = mode === "dark" ? step(2) : "#ffffff";
+      // The GROUND joins the report's bed set 2026-08-26 (audit). The resting edges are solved
+      // against the page and the seal — deliberately, because a resting value is dress and
+      // adding a bed to that solve would MOVE it — but `--color-ground` is a third surface the
+      // system paints (`.kui-surface.kui-ground`), and where the edge lands on it is exactly
+      // the kind of thing this report exists to keep visible rather than to fail on. It was
+      // the invisible half of the conformance miss the high-contrast law now catches.
+      const ground = groundColor[mode].startsWith("var(")
+        ? step(Number(groundColor[mode].match(/--neutral-(\d+)/)![1]!))
+        : groundColor[mode];
       const emitted = (name: string) =>
         declarationsFor(mode)
           .find((l) => l.includes(`--${name}:`))!
@@ -1039,8 +1235,20 @@ describe("the standard-mode dress report — measured to know, never to validate
       // Each row: the colour, what it is measured against, and the advisory tier that gives
       // the number a scale — 45 fine detail, 30 large non-text, 15 bare discernibility.
       const rows: Array<[label: string, fg: string, bg: string, tier: number]> = [
-        ["control-edge vs worst bed", emitted("control-edge"), Math.abs(apcaLc(emitted("control-edge"), seal)) < Math.abs(apcaLc(emitted("control-edge"), page)) ? seal : page, apcaFloors.nonText],
-        ["field-edge vs worst bed", emitted("field-edge"), Math.abs(apcaLc(emitted("field-edge"), seal)) < Math.abs(apcaLc(emitted("field-edge"), page)) ? seal : page, apcaFloors.nonTextLarge],
+        ...(["control-edge", "field-edge"] as const).flatMap((edge) => {
+          const hex = emitted(edge);
+          const tier = edge === "control-edge" ? apcaFloors.nonText : apcaFloors.nonTextLarge;
+          const beds = { seal, page, ground };
+          const worstBed = Object.entries(beds).sort(
+            (a, b) => Math.abs(apcaLc(hex, a[1])) - Math.abs(apcaLc(hex, b[1])),
+          )[0]!;
+          return [
+            [`${edge} vs worst bed (${worstBed[0]})`, hex, worstBed[1], tier],
+            // Printed separately as well as through "worst": which bed is hardest changes
+            // per mode, and a row that only ever names the winner hides the losers.
+            [`${edge} vs ground`, hex, ground, tier],
+          ] as Array<[string, string, string, number]>;
+        }),
         // The surface rows died with surfaceLook (2026-08-20): the dress table no longer has
         // a surface family — a card rests on the seal, measured everywhere else.
         ["dress field edge vs its fill", step(d.field.edge), step(d.field.fill), 15],
@@ -1229,5 +1437,54 @@ describe("the glyph clears the floor a small mark owes, at the family's own chro
     // family's maximum and only lightness moves, which is exactly what `undilutedTones`
     // permits. A glyph in neutral would be the doctrine misread as "accent appears less".
     expect(emitted).toContain("--tone-glyph: var(--accent-glyph);");
+  });
+});
+
+describe("the generator ships no dead exports (ENGINEERING §7's entropy audit)", () => {
+  // `buildAllScales` sat here unreferenced with a JSDoc reading "the unit the emitter and the
+  // law tests both consume" — a dead export AND a false factual claim about who consumes it.
+  // Both named consumers exist and neither used it: `generate.ts` imports `colorDeclarations`
+  // and `contrastHighDeclarations`, and this file imports `buildScale`/`buildScaleFor` and
+  // re-derives the per-tone loop by hand at a dozen call sites. So the comment asserted an
+  // agreement between two implementations that did not exist, which is the claimed-versus-
+  // actual class at comment scope, and `tsc` cannot see it: an unused EXPORT is not an unused
+  // local. Nothing else could see it either — `color.ts` is not re-exported from `index.ts`,
+  // so the symbol never even reached `dist`.
+  //
+  // RUNTIME exports only. A type in an exported signature has to be exported whether or not
+  // anything names it, so including types would make this law noise; `Gamut`, `ContrastLevel`,
+  // `ToneSpec` and `ToneInput` are all in that position today.
+  const here = dirname(fileURLToPath(import.meta.url));
+  const src = join(here, "..");
+  const source = readFileSync(join(here, "color.ts"), "utf8");
+  const exported = [...source.matchAll(/^export (?:function|const) (\w+)/gm)].map((m) => m[1]!);
+
+  const walk = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) return walk(full);
+      return /\.tsx?$/.test(entry.name) && full !== join(here, "color.ts") ? [full] : [];
+    });
+  // COMMENTS ARE STRIPPED, and that is not tidiness — the first spelling of this law PASSED
+  // its own sabotage run (`buildAllScales` re-added, suite green), because the paragraph you
+  // are reading names the symbol and the walk reads this very file. `test/stylesheets.ts`
+  // records the same lesson for the CSS laws: "two laws learned to strip comments so they
+  // stop firing on their own documentation". Stripping can only REMOVE text, so it can only
+  // make this law stricter, never blind it.
+  const code = (text: string) => text.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/\/\/[^\n]*/g, " ");
+  const elsewhere = walk(src).map((f) => code(readFileSync(f, "utf8")));
+
+  const usesOf = (name: string) =>
+    elsewhere.filter((text) => new RegExp(`\\b${name}\\b`).test(text)).length;
+
+  it("every runtime export of color.ts has a consumer somewhere in src", () => {
+    // Calibration first: a walk that found nothing would satisfy nothing, and a law whose
+    // corpus is empty passes for the wrong reason.
+    expect(elsewhere.length, "the source walk found no files — the corpus is empty").toBeGreaterThan(50);
+    expect(usesOf("buildScale"), "the walk cannot see a known-live export").toBeGreaterThan(0);
+    expect(exported.length, "no runtime exports were parsed out of color.ts").toBeGreaterThan(5);
+
+    const dead = exported.filter((name) => usesOf(name) === 0);
+    expect(dead, `dead export(s) in color.ts: ${dead.join(", ")}`).toEqual([]);
   });
 });

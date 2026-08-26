@@ -159,8 +159,10 @@ describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§
     expect(paint).toBeGreaterThan(surfaces.indexOf("prefers-reduced-transparency"));
     expect(paint).toBeGreaterThan(surfaces.lastIndexOf('[data-material="thick"]'));
     const body = block(surfaces, "\n.kui-surface.kui-floating {");
-    // A re-point of --kui-sf-cast, never a second box-shadow (the count law's six holds),
-    // and the second fallback covers the un-themed document, which behaves as flat.
+    // A re-point of --kui-sf-cast, never a second box-shadow — the count itself lives in the
+    // package-wide law in recipes.test.ts and is deliberately not restated here (this comment
+    // said "six" until 2026-08-26, three days after the segmented grip made it seven). The
+    // second fallback covers the un-themed document, which behaves as flat.
     expect(body).toContain("--kui-sf-cast: var(--kui-floating-chrome, var(--floating-chrome-flat, none))");
     expect(body).not.toContain("box-shadow");
   });
@@ -195,8 +197,15 @@ describe("card-as-button: the element brings the interactivity (§10)", () => {
     // may NOT appear. It now reads the members, so a new one is free and a `data-` key is not.
     const list = /\.kui-surface:where\(([^)]*(?:\([^)]*\)[^)]*)*)\)/.exec(surfaces);
     expect(list, "the interactive recipe must exist to be about anything").not.toBeNull();
+    // MEMBERS, split on the comma — never `toContain` on the raw list (2026-08-26 audit). The
+    // captured string is `button, a, label:has(.kui-control`, and `toContain` on a string is a
+    // SUBSTRING test: `label` holds an `a`, so the anchor half of this law passed against a list
+    // the anchor had been deleted from. Half a law, and the half that was dead is the one the
+    // rewrite above was written for. Splitting keeps the rewrite's whole point — a new member is
+    // still free — and stops a letter standing in for a member.
+    const members = list![1]!.split(",").map((s) => s.trim());
     for (const member of ["button", "a"]) {
-      expect(list![1], `the interactive recipe dropped ${member}`).toContain(member);
+      expect(members, `the interactive recipe dropped ${member}`).toContain(member);
     }
     expect(surfaces).not.toContain("data-interactive");
     // The real prohibition, stated positively: no rule in this layer turns interactivity on
@@ -260,18 +269,53 @@ describe("card-as-button: the element brings the interactivity (§10)", () => {
 describe("the shadow palette is a resource, not an axis (§13)", () => {
   const tokens = raw("tokens/tokens.css");
 
-  it("five rows, once per appearance scope, and row 1 is the only inset", () => {
-    // Three scopes, not two: :root carries the un-themed document, [data-appearance="light"]
-    // is the escape a nested light Theme needs (added 2026-08-03 — light lived only at :root,
-    // so a light section inside a dark app stayed dark), and [data-appearance="dark"] is the
-    // dark world. The count is per scope, not per mode. Five rows since 2026-08-07: row 2 is
-    // the control drop (the palette had no rung at button scale, and a bespoke shadow hidden
-    // inside a chrome role would have been a second source of shadow truth — Kushagra's
-    // refutation, LOG), rows 3-5 are the old 2-4 renumbered.
+  it("five rows, reaching every appearance scope, and row 1 is the only inset", () => {
+    // Three scopes: :root carries the un-themed document, [data-appearance="light"] is the
+    // escape a nested light Theme needs (added 2026-08-03 — light lived only at :root, so a
+    // light section inside a dark app stayed dark), and [data-appearance="dark"] is the dark
+    // world. Five rows since 2026-08-07: row 2 is the control drop (the palette had no rung at
+    // button scale, and a bespoke shadow hidden inside a chrome role would have been a second
+    // source of shadow truth — Kushagra's refutation, LOG), rows 3-5 are the old 2-4.
+    //
+    // RE-KEYED 2026-08-26. This counted `--shadow-N:` occurrences and expected exactly THREE —
+    // a spelling, under a comment stating a guarantee, which is this repo's oldest recorded
+    // mistake. The count went to two the day the light palette stopped shipping twice
+    // (`:root, [data-appearance="light"]` now share one rule), and the law failed on a change
+    // that took a scope away from NOBODY. Worse, it could never have caught the failure it
+    // exists for: three rules whose selectors all say `[data-appearance="dark"]` count three.
+    // So the claim is SELECTOR COVERAGE — which scopes can actually reach each row — and it
+    // holds however the rules are grouped.
+    const SCOPES = [":root", '[data-appearance="light"]', '[data-appearance="dark"]'];
     for (const i of [1, 2, 3, 4, 5]) {
-      const occurrences = tokens.match(new RegExp(`--shadow-${i}:`, "g")) ?? [];
-      expect(occurrences.length).toBe(3);
+      const reached = new Set<string>();
+      // Every rule that declares this row, by its own selector list. Brace-DEPTH tracking, not
+      // a regex: the sheet carries comments and `@supports`/`@media` blocks, and a selector
+      // pattern that trips over either silently reports "no scopes reached" — which is a law
+      // failing for a reason that has nothing to do with its subject (measured: the first
+      // spelling here answered `[dark]` alone and the light rule was simply invisible to it).
+      for (let k = 0; k < tokens.length; k++) {
+        if (tokens[k] !== "{") continue;
+        const selector = tokens.slice(tokens.lastIndexOf("}", k) + 1, k);
+        if (selector.trimStart().startsWith("@")) continue;
+        let depth = 0;
+        let end = k;
+        for (let j = k; j < tokens.length; j++) {
+          if (tokens[j] === "{") depth += 1;
+          else if (tokens[j] === "}" && --depth === 0) {
+            end = j;
+            break;
+          }
+        }
+        if (!new RegExp(`--shadow-${i}:`).test(tokens.slice(k, end))) continue;
+        for (const scope of SCOPES) if (selector.includes(scope)) reached.add(scope);
+      }
+      expect([...reached].sort(), `row ${i} does not reach every appearance scope`).toEqual(
+        [...SCOPES].sort(),
+      );
     }
+    // Vacuity: the scan must have found real rules, or every set above is empty-equals-empty
+    // on a regex that stopped matching.
+    expect(tokens.match(/--shadow-1:/g)?.length ?? 0, "the scan found no rows at all").toBeGreaterThan(1);
     expect(tokens).not.toContain("--shadow-6");
     for (const line of tokens.split("\n").filter((l) => /--shadow-\d:/.test(l))) {
       expect(line.includes("inset")).toBe(line.includes("--shadow-1:"));
@@ -757,12 +801,19 @@ describe("the page is published and never consumed (§10, §13, 2026-08-20)", ()
  * and selects declare and popovers and tooltips do not. On those two the value resolved to
  * nothing, the declaration was invalid at computed-value time, and every inset fell to `auto`.
  *
- * IT IS A NODE LAW BECAUSE A BROWSER ONE CANNOT SEE IT. `getComputedStyle` reports the USED
- * value for an inset on a positioned element and can never answer `auto`; with the hook unset
- * the body falls to its static position, which IS one padding from the pane's top, so the used
- * value reads identically under both spellings. A browser law was written, measured against
- * both, found unfalsifiable, and deleted — popover.browser.test.tsx records that. The
- * declaration is the thing that can be wrong, so the declaration is what this reads.
+ * IT IS A NODE LAW BECAUSE A BROWSER ONE CANNOT SEE *THAT* DEFECT. `getComputedStyle` reports
+ * the USED value for an inset on a positioned element and can never answer `auto`; with the
+ * hook unset the body falls to its static position, which IS one padding from the pane's top,
+ * so the used value reads identically under both spellings. A browser law was written, measured
+ * against both, found unfalsifiable, and deleted — popover.browser.test.tsx records that. The
+ * declaration is the thing that can be wrong there, so the declaration is what this reads.
+ *
+ * THE NEXT DEFECT IN THE SAME NINE DECLARATIONS WAS THE OPPOSITE SHAPE (2026-08-26 audit): a
+ * valid value that is the WRONG number. `--kui-sf-p` is one value and a pane has two axes — a
+ * Tooltip pays 4px block against 12px inline and paints them with longhands — so the pin read
+ * 12px on an axis whose padding is 4px, which a browser reports plainly. That half is asserted
+ * where it can be measured, in system/surfaces.browser.test.tsx, as an AGREEMENT between the
+ * pin and the painted padding; what stays here is the pair's spelling and the count.
  */
 describe("the flight pins a panel's body at padding every panel HAS (§22)", () => {
   const flight = raw("system/surfaces.css").slice(
@@ -779,11 +830,27 @@ describe("the flight pins a panel's body at padding every panel HAS (§22)", () 
     );
   });
 
-  it("they read --kui-sf-p, which every surface resolves", () => {
+  it("they read the resolved padding PER AXIS, and never the one-value name", () => {
     // The positive half, and the count: nine declarations were found to be affected, so a
     // regression that fixed one and left eight fails here rather than passing on the one.
-    const reads = [...flight.matchAll(/var\(--kui-sf-p\)/g)].length;
-    expect(reads, "the flight stopped reading the resolved padding").toBeGreaterThanOrEqual(9);
+    // Since 2026-08-26 the nine read a PAIR — an inset is on one axis and a pane may price its
+    // two differently — so the count is over both names together, and each must be reached (a
+    // pair where one name is unused is the one-axis-of-two failure returning under a new
+    // spelling).
+    const bl = [...flight.matchAll(/var\(--kui-sf-p-block\)/g)].length;
+    const inl = [...flight.matchAll(/var\(--kui-sf-p-inline\)/g)].length;
+    expect(bl, "the flight's block-axis pin reads no per-axis padding").toBeGreaterThan(0);
+    expect(inl, "the flight's inline-axis pin reads no per-axis padding").toBeGreaterThan(0);
+    expect(bl + inl, "the flight stopped reading the resolved padding").toBeGreaterThanOrEqual(9);
+    // The one-value name is what the pair replaced; a rule that reads it bare is a pane's block
+    // inset answered with its inline one.
+    expect(flight, "a flight rule still pins an axis with the one-value padding").not.toMatch(
+      /var\(--kui-sf-p\)/,
+    );
+    // …and the pair must have somewhere to come from: the base rule defaults both.
+    const base = raw("system/surfaces.css");
+    expect(base).toContain("--kui-sf-p-block: var(--kui-sf-p)");
+    expect(base).toContain("--kui-sf-p-inline: var(--kui-sf-p)");
   });
 
   it("and the size join still DECLARES the override — the two are different jobs", () => {

@@ -1055,8 +1055,22 @@ export const dialogMotion = {
  */
 export const dialogEntry = {
   depth: 0.97,
-  blur: 6,
 } as const;
+
+/**
+ * THE PRINT BLUR (§8, §22, §24, promoted 2026-08-26) — content that has not printed yet is
+ * molten, and it is ONE number for every family that animates an arrival.
+ *
+ * It lived as `dialogEntry.blur` and emitted `--dialog-blur`, which was true of its first
+ * consumer and of nothing else: the floating body's seed and the alert body's seed carry the
+ * identical fact ("invisible and molten while the box is becoming", 2026-08-15) and both spelled
+ * it as a raw `blur(6px)` — the two live raw-px literals the 2026-08-26 audit found hiding
+ * behind a lookbehind in the no-raw-px law. Reaching for `--dialog-blur` from the menu family
+ * would have been the wrong-token-passed defect this repo keeps recording, so the number takes
+ * a name that says what it does. The third consumer promotes; `depth` stays dialog's, because
+ * the 3% in z IS the dialog's own arrival (§24).
+ */
+export const printBlur = 6;
 
 export const overlayMotion = {
   /** SPEED-matched to the menu, not time-matched (2026-08-16, Kushagra: same clocks read
@@ -1182,14 +1196,19 @@ export const material = {
   // one light source falls downward, the same model the shadow palette commits to), and
   // SEPARATION — which stays the APP's (depth="elevated"), never the pane's: a flat
   // world's glass has edge and glint, no lift (the weld was built and reversed 2026-08-05).
-  // Edge and rim are white alphas per thickness, rising with it: thicker glass catches more
-  // light. All judged in the preview.
+  // `edge` and `sheen` are white alphas per thickness, rising with it: thicker glass catches
+  // more light. All judged in the preview. `sheen` is the rim's — the rim is three background
+  // layers (grain, bloom, sheen) and this one number prices the two that are light, the bloom
+  // deriving from it. There is NO separate `rim` alpha: the 1px top edge line it used to
+  // price was deleted 2026-08-17 when the conic ring took the edge, and the six orphaned
+  // numbers were deleted with the sentence that described them (2026-08-26 audit — they had
+  // read as a live tuning lever for nine days, in the one file whose header promises that
+  // every number here moves something).
   //
-  // THE TWO SEAMS WHERE ELEVATION MEETS THE MATERIAL (§10, decided 2026-08-07 — the
-  // four-worlds frame applied to glass; what makes blur read as substance is light
-  // RESPONDING to it): under a sun, a pane CATCHES harder — `rimLifted` is the elevated
-  // world's brighter glint per thickness — and what a pane CASTS is the app's shadow
-  // TRANSMITTED: glass passes light, so its shadow is the surface row faded by
+  // THE SEAM WHERE ELEVATION MEETS THE MATERIAL (§10, decided 2026-08-07 — the four-worlds
+  // frame applied to glass; what makes blur read as substance is light RESPONDING to it):
+  // what a pane CASTS is the app's shadow TRANSMITTED: glass passes light, so its shadow is
+  // the surface row faded by
   // `transmission` (thin passes most, thick least; the generator derives the faded rows
   // from the palette, so there is still exactly one source of shadow truth).
   // alphaHigh is contrast="high"'s answer per thickness: MORE opaque, never fully — the
@@ -1213,21 +1232,27 @@ export const material = {
   // playground.
   /* CONTROL-scale material (lab 2026-08-14, Kushagra: "control surfaces need their own
      parameters"; ported 2026-08-17). A 40px pane is not a 210px card: the card's blur turns
-     a small window to mud, its veil prices milk the label ink doesn't need, its sheen is a
-     floodlight on a coin. Same ladder, re-priced for the box. Values are the lab's EFFECTIVE
+     a small window to mud, and its veil prices milk the label ink doesn't need. So the row
+     re-prices `alpha` and the filters, and NOTHING ELSE: a control has no sheen of its own,
+     because the pane's wash is a floodlight on a coin — a control's rim is grain and the
+     edge catch alone (`rim(0)`, generate.ts, with the measurement that settled it: a loud
+     accent button under the pane recipe went pale blue with a halo). What a glass control
+     does carry is the louder rungs' wash, and that is `controlWash` below, not a per-
+     thickness number. The six `control.sheen` values that sat here reached no output and
+     were deleted with this sentence (2026-08-26 audit). Values are the lab's EFFECTIVE
      numbers (written × the frost dial and mode knobs), the extraction rule every material
      number in this file already follows. filterHover: on glass, hover is LIGHT, not a fill
      step — the veil holds and only brightness moves (lab 2026-08-14, "hover mode looks
      weird": the quiet-hover was laying an opaque pastel over the pane). */
   light: {
-    thin: { alpha: [34, 42, 50], alphaHigh: [72, 77, 82], filter: "blur(2.4px) saturate(172.5%) brightness(1.03)", edge: 0.5, rim: 0.35, sheen: 13.6, rimLifted: 0.42, control: { alpha: 30, filter: "blur(1.2px) saturate(140%) brightness(1.02)", filterHover: "blur(1.2px) saturate(140%) brightness(1.09)", filterLoud: "blur(1.2px) saturate(220%) brightness(1.1)", sheen: 10 } },
-    regular: { alpha: [49, 57, 65], alphaHigh: [80, 84, 88], filter: "blur(4px) saturate(207%) brightness(1.05)", edge: 0.6, rim: 0.45, sheen: 20.4, rimLifted: 0.52, control: { alpha: 48, filter: "blur(2px) saturate(160%) brightness(1.04)", filterHover: "blur(2px) saturate(160%) brightness(1.09)", filterLoud: "blur(2px) saturate(220%) brightness(1.1)", sheen: 14 } },
-    thick: { alpha: [65, 69, 72], alphaHigh: [86, 89, 92], filter: "blur(5.6px) saturate(241.5%) brightness(1.06)", edge: 0.7, rim: 0.55, sheen: 25.5, rimLifted: 0.62, control: { alpha: 66, filter: "blur(3.2px) saturate(180%) brightness(1.05)", filterHover: "blur(3.2px) saturate(180%) brightness(1.09)", filterLoud: "blur(3.2px) saturate(220%) brightness(1.1)", sheen: 18 } },
+    thin: { alpha: [34, 42, 50], alphaHigh: [72, 77, 82], filter: "blur(2.4px) saturate(172.5%) brightness(1.03)", edge: 0.5, sheen: 13.6, control: { alpha: 30, filter: "blur(1.2px) saturate(140%) brightness(1.02)", filterHover: "blur(1.2px) saturate(140%) brightness(1.09)", filterLoud: "blur(1.2px) saturate(220%) brightness(1.1)" } },
+    regular: { alpha: [49, 57, 65], alphaHigh: [80, 84, 88], filter: "blur(4px) saturate(207%) brightness(1.05)", edge: 0.6, sheen: 20.4, control: { alpha: 48, filter: "blur(2px) saturate(160%) brightness(1.04)", filterHover: "blur(2px) saturate(160%) brightness(1.09)", filterLoud: "blur(2px) saturate(220%) brightness(1.1)" } },
+    thick: { alpha: [65, 69, 72], alphaHigh: [86, 89, 92], filter: "blur(5.6px) saturate(241.5%) brightness(1.06)", edge: 0.7, sheen: 25.5, control: { alpha: 66, filter: "blur(3.2px) saturate(180%) brightness(1.05)", filterHover: "blur(3.2px) saturate(180%) brightness(1.09)", filterLoud: "blur(3.2px) saturate(220%) brightness(1.1)" } },
   },
   dark: {
-    thin: { alpha: [52, 60, 68], alphaHigh: [76, 80, 84], filter: "blur(2.4px) saturate(175.5%) brightness(0.92)", edge: 0.1, rim: 0.06, sheen: 2.75, rimLifted: 0.12, control: { alpha: 48, filter: "blur(1.2px) saturate(162.5%) brightness(0.95)", filterHover: "blur(1.2px) saturate(162.5%) brightness(1.02)", filterLoud: "blur(1.2px) saturate(180%) brightness(1)", sheen: 3.2 } },
-    regular: { alpha: [67, 74, 81], alphaHigh: [84, 87, 90], filter: "blur(4px) saturate(195%) brightness(0.9)", edge: 0.14, rim: 0.1, sheen: 3.85, rimLifted: 0.18, control: { alpha: 60, filter: "blur(2px) saturate(175%) brightness(0.94)", filterHover: "blur(2px) saturate(175%) brightness(1.02)", filterLoud: "blur(2px) saturate(180%) brightness(1)", sheen: 4 } },
-    thick: { alpha: [80, 82, 84], alphaHigh: [90, 92, 94], filter: "blur(5.6px) saturate(208%) brightness(0.88)", edge: 0.18, rim: 0.14, sheen: 4.95, rimLifted: 0.24, control: { alpha: 74, filter: "blur(3.2px) saturate(187.5%) brightness(0.92)", filterHover: "blur(3.2px) saturate(187.5%) brightness(1.02)", filterLoud: "blur(3.2px) saturate(180%) brightness(1)", sheen: 4.8 } },
+    thin: { alpha: [52, 60, 68], alphaHigh: [76, 80, 84], filter: "blur(2.4px) saturate(175.5%) brightness(0.92)", edge: 0.1, sheen: 2.75, control: { alpha: 48, filter: "blur(1.2px) saturate(162.5%) brightness(0.95)", filterHover: "blur(1.2px) saturate(162.5%) brightness(1.02)", filterLoud: "blur(1.2px) saturate(180%) brightness(1)" } },
+    regular: { alpha: [67, 74, 81], alphaHigh: [84, 87, 90], filter: "blur(4px) saturate(195%) brightness(0.9)", edge: 0.14, sheen: 3.85, control: { alpha: 60, filter: "blur(2px) saturate(175%) brightness(0.94)", filterHover: "blur(2px) saturate(175%) brightness(1.02)", filterLoud: "blur(2px) saturate(180%) brightness(1)" } },
+    thick: { alpha: [80, 82, 84], alphaHigh: [90, 92, 94], filter: "blur(5.6px) saturate(208%) brightness(0.88)", edge: 0.18, sheen: 4.95, control: { alpha: 74, filter: "blur(3.2px) saturate(187.5%) brightness(0.92)", filterHover: "blur(3.2px) saturate(187.5%) brightness(1.02)", filterLoud: "blur(3.2px) saturate(180%) brightness(1)" } },
   },
   /** How much of the app's shadow a pane lets survive (§10's transmission seam): glass
       passes light, so its cast is the surface row FADED — thin passes most, thick least.

@@ -11,7 +11,10 @@ import { Box } from "../components/box/box.tsx";
 import { Card } from "../components/card/card.tsx";
 import { Checkbox } from "../components/checkbox/checkbox.tsx";
 import { TextField } from "../components/text-field/text-field.tsx";
-import { APPEARANCES, computed, mounted, render } from "../test/browser.tsx";
+import { cdp } from "vitest/browser";
+
+import { APPEARANCES, colorOn, computed, mounted, render } from "../test/browser.tsx";
+import tokensCss from "../tokens/tokens.css?raw";
 import { density, radiusLevels } from "../tokens/config.ts";
 import { DEPTHS, Theme, themeAxes, themeDefaults, useMaterial } from "./theme.tsx";
 import { Button } from "../components/button/button.tsx";
@@ -295,6 +298,107 @@ describe('contrast="high" reaches the tokens, in both appearances (§7)', () => 
   }
 });
 
+describe("the light palette reaches all four of its cases from ONE rule (§5, §7, 2026-08-26)", () => {
+  // The palette used to ship twice — a full copy in `:root` and a byte-identical one in
+  // `[data-appearance="light"]` — and it is now one rule carrying both selectors. The two
+  // selectors exist for two different reasons, and this law is the proof that grouping them
+  // kept both: `:root` is the UN-THEMED document (it only ever matches <html>, so it cannot
+  // serve a nested light Theme), and `[data-appearance="light"]` is the STATED light (which
+  // is what a light region inside a dark document needs, and what `:root` can never be).
+  //
+  // Read EXHAUSTIVELY, off the rule itself, rather than through a handful of witnesses: the
+  // failure this guards against is "one case lost some of the palette", and a sampled law
+  // answers that with whichever names the sampler happened to like. The names come from the
+  // CSSOM and the reader is LOUD when the rule is missing, so a rename fails the law instead
+  // of blinding it.
+  const tokenNames = (el: Element): string[] => {
+    const names = [...(getComputedStyle(el) as unknown as Iterable<string>)].filter(
+      // The PUBLIC contract (§13). `--kui-*` is private plumbing, most of it registered
+      // `inherits: false`, so it answers about the probe element rather than about the scope.
+      (n) => n.startsWith("--") && !n.startsWith("--kui-"),
+    );
+    if (names.length < 400) throw new Error(`only ${names.length} tokens resolve here — the law would assert nothing`);
+    return names;
+  };
+  const readAll = (el: Element, names: string[]) => {
+    const s = getComputedStyle(el);
+    return names.map((n) => `${n}: ${s.getPropertyValue(n).trim()}`);
+  };
+  /** The roles that INDIRECT (`--color-surface: var(--neutral-1)`) read identically in both
+      appearances as raw token streams, so the resolved arm is what tells light from dark. */
+  const resolved = (el: Element) =>
+    ["--color-surface", "--color-text", "--color-page", "--dress-field-fill", "--tone-solid"].map(
+      (n) => `${n}: ${colorOn(el, `var(${n})`)}`,
+    );
+
+  it("un-themed, stated-light, light-inside-dark and OS-dark all resolve the identical palette", async () => {
+    expect(
+      document.documentElement.hasAttribute("data-appearance"),
+      "a previous law left <html> stamped, so `un-themed` is not un-themed",
+    ).toBe(false);
+
+    // (1) THE UN-THEMED DOCUMENT — no Theme anywhere, no stamp on <html>. This is the case
+    // `:root` exists for, and the only one it can serve. Mounted first because `render()` is
+    // what installs the sheets the CSSOM walk below reads.
+    const bare = render(<div />);
+    const names = tokenNames(bare);
+    const expectedRaw = readAll(bare, names);
+    const expectedResolved = resolved(bare);
+    expect(computed(bare, "color-scheme")).toBe("light");
+
+    // (2) A STATED LIGHT THEME — the default path: `themeDefaults.appearance` is "light", so
+    // every bare <Theme> in the library lands here rather than on :root.
+    const stated = render(
+      <Theme appearance="light">
+        <div />
+      </Theme>,
+    );
+    expect(readAll(stated, names), "a stated light Theme lost part of the palette").toEqual(expectedRaw);
+    expect(resolved(stated)).toEqual(expectedResolved);
+
+    // (3) LIGHT NESTED INSIDE A DARK DOCUMENT — the case `:root` cannot reach, because Theme
+    // renders a div. Without the light selector this subtree INHERITS dark, which is what
+    // "an escape that does nothing is not an escape" means here.
+    document.documentElement.setAttribute("data-appearance", "dark");
+    try {
+      const escaped = render(
+        <Theme appearance="light">
+          <div />
+        </Theme>,
+      );
+      expect(readAll(escaped, names), "a light Theme inside a dark document inherited dark").toEqual(expectedRaw);
+      expect(resolved(escaped)).toEqual(expectedResolved);
+
+      // THE CALIBRATION ARM, and the reason cases 1-3 agreeing means anything: an unescaped
+      // element under the same dark document must NOT agree. Without it "all four resolve the
+      // same" is satisfied by a palette that never changes at all.
+      const inDark = render(<div />);
+      expect(readAll(inDark, names)).not.toEqual(expectedRaw);
+      expect(resolved(inDark)).not.toEqual(expectedResolved);
+      expect(computed(inDark, "color-scheme")).toBe("dark");
+    } finally {
+      document.documentElement.removeAttribute("data-appearance");
+    }
+
+    // (4) THE OS ASKS FOR DARK AND NOBODY STAMPED. The package answers the signal in JS (the
+    // app's pre-paint script stamps data-appearance); it emits no `prefers-color-scheme`
+    // block, so the un-themed document stays light — stated as a MEASUREMENT rather than an
+    // argument, because "the stylesheet has no media branch" is exactly the kind of claim
+    // that is true until someone adds one.
+    await cdp().send("Emulation.setEmulatedMedia", {
+      features: [{ name: "prefers-color-scheme", value: "dark" }],
+    });
+    try {
+      expect(matchMedia("(prefers-color-scheme: dark)").matches, "the emulation did not take").toBe(true);
+      const osDark = render(<div />);
+      expect(readAll(osDark, names), "the stylesheet grew a prefers-color-scheme branch").toEqual(expectedRaw);
+      expect(resolved(osDark)).toEqual(expectedResolved);
+    } finally {
+      await cdp().send("Emulation.setEmulatedMedia", { features: [] });
+    }
+  });
+});
+
 describe("the axis table is the one home, and the defaults live inside it (§5, §12, 2026-08-16)", () => {
   // `themeAxes` and `themeDefaults` are two shapes describing one set of facts, and the way
   // that pair rots is a default drifting outside its own axis's list — reachable by nothing,
@@ -497,5 +601,159 @@ describe("a solid surface HOSTS glass — the pane scopes the region, never the 
       </Theme>,
     );
     expect(control.querySelector("button")!.dataset.material).toBe("on-glass");
+  });
+});
+
+
+describe('contrast="high" needs an appearance beside it, and says so (§7)', () => {
+  /**
+   * MEASURED FIRST, and the measurement is the finding (2026-08-26, ultracode audit).
+   *
+   * Under `<html data-appearance="dark">` — the documented dark-SSR shape, and what
+   * `apps/docs/app/layout.tsx` renders — a `<Theme appearance="inherit" contrast="high">` stamps
+   * `data-contrast="high"` with NO `data-appearance`, because `inherit` writes no attribute. Every
+   * emitted high-contrast token arm needs the appearance on the element, on `:root`, or on a
+   * DESCENDANT; here it is on an ANCESTOR. Measured, `normal` against `high` on that shape:
+   * `--neutral-6` `color(display-p3 0.2111 0.2086 0.2236)` both times, and a TextField's painted
+   * border `color(srgb 0.933333 0.933333 1 / 0.065)` both times. The prop is a silent no-op.
+   *
+   * The palette repair is an emitted-CSS change (`tokens/generate.ts` — an arm for an ANCESTOR
+   * appearance) and is NOT in this commit. What is in it is the thing §20 does for its own two
+   * unsurvivable placements: the mechanism is right, and now something says so when it is absent.
+   * These two laws are the "two implementations owe a law that they AGREE" clause — one drives the
+   * page and reads the warning, the other reads the emitted selectors, so the day the CSS gains
+   * the missing arm the second law fails and names the warning to delete.
+   */
+  const withDocumentAppearance = <T,>(mode: string, run: () => T): T => {
+    const root = document.documentElement;
+    const before = { a: root.dataset.appearance, c: root.dataset.contrast };
+    try {
+      root.dataset.appearance = mode;
+      delete root.dataset.contrast;
+      return run();
+    } finally {
+      if (before.a === undefined) delete root.dataset.appearance;
+      else root.dataset.appearance = before.a;
+      if (before.c === undefined) delete root.dataset.contrast;
+      else root.dataset.contrast = before.c;
+    }
+  };
+
+  /** Collects console.warn for one mount, and restores the real one whatever happens. */
+  const warningsWhile = (run: () => void): string[] => {
+    const said: string[] = [];
+    const real = console.warn;
+    console.warn = (...args: unknown[]) => said.push(args.join(" "));
+    try {
+      run();
+    } finally {
+      console.warn = real;
+    }
+    return said;
+  };
+
+  it("the split pair warns, and every shape that actually works stays quiet", () => {
+    const contrastWarnings = (ui: React.ReactElement) =>
+      warningsWhile(() => render(ui)).filter((line) => line.includes("high-contrast palette selects nothing"));
+
+    // THE DEFECT: appearance inherited from <html>, contrast asked for here.
+    expect(
+      withDocumentAppearance("dark", () =>
+        contrastWarnings(
+          <Theme appearance="inherit" contrast="high">
+            <TextField />
+          </Theme>,
+        ),
+      ),
+      "a Theme whose contrast reaches nothing said nothing about it",
+    ).toHaveLength(1);
+
+    // AND THE NEGATIVE CONTROLS, which are what stop this being a warning that cries wolf.
+    // Each is a shape the emitted CSS genuinely serves, so a warning here would be a false
+    // alarm — and without them the guard could be "warn whenever contrast is high" and pass.
+    expect(
+      contrastWarnings(
+        <Theme appearance="dark" contrast="high">
+          <TextField />
+        </Theme>,
+      ),
+      "the co-located pair is the ordinary working shape",
+    ).toEqual([]);
+    expect(
+      withDocumentAppearance("dark", () =>
+        contrastWarnings(
+          // `appearance="inherit"` on the OUTER one is load-bearing (caught by this law's own
+          // sabotage run): without it the outer Theme resolves `light` from `themeDefaults` and
+          // stamps its own appearance, so the guard returns on the co-location check and the
+          // descendant arm is never reached — a fixture that cannot tell the two apart.
+          <Theme appearance="inherit" contrast="high">
+            <Theme appearance="dark">
+              <TextField />
+            </Theme>
+          </Theme>,
+        ),
+      ),
+      "the descendant-appearance arm works (added 2026-08-20) and must not be warned about",
+    ).toEqual([]);
+    expect(
+      withDocumentAppearance("dark", () =>
+        contrastWarnings(
+          <Theme appearance="inherit" contrast="normal">
+            <TextField />
+          </Theme>,
+        ),
+      ),
+      "asking for `normal` is an opt-out, not a broken high-contrast scope",
+    ).toEqual([]);
+  });
+
+  it("no emitted arm matches a bare data-contrast — which is WHY the warning exists", () => {
+    /**
+     * The agreement half. `warnOnSplitContrast` encodes a fact about the stylesheet, and a
+     * warning that outlives its fact is noise — so the fact is read here rather than trusted.
+     *
+     * Every selector group that opens a high-contrast TOKEN block must demand `data-appearance`
+     * somewhere: on the element, on `:root` (which is `<html>`, where the appearance lives on the
+     * un-themed path), or on a descendant. The three `[data-contrast="high"] .kui-row…` rules are
+     * not token blocks and legitimately need only an ancestor's contrast — they are excluded by
+     * reading what they select, not by name.
+     */
+    // Selector groups are read by walking to each `{` from the previous brace, so a group split
+    // across lines is one group — a line-anchored regex was this law's first spelling and its own
+    // sabotage caught it: adding the arm on a line of its own left the scanner reading the line
+    // that happened to carry the brace, and the law passed over the very shape it exists to see.
+    const css = tokensCss.replace(/\/\*[\s\S]*?\*\//g, " ");
+    const groups: string[] = [];
+    for (let open = css.indexOf("{"); open !== -1; open = css.indexOf("{", open + 1)) {
+      const start = Math.max(css.lastIndexOf("}", open), css.lastIndexOf("{", open - 1)) + 1;
+      const selector = css.slice(start, open).trim();
+      if (selector.includes("[data-contrast")) groups.push(selector);
+    }
+    expect(groups.length, "the scanner found no high-contrast selectors at all").toBeGreaterThan(2);
+
+    const tokenBlocks = groups.filter((g) => !g.includes(".kui-"));
+    expect(tokenBlocks.length, "the scanner found no TOKEN blocks — tokens.css' shape moved").toBeGreaterThan(1);
+
+    /**
+     * THE SUBJECT is what matters, not whether the arm mentions an appearance ANYWHERE — this
+     * law's second spelling read the whole arm and passed its own sabotage, because the arm that
+     * would close the hole (`[data-appearance="dark"] [data-contrast="high"]`) of course mentions
+     * one: on the ANCESTOR. Declarations land on the rightmost compound, so the question is
+     * whether THAT element carries the appearance, or is `:root` (the un-themed document, where
+     * `<html>` carries both).
+     */
+    const subject = (arm: string) => arm.trim().split(/\s+/).pop() ?? "";
+    const bare = tokenBlocks.flatMap((group) =>
+      group
+        .split(",")
+        .map(subject)
+        .filter((s) => s.includes("[data-contrast") && !s.includes("[data-appearance") && !s.startsWith(":root")),
+    );
+    expect(
+      bare,
+      "an emitted arm now reaches an element carrying data-contrast alone. If that arm pairs the " +
+        "contrast with an ANCESTOR appearance, the appearance=\"inherit\" hole is closed — delete " +
+        "`warnOnSplitContrast` in theme.tsx and the law above it, and amend the `contrast` JSDoc.",
+    ).toEqual([]);
   });
 });

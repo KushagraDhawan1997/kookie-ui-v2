@@ -17,6 +17,7 @@ import {
   APPEARANCES,
   DEPTHS,
   SIZES,
+  asksForStillness,
   colorOn,
   computed,
   inMotion,
@@ -493,6 +494,57 @@ describe("glass and the grip (§10, §26, 2026-08-24)", () => {
     expect(getComputedStyle(solid, "::after").backgroundImage).not.toContain("conic-gradient");
   });
 
+  it("a glass TRACK wears the pane's RIM too — the sixth part, added 2026-08-26", () => {
+    /**
+     * The track joined the ring list at the 2026-08-24 lock and was left off the RIM list in
+     * the same change, so it resolved five of §10's six parts. Measured at `thick` over a
+     * backdrop before the repair: a glass Button computed
+     * `url("data:image/svg+xml;utf8,<svg …feTurbulence…")` — the baked grain — and the track
+     * beside it computed `background-image: none`. That is the Button's own 2026-08-16 defect
+     * ("the button used to be excluded from this rule entirely rather than composed, so a
+     * glass Button had no rim at all") reproduced on the member that joined the ring.
+     *
+     * Asserted as the AGREEMENT with a glass Button in the same tree, not against a token
+     * name: at control scale the rim is `rim(0)` — the grain layer alone — and what the lock
+     * forbids is the two panes rendering different material, which only a comparison can say.
+     * `thick` is chosen deliberately: it is the rung whose config comment says "thicker glass
+     * catches more light", so it is where an absent grain shows most. The Button is QUIET for
+     * the same reason the comparison is legitimate at all: a glass button's second background
+     * layer is its RUNG's wash (`--kui-ct-light`), which is rank and not material, and a track
+     * carries no rank — so a medium button would differ here for a reason §10 permits. Quiet
+     * declares that layer `none`, which is what a track's resolves to, leaving the material
+     * as the only thing the two stacks can disagree about.
+     */
+    const host = render(
+      <Theme material="thick">
+        <Box backdrop>
+          <SegmentedControl defaultValue="list">
+            <SegmentedItem value="list">List</SegmentedItem>
+            <SegmentedItem value="grid">Grid</SegmentedItem>
+          </SegmentedControl>
+          <Button emphasis="quiet">b</Button>
+        </Box>
+      </Theme>,
+    );
+    const track = within(host, ".kui-segmented");
+    const button = within(host, ".kui-button");
+    // The premise: both really are panes at the same rung, or the comparison below is
+    // between two things that agree for the wrong reason.
+    expect(track.getAttribute("data-material")).toBe("thick");
+    expect(button.getAttribute("data-material")).toBe("thick");
+    // The calibration arm: the rim is a real, painted thing here — a repair that deleted the
+    // grain from BOTH members would satisfy a bare equality.
+    expect(computed(button, "background-image"), "the rim stopped painting at all").toContain(
+      "data:image/svg+xml",
+    );
+    expect(
+      computed(track, "background-image"),
+      "a glass track rendered a different material from the button beside it",
+    ).toBe(computed(button, "background-image"));
+    // And a SOLID track still paints none — the rim is the material's, never the well's.
+    expect(computed(control({}), "background-image")).toBe("none");
+  });
+
   for (const appearance of APPEARANCES) {
     it(`${appearance}: on a glass TRACK the thumb is the pane's own GRIP, flat, under full ink`, () => {
       // Kushagra: "When glass, segmented control's thumb should render as neutral gray like
@@ -733,6 +785,30 @@ describe("the grip travels between segments (§8, §26)", () => {
       expect(at(lead), `${dir}: the leading edge is not on the short clock`).toBe("0.32s");
       expect(at(trail), `${dir}: the trailing edge is not on the long clock`).toBe("0.48s");
       expect(at(lead)).not.toBe(at(trail));
+    });
+
+    it(`${dir}: and the OS can stop it — the stand-down nothing verified (§8, audit 2026-08-26)`, async () => {
+      /**
+       * The grip's flight is declared on `.kui-segment-thumb[data-activation-direction=…]`,
+       * two attributes heavier than the shared `.kui-control *` stand-down, so this file's own
+       * guarded block is the only thing that can win — and until this law nothing verified that
+       * it does. The node law meant to check it skipped any file carrying a
+       * `prefers-reduced-motion` block ANYWHERE (repaired the same day), and the mounted parts
+       * list in system/motion.browser.test.tsx names five parts, neither of them this one.
+       *
+       * Pointed at the state it names: an unstamped grip has no clock to stand down, so the
+       * direction has to land first — the same wait the clock law above makes.
+       */
+      inMotion();
+      await asksForStillness();
+      const { thumb, segs } = three(dir === "back" ? { defaultValue: "c" } : {});
+      const want = dir === "forward" ? "right" : "left";
+      await userEvent.click(segs[target]!);
+      await until(() => thumb.getAttribute("data-activation-direction") === want);
+      expect(
+        computed(thumb, "transition-duration"),
+        `${dir}: the grip still glides for a user who asked for stillness`,
+      ).toBe("0s");
     });
   }
 

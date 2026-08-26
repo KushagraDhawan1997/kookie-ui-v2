@@ -19,7 +19,24 @@ import { Theme, useThemeRooted } from "../theme/theme.tsx";
 export type TextDirection = "ltr" | "rtl";
 
 export type FloatingDirection = {
-  direction: TextDirection;
+  /**
+   * `null` MEANS NOBODY MEASURED, and it is not the same as `ltr` (2026-08-26, ultracode audit).
+   *
+   * The context default used to be the literal `"ltr"`, and `PortalScope` stamps whatever it
+   * holds — so a portalling component that forgot to provide this context did not fall back to
+   * "no opinion", it asserted the wrong one, and a stamped `ltr` OVERRIDES the `rtl` the portal
+   * would have inherited from the document. That is the stale-stamp failure this file's own
+   * `useAmbientDirection` comment records twice, and it shipped twice more anyway: Popover and
+   * Tooltip were both written without the provider and both opened `dir="ltr"` panels inside
+   * `<html dir="rtl">` apps, fixed the same day this was.
+   *
+   * Fixing the two call sites leaves the trap loaded for the next one, so the trap is removed
+   * instead: an unmeasured direction is `null`, `PortalScope` stamps nothing, and the portal
+   * inherits the document — which is the honest answer and the one `useAmbientDirection`'s own
+   * document fallback already reaches for. `anchor` has spelled absence as `null` since it was
+   * written; this is only its neighbour catching up.
+   */
+  direction: TextDirection | null;
   /** Attached to the trigger — the one in-flow node a floating component owns. */
   measure: (node: HTMLElement | null) => void;
   /** The measured trigger itself. The entry reads its box (the seed leans to the trigger's own
@@ -34,8 +51,12 @@ export type FloatingDirection = {
     catches the idiom as it is actually written. */
 const DIRECTION_ATTRS = ["dir", "lang", "style", "class"];
 
+/** What a component ROOT hands down: it measured, so the direction is never null. Every
+    `DirectionProvider` in this package reads `.direction` off one of these. */
+export type MeasuredDirection = FloatingDirection & { direction: TextDirection };
+
 export const FloatingDirectionContext = React.createContext<FloatingDirection>({
-  direction: "ltr",
+  direction: null,
   measure: () => {},
   anchor: () => null,
 });
@@ -62,7 +83,7 @@ export const FloatingDirectionContext = React.createContext<FloatingDirection>({
  * such library writes to, and to the attributes a direction change can ride on, so an app that
  * never changes direction pays one observer and zero callbacks.
  */
-export function useAmbientDirection(): FloatingDirection {
+export function useAmbientDirection(): MeasuredDirection {
   const [direction, setDirection] = React.useState<TextDirection>("ltr");
   const node = React.useRef<HTMLElement | null>(null);
 
@@ -114,7 +135,7 @@ export function useAmbientDirection(): FloatingDirection {
   }, [read]);
 
   const anchor = React.useCallback(() => node.current, []);
-  return React.useMemo<FloatingDirection>(
+  return React.useMemo<MeasuredDirection>(
     () => ({ direction, measure, anchor }),
     [direction, measure, anchor],
   );
@@ -143,7 +164,11 @@ export function PortalScope({ children }: { children: React.ReactNode }) {
   const rooted = useThemeRooted();
   warnUnframed(rooted);
   const scope = (
-    <div className="kui-portal" dir={direction}>
+    // Spread rather than `dir={direction}`, because `dir={null}` and `dir={undefined}` both
+    // render no attribute while `exactOptionalPropertyTypes` refuses the second — and the
+    // distinction being expressed at all is the point: an unmeasured direction states nothing,
+    // so the portal keeps the document's.
+    <div className="kui-portal" {...(direction ? { dir: direction } : {})}>
       {children}
     </div>
   );
@@ -1096,6 +1121,38 @@ function useFlight(plan: FlightPlan) {
              * the transition that is still declared on height carries it there. Correcting the
              * parent afterwards is a frame too late: the panel is already travelling.
              */
+            /**
+             * ONE ARM, AND IT SERVES THE ITEM-ALIGNED SELECT TOO (2026-08-26, the ultracode
+             * audit — measured, not argued).
+             *
+             * This restore shipped with a second `else if (positioner && heldHeight)` arm
+             * whose comment named exactly one subject: "an item-aligned select's positioner
+             * height is Base UI's". That arm could never run for it. `data-side` is Base UI's
+             * PLACED signal and an item-aligned select stamps the string `none` — which
+             * `hasAttribute` reads as present, the fact this same file records 190 lines up as
+             * the reason `data-side` is the wrong discriminator for `fitToRoom`. So the case
+             * the second arm documented satisfied the FIRST one, and the arm had no reachable
+             * input at all: `heldHeight` is non-empty only where Base UI wrote an inline
+             * positioner height, which only that placement does, and that placement is placed.
+             *
+             * Instrumented at the release of a 30-row item-aligned select: `IF[side=none,
+             * held=780px] |h=780px |w=[] |pin=[] |win=800` — the `if` taken, Base UI's own
+             * 780px handed back, the pose's width and the correction marker both gone, and
+             * `ELSE[…]` never once printed.
+             *
+             * The 2026-08-22 argument the dead arm carried is kept, because it is why the
+             * height is restored at all rather than left to the pin (Kushagra: after the entry
+             * "settles, it scrolls down a bit internally, ever so slightly"). Base UI re-solves
+             * that height whenever the popup's size changes, and during the flight the popup's
+             * size is a lie by construction — measured, 349px before takeoff and 353px by the
+             * time the flight released, so the panel landed where it aimed and then `height:
+             * 100%` grew the last 4px against the newer parent. On a scrolling panel that is
+             * not cosmetic: a box growing is the list's own room shrinking, and the maximum
+             * offset fell 21 → 17 one pixel per pixel. Writing the value back at POSE time is a
+             * no-op — setting an inline style to what it already holds prevents nobody from
+             * writing a different one later — so the correction has to land after the writer
+             * has finished, which is here.
+             */
             if (positioner?.hasAttribute("data-side")) {
               // Put back what was found, which is `""` where the runner was the only writer
               // and Base UI's own length where it was not (see the snapshot above). The
@@ -1103,34 +1160,6 @@ function useFlight(plan: FlightPlan) {
               positioner.style.width = heldWidth;
               positioner.style.height = heldHeight;
               positioner.style.removeProperty("--kui-pin-fit");
-            } else if (positioner && heldHeight) {
-              /**
-               * …AND THE HEIGHT IS PUT BACK EVEN WHERE BASE UI OWNS IT (2026-08-22, Kushagra:
-               * after the entry "settles, it scrolls down a bit internally, ever so slightly").
-               *
-               * An item-aligned select's positioner height is Base UI's — written before the
-               * panel opens, and re-solved whenever the popup's size changes. During the flight
-               * the popup's size is a lie by construction, so it re-solves against the lie:
-               * measured on a panel the window is squeezing, 349px before takeoff and 353px by
-               * the time the flight released. The entry aimed at the height it had measured,
-               * landed there, and then `height: 100%` resolved against the newer parent and
-               * grew the last 4px on its own, after the entry had said it was finished.
-               *
-               * Those 4px are not cosmetic on a scrolling panel, because a box growing is the
-               * list's own room shrinking: the maximum offset fell 21 → 17 and took the
-               * placement with it, one pixel per pixel. That is the creep.
-               *
-               * Restoring rather than pinning, and the difference is what the first attempt got
-               * wrong: writing the value back at POSE time is a no-op, because setting an inline
-               * style to what it already holds prevents nobody from writing a different one
-               * later. The correction has to land after the writer has finished, which is here.
-               *
-               * Only the HEIGHT, and only where Base UI already wrote one: the width is the
-               * anchor floor's business and the entry publishes that separately, and a
-               * positioner with no height of its own is one this does not understand and must
-               * not start managing.
-               */
-              positioner.style.height = heldHeight;
             }
             if (borrowed) popup.style.height = borrowed;
             // Overflow first, THEN the offset: a box that is still `clip` has nowhere to put a
