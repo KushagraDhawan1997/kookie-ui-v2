@@ -1327,6 +1327,35 @@ export const material = {
       rim-light and drew the "weird boundary" double edge, and in light the bloom read as a
       glow no matte slab has. Percent sheen alphas, the glass cells' own unit. */
   sealSheen: { light: 30, dark: 10 },
+  /** §10 — the GROUND's own lighting (2026-08-26, Kushagra: in a glass app a Surface reads as
+      if it came from a different system). A ground stood down its lighting WHOLE on
+      2026-08-21 because one ingredient was wrong: the grain is a fixed white overlay, so it
+      lifted a dark ground by 0.042 against tonal steps of ~0.011 — four times the whole
+      ladder. Deleting the recipe deleted the concept along with the offending value, and what
+      was left is the only opaque box in the library with no light on it at all.
+
+      It is lit as what it IS, and that is the half the pane's recipe cannot supply: a ground
+      is a RECESS — a hole in a plane, which is why it casts nothing — so the light coming
+      from above is blocked by the wall at its top and lands on the floor at its bottom. Shade
+      down from the top edge, a faint collect up from the bottom: the pane's model inverted,
+      which is the same inversion the ring already states for a raised lip (bright top, shade
+      bottom). Applying the pane's own direction here would light a dent as if it stuck out.
+
+      NO GRAIN. That is the 2026-08-21 finding kept rather than re-argued — a bed has no tooth
+      to catch, and the measurement that condemned it has not changed.
+
+      The band is stated in PIXELS and not in percent, unlike the seal's sheen: a dent's depth
+      is a fixed physical distance, and a ground can be a whole page region, so a percentage
+      would make a tall ground's shade a soft half-screen wash instead of an edge. The pool one
+      entry up is the precedent for px in this family.
+
+      Held under the ladder by law, not by care: the peak excursion of either wash must stay
+      inside one tonal step of the palette, so no future edit can re-commit the grain's 28x.
+      Values are taste, judged in the playground like every other number in this file. */
+  groundRim: {
+    light: { shade: 3, shadeTo: 14, collect: 30, collectTo: 8 },
+    dark: { shade: 14, shadeTo: 14, collect: 1, collectTo: 8 },
+  },
   /** §10 — the WASHES a glass CONTROL's louder rungs keep (lab, rendered values 2026-08-17):
       the pane-minus-wash rule holds for the box itself, but the lab's grid gives the filled
       rungs their own light — loud sheen 10, medium 8 (bloom rides at ×1.4 in the recipe);

@@ -540,24 +540,39 @@
 .kui-surface.kui-ground {
   --kui-sf-fill-src: var(--color-ground);
   --kui-border-color: var(--color-border);
-  /* A ground carries NO pane lighting — no grain, no sheen (2026-08-21, Kushagra: the pane
-     "still reads too heavy"). The rim's own argument is that a pane catches light and that
-     glass needs tooth; a ground is a bed rather than an object, and is never glass. It was
-     wearing one only by inheriting the base rule.
+  /* A ground carries the PANE's lighting nowhere, and its OWN everywhere (2026-08-26).
 
-     Measured, not argued: the grain is a fixed white overlay at 4.5%, so what it does depends
-     entirely on what is under it — it lifts a LIGHT ground by 0.002 and a DARK one by 0.042,
-     28x the same token, against tonal steps of 0.011 (page to ground) and 0.011 (ground to
-     card). The texture was louder than the whole ladder it sat in, which is why the fill kept
-     reading wrong while the fill was not the problem. The sheen is already stated per mode
-     (30 light / 10 dark); nobody had noticed the same asymmetry one layer down.
+     The 2026-08-21 stand-down was right about the ingredient and too wide by a recipe. The
+     grain is a fixed white overlay at 4.5%, so what it does depends entirely on what is under
+     it — it lifts a LIGHT ground by 0.002 and a DARK one by 0.042, 28x the same token, against
+     tonal steps of ~0.011 (page to ground, ground to card). The texture was louder than the
+     whole ladder it sat in. But `background-image: none` deleted the concept along with the
+     value, and left the one opaque box in the library with no light on it at all — which is
+     what a Surface in a glass app reads as (Kushagra: it looks like it came from a different
+     system).
 
-     Stated as the PROPERTY, not the hook: --kui-sf-light is not registered `inherits: false`,
-     so standing it down here reached every pane INSIDE the ground too — measured, the card
-     sitting on it lost its own rim. The var-inheritance trap this file has been bitten by four
-     times, and the law that pins it holds a card inside a ground against one that never met
-     one. */
-  background-image: none;
+     So the grain stays gone and the ground gets a recipe of its own, lit as WHAT IT IS. A pane
+     is an object: light lands on its top and its underside falls away, which is the direction
+     the ring and the seal's sheen both state. A ground is a RECESS — a hole in a plane, which
+     is why it casts nothing three declarations down — so the same light is blocked by the wall
+     at its top and collects on the floor at its bottom. The model inverted, not borrowed:
+     lighting a dent from the top makes it read as if it stuck out, and that is the whole reason
+     the pane's conic ring cannot simply be re-pointed here (its bright arc lands on the one
+     edge a dent has no business brightening — measured 0.0016 against the page in light, where
+     the hairline it would replace measures 0.1497).
+
+     Stated as the PROPERTY, not the hook, and that half is unchanged: --kui-sf-light is not
+     registered `inherits: false`, so touching it here reaches every pane INSIDE the ground too
+     — measured, the card sitting on it lost its own rim. The var-inheritance trap this file has
+     been bitten by four times, and the law that pins it holds a card inside a ground against one
+     that never met one.
+
+     Mode-only, never depth-flavoured — the seal's own sentence: this is what the ground is made
+     of, not what the app says about it, so `flat` does not rest it. It survives contrast="high"
+     for the 2026-08-20 reason the rim's own stand-down died of: a wash INSIDE a box cannot lower
+     the contrast of the boundary around it, and emptying it only removes the cue that the region
+     is physically there. */
+  background-image: var(--material-ground-rim);
   /* A ground does not cast, and the stand-down is stated on BOTH hops for the reason the
      2026-08-07 audit recorded: the world's chrome arrives by inheritance and the pane's own
      cast is a separate non-inheriting name consulted first. A hole in a plane throws no

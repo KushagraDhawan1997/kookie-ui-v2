@@ -8,6 +8,67 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-26 A ground is lit like a dent, and the glass ring stays on the glass
+
+Kushagra, on a glass app: "I think we should have conic gradient hairline on components like
+Surface or flat Card etc wherever we have plain hairline, no? ... Tell me why not." The
+observation was right and the mechanism was not, and separating the two is the whole entry.
+
+**Why the ring cannot take the plain hairlines.** Measured on mounted subjects rather than
+argued. The ring is `conic-gradient(from 345deg, …)`: a catch at the top, shade at the bottom —
+the visible thickness of a translucent slab lit from a fixed source, with alphas priced to
+composite over what is coming through it. On a glass pane its weak arc does not matter, because
+the blur discontinuity, the lens bend, the glint band and the pool all draw the same edge. On an
+opaque box it is the only cue, and **a hairline is worth its weakest arc**. Against the page a
+ground's ring arcs run 0.0016–0.1780 in light and 0.0482–0.3269 in dark, where the pigment
+hairline it would replace holds 0.1497 and 0.2042 uniformly; under `contrast="high"` the pigment
+edge is 0.3863 and the ring's *best* arc is under half that. So in light the top of every ground
+disappears and in dark the bottom does — which is the 2026-08-24 report ("if they didnt have that
+hairline, they would blend with background too") re-committed one element over. It also does not
+generalise: conic is a corner-wrapping device (that is why it is conic, lab 2026-08-15), and most
+plain hairlines here are straight single lines — Separator, Blockquote's rule, the Tabs bar, the
+Shell seams — where it degenerates to one arbitrary stop. Two of eight converted is the
+inconsistency the proposal was trying to remove. Rejected with it: keeping the pigment edge AND
+adding the ring, which is the double-line defect this repo has shipped three times.
+
+**What was actually wrong, and it was not the hairline.** An elevated solid Card already has no
+border at all (alpha 0, bounded by cast, pool and `--material-solid-rim`) and reads fine beside
+glass. The odd one out is the GROUND, and the cause is that 2026-08-21 stood its lighting down
+WHOLE to fix one ingredient. The grain was correctly condemned — a fixed 4.5% white overlay lifts
+a light ground by 0.002 and a dark one by 0.042, 28× the same token — but `background-image: none`
+deleted the recipe with the value, and left the one opaque box in the library with no light on it
+at all while every pane around it grew a ring, a rim and a pool through the lab port.
+
+**So the ground gets a recipe of its own, and the direction is the finding.** A pane is an object:
+light lands on its top, its underside falls away. A ground is a recess — a hole in a plane, which
+is why it casts nothing — so the same light is blocked by the wall at its top and collects on the
+floor at its bottom. `--material-ground-rim` is the pane's model INVERTED, never borrowed: shade
+down from the top edge, a faint collect up from the bottom. Lighting a dent from the top makes it
+read as if it stuck out, which is the same mistake the ring would have made, arriving by a
+different road. No grain — that measurement has not changed. Stated in PIXELS where the seal's
+sheen is in percent, because a dent's depth is a fixed distance and a ground can be a whole page
+region, where a percentage makes the shade a soft half-screen wash.
+
+**And the law the 2026-08-21 finding never had.** That finding had to be reported by eye: nothing
+asserted the lighting was quieter than the structure. The grain was not wrong for being white, it
+was wrong for moving a dark ground four times further than the whole page–ground–card ladder. Each
+wash's peak is now held under one tonal step of the ladder it sits in — stated against the LADDER
+rather than as an alpha ceiling, because light's ladder (0.033) and dark's (0.011) are three times
+apart and one ceiling would be wrong in one mode. The direction is law-read in both modes too.
+Four sabotage passes, each caught by exactly its own law: lighting it like a pane, raising an alpha
+past the ladder, putting the grain back, and re-pointing through `--kui-sf-light` instead of the
+property — the last of which still strips the held card's rim, so the 2026-08-21 inheritance trap
+is confirmed live and guarded rather than remembered.
+
+**The law that pinned the old decision was rewritten, not deleted.** It asserted
+`background-image: none`, which is a decision stated as a guarantee; the half that was
+load-bearing (a ground's lighting must not reach the panes inside it, with a bare Card as the
+control) is unchanged. Values are taste, one config line each, judged in the playground against a
+ground with the recipe stood down — that A/B ships in the Surface section rather than being
+described.
+
+---
+
 ## 2026-08-26 The audit's shared layer: three reversals, one promotion, and a role set that grew a twin
 
 The 2026-08-26 ultracode audit's second half — the shared layer, held back from the component

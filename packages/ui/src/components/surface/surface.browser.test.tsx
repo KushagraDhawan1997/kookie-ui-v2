@@ -16,6 +16,50 @@ import { Surface } from "./surface.tsx";
 const tokenOn = (el: Element, name: string): string => colorOn(el, `var(${name})`);
 const SIZES = ["1", "2", "3", "4"] as const;
 
+/** sRGB 0-1 plus alpha, from any computed colour the engine hands back.
+ *
+ * INSTRUMENT NOTE, copied deliberately with its scar (material.browser.test.tsx, 2026-08-24):
+ * a bare `[\d.]+` sweep over `color(display-p3 0.98 …)` takes the **3 in display-p3** as the
+ * red channel, and the tell is a score that is identical before and after a fix. The
+ * colourspace keyword is stripped before any digit is read. */
+function rgba(v: string): { r: number; g: number; b: number; a: number } {
+  const inner = v.slice(v.indexOf("(") + 1, v.lastIndexOf(")"));
+  const [main = "", alphaPart] = inner.split("/");
+  const body = main.replace(/^\s*[a-z][\w-]*\s+/i, "");
+  const nums = [...body.matchAll(/-?[\d.]+(?:e-?\d+)?/g)].map((m) => Number(m[0]));
+  const scale = /^rgba?\(/i.test(v.trim()) ? 255 : 1;
+  const [r = 0, g = 0, b = 0] = nums.slice(0, 3).map((n) => n / scale);
+  const a = alphaPart !== undefined ? Number(alphaPart) : (nums[3] ?? 1);
+  return { r, g, b, a };
+}
+
+const luma = (c: { r: number; g: number; b: number }) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+
+/** What a wash paints once it is composited over the fill behind it. */
+const over = (s: { r: number; g: number; b: number; a: number }, b: { r: number; g: number; b: number }) => ({
+  r: s.r * s.a + b.r * (1 - s.a),
+  g: s.g * s.a + b.g * (1 - s.a),
+  b: s.b * s.a + b.b * (1 - s.a),
+});
+
+/**
+ * The ground's two washes at their PEAKS — the first stop of each gradient, which is the value
+ * sitting against the edge it is drawn from. Returned in the order the recipe states them (top
+ * shade first, bottom collect second), and both must be present: a recipe that emitted one
+ * layer would otherwise read as a ground with half a dent and quietly pass the direction law
+ * with `undefined`.
+ */
+function washes(el: Element): [ReturnType<typeof rgba>, ReturnType<typeof rgba>] {
+  const img = computed(el, "background-image");
+  const stops = [...img.matchAll(/(?:rgba?|color)\([^)]*\)/g)]
+    .map((m) => rgba(m[0]))
+    .filter((c) => c.a > 0.001);
+  if (stops.length !== 2) {
+    throw new Error(`expected exactly two wash peaks in the ground's lighting, got ${stops.length}: ${img}`);
+  }
+  return [stops[0]!, stops[1]!];
+}
+
 describe("a ground, not an object (§10, 2026-08-20)", () => {
   it("paints the ground role and the family-less hairline, in both appearances", () => {
     for (const appearance of APPEARANCES) {
@@ -100,17 +144,16 @@ describe("a ground, not an object (§10, 2026-08-20)", () => {
     }
   });
 
-  it("carries no pane lighting — and the cards on it keep theirs", () => {
-    // A ground is a bed, not an object catching light, and it is never glass — so the rim's own
-    // argument (a pane catches light; glass needs tooth) does not reach it. It was wearing one
-    // by inheriting the base rule, and the cost was measured rather than argued: the grain is a
-    // fixed white overlay, so it lifts a light ground by 0.002 and a dark one by 0.042 — 28x —
-    // against tonal steps of 0.006 and 0.017. The texture was louder than the ladder it sat in.
+  it("carries its OWN lighting, never the pane's — and the cards on it keep theirs", () => {
+    // REWRITTEN 2026-08-26. The law this replaces asserted `background-image: none`, which was
+    // the 2026-08-21 decision stated as a guarantee — and that decision was right about the
+    // ingredient and one recipe too wide. The grain is a fixed white overlay, so it lifts a
+    // light ground by 0.002 and a dark one by 0.042 — 28x the same token — against tonal steps
+    // the ladder actually spends. Standing the WHOLE recipe down to fix the grain left the one
+    // opaque box in the library with no light on it at all.
     //
-    // The SECOND half is the law that matters. The first repair stood the rim down through
-    // `--kui-sf-light`, which is not registered `inherits: false`, so every pane INSIDE the
-    // ground lost its lighting too — measured, the held card went bare. Stating the property
-    // directly is what keeps it to the one box.
+    // Three claims, and the middle one is the reason the ring cannot simply be re-pointed here:
+    // a ground is lit, it is not lit like a pane, and it still contains its lighting to itself.
     for (const appearance of APPEARANCES) {
       const ground = mounted(
         <Surface>
@@ -118,18 +161,72 @@ describe("a ground, not an object (§10, 2026-08-20)", () => {
         </Surface>,
         { theme: { appearance }, select: ".kui-ground" },
       );
-      expect(computed(ground, "background-image"), `${appearance}: a bed carries no lighting`).toBe("none");
+      const bed = computed(ground, "background-image");
+      expect(bed, `${appearance}: a bed is lit`).not.toBe("none");
+      // NOT the pane's recipe. A ground borrowing the seal's sheen is the mistake this whole
+      // entry exists to avoid — it would light a dent from the top, as if it stuck out.
+      const bare = mounted(<Card>Body</Card>, { theme: { appearance }, select: ".kui-card" });
+      const paneRim = computed(bare, "background-image");
+      expect(bed, `${appearance}: a ground is not lit like an object`).not.toBe(paneRim);
+      // …and specifically it keeps NO grain: that is the 2026-08-21 measurement kept, not
+      // re-argued. A bed has no tooth to catch.
+      expect(bed.toLowerCase(), `${appearance}: a bed has no tooth`).not.toContain("turbulence");
+      expect(paneRim.toLowerCase(), `${appearance}: …and the pane still does`).toContain("turbulence");
+
+      // THE HALF THAT MATTERS, unchanged from the law this replaces. `--kui-sf-light` is not
+      // registered `inherits: false`, so touching it here reaches every pane INSIDE the ground
+      // — measured, the held card went bare. Stating the property directly is what keeps the
+      // ground's lighting to the one box, and the bare card is the control that makes the claim
+      // mean something.
       const held = computed(within(ground, "[data-testid='held']"), "background-image");
       expect(held, `${appearance}: the card on it must keep its own`).not.toBe("none");
-      // …and it is the real rim, not some other image: grain and sheen, both.
       expect(held.toLowerCase()).toContain("turbulence");
       expect(held).toContain("gradient");
-      // The control that makes the inheritance claim mean something: a card with no ground
-      // anywhere resolves the identical lighting.
-      const bare = mounted(<Card>Body</Card>, { theme: { appearance }, select: ".kui-card" });
-      expect(held, `${appearance}: identical to a card that never met a ground`).toBe(
-        computed(bare, "background-image"),
-      );
+      expect(held, `${appearance}: identical to a card that never met a ground`).toBe(paneRim);
+    }
+  });
+
+  it("is lit as a RECESS: shade at the top, collect at the bottom, in both modes", () => {
+    // The principle, not the numbers — the grip law's own shape one family over, so the values
+    // stay taste and the direction stays law. A pane is an object: light lands on its top. A
+    // ground is a hole in a plane (which is why it casts nothing, two laws up), so the same
+    // light is blocked by the wall above it and collects on the floor below.
+    //
+    // This is the law that a re-pointed conic ring would fail: the ring's bright arc is its
+    // TOP, which on a dent is the one edge that must not brighten.
+    for (const appearance of APPEARANCES) {
+      const ground = mounted(<Surface>Region</Surface>, { theme: { appearance }, select: ".kui-ground" });
+      const [top, bottom] = washes(ground);
+      const fill = rgba(computed(ground, "background-color"));
+      expect(
+        luma(over(top, fill)),
+        `${appearance}: the top wall of a dent is in shade`,
+      ).toBeLessThan(luma(fill));
+      expect(
+        luma(over(bottom, fill)),
+        `${appearance}: the floor of a dent catches the light`,
+      ).toBeGreaterThan(luma(fill));
+    }
+  });
+
+  it("its light stays UNDER the tonal ladder it sits in", () => {
+    // The law the 2026-08-21 finding never had, and the reason that finding had to be reported
+    // by eye. The grain was not wrong because it was white; it was wrong because it moved a dark
+    // ground FOUR TIMES further than the whole page->ground->card ladder, so the texture spoke
+    // louder than the structure. Stated against the ladder rather than as an alpha ceiling,
+    // because the ladder is what the number has to lose to — and because light's ladder (0.033)
+    // and dark's (0.011) are three times apart, so one alpha ceiling would be wrong in one mode.
+    for (const appearance of APPEARANCES) {
+      const ground = mounted(<Surface>Region</Surface>, { theme: { appearance }, select: ".kui-ground" });
+      const fill = rgba(computed(ground, "background-color"));
+      const step = Math.abs(luma(fill) - luma(rgba(colorOn(ground, "var(--color-page)"))));
+      for (const [name, wash] of [["top", washes(ground)[0]], ["bottom", washes(ground)[1]]] as const) {
+        const moved = Math.abs(luma(over(wash, fill)) - luma(fill));
+        expect(
+          moved,
+          `${appearance}/${name}: the lighting (${moved.toFixed(4)}) is louder than the ladder it sits in (${step.toFixed(4)})`,
+        ).toBeLessThan(step);
+      }
     }
   });
 

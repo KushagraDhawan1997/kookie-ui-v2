@@ -1105,6 +1105,19 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
   // (2026-08-17): grain + one sheen to a 55% stop, no bloom, no top catch. One value for
   // both depth worlds; a matte slab has no lifted glint to catch.
   const solidRim = [GRAIN, `linear-gradient(180deg, rgb(255 255 255 / ${material.sealSheen[mode]}%), transparent 55%)`].join(", ");
+  // The GROUND's lighting (§10, 2026-08-26): a recess, so the model is the pane's INVERTED —
+  // shade down from the top wall, a faint collect up off the floor. No grain: that is the one
+  // ingredient the 2026-08-21 measurement condemned, and a bed has no tooth to catch.
+  //
+  // The shade layer is emitted FIRST so it paints on top of the collect, the same source order
+  // the pane's recipe uses for its own washes. They never overlap in practice — the two bands
+  // together are 22px against a ground that is never that short — but stating the order means
+  // a squeezed ground degrades to "the top wall wins", which is the correct half to keep.
+  const g = material.groundRim[mode];
+  const groundRim = [
+    `linear-gradient(180deg, rgb(0 0 0 / ${g.shade}%), transparent ${g.shadeTo}px)`,
+    `linear-gradient(0deg, rgb(255 255 255 / ${g.collect}%), transparent ${g.collectTo}px)`,
+  ].join(", ");
   return [
     "",
     `  /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the`,
@@ -1128,6 +1141,7 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     decl("material-pool-control", material.pool[mode].control),
     decl("material-pool-solid", material.pool[mode].solid),
     decl("material-solid-rim", solidRim),
+    decl("material-ground-rim", groundRim),
     // The louder rungs' washes on glass controls (lab grid): thickness-invariant, per mode.
     decl("material-control-wash-loud", wash(material.controlWash.loud[mode])),
     decl("material-control-wash-medium", wash(material.controlWash.medium[mode])),

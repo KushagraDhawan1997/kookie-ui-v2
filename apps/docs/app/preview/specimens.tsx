@@ -991,9 +991,57 @@ function LinkSection() {
 
 
 
+/** The two cards a ground holds, identical on both sides of the comparison below — the whole
+    point of an A/B is that exactly one thing differs. */
+function GroundContents() {
+  return (
+    <Stack gap="4">
+      <Card size="2">
+        <Stack gap="1">
+          <Text size="3" weight="medium">Rename project</Text>
+          <Text size="2" emphasis="medium">Everyone with access will see the new name.</Text>
+        </Stack>
+      </Card>
+      <Card size="2">
+        <Stack gap="1">
+          <Text size="3" weight="medium">Transfer ownership</Text>
+          <Text size="2" emphasis="medium">Only the owner can delete a project.</Text>
+        </Stack>
+      </Card>
+    </Stack>
+  );
+}
+
 function SurfaceSection() {
   return (
     <Stack gap="6">
+      {/* THE JUDGMENT (2026-08-26): a ground lit as a recess, beside the same ground with its
+          lighting stood down — which is exactly what shipped between 2026-08-21 and today.
+          Flip the appearance select above: light's shade is most of the story, dark's collect
+          is. Both sides are the same component holding the same cards; the only difference is
+          the one background-image. */}
+      <Stack gap="3">
+        <Flex gap="5" wrap="wrap" align="flex-start">
+          <Stack gap="2" style={{ flex: "1 1 20rem", minWidth: "18rem" }}>
+            <Text size="2" weight="medium">Lit as a recess</Text>
+            <Surface>
+              <GroundContents />
+            </Surface>
+          </Stack>
+          <Stack gap="2" style={{ flex: "1 1 20rem", minWidth: "18rem" }}>
+            <Text size="2" weight="medium">No lighting</Text>
+            {/* The call-site escape, standing the recipe back down to what shipped before. */}
+            <Surface style={{ backgroundImage: "none" }}>
+              <GroundContents />
+            </Surface>
+          </Stack>
+        </Flex>
+        <Text size="2" emphasis="medium">
+          Shade down from the top wall, a faint collect off the floor — the pane&rsquo;s own model
+          inverted, because a ground is a dent rather than an object. Every peak stays inside one
+          step of the page&ndash;ground&ndash;card ladder, which is the measurement the grain failed.
+        </Text>
+      </Stack>
       {/* A GROUND holding cards — the case the component exists for (2026-08-20). Every one
           of these was a hand-painted div before: a raw neutral, a guessed radius, a hairline.
           The corner is the tell — a container has to out-round what it holds, and the
