@@ -51,10 +51,57 @@
   rotate: 90deg;
 }
 
-/* The glyph points INTO the reading direction; RTL mirrors it. Composes with the expanded
-   rotation above — a mirrored chevron turned 90deg still points down. */
+/* The glyph points INTO the reading direction; RTL mirrors it. */
 .kui-tree-disclosure:dir(rtl) {
   scale: -1 1;
+}
+
+/* MIRRORED, THE TURN GOES THE OTHER WAY (2026-08-26, audit — the comment above this pair used
+   to claim "a mirrored chevron turned 90deg still points down", and it pointed UP). The
+   individual transform properties compose in the order translate → rotate → scale, so the
+   final matrix is R·S and the MIRROR is applied to the geometry first: a right-pointing
+   chevron becomes left-pointing, and turning a left-pointing chevron 90deg clockwise aims it
+   at the ceiling. An expanded node in RTL was drawn with the glyph every disclosure
+   convention reserves for "collapse me". Same magnitude, opposite sign — restated rather than
+   folded into the rule above, because `scale` is what makes the sign correct and a reader
+   deleting the mirror must delete this with it. */
+.kui-tree-disclosure:dir(rtl)[data-expanded] {
+  rotate: -90deg;
+}
+
+/* THE DISCLOSURE'S POINTER TARGET (§16, 2026-08-26 — audit). The instrument's chevron is the
+   only pointer route to expanding (the row's own press selects), and it was the glyph itself:
+   16 CSS px in the fine world at sizes 1-2, under the 24 floor the system locks. §16 refused
+   invisible pseudo-expansion because a guessed extent steals from neighbours; this extent is
+   not guessed, it is the mark family's own — the box a control of this size already occupies,
+   capped at the touch floor. `min(--kui-ct-h, --touch-target-min)` is never taller than the
+   row, so a column of rows cannot take from the row above or below it.
+
+   It sits on the WRAPPER and not on the glyph because Chromium generates no pseudo-element
+   box for an SVG element: measured 2026-08-26, `::after` on the svg computes in full and
+   never paints, so it never hit-tests. tree.tsx carries the same note beside the handler that
+   moved with it. No border term (the checkbox's audit D3): a span wears none. */
+.kui-tree-toggle[data-expandable] {
+  position: relative;
+}
+
+.kui-tree-toggle[data-expandable]::after {
+  content: "";
+  position: absolute;
+  inset: calc((var(--kui-ct-icon) - min(var(--kui-ct-h), var(--touch-target-min))) / 2);
+}
+
+/* A ROW WITH NOWHERE TO GO STOPS PROMISING (2026-08-26, audit). A nav leaf carrying neither
+   `href` nor a `renderLink` destination renders as a plain `<span>` (tree.tsx states why),
+   and the row identity it still wears is the control skeleton's — which declares the button
+   cursor and unselectable text for everything wearing `.kui-control`. Both are claims about
+   pressing, and there is nothing here to press. Keyed on the ELEMENT rather than on a private
+   marker, so what is painted and what the element means cannot drift apart; `revert` hands
+   both properties back to the user agent rather than inventing a second value for them. */
+.kui-tree-item:not(a, button) {
+  cursor: revert;
+  -webkit-user-select: revert;
+  user-select: revert;
 }
 
 /* ── The NAV member's ink (§33) ────────────────────────────────────────────────────────────
