@@ -45,8 +45,12 @@ export const space = [2, 4, 8, 12, 16, 24, 32, 40, 48, 64, 96, 128] as const;
  *
  * The 10 step in the control band exists because controls live in 4-12, where the bare
  * 8 -> 12 jump was 1.5x with nothing between: every correction overshot, which is what turned
- * size 4 into a capsule. The surface band anchors size 3 at each level's old flat value
- * (small 8, medium 16, large 24) so the default card never moved; the rest are by eye.
+ * size 4 into a capsule. The surface band is an AUTHORED ladder per level — small is
+ * unmoved, medium was re-priced 2026-08-19 and large came from the 2026-08-17 lab port, so
+ * size 3 reads 8 / 24 / 40 rather than the old flat 8 / 16 / 24. (Corrected 2026-08-26,
+ * audit: this claimed the band still anchored size 3 at each level's old flat value "so the
+ * default card never moved", which both level rows below already contradict in their own
+ * comments.)
  */
 export const radiusLevels = {
   none: { steps: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], full: 0 },
@@ -1652,11 +1656,12 @@ export const shadow = {
 
 /**
  * §5/§10 — the elevated world's dressing, COMPOSED from the palette, never restating it:
- * shadow = elevation, one lighting model, and row 3 is its single source of truth — tune
- * `shadow[..][2]` and every elevated SURFACE follows. (Row 3, not 2, since the palette gained
- * the control drop at row 2 and renumbered, 2026-08-07 — this line still said `[1]` for a day
- * afterwards, which pointed whoever came to tune a card's depth at every button, field and
- * slider handle instead. controlChrome below is the one that reads row 2.) The edge is NOT
+ * shadow = elevation, one lighting model, and row 4 is its single source of truth — tune
+ * `shadow[..][3]` and every elevated SURFACE follows. (CORRECTED 2026-08-26, audit: this said
+ * "row 3 / `shadow[..][2]`" while the declaration eight lines down had read `var(--shadow-4)`
+ * since the 2026-08-17 lab port — the same one-revision staleness it had already been fixed
+ * for once, when it said `[1]` after the 2026-08-07 renumber. Row 5 is the GLASS transmit
+ * source, not this. controlChrome below no longer reads a palette row at all.) The edge is NOT
  * special: elevated
  * surfaces keep the same `--tone-border` as flat ones — which is what keeps them sharp and
  * what lets contrast="high" reach the edge through the tone system, free (two earlier
@@ -1688,10 +1693,13 @@ export const surfaceChrome = {
  * kill-switch exception pattern): a grip that does not sit above its rail stops reading
  * as a grip. It reads this row's VALUE, not the world switch.
  *
- * controlChrome is the cast: the one shadow every solid control shares, composed from the
- * palette's control row — never a bespoke value, so escapes reach the same shadow at
- * --shadow-2 and there is exactly one source of shadow truth. Dark prepends the rim-light,
- * the surface chrome's own sentence one scale down.
+ * controlChrome is the cast: the one shadow every solid control shares. AUTHORED WHOLE, not
+ * composed from a palette row (corrected 2026-08-26, audit — this said "composed from the
+ * palette's control row, never a bespoke value, so escapes reach the same shadow at
+ * --shadow-2", which the 2026-08-17 lab port had already made false: the declaration below is
+ * the lab's lit rung written out, and its own comment says so). The palette's row 2 survives
+ * as the GLASS transmit source only, which is the same division surfaceChrome draws between
+ * rows 4 and 5. Dark prepends the rim-light, the surface chrome's own sentence one scale down.
  */
 export const controlChrome = {
   // THE LAB'S LIT RUNG, VERBATIM (2026-08-17, Kushagra: "buttons look horrible" — measured
