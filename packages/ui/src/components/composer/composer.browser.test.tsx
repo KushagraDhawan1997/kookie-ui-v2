@@ -6,16 +6,24 @@
  * mechanism and a missing one give DIFFERENT answers — the degenerate-fixture rule (LOG
  * 2026-08-20), which Notice broke twice in one day the week this was written.
  */
-import type { ReactElement } from "react";
+import type { CSSProperties, ReactElement } from "react";
 import { describe, expect, it } from "vitest";
 
 import { computed, mounted, within } from "../../test/browser.tsx";
 import { Box } from "../box/box.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
+import { Text } from "../text/text.tsx";
 import { TextArea } from "../text-area/text-area.tsx";
 import { TextField } from "../text-field/text-field.tsx";
-import { Composer, ComposerInput, ComposerRow, ComposerSend } from "./composer.tsx";
+import {
+  COMPOSER_STATUSES,
+  Composer,
+  ComposerInput,
+  ComposerRow,
+  ComposerSend,
+  type ComposerStatus,
+} from "./composer.tsx";
 
 describe("it is a form, and a surface (§30)", () => {
   it("the root is a <form> — which is what Enter and requestSubmit() need", () => {
@@ -213,7 +221,53 @@ describe("the ring watches the input, never the pane (§30)", () => {
 });
 
 describe("the text grows without JavaScript (§30)", () => {
-  it("it declares field-sizing, and the ceiling holds either way", () => {
+  /** A composer holding `lines` lines of text, and the box that holds them. */
+  const box = (lines: number, style?: CSSProperties) =>
+    within(
+      mounted(
+        <Composer>
+          <ComposerInput
+            aria-label="Message"
+            defaultValue={Array.from({ length: lines }, (_, i) => `line ${i + 1}`).join("\n")}
+            {...(style ? { style } : {})}
+          />
+        </Composer>,
+        { theme: {} },
+      ),
+      ".kui-composer-input",
+    );
+
+  it("four lines of text make a box three line boxes taller — MEASURED, not declared", () => {
+    // This law used to read `expect(["content", "fixed", ""]).toContain(...)`, which is the
+    // property's entire value space: `fixed` is what you get with the declaration deleted and
+    // `""` is what an engine without the property returns, so §30's headline mechanism could
+    // be removed with every composer law green (audit 2026-08-26). The growth is a LENGTH, so
+    // the law is a length.
+    const one = box(1);
+    const four = box(4);
+    const line = parseFloat(computed(one, "line-height"));
+    const grew = four.getBoundingClientRect().height - one.getBoundingClientRect().height;
+    expect(grew / line, `four lines grew ${grew}px against a ${line}px line box`).toBeCloseTo(
+      3,
+      0,
+    );
+  });
+
+  it("and with `field-sizing` off the SAME content does not grow — the negative control", () => {
+    // The other half, and the reason the law above can be trusted: a box that grew for some
+    // other reason (a bare textarea's own `rows` heuristics, a flex stretch) would satisfy it.
+    // `fixed` is the property's initial value, so this is the shipped component with the one
+    // declaration under test switched off, in the same tree, at the same content.
+    const off = { ["fieldSizing" as string]: "fixed" } as CSSProperties;
+    const one = box(1, off);
+    const four = box(4, off);
+    expect(four.getBoundingClientRect().height).toBeCloseTo(
+      one.getBoundingClientRect().height,
+      0,
+    );
+  });
+
+  it("the ceiling holds on both growth paths", () => {
     const el = mounted(
       <Composer>
         <ComposerInput aria-label="Message" />
@@ -221,10 +275,6 @@ describe("the text grows without JavaScript (§30)", () => {
       { theme: {} },
     );
     const input = within(el, ".kui-composer-input");
-    // Where the engine has it this IS the growth. Where it does not, the declaration is inert
-    // and `rows` opens the box — so the ceiling below is what bounds both paths, and it is
-    // asserted separately for that reason.
-    expect(["content", "fixed", ""]).toContain(computed(input, "field-sizing"));
     const ceiling = parseFloat(computed(input, "max-block-size"));
     const floor = parseFloat(computed(input, "min-block-size"));
     expect(ceiling).toBeGreaterThan(floor);
@@ -254,12 +304,29 @@ describe("the text grows without JavaScript (§30)", () => {
 });
 
 describe("the send button says what it will do (§30)", () => {
-  it("each status carries its own accessible name, and streaming is not a submit", () => {
-    for (const [status, label, type] of [
-      ["ready", "Send", "submit"],
-      ["streaming", "Stop", "button"],
-      ["error", "Retry", "submit"],
-    ] as const) {
+  /**
+   * What each of the four states owes, WRITTEN OUT rather than read back off `DEFAULT_LABELS`
+   * — a law that compared the component against its own constant would agree with any value
+   * at all, including the empty string.
+   */
+  const EXPECTED: Record<ComposerStatus, { label: string; type: string; busy: boolean }> = {
+    ready: { label: "Send", type: "submit", busy: false },
+    submitted: { label: "Sending", type: "submit", busy: true },
+    streaming: { label: "Stop", type: "button", busy: false },
+    error: { label: "Retry", type: "submit", busy: false },
+  };
+
+  it("the walk covers the axis — every status, not the three somebody typed out", () => {
+    // The loop used to be a hand-written tuple of three, and `submitted` was the one it left
+    // out (audit 2026-08-26): its label and its `loading` branch were read by no law, so both
+    // could be deleted with the suite green. Derived from the axis's one home, so widening the
+    // status fails here first (CLAUDE.md 2026-08-16, "axis value lists have one home each").
+    expect(Object.keys(EXPECTED).sort()).toEqual([...COMPOSER_STATUSES].sort());
+  });
+
+  for (const status of COMPOSER_STATUSES) {
+    it(`${status}: its own accessible name, its own element, its own busy state`, () => {
+      const { label, type, busy } = EXPECTED[status];
       const el = mounted(
         <Composer>
           <ComposerInput aria-label="Message" />
@@ -272,7 +339,27 @@ describe("the send button says what it will do (§30)", () => {
       // Stopping a generation is an action on the request; submitting it again is not what a
       // person means. v1's sendMode decides VISIBILITY and never this.
       expect(send.type).toBe(type);
-    }
+      // `submitted` is the one genuinely busy state, and `loading` is what says so: it puts a
+      // Spinner in the leading slot, stamps `aria-busy` and sends Base UI down the
+      // aria-disabled branch, so the control keeps its place in the tab order and stops
+      // activating. Nothing read that branch before.
+      expect(send.getAttribute("aria-busy")).toBe(busy ? "true" : null);
+      expect(send.getAttribute("aria-disabled")).toBe(busy ? "true" : null);
+    });
+  }
+
+  it("a submitted send does not send again when it is pressed", () => {
+    // The busy state has to be busy, not merely dressed as busy.
+    let submitted = 0;
+    const el = mounted(
+      <Composer onSubmit={() => (submitted += 1)}>
+        <ComposerInput aria-label="Message" />
+        <ComposerSend status="submitted" />
+      </Composer>,
+      { theme: {} },
+    );
+    (within(el, ".kui-composer-send") as HTMLButtonElement).click();
+    expect(submitted).toBe(0);
   });
 
   it("streaming calls onStop and does not submit", () => {
@@ -320,6 +407,49 @@ describe("Enter sends, and never interrupts a composition (§30)", () => {
     expect(submitted).toBe(0);
   });
 
+  /**
+   * §30's claim is that the key and the button take ONE route. They did not: the button
+   * refused correctly while a request ran, and `form.requestSubmit()` with no submitter
+   * ignores the submit button entirely, so Enter sent a second message while the control in
+   * front of the person read "Stop" (audit 2026-08-26).
+   *
+   * Every status is walked, from the axis's own home, because the two that must refuse and
+   * the two that must send are the whole claim — a law over one of them cannot tell "a busy
+   * composer refuses" from "the composer stopped sending".
+   */
+  for (const status of COMPOSER_STATUSES) {
+    const sends = status === "ready" || status === "error";
+    it(`Enter ${sends ? "sends" : "does NOT send"} while the request is ${status}`, () => {
+      let submitted = 0;
+      const el = mounted(
+        <Composer onSubmit={() => (submitted += 1)}>
+          <ComposerInput aria-label="Message" defaultValue="hello" />
+          <ComposerRow>
+            <ComposerSend status={status} />
+          </ComposerRow>
+        </Composer>,
+        { theme: {} },
+      );
+      press(within(el, ".kui-composer-input") as HTMLTextAreaElement, {});
+      expect(submitted, `status=${status}`).toBe(sends ? 1 : 0);
+    });
+  }
+
+  it("a composer with no send button still sends — the guard is a refusal, not a gate", () => {
+    // The bound. Reading the send button's state means a composer that places none must not
+    // be silently un-sendable, and that is the shape a guard written the other way round
+    // (default to busy, opt out) would ship.
+    let submitted = 0;
+    const el = mounted(
+      <Composer onSubmit={() => (submitted += 1)}>
+        <ComposerInput aria-label="Message" defaultValue="hello" />
+      </Composer>,
+      { theme: {} },
+    );
+    press(within(el, ".kui-composer-input") as HTMLTextAreaElement, {});
+    expect(submitted).toBe(1);
+  });
+
   it("an Enter that closes an IME composition does not send", () => {
     // Sending mid-composition is silent data loss for anyone typing Japanese, Chinese or
     // Korean: the word being chosen is committed as a message. Both references guard it.
@@ -332,6 +462,61 @@ describe("Enter sends, and never interrupts a composition (§30)", () => {
     );
     press(within(el, ".kui-composer-input") as HTMLTextAreaElement, { isComposing: true });
     expect(submitted).toBe(0);
+  });
+});
+
+describe("a phone never zooms the page to read the text (§4, §30)", () => {
+  /**
+   * Safari zooms the viewport when a focused control's text is under 16px and does not zoom
+   * back out — the defect §4 closed 2026-08-05 for every other text input in the library. The
+   * composer shipped without the floor because it could not borrow the spelling: its step
+   * arrives from the type ramp rather than from `--kui-ct-font` (audit 2026-08-26).
+   *
+   * The claim is stated against a MOUNTED TextArea rather than against 16, because "the
+   * library's answer for a text box at this cell" is the thing under test and a literal would
+   * agree with a floor somebody invented here.
+   */
+  const step = (pointer: "fine" | "coarse") => {
+    const composer = computed(
+      within(
+        mounted(
+          <Composer size="1">
+            <ComposerInput aria-label="Message" />
+          </Composer>,
+          { theme: { pointer } },
+        ),
+        ".kui-composer-input",
+      ),
+      "font-size",
+    );
+    const area = computed(
+      mounted(<TextArea aria-label="t" size="1" />, { theme: { pointer }, select: "textarea" }),
+      "font-size",
+    );
+    const ramp = computed(
+      mounted(<Text size="1">ramp</Text>, { theme: { pointer }, select: ".kui-text" }),
+      "font-size",
+    );
+    return { composer, area, ramp };
+  };
+
+  it("on a coarse pointer the text is floored, exactly as every other input is", () => {
+    const { composer, area, ramp } = step("coarse");
+    // The vacuity guard, and it is the whole law: at size 1 the coarse ramp is 14px, so a
+    // composer that simply took its step would equal `ramp` here and read as fine until an
+    // iPhone found it. The floor is what makes the two differ.
+    expect(parseFloat(composer), `the coarse step is not floored (ramp ${ramp})`).toBeGreaterThan(
+      parseFloat(ramp),
+    );
+    expect(composer, "a composer floors its text to a number of its own").toBe(area);
+  });
+
+  it("on a fine pointer the floor is inert — a desktop keeps its designed step", () => {
+    // The other half. A floor that raised a desktop's size-1 composer to 16px would be a
+    // second type ladder, and this is the law that would say so.
+    const { composer, area, ramp } = step("fine");
+    expect(composer).toBe(ramp);
+    expect(composer).toBe(area);
   });
 });
 

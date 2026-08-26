@@ -13,8 +13,10 @@ import {
 
 export type RowProps = Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
   /**
-   * The row's box, which is its text line plus one designed inset (§21) — not the control
-   * height ladder. It rests at 2, like every other control in the library.
+   * The row's box: a standing row rides the control height ladder, so it stands level with a
+   * `Button` of the same index (§21). The text line plus one designed inset — the shorter box
+   * — is the FLOATING row's, i.e. a row inside a menu or a select panel. It rests at 2, like
+   * every other control in the library.
    */
   size?: Size;
   /**
@@ -61,6 +63,36 @@ export type RowProps = Omit<React.ComponentPropsWithoutRef<"button">, "color"> &
 };
 
 /**
+ * DOES THIS RENDER TARGET ANSWER A PRESS? (added 2026-08-26, audit.)
+ *
+ * `render={<div/>}` is what this component's own JSDoc recommends for "a row in a list you
+ * only read", and it produced a `<div>` with no role, no tab stop and no handler that still
+ * washed under the pointer — because the hover light is stamped whenever nobody else is
+ * driving it, and "nobody is driving it" was read as "the pointer is". A row that cannot be
+ * pressed must not paint as though it can.
+ *
+ * Decided from the render target, which is the shape `dead` below already uses: the element
+ * IS the semantics here, so it is the only honest source. A component gets the benefit of the
+ * doubt — we cannot see inside it — which is `rootsInButton`'s own answer to the same
+ * question one line down. A handler or a role stated by the caller (or by the target itself)
+ * settles it the other way: an escape that loses to the default is not an escape (§3).
+ */
+const pressable = (
+  render: RenderElement,
+  props: { onClick?: unknown; role?: unknown; tabIndex?: unknown },
+): boolean => {
+  if (props.onClick !== undefined || props.role !== undefined || props.tabIndex !== undefined)
+    return true;
+  const target = unwrapLazy(render);
+  if (typeof target.type !== "string") return true;
+  if (target.type === "button") return true;
+  const own = target.props as { href?: unknown; onClick?: unknown; role?: unknown; tabIndex?: unknown };
+  if (own.onClick !== undefined || own.role !== undefined || own.tabIndex !== undefined) return true;
+  if (target.type === "a" || target.type === "area") return own.href !== undefined;
+  return false;
+};
+
+/**
  * One row in a list (§21) — the row family's standalone member.
  *
  * The family was declared family-first when Menu shipped: menu item, command item, list item,
@@ -72,9 +104,11 @@ export type RowProps = Omit<React.ComponentPropsWithoutRef<"button">, "color"> &
  * This is that row.
  *
  * It is a control wearing a container: full width, start-aligned, the one control state
- * machine, riding the existing control cells — and its box is its text LINE plus one designed
- * inset rather than the height ladder, which is what makes a list of these read as a list
- * instead of as a column of buttons.
+ * machine, riding the existing control cells — the height ladder among them, so a standing row
+ * stands level with the button beside it. (Until 2026-08-26 both this sentence and `size`'s own
+ * said the opposite, and the exception had already flipped owners: the shorter line-plus-inset
+ * box was judged on a MENU and stayed the family default only because Menu was the family's
+ * first member. It belongs to rows inside a floating panel now — §21.)
  *
  * **Emphasis is refused**, as it is on every row: actions rank, and a list of peers ranks
  * nothing. Quiet is the family's identity and the component stamps it.
@@ -98,6 +132,7 @@ export function Row({
   ref,
   ...props
 }: RowProps) {
+  const inert = render !== undefined && !pressable(render, props);
   const merged = {
     ...props,
     "data-size": size,
@@ -118,8 +153,12 @@ export function Row({
     // The row's cursor, declared once (§21). A row nobody drives answers the pointer; a row
     // somebody drives answers only them. `highlighted === undefined` is the question being
     // asked — not its value — because a controlled `false` still means "I am the cursor here".
+    // An INERT render target answers neither (2026-08-26, audit — see `pressable` above): the
+    // pointer is not a cursor over something that cannot be pressed.
     ...(highlighted === undefined
-      ? { "data-hover-lit": "" }
+      ? inert
+        ? {}
+        : { "data-hover-lit": "" }
       : highlighted
         ? { "data-highlighted": "" }
         : {}),

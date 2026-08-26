@@ -9,21 +9,38 @@ import { ControlSizeContext } from "../../system/control-size.ts";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { Button } from "../button/button.tsx";
 
+/** Every value the status takes, in ONE home, so a law walks the axis rather than a tuple
+    somebody typed out beside it (the 2026-08-16 rule — a hand-copied list is a list that
+    silently stops covering the axis the day it widens). The union derives from it. */
+export const COMPOSER_STATUSES = ["ready", "submitted", "streaming", "error"] as const;
+
 /** What the request is doing, which is the only thing the send button reads (§30). */
-export type ComposerStatus = "ready" | "submitted" | "streaming" | "error";
+export type ComposerStatus = (typeof COMPOSER_STATUSES)[number];
+
+/** The two states in which a request is already running, so a send is not what a person means:
+    `submitted` is in flight and `streaming` is producing. `error` is not one of them — a retry
+    IS the send. */
+const BUSY_STATUSES: readonly string[] = ["submitted", "streaming"];
+
+/** Whether the send button this form contains says a request is already running. */
+function isBusy(form: HTMLFormElement): boolean {
+  const send = form.querySelector(".kui-composer-send");
+  return BUSY_STATUSES.includes(send?.getAttribute("data-status") ?? "");
+}
 
 export type ComposerProps = Omit<
   React.ComponentPropsWithoutRef<"form">,
   "color" | "onSubmit"
 > & {
   /**
-   * The index. It prices what the composer OWNS — the pane's padding, its corner, and the step
-   * its own text is set at — and stops there.
+   * The index, set once for the whole unit. It prices the pane's padding and corner, the step
+   * its own text is set at, AND the controls you compose into the row — a Button, a Select or
+   * a field under the text all take it through `ControlSizeContext` (§28), so a composer is
+   * sized as one thing.
    *
-   * It does NOT reach the row. A Button, a Select or a field you put under the text keeps its
-   * own index, and that is Dialog's answer rather than an omission (§24 prices the box alone;
-   * §25 prices everything because an alert owns its content). A composer owns its pane and its
-   * text; whatever you compose into the row is yours, so it is priced where it is written.
+   * An explicit `size` on a control always wins, so nothing is ever re-sized behind a number
+   * somebody typed. The reach stops at the composer's own subtree: a Button beside it keeps
+   * the family's rest.
    */
   size?: Size;
   /**
@@ -81,6 +98,17 @@ export function Composer({
     // A composer never navigates. The element is here for Enter and `requestSubmit()`, not for
     // a GET to the current URL.
     event.preventDefault();
+    // CHANGES 2026-08-26: a request already in flight refuses the second send. §30's claim is
+    // that the key and the button take ONE route, and the route had no idea a request was
+    // running: `requestSubmit()` with no submitter submits whatever the submit button says,
+    // so Enter sent a second message while the button in front of the person read "Stop".
+    //
+    // The status is read off the send button's own `data-status` rather than lifted into
+    // React state, and that is the constraint rather than a preference: the status is a LEAF's
+    // prop, so lifting it means a registration whose state update lands one render after the
+    // attribute is already in the DOM. The attribute is written in the same commit as the
+    // button, so the form and the button can never disagree.
+    if (isBusy(event.currentTarget)) return;
     onSubmit?.(event);
   };
 
@@ -140,10 +168,26 @@ export function Composer({
 /** Carries `onFiles` to the input, which is where a paste can be read. */
 const ComposerFilesContext = React.createContext<((files: File[]) => void) | null>(null);
 
-export type ComposerInputProps = Omit<
+type ComposerInputBase = Omit<
   React.ComponentPropsWithoutRef<"textarea">,
   "color" | "children" | "cols"
 > & { ref?: React.Ref<HTMLTextAreaElement> };
+
+/**
+ * The name, required, and the union is the point of it rather than decoration (§30, ENGINEERING
+ * §1.3 — Button's `iconOnly` one family over).
+ *
+ * This is the one text control in the library that a surrounding `Field` cannot name. Every
+ * other input goes through a Base UI primitive that registers itself with `Field.Root` and
+ * takes the label's `htmlFor`; a composer's text is a BARE `<textarea>` — the §30 decision that
+ * keeps a second box from appearing — so it registers with nothing and a `FieldLabel` above it
+ * points at an id no element carries. A placeholder is not a name. With no `aria-label` a
+ * screen reader announces "edit text, blank" and nothing else, which is the same defect
+ * `iconOnly` refuses, in the same shape. Here it does not compile.
+ */
+type ComposerInputName = { "aria-label": string } | { "aria-labelledby": string };
+
+export type ComposerInputProps = ComposerInputBase & ComposerInputName;
 
 /**
  * The text a person types (§30). A BARE `<textarea>`, deliberately not our `TextArea`: that
@@ -180,6 +224,7 @@ export function ComposerInput({
   rows = 1,
   onKeyDown,
   onPaste,
+  style,
   ref,
   ...props
 }: ComposerInputProps) {
@@ -197,8 +242,10 @@ export function ComposerInput({
     const form = event.currentTarget.form;
     if (!form) return;
     // Ask the form, do not call the handler: `requestSubmit()` runs validation and fires the
-    // submit event, so one route decides whether a send happens and the button's disabled
-    // state is honoured for free.
+    // submit event, so ONE route decides whether a send happens. What that route does NOT get
+    // for free is the send button's state — `requestSubmit()` with no submitter ignores it
+    // entirely — so the refusal while a request is in flight lives on the form's own submit
+    // handler, where both the key and the button pass through it (2026-08-26).
     event.preventDefault();
     form.requestSubmit();
   };
@@ -225,6 +272,18 @@ export function ComposerInput({
           : "kui-type kui-composer-input"
       }
       data-size={size}
+      // The iOS zoom floor (§4, 2026-08-05), and it has to be published from here rather than
+      // stated in the stylesheet. Safari zooms the viewport when a focused control's text is
+      // under 16px and never zooms back out, which is why every other text input in the
+      // library writes `max(var(--input-font-floor), <its step>)`. Those read `--kui-ct-font`,
+      // a hook the control size join declares — this element is not a `.kui-control`, its step
+      // arrives from `.kui-type[data-size]`, and a component stylesheet may not name an axis
+      // attribute, so no rule in `composer.css` can see the step in order to floor it.
+      //
+      // `size N -> --font-size-N` is an IDENTITY and not a second copy of the ramp: it is the
+      // same identity `--kui-ct-font` states one layer over, and the line, the tracking and
+      // the scale all still come from `kui-type`.
+      style={{ ["--kui-cp-font" as string]: `var(--font-size-${size})`, ...style }}
       onKeyDown={handleKeyDown}
       onPaste={handlePaste}
       {...props}

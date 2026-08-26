@@ -29,6 +29,10 @@ export type TreeNode = {
    * NavTree only: where this leaf navigates. A leaf renders as a real link (the default `<a>`,
    * or whatever `renderLink` supplies), which is what separates the NAV vocabulary from the
    * instrument's — activation navigates rather than selects. Ignored by `Tree`.
+   *
+   * A leaf with neither this nor a `renderLink` destination is NOT a link and is not drawn as
+   * one: it renders as plain text in the row's place, with no pointer light and no press to
+   * promise. Optional only because `Tree` shares this shape and ignores the field.
    */
   href?: string;
   /**
@@ -95,19 +99,11 @@ const words = (node: TreeNode): string =>
 
 /**
  * The one glyph the machine draws, shared by both members. Passive paint — never a button
- * (the row is the interactive element and a control may not nest a control's element); the
- * optional click handler is the instrument's Finder split (toggle without selecting), and the
- * nav member passes none because its whole section row IS the disclosure.
+ * (the row is the interactive element and a control may not nest a control's element), and
+ * since 2026-08-26 it carries no handler at all: the instrument's Finder split (toggle
+ * without selecting) is spelled on the wrapper below, for the reason stated there.
  */
-function DisclosureGlyph({
-  expandable,
-  expanded,
-  onToggle,
-}: {
-  expandable: boolean;
-  expanded: boolean;
-  onToggle?: (() => void) | undefined;
-}) {
+function DisclosureGlyph({ expandable, expanded }: { expandable: boolean; expanded: boolean }) {
   return (
     <svg
       viewBox="0 0 16 16"
@@ -116,14 +112,6 @@ function DisclosureGlyph({
       className="kui-tree-disclosure"
       {...(expandable ? { "data-expandable": "" } : {})}
       {...(expanded ? { "data-expanded": "" } : {})}
-      {...(onToggle
-        ? {
-            onClick: (event: React.MouseEvent) => {
-              event.stopPropagation();
-              if (expandable) onToggle();
-            },
-          }
-        : {})}
     >
       <path
         d="M6 4l4 4-4 4"
@@ -133,6 +121,56 @@ function DisclosureGlyph({
         strokeLinejoin="round"
       />
     </svg>
+  );
+}
+
+/**
+ * THE INSTRUMENT'S DISCLOSURE TARGET (§16, added 2026-08-26 — audit).
+ *
+ * In `Tree` the chevron is the ONLY pointer route to expanding (the row's own press selects),
+ * and it shipped as the glyph itself: `--kui-ct-icon`, i.e. 16 CSS px in every fine cell at
+ * sizes 1-2 and 20 on coarse — under WCAG 2.2 SC 2.5.8's 24 floor the system locked, with no
+ * equivalent pointer route to fall back on. The §16 expander answers it, exactly as it does
+ * for the mark family: an `::after` grown to the box a control of this size already occupies,
+ * capped at the touch floor, so the extent is derived rather than guessed. Vertically that
+ * extent is `min(--kui-ct-h, 44)`, which is never taller than the row, so a stack of rows
+ * cannot steal from its neighbours.
+ *
+ * IT CANNOT LIVE ON THE GLYPH, and that is why this wrapper is written by hand instead of
+ * through `slot()`. Chromium generates no pseudo-element box for an SVG element — measured
+ * 2026-08-26: `::after` on `.kui-tree-disclosure` computes (content, position, background all
+ * resolve) and never paints, so `elementFromPoint` a few pixels outside the glyph came back
+ * with the ROW. The handler therefore sits on the slot wrapper, which is an ordinary
+ * `<span>`, and the wrapper is what the stylesheet expands.
+ *
+ * The handler is attached only when there is something to toggle: a leaf's wrapper must let
+ * the press through to the row, which is what selects.
+ */
+function DisclosureTarget({
+  expandable,
+  expanded,
+  onToggle,
+}: {
+  expandable: boolean;
+  expanded: boolean;
+  onToggle?: (() => void) | undefined;
+}) {
+  return (
+    <span
+      data-slot="leading"
+      className="kui-tree-toggle"
+      {...(expandable && onToggle
+        ? {
+            "data-expandable": "",
+            onClick: (event: React.MouseEvent) => {
+              event.stopPropagation();
+              onToggle();
+            },
+          }
+        : {})}
+    >
+      <DisclosureGlyph expandable={expandable} expanded={expanded} />
+    </span>
   );
 }
 
@@ -229,8 +267,36 @@ export function Tree({
 
   const toggle = (id: string) => {
     const next = new Set(expanded);
-    if (next.has(id)) next.delete(id);
+    const collapsing = next.has(id);
+    if (collapsing) next.delete(id);
     else next.add(id);
+    // A COLLAPSE CAN UNMOUNT THE ROW THAT HOLDS FOCUS (added 2026-08-26, audit).
+    //
+    // The roving tab stop repaired itself already — `focusRow` falls back — but DOM focus did
+    // not: put focus on a descendant row, then collapse its ancestor by that ancestor's
+    // chevron, and the focused element leaves the document, which drops focus to `<body>` and
+    // throws a keyboard user to the top of the page.
+    //
+    // MEASURED 2026-08-26, AND THE MEASUREMENT IS THE REASON THIS IS STATED RATHER THAN LEFT
+    // TO THE BROWSER: under a real Chromium pointer the defect does NOT appear, because
+    // mousedown focuses the button the chevron sits in and that button is exactly the row this
+    // repair moves to. It reappears the moment the browser does not do that for us — a
+    // programmatic or assistive activation (measured: `activeElement` is `<body>`), and the
+    // macOS platform rule that a press does not focus a button, which is Safari's and
+    // Firefox's behaviour. The keyboard route was never affected: ArrowLeft collapses the node
+    // the caret is already standing on, and that node survives.
+    //
+    // Read off the DOM rather than off `focusId`, because `focusId` also names the row a
+    // previous keyboard walk left behind when focus has since gone somewhere else entirely.
+    if (collapsing) {
+      const surviving = new Set(flatten(items, next).map((r) => r.node.id));
+      for (const [rowId, el] of rowRefs.current) {
+        if (el === document.activeElement && !surviving.has(rowId)) {
+          moveFocus(id);
+          break;
+        }
+      }
+    }
     setExpanded(next);
   };
 
@@ -323,7 +389,7 @@ export function Tree({
         const isExpanded = isExpandable && expanded.has(node.id);
         const isSelected = selected.has(node.id);
         const disclosure = (
-          <DisclosureGlyph
+          <DisclosureTarget
             expandable={isExpandable}
             expanded={isExpanded}
             onToggle={() => toggle(node.id)}
@@ -360,7 +426,7 @@ export function Tree({
             onClick={(event) => select(row, event)}
             onKeyDown={(event) => onKeyDown(event, row, index)}
           >
-            {slot(disclosure, "leading")}
+            {disclosure}
             {node.label}
           </button>
         );
@@ -461,9 +527,15 @@ export function NavTree({
           className: "kui-control kui-row kui-tree-item",
           style: { "--kui-tree-level": level - 1 } as React.CSSProperties,
         };
+        // THE GUTTER IS THE LEAF'S TOO (2026-08-26, audit). The glyph is rendered on every
+        // row and hidden on the ones that do not expand — the instrument's own rule, and the
+        // only thing that makes labels at ONE level share a left edge. NavTree drew it on the
+        // section alone, so a top-level link sat a glyph box and a gap to the left of the
+        // top-level section beside it, and `visibility: hidden` had nothing to keep a box for.
+        // No target and no handler here: the whole section row IS the disclosure, so the
+        // instrument's Finder split has no job in this member.
+        const gutter = <DisclosureTarget expandable={isExpandable} expanded={isExpanded} />;
         if (isExpandable) {
-          // The whole section row is the disclosure — no separate chevron target, no
-          // selection to protect it from (the instrument's Finder split has no job here).
           return (
             <button
               key={node.id}
@@ -472,7 +544,7 @@ export function NavTree({
               onClick={() => toggle(node.id)}
               {...(shared as React.ComponentPropsWithoutRef<"button">)}
             >
-              {slot(<DisclosureGlyph expandable expanded={isExpanded} />, "leading")}
+              {gutter}
               {slot(node.leading, "leading")}
               {node.label}
             </button>
@@ -480,13 +552,44 @@ export function NavTree({
         }
         const content = (
           <>
+            {gutter}
             {slot(node.leading, "leading")}
             {node.label}
           </>
         );
-        const link = renderLink?.(node) ?? <a {...(node.href ? { href: node.href } : {})} />;
+        /**
+         * A LEAF WITH NOWHERE TO GO IS NOT A LINK (added 2026-08-26, audit).
+         *
+         * `href` is optional on `TreeNode` because `Tree` ignores it, and the fallback was a
+         * bare `<a>` with the attribute simply omitted. An anchor without `href` is not a
+         * link: it takes no focus, exposes no `link` role and has no accessible action — but
+         * it still wore the whole row identity, `data-hover-lit` included, so a destination-
+         * less leaf painted like its siblings, washed under the pointer and showed a hand
+         * cursor while Tab walked straight past it and a screen reader announced nothing.
+         *
+         * The honest fallback is to stop claiming: a plain `<span>`, and the interactive
+         * stamp withheld. The stylesheet stands the control's cursor and its unselectable
+         * text down for the same case, keyed on the element rather than on a private marker,
+         * so the paint and the semantics cannot disagree.
+         *
+         * This is a runtime repair of something the TYPE should refuse — a nav leaf that
+         * carries neither `href` nor a `renderLink` destination is not expressible content —
+         * and that refusal needs a `NavTreeNode` union exported from the package index.
+         */
+        const destination = renderLink?.(node) ?? (node.href ? <a href={node.href} /> : undefined);
+        if (!destination) {
+          const inert: Record<string, unknown> = { ...shared };
+          delete inert["data-hover-lit"];
+          return (
+            <span key={node.id} {...(inert as React.ComponentPropsWithoutRef<"span">)}>
+              {content}
+            </span>
+          );
+        }
         return (
-          <React.Fragment key={node.id}>{composeRender(link, shared as never, content)}</React.Fragment>
+          <React.Fragment key={node.id}>
+            {composeRender(destination, shared as never, content)}
+          </React.Fragment>
         );
       })}
     </div>

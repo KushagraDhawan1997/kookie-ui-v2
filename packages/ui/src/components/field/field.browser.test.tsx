@@ -82,12 +82,17 @@ describe("label on its control, and everything about it underneath (§28)", () =
   });
 
   it("the error comes last, so it arrives without moving anything already on screen", () => {
+    // THE FIXTURE IS THE LAW (2026-08-26). Both frames used to pass `match={true}`, which
+    // renders the message unconditionally — so `before` and `after` were the same DOM, they
+    // moved together under any reordering, and the law that exists to protect the ordering
+    // decision protected nothing. `before` states no `match`, so a valid field renders no
+    // error at all and the two frames genuinely differ by the thing under test.
     const before = mounted(
       <Field>
         <FieldLabel>Account number</FieldLabel>
         <TextField />
         <FieldDescription>Eight digits, no spaces.</FieldDescription>
-        <FieldError match={true}>That is four digits short.</FieldError>
+        <FieldError>That is four digits short.</FieldError>
       </Field>,
       { theme: {} },
     );
@@ -102,6 +107,10 @@ describe("label on its control, and everything about it underneath (§28)", () =
       </Field>,
       { theme: {} },
     );
+    // Vacuity guard: the frames must differ in exactly the thing the law is about. Without
+    // this the pair can go back to being two copies of the same DOM and nothing would say so.
+    expect(before.textContent).not.toContain("That is four digits short.");
+    expect(after.textContent).toContain("That is four digits short.");
     const error = within(after, "[data-tone='destructive']").getBoundingClientRect();
     const control = within(after, ".kui-field").getBoundingClientRect();
     const description = within(after, "p").getBoundingClientRect();
@@ -116,6 +125,92 @@ describe("label on its control, and everything about it underneath (§28)", () =
       1,
     );
     expect(offset(after, within(after, "p"))).toBeCloseTo(offset(before, within(before, "p")), 1);
+  });
+});
+
+describe("an error that ARRIVES is announced, not merely described (§28, §10)", () => {
+  /**
+   * The forcer that makes `FieldError` a part rather than a `<Text>` a caller writes. Base UI's
+   * own `Field.Error` is a plain `<div>` with an id — no role, no `aria-live` — so before
+   * 2026-08-26 the only wiring was `aria-describedby`, which speaks when focus next lands on
+   * the control and is silent for the ordinary case: validate on blur, and the person is
+   * already three fields further down when the message appears.
+   */
+  it("the error carries a live region, so it speaks when it appears", () => {
+    const root = mounted(
+      <Field>
+        <FieldLabel>Account number</FieldLabel>
+        <TextField />
+        <FieldError match={true}>That is four digits short.</FieldError>
+      </Field>,
+      { theme: {} },
+    );
+    const error = within(root, "[data-tone='destructive']");
+    // Read the ANNOUNCEMENT, never the element's presence: an error with no role renders
+    // perfectly and says nothing, which is exactly what shipped.
+    const role = error.getAttribute("role");
+    const live = error.getAttribute("aria-live");
+    expect(
+      role === "alert" || live === "assertive" || live === "polite",
+      `the error node carries no live region (role=${role}, aria-live=${live})`,
+    ).toBe(true);
+  });
+
+  it("and it is still named in the control's aria-describedby — the role ADDS, it does not replace", () => {
+    // The half a role change can silently break. An `alert` that dropped out of the description
+    // chain would announce once on arrival and never again, so a person tabbing back into the
+    // field would hear the label and nothing about why it is red.
+    const root = mounted(
+      <Field>
+        <FieldLabel>Account number</FieldLabel>
+        <TextField />
+        <FieldError match={true}>That is four digits short.</FieldError>
+      </Field>,
+      { theme: {} },
+    );
+    const error = within(root, "[data-tone='destructive']");
+    expect(error.id).toBeTruthy();
+    expect(within(root, "input").getAttribute("aria-describedby")?.split(/\s+/)).toContain(
+      error.id,
+    );
+  });
+
+  it("a caller can state a quieter register — the role is written before the spread", () => {
+    // The bound. A system default that cannot be overruled is an identity, and this one is a
+    // default: an app with its own announcement policy states it at the call site.
+    const root = mounted(
+      <Field>
+        <FieldLabel>Account number</FieldLabel>
+        <TextField />
+        <FieldError match={true} role="status">
+          That is four digits short.
+        </FieldError>
+      </Field>,
+      { theme: {} },
+    );
+    expect(within(root, "[data-tone='destructive']").getAttribute("role")).toBe("status");
+  });
+});
+
+describe("the root's `render` escape is real, because a refusal rests on it (§28)", () => {
+  /**
+   * §28 refuses `orientation` and names this as the answer: "a caller who wants a grid brings
+   * one." The type omitted `render`, so the documented escape did not compile and the refusal
+   * rested on something nobody could write.
+   */
+  it("a Field renders into the element a caller brings, and keeps being a field", () => {
+    const root = mounted(
+      <Field render={<section />}>
+        <FieldLabel>Email</FieldLabel>
+        <TextField />
+      </Field>,
+      { theme: {} },
+    );
+    const group = within(root, ".kui-field-group");
+    expect(group.tagName).toBe("SECTION");
+    // The escape changes the tag and nothing else: the wiring is what the anatomy is FOR, so a
+    // law that only read the tag would pass on a render that dropped the field context.
+    expect(within(root, "label").getAttribute("for")).toBe(within(root, "input").id);
   });
 });
 

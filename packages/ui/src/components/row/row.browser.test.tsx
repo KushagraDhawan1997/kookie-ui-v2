@@ -22,6 +22,7 @@ import {
   computed,
   mounted,
   settle,
+  until,
   within,
 } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
@@ -523,5 +524,48 @@ describe("disabled reaches the render target, not only the button (§21)", () =>
       // It is still visibly dead — through `:disabled`, which is what a real button offers.
       expect(computed(el, "color"), t).toBe(colorOn(el, "var(--disabled-ink)"));
     }
+  });
+});
+
+describe("an inert render target does not answer the pointer (§21, audit 2026-08-26)", () => {
+  it("a Row rendered as a <div> stays quiet under the pointer — and a wired one still lights", async () => {
+    /**
+     * `render={<div/>}` is the shape this component's own JSDoc recommends for a list you only
+     * read, and it lit under the pointer like every pressable row in the library, because the
+     * hover stamp asks "is anybody else driving this" and reads silence as "the pointer is".
+     *
+     * The three subjects are the law: the plain button is the positive control (without it a
+     * component that had gone inert everywhere would pass), and the handled div is the guard
+     * against the repair over-reaching — an escape that loses to the default is not an escape.
+     *
+     * STILL UNREPAIRED and deliberately not asserted here: an inert row keeps `.kui-control`'s
+     * `cursor: var(--cursor-button)` and its unselectable text. Both are declared in the shared
+     * control skeleton, which this component has no stylesheet of its own to stand down.
+     */
+    const plain = mounted(<Row>Duplicate</Row>, { theme: {} });
+    const inert = mounted(<Row render={<div />}>Read only</Row>, { theme: {} });
+    const handled = mounted(<Row render={<div onClick={() => {}} />}>Press me</Row>, { theme: {} });
+    expect(inert.tagName, "the fixture's inert subject is not a div").toBe("DIV");
+
+    // PAINT FIRST, because that is what a reader of the list sees and the stamp below is one
+    // indirection short of it: the plain row must light and the inert one must not, measured
+    // with the pointer really parked on each of them in turn.
+    const rest = computed(inert, "background-color");
+    await userEvent.hover(plain);
+    await until(() => computed(plain, "background-color") !== rest);
+    expect(
+      computed(plain, "background-color"),
+      "the positive control does not light either — the law is measuring nothing",
+    ).not.toBe(rest);
+    await userEvent.hover(inert);
+    await until(() => computed(plain, "background-color") === rest);
+    expect(computed(inert, "background-color"), "an inert row washes under the pointer").toBe(rest);
+    await userEvent.unhover(inert);
+
+    expect(
+      inert.hasAttribute("data-hover-lit"),
+      "an unpressable row is stamped as the pointer's own",
+    ).toBe(false);
+    expect(handled.hasAttribute("data-hover-lit"), "the escape stopped being an escape").toBe(true);
   });
 });

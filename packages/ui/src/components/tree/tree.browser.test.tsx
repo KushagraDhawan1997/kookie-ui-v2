@@ -11,7 +11,16 @@
 import { describe, expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
 
-import { SIZES, colorOn, computed, mounted, tokenOn, until, within } from "../../test/browser.tsx";
+import {
+  POINTERS,
+  SIZES,
+  colorOn,
+  computed,
+  mounted,
+  tokenOn,
+  until,
+  within,
+} from "../../test/browser.tsx";
 import { NavTree, Tree, type TreeNode } from "./tree.tsx";
 
 /**
@@ -407,5 +416,235 @@ describe("NavTree announces as navigation, never as a tree (§33)", () => {
       parseFloat(computed(leaf, "padding-inline-start")) -
         parseFloat(computed(section, "padding-inline-start")),
     ).toBeCloseTo(icon, 1);
+  });
+});
+
+/**
+ * Where the chevron's apex sits relative to the box it is drawn in, in CLIENT pixels.
+ *
+ * Read through `getScreenCTM()`, which composes the element's own CSS transforms — calibrated
+ * 2026-08-26 against the LTR case, whose answer is already known and asserted below. Composing
+ * `rotate` and `scale` off the computed style by hand would re-derive the arithmetic under
+ * test: the defect this law was written for IS an ordering, and an instrument that assumes an
+ * order cannot measure one.
+ */
+function apexOffset(glyph: Element): { x: number; y: number } {
+  const path = glyph.querySelector("path") as SVGPathElement | null;
+  if (!path) throw new Error("no glyph path — the law would compare nothing");
+  const apex = path.getPointAtLength(path.getTotalLength() / 2);
+  const ctm = (glyph as unknown as SVGGraphicsElement).getScreenCTM();
+  if (!ctm) throw new Error("no screen CTM — the law would compare nothing");
+  const at = (x: number, y: number) => ({
+    x: ctm.a * x + ctm.c * y + ctm.e,
+    y: ctm.b * x + ctm.d * y + ctm.f,
+  });
+  const tip = at(apex.x, apex.y);
+  // The viewBox's own centre: a constant of the drawing, not a re-derivation of the pose.
+  const middle = at(8, 8);
+  return { x: tip.x - middle.x, y: tip.y - middle.y };
+}
+
+describe("the chevron's posture, in both reading directions (§33, audit 2026-08-26)", () => {
+  for (const dir of ["ltr", "rtl"] as const) {
+    it(`${dir}: collapsed leads into the reading direction, expanded points DOWN`, () => {
+      const tree = mounted(
+        <div dir={dir}>
+          <Tree items={ITEMS} aria-label="Files" defaultExpandedIds={["a"]} />
+        </div>,
+        { theme: {}, select: ".kui-tree" },
+      );
+      const rows = rowsOf(tree);
+      const open = within(rows[0]!, ".kui-tree-disclosure"); // Alpha, expanded
+      const shut = within(rows[2]!, ".kui-tree-disclosure"); // Apex, collapsed
+      const o = apexOffset(open);
+      const s = apexOffset(shut);
+      // Collapsed: horizontal, and leading the way the words run.
+      expect(Math.abs(s.x), `${dir}: collapsed is not horizontal`).toBeGreaterThan(Math.abs(s.y));
+      expect(
+        dir === "rtl" ? -s.x : s.x,
+        `${dir}: collapsed points against the reading direction (${s.x}, ${s.y})`,
+      ).toBeGreaterThan(0);
+      // Expanded: DOWN in BOTH directions. The disclosure convention has no mirror — "open"
+      // is down everywhere, and up is what every platform reserves for "collapse me".
+      expect(Math.abs(o.y), `${dir}: expanded is not vertical`).toBeGreaterThan(Math.abs(o.x));
+      expect(o.y, `${dir}: expanded points UP (apex offset ${o.x}, ${o.y})`).toBeGreaterThan(0);
+    });
+  }
+});
+
+describe("the disclosure is a real pointer target (§16, audit 2026-08-26)", () => {
+  for (const pointer of POINTERS) {
+    for (const size of SIZES) {
+      it(`${pointer}/size ${size}: it clears the locked floor — and stops at its designed extent`, () => {
+        // Inset from the viewport edge on purpose: the expander reaches OUTSIDE the glyph, and
+        // a probe at a negative client x measures nothing at all.
+        const tree = mounted(
+          <div style={{ padding: "60px" }}>
+            <Tree items={ITEMS} size={size} aria-label="Files" defaultExpandedIds={["a"]} />
+          </div>,
+          { theme: { pointer }, select: ".kui-tree" },
+        );
+        const row = rowsOf(tree)[0]!;
+        const toggle = within(row, ".kui-tree-toggle");
+        const box = toggle.getBoundingClientRect();
+        const cx = box.left + box.width / 2;
+        const cy = box.top + box.height / 2;
+        const owns = (x: number, y: number) => {
+          const hit = document.elementFromPoint(x, y);
+          return hit !== null && (hit === toggle || toggle.contains(hit));
+        };
+        const floor = parseFloat(tokenOn(row, "--target-min"));
+        expect(floor, "the floor token resolves to nothing").toBeGreaterThan(0);
+        // The painted glyph is SMALLER than the floor in most cells — which is the whole
+        // point, and also what makes this fixture able to tell the two implementations apart.
+        const reach = floor / 2 - 1;
+        for (const [dx, dy] of [
+          [-reach, 0],
+          [reach, 0],
+          [0, -reach],
+          [0, reach],
+        ] as const) {
+          expect(
+            owns(cx + dx, cy + dy),
+            `${pointer}/${size}: the target is short at (${dx}, ${dy}); glyph is ${box.width}x${box.height}`,
+          ).toBe(true);
+        }
+        // ...and it is an EXPANSION, not the row. The designed extent is the mark family's —
+        // min(--kui-ct-h, --touch-target-min) — so just past it the row answers again, which
+        // is what keeps the Finder split (press the row to select, the chevron to open).
+        const past =
+          Math.min(
+            parseFloat(tokenOn(row, "--kui-ct-h")),
+            parseFloat(tokenOn(row, "--touch-target-min")),
+          ) /
+            2 +
+          3;
+        expect(
+          owns(cx + past, cy),
+          `${pointer}/${size}: the disclosure swallowed the row's own press`,
+        ).toBe(false);
+      });
+    }
+  }
+
+  it("collapsing a folder by its CHEVRON keeps focus inside the tree (audit 2026-08-26)", async () => {
+    /**
+     * THE ACTIVATION IS SYNTHETIC ON PURPOSE, and choosing it is most of this law.
+     *
+     * Measured 2026-08-26 both ways against the unrepaired component: under a real Chromium
+     * pointer, focus lands correctly — not because the tree repaired it, but because mousedown
+     * focuses the button the chevron sits in, and that button happens to be the row the repair
+     * moves to. So a `userEvent.click` fixture here cannot tell a repaired tree from a broken
+     * one; it is the degenerate-fixture rule wearing a real pointer. Activating the toggle
+     * without the browser's incidental focus move is what a programmatic or assistive
+     * activation looks like, and it is also what the macOS platform rule produces on every
+     * press — Safari and Firefox do not focus a button when you click it. Unrepaired, that
+     * route measures `activeElement` as `<body>`.
+     */
+    const tree = mounted(<Tree items={ITEMS} aria-label="Files" defaultExpandedIds={["a", "a2"]} />, {
+      theme: {},
+      select: ".kui-tree",
+    });
+    const rows = rowsOf(tree);
+    const alpha = rows[0]!;
+    const axle = rows[3]!;
+    expect(labelOf(axle)).toBe("Axle");
+    axle.focus();
+    expect(document.activeElement, "the fixture never got focus onto the doomed row").toBe(axle);
+    within(alpha, ".kui-tree-toggle").click();
+    await until(() => alpha.getAttribute("aria-expanded") === "false");
+    // The roving tab stop repaired itself from the day this shipped; DOM focus did not, and a
+    // keyboard user was thrown to the top of the document. Focus lands on the node that was
+    // collapsed — the same one the tab stop falls back to, so the two cannot disagree.
+    const landed = document.activeElement as HTMLElement | null;
+    expect(landed, `focus fell to <${landed?.tagName}>`).toBe(alpha);
+    expect(rowsOf(tree).filter((r) => r.tabIndex === 0).map(labelOf)).toEqual(["Alpha"]);
+  });
+});
+
+describe("a nav leaf with nowhere to go does not pretend to be a link (§33, audit 2026-08-26)", () => {
+  const DEAD: readonly TreeNode[] = [
+    {
+      id: "guides",
+      label: "Guides",
+      children: [
+        { id: "live", label: "Installation", href: "/install" },
+        { id: "soon", label: "Coming soon" },
+      ],
+    },
+  ];
+
+  it("no link element, no pointer light, no promise of a press", async () => {
+    const nav = mounted(<NavTree items={DEAD} defaultExpandedIds={["guides"]} />, {
+      theme: {},
+      select: ".kui-tree-nav",
+    });
+    const rows = [...nav.querySelectorAll<HTMLElement>(".kui-tree-item")];
+    const live = rows.find((r) => r.textContent === "Installation")!;
+    const soon = rows.find((r) => r.textContent === "Coming soon")!;
+    // The row directly above is the positive control, and it carries every assertion the
+    // other way round: without it this law would pass just as happily on a NavTree whose
+    // whole leaf vocabulary had gone inert.
+    expect(live.tagName, "the fixture's live leaf is not a link").toBe("A");
+    expect(soon.tagName, "an <a> with no href is not a link, and still says it is").not.toBe("A");
+    expect(live.hasAttribute("data-hover-lit")).toBe(true);
+    expect(soon.hasAttribute("data-hover-lit")).toBe(false);
+    expect(
+      computed(soon, "cursor"),
+      "a row with nowhere to go still promises a press",
+    ).not.toBe(computed(live, "cursor"));
+
+    const rest = computed(soon, "background-color");
+    await userEvent.hover(live);
+    await until(() => computed(live, "background-color") !== computed(soon, "background-color"));
+    await userEvent.hover(soon);
+    await until(() => computed(live, "background-color") === rest);
+    expect(computed(soon, "background-color"), "it washes under the pointer").toBe(rest);
+    await userEvent.unhover(soon);
+  });
+});
+
+describe("the nav gutter is the LEAF's too (§33, audit 2026-08-26)", () => {
+  const MIXED: readonly TreeNode[] = [
+    { id: "home", label: "Home", href: "/" },
+    { id: "guides", label: "Guides", children: [{ id: "g1", label: "Intro", href: "/g1" }] },
+  ];
+
+  /** Where the row's WORDS start — a range over the label's own text node, because the row's
+      own box starts at the same padding in both cases and the defect is entirely downstream
+      of it. */
+  const labelLeft = (row: HTMLElement): number => {
+    const text = [...row.childNodes].find(
+      (n): n is Text => n.nodeType === Node.TEXT_NODE && (n.textContent ?? "").trim() !== "",
+    );
+    if (!text) throw new Error(`no label text node in "${row.textContent}"`);
+    const range = document.createRange();
+    range.selectNodeContents(text);
+    return range.getBoundingClientRect().left;
+  };
+
+  it("a leaf and a section at ONE level share a left edge", () => {
+    // The load-bearing fixture fact is that both rows are at level 1: the indent cannot
+    // explain the difference, so what is left is the reserved glyph box the leaf was missing.
+    const nav = mounted(<NavTree items={MIXED} />, { theme: {}, select: ".kui-tree-nav" });
+    const rows = [...nav.querySelectorAll<HTMLElement>(".kui-tree-item")];
+    const leaf = rows.find((r) => r.textContent === "Home")!;
+    const section = rows.find((r) => r.textContent === "Guides")!;
+    expect(
+      parseFloat(computed(leaf, "padding-inline-start")),
+      "the fixture's two rows are not at one level",
+    ).toBeCloseTo(parseFloat(computed(section, "padding-inline-start")), 1);
+    expect(labelLeft(leaf), "the leaf's label sits left of its section sibling's").toBeCloseTo(
+      labelLeft(section),
+      1,
+    );
+    // The box is KEPT and hidden, which is the mechanism — an absent glyph and a
+    // `display: none` one would both leave the labels where the defect had them.
+    const glyph = within(leaf, ".kui-tree-disclosure");
+    expect(computed(glyph, "visibility")).toBe("hidden");
+    expect(glyph.getBoundingClientRect().width).toBeCloseTo(
+      within(section, ".kui-tree-disclosure").getBoundingClientRect().width,
+      1,
+    );
   });
 });

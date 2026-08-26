@@ -7,9 +7,16 @@ import type { Size } from "../../system/axes.ts";
 import { ControlSizeContext } from "../../system/control-size.ts";
 import { Text } from "../text/text.tsx";
 
+/* CHANGES 2026-08-26: `render` is BACK in the root's type. It was omitted alongside
+   `className` — the shape every other part here uses — while the JSDoc below and §28 both name
+   it as the answer to the `orientation` refusal ("a caller who wants a grid brings one"). The
+   escape was documented, spread through to `BaseField.Root` at runtime, and rejected by `tsc`,
+   so the refusal it justifies rested on something nobody could write. The parts keep the
+   omission: a `FieldLabel` must stay a `<label>` and a `FieldError` must stay the announced
+   node, and those are the wiring the anatomy exists for. */
 export type FieldProps = Omit<
   React.ComponentPropsWithoutRef<typeof BaseField.Root>,
-  "className" | "render"
+  "className"
 > & {
   /**
    * The control index, set once for the whole unit: the label, the description, the error and
@@ -199,9 +206,20 @@ export function FieldDescription({ className, children, ...props }: FieldDescrip
 }
 
 /**
- * What went wrong, after it went wrong (§28). The destructive family's ink, and Base UI gives
- * it the announcement — it renders only while the field is invalid and carries the live region,
- * which is the non-visual forcer that makes this a part rather than a `<Text>` a caller writes.
+ * What went wrong, after it went wrong (§28). The destructive family's ink, and it is the ONE
+ * part whose forcer is an announcement rather than an association: Base UI renders it only
+ * while the field is invalid and registers its id into the control's `aria-describedby`, and
+ * this component adds `role="alert"`, which is what makes an error that ARRIVES get read out.
+ *
+ * The role is the fix and not decoration (2026-08-26). Base UI's `Field.Error` is a plain
+ * `<div>` with an id — no `role`, no `aria-live` — so the description wiring alone only speaks
+ * when focus next lands on the control. Validation on blur is the ordinary case and it is
+ * exactly the case where focus has already moved on: the message appeared, the person is three
+ * fields further down, and nothing was said. `role="alert"` rather than `aria-live="polite"`
+ * because the node is INSERTED at the moment it has something to say, and an inserted polite
+ * region is not reliably announced — a live region has to already exist for its content to
+ * count as a change, while an inserted `alert` is announced by every screen reader. It is
+ * written before the spread, so a caller who wants a quieter register can state one.
  *
  * `match` is Base UI's and is passed straight through: it keys the message to one
  * `ValidityState` reason, so a field can carry a different sentence for `valueMissing` than for
@@ -216,7 +234,7 @@ export function FieldError({ className, children, ...props }: FieldErrorProps) {
       size={size}
       tone="destructive"
       {...(className ? { className } : {})}
-      render={<BaseField.Error {...props} />}
+      render={<BaseField.Error role="alert" {...props} />}
     >
       {children}
     </Text>

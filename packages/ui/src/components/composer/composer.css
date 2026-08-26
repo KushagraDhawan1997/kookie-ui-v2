@@ -93,6 +93,28 @@
   min-inline-size: 0;
 }
 
+/* ── The iOS zoom floor (§4) ─────────────────────────────────────────────────────────────────
+   Safari zooms the viewport when a focused control's text is under 16px, and it never zooms
+   back out — the defect closed 2026-08-05 for every other text input in the library, which
+   both write `max(var(--input-font-floor), var(--kui-ct-font))`. The floor is 0 on a fine
+   pointer and 16 on a coarse one, so this costs a desktop nothing.
+
+   This element could not borrow that spelling. `--kui-ct-font` is a hook the control size join
+   declares on `.kui-control[data-size]`, and the composer's text is deliberately NOT a control
+   (§30: a bare textarea, or the pane draws two boxes) — its step arrives from
+   `.kui-type[data-size]`, and a component stylesheet may not name an axis attribute, so no
+   rule here can see the step in order to floor it. `--kui-cp-font` is that step, published on
+   the element by `composer.tsx` as the same identity the control join states.
+
+   `.kui-composer-input.kui-type` ties `.kui-type[data-size="N"]` on specificity and wins on
+   source order — `composer.css` is imported after `system/type.css` in `styles/index.css`, and
+   that ordering is what makes this rule land at all. The `1em` fallback keeps a hand-written
+   element with the class from losing its size entirely: an unresolved `var()` in `font-size`
+   is invalid at computed-value time, which makes the property INHERIT rather than fall back. */
+.kui-composer-input.kui-type {
+  font-size: max(var(--input-font-floor), var(--kui-cp-font, 1em));
+}
+
 .kui-composer-input::placeholder {
   /* The muted role, which is what a placeholder has meant since the ink ladder was solved
      (2026-08-10) — faint is the exception rung, and a placeholder is not an exception. */
