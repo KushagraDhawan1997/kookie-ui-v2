@@ -273,6 +273,23 @@ export const coarse = {
 export const touchTargetMin = 44;
 
 /**
+ * §16 — the WCAG 2.2 SC 2.5.8 *Target Size (Minimum)* floor, Level AA, and the system's one
+ * tier-1 locked number: "No designed cell in any pointer world at any density may fall below
+ * it." Distinct from `touchTargetMin` above, which is SC 2.5.5's AAA/HIG figure and is a
+ * tier-2 opt-out default rather than a floor.
+ *
+ * CHANGES 2026-08-26: minted because the floor was prose. §16 says the DESIGNED geometry
+ * carries it and needs no runtime reserve — true of every control on the height ladder, and
+ * false for the one family that leaves it. `.kui-floating-rows .kui-row` stands the skeleton's
+ * `min-height` down to `auto` so a menu row can wear the designed row inset instead of a
+ * control height, and at fine + compact + size 1 that sum is 16 + 2 + 2 = 20. This is NOT the
+ * `max()` reserve §16 dropped: that one made a control's layout box differ from its painted
+ * box (and so demanded a second element). This floors the painted box itself, so the two stay
+ * identical and the row is genuinely 24 tall.
+ */
+export const targetMin = 24;
+
+/**
  * §4, §16 — mobile Safari's zoom threshold, and the second platform constant that is a raw
  * physical number rather than a designed one. **Safari zooms the whole page when a text input
  * under 16px takes focus**, which throws the layout off-centre and leaves the user pinching

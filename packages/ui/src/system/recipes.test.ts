@@ -444,7 +444,12 @@ describe("the row family lives in the shared layer, once (§21, declared with Me
     // corner re-point scoped the same way (a standing row wears the join's control corner,
     // which at `full` is the capsule of the box it actually has).
     const floatingRow = block(recipes, ".kui-floating-rows .kui-row {");
-    expect(floatingRow).toContain("min-height: auto");
+    // FLOORED rather than `auto` (2026-08-26 audit): the notch stands the control HEIGHT down,
+    // which is its whole point, and `auto` stood §16's locked 24 down with it — fine + compact
+    // + size 1 rendered a 20px row. The floor is a token, never a literal, so the tokens-only
+    // rule holds and the number has one home.
+    expect(floatingRow).toContain("min-height: var(--target-min)");
+    expect(floatingRow, "the stand-down may not come back").not.toContain("min-height: auto");
     expect(recipes).toContain("--kui-ct-radius: var(--kui-ct-row-radius)");
     // The old unscoped spellings may not return: the bare-family re-point handed the row
     // capsule to standing rows (15px of corner on a 32px box, measured 2026-08-26).

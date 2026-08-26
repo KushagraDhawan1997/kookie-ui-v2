@@ -7,6 +7,9 @@
 
   /* the touch floor (§16) — raw px on purpose: a physical floor, not a zoomable length */
   --touch-target-min: 44px;
+  /* and the LOCKED floor (§16, tier 1) — WCAG 2.2 SC 2.5.8 AA. Read by the one family
+     that leaves the height ladder: a floating row stands the skeleton's min-height down. */
+  --target-min: 24px;
   /* and the zoom floor (§4), which is zero here: a fine pointer never zooms on focus.
      The coarse world re-declares it — see pointerWorld(). */
   --input-font-floor: 0px;

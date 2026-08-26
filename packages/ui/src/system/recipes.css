@@ -839,7 +839,15 @@
    so nothing but `full` moves in either direction. Stated after the join at the join's
    own (0,2,0), winning the tie on source order. */
 .kui-floating-rows .kui-row {
-  min-height: auto;
+  /* NOT `auto` (2026-08-26 audit). Standing the skeleton's height down is the point of the
+     notch — a menu row wears the designed row inset, not a control height — but `auto` stood
+     the §16 FLOOR down with it, and at fine + compact + size 1 the sum is 16 + 2 + 2 = 20px:
+     under WCAG 2.2 SC 2.5.8's 24, with the Spacing exception unavailable because rows stack
+     flush. `--target-min` floors the painted box and nothing else: every other cell in the
+     ladder (24 / 30 / 34 fine-compact, 24+ everywhere else) already clears it, so this changes
+     exactly the one cell that was wrong. It is not the `max()` RESERVE §16 dropped — that made
+     the layout box differ from the painted box; this grows the painted box itself. */
+  min-height: var(--target-min);
   --kui-ct-radius: var(--kui-ct-row-radius);
 }
 

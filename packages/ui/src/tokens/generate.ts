@@ -92,6 +92,7 @@ import {
   pageColor,
   surfacePadding,
   inputFontFloor,
+  targetMin,
   touchTargetMin,
   type DensityLevel,
   type DensitySet,
@@ -143,6 +144,9 @@ export function generateTokens(): string {
 
   lines.push("", "  /* the touch floor (§16) — raw px on purpose: a physical floor, not a zoomable length */");
   put("touch-target-min", `${touchTargetMin}px`);
+  lines.push("  /* and the LOCKED floor (§16, tier 1) — WCAG 2.2 SC 2.5.8 AA. Read by the one family");
+  lines.push("     that leaves the height ladder: a floating row stands the skeleton's min-height down. */");
+  put("target-min", `${targetMin}px`);
   lines.push("  /* and the zoom floor (§4), which is zero here: a fine pointer never zooms on focus.");
   lines.push("     The coarse world re-declares it — see pointerWorld(). */");
   put("input-font-floor", "0px");

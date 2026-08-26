@@ -630,10 +630,22 @@ describe("rows ride the existing control cells in all 24 cells (§21)", () => {
       // height ladder. min-height stands down to auto and the rendered box is asserted as
       // the SUM off the browser's own line-height — which the type bands move under coarse,
       // so this one expression prices all 24 cells.
-      // `auto` serializes as 0px on a non-flex-item; both mean "stood down".
-      expect(["auto", "0px"], label).toContain(computed(row, "min-height"));
+      // THE FLOOR FIRST, because it is the guarantee and everything after it is the spelling.
+      // This assertion is what the law was missing (2026-08-26 audit): the box check below
+      // re-derives the very sum the stylesheet computes, so it agreed with the CSS whatever the
+      // CSS said — the tautology this repo names as its own defect class. At fine + compact +
+      // size 1 that sum is 16 + 2 + 2 = 20 and every assertion here passed on it.
+      // §16 tier 1: "No designed cell in any pointer world at any density may fall below it."
+      // The 24 is a LITERAL on purpose: reading it from the token would re-import the same
+      // circularity, since the token is what the rule under test consumes.
+      expect(row.getBoundingClientRect().height, `${label} is under the §16 floor`).toBeGreaterThanOrEqual(24);
+      // FLOORED, not `auto`. The skeleton's control height stands down — that is the notch —
+      // but the floor does not: `min-height: var(--target-min)`.
+      expect(computed(row, "min-height"), label).toBe(tokenOn(popup, "--target-min"));
+      const sum =
+        parseFloat(computed(row, "line-height")) + 2 * parseFloat(tokenOn(popup, `--row-inset-${cell.size}`));
       expect(row.getBoundingClientRect().height, label).toBeCloseTo(
-        parseFloat(computed(row, "line-height")) + 2 * parseFloat(tokenOn(popup, `--row-inset-${cell.size}`)),
+        Math.max(parseFloat(tokenOn(popup, "--target-min")), sum),
         1,
       );
       // The padding this comment has always named, now asserted (audit 2026-08-09): rows
