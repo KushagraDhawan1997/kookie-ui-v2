@@ -65,7 +65,9 @@ prop.
 There are no snapshot tests here, because a snapshot only tells you that something changed,
 not that anything was ever decided.
 
-- Every size 2 control resolves to the same height, padding and corner.
+- A Button, a TextField and a Select at size 2 resolve to the same height, padding and corner. A
+  checkbox, a menu row, a tab and a segment are sized by their own rules, and each of those is
+  checked against the rule it follows.
 - Every control moves one step on hover and two on press.
 - Every generated colour meets its contrast target against the text that sits on it.
 - The gzipped CSS is measured on every commit, and the build fails if it grows.

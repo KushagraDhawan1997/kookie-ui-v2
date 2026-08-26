@@ -508,13 +508,19 @@ function Permutations() {
 function Nesting() {
   return (
     <Stack gap="6">
-      {/* WHAT IT HOSTS: nothing, and the absence is the design. This is the anatomy criterion
-          (LOG 2026-08-04) asked twice and answered twice. TextField's wrapper is FORCED — put an
-          icon inside the border and the border cannot stay on the `<input>`, so a second element
-          appears and immediately owes the caret redirect, slot layout and hosted-control focus.
-          A textarea has no slots, because an adornment floating over a scrolling paragraph is
-          not a designed position; so nothing non-visual forces a second element, the border
-          stays on the `<textarea>`, and every one of those wrapper debts simply never exists.
+      {/* WHAT IT HOSTS: nothing, and the absence is still the design — but the WRAPPER is not.
+          Rewritten 2026-08-26; the paragraph here described the one-element anatomy that was
+          reversed on 2026-08-25, and a judging surface that states the wrong anatomy sends the
+          eye to the wrong element. Both controls are a wrapper around a native input now:
+          TextField's was forced by SLOTS (put an icon inside the border and the border cannot
+          stay on the `<input>`), TextArea's was forced by GLASS (a form control renders no
+          generated content, so the material's ring and band have nowhere to be painted).
+
+          So the wrapper debts split. TextArea pays the ones the paint forces — the wrapper
+          carries `kui-control kui-textarea`, every state arm and the resize axis the inner
+          element inherits — and pays none of the ones a SLOT forces: no caret redirect, no slot
+          layout, no hosted-control focus, because there is still nothing to host. An adornment
+          floating over a scrolling paragraph is not a designed position.
 
           Shown as the contrast rather than asserted: the field's slots are real anatomy, the
           area's absence is a real refusal, and they are the same decision reaching two answers. */}

@@ -16,7 +16,7 @@
  * text on the clipboard) they ask of `ctx.ui`, which the app owns.
  */
 
-import { CATALOG, canContain } from "./catalog";
+import { CATALOG, canContain, sanitizeNode } from "./catalog";
 import {
   cloneWithNewIds,
   findNode,
@@ -123,7 +123,18 @@ export const decodeNodes = (text: string): BuilderNode[] | null => {
   try {
     const parsed = JSON.parse(text) as Envelope;
     if (parsed?.kind !== CLIP_KIND || !Array.isArray(parsed.nodes)) return null;
-    return parsed.nodes;
+    // CHANGES 2026-08-26: SANITIZED here. The envelope is the one route into the document that
+    // did not pass the door every other route passes — a copy made under an older catalog is
+    // well-formed JSON carrying a prop today's catalog has deleted, and `effectiveProps` THROWS
+    // on one, which is a paste that takes the canvas down rather than a paste that drops what
+    // the system no longer speaks. Storage is persistence, not truth; so is a clipboard.
+    const nodes = parsed.nodes
+      .map((n) => sanitizeNode(n))
+      .filter((n): n is BuilderNode => n !== null);
+    // Nothing survived: the envelope is ours and holds nothing this catalog can place, which
+    // is the same answer as "not ours" to every caller — and lets the paste command fall back
+    // to the in-memory buffer instead of pasting an empty selection.
+    return nodes.length > 0 ? nodes : null;
   } catch {
     return null;
   }

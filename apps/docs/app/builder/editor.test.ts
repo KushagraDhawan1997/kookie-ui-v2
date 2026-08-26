@@ -53,7 +53,7 @@ import {
 } from "./placement";
 import { TEMPLATES, templateDoc } from "./templates";
 import { starterDoc } from "./builder-app";
-import { serializeDocument } from "./serialize";
+import { effectiveProps, serializeDocument } from "./serialize";
 import { RULES, legalValue, liveFix, reviewDocument } from "./review";
 import {
   activeDoc,
@@ -498,6 +498,33 @@ describe("commands are one table, and the surfaces only render it", () => {
     expect(decoded![0]!.children![0]!.text).toBe("hi");
     expect(decodeNodes("just some text a person copied")).toBeNull();
     expect(decodeNodes(JSON.stringify({ kind: "someone-else/nodes", nodes: [] }))).toBeNull();
+  });
+
+  it("a STALE envelope is sanitized on the way in, never handed to the interpreter", () => {
+    // The clipboard is the one route into the document that skipped `sanitizeNode` until
+    // 2026-08-26. An envelope is plain JSON a person can paste from anywhere, and the ones
+    // that arrive honestly are copies made under an OLDER catalog — `variant` was a real
+    // Button prop once, and the system deleted it. `effectiveProps` THROWS on a prop the
+    // catalog does not know, so the previous behaviour was a paste that took the canvas down.
+    //
+    // Both halves are asserted, because either alone passes with the fix removed: the prop is
+    // gone, AND what survives is something the interpreter can actually walk.
+    const stale = JSON.stringify({
+      kind: "kookie-builder/nodes",
+      nodes: [{ id: "n1", type: "Button", props: { variant: "solid", size: "2" }, text: "Hi" }],
+    });
+    const decoded = decodeNodes(stale);
+    expect(decoded).not.toBeNull();
+    expect(Object.keys(decoded![0]!.props)).not.toContain("variant");
+    expect(decoded![0]!.props.size).toBe("2");
+    expect(() => effectiveProps(decoded![0]!)).not.toThrow();
+
+    // A type the catalog no longer has cannot be rescued, so the envelope holds nothing this
+    // system speaks — the same answer as "not ours", which is what lets the paste command fall
+    // back to the in-memory buffer rather than paste an empty selection.
+    expect(
+      decodeNodes(JSON.stringify({ kind: "kookie-builder/nodes", nodes: [{ id: "n2", type: "Widget", props: {} }] })),
+    ).toBeNull();
   });
 
   it("nothing that can EDIT the document is armed in preview", () => {
@@ -1544,8 +1571,13 @@ describe("review reads the house style off the document", () => {
       "empty-container": [node("Stack", { gap: "3" }, { children: [] })],
       "single-child-layout": [node("Stack", {}, { children: [node("Text", {}, { text: "one" })] })],
       "flat-rhythm": [node("Stack", { gap: "3" }, { children: [pair("3"), pair("3")] })],
+      // The outer gap is the PALETTE DEFAULT (2026-08-26). It was 5, and 5 is the one region of
+      // the scale where this rule's repair cannot raise `flat-rhythm` — so the law was about
+      // the special case wearing the general one's name, and the defect it was written to catch
+      // (a wrapper pinned at gap 2 inside a gap-3 column) shipped under it. A Stack arrives from
+      // the palette at gap 3; that is the document a person actually builds.
       "heading-space": [
-        node("Stack", { gap: "5" }, {
+        node("Stack", { gap: "3" }, {
           children: [
             node("Text", { size: "2" }, { text: "Above" }),
             node("Heading", { size: "6" }, { text: "Notifications" }),
@@ -1871,8 +1903,13 @@ describe("review reads the house style off the document", () => {
       "empty-compound": [node("RadioGroup", { defaultValue: "a", "aria-label": "Pick" }, { children: [] })],
       "single-child-layout": [node("Stack", {}, { children: [node("Text", {}, { text: "one" })] })],
       "flat-rhythm": [node("Stack", { gap: "3" }, { children: [pair("3")] })],
+      // The outer gap is the PALETTE DEFAULT (2026-08-26). It was 5, and 5 is the one region of
+      // the scale where this rule's repair cannot raise `flat-rhythm` — so the law was about
+      // the special case wearing the general one's name, and the defect it was written to catch
+      // (a wrapper pinned at gap 2 inside a gap-3 column) shipped under it. A Stack arrives from
+      // the palette at gap 3; that is the document a person actually builds.
       "heading-space": [
-        node("Stack", { gap: "5" }, {
+        node("Stack", { gap: "3" }, {
           children: [
             node("Text", { size: "2" }, { text: "Above" }),
             node("Heading", { size: "6" }, { text: "Title" }),

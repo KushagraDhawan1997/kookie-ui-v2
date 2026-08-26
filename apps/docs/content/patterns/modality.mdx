@@ -56,8 +56,9 @@ that order, laid out by the component.
 `size` on an alert sets everything: the box, the corner, the padding, both text sizes and both
 buttons. The system wrote all of that content, so the system may size it.
 
-`size` on a `Dialog` stops at the box, because a dialog holds content the system did not write,
-and nothing here sizes text it does not own.
+`size` on a `Dialog` sets the box and the two parts the system owns, `DialogTitle` and
+`DialogDescription`. It never touches the content you wrote, because nothing here sizes text it
+does not own.
 
 Write cancel first. That order is what decides focus: cancel reads first, sits at the start,
 flips correctly for a right-to-left language at no cost, and takes focus as the first thing you

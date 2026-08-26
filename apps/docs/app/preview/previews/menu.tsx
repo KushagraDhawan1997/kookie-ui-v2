@@ -198,8 +198,10 @@ function States() {
       {/* THE ROW'S STATES, all in one open panel — which is the only way to judge them, since
           a row's job is to be distinguishable from the row above it. What to read, in order:
           the dead row keeps its icon gutter (it is stood down, not removed); the ticked
-          checkable wears the accent SOLID on the tick while its label stays neutral (a
-          coloured label would read as emphasis, and rows are peers — §21); the chosen radio
+          checkable wears --accent-GLYPH on the tick while its label stays neutral (a coloured
+          label would read as emphasis, and rows are peers — §21; the glyph role rather than
+          --accent-solid, which measures |Lc| 43 against the dark page and misses the 45 floor
+          the tick is justified by — so this is the value to judge in dark); the chosen radio
           keeps its dot mounted so the gutter never shifts; and the destructive row is the only
           one carrying a family. */}
       <Demo label="One panel, every row kind — arrow through it, then point at it">

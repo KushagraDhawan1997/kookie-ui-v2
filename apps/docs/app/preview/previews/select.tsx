@@ -276,8 +276,9 @@ function States() {
           </Select>
         </Flex>
       </Demo>
-      {/* THE ROW'S STATES, in one open panel: the chosen row wears the accent SOLID on its
-          tick while its label stays neutral; the dead row keeps its reserved gutter; the group
+      {/* THE ROW'S STATES, in one open panel: the chosen row wears --accent-GLYPH on its tick
+          while its label stays neutral (the glyph role, not --accent-solid — that one misses
+          the 45 floor a tick is held to on the dark page); the dead row keeps its reserved gutter; the group
           labels sit OUT-dented from the option text by exactly that gutter, which is macOS's
           own posture and deliberate (§23). Arrow through it with the keyboard. */}
       <Demo label="One panel, every row kind — the tick is the mark, not a louder label">

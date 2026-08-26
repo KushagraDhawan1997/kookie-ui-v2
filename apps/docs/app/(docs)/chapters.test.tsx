@@ -31,7 +31,6 @@ import { describe, expect, it } from "vitest";
 
 import { CHAPTERS, READING_ORDER, SECTIONS, type Chapter } from "./chapters";
 import { LANGS, isLang, parseMeta, tokenize } from "../../blocks/highlight";
-import { slugify } from "./slug";
 import { tableOfContents } from "./toc";
 import { useMDXComponents } from "../../mdx-components";
 
@@ -274,10 +273,15 @@ describe("every chapter is written to the house rules", () => {
   it("every heading produces a usable anchor", () => {
     // A heading of nothing but punctuation slugifies to "", which is a link to the top of the
     // page wearing a section's name.
+    //
+    // CHANGES 2026-08-26: the second assertion here was `entry.id === slugify(entry.title)`,
+    // which is what `tableOfContents` builds the entry FROM — it compared slugify(title) with
+    // slugify(title) and could not fail. The guarantee it was reaching for is asserted below,
+    // against the rendered headings, which is the only place the two implementations can
+    // actually disagree.
     for (const chapter of CHAPTERS) {
       for (const entry of tableOfContents(sourceOf(chapter))) {
         expect(entry.id, `${chapter.slug}: "${entry.title}" has no anchor`).not.toBe("");
-        expect(entry.id).toBe(slugify(entry.title));
       }
     }
   });
@@ -489,16 +493,53 @@ describe("the site and the suite compile MDX the same way", () => {
   // render in the suite and reach a reader as a row of pipes.
   const configText = (file: string) => read(join(here, "../..", file));
 
+  /**
+   * The plugin LIST, not the file's word count (repaired 2026-08-26).
+   *
+   * This law used to count every `remark…` token over the whole of each file, which counts
+   * doc-comment prose and import specifiers alongside the entries that reach the compiler.
+   * The two files scored 7 each while configuring two plugins each, so the equality held by
+   * coincidence and it was wrong in both directions: deleting a sentence from a comment failed
+   * CI for everyone, and adding a third plugin to one file passed as long as the other file's
+   * prose happened to mention `remark` once more.
+   *
+   * So: take the `remarkPlugins: [...]` array by balancing brackets, strip comments, and
+   * reduce each entry to a canonical name. The two files spell their plugins differently on
+   * purpose — Turbopack needs JSON-serializable strings, the suite imports the modules — so
+   * `remark-gfm` and `remarkGfm` have to compare equal, which is what the lowercasing and the
+   * hyphen strip are for.
+   */
+  const remarkPlugins = (source: string): string[] => {
+    const at = source.indexOf("remarkPlugins:");
+    expect(at, "no remarkPlugins array in this config").toBeGreaterThan(-1);
+    const open = source.indexOf("[", at);
+    let depth = 0;
+    let end = open;
+    for (let i = open; i < source.length; i++) {
+      if (source[i] === "[") depth++;
+      else if (source[i] === "]" && --depth === 0) {
+        end = i;
+        break;
+      }
+    }
+    const body = source
+      .slice(open + 1, end)
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/\/\/[^\n]*/g, "");
+    return [...body.matchAll(/remark[A-Za-z-]*/g)]
+      .map((m) => m[0]!.toLowerCase().replace(/-/g, ""))
+      .sort();
+  };
+
   it("both name the same remark plugins", () => {
-    const next = configText("next.config.ts");
-    const suite = configText("vitest.config.ts");
-    expect(next).toContain("remark-gfm");
-    expect(suite).toContain("remarkGfm");
-    // Neither may quietly grow one the other lacks. Checked as a count so an added plugin
-    // fails here rather than being discovered on a page.
-    expect([...next.matchAll(/remark[A-Za-z-]*/g)].length).toBe(
-      [...suite.matchAll(/remark[A-Za-z-]*/g)].length,
-    );
+    const next = remarkPlugins(configText("next.config.ts"));
+    const suite = remarkPlugins(configText("vitest.config.ts"));
+    // The vacuity guard: an extractor that found nothing would make the equality below true of
+    // two empty lists, which is the shape a bracket-balancing parser fails in.
+    expect(next.length).toBeGreaterThanOrEqual(2);
+    expect(next).toContain("remarkgfm");
+    // Neither may quietly grow one the other lacks, and neither may drop one.
+    expect(suite).toEqual(next);
   });
 
   it("a markdown table becomes a real table", () => {
@@ -526,4 +567,106 @@ describe("every chapter renders", () => {
       expect(html).toContain("kui-text");
     });
   }
+});
+
+/* ── The table of contents and the page it indexes ─────────────────────────────────────── */
+
+describe("every table-of-contents link lands on a heading that exists", () => {
+  /**
+   * The two-implementations law for anchors (2026-08-26). `slug.ts` states the guarantee —
+   * the table of contents is built from a chapter's SOURCE and the anchors are written from
+   * the RENDERED node, so both call one `slugify` and "a link that scrolls nowhere becomes
+   * impossible rather than unlikely". Nothing asserted it. What stood here instead was
+   * `entry.id === slugify(entry.title)`, and `tableOfContents` builds the entry as
+   * `{ id: slugify(title) }` — the two sides of that equality are the same expression.
+   *
+   * The sides that CAN disagree are the source scan and the rendered markup, and they
+   * disagree over exactly what the scan strips: inline marks are removed from the title by
+   * one regex there and resolved into components here, so a heading carrying a link, a
+   * `<Code>` span or an entity produces two different anchors and the navigation scrolls
+   * nowhere. Read off the emitted `id=` attributes, in document order.
+   */
+  const renderedAnchors = (chapter: Chapter): string[] =>
+    [...renderChapter(chapter).matchAll(/<h([23])[^>]*\bid="([^"]*)"/g)].map((m) => m[2]!);
+
+  it("both sides found something", () => {
+    // A chapter with no `##` at all would make every loop below vacuous.
+    const total = CHAPTERS.reduce((n, c) => n + tableOfContents(sourceOf(c)).length, 0);
+    expect(total).toBeGreaterThanOrEqual(CHAPTERS.length);
+    expect(renderedAnchors(CHAPTERS[0]!).length).toBeGreaterThan(0);
+  });
+
+  for (const chapter of CHAPTERS) {
+    it(`${chapter.slug}`, () => {
+      expect(renderedAnchors(chapter)).toEqual(tableOfContents(sourceOf(chapter)).map((e) => e.id));
+    });
+  }
+});
+
+/* ── A chapter does not teach behaviour the package does not have ──────────────────────── */
+
+describe("a chapter's claim about the code is checked against the code", () => {
+  /**
+   * DOC–CODE DRIFT, made mechanical where it can be (2026-08-26). The header above says
+   * plainly that this file does NOT check whether a chapter's claims match the code, and that
+   * honesty was right about the general case and too pessimistic about a few particular ones.
+   * An audit found three sentences teaching behaviour the package does not ship: a sidebar
+   * turning into a bottom bar and hover-reveals becoming permanent (neither exists — a narrow
+   * sidebar leaves flow and waits to be summoned), a `Dialog` whose size "never sets the type
+   * inside" (its title and description take the index, closed 2026-08-21), and a test in the
+   * list of what CI checks that has never been written.
+   *
+   * WHAT THIS IS, HONESTLY. It cannot read a sentence and decide whether it is true. Each check
+   * is a PAIR: an evidence arm reading the package source, and a claim arm that fails if a
+   * chapter states the opposite. The evidence arm is what keeps it from being a spelling pinned
+   * in place — the day the code changes, the check stops asking.
+   */
+  const pkg = (rel: string) => read(join(repoRoot, "packages/ui/src/", rel));
+  const allProse = CHAPTERS.map((chapter) => sourceOf(chapter)).join("\n");
+
+  it("both sides found something", () => {
+    expect(allProse.length).toBeGreaterThan(20000);
+  });
+
+  it("a narrow sidebar LEAVES FLOW; no chapter may promise a bottom bar", () => {
+    // The evidence: at narrow, an untouched nav pane is hidden and its presentation resolves to
+    // overlay. Nothing anywhere re-parents a sidebar into the bottom row — `ShellBottom` is a
+    // pane the app places, and a pane claims its grid area by name.
+    const shell = pkg("components/shell/shell.css");
+    expect(shell).toMatch(/\.kui-surface\.kui-shell-sidebar\[data-state="auto"\]/);
+    expect(shell).not.toMatch(/sidebar[^\n]*grid-area:\s*bottom/);
+    expect(allProse, "a chapter says a sidebar becomes a bottom bar").not.toMatch(
+      /sidebar becomes a bottom bar/i,
+    );
+  });
+
+  it("nothing converts a hover reveal into a permanent one; no chapter may promise it", () => {
+    // The evidence, stated as an absence the code can show: a tooltip is the system's one
+    // hover-revealed thing and its answer on touch is to say NOTHING, never to become visible.
+    expect(pkg("components/tooltip/tooltip.tsx")).toMatch(/aria-hidden/);
+    expect(
+      allProse,
+      "a chapter promises hover-revealed content becomes permanently visible",
+    ).not.toMatch(/appeared on hover has to be visible all\s*\n?\s*the time/i);
+  });
+
+  it("a dialog's OWN parts take its size; no chapter may say size never sets type", () => {
+    // The evidence: DialogTitle and DialogDescription resolve their step from the index. The
+    // rule the sentence was reaching for survives — nothing sizes type the CALL SITE wrote —
+    // and ownership is the difference (§24, §25).
+    expect(pkg("components/dialog/dialog.tsx")).toContain("OWNED_TITLE_STEP");
+    expect(allProse, "a chapter says a dialog's size never sets the type inside").not.toMatch(
+      /never sets the type inside|stops at the box, because a dialog/i,
+    );
+  });
+
+  it("no chapter lists a token-identity test the suite does not have", () => {
+    // The evidence: four shipped families deliberately leave the height ladder, so "every size
+    // 2 control resolves to the same height" is false as written AND unasserted — the suite has
+    // pairwise agreement laws, never a sweep over every control.
+    expect(pkg("tokens/tokens.css")).toMatch(/--mark-2:/);
+    expect(allProse, "a chapter claims every size 2 control is one height").not.toMatch(
+      /Every size 2 control resolves to the same height/i,
+    );
+  });
 });

@@ -131,6 +131,8 @@ function PickRow({
           items={items}
           value={mixed ? MIXED : (value ?? UNSET)}
           onValueChange={(v) => {
+            // `null` is Base UI's own value-RESET, not a pick — see Select's `onValueChange`.
+            if (v === null) return;
             const picked = readPick(v, values, optional);
             if (picked) onPick(picked.value);
           }}

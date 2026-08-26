@@ -404,7 +404,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "loading",
         "type": "boolean",
         "optional": true,
-        "doc": "Blocks the press and shows a Spinner. The label never goes away."
+        "doc": "Blocks the press and shows a Spinner. The label never goes away. On an `iconOnly` button the Spinner takes the glyph's place rather than sitting beside it, because there the glyph IS the label."
       },
       {
         "name": "nativeButton",
@@ -721,7 +721,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "Sets the panel's maximum width, its padding and its corner. It never sets the type inside."
+        "doc": "Sets the panel's maximum width, its padding, its corner — and the two parts the system owns, `DialogTitle` and `DialogDescription`, which take the same step map an alert's title and description take, so the two components agree at every index. It never touches type the call site wrote: a `<Text>` or a `<Heading>` you place keeps its own step."
       }
     ]
   },
@@ -1447,7 +1447,7 @@ export const API: Record<string, ApiEntry> = {
     ]
   },
   "MenuTrigger": {
-    "element": null,
+    "element": "button",
     "props": [
       {
         "name": "children",
@@ -1601,7 +1601,14 @@ export const API: Record<string, ApiEntry> = {
   },
   "PopoverClose": {
     "element": null,
-    "props": []
+    "props": [
+      {
+        "name": "render",
+        "type": "RenderElement",
+        "optional": true,
+        "doc": "Usually a Kookie Button: `<PopoverClose render={<Button/>}>Done</PopoverClose>`."
+      }
+    ]
   },
   "PopoverContent": {
     "element": "div",
@@ -1727,7 +1734,14 @@ export const API: Record<string, ApiEntry> = {
   },
   "PopoverTrigger": {
     "element": null,
-    "props": []
+    "props": [
+      {
+        "name": "render",
+        "type": "RenderElement",
+        "optional": true,
+        "doc": "Usually a Kookie Button: `<PopoverTrigger render={<Button/>}>Filters</PopoverTrigger>`."
+      }
+    ]
   },
   "Progress": {
     "element": null,
@@ -1836,6 +1850,18 @@ export const API: Record<string, ApiEntry> = {
     "element": null,
     "props": [
       {
+        "name": "aria-label",
+        "type": "string",
+        "optional": true,
+        "doc": "Names the scroll region. A focusable ScrollArea is a real tab stop, and a tab stop with no name is announced as nothing — so this is the one thing a standalone scroll region cannot do without. Given a name, the viewport announces as a `region` landmark; given none, it stays structural and the surrounding content has to carry the meaning. It is a DECLARED prop rather than a hyphenated attribute riding a rest spread, because TypeScript exempts hyphenated JSX attribute names from excess-property checking: written on a closed props object with no rest, `aria-label` compiled, rendered, and reached the DOM nowhere at all (2026-08-26)."
+      },
+      {
+        "name": "aria-labelledby",
+        "type": "string",
+        "optional": true,
+        "doc": "Names the region from an element that already carries the words — the heading above it, usually. Same rules as `aria-label`, and the two are mutually exclusive in ARIA."
+      },
+      {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
@@ -1896,13 +1922,13 @@ export const API: Record<string, ApiEntry> = {
     ]
   },
   "SelectContent": {
-    "element": null,
+    "element": "div",
     "props": [
       {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The option rows: `SelectItem`, divided by `SelectGroup` and named by `SelectLabel`. They are mounted only while the panel is open, which is exactly the case the root's `items` map exists for. A `<Separator>` is refused here where a menu takes one: inside a listbox it is markup an accessibility check reports, and a group is the divider the role already has."
+        "doc": "The option rows: `SelectItem`, divided by `SelectGroup` and named by `SelectLabel`. A `<Separator>` is refused here where a menu takes one: inside a listbox it is markup an accessibility check reports, and a group is the divider the role already has."
       },
       {
         "name": "className",
@@ -1948,7 +1974,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "children",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "What the option reads as, and what the closed trigger paints once the panel has been opened. Before that, the root's `items` map is the only thing that can turn a value into these words."
+        "doc": "What the option reads as INSIDE the panel. The closed trigger never paints these words: Base UI resolves the trigger's text from the root's `items` map, and from nothing else. Where a label differs from its value, that map is what has to carry it."
       },
       {
         "name": "className",
@@ -2018,7 +2044,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "defaultValue",
         "type": "string",
         "optional": true,
-        "doc": "Uncontrolled starting value. Mutually exclusive with `value`, and the case `items` exists for: it can paint before the panel has ever opened."
+        "doc": "Uncontrolled starting value. Mutually exclusive with `value`."
       },
       {
         "name": "disabled",
@@ -2030,7 +2056,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "items",
         "type": "Record<string, React.ReactNode>",
         "optional": true,
-        "doc": "A map from value to label, for the closed trigger. Base UI reads an option's label from its mounted row, and a closed panel has none mounted, so without this map a select whose panel never opened displays the raw value string. It is optional, because a select that rests on a placeholder never needs it. Pass it whenever a `defaultValue` can paint before the panel first opens."
+        "doc": "A map from value to label, and it is the ONLY thing that turns a chosen value into words on the closed trigger. Base UI resolves the trigger's text from this map alone — it never reads the text of the row you picked — so a select whose labels differ from its values needs it at every moment, not only before the panel has first opened. Without it the trigger paints the raw value string forever, including immediately after a click on a row that says something else. Omit it only where the value IS the label, or where the select rests on a placeholder."
       },
       {
         "name": "name",
@@ -2046,9 +2072,9 @@ export const API: Record<string, ApiEntry> = {
       },
       {
         "name": "onValueChange",
-        "type": "(value: string) => void",
+        "type": "(value: string | null) => void",
         "optional": true,
-        "doc": "Fires when the chosen value changes. It never fires on an open or a close."
+        "doc": "Fires when the chosen value changes. It never fires on an open or a close. `null` is a real argument and not a defensive union: Base UI CLEARS the value when the mounted option set changes and the current value is no longer among it — a dependent pair of selects, where picking a country replaces the region list. It reaches this callback before it is applied. It used to arrive as the literal string `\"null\"` (2026-08-26 audit), which a controlled consumer would have written straight back in as a value."
       },
       {
         "name": "open",
@@ -2072,7 +2098,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "value",
         "type": "string",
         "optional": true,
-        "doc": "Controlled value, paired with `onValueChange`. The closed trigger paints the matching option's label rather than this string. See `items` for the case where no option is mounted yet to resolve one."
+        "doc": "Controlled value, paired with `onValueChange`. The closed trigger paints this string unless `items` maps it to a label; a mounted row's text is never consulted."
       }
     ]
   },
@@ -2576,7 +2602,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "The control index, minus the one part a growing box cannot take. The padding, the corner, the type and the border all come from it. The height does not, because the content decides that through `rows`. The block padding is derived so a one-row textarea is the same box as a TextField at the same index, and the control height survives as a minimum rather than a maximum."
+        "doc": "The control index, minus the one part a growing box cannot take. The padding, the corner, the type and the border all come from it. The height does not, because the content decides that through `rows`. The block padding IS the side padding — one inset on all four sides — so a `rows={1}` textarea sits TALLER than a TextField at the same index; the control height survives as a floor, never a ceiling."
       },
       {
         "name": "style",

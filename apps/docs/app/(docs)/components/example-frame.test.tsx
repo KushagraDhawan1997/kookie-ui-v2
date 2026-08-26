@@ -31,6 +31,38 @@ const rootIsPane = (name: string): boolean => {
   return /^<[a-z]+[^>]*class="[^"]*\bkui-(card|surface)\b/.test(afterTheme);
 };
 
+/** HTML void elements: they open nothing, so they must not move the depth counter. React's
+    server renderer also self-closes them, but an SVG `<path .../>` is the same shape and this
+    tree is full of them. */
+const VOID = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"]);
+
+/**
+ * Does a card open while a card is still open? Counted rather than pattern-matched, because
+ * the panes are separated by whatever the example nests between them.
+ *
+ * EVERY tag, not just `<div>` (2026-08-26). `depth > 0` means "inside a card": a non-card
+ * element opening at depth 0 is outside every pane and is not counted, and once a card has
+ * opened everything nested in it is, so the counter comes back to 0 at the card's close.
+ */
+const panesNested = (html: string): boolean => {
+  let depth = 0;
+  let nested = false;
+  for (const tag of html.match(/<\/?[a-zA-Z][^>]*>/g) ?? []) {
+    const name = /^<\/?\s*([a-zA-Z0-9-]+)/.exec(tag)?.[1]?.toLowerCase();
+    if (!name) continue;
+    if (tag.startsWith("</")) {
+      depth = Math.max(0, depth - 1);
+      continue;
+    }
+    if (VOID.has(name) || /\/>$/.test(tag)) continue;
+    if (/class="[^"]*\bkui-card\b/.test(tag)) {
+      if (depth > 0) nested = true;
+      depth++;
+    } else if (depth > 0) depth++;
+  }
+  return nested;
+};
+
 describe("the specimen frame agrees with what the example renders", () => {
   const names = Object.keys(EXAMPLES);
 
@@ -51,6 +83,37 @@ describe("the specimen frame agrees with what the example renders", () => {
     expect(disagree, "the frame would wrap the wrong examples").toEqual([]);
   });
 
+  it("the scanner sees a card whatever element it is rendered as", () => {
+    /**
+     * The instrument, calibrated against a known answer before its output is evidence
+     * (the 2026-08-08 lesson). Until 2026-08-26 the scan walked `<div>` tags ALONE, and Card's
+     * whole documented escape is `render` — `<Card render={<button/>}>` emits
+     * `<button class="kui-surface kui-card">`, which the div walk cannot see. So the law was
+     * about the special case (a card that happens to be a div) wearing the general one's name,
+     * and the nesting it exists to catch was invisible in exactly the arrangement the docs
+     * recommend.
+     *
+     * Both arms, because either alone passes with the scanner broken: a rendered card MUST be
+     * caught nested, and two cards side by side must NOT be.
+     */
+    const nested = renderToStaticMarkup(
+      <Theme>
+        <Card size="4">
+          <Card render={<button />}>inner</Card>
+        </Card>
+      </Theme>,
+    );
+    expect(panesNested(nested), "a card rendered as a <button> inside a card").toBe(true);
+
+    const siblings = renderToStaticMarkup(
+      <Theme>
+        <Card size="4">a</Card>
+        <Card render={<button />}>b</Card>
+      </Theme>,
+    );
+    expect(panesNested(siblings), "two cards side by side are not nested").toBe(false);
+  });
+
   it("no example inside the frame puts a pane inside a pane", () => {
     // The guarantee itself, read off markup. Only the examples the frame WOULD wrap are
     // wrapped here, which is the composition the page actually renders.
@@ -65,20 +128,7 @@ describe("the specimen frame agrees with what the example renders", () => {
           bare ? specimen : React.createElement(Card, { size: "4" }, specimen),
         ),
       );
-      // A card that opens while a card is still open. Counted rather than pattern-matched,
-      // because the panes are separated by whatever the example nests between them.
-      let depth = 0;
-      let nested = false;
-      for (const tag of html.match(/<div[^>]*>|<\/div>/g) ?? []) {
-        if (tag.startsWith("</")) depth = Math.max(0, depth - 1);
-        else {
-          if (/class="[^"]*\bkui-card\b/.test(tag)) {
-            if (depth > 0) nested = true;
-            depth++;
-          } else if (depth > 0) depth++;
-        }
-      }
-      expect(nested, `${name} renders a card inside a card`).toBe(false);
+      expect(panesNested(html), `${name} renders a card inside a card`).toBe(false);
     }
   });
 });

@@ -25,42 +25,24 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
+import { readPackageExports } from "../../package-exports";
 import { ENTRIES } from "./registry";
 import { EXAMPLES } from "../../../examples";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const packageIndex = join(here, "../../../../../packages/ui/src/index.ts");
+const decisions = join(here, "../../../../../docs/DECISIONS.md");
 
 /**
  * Uppercase value exports of the public surface — components, not hooks or types.
  *
- * The brace body may span LINES (fixed 2026-08-16). The first spelling anchored on
- * `^export \{ ... \}` with the whole list on one line, so the day `theme.tsx`'s export grew
- * past the line width and prettier broke it across lines, every name in that block vanished
- * from the coverage set. It failed loudly here only by luck — the registry documents `Theme`,
- * so the REVERSE arm caught it. In the other direction it is silent: a multi-line block of
- * genuinely new components would simply not be seen, and "every export is EXPLAINED" would
- * pass while explaining none of them. That is the failure this whole file exists to prevent,
- * so the parser stops caring about formatting.
+ * The parser moved to `app/package-exports.ts` on 2026-08-26. It lived here, correct, while
+ * `preview/playground.test.ts` kept a copy that had never been repaired: that one still
+ * anchored on `^export \{ ` with a literal space, so every multi-line block matched nothing
+ * and 18 exports sat outside its coverage. Two copies of one claim is how a repair reaches
+ * one law and not the other.
  */
-function exportedComponents(): string[] {
-  const names: string[] = [];
-  const source = readFileSync(packageIndex, "utf8");
-  for (const m of source.matchAll(/^export \{([^}]*)\}/gms)) {
-    for (const entry of m[1]!.split(",")) {
-      const raw = entry.trim();
-      // Types are EXCLUDED, and now deliberately. They were excluded before by accident — a
-      // `type Foo` entry simply failed the uppercase test on its `t` — so the first attempt at
-      // this parser "helpfully" stripped the keyword and pulled every `…Props` into the
-      // coverage set. The header says components, not hooks or types; it says so in code now.
-      if (raw.startsWith("type ")) continue;
-      // `Foo as Bar` exports the second name, which is the one a consumer imports.
-      const name = raw.split(/\s+as\s+/).pop()!.trim();
-      if (/^[A-Z]/.test(name)) names.push(name);
-    }
-  }
-  return names;
-}
+const exportedComponents = (): string[] => readPackageExports(packageIndex);
 
 const documented = ENTRIES.map((entry) => entry.name);
 const slugs = ENTRIES.map((entry) => entry.slug);
@@ -161,6 +143,144 @@ describe("an entry that says nothing is worse than no entry", () => {
         );
       }
     }
+  });
+});
+
+describe("a cited § points at the section it claims", () => {
+  /**
+   * The `spec` field is the reference's one pointer OUT of the docs app, and nothing checked it
+   * until 2026-08-26 — when Composer was found citing §31, which is Popover. A cited number is a
+   * claim about another file, so it can only rot from the other side: renumber a section and every
+   * pointer past it is silently wrong, with the reader the one who finds out.
+   *
+   * Existence alone is too weak to catch that — §31 exists. So the second law is the one that
+   * bites: where DECISIONS.md has a section NAMED for a component, that component's entry must
+   * cite it. The heading is the independent source; the registry is the copy under test.
+   */
+  const headings = [...readFileSync(decisions, "utf8").matchAll(/^## (\d+)\.(.*)$/gm)].map(
+    (m) => ({ n: m[1]!, title: m[2]! }),
+  );
+  const numbers = new Set(headings.map((h) => h.n));
+
+  it("both sides found something", () => {
+    // Vacuity guard: DECISIONS.md is read as text, so a change of heading style would otherwise
+    // leave the set empty and every citation below unresolvable-but-unchecked.
+    expect(numbers.size).toBeGreaterThanOrEqual(20);
+    expect(ENTRIES.length).toBeGreaterThanOrEqual(15);
+    // And the naming arm must have subjects, or it is a loop over nothing.
+    expect(headings.filter((h) => /\bComposer\b/.test(h.title))).toHaveLength(1);
+  });
+
+  for (const entry of ENTRIES) {
+    it(`${entry.slug}`, () => {
+      const cited = [...entry.spec.matchAll(/§(\d+)/g)].map((m) => m[1]!);
+      expect(cited.length, `${entry.slug}: spec "${entry.spec}" cites no section`).toBeGreaterThan(
+        0,
+      );
+      for (const n of cited) {
+        expect(
+          numbers.has(n),
+          `${entry.slug} cites §${n}, which is not a section of DECISIONS.md`,
+        ).toBe(true);
+      }
+      const named = headings.filter((h) =>
+        new RegExp(`\\b${entry.name}\\b`).test(h.title),
+      );
+      if (named.length > 0) {
+        expect(
+          named.some((h) => cited.includes(h.n)),
+          `${entry.slug} cites ${entry.spec}, but DECISIONS.md's section for ${entry.name} is ` +
+            named.map((h) => `§${h.n}`).join(" or "),
+        ).toBe(true);
+      }
+    });
+  }
+});
+
+describe("a claim about the code is checked against the code", () => {
+  /**
+   * DOC–CODE DRIFT, made mechanical where it can be (2026-08-26). The reference explains the
+   * system in prose, and prose has no compiler — an audit found four sentences here describing
+   * behaviour the package had changed or never had: a menu casting in a flat theme (retired
+   * 2026-08-19), rows that never open on hover (a submenu row does, by Base UI's default),
+   * a refused indicator two lines under a blurb describing the one that ships, and a textarea
+   * padding equally on four sides under the default radius, where it does not.
+   *
+   * WHAT THIS IS, HONESTLY. It cannot read a sentence and decide whether it is true. Each check
+   * below is a PAIR: an evidence arm that reads the package source or the emitted tokens, and a
+   * claim arm that fails if the reference states the opposite. The evidence arm is what stops it
+   * being a spelling pinned in place — the day the code changes back, the check stops asking.
+   */
+  const pkg = (rel: string) => readFileSync(join(here, "../../../../../packages/ui/src/", rel), "utf8");
+
+  /** Every sentence the reference publishes, as one corpus. */
+  const prose = ENTRIES.flatMap((e) => [
+    e.blurb,
+    ...e.axes.map((a) => a.note),
+    ...e.refusals.flatMap((r) => [r.name, r.why]),
+    ...(e.parts ?? []).map((part) => part.blurb),
+  ]).join("\n");
+
+  it("both sides found something", () => {
+    expect(prose.length).toBeGreaterThan(5000);
+  });
+
+  it("flat casts NOTHING, so no entry may say a panel casts in a flat theme", () => {
+    // The evidence: the generator emits the flat floating chrome as a no-op layer. `flat` means
+    // flat for every pane since 2026-08-19; the hairline is what draws a covering pane's edge.
+    expect(pkg("tokens/tokens.css")).toMatch(/--floating-chrome-flat:\s*0 0 0 0 transparent/);
+    expect(prose, "an entry says a panel casts in a flat theme").not.toMatch(
+      /casts? a shadow even in a flat theme/i,
+    );
+  });
+
+  it("a submenu row DOES open on hover, so no entry may say rows never do", () => {
+    // The evidence: Menu hands `SubmenuTrigger` no `openOnHover`, so it takes Base UI's own
+    // default, which is true. The prop is not exposed precisely because the platform's answer
+    // is the designed one — which is a different sentence from "never on hover".
+    const menu = pkg("components/menu/menu.tsx");
+    expect(menu).toContain("BaseMenu.SubmenuTrigger");
+    expect(menu, "Menu now states openOnHover; this claim needs re-reading").not.toMatch(
+      /openOnHover=\{/,
+    );
+    // The claim arm is POSITIVE, because the sentence that was wrong here was a denial and a
+    // denial is cheap to respell. The refusal that names the prop is the one place a reader
+    // goes to learn the designed default, so it has to state what the default IS.
+    const hover = ENTRIES.find((e) => e.slug === "menu")!.refusals.find((r) =>
+      /openOnHover/.test(r.name),
+    );
+    expect(hover, "Menu no longer refuses openOnHover; this claim needs re-reading").toBeDefined();
+    expect(
+      hover!.why,
+      "the openOnHover refusal does not say that a submenu row opens on hover",
+    ).toMatch(/submenu[^.]*opens? on hover/i);
+  });
+
+  it("the segmented control SHIPS a travelling thumb, so its entry may not refuse one", () => {
+    // The evidence: the component renders and measures the tile. The refusal that stood here
+    // said the opposite in the one section that exists to tell a deliberate refusal from an
+    // unbuilt gap — and said it two lines under a blurb describing the tile.
+    const source = pkg("components/segmented-control/segmented-control.tsx");
+    expect(source).toContain("kui-segment-thumb");
+    const entry = ENTRIES.find((e) => e.slug === "segmented-control")!;
+    expect(entry.blurb).toMatch(/slides/);
+    for (const refusal of entry.refusals) {
+      expect(
+        `${refusal.name} ${refusal.why}`,
+        `segmented-control refuses "${refusal.name}", which it ships`,
+      ).not.toMatch(/does not measure the selection|nobody has designed/i);
+    }
+  });
+
+  it("the pill correction makes a control's inline padding wider, so nothing may call it uniform", () => {
+    // The evidence: the skeleton pads the inline sides through `--kui-ct-px-pill`, and at the
+    // DEFAULT radius level (`full` since 2026-08-09) that token is a wider designed value than
+    // the plain `--control-px-N` the block sides take.
+    expect(pkg("system/recipes.css")).toMatch(/padding-inline-start:\s*var\(--kui-ct-px-pill\)/);
+    expect(pkg("tokens/tokens.css")).toMatch(/--control-px-pill-2:\s*calc\(\d/);
+    expect(prose, "an entry calls a control's padding uniform on all four sides").not.toMatch(
+      /same on all four sides/i,
+    );
   });
 });
 
