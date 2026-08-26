@@ -162,7 +162,22 @@ export function Menu({ size = "2", open, defaultOpen, onOpenChange, children }: 
  * intrinsic element. A component with no escape is opaque and takes Base UI's own default —
  * the `nativeButton` prop is the escape for the case inspection cannot see.
  */
-export type MenuTriggerProps = {
+export type MenuTriggerProps = Omit<
+  React.ComponentPropsWithoutRef<"button">,
+  // The platform's own props pass through and only what this system owns is taken away —
+  // SelectTrigger's shape, and for its reason (2026-08-26 audit, the last hand-listed trigger
+  // type in the floating family). Seven hand-written members closed the type against `id`,
+  // `form`, `tabIndex`, `autoFocus`, `onClick` and the focus handlers, while TypeScript's
+  // hyphenated-name exemption waved `aria-*` and `data-*` straight through undeclared — so
+  // the list simultaneously blocked props that work and admitted props it never named. `id`
+  // is what an external `<label for>` and an `aria-controls` need, and every other trigger in
+  // the package takes it.
+  //
+  // `color`/`className`/`style` are the system's. `type` is NOT omitted here where
+  // SelectTrigger omits it: this trigger takes a `render` escape, so its rendered element is
+  // not always a `<button>` — the `nativeButton` inference below exists for exactly that.
+  "color" | "className" | "style"
+> & {
   /** Usually a Kookie Button: `<MenuTrigger render={<Button/>}>Open</MenuTrigger>`. */
   render?: RenderElement;
   /**
@@ -357,7 +372,19 @@ function MenuPopup({
           roving-focus widget. The menu scrolls its own highlight into view. */}
       <ScrollArea focusable={false}>
         <FloatingBody>
-          <GlassScope material={material}>{children}</GlassScope>
+          {/* A PANEL BOUNDARY RESETS THE GROUP QUESTION (2026-08-26 audit) — the same
+              sentence `<Theme>` says about the glass mark one line down, and for the same
+              reason: React context follows the tree, not the DOM, so a `MenuSub` composed
+              inside a `MenuGroup` carried that group across the portal into a panel that is
+              not inside it. A `MenuLabel` in the child panel then took Base UI's GroupLabel
+              part and registered itself as the PARENT group's `aria-labelledby` — the parent
+              group announced the submenu's heading while open, and Base UI's own cleanup
+              (`setLabelId(undefined)`) stripped the group's accessible name outright when the
+              submenu closed. Both panels' labels are correct only if a popup starts the
+              question over. */}
+          <MenuInGroupContext.Provider value={false}>
+            <GlassScope material={material}>{children}</GlassScope>
+          </MenuInGroupContext.Provider>
         </FloatingBody>
       </ScrollArea>
     </BaseMenu.Popup>

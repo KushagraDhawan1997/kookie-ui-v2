@@ -35,7 +35,15 @@
    the same room minus the pane's border box contribution or it would grow past its parent and
    the clip would take the bottom back. The fallback is `100vh` rather than a big round px
    sentinel: a raw px literal is the one thing a hand-authored sheet may not carry, and an
-   unpositioned panel has no room to be told about beyond the window it sits in. */
-.kui-popover-popup .kui-scroll-viewport {
+   unpositioned panel has no room to be told about beyond the window it sits in.
+
+   KEYED ON THE POPUP'S OWN ANATOMY, not on descendants (2026-08-26, audit). A popover is the
+   one member of this family whose content is explicitly the CALLER'S, and `ScrollArea`'s own
+   JSDoc tells them to state a height on it — so a descendant selector reached into a scroller
+   they composed and capped it at the whole room the positioner reported, overruling the height
+   they had just been instructed to give it. The direct-child chain is the same reach the entry
+   runner's scroll reset already uses (`:scope > .kui-scroll-area > .kui-scroll-viewport`), and
+   for the same reason. */
+.kui-popover-popup > .kui-scroll-area > .kui-scroll-viewport {
   max-block-size: calc(var(--available-height, 100vh) - 2 * var(--border-width));
 }

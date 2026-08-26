@@ -12,7 +12,7 @@
  * component: a portalled panel must compute identically to an in-flow twin under a hostile axis
  * set, because context crosses a portal and attributes do not.
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import * as React from "react";
 import { flushSync } from "react-dom";
@@ -32,7 +32,7 @@ import {
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
-import { Dialog, DialogContent, DialogTrigger } from "../dialog/dialog.tsx";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "../dialog/dialog.tsx";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "../menu/menu.tsx";
 import {
   Popover,
@@ -192,33 +192,71 @@ describe("the pane is a CARD that floats (§10, §31)", () => {
 });
 
 describe("the page stays live — the line between this and a Dialog (§24, §31)", () => {
-  it("it puts NOTHING between the reader and the page, where a dialog puts a scrim", () => {
-    // THE STRUCTURAL DIFFERENCE, MEASURED — and the third measurement tried, which is the part
-    // worth recording. Scroll lock was the obvious one and it is not observable here: Base UI
-    // only locks a document that actually scrolls, so a dialog and a popover both left
-    // `body.style.overflow` untouched and the law's control did not exist. Inertness was the
-    // second, and neither component marks an outside subtree `inert` or `aria-hidden` in this
-    // harness. What IS true, always, and visible in the DOM is the scrim: a dialog renders one
-    // because it must be answered, and a popover renders none because it can be ignored by
-    // looking away. Notice's own shape — the absence is the design.
-    openPopover({}, "2");
-    expect(
-      document.querySelector(".kui-dialog-backdrop"),
-      "a popover put a scrim over the page",
-    ).toBeNull();
-    render(
+  /** A marker parked in a corner no anchored panel reaches, so "what is over this point" is a
+      question about the page rather than about where the positioner happened to land. */
+  function withOutsideMarker(panel: React.ReactNode) {
+    const host = render(
       <Theme>
-        <Dialog defaultOpen>
-          <DialogTrigger render={<Button>Open</Button>} />
-          <DialogContent>Body</DialogContent>
-        </Dialog>
+        <div
+          data-t="outside"
+          style={{ position: "fixed", insetInlineStart: 0, insetBlockEnd: 0, inlineSize: "80px", blockSize: "24px" }}
+        >
+          out
+        </div>
+        {panel}
       </Theme>,
     );
     settleAll();
+    const marker = host.querySelector<HTMLElement>('[data-t="outside"]');
+    if (!marker) throw new Error("the marker never mounted — the law would assert nothing");
+    const box = marker.getBoundingClientRect();
+    return { marker, hit: document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2) };
+  }
+
+  it("the page is still REACHABLE under an open panel, where a dialog covers it", () => {
+    /**
+     * THE STRUCTURAL DIFFERENCE, HIT-TESTED (rewritten 2026-08-26, audit).
+     *
+     * The first spelling asked whether `.kui-dialog-backdrop` was in the document, which is a
+     * class exactly one component can emit and this one renders no backdrop element of any
+     * kind — so it was null before the component existed and stayed null under every sabotage.
+     * Measured: `<BasePopover.Root modal>` scroll-locks the page and disables outside pointer
+     * interaction, the precise promise §31 calls the whole line between this and a Dialog, and
+     * every assertion in that law still passed.
+     *
+     * What a modal popover actually does is render a fixed, full-viewport layer of Base UI's
+     * own (`InternalBackdrop`) over the page. So the law asks the page directly: with the
+     * panel open, is the outside element still the thing under its own centre? The DIALOG in
+     * the same run is the calibration — it must answer no, or the instrument is measuring
+     * nothing.
+     *
+     * Scroll lock and inertness were both tried first and neither is observable here: Base UI
+     * only locks a document that actually scrolls, and neither component marks an outside
+     * subtree `inert` in this harness.
+     */
+    const live = withOutsideMarker(
+      <Popover defaultOpen>
+        <PopoverTrigger render={<Button>Open</Button>} />
+        <PopoverContent>
+          <PopoverTitle>Filters</PopoverTitle>
+        </PopoverContent>
+      </Popover>,
+    );
     expect(
-      document.querySelector(".kui-dialog-backdrop"),
-      "the dialog stopped rendering a scrim — this law's control is gone",
-    ).not.toBeNull();
+      live.hit,
+      "something of the popover's is over the page — the panel went modal",
+    ).toBe(live.marker);
+
+    const covered = withOutsideMarker(
+      <Dialog defaultOpen>
+        <DialogTrigger render={<Button>Open</Button>} />
+        <DialogContent aria-label="Body">Body</DialogContent>
+      </Dialog>,
+    );
+    expect(
+      covered.hit,
+      "an open dialog left the page reachable — this law's calibration is gone",
+    ).not.toBe(covered.marker);
   });
 
   it("an outside press dismisses it", async () => {
@@ -270,6 +308,81 @@ describe("the parts exist because the wiring forces them (§10, §31)", () => {
     expect(document.getElementById(labelledBy!)?.textContent).toBe("Filters");
     expect(describedBy, "the panel is not described").toBeTruthy();
     expect(document.getElementById(describedBy!)?.textContent).toBe("Narrow the list.");
+  });
+
+  it("a panel with no name says so in dev — and a title or a label silences it", async () => {
+    /**
+     * Base UI's popup renders `role="dialog"`, so a panel with neither a `PopoverTitle` nor an
+     * `aria-label` announces as "dialog" and nothing else. That is the measured case
+     * `useNameWarning` was written for (2026-08-21), and this component shipped without the
+     * call while Dialog and AlertDialog both made it — expensive here rather than theoretical,
+     * because a popover with no heading is an ORDINARY shape (a filter panel, a colour picker)
+     * where a dialog with no title is a mistake.
+     *
+     * SEIZED, NOT RACED (Dialog's own harness, 2026-08-21): the name arrives when the Title
+     * child registers and the check runs after paint, so expecting a warning this returns the
+     * moment one lands, and expecting silence it waits the whole deadline — the fair direction.
+     */
+    async function warnings(want: number, run: () => void): Promise<number> {
+      const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const count = () =>
+        spy.mock.calls.map((c) => String(c[0])).filter((m) => m.includes("<Popover>")).length;
+      try {
+        run();
+        settleAll();
+        for (let waited = 0; waited < 2000; waited += 16) {
+          if (want > 0 && count() >= want) break;
+          await new Promise((r) => setTimeout(r, 16));
+        }
+        return count();
+      } finally {
+        spy.mockRestore();
+      }
+    }
+
+    const bare = await warnings(1, () => {
+      render(
+        <Theme>
+          <Popover defaultOpen>
+            <PopoverTrigger render={<Button>Filters</Button>} />
+            <PopoverContent>
+              <p className="kui-type">Nothing names this panel.</p>
+            </PopoverContent>
+          </Popover>
+        </Theme>,
+      );
+    });
+    expect(bare, "a nameless popover announces as \"dialog\" and says nothing about it").toBe(1);
+
+    // Both repairs, because the warning names both and a component that dropped `aria-label`
+    // would leave one of them dead — the Select audit's blocked-`id` finding, one panel over.
+    const titled = await warnings(0, () => {
+      render(
+        <Theme>
+          <Popover defaultOpen>
+            <PopoverTrigger render={<Button>Filters</Button>} />
+            <PopoverContent>
+              <PopoverTitle>Filters</PopoverTitle>
+            </PopoverContent>
+          </Popover>
+        </Theme>,
+      );
+    });
+    expect(titled, "a titled popover is warned about anyway").toBe(0);
+
+    const labelled = await warnings(0, () => {
+      render(
+        <Theme>
+          <Popover defaultOpen>
+            <PopoverTrigger render={<Button>Filters</Button>} />
+            <PopoverContent aria-label="Filters">
+              <p className="kui-type">No visible title.</p>
+            </PopoverContent>
+          </Popover>
+        </Theme>,
+      );
+    });
+    expect(labelled, "aria-label does not reach the panel, so the warning has no repair").toBe(0);
   });
 
   it("and their type answers the index, because the system owns those words", () => {
@@ -337,6 +450,128 @@ describe("the agreement law: portalled ≡ in-flow (§20, ENGINEERING §2.1)", (
     const twinEl = twin({ ...HOSTILE, contrast: "high" }, identity);
     expect(surfaceFacts(popup)).toEqual(surfaceFacts(twinEl));
     expect(surfaceFacts(twin(HOSTILE, identity))).not.toEqual(surfaceFacts(twinEl));
+  });
+});
+
+
+/**
+ * THE ROOT'S DIRECTION CONTEXT (§20, §22, added 2026-08-26 from the ultracode audit).
+ *
+ * `PortalScope` stamps `dir` on the portal wrapper from this context, and the entry flight
+ * reads its anchor out of the same object — so a component that never provides it takes the
+ * context's DEFAULT for both, and the default is a hard-coded `ltr` with no anchor at all.
+ * Popover shipped without the provider that Menu, Select, Dialog and AlertDialog all render.
+ *
+ * The two laws below read the two halves, and the second reads it TWICE, because an
+ * unprovided React context does not resolve to its default when there is an enclosing
+ * provider — it resolves to that one. So a popover standing alone got no anchor and a popover
+ * inside a Dialog got the DIALOG's, which is a different node somewhere else on the page.
+ */
+describe("the panel knows its direction and its anchor (§20, §22)", () => {
+  /** The document's own `dir` — an app spells this on `<html>`, and the portal lands under
+      `document.body`, so this is the ancestor a portalled panel would otherwise inherit. */
+  function inDocumentDirection<T>(dir: string, run: () => T): T {
+    const had = document.documentElement.getAttribute("dir");
+    document.documentElement.setAttribute("dir", dir);
+    try {
+      return run();
+    } finally {
+      if (had === null) document.documentElement.removeAttribute("dir");
+      else document.documentElement.setAttribute("dir", had);
+    }
+  }
+
+  it("an RTL document opens an RTL panel — the stamp states the direction, it does not invent one", () => {
+    // The stale-stamp failure of 2026-08-09, reached by a third road: the wrapper stamps
+    // `dir` ALWAYS, so a component that hands it no direction hands it `ltr`, and that stamp
+    // OVERRIDES the `rtl` the portal would have inherited from the document on its own.
+    // Measured before the fix: `dir="ltr"` on the wrapper and `direction: ltr` computed on the
+    // panel, inside `<html dir="rtl">`.
+    const rtl = inDocumentDirection("rtl", () => {
+      const { popup } = openPopover({});
+      const portal = popup.closest<HTMLElement>(".kui-portal");
+      if (!portal) throw new Error("no portal wrapper — the law would assert nothing");
+      return { stamp: portal.getAttribute("dir"), computed: computed(popup, "direction") };
+    });
+    expect(rtl.stamp, "the wrapper stamped a direction the document does not have").toBe("rtl");
+    expect(rtl.computed, "the panel computes the wrong direction").toBe("rtl");
+
+    // The calibration: an LTR document must still come back `ltr`, or the law above passes on
+    // a wrapper that had simply stopped stamping anything.
+    const ltr = inDocumentDirection("ltr", () => {
+      const { popup } = openPopover({});
+      const portal = popup.closest<HTMLElement>(".kui-portal")!;
+      return { stamp: portal.getAttribute("dir"), computed: computed(popup, "direction") };
+    });
+    expect(ltr.stamp).toBe("ltr");
+    expect(ltr.computed).toBe("ltr");
+  });
+
+  it("the flight's anchor is the popover's OWN trigger, standing alone and inside a dialog", async () => {
+    /**
+     * `--kui-anchor-w` is the persistent half of the runner's `if (trigger)` block — the one
+     * flight var the release keeps — and it is written from the very node the seed silhouette
+     * is photographed off. So it answers both questions at once: is there an anchor, and is it
+     * the right one. With no provider it is never written at all (measured: the empty string),
+     * and inside a Dialog it was written from the DIALOG's trigger.
+     *
+     * The two triggers are deliberately different widths, which is what makes "the wrong
+     * anchor" and "the right anchor" different answers rather than the same number twice.
+     */
+    const standalone = render(
+      <Theme>
+        <Popover defaultOpen>
+          <PopoverTrigger render={<Button style={{ inlineSize: "420px" }}>Wide trigger</Button>} />
+          <PopoverContent>
+            <PopoverTitle>Filters</PopoverTitle>
+          </PopoverContent>
+        </Popover>
+      </Theme>,
+    );
+    // SEIZED, NOT RACED (the 2026-08-20 rule): the runner writes this on its own frame, so
+    // the law waits for the value to EXIST rather than for a fixed number of milliseconds. A
+    // component with no anchor never writes it, so the wait runs its whole deadline out and
+    // the assertion below is what reports the failure.
+    const alonePopups = document.querySelectorAll<HTMLElement>(".kui-popover-popup");
+    const alonePopup = alonePopups[alonePopups.length - 1]!;
+    const aloneTrigger = standalone.querySelector<HTMLElement>("button")!;
+    await until(() => computed(alonePopup, "--kui-anchor-w") !== "", 3000);
+    expect(
+      computed(alonePopup, "--kui-anchor-w"),
+      "the flight has no anchor at all — the panel grows out of the anchorless seed",
+    ).not.toBe("");
+    // `offsetWidth`, not the bounding box: an open trigger holds its press (§8), so its
+    // painted box is the scaled one and the anchor is the resting layout box.
+    expect(parseFloat(computed(alonePopup, "--kui-anchor-w"))).toBeCloseTo(
+      aloneTrigger.offsetWidth,
+      0,
+    );
+
+    render(
+      <Theme>
+        <Dialog defaultOpen>
+          <DialogTrigger render={<Button style={{ inlineSize: "500px" }}>Settings…</Button>} />
+          <DialogContent>
+            <DialogTitle>Settings</DialogTitle>
+            <Popover defaultOpen>
+              <PopoverTrigger render={<Button style={{ inlineSize: "90px" }}>Filters</Button>} />
+              <PopoverContent>
+                <PopoverTitle>Filters</PopoverTitle>
+              </PopoverContent>
+            </Popover>
+          </DialogContent>
+        </Dialog>
+      </Theme>,
+    );
+    const nestedPopups = document.querySelectorAll<HTMLElement>(".kui-popover-popup");
+    const nested = nestedPopups[nestedPopups.length - 1]!;
+    const inner = document.querySelector<HTMLElement>(".kui-dialog-popup button");
+    if (!inner) throw new Error("the nested trigger never mounted");
+    await until(() => computed(nested, "--kui-anchor-w") !== "", 3000);
+    expect(
+      parseFloat(computed(nested, "--kui-anchor-w")),
+      "the popover flew out of the DIALOG's trigger — it read the enclosing direction context",
+    ).toBeCloseTo(inner.offsetWidth, 0);
   });
 });
 
@@ -519,6 +754,68 @@ describe("an overlong panel scrolls its content, not itself (§22)", () => {
     expect(mv.hasAttribute("tabindex"), "the menu grew a tab stop inside its roving focus").toBe(
       false,
     );
+  });
+
+  it("a caller's own ScrollArea keeps the height they stated on it (§31, 2026-08-26)", async () => {
+    /**
+     * THE HEIGHT BOUND IS THE POPUP'S ANATOMY, NOT EVERY VIEWPORT UNDER IT (audit 2026-08-26).
+     *
+     * The rule that caps the scrolling viewport at the room the positioner reports was written
+     * as a DESCENDANT selector, so at (0,2,0) it also landed on any `ScrollArea` the call site
+     * composed — and beat `scroll-area.css`'s own `max-block-size: 100%` at (0,1,0). A popover
+     * is the one member of this family whose content is explicitly the caller's, and
+     * `ScrollArea`'s JSDoc instructs them to state a height on it, so the component overruled
+     * the instruction it gives.
+     *
+     * Both halves in one fixture, because the direct-child spelling and the descendant one
+     * agree perfectly about the popup's own viewport — the caller's is the one that tells them
+     * apart. Same shape as the reopen-reset law below, and the same `:scope >` reach.
+     */
+    await page.viewport(600, 320);
+    render(
+      <Theme>
+        <Popover defaultOpen>
+          <PopoverTrigger render={<Button>Open</Button>} />
+          <PopoverContent>
+            <PopoverTitle>Filters</PopoverTitle>
+            <ScrollArea style={{ height: "120px" }}>
+              {Array.from({ length: 40 }, (_, i) => (
+                <p key={i} style={{ margin: 0 }}>{`inner ${i}`}</p>
+              ))}
+            </ScrollArea>
+          </PopoverContent>
+        </Popover>
+      </Theme>,
+    );
+    settleAll();
+    const popup = document.querySelector<HTMLElement>(".kui-popover-popup");
+    if (!popup) throw new Error("no popup — the law would assert nothing");
+    const own = popup.querySelector<HTMLElement>(
+      ":scope > .kui-scroll-area > .kui-scroll-viewport",
+    );
+    if (!own) throw new Error("the popup has no viewport of its own");
+    const theirs = own.querySelector<HTMLElement>(".kui-scroll-viewport");
+    if (!theirs) throw new Error("the caller's scroller never mounted");
+
+    // CALIBRATION: their content genuinely overflows the height they asked for. Without this
+    // every spelling passes, because a scroller with nothing to scroll is bounded by its
+    // content and no rule has to do anything.
+    expect(
+      theirs.scrollHeight,
+      "the fixture fits inside 120px — this law is measuring a region with no overflow",
+    ).toBeGreaterThan(140);
+
+    expect(
+      theirs.clientHeight,
+      "the panel overruled the height the caller stated on their own ScrollArea",
+    ).toBeLessThanOrEqual(121);
+
+    // And the popup's own viewport still takes the cap, which is what the rule is FOR: without
+    // this the law would pass on a day the whole declaration had simply been deleted.
+    expect(
+      computed(own, "max-block-size"),
+      "the popup's own viewport lost its bound on the room the positioner reports",
+    ).not.toBe("none");
   });
 
   it("a caught reopen resets the popup's OWN viewport and never a scroller the caller composed (§22, 2026-08-25)", async () => {
