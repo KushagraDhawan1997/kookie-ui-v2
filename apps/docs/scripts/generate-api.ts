@@ -35,7 +35,7 @@ const packageRoot = path.join(packageDir, "src");
 const indexPath = path.join(packageRoot, "index.ts");
 const outPath = path.join(here, "../app/(docs)/components/api.generated.ts");
 
-type ApiProp = { name: string; type: string; optional: boolean; doc: string };
+export type ApiProp = { name: string; type: string; optional: boolean; doc: string };
 type ApiEntry = { element: string | null; props: ApiProp[] };
 
 /**
@@ -123,7 +123,7 @@ function docOf(node: ts.Node): string {
   );
 }
 
-/** The string literals in an `Omit`'s key argument — one name, or a union of them. */
+/** The string literals in an `Omit`'s or `Pick`'s key argument — one name, or a union of them. */
 function literalNames(node: ts.TypeNode): string[] {
   if (ts.isLiteralTypeNode(node) && ts.isStringLiteral(node.literal)) return [node.literal.text];
   if (ts.isUnionTypeNode(node)) return node.types.flatMap(literalNames);
@@ -191,18 +191,32 @@ function collect(
     // own banner. It survived because the other `Omit`s in the package remove keys the target
     // then re-declares (`className`, `style`), so the only visible case was the one nobody had
     // looked at. A law that reports a refusal as a feature is worse than no law.
+    // AND `Pick` KEEPS ONLY ITS KEYS — the other half of the same defect, left standing when
+    // the `Omit` half was repaired (found 2026-08-26). `Pick` was admitted into this branch on
+    // day one and then implemented as a no-op: the target was collected and the key list
+    // thrown away, which is the operator INVERTED, and it stayed invisible because the only
+    // `Pick<` in the package is an internal alias the walk never reaches. The first exported
+    // `*Props` written as `Pick<SomeOwnProps, "size" | "tone">` — the ordinary way to publish
+    // a narrowed part's API — would have shipped a table listing every prop of the target, and
+    // nothing would have caught it: the drift law compares against the artifact this generator
+    // wrote, and the agreement law asks whether the registry's axis names are IN the checker's
+    // set, never whether the generated table is a SUBSET of it.
     if (name === "Omit" || name === "Pick") {
       const [target, keys] = node.typeArguments ?? [];
       if (!target) return;
       const before = out.props.length;
+      const elementBefore = out.element;
       collect(target, file, out, depth + 1);
-      if (name === "Omit" && keys) {
-        const omitted = new Set(literalNames(keys));
-        out.props = [
-          ...out.props.slice(0, before),
-          ...out.props.slice(before).filter((prop) => !omitted.has(prop.name)),
-        ];
+      if (keys) {
+        const named = new Set(literalNames(keys));
+        const keep = (prop: ApiProp) =>
+          name === "Omit" ? !named.has(prop.name) : named.has(prop.name);
+        out.props = [...out.props.slice(0, before), ...out.props.slice(before).filter(keep)];
       }
+      // A `Pick` states its keys exhaustively, so the native-element note a nested
+      // `ComponentPropsWithoutRef` would have set does not survive it: `Pick<…<"button">,
+      // "type">` takes `type`, not "every button prop". `Omit` is the opposite and keeps it.
+      if (name === "Pick") out.element = elementBefore;
       return;
     }
     const element = /^(React\.)?ComponentPropsWithoutRef$/.test(name)
@@ -221,6 +235,31 @@ function collect(
     );
     if (alias) collect(alias.type, file, out, depth + 1);
   }
+}
+
+/**
+ * What one props-type expression resolves to, read out of source TEXT rather than off disk.
+ *
+ * Exported for the laws, and for one reason the laws cannot get any other way: a law about
+ * how the walk handles a type OPERATOR has to be written against a spelling, and the spelling
+ * may not be in the package yet — `Pick` was admitted into the walk on the day the generator
+ * shipped and implemented as a no-op, and stayed that way because no exported `*Props` type
+ * happened to use it. A law that can only read what the package already writes cannot fail
+ * until the defect ships, which is the wrong way round.
+ */
+export function propsOfSource(
+  source: string,
+  typeName: string,
+): { props: ApiProp[]; element: string | null } {
+  const file = ts.createSourceFile("fixture.ts", source, ts.ScriptTarget.Latest, true);
+  const alias = file.statements.find(
+    (statement): statement is ts.TypeAliasDeclaration =>
+      ts.isTypeAliasDeclaration(statement) && statement.name.text === typeName,
+  );
+  if (!alias) throw new Error(`propsOfSource(): no \`type ${typeName}\` in the fixture`);
+  const out: { props: ApiProp[]; element: string | null } = { props: [], element: null };
+  collect(alias.type, file, out);
+  return out;
 }
 
 function extract(): Record<string, ApiEntry> {

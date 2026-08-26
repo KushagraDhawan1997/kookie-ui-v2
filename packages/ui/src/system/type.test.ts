@@ -169,17 +169,53 @@ describe("the inert atoms have ONE identity, and the third member is what moved 
     );
   });
 
+  /** Wears the class as a TOKEN. `toContain("kui-atom")` is satisfied by `kui-atom-box`,
+   *  which is how this law came to assert neither side of the partition it is named for
+   *  (found 2026-08-26): the substring is true of a member and of a non-member alike. */
+  const wears = (source: string, cls: string): boolean =>
+    new RegExp(`${cls}(?![-\\w])`).test(source);
+
   it("the one-line box is the type layer's, and only the members that ARE boxes wear it", () => {
     // Code is the deliberate non-member: an inline chip belongs to its sentence and wraps with
     // it. That is why the box is a second class rather than a stand-down — a member opts in,
     // and nothing has to opt out.
+    //
+    // BOTH SIDES ARE ASSERTED SINCE 2026-08-26, and neither was before. The law read
+    // `toContain("kui-atom")` — true of every atom whichever classes it wears — and never
+    // named `kui-atom-box` at all, so adding the box to Code's className passed here (code.css
+    // still has no `block-size`; the .tsx still contains the substring) and passed everywhere
+    // else too: `code.browser.test.tsx` reads no geometry, no `display` and no `white-space`,
+    // and Code's own `padding-inline` still wins the (0,1,0) tie on source order. Every inline
+    // `<Code>` would have become `display: inline-flex; block-size: 1lh; white-space: nowrap`,
+    // destroying the one property code.css spends ten lines arguing for, with the suite green.
+    const BOXES: readonly (typeof ATOMS)[number][] = ["kbd", "badge"];
+
     expect(stripped).toContain("block-size: 1lh");
     expect(sheet("components/code/code.css"), "the chip grew a box").not.toContain("block-size");
+
+    // The partition has to have two sides, or "only the members that ARE boxes" says nothing.
+    expect(
+      ATOMS.filter((atom) => !BOXES.includes(atom)),
+      "every atom is a box — the `only` half of this law has nothing left to forbid, so either " +
+        "the family changed on purpose or a non-member was quietly added to BOXES",
+    ).not.toEqual([]);
+
     for (const atom of ATOMS) {
       // `sheet()` on a .tsx deliberately: it strips block comments, so a JSDoc paragraph
       // about the atom family cannot satisfy a law about the className the component ships.
       const source = sheet(`components/${atom}/${atom}.tsx`);
-      expect(source, `${atom}.tsx does not wear the shared atom identity`).toContain("kui-atom");
+      expect(
+        wears(source, "kui-atom"),
+        `${atom}.tsx does not wear the shared atom identity`,
+      ).toBe(true);
+      expect(
+        wears(source, "kui-atom-box"),
+        BOXES.includes(atom)
+          ? `${atom} IS a box and does not wear \`kui-atom-box\` — its height, its centring and ` +
+            `its 1.6em floor live in that class and nowhere else`
+          : `${atom} wears \`kui-atom-box\` and is not a box — a one-line inline-flex chip stops ` +
+            `belonging to its sentence and stops wrapping with it (code.css's own argument)`,
+      ).toBe(BOXES.includes(atom));
     }
   });
 });

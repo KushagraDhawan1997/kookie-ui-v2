@@ -25,9 +25,16 @@ import { SIZES, GLASS_MATERIALS, type Size } from "../system/axes.ts";
 import { VIEWPORT } from "./viewport.ts";
 import { density } from "../tokens/config.ts";
 
-// Every stylesheet the package ships, in the order styles/index.css imports them — order is
-// load-bearing, since the recipes read tokens and components read recipes. Keep this list and
-// that file in step; a sheet missing here makes laws pass against an empty cascade.
+// Every stylesheet the package ships, installed below in the order styles/index.css imports
+// them — order is load-bearing, since the recipes read tokens, components read recipes, and
+// this system settles same-specificity ties by source order routinely.
+//
+// KEEPING THE TWO IN STEP IS A LAW, NOT A HABIT (2026-08-26). It was a habit until six of the
+// thirty-four positions had drifted — the harness resolved every scroll-area/segmented-
+// control/select/popover/progress/radio tie the opposite way from the artifact a consumer
+// loads — while both existing laws stayed green, because both are MEMBERSHIP laws and a
+// `toContain` never reads an index. `test/cascade.test.ts` compares the two orders position
+// by position; `recipes.test.ts` still owns membership in both directions.
 import alertDialogCss from "../components/alert-dialog/alert-dialog.css?raw";
 import badgeCss from "../components/badge/badge.css?raw";
 import blockquoteCss from "../components/blockquote/blockquote.css?raw";
@@ -89,12 +96,12 @@ export function installStyles(): void {
     menuCss,
     composerCss,
     noticeCss,
-    popoverCss,
-    selectCss,
-    progressCss,
-    radioCss,
     scrollAreaCss,
     segmentedControlCss,
+    selectCss,
+    popoverCss,
+    progressCss,
+    radioCss,
     separatorCss,
     shellCss,
     sliderCss,

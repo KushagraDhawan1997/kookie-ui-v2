@@ -25,7 +25,7 @@ import { describe, expect, it } from "vitest";
 import { API } from "./api.generated";
 import { propDescription } from "./prop-description";
 import { ENTRIES } from "./registry";
-import { generatedText, resolvedPropNames } from "../../../scripts/generate-api";
+import { generatedText, propsOfSource, resolvedPropNames } from "../../../scripts/generate-api";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 
@@ -170,4 +170,66 @@ describe("the generated table and the written reference agree", () => {
     }
     expect(wrong).toEqual([]);
   }, 120_000);
+});
+
+describe("the walk reads a type operator as the operator, not as its target", () => {
+  /**
+   * Added 2026-08-26, for the half of the `Omit`/`Pick` branch that was never implemented.
+   *
+   * `Pick` was admitted into the branch on the day the generator shipped and then applied no
+   * key filter at all: the target was collected and the keys thrown away, so a `Pick<T, K>`
+   * resolved to every declared member of `T` — the operator INVERTED, and the mirror of the
+   * `Omit` defect the branch's own comment records repairing ("a law that reports a refusal as
+   * a feature is worse than no law").
+   *
+   * IT NEEDS A FIXTURE, and that is the point rather than a convenience. The only `Pick<` in
+   * `packages/ui/src` is an internal alias `propsTypeLocations()` never reaches, so the defect
+   * was LATENT: a law reading only what the package writes today could not fail until the day
+   * the first narrowed part's API shipped an over-wide table. Neither existing law here can
+   * see it either — the drift law compares against the artifact this generator wrote, and the
+   * agreement law asks whether the registry's axis names are IN the checker's resolved set,
+   * never whether the generated table is a SUBSET of it.
+   *
+   * The `Omit` arm is the calibration: same fixture, same walk, and it was already right, so a
+   * failure in the `Pick` arm alone cannot be the harness misreading the source.
+   */
+  const FIXTURE = `
+    type OwnProps = {
+      /** The index. */
+      size?: "1" | "2";
+      /** The family. */
+      tone?: "neutral" | "destructive";
+      /** The rung. */
+      emphasis?: "loud" | "quiet";
+    };
+    type NarrowedProps = Pick<OwnProps, "size" | "tone">;
+    type WidenedProps = Omit<OwnProps, "emphasis">;
+    type PickedNativeProps = Pick<React.ComponentPropsWithoutRef<"button">, "type">;
+  `;
+
+  it("`Pick` keeps only its keys, and `Omit` removes only its keys", () => {
+    // The two arms answer DIFFERENTLY on one fixture, which is what makes it a fixture about
+    // the operator rather than about the target: `Pick<…, "size" | "tone">` and
+    // `Omit<…, "emphasis">` name the same two props by opposite routes, and the third prop is
+    // what tells a working filter from a missing one. With the filter absent, `Pick` returned
+    // all three.
+    expect(propsOfSource(FIXTURE, "NarrowedProps").props.map((p) => p.name)).toEqual([
+      "size",
+      "tone",
+    ]);
+    expect(propsOfSource(FIXTURE, "WidenedProps").props.map((p) => p.name)).toEqual([
+      "size",
+      "tone",
+    ]);
+  });
+
+  it("and a `Pick` of a native element does not claim the whole element", () => {
+    // The second manifestation of the same root: `collect` sets the element note when it meets
+    // `ComponentPropsWithoutRef<"button">`, and an un-narrowed `Pick` let that escape — so the
+    // page would have printed "also takes every button prop" for a type that takes exactly
+    // `type`. The picked platform keys are not listed, because their declarations live in
+    // React's own lib and this walk reads the package's source; saying nothing is the honest
+    // answer, and it is the one that does not overstate the API.
+    expect(propsOfSource(FIXTURE, "PickedNativeProps").element).toBeNull();
+  });
 });
