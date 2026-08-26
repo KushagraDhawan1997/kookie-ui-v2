@@ -77,6 +77,7 @@ import {
   springs,
   dialogMotion,
   dialogEntry,
+  printBlur,
   shadow,
   sliderTrack,
   progressTrack,
@@ -324,7 +325,7 @@ export function generateTokens(): string {
   put("dialog-settle", `${dialogMotion.settle}ms`);
   put("dialog-reveal", `${dialogMotion.reveal}ms`);
   put("dialog-depth", `${dialogEntry.depth}`);
-  put("dialog-blur", `${dialogEntry.blur}px`);
+  put("print-blur", `${printBlur}px`);
   put("overlay-dissolve", `${overlayMotion.dissolve}ms`);
   put("overlay-settle", `${overlayMotion.settle}ms`);
 
@@ -376,22 +377,40 @@ export function generateTokens(): string {
   lines.push(decl("shell-bottom-h", zoom(shellWidth.bottom)));
   lines.push(...shellFamily());
 
-  lines.push("", "  /* colour, generated (§7) — light mode */");
-  lines.push(...colorDeclarations("light"));
-
-  lines.push(...surfaceWorld("light"));
-  lines.push(...dressWorld("light"));
-  lines.push(...surfaceEdge());
-
   lines.push("}", "");
 
-  // `light` gets its own block for the same reason `default` density does: Theme stamps
-  // data-appearance on every node, so a light Theme nested inside a dark region would
-  // otherwise INHERIT the dark custom properties — an escape that does nothing is not an
-  // escape (§5, §16). :root cannot serve as that escape because :root only ever matches
-  // <html>, and Theme renders a div.
+  // THE LIGHT PALETTE HAS TWO WAYS OF BEING REACHED AND ONE BODY (grouped 2026-08-26, audit).
+  //
+  // `:root` is the UN-THEMED document: <html> carrying no stamp at all must still render a
+  // complete light system (the standalone path the emitted stylesheet promises — Theme's
+  // default appearance is `light`, but a portal, a `<body>` child, or an app that stamps
+  // nothing lives outside every Theme element). `[data-appearance="light"]` is the STATED
+  // light: the pre-paint script's <html data-appearance="light">, and — the case :root can
+  // never serve, because :root only ever matches <html> and Theme renders a div — a light
+  // Theme nested inside a dark region, which would otherwise INHERIT the dark custom
+  // properties. An escape that does nothing is not an escape (§5, §16).
+  //
+  // Two reasons, one set of values, so it is ONE rule with two selectors — the spelling the
+  // contrast-high emitter below has always used for exactly this pair (`bases`). It shipped
+  // as two full copies until the 2026-08-26 audit: 556 byte-identical declarations, 22,669
+  // raw bytes, which Lightning cannot merge because `:root` also carries the axis-invariant
+  // layer and its merge is gated on the bodies being equal (inside the P3 @supports block,
+  // where the bodies DO match, it merges this very pair on its own).
+  //
+  // The axis-invariant layer above stays `:root`-ONLY and must never join this list. A
+  // density or pointer scope re-declares members of that set (the control family, layout
+  // space) nearer to the element, so re-stating them on any [data-appearance] element would
+  // clobber an ancestor's density answer by proximity: <Theme density="compact"><Theme
+  // appearance="light"> would silently return the inner subtree to the default cells. That
+  // is why the fix SPLITS :root instead of widening it, and it is the whole reason the
+  // duplication looked load-bearing.
+  //
+  // Cascade-neutral by construction: both selectors are (0,1,0), the two rules are adjacent
+  // so the dark block still follows and still wins its tie on <html data-appearance="dark">,
+  // and the names in this body and the names left in :root are disjoint sets (law-pinned).
   lines.push(
-    `[data-appearance="light"] {`,
+    `:root, [data-appearance="light"] {`,
+    "  /* colour, generated (§7) — light mode */",
     ...colorDeclarations("light"),
     ...surfaceWorld("light"),
     ...dressWorld("light"),
@@ -846,6 +865,10 @@ export const ROLES = [
   // The tone-forward surface fill (§10): alpha, visible because it carries chroma — Notice's
   // dressing. The default surface never uses alpha; it seals (--color-surface below).
   "a3",
+  // Its opaque twin (2026-08-26), for the one bed where an alpha source is a defect: GLASS.
+  // Same argument as the soft trio's twins, and it needs a name of its own because `soft` is
+  // a wash role (neutral for every family) and is a4's twin in dark.
+  "a3-solid",
 ] as const;
 
 /**
@@ -901,7 +924,14 @@ const WASH_ROLES: ReadonlySet<string> = new Set([
  * wash, and `label`/`contrast` are the inks that sit ON a fill — part of what makes a rung
  * readable rather than a quieter version of it.
  */
-const DILUTED_ROLES: ReadonlySet<string> = new Set(["ink-muted", "ink-faint", "a3"]);
+const DILUTED_ROLES: ReadonlySet<string> = new Set([
+  "ink-muted",
+  "ink-faint",
+  "a3",
+  // The twin travels with the role it is a twin OF, or an undiluted tone would paint one
+  // family solid and another neutral for the same rung depending on the material.
+  "a3-solid",
+]);
 
 /** Every role that resolves NEUTRAL for this tone — the union the emitter walks. */
 function neutralRolesFor(tone: string): ReadonlySet<string> {
@@ -1016,6 +1046,11 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
       // and a top rim catch painted as a background layer — NOT a shadow, so depth stays the
       // app's identity (depth="elevated") and the one-box-shadow law never learns glass
       // exists. A flat world's glass has edge and glint, no lift.
+      //
+      // The rim's ONE number is `sheen`. There is no separate `rim` alpha in config any more
+      // (2026-08-26 audit): it priced the deleted top edge line below, and went on sitting in
+      // six rows reaching nothing while the monotonicity law walked it — deleted with its
+      // prose, and `tokens.test.ts` now walks every material leaf against this file.
       decl(`material-${name}-edge`, `rgb(255 255 255 / ${m[name].edge})`),
       decl(`material-${name}-rim`, rim(m[name].sheen)),
       // The CONTROL's lighting is the pane's minus the wash (§10, 2026-08-16). A pane's fill
@@ -1027,9 +1062,10 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
       // properties of the material; the wash is a property of a pane.
       decl(`material-${name}-rim-control`, rim(0)),
       // CONTROL-scale material (lab 2026-08-14, ported 2026-08-17): the family re-prices the
-      // ladder for its box — half the blur, a leaner veil, its own sheen. One alpha, no
-      // hover/active steps: on glass, hover is LIGHT (filterHover bumps brightness, the veil
-      // holds) — the lab's answer to "hover mode looks weird".
+      // ladder for its box — half the blur and a leaner veil, and NOT a sheen of its own,
+      // which is the line above stated from the config's side. One alpha, no hover/active
+      // steps: on glass, hover is LIGHT (filterHover bumps brightness, the veil holds) — the
+      // lab's answer to "hover mode looks weird".
       decl(`material-${name}-control-alpha`, `${m[name].control.alpha}%`),
       decl(`material-${name}-control-filter`, m[name].control.filter),
       decl(`material-${name}-control-filter-hover`, m[name].control.filterHover),
@@ -1258,9 +1294,12 @@ function dressWorld(mode: "light" | "dark"): string[] {
   const out: string[] = [
     "",
     `  /* the fill-first dress (§19), per appearance: an index means the opposite thing in`,
-    `     the two modes, so the ladders are not each other's copy. The edges sit inside`,
-    `     contrastHighBands.border, which is what keeps contrast="high" able to reach a`,
-    `     dressed component's boundary at all. */`,
+    `     the two modes, so the ladders are not each other's copy. contrast="high" reaches a`,
+    `     dressed boundary by STANDING THIS ROLE DOWN — the pass writes`,
+    `     --dress-<family>-edge: initial, and each consumption site's own fallback`,
+    `     (--field-edge, --control-edge, --tone-border) then resolves AT THE ELEMENT, where`,
+    `     the pass has already re-solved it. Never by re-declaring these: the dress is on the`,
+    `     ALPHA ramp and the high-contrast pass re-declares opaque steps only. */`,
   ];
   for (const [family, slots] of Object.entries(dress[mode])) {
     for (const [slot, step] of Object.entries(slots) as [string, number][]) {

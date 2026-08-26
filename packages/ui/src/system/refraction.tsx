@@ -962,7 +962,7 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
        * runner reads that one un-posed and hands it over rather than leaving it to be guessed
        * from a moving element.
        */
-      const target = (): { w: number; h: number; r: number; k: number; sealed: boolean; ringDown: boolean } | null => {
+      const target = (): { w: number; h: number; r: number; k: number; sealed: boolean; ringDown: boolean; glinted: boolean } | null => {
         const rect = node.getBoundingClientRect();
         const cs = getComputedStyle(node);
         /**
@@ -990,6 +990,27 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
         // light detaching from the lip at every corner is what a circular mask over a squircle
         // clip would draw. corner-shape does not animate, so this is stable through a flight.
         const k = cs.getPropertyValue("corner-shape").includes("squircle") ? 4 : 2;
+        /**
+         * AND THE SAME GATE FOR THE MASK: IS THERE A LAYER TO PUT IT ON? (2026-08-26, the
+         * ultracode audit — the seal repair's own sentence, reached by a second road.)
+         *
+         * The glint is a mask on a `::before` that the glint families declare (`.kui-surface`
+         * in surfaces.css, `.kui-button` / `.kui-segmented` / `.kui-field` / `.kui-textarea`
+         * in recipes.css). Badge is glass-capable too since it grew `backdrop` — and the atom
+         * family declares no pseudo at all, so a `<Badge backdrop>` ran a full `glintMap`
+         * ImageData pass, a `canvas.toDataURL()` PNG encode and a 645-character inline
+         * `--kui-glint` write for a property with nowhere to land. Measured on a mounted badge
+         * beside a mounted button: badge `::before` content `none`, mask-image `none`, glint
+         * 645 chars; button `::before` content `""`, mask-image `url("data:image/png…")`.
+         *
+         * Read off the CASCADE, not off a class list, for the same reason the seal is: this
+         * file may not own a second copy of which families paint what. `content` is the one
+         * property that answers "does this pseudo exist" — every glint rule sets `content: ""`
+         * on the same selector that installs the mask, so the two cannot drift apart in one
+         * family without the other noticing. If a glint rule is ever written onto `::after`
+         * instead, widen this read to both; the law below fails first, by name.
+         */
+        const glinted = getComputedStyle(node, "::before").content !== "none";
         const flight = node.closest("[data-unfurling]");
         // Only when the flying element IS this pane. A lens attached to something INSIDE a
         // flying panel has its own geometry and none of these numbers describe it.
@@ -998,7 +1019,7 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
           const h = parseFloat(node.style.getPropertyValue("--kui-fly-h"));
           const r = parseFloat(node.style.getPropertyValue("--kui-fly-r"));
           if (Number.isFinite(w) && Number.isFinite(h) && w >= 8 && h >= 8) {
-            return { w, h, r: Number.isFinite(r) ? r : 0, k, sealed, ringDown };
+            return { w, h, r: Number.isFinite(r) ? r : 0, k, sealed, ringDown, glinted };
           }
           // Published nothing readable — a reduced-motion open bails before writing these, and
           // a pane can carry the stamp for a frame before they land. Waiting is right: the old
@@ -1006,7 +1027,7 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
           return null;
         }
         if (rect.width < 8 || rect.height < 8) return null;
-        return { w: rect.width, h: rect.height, r: parseFloat(cs.borderTopLeftRadius) || 0, k, sealed, ringDown };
+        return { w: rect.width, h: rect.height, r: parseFloat(cs.borderTopLeftRadius) || 0, k, sealed, ringDown, glinted };
       };
 
       const measure = () => {
@@ -1035,10 +1056,15 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
            and on every box the bezel fits — the lens's own support gate never withholds it. */
         const fit = fitLens(params, Math.min(box.w, box.h));
         const bandX = tuning?.glintBandX ?? glint.band;
+        const sat = tuning?.rimSaturate ?? glint.rimSaturate;
         let glintUrl = "";
         // A sealed pane with its ring stood down shows the mask nowhere — see target() for why
-        // BOTH conditions, and why high contrast alone never lands here.
-        if (fit && bandX > 0 && !(box.sealed && box.ringDown)) {
+        // BOTH conditions, and why high contrast alone never lands here. `box.glinted` is the
+        // third way of showing it nowhere: no `::before` to carry it (the atom family). The
+        // rim-saturate stage is the mask's OTHER consumer — it re-emits the displaced backdrop
+        // through the same alpha inside the filter — so a bench run with `rimSaturate > 0`
+        // still needs the map on a pane whose CSS would never sample it.
+        if (fit && bandX > 0 && !(box.sealed && box.ringDown) && (box.glinted || sat > 0)) {
           const band = Math.max(1, fit.bezel * bandX * scale);
           glintUrl = acquireGlint(w, h, r, band, box.k);
         }
@@ -1069,7 +1095,6 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
           bezel: params.bezel * scale,
           thickness: params.thickness * scale,
         };
-        const sat = tuning?.rimSaturate ?? glint.rimSaturate;
         const next = acquire(w, h, r, fitted, scale, glintUrl && sat > 0 ? { url: glintUrl, sat } : null);
         if (!next) return;
         // UNCONDITIONALLY, never `s.id !== next` (2026-08-22 audit). `measure()` runs once

@@ -569,3 +569,98 @@ describe("an inert render target does not answer the pointer (§21, audit 2026-0
     expect(handled.hasAttribute("data-hover-lit"), "the escape stopped being an escape").toBe(true);
   });
 });
+
+/**
+ * THE AUDIT OF 2026-08-26 — two findings in the shared row rules, both about which fill a row
+ * paints under the pointer. Row is the fixture because it is the family's plainest member and
+ * it can be put in either of the two states by hand; the components that actually broke are
+ * Menu and Select (which carry `data-highlighted` and never `data-hover-lit`) and the shell's
+ * nav and rail (which render a bare `<button disabled>` and never stamp `data-disabled`).
+ */
+describe("the shared row rules, audited 2026-08-26 (§10, §21)", () => {
+  it("a lit quiet row paints the SAME fill whichever cursor lit it (§21)", async () => {
+    /**
+     * The quiet half-step shipped inside `:where([data-emphasis="quiet"])`, which made it
+     * (0,3,0) — an exact tie with the shared `.kui-control:hover` rule 400 lines later, which
+     * then won on source order. Measured before the repair, on one row in one state: the
+     * keyboard-lit fill was `oklab(0 0 0 / 0.03575)` and the pointer-lit fill was
+     * `color(srgb 0 0 0 / 0.055)` — the full step, not the half. One logical state, two
+     * fills, chosen by input device, on the default solid theme.
+     *
+     * THE FIXTURE IS `highlighted`, NOT A PLAIN ROW, and that is the whole law. A plain Row
+     * stamps `data-hover-lit`, whose own (0,4,0) arm was always correct — so a plain row
+     * under the pointer gives the right answer for a reason that has nothing to do with the
+     * defect, and a law built on one would have passed against the broken code. Stating
+     * `highlighted` is what reproduces Menu's and Select's shape: driven, never hover-lit.
+     */
+    const host = mounted(
+      <div>
+        <Row data-t="kbd" highlighted>Keyboard</Row>
+        <Row data-t="ptr" highlighted>Pointer</Row>
+      </div>,
+      { theme: {} },
+    );
+    const kbd = within(host, '[data-t="kbd"]');
+    const ptr = within(host, '[data-t="ptr"]');
+    // The premise, read off the element: this really is the driven-not-hover-lit shape.
+    expect(ptr.hasAttribute("data-hover-lit"), "the fixture is not the driven shape").toBe(false);
+    expect(ptr.getAttribute("data-emphasis")).toBe("quiet");
+
+    const byKeyboard = computed(kbd, "background-color");
+    await userEvent.hover(ptr);
+    const byPointer = computed(ptr, "background-color");
+    await userEvent.hover(document.body);
+
+    // The calibration arm: a half-step that had quietly become the full step, or a full step
+    // that had quietly become the rest, would both satisfy a bare equality. The lit fill must
+    // be a real, partial light — strictly between the rest and the rung's own full step.
+    const full = colorOn(ptr, "var(--tone-soft)");
+    expect(byKeyboard, "the quiet half-step stopped being a half-step").not.toBe(full);
+    expect(byKeyboard).not.toBe("rgba(0, 0, 0, 0)");
+    expect(byPointer, "a pointer-lit quiet row out-painted the keyboard-lit one").toBe(byKeyboard);
+  });
+
+  it("a DEAD row does not answer the pointer, however it spells disabled (§8, §21)", async () => {
+    /**
+     * The hover guards spelled `[data-disabled]` and `[data-loading]` and never `:disabled`,
+     * while the disabled REMAP three rules up is spelled three ways "precisely because one is
+     * never enough". `Row` and the shell's nav and rail members render a bare
+     * `<button disabled>` and deliberately stamp no attribute, so the QUIET rung — whose rest
+     * is the literal `transparent`, leaving the remap nothing to flatten — lit under the
+     * pointer while dead. Measured: rest `rgba(0, 0, 0, 0)`, hovered `oklab(0 0 0 / 0.02015)`.
+     *
+     * THE LIVE TWIN IS THE CALIBRATION, and without it this law passes against a system where
+     * hover had stopped working altogether — which is a different defect wearing the same
+     * green.
+     */
+    const host = mounted(
+      <div>
+        <Row data-t="dead" disabled render={<button />}>Dead</Row>
+        <Row data-t="live" render={<button />}>Live</Row>
+      </div>,
+      { theme: {} },
+    );
+    const dead = within(host, '[data-t="dead"]');
+    const live = within(host, '[data-t="live"]');
+    // The premise: this is the native spelling, with no attribute for the old guard to catch.
+    expect((dead as HTMLButtonElement).disabled).toBe(true);
+    expect(dead.hasAttribute("data-disabled"), "the fixture stopped being the native spelling").toBe(
+      false,
+    );
+    expect(dead.hasAttribute("data-hover-lit"), "the fixture cannot reach the row's hover arm").toBe(
+      true,
+    );
+
+    const deadRest = computed(dead, "background-color");
+    await userEvent.hover(dead);
+    const deadLit = computed(dead, "background-color");
+    await userEvent.hover(document.body);
+    const liveRest = computed(live, "background-color");
+    await userEvent.hover(live);
+    const liveLit = computed(live, "background-color");
+    await userEvent.hover(document.body);
+
+    expect(liveLit, "the calibration: a live row must still answer the pointer").not.toBe(liveRest);
+    expect(deadLit, "a dead row answered the pointer").toBe(deadRest);
+  });
+});

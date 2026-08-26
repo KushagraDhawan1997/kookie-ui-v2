@@ -649,7 +649,7 @@ describe("the panel comes into focus, not into view (§24)", () => {
     expect(computed(popup, "opacity"), "presence is paint").toBe("0");
     // And the content is out of focus by exactly the designed distance — sharing the plane's
     // arrival, because depth of field is a property of the mass.
-    expect(computed(body, "filter")).toBe(`blur(${tokenPx(popup, "--dialog-blur")}px)`);
+    expect(computed(body, "filter")).toBe(`blur(${tokenPx(popup, "--print-blur")}px)`);
   });
 
   it("moves no size channel at all — the absence IS the design", async () => {

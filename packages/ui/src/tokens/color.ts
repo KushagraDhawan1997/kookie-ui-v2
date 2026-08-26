@@ -34,7 +34,7 @@ import {
   type Mode,
   type ToneName,
 } from "./color-config.ts";
-import { surfaceColor } from "./config.ts";
+import { groundColor, surfaceColor } from "./config.ts";
 
 const toRgb = converter("rgb");
 const toOklch = converter("oklch");
@@ -262,6 +262,32 @@ export function toneFromColor(css: string): ToneSpec {
 export type ToneInput = ToneSpec | { color: string };
 
 /**
+ * The GROUND resolved to a hex (§10, minted 2026-08-20), memoised the way the seal is.
+ *
+ * `groundColor` states it per mode and the two modes state it differently — light as a neutral
+ * step, dark as a literal between two rungs — so it resolves exactly the way `alphaBackdrop`
+ * resolves the seal: a literal is used directly, a `var(--neutral-N)` goes back through the
+ * generator that emits it, so the bed and the emitted role cannot drift apart.
+ */
+const groundCache: Partial<Record<Mode, string>> = {};
+function groundBed(mode: Mode): string {
+  const value: string = groundColor[mode];
+  if (!value.startsWith("var(")) return value;
+  groundCache[mode] ??= buildScaleFor(resolveTone(tones.neutral), mode, "srgb", "normal", true)
+    .steps[Number(value.match(/--neutral-(\d+)/)![1]!) - 1]!;
+  return groundCache[mode]!;
+}
+
+/** The beds a RESTING edge is measured on: the page and the surface seal. */
+const restingBeds = (mode: Mode): readonly string[] => [pageColor(mode), alphaBackdrop(mode)];
+
+/**
+ * The beds a CONFORMANCE floor is measured on — every ground the system paints, which is the
+ * two above plus `--color-ground`.
+ */
+const conformanceBeds = (mode: Mode): readonly string[] => [...restingBeds(mode), groundBed(mode)];
+
+/**
  * The control edge (§7, §11, decided 2026-08-07) — the resting hairline of a control whose
  * identity needs it under the outlined look: the mark family (an unchecked checkbox IS its
  * border — audit D2) and the field family (an outlined field's fill is the seal it sits on,
@@ -271,20 +297,35 @@ export type ToneInput = ToneSpec | { color: string };
  * correctly, as a high-contrast value at rest. The `--accent-label` precedent, generalised.
  *
  * Binary search on the neutral recipe's lightness for the value that JUST clears the target
- * against the harder of the two beds it sits on (the seal and the page). Chroma is the
- * neutral tint at the border band's fraction — a hairline is a tinted grey like every other
- * neutral, not a pure one. Monotonic in L away from the bed, so bisection is exact.
+ * against the HARDEST of the beds it sits on. Chroma is the neutral tint at the border band's
+ * fraction — a hairline is a tinted grey like every other neutral, not a pure one. Monotonic
+ * in L away from the bed, so bisection is exact.
+ *
+ * THE BED SET IS THE CALLER'S, and it is per CONTRAST LEVEL (2026-08-26, audit) — `solveSignal`'s
+ * own arrangement one solver over, for the same reason: the beds are the only thing two callers
+ * of one walk disagree about. The split is the 2026-08-07 one. A RESTING edge is taste, held to
+ * no floor, so it keeps the two beds it was judged on. `contrast="high"` is the CONFORMANCE
+ * surface, and a floor that does not hold on every ground the system paints is not a floor —
+ * `--color-ground` became a third paintable bed on 2026-08-20 (Surface) and was never added to
+ * the search. Measured before the fix: light's high-contrast field edge `#a6a5aa` sat at |Lc|
+ * 43.37 on a ground against the 45 the setting is defined to bind to, while measuring 48.15 on
+ * the seal — so nothing could see the miss, because every check read the two beds the solve
+ * already knew. The resting values are deliberately NOT re-solved: they are dress, and moving
+ * dress is a taste edit this repair has no mandate for.
  */
-function solveControlEdge(mode: Mode, gamut: Gamut, target: number): string {
-  const page = pageColor(mode);
-  const seal = alphaBackdrop(mode);
+function solveControlEdge(
+  mode: Mode,
+  gamut: Gamut,
+  target: number,
+  beds: readonly string[],
+): string {
   const { hue, vividness } = resolveTone(tones.neutral);
   const grey = (l: number, g: Gamut) => {
     const cMax = toGamut(oklch(l, 0.4, hue), "srgb").c;
     return format(toGamut(oklch(l, cMax * vividness, hue), g), g);
   };
   const worst = (l: number) =>
-    Math.min(Math.abs(apcaLc(grey(l, "srgb"), seal)), Math.abs(apcaLc(grey(l, "srgb"), page)));
+    Math.min(...beds.map((bed) => Math.abs(apcaLc(grey(l, "srgb"), bed))));
   // Light beds: darker edge = more contrast, so search downward from the bed; dark: upward.
   let lo: number;
   let hi: number;
@@ -547,70 +588,111 @@ export function buildScaleFor(
   // excursion runs as far as it can while the hue still holds most of its saturation, and the
   // direction is chosen by which way affords more of that travel.
   const spread = hc ? hc.stateSpread : 1;
-  const scaleFor = isLowChroma ? lowChromaStateScale : spread;
-  const desired = solidStateDeltas.active * scaleFor;
-  const reach = (dir: number) => {
-    let best = 0;
-    for (let d = 0.01; d <= desired; d += 0.005) {
-      const l = restL + dir * d;
-      if (l !== clampL(l) || available(l) < restC * chromaFloor) break;
-      best = d;
-    }
-    return best;
+
+  /** The two moving states, as fractions of the full excursion: hover, then press. */
+  const stateFractions = [solidStateDeltas.hover / solidStateDeltas.active, 1] as const;
+  /** A state's fill, read in sRGB always — the label decision is sRGB's (`contrast`, above). */
+  const fillAt = (dir: number, t: number, fraction: number) =>
+    formatHex(toGamut(oklch(clampL(restL + dir * t * fraction), restC, hue), "srgb"))!;
+
+  /**
+   * One excursion resolved: which way the states move, and how far.
+   *
+   * `scaleFor` sizes it — 1 is the resting excursion, `hc.stateSpread` the widened one — and
+   * `floors` is the label pairing each state must still clear, ONE NUMBER PER STATE, because
+   * hover and press are held to different bars the moment the bar becomes "no worse than
+   * standard mode" rather than a single constant.
+   *
+   * "Which way affords more travel" is the rule, and for a while the code implemented less of
+   * it: it flipped direction only when the preferred side could not even reach the hover step,
+   * so a hue parked AT its cusp (dark-mode green: away affords .055, toward affords the full
+   * excursion) kept the short side and compressed both states below the visibility floor. The
+   * flip is a trade — toward-label travel spends label contrast — so it is GATED on the label
+   * law. Away-from-label wins whenever it affords the full excursion; a hue that can afford
+   * neither (amber: away washes out, toward drops the label under its floor) simply cannot
+   * ship as a tone, and the separation law is what says so. Both laws hold; membership in the
+   * tone set is what gives.
+   *
+   * `solveDown` picks the gate. Standard mode is all-or-nothing — test the full excursion,
+   * flip only if it clears, the shipped and judged behaviour. HIGH CONTRAST SOLVES INSTEAD
+   * (2026-08-26, the bright-brand work): its 1.6× excursion can overshoot what the label can
+   * absorb, and the all-or-nothing gate then refused the only direction with room, so the
+   * widened spread came out NARROWER than standard mode's. Under high the gate walks down from
+   * the full excursion to the LARGEST travel that still clears every floor.
+   */
+  const excursion = (scaleFor: number, floors: readonly number[], solveDown: boolean) => {
+    const desired = solidStateDeltas.active * scaleFor;
+    const reach = (dir: number) => {
+      let best = 0;
+      for (let d = 0.01; d <= desired; d += 0.005) {
+        const l = restL + dir * d;
+        if (l !== clampL(l) || available(l) < restC * chromaFloor) break;
+        best = d;
+      }
+      return best;
+    };
+    const preferredReach = reach(preferred);
+    const oppositeReach = reach(-preferred);
+    const clearsAt = (t: number) =>
+      stateFractions.every(
+        (f, i) => Math.abs(apcaLc(contrast, fillAt(-preferred, t, f))) >= floors[i]!,
+      );
+    const flipTravel = () => {
+      const max = Math.min(oppositeReach, desired);
+      if (max <= preferredReach) return 0;
+      if (!solveDown) return clearsAt(max) ? max : 0;
+      for (let t = max; t > preferredReach; t -= 0.005) if (clearsAt(t)) return t;
+      return 0;
+    };
+    const flipT = flipTravel();
+    const away = isLowChroma
+      ? -preferred
+      : preferredReach >= desired || flipT <= 0
+        ? preferred
+        : -preferred;
+    // A solved flip travels exactly the distance the solve found — reach() would re-extend it
+    // past the label floor the solve just honoured.
+    const travel =
+      !isLowChroma && away === -preferred && preferredReach < desired && flipT > 0
+        ? flipT
+        : Math.min(reach(away), desired);
+    return { away, travel };
   };
 
-  // "Which way affords more travel" is the comment's rule, and for a while the code
-  // implemented less of it: it flipped direction only when the preferred side could not even
-  // reach the hover step, so a hue parked AT its cusp (dark-mode green: away affords .055,
-  // toward affords the full excursion) kept the short side and compressed both states below
-  // the visibility floor. The flip is a trade — toward-label travel spends label contrast —
-  // so it is GATED on the label law: it happens only when every flipped state still clears
-  // the APCA floor (60, or 75 under contrast="high"). Away-from-label wins whenever it
-  // affords the full excursion; a hue that can afford neither (amber: away washes out,
-  // toward drops the label to Lc 55) simply cannot ship as a tone, and the separation law
-  // is what says so. Both laws hold; membership in the tone set is what gives.
-  const preferredReach = reach(preferred);
-  const oppositeReach = reach(-preferred);
-  const labelFloor = hc ? apcaFloors.aaa : apcaFloors.body;
-  // The flip's travel at a given label floor. Normal mode keeps the original all-or-nothing
-  // gate (test the full excursion, flip only if it clears — the shipped, judged behaviour).
-  // HIGH CONTRAST SOLVES INSTEAD (2026-08-26, the bright-brand work): its 1.6× excursion can
-  // overshoot what the label can absorb, and the all-or-nothing gate then refused the only
-  // direction with room — the widened spread came out NARROWER than normal mode's, under the
-  // floor the palette refused amber for. Under high the gate walks down from the full
-  // excursion to the LARGEST travel that still clears — "as much contrast as each colour
-  // permits", the setting's own contract — bounded below by the body floor the high-contrast
-  // label law holds every state to. A hue whose preferred side affords the full excursion
-  // never consults any of this, so blue-class brands are untouched by construction.
-  const flipTravel = (floor: number, solveDown: boolean): number => {
-    const max = Math.min(oppositeReach, desired);
-    if (max <= preferredReach) return 0;
-    const fillAt = (t: number, fraction: number) =>
-      formatHex(toGamut(oklch(clampL(restL - preferred * t * fraction), restC, hue), "srgb"))!;
-    const clearsAt = (t: number) =>
-      [solidStateDeltas.hover / solidStateDeltas.active, 1].every(
-        (f) => Math.abs(apcaLc(contrast, fillAt(t, f))) >= floor,
-      );
-    if (!solveDown) return clearsAt(max) ? max : 0;
-    for (let t = max; t > preferredReach; t -= 0.005) if (clearsAt(t)) return t;
-    return 0;
-  };
-  const flipT =
-    spread > 1
-      ? Math.max(flipTravel(labelFloor, true), flipTravel(apcaFloors.body, true))
-      : flipTravel(labelFloor, false);
-  const flippedStillClears = flipT > 0;
-  const away = isLowChroma
-    ? -preferred
-    : preferredReach >= desired || !flippedStillClears
-      ? preferred
-      : -preferred;
-  // A solved flip travels exactly the distance the solve found — reach() would re-extend it
-  // past the label floor the solve just honoured.
-  const travel =
-    !isLowChroma && away === -preferred && preferredReach < desired && flipT > 0
-      ? flipT
-      : Math.min(reach(away), desired);
+  // THE HIGH-CONTRAST FLOOR IS STANDARD MODE'S OWN PAIRING (2026-08-26, audit).
+  //
+  // The solved flip was bounded below by `apcaFloors.body`, and that let the widened excursion
+  // buy spread with legibility: green and success — cusp-parked hues whose preferred side
+  // cannot afford the 1.6× travel — walked their states TOWARD the black label until they hit
+  // 60, so the setting shipped a press at Lc 60.3 where standard mode's measured 67.4. Turning
+  // an accessibility setting ON made a pairing WORSE, which is the one outcome this file names
+  // as a failure ("a band that stays put is the setting working, not failing. The only real
+  // failure is a pairing that gets worse"). The `apcaFloors.aaa` term that looked like the
+  // guard could never bind: clearing 75 always permits LESS travel than clearing 60, and the
+  // `Math.max` took whichever permitted MORE — so the AAA branch was arithmetically dead in
+  // every call. It is deleted rather than repaired, because 75 is unreachable on this pairing
+  // by construction: the label is already whichever of black and white reads harder, and a
+  // chromatic solid never moves, so there is nothing left to spend. See `contrastHigh`.
+  //
+  // The floor is instead the pairing this same hue produces at the RESTING excursion, per
+  // state: high contrast may travel as far toward the label as it likes, provided every state
+  // stays at least as legible as the one it replaces. A hue with room widens exactly as it did
+  // before; a hue with none keeps standard mode's spread, which is the setting working.
+  //
+  // Computed by calling `excursion` again rather than by a second formula — the SAME function
+  // at `scaleFor` 1 — and exact because `restL`, `restC`, `contrast` and `preferred` do not
+  // move with the setting for a chromatic tone (a chromatic solid is untouched by high
+  // contrast; that is its own law). A low-chroma tone never consults it: its direction is
+  // fixed, its excursion never flips, and its rest fill IS step 12, which high contrast does
+  // move — so the baseline would not be standard mode's answer there and is not asked for.
+  const standard =
+    hc && !isLowChroma ? excursion(1, [apcaFloors.body, apcaFloors.body], false) : null;
+  const floors = standard
+    ? stateFractions.map((f) =>
+        Math.abs(apcaLc(contrast, fillAt(standard.away, standard.travel, f))),
+      )
+    : [apcaFloors.body, apcaFloors.body];
+  const { away, travel } = excursion(isLowChroma ? lowChromaStateScale : spread, floors, spread > 1);
   const step = (fraction: number) =>
     format(toGamut(oklch(clampL(restL + away * travel * fraction), restC, hue), gamut), gamut);
   const solidHover = step(solidStateDeltas.hover / solidStateDeltas.active);
@@ -662,18 +744,6 @@ export function buildScaleFor(
   };
 }
 
-/** Every shipped scale, both modes. The unit the emitter and the law tests both consume. */
-export function buildAllScales(): Record<Mode, Record<ToneName, Scale>> {
-  const out = {} as Record<Mode, Record<ToneName, Scale>>;
-  for (const mode of Object.keys(lightness) as Mode[]) {
-    out[mode] = {} as Record<ToneName, Scale>;
-    for (const tone of Object.keys(tones) as ToneName[]) {
-      out[mode][tone] = buildScale(tone, mode);
-    }
-  }
-  return out;
-}
-
 /**
  * Only what `contrast="high"` actually changes: the border and text bands, the roles that read
  * them, and the widened interaction spread. Re-declaring the whole scale would ship the solid
@@ -705,8 +775,12 @@ export function contrastHighDeclarations(mode: Mode, gamut: Gamut = "srgb"): str
   // 2026-08-07): solved one tier up, so the request strengthens every control boundary the
   // same amount. Before this, dark's pick moved only because its step happened to sit in a
   // re-priced band, and light's never moved at all.
-  out.push(decl("control-edge", solveControlEdge(mode, gamut, controlEdgeLc.mark.high)));
-  out.push(decl("field-edge", solveControlEdge(mode, gamut, controlEdgeLc.field.high)));
+  out.push(
+    decl("control-edge", solveControlEdge(mode, gamut, controlEdgeLc.mark.high, conformanceBeds(mode))),
+  );
+  out.push(
+    decl("field-edge", solveControlEdge(mode, gamut, controlEdgeLc.field.high, conformanceBeds(mode))),
+  );
   // The track well answers the axis too (§7, 2026-08-08). It is the only resting role a
   // control can be made ENTIRELY of — an off switch is its well — so leaving it out of this
   // block left one control deaf to the one setting the system calls the conformance surface.
@@ -755,6 +829,15 @@ export function colorDeclarations(
       decl(`${tone}-soft-solid`, `var(--${tone}-${mode === "dark" ? 4 : 3})`),
       decl(`${tone}-soft-hover-solid`, `var(--${tone}-${mode === "dark" ? 5 : 4})`),
       decl(`${tone}-soft-active-solid`, `var(--${tone}-${mode === "dark" ? 6 : 5})`),
+      // AND a3's OWN twin (2026-08-26). The soft trio's twins above cannot serve the
+      // tone-forward SURFACE rung, for two independent reasons: `soft` is a WASH_ROLE, so it
+      // resolves neutral for every family (no tone paints a faded fill, 2026-08-23) — and a
+      // Notice's tint is the one place the family MUST survive; and `soft` is a4's twin in
+      // dark, one rung off. So the same recomposition argument gets its own name, and unlike
+      // `soft` it does not shift by mode: a3 over the bed IS step 3 in both. Measured before
+      // it existed: a destructive thin strip painted color(srgb .788 .051 0 / .0255) against
+      // a designed 34% veil — the family gone, the strip a grey smudge.
+      decl(`${tone}-a3-solid`, `var(--${tone}-3)`),
       decl(`${tone}-solid`, s.solid),
       decl(`${tone}-solid-hover`, s.solidHover),
       decl(`${tone}-solid-active`, s.solidActive),
@@ -847,11 +930,21 @@ export function colorDeclarations(
   // solved to the non-text floor rather than picked from the ladder, because dark has no rung
   // near it and the nearest passing pick read as high-contrast at rest. Worn by the mark
   // family and, under the outlined look, the field family. See solveControlEdge.
-  out.push(decl("control-edge", solveControlEdge(mode, gamut, controlEdgeLc.mark.normal[mode])));
+  out.push(
+    decl(
+      "control-edge",
+      solveControlEdge(mode, gamut, controlEdgeLc.mark.normal[mode], restingBeds(mode)),
+    ),
+  );
   // The field family's boundary sits one APCA tier down (2026-08-07): a field is a LARGE
   // element, and the guidance holds large/solid non-text to 30 where fine detail owes 45 —
   // at equal colour, the long border of a big box reads far heavier than a mark's ring.
-  out.push(decl("field-edge", solveControlEdge(mode, gamut, controlEdgeLc.field.normal[mode])));
+  out.push(
+    decl(
+      "field-edge",
+      solveControlEdge(mode, gamut, controlEdgeLc.field.normal[mode], restingBeds(mode)),
+    ),
+  );
 
   // The track well (§7, §11, decided 2026-08-06 with Slider) — the low neutral bed a value
   // runs in: the slider's track now, the switch's off-track and progress/meter when they

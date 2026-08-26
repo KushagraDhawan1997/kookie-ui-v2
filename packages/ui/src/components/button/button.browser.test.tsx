@@ -2,13 +2,15 @@
  * Button's laws, mounted (§4, §8, §9, §11). The axis model has been prose since the first day
  * of this project; this is where it either resolves to real pixels or does not.
  */
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { cdp } from "@vitest/browser/context";
 
 import type * as React from "react";
 
 import type { RenderElement } from "../../system/render.ts";
 import { coarse, density } from "../../tokens/config.ts";
 import {
+  APPEARANCES,
   GLASS_MATERIALS,
   SIZES,
   colorOn,
@@ -1354,4 +1356,176 @@ describe("glass keeps its matter on every rung, and a press still travels (§10,
     );
     expect(computed(el, "box-shadow"), "the chain must be the thing the button paints").toBe(restCast);
   });
+});
+
+/**
+ * THE AUDIT OF 2026-08-26, three findings in the shared control layer. Each is a claim about a
+ * computed value on a mounted Button, and each was measured before it was repaired — the
+ * numbers those measurements produced are quoted at the assertion they now hold.
+ */
+describe("the shared layer's glass, audited 2026-08-26 (§5, §10)", () => {
+  const emulate = (features: { name: string; value: string }[]) =>
+    cdp().send("Emulation.setEmulatedMedia", { features });
+
+  afterEach(async () => {
+    await emulate([]);
+  });
+
+  it("reduced transparency takes the RING and the BAND with the filter (§10)", async () => {
+    // The setting sealed the fill and killed the filter and then left the material's own
+    // light painting. Measured before the repair, under the preference, in one tree: the Card
+    // computed --material-ring-opacity 0 with both pseudos at opacity 0, and the Button beside
+    // it computed 1 with a live conic on ::after AND on ::before. An OS accessibility request
+    // removing the specular from panes and keeping it on the controls inside them is the exact
+    // asymmetry the 2026-08-24 lock exists to forbid.
+    await emulate([{ name: "prefers-reduced-transparency", value: "reduce" }]);
+    const host = render(
+      <Theme material="thin">
+        <Box backdrop>
+          <Card backdrop>pane</Card>
+          <Button backdrop>Save</Button>
+        </Box>
+      </Theme>,
+    );
+    const card = host.querySelector<HTMLElement>(".kui-surface")!;
+    const button = host.querySelector<HTMLElement>(".kui-button")!;
+
+    // THE CALIBRATION, and it is not optional: without it this law passes when the media
+    // feature never fires at all, which is the failure mode an emulated-media law is most
+    // likely to have. A sealed control has no filter left.
+    expect(computed(button, "backdrop-filter"), "the reduce block never fired").toBe("none");
+    // The subject is the AGREEMENT with the pane in the same tree — the thing that was
+    // unequal — rather than a bare "is it zero", so a future change that stops sealing the
+    // CARD fails here too instead of quietly making both wrong together.
+    expect(
+      computed(button, "--material-ring-opacity"),
+      "a sealed control kept the lever the sealed pane beside it dropped",
+    ).toBe(computed(card, "--material-ring-opacity"));
+    for (const which of ["::after", "::before"] as const) {
+      // The ring and the band are real: each pseudo still RESOLVES its conic, so what is
+      // asserted is that the paint is off, not that the recipe went missing.
+      expect(getComputedStyle(button, which).backgroundImage).toContain("conic-gradient");
+      expect(
+        getComputedStyle(button, which).opacity,
+        `a sealed glass button still paints its ${which} light`,
+      ).toBe("0");
+    }
+    // And the JS skip re-arms with it: refraction.tsx gates the glint map on
+    // `sealed && ringDown`, and ringDown was false on every control, so a sealed glass
+    // control went on minting a mask nothing could see (DECISIONS §10's "it builds nothing
+    // under prefers-reduced-transparency" was false for the whole control family).
+    expect(computed(button, "--kui-glint-on"), "a sealed control still minted a glint map").toBe("");
+  });
+
+  it("`bordered` yields its hairline to the ring — one line, never two (§10)", () => {
+    // §10 sanctions composing `bordered` with a material, and the composition drew both
+    // edges: measured, `<Button bordered backdrop>` computed border-top-color
+    // color(display-p3 0.8507 0.8495 0.8567) at 1px with the conic ::after one pixel inside
+    // it, while the plain glass button beside it correctly computed rgba(0, 0, 0, 0).
+    const host = render(
+      <Theme material="regular">
+        <Box backdrop>
+          <Button bordered backdrop>Filter</Button>
+          <Button backdrop>Plain</Button>
+        </Box>
+        <Button bordered>Solid</Button>
+      </Theme>,
+    );
+    const [glass, plain, solid] = Array.from(host.querySelectorAll<HTMLElement>(".kui-button"));
+    // The positive control first: `bordered` still means a real pigment line where there is
+    // no ring to yield to. Without it, deleting `bordered` outright would pass this law.
+    expect(computed(solid!, "border-top-color"), "bordered stopped meaning anything").toBe(
+      colorOn(solid!, "var(--tone-border)"),
+    );
+    expect(computed(solid!, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
+    // And the ring really is there to yield to — the premise, read off the element itself.
+    expect(getComputedStyle(glass!, "::after").backgroundImage).toContain("conic-gradient");
+    expect(computed(glass!, "border-top-color"), "a bordered glass button drew two edges").toBe(
+      "rgba(0, 0, 0, 0)",
+    );
+    // Stated as the agreement with the plain glass button rather than as the literal
+    // transparent: `bordered` may not make a glass button's edge differ from its neighbour's.
+    expect(computed(glass!, "border-top-color")).toBe(computed(plain!, "border-top-color"));
+  });
+
+  it("a disabled GLASS button catches no light either (§5, §19)", () => {
+    // The disabled remap stands elevation's catch down through --kui-control-light, and on
+    // glass the rung's catch comes from --material-control-wash-loud/-medium instead — a
+    // different token, so the remap never reached it. Measured: a disabled glass loud button
+    // resolved `radial-gradient(130% 80% at 16% -12%, rgb(255 255 255 / 14%), …)`,
+    // byte-identical to its live twin, while the solid dead button beside it resolved `none`.
+    const host = render(
+      <Theme material="thin">
+        <Box backdrop>
+          <Button backdrop emphasis="loud" disabled>Dead</Button>
+          <Button backdrop emphasis="loud">Live</Button>
+          <Button backdrop emphasis="medium" disabled>DeadMedium</Button>
+        </Box>
+      </Theme>,
+    );
+    const [dead, live, deadMedium] = Array.from(host.querySelectorAll<HTMLElement>(".kui-button"));
+    // The positive control: a LIVE loud glass button must still catch the wash, or this law
+    // would pass against a system that had simply deleted the catch.
+    expect(computed(live!, "--kui-ct-light"), "the live rung stopped catching light").toContain(
+      "radial-gradient",
+    );
+    expect(computed(dead!, "--kui-ct-light"), "a dead glass button still catches light").toBe("none");
+    // Medium is the sharper half: solid medium never catches light at all, so the glass twin
+    // was giving a dead control a wash it cannot have while alive.
+    expect(computed(deadMedium!, "--kui-ct-light")).toBe("none");
+    // And the material's own matter survives — what stands down is the light, not the glass.
+    expect(computed(dead!, "background-image")).not.toBe("none");
+  });
+});
+
+/**
+ * §10, §19 — A DEAD GLASS BUTTON LOSES ITS LIGHT, RING INCLUDED (2026-08-26 audit).
+ *
+ * The glass lock says every pane resolves the same five parts, and a state outranks dress. A
+ * disabled glass FIELD stands its ring down and always has; a disabled glass BUTTON did not,
+ * because the field's stand-down is three hooks that exist only inside the `background-clip:
+ * border-area` guard, and the button paints its ring from an `::after` that reads the material
+ * token directly. Measured: byte-identical to a live button's in both appearances.
+ *
+ * Read as the AGREEMENT with the field family in the same cell — "the dead one shows no light
+ * where the live one does" — rather than as `opacity === 0`, because a zero is also what an
+ * engine that never lit the ring at all reports, and that is the second half of the same
+ * defect. The live arm is therefore not decoration: it is what makes the dead arm mean
+ * anything.
+ */
+describe("a dead glass button catches no light at all (§10, §19)", () => {
+  for (const appearance of APPEARANCES) {
+    for (const material of GLASS_MATERIALS) {
+      it(`${appearance}/${material}: the ring and the band go out with the state`, () => {
+        const at = (disabled: boolean) =>
+          mounted(
+            <Button backdrop {...(disabled ? { disabled: true } : {})}>
+              Save
+            </Button>,
+            { theme: { appearance, material }, select: ".kui-button" },
+          );
+        const live = at(false);
+        const dead = at(true);
+
+        // Calibration: the live button really is lit in this cell. Without this the law passes
+        // on a system that deleted the ring outright, which is the opposite defect.
+        expect(
+          getComputedStyle(live, "::after").opacity,
+          "the live button's ring was never lit — this cell proves nothing",
+        ).toBe("1");
+        expect(getComputedStyle(live, "::after").backgroundImage).toContain("conic-gradient");
+
+        expect(
+          getComputedStyle(dead, "::after").opacity,
+          "a dead glass button still wears its lip",
+        ).toBe("0");
+        // The band rides the same lever, and a dead control catching light in ONE of its two
+        // pseudo-elements is the half-fix that ships.
+        expect(
+          getComputedStyle(dead, "::before").opacity,
+          "a dead glass button still catches the band",
+        ).toBe("0");
+      });
+    }
+  }
 });

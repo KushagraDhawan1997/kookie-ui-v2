@@ -266,7 +266,18 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
       material: "data-material",
     };
     const ABSENT = new Set(["appearance:inherit", "material:solid"]);
-    const all = [raw("tokens/tokens.css"), ...allStylesheets().map((p) => raw(p))].join("\n");
+    // CODE, NOT PROSE (audit 2026-08-26). This read `raw()` where every other law in this file
+    // reads `sheet()`, so both arms took a stylesheet's COMMENTS as evidence of what it does —
+    // "a law a comment can satisfy is not a law", which is the sentence test/stylesheets.ts was
+    // written under and the one this line was breaking. It was reachable: `[data-depth="flat"]`
+    // is named in a comment in components/shell/shell.css and in another in system/surfaces.css
+    // while its only real rule is surfaces.css's one block, so deleting that block — which
+    // takes the shadow stand-down, the pane hairline and the emptied pools with it — left this
+    // law green on the strength of two sentences. Same shape for `[data-depth="elevated"]` and
+    // for `[data-radius="full"]`, the DEFAULT radius level since 2026-08-09.
+    const asCode = (p: string) => sheet(p);
+    const prose = [raw("tokens/tokens.css"), ...allStylesheets().map((p) => raw(p))].join("\n");
+    const all = [stripped(raw("tokens/tokens.css")), ...allStylesheets().map(asCode)].join("\n");
     let checked = 0;
     for (const [axis, values] of Object.entries(themeAxes)) {
       const attr = ATTR[axis]!;
@@ -284,6 +295,21 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
     // would satisfy every assertion above by making none of them. 20 is today's exact count
     // (surfaceLook's two values left with the axis, 2026-08-20); the floor sits just under it.
     expect(checked).toBeGreaterThanOrEqual(20);
+
+    // CALIBRATION, and it is what makes reading code rather than prose a REPAIR rather than a
+    // preference: at least one selector in the table above must be named more often in the raw
+    // files than in their code, i.e. some file vouches for a value in a sentence. While that is
+    // true, `raw()` here would be a law a comment can satisfy; if it ever stops being true this
+    // fails, which is the right way to find out that the assumption moved.
+    const vouchedInProse = Object.entries(ATTR).flatMap(([axis, attr]) =>
+      (themeAxes[axis as keyof typeof themeAxes] as readonly string[])
+        .map((v) => `[${attr}="${v}"]`)
+        .filter((sel) => prose.split(sel).length > all.split(sel).length),
+    );
+    expect(
+      vouchedInProse,
+      "no axis selector is named in a comment any more — the strip proves nothing here",
+    ).not.toEqual([]);
 
     // AND THE REVERSE, because the arm above only catches a value the table INVENTS. Dropping
     // one is the likelier drift and it fails nothing: an axis whose list has lost a value is
@@ -554,7 +580,7 @@ describe("the row family lives in the shared layer, once (§21, declared with Me
     // are (0,3,0) and the later one wins. The arithmetic was standing in for a guarantee
     // nothing checked; this checks it. Anchored through indexOf on strings proven present,
     // because a missing anchor would otherwise make the comparison pass at -1.
-    const shared = ".kui-control:hover:not([data-disabled], [data-loading])";
+    const shared = ".kui-control:hover:not([data-disabled], [data-loading], :disabled)";
     const rowDown = ".kui-row:hover:not([data-highlighted], [data-disabled], [data-loading])";
     expect(recipes, "the shared hover rule is not where this law thinks").toContain(shared);
     expect(recipes, "the row stand-down is not where this law thinks").toContain(rowDown);
@@ -852,23 +878,18 @@ describe("material on a control: backdrop defense, three environments (§10)", (
   });
 });
 
-describe("nothing ships a stylesheet the tests cannot see", () => {
-  it("the browser scaffolding installs exactly what the entry point imports", () => {
-    // A hand-kept second list of stylesheets is a silent-failure machine: the preview page had
-    // one and rendered Button as bare native buttons, and the browser suite had one and asserted
-    // Button's laws against an empty cascade. The preview now links the entry point directly;
-    // the suite cannot, because `?raw` on index.css yields its @import lines rather than their
-    // contents — so its list is pinned here instead.
-    const entry = sheet("styles/index.css");
-    const scaffold = sheet("test/browser.tsx");
-    const imported = [...entry.matchAll(/@import "([^"]+)"/g)].map((m) => m[1]!);
-    expect(imported.length).toBeGreaterThan(1);
-    for (const path of imported) {
-      const file = path.split("/").pop()!;
-      expect(scaffold).toContain(`${file}?raw`);
-    }
-  });
-});
+/* "The browser scaffolding installs exactly what the entry point imports" LIVED HERE, and it
+   moved to test/cascade.test.ts on 2026-08-26 rather than being repaired in place — one fact,
+   one home. It was one indirection short of its mechanism twice over: it matched the string
+   `"<file>.css?raw"` anywhere in the harness SOURCE, which is the import STATEMENT rather than
+   the `sheet.textContent = [...]` array that actually builds the cascade, and it compared the
+   two lists as SETS. Both holes were reachable and one was live — six of thirty-four positions
+   had drifted, so every mounted law in this package resolved same-specificity ties the opposite
+   way from the artifact a consumer loads. Demonstrated: with an array entry commented out (the
+   sheet never installs, and no unused binding for eslint to flag) and with two sheets swapped,
+   this law passed both times while the positional reader reports 23 and 2 positions of drift.
+   `test/cascade.test.ts` reads the array through its `?raw` bindings and compares position by
+   position, which subsumes this law in both directions. */
 
 describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => {
   it("states are declared as selectors, so no JS runs at interaction time", () => {
@@ -885,6 +906,20 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     // breach it: a hover/move/enter handler, or an interaction-event listener. The named
     // exemptions are the rule's own doctrine, each with its recorded reason — anything new
     // failing here is a decision, not a cleanup.
+    //
+    // AND IT COULD NOT SEE AN OBSERVER (audit 2026-08-26). The regex read React pointer props
+    // and four listener names and nothing else — so `new ResizeObserver(() => { …
+    // getBoundingClientRect(); el.style.setProperty(…) })`, which is per-frame measurement
+    // during a drag or a resize, passed it untouched. That is not an obscure shape: it is how
+    // ALL FOUR of the bounded exceptions the doctrine names are implemented (the lens, the
+    // entry flight, the segmented thumb, the Tabs indicator), so the law's blind spot was
+    // exactly the class of thing its own doctrine had to carve out — "a law narrower than the
+    // rule it enforces", which this repo already counts as a finding.
+    //
+    // The exemptions are per-file AND per-mechanism, and the two `addEventListener` entries are
+    // narrowed with them: written as the bare stem they matched every hit of that arm, since
+    // every hit literally begins with `addEventListener(` — so a `mousemove` listener added to
+    // floating.tsx would have passed under a comment saying "never per-frame pointer tracking".
     const EXEMPT: Record<string, readonly string[]> = {
       // The caret-on-click contract (§4): a click on the wrapper's padding must focus the
       // input. That is a POINTER-DOWN commitment, not per-frame interaction work.
@@ -896,12 +931,34 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
       "components/text-area/text-area.tsx": ["onMouseDown"],
       // The floating layer's seam (§20/§22): the entry runner holds the page during the
       // opening frames and observes its own transitions — mount/flight machinery, the seam
-      // the doctrine names, never per-frame pointer tracking.
-      "system/floating.tsx": ["addEventListener"],
-      // The lens builds on mount and resize (§10's stated seam), never on pointer events.
-      "system/refraction.tsx": ["addEventListener"],
+      // the doctrine names, never per-frame pointer tracking. THE FLIGHT MEASUREMENT is the
+      // first of the doctrine's four bounded exceptions (DECISIONS §22): the panel's box is
+      // measured on the mount frame and the pose is stamped from it.
+      "system/floating.tsx": [
+        'addEventListener("scroll',
+        "new MutationObserver",
+        "requestAnimationFrame",
+      ],
+      // THE LENS (DECISIONS §10, the second bounded exception): built on mount and on resize,
+      // never on hover, press, focus or scroll — and never while a pane is flying (2026-08-22).
+      // Its only listener is `change` on a MediaQueryList, which this regex does not ban at
+      // all, so it needs no listener exemption; what it needs is the two observers.
+      "system/refraction.tsx": ["new ResizeObserver", "new MutationObserver"],
+      // THE SEGMENTED THUMB (DECISIONS §26, the fourth bounded exception): the selection is
+      // watched through `data-checked` because an uncontrolled RadioGroup never re-renders the
+      // component, and the seats are measured because a squeezed track's segments are NOT
+      // equal (measured 62/62/72 at 200px where arithmetic answers 65.3).
+      "components/segmented-control/segmented-control.tsx": ["new MutationObserver", "new ResizeObserver"],
+      // DEV-ONLY WARNINGS, both stripped from the build: the shrink-wrap collapse (§2) and the
+      // clipped-content warning (§10's clipping pane). Neither ships, and neither writes style.
+      "components/box/box.tsx": ["new ResizeObserver", "new MutationObserver"],
+      "system/clip.tsx": ["new ResizeObserver", "requestAnimationFrame"],
+      // The shell's overlay Escape, moved off `document` so a Dialog inside a pane does not
+      // dismiss the pane under it (audit 2026-08-16). A keydown is not interaction-time paint.
+      "components/shell/shell.tsx": ['addEventListener("keydown'],
     };
-    const banned = /on(?:Pointer|Mouse|Touch)(?:Move|Enter|Leave|Over|Out|Down|Up)\s*=|addEventListener\(\s*["'](?:pointer|mouse|touch|scroll|wheel)/g;
+    const banned =
+      /on(?:Pointer|Mouse|Touch)(?:Move|Enter|Leave|Over|Out|Down|Up)\s*=|addEventListener\(\s*["'](?:pointer|mouse|touch|scroll|wheel|keydown)|new (?:Resize|Mutation|Intersection)Observer|requestAnimationFrame|setInterval/g;
     const files = [
       ...walkFiles("components", ".tsx").filter((f) => !f.includes("test")),
       ...walkFiles("system", ".tsx").filter((f) => !f.includes("test")),
@@ -915,21 +972,30 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
       const offending = hits.filter((h) => !allowed.some((a) => h.includes(a)));
       expect(offending, `${file} attaches an interaction-time handler: ${offending.join(", ")}`).toEqual([]);
     }
+
+    // AND EVERY EXEMPTION MUST STILL BE EARNING ITS PLACE (audit 2026-08-26). A stale entry is
+    // a hole with a comment on it: refraction.tsx's `addEventListener` exemption matched
+    // NOTHING once its only listener became a MediaQueryList `change` — so the file carried a
+    // standing permission for a shape it no longer had, and the next `mousemove` added there
+    // would have inherited it. An exemption that stops matching must be deleted, not kept.
+    for (const [file, allowed] of Object.entries(EXEMPT)) {
+      const source = stripped(raw(file));
+      const hits = [...source.matchAll(banned)].map((m) => m[0]);
+      for (const permission of allowed) {
+        expect(
+          hits.some((h) => h.includes(permission)),
+          `${file} no longer contains \`${permission}\` — delete the exemption rather than keeping it`,
+        ).toBe(true);
+      }
+    }
   });
 
-  it("every :hover rule is guarded by (hover: hover) — and :active never is", () => {
-    // A touch device synthesises :hover on tap and keeps it until you tap elsewhere, so an
-    // unguarded hover rule leaves a pressed control stuck in its hover fill. Structural rather
-    // than mounted, because the browser project cannot change a media feature mid-run: what is
-    // asserted is that no :hover declaration exists outside a guard.
-    //
-    // EVERY guard, not the first (2026-08-17): the control-scale port added a second
-    // `@media (hover: hover)` block nested inside @supports, and the old spelling — first
-    // block only, with a hand-rolled end-of-block guess — reported that block's own :hover
-    // as unguarded. Brace-matched so a guard inside another at-rule strips whole.
-    let outside = recipes;
+  /** Everything a `@media (hover: hover)` block encloses, removed — brace-matched, and EVERY
+      guard rather than the first (2026-08-17: the control-scale port added a second one nested
+      inside @supports, and the old spelling reported that block's own :hover as unguarded). */
+  const unguarded = (css: string): string => {
+    let outside = css;
     let start = outside.indexOf("@media (hover: hover)");
-    expect(start).toBeGreaterThan(-1);
     while (start !== -1) {
       let depth = 0;
       let i = outside.indexOf("{", start);
@@ -943,9 +1009,41 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
       outside = outside.slice(0, start) + outside.slice(i + 1);
       start = outside.indexOf("@media (hover: hover)");
     }
-    expect(outside).not.toContain(":hover");
+    return outside;
+  };
+
+  it("every :hover rule is guarded by (hover: hover) — and :active never is", () => {
+    // A touch device synthesises :hover on tap and keeps it until you tap elsewhere, so an
+    // unguarded hover rule leaves a pressed control stuck in its hover fill. Structural rather
+    // than mounted, because the browser project cannot change a media feature mid-run: what is
+    // asserted is that no :hover declaration exists outside a guard.
+    //
+    // IT WALKS NOW (audit 2026-08-26). The claim is package-wide (DECISIONS §8) and the law
+    // read `recipes` — ONE file — so three component guards were asserted by nothing at all:
+    // button.css's 1px hover rise, select.css's and link.css's. Deleting any of those three
+    // `@media (hover: hover)` wrappers left the whole suite green while every button pressed on
+    // a phone stayed hanging above the page, which is verbatim the failure this law's own first
+    // sentence describes. Same shape as the box-shadow count, the focus-ring count and audit
+    // D14: an "every X" claim guarded by a law that reads one file. `allStylesheets()` is the
+    // mechanism eight laws in this file already use.
+    const sheets = allStylesheets();
+    expect(sheets.length, "the walk must find the stylesheets").toBeGreaterThan(2);
+    let guarded = 0;
+    for (const file of sheets) {
+      const body = sheet(file);
+      if (body.includes("@media (hover: hover)")) guarded += 1;
+      expect(unguarded(body), `${file} declares a :hover rule outside (hover: hover)`).not.toContain(
+        ":hover",
+      );
+    }
+    // VACUITY, in both directions. A walk that found nothing, or a stripper that ate the whole
+    // file, would satisfy the loop above; so some sheets must really carry a guard, and the
+    // guards must really be what is protecting a :hover rule.
+    expect(guarded, "no sheet carries a hover guard — the strip is proving nothing").toBeGreaterThan(2);
+    expect(sheets.filter((f) => sheet(f).includes(":hover")).length).toBeGreaterThan(2);
     // Press is the only feedback a touch device gets; guarding it would remove it entirely.
-    expect(outside).toContain(":active");
+    // Scoped to the shared layer, which is where the press is declared.
+    expect(unguarded(recipes)).toContain(":active");
   });
 
   it("the press keeps its colour instant — the 2026-08-03 finding, in CSS (§8)", () => {
@@ -956,7 +1054,7 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     // every control in the library goes soft under the thumb.
     const press = block(sheet("system/recipes.css"), ".kui-control:active:not([data-disabled], [data-loading])");
     expect(press).toMatch(/--kui-ct-paint:\s*0s/);
-    const hover = block(sheet("system/recipes.css"), ".kui-control:hover:not([data-disabled], [data-loading])");
+    const hover = block(sheet("system/recipes.css"), ".kui-control:hover:not([data-disabled], [data-loading], :disabled)");
     expect(hover).toContain("var(--motion-hover-in)");
     // And the press swaps the GEOMETRY clock with it: down hard and fast, up long and lively.
     // Deleting this pair leaves a press that recovers as abruptly as it strikes, which is one
@@ -1169,23 +1267,102 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     // transitions either wears the guarded block or declares only inside the shared scope.
     // The PROOF is mounted (motion.browser.test.tsx enters the media query and reads the
     // parts); this law keeps the shape.
+    //
+    // AND IT ASKS THE QUESTION NOW (audit 2026-08-26). The spelling above was two `continue`s:
+    // any file containing the string `@media (prefers-reduced-motion: reduce)` ANYWHERE was
+    // skipped whole, so the per-selector check that is this law's entire stated obligation was
+    // never reached for the files that carry a guard — which is every file that has anything to
+    // stand down. tabs.css and segmented-control.css are the exposed pair: the travelling
+    // highlight is the ONE moving part `.kui-control *` cannot reach (the tab rule is a child
+    // of `.kui-tabs-list`, which wears no control class) and the segment thumb's declaring
+    // rules outrank it, so each one's local stand-down is the only defence — and renaming,
+    // narrowing or re-ordering that stand-down's selector left all ~1,900 laws green. The check
+    // is per RULE now: a selector that declares a clock must either be inside the shared scope
+    // or appear in a guarded block.
+    //
+    // Coverage is allowed to be CROSS-FILE, because the system deliberately uses it: dialog.css
+    // declares the panel's clocks and surfaces.css stands them down, and surfaces.css states
+    // why in so many words — "a stand-down must weigh what it stands down", so the guard is
+    // written where the recipe's own weight is. The union of every guarded block in the package
+    // is therefore the right denominator; what this law forbids is a clock NO block anywhere
+    // names.
+    //
+    // `transition: none` is not a clock, and saying so needs care: the old test
+    // `/transition\s*:\s*(?!none)/` matches `transition: none` — `\s*` backtracks to zero
+    // width and the lookahead then sees " none" rather than "none" — so every stand-down in the
+    // package counted as a declaration. The value is read and compared instead.
+    const GUARD = "@media (prefers-reduced-motion: reduce)";
     const shared = sheet("system/recipes.css");
-    const guard = shared.indexOf("@media (prefers-reduced-motion: reduce)");
-    expect(guard, "the shared layer must stand its own motion down").toBeGreaterThan(-1);
+    const sharedGuard = shared.indexOf(GUARD);
+    expect(sharedGuard, "the shared layer must stand its own motion down").toBeGreaterThan(-1);
     for (const covered of [".kui-control", ".kui-control *", ".kui-mark"]) {
-      expect(shared.slice(guard), covered).toContain(covered);
+      expect(shared.slice(sharedGuard), covered).toContain(covered);
     }
+
+    /** Every `@media (prefers-reduced-motion: reduce)` block in a sheet, brace-matched — EVERY
+        one, not the first, and its body separately from its span so the scan below can remove
+        the region and still read what it covered. */
+    const guardsIn = (css: string): { start: number; end: number; body: string }[] => {
+      const found: { start: number; end: number; body: string }[] = [];
+      let start = css.indexOf(GUARD);
+      while (start !== -1) {
+        const open = css.indexOf("{", start);
+        let depth = 0;
+        let i = open;
+        for (; i < css.length; i += 1) {
+          if (css[i] === "{") depth += 1;
+          else if (css[i] === "}") {
+            depth -= 1;
+            if (depth === 0) break;
+          }
+        }
+        found.push({ start, end: i, body: css.slice(open + 1, i) });
+        start = css.indexOf(GUARD, i);
+      }
+      return found;
+    };
+
+    const files = allStylesheets();
+    const bodies = new Map(files.map((f) => [f, sheet(f)]));
+    const standDowns = files
+      .flatMap((f) => guardsIn(bodies.get(f)!).map((g) => g.body))
+      .join("\n");
+    expect(standDowns.length, "no sheet stands anything down — the walk found nothing").toBeGreaterThan(200);
+
     const COVERED = /\.kui-(control|mark|button|checkbox|radio|switch|field|textarea|slider|row)\b/;
-    for (const file of allStylesheets()) {
-      const body = sheet(file);
-      if (!/[^-\w]transition\s*:/.test(body)) continue;
-      if (body.includes("@media (prefers-reduced-motion: reduce)")) continue;
-      for (const rule of body.split("}")) {
-        if (!/[^-\w]transition\s*:\s*(?!none)/.test(rule)) continue;
+    const DECLARES = /[^-\w]transition\s*:([^;}]*)/g;
+    let checked = 0;
+    for (const file of files) {
+      // The guarded regions themselves are removed: a stand-down is not a clock, and a guarded
+      // block may legitimately carry a SLOWED one (the spinner's motion-as-content answer).
+      let outside = bodies.get(file)!;
+      for (const g of guardsIn(outside).reverse()) {
+        outside = outside.slice(0, g.start) + outside.slice(g.end + 1);
+      }
+      for (const rule of outside.split("}")) {
+        const clocks = [...rule.matchAll(DECLARES)]
+          .map((m) => m[1]!.trim())
+          .filter((v) => v !== "" && v !== "none");
+        if (clocks.length === 0) continue;
         const selector = rule.slice(rule.lastIndexOf("*/") + 2, rule.lastIndexOf("{")).trim();
-        expect(selector, `${file}: nothing stands this down`).toMatch(COVERED);
+        if (!selector) continue;
+        checked += 1;
+        if (COVERED.test(selector)) continue;
+        // Every selector in the list must be named by SOME guarded block, verbatim — a
+        // narrowed stand-down (one of two directions, say) leaves the other one unnamed and
+        // fails here, which is exactly what the blanket `continue` could not see.
+        for (const part of selector.split(",").map((x) => x.trim()).filter(Boolean)) {
+          expect(
+            standDowns,
+            `${file}: \`${part}\` declares a clock (${clocks.join("; ")}) that no reduced-motion block stands down`,
+          ).toContain(part);
+        }
       }
     }
+    // VACUITY. A parse that found no declaring rules — a renamed property, a split that ate the
+    // selectors — satisfies every assertion above by making none of them. 20 is well under
+    // today's count and well over zero.
+    expect(checked, "the scan found no clocks at all").toBeGreaterThan(20);
   });
 
   it("and an ANIMATION is stood down too — the half this law was missing (§8, 2026-08-10)", () => {
@@ -1267,7 +1444,31 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
   it("disabled remaps the family and never reaches for opacity (§8)", () => {
     const body = block(recipes, ".kui-control[data-disabled]");
     expect(body).toContain("--tone-label");
-    expect(body).not.toContain("opacity");
+    /**
+     * The PROPERTY, not the substring (narrowed 2026-08-26).
+     *
+     * §8's rule is about the element: "No `opacity` — it stacks on tinted surfaces and
+     * silently voids every generated contrast guarantee, where the remap keeps 'legible but
+     * clearly off' as a designed, testable pair." A bare `toContain("opacity")` cannot tell
+     * that from a custom property whose NAME ends in the word, and §10 names exactly such a
+     * property as the system's one lever for standing a ring down: "every ring stand-down
+     * reaches the band through the same `--material-ring-opacity` the ring reads — high
+     * contrast, reduced transparency and the floating 0.6 trim need no second arm." The
+     * disabled arm became its fourth consumer when a dead glass button turned out to be
+     * wearing a live button's lip, so the substring form would have refused the doctrine's
+     * own mechanism.
+     *
+     * Narrowing a law is where a defect gets in, so this one is anchored: the property may
+     * not be declared, whether it opens the block, follows a semicolon, or is indented.
+     */
+    expect(body, "the dead control is faded rather than remapped").not.toMatch(
+      /(^|[;{])\s*opacity\s*:/,
+    );
+    // And the narrowing owes its own calibration, or "no match" is just a regex that stopped
+    // working: the real violation must still be caught, and the sanctioned lever must not be.
+    expect("  opacity: 0.5;").toMatch(/(^|[;{])\s*opacity\s*:/);
+    expect("{ opacity:0.5 }").toMatch(/(^|[;{])\s*opacity\s*:/);
+    expect("  --material-ring-opacity: 0;").not.toMatch(/(^|[;{])\s*opacity\s*:/);
   });
 });
 
@@ -1348,18 +1549,86 @@ describe("tokens only: no raw length literals in a hand-authored stylesheet (non
   // and surfaces.css — and the consequence was not stylistic: they were the only geometry in a
   // control that ignored --scale, so a bordered button at scale 2 doubled its height, padding,
   // radius and type and kept a 1px hairline. The rule is a law now, not a habit.
+  /**
+   * THE LOOKBEHIND ATE EVERY FUNCTION'S FIRST ARGUMENT (audit 2026-08-26). The class read
+   * `(?<![-\w(#.])`, and the `(` in it exempted any px length written as a CSS function's
+   * FIRST argument: `calc(24px)`, `blur(40px)` and `translateX(12px)` all passed a law whose
+   * own title claims it "holds for every hand-authored stylesheet in the package". Verified in
+   * node against the real walk — the law's regex found 0 matches where a strict one found 5.
+   *
+   * The `(` was there for a real reason and the reason is expressible without it: three of
+   * those five are `@supports (backdrop-filter: blur(1px))` preludes, which are FEATURE
+   * DETECTION and not design values — a feature query cannot take a `var()` and is not asking
+   * for a length at all. So at-rule preludes are removed STRUCTURALLY (the way the lens laws
+   * tell a condition from a declaration, by the brace) and every declaration is then read
+   * strictly.
+   *
+   * The other two are real: `filter: blur(6px)` at system/surfaces.css, twice. They are the
+   * KNOWN table below, and that table is asserted to be EXACT — a new one fails as a
+   * violation, and repairing one fails as a stale exemption. See the table for the fix.
+   */
+  const PRELUDES = /@[\w-]+[^;{}]*\{/g;
+  const RAW_PX = /(?<![-\w#.])\d+(\.\d+)?px\b/g;
+  const declarations = (file: string): string =>
+    sheet(file)
+      // `initial-value` is a REQUIRED descriptor of an @property registration, not a design
+      // value: a registered <length> must declare the value it computes to when the cascade
+      // gives it nothing, and that is 0px by definition. Exempting the descriptor rather than
+      // the whole @property block, so a real literal inside one still fails.
+      .replace(/^\s*initial-value:[^;]*;/gm, "")
+      // At-rule PRELUDES are not declarations. `@supports (backdrop-filter: blur(1px))` asks
+      // the engine a question; it is the one place a length is a feature-detection token and
+      // cannot be a `var()`. Removing the prelude and keeping the body is what lets the
+      // declaration scan below be strict.
+      .replace(PRELUDES, "{");
+
+  /**
+   * EMPTY, and it stays empty (2026-08-26). The two live violations the old lookbehind was
+   * hiding were both the entry pose's content blur — the floating family's seed and the
+   * overlay family's — written as a raw `blur(6px)` while the identical number sat one rule
+   * over as a token. They were REPAIRED rather than exempted: the number left `dialogEntry`
+   * (whose name was true of its first consumer and of nothing else) and became `printBlur`,
+   * emitted as `--print-blur`, read by all three sites. The third consumer promotes.
+   *
+   * The table is kept, exact in both directions, because an exemption list that has to be
+   * re-created to be used is one nobody adds to casually — and because the law below fails
+   * loudly on a stale entry, which is what makes an exemption temporary by construction.
+   */
+  const KNOWN: Record<string, string[]> = {};
+
   it("holds for every hand-authored stylesheet in the package", () => {
     const files = allStylesheets();
     expect(files.length).toBeGreaterThan(2);
     for (const file of files) {
-      const withoutDescriptors = sheet(file)
-        // `initial-value` is a REQUIRED descriptor of an @property registration, not a design
-        // value: a registered <length> must declare the value it computes to when the cascade
-        // gives it nothing, and that is 0px by definition. Exempting the descriptor rather than
-        // the whole @property block, so a real literal inside one still fails.
-        .replace(/^\s*initial-value:[^;]*;/gm, "");
-      const literals = withoutDescriptors.match(/(?<![-\w(#.])\d+(\.\d+)?px\b/g) ?? [];
-      expect(literals, `${file} carries raw px: ${literals.join(", ")}`).toEqual([]);
+      const literals = declarations(file).match(RAW_PX) ?? [];
+      expect(literals, `${file} carries raw px: ${literals.join(", ")}`).toEqual(KNOWN[file] ?? []);
+    }
+  });
+
+  it("the strict spelling is what is running — the lookbehind's own calibration", () => {
+    // The repair is one character, so it owes a demonstration that the character matters:
+    // these are the shapes the old class waved through, and the law now sees every one of
+    // them. Without this arm a future "tidy-up" could put the `(` back and nothing would
+    // notice until the next audit.
+    for (const escaped of ["padding: calc(24px);", "filter: blur(40px);", "translate: translateX(12px);"]) {
+      expect(escaped.match(RAW_PX), `${escaped} still escapes the walk`).not.toBeNull();
+    }
+    // And the prelude really is what buys the exemption, not the position of a bracket: the
+    // feature query passes, the declaration inside it does not.
+    expect("@supports (backdrop-filter: blur(1px)) { a { b: c } }".replace(PRELUDES, "{").match(RAW_PX)).toBeNull();
+    expect("@supports (backdrop-filter: blur(1px)) { a { padding: 8px } }".replace(PRELUDES, "{").match(RAW_PX)).toEqual(["8px"]);
+  });
+
+  it("the KNOWN table is exact — a repaired escape must delete its entry", () => {
+    // The swap law's shape (text-field.test.ts, 2026-08-26): an exemption that outlives its
+    // defect is how a list of two becomes a list of twenty. Every entry must still be a real,
+    // present violation, so fixing surfaces.css fails HERE and names the line to delete.
+    for (const [file, expected] of Object.entries(KNOWN)) {
+      const literals = declarations(file).match(RAW_PX) ?? [];
+      expect(
+        literals,
+        `${file} no longer carries ${expected.join(", ")} — delete its KNOWN entry`,
+      ).toEqual(expected);
     }
   });
 });

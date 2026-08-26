@@ -217,7 +217,7 @@
   --dialog-settle: 600ms;
   --dialog-reveal: 300ms;
   --dialog-depth: 0.97;
-  --dialog-blur: 6px;
+  --print-blur: 6px;
   --overlay-dissolve: 105ms;
   --overlay-settle: 120ms;
 
@@ -338,7 +338,9 @@
   --shell-inspector-w: calc(320px * var(--scale));
   --shell-bottom-h: calc(200px * var(--scale));
   --shell-gap: var(--layout-space-3);
+}
 
+:root, [data-appearance="light"] {
   /* colour, generated (§7) — light mode */
   /* neutral */
   --neutral-1: #fcfcfc;
@@ -371,6 +373,7 @@
   --neutral-soft-solid: var(--neutral-3);
   --neutral-soft-hover-solid: var(--neutral-4);
   --neutral-soft-active-solid: var(--neutral-5);
+  --neutral-a3-solid: var(--neutral-3);
   --neutral-solid: #1f1f21;
   --neutral-solid-hover: #333335;
   --neutral-solid-active: #49494b;
@@ -414,6 +417,7 @@
   --accent-soft-solid: var(--accent-3);
   --accent-soft-hover-solid: var(--accent-4);
   --accent-soft-active-solid: var(--accent-5);
+  --accent-a3-solid: var(--accent-3);
   --accent-solid: #8410ff;
   --accent-solid-hover: #7700e9;
   --accent-solid-active: #6a00d1;
@@ -457,6 +461,7 @@
   --destructive-soft-solid: var(--destructive-3);
   --destructive-soft-hover-solid: var(--destructive-4);
   --destructive-soft-active-solid: var(--destructive-5);
+  --destructive-a3-solid: var(--destructive-3);
   --destructive-solid: #e5484d;
   --destructive-solid-hover: #d73a41;
   --destructive-solid-active: #c82a36;
@@ -500,6 +505,7 @@
   --blue-soft-solid: var(--blue-3);
   --blue-soft-hover-solid: var(--blue-4);
   --blue-soft-active-solid: var(--blue-5);
+  --blue-a3-solid: var(--blue-3);
   --blue-solid: #0094fc;
   --blue-solid-hover: #0088e8;
   --blue-solid-active: #007cd4;
@@ -543,6 +549,7 @@
   --green-soft-solid: var(--green-3);
   --green-soft-hover-solid: var(--green-4);
   --green-soft-active-solid: var(--green-5);
+  --green-a3-solid: var(--green-3);
   --green-solid: #00f473;
   --green-solid-hover: #00e56b;
   --green-solid-active: #00d664;
@@ -586,6 +593,7 @@
   --orange-soft-solid: var(--orange-3);
   --orange-soft-hover-solid: var(--orange-4);
   --orange-soft-active-solid: var(--orange-5);
+  --orange-a3-solid: var(--orange-3);
   --orange-solid: #f76b15;
   --orange-solid-hover: #e76000;
   --orange-solid-active: #d45700;
@@ -629,6 +637,7 @@
   --amber-soft-solid: var(--amber-3);
   --amber-soft-hover-solid: var(--amber-4);
   --amber-soft-active-solid: var(--amber-5);
+  --amber-a3-solid: var(--amber-3);
   --amber-solid: #f0b236;
   --amber-solid-hover: #fdbe47;
   --amber-solid-active: #ffcf7d;
@@ -672,6 +681,7 @@
   --success-soft-solid: var(--success-3);
   --success-soft-hover-solid: var(--success-4);
   --success-soft-active-solid: var(--success-5);
+  --success-a3-solid: var(--success-3);
   --success-solid: #00f473;
   --success-solid-hover: #00e56b;
   --success-solid-active: #00d664;
@@ -715,6 +725,7 @@
   --warning-soft-solid: var(--warning-3);
   --warning-soft-hover-solid: var(--warning-4);
   --warning-soft-active-solid: var(--warning-5);
+  --warning-a3-solid: var(--warning-3);
   --warning-solid: #f0b236;
   --warning-solid-hover: #fdbe47;
   --warning-solid-active: #ffcf7d;
@@ -758,6 +769,7 @@
   --info-soft-solid: var(--info-3);
   --info-soft-hover-solid: var(--info-4);
   --info-soft-active-solid: var(--info-5);
+  --info-a3-solid: var(--info-3);
   --info-solid: #0094fc;
   --info-solid-hover: #0088e8;
   --info-solid-active: #007cd4;
@@ -974,668 +986,12 @@
   --floating-chrome-flat: 0 0 0 0 transparent;
 
   /* the fill-first dress (§19), per appearance: an index means the opposite thing in
-     the two modes, so the ladders are not each other's copy. The edges sit inside
-     contrastHighBands.border, which is what keeps contrast="high" able to reach a
-     dressed component's boundary at all. */
-  --dress-field-fill: var(--neutral-a3);
-  --dress-field-fill-solid: var(--neutral-3);
-  --dress-field-fill-hover: var(--neutral-a4);
-  --dress-field-fill-hover-solid: var(--neutral-4);
-  --dress-field-fill-active: var(--neutral-a5);
-  --dress-field-fill-active-solid: var(--neutral-5);
-  --dress-field-edge: var(--neutral-a3);
-  --dress-mark-fill: var(--neutral-a4);
-  --dress-mark-fill-solid: var(--neutral-4);
-  --dress-mark-fill-hover: var(--neutral-a5);
-  --dress-mark-fill-hover-solid: var(--neutral-5);
-  --dress-mark-fill-active: var(--neutral-a6);
-  --dress-mark-fill-active-solid: var(--neutral-6);
-  --dress-mark-edge: var(--neutral-a7);
-
-  /* the surface family's resting edge (§19, §10): stood down — light is the edge. Flat
-     and contrast="high" re-declare this to `initial` so var(--tone-border) resolves
-     at the element. */
-  --surface-edge: transparent;
-}
-
-[data-appearance="light"] {
-  /* neutral */
-  --neutral-1: #fcfcfc;
-  --neutral-2: #f7f7f7;
-  --neutral-3: #f1f1f1;
-  --neutral-4: #ececed;
-  --neutral-5: #e4e4e5;
-  --neutral-6: #e0e0e2;
-  --neutral-7: #d9d9da;
-  --neutral-8: #c4c3c6;
-  --neutral-9: #6f6d75;
-  --neutral-10: #636269;
-  --neutral-11: #69686f;
-  --neutral-12: #1f1f21;
-  --neutral-a1: color-mix(in srgb, #000000 1.2%, transparent);
-  --neutral-a2: color-mix(in srgb, #000000 3.1%, transparent);
-  --neutral-a3: color-mix(in srgb, #000000 5.5%, transparent);
-  --neutral-a4: color-mix(in srgb, #00000d 7.5%, transparent);
-  --neutral-a5: color-mix(in srgb, #000009 10.6%, transparent);
-  --neutral-a6: color-mix(in srgb, #000010 12.2%, transparent);
-  --neutral-a7: color-mix(in srgb, #000007 14.9%, transparent);
-  --neutral-a8: color-mix(in srgb, #04000d 23.5%, transparent);
-  --neutral-a9: color-mix(in srgb, #03000e 57.3%, transparent);
-  --neutral-a10: color-mix(in srgb, #02000b 61.6%, transparent);
-  --neutral-a11: color-mix(in srgb, #02000c 59.2%, transparent);
-  --neutral-a12: color-mix(in srgb, #000002 87.8%, transparent);
-  --neutral-soft: var(--neutral-a3);
-  --neutral-soft-hover: var(--neutral-a4);
-  --neutral-soft-active: var(--neutral-a5);
-  --neutral-soft-solid: var(--neutral-3);
-  --neutral-soft-hover-solid: var(--neutral-4);
-  --neutral-soft-active-solid: var(--neutral-5);
-  --neutral-solid: #1f1f21;
-  --neutral-solid-hover: #333335;
-  --neutral-solid-active: #49494b;
-  --neutral-border: var(--neutral-7);
-  --neutral-text: var(--neutral-11);
-  --neutral-label: #46454a;
-  --neutral-contrast: #ffffff;
-  --neutral-glyph: #1f1f21;
-  --neutral-ink: var(--neutral-12);
-  --neutral-ink-muted: color-mix(in oklab, var(--neutral-12) 52%, transparent);
-  --neutral-ink-faint: color-mix(in oklab, var(--neutral-12) 26%, transparent);
-  --neutral-current: var(--neutral-ink);
-  /* accent */
-  --accent-1: #fcfbff;
-  --accent-2: #f7f5fe;
-  --accent-3: #f2effe;
-  --accent-4: #ede9fe;
-  --accent-5: #e5dffe;
-  --accent-6: #e2dbfe;
-  --accent-7: #dbd2ff;
-  --accent-8: #c8b7ff;
-  --accent-9: #8410ff;
-  --accent-10: #7700e9;
-  --accent-11: #7e00f6;
-  --accent-12: #250d4a;
-  --accent-a1: color-mix(in srgb, #4000ff 1.6%, transparent);
-  --accent-a2: color-mix(in srgb, #3300e6 3.9%, transparent);
-  --accent-a3: color-mix(in srgb, #3000ef 6.3%, transparent);
-  --accent-a4: color-mix(in srgb, #2e00f3 8.6%, transparent);
-  --accent-a5: color-mix(in srgb, #3000f7 12.5%, transparent);
-  --accent-a6: color-mix(in srgb, #3200f8 14.1%, transparent);
-  --accent-a7: color-mix(in srgb, #3300ff 17.6%, transparent);
-  --accent-a8: color-mix(in srgb, #3c00ff 28.2%, transparent);
-  --accent-a9: color-mix(in srgb, #7c00ff 93.7%, transparent);
-  --accent-a10: color-mix(in srgb, #7700e9 100.0%, transparent);
-  --accent-a11: color-mix(in srgb, #7e00f6 100.0%, transparent);
-  --accent-a12: color-mix(in srgb, #190040 94.9%, transparent);
-  --accent-soft: var(--accent-a3);
-  --accent-soft-hover: var(--accent-a4);
-  --accent-soft-active: var(--accent-a5);
-  --accent-soft-solid: var(--accent-3);
-  --accent-soft-hover-solid: var(--accent-4);
-  --accent-soft-active-solid: var(--accent-5);
-  --accent-solid: #8410ff;
-  --accent-solid-hover: #7700e9;
-  --accent-solid-active: #6a00d1;
-  --accent-border: var(--accent-7);
-  --accent-text: var(--accent-11);
-  --accent-label: #5316a1;
-  --accent-contrast: #ffffff;
-  --accent-glyph: #8200fc;
-  --accent-ink: var(--accent-11);
-  --accent-ink-muted: color-mix(in oklab, var(--accent-11) 61%, transparent);
-  --accent-ink-faint: color-mix(in oklab, var(--accent-11) 28%, transparent);
-  --accent-current: var(--accent-ink);
-  /* destructive */
-  --destructive-1: #fefbfb;
-  --destructive-2: #fdf5f4;
-  --destructive-3: #fbedec;
-  --destructive-4: #fae7e6;
-  --destructive-5: #f8dcda;
-  --destructive-6: #f8d8d6;
-  --destructive-7: #f7cecb;
-  --destructive-8: #f2b1ad;
-  --destructive-9: #e5484d;
-  --destructive-10: #d24146;
-  --destructive-11: #b3363a;
-  --destructive-12: #371211;
-  --destructive-a1: color-mix(in srgb, #bf0000 1.6%, transparent);
-  --destructive-a2: color-mix(in srgb, #d11700 4.3%, transparent);
-  --destructive-a3: color-mix(in srgb, #c90d00 7.5%, transparent);
-  --destructive-a4: color-mix(in srgb, #cc0a00 9.8%, transparent);
-  --destructive-a5: color-mix(in srgb, #cf0e00 14.5%, transparent);
-  --destructive-a6: color-mix(in srgb, #d30c00 16.1%, transparent);
-  --destructive-a7: color-mix(in srgb, #d80f00 20.4%, transparent);
-  --destructive-a8: color-mix(in srgb, #d70c00 32.2%, transparent);
-  --destructive-a9: color-mix(in srgb, #db0007 71.8%, transparent);
-  --destructive-a10: color-mix(in srgb, #c30007 74.5%, transparent);
-  --destructive-a11: color-mix(in srgb, #9f0005 78.8%, transparent);
-  --destructive-a12: color-mix(in srgb, #290100 93.3%, transparent);
-  --destructive-soft: var(--destructive-a3);
-  --destructive-soft-hover: var(--destructive-a4);
-  --destructive-soft-active: var(--destructive-a5);
-  --destructive-soft-solid: var(--destructive-3);
-  --destructive-soft-hover-solid: var(--destructive-4);
-  --destructive-soft-active-solid: var(--destructive-5);
-  --destructive-solid: #e5484d;
-  --destructive-solid-hover: #d73a41;
-  --destructive-solid-active: #c82a36;
-  --destructive-border: var(--destructive-7);
-  --destructive-text: var(--destructive-11);
-  --destructive-label: #762728;
-  --destructive-contrast: #ffffff;
-  --destructive-glyph: #e7494e;
-  --destructive-ink: var(--destructive-11);
-  --destructive-ink-muted: color-mix(in oklab, var(--destructive-11) 71%, transparent);
-  --destructive-ink-faint: color-mix(in oklab, var(--destructive-11) 34%, transparent);
-  --destructive-current: var(--destructive-ink);
-  /* blue */
-  --blue-1: #fafcff;
-  --blue-2: #f1f8fe;
-  --blue-3: #e8f3fe;
-  --blue-4: #dfeefe;
-  --blue-5: #d1e7fe;
-  --blue-6: #cbe4fe;
-  --blue-7: #bdddff;
-  --blue-8: #95c9ff;
-  --blue-9: #0094fc;
-  --blue-10: #0088e8;
-  --blue-11: #006bb9;
-  --blue-12: #082038;
-  --blue-a1: color-mix(in srgb, #0066ff 2.0%, transparent);
-  --blue-a2: color-mix(in srgb, #0080ed 5.5%, transparent);
-  --blue-a3: color-mix(in srgb, #007af4 9.0%, transparent);
-  --blue-a4: color-mix(in srgb, #0078f7 12.5%, transparent);
-  --blue-a5: color-mix(in srgb, #007af9 18.0%, transparent);
-  --blue-a6: color-mix(in srgb, #007bfa 20.4%, transparent);
-  --blue-a7: color-mix(in srgb, #007cff 25.9%, transparent);
-  --blue-a8: color-mix(in srgb, #007dff 41.6%, transparent);
-  --blue-a9: color-mix(in srgb, #0094fc 100.0%, transparent);
-  --blue-a10: color-mix(in srgb, #0088e8 100.0%, transparent);
-  --blue-a11: color-mix(in srgb, #006bb9 100.0%, transparent);
-  --blue-a12: color-mix(in srgb, #001932 96.9%, transparent);
-  --blue-soft: var(--blue-a3);
-  --blue-soft-hover: var(--blue-a4);
-  --blue-soft-active: var(--blue-a5);
-  --blue-soft-solid: var(--blue-3);
-  --blue-soft-hover-solid: var(--blue-4);
-  --blue-soft-active-solid: var(--blue-5);
-  --blue-solid: #0094fc;
-  --blue-solid-hover: #0088e8;
-  --blue-solid-active: #007cd4;
-  --blue-border: var(--blue-7);
-  --blue-text: var(--blue-11);
-  --blue-label: #0e487a;
-  --blue-contrast: #ffffff;
-  --blue-glyph: #0095fe;
-  --blue-ink: var(--blue-11);
-  --blue-ink-muted: color-mix(in oklab, var(--blue-11) 75%, transparent);
-  --blue-ink-faint: color-mix(in oklab, var(--blue-11) 36%, transparent);
-  --blue-current: var(--blue-ink);
-  /* green */
-  --green-1: #f5fff7;
-  --green-2: #e6feea;
-  --green-3: #d3fedb;
-  --green-4: #c0fecc;
-  --green-5: #9cfeb2;
-  --green-6: #8afea6;
-  --green-7: #4fff88;
-  --green-8: #00ea6e;
-  --green-9: #00f473;
-  --green-10: #00e56b;
-  --green-11: #007f38;
-  --green-12: #092611;
-  --green-a1: color-mix(in srgb, #00ff33 3.9%, transparent);
-  --green-a2: color-mix(in srgb, #00f529 9.8%, transparent);
-  --green-a3: color-mix(in srgb, #00f92e 17.3%, transparent);
-  --green-a4: color-mix(in srgb, #00fb31 24.7%, transparent);
-  --green-a5: color-mix(in srgb, #00fc39 38.8%, transparent);
-  --green-a6: color-mix(in srgb, #00fd3d 45.9%, transparent);
-  --green-a7: color-mix(in srgb, #00ff53 69.0%, transparent);
-  --green-a8: color-mix(in srgb, #00ea6e 100.0%, transparent);
-  --green-a9: color-mix(in srgb, #00f473 100.0%, transparent);
-  --green-a10: color-mix(in srgb, #00e56b 100.0%, transparent);
-  --green-a11: color-mix(in srgb, #007f38 100.0%, transparent);
-  --green-a12: color-mix(in srgb, #001e08 96.5%, transparent);
-  --green-soft: var(--green-a3);
-  --green-soft-hover: var(--green-a4);
-  --green-soft-active: var(--green-a5);
-  --green-soft-solid: var(--green-3);
-  --green-soft-hover-solid: var(--green-4);
-  --green-soft-active-solid: var(--green-5);
-  --green-solid: #00f473;
-  --green-solid-hover: #00e56b;
-  --green-solid-active: #00d664;
-  --green-border: var(--green-7);
-  --green-text: var(--green-11);
-  --green-label: #105427;
-  --green-contrast: #000000;
-  --green-glyph: #00c059;
-  --green-ink: var(--green-11);
-  --green-ink-muted: color-mix(in oklab, var(--green-11) 78%, transparent);
-  --green-ink-faint: color-mix(in oklab, var(--green-11) 37%, transparent);
-  --green-current: var(--green-ink);
-  /* orange */
-  --orange-1: #fffbf9;
-  --orange-2: #fef5f0;
-  --orange-3: #feede6;
-  --orange-4: #fee7dd;
-  --orange-5: #fddccd;
-  --orange-6: #fdd7c7;
-  --orange-7: #fecdb7;
-  --orange-8: #fdaf8b;
-  --orange-9: #f76b15;
-  --orange-10: #e46212;
-  --orange-11: #a9470b;
-  --orange-12: #331608;
-  --orange-a1: color-mix(in srgb, #ff5500 2.4%, transparent);
-  --orange-a2: color-mix(in srgb, #ee5500 5.9%, transparent);
-  --orange-a3: color-mix(in srgb, #f54700 9.8%, transparent);
-  --orange-a4: color-mix(in srgb, #f84b00 13.3%, transparent);
-  --orange-a5: color-mix(in srgb, #f54d00 19.6%, transparent);
-  --orange-a6: color-mix(in srgb, #f64900 22.0%, transparent);
-  --orange-a7: color-mix(in srgb, #fb4e00 28.2%, transparent);
-  --orange-a8: color-mix(in srgb, #fb4f00 45.5%, transparent);
-  --orange-a9: color-mix(in srgb, #f65e00 91.8%, transparent);
-  --orange-a10: color-mix(in srgb, #e25600 92.9%, transparent);
-  --orange-a11: color-mix(in srgb, #a53f00 95.7%, transparent);
-  --orange-a12: color-mix(in srgb, #2c0e00 96.9%, transparent);
-  --orange-soft: var(--orange-a3);
-  --orange-soft-hover: var(--orange-a4);
-  --orange-soft-active: var(--orange-a5);
-  --orange-soft-solid: var(--orange-3);
-  --orange-soft-hover-solid: var(--orange-4);
-  --orange-soft-active-solid: var(--orange-5);
-  --orange-solid: #f76b15;
-  --orange-solid-hover: #e76000;
-  --orange-solid-active: #d45700;
-  --orange-border: var(--orange-7);
-  --orange-text: var(--orange-11);
-  --orange-label: #703110;
-  --orange-contrast: #ffffff;
-  --orange-glyph: #fb6d16;
-  --orange-ink: var(--orange-11);
-  --orange-ink-muted: color-mix(in oklab, var(--orange-11) 73%, transparent);
-  --orange-ink-faint: color-mix(in oklab, var(--orange-11) 35%, transparent);
-  --orange-current: var(--orange-ink);
-  /* amber */
-  --amber-1: #fefbf6;
-  --amber-2: #fef6e9;
-  --amber-3: #fdefd9;
-  --amber-4: #fceacb;
-  --amber-5: #fce0b2;
-  --amber-6: #fbdca8;
-  --amber-7: #fbd28e;
-  --amber-8: #f7b838;
-  --amber-9: #f0b236;
-  --amber-10: #e0a632;
-  --amber-11: #86621a;
-  --amber-12: #281d0a;
-  --amber-a1: color-mix(in srgb, #e38e00 3.5%, transparent);
-  --amber-a2: color-mix(in srgb, #f39700 8.6%, transparent);
-  --amber-a3: color-mix(in srgb, #f29400 14.9%, transparent);
-  --amber-a4: color-mix(in srgb, #f09800 20.4%, transparent);
-  --amber-a5: color-mix(in srgb, #f59800 30.2%, transparent);
-  --amber-a6: color-mix(in srgb, #f39800 34.1%, transparent);
-  --amber-a7: color-mix(in srgb, #f69900 44.3%, transparent);
-  --amber-a8: color-mix(in srgb, #f5a400 78.0%, transparent);
-  --amber-a9: color-mix(in srgb, #ec9d00 78.8%, transparent);
-  --amber-a10: color-mix(in srgb, #d89000 80.4%, transparent);
-  --amber-a11: color-mix(in srgb, #785000 89.8%, transparent);
-  --amber-a12: color-mix(in srgb, #1f1400 96.1%, transparent);
-  --amber-soft: var(--amber-a3);
-  --amber-soft-hover: var(--amber-a4);
-  --amber-soft-active: var(--amber-a5);
-  --amber-soft-solid: var(--amber-3);
-  --amber-soft-hover-solid: var(--amber-4);
-  --amber-soft-active-solid: var(--amber-5);
-  --amber-solid: #f0b236;
-  --amber-solid-hover: #fdbe47;
-  --amber-solid-active: #ffcf7d;
-  --amber-border: var(--amber-7);
-  --amber-text: var(--amber-11);
-  --amber-label: #594217;
-  --amber-contrast: #000000;
-  --amber-glyph: #d69e30;
-  --amber-ink: var(--amber-11);
-  --amber-ink-muted: color-mix(in oklab, var(--amber-11) 77%, transparent);
-  --amber-ink-faint: color-mix(in oklab, var(--amber-11) 38%, transparent);
-  --amber-current: var(--amber-ink);
-  /* success */
-  --success-1: #f5fff7;
-  --success-2: #e6feea;
-  --success-3: #d3fedb;
-  --success-4: #c0fecc;
-  --success-5: #9cfeb2;
-  --success-6: #8afea6;
-  --success-7: #4fff88;
-  --success-8: #00ea6e;
-  --success-9: #00f473;
-  --success-10: #00e56b;
-  --success-11: #007f38;
-  --success-12: #092611;
-  --success-a1: color-mix(in srgb, #00ff33 3.9%, transparent);
-  --success-a2: color-mix(in srgb, #00f529 9.8%, transparent);
-  --success-a3: color-mix(in srgb, #00f92e 17.3%, transparent);
-  --success-a4: color-mix(in srgb, #00fb31 24.7%, transparent);
-  --success-a5: color-mix(in srgb, #00fc39 38.8%, transparent);
-  --success-a6: color-mix(in srgb, #00fd3d 45.9%, transparent);
-  --success-a7: color-mix(in srgb, #00ff53 69.0%, transparent);
-  --success-a8: color-mix(in srgb, #00ea6e 100.0%, transparent);
-  --success-a9: color-mix(in srgb, #00f473 100.0%, transparent);
-  --success-a10: color-mix(in srgb, #00e56b 100.0%, transparent);
-  --success-a11: color-mix(in srgb, #007f38 100.0%, transparent);
-  --success-a12: color-mix(in srgb, #001e08 96.5%, transparent);
-  --success-soft: var(--success-a3);
-  --success-soft-hover: var(--success-a4);
-  --success-soft-active: var(--success-a5);
-  --success-soft-solid: var(--success-3);
-  --success-soft-hover-solid: var(--success-4);
-  --success-soft-active-solid: var(--success-5);
-  --success-solid: #00f473;
-  --success-solid-hover: #00e56b;
-  --success-solid-active: #00d664;
-  --success-border: var(--success-7);
-  --success-text: var(--success-11);
-  --success-label: #105427;
-  --success-contrast: #000000;
-  --success-glyph: #00c059;
-  --success-ink: var(--success-11);
-  --success-ink-muted: color-mix(in oklab, var(--success-11) 78%, transparent);
-  --success-ink-faint: color-mix(in oklab, var(--success-11) 37%, transparent);
-  --success-current: var(--success-ink);
-  /* warning */
-  --warning-1: #fefbf6;
-  --warning-2: #fef6e9;
-  --warning-3: #fdefd9;
-  --warning-4: #fceacb;
-  --warning-5: #fce0b2;
-  --warning-6: #fbdca8;
-  --warning-7: #fbd28e;
-  --warning-8: #f7b838;
-  --warning-9: #f0b236;
-  --warning-10: #e0a632;
-  --warning-11: #86621a;
-  --warning-12: #281d0a;
-  --warning-a1: color-mix(in srgb, #e38e00 3.5%, transparent);
-  --warning-a2: color-mix(in srgb, #f39700 8.6%, transparent);
-  --warning-a3: color-mix(in srgb, #f29400 14.9%, transparent);
-  --warning-a4: color-mix(in srgb, #f09800 20.4%, transparent);
-  --warning-a5: color-mix(in srgb, #f59800 30.2%, transparent);
-  --warning-a6: color-mix(in srgb, #f39800 34.1%, transparent);
-  --warning-a7: color-mix(in srgb, #f69900 44.3%, transparent);
-  --warning-a8: color-mix(in srgb, #f5a400 78.0%, transparent);
-  --warning-a9: color-mix(in srgb, #ec9d00 78.8%, transparent);
-  --warning-a10: color-mix(in srgb, #d89000 80.4%, transparent);
-  --warning-a11: color-mix(in srgb, #785000 89.8%, transparent);
-  --warning-a12: color-mix(in srgb, #1f1400 96.1%, transparent);
-  --warning-soft: var(--warning-a3);
-  --warning-soft-hover: var(--warning-a4);
-  --warning-soft-active: var(--warning-a5);
-  --warning-soft-solid: var(--warning-3);
-  --warning-soft-hover-solid: var(--warning-4);
-  --warning-soft-active-solid: var(--warning-5);
-  --warning-solid: #f0b236;
-  --warning-solid-hover: #fdbe47;
-  --warning-solid-active: #ffcf7d;
-  --warning-border: var(--warning-7);
-  --warning-text: var(--warning-11);
-  --warning-label: #594217;
-  --warning-contrast: #000000;
-  --warning-glyph: #d69e30;
-  --warning-ink: var(--warning-11);
-  --warning-ink-muted: color-mix(in oklab, var(--warning-11) 77%, transparent);
-  --warning-ink-faint: color-mix(in oklab, var(--warning-11) 38%, transparent);
-  --warning-current: var(--warning-ink);
-  /* info */
-  --info-1: #fafcff;
-  --info-2: #f1f8fe;
-  --info-3: #e8f3fe;
-  --info-4: #dfeefe;
-  --info-5: #d1e7fe;
-  --info-6: #cbe4fe;
-  --info-7: #bdddff;
-  --info-8: #95c9ff;
-  --info-9: #0094fc;
-  --info-10: #0088e8;
-  --info-11: #006bb9;
-  --info-12: #082038;
-  --info-a1: color-mix(in srgb, #0066ff 2.0%, transparent);
-  --info-a2: color-mix(in srgb, #0080ed 5.5%, transparent);
-  --info-a3: color-mix(in srgb, #007af4 9.0%, transparent);
-  --info-a4: color-mix(in srgb, #0078f7 12.5%, transparent);
-  --info-a5: color-mix(in srgb, #007af9 18.0%, transparent);
-  --info-a6: color-mix(in srgb, #007bfa 20.4%, transparent);
-  --info-a7: color-mix(in srgb, #007cff 25.9%, transparent);
-  --info-a8: color-mix(in srgb, #007dff 41.6%, transparent);
-  --info-a9: color-mix(in srgb, #0094fc 100.0%, transparent);
-  --info-a10: color-mix(in srgb, #0088e8 100.0%, transparent);
-  --info-a11: color-mix(in srgb, #006bb9 100.0%, transparent);
-  --info-a12: color-mix(in srgb, #001932 96.9%, transparent);
-  --info-soft: var(--info-a3);
-  --info-soft-hover: var(--info-a4);
-  --info-soft-active: var(--info-a5);
-  --info-soft-solid: var(--info-3);
-  --info-soft-hover-solid: var(--info-4);
-  --info-soft-active-solid: var(--info-5);
-  --info-solid: #0094fc;
-  --info-solid-hover: #0088e8;
-  --info-solid-active: #007cd4;
-  --info-border: var(--info-7);
-  --info-text: var(--info-11);
-  --info-label: #0e487a;
-  --info-contrast: #ffffff;
-  --info-glyph: #0095fe;
-  --info-ink: var(--info-11);
-  --info-ink-muted: color-mix(in oklab, var(--info-11) 75%, transparent);
-  --info-ink-faint: color-mix(in oklab, var(--info-11) 36%, transparent);
-  --info-current: var(--info-ink);
-  --focus-ring: var(--accent-solid);
-  --invalid-edge: var(--destructive-solid);
-  --control-edge: #a6a5aa;
-  --field-edge: #c2c1c4;
-  --color-track: var(--neutral-a4);
-  --color-thumb: var(--color-surface);
-  --color-thumb-label: var(--color-text);
-
-  /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
-     light scrollbar track, and a consumer's <input> or <select> renders with a white UA
-     background — the one part of the page the token layer cannot reach by itself. */
-  color-scheme: light;
-
-  /* material recipes (§10) — material is a fill MODIFIER, not a fill: the consuming
-     layer mixes the component's OWN fill toward transparent at these alphas, so tone
-     and loudness ride into the veil for free. hover/active are §8's steps on glass's
-     one ramp — read by controls and interactive surfaces; a static surface reads the
-     rest alpha alone. */
-  --material-thin-alpha: 34%;
-  --material-thin-alpha-hover: 42%;
-  --material-thin-alpha-active: 50%;
-  --material-thin-filter: blur(2.4px) saturate(172.5%) brightness(1.03);
-  --material-thin-edge: rgb(255 255 255 / 0.5);
-  --material-thin-rim: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"), radial-gradient(130% 80% at 16% -12%, rgb(255 255 255 / 19.04%), transparent 55%), linear-gradient(180deg, rgb(255 255 255 / 13.6%), transparent 45%);
-  --material-thin-rim-control: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-  --material-thin-control-alpha: 30%;
-  --material-thin-control-filter: blur(1.2px) saturate(140%) brightness(1.02);
-  --material-thin-control-filter-hover: blur(1.2px) saturate(140%) brightness(1.09);
-  --material-thin-control-filter-loud: blur(1.2px) saturate(220%) brightness(1.1);
-  --material-thin-fill-floating: color-mix(in srgb, var(--color-surface) var(--material-thin-alpha), transparent);
-  --material-thin-ring: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
-  --material-thin-ring-control: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
-  --material-thin-glint: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
-  --material-thin-glint-control: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
-  --material-regular-alpha: 49%;
-  --material-regular-alpha-hover: 57%;
-  --material-regular-alpha-active: 65%;
-  --material-regular-filter: blur(4px) saturate(207%) brightness(1.05);
-  --material-regular-edge: rgb(255 255 255 / 0.6);
-  --material-regular-rim: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"), radial-gradient(130% 80% at 16% -12%, rgb(255 255 255 / 28.56%), transparent 55%), linear-gradient(180deg, rgb(255 255 255 / 20.4%), transparent 45%);
-  --material-regular-rim-control: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-  --material-regular-control-alpha: 48%;
-  --material-regular-control-filter: blur(2px) saturate(160%) brightness(1.04);
-  --material-regular-control-filter-hover: blur(2px) saturate(160%) brightness(1.09);
-  --material-regular-control-filter-loud: blur(2px) saturate(220%) brightness(1.1);
-  --material-regular-fill-floating: color-mix(in srgb, var(--color-surface) var(--material-regular-alpha), transparent);
-  --material-regular-ring: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
-  --material-regular-ring-control: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
-  --material-regular-glint: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
-  --material-regular-glint-control: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
-  --material-thick-alpha: 65%;
-  --material-thick-alpha-hover: 69%;
-  --material-thick-alpha-active: 72%;
-  --material-thick-filter: blur(5.6px) saturate(241.5%) brightness(1.06);
-  --material-thick-edge: rgb(255 255 255 / 0.7);
-  --material-thick-rim: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"), radial-gradient(130% 80% at 16% -12%, rgb(255 255 255 / 35.7%), transparent 55%), linear-gradient(180deg, rgb(255 255 255 / 25.5%), transparent 45%);
-  --material-thick-rim-control: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-  --material-thick-control-alpha: 66%;
-  --material-thick-control-filter: blur(3.2px) saturate(180%) brightness(1.05);
-  --material-thick-control-filter-hover: blur(3.2px) saturate(180%) brightness(1.09);
-  --material-thick-control-filter-loud: blur(3.2px) saturate(220%) brightness(1.1);
-  --material-thick-fill-floating: color-mix(in srgb, var(--color-surface) var(--material-thick-alpha), transparent);
-  --material-thick-ring: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
-  --material-thick-ring-control: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
-  --material-thick-glint: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
-  --material-thick-glint-control: conic-gradient(from 345deg, rgb(255 255 255 / 0.95), rgb(0 0 0 / 0.07) 22%, rgb(0 0 0 / 0.15) 34%, rgb(10 5 0 / 0.11) 44%, rgb(10 5 0 / 0.11) 56%, rgb(0 0 0 / 0.15) 66%, rgb(0 0 0 / 0.07) 78%, rgb(255 255 255 / 0.95));
-  --material-opaque-alpha: 95%;
-  --material-pool-surface: inset 0 -10px 20px -14px rgb(0 0 0 / 0.06);
-  --material-pool-control: inset 0 -6px 12px -10px rgb(0 0 0 / 0.06);
-  --material-pool-solid: 0 0 0 0 transparent;
-  --material-solid-rim: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"), linear-gradient(180deg, rgb(255 255 255 / 30%), transparent 55%);
-  --material-control-wash-loud: radial-gradient(130% 80% at 16% -12%, rgb(255 255 255 / 14%), transparent 55%), linear-gradient(180deg, rgb(255 255 255 / 10%), transparent 45%);
-  --material-control-wash-medium: radial-gradient(130% 80% at 16% -12%, rgb(255 255 255 / 11.2%), transparent 55%), linear-gradient(180deg, rgb(255 255 255 / 8%), transparent 45%);
-  --material-ink-muted: rgb(0 0 0 / 0.62);
-  --material-ink-faint: rgb(0 0 0 / 0.42);
-  --material-glass-border: rgb(0 0 0 / 0.12);
-  --material-ink-disabled: rgb(0 0 0 / 0.32);
-  --material-row-wash: rgb(0 0 0 / 0.05);
-  --material-grip-fill: rgb(0 0 0 / 0.1);
-  --material-kbd-fill: rgb(0 0 0 / 0.05);
-  --material-kbd-edge: rgb(0 0 0 / 0.1);
-  --material-kbd-ink: rgb(0 0 0 / 0.58);
-  --material-ring-opacity: 1;
-  --material-on-glass-alpha: 62%;
-
-  /* the scrim (§10, §24) — the dialog backdrop's dim and blur, and NOT a member of the
-     material ladder above: a material defends a foreground by mixing that component's
-     own fill, while this pushes the whole app back so the thing on top of it is
-     unambiguously the thing you are using. Black in both modes on purpose — a scrim
-     mixed from the page colour vanishes in dark, which is where dimming needs the most
-     help, and it is why dark leans harder. contrast="high" and reduced transparency
-     share one answer (see the high-contrast block): drop the blur, take fillHigh. */
-  --scrim-fill: rgb(0 0 0 / 0.18);
-  --scrim-fill-high: rgb(0 0 0 / 0.62);
-  --scrim-filter: blur(8px) saturate(0.8);
-
-  /* foreground context (§10, §15) — what a surface re-scopes for everything inside it.
-     Three rungs, the type ladder's resolutions: loud reads text, medium muted, quiet
-     faint. These ARE neutral's inks, referenced rather than restated (2026-08-10): the
-     tone-less default is the neutral family, so a second spelling here is a second home
-     for one value — and it was one, right up until the ladder was solved and this block
-     would have kept the old picked steps.
-
-     Muted lands on apcaFloors.body: real information said quietly (a placeholder, a
-     group label, a timestamp). Faint is BELOW the reading floor on purpose — the
-     exception rung, for something deliberately stood down, like an option that cannot
-     be chosen. It must never carry a reading-length line, which is the call site's law.
-     The CAPTION role was deleted the same day: its two consumers (a menu's and a
-     select's group label) are exactly what muted is now for, and a fourth ink nothing
-     reads is the emitted-lever mistake §15 already made once with font-weight-bold. */
-  --color-text: var(--neutral-ink);
-  --color-text-muted: var(--neutral-ink-muted);
-  --color-text-faint: var(--neutral-ink-faint);
-
-  /* the seal (§10) — a surface without a material is OPAQUE; translucency is material's
-     job alone. Paper above the page, so a card is visible where it lives. The hover and
-     active steps serve the card-as-button pattern: the seal darkening under the pointer. */
-  --color-surface: #ffffff;
-  --color-surface-hover: var(--neutral-2);
-  --color-surface-active: var(--neutral-3);
-
-  /* the GROUND (§10, 2026-08-20) — what an object sits ON, the seal's opposite number. A
-     bounded region of a page holding cards, or a bed inside a card holding something
-     quieter. An absolute pair rather than an alpha step: dark's ramp is built from white,
-     so a relative ground would land ABOVE the seal and the cards would be darker than the
-     ground holding them. See config's groundColor for the measurement. */
-  --color-ground: var(--neutral-2);
-
-  /* the PAGE (§10, §13, 2026-08-20) — the ground this library has always presupposed (the
-     seal's comment above calls a card "paper above the page") and never named, so an app
-     painting its background picked a raw palette step. A NAME and nothing more: the page
-     is the app's call, no component reads this, and a law forbids one from starting. A
-     page made of CARDS is --color-ground above — the pair Apple splits into two page
-     colours collapses here, because a ground already is the second one. */
-  --color-page: #ffffff;
-
-  /* the tone-independent hairline (§7, §11). --tone-border answers "the edge of a thing in
-     THIS family"; this answers "the edge of a thing that has no family" — a Separator, and
-     the resting box of a control whose tone belongs to its ON state alone (Checkbox, Radio,
-     Switch: neutral off, accent on). Without it, such a control has to choose between
-     stamping accent and wearing a tinted edge at rest, or stamping neutral and having no
-     way to name accent when it is checked — and naming a FAMILY in a component stylesheet
-     is what the role-not-family law forbids. Neutral's own border role, exposed. */
-  --color-border: var(--neutral-border);
-
-  /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;
-     elevation stays deleted. Row 1 is the inset well, row 2 the control drop. */
-  --shadow-1: inset 0 1px 1px rgb(0 0 0 / 0.12), inset 0 2px 4px rgb(0 0 0 / 0.06);
-  --shadow-2: 0 1px 2px rgb(0 0 0 / 0.1), 0 5px 14px -4px rgb(0 0 0 / 0.1), 0 12px 30px -8px rgb(0 0 0 / 0.09);
-  --shadow-3: 0 1px 2px rgb(0 0 0 / 0.1), 0 8px 22px -6px rgb(0 0 0 / 0.1), 0 18px 48px -14px rgb(0 0 0 / 0.09);
-  --shadow-4: 0 1px 2px rgb(0 0 0 / 0.1), 0 24px 64px -12px rgb(0 0 0 / 0.11);
-  --shadow-5: 0 1px 2px rgb(0 0 0 / 0.1), 0 12px 32px -8px rgb(0 0 0 / 0.11), 0 32px 80px -16px rgb(0 0 0 / 0.1);
-
-  /* the elevated world's dressing (§5, §10) — surface depth is var(--shadow-4), the lab's
-     SOLID card row, while row 5 is what a glass pane transmits; control depth is the lab's
-     LIT RUNG authored whole rather than a palette row, because row 2's blast read swollen
-     on a 32px box and row 2 survives as the GLASS transmit source. Both rows moved in the
-     lab port (2026-08-17) and this comment still said 3 and 2 until 2026-08-20 — two lines
-     above the declarations that disagreed with it. Dark's inset rim-lights retired with
-     the port. The edge stays --tone-border. The control light is the CATCH half:
-     background-image layers, not shadow, so flat can declare none (§10's rim). */
-  --surface-chrome: var(--shadow-4);
-  --control-chrome: 0 1px 2px rgb(0 0 0 / 0.1), 0 8px 20px -6px rgb(0 0 0 / 0.16), inset 0 -1px 0 rgb(0 0 0 / 0.12);
-  --control-chrome-active: 0 1px 1px rgb(0 0 0 / 0.1), 0 3px 8px -3px rgb(0 0 0 / 0.14), inset 0 -1px 0 rgb(0 0 0 / 0.1);
-  --control-light: linear-gradient(180deg, rgb(255 255 255 / 0.16), transparent 60%);
-  --kbd-edge: rgb(0 0 0 / 0.08);
-  --kbd-relief: inset 0 1px 0 rgb(255 255 255 / 0.4), 0 1px 2px rgb(0 0 0 / 0.1);
-  --grip-cast: 0 1px 2px rgb(0 0 0 / 0.16), 0 2px 6px -1px rgb(0 0 0 / 0.18);
-  --scrollbar-size: 5px;
-  --scrollbar-inset: 2px;
-  --scrollbar-thumb: var(--neutral-a6);
-  --scrollbar-thumb-active: var(--neutral-a8);
-  --disabled-dim: 70%;
-  --disabled-fill: var(--neutral-a2);
-  --disabled-fill-solid: var(--neutral-2);
-  --disabled-border: var(--neutral-a2);
-  --disabled-ink: var(--neutral-8);
-  --selected-edge: var(--accent-solid);
-  /* transmission (§10, 2026-08-07) — what a PANE casts is the app's shadow passed
-     through glass: the surface row faded per thickness, DERIVED from the palette so
-     there is exactly one source of shadow truth. Consumed only where the elevated
-     scope hands it to a material surface; flat declares none. */
-  --surface-chrome-thin: 0 1px 2px rgb(0 0 0 / 0.06), 0 12px 32px -8px rgb(0 0 0 / 0.066), 0 32px 80px -16px rgb(0 0 0 / 0.06);
-  --surface-chrome-regular: 0 1px 2px rgb(0 0 0 / 0.08), 0 12px 32px -8px rgb(0 0 0 / 0.088), 0 32px 80px -16px rgb(0 0 0 / 0.08);
-  --surface-chrome-thick: 0 1px 2px rgb(0 0 0 / 0.09), 0 12px 32px -8px rgb(0 0 0 / 0.099), 0 32px 80px -16px rgb(0 0 0 / 0.09);
-  /* and the CONTROL row transmitted, for glass controls — a glass field or button casts
-     fainter for the same reason a pane does (§10, 2026-08-07). */
-  --control-chrome-thin: 0 1px 2px rgb(0 0 0 / 0.06), 0 5px 14px -4px rgb(0 0 0 / 0.06), 0 12px 30px -8px rgb(0 0 0 / 0.054);
-  --control-chrome-regular: 0 1px 2px rgb(0 0 0 / 0.08), 0 5px 14px -4px rgb(0 0 0 / 0.08), 0 12px 30px -8px rgb(0 0 0 / 0.072);
-  --control-chrome-thick: 0 1px 2px rgb(0 0 0 / 0.09), 0 5px 14px -4px rgb(0 0 0 / 0.09), 0 12px 30px -8px rgb(0 0 0 / 0.081);
-  /* and the PRESS tighten transmitted (2026-08-19): a pressed loud glass control was the
-     one caster whose blast never moved — the glass chain resolved before the active
-     variant could be consulted (audit 2026-08-18). Faded like everything glass casts. */
-  --control-chrome-active-thin: 0 1px 1px rgb(0 0 0 / 0.06), 0 3px 8px -3px rgb(0 0 0 / 0.084), inset 0 -1px 0 rgb(0 0 0 / 0.06);
-  --control-chrome-active-regular: 0 1px 1px rgb(0 0 0 / 0.08), 0 3px 8px -3px rgb(0 0 0 / 0.112), inset 0 -1px 0 rgb(0 0 0 / 0.08);
-  --control-chrome-active-thick: 0 1px 1px rgb(0 0 0 / 0.09), 0 3px 8px -3px rgb(0 0 0 / 0.126), inset 0 -1px 0 rgb(0 0 0 / 0.09);
-  /* the FLOATING chrome (§22) — what a popup casts. Both variants emitted per appearance
-     because both worlds declare one, and flat's is the list-legal NO-OP: flat casts
-     nothing, floating panes included (2026-08-19 — separation in flat is the hairline's
-     job, not a faded shadow's). */
-  --floating-chrome-elevated: var(--shadow-3);
-  --floating-chrome-flat: 0 0 0 0 transparent;
-
-  /* the fill-first dress (§19), per appearance: an index means the opposite thing in
-     the two modes, so the ladders are not each other's copy. The edges sit inside
-     contrastHighBands.border, which is what keeps contrast="high" able to reach a
-     dressed component's boundary at all. */
+     the two modes, so the ladders are not each other's copy. contrast="high" reaches a
+     dressed boundary by STANDING THIS ROLE DOWN — the pass writes
+     --dress-<family>-edge: initial, and each consumption site's own fallback
+     (--field-edge, --control-edge, --tone-border) then resolves AT THE ELEMENT, where
+     the pass has already re-solved it. Never by re-declaring these: the dress is on the
+     ALPHA ramp and the high-contrast pass re-declares opaque steps only. */
   --dress-field-fill: var(--neutral-a3);
   --dress-field-fill-solid: var(--neutral-3);
   --dress-field-fill-hover: var(--neutral-a4);
@@ -1689,6 +1045,7 @@
   --neutral-soft-solid: var(--neutral-4);
   --neutral-soft-hover-solid: var(--neutral-5);
   --neutral-soft-active-solid: var(--neutral-6);
+  --neutral-a3-solid: var(--neutral-3);
   --neutral-solid: #ebebec;
   --neutral-solid-hover: #d0d0d1;
   --neutral-solid-active: #b6b5b6;
@@ -1732,6 +1089,7 @@
   --accent-soft-solid: var(--accent-4);
   --accent-soft-hover-solid: var(--accent-5);
   --accent-soft-active-solid: var(--accent-6);
+  --accent-a3-solid: var(--accent-3);
   --accent-solid: #8410ff;
   --accent-solid-hover: #7700e9;
   --accent-solid-active: #6a00d1;
@@ -1775,6 +1133,7 @@
   --destructive-soft-solid: var(--destructive-4);
   --destructive-soft-hover-solid: var(--destructive-5);
   --destructive-soft-active-solid: var(--destructive-6);
+  --destructive-a3-solid: var(--destructive-3);
   --destructive-solid: #e7494e;
   --destructive-solid-hover: #d83a42;
   --destructive-solid-active: #ca2a36;
@@ -1818,6 +1177,7 @@
   --blue-soft-solid: var(--blue-4);
   --blue-soft-hover-solid: var(--blue-5);
   --blue-soft-active-solid: var(--blue-6);
+  --blue-a3-solid: var(--blue-3);
   --blue-solid: #0094fc;
   --blue-solid-hover: #0088e8;
   --blue-solid-active: #007cd4;
@@ -1861,6 +1221,7 @@
   --green-soft-solid: var(--green-4);
   --green-soft-hover-solid: var(--green-5);
   --green-soft-active-solid: var(--green-6);
+  --green-a3-solid: var(--green-3);
   --green-solid: #00f473;
   --green-solid-hover: #00e56b;
   --green-solid-active: #00d664;
@@ -1904,6 +1265,7 @@
   --orange-soft-solid: var(--orange-4);
   --orange-soft-hover-solid: var(--orange-5);
   --orange-soft-active-solid: var(--orange-6);
+  --orange-a3-solid: var(--orange-3);
   --orange-solid: #f86b15;
   --orange-solid-hover: #e76000;
   --orange-solid-active: #d55800;
@@ -1947,6 +1309,7 @@
   --amber-soft-solid: var(--amber-4);
   --amber-soft-hover-solid: var(--amber-5);
   --amber-soft-active-solid: var(--amber-6);
+  --amber-a3-solid: var(--amber-3);
   --amber-solid: #f0b236;
   --amber-solid-hover: #fdbe47;
   --amber-solid-active: #ffcf7d;
@@ -1990,6 +1353,7 @@
   --success-soft-solid: var(--success-4);
   --success-soft-hover-solid: var(--success-5);
   --success-soft-active-solid: var(--success-6);
+  --success-a3-solid: var(--success-3);
   --success-solid: #00f473;
   --success-solid-hover: #00e56b;
   --success-solid-active: #00d664;
@@ -2033,6 +1397,7 @@
   --warning-soft-solid: var(--warning-4);
   --warning-soft-hover-solid: var(--warning-5);
   --warning-soft-active-solid: var(--warning-6);
+  --warning-a3-solid: var(--warning-3);
   --warning-solid: #f0b236;
   --warning-solid-hover: #fdbe47;
   --warning-solid-active: #ffcf7d;
@@ -2076,6 +1441,7 @@
   --info-soft-solid: var(--info-4);
   --info-soft-hover-solid: var(--info-5);
   --info-soft-active-solid: var(--info-6);
+  --info-a3-solid: var(--info-3);
   --info-solid: #0094fc;
   --info-solid-hover: #0088e8;
   --info-solid-active: #007cd4;
@@ -2295,9 +1661,12 @@
   --floating-chrome-flat: 0 0 0 0 transparent;
 
   /* the fill-first dress (§19), per appearance: an index means the opposite thing in
-     the two modes, so the ladders are not each other's copy. The edges sit inside
-     contrastHighBands.border, which is what keeps contrast="high" able to reach a
-     dressed component's boundary at all. */
+     the two modes, so the ladders are not each other's copy. contrast="high" reaches a
+     dressed boundary by STANDING THIS ROLE DOWN — the pass writes
+     --dress-<family>-edge: initial, and each consumption site's own fallback
+     (--field-edge, --control-edge, --tone-border) then resolves AT THE ELEMENT, where
+     the pass has already re-solved it. Never by re-declaring these: the dress is on the
+     ALPHA ramp and the high-contrast pass re-declares opaque steps only. */
   --dress-field-fill: var(--neutral-a3);
   --dress-field-fill-solid: var(--neutral-3);
   --dress-field-fill-hover: var(--neutral-a4);
@@ -2340,6 +1709,7 @@
     --neutral-soft-solid: var(--neutral-3);
     --neutral-soft-hover-solid: var(--neutral-4);
     --neutral-soft-active-solid: var(--neutral-5);
+    --neutral-a3-solid: var(--neutral-3);
     --neutral-solid: color(display-p3 0.1223 0.121 0.1291);
     --neutral-solid-hover: color(display-p3 0.2015 0.2001 0.2089);
     --neutral-solid-active: color(display-p3 0.286 0.2844 0.2938);
@@ -2371,6 +1741,7 @@
     --accent-soft-solid: var(--accent-3);
     --accent-soft-hover-solid: var(--accent-4);
     --accent-soft-active-solid: var(--accent-5);
+    --accent-a3-solid: var(--accent-3);
     --accent-solid: color(display-p3 0.4881 0.0681 1);
     --accent-solid-hover: color(display-p3 0.4408 0 0.9162);
     --accent-solid-active: color(display-p3 0.3925 0 0.8216);
@@ -2402,6 +1773,7 @@
     --destructive-soft-solid: var(--destructive-3);
     --destructive-soft-hover-solid: var(--destructive-4);
     --destructive-soft-active-solid: var(--destructive-5);
+    --destructive-a3-solid: var(--destructive-3);
     --destructive-solid: color(display-p3 0.8626 0.2843 0.2931);
     --destructive-solid-hover: color(display-p3 0.8077 0.2272 0.2475);
     --destructive-solid-active: color(display-p3 0.7531 0.1646 0.2019);
@@ -2433,6 +1805,7 @@
     --blue-soft-solid: var(--blue-3);
     --blue-soft-hover-solid: var(--blue-4);
     --blue-soft-active-solid: var(--blue-5);
+    --blue-a3-solid: var(--blue-3);
     --blue-solid: color(display-p3 0 0.5132 0.9942);
     --blue-solid-hover: color(display-p3 0 0.4677 0.9103);
     --blue-solid-active: color(display-p3 0 0.4231 0.8278);
@@ -2464,6 +1837,7 @@
     --green-soft-solid: var(--green-3);
     --green-soft-hover-solid: var(--green-4);
     --green-soft-active-solid: var(--green-5);
+    --green-a3-solid: var(--green-3);
     --green-solid: color(display-p3 0 0.959 0.342);
     --green-solid-hover: color(display-p3 0 0.8981 0.3182);
     --green-solid-active: color(display-p3 0 0.8379 0.2946);
@@ -2495,6 +1869,7 @@
     --orange-soft-solid: var(--orange-3);
     --orange-soft-hover-solid: var(--orange-4);
     --orange-soft-active-solid: var(--orange-5);
+    --orange-a3-solid: var(--orange-3);
     --orange-solid: color(display-p3 0.9362 0.4196 0.0792);
     --orange-solid-hover: color(display-p3 0.8741 0.3757 0);
     --orange-solid-active: color(display-p3 0.8033 0.3429 0);
@@ -2526,6 +1901,7 @@
     --amber-soft-solid: var(--amber-3);
     --amber-soft-hover-solid: var(--amber-4);
     --amber-soft-active-solid: var(--amber-5);
+    --amber-a3-solid: var(--amber-3);
     --amber-solid: color(display-p3 0.939 0.7075 0.2101);
     --amber-solid-hover: color(display-p3 0.992 0.7586 0.2739);
     --amber-solid-active: color(display-p3 1 0.8263 0.4955);
@@ -2557,6 +1933,7 @@
     --success-soft-solid: var(--success-3);
     --success-soft-hover-solid: var(--success-4);
     --success-soft-active-solid: var(--success-5);
+    --success-a3-solid: var(--success-3);
     --success-solid: color(display-p3 0 0.959 0.342);
     --success-solid-hover: color(display-p3 0 0.8981 0.3182);
     --success-solid-active: color(display-p3 0 0.8379 0.2946);
@@ -2588,6 +1965,7 @@
     --warning-soft-solid: var(--warning-3);
     --warning-soft-hover-solid: var(--warning-4);
     --warning-soft-active-solid: var(--warning-5);
+    --warning-a3-solid: var(--warning-3);
     --warning-solid: color(display-p3 0.939 0.7075 0.2101);
     --warning-solid-hover: color(display-p3 0.992 0.7586 0.2739);
     --warning-solid-active: color(display-p3 1 0.8263 0.4955);
@@ -2619,6 +1997,7 @@
     --info-soft-solid: var(--info-3);
     --info-soft-hover-solid: var(--info-4);
     --info-soft-active-solid: var(--info-5);
+    --info-a3-solid: var(--info-3);
     --info-solid: color(display-p3 0 0.5132 0.9942);
     --info-solid-hover: color(display-p3 0 0.4677 0.9103);
     --info-solid-active: color(display-p3 0 0.4231 0.8278);
@@ -2659,6 +2038,7 @@
     --neutral-soft-solid: var(--neutral-3);
     --neutral-soft-hover-solid: var(--neutral-4);
     --neutral-soft-active-solid: var(--neutral-5);
+    --neutral-a3-solid: var(--neutral-3);
     --neutral-solid: color(display-p3 0.1223 0.121 0.1291);
     --neutral-solid-hover: color(display-p3 0.2015 0.2001 0.2089);
     --neutral-solid-active: color(display-p3 0.286 0.2844 0.2938);
@@ -2690,6 +2070,7 @@
     --accent-soft-solid: var(--accent-3);
     --accent-soft-hover-solid: var(--accent-4);
     --accent-soft-active-solid: var(--accent-5);
+    --accent-a3-solid: var(--accent-3);
     --accent-solid: color(display-p3 0.4881 0.0681 1);
     --accent-solid-hover: color(display-p3 0.4408 0 0.9162);
     --accent-solid-active: color(display-p3 0.3925 0 0.8216);
@@ -2721,6 +2102,7 @@
     --destructive-soft-solid: var(--destructive-3);
     --destructive-soft-hover-solid: var(--destructive-4);
     --destructive-soft-active-solid: var(--destructive-5);
+    --destructive-a3-solid: var(--destructive-3);
     --destructive-solid: color(display-p3 0.8626 0.2843 0.2931);
     --destructive-solid-hover: color(display-p3 0.8077 0.2272 0.2475);
     --destructive-solid-active: color(display-p3 0.7531 0.1646 0.2019);
@@ -2752,6 +2134,7 @@
     --blue-soft-solid: var(--blue-3);
     --blue-soft-hover-solid: var(--blue-4);
     --blue-soft-active-solid: var(--blue-5);
+    --blue-a3-solid: var(--blue-3);
     --blue-solid: color(display-p3 0 0.5132 0.9942);
     --blue-solid-hover: color(display-p3 0 0.4677 0.9103);
     --blue-solid-active: color(display-p3 0 0.4231 0.8278);
@@ -2783,6 +2166,7 @@
     --green-soft-solid: var(--green-3);
     --green-soft-hover-solid: var(--green-4);
     --green-soft-active-solid: var(--green-5);
+    --green-a3-solid: var(--green-3);
     --green-solid: color(display-p3 0 0.959 0.342);
     --green-solid-hover: color(display-p3 0 0.8981 0.3182);
     --green-solid-active: color(display-p3 0 0.8379 0.2946);
@@ -2814,6 +2198,7 @@
     --orange-soft-solid: var(--orange-3);
     --orange-soft-hover-solid: var(--orange-4);
     --orange-soft-active-solid: var(--orange-5);
+    --orange-a3-solid: var(--orange-3);
     --orange-solid: color(display-p3 0.9362 0.4196 0.0792);
     --orange-solid-hover: color(display-p3 0.8741 0.3757 0);
     --orange-solid-active: color(display-p3 0.8033 0.3429 0);
@@ -2845,6 +2230,7 @@
     --amber-soft-solid: var(--amber-3);
     --amber-soft-hover-solid: var(--amber-4);
     --amber-soft-active-solid: var(--amber-5);
+    --amber-a3-solid: var(--amber-3);
     --amber-solid: color(display-p3 0.939 0.7075 0.2101);
     --amber-solid-hover: color(display-p3 0.992 0.7586 0.2739);
     --amber-solid-active: color(display-p3 1 0.8263 0.4955);
@@ -2876,6 +2262,7 @@
     --success-soft-solid: var(--success-3);
     --success-soft-hover-solid: var(--success-4);
     --success-soft-active-solid: var(--success-5);
+    --success-a3-solid: var(--success-3);
     --success-solid: color(display-p3 0 0.959 0.342);
     --success-solid-hover: color(display-p3 0 0.8981 0.3182);
     --success-solid-active: color(display-p3 0 0.8379 0.2946);
@@ -2907,6 +2294,7 @@
     --warning-soft-solid: var(--warning-3);
     --warning-soft-hover-solid: var(--warning-4);
     --warning-soft-active-solid: var(--warning-5);
+    --warning-a3-solid: var(--warning-3);
     --warning-solid: color(display-p3 0.939 0.7075 0.2101);
     --warning-solid-hover: color(display-p3 0.992 0.7586 0.2739);
     --warning-solid-active: color(display-p3 1 0.8263 0.4955);
@@ -2938,6 +2326,7 @@
     --info-soft-solid: var(--info-3);
     --info-soft-hover-solid: var(--info-4);
     --info-soft-active-solid: var(--info-5);
+    --info-a3-solid: var(--info-3);
     --info-solid: color(display-p3 0 0.5132 0.9942);
     --info-solid-hover: color(display-p3 0 0.4677 0.9103);
     --info-solid-active: color(display-p3 0 0.4231 0.8278);
@@ -2978,6 +2367,7 @@
     --neutral-soft-solid: var(--neutral-4);
     --neutral-soft-hover-solid: var(--neutral-5);
     --neutral-soft-active-solid: var(--neutral-6);
+    --neutral-a3-solid: var(--neutral-3);
     --neutral-solid: color(display-p3 0.9215 0.921 0.924);
     --neutral-solid-hover: color(display-p3 0.8156 0.8151 0.818);
     --neutral-solid-active: color(display-p3 0.7122 0.7117 0.7146);
@@ -3009,6 +2399,7 @@
     --accent-soft-solid: var(--accent-4);
     --accent-soft-hover-solid: var(--accent-5);
     --accent-soft-active-solid: var(--accent-6);
+    --accent-a3-solid: var(--accent-3);
     --accent-solid: color(display-p3 0.4881 0.0681 1);
     --accent-solid-hover: color(display-p3 0.4408 0 0.9162);
     --accent-solid-active: color(display-p3 0.3925 0 0.8216);
@@ -3040,6 +2431,7 @@
     --destructive-soft-solid: var(--destructive-4);
     --destructive-soft-hover-solid: var(--destructive-5);
     --destructive-soft-active-solid: var(--destructive-6);
+    --destructive-a3-solid: var(--destructive-3);
     --destructive-solid: color(display-p3 0.9021 0.2989 0.3081);
     --destructive-solid-hover: color(display-p3 0.8466 0.2414 0.2621);
     --destructive-solid-active: color(display-p3 0.7916 0.1787 0.2161);
@@ -3071,6 +2463,7 @@
     --blue-soft-solid: var(--blue-4);
     --blue-soft-hover-solid: var(--blue-5);
     --blue-soft-active-solid: var(--blue-6);
+    --blue-a3-solid: var(--blue-3);
     --blue-solid: color(display-p3 0 0.5132 0.9942);
     --blue-solid-hover: color(display-p3 0 0.4677 0.9103);
     --blue-solid-active: color(display-p3 0 0.4231 0.8278);
@@ -3102,6 +2495,7 @@
     --green-soft-solid: var(--green-4);
     --green-soft-hover-solid: var(--green-5);
     --green-soft-active-solid: var(--green-6);
+    --green-a3-solid: var(--green-3);
     --green-solid: color(display-p3 0 0.959 0.342);
     --green-solid-hover: color(display-p3 0 0.8981 0.3182);
     --green-solid-active: color(display-p3 0 0.8379 0.2946);
@@ -3133,6 +2527,7 @@
     --orange-soft-solid: var(--orange-4);
     --orange-soft-hover-solid: var(--orange-5);
     --orange-soft-active-solid: var(--orange-6);
+    --orange-a3-solid: var(--orange-3);
     --orange-solid: color(display-p3 0.9708 0.4362 0.0839);
     --orange-solid-hover: color(display-p3 0.9085 0.3916 0);
     --orange-solid-active: color(display-p3 0.8371 0.3586 0);
@@ -3164,6 +2559,7 @@
     --amber-soft-solid: var(--amber-4);
     --amber-soft-hover-solid: var(--amber-5);
     --amber-soft-active-solid: var(--amber-6);
+    --amber-a3-solid: var(--amber-3);
     --amber-solid: color(display-p3 0.939 0.7075 0.2101);
     --amber-solid-hover: color(display-p3 0.992 0.7586 0.2739);
     --amber-solid-active: color(display-p3 1 0.8263 0.4955);
@@ -3195,6 +2591,7 @@
     --success-soft-solid: var(--success-4);
     --success-soft-hover-solid: var(--success-5);
     --success-soft-active-solid: var(--success-6);
+    --success-a3-solid: var(--success-3);
     --success-solid: color(display-p3 0 0.959 0.342);
     --success-solid-hover: color(display-p3 0 0.8981 0.3182);
     --success-solid-active: color(display-p3 0 0.8379 0.2946);
@@ -3226,6 +2623,7 @@
     --warning-soft-solid: var(--warning-4);
     --warning-soft-hover-solid: var(--warning-5);
     --warning-soft-active-solid: var(--warning-6);
+    --warning-a3-solid: var(--warning-3);
     --warning-solid: color(display-p3 0.939 0.7075 0.2101);
     --warning-solid-hover: color(display-p3 0.992 0.7586 0.2739);
     --warning-solid-active: color(display-p3 1 0.8263 0.4955);
@@ -3257,6 +2655,7 @@
     --info-soft-solid: var(--info-4);
     --info-soft-hover-solid: var(--info-5);
     --info-soft-active-solid: var(--info-6);
+    --info-a3-solid: var(--info-3);
     --info-solid: color(display-p3 0 0.5132 0.9942);
     --info-solid-hover: color(display-p3 0 0.4677 0.9103);
     --info-solid-active: color(display-p3 0 0.4231 0.8278);
@@ -3318,8 +2717,8 @@
   --green-8: #00ea6e;
   --green-11: #005121;
   --green-12: #010501;
-  --green-solid-hover: #00dd67;
-  --green-solid-active: #00c75c;
+  --green-solid-hover: #00e56b;
+  --green-solid-active: #00d664;
   --green-label: #052b11;
   --orange-6: #fb7936;
   --orange-7: #fb6d16;
@@ -3342,8 +2741,8 @@
   --success-8: #00ea6e;
   --success-11: #005121;
   --success-12: #010501;
-  --success-solid-hover: #00dd67;
-  --success-solid-active: #00c75c;
+  --success-solid-hover: #00e56b;
+  --success-solid-active: #00d664;
   --success-label: #052b11;
   --warning-6: #f6b83e;
   --warning-7: #f7b838;
@@ -3361,8 +2760,8 @@
   --info-solid-hover: #0081dd;
   --info-solid-active: #006ebe;
   --info-label: #042440;
-  --control-edge: #8b8a8f;
-  --field-edge: #a6a5aa;
+  --control-edge: #85838a;
+  --field-edge: #a1a0a4;
   --color-track: var(--neutral-6);
   --material-thin-alpha: 72%;
   --material-thin-alpha-hover: 77%;
@@ -3422,8 +2821,8 @@
     --green-8: #00ea6e;
     --green-11: #005121;
     --green-12: #010501;
-    --green-solid-hover: #00dd67;
-    --green-solid-active: #00c75c;
+    --green-solid-hover: #00e56b;
+    --green-solid-active: #00d664;
     --green-label: #052b11;
     --orange-6: #fb7936;
     --orange-7: #fb6d16;
@@ -3446,8 +2845,8 @@
     --success-8: #00ea6e;
     --success-11: #005121;
     --success-12: #010501;
-    --success-solid-hover: #00dd67;
-    --success-solid-active: #00c75c;
+    --success-solid-hover: #00e56b;
+    --success-solid-active: #00d664;
     --success-label: #052b11;
     --warning-6: #f6b83e;
     --warning-7: #f7b838;
@@ -3465,8 +2864,8 @@
     --info-solid-hover: #0081dd;
     --info-solid-active: #006ebe;
     --info-label: #042440;
-    --control-edge: #8b8a8f;
-    --field-edge: #a6a5aa;
+    --control-edge: #85838a;
+    --field-edge: #a1a0a4;
     --color-track: var(--neutral-6);
     --material-thin-alpha: 72%;
     --material-thin-alpha-hover: 77%;
@@ -3527,8 +2926,8 @@
   --green-8: #00af51;
   --green-11: #9dffb2;
   --green-12: #f2fef4;
-  --green-solid-hover: #00dd67;
-  --green-solid-active: #00c75c;
+  --green-solid-hover: #00e56b;
+  --green-solid-active: #00d664;
   --green-label: #cafed3;
   --orange-6: #a0440f;
   --orange-7: #b94e0d;
@@ -3551,8 +2950,8 @@
   --success-8: #00af51;
   --success-11: #9dffb2;
   --success-12: #f2fef4;
-  --success-solid-hover: #00dd67;
-  --success-solid-active: #00c75c;
+  --success-solid-hover: #00e56b;
+  --success-solid-active: #00d664;
   --success-label: #cafed3;
   --warning-6: #7f5d1b;
   --warning-7: #936b1d;
@@ -3634,8 +3033,8 @@
     --green-8: #00af51;
     --green-11: #9dffb2;
     --green-12: #f2fef4;
-    --green-solid-hover: #00dd67;
-    --green-solid-active: #00c75c;
+    --green-solid-hover: #00e56b;
+    --green-solid-active: #00d664;
     --green-label: #cafed3;
     --orange-6: #a0440f;
     --orange-7: #b94e0d;
@@ -3658,8 +3057,8 @@
     --success-8: #00af51;
     --success-11: #9dffb2;
     --success-12: #f2fef4;
-    --success-solid-hover: #00dd67;
-    --success-solid-active: #00c75c;
+    --success-solid-hover: #00e56b;
+    --success-solid-active: #00d664;
     --success-label: #cafed3;
     --warning-6: #7f5d1b;
     --warning-7: #936b1d;
@@ -3743,8 +3142,8 @@
     --green-8: color(display-p3 0 0.9483 0.3378);
     --green-11: color(display-p3 0 0.3286 0.0952);
     --green-12: color(display-p3 0.0024 0.0193 0.0039);
-    --green-solid-hover: color(display-p3 0 0.883 0.3123);
-    --green-solid-active: color(display-p3 0 0.8082 0.283);
+    --green-solid-hover: color(display-p3 0 0.8981 0.3182);
+    --green-solid-active: color(display-p3 0 0.8379 0.2946);
     --green-label: color(display-p3 0.0176 0.1738 0.0479);
     --orange-6: color(display-p3 0.9828 0.4511 0.1169);
     --orange-7: color(display-p3 0.9889 0.4448 0.0864);
@@ -3767,8 +3166,8 @@
     --success-8: color(display-p3 0 0.9483 0.3378);
     --success-11: color(display-p3 0 0.3286 0.0952);
     --success-12: color(display-p3 0.0024 0.0193 0.0039);
-    --success-solid-hover: color(display-p3 0 0.883 0.3123);
-    --success-solid-active: color(display-p3 0 0.8082 0.283);
+    --success-solid-hover: color(display-p3 0 0.8981 0.3182);
+    --success-solid-active: color(display-p3 0 0.8379 0.2946);
     --success-label: color(display-p3 0.0176 0.1738 0.0479);
     --warning-6: color(display-p3 0.9677 0.7338 0.2393);
     --warning-7: color(display-p3 0.9713 0.7323 0.2188);
@@ -3786,8 +3185,8 @@
     --info-solid-hover: color(display-p3 0 0.4425 0.8637);
     --info-solid-active: color(display-p3 0 0.3738 0.7368);
     --info-label: color(display-p3 0.0151 0.1335 0.2753);
-    --control-edge: color(display-p3 0.5432 0.5397 0.5608);
-    --field-edge: color(display-p3 0.6518 0.6491 0.6649);
+    --control-edge: color(display-p3 0.5196 0.5158 0.5381);
+    --field-edge: color(display-p3 0.6294 0.6266 0.6435);
     --color-track: var(--neutral-6);
   }
   @media (prefers-contrast: more) {
@@ -3830,8 +3229,8 @@
       --green-8: color(display-p3 0 0.9483 0.3378);
       --green-11: color(display-p3 0 0.3286 0.0952);
       --green-12: color(display-p3 0.0024 0.0193 0.0039);
-      --green-solid-hover: color(display-p3 0 0.883 0.3123);
-      --green-solid-active: color(display-p3 0 0.8082 0.283);
+      --green-solid-hover: color(display-p3 0 0.8981 0.3182);
+      --green-solid-active: color(display-p3 0 0.8379 0.2946);
       --green-label: color(display-p3 0.0176 0.1738 0.0479);
       --orange-6: color(display-p3 0.9828 0.4511 0.1169);
       --orange-7: color(display-p3 0.9889 0.4448 0.0864);
@@ -3854,8 +3253,8 @@
       --success-8: color(display-p3 0 0.9483 0.3378);
       --success-11: color(display-p3 0 0.3286 0.0952);
       --success-12: color(display-p3 0.0024 0.0193 0.0039);
-      --success-solid-hover: color(display-p3 0 0.883 0.3123);
-      --success-solid-active: color(display-p3 0 0.8082 0.283);
+      --success-solid-hover: color(display-p3 0 0.8981 0.3182);
+      --success-solid-active: color(display-p3 0 0.8379 0.2946);
       --success-label: color(display-p3 0.0176 0.1738 0.0479);
       --warning-6: color(display-p3 0.9677 0.7338 0.2393);
       --warning-7: color(display-p3 0.9713 0.7323 0.2188);
@@ -3873,8 +3272,8 @@
       --info-solid-hover: color(display-p3 0 0.4425 0.8637);
       --info-solid-active: color(display-p3 0 0.3738 0.7368);
       --info-label: color(display-p3 0.0151 0.1335 0.2753);
-      --control-edge: color(display-p3 0.5432 0.5397 0.5608);
-      --field-edge: color(display-p3 0.6518 0.6491 0.6649);
+      --control-edge: color(display-p3 0.5196 0.5158 0.5381);
+      --field-edge: color(display-p3 0.6294 0.6266 0.6435);
       --color-track: var(--neutral-6);
     }
   }
@@ -3920,8 +3319,8 @@
     --green-8: color(display-p3 0 0.7099 0.2445);
     --green-11: color(display-p3 0.6784 1 0.7051);
     --green-12: color(display-p3 0.9538 0.9961 0.9554);
-    --green-solid-hover: color(display-p3 0 0.883 0.3123);
-    --green-solid-active: color(display-p3 0 0.8082 0.283);
+    --green-solid-hover: color(display-p3 0 0.8981 0.3182);
+    --green-solid-active: color(display-p3 0 0.8379 0.2946);
     --green-label: color(display-p3 0.8215 0.9944 0.8311);
     --orange-6: color(display-p3 0.6062 0.2675 0.0545);
     --orange-7: color(display-p3 0.6989 0.306 0.0471);
@@ -3944,8 +3343,8 @@
     --success-8: color(display-p3 0 0.7099 0.2445);
     --success-11: color(display-p3 0.6784 1 0.7051);
     --success-12: color(display-p3 0.9538 0.9961 0.9554);
-    --success-solid-hover: color(display-p3 0 0.883 0.3123);
-    --success-solid-active: color(display-p3 0 0.8082 0.283);
+    --success-solid-hover: color(display-p3 0 0.8981 0.3182);
+    --success-solid-active: color(display-p3 0 0.8379 0.2946);
     --success-label: color(display-p3 0.8215 0.9944 0.8311);
     --warning-6: color(display-p3 0.4905 0.3657 0.102);
     --warning-7: color(display-p3 0.5656 0.4211 0.1105);
@@ -4007,8 +3406,8 @@
       --green-8: color(display-p3 0 0.7099 0.2445);
       --green-11: color(display-p3 0.6784 1 0.7051);
       --green-12: color(display-p3 0.9538 0.9961 0.9554);
-      --green-solid-hover: color(display-p3 0 0.883 0.3123);
-      --green-solid-active: color(display-p3 0 0.8082 0.283);
+      --green-solid-hover: color(display-p3 0 0.8981 0.3182);
+      --green-solid-active: color(display-p3 0 0.8379 0.2946);
       --green-label: color(display-p3 0.8215 0.9944 0.8311);
       --orange-6: color(display-p3 0.6062 0.2675 0.0545);
       --orange-7: color(display-p3 0.6989 0.306 0.0471);
@@ -4031,8 +3430,8 @@
       --success-8: color(display-p3 0 0.7099 0.2445);
       --success-11: color(display-p3 0.6784 1 0.7051);
       --success-12: color(display-p3 0.9538 0.9961 0.9554);
-      --success-solid-hover: color(display-p3 0 0.883 0.3123);
-      --success-solid-active: color(display-p3 0 0.8082 0.283);
+      --success-solid-hover: color(display-p3 0 0.8981 0.3182);
+      --success-solid-active: color(display-p3 0 0.8379 0.2946);
       --success-label: color(display-p3 0.8215 0.9944 0.8311);
       --warning-6: color(display-p3 0.4905 0.3657 0.102);
       --warning-7: color(display-p3 0.5656 0.4211 0.1105);
@@ -4673,6 +4072,7 @@
   --tone-ink-faint: var(--neutral-ink-faint);
   --tone-current: var(--neutral-current);
   --tone-a3: var(--neutral-a3);
+  --tone-a3-solid: var(--neutral-a3-solid);
 }
 
 [data-tone="accent"] {
@@ -4695,6 +4095,7 @@
   --tone-ink-faint: var(--neutral-ink-faint);
   --tone-current: var(--accent-current);
   --tone-a3: var(--neutral-a3);
+  --tone-a3-solid: var(--neutral-a3-solid);
 }
 
 [data-tone="destructive"] {
@@ -4717,6 +4118,7 @@
   --tone-ink-faint: var(--destructive-ink-faint);
   --tone-current: var(--destructive-current);
   --tone-a3: var(--destructive-a3);
+  --tone-a3-solid: var(--destructive-a3-solid);
 }
 
 [data-tone="blue"] {
@@ -4739,6 +4141,7 @@
   --tone-ink-faint: var(--blue-ink-faint);
   --tone-current: var(--blue-current);
   --tone-a3: var(--blue-a3);
+  --tone-a3-solid: var(--blue-a3-solid);
 }
 
 [data-tone="green"] {
@@ -4761,6 +4164,7 @@
   --tone-ink-faint: var(--green-ink-faint);
   --tone-current: var(--green-current);
   --tone-a3: var(--green-a3);
+  --tone-a3-solid: var(--green-a3-solid);
 }
 
 [data-tone="orange"] {
@@ -4783,6 +4187,7 @@
   --tone-ink-faint: var(--orange-ink-faint);
   --tone-current: var(--orange-current);
   --tone-a3: var(--orange-a3);
+  --tone-a3-solid: var(--orange-a3-solid);
 }
 
 [data-tone="amber"] {
@@ -4805,6 +4210,7 @@
   --tone-ink-faint: var(--amber-ink-faint);
   --tone-current: var(--amber-current);
   --tone-a3: var(--amber-a3);
+  --tone-a3-solid: var(--amber-a3-solid);
 }
 
 [data-tone="success"] {
@@ -4827,6 +4233,7 @@
   --tone-ink-faint: var(--success-ink-faint);
   --tone-current: var(--success-current);
   --tone-a3: var(--success-a3);
+  --tone-a3-solid: var(--success-a3-solid);
 }
 
 [data-tone="warning"] {
@@ -4849,6 +4256,7 @@
   --tone-ink-faint: var(--warning-ink-faint);
   --tone-current: var(--warning-current);
   --tone-a3: var(--warning-a3);
+  --tone-a3-solid: var(--warning-a3-solid);
 }
 
 [data-tone="info"] {
@@ -4871,6 +4279,7 @@
   --tone-ink-faint: var(--info-ink-faint);
   --tone-current: var(--info-current);
   --tone-a3: var(--info-a3);
+  --tone-a3-solid: var(--info-a3-solid);
 }
 
 [data-pointer="fine"] {

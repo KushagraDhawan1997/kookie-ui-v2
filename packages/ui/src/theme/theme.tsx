@@ -130,6 +130,12 @@ export type ThemeProps = {
    * unmaking it. Left unset the Theme writes no attribute, which is what lets
    * `@media (prefers-contrast: more)` reach the scope. Asking for `normal` is an explicit opt-out
    * of that platform signal.
+   *
+   * **It has to sit on the same element as an `appearance`, and this scope's cannot be
+   * `inherit`.** The high-contrast palette is selected by the two together, so a Theme that
+   * resolves `inherit` and asks for `high` re-solves nothing. On the dark-SSR shape the
+   * appearance lives on `<html>`, so put `data-contrast` there too — which is what the pre-paint
+   * script does. A development build warns when the two come apart.
    */
   contrast?: Contrast;
   /**
@@ -182,6 +188,54 @@ const warnOnBodyMount = (node: HTMLElement | null) => {
     );
   }
   warnOnFramedAncestor(node);
+  warnOnSplitContrast(node);
+};
+
+/**
+ * §7 — THE PAIR HAS TO CO-LOCATE, AND `appearance="inherit"` IS WHERE IT COMES APART
+ * (added 2026-08-26, ultracode audit).
+ *
+ * Every emitted high-contrast token block names an appearance and a contrast together: on one
+ * element (`:root[data-contrast="high"]`, `[data-appearance="dark"][data-contrast="high"]`) or
+ * with the appearance on a DESCENDANT (`[data-contrast="high"] [data-appearance="dark"]:not(…)`,
+ * added 2026-08-20 for the nested case). It has to be that way — every name those blocks
+ * re-declare is also written by the appearance scopes, so a bare `[data-contrast="high"]` block
+ * would lose by proximity to any `<Theme appearance>` between it and the component.
+ *
+ * `appearance="inherit"` writes no attribute at all — that is the whole dark-SSR design — so a
+ * Theme resolving `inherit` and asking for `high` renders `data-contrast="high"` with nothing to
+ * pair it with, and the appearance it is really under sits on an ANCESTOR (`<html>`), which no
+ * arm looks at. Measured: `--neutral-6` and a TextField's painted border came back byte-identical
+ * at `contrast="normal"` and `contrast="high"` inside `<html data-appearance="dark">`.
+ *
+ * This is the §20 shape again — the mechanism is right and nothing said so when it was absent —
+ * and it gets §20's answer for the same reason: the repair belongs in the emitted CSS (an arm
+ * for appearance-on-an-ancestor), and until it exists a silent accessibility no-op is the worst
+ * of the available failures. `prefers-contrast: more` is unaffected: its guard's base already
+ * carries the appearance, which is why the platform signal always worked here and only the
+ * explicit prop was dead.
+ *
+ * It looks for a descendant appearance before warning, because that arm DOES fire: a
+ * `<Theme contrast="high">` wrapping a `<Theme appearance="dark">` is a working shape and must
+ * stay quiet. A descendant mounted later is missed, which is the safe direction — this
+ * under-warns, it never cries wolf.
+ *
+ * IF THE EMITTED CSS GAINS AN ANCESTOR-APPEARANCE ARM, DELETE THIS. `theme.browser.test.tsx`
+ * holds the two implementations to each other: one law reads the emitted selectors and fails
+ * the day such an arm appears, naming this function.
+ */
+const warnOnSplitContrast = (node: HTMLElement | null) => {
+  if (!DEV || !node) return;
+  if (node.getAttribute("data-contrast") !== "high") return;
+  if (node.hasAttribute("data-appearance")) return;
+  if (node.querySelector("[data-appearance]")) return;
+  console.warn(
+    '[kookie-ui] <Theme contrast="high"> resolved appearance="inherit", so it stamped ' +
+      "data-contrast with no data-appearance beside it and the high-contrast palette selects " +
+      "nothing (§7). The two attributes have to sit on one element: put data-contrast on <html> " +
+      "beside data-appearance — which is what the pre-paint script does — or give this Theme an " +
+      "explicit appearance.",
+  );
 };
 
 /**

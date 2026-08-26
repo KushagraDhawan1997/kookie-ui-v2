@@ -631,9 +631,20 @@
    construction, carrying the tone with it. Scoped to QUIET rows only: a medium row (a
    selected tree row, a current nav row) rests at full soft and hovers to soft-hover, so the
    ranking reads selected(soft) > hovered(65% of soft) everywhere rows exist. The percentage
-   is a judged lever (taste, one home: here). */
-.kui-row[data-highlighted]:where([data-emphasis="quiet"]):not([data-disabled]),
-.kui-row[data-popup-open]:where([data-emphasis="quiet"]):not([data-disabled]) {
+   is a judged lever (taste, one home: here).
+
+   THE EMPHASIS IS MATCHED, NOT :where()d, AND THAT IS THE WHOLE RULE (audit 2026-08-26). It
+   shipped inside `:where()`, which made this (0,3,0) — an exact tie with the shared
+   `.kui-control:hover:not([data-disabled], [data-loading])` 400 lines below, which then won
+   on source order. Menu and Select rows are the reachable case: they never carry
+   `data-hover-lit`, so the pointer-driven arm that would have rescued them cannot match, and
+   Base UI stamps `data-highlighted` on pointer hover too. Measured before the fix: the same
+   quiet row painted `color(srgb 0 0 0 / 0.055)` under the mouse and `oklab(0 0 0 / 0.03575)`
+   under the arrow keys — one logical state, two fills, chosen by input device. At (0,4,0) it
+   outranks the shared rule outright and still loses to the `contrast="high"` arm below, which
+   ties at (0,4,0) and comes later. */
+.kui-row[data-highlighted][data-emphasis="quiet"]:not([data-disabled]),
+.kui-row[data-popup-open][data-emphasis="quiet"]:not([data-disabled]) {
   background-color: color-mix(
     in oklab,
     var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover)) 65%,
@@ -818,11 +829,19 @@
 
 /* THE NOTCH IS THE FLOATING ROW'S (§6, §21; judged 2026-08-09, scoped 2026-08-26 — the
    exception flipped owners). A row inside a panel that hugs rows drops the height ladder
-   and lets the line carry the box: fine default 24/28/32/34 under buttons at 24/32/40/48
+   and lets the line carry the box: fine default 24/30/34/38 under buttons at 28/32/40/48
    (shadcn's item is padding + line under an h-9 button; macOS runs ~24px rows under 28px
-   buttons), coarse 36/40/42/44 with the locked 24 floor holding everywhere by
-   construction. That number was judged on a MENU and became the family default only
-   because Menu was the family's first member; every standing member since opted back out
+   buttons), coarse 36/40/44/48 under buttons at 36/44/52/60 — with the locked 24 floor held
+   BY THE STYLESHEET in one cell and by construction everywhere else (corrected 2026-08-26:
+   coarse clears it by design at every rung, and so does fine except at compact size 1, whose
+   sum is 16 + 2 + 2 = 20 and is floored by `min-height: var(--target-min)` on the rule below). Those are DECISIONS §21's numbers, and they are
+   restated here only because the rule below is where a reader meets them; the three
+   ladders written here until 2026-08-26 were the constant-inset values `rowInset` left
+   behind when it went per-size on 2026-08-09, plus a button ladder (24/32/40/48) that has
+   never existed in any density set.
+
+   That number was judged on a MENU and became the family default only because Menu was the
+   family's first member; every standing member since opted back out
    (the sidebar row on the day it existed, and Tree landed on the menu's number and sat 30
    in a column of 32s). So the family default rides the ladder, and the notch is stated
    here, keyed on `.kui-floating-rows` — the panel class whose whole meaning is "hugs
@@ -1011,6 +1030,26 @@
    AT THE ELEMENT — the material edge's pattern — so the state remaps below and
    contrast="high" keep reaching the edge. Filled is transparent, and the state arms re-point
    the role itself: state outranks dress. */
+/* AND THE GLASS BUTTON'S BORDER JOINS THE SAME CHAIN (§10, audit 2026-08-26). `bordered` is
+   Button's emphasis half-step and §10 sanctions composing it with a material, so
+   `<Button bordered backdrop>` painted the tone hairline in the border band with the conic
+   ring one pixel inside it — the doubled edge the lock names by hand. The material section
+   pins --kui-ct-glass-edge to `transparent` for a glass button, so this chain resolves to no
+   line at all while the ring is the edge, and back to the pigment the moment either arm that
+   unmakes the glass (disabled, reduced transparency) declares that hook `initial`. (0,4,0),
+   so it beats [data-bordered] by weight and needs no order argument.
+
+   Spelled "a material that is not on-glass" rather than by enumerating the three thicknesses,
+   for two reasons: a flush on-glass member has no ring, so its border is the only edge it has
+   and must stay; and the enumerated spelling would put the string `[data-material="thin"]` in
+   this file BEFORE the material section, which is where the "material names no colour" law
+   anchors — a rule that names a tone role must not be the thing that moves that anchor.
+   `data-material` is absent on a solid control (button.tsx:207), so this is exactly the three
+   pane rungs and stays exactly them if a fourth is ever added. */
+.kui-button[data-material][data-bordered]:not([data-material="on-glass"]) {
+  --kui-border-color: var(--kui-ct-glass-edge, var(--tone-border));
+}
+
 .kui-field,
 .kui-textarea {
   /* And under the outlined look, the field family wears the CONTROL EDGE (§7, 2026-08-07,
@@ -1073,8 +1112,19 @@
     scale var(--kui-ct-move) var(--kui-ct-move-ease);
 }
 
+/* AND THE GUARDS SPELL `:disabled` TOO (audit 2026-08-26). The disabled remap three rules up
+   is spelled three ways "precisely because one is never enough" — attribute, native, and the
+   `:has()` wrapper arm — and the hover guards had learned only the attribute. `Row` and the
+   shell's nav and rail members render a bare `<button disabled>` and deliberately stamp no
+   `data-disabled` (shell.css says so two hundred lines away, and row.browser.test.tsx asserts
+   it), so the QUIET rung — whose rest is the literal `transparent` and therefore has nothing
+   for the remap to flatten — answered the pointer while dead: measured, a dead row rested at
+   `rgba(0, 0, 0, 0)` and lit to `oklab(0 0 0 / 0.02015)`, ~56% of the live row's step. The
+   one channel that says "this does nothing" said "press me". `:disabled` is a pseudo-CLASS,
+   so `:not()`'s most-specific-argument arithmetic is unchanged and every tie the comments
+   below depend on still resolves the same way. */
 @media (hover: hover) {
-  .kui-control:hover:not([data-disabled], [data-loading]) {
+  .kui-control:hover:not([data-disabled], [data-loading], :disabled) {
     background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover));
     /* Warming is faster than cooling. A symmetric hover reads as a lamp on a switch; this
        reads as a surface the pointer is heating, and it is the honest asymmetry — arriving is
@@ -1125,7 +1175,7 @@
      `:not()` takes its most specific ARGUMENT rather than summing the list. That is a real
      improvement on the mechanism above it, whose own comment calls source order "fragile to
      leave undocumented". */
-  .kui-row[data-hover-lit]:hover:not([data-disabled], [data-loading]) {
+  .kui-row[data-hover-lit]:hover:not([data-disabled], [data-loading], :disabled) {
     background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover));
     --kui-ct-paint: var(--motion-hover-in);
   }
@@ -1133,7 +1183,7 @@
   /* The quiet half-step, restated for the pointer-driven arm — the same mix as the
      data-highlighted rule above, same reason, same judged percentage. A medium row keeps its
      full hover step, so a selected or current row still darkens under the pointer. */
-  .kui-row[data-hover-lit]:where([data-emphasis="quiet"]):hover:not([data-disabled], [data-loading]) {
+  .kui-row[data-hover-lit]:where([data-emphasis="quiet"]):hover:not([data-disabled], [data-loading], :disabled) {
     background-color: color-mix(
       in oklab,
       var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover)) 65%,
@@ -1386,12 +1436,43 @@
   --kui-ct-glass-edge: initial;
   --kui-ct-glass-ring: initial;
   --kui-ct-glass-glint: initial;
+  /* AND THE RING THE BUTTON FAMILY PAINTS (2026-08-26 audit). The three hooks above are the
+     FIELD family's — declared only inside the `background-clip: border-area` guard, because a
+     form control renders no generated content and the field's ring has to be a background
+     layer. The button and the segmented track have an `::after`, so they read
+     `--material-<t>-ring-control` directly and the stand-downs above could never reach them:
+     measured, a dead glass button's ring was byte-identical to a live one's in both
+     appearances, while the dead field beside it correctly lost its lip.
+
+     Routing the button through `--kui-ct-glass-ring` is NOT the fix — that hook does not exist
+     outside the guard, so it would delete the ring on every engine without border-area rather
+     than only on a dead control. The lever is the one the reduced-transparency arm already
+     uses, and it is the honest one: `--material-ring-opacity` says whether this element's
+     light is lit. It carries the glint band with it (the band's opacity is
+     `calc(ring-opacity * glint-on)`), which is right — a dead control catches no light at all,
+     the same sentence `--kui-ct-light: none` states below.
+
+     The INVALID remap below deliberately does not take this line: a button is never invalid,
+     and the field family's own two hooks already stand its ring and band down there. */
+  --material-ring-opacity: 0;
   /* And the elevated light stands down the same way (§5, 2026-08-07): a disabled control
      makes no promise, so it neither hovers above the page nor catches light. `initial`
      makes the world tokens guaranteed-invalid here; the consumption sites fall back to
      none. In a flat world this is a no-op. */
   --kui-control-chrome: initial;
   --kui-control-light: initial;
+  /* And the GLASS rung's wash, which is a different token and was therefore missed (audit
+     2026-08-26 — the same shape as the three glass shadow rows below, and as the ink trio,
+     the glyph and the slider rail before them: a remap covering one of several vocabularies
+     dims only the covered one). On glass, loud and medium point --kui-ct-light at
+     --material-control-wash-loud/-medium instead of the world's --kui-control-light, so
+     standing the world name down never reached them: measured, a disabled glass loud button
+     computed `radial-gradient(130% 80% at 16% -12%, rgb(255 255 255 / 14%), …)` — byte-
+     identical to its LIVE twin — while the solid dead button beside it computed `none`.
+     Medium is the sharper half: solid medium never catches light at all, so the glass twin
+     gave a dead control a wash it cannot have alive. This name rather than the two material
+     tokens, because --kui-ct-light is the one thing the button's background-image reads. */
+  --kui-ct-light: none;
   /* The three glass rows too, and they are not optional (audit 2026-08-07). A glass control
      resolves its cast through --kui-ct-cast-glass, which sits FIRST in the chain and reads
      these names — so standing down --kui-control-chrome alone never reached it, and a
@@ -1599,12 +1680,25 @@
      so it slides UNDER the edge (the two-stacked-lines dead end, §5). Routed through ONE
      private name so the state arms can stand the glass edge down with one line: an invalid
      or disabled glass field wears the state's border, never the material's. Buttons are
-     untouched — borderless by rank, their glass needs no edge. */
+     untouched — borderless by rank, their glass needs no edge (and since 2026-08-26 their
+     border is pinned transparent outright, below the ring rules — `bordered` is rank, and
+     one line is never two).
+
+     THE SEGMENTED TRACK JOINS THE RIM LIST (audit 2026-08-26). It joined the ring list at
+     the 2026-08-24 lock and was left off this one, so it resolved five of §10's six parts:
+     measured at `thick` over a backdrop, a glass Button computed the baked turbulence
+     `url(data:image/svg+xml…)` and the track beside it computed `background-image: none`.
+     That is the Button's own 2026-08-16 defect ("the button used to be excluded from this
+     rule entirely rather than composed, so a glass Button had no rim at all") reproduced on
+     the member that joined the ring one file-section down. The edge hook comes along and is
+     inert there — a track's border is stood down BY WIDTH (audit D2), so nothing consumes it
+     — which is the same inertness the button carried in this list before its own pin. */
   .kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"]),
   .kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
     background-origin: border-box;
   }
   .kui-button:where([data-material="thin"]),
+  .kui-segmented:where([data-material="thin"]),
   .kui-field:where([data-material="thin"]),
   .kui-textarea:where([data-material="thin"]) {
     --kui-ct-glass-edge: var(--material-thin-edge);
@@ -1620,6 +1714,7 @@
       var(--kui-ct-light, none);
   }
   .kui-button:where([data-material="regular"]),
+  .kui-segmented:where([data-material="regular"]),
   .kui-field:where([data-material="regular"]),
   .kui-textarea:where([data-material="regular"]) {
     --kui-ct-glass-edge: var(--material-regular-edge);
@@ -1635,6 +1730,7 @@
       var(--kui-ct-light, none);
   }
   .kui-button:where([data-material="thick"]),
+  .kui-segmented:where([data-material="thick"]),
   .kui-field:where([data-material="thick"]),
   .kui-textarea:where([data-material="thick"]) {
     --kui-ct-glass-edge: var(--material-thick-edge);
@@ -1760,6 +1856,26 @@
    border to stand down), and on-glass members are flush with their pane and take nothing. */
 .kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
   position: relative;
+  /* ONE LINE, NEVER TWO (§10, audit 2026-08-26). `bordered` is Button's emphasis half-step
+     and §10 explicitly sanctions composing it with a material, so `<Button bordered backdrop>`
+     is a call site the system invites — and it painted the tone's pigment hairline in the
+     border band with the conic ring one pixel inside it (measured: `border-top-color:
+     color(display-p3 0.8507 0.8495 0.8567)` at 1px, `::after` a live conic; the plain glass
+     button beside it correctly computed `rgba(0, 0, 0, 0)`). That is the 2026-08-07
+     doubled-edge defect the lock names by hand.
+
+     Routed through the glass-edge hook rather than pinned to `transparent` on the border
+     directly, and the routing is what makes it self-maintaining: BOTH arms that unmake the
+     glass — the disabled remap and the reduced-transparency seal — already declare
+     `--kui-ct-glass-edge: initial`, so the pigment line comes back by itself in exactly the
+     two states where the ring is gone, with no second stand-down to keep in step. The
+     declaration is later than the @supports groups above at the same (0,1,0), which is the
+     override; the consumption sits with the field family's, up beside `[data-bordered]` and
+     OUTSIDE this section, because a material rule may not name a tone role (this file's own
+     law) — and it is (0,2,0) there, beating `[data-bordered]`'s (0,1,0) outright.
+     `on-glass` is deliberately not here: a flush member has no ring, so its border is the
+     only edge it has. */
+  --kui-ct-glass-edge: transparent;
 }
 .kui-segmented[data-material]::after,
 .kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after {
@@ -1907,6 +2023,18 @@
        glass and stops transmitting (§10). */
     --kui-ct-glass-edge: initial;
     background-image: none;
+    /* AND THE RING AND THE BAND WITH THEM (audit 2026-08-26). This arm sealed the fill and
+       killed the filter and then left the material's own light painting: measured under the
+       preference, a glass Button's ::after conic and ::before glint both computed opacity 1
+       beside a Card that correctly computed 0 — the same asymmetry §10's lock exists to
+       forbid, in the one place the setting is supposed to remove light. `background-image:
+       none` above reaches the ELEMENT's layers (which is why the field's border-area ring
+       needed no line of its own); a pseudo-element's own background is untouched by it. The
+       lever is the one surfaces.css already pulls in its own arm — one name, read by both
+       pseudos — and zeroing it also re-arms refraction.tsx's skip, whose condition is
+       `sealed && ringDown`: until now `ringDown` was false on every control, so a sealed
+       glass control still minted a glint map nothing could see. */
+    --material-ring-opacity: 0;
     --kui-ct-cast-glass: initial;
     /* And the pool with it — a sealed pane has no glass matter to settle (2026-08-17). */
     --kui-ct-pool-glass: initial;

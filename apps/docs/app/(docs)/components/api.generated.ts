@@ -2731,7 +2731,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "contrast",
         "type": "Contrast",
         "optional": true,
-        "doc": "An accessibility setting, not a design knob. At rest a border or a fill is decoration, judged by eye and held to no floor. `high` is where the contrast floors bind: it re-solves the tone bands, the control and field edges and the track, and it leans on the glass rather than unmaking it. Left unset the Theme writes no attribute, which is what lets `@media (prefers-contrast: more)` reach the scope. Asking for `normal` is an explicit opt-out of that platform signal."
+        "doc": "An accessibility setting, not a design knob. At rest a border or a fill is decoration, judged by eye and held to no floor. `high` is where the contrast floors bind: it re-solves the tone bands, the control and field edges and the track, and it leans on the glass rather than unmaking it. Left unset the Theme writes no attribute, which is what lets `@media (prefers-contrast: more)` reach the scope. Asking for `normal` is an explicit opt-out of that platform signal. **It has to sit on the same element as an `appearance`, and this scope's cannot be `inherit`.** The high-contrast palette is selected by the two together, so a Theme that resolves `inherit` and asks for `high` re-solves nothing. On the dark-SSR shape the appearance lives on `<html>`, so put `data-contrast` there too — which is what the pre-paint script does. A development build warns when the two come apart."
       },
       {
         "name": "density",

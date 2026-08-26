@@ -785,23 +785,43 @@ describe("a leaving alert is not a target (§25, 2026-08-22)", () => {
       `while OPEN this point must belong to the alert, or the fixture cannot show the defect — it belongs to ${covering?.className || covering?.id || covering?.tagName}`,
     ).toBe(true);
 
-    // Dismissed MID-ENTRY, which is the case that produces the long tail.
-    await userEvent.keyboard("{Escape}");
-    // SETTLED-BY-DESIGN: the claim is a NON-event — that Escape has not yet taken the panel
-    // out of the document — and a slower machine only makes it more true, never less.
+    /**
+     * HELD, not raced (rewritten 2026-08-26, the audit's own instrument sweep).
+     *
+     * This used to poll for `scrim.opacity === 0` and then assert the panel was STILL mounted
+     * — two wall-clock premises in a row, in the ~200ms between the fade ending and Base UI
+     * unmounting on the exits' `finished` promises. It passed alone and failed in full runs,
+     * which is this repo's signature for an instrument fault rather than a defect.
+     *
+     * `catchDissolve` removes both: it arms before the close, pauses every exit the microtask
+     * the ending stamp lands, and a paused animation's `finished` never settles — so the panel
+     * is mounted BY MECHANISM rather than by scheduling luck.
+     *
+     * It also makes the law state the rule the stylesheet actually keeps. The stand-down is
+     * keyed on `[data-ending-style]` and surfaces.css says why in as many words: "once the box
+     * is leaving it is not a target, whatever its clocks are doing." Waiting for opacity 0 was
+     * asking for a strictly later moment than the guarantee, so the old spelling could not
+     * have caught a panel that stayed a target for the first half of its exit.
+     */
     const popup = document.querySelector<HTMLElement>(".kui-alert-popup")!;
-    const scrim = document.querySelector<HTMLElement>(".kui-alert-backdrop")!;
-    const gone = await until(() => parseFloat(getComputedStyle(scrim).opacity) === 0);
-    expect(gone, "the scrim never finished fading, so there is no window to read").toBe(true);
-
-    // Still mounted — otherwise the assertion below is satisfied by the node having left, which
-    // is a different claim and the one that was already true.
-    expect(popup.isConnected, "the panel unmounted before the window this law is about").toBe(true);
-    const hit = document.elementFromPoint(at.x, at.y) as HTMLElement | null;
-    expect(
-      hit === page || page.contains(hit),
-      `an invisible leaving alert still owns the page: the hit landed on ${hit?.className || hit?.id || hit?.tagName}`,
-    ).toBe(true);
+    const caught = catchDissolve(popup);
+    await userEvent.keyboard("{Escape}");
+    const { fading, release } = await caught;
+    try {
+      // Calibration: it really is mid-dissolve. `catchDissolve` rejects when there is no clock
+      // to seize, and a panel held at full opacity would mean the exit never started.
+      expect(fading, "the panel was not dissolving, so there is no window to read").toBeLessThan(1);
+      expect(popup.isConnected, "the panel unmounted before the window this law is about").toBe(
+        true,
+      );
+      const hit = document.elementFromPoint(at.x, at.y) as HTMLElement | null;
+      expect(
+        hit === page || page.contains(hit),
+        `a leaving alert still owns the page: the hit landed on ${hit?.className || hit?.id || hit?.tagName}`,
+      ).toBe(true);
+    } finally {
+      release();
+    }
   });
 });
 

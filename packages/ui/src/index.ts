@@ -9,6 +9,14 @@ export { Checkbox, type CheckboxProps } from "./components/checkbox/checkbox.tsx
 export { Code, type CodeProps } from "./components/code/code.tsx";
 export { Field, FieldItem, FieldLabel, FieldDescription, FieldError, type FieldProps, type FieldItemProps, type FieldLabelProps, type FieldDescriptionProps, type FieldErrorProps } from "./components/field/field.tsx";
 export { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogClose, type DialogProps, type DialogTriggerProps, type DialogContentProps, type DialogTitleProps, type DialogDescriptionProps, type DialogCloseProps } from "./components/dialog/dialog.tsx";
+// The overlay family's `onOpenChange` second argument, forwarded 2026-08-26 (ultracode audit).
+// `dialog.tsx` re-exports these two expressly to make them public and the barrel did not carry
+// them, so the generated reference printed `(open: boolean, details: OverlayOpenChangeDetails)
+// => void` on the Dialog and AlertDialog pages while naming a type nobody could import — the
+// exports map has one entry by design (ENGINEERING §1.6, "no deep imports"), so the only route
+// was `Parameters<NonNullable<DialogProps["onOpenChange"]>>[1]`. They live on their own line
+// because they are the OVERLAY family's, not Dialog's: AlertDialog's signature names them too.
+export type { OverlayOpenChangeReason, OverlayOpenChangeDetails } from "./system/floating.tsx";
 export { Heading, type HeadingProps } from "./components/heading/heading.tsx";
 export { Kbd, type KbdProps } from "./components/kbd/kbd.tsx";
 export { Link, type LinkProps } from "./components/link/link.tsx";

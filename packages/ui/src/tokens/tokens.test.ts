@@ -36,12 +36,13 @@ import {
   floatingMinWidth,
   alertWidth,
   overlayWidth,
+  targetMin,
   touchTargetMin,
   type DensityLevel,
   type DensitySet,
   type RadiusLevel,
 } from "./config.ts";
-import { allStylesheets, block as blockIn, sheet, stripped } from "../test/stylesheets.ts";
+import { allStylesheets, block as blockIn, raw, sheet, stripped } from "../test/stylesheets.ts";
 import { generateLayoutCss } from "../system/layout-css.ts";
 import { DILUTED_ROLES, ROLES, WASH_ROLES, generateTokens } from "./generate.ts";
 import { tones, undilutedTones } from "./color-config.ts";
@@ -64,28 +65,69 @@ const increasing = (xs: readonly number[]) => xs.every((v, i) => i === 0 || v > 
 const TARGET_FLOOR_AA = 24;
 
 /**
- * The body of one rule, bounded at its closing brace so it cannot bleed into the next block.
+ * EVERY rule at a scope, each body separate, in document order.
  *
  * Throws on a missing selector rather than returning "". Most laws here assert *absence*,
  * and `expect("").not.toContain(x)` passes trivially — so a renamed selector would turn the
  * whole suite green while checking nothing. Failing loudly is the only safe behaviour.
  */
-function block(selector: string) {
+function ruleSpans(selector: string): { open: number; nested: boolean; body: string }[] {
   // A rule may carry a LIST of selectors, so the asked-for scope is matched where it opens
   // the rule (`sel {`) or where it is one member of the list (`sel,`). Widened 2026-08-20:
   // the high-contrast rule grew a third arm for nested appearance scopes, and every law
   // reading it by its old two-selector text died at once — pinning a whole selector list is
   // pinning the generator's spelling, not its guarantee. Still LOUD on a genuine miss, which
   // is the property this helper exists for.
-  const start = [` {`, `,`]
-    .map((tail) => css.indexOf(`${selector}${tail}`))
-    .filter((i) => i !== -1)
-    .sort((a, b) => a - b)[0];
-  if (start === undefined) throw new Error(`no rule for "${selector}" — the suite would assert nothing`);
-  const end = css.indexOf("}", start);
-  if (end === -1) throw new Error(`unterminated rule for "${selector}"`);
-  return css.slice(start, end);
+  //
+  // EVERY rule at the scope, not the first (2026-08-26 audit — `everyDensityBlock`'s lesson,
+  // generalised to the one helper it should always have lived in). A scope may legitimately
+  // be written as more than one rule: the light palette moved into a `:root,
+  // [data-appearance="light"]` grouping and left the axis-invariant layer in a bare `:root`,
+  // so "the first `:root` rule" stopped being "what `:root` declares". First-match is the
+  // shape this repo has already named twice as a law one scope short of the thing that could
+  // be wrong, and it is the WRONG direction of wrong: an absence assertion over one of two
+  // rules passes while the forbidden thing sits in the other.
+  // The match must OPEN a selector, not sit inside a compound one: `[data-density="compact"]`
+  // is a substring of `[data-pointer="coarse"][data-density="compact"]`, and gathering those
+  // would silently turn "the bare density cell writes no type" into a claim about every cell
+  // that mentions density. A qualifying match is preceded (past same-line indentation) by a
+  // newline, a comma or a brace — which is what "a selector starts here" means in this file's
+  // one-selector-per-line emission. `everyDensityBlock` below keeps its deliberate substring
+  // walk for the opposite question.
+  const opensSelector = (at: number) => {
+    let i = at - 1;
+    while (i >= 0 && (css[i] === " " || css[i] === "\t")) i--;
+    return i < 0 || css[i] === "\n" || css[i] === "," || css[i] === "{" || css[i] === "}";
+  };
+  // Keyed on the rule's own opening brace, because a scope reached through the `sel {` needle
+  // and through the `sel,` needle is the same rule counted twice.
+  const starts = new Map<number, number>();
+  for (const tail of [` {`, `,`]) {
+    const needle = `${selector}${tail}`;
+    for (let at = css.indexOf(needle); at !== -1; at = css.indexOf(needle, at + 1)) {
+      if (opensSelector(at)) starts.set(css.indexOf("{", at), at);
+    }
+  }
+  if (starts.size === 0) throw new Error(`no rule for "${selector}" — the suite would assert nothing`);
+  return [...starts.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([open]) => {
+      const end = css.indexOf("}", open);
+      if (end === -1) throw new Error(`unterminated rule for "${selector}"`);
+      // The generator writes top-level rules at column 0 and everything inside an @media or
+      // @supports gate indented, so the column is what tells a base rule from a gated one —
+      // which the P3 and reduced-motion copies of these very scopes make a real question.
+      const ruleStart = css.lastIndexOf("\n", open) + 1;
+      return { open, nested: /^[ \t]/.test(css.slice(ruleStart)), body: css.slice(open + 1, end) };
+    });
 }
+
+/** Every rule at a scope, bodies only. */
+const rulesAt = (selector: string): string[] => ruleSpans(selector).map((r) => r.body);
+
+/** What a scope declares, all of its rules together — the reading almost every law wants,
+    because "what does `:root` say" is a question about the scope, never about one rule. */
+const block = (selector: string) => rulesAt(selector).join("\n");
 
 /** A declaration read out of an arbitrary scope block — two mark-family describes had grown
     private near-copies of this regex machinery (audit straggler, merged 2026-08-06). */
@@ -123,6 +165,116 @@ function declaration(name: string, level: "default" | "compact" | "comfortable" 
   const scope = level === "default" ? block(":root") : block(`[data-density="${level}"]`);
   return scope.match(new RegExp(`--${name}:\\s*([^;]+);`))?.[1];
 }
+
+describe("the base scopes: one body per value, and the axis-invariant layer stays :root's (§2, §5)", () => {
+  /** Every custom property a rule declares, in order, names only. */
+  const names = (body: string) => [...body.matchAll(/^\s*(--[a-z0-9-]+):/gm)].map((m) => m[1]!);
+  /** The BASE rules at a scope — the P3 @supports copies re-declare the whole colour ladder
+      by design, so a law about "declared once" has to say which cascade it means. */
+  const base = (selector: string) => ruleSpans(selector).filter((r) => !r.nested);
+  /** The light palette's one rule — the grouped `:root, [data-appearance="light"]`. */
+  const paletteRule = () => {
+    const lightOpens = new Set(base(`[data-appearance="light"]`).map((r) => r.open));
+    const shared = base(":root").filter((r) => lightOpens.has(r.open));
+    if (shared.length !== 1) throw new Error(`expected ONE base rule shared by :root and light, saw ${shared.length}`);
+    return shared[0]!;
+  };
+
+  it("the light palette is written ONCE and reached by two selectors, not copied into two rules", () => {
+    // It was copied until 2026-08-26: `:root` carried the light palette and
+    // `[data-appearance="light"]` carried a byte-identical second copy — 556 declarations,
+    // 22,669 raw bytes, −223 gzipped — which Lightning cannot merge, because its rule merge
+    // is gated on the bodies being equal and `:root` also carries the axis-invariant layer.
+    // (Inside the P3 @supports block, where the bodies DO match, it merges this very pair on
+    // its own, which is how the top-level miss was measurable at all.)
+    //
+    // TWO REASONS TO BE LIGHT ARE NOT TWO SETS OF VALUES. `:root` is the un-themed document;
+    // `[data-appearance="light"]` is the stated light, and the case `:root` can never serve,
+    // because `:root` only matches <html> and Theme renders a div. One rule, two selectors —
+    // the spelling the high-contrast emitter has always used for exactly this pair.
+    //
+    // Read as "which RULE delivers this name to each scope": a value reachable both ways is
+    // one rule or it is a copy, and the count in the failure message is the copy's size.
+    const declaredBy = (scope: string) => {
+      const m = new Map<string, number>();
+      for (const r of base(scope)) for (const n of names(r.body)) m.set(n, r.open);
+      return m;
+    };
+    const root = declaredBy(":root");
+    const light = declaredBy(`[data-appearance="light"]`);
+    const copied = [...light.keys()].filter((n) => root.has(n) && root.get(n) !== light.get(n));
+    expect(
+      copied.length,
+      `${copied.length} light declarations are re-stated in a second rule instead of sharing one (e.g. ${copied.slice(0, 3).join(", ")})`,
+    ).toBe(0);
+    // ...and the one rule really does carry both selectors, so neither scope lost its answer.
+    const rule = paletteRule();
+    const head = css.slice(css.lastIndexOf("\n", rule.open) + 1, rule.open);
+    expect(head, "the light palette's head").toContain(":root");
+    expect(head, "the light palette's head").toContain(`[data-appearance="light"]`);
+    expect(css.split(rule.body).length - 1, "the light palette body is emitted more than once").toBe(1);
+  });
+
+  it("no name is declared by two different base rules at one scope", () => {
+    // The same guarantee from the element's side, and the arm that catches a partial revert:
+    // a second `[data-appearance="light"]` rule restating any of these names would land here
+    // even if its body were not a byte-for-byte copy.
+    //
+    // Two DIFFERENT rules, not two declarations: `:root` deliberately overrides twelve of its
+    // own names in place — `controlFamily()` writes the medium level's corners and
+    // `defaultLevelAnswer()` overwrites them with the default level's baked answer (§6,
+    // 2026-08-09, the day `full` became the default). Last-wins inside one rule is a readable
+    // override; the same name arriving from a second rule is a second copy.
+    for (const scope of [":root", `[data-appearance="light"]`, `[data-appearance="dark"]`]) {
+      const rules = base(scope);
+      const owner = new Map<string, number>();
+      const twice = new Set<string>();
+      for (const r of rules) {
+        for (const n of new Set(names(r.body))) {
+          if (owner.has(n) && owner.get(n) !== r.open) twice.add(n);
+          owner.set(n, r.open);
+        }
+      }
+      expect([...twice], `${scope} takes these from two rules`).toEqual([]);
+    }
+  });
+
+  it("the light palette is ONE body reached by both selectors, and the dark one answers it name for name", () => {
+    // The pair is what makes the grouping safe to read as "light": a name in the shared body
+    // that dark never re-declares is a light value a dark subtree would INHERIT (the §5
+    // lesson --color-text taught, and the reason the dark block repeats the surface world at
+    // all). Falsified by dropping any emitter from the dark block.
+    const light = names(paletteRule().body);
+    const dark = new Set(base(`[data-appearance="dark"]`).flatMap((r) => names(r.body)));
+    expect(light.length).toBeGreaterThan(500);
+    expect(light.filter((n) => !dark.has(n)), "light-only names a dark subtree would inherit").toEqual([]);
+  });
+
+  it("the axis-invariant layer is :root's alone — no appearance scope re-states a geometry token", () => {
+    // THE HALF THAT IS LOAD-BEARING, and the reason the fix SPLIT `:root` instead of widening
+    // it. The scale, the space palette, the control family and layout space live at `:root`
+    // because a density or pointer scope re-declares members of that set NEARER to the
+    // element. Put them on an `[data-appearance]` selector as well and
+    // `<Theme density="compact"><Theme appearance="light">` silently returns the inner
+    // subtree to the default cells, by proximity — an appearance prop resetting density.
+    const palette = paletteRule();
+    const axisInvariant = base(":root")
+      .filter((r) => r.open !== palette.open)
+      .flatMap((r) => names(r.body));
+    const lightBody = new Set(names(palette.body));
+    expect(axisInvariant.length).toBeGreaterThan(150);
+    expect(
+      axisInvariant.filter((n) => lightBody.has(n)),
+      "an appearance scope re-states these, so a nested appearance Theme clobbers density",
+    ).toEqual([]);
+    // Named witnesses, so the law still says something if the emission is ever restructured
+    // into shapes the set arithmetic above cannot see.
+    for (const n of ["--scale", "--space-4", "--control-height-2", "--layout-space-6", "--radius-surface-2"]) {
+      expect(axisInvariant, `${n} left :root`).toContain(n);
+      expect(lightBody.has(n), `${n} reached an appearance scope`).toBe(false);
+    }
+  });
+});
 
 describe("the platform-signal guard agrees with what Theme stamps (§7, added 2026-08-09)", () => {
   // A mechanism with two implementations owes a law that they AGREE (ENGINEERING, the docs
@@ -649,15 +801,76 @@ describe("the pointer axis is a second designed geometry (§16)", () => {
     expect(coarse.default.height[1]!).toBeGreaterThanOrEqual(touchTargetMin);
   });
 
-  it("NO designed cell anywhere falls below the WCAG 2.2 AA minimum of 24", () => {
+  it("NO designed cell on the HEIGHT LADDER falls below the WCAG 2.2 AA minimum of 24", () => {
     // The actual locked floor (SC 2.5.8, Level AA). 44 is SC 2.5.5 at AAA and is an opt-out
     // default, not a law: choosing size 1 or a denser theme is a deliberate, informed step
     // below it. 24 is the one nothing may cross, in either pointer world.
+    //
+    // TITLED for the ladder since 2026-08-26 (audit), because the claim it used to make was
+    // wider than its body. `height` is one field of `DensitySet`; `rowInset` is another, added
+    // eighteen days later, and it is the number that — with `--line-height-N` — produces the
+    // whole painted box of every FLOATING row. The old title said "anywhere" and the loop read
+    // `.height` alone, so `density.compact.rowInset = [0, 0, 0, 0]` (a 16px menu row) left it
+    // green. The row family's own arm is the law below; between them they cover the set.
     for (const world of [density, coarse]) {
       for (const level of Object.keys(world) as DensityLevel[]) {
         for (const h of world[level].height) expect(h).toBeGreaterThanOrEqual(TARGET_FLOOR_AA);
       }
     }
+  });
+
+  it("the ROW family's designed box is measured against the same floor, and one cell needs the stylesheet's (§21)", () => {
+    // The other half of the same claim, and the half nothing read until the 2026-08-26 audit.
+    // A floating row leaves the height ladder (§21, judged 2026-08-09: the menu read sparse)
+    // and its box becomes its text LINE plus the designed inset, both sides — so it is priced
+    // by two numbers, one of which the pointer axis moves through §17's handheld band and the
+    // other of which density moves. All 24 cells, not one arm of the pair.
+    //
+    // The line table is read out of the EMITTED scopes rather than re-derived here, because
+    // which line a row wears is exactly what the two implementations (config's band picks, the
+    // generator's emission) have to agree on; the insets are the designed set, read from
+    // config, which is what "a designed cell" means.
+    const px = (value: string | undefined, what: string) => {
+      const found = value?.match(/([\d.]+)px/);
+      if (!found) throw new Error(`no px in ${what}: ${value}`);
+      return Number(found[1]);
+    };
+    const lines = (scope: string) =>
+      [1, 2, 3, 4].map((i) => px(inScope(scope, `line-height-${i}`), `${scope} --line-height-${i}`));
+    const worlds = [
+      { pointer: "fine", world: density, line: lines(":root") },
+      { pointer: "coarse", world: coarse, line: lines(`[data-pointer="coarse"]`) },
+    ] as const;
+
+    // The two implementations, pinned against each other: coarse's row line IS the handheld
+    // band's pick, not a second table that happens to agree today.
+    expect(worlds[1].line, "coarse's line table is not the handheld band's").toEqual(
+      [1, 2, 3, 4].map((step) => lineHeight[typeBands.handheld[step - 1]! - 1]!),
+    );
+    // And the bands must actually MOVE it, or "all 24 cells" is twelve cells said twice.
+    expect(worlds[1].line).not.toEqual(worlds[0].line);
+
+    const short: string[] = [];
+    for (const { pointer, world, line } of worlds) {
+      for (const level of Object.keys(world) as DensityLevel[]) {
+        for (let i = 0; i < 4; i++) {
+          const box = line[i]! + 2 * world[level].rowInset[i]!;
+          if (box < TARGET_FLOOR_AA) short.push(`${pointer}/${level}/${i + 1} = ${box}`);
+        }
+      }
+    }
+    // PINNED IN BOTH DIRECTIONS, on `src/test/frames.test.ts`'s precedent: this is a recorded
+    // carve-out, not a threshold. Exactly one cell is not carried by the design, and it is
+    // carried instead by the stylesheet — `.kui-floating-rows .kui-row { min-height:
+    // var(--target-min) }` (recipes.css, 2026-08-26), which grows the painted box rather than
+    // reserving around it. A NEW entry here means a second cell quietly moved onto that floor,
+    // which is a design decision somebody owes an argument for; a SHORTER list means the design
+    // now carries this one and the record should say so.
+    expect(short, "the set of row cells the design does not carry").toEqual(["fine/compact/1 = 20"]);
+    // The floor that carries it is the same number this law holds everything else to, and it
+    // ships as a token — otherwise the carve-out above is licensed by nothing.
+    expect(targetMin).toBe(TARGET_FLOOR_AA);
+    expect(declaration("target-min")).toBe(`${TARGET_FLOOR_AA}px`);
   });
 
   it("ships the floor as a token, raw px, unscaled", () => {
@@ -813,8 +1026,14 @@ describe("the two type bands, and only type (§15, §17, split 2026-08-05)", () 
       expect(narrowBand()).not.toContain(stem);
     }
     for (const scope of [`[data-density="compact"]`, `[data-density="comfortable"]`, `[data-radius="full"]`]) {
-      expect(block(scope)).not.toContain("--font-size-");
-      expect(block(scope)).not.toContain("--line-height-");
+      // DECLARES, not mentions (2026-08-26 audit). The stem test read `--line-height-` and so
+      // also caught the `var(--line-height-N)` INSIDE `full`'s row capsule — a radius derived
+      // from a line, which is the opposite of an axis re-pricing type. It passed only because
+      // `block()` returned the first of `full`'s two rules; widening the helper made a correct
+      // emission fail, so the assertion is stated on the declaration form the claim is about.
+      for (const stem of ["font-size", "line-height"]) {
+        expect(block(scope), `${scope}/${stem}`).not.toMatch(new RegExp(`--${stem}-\\d+:`));
+      }
     }
   });
 
@@ -899,9 +1118,32 @@ describe("radius levels are designed palettes, not a factor (§6)", () => {
     expect(radiusLevels.none.full).toBe(0);
   });
 
-  it("writes no CONTROL semantic — density picks that step and the (level x density) cells carry it", () => {
+  it("the PALETTE block writes no control semantic; the family block re-states the band at every level", () => {
+    // Re-keyed 2026-08-26 (audit). The claim used to be "a level block writes no CONTROL
+    // semantic", and it has been false since 2026-08-09, when `full` became the default and
+    // the control band had to be re-stated per level (substitution-at-declaration: a bare
+    // `:root` answer stays baked to the default level inside any [data-radius] subtree). Every
+    // level now emits TWO rules — the designed palette, then the family answers — and the law
+    // passed for two and a half weeks because `block()` returned the first one. Widening the
+    // helper is what made it fail, and the repair is to state the pair the emission really is:
+    // the palette is level-designed and family-blind, the family block carries the semantics.
     for (const name of ["none", "small", "medium", "large", "full"] as const) {
-      expect(level(name)).not.toContain("--radius-control-");
+      const rules = rulesAt(`[data-radius="${name}"]`);
+      expect(rules.length, `${name}: palette + family`).toBe(2);
+      const palette = rules.find((r) => /--radius-0:/.test(r));
+      const family = rules.find((r) => /--radius-control-1:/.test(r));
+      expect(palette, `${name}: no palette rule`).toBeDefined();
+      expect(family, `${name}: no family rule`).toBeDefined();
+      // The palette is the designed steps and nothing else — no semantic is baked into it.
+      expect(palette!, `${name}/palette`).not.toContain("--radius-control-");
+      expect(palette!, `${name}/palette`).not.toContain("--radius-row-");
+      // And the family block states the control band at THIS level, which is the guarantee
+      // the old exclusion was hiding: a level that failed to re-state it would inherit the
+      // ancestor level's corners through the already-substituted value.
+      for (let size = 1; size <= 4; size++) {
+        expect(family!, `${name}/family`).toMatch(new RegExp(`--radius-control-${size}:`));
+        expect(family!, `${name}/family`).toMatch(new RegExp(`--radius-row-${size}:`));
+      }
     }
   });
 
@@ -1411,6 +1653,67 @@ describe("the look axis is DELETED; the dress and the surface edge survive it (�
     expect(sheet("system/surfaces.css")).toContain("var(--surface-edge, var(--tone-border))");
   });
 
+  it("the stand-down is the ONLY way high contrast reaches a dress edge — the ramp it rests on is contrast-blind", () => {
+    // THE OTHER HALF of the law above, and the half a false sentence lived in for nine days.
+    // `dressWorld()` used to emit — into the artifact, three times over — that "the edges sit
+    // inside contrastHighBands.border, which is what keeps contrast=high able to reach a
+    // dressed component's boundary at all". Both halves are false, for two different reasons,
+    // and both are measured here rather than argued:
+    //
+    //   (a) the FIELD edge is nowhere near the band. `contrastHighBands.border = [5, 6, 7]` is
+    //       consumed 0-based and emitted 1-based, so it re-prices steps 6/7/8; the field rests
+    //       on 3 (light) / 4 (dark) since the 2026-08-24 softening.
+    //   (b) the MARK edge is step 7, nominally inside it — and still unreachable, because the
+    //       dress reads the ALPHA ramp (`var(--neutral-a7)`) and the high-contrast pass
+    //       re-declares `${tone}-${i+1}` only. Measured: --neutral-a3/a4/a7 are declared twice
+    //       in the whole artifact, once per appearance scope, and never inside a contrast rule.
+    //
+    // So band membership would buy nothing even if it held, and what actually delivers the
+    // boundary is `initial` plus the element-side fallback. This law states that positively:
+    // the ramp is contrast-blind, and the thing each edge stands down TO does move.
+    const HIGH = [
+      ':root[data-contrast="high"], [data-appearance="light"][data-contrast="high"]',
+      '[data-appearance="dark"][data-contrast="high"]',
+    ];
+    for (const [family, slot] of [
+      ["field", "field-edge"],
+      ["mark", "mark-edge"],
+    ] as const) {
+      for (const mode of ["light", "dark"] as const) {
+        const step = dress[mode][family].edge;
+        // The dress is on the alpha ramp — this is what makes band membership irrelevant.
+        expect(
+          inScope(mode === "light" ? ":root" : '[data-appearance="dark"]', `dress-${slot}`),
+          `${mode}/${family} left the alpha ramp`,
+        ).toBe(`var(--neutral-a${step})`);
+        // …and that ramp is declared in the appearance scopes and NOWHERE ELSE, so no
+        // contrast rule can move it. Counted over the whole artifact, sRGB and P3 alike.
+        const declared = [...code.matchAll(new RegExp(`--neutral-a${step}:`, "g"))].length;
+        expect(declared, `--neutral-a${step} is declared ${declared} times, so a contrast rule may be moving it`).toBe(2);
+      }
+    }
+    // The value each edge stands down TO is re-solved by the pass — otherwise `initial` would
+    // hand the element a boundary identical to the one it just removed. Read as a DIFFERENCE
+    // against the standard scope, per mode, because "the token is present" is the assertion
+    // that agreed with the band-membership bug.
+    for (const [i, mode] of (["light", "dark"] as const).entries()) {
+      const restingScope = mode === "light" ? ":root" : '[data-appearance="dark"]';
+      for (const fallback of ["field-edge", "control-edge"]) {
+        const rest = inScope(restingScope, fallback);
+        const high = inScope(HIGH[i]!, fallback);
+        expect(rest, `${mode}/${fallback} has no resting value`).toBeTruthy();
+        expect(high, `${mode}/${fallback} is not re-solved under high contrast`).toBeTruthy();
+        expect(high, `${mode}/${fallback} is inert under contrast="high"`).not.toBe(rest);
+      }
+    }
+    // And the emitted prose may not go back to claiming the dead mechanism. The sentence
+    // SHIPS — dressWorld pushes it into tokens.css — so this is a claim distributed to
+    // consumers, not an internal comment (audit 2026-08-26).
+    expect(css, "the artifact still explains the dress edge by band membership").not.toContain(
+      "contrastHighBands.border, which is what keeps",
+    );
+  });
+
   /**
    * The dress step a role resolves to, and WHICH LADDER it is on — read off the emitted
    * text, so the generator is in the loop. Both families live on the ALPHA ramp since
@@ -1597,6 +1900,47 @@ describe("no var() dangles — every reference the generator writes, it also dec
 });
 
 
+describe("every material lever is READ — a config value no machinery reads is a dead lever (§10, §13)", () => {
+  // config.ts's own header states the rule this enforces: "a value lives by which machinery
+  // reads it", and the repo has twice deleted a value for exactly this reason (`edgeHoverMix`,
+  // `fontWeight.bold`, each with the sentence "a config value no rule reads is a lever waiting
+  // to be pulled by hand"). The material rows were the third case and nothing caught them:
+  // `rim` (6 numbers), `rimLifted` (6) and `control.sheen` (6) reached no output for nine days
+  // while three prose sites described them as live and the monotonicity law below walked one
+  // of them. Measured before the fix by mutation — `material.light.regular.rim` 0.45 → 0.30
+  // regenerates a BYTE-IDENTICAL tokens.css, while `sheen`, `edge` and `control.alpha` all
+  // move it.
+  //
+  // Read off the generator's SOURCE rather than by mutation, and the reason is cost, stated:
+  // a mutation law is the direct measurement, and `generateTokens()` costs ~1.3s a call, so
+  // the honest version of it is a 40-second law. What makes the source read safe here is that
+  // it looks for an INDEXED ROW ACCESS — `m[name].rim`, `material[mode][t].rim` — and not for
+  // the name. The bare name is exactly what hid this: `rim` appears eighteen times in
+  // generate.ts as a local builder, a token name, `scrim` and `trim()`, so a name grep would
+  // have vouched for the dead lever. A law one character wider than its subject is the shape
+  // that produced the finding.
+  const generator = raw("tokens/generate.ts");
+  /** Every leaf a material ROW carries, as the path a reader would write. */
+  const leafPaths = (row: object, prefix: string[] = []): string[][] =>
+    Object.entries(row).flatMap(([k, v]) =>
+      v !== null && typeof v === "object" && !Array.isArray(v) ? leafPaths(v, [...prefix, k]) : [[...prefix, k]],
+    );
+
+  it("no material row carries a value the generator never reads", () => {
+    const rows = GLASS_MATERIALS.flatMap((th) => [material.light[th], material.dark[th]]);
+    const paths = [...new Set(rows.flatMap((row) => leafPaths(row).map((p) => p.join("."))))];
+    // The vacuity guard: a path list that came back empty would pass the walk below in silence.
+    expect(paths.length, "no leaves found — the walk asserts nothing").toBeGreaterThan(5);
+    const dead = paths.filter((path) => {
+      // `m[name]` / `material[mode][t]`, then the path — the only two spellings a row is
+      // reached by, and both are indexed, which is what a coincidental name cannot be.
+      const tail = path.split(".").map((k) => `\\.\\s*${k}\\b`).join("");
+      return !new RegExp(`\\b(?:m|material)\\s*(?:\\[[^\\]]+\\]\\s*){1,2}${tail}`).test(generator);
+    });
+    expect(dead, `the generator reads none of these: ${dead.join(", ")}`).toEqual([]);
+  });
+});
+
 describe("the material ladder is monotone in every lever (§10)", () => {
   // config.ts has stated this invariant in prose since the ladder shipped ("Monotone across
   // thicknesses must hold per column, not just at rest, so thickness still reads as one
@@ -1614,9 +1958,17 @@ describe("the material ladder is monotone in every lever (§10)", () => {
         }
         for (const th of THICKNESSES) rises(material[mode][th][key]);
       }
-      // The pane's own light: edge and rim rise with thickness (thicker glass catches more),
-      // and the blur radius rises — thickness is one dimension in the filter too.
-      for (const part of ["edge", "rim"] as const) {
+      // The pane's own light: the edge and the rim's SHEEN rise with thickness (thicker glass
+      // catches more), and the blur radius rises — thickness is one dimension in the filter too.
+      //
+      // `sheen`, not `rim` (2026-08-26 audit). This walked `rim` for nine days after `rim`
+      // stopped reaching any output: the 2026-08-17 ring port deleted the 1px top edge layer
+      // that consumed it, and `--material-<t>-rim` has been built from `sheen` ever since
+      // (`rim(m[name].sheen)`, generate.ts). So the ladder was held monotone on a number
+      // nobody could see, while the number the rim is actually made of was held by nothing —
+      // a law one indirection short of the value that could be wrong, on the value's own
+      // shadow. The dead row is deleted; this walks what the generator reads.
+      for (const part of ["edge", "sheen"] as const) {
         rises(THICKNESSES.map((th) => material[mode][th][part]));
       }
       // Fractional radii are real (2026-08-16: the judged ladder runs 2.4 / 4 / 5.6), and this
@@ -1927,6 +2279,10 @@ describe("the wash is neutral for everyone; accent gives up more (§7, §9, §11
   ] as const;
   const ACCENT_ONLY = [
     "a3",                // the tone-forward surface fill — Notice keeps this
+    "a3-solid",          // and its opaque twin, for the same fill ON GLASS (2026-08-26). A
+                         // twin travels with the role it is a twin OF, or an undiluted tone
+                         // paints one family and another neutral for the same rung depending
+                         // on the material — the axis deciding a colour it has no business in.
     "ink-muted",         // the type ladder's middle rung
     "ink-faint",         // and its quiet one
   ] as const;

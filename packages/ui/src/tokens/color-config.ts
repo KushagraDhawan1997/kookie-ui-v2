@@ -129,11 +129,33 @@ export const lowChromaThreshold = 0.18;
  * move toward the extremes and the interaction spread widens, but every band is bounded by what
  * its hue can take: a bright hue's border band already sits at the cusp, so it does not move at
  * all and takes its gain in the text band instead. A band that stays put is the setting working,
- * not failing. The only real failure is a pairing that gets *worse*. A *chromatic* solid is deliberately untouched — that value is the brand
- * colour, it already clears the target by a wide margin, and pushing it would trade the user's
- * hue for contrast they did not need. A low-chroma solid does deepen, because it reads step 12
- * and there is no hue there to protect. Under this setting the label pairings must clear the
- * AAA-equivalent Lc 75 rather than the AA-equivalent Lc 60, which is law-tested.
+ * not failing. The only real failure is a pairing that gets *worse*.
+ *
+ * THAT LAST SENTENCE IS ENFORCED SINCE 2026-08-26 (audit), where it used to be merely asserted.
+ * The flip solve's floor is now STANDARD MODE'S OWN PAIRING, per state — the widened excursion
+ * may travel as far toward the label as it likes provided every state stays at least as legible
+ * as the one it replaces. It was `apcaFloors.body`, which let a cusp-parked hue buy spread with
+ * legibility: green and success shipped a loud press at Lc 60.3 where standard mode's measured
+ * 67.4, in BOTH appearances, and the law named for this guarantee could not see it because it
+ * read the label on the soft steps rather than the label on the solid. A hue with room widens
+ * exactly as before; a hue with none keeps standard mode's spread, which is this paragraph's
+ * own first rule.
+ *
+ * A *chromatic* solid is deliberately untouched — that value is the brand colour, and pushing it
+ * would trade the user's hue for contrast they did not need. A low-chroma solid does deepen,
+ * because it reads step 12 and there is no hue there to protect.
+ *
+ * THE BAR IS 75 ON THE TEXT BAND AND 60 ON THE LOUD RUNG, and that split is structural rather
+ * than a shortfall. This header used to claim the AAA-equivalent Lc 75 for every label pairing
+ * without qualification, and for `--{tone}-contrast` on `--{tone}-solid` — the most prominent
+ * label the system paints — it is unreachable by construction: the label is ALREADY whichever
+ * of black and white reads harder on that fill, and the fill is the brand colour the sentence
+ * above pins as untouched, so there is nothing left to spend. Measured under this setting:
+ * orange 60.8 light / 60.5 dark, blue and info 63.3, amber and warning 68.3, destructive 70.9 /
+ * 70.3 — six of ten families under 75, which also retires the claim that a chromatic solid
+ * "clears the target by a wide margin" (0.5 Lc at the tightest). Both bars are law-tested, and
+ * the carve-out is law-tested AS a carve-out, so a change that makes 75 reachable has to come
+ * back and rewrite this paragraph rather than leave it standing.
  */
 export const contrastHigh = {
   light: { border: -0.19, text: -0.14, stateSpread: 1.6 },

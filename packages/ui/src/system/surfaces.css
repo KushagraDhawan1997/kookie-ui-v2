@@ -112,6 +112,11 @@
      to read as the same corner. */
   border-radius: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1));
   padding: var(--kui-sf-p);
+  /* The pane's inset, per AXIS — the pair the entry flight's body pin reads (see it for the
+     whole argument). Defaulted here so every pane answers both names, and re-stated by the one
+     pane that pads anisotropically. */
+  --kui-sf-p-block: var(--kui-sf-p);
+  --kui-sf-p-inline: var(--kui-sf-p);
   /* A pane's corner is its SHAPE, so what it holds obeys it (2026-08-20). Without this a
      surface drew a rounded — since 2026-08-17, a squircled — boundary that nothing was made
      to respect: a picture reaching the edge squared off the corner it sat in, and the pane
@@ -414,6 +419,22 @@
   --kui-sf-radius: calc(var(--radius-row-4) + var(--kui-sf-p));
 }
 
+/* THE ONE PANE WITH TWO INSETS (§32, 2026-08-26 audit). A tooltip is one line of words priced
+   on its own two axes, and it paints them with `padding-block` / `padding-inline` longhands —
+   which beat this layer's `padding` shorthand on source order, so the pane's real inset and
+   `--kui-sf-p` have never been the same number on the block axis. Nothing read the difference
+   until the entry flight's body pin did (see it, at the bottom of this file): the pin took the
+   surface band's 12px on an axis whose padding is 4px.
+
+   Stated here rather than in tooltip.css because that sheet is not this layer's to write; the
+   two homes are held in agreement by a mounted law that reads the pin and the painted padding
+   off the browser, per axis, on every floating pane. `--tooltip-p-*` has ONE home either way —
+   tokens.css — so this is a second consumer of a value, never a second statement of it. */
+.kui-surface.kui-tooltip-popup {
+  --kui-sf-p-block: var(--tooltip-p-block);
+  --kui-sf-p-inline: var(--tooltip-p-inline);
+}
+
 /* ── The OVERLAY pane's size join (§6, §24 — shipped with Dialog 2026-08-10) ─────────────────
    A pane that COVERS is not a card and not an anchored panel: nothing about it hugs rows, so
    there is no concentric arithmetic to do, and its corner comes from the radius palette's own
@@ -506,8 +527,11 @@
    There the border ranks (quiet < quiet+border < medium) and the three rungs say different
    things about how loud the action is. Here two grounds, one lined and one not, would say
    exactly the same thing — the test an axis has to pass, and the one `surfaceLook` failed
-   the day before this shipped. It is also load-bearing in dark, where the ground and the
-   page are the same colour and the line is the only thing that bounds the region.
+   the day before this shipped. (This sentence used to add "and it is load-bearing in dark,
+   where the ground and the page are the same colour". That was true only while the dark ground
+   had collapsed onto the page, and it stopped being true on 2026-08-21 — a ground steps OFF
+   the page in both modes, up in dark and down in light, and bounds itself by fill. The
+   argument above is what carries the refusal; the retracted clause never did.)
 
    --color-border and not the tone fallback: a ground has no family, so it wears the
    family-less hairline (Separator's own role, §7, §11). Blockquote's spelling and its
@@ -796,10 +820,57 @@
     :disabled,
     [aria-disabled="true"],
     [data-disabled]
-  ) {
+  ),
+/* AND THE LABEL MEMBER, whose state is NOT ON IT (2026-08-26 audit). The arm above asks the
+   surface element for `:disabled` / `[aria-disabled]` / `[data-disabled]`, which is right for a
+   button and an anchor and unreachable for the member added on 2026-08-22: a `<label>` carries
+   none of the three — the state lives on the Radio or Checkbox it holds, where Base UI stamps
+   `data-disabled` on the root that wears `.kui-control`. So the whole dead treatment was
+   unreachable for the one composition this file documents as the selectable card. Measured
+   before the fix: a card holding a disabled Radio computed `cursor: pointer`, `rgb(255,255,255)`
+   and the live ink, byte-identical to its live twin beside it, while pressing it did nothing.
+
+   THE REACH IS THE CHOSEN RULE'S, deliberately — a descendant `:has()`, not the direct-child
+   `:has(> …)` the field family uses. A card that LIGHTS for a checked control (the rule below)
+   must go DEAD for a disabled one, and two different reaches would leave a card that is both
+   chosen and dead answering only one of them.
+
+   (0,3,0) rather than (0,2,0): `:has()` takes its most specific argument, so this arm outranks
+   the hover and press rules by weight where the arm above outranks them by source order. Both
+   ends land on the same declarations, which is what the paint arms below assert. */
+.kui-surface:where(label):has(.kui-control:is(:disabled, [data-disabled])) {
   --kui-sf-fill-src: var(--disabled-fill);
   --kui-sf-cast: 0 0 0 0 transparent;
   --kui-sf-pool: 0 0 0 0 transparent;
+  /* THE WORLD'S OWN NAMES, and they are not optional (2026-08-26 audit — the control layer's
+     2026-08-07 finding, arriving one layer up). The two stand-downs above name the pane-local
+     hooks, which the glass thickness arms re-declare at the same (0,2,0) three hundred lines
+     later: a tie settled by source order, and the glass declaration wins. Measured, light,
+     `material="regular" depth="elevated"`: a `<Card backdrop render={<button disabled/>}>`
+     computed `rgba(0,0,0,.06) 0 -10px 20px -14px inset, rgba(0,0,0,.08) 0 1px 2px, rgba(0,0,0,.086) 0 12px 32px -8px, rgba(0,0,0,.08) 0 32px 80px -16px`
+     — byte-identical to its live twin, while fill, ink and cursor had all correctly receded. So
+     a dead glass card still sat above the plane and still offered to be picked up.
+
+     These four are declared only by the world scopes and arrive by inheritance, so re-declaring
+     them here wins everywhere with no contest at all — recipes.css:`--kui-control-chrome-*`'s
+     own sentence. `--kui-surface-chrome` is in the list for the reduced-transparency cell: that
+     block sets `--kui-sf-cast: initial`, so the chain falls through to the world's FULL row, and
+     without this line a dead sealed pane cast more than a dead glass one.
+
+     No-op LAYERS, never `none`: a shadow list may not hold `none`, which is the rule the two
+     lines above already state. */
+  --kui-surface-chrome: 0 0 0 0 transparent;
+  --kui-surface-chrome-thin: 0 0 0 0 transparent;
+  --kui-surface-chrome-regular: 0 0 0 0 transparent;
+  --kui-surface-chrome-thick: 0 0 0 0 transparent;
+  --kui-surface-pool: 0 0 0 0 transparent;
+  /* THE CURSOR. The shared remap (recipes.css) states it for the whole arm above and keys on
+     the same element test, so it reaches the button and the anchor and cannot reach a label
+     whose control holds the state — measured `pointer` on a card holding a disabled Radio.
+     Until that selector is widened to match this one it is stated here, beside the two facts
+     this layer already owns for exactly the same reason (the seal and the cast, audit D6). On
+     the button and anchor arms it restates the remap's own value and changes nothing. */
+  cursor: var(--cursor-disabled);
   /* The INK, and it is a third thing the control remap cannot reach — measured after the fill
      already worked, which is why it is here rather than assumed. A control's label reads the
      tone vocabulary the remap rewrites; a card's content reads the tone-less FOREGROUND roles
@@ -853,7 +924,11 @@
       :disabled,
       [aria-disabled="true"],
       [data-disabled]
-    ):hover {
+    ):hover,
+  /* The label member's own arm, for the reason the resting rule states (2026-08-26 audit): a
+     `<label>` never carries the state, so without this a dead card holding a disabled Radio lit
+     up under the pointer with the live hover step. */
+  .kui-surface:where(label):has(.kui-control:is(:disabled, [data-disabled])):hover {
     background-color: var(--kui-sf-fill, var(--kui-sf-fill-src));
   }
 }
@@ -861,7 +936,8 @@
     :disabled,
     [aria-disabled="true"],
     [data-disabled]
-  ):active {
+  ):active,
+.kui-surface:where(label):has(.kui-control:is(:disabled, [data-disabled])):active {
   background-color: var(--kui-sf-fill, var(--kui-sf-fill-src));
 }
 /* ── A CHOSEN surface (§10, §11, 2026-08-22, Kushagra: "find me patterns for Card's this one
@@ -1079,6 +1155,68 @@
   --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-opaque-alpha), transparent);
   --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-opaque-alpha), transparent);
   --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-opaque-alpha), transparent);
+}
+
+/* GLASS TAKES THE OPAQUE TWINS, the surface half of the control layer's 2026-08-19 rule
+   (`.kui-control[data-material]`, recipes.css). Every veil above is
+   `color-mix(source <alpha>, transparent)`, a formula that assumes an OPAQUE source — the
+   percentage IS the veil — so an alpha source multiplies. The rungs' own sources are opaque
+   (`--color-surface`, `--tone-solid`) and so are every hover/active source, but the DEAD fill
+   is not: `--disabled-fill` is one ramp step, light `#000 3.1%`. Measured, light,
+   `material="regular"`: a dead glass card painted `color(srgb 0 0 0 / 0.01519)` — 3.1% × 49% —
+   where the judged ladder is 49% of the dead step. `aN` over the seal IS step N, which is what
+   `--disabled-fill-solid` already holds, so this restores exactly the colour that was judged.
+
+   IT RE-POINTS THE PANE'S SOURCE AND NOT THE TOKEN, which is a correction to the first
+   spelling and the reason it is here rather than beside the control layer's line. Written as
+   `.kui-surface[data-material] { --disabled-fill: var(--disabled-fill-solid) }` — the control
+   twin's shape — it MEASURED a leak within the hour: `--disabled-fill` inherits, and a member
+   that stamps no material of its own has no veil to mix the twin back down, so a disabled
+   Checkbox inside a glass Card painted the opaque `color(display-p3 .9672 .9669 .9684)` where
+   it had been the alpha step. That is the silent-inheritance trap this file has now been bitten
+   by six times, and re-registering a generated token is not available: a stamped tone must
+   reach a descendant. `--kui-sf-fill-src` is the surface's OWN name, already declared by the
+   arm above and already documented as safe to inherit (every surface re-declares its own
+   through its rung), so re-pointing it adds no reach the disabled arm did not already have.
+
+   The compound is (0,3,0) against the arm's (0,2,0) and (0,4,0) against the label arm's
+   (0,3,0), so it wins by weight rather than by order.
+
+   CLOSED 2026-08-26, in the same shape: the tone-forward rung's source is `--tone-a3`, and it
+   now has a generated twin of its own. `--tone-soft-solid` could not serve — it is
+   neutral-routed for every family (no tone paints a faded fill) and it is a4's twin in dark —
+   and a Notice's tint is the one place the family MUST survive the material, because the tint
+   IS the component's design. Measured before: a destructive thin strip painted
+   `color(srgb .788 .051 0 / .0255)` against a designed 34% veil, the family gone. */
+.kui-surface[data-material]:where(button, a, label:has(.kui-control)):is(
+    :disabled,
+    [aria-disabled="true"],
+    [data-disabled]
+  ),
+.kui-surface[data-material]:where(label):has(.kui-control:is(:disabled, [data-disabled])) {
+  --kui-sf-fill-src: var(--disabled-fill-solid);
+}
+
+/* THE TONE-FORWARD RUNG ON GLASS (§10, 2026-08-26). Same veil arithmetic as the control
+   layer's, and deliberately the same SHAPE: the veil is color-mix(source alpha%, transparent)
+   and that formula assumes an opaque source, so an alpha source multiplies through it and the
+   tint collapses — measured, a destructive thin strip painted color(srgb .788 .051 0 / .0255)
+   against a designed 34% veil, the family gone.
+
+   Written as a ROLE re-point keyed on the material alone, which is `.kui-control[data-material]`
+   one layer over (recipes.css, 2026-08-19) rather than anything new. The first spelling paired
+   the axes — `[data-material][data-emphasis="medium"]` — and two shipped laws were right to
+   refuse it: this layer states each rung exactly once and pairs no axis with another, and that
+   spelling did both. It escaped one of them only because the material attribute was written
+   bare, which is a fact about the spelling and not about the rule.
+
+   Re-pointing the ROLE is safe here in a way it was not for `--disabled-fill` above: this name
+   has exactly one consumer in the package (the medium rung, two rules up), so what it can leak
+   to is a nested surface — which is itself inside a pane, therefore stamped, therefore matched
+   by this very rule and wanting the twin anyway. `--disabled-fill` leaked to a Checkbox, which
+   reads it and has no veil to mix it back down. */
+.kui-surface[data-material] {
+  --tone-a3: var(--tone-a3-solid);
 }
 
 @supports (backdrop-filter: blur(1px)) {
@@ -1381,6 +1519,23 @@
   --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-on-glass-alpha), transparent);
   --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-on-glass-alpha), transparent);
   --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-on-glass-alpha), transparent);
+  /* AND ITS LIGHTING, which was inherited rather than stated (2026-08-26 audit). This is the
+     fourth fill fact of the pane, and it was the one left off: the three thickness rules
+     declare `--kui-sf-light` on the PANE ELEMENT, the hook is not registered `inherits: false`
+     (and must not be — the depth scopes deliver the solid rim to every ordinary surface by
+     inheritance, so registering it would leave a plain card resolving the base rule's glass
+     fallback), and this rule matched no `--kui-sf-light` arm at all. So an on-glass member took
+     the ANCESTOR's thickness rim: measured, light, a Notice inside a `thin` Card painted
+     `radial-gradient(130% 80% at 16% -12%, rgba(255,255,255,.192), … 55%), linear-gradient(rgba(255,255,255,.137), … 45%)`
+     and inside a `thick` Card the same recipe at `.357` / `.255` — the child's own lighting a
+     function of an ancestor's thickness, stated by no rule anywhere.
+
+     The value is the SOLID rim, which is §10 clause 6 read literally: a member inside a pane
+     renders its solid appearance at the pane's alpha. Spelled with the generated name and the
+     thickness rules' own `none` fallback rather than through the depth pointer — both depth
+     scopes hand `--kui-sf-light` exactly this recipe, so there is nothing here for a world to
+     vary, and reading the pointer would take the ancestor's value straight back. */
+  --kui-sf-light: var(--material-solid-rim, none);
 }
 
 @media (prefers-reduced-transparency: reduce) {
@@ -1452,7 +1607,11 @@
 }
 
 /* The floating paint (§22) — LAST in this file on purpose, and a re-point of the surface
-   layer's ONE box-shadow site rather than a second one (the count law holds at six). Same
+   layer's ONE box-shadow site rather than a second one — the package-wide count law in
+   recipes.test.ts is where a new consumer fails first, and the number lives THERE and is
+   deliberately not restated here (it was written as six until 2026-08-26, three days after the
+   segmented grip made it seven; §9's own remedy for this exact number, applied a third time).
+   Same
    specificity as the glass casts above, so source order decides — and a floating pane must
    win every one of those fights: against the transmitted glass cast (a glass menu in a flat
    world still casts — the transmitted tokens are none there, and coverage is a fact even
@@ -1800,7 +1959,7 @@
 }
 .kui-surface.kui-floating[data-unfurling][data-seed] .kui-floating-body {
   opacity: 0;
-  filter: blur(6px);
+  filter: blur(var(--print-blur));
   /* PLUS THE SINK (2026-08-25): the flight's resting translate carries the sink (the shared
      rule below), so the seed must carry it additively or the echo's ~8px arrival becomes a
      several-hundred-pixel translate ANIMATION of the whole list — the sink is geometry, the
@@ -1986,13 +2145,30 @@
 
    `--kui-sf-p` is the RESOLVED padding of whatever pane this is, which is the value all nine
    wanted in the first place: on a menu it resolves through `--kui-floating-p` by the join
-   above, and on a popover it is the surface band. One name, correct on all four. It inherits
-   on purpose (§3 — it is how `m="bleed"` finds its surface), which is what lets a child read
-   it at all. */
+   above, and on a popover it is the surface band. It inherits on purpose (§3 — it is how
+   `m="bleed"` finds its surface), which is what lets a child read it at all.
+
+   AND IT IS ONE VALUE, WHERE A PANE HAS TWO AXES (2026-08-26 audit). "Correct on all four" was
+   true of three: a Tooltip is priced on its own two axes (§32) and paints them with LONGHANDS,
+   which beat `.kui-surface`'s `padding` shorthand on source order, so the pin read the surface
+   band's 12px on an axis whose real padding is 4px. Measured on a default tooltip: the pin's
+   `inset-block-end` computed `12px` against `padding-block-end: 4px` — 8px off its resting line
+   for the whole flight and an 8px snap on the release frame, which is verbatim the two reports
+   this pin exists to close (2026-08-10, 2026-08-17). The INLINE axis coincided at 12 vs 12,
+   which is why nothing saw it: a one-axis-of-two failure is invisible to any check that reads
+   one number.
+
+   So the pin reads a PAIR, defaulting to `--kui-sf-p` on the base rule below, and a pane whose
+   inset is anisotropic states both. Nothing here is registered: the pin is on a CHILD, so these
+   must inherit exactly as `--kui-sf-p` does — an `inherits: false` registration would hand the
+   body the guaranteed-invalid value and silently put the fallback (and the defect) straight
+   back. What keeps the pair and the painted padding in agreement is a mounted law that reads
+   both off the browser, per axis, on every floating pane — the TextArea/TextField parity
+   pattern: an approximation law can only measure distance, an agreement law makes it zero. */
 .kui-surface.kui-floating[data-unfurling] .kui-floating-body {
   position: absolute;
-  inset-block-start: var(--kui-sf-p);
-  inset-inline-start: var(--kui-sf-p);
+  inset-block-start: var(--kui-sf-p-block);
+  inset-inline-start: var(--kui-sf-p-inline);
   /* The sink's carrier (2026-08-25, see the [data-side="top"] arm below): a constant
      post-scale translate, non-zero only where the runner measured an overflowing
      bottom-pinned body, 0px by registration everywhere else — so this computes `0 0px` and
@@ -2010,21 +2186,21 @@
 .kui-surface.kui-floating[data-unfurling][data-side="left"] .kui-floating-body,
 .kui-surface.kui-floating[data-unfurling][data-side="inline-start"] .kui-floating-body {
   inset-inline-start: auto;
-  inset-inline-end: var(--kui-sf-p);
+  inset-inline-end: var(--kui-sf-p-inline);
 }
 /* The body's own direction arms — the physical/logical mix above, restated for the element
    inside the box, exactly as the pin itself is. */
 [dir="rtl"] .kui-surface.kui-floating[data-unfurling][data-side="left"] .kui-floating-body {
-  inset-inline-start: var(--kui-sf-p);
+  inset-inline-start: var(--kui-sf-p-inline);
   inset-inline-end: auto;
 }
 [dir="rtl"] .kui-surface.kui-floating[data-unfurling][data-side="right"] .kui-floating-body {
   inset-inline-start: auto;
-  inset-inline-end: var(--kui-sf-p);
+  inset-inline-end: var(--kui-sf-p-inline);
 }
 .kui-surface.kui-floating[data-unfurling][data-side="bottom"][data-align="center"] .kui-floating-body,
 .kui-surface.kui-floating[data-unfurling][data-side="top"][data-align="center"] .kui-floating-body {
-  inset-inline: var(--kui-sf-p);
+  inset-inline: var(--kui-sf-p-inline);
   margin-inline: auto;
 }
 .kui-surface.kui-floating[data-unfurling][data-side="right"][data-align="end"] .kui-floating-body,
@@ -2032,7 +2208,7 @@
 .kui-surface.kui-floating[data-unfurling][data-side="left"][data-align="end"] .kui-floating-body,
 .kui-surface.kui-floating[data-unfurling][data-side="inline-start"][data-align="end"] .kui-floating-body {
   inset-block-start: auto;
-  inset-block-end: var(--kui-sf-p);
+  inset-block-end: var(--kui-sf-p-block);
   /* The sink's origin — see the [data-side="top"] arm below for the whole argument. */
   transform-origin: var(--kui-origin-x, left) calc(100% - var(--kui-body-sink));
 }
@@ -2040,12 +2216,12 @@
 .kui-surface.kui-floating[data-unfurling][data-side="inline-end"][data-align="center"] .kui-floating-body,
 .kui-surface.kui-floating[data-unfurling][data-side="left"][data-align="center"] .kui-floating-body,
 .kui-surface.kui-floating[data-unfurling][data-side="inline-start"][data-align="center"] .kui-floating-body {
-  inset-block: var(--kui-sf-p);
+  inset-block: var(--kui-sf-p-block);
   margin-block: auto;
 }
 .kui-surface.kui-floating[data-unfurling][data-side="top"] .kui-floating-body {
   inset-block-start: auto;
-  inset-block-end: var(--kui-sf-p);
+  inset-block-end: var(--kui-sf-p-block);
   /* THE SINK'S ORIGIN (2026-08-25): a bottom-pinned body puts the list's LAST row at the
      seam, and on a list taller than its landed viewport that is not what rest shows — rest
      is scrollTop 0, the list's TOP window — so the flight ended on one set of rows and the
@@ -2183,8 +2359,11 @@
      "centered equals flow" is arithmetic only while the panel's height is content plus
      padding — a min-height panel is taller, its flow position is the top, and a centered
      flight snapped upward at release. The inset reads the padding TOKEN, which is the
-     final value from frame one, while the padding property itself is still animating in. */
-  inset-block-start: var(--kui-sf-p);
+     final value from frame one, while the padding property itself is still animating in. The
+     per-axis pair since 2026-08-26 — the overlay family prices its two axes the same today, so
+     this is byte-identical, and it is spelled this way because "which axis is this inset on" is
+     the question the floating pin got wrong (see it) and no rule should have to be asked twice. */
+  inset-block-start: var(--kui-sf-p-block);
   inset-inline: 0;
   margin-inline: auto;
   inline-size: var(--kui-fly-bw, auto);
@@ -2229,7 +2408,7 @@
 }
 .kui-surface.kui-alert-popup[data-seed] .kui-overlay-body {
   opacity: 0;
-  filter: blur(6px);
+  filter: blur(var(--print-blur));
   translate: 0 var(--overlay-echo);
 }
 /* The exit is the family grammar's dissolve — leaving is never the entry reversed: the box
@@ -2317,7 +2496,7 @@
   transition: filter var(--dialog-settle) ease-out;
 }
 .kui-dialog-popup[data-starting-style] .kui-dialog-body {
-  filter: blur(var(--dialog-blur));
+  filter: blur(var(--print-blur));
 }
 /* Leaving is never the entry reversed: the panel settles a hair and dissolves. `scale` stays
    in the list so a dismissal mid-arrival RETARGETS the running spring rather than cancelling

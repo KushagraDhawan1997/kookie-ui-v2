@@ -16,6 +16,7 @@ import {
   APPEARANCES,
   POINTERS,
   SIZES,
+  asksForStillness,
   colorOn,
   computed,
   inMotion,
@@ -602,6 +603,33 @@ describe("the rule travels as two edges at two speeds (§8, §26)", () => {
       // …and they are actually DIFFERENT, which is the whole claim: two edges on one clock is
       // a photograph being slid, which is the motion this replaced.
       expect(at(lead)).not.toBe(at(trail));
+    });
+
+    it(`${dir}: and the OS can stop it — the stand-down nothing verified (§8, audit 2026-08-26)`, async () => {
+      /**
+       * The tab rule is the one moving part `.kui-control *` cannot reach: it is a child of
+       * `.kui-tabs-list`, which wears no control class, so tabs.css's own guarded block is the
+       * ONLY thing standing this flight down — and until this law it was verified by nothing.
+       * The node law that claims to check it skipped any file containing a
+       * `prefers-reduced-motion` block ANYWHERE (repaired the same day), and the mounted parts
+       * list in system/motion.browser.test.tsx names five parts, neither of them this one. A
+       * renamed, narrowed or re-ordered stand-down selector left ~1,900 laws green and gave a
+       * user who asked their OS for stillness a 480ms spring across the bar on every switch.
+       *
+       * POINTED AT THE STATE IT NAMES: an unstamped rule has no clock to stand down, so the
+       * direction must be on the element before the read means anything — the same reason the
+       * clock law above waits for it.
+       */
+      inMotion();
+      await asksForStillness();
+      const { rule, tabs } = bar3(dir);
+      const want = dir === "forward" ? "right" : "left";
+      await userEvent.click(tabs[dir === "forward" ? 2 : 0]!);
+      await until(() => rule.getAttribute("data-activation-direction") === want);
+      expect(
+        computed(rule, "transition-duration"),
+        `${dir}: the rule still flies for a user who asked for stillness`,
+      ).toBe("0s");
     });
   }
 
