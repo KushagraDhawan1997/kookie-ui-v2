@@ -364,10 +364,29 @@ export function Shell({ size = "2", className, style, children, ref, ...props }:
       child.inert = true;
     }
 
-    // …and only then move focus in, to the first live overlay that does not already hold it.
-    lastLive.current = live.map((e) => e.el!);
-    const first = live[0]!.el!;
-    if (!first.contains(document.activeElement)) first.focus({ preventScroll: true });
+    // …and only then move focus in, ON THE OPENING EDGE AND NOWHERE ELSE.
+    //
+    // This pass runs on EVERY Shell render (see the note below on the missing dependency
+    // array), and the first spelling asked one question per pass — "does live[0] hold focus?"
+    // — which is a question about a moment written as if it were a question about a state.
+    // While any pane overlaid, every ordinary re-render (a keystroke in a form, a hovered
+    // item with state, a route transition) answered it `no` and hauled focus back into
+    // live[0]. Two shapes it made unreachable, both ordinary: a SECOND live overlay could not
+    // hold focus at all — the two-overlay pointer path §27 names — and any portalled layer
+    // opened from inside a pane (a Menu, a Select, a Dialog) lands at body level, outside
+    // every pane, so its own focus was taken away from it by the next render of anything.
+    //
+    // The edge is what the behaviour was always about: focus moves in when a pane BECOMES
+    // live, and only when it is not already somewhere the user put it inside the live set.
+    // `lastLive` already existed for the closing edge; this reads it for the opening one.
+    const previous = lastLive.current;
+    const els = live.map((e) => e.el!);
+    lastLive.current = els;
+    const opened = els.filter((el) => !previous.includes(el));
+    const active = document.activeElement;
+    if (opened.length > 0 && !els.some((el) => el.contains(active))) {
+      opened[0]!.focus({ preventScroll: true });
+    }
     // NO DEPENDENCY ARRAY, deliberately (audit 2026-08-16, the critic's finding). Membership
     // has two triggers, and only one of them notifies: a PANE opening or closing bumps
     // `version`, but an ordinary child mounted behind the scrim — a conditionally rendered
@@ -596,9 +615,16 @@ function usePane(
 
   // Stable actions over a latest-values ref, so registry entries change only when the facts
   // they carry change.
-  // Plain useEffect on both refs below: this package ships no useLayoutEffect (it warns
-  // under server rendering, and nothing here needs pre-paint timing — the registry stamps
-  // aria attributes post-mount BY DESIGN, the same honesty as useWindowClass's null).
+  // Plain useEffect on both refs below, and the reason is local rather than a package rule:
+  // nothing here needs PRE-PAINT timing. The registry stamps aria attributes post-mount BY
+  // DESIGN, the same honesty as useWindowClass's null, so a layout effect would buy nothing
+  // and cost the render path.
+  // CHANGES
+  // 2026-08-26 — was "this package ships no useLayoutEffect". False on both halves and
+  //   read as a ban: segmented-control.tsx measures its travelling thumb in one, because a
+  //   measurement that must land before paint is exactly what the hook is for. Stating the
+  //   criterion instead, so the next measurement is not pushed onto useEffect + rAF — which
+  //   buys a painted frame at the old position.
   const latest = React.useRef({ expanded, controlled, onOpenChange: props.onOpenChange });
   React.useEffect(() => {
     latest.current = { expanded, controlled, onOpenChange: props.onOpenChange };
@@ -708,7 +734,17 @@ function SidePane({
   // The lens joins the ref chain rather than replacing it: the caller's ref and the registry's
   // both still land (the `render` escape's 2026-08-03 lesson — eight hand-rolled merges is how
   // one of them overwrites another).
-  const { material, stamps, ref: paneRef } = usePaneDress(flush, mergeRefs(ref, pane.paneRef));
+  //
+  // MEMOISED, and it is not hygiene (2026-08-26 audit). `mergeRefs` returns a FRESH closure
+  // per call and `useLensRef` memoises on that closure, so an unmemoised merge gave the DOM a
+  // new ref callback every render — React then detaches (`null`) and reattaches, and the lens's
+  // detach path RELEASES the filter: the last reference goes, `acquire` misses its cache and
+  // mints a whole new displacement map. So every keystroke, hover-with-state or route change
+  // anywhere above a glass pane re-ran a per-pixel Snell solve, a `toDataURL` encode and an
+  // eleven-node `<filter>` graft on the largest boxes in the library — the thing
+  // refraction.tsx's "on mount and resize, never at interaction time" rule exists to forbid.
+  const composedRef = React.useMemo(() => mergeRefs(ref, pane.paneRef), [ref, pane.paneRef]);
+  const { material, stamps, ref: paneRef } = usePaneDress(flush, composedRef);
   const Element = element;
   return (
     <Element
@@ -803,7 +839,10 @@ export function ShellBottom(props: ShellBottomProps) {
     presentation: presentation ?? "auto",
     id,
   });
-  const { material, stamps, ref: paneRef } = usePaneDress(flush, mergeRefs(ref, pane.paneRef));
+  // Memoised for the reason SidePane states in full: an unmemoised merge is a new DOM ref
+  // callback per render, which tears the lens down and rebuilds its map.
+  const composedRef = React.useMemo(() => mergeRefs(ref, pane.paneRef), [ref, pane.paneRef]);
+  const { material, stamps, ref: paneRef } = usePaneDress(flush, composedRef);
   return (
     <aside
       {...rest}

@@ -20,6 +20,7 @@ import {
   computed,
   inMotion,
   mounted,
+  numberOn,
   render,
   tokenOn,
   until,
@@ -327,7 +328,127 @@ describe("a tab as a link is a link (audit 2026-08-19, D9)", () => {
   });
 });
 
+describe("a dead tab looks dead (§8, audit 2026-08-26)", () => {
+  /** A bar whose tabs are all disabled or all live, with the ACTIVE one controlled so both
+      ink rungs are reachable in one fixture — an uncontrolled root refuses to select a
+      disabled first tab, which would leave the active rung untested and the law would be
+      about the resting one wearing the pair's name. */
+  function deadBar(appearance: "light" | "dark", disabled: boolean) {
+    return mounted(
+      <Tabs value="a">
+        <TabsList size="2">
+          <TabsTab value="a" disabled={disabled}>
+            Overview
+          </TabsTab>
+          <TabsTab value="b" disabled={disabled}>
+            Audit log
+          </TabsTab>
+        </TabsList>
+      </Tabs>,
+      { theme: { appearance } },
+    );
+  }
+
+  const alphaOf = (v: string) => {
+    const m = /\/\s*([\d.]+)\s*\)|,\s*([\d.]+)\s*\)$/.exec(v);
+    return m ? Number(m[1] ?? m[2]) : 1;
+  };
+
+  /** Two computed colours, compared per channel. The expected side is built by handing the
+      engine a colour it already computed and asking it to mix again, so the two travel
+      through one more parse than each other and land ~1e-6 apart in the fifth decimal — a
+      string comparison would be pinning a round-trip, not the claim. Channels rather than a
+      digit sweep: `color(srgb …)` carries no digit in its keyword, which is the trap the
+      2026-08-08 calibration lesson records for `display-p3`. */
+  const sameColor = (actual: string, expected: string, why: string) => {
+    const channels = (v: string) => (v.match(/[\d.]+/g) ?? []).map(Number);
+    const a = channels(actual);
+    const b = channels(expected);
+    expect(a.length, `${why} — unreadable colour ${actual} / ${expected}`).toBe(b.length);
+    expect(a.length, `${why} — nothing was parsed out of ${actual}`).toBeGreaterThan(2);
+    for (const [i, v] of a.entries()) {
+      expect(v, `${why} (${actual} vs ${expected})`).toBeCloseTo(b[i]!, 3);
+    }
+  };
+
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: BOTH ink rungs stand down — the shared remap cannot reach either`, () => {
+      /* The shared disabled remap rewrites the TONE vocabulary (--tone-label, --tone-contrast,
+         the ink trio, --tone-glyph), and both of this file's ink roles are the TONE-LESS
+         foreground pair — chosen two rules up so a bar follows the surface it is dropped on.
+         So the remap reached neither: a disabled tab computed byte-identical to a live one in
+         colour AND in fill, in both appearances, with `cursor` as the whole of the difference,
+         which on a touch screen is nothing at all. The same shape as the slider rail (2026-08-07),
+         the card (2026-08-22), the composer (2026-08-23) and this component's own sibling.
+
+         Read at BOTH rungs, because there are two live values and one arm gets the pair wrong:
+         a controlled bar can hold `value="a"` while tab a is disabled. */
+      const live = deadBar(appearance, false);
+      const dead = deadBar(appearance, true);
+      const [liveActive, liveResting] = tabsOf(live);
+      const [deadActive, deadResting] = tabsOf(dead);
+      // The premises, stated so a broken fixture fails as itself rather than as the claim.
+      expect(deadActive!.getAttribute("data-disabled")).not.toBeNull();
+      expect(deadActive!.getAttribute("data-active")).not.toBeNull();
+      expect(deadResting!.getAttribute("data-active")).toBeNull();
+      for (const [rung, deadTab, liveTab] of [
+        ["the active tab", deadActive!, liveActive!],
+        ["a resting tab", deadResting!, liveResting!],
+      ] as const) {
+        const ink = computed(deadTab, "color");
+        expect(ink, `${appearance}: ${rung} is painted as though it were live`).not.toBe(
+          computed(liveTab, "color"),
+        );
+        // And it is the DIM OF THE LIVE VALUE, not some invented dead grey — derived from the
+        // live tab that was just measured rather than restated from the declaration under
+        // test, so an arm that dimmed the wrong role fails here. `alphaOf` alone cannot say
+        // this: the muted role already carries alpha, so a dead resting tab lands at 0.364
+        // (0.52 × 0.7) in light and a law reading the factor off the token would be measuring
+        // its own arithmetic.
+        sameColor(
+          ink,
+          colorOn(
+            dead,
+            `color-mix(in srgb, ${computed(liveTab, "color")} var(--disabled-dim), transparent)`,
+          ),
+          `${appearance}: ${rung} is not the live ink dimmed`,
+        );
+        // CALIBRATION: the dim really does move a colour, or the line above is `live === live`.
+        expect(numberOn(dead, "--disabled-dim")).toBeLessThan(1);
+        expect(alphaOf(ink)).toBeLessThan(alphaOf(computed(liveTab, "color")));
+      }
+      // CALIBRATION: the two live rungs really do differ, so "the dead pair differs from the
+      // live pair" above is two claims and not one value read twice.
+      expect(computed(liveActive!, "color")).not.toBe(computed(liveResting!, "color"));
+    });
+  }
+});
+
 describe("what Tabs deliberately is not (§10, §26)", () => {
+  it("the rule is PAINT, so it takes no pointer (audit 2026-08-26)", () => {
+    /* An absolutely positioned box paints after every static sibling whatever the document
+       order says (the segmented thumb's own 2026-08-23 finding), and it is hit-testable by
+       default: measured, `elementFromPoint` over the bar's bottom rows returned the rule. It
+       steals nothing from a tab today only because it sits below the tabs' boxes, which is a
+       fact about this geometry rather than a guarantee.
+
+       Read as the pointer test AND as the declaration, because either alone is half: a hit
+       scan on today's layout passes with the declaration deleted (the rule is below the tabs),
+       and the declaration alone is a token nobody proved reaches the element. */
+    const root = bar("2");
+    const rule = ruleOf(root);
+    expect(computed(rule, "pointer-events")).toBe("none");
+    const box = rule.getBoundingClientRect();
+    // The fixture has to have something to hit: a rule of no area is a scan that measures
+    // nothing (the 2026-08-06 off-viewport lesson — a row nobody claims is an error).
+    expect(box.width, "the rule has no box to scan").toBeGreaterThan(1);
+    expect(box.height, "the rule has no box to scan").toBeGreaterThan(0);
+    const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+    expect(hit, "the scan ran off the viewport and measured nothing").not.toBeNull();
+    expect(hit === rule || rule.contains(hit), "a decoration took the pointer").toBe(false);
+  });
+
+
   it("paints no pane — nothing here expresses the theme's material", () => {
     // A tab bar has no fill and no box: there is nothing to defocus, so glass has nothing to
     // do. Asserted under a glass theme, which is the only state where a mistake shows.
@@ -351,6 +472,33 @@ describe("what Tabs deliberately is not (§10, §26)", () => {
     panel.focus();
     expect(computed(panel, "outline-width")).toBe(tokenOn(root, "--focus-ring-width"));
     expect(computed(panel, "outline-style")).toBe("solid");
+  });
+});
+
+describe("the API's closed edges (§3, audit 2026-08-26)", () => {
+  it("refuses orientation — vertical is a geometry this package has never drawn", () => {
+    /* It passed through by omission rather than by decision: the root's props were Base UI's
+       type unnarrowed, so `orientation="vertical"` compiled, switched the arrow keys to
+       Up/Down and stamped `data-orientation="vertical"` — onto a stylesheet with no
+       `[data-orientation]` arm at all, a flex ROW with its hairline on the block-end, and a
+       rule drawn by two INLINE insets. A horizontal bar with vertical keyboard navigation.
+
+       The law is the TYPE, which is where a refusal has to live (the second house rule): a
+       comment saying "we do not support vertical" is a warning, and `tsc` is the thing that
+       makes it unexpressible. Slider's own sentence one component over. */
+    // @ts-expect-error — vertical ships as its own designed set the day something forces it,
+    // never as undesigned numbers today (Slider's refusal, same reason)
+    void (<Tabs orientation="vertical" />);
+    // And the ones the root never had, pinned beside it so the block is the whole edge.
+    // @ts-expect-error — no margin prop on any control (first non-negotiable)
+    void (<Tabs m="4" />);
+    // @ts-expect-error — a bar of tabs has no family to pick: exactly one tab is the one you
+    // are on, and that is a state (§11)
+    void (<Tabs tone="destructive" />);
+    // @ts-expect-error — loudness ranks actions; a tab bar ranks nothing (§11)
+    void (<Tabs emphasis="loud" />);
+    // The one it DOES take, so the block cannot pass by refusing everything.
+    void (<Tabs defaultValue="a" />);
   });
 });
 

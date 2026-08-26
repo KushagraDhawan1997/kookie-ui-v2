@@ -572,6 +572,44 @@ describe("the shell carries context without imposing any (§10, §13)", () => {
 });
 
 describe("the boundary (§3, §13)", () => {
+  it("the identity is not reachable from a call site, however it is spelled (§9, 2026-08-26)", () => {
+    /**
+     * The type refuses `tone` and `emphasis` — a container ranks nothing — and TypeScript
+     * refuses NOTHING hyphenated: `data-*` is exempt from excess-property checking on every
+     * component, so `<Card data-emphasis="loud" data-tone="destructive">` compiles clean.
+     * With `...props` spread LAST it also reached the DOM, and the surface layer's rungs are
+     * element-keyed, so it painted `--tone-solid` under `--tone-contrast` ink: the `variant`
+     * axis §9 deleted, re-grown from a call site, in one line, with no error anywhere.
+     *
+     * Read as PAINT rather than as the attribute, because the attribute is the mechanism and
+     * the colour is the claim — and against a plain card in both appearances, since a rung
+     * that resolved to the seal by accident would pass a single-mode read.
+     *
+     * Falsified against `{...merged, ...props}`: reads
+     * `expected 'rgb(224, 32, 32)' to be 'rgb(255, 255, 255)'`.
+     */
+    for (const appearance of APPEARANCES) {
+      const plain = mounted(<Card>B</Card>, { theme: { appearance } });
+      const hostile = mounted(
+        // No `@ts-expect-error` above, and its absence is the finding: this compiles.
+        <Card data-emphasis="loud" data-tone="destructive">B</Card>,
+        { theme: { appearance } },
+      );
+      expect(hostile.dataset["emphasis"], `${appearance}: the identity lost its own element`).toBe("quiet");
+      expect(hostile.dataset["tone"]).toBe("neutral");
+      expect(computed(hostile, "background-color"), `${appearance}: a call site tinted a card`).toBe(
+        computed(plain, "background-color"),
+      );
+      expect(computed(hostile, "color")).toBe(computed(plain, "color"));
+    }
+    // …and the escapes a consumer legitimately owns still arrive, or this refusal has taken
+    // the whole spread with it.
+    const kept = render(<Card data-testid="x" id="y" role="group">B</Card>);
+    expect(kept.getAttribute("data-testid")).toBe("x");
+    expect(kept.id).toBe("y");
+    expect(kept.getAttribute("role")).toBe("group");
+  });
+
   it("forwards the escapes and keeps its own classes", () => {
     // backdrop so the material stamp exists to forward (lab port 2026-08-17, selectivity).
     const el = mounted(
@@ -1006,6 +1044,48 @@ describe("the lens: refraction reaches a real pane (§10, 2026-08-16)", () => {
     const solid = mounted(<Card>S</Card>, { theme: { material: "solid" } });
     expect(lens(solid)).toBeUndefined();
     expect(solid.style.getPropertyValue("--kui-lens"), "a solid pane built a map it cannot use").toBe("");
+  });
+
+  it("an ordinary re-render does not rebuild the map (§10, 2026-08-26)", async () => {
+    /**
+     * `mergeRefs` returns a FRESH closure per call and `useLensRef` memoises the DOM ref
+     * callback on top of it, so an inline merge handed React a new ref identity every render.
+     * React answers a new identity by detaching (`null`) and reattaching — and `useLens`'s
+     * detach path RELEASES the filter, dropping its last user, so the reattach misses
+     * `acquire`'s cache and mints a fresh displacement map: a per-pixel Snell solve, a
+     * `toDataURL` encode and an eleven-node `<filter>` graft, for every keystroke or hover
+     * anywhere above the card. Shell was found with the identical defect the same day.
+     *
+     * Read as the filter's IDENTITY rather than as a count of `<filter>` nodes: the churn
+     * releases one and mints one, so the document's total is the axis that stays right while
+     * the pane's own `url(#kui-lens-N)` changes underneath it.
+     *
+     * Falsified against `ref: mergeRefs(lensRef, clipRef)` inline: reads
+     * `expected 'url(#kui-lens-6)' to be 'url(#kui-lens-5)'`.
+     */
+    let bump!: () => void;
+    function App() {
+      const [n, setN] = React.useState(0);
+      bump = () => flushSync(() => setN((v) => v + 1));
+      return (
+        <Card backdrop data-tick={n} style={{ width: "300px", height: "200px" }}>
+          Body
+        </Card>
+      );
+    }
+    const card = mounted(<App />, { theme: { material: "regular" }, select: ".kui-card" });
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    const before = card.style.getPropertyValue("--kui-lens");
+    // THE PREMISE: a lens was really built, or "it did not change" is trivially true — the
+    // fixture defect this file has already paid for once.
+    expect(before, "no lens was built, so this cannot show the churn").not.toBe("");
+    bump();
+    await expect.poll(() => card.getAttribute("data-tick")).toBe("1");
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(
+      card.style.getPropertyValue("--kui-lens"),
+      "an ordinary re-render tore the lens down and minted a new map",
+    ).toBe(before);
   });
 
   it("the map covers the whole pane, at any size (§10, 2026-08-23)", async () => {

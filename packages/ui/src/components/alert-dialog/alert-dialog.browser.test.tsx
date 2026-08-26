@@ -322,6 +322,86 @@ describe("the action row", () => {
     expect(cancel!.left).toBeLessThan(action!.left);
   });
 
+  it("a long pair of labels stays INSIDE the panel — the box is not negotiable (§25, 2026-08-26)", () => {
+    /**
+     * The row shipped as `grid-template-columns: 1fr 1fr`, which is `minmax(auto, 1fr)` twice —
+     * and a grid item's automatic minimum is its MIN-CONTENT. A `.kui-button` declares
+     * `white-space: nowrap` and a control declares no overflow, so each track was floored at a
+     * whole label and the row grew past a panel that states a FIXED width and clips.
+     *
+     * Measured before the fix at the default density: 334px of row inside 270px of content
+     * box, the committing button 39px outside the panel with 39px of it cut off — and 113px at
+     * comfortable × coarse, where the padding is widest.
+     *
+     * Read as PAINTED geometry against the panel's own content box, not as `scrollWidth`: what
+     * fails is that a person cannot see the button they are being asked to press.
+     */
+    for (const theme of [{}, { density: "comfortable", pointer: "coarse" }] as ThemeProps[]) {
+      const { popup, buttons } = openAlert(theme, {
+        body: (
+          <>
+            <AlertDialogTitle>Delete workspace?</AlertDialogTitle>
+            <AlertDialogDescription>Everything goes with it.</AlertDialogDescription>
+            <AlertDialogCancel>No, keep my workspace</AlertDialogCancel>
+            <AlertDialogAction tone="destructive">Yes, delete everything</AlertDialogAction>
+          </>
+        ),
+      });
+      const box = popup.getBoundingClientRect();
+      const pad = parseFloat(computed(popup, "padding-left"));
+      const border = parseFloat(computed(popup, "border-left-width"));
+      for (const button of buttons) {
+        const rect = button.getBoundingClientRect();
+        expect(rect.left, `${button.textContent} starts outside the panel`).toBeGreaterThanOrEqual(
+          box.left + pad + border - 0.5,
+        );
+        expect(rect.right, `${button.textContent} runs past the panel`).toBeLessThanOrEqual(
+          box.right - pad - border + 0.5,
+        );
+      }
+      // Still 50/50 and still one row: the repair may not become "stack them", which is a
+      // different design and one nobody has judged.
+      expect(buttons[0]!.getBoundingClientRect().width).toBeCloseTo(
+        buttons[1]!.getBoundingClientRect().width,
+        1,
+      );
+      expect(buttons[0]!.getBoundingClientRect().top).toBeCloseTo(
+        buttons[1]!.getBoundingClientRect().top,
+        1,
+      );
+      // And the label is INSIDE the button it belongs to — moving the clipping from the box to
+      // the words would satisfy every assertion above.
+      for (const button of buttons) {
+        expect(button.scrollWidth, `${button.textContent} overflows its own box`).toBeLessThanOrEqual(
+          button.clientWidth + 1,
+        );
+      }
+    }
+  });
+
+  it("and the word that cannot break yields too", () => {
+    // The fixture lesson this repo has paid for: a multi-word label breaks at a space whether
+    // or not anything was fixed, so the harder case is the one that says whether the repair is
+    // total. `overflow-wrap: anywhere` is the declaration under test.
+    const { popup, buttons } = openAlert({}, {
+      body: (
+        <>
+          <AlertDialogTitle>Delete workspace?</AlertDialogTitle>
+          <AlertDialogDescription>Everything goes with it.</AlertDialogDescription>
+          <AlertDialogCancel>Keepmyentireworkspaceplease</AlertDialogCancel>
+          <AlertDialogAction tone="destructive">Deleteabsolutelyeverything</AlertDialogAction>
+        </>
+      ),
+    });
+    const box = popup.getBoundingClientRect();
+    const pad = parseFloat(computed(popup, "padding-left"));
+    const border = parseFloat(computed(popup, "border-left-width"));
+    for (const button of buttons) {
+      expect(button.getBoundingClientRect().right).toBeLessThanOrEqual(box.right - pad - border + 0.5);
+      expect(button.scrollWidth).toBeLessThanOrEqual(button.clientWidth + 1);
+    }
+  });
+
   it("a lone action spans the whole row — the acknowledgement alert", () => {
     const { popup, buttons } = openAlert({}, {
       body: (

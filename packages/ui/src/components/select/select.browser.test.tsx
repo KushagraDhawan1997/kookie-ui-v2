@@ -963,33 +963,63 @@ describe("behavior: roles, choosing, forms, labels", () => {
    * behaviour it now describes, measured in BOTH directions — a law that only checked the
    * `items` half would pass on a select that had learned to read its rows.
    */
-  it("without `items` the chosen label never reaches the trigger — with it, it does", async () => {
-    const chooseBeta = async (items?: Record<string, React.ReactNode>) => {
-      const host = render(
-        <Theme>
-          <Select defaultOpen {...(items ? { items } : {})}>
-            <SelectTrigger placeholder="Pick one" />
-            <SelectContent>
-              <SelectItem value="a">Alpha</SelectItem>
-              <SelectItem value="b">Beta</SelectItem>
-            </SelectContent>
-          </Select>
-        </Theme>,
-      );
-      await settled();
-      const popups = document.querySelectorAll<HTMLElement>(".kui-select-popup");
-      const popup = popups[popups.length - 1]!;
-      const beta = [...popup.querySelectorAll<HTMLElement>(".kui-select-item")][1]!;
-      // Base UI's press-drag window, exactly as the choosing law above waits it out.
-      await new Promise((r) => setTimeout(r, 600));
-      await userEvent.click(beta);
-      await expect.poll(() => popup.checkVisibility(), { timeout: 2000 }).toBe(false);
-      return host.querySelector(".kui-select-value")!.textContent;
-    };
+  /**
+   * ONE CASE PER TEST, and that is the instrument (2026-08-26). Both directions first ran
+   * inside a single `it`, and Base UI keeps a select's panel MOUNTED after its first open —
+   * it is also the label store — so the second mount ran with the first popup still in the
+   * document, hidden. `popups[popups.length - 1]` picks the right element, but the click does
+   * not take an element: vitest hands Playwright a generated selector, and the text-based one
+   * it produced resolved to `div` filtered by /^Beta$/ `.nth(2)` — the STALE row, which is
+   * `data-selected` and invisible, so the click retried for 13s against "element is not
+   * visible". It passed alone and failed in a full run, which is this repo's own signature for
+   * an instrument fault rather than a defect, and the third time the stale-popup selector has
+   * caught a law in this package. The harness's afterEach unmounts every root, so the fix is
+   * to let it run between the two cases: the same two claims, one popup in the document for
+   * each. Split rather than scoped, because a scoped locator would leave the stale panel in
+   * the page for every later law in the file to trip over.
+   */
+  const chooseBeta = async (items?: Record<string, React.ReactNode>) => {
+    const host = render(
+      <Theme>
+        <Select defaultOpen {...(items ? { items } : {})}>
+          <SelectTrigger placeholder="Pick one" />
+          <SelectContent>
+            <SelectItem value="a">Alpha</SelectItem>
+            <SelectItem value="b">Beta</SelectItem>
+          </SelectContent>
+        </Select>
+      </Theme>,
+    );
+    await settled();
+    const popups = document.querySelectorAll<HTMLElement>(".kui-select-popup");
+    const popup = popups[popups.length - 1]!;
+    const beta = [...popup.querySelectorAll<HTMLElement>(".kui-select-item")][1]!;
+    // ANCHOR THE FLIGHT, do not race it (the 2026-08-20 rule: a premise that is a window is
+    // seized or edge-anchored, never raced). `settled()` returns before the entry has LANDED,
+    // and a row in a panel still posed on its trigger is not yet clickable. This is not what
+    // produced the timeout above — that was the stale popup — but it is a raced premise
+    // either way, and the unfurl's own stamp is the edge that ends the race.
+    expect(
+      await until(() => !popup.hasAttribute("data-unfurling")),
+      "the entry never landed",
+    ).toBe(true);
+    // Base UI's press-drag window, exactly as the choosing law above waits it out. That one IS
+    // elapsed time — a store timer with no observable stamp — so it stays a sleep.
+    await new Promise((r) => setTimeout(r, 600));
+    await userEvent.click(beta);
+    await expect.poll(() => popup.checkVisibility(), { timeout: 2000 }).toBe(false);
+    return host.querySelector(".kui-select-value")!.textContent;
+  };
+
+  it("without `items` the chosen label never reaches the trigger", async () => {
     // The row that was clicked reads "Beta"; the trigger reads the VALUE, because nothing
     // told it otherwise. This is the sentence the corrected JSDoc makes.
     expect(await chooseBeta(), "no map: the trigger paints the raw value").toBe("b");
-    // ...and the map is what fixes it, at the same moment, on the same gesture.
+  });
+
+  it("...and with it, the label does reach the trigger", async () => {
+    // The other direction, and the reason both exist: a law that only checked the `items`
+    // half would pass on a select that had learned to read its rows.
     expect(await chooseBeta({ a: "Alpha", b: "Beta" }), "the map is what carries the label").toBe(
       "Beta",
     );

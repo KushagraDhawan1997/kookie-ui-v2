@@ -158,11 +158,17 @@
    itself only fired when the pointer happened to land on the grip, and pressing anywhere else
    on the track did nothing at all. The switch is what gets pressed; the thumb is what answers.
 
-   Not guarded by `hover: hover`: press is the only feedback touch has. */
-.kui-switch:active .kui-switch-thumb:where(:not([data-checked])) {
+   Not guarded by `hover: hover`: press is the only feedback touch has. It IS guarded by
+   `:not([data-disabled])`, and that guard is not decoration (2026-08-26): the root is a
+   `<span role="switch" aria-disabled>`, never a native `<button disabled>`, so `:active`
+   matches a dead switch exactly as it matches a live one. Every other press response in the
+   system already carries this guard on the element being pressed — the mark family's squash,
+   the control layer's sink, the loud rung's tighten — because a control that answers a press
+   it will not act on is promising something it has refused. */
+.kui-switch:active:not([data-disabled]) .kui-switch-thumb:where(:not([data-checked])) {
   inset-inline-end: calc(var(--kui-sw-far) - var(--thumb-lean));
 }
-.kui-switch:active .kui-switch-thumb:where([data-checked]) {
+.kui-switch:active:not([data-disabled]) .kui-switch-thumb:where([data-checked]) {
   inset-inline-start: calc(var(--kui-sw-far) - var(--thumb-lean));
 }
 
@@ -197,11 +203,28 @@
    The width keeps the TRAVEL instead: w = floored height + (designed w − designed h), so
    the identity holds untouched wherever the slot is not genuinely tighter, and a tighter
    slot shortens the channel without stretching its aspect. Same (0,3,0) as the hosted
-   floor, later on source order — the family's own override pattern. The thumb needs no
-   rule at all: its diameter derives from the box it sits in. */
+   floor, later on source order — the family's own override pattern. */
 .kui-control > [data-slot] > .kui-switch {
   inline-size: calc(
     min(var(--kui-ct-mark), var(--kui-ct-hosted-height)) + var(--kui-ct-sw-w) - var(--kui-ct-mark)
+  );
+}
+
+/* CHANGES 2026-08-26: the thumb's DIAMETER follows the floored track too. It did not, and the
+   line above used to say the thumb needed no rule "because its diameter derives from the box
+   it sits in" — true of one axis and false of the other, which is this repo's own recorded
+   shape. The height genuinely derives (both block insets are stated against the padding box,
+   so it is trackHeight − 2 × inset whatever the track ends up being); the WIDTH does not,
+   because with both inline insets stated the used width is exactly --kui-sw-d, and that was
+   the UNFLOORED --kui-ct-mark. In a slot genuinely tighter than the mark the grip therefore
+   came out wider than it was tall — a lozenge with a clamped corner where the family promises
+   a circle, in the one place the box shrinks under its token.
+   `--kui-ct-hosted-height` is a registered <length> that inherits, so the same min() the
+   track's own floor uses resolves here; outside a slot it is 0px, which is why this cannot be
+   folded into the base declaration and has to be a scoped rule. */
+.kui-control > [data-slot] > .kui-switch > .kui-switch-thumb {
+  --kui-sw-d: calc(
+    min(var(--kui-ct-mark), var(--kui-ct-hosted-height)) - 2 * var(--switch-inset)
   );
 }
 

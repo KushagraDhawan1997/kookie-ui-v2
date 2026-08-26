@@ -4,6 +4,7 @@ import { Input as BaseInput } from "@base-ui/react/input";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
+import { mergeRefs } from "../../system/render.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { useMaterial } from "../../theme/theme.tsx";
 import { useControlSize } from "../../system/control-size.ts";
@@ -23,9 +24,9 @@ export type TextAreaProps = Omit<
   /**
    * The control index, minus the one part a growing box cannot take. The padding, the corner, the
    * type and the border all come from it. The height does not, because the content decides that
-   * through `rows`. The block padding is derived so a one-row textarea is the same box as a
-   * TextField at the same index, and the control height survives as a minimum rather than a
-   * maximum.
+   * through `rows`. The block padding IS the side padding — one inset on all four sides — so a
+   * `rows={1}` textarea sits TALLER than a TextField at the same index; the control height
+   * survives as a floor, never a ceiling.
    */
   size?: Size;
   /**
@@ -94,9 +95,47 @@ export function TextArea({
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   // §10 — the lens on the WRAPPER, which is the pane; on-glass never filters, so it never bends.
   const lensRef = useLensRef<HTMLSpanElement>(material, undefined);
+
+  // The component's OWN textarea, held so the caret redirect below cannot land somewhere else.
+  // The forwarded ref still reaches the same node — neither wins (§3).
+  const areaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  /**
+   * HIT-TARGET UNIFICATION, the wrapper's one debt (2026-08-26; TextField's own, §4).
+   *
+   * The wrapper became the control on 2026-08-25 and it carries the box's padding on all four
+   * sides and paints `cursor: var(--cursor-text)` over the whole band — but a `<span>` is not
+   * focusable, so a press in that band moved focus nowhere and the caret never arrived. The
+   * pointer promised a text control and the click did nothing, which is the defect the field's
+   * redirect exists to prevent, arriving one component over the day the anatomy moved.
+   *
+   * Simpler than the field's: there are no slots, so there is no focusability list to protect —
+   * anything that is not the textarea is the wrapper's own padding. The textarea itself is left
+   * alone, which is also what keeps the RESIZE handle (drawn by the inner element) draggable:
+   * `preventDefault` on a grip press would cancel the drag before it started.
+   */
+  const focusArea = React.useCallback((event: React.MouseEvent<HTMLElement>) => {
+    if (event.target !== event.currentTarget) return;
+    const area = areaRef.current;
+    if (!area) return;
+    // Stops the browser moving focus to the wrapper first, which would blur and refocus the
+    // textarea and collapse any selection the caller had set.
+    event.preventDefault();
+    area.focus();
+  }, []);
+
+  // Memoised on the caller's ref: a fresh callback ref every render would be detached with
+  // null and reattached on each one, and Base UI reads the node in effects that would then run
+  // against a momentarily empty ref (TextField's own note, same mechanism).
+  const setArea = React.useMemo(
+    () => mergeRefs(ref, areaRef) as React.Ref<HTMLInputElement>,
+    [ref],
+  );
+
   return (
     <span
       ref={lensRef}
+      onMouseDown={focusArea}
       className={className ? `kui-control kui-textarea ${className}` : "kui-control kui-textarea"}
       style={style}
       data-size={size}
@@ -113,7 +152,7 @@ export function TextArea({
       data-disabled={disabled || undefined}
     >
       <BaseInput
-        ref={ref as React.Ref<HTMLInputElement>}
+        ref={setArea}
         render={<textarea />}
         className="kui-textarea-input"
         disabled={disabled}

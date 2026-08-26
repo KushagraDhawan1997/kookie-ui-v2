@@ -2,8 +2,9 @@
  * Shell node laws (§27) — what can be read off the shipped files without a browser.
  *
  * The mounted laws live in shell.browser.test.tsx; these pin the two seams that cross
- * files: the viewport boundary (shell.css is the ONE component sheet sanctioned to key on
- * the viewport, §13/§18, and its literal must be config's, verbatim) and the token emission
+ * files: the viewport boundary (shell.css and dialog.css are the two sheets sanctioned to key
+ * on the viewport, §13/§18, the set is swept here, and each literal must be config's,
+ * verbatim) and the token emission
  * (the designed pane defaults and the gap pick must be what config states — a hand edit to
  * the generated sheet fails the drift check, but a generator that silently stopped emitting
  * would not, which is the "did not run" way of not failing).
@@ -11,7 +12,7 @@
 import { describe, expect, it } from "vitest";
 
 import { narrowMedia, shellGap, shellWidth } from "../../tokens/config.ts";
-import { block, raw, sheet } from "../../test/stylesheets.ts";
+import { allStylesheets, block, raw, sheet } from "../../test/stylesheets.ts";
 
 describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () => {
   const css = sheet("components/shell/shell.css");
@@ -23,6 +24,34 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     const queries = css.match(/@media\s*\(max-width:[^)]*\)/g) ?? [];
     expect(queries).toHaveLength(1);
     expect(queries[0]!.replace(/\s+/g, " ")).toBe(`@media ${narrowMedia}`);
+  });
+
+  it("the sanctioned set is CLOSED, and it is two sheets — not one (2026-08-26)", () => {
+    // This file's own head comment read "the ONE stylesheet sanctioned to key on the viewport"
+    // and DECISIONS §2 read "Only Shell and page-gutter concerns key off the viewport", and
+    // both had been false since 2026-08-21: `dialog.css` opens `@media (max-width: 48rem)` for
+    // the dialog-as-sheet, a decision DECISIONS records in full one section over. That is this
+    // repo's own named defect class — an "exactly one X" claim that quietly became two — and
+    // the reason it went unnoticed is the reason the class keeps recurring: each sheet pinned
+    // its OWN query and nothing swept the package, so a second sheet keying on the viewport
+    // was not a failure anywhere.
+    //
+    // Two claims, because either alone is half the law. The SET is closed, so a third sheet
+    // keying on the viewport is a decision that has to be made rather than one that happens;
+    // and every such query is config's boundary verbatim, so `narrowMedia` stays the one home
+    // for the number even where a sheet spells it as a literal (CSS cannot var() a query).
+    const sanctioned = ["components/shell/shell.css", "components/dialog/dialog.css"];
+    const keyed = allStylesheets().filter((file) => /@media[^{]*\((?:max|min)-width:/.test(sheet(file)));
+    expect(keyed.sort(), "a stylesheet keys on the viewport without being sanctioned").toEqual(
+      sanctioned.sort(),
+    );
+    for (const file of keyed) {
+      for (const query of sheet(file).match(/@media[^{]*\((?:max|min)-width:[^)]*\)/g) ?? []) {
+        expect(query.replace(/\s+/g, " ").trim(), `${file} states its own boundary`).toBe(
+          `@media ${narrowMedia}`,
+        );
+      }
+    }
   });
 
   it("no other viewport query hides in the sheet — every @media is one of two sanctioned forms", () => {
@@ -60,8 +89,41 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     expect(arms.length, "the overlay arms are not where this law thinks").toBe(6);
     for (const arm of arms) {
       expect(
-        /max-(inline|block)-size:\s*calc\(100% - var\(--touch-target-min\)\)/.test(arm),
+        /max-(inline|block)-size:\s*calc\(100% - var\(--touch-target-min\) - 2 \* var\(--kui-shell-outer\)\)/.test(
+          arm,
+        ),
         `an overlay arm has no viewport cap:\n${arm}`,
+      ).toBe(true);
+    }
+  });
+
+  it("EVERY overlay arm spans the frame — an out-of-flow item does not size its own track", () => {
+    // The 2026-08-20 CRITICAL, pinned across the SET rather than at one pane (audit
+    // 2026-08-26). An absolutely positioned grid item's containing block is its GRID AREA, and
+    // an out-of-flow item does not size its own `auto` track — so the moment a pane leaves flow
+    // its column collapses to zero, `100%` means nothing, and the drawer paints its borders and
+    // nothing else (measured: rect 1px, clientWidth 0, at a 375px window).
+    //
+    // The mounted laws reach exactly ONE of the six arms: the agreement law walks
+    // `.kui-shell-sidebar` and the cap laws mount the sidebar. Delete `grid-column: 1 / -1`
+    // from the inspector's narrow arm and every phone loses its inspector with the browser
+    // suite green — which is the half-applied shape the 2026-08-20 comment in shell.css warns
+    // about, in the one direction nothing was watching. A node law reaches all six for free.
+    //
+    // Read per-AXIS, because a side pane and the bottom pane span opposite ways and asserting
+    // "some span" would let either satisfy the other's arm (a law about one axis of a two-axis
+    // mechanism is half a law).
+    const arms = css
+      .split("}")
+      .filter((rule) =>
+        /\.kui-shell-(rail|sidebar|inspector|bottom)(?![\w-])[^{]*\{[^{]*position:\s*absolute/.test(rule),
+      );
+    expect(arms.length, "the overlay arms are not where this law thinks").toBe(6);
+    for (const arm of arms) {
+      const axis = /\.kui-shell-bottom(?![\w-])/.test(arm) ? "row" : "column";
+      expect(
+        new RegExp(`grid-${axis}:\\s*1 / -1`).test(arm),
+        `an overlay arm does not span the frame on its ${axis} axis:\n${arm}`,
       ).toBe(true);
     }
   });

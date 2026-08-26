@@ -149,7 +149,13 @@
    the screen's, and a curve there would draw a gap that is not real. */
 @media (max-width: 48rem) {
   .kui-dialog-viewport {
-    padding: var(--radius-0);
+    /* A bare zero, not `var(--radius-0)` (2026-08-26). The gutter goes here, and routing that
+       absence through a RADIUS palette rung is the numeric coincidence the tokens-only rule
+       names as its own example: `--radius-0` is re-declared inside every `[data-radius]` block,
+       so a sheet's gutter and a sheet's corner would move together the day the band is
+       re-authored — which it was, wholesale, on 2026-08-17. The raw-length law reads `\d+px`
+       and a bare zero is not a length literal. */
+    padding: 0;
   }
 
   .kui-dialog-popup {
@@ -157,7 +163,9 @@
        `margin: auto` is what centres it at every other width, and only the block axis moves —
        the inline axis has no room left to distribute. */
     margin-block-start: auto;
-    margin-block-end: var(--radius-0);
+    /* Bare zero for the reason stated on the viewport's padding above: this is the ABSENCE of
+       a margin, not a corner. */
+    margin-block-end: 0;
     max-inline-size: none;
     max-block-size: calc(100% - var(--touch-target-min));
     /* The knob has to be restated, not dropped. The surface layer's own corner is

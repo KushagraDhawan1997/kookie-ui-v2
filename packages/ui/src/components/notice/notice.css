@@ -9,7 +9,14 @@
  * lift it off the flow. That absence is the design: the condition is true now, and a strip
  * that hovered would cover the content somebody is being told about.
  */
-.kui-notice {
+/* THE STAND-DOWN IS TWO-CLASS ON PURPOSE (2026-08-26). The material rules write the same
+   name at `.kui-surface[data-material="thin"]` — (0,2,0) — so a one-class `.kui-notice`
+   loses the cascade on SPECIFICITY, not on order, and a `<Notice backdrop>` in an elevated
+   world cast the transmitted surface chrome the rule below exists to refuse. `.kui-surface`
+   is already on the element (the root wears it), so this buys the tie and this file's import
+   position wins it. Splitting the declaration out of the block below would be the same
+   mistake at a different address: it has to be as specific as the rule it answers. */
+.kui-surface.kui-notice {
   /* A NOTICE DOES NOT CAST (§5, §10, Kushagra 2026-08-21). The plane criterion: elevation
      dresses boxes that establish a plane of their own, which is why fields left the elevated
      world twice and why a ground stands its cast down with "a hole in a plane throws no

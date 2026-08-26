@@ -26,6 +26,8 @@ import {
   tokenOn,
   within,
   inMotion,
+  holdPress,
+  until,
 } from "../../test/browser.tsx";
 import { Card } from "../card/card.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
@@ -156,11 +158,21 @@ describe("the shifted member: the track is mark(n + 1), by identity (§4)", () =
       // only because "the extent is not guessed" — it is the box a control of that size already
       // occupies — so the inline extent owes the same sentence: the target may not reach past
       // the painted width by more than it reaches past the painted height.
+      //
+      // Stated as the designed EXTENT, not as an identity (audit 2026-08-26). It read
+      // `after.width - painted.w ≈ after.height - painted.h`, and those two quantities are
+      // made equal by arithmetic: the expander is one uniform `inset` shorthand, so for an
+      // auto-sized absolutely positioned box both reaches are exactly -2 x inset whatever
+      // the inset is. A law whose two sides are the same expression is a law about the
+      // spelling of its own fixture. The bound below is derived from the block claim one
+      // line up: the target reaches past the painted width by exactly what it reaches past
+      // the painted height, and that reach is the designed one — so a target sized against
+      // anything else, on either axis, names itself here.
       const painted = box(markOf(el));
-      const blockReach = px(after.height) - painted.h;
-      const inlineReach = px(after.width) - painted.w;
-      expect(inlineReach, `${cell}: the target reaches further sideways than it does vertically`)
-        .toBeCloseTo(blockReach, 1);
+      expect(
+        px(after.width),
+        `${cell}: the inline extent is not the box a control of this size occupies`,
+      ).toBeCloseTo(painted.w - painted.h + Math.min(height, floor), 1);
     });
   });
 
@@ -229,6 +241,45 @@ describe("the shifted member: the track is mark(n + 1), by identity (§4)", () =
     });
     // Without this the law is a scan over cells that may all skip — the vacuity the 2026-08-06
     // fix batch shipped once already (an overlap scan off-viewport, 24 cells passing on null).
+    expect(floored, "no cell actually floored — the law measured nothing").toBeGreaterThan(0);
+  });
+
+  it("and its GRIP stays a CIRCLE there — the diameter follows the floored track (§4, §6)", () => {
+    // The two axes of the thumb are drawn by different mechanisms, which is the shape this
+    // repo keeps meeting. With both block insets stated the height genuinely derives from the
+    // box it sits in — trackHeight - 2 x inset, whatever the track turns out to be. With both
+    // inline insets stated the used width is exactly --kui-sw-d, and that restated the
+    // UNFLOORED --kui-ct-mark, so in a slot genuinely tighter than the mark the grip came out
+    // wider than it was tall: a lozenge with a clamped corner in the one place the family's
+    // box shrinks under its own token. Audit 2026-08-26.
+    //
+    // The law above measures the TRACK's aspect in exactly these cells and could not see it,
+    // because the part that was wrong is one element down.
+    let floored = 0;
+    forEachCell(({ pointer, density, size }) => {
+      if (size === "1") return;
+      const fieldSize = String(Number(size) - 1) as typeof size;
+      const host = render(
+        <Theme pointer={pointer} density={density}>
+          <TextField size={fieldSize} trailing={<Switch size={size} />} />
+          <Switch size={size} />
+        </Theme>,
+      );
+      const [hosted, bare] = Array.from(host.querySelectorAll<HTMLElement>(".kui-switch"));
+      if (box(hosted!).h >= box(bare!).h) return; // roomy slot; the floor is a no-op by design
+      floored += 1;
+      const cell = `${pointer}/${density}/field ${fieldSize} + switch ${size}`;
+      const grip = hosted!.querySelector<HTMLElement>(".kui-switch-thumb")!;
+      const g = box(grip);
+      expect(g.w, `${cell}: the floored grip is a lozenge, not a circle`).toBeCloseTo(g.h, 1);
+      // Half the DIAMETER, the file's own spelling — which is only a circle if the diameter
+      // is the one the box actually has.
+      expect(
+        px(computed(grip, "border-top-left-radius")),
+        `${cell}: the floored grip's corner`,
+      ).toBeCloseTo(g.h / 2, 1);
+      expect(g.h, `${cell}: the grip overflows its floored channel`).toBeLessThan(box(hosted!).h);
+    });
     expect(floored, "no cell actually floored — the law measured nothing").toBeGreaterThan(0);
   });
 });
@@ -767,6 +818,43 @@ describe("the thumb crosses its channel, drawn by both edges (§8)", () => {
       "the lean must hang off the switch, not off the thumb",
     ).toBe(true);
     expect(parseFloat(computed(thumb, "inset-inline-end")), "and there is room to lean into").toBeGreaterThan(0);
+  });
+
+  it("a DEAD switch does not lean — the press response is guarded like every other (§8)", async () => {
+    // The root is a `<span role="switch" aria-disabled>`, not a native `<button disabled>`, so
+    // `:active` matches it under a real pointer exactly as it matches a live one. Both lean
+    // rules shipped unguarded (audit 2026-08-26), so a disabled switch stretched its grip
+    // toward a crossing it will never make — the one press response in the system that
+    // answered a control that had refused.
+    //
+    // Read under the harness's default stillness: with the clocks off, the held pose is the
+    // computed value, so this law reads a state and never a moment.
+    // Spaced by the family's own stacking rule (12px, audit D1): below it a mark's invisible
+    // target overlaps its neighbour's paint and the press lands on the wrong control.
+    const host = render(
+      <div style={{ display: "flex", gap: "16px" }}>
+        <Switch aria-label="live" />
+        <Switch aria-label="dead" disabled />
+      </div>,
+    );
+    const [live, dead] = Array.from(host.querySelectorAll<HTMLElement>(".kui-switch"));
+    const grip = (el: HTMLElement) => el.querySelector<HTMLElement>(".kui-switch-thumb")!;
+    const far = (el: HTMLElement) => computed(grip(el), "inset-inline-end");
+    const restLive = far(live!);
+    const restDead = far(dead!);
+
+    // The LIVE switch is the clock: proving it leans is what makes the dead one's stillness a
+    // measured absence rather than a press that never landed.
+    const releaseLive = await holdPress(live!);
+    await until(() => far(live!) !== restLive);
+    expect(far(live!), "a live grip must lean — or this law proves nothing").not.toBe(restLive);
+    await releaseLive();
+    await until(() => far(live!) === restLive);
+
+    const releaseDead = await holdPress(dead!);
+    await until(() => far(dead!) !== restDead, 300);
+    expect(far(dead!), "a dead switch leaned into a press it will not act on").toBe(restDead);
+    await releaseDead();
   });
 
   it("the grip stays a capsule while it leans — 50% would make it an ellipse", () => {

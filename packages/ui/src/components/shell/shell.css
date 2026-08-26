@@ -4,11 +4,17 @@
    grid, the pane extents, the posture derivation) and the pane STATES (auto/open/closed, and the
    overlay treatment with its scrim).
 
-   This is the ONE stylesheet sanctioned to key on the viewport (§13's carve-out; §18's
-   boundary). The `48rem` literal below is the narrow window boundary and may not drift from
-   config — shell.test.ts derives the expected string from `narrowMedia` and fails on any
-   respelling. All the narrow-window rules live in the single media block at the bottom so
-   the literal exists ONCE.
+   This is ONE OF TWO stylesheets sanctioned to key on the viewport (§13's carve-out; §18's
+   boundary) — `dialog.css` is the other, for the dialog-as-sheet (2026-08-21). The set is
+   closed and swept: shell.test.ts walks every shipped stylesheet, fails on a third sheet
+   keying on the viewport, and derives the expected query from `narrowMedia` so neither
+   sheet's literal can drift from config. This file said "the ONE" for five days after the
+   second one shipped — the "exactly one X" claim that quietly becomes two, which is a defect
+   class this repo has already paid for at the box-shadow count and the cursor count. The
+   sweep is what makes the sentence checkable rather than remembered.
+
+   All the narrow-window rules live in the single media block at the bottom so the literal
+   exists ONCE here.
 
    No motion yet, on Menu's own precedent (shipped instant, moved the next day): the panes'
    spring entry is the recorded follow-up, and shipping zero transitions means the reduced-
@@ -26,6 +32,23 @@
 @property --kui-shell-h {
   syntax: "*";
   inherits: false;
+}
+
+/* THE PANE'S OWN OUTER SPACING, published so the overlay cap can subtract it (2026-08-26
+   audit). The cap bounds a drawer's BORDER box against the frame; a non-flush pane then adds
+   its margin outside that box, so the dismissal strip the cap exists to guarantee came out
+   `--touch-target-min` MINUS the margin — measured 36px against a 44px floor at a 320px
+   window, below the floor the strip is measured against everywhere else in the library.
+
+   Registered `<length>` with an initial value rather than read through a `var()` fallback:
+   a fallback would be a second home for the "no outer spacing" answer, and the descriptor is
+   the one place a zero length is not a raw literal. `inherits: false` for the same reason the
+   two extents above are — a pane's margin is not its children's, and a Shell composed inside
+   a pane would otherwise size its own caps from the outer pane's spacing. */
+@property --kui-shell-outer {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
 }
 
 /* ── The frame ─────────────────────────────────────────────────────────────────────────────
@@ -281,7 +304,7 @@
   grid-column: 1 / -1;
   inset-block: 0;
   inset-inline-start: 0;
-  max-inline-size: calc(100% - var(--touch-target-min));
+  max-inline-size: calc(100% - var(--touch-target-min) - 2 * var(--kui-shell-outer));
   z-index: 2;
 }
 
@@ -290,7 +313,7 @@
   grid-column: 1 / -1;
   inset-block: 0;
   inset-inline-end: 0;
-  max-inline-size: calc(100% - var(--touch-target-min));
+  max-inline-size: calc(100% - var(--touch-target-min) - 2 * var(--kui-shell-outer));
   z-index: 2;
 }
 
@@ -299,7 +322,7 @@
   grid-row: 1 / -1;
   inset-inline: 0;
   inset-block-end: 0;
-  max-block-size: calc(100% - var(--touch-target-min));
+  max-block-size: calc(100% - var(--touch-target-min) - 2 * var(--kui-shell-outer));
   z-index: 2;
 }
 
@@ -315,7 +338,22 @@
   backdrop-filter: var(--scrim-filter, none);
 }
 
-.kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="overlay"]) > .kui-shell-scrim {
+/* THE SCRIM FOLLOWS CONTAINMENT, NOT PARENTAGE (2026-08-26 audit). The direct-child arm is
+   the ordinary shape; the second arm is a pane the consumer WRAPPED in a plain `<div>`, which
+   the root's containment pass has treated as first-class since 2026-08-16 ("the root child
+   CONTAINING each live overlay"). The two disagreed, and the disagreement was the bad half of
+   both: the wrapped drawer got full modal containment — every other root child inert — with no
+   scrim drawn and therefore no pointer route out at all. On a phone, with no Escape key, that
+   is an app you can only leave by reloading.
+
+   The nested-shell guard is what a descendant question costs. `:has()` cannot ask "the nearest
+   `.kui-shell` ancestor of this pane is me", so the wrapped arm would also fire for a Shell
+   composed INSIDE this one — raising the outer frame's scrim over a drawer it does not own and
+   does not contain. Where that shape exists the arm stands down, which is exactly today's
+   behaviour and never worse; the direct-child arm is unguarded because `>` already answers it. */
+.kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="overlay"]) > .kui-shell-scrim,
+.kui-shell:not(:has(.kui-shell)):has(> * .kui-shell-pane[data-state="open"][data-presentation="overlay"])
+  > .kui-shell-scrim {
   display: block;
 }
 
@@ -492,6 +530,9 @@
    `:has()` rules of the form "if the thing next to you is non-flush, give it air". */
 .kui-shell-pane:not([data-flush]) {
   margin: var(--shell-gap);
+  /* Published for the overlay cap, which bounds the border box and would otherwise leave the
+     margin to eat the dismissal strip (see the registration at the head of this file). */
+  --kui-shell-outer: var(--shell-gap);
 }
 
 /* ...unless NOTHING is flush, which is the all-cards frame. There the gap splits — half on
@@ -505,6 +546,10 @@
 
 .kui-shell:not(:has(> .kui-shell-pane[data-flush])) > .kui-shell-pane {
   margin: calc(var(--shell-gap) / 2);
+  /* Restated with the margin it names — this arm outranks the one above (0,4,0) against
+     (0,2,0), so a pane in the all-cards regime would otherwise publish the full gap while
+     paying half of it. */
+  --kui-shell-outer: calc(var(--shell-gap) / 2);
 }
 
 /* FLOATING, half one: the pane lifts above the content. `z-index` on a grid item works with
@@ -635,19 +680,22 @@
    nav label reads; the CURRENT one takes the family back, which is the whole of what says
    "you are here" now that the fill is grey at every rung (`undilutedTones`, same day).
 
-   Both arms are needed and the specificity is deliberate: `.kui-shell-nav-item` ties with
-   `.kui-row` at (0,1,0) and wins on file order (shell.css loads after recipes.css), while the
-   `[aria-current]` arm is (0,2,0) and beats its own sibling. Keyed on the ANNOUNCED attribute
-   rather than on a private stamp, so the painted state and the announced one cannot disagree. */
+   ONE ARM, and the specificity is what bounds it: `.kui-shell-nav-item` ties with `.kui-row`
+   at (0,1,0) and wins on file order (shell.css loads after recipes.css), and it is deliberately
+   NOT raised past that — because the shared `.kui-row[aria-current]` arm is (0,2,0) and is what
+   hands the family back for the current row. Keyed on the ANNOUNCED attribute there rather than
+   on a private stamp, so the painted state and the announced one cannot disagree. A member that
+   restated `[aria-current]` here would be re-deciding a family value in a component sheet; the
+   agreement law reads a current nav row against a bare `Row` to keep the two one.
+
+   CHANGES
+   2026-08-26 — deleted a local `.kui-shell-nav-item[aria-current]` copy of the shared
+     declaration. It was a no-op: (0,2,0) against (0,2,0) with the identical value, and its
+     comment said it restated the family "past the resting stand-down above" — which the
+     shared arm already outranks by a full attribute. Dead weight that could only ever drift
+     from the value it duplicated. */
 .kui-shell-nav-item {
   --kui-ct-label-color: var(--color-text);
-}
-
-.kui-shell-nav-item[aria-current] {
-  /* --tone-CURRENT since 2026-08-26: the one value the current row's icon and label share —
-     a per-mode ink/glyph pick made in color-config's currentInk (recipes.css carries the
-     rule; this restates it past the resting stand-down above). */
-  --kui-ct-label-color: var(--tone-current);
 }
 
 /* AND A DEAD ROW DIMS (2026-08-23, ultracode audit — a defect the stand-down above introduced
@@ -719,6 +767,14 @@
 .kui-shell-rail-list {
   display: flex;
   flex-direction: column;
+  /* THE SAME PICK THE NAV GROUP STATES (2026-08-26 audit). The sentence above claimed this
+     container owns the distance between its squares and the rule declared none, so two
+     adjacent squares touched — and a rail square carries a persistent fill (`aria-current`)
+     and a transient one (hover), which is exactly the case `.kui-shell-nav-group` takes air
+     for: a current square edge-to-edge with a hovered neighbour reads as one taller lozenge
+     rather than two squares. Stated here rather than shared, because the pick is the system's
+     and the DECLARATION is each container's (tree.css carries the argument). */
+  gap: var(--layout-space-1);
   /* NOT `align-items: center`. It looks harmless and it is a second mechanism doing the
      PADDING's job: the rail's content box is exactly the square, so a centred item lands at
      the same offset the pane's padding already put it at, and the two are indistinguishable
@@ -835,7 +891,7 @@
     grid-column: 1 / -1;
     inset-block: 0;
     inset-inline-start: 0;
-    max-inline-size: calc(100% - var(--touch-target-min));
+    max-inline-size: calc(100% - var(--touch-target-min) - 2 * var(--kui-shell-outer));
     z-index: 2;
   }
 
@@ -844,7 +900,7 @@
     grid-column: 1 / -1;
     inset-block: 0;
     inset-inline-end: 0;
-    max-inline-size: calc(100% - var(--touch-target-min));
+    max-inline-size: calc(100% - var(--touch-target-min) - 2 * var(--kui-shell-outer));
     z-index: 2;
   }
 
@@ -853,11 +909,16 @@
     grid-row: 1 / -1;
     inset-inline: 0;
     inset-block-end: 0;
-    max-block-size: calc(100% - var(--touch-target-min));
+    max-block-size: calc(100% - var(--touch-target-min) - 2 * var(--kui-shell-outer));
     z-index: 2;
   }
 
-  .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="auto"]) > .kui-shell-scrim {
+  /* Both arms, restated for the resolved value — the grid-span repair's own lesson: a
+     treatment that lives in two blocks must be repaired in both, and `auto` is the path every
+     phone takes. */
+  .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="auto"]) > .kui-shell-scrim,
+  .kui-shell:not(:has(.kui-shell)):has(> * .kui-shell-pane[data-state="open"][data-presentation="auto"])
+    > .kui-shell-scrim {
     display: block;
   }
 }

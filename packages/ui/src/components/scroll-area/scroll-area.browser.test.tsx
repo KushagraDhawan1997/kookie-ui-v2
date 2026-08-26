@@ -8,6 +8,7 @@
  * at rest; the thumb is a capsule on the alpha ramp; nothing here rides an index.
  */
 import { describe, expect, it } from "vitest";
+import { userEvent } from "vitest/browser";
 
 import {
   APPEARANCES,
@@ -19,6 +20,7 @@ import {
   inMotion,
   mounted,
   tokenOn,
+  until,
   within,
 } from "../../test/browser.tsx";
 import { ScrollArea } from "./scroll-area.tsx";
@@ -82,10 +84,109 @@ describe("the platform keeps the scrolling; the system only draws the bar (§13)
   });
 
   it("the wrappers are presentational, so a bar inside a role-bearing panel adds no structure", async () => {
-    const root = await laidOut(mounted(overflowing, { theme: {} }));
-    for (const el of [root, within(root, ".kui-scroll-viewport"), within(root, ".kui-scroll-content")]) {
-      expect(el.getAttribute("role")).toBe("presentation");
+    /**
+     * WIDENED 2026-08-26. The loop read exactly the three parts Base UI already sets
+     * `role="presentation"` on itself (Root, Viewport, Content), so all three `role` props in
+     * scroll-area.tsx could be deleted and this law stayed green — while the five parts where
+     * the prop is genuinely load-bearing (two scrollbars, two thumbs, the corner) were read by
+     * nothing. Those five were landing as roleless children of the host's role, which is the
+     * regression this law is named after.
+     */
+    const root = await laidOut(
+      mounted(
+        <ScrollArea focusable={false} style={{ height: "80px", width: "120px" }}>
+          <div style={{ height: "600px", width: "600px" }} />
+        </ScrollArea>,
+        { theme: {} },
+      ),
+    );
+    const parts = [
+      root,
+      within(root, ".kui-scroll-viewport"),
+      within(root, ".kui-scroll-content"),
+      vbar(root),
+      hbar(root),
+      within(vbar(root), ".kui-scroll-thumb"),
+      within(hbar(root), ".kui-scroll-thumb"),
+      within(root, ".kui-scroll-corner"),
+    ];
+    // Vacuity: `within` throws on a miss, but the count is what says the bars really mounted.
+    expect(parts.length).toBe(8);
+    for (const el of parts) {
+      expect(el.getAttribute("role"), `${el.className} carries no role`).toBe("presentation");
     }
+  });
+
+  it("`focusable` is the whole of that sentence: it strips the tab stop, or presentation is void", async () => {
+    // ARIA voids `presentation` on ANY focusable element, so the law above is only TRUE of a
+    // non-focusable viewport — which is the pair nothing here read. Both directions, because
+    // "it has no tabindex" and "it has one" are indistinguishable from one arm.
+    const inside = await laidOut(
+      mounted(
+        <ScrollArea focusable={false} style={{ height: "80px", width: "120px" }}>
+          <div style={{ height: "600px", width: "600px" }} />
+        </ScrollArea>,
+        { theme: {} },
+      ),
+    );
+    expect(within(inside, ".kui-scroll-viewport").hasAttribute("tabindex")).toBe(false);
+    const standalone = await laidOut(mounted(overflowing, { theme: {} }));
+    expect(within(standalone, ".kui-scroll-viewport").hasAttribute("tabindex")).toBe(true);
+  });
+
+  it("a standalone viewport is a tab stop, so it draws the SYSTEM's ring and can be named", async () => {
+    /**
+     * `focusable` defaults true and no stylesheet drew anything for it, so the one element
+     * this component makes reachable by keyboard showed Chrome's own
+     * `-webkit-focus-ring-color auto 1px` — a different colour, width and offset from every
+     * other focus in the app. And it carried `role="presentation"` with no name, so what a
+     * screen-reader user landed on announced as nothing at all.
+     *
+     * The ring is read as RESOLVED values against the ring tokens, not as "not none": `auto`
+     * is a perfectly good non-none outline width, which is the assertion shape this repo
+     * deleted from checkbox for exactly this reason (audit D9).
+     */
+    const root = await laidOut(
+      mounted(
+        <>
+          <button type="button" data-testid="before">
+            before
+          </button>
+          <ScrollArea aria-label="Build log" style={{ height: "80px", width: "120px" }}>
+            <div style={{ height: "600px", width: "600px" }} />
+          </ScrollArea>
+        </>,
+        { theme: {}, select: ".kui-scroll-area" },
+      ),
+    );
+    const viewport = within(root, ".kui-scroll-viewport");
+    // Named, and announced as a region rather than as a nameless generic node.
+    expect(viewport.getAttribute("aria-label")).toBe("Build log");
+    expect(viewport.getAttribute("role")).toBe("region");
+
+    // ARRIVED AT BY KEYBOARD, not by `.focus()`. `:focus-visible` is the browser's own
+    // modality heuristic and a script focus does not satisfy it (this repo's own instrument
+    // finding, 2026-08-17: `el.focus()` does not make a BUTTON `:focus-visible` in Chrome), so
+    // a law that focused programmatically would read the resting outline and assert nothing.
+    // `getComputedStyle(el, ":focus-visible")` is not the way round it either — the second
+    // argument takes a pseudo-ELEMENT, and a pseudo-class there answers the empty string.
+    (root.previousElementSibling as HTMLElement).focus();
+    await userEvent.keyboard("{Tab}");
+    // Waited for, not asserted on the next line: a driver gesture resolving is not the browser
+    // having settled (ENGINEERING §6), and `settling.test.ts` fails this shape at authoring
+    // time. Nothing is lost — a tab that never arrives expires the deadline into the same
+    // assertion, with the same value in the message.
+    await until(() => document.activeElement === viewport);
+    expect(document.activeElement, "the tab never reached the viewport").toBe(viewport);
+    expect(viewport.matches(":focus-visible")).toBe(true);
+    expect(computed(viewport, "outline-width")).toBe(tokenOn(root, "--focus-ring-width"));
+    expect(computed(viewport, "outline-style")).toBe("solid");
+    expect(computed(viewport, "outline-offset")).toBe(tokenOn(root, "--focus-ring-offset"));
+    expect(computed(viewport, "outline-color")).toBe(colorOn(root, "var(--focus-ring)"));
+
+    // The unnamed default stays structural: a landmark with no name is worse than none.
+    const anonymous = await laidOut(mounted(overflowing, { theme: {} }));
+    expect(within(anonymous, ".kui-scroll-viewport").getAttribute("role")).toBe("presentation");
   });
 });
 

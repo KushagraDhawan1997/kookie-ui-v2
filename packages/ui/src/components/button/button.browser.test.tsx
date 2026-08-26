@@ -4,6 +4,8 @@
  */
 import { describe, expect, it } from "vitest";
 
+import type * as React from "react";
+
 import type { RenderElement } from "../../system/render.ts";
 import { coarse, density } from "../../tokens/config.ts";
 import {
@@ -452,6 +454,41 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
     expect(computed(plain, "background-color")).toBe(tokenOn(plain, "--tone-solid"));
     expect(computed(glass, "background-color")).not.toBe(computed(plain, "background-color"));
   });
+
+  it("a control hosted in either SLOT is inside the scope — glass does not stack (§10, 2026-08-26)", () => {
+    /**
+     * The scope wrapped `children` only, so a control placed in a slot never saw the pane
+     * mark and never saw the region reset: inside a marked region it resolved the theme's
+     * thickness and painted a SECOND backdrop-filter over the one its host had already
+     * spent. TextField wraps both of its slots for exactly this reason; Button has the same
+     * anatomy — §4 designed the hosted-control geometry for it — and had half the scope.
+     *
+     * The REGION is what makes this reachable, so the region is what the fixture depends on:
+     * a hosted control with no `backdrop` of its own and no `<Box backdrop>` above resolves
+     * solid whether the scope exists or not, which is the fixture that proves nothing.
+     *
+     * Falsified against `<GlassScope material={material}>{content}</GlassScope>` with the
+     * slots left outside: reads `expected 'regular' to be 'on-glass'`.
+     */
+    const host = mounted(
+      <Box backdrop>
+        <Button
+          leading={<Button size="1">L</Button>}
+          trailing={<Button size="1">T</Button>}
+        >
+          Deploy
+        </Button>
+      </Box>,
+      { theme: { material: "regular" }, select: ".kui-button" },
+    );
+    expect(host.dataset["material"], "the host is not glass, so this proves nothing").toBe("regular");
+    expect(computed(host, "backdrop-filter")).not.toBe("none");
+    for (const which of ["leading", "trailing"] as const) {
+      const hosted = within(host, `[data-slot="${which}"] .kui-button`);
+      expect(hosted.dataset["material"], `${which}: the slot is outside the pane scope`).toBe("on-glass");
+      expect(computed(hosted, "backdrop-filter"), `${which}: a second veil over the first`).toBe("none");
+    }
+  });
 });
 
 describe("loading keeps the label, which is the whole rule (§8)", () => {
@@ -483,7 +520,19 @@ describe("loading keeps the label, which is the whole rule (§8)", () => {
 
   it("keeps the keyboard when a press flips it into loading", () => {
     // A click that starts a request must not dump focus, which is what plain `disabled` does.
-    expect(render(<Button loading>Save</Button>).getAttribute("tabindex")).not.toBe("-1");
+    //
+    // REWRITTEN 2026-08-26 (audit): this read `tabindex !== "-1"`, which Base UI writes on
+    // every non-composite native button whatever `focusableWhenDisabled` says — so the law
+    // could not fail. What decides focusability here is WHICH branch Base UI takes: the
+    // native `disabled` attribute drops the element out of the tab order and cannot be
+    // overridden, so the claim is that the attribute is absent and the state is announced
+    // through ARIA instead. Falsified against `focusableWhenDisabled={focusableWhenDisabled ?? false}`.
+    const el = render(<Button loading>Save</Button>);
+    expect(el.hasAttribute("disabled"), "the native attribute dropped it out of the tab order").toBe(false);
+    expect(el.getAttribute("aria-disabled")).toBe("true");
+    // And it really does take focus — the behaviour the two attributes above only imply.
+    (el as HTMLButtonElement).focus();
+    expect(document.activeElement).toBe(el);
   });
 
   it("swaps the icon for the spinner in the same box, so nothing shifts", () => {
@@ -846,6 +895,33 @@ describe("the boundary (§3, §13)", () => {
     expect(el.getAttribute("role")).toBe(null);
   });
 
+  it("a COMPONENT render target that bottoms out in a button stays native (§5, 2026-08-26)", () => {
+    /**
+     * The inference was a one-level `target.type === "button"`, and a component's `type` is a
+     * function — so the ordinary reason to reach for `render` with something that is not an
+     * element (a styled wrapper) took Base UI's NON-native branch: `role="button"` stamped on
+     * a real <button>, no `type` attribute at all (so it submits the form around it), and
+     * `aria-disabled` where the native attribute belongs. `rootsInButton` is the system's one
+     * answer to this question since 2026-08-23 and Button — the component the defect is named
+     * after — was the one caller still hand-rolling it.
+     *
+     * Falsified against `target.type === "button"`: reads
+     * `expected 'button' to be null // Object.is equality` on the role.
+     */
+    const Styled = (props: React.ComponentProps<"button">) => <button {...props} />;
+    const el = render(<Button render={<Styled />}>Cancel</Button>);
+    expect(el.tagName).toBe("BUTTON");
+    expect(el.getAttribute("role"), "a real button was told it is not one").toBe(null);
+    expect(el.getAttribute("type"), "no type: it submits the form it sits in").toBe("button");
+    // The nested blessed shape the shallow check also answered wrong, in the other direction:
+    // an anchor UNDER a component must still come out non-native.
+    const link = render(
+      <Button render={<Button render={<a href="/x" />} />}>Go</Button>,
+    );
+    expect(link.tagName).toBe("A");
+    expect(link.hasAttribute("type"), "type on an anchor is the linked resource's MIME type").toBe(false);
+  });
+
   it("and a disabled link says so, instead of being a focusable dead end (§1)", () => {
     // Was: <a href="/x" data-disabled type="button" tabindex="0" disabled> — `disabled` is
     // inert on an anchor and ignored by assistive tech, so a screen-reader user heard "Go,
@@ -958,6 +1034,38 @@ describe("iconOnly is a square box with a required name (§4, decided 2026-08-04
     const box = button.getBoundingClientRect();
     expect(Math.abs(box.width - box.height)).toBeLessThanOrEqual(1);
     expect(box.height).toBeLessThan(field.getBoundingClientRect().height);
+  });
+
+  it("busy, the Spinner REPLACES the glyph — it does not stand beside it (2026-08-26)", () => {
+    // The glyph of an icon-only button is `children`, and `loading` only ever substituted the
+    // leading SLOT — so the Spinner arrived as a second item inside a box `aspect-ratio: 1`
+    // gives no room for. Measured pre-fix at size 3: two icon boxes plus the label gap inside
+    // one square, the glyph still showing while the control claimed to be busy.
+    //
+    // Read as CONTENT and as the BOX, because either alone passes for the wrong reason: the
+    // glyph count alone would survive a fix that hid the glyph with CSS, and the width alone
+    // would survive a spinner that overflowed a square that stayed square.
+    const idle = render(
+      <Button size="3" iconOnly aria-label="Save">
+        <svg />
+      </Button>,
+    );
+    const busy = render(
+      <Button size="3" iconOnly aria-label="Save" loading>
+        <svg />
+      </Button>,
+    );
+    expect(busy.querySelector(".kui-spinner"), "no spinner at all").not.toBeNull();
+    expect(
+      busy.querySelectorAll("svg:not(.kui-spinner-svg)").length,
+      "the glyph is still there beside the spinner",
+    ).toBe(0);
+    // The slot is untouched: the Spinner took the glyph's place, not an adornment's.
+    expect(busy.querySelector("[data-slot]"), "loading rented a slot an icon button has no room for").toBeNull();
+    const idleBox = idle.getBoundingClientRect();
+    const busyBox = busy.getBoundingClientRect();
+    expect(busyBox.width, "the busy box is wider than the idle one").toBeCloseTo(idleBox.width, 1);
+    expect(Math.abs(busyBox.width - busyBox.height), "busy, it stopped being square").toBeLessThanOrEqual(1);
   });
 });
 

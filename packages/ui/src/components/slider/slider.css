@@ -35,7 +35,19 @@
   margin-block: calc(-1 * var(--border-width));
   display: flex;
   align-items: center;
-  inline-size: 100%;
+  /* CHANGES 2026-08-26: the R4 repair, applied to the axis it left out. R4 gave the strip back
+     the two border rows it loses in the BLOCK axis and stopped there — `inline-size: 100%` on
+     a flex item resolves against the flex container's CONTENT box, which for the border-box
+     root is its outer width minus two border widths, so the strip that answers a press and the
+     rail it holds both stopped one border width short of each END of the control while line 9
+     of this file said "a track runs the full box, ends included". A press on the last row of
+     pixels at either end landed on the root and moved nothing.
+     The block axis is paid by `align-self: stretch`, which sizes a stretched item AFTER its
+     margins, so the negative margin grows it. The main axis has no stretch, so the width has
+     to name the two rows it is taking back or the negative margin would only shift the strip
+     and leave it short at the far end. */
+  inline-size: calc(100% + 2 * var(--border-width));
+  margin-inline: calc(-1 * var(--border-width));
   position: relative;
   /* Dragging is the interaction: a vertical scroll must not steal a horizontal drag mid-way.
      Overrides the skeleton's `manipulation`, which keeps scroll — right for a button, wrong

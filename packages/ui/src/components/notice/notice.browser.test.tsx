@@ -3,6 +3,8 @@
  * colour is the claim — and the two structural claims (it takes space, it never floats) read as
  * geometry, because they are what separate this component from the one that was refused.
  */
+import * as React from "react";
+import { flushSync } from "react-dom";
 import { describe, expect, it } from "vitest";
 
 import { APPEARANCES, DEPTHS, colorOn, computed, mounted, tokenOn, within } from "../../test/browser.tsx";
@@ -189,6 +191,50 @@ describe("a notice does not cast, and it does answer the material (§5, §10)", 
     expect(computed(card, "box-shadow")).toContain("rgba(0, 0, 0, 0.1)");
   });
 
+  it("and a GLASS notice throws none either — the cell the stand-down actually loses (2026-08-26)", () => {
+    /**
+     * This loop is the half the file was missing: every fixture above mounts a SOLID notice,
+     * so `data-material` is never stamped and the (0,2,0) material rule that defeats a
+     * one-class stand-down never matches. The stand-down could be deleted outright and the
+     * suite stayed green on the glass cell.
+     *
+     * A glass pane keeps its POOL — the seat-line the material HAS — so "no shadow at all" is
+     * the wrong claim here. What must be absent is the transmitted CAST, which is the world's
+     * chrome; the Card control below is what says the world really is casting.
+     */
+    for (const depth of DEPTHS) {
+      const notice = mounted(<Notice backdrop>Approaching weekly usage limit</Notice>, {
+        theme: { depth, material: "regular" },
+      });
+      expect(notice.getAttribute("data-material"), "the fixture never reached the glass rules").toBe(
+        "regular",
+      );
+      // The expected list, spelled through the WORLD's inheriting name rather than the pane's
+      // own `--kui-sf-pool` — that one is registered `inherits: false`, so a child probe reads
+      // nothing at all and this law would compare two empty strings.
+      const probe = document.createElement("div");
+      probe.style.boxShadow = "var(--kui-surface-pool, 0 0 0 0 transparent), 0 0 0 0 transparent";
+      notice.append(probe);
+      // The POOL, then the no-op where the transmitted cast would be: the pane's own matter,
+      // and nothing the app says about height.
+      expect(computed(notice, "box-shadow"), `depth=${depth}`).toBe(computed(probe, "box-shadow"));
+      probe.remove();
+    }
+    // The control, and it is the whole finding: the same glass rules DO transmit a cast to a
+    // pane that establishes a plane. Read as the difference against that pane's own pool
+    // rather than against a literal — the transmitted rows are FADED per thickness, so a
+    // hard-coded alpha is a law about one tuning of the shadow palette.
+    const card = mounted(<Card backdrop>Body</Card>, { theme: { depth: "elevated", material: "regular" } });
+    const bare = document.createElement("div");
+    bare.style.boxShadow = "var(--kui-surface-pool, 0 0 0 0 transparent), 0 0 0 0 transparent";
+    card.append(bare);
+    expect(
+      computed(card, "box-shadow"),
+      "a glass Card casts nothing either, so the loop above proves nothing",
+    ).not.toBe(computed(bare, "box-shadow"));
+    bare.remove();
+  });
+
   it("a glass theme reaches it once it says content passes behind", () => {
     const solid = mounted(<Notice>x</Notice>, { theme: { material: "regular" } });
     // In flow with nothing behind it, a notice resolves solid and pays nothing (selectivity).
@@ -198,6 +244,46 @@ describe("a notice does not cast, and it does answer the material (§5, §10)", 
     const glass = mounted(<Notice backdrop>x</Notice>, { theme: { material: "regular" } });
     expect(glass.getAttribute("data-material")).toBe("regular");
     expect(computed(glass, "backdrop-filter")).toContain("blur");
+  });
+
+  it("an ordinary re-render does not rebuild the map (§10, 2026-08-26)", async () => {
+    /**
+     * `useLensRef` ALREADY forwards the caller's ref, and this component merged it a second
+     * time with `mergeRefs`, which returns a FRESH closure per call. React answers a new ref
+     * identity by detaching with `null` and reattaching — and `useLens`'s detach RELEASES the
+     * filter, dropping its last user, so the reattach misses `acquire`'s cache and mints a new
+     * displacement map: a per-pixel Snell solve, a `toDataURL` encode and an eleven-node
+     * `<filter>` graft, for every render of anything above the notice. Card and Shell were
+     * found with the identical defect the same day.
+     *
+     * Read as the filter's IDENTITY rather than as a count of `<filter>` nodes: the churn
+     * releases one and mints one, so the pane's own `url(#kui-lens-N)` is the axis that moves.
+     */
+    let bump!: () => void;
+    function App() {
+      const [n, setN] = React.useState(0);
+      bump = () => flushSync(() => setN((v) => v + 1));
+      return (
+        <Box backdrop style={{ width: "400px" }}>
+          <Notice backdrop data-tick={n}>
+            Approaching weekly usage limit
+          </Notice>
+        </Box>
+      );
+    }
+    const notice = mounted(<App />, { theme: { material: "regular" }, select: ".kui-notice" });
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    const before = notice.style.getPropertyValue("--kui-lens");
+    // THE PREMISE: a lens was really built, or "it did not change" is trivially true — the
+    // fixture defect this repo has already paid for more than once.
+    expect(before, "no lens was built, so this cannot show the churn").not.toBe("");
+    bump();
+    await expect.poll(() => notice.getAttribute("data-tick")).toBe("1");
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(
+      notice.style.getPropertyValue("--kui-lens"),
+      "an ordinary re-render tore the lens down and minted a new map",
+    ).toBe(before);
   });
 
   it("a glass strip scopes its subtree — the action does not paint a second veil", () => {

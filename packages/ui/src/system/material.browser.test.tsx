@@ -18,7 +18,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { APPEARANCES, GLASS_MATERIALS, colorOn, mounted } from "../test/browser.tsx";
+import { APPEARANCES, GLASS_MATERIALS, colorOn, computed, mounted } from "../test/browser.tsx";
 import { Card } from "../components/card/card.tsx";
 import { Button } from "../components/button/button.tsx";
 import { TextArea } from "../components/text-area/text-area.tsx";
@@ -43,6 +43,21 @@ function rgba(v: string): { r: number; g: number; b: number; a: number } {
   const a = alphaPart !== undefined ? Number(alphaPart) : (nums[3] ?? 1);
   return { r, g, b, a };
 }
+
+/**
+ * THE ENGINE'S OWN ANSWER (2026-08-26). The field family's edge has TWO implementations and
+ * the cascade chooses at parse time: inside `@supports (background-clip: border-area)` the
+ * border goes transparent and the pane's conic RING paints in the band, and `--kui-ct-glass-
+ * glint` is declared there too, so the ::before band paints only on that branch. Outside the
+ * guard the flat `--material-*-edge` hairline stands and the band is `none` by construction —
+ * recipes.css says so in as many words. The parity laws below asserted the first branch
+ * unconditionally, so on an engine without the feature (the pinned HeadlessChrome this suite
+ * runs on is one) they went red for something that is not a defect — and worse, three of
+ * their band assertions were VACUOUS there: `none === none` on both members, an opacity of 1
+ * over a background that paints nothing, a mask masking nothing. Parity is the claim in both
+ * branches; what differs is which rendering the two members must agree ON.
+ */
+const BORDER_AREA = CSS.supports("background-clip: border-area");
 
 const luma = (c: { r: number; g: number; b: number }) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
 
@@ -309,16 +324,40 @@ describe("a glass textarea is a glass field — parity by construction (§10)", 
       expect(getComputedStyle(ta).backgroundImage, "the two members' stacks disagree").toBe(
         getComputedStyle(tf).backgroundImage,
       );
-      expect(getComputedStyle(ta).backgroundClip.startsWith("border-area")).toBe(true);
-      // The band: the hook minted a mask for this box, the ::before wears it over the glint
-      // conic, and it is lit — the same three facts the field's own band law reads.
+      // The hook is JS, not cascade — it mints for this box on every engine, so this half of
+      // the parity claim is unconditional.
       expect(ta.style.getPropertyValue("--kui-glint"), "the hook never minted the band").toContain("data:image/png");
       const before = getComputedStyle(ta, "::before");
       expect(before.maskImage, "the band's mask is not the minted image").toContain("data:image/png");
-      expect(before.backgroundImage, "the band is not wearing the glint conic").toBe(
-        getComputedStyle(tf, "::before").backgroundImage,
-      );
-      expect(Number(before.opacity), "the band is dark on a live glass textarea").toBeGreaterThan(0.5);
+      if (BORDER_AREA) {
+        expect(getComputedStyle(ta).backgroundClip.startsWith("border-area")).toBe(true);
+        expect(getComputedStyle(ta).backgroundClip).toBe(getComputedStyle(tf).backgroundClip);
+        // The band: the ::before wears the minted mask over the glint conic, and it is lit —
+        // the same three facts the field's own band law reads.
+        expect(before.backgroundImage, "the band is not wearing the glint conic").toContain("conic-gradient");
+        expect(before.backgroundImage, "the two members' bands disagree").toBe(
+          getComputedStyle(tf, "::before").backgroundImage,
+        );
+        expect(Number(before.opacity), "the band is dark on a live glass textarea").toBeGreaterThan(0.5);
+      } else {
+        // THE FALLBACK, asserted as the rendering it actually is. `--kui-ct-glass-glint` is
+        // declared only inside the guard, so the band paints NOTHING here — recipes.css says
+        // so, and asserting `none === none` across the two members would be a fixture that
+        // cannot tell a correct implementation from a deleted one. What carries the parity on
+        // this branch is the EDGE: both members wear the material's own flat hairline, the
+        // same colour, and neither washes a conic across its box.
+        expect(computed(ta, "border-top-color"), "the fallback hairline is not the material's").toBe(
+          colorOn(ta, "var(--material-regular-edge)"),
+        );
+        expect(computed(ta, "border-top-color"), "the two members' edges disagree").toBe(
+          computed(tf, "border-top-color"),
+        );
+        expect(computed(ta, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
+        expect(getComputedStyle(ta).backgroundImage, "a conic washed the whole box").not.toContain(
+          "conic-gradient",
+        );
+        expect(before.backgroundImage, "the band paints where the hook was never declared").toBe("none");
+      }
       // And the box is the band's containing block: without position:relative the ::before
       // insets against some ancestor and paints the band OFF the pane — every computed style
       // above stays identical, which is why this reads the mechanism the paint depends on.
@@ -329,9 +368,31 @@ describe("a glass textarea is a glass field — parity by construction (§10)", 
       const ta = mounted(<TextArea aria-label="notes" backdrop disabled />, {
         theme: { appearance, material: "regular" },
       });
-      // The state arms stand --kui-ct-glass-glint down, and the ::before's background reads
-      // through it — one stand-down, both renderings, TextField's own behaviour.
-      expect(getComputedStyle(ta, "::before").backgroundImage, "a dead textarea still wears its band").toBe("none");
+      const live = mounted(<TextArea aria-label="live" backdrop />, {
+        theme: { appearance, material: "regular" },
+      });
+      const tfDead = mounted(<TextField aria-label="name" backdrop disabled />, {
+        theme: { appearance, material: "regular" },
+      });
+      if (BORDER_AREA) {
+        // The state arms stand --kui-ct-glass-glint down, and the ::before's background reads
+        // through it — one stand-down, both renderings, TextField's own behaviour. The LIVE
+        // control is the calibration: without it `none` is what this branch renders anyway.
+        expect(getComputedStyle(live, "::before").backgroundImage, "the live band never lit").not.toBe("none");
+        expect(getComputedStyle(ta, "::before").backgroundImage, "a dead textarea still wears its band").toBe("none");
+      } else {
+        // On the fallback branch the band is `none` whether the state reaches it or not, so
+        // reading it proves nothing — the degenerate fixture this file was audited for. The
+        // stand-down is still observable, one property over: the disabled arm takes the
+        // material's white hairline off and puts the dead pigment border in its place, which
+        // is exactly what a dead glass FIELD wears.
+        expect(computed(ta, "border-top-color"), "the state never reached the glass edge").not.toBe(
+          computed(live, "border-top-color"),
+        );
+        expect(computed(ta, "border-top-color"), "a dead textarea and a dead field disagree").toBe(
+          computed(tfDead, "border-top-color"),
+        );
+      }
     });
   }
 });
