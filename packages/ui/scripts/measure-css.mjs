@@ -41,3 +41,15 @@ if (gzipped > baselineGzipBytes) {
   );
   process.exit(1);
 }
+// AND THE OTHER DIRECTION (2026-08-26, audit). budget.json defines the field as "last accepted
+// gzipped size" — an equality invariant — and only one side of it was checked, so a CSS
+// DELETION quietly left the baseline sitting above the artifact and loosened the ratchet by
+// exactly the bytes it saved. The next regression then had free headroom to grow into before
+// anything failed, which is the gate silently ceasing to be one. Both directions now demand
+// the same deliberate act: re-record the number in the same commit.
+if (gzipped < baselineGzipBytes) {
+  console.error(
+    `SLACK: ${baselineGzipBytes - gzipped} bytes UNDER baseline. A reduction is good — re-record baselineGzipBytes downward in budget.json in this commit so the ratchet stays tight.`,
+  );
+  process.exit(1);
+}

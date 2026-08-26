@@ -17,9 +17,12 @@
  * unique referent. A window is one per app, so "regular" judges it against one norm; a
  * container is everything — sidebar, gallery, pane — and "a regular container" is relative to
  * the particular thing. A size label is semantically empty, which is what makes it true in
- * every slot. That `md`/`lg` currently equal the window boundaries (48/64rem) is COINCIDENCE,
+ * every slot. That `md` currently equals the NARROW window boundary (48rem) is COINCIDENCE,
  * deliberately unpinned: tiers judge where content breaks, classes judge where shells break,
- * and the eye pass may move them apart. Nothing may rely on the numbers agreeing.
+ * and the eye pass may move them apart. Nothing may rely on the numbers agreeing. (Corrected
+ * 2026-08-26, audit: this read "`md`/`lg` currently equal the window boundaries (48/64rem)".
+ * `lg` is 64rem and matches no window boundary — `wide` moved to 75rem on 2026-08-05, which
+ * is the very drift the sentence exists to warn against, recorded here as fact.)
  */
 export const tiers = { sm: "30rem", md: "48rem", lg: "64rem" } as const;
 export type Tier = keyof typeof tiers;
