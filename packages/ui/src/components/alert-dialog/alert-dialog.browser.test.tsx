@@ -465,6 +465,7 @@ describe("the panel materializes (§25)", () => {
     );
     inMotion();
     await userEvent.click(document.querySelector<HTMLElement>(".kui-button")!);
+    await until(() => !!document.querySelector(".kui-alert-popup"));
     const popup = document.querySelector<HTMLElement>(".kui-alert-popup");
     if (!popup) throw new Error("the panel never mounted");
     return popup;
@@ -786,6 +787,8 @@ describe("a leaving alert is not a target (§25, 2026-08-22)", () => {
 
     // Dismissed MID-ENTRY, which is the case that produces the long tail.
     await userEvent.keyboard("{Escape}");
+    // SETTLED-BY-DESIGN: the claim is a NON-event — that Escape has not yet taken the panel
+    // out of the document — and a slower machine only makes it more true, never less.
     const popup = document.querySelector<HTMLElement>(".kui-alert-popup")!;
     const scrim = document.querySelector<HTMLElement>(".kui-alert-backdrop")!;
     const gone = await until(() => parseFloat(getComputedStyle(scrim).opacity) === 0);

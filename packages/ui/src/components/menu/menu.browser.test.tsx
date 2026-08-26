@@ -3597,6 +3597,7 @@ describe("the panel unfurls out of a seed (§22)", () => {
       );
       inMotion();
       await press(document.querySelector<HTMLElement>(".kui-button")!);
+      await until(() => document.querySelectorAll(".kui-menu-popup").length > 0);
       const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop();
       if (!popup) throw new Error("the popup never opened");
       const body = popup.querySelector<HTMLElement>(".kui-floating-body")!;
@@ -3666,6 +3667,7 @@ describe("the panel unfurls out of a seed (§22)", () => {
       inMotion();
       const trigger = document.querySelector<HTMLElement>(".kui-button")!;
       await press(trigger);
+      await until(() => document.querySelectorAll(".kui-menu-popup").length > 0);
       const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop();
       if (!popup) throw new Error("the popup never opened");
       return { popup, positioner: popup.parentElement!, trigger };
@@ -3838,6 +3840,7 @@ describe("the panel unfurls out of a seed (§22)", () => {
       };
       requestAnimationFrame(tick);
       await press(trigger);
+      await until(() => document.querySelectorAll(".kui-menu-popup").length > 0);
       const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop();
       if (!popup) throw new Error("the popup never opened");
       await departed(popup);

@@ -29,9 +29,17 @@ import { windowClass } from "../tokens/config.ts";
 export type WindowClass = "narrow" | "regular" | "wide";
 
 /**
- * The three queries, derived from the two boundaries. Exhaustive and disjoint by
- * construction: regular is "not narrow, not wide", spelled with the same two numbers, so a
- * threshold correction cannot open a gap or an overlap between classes.
+ * The three queries, derived from the two boundaries. Exhaustive and INCLUSIVE-OVERLAPPING at
+ * the boundaries, resolved downward — corrected 2026-08-26. This said "disjoint by
+ * construction" while `classify()` three lines below has always said the opposite in as many
+ * words ("at exactly a boundary both neighbouring queries match"), which is why it asks the
+ * smaller class first. `max-width` and `min-width` are both inclusive, so the two neighbours
+ * genuinely both answer ON a boundary; what "by construction" really buys is that regular is
+ * "not narrow, not wide" spelled with the SAME two numbers, so a threshold correction cannot
+ * open a gap or move an overlap off a boundary. Nothing on screen was ever wrong — no
+ * consumer pairs two of these in CSS — but a reader taking "disjoint" at face value would
+ * write a stylesheet that double-answers at 768 and 1200. The mounted law reads exact
+ * membership at six widths, three of them boundaries.
  */
 export const windowClassQueries: Record<WindowClass, string> = {
   narrow: `(max-width: ${windowClass.narrowMax})`,

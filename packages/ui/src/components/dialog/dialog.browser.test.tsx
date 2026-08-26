@@ -616,6 +616,7 @@ describe("the panel comes into focus, not into view (§24)", () => {
     );
     inMotion();
     await userEvent.click(document.querySelector<HTMLElement>(".kui-button")!);
+    await until(() => !!document.querySelector(".kui-dialog-popup"));
     const popup = document.querySelector<HTMLElement>(".kui-dialog-popup");
     if (!popup) throw new Error("the panel never mounted");
     return popup;

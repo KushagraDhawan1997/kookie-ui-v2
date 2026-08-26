@@ -54,18 +54,48 @@ describe("the window class answers the window, live (§18)", () => {
   });
 
   it("the classes cover every width once — no gap, no double answer", async () => {
-    // Walk the boundaries' neighbourhoods against raw matchMedia: at every probed width
-    // exactly ONE query matches after downward tie-breaking. This is the mounted version of
-    // the derivation law — it would catch a rem/px mistake the string law cannot see.
-    for (const width of [767, 768, 769, 1199, 1200, 1201]) {
+    /**
+     * REWRITTEN 2026-08-26: the first spelling could not fail, and its own comment said why
+     * it should have been able to.
+     *
+     * It walked these six widths and asserted only `length > 0 && length < 3`. Given the
+     * query SHAPE the node law pins verbatim — narrow `(max-width: A)`, regular `(min-width:
+     * A) and (max-width: B)`, wide `(min-width: B)` — the three ranges always cover the line,
+     * so zero matches is unreachable for any A and B; and three matches needs A === B === the
+     * width, which `window.test.ts`'s ordering law already forbids. Both bounds were
+     * tautologies. Measured, not argued: widening `regular` to `(min-width: 0px)` — a 768px
+     * overlap with `narrow`, the exact thing the title forbids — passed all six widths.
+     *
+     * The comment also claimed the law "would catch a rem/px mistake the string law cannot
+     * see", and it would not: `narrowMax: "48px"` passed too. What actually caught that was
+     * `window.test.ts`'s `rem()` parser. Asserting the EXACT membership makes the claim true
+     * — `48px` now fails here at 768, because the boundary stops being a boundary.
+     *
+     * A boundary width matching TWO classes is the design, not a defect: both ends are
+     * inclusive, and `classify()` asks the smaller first (the sibling law above reads that
+     * downward tie-break through a mounted consumer). What the queries owe is that OFF a
+     * boundary exactly one answers, ON a boundary exactly the two NEIGHBOURS do, and no
+     * width is ever unanswered.
+     */
+    const expected: Record<number, WindowClass[]> = {
+      767: ["narrow"],
+      768: ["narrow", "regular"],
+      769: ["regular"],
+      1199: ["regular"],
+      1200: ["regular", "wide"],
+      1201: ["wide"],
+    };
+    for (const [probe, want] of Object.entries(expected)) {
+      const width = Number(probe);
       await page.viewport(width, 800);
       const matches = (Object.keys(windowClassQueries) as WindowClass[]).filter(
         (c) => window.matchMedia(windowClassQueries[c]).matches,
       );
-      // Off a boundary exactly one matches; on a boundary the two neighbours both do, and
-      // classify() resolves the tie downward — either way, never zero and never three.
-      expect(matches.length, `${width}px matched [${matches.join(", ")}]`).toBeGreaterThan(0);
-      expect(matches.length, `${width}px matched [${matches.join(", ")}]`).toBeLessThan(3);
+      expect(
+        matches,
+        `${width}px must be answered by exactly [${want.join(", ")}] — it matched ` +
+          `[${matches.join(", ")}]`,
+      ).toEqual(want);
     }
   });
 });
