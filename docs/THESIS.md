@@ -51,12 +51,13 @@ The leaders share one architectural failure, it is structural, it is worsening, 
 Every decision sorts by one question: **does answering this require knowing what the product is?**
 
 1. **Locked** — agnostic truth (touch target size; a finger is a finger). Decided, baked in, no opt-out.
-2. **Opt-out default** — agnostic *pattern*, product-specific *choice* (dialog → sheet on mobile). The library knows the right default, ships it, makes it opt-*out*.
+2. **Opt-out default** — agnostic *pattern*, product-specific *choice* (a Composer's send button resting `loud`: the component places it and ranks it, and the row is still the caller's to re-rank). The library knows the right default, ships it, makes it opt-*out*.
+   - **Amended 2026-08-26.** This tier's example used to be *dialog → sheet on mobile*, and that feature SHIPPED (2026-08-21) as **tier 1 with no prop** — the window class answers "which interface should this app show", which is not a product-specific question, so a call site staying centred on a phone is choosing against an answer the system just gave. The re-tiering is a defensible call and the document now says so rather than promising an opt-out the code refuses. If a real screen forces the escape it widens the way every axis here widens; until then, keeping a centred panel on a narrow window means composing a Popover or building the surface, not passing a flag.
 3. **Mechanism only** — product-specific (what content to drop on mobile). The library provides the tool and makes no decision.
 
 **The core inversion: opt-out, not opt-in.** The correct thing is what happens when you don't think; overriding requires knowing something the library doesn't. The default *is* the teaching; the opt-out *is* the respect — and it must be a first-class, easy, documented path, because a grudging escape hatch is policing with extra steps.
 
-**Responsiveness = interaction-model adaptation, not layout reflow.** A phone is not a small desktop: larger targets, thumb not pointer, no hover, bottom reachable. So dialog → sheet, popover → sheet, rail → bottom tabs, hover-reveal → always-visible. Same component, same function, device-appropriate interaction. Human factors, not taste.
+**Responsiveness = interaction-model adaptation, not layout reflow.** A phone is not a small desktop: larger targets, thumb not pointer, no hover, bottom reachable. So dialog → sheet, popover → sheet, rail → bottom tabs, hover-reveal → always-visible. Same component, same function, device-appropriate interaction. Human factors, not taste — which is exactly why the shipped ones sit in tier 1: the adaptation is the human factor, and there is nothing product-specific left in it to opt out of.
 
 **Caution:** "the library knows the right default" holds only where research is settled. Where the answer is product-dependent — or agnostic but genuinely contested — the opt-out must be real. Confidence in a default is itself the overreach being criticized.
 
