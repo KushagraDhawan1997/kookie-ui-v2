@@ -26,6 +26,23 @@
      inverted" was asking for: both roles move under the conformance surface, so the inversion
      moves with them and nothing here has to know. */
   background-color: var(--color-text);
+  /* AND NO PANE LIGHTING, because the pane is the mode's OTHER END (2026-08-26, audit).
+     `.kui-surface` paints `--kui-sf-light` — the solid rim, grain plus a white sheen — at
+     every material, and that recipe is written for a pane the colour of the mode's SURFACE.
+     This one is the colour of the mode's INK, so in light the sheen composited 30% white over
+     a near-black chip: measured `linear-gradient(rgba(255,255,255,0.3), transparent 55%)` over
+     `color(display-p3 0.1223 0.121 0.1291)`, which lifts the top of a ~30px chip to roughly
+     #626263 and fades to the fill by mid-height — a visible band on the smallest, highest-
+     contrast object the library draws. Inverting the recipe is not available: the rims are
+     per-mode tokens, so a pane cannot reach the other mode's.
+
+     Stood down as the PROPERTY and never as `--kui-sf-light`, which is Ground's and the flush
+     shell pane's own spelling (surfaces.css 2026-08-20, shell.css 2026-08-21): that hook is
+     not registered `inherits: false`, so setting it here would reach anything inside the pane
+     and strip its lighting too — the var-inheritance trap this repo has been bitten by five
+     times. A tooltip holds a string, so nothing is inside it today; the spelling is what keeps
+     that from mattering. */
+  background-image: none;
   /* NO `border-color: transparent` HERE, and its absence is the point. It was written — an
      inverted chip is its own boundary, and a hairline on the highest-contrast object on the
      screen is the doubled-edge defect (2026-08-07) at a smaller scale — and then its sabotage

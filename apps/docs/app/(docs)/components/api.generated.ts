@@ -572,7 +572,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "The index. It prices what the composer OWNS — the pane's padding, its corner, and the step its own text is set at — and stops there. It does NOT reach the row. A Button, a Select or a field you put under the text keeps its own index, and that is Dialog's answer rather than an omission (§24 prices the box alone; §25 prices everything because an alert owns its content). A composer owns its pane and its text; whatever you compose into the row is yours, so it is priced where it is written."
+        "doc": "The index, set once for the whole unit. It prices the pane's padding and corner, the step its own text is set at, AND the controls you compose into the row — a Button, a Select or a field under the text all take it through `ControlSizeContext` (§28), so a composer is sized as one thing. An explicit `size` on a control always wins, so nothing is ever re-sized behind a number somebody typed. The reach stops at the composer's own subtree: a Button beside it keeps the family's rest."
       }
     ]
   },
@@ -1810,7 +1810,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "The row's box, which is its text line plus one designed inset (§21) — not the control height ladder. It rests at 2, like every other control in the library."
+        "doc": "The row's box: a standing row rides the control height ladder, so it stands level with a `Button` of the same index (§21). The text line plus one designed inset — the shorter box — is the FLOATING row's, i.e. a row inside a menu or a select panel. It rests at 2, like every other control in the library."
       },
       {
         "name": "style",

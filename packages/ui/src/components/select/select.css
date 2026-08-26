@@ -35,11 +35,15 @@
    family already says this exact sentence for a submenu's trigger row ("the row is in use,
    not hovered"), and one lit-while-in-use vocabulary across the floating family beats two.
    Guarded on :not([data-disabled]) like that rule, for the same reason. */
-/* (0,2,0) on purpose — text-field.css states the caret facts at .kui-field (0,1,0), and a
-   tie here would hang the trigger's identity on import order; the same doubled-class trick
-   that file uses for its own fill pin. The four fill lines TIE with that pin at (0,2,0) and
-   win on source order, which index.css and the browser suite install identically — the
-   mechanism the hover stand-down and the switch's shifted mark both already rely on. */
+/* (0,2,0) on purpose, and it must STAY doubled (rewritten 2026-08-26 — the audit found this
+   comment wrong three ways and, worse, describing a mechanism that would decide the opposite
+   way). text-field.css states the caret facts and its own fill sources on the plain
+   `.kui-field`, which is (0,1,0); this rule is (0,2,0), so it wins on SPECIFICITY, not on a
+   tie. Source order is the wrong thing to lean on here and always was: index.css imports
+   select.css BEFORE text-field.css, so the loser of a tie would be this file. Simplify the
+   selector back to `.kui-select-trigger` and the trigger's three fill sources tie with
+   `.kui-field`'s at (0,1,0) and the field wins — the button's identity silently taken by the
+   text input's. Three fill lines, not four: the derived pair pin was deleted 2026-08-19. */
 .kui-control.kui-select-trigger {
   cursor: var(--cursor-button);
   -webkit-user-select: none;

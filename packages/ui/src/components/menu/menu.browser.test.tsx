@@ -900,6 +900,37 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
     );
   });
 
+  /* The floor's CAP half, which had no law at all (2026-08-26 audit). menu.css wraps the
+     anchor floor in `min(…, max(--floating-min-w, --available-width))` — the 2026-08-22
+     repair for "in CSS a minimum beats a maximum", whose own comment records the measured
+     symptom: `side="right"` on a 900px trigger painted 951px at x=967 in a 1280 window, 638px
+     off screen with the items unreachable. Nothing read it. The law above is entailed by the
+     un-capped floor and the bounds law reads `max-width`, which a minimum overrules — so
+     reverting to the pre-2026-08-22 spelling left the whole suite green. Select carries this
+     law; the 2026-08-09 audit landed the repair in one sibling only, and this is the same
+     sentence in the file that owns the declaration. */
+  it("the available room OUTRANKS the anchor — a minimum cannot be capped by a maximum (§22)", () => {
+    const { popup } = openMenu({});
+    const floor = parseFloat(tokenOn(popup, "--floating-min-w"));
+    // --kui-anchor-w is the HEAD of the chain (the entry writes it), so the anchor arm is
+    // exercised by supplying it there; --available-width is the positioner's own report.
+    popup.style.setProperty("--kui-anchor-w", "900px");
+    popup.style.setProperty("--available-width", "300px");
+    expect(
+      popup.getBoundingClientRect().width,
+      "a trigger wider than the room must not push the panel off screen",
+    ).toBeLessThanOrEqual(301);
+    // ...and the designed floor still holds when the reported room is absurd, so the cap
+    // cannot squeeze the panel below the minimum it exists to guarantee. The inner max() is
+    // what makes these two claims compatible; a law with only the first half would pass on a
+    // panel that had simply become the room.
+    popup.style.setProperty("--available-width", "10px");
+    expect(
+      popup.getBoundingClientRect().width,
+      "the designed floor survives an absurd room",
+    ).toBeGreaterThanOrEqual(floor);
+  });
+
   it("a flat popup casts NOTHING — flat means flat, floating panes included (2026-08-19)", () => {
     // Reverses this law's own previous claim ("the popup casts in BOTH worlds", the
     // 2026-08-09 coverage-is-information amendment): separation in flat is the hairline's
@@ -998,6 +1029,64 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
 });
 
 /* ── Behavior smoke (Base UI's machine, one assertion per claim) ──────────────────────── */
+
+/* ── The trigger's type surface (§5, §23's shape — 2026-08-26 audit) ───────────────────── */
+
+describe("MenuTrigger takes the platform's button props, and only the system's are refused", () => {
+  /**
+   * `MenuTriggerProps` was a hand-written object literal of seven members until 2026-08-26 —
+   * the last hand-listed trigger type in the floating family, where `SelectTriggerProps`,
+   * `ButtonPartProps` and `DialogTriggerProps` are all `Omit<ComponentPropsWithoutRef<"button">,
+   * …>`. It closed the type against `id`, `form`, `tabIndex`, `autoFocus`, `onClick` and the
+   * focus handlers while TypeScript's hyphenated-name exemption waved `aria-*` and `data-*`
+   * straight through undeclared — so it simultaneously blocked props that work and admitted
+   * props it never named. `id` is the load-bearing one: it is what an external `<label for>`
+   * and an `aria-controls` need, and the spread has always carried it to the DOM.
+   *
+   * This is a TYPE law and it fails under `tsc`, not under the runner — the props reached the
+   * element either way, which is exactly why the defect was invisible to every mounted law in
+   * this file. The runtime half below is the calibration: it proves the type is describing an
+   * element that really does take these.
+   */
+  it("accepts the platform's own props on the trigger", () => {
+    void (
+      <MenuTrigger
+        id="more-actions"
+        form="settings"
+        tabIndex={-1}
+        autoFocus
+        onClick={() => {}}
+        onFocus={() => {}}
+        aria-controls="panel"
+      >
+        Open
+      </MenuTrigger>
+    );
+  });
+
+  it("still refuses what the system owns", () => {
+    // @ts-expect-error — colour is resolved output; a control never takes a raw fill (§9)
+    void (<MenuTrigger color="red" />);
+    // @ts-expect-error — no margin prop on any control (the first non-negotiable)
+    void (<MenuTrigger m="4" />);
+  });
+
+  it("an id given to the trigger reaches the button a `<label for>` would point at", () => {
+    const host = render(
+      <Theme>
+        <Menu>
+          <MenuTrigger id="more-actions" render={<Button>Open</Button>} />
+          <MenuContent>
+            <MenuItem>Alpha</MenuItem>
+          </MenuContent>
+        </Menu>
+      </Theme>,
+    );
+    const trigger = host.querySelector<HTMLElement>("button");
+    if (!trigger) throw new Error("the trigger never rendered");
+    expect(trigger.id, "the id lands on the rendered button").toBe("more-actions");
+  });
+});
 
 describe("behavior: the platform's menu, not a styled div", () => {
   it("roles are the menu pattern's; Escape closes and unmounts the popup", async () => {
@@ -1683,6 +1772,77 @@ describe("groups and labels: the wiring is Base UI's, the dress is the row's", (
     expect(label.getAttribute("role")).toBeNull();
     // And the rows around it still work — the popup did not lose its subtree.
     expect(popup.querySelectorAll(".kui-menu-item").length).toBe(1);
+  });
+
+  /**
+   * A PANEL BOUNDARY resets the group question (2026-08-26 audit).
+   *
+   * `MenuInGroupContext` was set by `MenuGroup` and never reset by a popup, and React context
+   * follows the tree rather than the DOM — so a `MenuSub` composed inside a `MenuGroup` (the
+   * canonical shadcn dropdown shape this file's component header says it adopted) carried that
+   * group across the portal into a panel that is not inside it. A `MenuLabel` in the child
+   * panel then took Base UI's GroupLabel part, whose effect registers its id with whatever
+   * group context it can see: the PARENT group announced the submenu's heading while the
+   * submenu was open, and Base UI's own cleanup (`setLabelId(undefined)`) stripped the group's
+   * accessible name outright when the submenu closed. Both halves are read here, because the
+   * one that survives a close is the one a screen reader user is left with.
+   */
+  it("a label in a submenu names its own panel, and leaves the parent group's name alone (§22)", async () => {
+    let closeSub: (() => void) | null = null;
+    function Nested() {
+      const [subOpen, setSubOpen] = React.useState(true);
+      closeSub = () => setSubOpen(false);
+      return (
+        <Theme>
+          <Menu defaultOpen>
+            <MenuTrigger render={<Button>Open</Button>} />
+            <MenuContent>
+              <MenuGroup>
+                <MenuLabel>File</MenuLabel>
+                <MenuItem>New</MenuItem>
+                <MenuSub open={subOpen}>
+                  <MenuSubTrigger>Export as</MenuSubTrigger>
+                  <MenuSubContent>
+                    <MenuLabel>Format</MenuLabel>
+                    <MenuItem>PNG</MenuItem>
+                  </MenuSubContent>
+                </MenuSub>
+              </MenuGroup>
+            </MenuContent>
+          </Menu>
+        </Theme>
+      );
+    }
+    render(<Nested />);
+    const group = document.querySelector<HTMLElement>('[role="group"]');
+    const labels = [...document.querySelectorAll<HTMLElement>(".kui-menu-label")];
+    if (!group) throw new Error("the group never rendered");
+    // The fixture must really contain BOTH labels, or the claim below is about one panel.
+    expect(labels.map((l) => l.textContent), "both panels rendered a label").toEqual([
+      "File",
+      "Format",
+    ]);
+    const [parentLabel, subLabel] = labels as [HTMLElement, HTMLElement];
+    expect(
+      group.getAttribute("aria-labelledby"),
+      "the parent group is named by ITS OWN label, not the submenu's",
+    ).toBe(parentLabel.id);
+    // The child panel's label is a heading in its own right — it has no group to belong to,
+    // so it takes the standalone fallback and announces nothing as a group name.
+    expect(subLabel.getAttribute("role")).toBeNull();
+
+    // ...and closing the submenu must not take the parent group's name with it. Base UI's
+    // GroupLabel cleanup runs on unmount, which is exactly when a screen reader user would
+    // have been left with an unnamed group.
+    flushSync(() => closeSub!());
+    expect(
+      await until(() => document.querySelectorAll(".kui-menu-popup").length === 1),
+      "the submenu really unmounted — the cleanup this law is about runs on unmount",
+    ).toBe(true);
+    expect(
+      document.querySelector<HTMLElement>('[role="group"]')!.getAttribute("aria-labelledby"),
+      "the group keeps its name after the submenu closes",
+    ).toBe(parentLabel.id);
   });
 
   it("a label inside a radio group keeps the group wiring (§22)", () => {

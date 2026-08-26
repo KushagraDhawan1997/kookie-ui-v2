@@ -41,24 +41,31 @@ export type SelectProps = {
   /** The same index the trigger wears. The rows, the glyphs and the type all take it. */
   size?: Size;
   /**
-   * A map from value to label, for the closed trigger. Base UI reads an option's label from its
-   * mounted row, and a closed panel has none mounted, so without this map a select whose panel
-   * never opened displays the raw value string. It is optional, because a select that rests on a
-   * placeholder never needs it. Pass it whenever a `defaultValue` can paint before the panel first
-   * opens.
+   * A map from value to label, and it is the ONLY thing that turns a chosen value into words on
+   * the closed trigger. Base UI resolves the trigger's text from this map alone — it never reads
+   * the text of the row you picked — so a select whose labels differ from its values needs it at
+   * every moment, not only before the panel has first opened. Without it the trigger paints the
+   * raw value string forever, including immediately after a click on a row that says something
+   * else. Omit it only where the value IS the label, or where the select rests on a placeholder.
    */
   items?: Record<string, React.ReactNode>;
   /**
-   * Controlled value, paired with `onValueChange`. The closed trigger paints the matching option's
-   * label rather than this string. See `items` for the case where no option is mounted yet to
-   * resolve one.
+   * Controlled value, paired with `onValueChange`. The closed trigger paints this string unless
+   * `items` maps it to a label; a mounted row's text is never consulted.
    */
   value?: string;
-  /** Uncontrolled starting value. Mutually exclusive with `value`, and the case `items`
-      exists for: it can paint before the panel has ever opened. */
+  /** Uncontrolled starting value. Mutually exclusive with `value`. */
   defaultValue?: string;
-  /** Fires when the chosen value changes. It never fires on an open or a close. */
-  onValueChange?: (value: string) => void;
+  /**
+   * Fires when the chosen value changes. It never fires on an open or a close.
+   *
+   * `null` is a real argument and not a defensive union: Base UI CLEARS the value when the
+   * mounted option set changes and the current value is no longer among it — a dependent pair of
+   * selects, where picking a country replaces the region list. It reaches this callback before it
+   * is applied. It used to arrive as the literal string `"null"` (2026-08-26 audit), which a
+   * controlled consumer would have written straight back in as a value.
+   */
+  onValueChange?: (value: string | null) => void;
   /** Identifies the field when a form is submitted (Base UI renders the hidden input). */
   name?: string;
   /** Marks the field required for form validation, exactly as on a native `<select>`; it
@@ -111,13 +118,19 @@ export function Select({ size: sizeProp, onValueChange, children, ...props }: Se
   // §28 — a Field states the whole unit's index; an explicit prop here always wins.
   const size = useControlSize(sizeProp);
   const dir = useAmbientDirection();
+  // CHANGES 2026-08-26: `v == null` guards `String(v)`. Base UI's own value-reset (a dependent
+  // select whose option set is replaced) calls back with `null`, and stringifying it reported
+  // the literal "null" as a chosen value — which a controlled consumer writes straight back in.
+  const report = onValueChange
+    ? { onValueChange: (v: unknown) => onValueChange(v == null ? null : String(v)) }
+    : {};
   return (
     <SelectSizeContext.Provider value={size}>
       <FloatingDirectionContext.Provider value={dir}>
         {/* Base UI positions from its own direction context, not from CSS (§20). */}
         <DirectionProvider direction={dir.direction}>
           <BaseSelect.Root
-            {...(onValueChange ? { onValueChange: (v: unknown) => onValueChange(String(v)) } : {})}
+            {...report}
             {...props}
           >
             {children}
@@ -218,11 +231,22 @@ export function SelectTrigger({
 
 /* ── Content: the fold (§22's sentence, §23's member) ─────────────────────────────────── */
 
-export type SelectContentProps = {
+/**
+ * The platform's own div props pass through, and only what this system owns is taken away —
+ * Dialog's shape, and for Dialog's reason (2026-08-26 audit, the third home of the same
+ * defect). Hand-listing four names instead — which is how this shipped — dropped everything
+ * else in SILENCE: TypeScript's hyphenated-attribute exemption waves `aria-label`,
+ * `aria-labelledby` and `data-*` through with no error, and none of them reached the element.
+ * The victim is specific: the panel is a bare `role="listbox"` with no accessible name, and
+ * `aria-label` was the obvious repair, accepted and discarded.
+ */
+export type SelectContentProps = Omit<
+  React.ComponentPropsWithoutRef<"div">,
+  "color" | "className" | "style"
+> & {
   /**
-   * The option rows: `SelectItem`, divided by `SelectGroup` and named by `SelectLabel`. They are
-   * mounted only while the panel is open, which is exactly the case the root's `items` map exists
-   * for. A `<Separator>` is refused here where a menu takes one: inside a listbox it is markup an
+   * The option rows: `SelectItem`, divided by `SelectGroup` and named by `SelectLabel`. A
+   * `<Separator>` is refused here where a menu takes one: inside a listbox it is markup an
    * accessibility check reports, and a group is the divider the role already has.
    */
   children?: React.ReactNode;
@@ -284,11 +308,13 @@ function SelectPopup({
   className,
   style,
   ref,
+  rest,
 }: {
   children?: React.ReactNode | undefined;
   className?: string | undefined;
   style?: React.CSSProperties | undefined;
   ref?: React.Ref<HTMLDivElement> | undefined;
+  rest: Record<string, unknown>;
 }) {
   // A floating pane is over content BY CONSTRUCTION (2026-08-17, the backdrop selectivity):
   // it covers the app, so it always has something to bend and always expresses the theme.
@@ -297,16 +323,17 @@ function SelectPopup({
   const lensRef = useLensRef<HTMLDivElement>(material, ref);
   return (
     <BaseSelect.Popup
+      {...rest}
       {...popupProps(React.use(SelectSizeContext), material, className)}
       style={style}
       ref={lensRef}
     >
       {/* DELIBERATELY no ScrollArea here while Menu has one (2026-08-17, Kushagra: "skip it
-          on select for now"). Two mechanisms care about WHO the scroll container is: the
-          overlap placement (Base UI aligns the chosen row on the trigger by controlling its
-          own scroller's position) and the curtain (the reveal reads row rects, §23). An
-          interposed viewport changes both, and that is a measurement, not an assumption —
-          measure the overlap and the curtain against a ScrollArea viewport before adopting. */}
+          on select for now"). ONE mechanism cares about WHO the scroll container is: the
+          overlap placement — Base UI aligns the chosen row on the trigger by controlling its
+          own scroller's position and its height, so an interposed viewport moves the very
+          thing the placement is computed from. That is a measurement, not an assumption:
+          measure the overlap against a ScrollArea viewport before adopting. */}
       <SelectBody>
         <GlassScope material={material}>{children}</GlassScope>
       </SelectBody>
@@ -314,12 +341,12 @@ function SelectPopup({
   );
 }
 
-export function SelectContent({ children, className, style, ref }: SelectContentProps) {
+export function SelectContent({ children, className, style, ref, ...rest }: SelectContentProps) {
   return (
     <BaseSelect.Portal>
       <PortalScope>
         <BaseSelect.Positioner side="bottom" align="start" sideOffset={SIDE_OFFSET}>
-          <SelectPopup className={className} style={style} ref={ref}>
+          <SelectPopup className={className} style={style} ref={ref} rest={rest}>
             {children}
           </SelectPopup>
         </BaseSelect.Positioner>
@@ -351,8 +378,9 @@ export type SelectItemProps = {
    */
   disabled?: boolean;
   /**
-   * What the option reads as, and what the closed trigger paints once the panel has been opened.
-   * Before that, the root's `items` map is the only thing that can turn a value into these words.
+   * What the option reads as INSIDE the panel. The closed trigger never paints these words: Base
+   * UI resolves the trigger's text from the root's `items` map, and from nothing else. Where a
+   * label differs from its value, that map is what has to carry it.
    */
   children?: React.ReactNode;
   className?: string;

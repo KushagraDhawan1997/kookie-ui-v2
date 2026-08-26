@@ -6,7 +6,7 @@
 import { expect, it } from "vitest";
 
 import { Kbd } from "../kbd/kbd.tsx";
-import { Tooltip, TooltipContent } from "./tooltip.tsx";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip.tsx";
 
 const refusals = [
   // A tooltip holds a SENTENCE, not a composition. An inverted pane cannot invert an arbitrary
@@ -30,8 +30,19 @@ const refusals = [
   // The delay is the system's. A per-call-site delay makes one product feel like several.
   // @ts-expect-error — the delay is not a prop
   <Tooltip delay={0} />,
+
+  // AND THE ESCAPE THE ROOT NEVER HAD IS ON THE TRIGGER (added 2026-08-26, ultracode audit).
+  // Base UI's Trigger takes its OWN `delay`/`closeDelay` and honours them over the provider's,
+  // so inheriting its props verbatim left the refusal above true of the one element that could
+  // not express it and false of the one that could: `<TooltipTrigger delay={0}/>` compiled,
+  // shipped, and made exactly one button in a toolbar open instantly. The `Tooltip` line above
+  // was the law for this refusal and it tested an element the escape was never on.
+  // @ts-expect-error — the delay is the provider's, for a REGION, never one label
+  <TooltipTrigger delay={0} />,
+  // @ts-expect-error — and its other half
+  <TooltipTrigger closeDelay={0} />,
 ];
 
 it("the refusals are compile errors, and this keeps vitest from seeing an empty suite", () => {
-  expect(refusals).toHaveLength(5);
+  expect(refusals).toHaveLength(7);
 });

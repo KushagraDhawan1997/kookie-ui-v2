@@ -10,6 +10,7 @@
  * (the identity arrives on its elements) and Select's OWN facts (the field-shaped trigger,
  * the value machinery), not a second copy of the family proofs.
  */
+import * as React from "react";
 import { describe, expect, it, onTestFinished } from "vitest";
 import { userEvent } from "vitest/browser";
 
@@ -514,15 +515,38 @@ describe("the panel is the floating family's — corner, cast, padding, floor", 
     expect(parseFloat(computed(popup, "border-top-left-radius"))).toBeCloseTo(expected, 1);
   });
 
-  it("casts in BOTH worlds, and the flat cast is not the elevated one", async () => {
+  it("a flat popup casts NOTHING, and the elevated one casts something visible (2026-08-19)", async () => {
+    // REVERSES this law's own previous claim, which was titled "casts in BOTH worlds" and
+    // asserted `flatShadow !== "none"` under the message "a floating pane casts in a flat
+    // world" (2026-08-26 audit). That premise retired on 2026-08-19 with the half-faded
+    // floating cast: in flat, separation is the hairline's job and nothing casts, popups
+    // included. `--floating-chrome-flat` is emitted as the list-legal no-op `0 0 0 0
+    // transparent`, which is not the string "none" — so the old assertion passed on the very
+    // value that disproves it, and it would have gone on passing if a real palette row were
+    // pointed back at flat floating panes. Menu's law is the correct shape; this is it,
+    // self-keyed on the second member.
     const flat = openSelect({ depth: "flat" });
     await settled();
     const flatShadow = computed(flat.popup, "box-shadow");
-    expect(flatShadow, "a floating pane casts in a flat world").not.toBe("none");
+    expect(flatShadow, "a flat popup still resolves a real list").not.toBe("none");
+    // Zero geometry AND zero alpha per layer: a transparent shadow with real offsets is
+    // invisible today and a value waiting to paint the moment a colour arrives.
+    for (const layer of flatShadow.split(/,(?![^(]*\))/)) {
+      expect(layer, "a flat popup layer must be the no-op").toMatch(
+        /^\s*rgba\(0, 0, 0, 0\) 0px 0px 0px 0px\s*$/,
+      );
+    }
     const elevated = openSelect({ depth: "elevated" });
     await settled();
-    expect(computed(elevated.popup, "box-shadow")).not.toBe("none");
-    expect(computed(elevated.popup, "box-shadow")).not.toBe(flatShadow);
+    const elevatedShadow = computed(elevated.popup, "box-shadow");
+    expect(elevatedShadow, "an elevated popup still casts").not.toBe("none");
+    expect(elevatedShadow).not.toBe(flatShadow);
+    // Visible means at least one layer carrying real alpha — the no-op list reads
+    // rgba(0, 0, 0, 0) only, so the negation above is not enough on its own.
+    const alphas = [...elevatedShadow.matchAll(/rgba?\([^)]*?([\d.]+)\)/g)].map((m) =>
+      parseFloat(m[1]!),
+    );
+    expect(Math.max(0, ...alphas), "the elevated cast is visible").toBeGreaterThan(0);
     // The negative control: a flat Card beside it casts nothing.
     let card: HTMLElement | null = null;
     render(
@@ -864,6 +888,13 @@ describe("behavior: roles, choosing, forms, labels", () => {
   it("the panel is a listbox, and a listbox holds only options and groups", async () => {
     // A separator between option groups is refused for exactly this reason (audit
     // 2026-08-09): a menu may contain one, a listbox may not, and the panel IS the listbox.
+    //
+    // It walked `popup.children` until 2026-08-26, and could not fail: the popup's ONE child
+    // is the floating body, `role="presentation"`, which the filter drops — so the list under
+    // test was always empty and the composition this refusal exists to prevent sat one level
+    // below, as a grandchild. The walk COLLAPSES presentational wrappers now, which is what
+    // the accessibility tree does, and the fixture carries its own negative control: an
+    // illegal child put where a caller would put it must be reported.
     const { popup } = openSelect({}, (
       <>
         <SelectGroup>
@@ -878,14 +909,32 @@ describe("behavior: roles, choosing, forms, labels", () => {
     ));
     await settled();
     expect(popup.getAttribute("role")).toBe("listbox");
-    const illegal = [...popup.children].filter((child) => {
-      const role = child.getAttribute("role");
-      if (role === "option" || role === "group") return false;
-      // A presentational or hidden node is not IN the accessibility tree, so it is not a child
-      // of the listbox as far as the contract is concerned.
-      return !(role === "presentation" || role === "none" || child.hasAttribute("aria-hidden"));
-    });
-    expect(illegal.map((el) => el.getAttribute("role") ?? el.tagName)).toEqual([]);
+    /** The listbox's children AS THE ACCESSIBILITY TREE SEES THEM: a `presentation`/`none`
+        wrapper contributes its own children in its place, an `aria-hidden` subtree
+        contributes nothing. */
+    const owned = (el: Element): Element[] =>
+      [...el.children].flatMap((child) => {
+        if (child.hasAttribute("aria-hidden")) return [];
+        const role = child.getAttribute("role");
+        return role === "presentation" || role === "none" ? owned(child) : [child];
+      });
+    const illegal = (root: Element) =>
+      owned(root)
+        .filter((child) => {
+          const role = child.getAttribute("role");
+          return role !== "option" && role !== "group";
+        })
+        .map((el) => el.getAttribute("role") ?? el.tagName);
+    expect(illegal(popup)).toEqual([]);
+    // The walk really does reach past the body — the calibration, without which the empty
+    // list above is indistinguishable from a walk that measured nothing. A `<div>` standing
+    // in for the refused Separator, planted where a caller would compose one.
+    const body = popup.querySelector<HTMLElement>(".kui-floating-body");
+    if (!body) throw new Error("the floating body is missing — this law would collapse nothing");
+    const intruder = document.createElement("div");
+    body.append(intruder);
+    expect(illegal(popup), "an illegal child inside the body must be reported").toEqual(["DIV"]);
+    intruder.remove();
   });
 
   it("a label inside a group keeps the group wiring", async () => {
@@ -900,6 +949,118 @@ describe("behavior: roles, choosing, forms, labels", () => {
     const label = popup.querySelector<HTMLElement>(".kui-select-label");
     if (!group || !label) throw new Error("group or label missing");
     expect(group.getAttribute("aria-labelledby")).toBe(label.id);
+  });
+
+  /**
+   * `items` is the ONLY thing that turns a value into words on the trigger (2026-08-26 audit).
+   *
+   * Four JSDoc blocks said the opposite — that Base UI reads an option's label from its
+   * mounted row, so `items` was merely an optimisation for the moment before the panel had
+   * first opened. It never did: `Select.Value` resolves through `resolveSelectedLabel(value,
+   * store.items, …)`, and `store.items` is the ROOT PROP and nothing else. Without the map the
+   * trigger paints the raw value string forever, including straight after a click on a row
+   * that says something else. The doc is the thing a consumer builds on, so the law is the
+   * behaviour it now describes, measured in BOTH directions — a law that only checked the
+   * `items` half would pass on a select that had learned to read its rows.
+   */
+  it("without `items` the chosen label never reaches the trigger — with it, it does", async () => {
+    const chooseBeta = async (items?: Record<string, React.ReactNode>) => {
+      const host = render(
+        <Theme>
+          <Select defaultOpen {...(items ? { items } : {})}>
+            <SelectTrigger placeholder="Pick one" />
+            <SelectContent>
+              <SelectItem value="a">Alpha</SelectItem>
+              <SelectItem value="b">Beta</SelectItem>
+            </SelectContent>
+          </Select>
+        </Theme>,
+      );
+      await settled();
+      const popups = document.querySelectorAll<HTMLElement>(".kui-select-popup");
+      const popup = popups[popups.length - 1]!;
+      const beta = [...popup.querySelectorAll<HTMLElement>(".kui-select-item")][1]!;
+      // Base UI's press-drag window, exactly as the choosing law above waits it out.
+      await new Promise((r) => setTimeout(r, 600));
+      await userEvent.click(beta);
+      await expect.poll(() => popup.checkVisibility(), { timeout: 2000 }).toBe(false);
+      return host.querySelector(".kui-select-value")!.textContent;
+    };
+    // The row that was clicked reads "Beta"; the trigger reads the VALUE, because nothing
+    // told it otherwise. This is the sentence the corrected JSDoc makes.
+    expect(await chooseBeta(), "no map: the trigger paints the raw value").toBe("b");
+    // ...and the map is what fixes it, at the same moment, on the same gesture.
+    expect(await chooseBeta({ a: "Alpha", b: "Beta" }), "the map is what carries the label").toBe(
+      "Beta",
+    );
+  });
+
+  /**
+   * `SelectContent` forwards the props it does not declare (2026-08-26 audit).
+   *
+   * It destructured four names with no rest spread over a CLOSED object type, so every extra
+   * was dropped: non-hyphenated names failed to type-check, and TypeScript's hyphenated-name
+   * exemption waved `aria-*` and `data-*` straight through to nowhere. The victim is specific
+   * — the panel is a bare `role="listbox"` with no accessible name, and `aria-label` was the
+   * obvious repair, accepted and discarded. Dialog's own fix, one component over.
+   */
+  it("SelectContent forwards what it does not declare, and the system still owns the axes", async () => {
+    render(
+      <Theme>
+        <Select defaultOpen size="3">
+          <SelectTrigger placeholder="Pick one" />
+          <SelectContent aria-label="Regions" data-testid="regions-panel">
+            <SelectItem value="a">Alpha</SelectItem>
+          </SelectContent>
+        </Select>
+      </Theme>,
+    );
+    await settled();
+    const popups = document.querySelectorAll<HTMLElement>(".kui-select-popup");
+    const popup = popups[popups.length - 1]!;
+    expect(popup.getAttribute("aria-label"), "the listbox has an accessible name").toBe("Regions");
+    expect(popup.getAttribute("data-testid")).toBe("regions-panel");
+    // ...and the pass-through cannot take the panel's identity: the axes are stamped AFTER
+    // the rest, so a caller writing `data-size` loses to the system.
+    expect(popup.getAttribute("data-size"), "the index is still the system's").toBe("3");
+  });
+
+  /**
+   * Base UI's value-RESET reaches the consumer as `null`, never the word "null" (2026-08-26
+   * audit).
+   *
+   * `SelectPositioner`'s `onMapChange` clears the value when the mounted option set changes
+   * and the current value is no longer among it — a dependent pair of selects, where picking a
+   * country replaces the region list — and `setValue` reports through `onValueChange` BEFORE
+   * applying. The root wrapped that as `String(v)`, so the clear arrived as the five-character
+   * string `"null"`: a controlled consumer stores it and hands it straight back as a value.
+   */
+  it("a value cleared by Base UI reports null, not the string \"null\"", async () => {
+    const seen: (string | null)[] = [];
+    function Dependent() {
+      const [few, setFew] = React.useState(false);
+      return (
+        <Theme>
+          <button type="button" data-testid="shrink" onClick={() => setFew(true)}>
+            shrink
+          </button>
+          <Select defaultOpen defaultValue="c" onValueChange={(v) => seen.push(v)}>
+            <SelectTrigger placeholder="Pick one" />
+            <SelectContent>
+              <SelectItem value="a">Alpha</SelectItem>
+              <SelectItem value="b">Beta</SelectItem>
+              {few ? null : <SelectItem value="c">Gamma</SelectItem>}
+            </SelectContent>
+          </Select>
+        </Theme>
+      );
+    }
+    const host = render(<Dependent />);
+    await settled();
+    host.querySelector<HTMLElement>('[data-testid="shrink"]')!.click();
+    // The reset runs off Base UI's item-map subscription, not off the click.
+    await expect.poll(() => seen.length, { timeout: 2000 }).toBeGreaterThan(0);
+    expect(seen, "the clear is a null, not a word").toEqual([null]);
   });
 });
 

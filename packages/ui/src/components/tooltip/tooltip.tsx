@@ -3,8 +3,15 @@
 import * as React from "react";
 
 import { Tooltip as BaseTooltip } from "@base-ui/react/tooltip";
+import { DirectionProvider } from "@base-ui/react/direction-provider";
 
-import { FloatingBody, PortalScope } from "../../system/floating.tsx";
+import {
+  FloatingBody,
+  FloatingDirectionContext,
+  PortalScope,
+  useAmbientDirection,
+} from "../../system/floating.tsx";
+import { mergeRefs } from "../../system/render.ts";
 import { Text } from "../text/text.tsx";
 
 /* The gap from the trigger — the floating family's own, shared rather than re-picked: two
@@ -81,19 +88,54 @@ export type TooltipProps = {
  * never a place to put something you cannot say anywhere else.
  */
 export function Tooltip({ children, ...props }: TooltipProps) {
+  // THE DIRECTION CONTEXT IS NOT OPTIONAL WIRING (§20, added 2026-08-26, ultracode audit) —
+  // Popover's sentence, one family member over, and the failure is identical. It carries the
+  // direction `PortalScope` STAMPS on the wrapper (unprovided, a tooltip in an
+  // `<html dir="rtl">` app opened stamped `dir="ltr"`, which OVERRIDES the direction the
+  // portal would otherwise have inherited) and the trigger the entry flight photographs for
+  // its seed. And an unprovided context resolves to the nearest ENCLOSING one, so a tooltip
+  // inside a Dialog flew out of the dialog's trigger.
+  const dir = useAmbientDirection();
+
   return (
-    <BaseTooltip.Root {...props}>{children}</BaseTooltip.Root>
+    <FloatingDirectionContext.Provider value={dir}>
+      {/* Base UI mirrors an anchored panel's side and alignment from its own direction
+          context, not from CSS (§20). */}
+      <DirectionProvider direction={dir.direction}>
+        <BaseTooltip.Root {...props}>{children}</BaseTooltip.Root>
+      </DirectionProvider>
+    </FloatingDirectionContext.Provider>
   );
 }
 
-export type TooltipTriggerProps = React.ComponentPropsWithoutRef<typeof BaseTooltip.Trigger>;
+/**
+ * THE DELAY IS THE SYSTEM'S, AND THE TYPE IS WHERE THAT IS SAID (2026-08-26, ultracode audit).
+ *
+ * Base UI's trigger accepts its own `delay` and `closeDelay` and honours them over the
+ * provider's, so inheriting its props verbatim left the documented refusal — "deliberately not
+ * a prop; a delay that varied per call site would make one product feel like several" — stated
+ * in four places and enforced in none: `<TooltipTrigger delay={0}/>` compiled and worked. A
+ * refusal the type does not express is a comment (ENGINEERING §1.3). The escape, when a region
+ * genuinely needs different timing, is a second `TooltipProvider` — which is the right shape
+ * anyway, a delay being a property of a REGION rather than of one label.
+ */
+export type TooltipTriggerProps = Omit<
+  React.ComponentPropsWithoutRef<typeof BaseTooltip.Trigger>,
+  "delay" | "closeDelay"
+> & {
+  ref?: React.Ref<HTMLElement>;
+};
 
 /**
  * The control the tooltip names. Pass your own `<Button>` through `render` — the trigger is
  * whatever you already have, and this adds the wiring and the anchor.
  */
-export function TooltipTrigger(props: TooltipTriggerProps) {
-  return <BaseTooltip.Trigger {...props} />;
+export function TooltipTrigger({ ref, ...props }: TooltipTriggerProps) {
+  // The one node a tooltip owns that stands in ordinary flow: the ambient direction is read
+  // here, and the entry's seed is photographed off it (§20, §22 — Menu's sentence). Both refs
+  // get the node, so the caller's is not spent.
+  const { measure } = React.use(FloatingDirectionContext);
+  return <BaseTooltip.Trigger {...props} ref={mergeRefs(ref, measure)} />;
 }
 
 export type TooltipContentProps = Omit<

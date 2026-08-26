@@ -3,11 +3,18 @@
 import * as React from "react";
 
 import { Popover as BasePopover } from "@base-ui/react/popover";
+import { DirectionProvider } from "@base-ui/react/direction-provider";
 
 import type { Size } from "../../system/axes.ts";
-import { FloatingBody, PortalScope } from "../../system/floating.tsx";
+import {
+  FloatingBody,
+  FloatingDirectionContext,
+  PortalScope,
+  useAmbientDirection,
+  useNameWarning,
+} from "../../system/floating.tsx";
 import { useLensRef } from "../../system/refraction.tsx";
-import { rootsInButton, unwrapLazy, type RenderElement } from "../../system/render.ts";
+import { mergeRefs, rootsInButton, unwrapLazy, type RenderElement } from "../../system/render.ts";
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { OWNED_BODY_STEP, OWNED_TITLE_STEP } from "../../system/type-steps.ts";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
@@ -65,21 +72,62 @@ export type PopoverProps = {
  * differently.
  */
 export function Popover({ size = "2", children, ...props }: PopoverProps) {
+  // THE DIRECTION CONTEXT IS NOT OPTIONAL WIRING (§20, added 2026-08-26, ultracode audit).
+  // It carries two facts and this component provided NEITHER, so both took the context's
+  // default: `direction` — which `PortalScope` STAMPS on the portal wrapper unconditionally,
+  // so an `<html dir="rtl">` app opened a panel stamped `dir="ltr"`, the stale-stamp failure
+  // of 2026-08-09 reached by a third road — and `anchor`, which is the node the entry flight
+  // photographs for its seed, so a standalone popover grew out of the anchorless square
+  // instead of lifting off its trigger.
+  //
+  // Worse than either alone: an unprovided context RESOLVES TO THE NEAREST ENCLOSING ONE, so
+  // a popover inside a Dialog took the DIALOG's anchor and flew out of the dialog's trigger,
+  // which is somewhere else on the page entirely.
+  const dir = useAmbientDirection();
+
   return (
     <PopoverSizeContext.Provider value={size}>
-      <BasePopover.Root {...props}>{children}</BasePopover.Root>
+      <FloatingDirectionContext.Provider value={dir}>
+        {/* Base UI positions from its own direction context, not from CSS (§20) — an anchored
+            panel's side and alignment are mirrored there, so the provider is what makes
+            `side="left"` mean the reader's left. */}
+        <DirectionProvider direction={dir.direction}>
+          <BasePopover.Root {...props}>{children}</BasePopover.Root>
+        </DirectionProvider>
+      </FloatingDirectionContext.Provider>
     </PopoverSizeContext.Provider>
   );
 }
 
-export type PopoverTriggerProps = React.ComponentPropsWithoutRef<typeof BasePopover.Trigger>;
+/**
+ * `render` is narrowed to an ELEMENT (Menu's and Dialog's spelling, restated here 2026-08-26).
+ *
+ * Base UI also accepts a render FUNCTION, and inheriting its props verbatim let that form
+ * type-check while `rootsInButton` — which asks an element what it is — read `.props` off a
+ * function and threw. A refusal the type expresses is the house rule (ENGINEERING §1.3); a
+ * refusal spelled as a runtime crash is not one. What the function form buys (a trigger that
+ * relabels itself by open state) is reachable by reading Base UI's own `data-popup-open`
+ * attribute in CSS, which is where this system puts state anyway.
+ */
+export type PopoverTriggerProps = Omit<
+  React.ComponentPropsWithoutRef<typeof BasePopover.Trigger>,
+  "render"
+> & {
+  /** Usually a Kookie Button: `<PopoverTrigger render={<Button/>}>Filters</PopoverTrigger>`. */
+  render?: RenderElement;
+  ref?: React.Ref<HTMLButtonElement>;
+};
 
 /**
  * The control that opens it. Pass your own `<Button>` through `render` — the trigger is
  * whatever you already have, and this component only adds the wiring (`aria-expanded`,
  * `aria-haspopup`, the anchor the panel measures itself against).
  */
-export function PopoverTrigger({ render, nativeButton, ...props }: PopoverTriggerProps) {
+export function PopoverTrigger({ render, nativeButton, ref, ...props }: PopoverTriggerProps) {
+  // The trigger is the one node a popover owns that stands in ordinary flow, so it is where
+  // the ambient direction is read and the flight's seed is photographed (§20, §22 — Menu's
+  // own sentence). Both refs get the node: the caller's is not spent.
+  const { measure } = React.use(FloatingDirectionContext);
   // `nativeButton` INFERRED, not defaulted (added 2026-08-23, ultracode audit). Base UI
   // branches its whole a11y contract on it and defaults it to true, so this component shipped
   // `render={<a href/>}` as `<a type="button" tabindex="0">` — `type` on an anchor being the
@@ -95,13 +143,14 @@ export function PopoverTrigger({ render, nativeButton, ...props }: PopoverTrigge
   // RECURSES because the blessed shape is `render={<Button render={<a href/>}/>}` — a
   // component, so a one-level check answers wrong and the two components disagree about one
   // node. It unwraps lazily at every level for the RSC boundary (§5).
-  const target = render === undefined ? undefined : unwrapLazy(render as RenderElement);
+  const target = render === undefined ? undefined : unwrapLazy(render);
   const isNativeButton = nativeButton ?? (target === undefined || rootsInButton(target));
   return (
     <BasePopover.Trigger
       {...(target ? { render: target } : {})}
       nativeButton={isNativeButton}
       {...props}
+      ref={mergeRefs(ref, measure)}
     />
   );
 }
@@ -192,11 +241,17 @@ function PopoverPopup({
   // covers the app, so it always has something to bend and always expresses the theme.
   const material = useMaterial({ backdrop: true });
   const lensRef = useLensRef<HTMLDivElement>(material, ref);
+  // Base UI's popup renders `role="dialog"`, so a panel with no `PopoverTitle` and no
+  // `aria-label` announces as "dialog" and nothing else — the measured case `useNameWarning`
+  // was written for (2026-08-21), and this component shipped without the call while Dialog and
+  // AlertDialog both made it. A popover with no heading is an ORDINARY shape, which is what
+  // makes the omission expensive here rather than theoretical (added 2026-08-26, audit).
+  const nameRef = useNameWarning("Popover");
   return (
     <BasePopover.Popup
       {...popupProps(React.use(PopoverSizeContext), material, className)}
       style={style}
-      ref={lensRef}
+      ref={mergeRefs(lensRef, nameRef)}
       {...props}
     >
       {/* THE CONTENT SCROLLS, THE PANEL NEVER DOES — Menu's 2026-08-17 adoption, one family
@@ -273,7 +328,15 @@ export function PopoverDescription({ children, ...props }: PopoverDescriptionPro
   );
 }
 
-export type PopoverCloseProps = React.ComponentPropsWithoutRef<typeof BasePopover.Close>;
+/** `render` is an ELEMENT here for the reason it is on the trigger — see PopoverTriggerProps. */
+export type PopoverCloseProps = Omit<
+  React.ComponentPropsWithoutRef<typeof BasePopover.Close>,
+  "render"
+> & {
+  /** Usually a Kookie Button: `<PopoverClose render={<Button/>}>Done</PopoverClose>`. */
+  render?: RenderElement;
+  ref?: React.Ref<HTMLButtonElement>;
+};
 
 /**
  * Dismisses the panel. Place a real `<Button>` through `render` — the system draws no ✕ here,
@@ -281,17 +344,18 @@ export type PopoverCloseProps = React.ComponentPropsWithoutRef<typeof BasePopove
  * press and Escape, and a corner glyph on a small pane competes with whatever the panel is
  * actually for. Notice draws one because it has neither of those.
  */
-export function PopoverClose({ render, nativeButton, ...props }: PopoverCloseProps) {
+export function PopoverClose({ render, nativeButton, ref, ...props }: PopoverCloseProps) {
   // The trigger's fix, one export over and for the same reason: a close button rendered as an
   // anchor is the commonest shape after the trigger, and Base UI's default would give it
   // `type="button"` and an unannounced disabled state.
-  const target = render === undefined ? undefined : unwrapLazy(render as RenderElement);
+  const target = render === undefined ? undefined : unwrapLazy(render);
   const isNativeButton = nativeButton ?? (target === undefined || rootsInButton(target));
   return (
     <BasePopover.Close
       {...(target ? { render: target } : {})}
       nativeButton={isNativeButton}
       {...props}
+      {...(ref !== undefined ? { ref } : {})}
     />
   );
 }

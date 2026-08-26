@@ -15,9 +15,18 @@
 import { describe, expect, it } from "vitest";
 
 import { Theme, type ThemeProps } from "../../theme/theme.tsx";
-import { APPEARANCES, colorOn, computed, render, settleAll, tokenOn } from "../../test/browser.tsx";
+import {
+  APPEARANCES,
+  colorOn,
+  computed,
+  render,
+  settleAll,
+  tokenOn,
+  until,
+} from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "../dialog/dialog.tsx";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "../menu/menu.tsx";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip.tsx";
 
@@ -108,6 +117,38 @@ describe("it is INVERTED, and it mints nothing to be (§11, §32)", () => {
       colorOn(popup, "var(--color-surface)"),
     );
     expect(computed(words, "color")).toBe(computed(body, "color"));
+  });
+
+  it("and it catches NO PANE LIGHT, because the pane is the mode's other end", () => {
+    /**
+     * `.kui-surface` paints `--kui-sf-light` — the solid rim, grain plus a white sheen — at
+     * every material, and that recipe is written for a pane the colour of the mode's SURFACE.
+     * This pane is the colour of the mode's INK, so in light the sheen composited 30% white
+     * over a near-black chip: measured
+     * `linear-gradient(rgba(255, 255, 255, 0.3), transparent 55%)` over
+     * `color(display-p3 0.1223 0.121 0.1291)`, lifting the top of a ~30px chip to roughly
+     * #626263 and fading to the fill by mid-height — a visible band across the smallest,
+     * highest-contrast object the library draws (audit 2026-08-26).
+     *
+     * The CARD in the same run is what makes this a law about the tooltip rather than about a
+     * package that had stopped lighting panes at all.
+     */
+    for (const appearance of APPEARANCES) {
+      const { popup } = openTooltip({ appearance });
+      expect(
+        computed(popup, "background-image"),
+        `${appearance}: the tooltip paints the surface world's sheen on an inverted pane`,
+      ).toBe("none");
+      const card = render(
+        <Theme appearance={appearance}>
+          <Card>x</Card>
+        </Theme>,
+      ).querySelector<HTMLElement>(".kui-card")!;
+      expect(
+        computed(card, "background-image"),
+        `${appearance}: no pane catches light at all — this law's control is gone`,
+      ).not.toBe("none");
+    }
   });
 
   it("it draws no hairline — the inverted edge IS the boundary", () => {
@@ -225,6 +266,112 @@ describe("the box is one line of words (§32)", () => {
     expect(popup.getAttribute("data-size"), "the tooltip's fixed index moved").toBe("1");
     expect(popup.getAttribute("data-material"), "a tooltip took the theme's glass").toBeNull();
     expect(computed(popup, "backdrop-filter")).toBe("none");
+  });
+});
+
+describe("it knows its direction and its anchor (§20, §22)", () => {
+  /**
+   * `PortalScope` stamps `dir` on the portal wrapper out of `FloatingDirectionContext`, and
+   * the entry flight reads its anchor from the same object. Tooltip provided NEITHER, so both
+   * took the context's default — a hard-coded `ltr` and no anchor — and an unprovided context
+   * resolves to the nearest ENCLOSING provider rather than to its default, so a tooltip inside
+   * a Dialog flew out of the dialog's trigger (audit 2026-08-26). Popover's own pair of laws,
+   * one family member over, and the defect was identical in both.
+   */
+  function inDocumentDirection<T>(dir: string, run: () => T): T {
+    const had = document.documentElement.getAttribute("dir");
+    document.documentElement.setAttribute("dir", dir);
+    try {
+      return run();
+    } finally {
+      if (had === null) document.documentElement.removeAttribute("dir");
+      else document.documentElement.setAttribute("dir", had);
+    }
+  }
+
+  it("an RTL document opens an RTL tooltip — the stamp states the direction, it does not invent one", () => {
+    // The stamp is written ALWAYS, so an unprovided direction is not "unknown": it is `ltr`,
+    // and it OVERRIDES the `rtl` the portal would have inherited from the document on its own.
+    const rtl = inDocumentDirection("rtl", () => {
+      const { popup } = openTooltip({});
+      const portal = popup.closest<HTMLElement>(".kui-portal");
+      if (!portal) throw new Error("no portal wrapper — the law would assert nothing");
+      return { stamp: portal.getAttribute("dir"), dir: computed(popup, "direction") };
+    });
+    expect(rtl.stamp, "the wrapper stamped a direction the document does not have").toBe("rtl");
+    expect(rtl.dir, "the tooltip computes the wrong direction").toBe("rtl");
+
+    // The calibration: an LTR document still answers `ltr`, or the assertion above passes on a
+    // wrapper that had simply stopped stamping.
+    const ltr = inDocumentDirection("ltr", () => {
+      const { popup } = openTooltip({});
+      return {
+        stamp: popup.closest<HTMLElement>(".kui-portal")!.getAttribute("dir"),
+        dir: computed(popup, "direction"),
+      };
+    });
+    expect(ltr.stamp).toBe("ltr");
+    expect(ltr.dir).toBe("ltr");
+  });
+
+  it("the flight's anchor is the tooltip's OWN trigger, inside a dialog as much as alone", async () => {
+    /**
+     * `--kui-anchor-w` is the persistent half of the runner's `if (trigger)` block — the one
+     * flight var the release keeps — written from the very node the seed silhouette is
+     * photographed off, so it answers both questions at once: is there an anchor, and is it
+     * the right one. With no provider it is never written (measured: the empty string); inside
+     * a Dialog it was written from the DIALOG's trigger.
+     *
+     * The two triggers are deliberately different widths, which is what makes "the wrong
+     * anchor" a different number from "the right anchor" rather than the same one twice.
+     */
+    const host = render(
+      <Theme>
+        <Tooltip defaultOpen>
+          <TooltipTrigger render={<Button style={{ inlineSize: "300px" }}>Undo</Button>} />
+          <TooltipContent>Undo</TooltipContent>
+        </Tooltip>
+      </Theme>,
+    );
+    const alone = document.querySelectorAll<HTMLElement>(".kui-tooltip-popup");
+    const alonePopup = alone[alone.length - 1]!;
+    const aloneTrigger = host.querySelector<HTMLElement>("button")!;
+    // SEIZED, NOT RACED: the runner writes this on its own frame, so the law waits for the
+    // value to EXIST. A tooltip with no anchor never writes it, and the wait runs out.
+    await until(() => computed(alonePopup, "--kui-anchor-w") !== "", 3000);
+    expect(
+      computed(alonePopup, "--kui-anchor-w"),
+      "the flight has no anchor at all — the chip grows out of the anchorless seed",
+    ).not.toBe("");
+    // `offsetWidth` and not the painted box: a flight reads the trigger's resting layout box.
+    expect(parseFloat(computed(alonePopup, "--kui-anchor-w"))).toBeCloseTo(
+      aloneTrigger.offsetWidth,
+      0,
+    );
+
+    render(
+      <Theme>
+        <Dialog defaultOpen>
+          <DialogTrigger render={<Button style={{ inlineSize: "500px" }}>Settings…</Button>} />
+          <DialogContent>
+            <DialogTitle>Settings</DialogTitle>
+            <Tooltip defaultOpen>
+              <TooltipTrigger render={<Button style={{ inlineSize: "70px" }}>Undo</Button>} />
+              <TooltipContent>Undo</TooltipContent>
+            </Tooltip>
+          </DialogContent>
+        </Dialog>
+      </Theme>,
+    );
+    const nestedAll = document.querySelectorAll<HTMLElement>(".kui-tooltip-popup");
+    const nested = nestedAll[nestedAll.length - 1]!;
+    const inner = document.querySelector<HTMLElement>(".kui-dialog-popup button");
+    if (!inner) throw new Error("the nested trigger never mounted");
+    await until(() => computed(nested, "--kui-anchor-w") !== "", 3000);
+    expect(
+      parseFloat(computed(nested, "--kui-anchor-w")),
+      "the tooltip flew out of the DIALOG's trigger — it read the enclosing direction context",
+    ).toBeCloseTo(inner.offsetWidth, 0);
   });
 });
 
