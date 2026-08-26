@@ -421,6 +421,51 @@ describe("glass and the grip (§10, §26, 2026-08-24)", () => {
     });
   }
 
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: DEAD, the chosen label does not follow the pane back to the live ink`, () => {
+      /* The glass world states the chosen label at (0,3,0) in surfaces.css ("on a glass TRACK
+         … the chosen label returns to the full ink") and this file's disabled arm was (0,2,0)
+         — `:where()` contributes nothing — so specificity handed a DEAD label the LIVE ink on
+         every glass state, over a grip this file had already dimmed. In dark that is neutral-12
+         words on a 70% neutral-12 grip: the 2026-08-19 D1 defect restated by a state (audit
+         2026-08-26).
+
+         Read as the AGREEMENT with the solid twin rather than against a token name. The dead
+         GRIP does not depend on the material — this file's dim ties the glass grip rule at
+         (0,3,0) and wins on source order — so the ink that answers to it must not either, and
+         reading both halves is what makes that a claim rather than a coincidence: a repair
+         that stood the label down while letting the grip drift fails here too. */
+      const host = render(
+        <Theme appearance={appearance} material="thin">
+          <Box backdrop>
+            <SegmentedControl disabled defaultValue="list">
+              <SegmentedItem value="list">List</SegmentedItem>
+              <SegmentedItem value="grid">Grid</SegmentedItem>
+            </SegmentedControl>
+          </Box>
+        </Theme>,
+      );
+      const track = within(host, ".kui-segmented");
+      // The premises, stated so a fixture that never went glass or never went dead fails as
+      // itself rather than as the claim (the 2026-08-21 rule: ask what the fixture would look
+      // like if the mechanism were absent).
+      expect(track.getAttribute("data-material")).toBe("thin");
+      expect(track.getAttribute("data-disabled")).not.toBeNull();
+      const solid = control({ disabled: true }, { appearance });
+      expect(
+        computed(within(host, ".kui-segment-thumb"), "background-color"),
+        `${appearance}: the dead grip drifted with the material`,
+      ).toBe(computed(grip(solid), "background-color"));
+      expect(
+        computed(within(host, ".kui-segment[data-checked]"), "color"),
+        `${appearance}: the pane handed a dead label the live ink`,
+      ).toBe(computed(chosen(solid), "color"));
+      // CALIBRATION: the dead ink really is a different value from the live one the pane
+      // states, or the agreement above is satisfied by a control that stands nothing down.
+      expect(computed(chosen(solid), "color")).not.toBe(colorOn(track, "var(--color-text)"));
+    });
+  }
+
   it("a glass TRACK wears the pane's ring — the well has no pigment edge, and the material has a lip", () => {
     // The glass lock (2026-08-24): the well's "no edge" is a decision about PIGMENT rank;
     // the ring is the material's own lip, what glass IS (§10's rim-and-edge sentence). The
@@ -789,6 +834,68 @@ describe("the grip travels between segments (§8, §26)", () => {
       thumb.getAttribute("data-activation-direction"),
       "a resize flew the grip — nobody changed the choice",
     ).toBe("none");
+  });
+
+  it("a SEAT that moves at CONSTANT track width takes the grip with it", async () => {
+    /* THE OBSERVER WATCHED THE TRACK AND NOT THE SEATS (audit 2026-08-26). A resize of the
+       CONTROL is not the only way a seat moves: the segments are `flex: 1 1 0` with a
+       `min-width: auto` floor, so inside a track whose width its container fixes — a grid cell,
+       a `flex: 1` toolbar, a window narrow enough that the track is already clamped — a label
+       that grows takes room from its neighbours and every seat moves while the track's own box
+       never changes. Nothing fired: the MutationObserver is filtered to `data-checked`, the
+       ResizeObserver saw a box that did not move, and there is no re-render to fall back on
+       (the value lives inside Base UI's RadioGroup, which is why this hook exists at all).
+
+       The label is grown by a real React state change rather than by writing to the DOM,
+       because that is the case the report is about — an async label, a translation, a count —
+       and because a hand-written `textContent` would replace the children Base UI put inside
+       the segment.
+
+       THE FIXTURE IS THE LAW: the track's width is asserted UNCHANGED, and the seat is
+       asserted to have MOVED. Without the first, the existing track observer would cover the
+       case and this would be a law about the mechanism it is not testing; without the second,
+       a label that changed nothing would satisfy it with the grip standing still. */
+    function Growing() {
+      const [grown, setGrown] = React.useState(false);
+      return (
+        <>
+          <button type="button" data-grow onClick={() => setGrown(true)}>
+            grow
+          </button>
+          <SegmentedControl defaultValue="b" style={{ inlineSize: "420px" }}>
+            <SegmentedItem value="a">{grown ? "Oneeeeeeeeeeeeeeeeeeee" : "One"}</SegmentedItem>
+            <SegmentedItem value="b">Two</SegmentedItem>
+            <SegmentedItem value="c">Three</SegmentedItem>
+          </SegmentedControl>
+        </>
+      );
+    }
+    const host = render(
+      <Theme>
+        <Growing />
+      </Theme>,
+    );
+    const track = within(host, ".kui-segmented");
+    const thumb = within(track, ".kui-segment-thumb");
+    const seat = () => within(track, ".kui-segment[data-checked]").getBoundingClientRect();
+    const before = { track: track.getBoundingClientRect().width, seat: seat().left };
+    await userEvent.click(within(host, "button[data-grow]"));
+    await until(() => Math.abs(seat().left - before.seat) > 1, 1000);
+    // The premise: the CONTROL did not resize, so the observer this law is about is the only
+    // one that could have seen anything.
+    expect(track.getBoundingClientRect().width, "the track resized — wrong mechanism").toBeCloseTo(
+      before.track,
+      1,
+    );
+    // The calibration: the seat genuinely moved, and it moved without leaving the channel (a
+    // line that overflows puts the seats outside the wall, which is a caller-forced break and
+    // not what this law is about — the 2026-08-25 re-cut, one describe up).
+    expect(Math.abs(seat().left - before.seat), "the label change moved nothing").toBeGreaterThan(1);
+    expect(seat().right).toBeLessThanOrEqual(track.getBoundingClientRect().right + 0.5);
+    await until(() => Math.abs(thumb.getBoundingClientRect().left - seat().left) < 0.5, 1000);
+    const grip = thumb.getBoundingClientRect();
+    expect(grip.left, "the grip stayed on the seat's old geometry").toBeCloseTo(seat().left, 1);
+    expect(grip.right, "the grip stayed on the seat's old geometry").toBeCloseTo(seat().right, 1);
   });
 
   it("the flight SURVIVES the observers watching the box", async () => {

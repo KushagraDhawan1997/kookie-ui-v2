@@ -6,10 +6,15 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { APPEARANCES, DEPTHS, POINTERS, colorOn, computed, mounted, numberOn, tokenOn } from "../../test/browser.tsx";
+import { APPEARANCES, DEPTHS, POINTERS, colorOn, computed, mounted, numberOn, probeIn, tokenOn } from "../../test/browser.tsx";
 import { Code } from "../code/code.tsx";
 import { Text } from "../text/text.tsx";
 import { Kbd } from "./kbd.tsx";
+
+/** A shadow-valued token as the scope resolves it: neither a length nor a colour, so the
+    harness's two probes cannot read it (text-field.browser.test.tsx's own spelling). */
+const shadowOn = (scope: Element, name: string): string =>
+  probeIn(scope, (el) => (el.style.boxShadow = `var(${name})`), (s) => s.boxShadow);
 
 describe("Kbd shares the chip's fill and tone facts, in its OWN family (§11, §15)", () => {
   it("wears the BODY family, and left the mono slot on purpose — the two must differ", () => {
@@ -96,8 +101,10 @@ describe("Kbd shares the chip's fill and tone facts, in its OWN family (§11, §
 describe("a key cap IS a raised object (§5 — the day-one refusal reversed 2026-08-08)", () => {
   it("casts ALWAYS, both worlds — the grips' exception, inherited for the same reason", () => {
     // A cap is a picture of a raised physical key, so depth is role semantics here, not the
-    // app's dial: it reads the palette row's VALUE (--control-chrome), never the world
-    // switch, so flat and elevated render the identical cast — the equality is the claim.
+    // app's dial: it reads a ROLE's value (--kbd-relief, cap-scale since 2026-08-17 — the lab
+    // port made --control-chrome the lit BUTTON chrome, swollen under a 16-28px cap), never
+    // the world switch, so flat and elevated render the identical cast — the equality is the
+    // claim.
     const casts: string[] = [];
     for (const depth of DEPTHS) {
       const el = mounted(<Kbd>⌘K</Kbd>, { theme: { depth } });
@@ -106,6 +113,15 @@ describe("a key cap IS a raised object (§5 — the day-one refusal reversed 202
       casts.push(cast);
     }
     expect(casts[0], "the cast moved with the world — 'always' broke").toBe(casts[1]);
+    // …and it is the CAP's role that it reads, not the button's. Both are live values in an
+    // elevated world, so the equality above would hold with the cap re-pointed at either; the
+    // difference is the whole reason the role was minted (2026-08-26, the doc-drift audit).
+    const el = mounted(<Kbd>⌘K</Kbd>, { theme: { depth: "elevated" } });
+    const relief = shadowOn(el, "--kbd-relief");
+    const buttonChrome = shadowOn(el, "--control-chrome");
+    expect(relief, "--kbd-relief resolves to nothing").not.toBe("");
+    expect(relief, "the two roles collapsed, so this cannot tell them apart").not.toBe(buttonChrome);
+    expect(computed(el, "box-shadow"), "the cap wears the button's chrome again").toBe(relief);
   });
 });
 

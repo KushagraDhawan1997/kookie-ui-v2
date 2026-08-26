@@ -44,6 +44,20 @@ const inputOf = (el: HTMLElement) => el.querySelector("input")!;
 const onPlaceholder = (el: Element, prop: string): string =>
   getComputedStyle(el, "::placeholder").getPropertyValue(prop).trim();
 
+/**
+ * THE ENGINE'S OWN ANSWER (2026-08-26). The field family's edge has TWO implementations and
+ * the cascade chooses between them at parse time: inside `@supports (background-clip:
+ * border-area)` the border goes transparent and the pane's conic RING paints in the band;
+ * outside it the pre-lab flat `--material-*-edge` hairline stands, which recipes.css itself
+ * calls "the honest fallback". Every law below asserted the first branch unconditionally —
+ * so on an engine without the feature (the pinned HeadlessChrome this suite runs on is one)
+ * the suite went red for a reason that is not a defect, and the rendering most users get was
+ * asserted by nothing at all. Branching here is what makes both halves laws instead of one
+ * half a law and the other half a false alarm; the static agreement between the two branches
+ * is `text-field.test.ts`'s, where the emitted sheet can be read whatever the engine does.
+ */
+const BORDER_AREA = CSS.supports("background-clip: border-area");
+
 describe("the wrapper is the control, and it joins the size index (§4)", () => {
   it("resolves height, padding, radius and type from the shared control family", () => {
     const el = mounted(<TextField size="3" />, { theme: { radius: "medium" } });
@@ -546,12 +560,22 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     // as the AGREEMENT with a glass Button's own ring, not as a token name: the resolved
     // conic string a Button's ::after paints must appear verbatim in the field's background
     // stack, so the two cannot drift apart without this failing.
-    expect(computed(glass, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
     const glassBtn = mounted(<Button backdrop>b</Button>, { theme: { depth: "flat", material: "thin" } });
     const ring = getComputedStyle(glassBtn, "::after").backgroundImage;
     expect(ring).toContain("conic-gradient");
-    expect(computed(glass, "background-image")).toContain(ring);
-    expect(getComputedStyle(glass).backgroundClip.startsWith("border-area")).toBe(true);
+    if (BORDER_AREA) {
+      expect(computed(glass, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
+      expect(computed(glass, "background-image")).toContain(ring);
+      expect(getComputedStyle(glass).backgroundClip.startsWith("border-area")).toBe(true);
+    } else {
+      // THE FALLBACK, asserted as the rendering it actually is: the material's own flat
+      // hairline on the border, and no ring anywhere in the stack — a wash of conic across
+      // the whole field is what recipes.css refuses here, so its absence is the claim.
+      expect(computed(glass, "border-top-color")).toBe(colorOn(glass, "var(--material-thin-edge)"));
+      expect(computed(glass, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
+      expect(computed(glass, "background-image")).not.toContain("conic-gradient");
+    }
+    // The rim paints on both branches — it is the material, not the edge.
     expect(computed(glass, "background-image")).not.toBe("none");
     // Flat: glass never floats — the cast AND the pool are no-op LAYERS (the pool rides the
     // world pointers since 2026-08-17: "flat means flat", so matter stands down with light).
@@ -612,10 +636,15 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     expect(computed(high, "border-top-color"), "the pigment substitute is back").not.toBe(
       colorOn(high, "var(--tone-border)"),
     );
-    // The background-layer ring paints under HC exactly as in standard.
-    expect(computed(high, "background-image"), "the field's ring must stay lit").toContain(
-      "conic-gradient",
-    );
+    // The background-layer ring paints under HC exactly as in standard — where the engine
+    // paints one at all. On the fallback branch the same claim is about the flat edge, which
+    // the border assertions above already carry; what stays checkable in both is that HIGH
+    // adds nothing and takes nothing away.
+    if (BORDER_AREA) {
+      expect(computed(high, "background-image"), "the field's ring must stay lit").toContain(
+        "conic-gradient",
+      );
+    }
     expect(computed(high, "background-image")).toBe(computed(normal, "background-image"));
   });
 

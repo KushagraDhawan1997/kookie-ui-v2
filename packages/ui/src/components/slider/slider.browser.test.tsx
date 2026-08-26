@@ -138,6 +138,31 @@ describe("the root is the control, and the height ladder is the target (§4, §1
       expect(pressed, `${where}: pressable box under the 24px floor`).toBeGreaterThanOrEqual(24);
       expect(pressed, `${where}: pressable box short of the control`).toBe(declared);
     });
+
+    // THE OTHER AXIS (audit 2026-08-26). R4 was applied to the block axis alone, and its law
+    // with it — "a law about one axis of a two-axis mechanism is half a law" (2026-08-08),
+    // reproduced in the file the first half was written in. `inline-size: 100%` on a flex item
+    // resolves against the flex container's CONTENT box, so the strip that answers a press and
+    // the rail it holds both stopped one border width short of each END of the control, while
+    // line 9 of slider.css said "a track runs the full box, ends included".
+    forEachCell(({ pointer, density, size }) => {
+      const el = slider({ size }, { pointer, density });
+      const where = `${pointer}/${density}/${size}`;
+      const box = rootOf(el).getBoundingClientRect();
+      const strip = pressBox(el);
+      expect(strip.width, `${where}: the strip is narrower than the control`).toBeCloseTo(
+        box.width,
+        1,
+      );
+      expect(strip.left, `${where}: the strip's near end is inside the control's`).toBeCloseTo(
+        box.left,
+        1,
+      );
+      expect(strip.right, `${where}: the strip's far end is inside the control's`).toBeCloseTo(
+        box.right,
+        1,
+      );
+    });
   });
 
   it("fills its container's inline size — a track has no intrinsic width", () => {
@@ -421,11 +446,108 @@ describe("states arrive from the shared layer (§8)", () => {
     expect(px(input.value)).toBe(45);
   });
 
-  it("an invalid slider's focus ring reads the invalid edge, inherited from the root's remap", () => {
-    const el = slider({ "aria-invalid": true } as never);
-    const root = rootOf(el);
-    expect(root.getAttribute("aria-invalid")).toBe("true");
-    expect(colorOn(root, "var(--focus-ring)")).toBe(colorOn(el, "var(--invalid-edge)"));
+  it("an invalid slider's ring is the invalid edge, PAINTED on the thumb (§8)", async () => {
+    // Rewritten 2026-08-26. It read `colorOn(root, "var(--focus-ring)")` — a probe appended
+    // inside the root — so it asserted that a custom property resolves and nothing else: it
+    // focused nothing, never touched the thumb the ring is drawn on, and stayed green against
+    // an outline hardcoded to any colour at all. One indirection short of the only thing its
+    // own title claimed, which is the 2026-08-03 lesson in its purest form.
+    //
+    // A sound slider is mounted beside it because "the invalid edge" is only a claim if the
+    // two rings differ: the remap's whole job is to move the ring off the accent.
+    const wrong = slider({ "aria-invalid": true } as never);
+    const sound = slider();
+    await settled(wrong);
+    await settled(sound);
+    expect(rootOf(wrong).getAttribute("aria-invalid")).toBe("true");
+
+    const ringOf = (host: HTMLElement) => {
+      const thumb = thumbOf(host);
+      const input = thumb.querySelector("input")!;
+      input.focus();
+      expect(document.activeElement).toBe(input);
+      const styles = getComputedStyle(thumb);
+      expect(styles.outlineStyle, "no ring to read").toBe("solid");
+      return styles.outlineColor;
+    };
+    const wrongRing = ringOf(wrong);
+    const soundRing = ringOf(sound);
+    expect(wrongRing).toBe(colorOn(wrong, "var(--invalid-edge)"));
+    expect(soundRing).toBe(colorOn(sound, "var(--focus-ring)"));
+    expect(wrongRing, "an invalid slider rings the same colour as a sound one").not.toBe(
+      soundRing,
+    );
+  });
+
+  it("and the state reaches the node AT calls the slider — the range input (audit R5)", async () => {
+    // The prop lands on Base UI's root, which is `role="group"`; what a screen reader
+    // announces is the hidden `<input type="range">` in the thumb, and that carried no
+    // validity at all. Forwarding it the way `aria-label` is forwarded does NOT fix it —
+    // SliderThumb builds its input's props from a fixed list and hands everything else to
+    // the thumb's div — so the attribute is written through `inputRef`, and this law reads
+    // it off the input rather than off the element the prop was given to.
+    const wrong = slider({ "aria-invalid": true } as never);
+    const sound = slider();
+    await settled(wrong);
+    await settled(sound);
+    expect(thumbOf(wrong).querySelector("input")!.getAttribute("aria-invalid")).toBe("true");
+    // The negative control, which is also the half that catches a blanket write: a sound
+    // slider must not announce itself invalid.
+    expect(thumbOf(sound).querySelector("input")!.hasAttribute("aria-invalid")).toBe(false);
+  });
+});
+
+describe("direction is React context, and the component has to supply it (audit 2026-08-26)", () => {
+  /**
+   * Base UI's slider reads text direction from its own `DirectionContext` and never from CSS:
+   * the control maps a pointer's x to a value with it, the thumb maps ArrowLeft/ArrowRight to
+   * +/- with it, and the handle's offset is written from it. Its only setter is
+   * `DirectionProvider`, which nothing outside the floating family rendered — so in an rtl
+   * document the CSS half of this component mirrored (every inset here is logical) while all
+   * three JS halves stayed left-to-right.
+   *
+   * Both laws are MIRROR claims rather than absolute ones: an ltr twin is mounted beside the
+   * rtl subject in the same document, so what is asserted is that the two are reflections of
+   * each other and not that a number came out at some place a fixture chose.
+   */
+  const rtlSlider = (props: React.ComponentProps<typeof Slider> = {}) =>
+    render(
+      <div dir="rtl" style={{ width: "240px" }}>
+        <Slider aria-label="Amount" defaultValue={40} {...props} />
+      </div>,
+    );
+
+  it("the arrows follow the rail — ArrowRight LOWERS the value under an rtl rail", async () => {
+    // A real key press: an untrusted KeyboardEvent cannot drive a range input's default
+    // action, so a synthetic version passes only when the wiring is bypassed.
+    const { userEvent } = await import("vitest/browser");
+    const el = rtlSlider({ step: 5 });
+    await settled(el);
+    expect(getComputedStyle(rootOf(el)).direction, "the fixture is not rtl").toBe("rtl");
+    const input = thumbOf(el).querySelector("input")!;
+    input.focus();
+    expect(document.activeElement).toBe(input);
+    await userEvent.keyboard("{ArrowRight}");
+    expect(px(input.value), "the arrows ran left-to-right under a right-to-left rail").toBe(35);
+    await userEvent.keyboard("{ArrowLeft}");
+    expect(px(input.value)).toBe(40);
+  });
+
+  it("...and the handle is placed from the other end — the two rails are reflections", async () => {
+    const ltr = slider({ defaultValue: 40 });
+    const rtl = rtlSlider();
+    await settled(ltr);
+    await settled(rtl);
+    const along = (host: HTMLElement, fromEnd: boolean) => {
+      const rail = trackOf(host).getBoundingClientRect();
+      const grip = thumbOf(host).getBoundingClientRect();
+      const centre = grip.left + grip.width / 2;
+      return fromEnd ? rail.right - centre : centre - rail.left;
+    };
+    expect(
+      along(rtl, true),
+      "the handle was placed from the wrong end of the rail",
+    ).toBeCloseTo(along(ltr, false), 0);
   });
 });
 

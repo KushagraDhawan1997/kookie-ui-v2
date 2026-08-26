@@ -45,8 +45,12 @@ export type KbdProps = Omit<
  *
  * **It casts always** — flat world included (2026-08-08, reversing the day-one refusal): a key
  * cap is a picture of a raised physical object, so depth here is role semantics, the slider and
- * switch grips' own exception. It reads `--control-chrome`'s VALUE, never the world switch, so
- * `surfaces` cannot move it.
+ * switch grips' own exception. It reads `--kbd-relief`'s VALUE, never the world switch, so
+ * `depth` cannot move it. (This sentence named `--control-chrome` and a `surfaces` prop until
+ * 2026-08-26: the cap left the lit control chrome for its own cap-scale relief on 2026-08-17 —
+ * kbd.css records that reversal — and the Theme prop was renamed `depth` on 2026-08-10. A pane
+ * still stands the relief down through `--kui-kbd-cast`, which is what "always" does not cover:
+ * always is about the WORLD, and a material is a different axis.)
  *
  * **The stylesheet repeats Code's facts on purpose.** TextArea set the rule (LOG 2026-08-05):
  * the SECOND member of a family self-keys, the THIRD promotes it into the shared layer. Badge

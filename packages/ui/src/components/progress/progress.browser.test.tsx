@@ -19,7 +19,10 @@ import {
   colorOn,
   computed,
   mounted,
-  tokenOn, inMotion,} from "../../test/browser.tsx";
+  tokenOn,
+  inMotion,
+  asksForStillness,
+} from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Flex } from "../flex/flex.tsx";
 import { Stack } from "../stack/stack.tsx";
@@ -242,6 +245,41 @@ describe("indeterminate is content, not a state change (§8's line, held)", () =
     );
     expect(parseFloat(computed(fill, "width"))).toBeGreaterThan(0);
     expect(computed(fill, "position")).toBe("absolute");
+  });
+
+  it("stillness SLOWS the sweep and never stops it — and the law enters the query (§8)", async () => {
+    /**
+     * Progress's reduced-motion behaviour was claimed in four places and checked by one node
+     * law that only asserts the FILE contains the string `@media (prefers-reduced-motion:
+     * reduce)`. Nothing anywhere entered the query, so replacing `animation-duration: 4s`
+     * with `animation-play-state: paused` froze the bar for every user who asked their OS for
+     * stillness — the exact failure §8 calls worse than no suppression at all — with the whole
+     * suite green. A law about a conditional block must execute the condition (ENGINEERING §6).
+     *
+     * It reads DECLARATIONS, not frames: what is claimed is the sweep's setup under the query,
+     * which is as true on a starved machine as an idle one, so this needs no frame watch.
+     */
+    inMotion();
+    const { fill } = parts(<Progress value={null} />);
+    const running = parseFloat(computed(fill, "animation-duration"));
+    expect(running, "the bar is not sweeping — this law would measure nothing").toBeGreaterThan(0);
+    expect(computed(fill, "animation-play-state")).toBe("running");
+
+    await asksForStillness();
+    expect(window.matchMedia("(prefers-reduced-motion: reduce)").matches).toBe(true);
+    expect(
+      parseFloat(computed(fill, "animation-duration")),
+      "stillness never reached the sweep",
+    ).toBeGreaterThan(running);
+    // NEVER stopped, which is the half a duration alone cannot say: a busy indicator that
+    // stops moving is information lost, so every other channel of the animation must survive.
+    expect(computed(fill, "animation-play-state"), "the sweep was paused, not slowed").toBe(
+      "running",
+    );
+    expect(computed(fill, "animation-name"), "the sweep was removed, not slowed").toBe(
+      "kui-progress-sweep",
+    );
+    expect(computed(fill, "animation-iteration-count")).toBe("infinite");
   });
 
   it("the root still reports indeterminate to AT — no aria-valuenow to read", () => {

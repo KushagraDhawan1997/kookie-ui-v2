@@ -11,6 +11,7 @@
  */
 import * as React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { flushSync } from "react-dom";
 import { page, userEvent } from "vitest/browser";
 
 import {
@@ -30,6 +31,7 @@ import {
 } from "./shell.tsx";
 import type { Size } from "../../system/axes.ts";
 import { Button } from "../button/button.tsx";
+import { Row } from "../row/row.tsx";
 import { Separator } from "../separator/separator.tsx";
 import { Box } from "../box/box.tsx";
 import { Card } from "../card/card.tsx";
@@ -768,9 +770,16 @@ describe("the app states its size once, and control may be handed back (§27)", 
  * These read the PAINTED colour in both worlds, and pin it to the value a Separator resolves
  * — the system's own answer for a rule between regions, the same pinning Tabs' bar carries.
  *
- * Falsified: with the `--kui-border-color` line removed from the flush rule, the elevated half
- * of the first law reads `rgba(0, 0, 0, 0)` and fails in both appearances, while the flat half
- * still passes — which is exactly the shape that let this ship.
+ * Falsified (re-run 2026-08-26): with `border-color: var(--color-border)` removed from
+ * `.kui-shell-pane[data-flush]` the elevated half of the first law reads
+ * `elevated .kui-shell-header bottom colour: expected 'rgba(0, 0, 0, 0)' to be 'color(...)'`
+ * in both appearances, while the flat half still passes — exactly the shape that let this ship.
+ *
+ * (The declaration was named here as `--kui-border-color` until 2026-08-26. There is no such
+ * line in shell.css and there cannot be: a component sheet may not so much as mention the
+ * painted name, which is why the flush rule sets the PROPERTY — the rule's own comment argues
+ * it. A falsification record naming a line that does not exist cannot be re-run, and an
+ * un-re-runnable record is the same as none.)
  */
 describe("a flush seam is a hairline, and exactly one pane owns each (§7, §27)", () => {
   const frame = (depth: (typeof DEPTHS)[number], appearance: (typeof APPEARANCES)[number]) =>
@@ -1181,6 +1190,112 @@ describe("two overlays at once — the plural the critical defect lived in (§27
     const inSidebar = within(sidebar, "button");
     inSidebar.focus();
     expect(document.activeElement, "the open drawer was made unreachable").toBe(inSidebar);
+    // AND THE SCRIM IS UP (added 2026-08-26, audit). Containment and the scrim were asking
+    // two different questions of the same shape — the pass takes "the root child CONTAINING
+    // each live overlay" while both scrim rules asked a DIRECT-CHILD `:has()`. So this exact
+    // fixture got full modal containment (every other root child inert) with no scrim drawn:
+    // no click-to-dismiss, no visible modality, and on a phone no Escape key either. The bad
+    // half of both mechanisms at once. Falsified by deleting the wrapped arm from the two
+    // scrim rules in shell.css, which reads `expected "none" to be "block"`.
+    expect(
+      computed(within(shell, ".kui-shell-scrim"), "display"),
+      "a wrapped drawer contained the whole shell and drew no way out",
+    ).toBe("block");
+  });
+
+  it("a NESTED shell's drawer does not raise the OUTER frame's scrim", async () => {
+    // The wrapped arm's guard, measured. `:has()` cannot ask "the nearest .kui-shell ancestor
+    // of this pane is me", so a descendant question also matches a Shell composed INSIDE this
+    // one — and the outer scrim would then grey out and swallow a drawer it neither owns nor
+    // contains (the outer root's containment pass reads its OWN registry, so it holds nothing
+    // here). The arm stands down where a nested shell exists, which is exactly the behaviour
+    // before it and never worse.
+    //
+    // Falsified by dropping `:not(:has(.kui-shell))` from the wrapped arm: the outer scrim
+    // computes `block` and this reads `expected "block" to be "none"`.
+    await narrow();
+    const outer = mounted(
+      <Shell style={{ height: 600 }}>
+        <ShellHeader>h</ShellHeader>
+        <ShellContent>
+          <Shell style={{ height: 300 }} data-inner>
+            <ShellSidebar defaultOpen aria-label="Inner">inner</ShellSidebar>
+            <ShellContent>c</ShellContent>
+          </Shell>
+        </ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const inner = within(outer, "[data-inner]");
+    // The premise: the inner drawer really is overlaying, or nothing here is being tested.
+    await expect.poll(() => computed(within(inner, ".kui-shell-sidebar"), "position")).toBe(
+      "absolute",
+    );
+    expect(
+      computed(within(inner, ".kui-shell-scrim"), "display"),
+      "the inner frame drew no scrim for its own drawer",
+    ).toBe("block");
+    expect(
+      computed(outer.querySelector(":scope > .kui-shell-scrim")!, "display"),
+      "the outer frame raised a scrim over a drawer it does not contain",
+    ).toBe("none");
+  });
+
+  it("a re-render while a pane overlays does NOT haul focus back into it", async () => {
+    /**
+     * ADDED 2026-08-26 (audit). The containment pass runs on every Shell render — deliberately,
+     * so a child mounted behind the scrim is contained — and its last statement asked one
+     * question per pass: "does live[0] hold focus?" That is a question about a MOMENT written
+     * as a question about a state, so every ordinary re-render (a keystroke in a form, a
+     * hovered item with state, a route transition) answered `no` and pulled focus back.
+     *
+     * Two ordinary shapes it made unreachable: a SECOND live overlay could never hold focus,
+     * and any portalled layer opened from inside a pane — a Menu, a Select, a Dialog — lands
+     * at body level, outside every pane, and lost its focus to the next render of anything.
+     *
+     * The subject here is that portalled position, modelled with a body-level button, because
+     * that is exactly the DOM place a popup's focus sits. The premise is POSITIVE and not a
+     * sleep: the re-render mounts a new root child, and the pass inerting it is proof the pass
+     * ran — the inert loop and the focus decision are the same synchronous effect, so once the
+     * child is inert the decision has already been made.
+     *
+     * Falsified: restore `if (!first.contains(document.activeElement)) first.focus(...)` and
+     * this reads `expected <nav class="kui-surface kui-shell-pane…"> to be <button>`.
+     */
+    await narrow();
+    let add!: () => void;
+    function App() {
+      const [extra, setExtra] = React.useState(false);
+      add = () => setExtra(true);
+      return (
+        <Shell style={{ height: 600 }}>
+          <ShellHeader>h</ShellHeader>
+          <ShellSidebar defaultOpen aria-label="Primary">
+            s
+          </ShellSidebar>
+          <ShellContent>c</ShellContent>
+          {extra ? <div data-late>late</div> : null}
+        </Shell>
+      );
+    }
+    const shell = mounted(<App />, { theme: {}, select: ".kui-shell" });
+    await expect.poll(() => within(shell, ".kui-shell-content").inert).toBe(true);
+    const outside = document.createElement("button");
+    outside.type = "button";
+    outside.textContent = "in a portalled layer";
+    document.body.append(outside);
+    try {
+      outside.focus();
+      expect(document.activeElement, "the fixture never took focus").toBe(outside);
+      add();
+      await expect.poll(() => shell.querySelector("[data-late]")?.hasAttribute("inert")).toBe(true);
+      expect(
+        document.activeElement,
+        "an ordinary re-render hauled focus out of the layer above the pane",
+      ).toBe(outside);
+    } finally {
+      outside.remove();
+    }
   });
 
   it("a child mounted DURING a live overlay is contained on the next pass", async () => {
@@ -1277,6 +1392,56 @@ describe("an overlay never takes the whole window (§27, audit 2026-08-16)", () 
     const floor = parseFloat(tokenOn(shell, "--touch-target-min"));
     expect(capped, "the oversized drawer collapsed instead of being capped").toBeCloseTo(375 - floor, 0);
     expect(shell.scrollWidth, "the shell scrolls sideways").toBeLessThanOrEqual(shell.clientWidth);
+  });
+
+  it("a NON-FLUSH drawer's own margin does not eat the strip the cap just bought", async () => {
+    /**
+     * ADDED 2026-08-26 (audit). The cap bounds a drawer's BORDER box against the frame; a
+     * non-flush pane then pays `--shell-gap` of margin OUTSIDE that box, and nothing in the six
+     * overlay arms restated or zeroed it. So the strip the cap exists to guarantee came out
+     * `--touch-target-min` MINUS the margin — measured 36px against a 44px floor at 320px —
+     * which is below the floor this repo enforces on every other target in the library.
+     *
+     * MIXED POSTURE is the fixture and it is load-bearing: with EVERY pane non-flush the frame
+     * spends half the gap as its own padding and the margin is the other half, so the two
+     * cancel and the strip measures exactly the floor — the all-cards regime cannot show this
+     * defect at all. The premise below asserts the drawer really pays outer spacing, because a
+     * fixture where it pays none is a fixture where the fix is invisible.
+     *
+     * Falsified: with the caps back at `calc(100% - var(--touch-target-min))` this reads
+     * `expected 36 to be greater than or equal to 43.5`.
+     */
+    await page.viewport(320, 700);
+    const shell = mounted(
+      <Shell style={{ height: 600 }}>
+        <ShellHeader>h</ShellHeader>
+        <ShellSidebar aria-label="Primary" defaultOpen flush={false}>
+          nav
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const sidebar = within(shell, ".kui-shell-sidebar");
+    await expect.poll(() => computed(sidebar, "position")).toBe("absolute");
+    const floor = parseFloat(tokenOn(shell, "--touch-target-min"));
+    expect(floor).toBeGreaterThan(0);
+    expect(
+      parseFloat(computed(sidebar, "margin-inline-start")),
+      "the drawer pays no outer spacing, so this fixture cannot show the defect",
+    ).toBeGreaterThan(0);
+    const root = shell.getBoundingClientRect();
+    const pane = sidebar.getBoundingClientRect();
+    // From the drawer's OUTER edge to the frame's, which is where the finger actually goes.
+    const strip = root.right - pane.right;
+    expect(strip, "the drawer's margin ate the dismissal strip").toBeGreaterThanOrEqual(floor - 0.5);
+    // Capped, not collapsed — a bound with one end is half a bound (2026-08-20).
+    expect(sidebar.clientWidth, "the drawer collapsed instead of being capped").toBeGreaterThan(
+      floor,
+    );
+    // And the strip is really the scrim, not merely empty space.
+    const hit = document.elementFromPoint(root.right - strip / 2, root.top + root.height / 2);
+    expect(hit?.classList.contains("kui-shell-scrim"), "the strip is not the scrim").toBe(true);
   });
 
   it("a NON-FLUSH pane that overlays still outranks the scrim and takes its own presses", async () => {
@@ -1771,6 +1936,18 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
     // hover colour" is also true of transparent.
     expect(currentRest, "the current row rests unpainted").not.toBe(plainRest);
     expect(currentRest, "the current row rests transparent").not.toContain("rgba(0, 0, 0, 0)");
+    // AND IT IS THE FAMILY'S ARM THAT CARRIES IT, not a copy in this member (2026-08-26
+    // audit). shell.css held a local `.kui-shell-nav-item[aria-current]` restating the shared
+    // declaration — (0,2,0) against the family's (0,2,0), identical value — so it decided
+    // nothing and could only ever drift from what it duplicated, while making the two
+    // impossible to tell apart. Deleted; this is what now holds them one. Falsified by raising
+    // the member's resting stand-down to (0,2,0), which is the only way it can beat the
+    // family's arm: the current row then reads `--color-text` and both halves fail.
+    const bareRow = mounted(<Row current>Inbox</Row>, { theme: {} });
+    expect(
+      computed(currentRow, "color"),
+      "a current nav row and a current Row do not resolve one colour",
+    ).toBe(computed(bareRow, "color"));
     // THE CURRENT COLOUR is the signal, and it is the family's — read through the stamp, so
     // a row that lost `data-tone="accent"` and fell back to neutral fails here rather than
     // passing on a role name that resolves to whatever is in scope. (--tone-current since
@@ -2070,6 +2247,27 @@ describe("the rail: a column of squares whose width is not the app's to state (�
     expect(seen.size, "the rail is the same width at every size").toBe(4);
   });
 
+  it("squares with persistent fills get air: the rail list separates them by the stated pick", () => {
+    // ADDED 2026-08-26 (audit). The list declared `display: flex; flex-direction: column` and
+    // nothing else, under a comment claiming it "owns the distance between them for the same
+    // reason the group owns the distance between its rows" — so two squares touched, and a
+    // current square edge-to-edge with a hovered neighbour reads as one taller lozenge rather
+    // than two squares. The nav group's own gap law, one container over; the pick is shared and
+    // the declaration is each container's.
+    //
+    // Falsified: with `gap` removed from `.kui-shell-rail-list` the distance measures 0 and
+    // this reads
+    // `expected +0 to be close to 2, received difference is 2`.
+    const shell = rail("2");
+    const items = [...shell.querySelectorAll<HTMLElement>(".kui-shell-rail-item")];
+    expect(items.length, "the rail fixture has nothing to separate").toBe(2);
+    const want = parseFloat(tokenOn(shell, "--layout-space-1"));
+    expect(want, "the pick resolves to nothing").toBeGreaterThan(0);
+    const a = items[0]!.getBoundingClientRect();
+    const b = items[1]!.getBoundingClientRect();
+    expect(b.top - a.bottom, "adjacent rail squares touch").toBeCloseTo(want, 1);
+  });
+
   it("the item is a SQUARE, and it stands level with a Button of the same size", () => {
     for (const size of ["1", "2", "3", "4"] as const) {
       const shell = rail(size);
@@ -2280,6 +2478,67 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
     expect(pane.style.getPropertyValue("--kui-lens")).not.toBe("");
     // And a flush pane in the same shell resolves solid, so it honestly has none.
     expect(within(shell, ".kui-shell-content").style.getPropertyValue("--kui-lens")).toBe("");
+  });
+
+  it("an ordinary re-render does NOT rebuild the pane's lens", async () => {
+    /**
+     * ADDED 2026-08-26 (audit). `mergeRefs` returns a FRESH closure per call and `useLensRef`
+     * memoises the DOM ref callback on that closure, so an unmemoised merge handed React a new
+     * ref identity every render. React answers a new ref by detaching (`null`) and reattaching
+     * — and `useLens`'s detach path RELEASES the filter, which drops the last reference, so
+     * `acquire` misses its cache and mints a whole new displacement map: a per-pixel Snell
+     * solve, a `toDataURL` encode and an eleven-node `<filter>` graft, on the largest boxes in
+     * the library, for every keystroke, hovered-with-state item or route change anywhere above
+     * the shell. That is the thing refraction.tsx's "on mount and resize, never at interaction
+     * time" rule exists to forbid.
+     *
+     * Read as the filter's IDENTITY rather than as a count of `<filter>` nodes: the churn
+     * releases one and mints one, so the document's total is the axis that stays right while
+     * the pane's own `url(#kui-lens-N)` changes underneath it.
+     *
+     * Falsified: pass `mergeRefs(ref, pane.paneRef)` straight to `usePaneDress` again and this
+     * reads `expected 'url(#kui-lens-3)' to be 'url(#kui-lens-2)'`.
+     */
+    let bump!: () => void;
+    function App() {
+      const [n, setN] = React.useState(0);
+      bump = () => flushSync(() => setN((v) => v + 1));
+      return (
+        <Shell style={{ height: 300, width: 600 }} data-tick={n}>
+          <ShellSidebar aria-label="Primary" flush={false}>
+            nav
+          </ShellSidebar>
+          <ShellContent>c</ShellContent>
+          {/* BOTH pane implementations, because they are two code paths: `SidePane` serves
+              rail/sidebar/inspector and `ShellBottom` is its own function, and each merges
+              its own refs. A law that mounts one is a law about one of them. */}
+          <ShellBottom flush={false} defaultOpen>
+            b
+          </ShellBottom>
+        </Shell>
+      );
+    }
+    const shell = mounted(<App />, { theme: { material: "regular" }, select: ".kui-shell" });
+    const panes = [".kui-shell-sidebar", ".kui-shell-bottom"].map((sel) => within(shell, sel));
+    // Settled rather than polled: the direct measurement and the ResizeObserver's own initial
+    // record both land, and a poll that stops at the first map returns before the second.
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    const before = panes.map((pane) => pane.style.getPropertyValue("--kui-lens"));
+    // THE PREMISE: a lens was really built on EACH, or "it did not change" is trivially true —
+    // the exact fixture defect this file has already paid for twice.
+    for (const [i, value] of before.entries()) {
+      expect(value, `${panes[i]!.className}: no lens was built, so this cannot show the churn`)
+        .not.toBe("");
+    }
+    bump();
+    await expect.poll(() => shell.getAttribute("data-tick")).toBe("1");
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    for (const [i, pane] of panes.entries()) {
+      expect(
+        pane.style.getPropertyValue("--kui-lens"),
+        `${pane.className}: an ordinary re-render tore the lens down and minted a new map`,
+      ).toBe(before[i]);
+    }
   });
 
   it("a Card composed inside a glass pane goes ON-GLASS — glass does not stack", () => {

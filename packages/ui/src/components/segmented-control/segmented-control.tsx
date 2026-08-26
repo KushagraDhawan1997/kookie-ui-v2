@@ -69,8 +69,9 @@ export type SegmentedItemProps = Omit<
  *
  * **It is JS, and it is the FOURTH bounded exception to §8's "no JS at interaction time"** —
  * beside the flight's measurement, the lens, and Tabs' own re-measure. Bounded the same way:
- * it runs when the SELECTION changes and when the box RESIZES, never on hover, press, focus or
- * scroll, and it writes two lengths rather than driving a frame loop. The sibling gets this
+ * it runs when the SELECTION changes and when a BOX RESIZES — the track's or any seat's, which
+ * are two different events (2026-08-26) — never on hover, press, focus or scroll, and it writes
+ * two lengths rather than driving a frame loop. The sibling gets this
  * free because Base UI already does it; nothing about a radio group offers to.
  *
  * **Arithmetic over an index was the alternative and it is wrong, measured.** `flex: 1 1 0`
@@ -177,12 +178,44 @@ function useTravelingThumb(track: React.RefObject<HTMLDivElement | null>) {
        content box the observer watches. So it is gone rather than kept as a comfort. Every case
        that remains is one where re-placing is simply correct: at mount it writes what is
        already there, and on a real resize the seat genuinely moved. */
+    /* AND IT WATCHES THE SEATS, NOT ONLY THE TRACK (2026-08-26, audit). Observing the track
+       alone answers "the control changed size", and that is not the only way a seat moves: the
+       segments are `flex: 1 1 0` with a `min-width: auto` floor, so inside a track whose width
+       its container fixes — a grid cell, a `flex: 1` toolbar, a narrow window where the track
+       is already clamped — a label that grows takes room from its neighbours and every seat
+       moves while the TRACK's box never changes. Measured, the grip stayed on the old
+       geometry: a resize the observer could not see, and no re-render to fall back on (the
+       value lives inside Base UI's RadioGroup, which is the whole reason this hook exists).
+       Base UI's Tabs registers a resize observer per TAB for the same reason, one component
+       over; this is that answer, on the element that has no primitive to give it.
+
+       One observer for both, because both mean the same thing here — the box moved, the choice
+       did not — so both PLACE rather than fly. The observer fires once per newly observed
+       element by design, and at mount that free callback writes what is already there; the
+       WeakSet is what keeps a later childList sync from re-observing a seat it already holds,
+       which WOULD re-fire and rewrite a live flight's direction to `none` (the scar the
+       comment above records, from the other side). */
     const size = new ResizeObserver(() => place(false));
     size.observe(el);
+    const watched = new WeakSet<Element>();
+    const watchSeats = () => {
+      for (const seat of el.querySelectorAll<HTMLElement>(":scope > .kui-segment")) {
+        if (watched.has(seat)) continue;
+        watched.add(seat);
+        size.observe(seat);
+      }
+    };
+    watchSeats();
+    // A segment added or removed later is a seat nothing is watching yet. Its own arrival is a
+    // resize of every sibling, so the placement is already correct by the time this runs; what
+    // this buys is that the NEW seat is watched from then on.
+    const seats = new MutationObserver(watchSeats);
+    seats.observe(el, { childList: true });
 
     return () => {
       selection.disconnect();
       size.disconnect();
+      seats.disconnect();
     };
   }, [track]);
 }

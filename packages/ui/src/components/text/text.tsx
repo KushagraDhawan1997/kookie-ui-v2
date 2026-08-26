@@ -4,9 +4,20 @@ import * as React from "react";
 
 import { composeRender, type RenderElement } from "../../system/render.ts";
 import type { Emphasis, Tone } from "../../system/axes.ts";
+// Type-only, so nothing is imported at runtime: the two unions below are the type half of the
+// lists `componentAxes` already derives from this config, and a hand-written copy of a list
+// with one home is a copy that goes stale the day the home widens (2026-08-26 audit).
+import type { fontSize, fontWeight } from "../../tokens/config.ts";
 
-/** §15 — the full ramp: type's dynamic range is wider than the control family's (§4). */
-export type TypeSize = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
+/**
+ * §15 — the full ramp: type's dynamic range is wider than the control family's (§4).
+ *
+ * DERIVED from the ramp itself, one step per entry, 1-based because §4's rule is the index.
+ * Prepending one slot and dropping key "0" is the whole trick, and it is deliberately not
+ * `(typeof componentAxes.typeSize)[number]`: `.map` over a tuple widens to `string[]`, so that
+ * spelling would type the prop as `string` and delete the closed union this line exists for.
+ */
+export type TypeSize = Exclude<Extract<keyof [unknown, ...typeof fontSize], `${number}`>, "0">;
 /**
  * §15 — the closed weight set; token names, never numbers.
  *
@@ -20,9 +31,12 @@ export type TypeSize = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
  * call site can re-introduce, and the decision would then hold only by memory (ENGINEERING
  * §1.3 — types are the refusals, enforced). An app that genuinely needs 700 has `style`, the
  * §13 escape every fenced resource uses; the set widens by config the day something real
- * forces it, which is the tone set's own rule.
+ * forces it, which is the tone set's own rule — and DERIVING the union from `fontWeight` is
+ * what makes "the set widens by config" true rather than a second edit somebody remembers:
+ * a hand-written copy of a list with one home is exactly the entropy `componentAxes` exists
+ * to end, and the builder's inspector already generates from the derived half.
  */
-export type Weight = "regular" | "medium" | "semibold";
+export type Weight = keyof typeof fontWeight;
 
 export type TextProps = Omit<
   React.ComponentPropsWithoutRef<"span">,

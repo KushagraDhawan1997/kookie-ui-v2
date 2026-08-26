@@ -843,6 +843,30 @@ describe("the tick is drawn, not switched on (§8)", () => {
     expect(dash(some, ".kui-checkbox-check"), "and the tick stays retracted").toBe(1);
   });
 
+  it("...and it stays the dash if the primitive stamps `data-unchecked` beside it (§8)", () => {
+    // The retraction arm's guard, and why it is defence rather than a description. In the
+    // pinned Base UI (1.7) `getCheckboxStateAttributesMapping` returns `{}` for `checked`
+    // while `indeterminate` is true, so the indicator carries `data-indeterminate` ALONE —
+    // which is why `:not([data-indeterminate])` had no law: nothing shipped could reach it,
+    // and checkbox.css claimed the opposite of the primitive for as long (audit 2026-08-26).
+    //
+    // Two halves, because the guard's whole value is what happens if that contract moves.
+    // The first pins the contract, so a Base UI bump that changes it fails HERE and names the
+    // rule. The second drives the arm through the state such a bump would produce: with
+    // `data-unchecked` on an indeterminate indicator, the dash must still be drawn.
+    const some = mounted(<Checkbox indeterminate />, { theme: {}, select: ".kui-checkbox" });
+    inMotion();
+    const svg = some.querySelector("svg")!;
+    expect(svg.hasAttribute("data-indeterminate"), "the indicator names its state").toBe(true);
+    expect(svg.hasAttribute("data-unchecked"), "Base UI 1.7 stamps one, not two").toBe(false);
+    expect(svg.hasAttribute("data-checked")).toBe(false);
+
+    svg.setAttribute("data-unchecked", "");
+    expect(dash(some, ".kui-checkbox-dash"), "the dash this state exists to draw was retracted")
+      .toBe(0);
+    expect(dash(some, ".kui-checkbox-check"), "and the tick stays retracted").toBe(1);
+  });
+
   it("held, the mark squashes — it has no depth to sink into (§8)", () => {
     const el = mounted(<Checkbox />, { theme: {}, select: ".kui-checkbox" });
     inMotion();

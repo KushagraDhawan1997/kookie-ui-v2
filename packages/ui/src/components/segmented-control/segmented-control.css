@@ -318,7 +318,22 @@
   );
 }
 
-.kui-segment:where([data-checked])[data-disabled] {
+/* (0,4,0), and the arithmetic is the fix (2026-08-26, audit). This arm was
+   `.kui-segment:where([data-checked])[data-disabled]` — (0,2,0), because `:where()` contributes
+   nothing — while the glass world states the chosen label at (0,3,0) in surfaces.css
+   ("on a glass TRACK … the chosen label returns to the full ink"). Specificity decides before
+   source order does, so on ANY glass state the dead label went back to the LIVE `--color-text`
+   over a grip this file had already dimmed: in dark that is neutral-12 words on a 70%
+   neutral-12 grip, the D1 defect of 2026-08-19 restated by a state.
+
+   The dim of `--color-thumb-label` is the right value on glass as well as on solid, and that is
+   a fact about the RULE BELOW rather than a coincidence: the dead grip's fill is this file's
+   `--color-thumb` dim, which ties the glass grip rule at (0,3,0) and wins on source order, so
+   the dead grip is the near-white one in both materials and the label that answers to it is
+   too. The two rules are one fact and must move together — re-point one and the other is
+   wrong. Written as four compounds rather than with `:where()` so it cannot be re-lost to a
+   descendant rule in a file that loads earlier. */
+.kui-segmented .kui-segment[data-checked][data-disabled] {
   --kui-ct-label-color: color-mix(
     in srgb,
     var(--color-thumb-label) var(--disabled-dim),

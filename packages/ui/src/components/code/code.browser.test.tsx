@@ -10,7 +10,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { APPEARANCES, DEPTHS, colorOn, computed, mounted, numberOn, tokenOn } from "../../test/browser.tsx";
+import { APPEARANCES, DEPTHS, colorOn, computed, mounted, numberOn, probeIn, tokenOn } from "../../test/browser.tsx";
 import { Kbd } from "../kbd/kbd.tsx";
 import { Text } from "../text/text.tsx";
 import { Code } from "./code.tsx";
@@ -254,11 +254,23 @@ describe("the fill is an identity and the tone reaches BOTH of the chip's colour
 });
 
 describe("it is inert — an atom with no states (§11)", () => {
+  /** The pressable cursor as this scope resolves it. The harness's `tokenOn` is a LENGTH
+      probe — it assigns the token to `width` and reads `width` back — so a keyword token
+      resolves through it as `auto`, which is the shape this law shipped in and could not
+      fail: the comparison was a cursor keyword against a width (2026-08-26 audit). */
+  const cursorOn = (scope: Element, name: string): string =>
+    probeIn(scope, (el) => (el.style.cursor = `var(${name})`), (s) => s.cursor);
+
   it("no cursor of its own, no focus ring, no shadow, in either world", () => {
     for (const depth of DEPTHS) {
       const el = mounted(<Code>x</Code>, { theme: { depth } });
       expect(computed(el, "box-shadow"), `${depth} lifted an inert atom`).toBe("none");
-      expect(computed(el, "cursor")).not.toBe(tokenOn(el, "--cursor-button"));
+      const pressable = cursorOn(el, "--cursor-button");
+      // The calibration, and it is what the old spelling was missing: an instrument that
+      // answers `auto` for every token compares nothing, because an inert atom's own cursor
+      // IS `auto` — the two sides agreed by both being the probe's failure value.
+      expect(pressable, "--cursor-button did not resolve, so this comparison is vacuous").not.toBe("auto");
+      expect(computed(el, "cursor"), `${depth}: an inert atom promises a press`).not.toBe(pressable);
       expect(computed(el, "outline-style")).toBe("none");
     }
   });

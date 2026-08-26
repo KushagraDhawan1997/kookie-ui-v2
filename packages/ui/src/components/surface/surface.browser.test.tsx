@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 
 import { Theme } from "../../theme/theme.tsx";
 import { APPEARANCES, colorOn, computed, mounted, tokenOn as lengthOn, within } from "../../test/browser.tsx";
+import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
 import { Box } from "../box/box.tsx";
 import { Surface } from "./surface.tsx";
@@ -173,8 +174,17 @@ describe("a ground, not an object (§10, 2026-08-20)", () => {
   it("has no axis to disagree with — a stamped tone or emphasis changes nothing", () => {
     // The API refuses them at the type level; this is the CSS half. A consumer reaching past
     // the type (or an ancestor stamping a family) must not be able to tint a ground.
+    //
+    // BOTH ARMS since 2026-08-26 (audit). The comment named two — reaching past the type, and
+    // an ancestor stamping a family — and the fixture only ever built the second, which the
+    // element-keyed rungs cannot match anyway. The first one was the reachable defect: `data-*`
+    // is exempt from TypeScript's excess-property checking, so the attribute compiles on the
+    // GROUND itself, and `.kui-surface[data-emphasis="loud"]` is declared after
+    // `.kui-surface.kui-ground` at equal specificity — so it won on source order and painted
+    // `--tone-solid`. A ground's identity is the absence of an axis, so the component now
+    // stamps that absence over the consumer's spread.
     const plain = mounted(<Surface>x</Surface>, { theme: {}, select: ".kui-surface" });
-    const hostile = mounted(
+    const ancestor = mounted(
       <Theme>
         <Box data-tone="destructive" data-emphasis="loud">
           <Surface>x</Surface>
@@ -182,8 +192,25 @@ describe("a ground, not an object (§10, 2026-08-20)", () => {
       </Theme>,
       { select: ".kui-ground" },
     );
-    expect(computed(hostile, "background-color")).toBe(computed(plain, "background-color"));
-    expect(computed(hostile, "border-top-color")).toBe(computed(plain, "border-top-color"));
+    // No `@ts-expect-error` on the element arm below, and its absence IS the finding: the
+    // hyphenated spelling compiles, so the runtime is the only place it can be refused.
+    const stamped = mounted(
+      <Surface data-tone="destructive" data-emphasis="loud">x</Surface>,
+      { theme: {}, select: ".kui-ground" },
+    );
+    for (const [name, el] of [["ancestor", ancestor], ["element", stamped]] as const) {
+      expect(computed(el, "background-color"), `${name}: a ground was tinted`).toBe(
+        computed(plain, "background-color"),
+      );
+      expect(computed(el, "border-top-color"), `${name}: the hairline took a family`).toBe(
+        computed(plain, "border-top-color"),
+      );
+      expect(computed(el, "color"), `${name}: the ink took a family`).toBe(computed(plain, "color"));
+    }
+    // …and the ground really does refuse the attribute rather than merely surviving it, which
+    // is the half a colour comparison cannot tell from a rung that happens to resolve the seal.
+    expect(stamped.hasAttribute("data-emphasis")).toBe(false);
+    expect(stamped.hasAttribute("data-tone")).toBe(false);
   });
 
   it("gets the layer's own behaviour free: it clips, and a child can bleed to its edge", () => {
@@ -202,15 +229,26 @@ describe("a ground, not an object (§10, 2026-08-20)", () => {
     expect(parseFloat(computed(root, "padding-top"))).toBeGreaterThan(0);
   });
 
-  it("opens no material scope — a card inside a glass region is the card it would have been", () => {
-    // A ground expresses no material, so it neither paints a veil nor stands its children
-    // down. The card inside must resolve exactly what it resolves with no Surface present.
-    // The held card is UNMARKED and reads the ambient `<Box backdrop>` region, which is the
-    // only arrangement that can catch this. The first spelling gave it an explicit `backdrop`
-    // prop — an explicit statement resolves the theme's material through any pane scope
-    // (2026-08-19), so it passed with a GlassScope deliberately transplanted in. A scope reset
-    // kills the REGION, so the region is what the law has to depend on.
-    const wrapped = mounted(
+  it("CLOSES the region — a card on a ground is not over content (§10, 2026-08-26)", () => {
+    /**
+     * REVERSED 2026-08-26 (audit). This law used to assert the opposite — that a card inside a
+     * marked region is "the card it would have been" with the Surface removed — and that was
+     * the defect written down as a guarantee. A ground PAINTS, opaquely and by construction
+     * (`--color-ground`; no material arm can reach it), so it seals whatever passes behind it
+     * exactly as a solid pane does. Leaking the region through it meant the held card resolved
+     * the theme's thickness and rendered real glass: a full backdrop read on every paint, to
+     * blur a flat opaque colour. Selectivity exists to stop precisely that.
+     *
+     * The card is UNMARKED and reads the ambient `<Box backdrop>` region, which is the only
+     * arrangement that can catch this: an explicit `backdrop` resolves the theme's material
+     * through any scope (2026-08-19), so a marked card would pass either way.
+     *
+     * Falsified by deleting the `BackdropContext.Provider`: reads
+     * `expected 'regular' to be undefined`.
+     */
+    const held = (tree: Parameters<typeof mounted>[0]) =>
+      mounted(tree, { select: "[data-testid='held']" });
+    const onGround = held(
       <Theme material="regular">
         <Box backdrop>
           <Surface>
@@ -218,23 +256,30 @@ describe("a ground, not an object (§10, 2026-08-20)", () => {
           </Surface>
         </Box>
       </Theme>,
-      { select: "[data-testid='held']" },
     );
-    const bare = mounted(
+    expect(onGround.dataset["material"], "the region leaked through an opaque ground").toBeUndefined();
+    expect(computed(onGround, "backdrop-filter")).toBe("none");
+    // THE NEGATIVE CONTROL: the same card with no ground under it IS glass, or "it is solid"
+    // is a fact about the fixture rather than about the ground.
+    const onPage = held(
       <Theme material="regular">
         <Box backdrop>
           <Card data-testid="held">Body</Card>
         </Box>
       </Theme>,
-      { select: "[data-testid='held']" },
     );
-    // The LENS id is unique per element by construction (a displacement map is built for one
-    // box), so the raw strings can never match and comparing them compared the wrong thing.
-    // Everything after the lens is the material, which is what this law is about.
-    const material = (el: Element) => computed(el, "backdrop-filter").replace(/url\("[^"]*"\)\s*/, "");
-    expect(material(wrapped), "the held card must be untouched").toBe(material(bare));
-    expect(material(wrapped)).not.toBe("");
-    expect(material(wrapped)).not.toBe("none");
+    expect(onPage.dataset["material"]).toBe("regular");
+    expect(computed(onPage, "backdrop-filter")).not.toBe("none");
+    // And the escape is untouched: a member that states its OWN placement still gets the
+    // theme's material, exactly as it does inside a solid pane (2026-08-19).
+    const stated = held(
+      <Theme material="regular">
+        <Surface>
+          <Card backdrop data-testid="held">Body</Card>
+        </Surface>
+      </Theme>,
+    );
+    expect(stated.dataset["material"], "a ground vetoed an explicit statement").toBe("regular");
     // And the ground itself never filters.
     const ground = within(
       mounted(
@@ -248,6 +293,36 @@ describe("a ground, not an object (§10, 2026-08-20)", () => {
       ".kui-ground",
     );
     expect(computed(ground, "backdrop-filter")).toBe("none");
+  });
+
+  it("…but opens no PANE scope: inside glass, its members stay on-glass (§10)", () => {
+    // The half that did NOT change, and the reason the reset above is a bare
+    // `BackdropContext` rather than a `GlassScope`: a ground expresses no material, so it must
+    // not touch `PaneContext`. A Surface inside a glass card leaves that card's scope exactly
+    // as it found it — the members are `on-glass`, never `solid`. The subject is a Button
+    // rather than a Card only to keep the dev-time nested-card warning out of the run.
+    const inside = mounted(
+      <Theme material="regular">
+        <Card backdrop>
+          <Surface>
+            <Button data-testid="held">Go</Button>
+          </Surface>
+        </Card>
+      </Theme>,
+      { select: "[data-testid='held']" },
+    );
+    const withoutGround = mounted(
+      <Theme material="regular">
+        <Card backdrop>
+          <Button data-testid="held">Go</Button>
+        </Card>
+      </Theme>,
+      { select: "[data-testid='held']" },
+    );
+    expect(withoutGround.dataset["material"], "the held control is not on glass at all").toBe("on-glass");
+    expect(inside.dataset["material"], "a ground stood its members down onto calm ground").toBe(
+      withoutGround.dataset["material"],
+    );
   });
 
   it("composes with a layout on ONE element, like every other surface", () => {

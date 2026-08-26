@@ -42,6 +42,19 @@ const onPlaceholder = (el: Element, prop: string): string =>
   getComputedStyle(el, "::placeholder").getPropertyValue(prop).trim();
 
 /** The inner textarea — the form element inside the wrapper (the wrapper is the control). */
+/**
+ * THE ENGINE'S OWN ANSWER (2026-08-26). The field family's edge has TWO implementations and
+ * the cascade chooses between them at parse time: inside `@supports (background-clip:
+ * border-area)` the border goes transparent and the pane's conic RING paints in the band;
+ * outside it the pre-lab flat `--material-*-edge` hairline stands, which recipes.css itself
+ * calls "the honest fallback". This law asserted the first branch unconditionally — so on an
+ * engine without the feature (the pinned HeadlessChrome this suite runs on is one) it went
+ * red for a reason that is not a defect, and the rendering most users get was asserted by
+ * nothing. The static agreement between the two branches is `text-field.test.ts`'s, where the
+ * emitted sheet can be read whatever the engine does.
+ */
+const BORDER_AREA = CSS.supports("background-clip: border-area");
+
 const inner = (el: Element): HTMLTextAreaElement =>
   el.querySelector<HTMLTextAreaElement>(".kui-textarea-input")!;
 
@@ -71,7 +84,16 @@ describe("padding is the dimension, and it is ONE inset (§4, reversed 2026-08-0
           computed(field, property),
         );
       }
-      expect(px(computed(area, "height"))).toBeGreaterThanOrEqual(px(computed(field, "height")));
+      // STRICTLY taller, not merely "at least" (2026-08-26). The published `size` doc claimed
+      // the reversed rule — "a one-row textarea is the same box as a TextField at the same
+      // index" — and `>=` is the one comparison that holds under BOTH sentences, so nothing
+      // here could tell them apart. The frame is one inset on all four sides and a field's
+      // block padding is the height ladder's leftover, so the textarea is taller by
+      // construction at every index.
+      expect(
+        px(computed(area, "height")),
+        `a rows={1} textarea at size ${size} is not taller than its field`,
+      ).toBeGreaterThan(px(computed(field, "height")));
     });
   }
 
@@ -155,6 +177,43 @@ describe("one treatment: the field family's identity (§9, §11)", () => {
     expect(computed(el, "cursor")).toBe("text");
     expect(computed(el, "user-select")).not.toBe("none");
     expect(computed(el, "font-weight")).toBe("400");
+  });
+
+  it("clicking the box lands the caret — the wrapper's one debt (2026-08-26)", () => {
+    /**
+     * The wrapper became the control on 2026-08-25 and it carries the padding on all four
+     * sides and paints the text cursor over the whole band — while a `<span>` is not
+     * focusable, so a press in that band moved focus NOWHERE. TextField paid this debt the
+     * day IT grew a wrapper; the anatomy moved here without it.
+     *
+     * Pressed at a real coordinate inside the padding rather than on the element abstractly:
+     * the claim is about the band between the border and the text, and an untargeted event on
+     * the wrapper cannot tell that band from the whole box.
+     */
+    const el = render(<TextArea rows={3} />);
+    const area = inner(el);
+    expect(document.activeElement).not.toBe(area);
+    const box = el.getBoundingClientRect();
+    const pad = px(computed(el, "padding-left"));
+    expect(pad, "the fixture has no padding band to press").toBeGreaterThan(2);
+    const point = { clientX: box.left + pad / 2, clientY: box.top + box.height / 2 };
+    const at = document.elementFromPoint(point.clientX, point.clientY);
+    expect(at, "the press lands on the textarea, so this measures the platform").toBe(el);
+    el.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true, ...point }));
+    expect(document.activeElement).toBe(area);
+    area.blur();
+  });
+
+  it("and a press ON the text is left to the platform — the resize grip is a press too", () => {
+    // The redirect must not swallow the inner element's own events: the handle lives on the
+    // textarea, and a `preventDefault` on a grip press cancels the drag before it starts.
+    let defaultPrevented = false;
+    const el = render(<TextArea rows={3} />);
+    const area = inner(el);
+    const event = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
+    area.dispatchEvent(event);
+    defaultPrevented = event.defaultPrevented;
+    expect(defaultPrevented, "the wrapper cancelled a press on the textarea itself").toBe(false);
   });
 
   it("the border is painted, and it is the affordance — bordered by identity", () => {
@@ -354,9 +413,18 @@ describe("the app's identities reach it without it knowing (§5, §10)", () => {
     const glassBtn = mounted(<Button backdrop>b</Button>, { theme: { material: "thin" } });
     const ring = getComputedStyle(glassBtn, "::after").backgroundImage;
     expect(ring).toContain("conic-gradient");
-    expect(computed(glass, "background-image")).toContain(ring);
-    expect(getComputedStyle(glass).backgroundClip.startsWith("border-area")).toBe(true);
-    expect(computed(glass, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
+    if (BORDER_AREA) {
+      expect(computed(glass, "background-image")).toContain(ring);
+      expect(getComputedStyle(glass).backgroundClip.startsWith("border-area")).toBe(true);
+      expect(computed(glass, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
+    } else {
+      // THE FALLBACK, asserted as the rendering it actually is: the material's own flat
+      // hairline on the border, and no ring in the stack — a wash of conic across the whole
+      // box is what recipes.css refuses here, so its absence is the claim.
+      expect(computed(glass, "border-top-color")).toBe(tokenOn(glass, "--material-thin-edge"));
+      expect(computed(glass, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
+      expect(computed(glass, "background-image")).not.toContain("conic-gradient");
+    }
     // The negative control: a SOLID textarea keeps its pigment hairline and no ring.
     const solid = mounted(<TextArea aria-label="solid" />, {});
     expect(computed(solid, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");

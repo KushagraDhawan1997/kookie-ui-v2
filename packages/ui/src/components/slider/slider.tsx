@@ -1,10 +1,13 @@
 "use client";
 
+import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { Slider as BaseSlider } from "@base-ui/react/slider";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
 import { useControlSize } from "../../system/control-size.ts";
+import { useAmbientDirection } from "../../system/floating.tsx";
+import { mergeRefs } from "../../system/render.ts";
 
 export type SliderProps = Omit<
   React.ComponentPropsWithoutRef<typeof BaseSlider.Root>,
@@ -76,31 +79,84 @@ export function Slider({
   const size = useControlSize(sizeProp);
   const values = props.value ?? props.defaultValue;
   const thumbs = Array.isArray(values) ? values.length : 1;
+  /**
+   * RTL is React context here, and nothing else on the page can supply it (added 2026-08-26).
+   *
+   * Base UI's slider reads direction from `DirectionContext`: the control maps a pointer's x
+   * to a value with it, the thumb maps ArrowLeft/ArrowRight to +/- with it, and the handle's
+   * own offset is written from it. Its only setter is `DirectionProvider`, which nothing in
+   * this repo rendered outside the floating family — so `useDirection()` answered `'ltr'` in
+   * an `<html dir="rtl">` document while this file's logical properties mirrored correctly:
+   * the rail ran right-to-left and the drag, the arrows and the handle all ran left-to-right.
+   *
+   * The ROOT's own computed direction is what is measured, not the document's — a slider
+   * always has an in-flow node, and `useAmbientDirection`'s document fallback exists for the
+   * floating members that need not — so a subtree flipped by `dir` on an ancestor is answered
+   * too. `DirectionProvider` renders no DOM, so the wrapper costs nothing in the tree.
+   */
+  const dir = useAmbientDirection();
+  // Memoised because `mergeRefs` returns a fresh closure and an unstable ref callback detaches
+  // and re-attaches every render (shell.tsx carries the same note). `dir.measure` is stable.
+  const rootRef = React.useMemo(() => mergeRefs(ref, dir.measure), [ref, dir.measure]);
+  /**
+   * `aria-invalid` reaches the node AT calls the slider (added 2026-08-26, audit R5).
+   *
+   * The prop spreads onto Base UI's root, which is `role="group"` — the thing a screen reader
+   * announces as the slider is the hidden `<input type="range">` inside the thumb, and that
+   * carried `aria-label | aria-orientation | aria-valuenow` and no validity at all. Inside a
+   * `Field.Root` Base UI wires the state itself; standalone, the platform spelling reached
+   * nothing, and `render`/`children` are refused so no call site could repair it.
+   *
+   * It has to be written onto the node rather than passed: `SliderThumb` builds its input's
+   * props from a fixed list and everything else it is handed lands on the thumb's DIV, so
+   * forwarding the attribute the way `aria-label` is forwarded would put it one element off
+   * the announced one. `inputRef` is the only seam the primitive offers. Keyed on the value,
+   * so the callback re-attaches exactly when the state changes and never per render — and it
+   * runs at commit, not at interaction time.
+   *
+   * The root keeps its copy: the shared invalid remap selects `[aria-invalid="true"]` on
+   * `.kui-control`, so removing it there would take the paint with it.
+   */
+  const invalid = props["aria-invalid"];
+  const nameInvalid = React.useCallback(
+    (input: HTMLInputElement | null) => {
+      if (!input) return;
+      if (invalid === undefined || invalid === false || invalid === "false") {
+        input.removeAttribute("aria-invalid");
+      } else {
+        input.setAttribute("aria-invalid", invalid === true ? "true" : String(invalid));
+      }
+    },
+    [invalid],
+  );
   return (
-    <BaseSlider.Root
-      ref={ref}
-      className={className ? `kui-control kui-slider ${className}` : "kui-control kui-slider"}
-      data-size={size}
-      // Fixed identity (§11, the binary controls' pattern): the FILL is the accent part, the
-      // way a checkbox's tick is. The track never reads this family — it wears --color-track,
-      // the tone-independent well — which is what keeps "track low" neutral.
-      data-tone="accent"
-      thumbAlignment="edge"
-      {...props}
-    >
-      <BaseSlider.Control className="kui-slider-control">
-        <BaseSlider.Track className="kui-slider-track">
-          <BaseSlider.Indicator className="kui-slider-fill" />
-          {Array.from({ length: thumbs }, (_, i) => (
-            <BaseSlider.Thumb
-              key={i}
-              index={i}
-              aria-label={ariaLabel}
-              className="kui-mark kui-slider-thumb"
-            />
-          ))}
-        </BaseSlider.Track>
-      </BaseSlider.Control>
-    </BaseSlider.Root>
+    <DirectionProvider direction={dir.direction}>
+      <BaseSlider.Root
+        ref={rootRef}
+        className={className ? `kui-control kui-slider ${className}` : "kui-control kui-slider"}
+        data-size={size}
+        // Fixed identity (§11, the binary controls' pattern): the FILL is the accent part, the
+        // way a checkbox's tick is. The track never reads this family — it wears --color-track,
+        // the tone-independent well — which is what keeps "track low" neutral.
+        data-tone="accent"
+        thumbAlignment="edge"
+        {...props}
+      >
+        <BaseSlider.Control className="kui-slider-control">
+          <BaseSlider.Track className="kui-slider-track">
+            <BaseSlider.Indicator className="kui-slider-fill" />
+            {Array.from({ length: thumbs }, (_, i) => (
+              <BaseSlider.Thumb
+                key={i}
+                index={i}
+                aria-label={ariaLabel}
+                inputRef={nameInvalid}
+                className="kui-mark kui-slider-thumb"
+              />
+            ))}
+          </BaseSlider.Track>
+        </BaseSlider.Control>
+      </BaseSlider.Root>
+    </DirectionProvider>
   );
 }

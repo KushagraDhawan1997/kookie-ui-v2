@@ -7,7 +7,7 @@ import type { Emphasis, Size, Tone } from "../../system/axes.ts";
 import { useControlSize } from "../../system/control-size.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
-import { slot, unwrapLazy, type RenderElement } from "../../system/render.ts";
+import { rootsInButton, slot, unwrapLazy, type RenderElement } from "../../system/render.ts";
 import { Spinner } from "../spinner/spinner.tsx";
 
 type ButtonBase = Omit<
@@ -40,7 +40,9 @@ type ButtonBase = Omit<
   /** Adds a hairline. It is separate from loudness: quiet with a border is the old outline
    *  button, and it reads half a step above quiet. */
   bordered?: boolean;
-  /** Blocks the press and shows a Spinner. The label never goes away. */
+  /** Blocks the press and shows a Spinner. The label never goes away. On an `iconOnly`
+   *  button the Spinner takes the glyph's place rather than sitting beside it, because there
+   *  the glyph IS the label. */
   loading?: boolean;
   /**
    * The slot before the label, usually an icon. While `loading` is true the Spinner takes this
@@ -150,16 +152,30 @@ export function Button({
   // rather than composing, and so was the one component that inspects a render element
   // without first asking what it is.
   const target = render === undefined ? undefined : unwrapLazy(render);
-  const isNativeButton = nativeButton ?? (target === undefined || target.type === "button");
-  // The Spinner takes the icon's place when there is one — same box, zero shift — and joins
-  // the label when there is not. The label never goes: a button that stops saying what it is
-  // doing is worse than one that changes width (§8).
+  // `rootsInButton`, never a one-level `type === "button"` (2026-08-26 audit). The shallow
+  // check answers FALSE for any component target — `render={<MyButton/>}`, the ordinary reason
+  // to reach for `render` with something other than an element — so Base UI took the
+  // non-native branch and stamped `role="button"` on a real <button>, dropped its `type`
+  // (making it a submit inside a form) and, when disabled, wrote `aria-disabled` where the
+  // native attribute belongs. The shared helper recurses through `render={<Button render={<a/>}/>}`
+  // and answers `true` for a component it cannot see inside, which is the honest default here:
+  // an unforwardable case is one where Base UI's own default is what we would have chosen.
+  const isNativeButton = nativeButton ?? (target === undefined || rootsInButton(target));
   // §10 — the app says what things are built of; a control never does (2026-08-16). It only
   // states placement (backdrop, 2026-08-17): on calm ground it resolves solid and pays nothing.
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   // §10 — the lens, prepended to the control layer's own material chain (see Card).
   const lensRef = useLensRef<HTMLElement>(material, ref);
-  const leading = loading ? <Spinner /> : leadingSlot;
+  // The Spinner takes the icon's place when there is one — same box, zero shift — and joins
+  // the label when there is not. The label never goes: a button that stops saying what it is
+  // doing is worse than one that changes width (§8).
+  const leading = loading && !iconOnly ? <Spinner /> : leadingSlot;
+  // AN ICON-ONLY BUTTON'S GLYPH IS `children`, so the Spinner has to replace THAT (2026-08-26
+  // audit). Substituting only the leading slot put the Spinner BESIDE the glyph inside a box
+  // `aspect-ratio: 1` gives no room to grow — two icon boxes plus the label gap in a square
+  // the size of one — so a busy icon button showed the thing it was busy doing, squashed. The
+  // slot stays untouched, which is why this is a second expression rather than a wider one.
+  const content = loading && iconOnly ? <Spinner /> : children;
 
   // Slots wear the system's adornment wrapper (`data-slot`, ENGINEERING §3) since 2026-08-05.
   // The wrapper is what lets the shared layer read structure off the DOM instead of asking the
@@ -193,9 +209,17 @@ export function Button({
       className={className ? `kui-control kui-button ${className}` : "kui-control kui-button"}
       {...props}
     >
-      {slot(leading, "leading")}
-      <GlassScope material={material}>{children}</GlassScope>
-      {slot(trailing, "trailing")}
+      {/* THE WHOLE CHILD LIST, slots included (2026-08-26 audit). Wrapping only `children`
+          left a control hosted in a slot outside the scope, so a Button inside a glass
+          Button's trailing slot read the theme's thickness and painted a second
+          backdrop-filter over the first — glass stacked through the one composition §4
+          designed the slot geometry for. TextField wraps both of its slots for this reason;
+          Button had the same anatomy and half the scope. Context only, so no DOM. */}
+      <GlassScope material={material}>
+        {slot(leading, "leading")}
+        {content}
+        {slot(trailing, "trailing")}
+      </GlassScope>
     </BaseButton>
   );
 }

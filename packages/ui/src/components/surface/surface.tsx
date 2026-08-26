@@ -4,6 +4,7 @@ import * as React from "react";
 
 import { composeRender, mergeRefs, type RenderElement } from "../../system/render.ts";
 import { useClipWarning } from "../../system/clip.tsx";
+import { BackdropContext } from "../../theme/theme.tsx";
 import type { Size } from "../../system/axes.ts";
 
 export type SurfaceProps = Omit<
@@ -45,7 +46,10 @@ export type SurfaceProps = Omit<
  * - **`material`** — glass exists to defend a pane against something passing BEHIND it, and a
  *   ground's backdrop is its own parent, which is not a backdrop. Inside a glass card it
  *   simply participates in the scope already there (`on-glass`, no second filter). It takes
- *   no `backdrop` prop for the same reason: it is never the thing over content.
+ *   no `backdrop` prop for the same reason: it is never the thing over content. What it does
+ *   do is CLOSE a backdrop region: the ground is opaque, so a card sitting on it is not over
+ *   content and resolves solid, exactly as it would on a solid pane. A member that states its
+ *   own `backdrop` still gets the theme's material.
  * - **a shadow** — a hole in a plane throws none. Stated in the layer, not here.
  * - **`tone` / `emphasis`** — Card's own refusal, unchanged: a container ranks nothing.
  *
@@ -57,21 +61,48 @@ export function Surface({ size = "3", render, className, style, children, ref, .
   // A pane clips, so content wider than it is is not reachable at all (§3, 2026-08-21).
   const clipRef = useClipWarning("<Surface>");
   const merged = {
+    /**
+     * THE CONSUMER'S PROPS COME FIRST, and the two `undefined`s below are the identity — do
+     * not delete them as no-ops (2026-08-26 audit). This component's whole design is that it
+     * takes NO axis; TypeScript exempts hyphenated attribute names from excess-property
+     * checking, so `<Surface data-emphasis="loud" data-tone="destructive">` compiles clean,
+     * and the surface layer's rungs are element-keyed and declared AFTER the ground's own
+     * block — equal specificity, later in the file — so it painted `--tone-solid`: a solid red
+     * ground, from a call site, with no error anywhere. Card answers this by stamping its
+     * identity over the spread; a ground's identity is the ABSENCE of one, so it stamps the
+     * absence. Every other prop a consumer owns still lands.
+     */
+    ...props,
+    "data-tone": undefined,
+    "data-emphasis": undefined,
     ref: mergeRefs(ref, clipRef),
     "data-size": size,
     className: className ? `kui-surface kui-ground ${className}` : "kui-surface kui-ground",
     style,
-    ...props,
   };
 
   // `undefined` must stay `undefined`: composeRender keeps the render target's OWN children
   // when the caller passes none — Card's law, and the reason a `render` target that carries
-  // its own content is not silently emptied. There is no GlassScope wrap here, unlike Card:
-  // a ground expresses no material, so it opens no scope and closes none. A Surface inside a
-  // glass card leaves that card's scope exactly as it found it.
-  return render ? (
+  // its own content is not silently emptied.
+  const content = render ? (
     composeRender(render, merged as never, children)
   ) : (
     <div {...(merged as React.ComponentPropsWithRef<"div">)}>{children}</div>
   );
+
+  /**
+   * A GROUND CLOSES THE REGION, and that is not the same as opening a pane scope (§10,
+   * 2026-08-26 audit).
+   *
+   * There is deliberately no `GlassScope` here: a ground expresses no material, so it must not
+   * touch `PaneContext` — a Surface inside a glass card leaves that card's scope exactly as it
+   * found it, and its members stay `on-glass`. But the ground PAINTS, opaquely and by
+   * construction (`--color-ground`, no material arm can reach it), so it seals whatever passes
+   * behind it exactly as a solid pane does. Without this reset a `<Box backdrop>` region leaked
+   * straight through it and a card sitting on the ground resolved the theme's thickness: real
+   * glass, a full backdrop read per paint, blurring a flat opaque colour — which is precisely
+   * what the selectivity rule exists to stop. The escape is unchanged: a member that states its
+   * own `backdrop`, or opens a fresh region inside, still resolves the theme's material.
+   */
+  return <BackdropContext.Provider value={false}>{content}</BackdropContext.Provider>;
 }

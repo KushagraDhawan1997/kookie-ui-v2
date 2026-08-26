@@ -6,7 +6,20 @@ import * as React from "react";
 import type { Size } from "../../system/axes.ts";
 import { unwrapLazy } from "../../system/render.ts";
 
-export type TabsProps = React.ComponentPropsWithoutRef<typeof BaseTabs.Root>;
+export type TabsProps = Omit<
+  React.ComponentPropsWithoutRef<typeof BaseTabs.Root>,
+  // `orientation` is REFUSED rather than passed through (2026-08-26, audit) — Slider's own
+  // sentence one component over, and here it was passing through by omission rather than by
+  // decision. Nothing in this package answers `vertical`: tabs.css has no `[data-orientation]`
+  // arm at all, the list is a flex ROW with the hairline on its block-end, and the rule is
+  // drawn by two INLINE insets against a `--tab-rule` block-size. Base UI would still switch
+  // the arrow keys to Up/Down and stamp `data-orientation="vertical"`, so the prop announced a
+  // layout the stylesheet has never had — a horizontal bar with vertical keyboard navigation.
+  // A vertical bar is a designed geometry (a rail down the inline edge, the rule on it, its
+  // own inset), and it ships the day something forces it, as its own set — never as undesigned
+  // numbers today.
+  "orientation"
+>;
 
 /* ── Size context: the list answers `size` and every tab stamps it (§4).
       Menu's own mechanism (2026-08-09), for Menu's own reason: the size join keys

@@ -37,9 +37,18 @@
   stroke-dashoffset: 0;
   transition: stroke-dashoffset var(--motion-mark) var(--motion-spring);
 }
-/* Retracted wherever the glyph is not the one the state means. `data-unchecked` has to be
-   qualified: Base UI stamps it on the INDETERMINATE indicator too — indeterminate is not
-   checked — so the unguarded arm retracted the very dash that state exists to draw. */
+/* Retracted wherever the glyph is not the one the state means.
+ *
+ * CHANGES 2026-08-26: the `data-unchecked` arm's `:not([data-indeterminate])` is DEFENCE, and
+ * the sentence that stood here described it as a fact about the pinned primitive — which it is
+ * not. Base UI 1.7's `getCheckboxStateAttributesMapping` returns `{}` for `checked` while
+ * `indeterminate` is true, so the indicator carries `data-indeterminate` alone and the guard
+ * matches nothing today. It is KEPT rather than deleted because the arm's meaning is "retract
+ * the glyph this state does not draw", and the state is spelled in the primitive's own
+ * attributes: an indicator carrying both stamps would retract the very dash that state exists
+ * to draw, which is the failure the guard was written for. Both halves are read in
+ * checkbox.browser.test.tsx — the pinned contract, so a Base UI bump that changes it fails
+ * there and names this rule, and the guard's effect under the state that bump would produce. */
 .kui-checkbox > svg[data-unchecked] > .kui-checkbox-check,
 .kui-checkbox > svg[data-unchecked]:not([data-indeterminate]) > .kui-checkbox-dash,
 .kui-checkbox > svg[data-checked] > .kui-checkbox-dash,

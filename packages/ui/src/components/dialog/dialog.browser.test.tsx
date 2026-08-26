@@ -317,6 +317,30 @@ describe("the panel's box", () => {
 
 /* ── Separation: the scrim, never a floating cast (§10, §24) ──────────────────────────── */
 
+/**
+ * A SHADOW token as the scope resolves it (2026-08-26). The harness's `tokenOn` probes through
+ * `width`, which is the right channel for a length and a silent no-op for a shadow list: an
+ * empty absolutely-positioned div given `width: var(--floating-chrome-elevated)` rejects the
+ * declaration and computes `0px`, so `expect(box-shadow).not.toBe(tokenOn(…))` compared a
+ * shadow string against `0px` and could not fail however the popup was re-pointed. Read
+ * through the property the value is FOR.
+ */
+const shadowOn = (scope: Element, expr: string): string =>
+  probeIn(scope, (el) => (el.style.boxShadow = expr), (s) => s.boxShadow);
+
+/** The whole list a FLOATING pane computes in a given world — the pane's own pool, then the
+    floating chrome. The surface layer always paints two layers (`var(--kui-sf-pool, …),
+    var(--kui-sf-cast, …)`), so a single-token comparison is a category error: no popup's
+    `box-shadow` can ever equal one chrome value, which is the second reason the pair below
+    could not fail. The pool term resolves identically on the probe and on the popup, because
+    `--kui-sf-pool` is registered `inherits: false` and neither a solid popup nor a probe
+    declares it. */
+const floatingList = (scope: Element, depth: string): string =>
+  shadowOn(
+    scope,
+    `var(--kui-sf-pool, var(--material-pool-solid, 0 0 0 0 transparent)), var(--floating-chrome-${depth})`,
+  );
+
 describe("a dialog does not float", () => {
   it("is not a floating pane and never casts the floating chrome", () => {
     for (const depth of DEPTHS) {
@@ -325,9 +349,24 @@ describe("a dialog does not float", () => {
       // neither, and this is the law that keeps a future "make it consistent with Menu" edit
       // from quietly re-pointing both.
       expect(popup.classList.contains("kui-floating")).toBe(false);
-      expect(computed(popup, "box-shadow")).not.toBe(tokenOn(popup, "--floating-chrome-elevated"));
-      expect(computed(popup, "box-shadow")).not.toBe(tokenOn(popup, "--floating-chrome-flat"));
     }
+    /**
+     * The CAST half is asked in the elevated world only, and the restriction is the claim
+     * rather than a convenience. Since 2026-08-19 flat's floating chrome IS the no-op layer —
+     * nothing casts in flat, popups included — so in that world a dialog wearing the floating
+     * cast and a dialog wearing the surface cast compute the identical list, and "it is not
+     * the floating one" is not a distinguishable statement. Measured: both sides come out
+     * `rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px`.
+     */
+    const { popup } = openDialog({ depth: "elevated" });
+    const floating = floatingList(popup, "elevated");
+    // THE PREMISE, and the one the old spelling was missing twice over: the comparison must be
+    // against a value that is REACHABLE. A dialog re-pointed at `--kui-floating-chrome`
+    // computes exactly this list — pool then chrome — so that is what "not the floating cast"
+    // has to mean. The old form compared a two-layer list against a single token resolved
+    // through `width`, which answers `0px`: two reasons it could not fail, stacked.
+    expect(floating, "the floating chrome resolved to nothing").not.toBe("none");
+    expect(computed(popup, "box-shadow")).not.toBe(floating);
   });
 
   it("casts exactly what a CARD casts in the same world — never more, never less", () => {
@@ -346,10 +385,22 @@ describe("a dialog does not float", () => {
       );
       expect(computed(popup, "box-shadow")).toBe(computed(card as unknown as HTMLElement, "box-shadow"));
     }
-    // And the negative control the pair needs: in a FLAT world a menu still states its
-    // coverage, so "no shadow anywhere" is not what this suite is measuring.
+    /**
+     * And the negative control the pair needs, MOVED into the elevated world (2026-08-26).
+     *
+     * It used to mount the menu under `depth="flat"` and assert its shadow was not the string
+     * `none`, commented "in a FLAT world a menu still states its coverage". That stopped being
+     * true on 2026-08-19 — flat's floating chrome is the no-op layer, nothing casts in flat
+     * including popups — and the assertion could not fail either way, because a stood-down
+     * cast computes `rgba(0, 0, 0, 0) 0px 0px 0px 0px` and never the keyword. So the whole
+     * pair above could have gone green with nothing in the document casting anything.
+     *
+     * Elevated is where casts are real AND ranked, so the control says both things at once:
+     * something in this world genuinely casts, and what a dialog casts is specifically a
+     * CARD's rather than whatever every pane happens to share.
+     */
     render(
-      <Theme depth="flat">
+      <Theme depth="elevated">
         <Menu defaultOpen>
           <MenuTrigger render={<Button>open</Button>} />
           <MenuContent>
@@ -360,7 +411,20 @@ describe("a dialog does not float", () => {
     );
     settleAll();
     const menus = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
-    expect(computed(menus[menus.length - 1]!, "box-shadow")).not.toBe("none");
+    const menu = menus[menus.length - 1]!;
+    const menuCast = computed(menu, "box-shadow");
+    const noop = document.createElement("div");
+    noop.style.boxShadow = "0 0 0 0 transparent";
+    menu.append(noop);
+    expect(menuCast, "nothing casts in this world, so the law above measured nothing").not.toBe(
+      computed(noop, "box-shadow"),
+    );
+    noop.remove();
+    const { popup: lifted } = openDialog({ depth: "elevated" });
+    expect(
+      computed(lifted, "box-shadow"),
+      "a dialog and a menu cast the same thing, so 'exactly a card' says nothing",
+    ).not.toBe(menuCast);
   });
 
   it("still answers `material` — the panel is glass, the scrim is unchanged", () => {
@@ -478,6 +542,53 @@ describe("title and description", () => {
     // into the same assertion, with the same value in the message.
     await until(() => document.querySelectorAll(".kui-dialog-popup").length === 1, 3000);
     expect(document.querySelectorAll(".kui-dialog-popup").length).toBe(1);
+  });
+});
+
+describe("what the index prices, and what it leaves alone (§24)", () => {
+  it("the two OWNED parts move with size; type the call site wrote does not", () => {
+    /**
+     * Three shipped homes said "it never sets the type inside" — the axis comment, the
+     * published `size` doc and the component reference — and all three had been false since
+     * 2026-08-21, when the title and description took the owned step map so that a dialog and
+     * an alert at one index are one typography. §24's line is OWNERSHIP, not "no type": the
+     * system sizes its own words and never the caller's.
+     *
+     * Read as the PAINTED font size at two indexes rather than as the step map's own numbers,
+     * because a law that re-derives `OWNED_TITLE_STEP[size]` is a law about the author's
+     * arithmetic; and at two indexes rather than one, because one index cannot tell "it moves"
+     * from "it is pinned" (the composer's own 2026-08-23 lesson, twice in one day).
+     */
+    const fontOf = (id: string | null) => computed(document.getElementById(id!)!, "font-size");
+    const small = openDialog({}, { size: "1" });
+    const large = openDialog({}, { size: "4" });
+    const titleOf = (d: { popup: HTMLElement }) => fontOf(d.popup.getAttribute("aria-labelledby"));
+    const descOf = (d: { popup: HTMLElement }) => fontOf(d.popup.getAttribute("aria-describedby"));
+    expect(parseFloat(titleOf(large)), "the title does not answer the index").toBeGreaterThan(
+      parseFloat(titleOf(small)),
+    );
+    expect(parseFloat(descOf(large)), "the description does not answer the index").toBeGreaterThan(
+      parseFloat(descOf(small)),
+    );
+
+    // And the other half, which is the half the deleted sentence was reaching for: a Text the
+    // CALL SITE placed keeps its own step at every index. Without this the law above would
+    // equally describe a dialog that sizes everything it contains.
+    const own = (size: Size) => {
+      const { popup } = openDialog(
+        {},
+        {
+          size,
+          body: (
+            <Text size="3" data-testid="mine">
+              mine
+            </Text>
+          ),
+        },
+      );
+      return computed(popup.querySelector<HTMLElement>('[data-testid="mine"]')!, "font-size");
+    };
+    expect(own("4"), "the index reached type the call site wrote").toBe(own("1"));
   });
 });
 

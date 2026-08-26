@@ -31,6 +31,21 @@
   display: none;
 }
 
+/* THE ONE FOCUSABLE ELEMENT THIS COMPONENT MAKES OWES A RING (§8, 2026-08-26). A standalone
+   ScrollArea leaves Base UI's computed tabIndex on the viewport, deliberately — a scroll
+   region has to be reachable to be scrolled by keyboard — and no rule in the package drew
+   anything for it, so the one thing here a keyboard reaches showed the UA's own
+   `-webkit-focus-ring-color auto 1px`: a different colour, a different width and a different
+   offset from every other focus in the app, on the element the system itself created.
+   `:focus-visible` and not `:focus`, because a pointer press inside the content also focuses
+   the viewport and a ring under the hand is the affordance this system reserves for the
+   keyboard. Inside the menu's panel the viewport is not focusable at all, so this can never
+   match there. */
+.kui-scroll-viewport:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
 /* The bar: absolute against the root, inset from the edge, invisible at rest. Paint is a
    signal (§8): in fast under the hand, out slow after it leaves — the hover rule's own
    asymmetry, on the one property that is pure paint.

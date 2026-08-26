@@ -3,7 +3,6 @@
 import * as React from "react";
 
 import type { Size, Tone } from "../../system/axes.ts";
-import { mergeRefs } from "../../system/render.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { OWNED_BODY_STEP } from "../../system/type-steps.ts";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
@@ -65,7 +64,14 @@ export type NoticeProps = {
 };
 
 /** ✕, drawn rather than imported — the system's own glyph vocabulary (§8): 16-grid,
-    `currentColor`, 1.5 stroke, round caps, exactly as the tick and the carets are drawn. */
+    `currentColor`, the derived `glyphStroke`, round caps, exactly as the tick and the carets
+    are drawn.
+
+    CHANGES
+    2026-08-26 — this named a literal weight until now. A stroke is stated in VIEWBOX units,
+    so the painted weight is `iconStroke × 16 / iconGrid`; the literal stopped being this
+    glyph's weight when the stroke was derived (2026-08-23), and a reader copying it into the
+    next package glyph would hand-write a heavier line than everything around it. */
 function dismissGlyph() {
   return (
     <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
@@ -130,11 +136,18 @@ export function Notice({
   // 2026-08-17). Card's wiring verbatim, because a notice is a pane like any other once
   // something scrolls behind it.
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
+  // `useLensRef` ALREADY forwards the caller's ref — it is the one form every glass-capable
+  // component uses so none of them hand-rolls a merge. Merging it a second time here handed
+  // React a fresh callback identity every render (`mergeRefs` returns a new closure per call),
+  // and React answers a new identity by detaching with `null` and reattaching: `useLens`'s
+  // detach RELEASES the filter, so the reattach missed the cache and minted a fresh
+  // displacement map on every keystroke or hover anywhere above the notice. Card and Shell
+  // were found with the identical defect (2026-08-26).
   const lensRef = useLensRef<HTMLElement>(material, ref as React.Ref<HTMLElement>);
   const strip = (
     <div
       {...props}
-      ref={mergeRefs(lensRef, ref)}
+      ref={lensRef}
       role="status"
       className={className ? `kui-surface kui-notice ${className}` : "kui-surface kui-notice"}
       /* The tone-forward rung (§10): the fill is the family's a3 and the foreground context

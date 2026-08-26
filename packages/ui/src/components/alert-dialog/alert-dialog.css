@@ -70,7 +70,15 @@
    themselves, and this is the component laying out content it owns. */
 .kui-alert-popup .kui-overlay-body {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* `minmax(0, 1fr)`, never the `1fr` shorthand (2026-08-26). A bare `1fr` track is
+     `minmax(auto, 1fr)`, and a grid item's automatic minimum is its MIN-CONTENT — which for a
+     `.kui-button` is the whole label, because the family declares `white-space: nowrap` and a
+     control declares no overflow. So the row was floored at the two labels plus the gap and
+     grew past the panel, which states a FIXED width and clips (§3): measured at the default
+     density, "Keep my workspace" / "Delete everything" put the committing button 39px outside
+     the panel with 39px of it cut off, and 113px at comfortable × coarse. A dialog's box is
+     the one thing an alert does not negotiate, so the row yields instead. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--layout-space-2) var(--layout-space-3);
 }
 .kui-alert-popup .kui-overlay-body > * {
@@ -80,6 +88,18 @@
   grid-column: auto;
   inline-size: 100%;
   margin-block-start: calc(var(--layout-space-5) - var(--layout-space-2));
+  /* And the label wraps, which is the other half of the same fix and is the ALERT's licence
+     rather than a change to the Button family (§25: the one place in the system a surface
+     arranges its children, because the anatomy is closed and the box is the component's).
+     Button rests `nowrap` on the argument that "a wrapped button reads as a paragraph with a
+     border" — true of a button in flow, where the label decides the width. Here the width is
+     decided first and the words come second, exactly as the title and the description do, so
+     without this the track above simply moves the clipping from the box to the label.
+     `anywhere` for the word that cannot break: a truncation this system never designed is
+     worse than a second line, and the repo has already paid once for a fixture whose long
+     word was hyphenated (Notice, 2026-08-21). */
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .kui-alert-popup .kui-overlay-body > .kui-button:only-of-type {
   grid-column: 1 / -1;

@@ -46,11 +46,18 @@ import { useClipWarning } from "../../system/clip.tsx";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
 
 /* ── Size context: the dialog answers `size` like Menu (Kushagra, 2026-08-10) — the index
-      prices the box (width, padding, corner) and nothing else. Type is NOT on it: no surface
-      in this system sizes the type inside it, and the parts below state the house steps
-      (§15's composition brief) instead. One provider on the root; the popup stamps the index
-      on its own element, where the surface size join fires. Crosses the portal with React
-      (§20), which is the whole reason it is context rather than a prop on Content. ─────── */
+      prices the box (width, padding, corner) AND the two parts the system owns, and nothing
+      the call site wrote. Ownership is the line (§24 against §25): a surface never sizes type
+      it does not own, and `DialogTitle` / `DialogDescription` are the system's own words —
+      they took the owned step map on 2026-08-21, so a dialog and an alert at one index are one
+      typography. A `<Text>` or a `<Heading>` the caller places is untouched. One provider on
+      the root; the popup stamps the index on its own element, where the surface size join
+      fires. Crosses the portal with React (§20), which is the whole reason it is context
+      rather than a prop on Content.
+
+      CHANGES
+      2026-08-26 — this said "nothing else. Type is NOT on it", which stopped being true on
+      2026-08-21 and stayed written in three places, the published prop doc included. ────── */
 
 const DialogSizeContext = React.createContext<Size>("3");
 
@@ -62,7 +69,12 @@ const DialogSizeContext = React.createContext<Size>("3");
 export type { OverlayOpenChangeReason, OverlayOpenChangeDetails } from "../../system/floating.tsx";
 
 export type DialogProps = {
-  /** Sets the panel's maximum width, its padding and its corner. It never sets the type inside. */
+  /**
+   * Sets the panel's maximum width, its padding, its corner — and the two parts the system
+   * owns, `DialogTitle` and `DialogDescription`, which take the same step map an alert's
+   * title and description take, so the two components agree at every index. It never touches
+   * type the call site wrote: a `<Text>` or a `<Heading>` you place keeps its own step.
+   */
   size?: Size;
   /**
    * Controlled open state. Pass it with `onOpenChange`. These three props are the library's one

@@ -89,8 +89,30 @@ export function Card({
   // so nothing static can see it; the rendered tree is the only place the question can be
   // asked. Dev-only warning, and the builder and the reviewer refuse it outright.
   useNestedCardWarning(useInsideCard());
+  /**
+   * MEMOISED, and it is not hygiene (2026-08-26 audit). `mergeRefs` returns a FRESH closure
+   * per call, so an inline merge hands React a new ref identity on every render — and React
+   * answers a new identity by DETACHING (`ref(null)`) and reattaching. `useLens`'s detach path
+   * releases the filter, which drops its last reference, so the next attach misses `acquire`'s
+   * cache and mints a whole new displacement map: a per-pixel Snell solve, a `toDataURL`
+   * encode and an eleven-node `<filter>` graft, on the largest boxes in the library, for every
+   * unrelated re-render above the card. That is what refraction.tsx's "on mount and resize,
+   * never at interaction time" rule exists to forbid.
+   */
+  const setRoot = React.useMemo(() => mergeRefs(lensRef, clipRef), [lensRef, clipRef]);
   const merged = {
-    ref: mergeRefs(lensRef, clipRef),
+    /**
+     * THE CONSUMER'S PROPS COME FIRST, so the identity below cannot be overridden (2026-08-26
+     * audit). TypeScript exempts hyphenated JSX attribute names from excess-property checking,
+     * so `<Card data-emphasis="loud" data-tone="destructive">` compiles with no error whatever
+     * the type says — and with the spread LAST it reached the DOM and re-grew the tone-forward
+     * rungs this component exists without: a solid red card, the `variant` axis §9 deleted,
+     * back from a call site. Dialog and AlertDialog already state the rule this way. A
+     * consumer's `data-testid`, `id`, `role` and handlers still land; only the keys below —
+     * the ones the card IS — stop being reachable.
+     */
+    ...props,
+    ref: setRoot,
     "data-size": size,
     // Fixed identity, not API. The tone indirection needs a family to resolve --tone-border,
     // which is the only reason neutral is named here: the fill is the opaque seal, not a tone
@@ -103,7 +125,6 @@ export function Card({
     "data-material": material === "solid" ? undefined : material,
     className: className ? `kui-surface kui-card ${className}` : "kui-surface kui-card",
     style,
-    ...props,
   };
 
   // `undefined` must stay `undefined`: composeRender keeps the render target's OWN children

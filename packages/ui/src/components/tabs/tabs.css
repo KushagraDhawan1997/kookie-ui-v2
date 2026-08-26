@@ -77,6 +77,33 @@
   --kui-ct-label-color: var(--color-text);
 }
 
+/* DEAD, THE LABELS STAND DOWN (2026-08-26, audit — segmented-control.css's own two arms, one
+   component over, and the fourth appearance of one shape). The shared disabled remap rewrites
+   the TONE vocabulary — `--tone-label`, `--tone-contrast`, the ink trio, `--tone-glyph` — and
+   both of this file's ink roles are the TONE-LESS foreground pair, chosen two rules up for the
+   reason stated there. So the remap could not reach either of them: a disabled tab computed
+   byte-identical to a live one in colour and in fill, in both appearances, with the cursor as
+   the whole of the difference — which on touch is nothing at all.
+
+   The dim, not a colour, which is slider.css's shape for the rail and this component's shape
+   one file over: the same factor every dead thing in the system uses, so the ink follows the
+   role wherever the role goes.
+
+   Two arms, because there are two live values. The active one is (0,3,0) so it outranks BOTH
+   the resting dim below it and the live `[data-active]` rule above it: a controlled bar can
+   hold `value="a"` while tab a is disabled, which is the one cell a single arm gets wrong. */
+.kui-tab[data-disabled] {
+  --kui-ct-label-color: color-mix(
+    in srgb,
+    var(--color-text-muted) var(--disabled-dim),
+    transparent
+  );
+}
+
+.kui-tab[data-active][data-disabled] {
+  --kui-ct-label-color: color-mix(in srgb, var(--color-text) var(--disabled-dim), transparent);
+}
+
 /* The rule — the bar under the active tab, and the only part of Tabs that moves when the
    selection changes (§26, §8).
 
@@ -146,6 +173,14 @@
 .kui-tab-rule {
   position: absolute;
   bottom: calc(-1 * var(--border-width));
+  /* IT IS PAINT, SO IT TAKES NO POINTER (2026-08-26, audit). The rule is an absolutely
+     positioned box that paints after every tab (positioned descendants paint last, whatever
+     document order says — the segmented thumb's own 2026-08-23 finding), so it is hit-testable
+     by default: `elementFromPoint` over the bar's bottom rows returned the rule. It steals
+     nothing today only because it sits below the tabs' boxes, which is a fact about the
+     current geometry rather than a guarantee — a rule drawn any taller, or a tab bar whose
+     inset changes, hands a click to a decoration. Stated rather than left to the layout. */
+  pointer-events: none;
   /* The TARGETS — the raw derivation, one home, consumed twice below: as the registered
      pair's specified value (the sprung copy) and as the wall's reference (the instant copy).
      One name cannot be both the spring and the target, which is why the fact needs two.

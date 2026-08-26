@@ -889,6 +889,11 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
       // The caret-on-click contract (§4): a click on the wrapper's padding must focus the
       // input. That is a POINTER-DOWN commitment, not per-frame interaction work.
       "components/text-field/text-field.tsx": ["onMouseDown"],
+      // The same contract, same reason (2026-08-26): TextArea grew the same wrapper on
+      // 2026-08-25 and the debt arrived with the anatomy — the wrapper carries the padding
+      // and paints the text cursor over it, and a <span> cannot take focus, so a press in
+      // that band landed nowhere. One pointer-down commitment, no per-frame work.
+      "components/text-area/text-area.tsx": ["onMouseDown"],
       // The floating layer's seam (§20/§22): the entry runner holds the page during the
       // opening frames and observes its own transitions — mount/flight machinery, the seam
       // the doctrine names, never per-frame pointer tracking.
