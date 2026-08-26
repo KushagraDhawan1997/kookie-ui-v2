@@ -228,7 +228,7 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "a border toggle",
-        why: "Button's `bordered` ranks: quiet, quiet with a border and medium say three different things about loudness. Two grounds, one lined and one not, would say the same thing. The line is also load-bearing in dark mode, where a ground and the page are the same colour.",
+        why: "Button's `bordered` ranks: quiet, quiet with a border and medium say three different things about loudness. Two grounds, one lined and one not, would say the same thing. The line is also load-bearing in dark mode, where a ground sits barely above the page — #121213 against #0f0f10, a step of 0.011 in lightness — so the hairline is most of what says the region is there. (This read “the same colour” until 2026-08-26: true of the pair as first written, and retracted on 2026-08-21 when the dark ground took a literal of its own, because there is no palette rung between the two.)",
       },
       {
         name: "material and backdrop",
