@@ -232,7 +232,7 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "material and backdrop",
-        why: "Glass defends a pane against something passing behind it, and a ground's backdrop is its own parent. Inside a glass card a Surface joins the scope already there and opens none of its own.",
+        why: "Glass defends a pane against something passing behind it, and a ground's backdrop is its own parent. Inside a glass card a Surface joins the scope already there and opens none of its own. It does CLOSE a backdrop region, because the ground is opaque: a card sitting on one is not over content and resolves solid, exactly as it would on a solid card. A member that states its own backdrop still gets the theme's material.",
       },
       {
         name: "tone, emphasis and a shadow",
@@ -332,7 +332,7 @@ export const ENTRIES: Entry[] = [
     blurb:
       "Dialog shows a panel over a dimmed app. The panel looks like a Card with a slightly rounder corner, and it casts no shadow of its own, because the dimmed background behind it is what separates it from the page. On a narrow window it slides up from the bottom edge as a sheet instead. The part names follow shadcn/ui's dialog (MIT), with credit, and the behaviour is Base UI's Dialog, including the focus trap and scroll lock.",
     axes: [
-      { name: "size", values: "1 | 2 | 3 | 4", note: "sets the box: a maximum width, the padding and the corner. It never sets the type inside. The window wins when there is less room than the size asks for" },
+      { name: "size", values: "1 | 2 | 3 | 4", note: "sets the box \u2014 a maximum width, the padding and the corner \u2014 and the two parts the system owns, DialogTitle and DialogDescription, which take the same step map an alert\u2019s title and description take. Type the call site wrote is untouched. The window wins when there is less room than the size asks for" },
     ],
     refusals: [
       {
@@ -516,7 +516,7 @@ export const ENTRIES: Entry[] = [
     family: "Surface",
     spec: "§20, §21, §22",
     blurb:
-      "Menu shows a floating list of actions. Its corner is worked out from the rows inside it, so the outer curve and the row curves nest instead of fighting. It casts a shadow even in a flat theme, because a shadow under a floating panel tells you it is covering something. The part names follow shadcn/ui's dropdown-menu (MIT), with credit, and the behaviour is Base UI's Menu.",
+      "Menu shows a floating list of actions. Its corner is worked out from the rows inside it, so the outer curve and the row curves nest instead of fighting. In a raised theme it casts the floating shadow; in a flat theme it draws a hairline instead, because a flat theme has no light to cast with. The part names follow shadcn/ui's dropdown-menu (MIT), with credit, and the behaviour is Base UI's Menu.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "set it on the root, like Button. A size-4 trigger must not open a size-2 menu. Rows take the control padding and type, and their height is the text line plus a fixed inset, a notch under a button of the same index" },
       { name: "tone (Item)", values: "destructive", note: "a list of one: the single meaning a row may carry. Widening it is a decision, never a default" },
@@ -541,7 +541,7 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "modal and openOnHover",
-        why: "An open menu is modal. A transparent full-screen press catcher is what makes clicking outside close it, and locking page scroll keeps the panel attached to the trigger it is positioned against. There is no visible scrim. Rows open on click, never on hover.",
+        why: "An open menu is modal. A transparent full-screen press catcher is what makes clicking outside close it, and locking page scroll keeps the panel attached to the trigger it is positioned against. There is no visible scrim. A menu opens on press, never on hover; a submenu row opens on hover, which is the platform's own behaviour and the reason the prop is not exposed.",
       },
       {
         name: "Arrow, Backdrop, Viewport, LinkItem and collision knobs",
@@ -571,7 +571,7 @@ export const ENTRIES: Entry[] = [
       "Select is a form control that holds a choice. Its panel, rows and corner all come from Menu with nothing redesigned. What is new is the trigger: a button shaped like a field, so a Select beside a TextField reads as the same family, with the same fill, border and height, while staying a real button that announces itself as a combobox. Base UI renders a hidden input, so a Select submits with a form like the native element it replaces. The part names follow shadcn/ui's select (MIT), with credit.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "set it on the root. The trigger and the option rows both take it" },
-      { name: "items", values: "Record<value, label>", note: "value to label for the closed trigger. Base UI reads labels from mounted options, and a panel that never opened has none, so pass this whenever a defaultValue paints first" },
+      { name: "items", values: "Record<value, label>", note: "value to label for the closed trigger, and the only thing that turns a value into words. Base UI never reads the text of the row you picked, so a select whose labels differ from its values needs this at every moment, not only before the panel first opens" },
       { name: "backdrop", values: "boolean", note: "says content passes behind the trigger, so the theme's glass can show. Unset, it follows the surrounding <Box backdrop> region" },
     ],
     refusals: [
@@ -616,7 +616,10 @@ export const ENTRIES: Entry[] = [
     slug: "composer",
     name: "Composer",
     family: "Surface",
-    spec: "§31",
+    // CHANGES 2026-08-26: was §31, which is Popover. Composer is §30, and §10 is the surface
+    // family decision the section rests on. `registry.test.ts` now resolves every cited § against
+    // DECISIONS.md's own headings, so the next renumber fails here instead of misdirecting a reader.
+    spec: "§10, §30",
     parts: [
       { part: "ComposerInput", blurb: "ComposerInput is the box a person types their message into. It is a plain textarea with no border of its own, because the Composer around it is already the box, and putting a TextArea here would show two. It grows with the text and stops at a maximum height, and the Composer's focus ring watches this element, so pressing a button inside the composer does not light up the whole panel." },
       { part: "ComposerRow", blurb: "The row of controls under the text. It states the alignment, the split and the spacing so no call site writes them, and stops there: which controls sit left and which sit right is what those controls mean, so group them yourself with a Flex or leave one flat list and let it space evenly" },
@@ -900,6 +903,7 @@ export const ENTRIES: Entry[] = [
       "ScrollArea draws custom scrollbars over native scrolling. The browser keeps the scrolling behaviour, and the system draws the bar: a rounded thumb over the content, visible while you scroll or hover, with no visible track and no reserved gutter. It is one export, because the viewport, the bars and the corner are assembly rather than API.",
     axes: [
       { name: "focusable", values: "boolean", note: "a standalone region keeps its keyboard tab stop. A component that already owns keyboard scrolling, such as Menu, passes false" },
+      { name: "aria-label / aria-labelledby", values: "string", note: "names the region. A focusable scroll area is a real tab stop, and a named one announces as a region landmark and draws the system focus ring; an unnamed one stays structural" },
     ],
     refusals: [
       { name: "size", why: "One stated thickness. A scrollbar has no box of its own to index against." },
@@ -1029,8 +1033,8 @@ export const ENTRIES: Entry[] = [
         why: "The family has one tone, as an identity. A segment louder than its neighbours is not a segmented control.",
       },
       {
-        name: "an indicator element",
-        why: "The chosen segment paints its own box. Base UI's RadioGroup does not measure the selection for you, so a sliding indicator here would mean writing the measurement for a motion nobody has designed.",
+        name: "an exported thumb",
+        why: "The sliding tile is structure, not API. It is placed for you, and a consumer who has to place it is one who will forget.",
       },
       {
         name: "multi-select",
@@ -1159,7 +1163,7 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§4, §11",
     blurb:
-      "A multi-line text input. The visible control is a wrapper around the textarea, which is what lets it carry a border and a background while the text scrolls inside it. It has no icon slots, because an icon floating over a scrolling paragraph has nowhere sensible to sit. Its padding is the same on all four sides. `ref` reaches the textarea, and `className` and `style` dress the wrapper.",
+      "A multi-line text input. The visible control is a wrapper around the textarea, which is what lets it carry a border and a background while the text scrolls inside it. It has no icon slots, because an icon floating over a scrolling paragraph has nowhere sensible to sit. Its padding above and below matches the plain side padding, so at every radius level but `full` all four sides are equal; at `full` the sides take the pill correction and the block inset does not, because the corner only cuts into text running sideways. `ref` reaches the textarea, and `className` and `style` dress the wrapper.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "the control height survives as a minimum height. Growth is rows" },
       { name: "rows", values: "number", note: "the starting height, in lines of text" },

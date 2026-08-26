@@ -165,12 +165,17 @@ function States() {
           holds still. */}
       <Demo label="Empty, one line, eight, twelve — the last two panes are the same height, which is the ceiling holding">
         <Grid columns="repeat(2, minmax(0, 1fr))" gapX="5" gapY="5" align="flex-start">
-          {[
+          {/* Typed as a tuple list rather than left to inference: `string[][]` destructures to
+              `string | undefined`, and `ComposerInput` now REQUIRES a real accessible name
+              (2026-08-26 audit — a bare textarea registers with no Field, so a placeholder is
+              all a screen reader would get). The requirement is the point; this is the call
+              site meeting it rather than widening it back. */}
+          {([
             ["Empty", ""],
             ["One line", "Ship it."],
             ["Eight lines — the ceiling", "One\nTwo\nThree\nFour\nFive\nSix\nSeven\nEight"],
             ["Twelve lines — same pane, the rest scrolls", "One\nTwo\nThree\nFour\nFive\nSix\nSeven\nEight\nNine\nTen\nEleven\nTwelve"],
-          ].map(([label, value]) => (
+          ] as [string, string][]).map(([label, value]) => (
             <Stack key={label} gap="2">
               <Text size="2" emphasis="quiet">{label}</Text>
               <Composer>

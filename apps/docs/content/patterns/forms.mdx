@@ -145,8 +145,9 @@ problem rather than a missing feature.
 ## Use TextArea for a paragraph
 
 Reach for `TextArea` when the value is prose somebody will read back: a description, a note, an
-address. Its padding is the same on all four sides, and `rows` sets how many lines tall it
-starts.
+address. Its padding above and below matches the padding at the sides, and `rows` sets how many
+lines tall it starts. At the default `full` radius the sides take a little more, because a
+round corner cuts into text running sideways and not into text stacked above and below it.
 
 There is no `cols`. Width belongs to the layout that owns the row. The `cols` attribute counts
 characters, predates CSS, and fights with it.

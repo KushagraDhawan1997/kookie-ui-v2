@@ -435,7 +435,8 @@ export const RULES: Rule[] = [
       const out: RawFinding[] = [];
       for (const { node } of all) {
         if (!isLayout(node) || axisOf(node) !== "column") continue;
-        if (!str(node.props.gap)) continue;
+        const outer = str(node.props.gap);
+        if (!outer) continue;
         const kids = node.children ?? [];
         for (let i = 0; i < kids.length; i++) {
           const heading = kids[i]!;
@@ -444,19 +445,34 @@ export const RULES: Rule[] = [
           // already has the group's own boundary above it.
           if (i === 0 || i === kids.length - 1) continue;
           const next = kids[i + 1]!;
+          // CHANGES 2026-08-26: the wrapper's gap DERIVES from the outer gap; it was pinned at
+          // "2". A pinned inner gap is a `flat-rhythm` finding whenever the outer gap is under
+          // 4 — and a Stack arrives from the palette at gap 3 — so pressing this fix on the
+          // most ordinary column in the builder swapped one warning for another. Two steps
+          // under is exactly what `flat-rhythm` asks for, and where the scale has no room
+          // there is no fix to offer, the same shape that rule already uses.
+          const inner = stepBy("space", outer, -2);
           out.push({
             nodeId: heading.id,
             message: `${label(heading)} sits at the same distance from what is above it and what is below it.`,
-            fix: {
-              title: "Bind it to what follows",
-              // The gesture the templates already use everywhere: the heading and its first
-              // line become one group at a tighter gap, so the space above stays the
-              // section's and the space below becomes the pair's.
-              apply: (roots) => {
-                const wrapper: BuilderNode = { ...CATALOG.Stack!.make(), props: { gap: "2" }, children: [] };
-                return wrapNodes(roots, [heading.id, next.id], wrapper);
-              },
-            },
+            ...(inner
+              ? {
+                  fix: {
+                    title: "Bind it to what follows",
+                    // The gesture the templates already use everywhere: the heading and its
+                    // first line become one group at a tighter gap, so the space above stays
+                    // the section's and the space below becomes the pair's.
+                    apply: (roots: BuilderNode[]) => {
+                      const wrapper: BuilderNode = {
+                        ...CATALOG.Stack!.make(),
+                        props: { gap: inner },
+                        children: [],
+                      };
+                      return wrapNodes(roots, [heading.id, next.id], wrapper);
+                    },
+                  },
+                }
+              : {}),
           });
         }
       }

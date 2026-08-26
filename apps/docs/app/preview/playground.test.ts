@@ -21,6 +21,7 @@ import { describe, expect, it } from "vitest";
 
 import { themeDefaults } from "@kookie-ui/react";
 
+import { parsePackageExports, readPackageExports } from "../package-exports";
 import { COMPONENT_PREVIEWS } from "./previews";
 import { SECTION_ORDER } from "./previews/types";
 
@@ -43,17 +44,17 @@ function allPreviewSources(): string {
   return files.map((f) => readFileSync(f, "utf8")).join("\n");
 }
 
-/** Uppercase value exports of the public surface — components, not hooks or types. */
-function exportedComponents(): string[] {
-  const names: string[] = [];
-  for (const m of readFileSync(packageIndex, "utf8").matchAll(/^export \{ ([^}]+) \}/gm)) {
-    for (const entry of m[1]!.split(",")) {
-      const name = entry.trim();
-      if (/^[A-Z]/.test(name)) names.push(name);
-    }
-  }
-  return names;
-}
+/**
+ * Uppercase value exports of the public surface — components, not hooks or types.
+ *
+ * CHANGES 2026-08-26: this used ITS OWN regex, anchored on `^export \{ ` with a literal space
+ * after the brace, so no MULTI-LINE export block matched — 18 names, `Theme` and all of Shell
+ * and Composer among them, were dropped from the set this whole file loops over, and a
+ * component added inside one of those blocks and never previewed would have passed. The
+ * registry's coverage law had been repaired for exactly this on 2026-08-16 and this copy was
+ * not, which is why the parser now has one home.
+ */
+const exportedComponents = (): string[] => readPackageExports(packageIndex);
 
 describe("every exported component appears in the playground", () => {
   const rendered = allPreviewSources();
@@ -63,6 +64,30 @@ describe("every exported component appears in the playground", () => {
   it("the parse found the surface — an empty export list audits nothing", () => {
     expect(components.length).toBeGreaterThanOrEqual(15);
     expect(components).toContain("Button");
+    // And it found the MULTI-LINE blocks. `Button` sits on a one-line export, so it vouches
+    // for a parser that reads none of them; `Theme` and `Shell` do not, and until 2026-08-26
+    // neither reached this loop. Named rather than counted, because a count is the thing that
+    // silently agrees when a block is reformatted.
+    expect(components).toContain("Theme");
+    expect(components).toContain("Shell");
+    expect(components).toContain("Composer");
+  });
+
+  it("the parser reads a block whatever shape prettier leaves it in", () => {
+    // The instrument, calibrated on an input where the general case and the special case give
+    // DIFFERENT answers — one-line and multi-line in the same fixture, plus the two spellings
+    // that have to be handled: `as` exports the second name, and a `type` entry is not a
+    // component.
+    const source = [
+      'export { Alpha } from "./alpha";',
+      "export {",
+      "  Beta,",
+      "  Gamma as Delta,",
+      "  type Epsilon,",
+      '} from "./beta";',
+      "",
+    ].join("\n");
+    expect(parsePackageExports(source)).toEqual(["Alpha", "Beta", "Delta"]);
   });
 
   for (const name of components) {
@@ -311,5 +336,52 @@ describe("the per-component previews share one structure", () => {
         `${p.slug} is in the registry but the collection page does not derive its section — it renders a stale hand copy or nothing`,
       ).toBe(true);
     }
+  });
+});
+
+/* ── A judging comment names what the code paints ──────────────────────────────────────── */
+
+describe("the preview's judging instructions agree with the shipped code", () => {
+  /**
+   * /preview is the surface the eye pass runs on, and the authored comments in these files are
+   * the INSTRUCTIONS for what to judge (2026-08-26). A stale instruction is worse here than
+   * anywhere else on the site: a person reads it, looks at the pixels, and confirms a value the
+   * system does not paint — which is how a defect gets signed off.
+   *
+   * Two were found. The Menu and Select States sections told the reader the checked tick wears
+   * `--accent-solid`, which was measured under its own floor in dark and replaced by
+   * `--accent-glyph` on 2026-08-23; and the TextArea Nesting section still taught the ONE
+   * ELEMENT anatomy that glass reversed on 2026-08-25, pointing the eye at a border that has
+   * moved to a wrapper.
+   *
+   * Each check is a PAIR — evidence from the package, then the claim — for the reason the same
+   * shape is written out in `registry.test.ts`: without the evidence arm this is a spelling
+   * pinned in place rather than a law about a disagreement.
+   */
+  const pkg = (rel: string) => readFileSync(join(here, "../../../../packages/ui/src/", rel), "utf8");
+  const previews = allPreviewSources();
+
+  it("the row tick is --accent-glyph, and the comments say so", () => {
+    // The evidence: the shared row rule paints the indicator with the glyph role. `--accent-solid`
+    // is one designed pigment in both appearances and misses the 45 floor a tick is held to on
+    // the dark page, which is the whole reason the value moved.
+    const recipes = pkg("system/recipes.css");
+    expect(recipes).toMatch(/\[data-checked\], \[data-selected\]\)\s*\{\s*\n\s*color: var\(--accent-glyph\)/);
+    expect(
+      previews,
+      "a preview comment tells the eye to judge the tick against --accent-solid",
+    ).not.toMatch(/accent SOLID on (the|its) tick/i);
+  });
+
+  it("TextArea has a WRAPPER, and no comment says the border stays on the textarea", () => {
+    // The evidence: the visible control is the wrapper; the inner element carries a class of its
+    // own and none of the paint. A comment claiming otherwise sends the eye to the wrong box.
+    const source = pkg("components/text-area/text-area.tsx");
+    expect(source).toContain("kui-control kui-textarea");
+    expect(source).toContain("kui-textarea-input");
+    expect(
+      previews,
+      "a preview comment still teaches TextArea's deleted one-element anatomy",
+    ).not.toMatch(/border\s*\n?\s*stays on the `<textarea>`/i);
   });
 });

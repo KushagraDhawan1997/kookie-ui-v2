@@ -67,7 +67,9 @@ export function DocumentBar({
       <Select
         items={items}
         value={doc.id}
-        onValueChange={(id) => dispatch({ type: "docSwitch", id })}
+        // `null` is Base UI's own value-RESET (the option set changed and the current value
+        // left it) — never a document the user picked, so it switches nothing.
+        onValueChange={(id) => id !== null && dispatch({ type: "docSwitch", id })}
       >
         <SelectTrigger />
         <SelectContent>
