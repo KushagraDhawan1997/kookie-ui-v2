@@ -1105,19 +1105,13 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
   // (2026-08-17): grain + one sheen to a 55% stop, no bloom, no top catch. One value for
   // both depth worlds; a matte slab has no lifted glint to catch.
   const solidRim = [GRAIN, `linear-gradient(180deg, rgb(255 255 255 / ${material.sealSheen[mode]}%), transparent 55%)`].join(", ");
-  // The GROUND's lighting (§10, 2026-08-26): a recess, so the model is the pane's INVERTED —
-  // shade down from the top wall, a faint collect up off the floor. No grain: that is the one
-  // ingredient the 2026-08-21 measurement condemned, and a bed has no tooth to catch.
-  //
-  // The shade layer is emitted FIRST so it paints on top of the collect, the same source order
-  // the pane's recipe uses for its own washes. They never overlap in practice — the two bands
-  // together are 22px against a ground that is never that short — but stating the order means
-  // a squeezed ground degrades to "the top wall wins", which is the correct half to keep.
+  // The GROUND's lighting (§10, 2026-08-26): a recess, and it LIGHTENS ONLY. The ground's own
+  // colour is the wall — it shows at the top edge, where nothing is laid over it — and one white
+  // wash lifts the floor below. No dark layer anywhere: a black wash reads as a band painted ON
+  // the box rather than as the box being recessed, and it is loudest where the box is smallest.
+  // The ramp is `transparent` at the very top so the first pixels are the token itself.
   const g = material.groundRim[mode];
-  const groundRim = [
-    `linear-gradient(180deg, rgb(0 0 0 / ${g.shade}%), transparent ${g.shadeTo}px)`,
-    `linear-gradient(0deg, rgb(255 255 255 / ${g.collect}%), transparent ${g.collectTo}px)`,
-  ].join(", ");
+  const groundRim = `linear-gradient(180deg, transparent 0, rgb(255 255 255 / ${g.lift}%) ${g.liftTo}px)`;
   return [
     "",
     `  /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the`,

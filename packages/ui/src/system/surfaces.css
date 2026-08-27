@@ -545,21 +545,30 @@
      The 2026-08-21 stand-down was right about the ingredient and too wide by a recipe. The
      grain is a fixed white overlay at 4.5%, so what it does depends entirely on what is under
      it — it lifts a LIGHT ground by 0.002 and a DARK one by 0.042, 28x the same token, against
-     tonal steps of ~0.011 (page to ground, ground to card). The texture was louder than the
-     whole ladder it sat in. But `background-image: none` deleted the concept along with the
-     value, and left the one opaque box in the library with no light on it at all — which is
-     what a Surface in a glass app reads as (Kushagra: it looks like it came from a different
-     system).
+     tonal steps of ~0.011 (page to ground, ground to card). But `background-image: none`
+     deleted the concept along with the value, and left the one opaque box in the library with
+     no light on it at all — which is what a Surface in a glass app reads as (Kushagra: it looks
+     like it came from a different system).
 
      So the grain stays gone and the ground gets a recipe of its own, lit as WHAT IT IS. A pane
      is an object: light lands on its top and its underside falls away, which is the direction
      the ring and the seal's sheen both state. A ground is a RECESS — a hole in a plane, which
      is why it casts nothing three declarations down — so the same light is blocked by the wall
-     at its top and collects on the floor at its bottom. The model inverted, not borrowed:
-     lighting a dent from the top makes it read as if it stuck out, and that is the whole reason
-     the pane's conic ring cannot simply be re-pointed here (its bright arc lands on the one
-     edge a dent has no business brightening — measured 0.0016 against the page in light, where
-     the hairline it would replace measures 0.1497).
+     at its top and reaches the floor below. The model inverted, not borrowed: lighting a dent
+     from the top makes it read as if it stuck out, and that is also why the pane's conic ring
+     cannot simply be re-pointed here (its bright arc lands on the one edge a dent has no
+     business brightening — measured 0.0016 against the page in light, where the hairline it
+     would replace measures 0.1497).
+
+     IT LIGHTENS AND NEVER DARKENS (2026-08-26, Kushagra: "not by adding a darker tone ... keep
+     that darker tone as what it is right now, but lighten up the rest"). The first cut painted
+     the wall as a black wash, which reads as a band laid ON the box rather than as the box
+     being recessed — loudest exactly where the box is small, since the ramp is a fixed distance
+     and the docs' code well is 130px where a page region is 600. The ground's own colour IS the
+     wall now: it shows at the top edge because nothing is laid over it, and one white wash
+     lifts the floor. `--color-ground` is deliberately not moved to do it — since the 2026-08-26
+     audit that value is a bed in the high-contrast edge solve, and baking a wall into it would
+     move a conformance input to buy a taste change.
 
      Stated as the PROPERTY, not the hook, and that half is unchanged: --kui-sf-light is not
      registered `inherits: false`, so touching it here reaches every pane INSIDE the ground too

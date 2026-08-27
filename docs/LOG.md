@@ -49,16 +49,41 @@ different road. No grain — that measurement has not changed. Stated in PIXELS 
 sheen is in percent, because a dent's depth is a fixed distance and a ground can be a whole page
 region, where a percentage makes the shade a soft half-screen wash.
 
-**And the law the 2026-08-21 finding never had.** That finding had to be reported by eye: nothing
-asserted the lighting was quieter than the structure. The grain was not wrong for being white, it
-was wrong for moving a dark ground four times further than the whole page–ground–card ladder. Each
-wash's peak is now held under one tonal step of the ladder it sits in — stated against the LADDER
-rather than as an alpha ceiling, because light's ladder (0.033) and dark's (0.011) are three times
-apart and one ceiling would be wrong in one mode. The direction is law-read in both modes too.
-Four sabotage passes, each caught by exactly its own law: lighting it like a pane, raising an alpha
-past the ladder, putting the grain back, and re-pointing through `--kui-sf-light` instead of the
-property — the last of which still strips the held card's rim, so the 2026-08-21 inheritance trap
-is confirmed live and guarded rather than remembered.
+**Then the wall stopped being painted, the same day.** Kushagra, seeing the first cut on the
+docs' code well: *"I wanted the recess to be communicated by not darkening the top band ... keep
+that darker tone as what it is right now, but lighten up the rest."* He was right, and the
+failure was visible within an hour of shipping: a black wash reads as a band laid ON the box
+rather than as the box being recessed, and it is loudest where the box is small. The ramp is a
+fixed distance — argued for at length, because a dent's depth is physical — so on the 130px code
+well it covered 11% of the box against 2% on a page-sized ground. The fraction wall, on the first
+day of the value that was written to avoid it, and I had flagged the risk one message before he
+hit it without going back to change the number.
+
+So there is no dark layer at all now. The ground's own colour IS the wall — it shows at the top
+edge because nothing is laid over it — and one white wash lifts the floor below. **`--color-ground`
+is deliberately NOT moved to do this**, which was the obvious spelling and is the wrong one: since
+the 2026-08-26 audit that value is a BED in the high-contrast edge solve (`color.test.ts` measures
+the solved control and field edges against the page, the seal and the ground), so baking a wall
+into the token would move a conformance input to buy a taste change.
+
+**What the direction costs, recorded because it bounds every future value here.** Lightening-only
+has almost no headroom, and the two modes run out of it for different reasons: light's page is
+pure white 0.033 above the ground, so a big lift dissolves the region into the page; dark's card
+sits 0.011 ABOVE the ground, so a lift past that puts the cards darker than the ground holding
+them. The dark dent is faint by construction (0.5% against light's 40%) and that is the direction's
+price, not a tuning miss — making it deeper means moving the card or the ground, which is a
+different decision.
+
+**And the law the 2026-08-21 finding never had — which was itself wrong twice before it was right,
+both times caught by its own sabotage pass.** The first version held each wash under one tonal step
+of its ladder. That is the right claim about the grain's original mistake and it could not catch
+the new one: in light the ladder step IS the distance to the page, so "moved < step" happily permits
+arriving AT the page, and a 95% lift (floor 0.9984 against a 1.0 page) passed all fourteen laws. The
+second version added the beds and measured DISTANCE from them with `Math.abs`, so a floor lifted
+clean past the card was "far from the card" — satisfied by the exact failure it existed to catch.
+It reads the signed FRACTION of each gap still unspent now: crossing goes negative, dissolving drops
+under a half, one number catches both, and the sign carries the fact that the page sits above the
+ground in light and below it in dark with no per-mode arithmetic.
 
 **The law that pinned the old decision was rewritten, not deleted.** It asserted
 `background-image: none`, which is a decision stated as a guarantee; the half that was

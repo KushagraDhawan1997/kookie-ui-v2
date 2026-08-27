@@ -1327,34 +1327,49 @@ export const material = {
       rim-light and drew the "weird boundary" double edge, and in light the bloom read as a
       glow no matte slab has. Percent sheen alphas, the glass cells' own unit. */
   sealSheen: { light: 30, dark: 10 },
-  /** §10 — the GROUND's own lighting (2026-08-26, Kushagra: in a glass app a Surface reads as
-      if it came from a different system). A ground stood down its lighting WHOLE on
+  /** §10 — the GROUND's own lighting (2026-08-26). A ground stood down its lighting WHOLE on
       2026-08-21 because one ingredient was wrong: the grain is a fixed white overlay, so it
       lifted a dark ground by 0.042 against tonal steps of ~0.011 — four times the whole
       ladder. Deleting the recipe deleted the concept along with the offending value, and what
       was left is the only opaque box in the library with no light on it at all.
 
-      It is lit as what it IS, and that is the half the pane's recipe cannot supply: a ground
-      is a RECESS — a hole in a plane, which is why it casts nothing — so the light coming
-      from above is blocked by the wall at its top and lands on the floor at its bottom. Shade
-      down from the top edge, a faint collect up from the bottom: the pane's model inverted,
-      which is the same inversion the ring already states for a raised lip (bright top, shade
-      bottom). Applying the pane's own direction here would light a dent as if it stuck out.
+      It is lit as what it IS: a ground is a RECESS — a hole in a plane, which is why it casts
+      nothing — so the light from above is blocked at its top wall and reaches its floor. That
+      is the same inversion the ring already states for a raised lip (bright top, shade bottom),
+      and applying the pane's own direction here would light a dent as if it stuck out.
 
-      NO GRAIN. That is the 2026-08-21 finding kept rather than re-argued — a bed has no tooth
-      to catch, and the measurement that condemned it has not changed.
+      **IT LIGHTENS AND NEVER DARKENS (2026-08-26, Kushagra: "I wanted the recess to be
+      communicated by not darkening the top band ... keep that darker tone as what it is right
+      now, but lighten up the rest").** The first cut painted the wall as a black wash over the
+      fill, which reads as a band laid ON the box rather than as the box being recessed —
+      loudest exactly where the box is small, because the band is a fixed distance and a code
+      well is 130px tall where a page region is 600. So there is no dark layer at all: the
+      ground's own colour IS the wall, showing at the top edge where nothing lightens it, and a
+      single white wash lifts everything below it. One gradient, one number per mode.
 
-      The band is stated in PIXELS and not in percent, unlike the seal's sheen: a dent's depth
-      is a fixed physical distance, and a ground can be a whole page region, so a percentage
-      would make a tall ground's shade a soft half-screen wash instead of an edge. The pool one
-      entry up is the precedent for px in this family.
+      **`--color-ground` is deliberately NOT moved to do this**, and the reason is not
+      aesthetic: since the 2026-08-26 audit that value is a BED in the high-contrast edge solve
+      (`color.test.ts` measures the solved control and field edges against the page, the seal
+      and the ground). Baking the wall into the token would move a conformance input to buy a
+      taste change. The wash is where taste belongs.
 
-      Held under the ladder by law, not by care: the peak excursion of either wash must stay
-      inside one tonal step of the palette, so no future edit can re-commit the grain's 28x.
-      Values are taste, judged in the playground like every other number in this file. */
+      **What this costs, stated because it bounds the values:** lightening-only has very little
+      headroom in either mode. In light the page is pure white, so the whole range from the
+      ground to the page is 0.033. In dark the ground sits only 0.011 under the card it holds,
+      and lifting the floor past that would put the cards DARKER than the ground holding them —
+      the inversion §10 records as the reason the ground is an absolute pair. So the dent here
+      is shallower than a darkening one could be, by construction, and a law holds the floor
+      under the card rather than trusting the number.
+
+      NO GRAIN. That is the 2026-08-21 finding kept rather than re-argued — a bed has no tooth,
+      and the measurement that condemned it has not changed.
+
+      The ramp is stated in PIXELS: it is the depth of a wall, a fixed physical distance, and a
+      ground can be a whole page region where a percentage would turn it into a half-screen
+      wash. Values are taste, one config line each. */
   groundRim: {
-    light: { shade: 3, shadeTo: 14, collect: 30, collectTo: 8 },
-    dark: { shade: 14, shadeTo: 14, collect: 1, collectTo: 8 },
+    light: { lift: 40, liftTo: 14 },
+    dark: { lift: 0.5, liftTo: 14 },
   },
   /** §10 — the WASHES a glass CONTROL's louder rungs keep (lab, rendered values 2026-08-17):
       the pane-minus-wash rule holds for the box itself, but the lab's grid gives the filled

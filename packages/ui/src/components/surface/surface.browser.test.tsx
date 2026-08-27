@@ -43,21 +43,21 @@ const over = (s: { r: number; g: number; b: number; a: number }, b: { r: number;
 });
 
 /**
- * The ground's two washes at their PEAKS — the first stop of each gradient, which is the value
- * sitting against the edge it is drawn from. Returned in the order the recipe states them (top
- * shade first, bottom collect second), and both must be present: a recipe that emitted one
- * layer would otherwise read as a ground with half a dent and quietly pass the direction law
- * with `undefined`.
+ * The ground's lighting, read as the engine paints it: the stop sitting against the TOP edge
+ * and the stop the ramp settles at below it.
+ *
+ * Both are returned even though the top one is transparent by design — that transparency is
+ * the claim (nothing is laid over the wall), so a law that could not see it could not check
+ * it. A recipe that stopped emitting a ramp would otherwise read as a ground with no dent and
+ * quietly pass the direction law against `undefined`.
  */
-function washes(el: Element): [ReturnType<typeof rgba>, ReturnType<typeof rgba>] {
+function washes(el: Element): { top: ReturnType<typeof rgba>; floor: ReturnType<typeof rgba> } {
   const img = computed(el, "background-image");
-  const stops = [...img.matchAll(/(?:rgba?|color)\([^)]*\)/g)]
-    .map((m) => rgba(m[0]))
-    .filter((c) => c.a > 0.001);
+  const stops = [...img.matchAll(/(?:rgba?|color)\([^)]*\)/g)].map((m) => rgba(m[0]));
   if (stops.length !== 2) {
-    throw new Error(`expected exactly two wash peaks in the ground's lighting, got ${stops.length}: ${img}`);
+    throw new Error(`expected one ramp with two stops in the ground's lighting, got ${stops.length}: ${img}`);
   }
-  return [stops[0]!, stops[1]!];
+  return { top: stops[0]!, floor: stops[1]! };
 }
 
 describe("a ground, not an object (§10, 2026-08-20)", () => {
@@ -186,46 +186,83 @@ describe("a ground, not an object (§10, 2026-08-20)", () => {
     }
   });
 
-  it("is lit as a RECESS: shade at the top, collect at the bottom, in both modes", () => {
+  it("is lit as a RECESS, and it LIGHTENS — never darkens (2026-08-26)", () => {
     // The principle, not the numbers — the grip law's own shape one family over, so the values
     // stay taste and the direction stays law. A pane is an object: light lands on its top. A
     // ground is a hole in a plane (which is why it casts nothing, two laws up), so the same
-    // light is blocked by the wall above it and collects on the floor below.
+    // light is blocked by the wall above it and reaches the floor below.
     //
-    // This is the law that a re-pointed conic ring would fail: the ring's bright arc is its
-    // TOP, which on a dent is the one edge that must not brighten.
+    // TWO claims, and the second is Kushagra's correction of the first shipping cut ("not by
+    // adding a darker tone ... keep that darker tone as what it is right now, but lighten up
+    // the rest"): the dent's direction is top-darker-than-floor, AND it is achieved by lifting
+    // the floor rather than by laying shade on the wall. A black wash reads as a band painted
+    // ON the box instead of as the box being recessed.
+    //
+    // This is also the law a re-pointed conic ring would fail twice: the ring's bright arc is
+    // its TOP, and its shade arc is pigment laid over the fill.
     for (const appearance of APPEARANCES) {
       const ground = mounted(<Surface>Region</Surface>, { theme: { appearance }, select: ".kui-ground" });
-      const [top, bottom] = washes(ground);
+      const { top, floor } = washes(ground);
       const fill = rgba(computed(ground, "background-color"));
+      // Nothing is laid over the wall: the top edge is the ground's own colour, full stop.
+      expect(top.a, `${appearance}: the wall is the ground's own colour, not a wash over it`).toBeLessThan(0.001);
+      // …and every stop that DOES paint, lightens. Read as luminance against the fill rather
+      // than as "is it white", so a future edit reaching for a dark pigment fails here.
       expect(
-        luma(over(top, fill)),
-        `${appearance}: the top wall of a dent is in shade`,
-      ).toBeLessThan(luma(fill));
-      expect(
-        luma(over(bottom, fill)),
+        luma(over(floor, fill)),
         `${appearance}: the floor of a dent catches the light`,
       ).toBeGreaterThan(luma(fill));
+      // The dent's direction, stated as the relationship rather than as two colours.
+      expect(
+        luma(over(top, fill)),
+        `${appearance}: the top wall must stay darker than the floor`,
+      ).toBeLessThan(luma(over(floor, fill)));
     }
   });
 
-  it("its light stays UNDER the tonal ladder it sits in", () => {
-    // The law the 2026-08-21 finding never had, and the reason that finding had to be reported
-    // by eye. The grain was not wrong because it was white; it was wrong because it moved a dark
-    // ground FOUR TIMES further than the whole page->ground->card ladder, so the texture spoke
-    // louder than the structure. Stated against the ladder rather than as an alpha ceiling,
-    // because the ladder is what the number has to lose to — and because light's ladder (0.033)
-    // and dark's (0.011) are three times apart, so one alpha ceiling would be wrong in one mode.
+  it("its lit floor stays CLEAR of the page and of the card it holds", () => {
+    // The constraint that bounds the lift, and it needed both beds — a sabotage pass proved a
+    // one-bed version could not fail where it mattered. Lifting a floor has two ways to go
+    // wrong and they are in different modes:
+    //
+    //   LIGHT — the page is pure white and the ground sits 0.033 under it, so a lift big enough
+    //   dissolves the region into the page and only its hairline says it is there. The first
+    //   spelling of the ladder law below could not catch that, because in light the ladder step
+    //   IS the distance to the page: "moved < step" happily permits arriving AT the page. A 95%
+    //   lift (floor 0.9984 against a 1.0 page) passed all fourteen laws.
+    //
+    //   DARK — the ground sits only ~0.011 UNDER the card standing on it, so a lift past that
+    //   puts the cards darker than the ground holding them. That is the nesting inverted, which
+    //   §10 records as the reason the ground is an absolute pair rather than a relative step.
+    //
+    // A strict inequality is not enough for either: 0.9984 < 1.0 is true and useless. The
+    // margin is half the tonal step on the side being defended, which is the smallest gap the
+    // ladder itself treats as a real difference.
     for (const appearance of APPEARANCES) {
-      const ground = mounted(<Surface>Region</Surface>, { theme: { appearance }, select: ".kui-ground" });
+      const ground = mounted(
+        <Surface>
+          <Card data-testid="held">Body</Card>
+        </Surface>,
+        { theme: { appearance }, select: ".kui-ground" },
+      );
       const fill = rgba(computed(ground, "background-color"));
-      const step = Math.abs(luma(fill) - luma(rgba(colorOn(ground, "var(--color-page)"))));
-      for (const [name, wash] of [["top", washes(ground)[0]], ["bottom", washes(ground)[1]]] as const) {
-        const moved = Math.abs(luma(over(wash, fill)) - luma(fill));
+      const page = rgba(colorOn(ground, "var(--color-page)"));
+      const card = rgba(computed(within(ground, "[data-testid='held']"), "background-color"));
+      const lit = luma(over(washes(ground).floor, fill));
+      // Read as the FRACTION of each gap still unspent, signed — never as a distance. The first
+      // spelling used Math.abs() and a sabotage walked straight through it: a floor lifted
+      // clean PAST the card is a long way from it, so "far from the card" was satisfied by the
+      // exact failure the law exists to catch. A ratio catches crossing (it goes negative) and
+      // closing too far (it drops below a half) with one number, and it needs no per-mode
+      // arithmetic — the page sits above the ground in light and below it in dark, and the sign
+      // carries that by itself.
+      for (const [bed, value] of [["page", page], ["card", card]] as const) {
+        const gap = luma(value) - luma(fill);
+        const left = (luma(value) - lit) / gap;
         expect(
-          moved,
-          `${appearance}/${name}: the lighting (${moved.toFixed(4)}) is louder than the ladder it sits in (${step.toFixed(4)})`,
-        ).toBeLessThan(step);
+          left,
+          `${appearance}: the lit floor (${lit.toFixed(4)}) has spent ${((1 - left) * 100).toFixed(0)}% of its gap to the ${bed} (${luma(value).toFixed(4)}) — a ground must not ${left < 0 ? "cross" : "dissolve into"} what it is not`,
+        ).toBeGreaterThan(0.5);
       }
     }
   });
