@@ -188,6 +188,11 @@ type PaneDressProps = {
    * cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded
    * content card.
    *
+   * It also decides the seams. A flush pane draws one hairline on its inner edge, and that edge
+   * needs something on the other side of it: pull the content off the frame and every seam
+   * facing it goes, because the card's own gap and edge already draw that boundary. A rail
+   * beside a flush sidebar keeps its seam — both of those are still in the frame.
+   *
    * It says nothing about the material. A pane over a canvas states `backdrop`, whatever its
    * posture — the two questions are independent and were briefly wired together (LOG 2026-08-29).
    */

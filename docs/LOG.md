@@ -8,6 +8,64 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-29 A seam needs something on the other side of it
+
+Kushagra, straight after the backdrop change: *"Say content is not flush, and the sidebar is.
+Then the separator looks weird, no? Idea is if one is not flush, maybe it shouldn't have
+separator."*
+
+**Measured before agreeing.** A 1280 x 600 shell, flush header, flush sidebar,
+`<ShellContent flush={false}>`: the sidebar's hairline lands at x=288 and the content card's
+left edge at x=296. Eight pixels of bare page between them, and the same eight under the
+header's hairline. Since a flush pane paints no fill at all (2026-08-21), the sidebar is page,
+the gap is page, and the hairline is a rule drawn across a continuous stretch of page with
+nothing on either side of it — a few pixels from the boundary the card has already drawn with
+its own margin, corner and cast.
+
+**The condition is the content, and it is one question rather than a list of cases.** Seams
+face the content. When the content is FLUSH, every non-flush pane floats and the content grows
+underneath it, so every seam still meets it — measured, a floating sidebar leaves the rail's
+hairline and the content's left edge both at x=65, touching. When the content is NOT flush
+nothing floats at all, the content is a card inset on four sides, and every seam facing it is
+left against a gap. So the whole stand-down keys on `:has(> .kui-shell-content:not([data-flush]))`
+and the floating arrangement is untouched by construction rather than by a carve-out.
+
+**The rail is the one seam that need not face the content**: a flush sidebar between them is
+still in the frame, so rail|sidebar is a genuine boundary and keeps its line. Guarded rather
+than assumed — the same sibling question `grid-column-start` got wrong in the 2026-08-16 audit,
+and the over-reaching spelling fails the law that exists for it.
+
+**The header went with them, which was the real fork.** Its bottom edge spans the flush columns
+as well as the content's, and a border cannot be drawn along part of an edge — so the choice
+was a full-width line that is right over a flush sidebar and stray over the card, or no line.
+Kushagra took "nothing draws against a pulled-away pane" whole. The stated cost: a header and a
+flush sidebar below it become one continuous page-coloured region with no rule between them.
+That is also what a macOS unified toolbar over a sidebar does, which is the arrangement this
+composition comes from.
+
+**The mechanism was wrong before it was right, and my own comment asserted the wrong reason.**
+The first spelling carried `:not([data-presentation="overlay"])` on every subject, with a
+paragraph explaining that this was what kept a drawer's four borders safe. Its sabotage pass
+survived: removing the guards changed nothing. Deriving it properly — `:has()` carries its most
+specific argument's weight, so the guards raised each rule from (0,2,0) to (0,3,0), which is a
+TIE with the overlay exception settled only by these rules sitting earlier in the file, where
+without them the exception wins outright by rank. The guards were decoration that made the
+cascade more fragile, and the file's own 2026-08-21 lesson ("specificity states it where source
+order only implies it") says which way to resolve that. Deleted; `:where()` around the `:has()`
+is the whole of it, and the drawer law is falsified by removing the `:where()` instead — which
+lands the stand-down at (0,5,0) and really does zero one border.
+
+**Laws.** Eight, four sabotage passes. The first asserts a fully flush frame still draws every
+seam, without which a suite of `toBe("0px")` assertions passes against a stylesheet that draws
+no seams at all. One reads the claim as a DISTANCE rather than a border width, because "the
+seam is stray" is a statement about where the neighbour is. Deleting the stand-down fails three;
+dropping the rail's guard fails exactly the rail law; removing the `:where()` fails exactly the
+drawer law.
+
+**Rejected:** a prop. The seams are already automatic and per-boundary, and a prop would ask
+every app to answer a question the layout can see for itself — the same argument that refuses a
+`gap` prop one paragraph over in §27.
+
 ## 2026-08-29 A shell pane states its own backdrop, and the work area never gets one
 
 Kushagra, in two sentences: *"I dont think content should ever get glass, panels are fine"*, and

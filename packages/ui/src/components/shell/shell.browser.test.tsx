@@ -1604,6 +1604,164 @@ describe("flush and floating: one fact, two postures (§27)", () => {
  * Escape closed the pane AND the dialog around it, the same layer-blindness the audit fixed
  * in the other direction. Falsified against the code without `stopPropagation`.
  */
+describe("a seam needs something on the other side of it (§27, 2026-08-29)", () => {
+  // Kushagra: "Say content is not flush, and the sidebar is. Then the separator looks weird,
+  // no? Idea is if one is not flush, maybe it shouldn't have separator." Measured before the
+  // fix: the sidebar's hairline at x=288, the content card's left edge at x=296, 8px of bare
+  // page between them — and a flush pane paints no fill, so both sides of that line are page.
+  //
+  // The condition is the CONTENT, which falls out of the posture derivation: when the content
+  // is flush every non-flush pane floats and the content grows underneath it, so every seam
+  // still meets it; when the content is not flush nothing floats and every seam faces a gap.
+
+  const seam = (el: HTMLElement, side: string) => computed(el, `border-${side}-width`);
+
+  /** Every pane flush unless named, so each law changes exactly one thing. */
+  const shellWith = (content: React.ReactElement, extra?: React.ReactNode) =>
+    mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellHeader>h</ShellHeader>
+        {extra}
+        <ShellSidebar aria-label="Primary">s</ShellSidebar>
+        {content}
+        <ShellInspector defaultOpen>i</ShellInspector>
+        <ShellBottom defaultOpen>b</ShellBottom>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+
+  it("a flush frame draws every seam — the control, without which the rest proves nothing", () => {
+    // The positive read. A law that only ever asserts 0px passes against a stylesheet that
+    // draws no seams at all, which is the degenerate fixture this file has paid for twice.
+    const shell = shellWith(<ShellContent>c</ShellContent>);
+    expect(seam(within(shell, ".kui-shell-header"), "bottom")).toBe("1px");
+    expect(seam(within(shell, ".kui-shell-sidebar"), "right")).toBe("1px");
+    expect(seam(within(shell, ".kui-shell-inspector"), "left")).toBe("1px");
+    expect(seam(within(shell, ".kui-shell-bottom"), "top")).toBe("1px");
+  });
+
+  it("a grounded content takes every seam facing it with it", () => {
+    const shell = shellWith(<ShellContent flush={false}>c</ShellContent>);
+    for (const [name, side] of [
+      ["header", "bottom"],
+      ["sidebar", "right"],
+      ["inspector", "left"],
+      ["bottom", "top"],
+    ] as const) {
+      expect(
+        seam(within(shell, `.kui-shell-${name}`), side),
+        `the ${name} drew a seam against a content that had pulled off the frame`,
+      ).toBe("0px");
+    }
+  });
+
+  it("...and the geometry is why: the line had a gap on both sides of it", () => {
+    // The claim measured as a DISTANCE rather than as a border width, because "the seam is
+    // stray" is a statement about where the neighbour is, not about whether a border exists.
+    const shell = shellWith(<ShellContent flush={false}>c</ShellContent>);
+    const sidebar = within(shell, ".kui-shell-sidebar").getBoundingClientRect();
+    const content = within(shell, ".kui-shell-content").getBoundingClientRect();
+    expect(
+      content.left - sidebar.right,
+      "the content is touching the sidebar, so there was never a gap to argue about",
+    ).toBeGreaterThan(1);
+  });
+
+  it("a FLOATING pane keeps every seam — the content grew underneath it", () => {
+    // The case the condition must not over-reach into. A non-flush sidebar over flush content
+    // floats, and the content's area grows across its column, so the rail's hairline meets the
+    // content rather than a gap — measured at x=65 on both.
+    const shell = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellHeader>h</ShellHeader>
+        <ShellRail aria-label="Sections">r</ShellRail>
+        <ShellSidebar aria-label="Primary" flush={false}>
+          s
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const rail = within(shell, ".kui-shell-rail");
+    expect(seam(rail, "right"), "a floating neighbour took the rail's seam away").toBe("1px");
+    expect(
+      within(shell, ".kui-shell-content").getBoundingClientRect().left,
+      "the content did not grow under the floating pane, so this proves nothing",
+    ).toBeCloseTo(rail.getBoundingClientRect().right, 0);
+  });
+
+  it("rail|sidebar survives a grounded content — both panes are still in the frame", () => {
+    const shell = shellWith(
+      <ShellContent flush={false}>c</ShellContent>,
+      <ShellRail aria-label="Sections">r</ShellRail>,
+    );
+    expect(
+      seam(within(shell, ".kui-shell-rail"), "right"),
+      "the rail lost a seam it draws against a sidebar that never left the frame",
+    ).toBe("1px");
+    expect(
+      seam(within(shell, ".kui-shell-sidebar"), "right"),
+      "the sidebar kept a seam against a content that had pulled away",
+    ).toBe("0px");
+  });
+
+  it("...but not when the sidebar has pulled away too, or is absent", () => {
+    // Two arrangements, one claim: the rail's seam goes when the thing across it is not a
+    // welded pane. Guarded rather than assumed — the same sibling question `grid-column-start`
+    // got wrong in the 2026-08-16 audit.
+    const grounded = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellRail aria-label="Sections">r</ShellRail>
+        <ShellSidebar aria-label="Primary" flush={false}>
+          s
+        </ShellSidebar>
+        <ShellContent flush={false}>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    expect(
+      seam(within(grounded, ".kui-shell-rail"), "right"),
+      "the rail drew a seam against a sidebar that had pulled off the frame",
+    ).toBe("0px");
+
+    const noSidebar = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellRail aria-label="Sections">r</ShellRail>
+        <ShellContent flush={false}>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    expect(
+      seam(within(noSidebar, ".kui-shell-rail"), "right"),
+      "with no sidebar the rail faces the content directly, and it has pulled away",
+    ).toBe("0px");
+  });
+
+  it("A DRAWER KEEPS ALL FOUR — the overlay exception outranks the stand-down", () => {
+    // The hazard this could have introduced: an overlaying pane takes the surface identity
+    // back at (0,3,0), and `:has()` carries its most specific argument's weight — so a
+    // stand-down written without `:where()` lands at (0,5,0) and zeroes one border of a
+    // drawer sliding over a grounded content. Falsify by removing the `:where()`, not by
+    // removing a `:not([data-presentation="overlay"])` guard: the first spelling had one and
+    // it was decoration, which this law's own sabotage pass is what proved.
+    const shell = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellSidebar aria-label="Primary" presentation="overlay" defaultOpen>
+          s
+        </ShellSidebar>
+        <ShellContent flush={false}>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const drawer = within(shell, ".kui-shell-sidebar");
+    for (const side of ["top", "right", "bottom", "left"]) {
+      expect(seam(drawer, side), `the drawer lost its ${side} border to the seam stand-down`).toBe(
+        "1px",
+      );
+    }
+  });
+});
+
 describe("the derivation: what a non-flush pane BECOMES is read off the content (§27)", () => {
   /* The load-bearing pair. Both mounts are the same shell with the same non-flush sidebar;
      the ONLY difference is one prop on a DIFFERENT pane. That is deliberate — a law over a

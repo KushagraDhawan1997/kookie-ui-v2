@@ -938,7 +938,7 @@ export const ENTRIES: Entry[] = [
       {
         name: "flush",
         values: "boolean, per pane (default true)",
-        note: "is this pane part of the app frame. A flush pane is level with the page: no fill, no corner and no edge of its own, and the app's page shows through. One hairline separates two flush panes, and exactly one of them owns it, because a pane draws only its inner edge. One exception the app never states: a pane presenting as an overlay is not in the frame while it does so, so a drawer takes the surface identity back. Turn it off and the pane floats over the content or grounds beside it, whichever is true. It says nothing about the material: a pane over a canvas says backdrop, at either posture",
+        note: "is this pane part of the app frame. A flush pane is level with the page: no fill, no corner and no edge of its own, and the app's page shows through. One hairline separates two flush panes, and exactly one of them owns it, because a pane draws only its inner edge. A seam needs something on the other side of it, so pulling the content off the frame takes every seam facing it away: the card's own gap and edge already draw that boundary, and a second line a few pixels off reads as a stray rule. A rail beside a flush sidebar keeps its seam, because both of those are still in the frame. One exception the app never states: a pane presenting as an overlay is not in the frame while it does so, so a drawer takes the surface identity back. Turn it off and the pane floats over the content or grounds beside it, whichever is true. It says nothing about the material: a pane over a canvas says backdrop, at either posture",
       },
       {
         name: "backdrop",

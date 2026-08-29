@@ -462,6 +462,84 @@
   border-block-start-width: var(--border-width);
 }
 
+/* ...AND A SEAM NEEDS SOMETHING ON THE OTHER SIDE OF IT (2026-08-29, Kushagra: "Say content is
+   not flush, and the sidebar is. Then the separator looks weird, no? Idea is if one is not
+   flush, maybe it shouldn't have separator").
+
+   Measured on a 1280 x 600 shell with a flush header, a flush sidebar and `<ShellContent
+   flush={false}>`: the sidebar's hairline lands at x=288 and the content card's left edge at
+   x=296, with 8px of bare page between them — and the same 8px under the header's hairline.
+   A flush pane paints no fill (2026-08-21), so that gap is page, the sidebar beside it is
+   page, and the hairline is a line drawn across a continuous stretch of page with nothing on
+   either side of it. The card has already drawn the boundary, with its own margin, corner and
+   cast; the seam is a second one a few pixels away.
+
+   THE CONDITION IS THE CONTENT, and that falls out of the posture derivation rather than
+   being a list of cases. Seams face the content. When the content is FLUSH every non-flush
+   pane floats and the content GROWS underneath it, so every seam still meets the content and
+   nothing here matches — measured: with a floating sidebar, the rail's hairline at x=65 and
+   the content's left edge at x=65, touching. When the content is NOT flush nothing floats at
+   all, the content is a card inset on all four sides, and every seam facing it is left
+   against a gap. One question, asked once.
+
+   THE RAIL IS THE ONE SEAM THAT NEED NOT FACE THE CONTENT: a flush sidebar standing between
+   them is still in the frame, so rail|sidebar is a genuine boundary between two welded panes
+   and keeps its line. With the sidebar pulled off the frame, or absent, the rail faces the
+   gap like everything else. Guarded rather than assumed — the same sibling question
+   `grid-column-start` got wrong in the 2026-08-16 audit.
+
+   THE HEADER GOES WITH THEM, which is the consequence worth stating rather than hiding
+   (Kushagra's call, taking "nothing draws against a pulled-away pane" whole): its bottom edge
+   spans the flush columns as well as the content's, so dropping it leaves a header and a
+   flush sidebar as one continuous page-coloured region with no rule between them. A border
+   cannot be drawn along part of an edge, so the alternative was a line that is right over the
+   sidebar and stray over the card — and the platforms this arrangement comes from (a macOS
+   unified toolbar over a sidebar) draw no line on the sidebar's side either.
+
+   `:where()` AROUND THE `:has()`, AND IT IS THE WHOLE OF THE DRAWER'S SAFETY. `:has()` takes
+   its most specific argument's weight, so unwrapped these would be (0,5,0) — enough to beat
+   the overlay exception below and zero one border of a drawer sliding over a grounded
+   content, which is the same weight mistake that sank the floating rule into the scrim's band
+   in the 2026-08-16 audit. Wrapped, each rule is its subject's own (0,2,0), and the exception
+   at (0,3,0) outranks it BY RANK rather than by source order, exactly as it already outranks
+   the base seam rules above.
+
+   A first spelling also carried `:not([data-presentation="overlay"])` on every subject, with
+   a comment claiming that was what protected the drawer. It was not: it raised each rule to
+   (0,3,0), turning a rank the exception wins outright into a TIE settled only by these rules
+   sitting earlier in the file. The sabotage pass caught it — removing the guards changed
+   nothing, which is what says a guard is decoration. Deleted, and the law that covers this
+   is falsified by removing the `:where()` instead, which is the mistake that can really
+   happen here. */
+:where(.kui-shell:has(> .kui-shell-content:not([data-flush])))
+  > .kui-shell-header[data-flush] {
+  border-block-end-width: 0;
+}
+
+:where(.kui-shell:has(> .kui-shell-content:not([data-flush])))
+  > .kui-shell-sidebar[data-flush] {
+  border-inline-end-width: 0;
+}
+
+:where(.kui-shell:has(> .kui-shell-content:not([data-flush])))
+  > .kui-shell-inspector[data-flush] {
+  border-inline-start-width: 0;
+}
+
+:where(.kui-shell:has(> .kui-shell-content:not([data-flush])))
+  > .kui-shell-bottom[data-flush] {
+  border-block-start-width: 0;
+}
+
+:where(
+    .kui-shell:has(> .kui-shell-content:not([data-flush])):not(
+        :has(> .kui-shell-sidebar[data-flush])
+      )
+  )
+  > .kui-shell-rail[data-flush] {
+  border-inline-end-width: 0;
+}
+
 /* THE ONE EXCEPTION, AND IT IS NOT THE APP'S TO STATE (2026-08-21, Kushagra: "when it becomes
    a drawer, it stops being flush… a drawer has a surface, so it gets surface"). `flush` is a
    statement about the FRAME, and a pane sitting over the content is not in the frame while it
