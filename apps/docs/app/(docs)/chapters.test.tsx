@@ -478,7 +478,7 @@ describe("the narrow-window overflow guard is still connected", () => {
     // The class has to be on the CONTENT pane's scroller specifically. Putting it on the
     // sidebar's would neutralise the wrong scroller and leave the page overflowing exactly as
     // before, with the rule sitting there looking applied.
-    expect(chrome).toMatch(/<ShellScroll className="kd-scroll">/);
+    expect(chrome).toMatch(/<ShellScroll className="kd-scroll"[^>]*>/);
   });
 });
 

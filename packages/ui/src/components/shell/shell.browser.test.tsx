@@ -2469,6 +2469,49 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     ).toBeGreaterThanOrEqual(pinnedHeader.bottom - 1);
   });
 
+  /**
+   * A FLOATING ROW CATCHES NOTHING BUT ITS CHILDREN (2026-08-30, found on the docs content
+   * pane): the part spans the pane's inline axis and paints nothing, so a click in the empty
+   * band must reach the content passing beneath, while the chrome inside it still takes its
+   * own presses. Read by hit-test, because pointer-events is exactly the property a computed
+   * read cannot prove the consequences of. Falsified by deleting the pointer-events pair —
+   * the band then swallows the click.
+   */
+  it("a floating row's empty band passes the pointer through; its children keep theirs (§27)", () => {
+    const shell = mounted(
+      <Shell style={{ height: 400, width: 900 }}>
+        <ShellContent style={{ position: "relative" }}>
+          <ShellPaneHeader float>
+            <Button data-testid="chrome">Chrome</Button>
+            <Button>Other</Button>
+          </ShellPaneHeader>
+          <ShellScroll>
+            <Box data-testid="under">content that passes beneath the band</Box>
+          </ShellScroll>
+        </ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const chrome = within(shell, "[data-testid='chrome']");
+    const header = within(shell, ".kui-pane-header").getBoundingClientRect();
+    // The empty half of the band: right of the one button, inside the row.
+    const chromeBox = chrome.getBoundingClientRect();
+    const hit = document.elementFromPoint(
+      chromeBox.right + (header.right - chromeBox.right) / 2,
+      chromeBox.top + chromeBox.height / 2,
+    );
+    expect(
+      within(shell, ".kui-pane-header").contains(hit),
+      "the empty band swallowed the click",
+    ).toBe(false);
+    // And the chrome itself still answers.
+    const own = document.elementFromPoint(
+      chromeBox.left + chromeBox.width / 2,
+      chromeBox.top + chromeBox.height / 2,
+    );
+    expect(chrome.contains(own), "the chrome lost its own presses").toBe(true);
+  });
+
   it("nothing floating, nothing published (§27)", () => {
     const shell = mountShell();
     const content = within(shell, ".kui-shell-content");

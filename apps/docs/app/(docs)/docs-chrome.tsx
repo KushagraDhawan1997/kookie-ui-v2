@@ -31,7 +31,6 @@ import Link from "next/link";
 import {
   Box,
   Button,
-  Flex,
   Shell,
   ShellContent,
   ShellScroll,
@@ -110,17 +109,23 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
               before. The rows pass behind this and behind the footer, the nav's scroller
               fades them out on the way (its `fade`), and the tree rests clear by spending
               the published reach — all three statements live in docs-nav.tsx. */}
+          {/* The part IS the row (2026-08-30) — its children are clusters, never a
+              full-width wrapper, because the floating band is transparent to the pointer
+              and each child takes itself back: a wrapper spanning the row would swallow
+              the clicks on the rows passing beneath. `align-self` keeps the 2026-08-29
+              top-alignment call: the wordmark's line box is a display glyph, and centring
+              the search button against it sank it below the collapse trigger next door. */}
           <ShellPaneHeader float>
-            <Flex align="start" justify="space-between">
-              <Link
-                href="/"
-                aria-label="KookieUI"
-                style={{ color: "inherit", textDecoration: "none" }}
-              >
-                <Wordmark />
-              </Link>
+            <Link
+              href="/"
+              aria-label="KookieUI"
+              style={{ color: "inherit", textDecoration: "none", alignSelf: "start" }}
+            >
+              <Wordmark />
+            </Link>
+            <Box style={{ alignSelf: "start" }}>
               <DocsSearch index={buildSearchIndex()} />
-            </Flex>
+            </Box>
           </ShellPaneHeader>
 
           {/* DocsNav renders its own ShellScroll as its root — wrapping it in another one
@@ -132,17 +137,15 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
 
           {/* The footer, floating with the header — one posture for the pane's chrome. */}
           <ShellPaneFooter float>
-            <Flex align="center" justify="space-between" gap="2">
-              <Button
-                emphasis="quiet"
-                render={
-                  <a href="https://github.com/KushagraDhawan1997/kookie-ui-v2" />
-                }
-              >
-                GitHub
-              </Button>
-              <AppearanceToggle />
-            </Flex>
+            <Button
+              emphasis="quiet"
+              render={
+                <a href="https://github.com/KushagraDhawan1997/kookie-ui-v2" />
+              }
+            >
+              GitHub
+            </Button>
+            <AppearanceToggle />
           </ShellPaneFooter>
         </ShellSidebar>
 
@@ -168,29 +171,33 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
               leaves, published by the frame and zero the moment the sidebar closes or
               overlays, so the button walks back to the pane's own corner with no branch
               here. */}
-          <Box
-            style={{
-              position: "absolute",
-              insetBlockStart: "var(--kui-sf-p)",
-              insetInlineStart:
-                "calc(var(--kui-shell-inset-inline-start) + var(--kui-sf-p))",
-              zIndex: 1,
-            }}
-          >
-            <ShellTrigger
-              target="sidebar"
-              render={
-                <Button
-                  emphasis="quiet"
-                  iconOnly
-                  aria-label="Toggle navigation"
-                >
-                  <PanelLeftIcon />
-                </Button>
-              }
-            />
-          </Box>
-          <ShellScroll className="kd-scroll">
+          {/* A MARKED PART since 2026-08-30, not a hand-positioned Box: the edge-bleed asks
+              the DOM for the first child that takes no space, and it can only see the
+              package's own vocabulary — the unmarked Box was blocking the reading column
+              from scrolling to the pane's edge. The part carries the pane padding and the
+              z-index the Box carried by hand; what stays here is only what is about this
+              placement: clearing the floating sidebar by the frame's published reach. */}
+          <ShellPaneHeader float>
+            <Box
+              style={{
+                paddingInlineStart: "var(--kui-shell-inset-inline-start)",
+              }}
+            >
+              <ShellTrigger
+                target="sidebar"
+                render={
+                  <Button
+                    emphasis="quiet"
+                    iconOnly
+                    aria-label="Toggle navigation"
+                  >
+                    <PanelLeftIcon />
+                  </Button>
+                }
+              />
+            </Box>
+          </ShellPaneHeader>
+          <ShellScroll className="kd-scroll" fade>
             {/* AND THE READING COLUMN CLEARS THE SIDEBAR. The pane runs under the floating
                 nav, so without this the measure would centre itself over the whole window —
                 half of it behind the sidebar. The page's own frame centres inside whatever

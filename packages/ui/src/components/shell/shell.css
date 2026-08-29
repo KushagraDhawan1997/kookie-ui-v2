@@ -905,12 +905,20 @@
   initial-value: 0px;
 }
 
+/* THE PART IS THE ROW (2026-08-30): it lays its children out itself — ends apart, centred
+   on the row — so a caller places CLUSTERS, never a full-width wrapper. That is what makes
+   the floating posture's pointer split workable at all: the part is transparent to the
+   pointer and each child takes itself back, so a full-width wrapper as the only child would
+   re-swallow the very band the split opens. One child sits at the start; ends-apart is only
+   visible with two, which is what every consumer writes. */
 .kui-pane-header,
 .kui-pane-footer {
   box-sizing: content-box;
   min-block-size: var(--kui-shell-row);
-  display: grid;
-  align-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--kui-sf-p);
   min-inline-size: 0;
 }
 
@@ -920,6 +928,18 @@
   inset-inline: 0;
   padding: var(--kui-sf-p);
   z-index: 1;
+  /* A floating row paints nothing, so it must CATCH nothing (2026-08-30, found on the docs
+     content pane): the part spans the pane's full inline axis, and without this the empty
+     band between its controls swallowed every click on the content passing beneath — a
+     row's worth of dead page. The part is transparent to the pointer and its children take
+     themselves back, which is the standard floating-chrome arrangement and the same split
+     the part already makes for paint. */
+  pointer-events: none;
+}
+
+.kui-pane-header[data-float] > *,
+.kui-pane-footer[data-float] > * {
+  pointer-events: auto;
 }
 
 .kui-pane-header[data-float] {

@@ -241,6 +241,40 @@ it and it was re-applied by hand.
 
 ---
 
+## 2026-08-30 The part is the row, and a floating band catches nothing but its children
+
+Two corrections the content pane forced within the hour of the sidebar shipping, both on the
+day-old pane chrome.
+
+**The content pane's trigger was the seam biting** ("On Shell content, its still clipped to
+padding"): the collapse trigger was a hand-positioned Box — absolutely positioned chrome the
+edge-bleed cannot see, because the promotion reads the package's own `data-float` vocabulary
+and an unmarked Box has no mark. The reading column clipped at the pane's padding while the
+sidebar, whose chrome was marked, bled clean. Fixed by making the trigger the part it already
+wanted to be; what stays at the call site is only what is about this placement — clearing the
+floating sidebar by the frame's published reach.
+
+**And the floating band swallowed clicks, which the first fix made worse before better.** The
+part spans the pane's inline axis and paints nothing, so it must CATCH nothing:
+`pointer-events: none` on the band, restored on its children. The first spelling restored on
+`> *` and the law caught it doing nothing — every consumer's child was a full-width `Flex`
+wrapper, which took the pointer back for the whole band. The repair is structural, not a wider
+selector: **the part IS the row** — it lays its children out itself (ends apart, centred on the
+row), so a caller places CLUSTERS and each cluster catches only its own box. The three
+consumers all dropped a wrapper and got shorter; the law reads the split by HIT-TEST, because
+pointer-events is exactly the property whose consequences a computed read cannot prove.
+Falsified by deleting the pair — the band swallows the click again.
+
+**One instrument lesson re-paid**: the first live probe read the band still swallowing after
+the fix was green in the suite — a stale package build under the dev server, not a defect. The
+suite mounts from source; the site imports dist. Rebuild before believing a localhost probe.
+
++21 bytes, baseline 34,450 → 34,471. The chapters law pinning the scroller's exact prop string
+widened to the connection it was actually about (`className="kd-scroll"` present, whatever
+else the tag carries), which is the pinned-spelling lesson at app scale.
+
+---
+
 ## 2026-08-30 The docs sidebar floats its chrome, and the bleed learns what "first" means
 
 The pane chrome shipped the day before; Kushagra: "lets have content go behind logo header and
