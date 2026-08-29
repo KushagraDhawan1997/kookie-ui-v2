@@ -178,9 +178,14 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
               z-index the Box carried by hand; what stays here is only what is about this
               placement: clearing the floating sidebar by the frame's published reach. */}
           <ShellPaneHeader float>
+            {/* MARGIN, not padding (2026-08-30, Kushagra: the search button was dead): the
+                part's children take the pointer back, and padding is part of the child's
+                box — so a padded spacer was a 336px pointer-catcher lying over the floating
+                sidebar's own chrome, which this pane's band paints above. A margin clears
+                the same distance while the child's box stays the button's. */}
             <Box
               style={{
-                paddingInlineStart: "var(--kui-shell-inset-inline-start)",
+                marginInlineStart: "var(--kui-shell-inset-inline-start)",
               }}
             >
               <ShellTrigger
