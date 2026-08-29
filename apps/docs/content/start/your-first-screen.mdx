@@ -1,10 +1,10 @@
-This chapter builds one settings panel: a title, two groups of controls, and two buttons. By
-the end you will have written no colour, no pixel value and no breakpoint.
+You will build one settings panel: a title, two groups of controls, and two buttons. By the end
+you will have written no colour, no pixel value and no breakpoint.
 
 ## Choose the containers before the components
 
-In this system the container sets the distance between its children, so the first decision is
-which container owns which relationship.
+A container sets the distance between its children, so decide first which container owns which
+relationship.
 
 ```tsx
 import { Card, Heading, Stack, Text } from "@kookie-ui/react";
@@ -24,12 +24,12 @@ export function Settings() {
 }
 ```
 
-Notice the two Stacks use different gaps. The outer one, at 6, separates whole sections. The
-inner one, at 2, ties the heading to the sentence underneath it.
+The two Stacks use different gaps. The outer one, at 6, separates whole sections. The inner
+one, at 2, ties the heading to the sentence under it.
 
 Keep related things closer together than unrelated things. Your eye groups by distance before
-it reads a word, so a screen that uses the same gap everywhere looks like one undifferentiated
-list. This is a measured effect, not a preference.
+it reads a word, so a screen with the same gap everywhere looks like one undifferentiated list.
+That effect is measured, not a preference.
 
 There is no margin anywhere in that code. No component sets its own outer spacing, so every
 distance on the screen comes from a container you can see.
@@ -56,12 +56,12 @@ function Group() {
 ```
 
 No checkbox or switch takes a `label` prop. A label is text, and `Text` already handles every
-size, weight and colour that text needs. Putting a `label` prop on a checkbox would mean
-building a second, smaller text system inside it.
+size, weight and colour that text needs. A `label` prop would mean building a second, smaller
+text system inside the checkbox.
 
-`render={<label htmlFor="…" />}` swaps the element without changing the component. You keep
-the text size and colour, and the browser gets a real `<label>`, so clicking the words toggles
-the control.
+`render={<label htmlFor="…" />}` swaps the element without changing the component. You keep the
+text size and colour, and the browser gets a real `<label>`, so clicking the words toggles the
+control.
 
 ## Rank the two buttons
 
@@ -78,21 +78,20 @@ function Actions() {
 }
 ```
 
-Two different props are doing two different jobs. `emphasis` is how loud the button is.
-`tone` is what it means. Keeping them apart is why you never see a value like
-`secondary-outline-destructive` here. That kind of value answers three questions at once, and
-you cannot change one answer without changing the others.
+`emphasis` is how loud the button is, and `tone` is what it means. Because they stay apart, you
+never see a value like `secondary-outline-destructive` here. That kind of value answers three
+questions at once, and you cannot change one answer without changing the others.
 
-Nothing defaults to loud and accent, so a second loud button on this screen is something you
-have to type on purpose. That is how one screen ends up with one obvious action.
+Nothing defaults to loud and accent, so you must type a second loud button on purpose. That is
+how a screen keeps one obvious action.
 
 ## What you never had to write
 
-That screen is about thirty lines, and none of it mentions any of the following.
+That screen is about thirty lines, and none of it mentions the following.
 
-- **No colours.** You picked a tone and a loudness, and the theme worked out the value. It
-  follows dark mode, it responds to the high-contrast setting, and it survives you changing
-  your accent later.
+- **No colours.** You picked a tone and a loudness, and the theme calculated the value. That
+  value follows dark mode, responds to the high-contrast setting, and survives a later change
+  of accent.
 - **No pixel sizes.** `size` is a step. One number set the height, the padding, the corner, the
   icon and the label size together.
 - **No breakpoints.** Targets get bigger on a touch screen and text gets bigger on a phone.
@@ -105,10 +104,10 @@ That screen is about thirty lines, and none of it mentions any of the following.
 ## Where to go next
 
 Read [The component families](/philosophy/component-families). It tells you which component to
-reach for, which in this system is rarely a question about how something looks.
+reach for, and that is rarely a question about how something looks.
 
-After that, [Colour](/foundations/color) and
-[Space and layout](/foundations/space-and-layout) are the two you will use most often.
+After that, [Colour](/foundations/color) and [Space and layout](/foundations/space-and-layout)
+are the two you will use most often.
 
 The [builder](/builder) is a live editor over these same components. Every distance is a token
 step and every setting is a fixed list, so you cannot draw something the system cannot express.

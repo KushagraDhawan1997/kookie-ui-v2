@@ -3,9 +3,9 @@ describes what the code would do if everyone remembered every rule. Over time th
 apart, and nothing tells you how far.
 
 The rules on this site work differently. Most of them you cannot get wrong, because the types
-will not let you. Some are checked automatically. The rest are judgments, and this chapter
-tells you which is which — because dressing a judgment up as a measured rule is how a system
-stops being trustworthy.
+will not let you. Some are checked automatically. The rest are judgments, and the sections
+below say which is which. Dressing a judgment up as a measured rule is how a system stops being
+trustworthy.
 
 ## Most refusals live in the types
 
@@ -20,7 +20,7 @@ You cannot write the code the system refuses.
 not set its own outer spacing, so there is no margin to set. `tone` and `emphasis` are
 separate, so there is no prop that combines them.
 
-Every scale is a fixed list. `size` is `"1" | "2" | "3" | "4"` — not a number, so you cannot
+Every scale is a fixed list. `size` is `"1" | "2" | "3" | "4"`, not a number, so you cannot
 type a value in between.
 
 A type is stronger than a lint rule and much stronger than a paragraph. You can turn a lint
@@ -28,13 +28,13 @@ rule off and you can skip a paragraph. A prop that does not exist shows up as an
 editor before you run anything.
 
 **When a prop is missing, that usually means something.** If a component does not take a prop
-you expected, it is normally a refusal rather than an oversight, and every component page
-lists its refusals with the reason for each. If you find one with no entry, that is a gap in
-these pages.
+you expected, it is normally a refusal rather than an oversight, and every component page lists
+its refusals with the reason for each. If you find one with no entry, that is a gap in these
+pages.
 
 ## The ways out are meant to be visible
 
-A refusal with no way around it is not a design, it is an obstruction.
+A refusal with no way around it is an obstruction rather than a design.
 
 Every component forwards `className` and `style`, and your `style` is applied last, so your
 value wins.
@@ -56,14 +56,13 @@ value wins.
 </Box>
 ```
 
-The point is that an escape shows up in a diff. One is normal. A file full of them means the
-system is missing something, and what it is missing is usually a token or a tone rather than a
-prop.
+An escape shows up in a diff. One is normal. A file full of them means the system is missing
+something, usually a token or a tone rather than a prop.
 
 ## What the tests actually check
 
-There are no snapshot tests here, because a snapshot only tells you that something changed,
-not that anything was ever decided.
+There are no snapshot tests here, because a snapshot only tells you that something changed, not
+that anything was ever decided.
 
 - A Button, a TextField and a Select at size 2 resolve to the same height, padding and corner. A
   checkbox, a menu row, a tab and a segment are sized by their own rules, and each of those is
@@ -73,11 +72,11 @@ not that anything was ever decided.
 - The gzipped CSS is measured on every commit, and the build fails if it grows.
 - Margin and position props do not exist on control types, and a type-level test proves it.
 
-One rule governs how all of these are written. **A test reads the value the browser actually
-computed, from a real mounted component, in both light and dark.**
+One rule governs how all of these are written. **A test reads the value the browser computed,
+from a real mounted component, in both light and dark.**
 
 A test that reads an attribute, a token name or an object in memory stops one step short of the
-thing that can be wrong, and it will happily pass while the rendered result is broken.
+thing that can be wrong, and it passes while the rendered result is broken.
 
 ## Some rules are about a whole screen
 
@@ -90,24 +89,23 @@ A few rules describe a screen rather than a component, so no type can hold them.
 
 The [builder](/builder) runs these over a live document. Every finding quotes the rule it comes
 from and offers a fix. All the templates that ship with the builder are held to zero findings,
-which also keeps the rules honest: a rule nobody could satisfy would break those templates the
+which also keeps the rules honest. A rule nobody could satisfy would break those templates the
 day it was added.
 
 ## What is not checked, on purpose
 
 Nothing here checks taste, and taste is most of what makes an interface good.
 
-What the system does hold, and will not move, are the measured limits: tap target sizes come
-from how big fingertips are, contrast comes from measured models of vision, and grouping comes
-from documented research on perception.
+The system holds the measured limits and will not move them. Tap target sizes come from how big
+fingertips are, contrast comes from measured models of vision, and grouping comes from
+documented research on perception.
 
-Above those, the exact corner radius, how saturated a glass panel is, which hue the accent takes,
-and the rhythm of any one screen are judgments. These pages say so, and each of those values
-lives in one configuration file rather than being buried in a component. No test asserts any of
-them.
+Above those, the exact corner radius, how saturated a glass panel is, which hue the accent
+takes, and the rhythm of any one screen are judgments. Each of those values lives in one
+configuration file rather than being buried in a component, and no test asserts any of them.
 
-Saying which is which matters. A system that called its judgments measurements would be making
-a claim nobody could check.
+The distinction matters. A system that called its judgments measurements would make a claim
+nobody could check.
 
 ## These pages cannot quietly go stale
 

@@ -1,8 +1,8 @@
 Correct components make a screen consistent. They do not make it good. Every distance answers
-to a setting, every colour to a tone, and every size to a step — and you can still put nine
+to a setting, every colour to a tone, and every size to a step, and you can still put nine
 components on one screen at nine different sizes.
 
-These are the rules for putting things together, rather than for using any one component. The
+The rules below are for putting things together, rather than for using any one component. The
 [builder](/builder) checks most of them for you as you work.
 
 ## One obvious action per screen
@@ -10,8 +10,8 @@ These are the rules for putting things together, rather than for using any one c
 Use one loud control per screen. Give it `tone="accent"` and `emphasis="loud"`, and set every
 other control to medium or quiet.
 
-Two loud controls cancel each other out, and nobody can tell which one is the point. This is a
-judgment, and it follows the figure-and-ground principle: something can only stand out if
+Two loud controls cancel each other out, and nobody can tell which one is the point. That is a
+judgment, and it follows the figure-and-ground principle. Something can only stand out if
 everything around it is quiet.
 
 ```tsx
@@ -28,7 +28,7 @@ everything around it is quiet.
 </Flex>
 ```
 
-Nothing defaults to loud and accent, so a second one is always something you typed on purpose.
+Nothing defaults to loud and accent, so you always typed a second one on purpose.
 
 The unit is the screen, not the nearest box. A dialog counts as its own screen, because it
 covers the page and its loud button is not competing with anything underneath. Two tab panels
@@ -37,8 +37,8 @@ never compete either, because you only ever see one at a time.
 ## Let space do the grouping
 
 Put related things closer together than unrelated things. Your eye groups by distance before it
-reads anything, more reliably than it groups by a border, a fill or a line — so set the spacing
-first, and you will usually find you need none of those three.
+reads anything, more reliably than it groups by a border, a fill or a line. Set the spacing
+first, and you will usually need none of those three.
 
 Make the gap inside a group at least two steps smaller than the gap around it. The same gap
 repeated down a screen shows no structure at all.
@@ -56,14 +56,14 @@ repeated down a screen shows no structure at all.
 </Stack>
 ```
 
-Two levels of separation can sit one step apart — a section at gap 6 holding groups at gap 5 is
+Two levels of separation can sit one step apart. A section at gap 6 holding groups at gap 5 is
 fine, because both are separating groups rather than competing. The two-step rule is about the
 inside of a group against the space around it.
 
 ## Five type sizes and one floor
 
-Type is the one thing with no setting to answer to. `size` is a free number, so a written rule
-is the only limit on it. Use five steps:
+Type has no setting to answer to. `size` is a free number, so a written rule is the only limit
+on it. Use five steps:
 
 - **Size 8** for the page title.
 - **Size 7** for a section title.
@@ -71,8 +71,8 @@ is the only limit on it. Use five steps:
 - **Size 3** for body text.
 - **Size 2** for labels and small print.
 
-Do not use size 1 on a real screen. Twelve pixels is for genuinely marginal text. When something
-matters less, say so with the muted or faint colour at size 2 or 3.
+Do not use size 1 on a real screen. Twelve pixels is for marginal text. When something matters
+less, say so with the muted or faint colour at size 2 or 3.
 
 Move at least two steps to show a rank. A size 4 title above size 3 body text reads as an
 accident rather than a hierarchy.
@@ -89,23 +89,23 @@ A tone carries a meaning. Do not pick one because the screen looks grey.
 <Text tone="success">Backup completed</Text>
 ```
 
-`success`, `warning`, `info` and `destructive` mean things. `blue`, `green`, `orange` and `amber`
-are colour used as data — a chart series, a project label, a category — where the colour itself
-is the information.
+`success`, `warning`, `info` and `destructive` mean things. `blue`, `green`, `orange` and
+`amber` are colour used as data — a chart series, a project label, a category — where the
+colour itself is the information.
 
 Use three tones at most on one surface. Four or more reads as a palette rather than a set of
 meanings; three reads as a legend.
 
-And colour is never the whole message. Write the words too.
+Colour is never the whole message. Write the words too.
 
 ## Same job, same size
 
 Every control doing the same job on one surface should be the same size. A row holding a size 3
-button next to a size 2 button reads as two different kinds of control, and you are left
-working out why.
+button next to a size 2 button reads as two different kinds of control, and nothing explains
+why.
 
-Match controls to the surface they are on, as well. A size 3 dialog holds size 3 fields and size
-3 buttons. A control two steps smaller than its container reads as a mistake rather than as
+Match controls to the surface they are on. A size 3 dialog holds size 3 fields and size 3
+buttons. A control two steps smaller than its container reads as a mistake rather than as
 modesty.
 
 ## Write the real words
@@ -117,15 +117,15 @@ Placeholder text hides the problems: a heading that wraps onto three lines on a 
 longer than its column, a button label that changes the rhythm of a row.
 
 The same goes for helper text. Keep a line that changes what somebody does next. Delete a line
-that just restates the label.
+that only restates the label.
 
 ## Run the reviewer
 
 Run the reviewer over a real screen before you ship it. Every rule on this page is a live check
 in the builder, each finding quotes the sentence it comes from, and each one offers a fix.
 
-All the templates that ship with the builder pass every one of these rules. That keeps the rules
-honest as well: a rule nobody could satisfy would break those templates the day it was added.
+All the templates that ship with the builder pass every one of these rules, which also keeps
+the rules honest. A rule nobody could satisfy would break those templates the day it was added.
 
 The reviewer will not tell you whether a screen is good. It tells you whether a screen breaks a
 rule this system has already settled.
@@ -138,4 +138,4 @@ the same day, and the sentence you read here is the sentence the finding prints.
 <ReviewRules />
 
 > The prose above can drift out of date. This list cannot, because the argument and the check
-> are reading from one place.
+> read from one place.

@@ -1,5 +1,5 @@
 One word on your Theme sets how round your whole app is. There are five settings and `full` is
-the default. Each kind of component works out its own corner from that word, so a button
+the default. Each kind of component calculates its own corner from that word, so a button
 becomes a pill while the card holding it stays a card. No component takes a corner prop.
 
 ## One word, five sets of values
@@ -15,19 +15,18 @@ Set it once, on the Theme:
 The settings are `none`, `small`, `medium`, `large` and `full`, and `full` is what you get by
 default. Pill-shaped buttons and capsule rows are this system's normal look.
 
-Each setting is a set of hand-picked values rather than a multiplier over one number, and
-`full` is the clearest reason why. CSS caps a corner at half the shorter side of the box. So
-one very large number gives a button a perfect pill and turns a dialog into a lozenge. No single
-factor produces both results. Hand-picked values do: at `full`, buttons get a true capsule and
-cards hold at the values `large` uses.
+Each setting is a set of hand-picked values rather than a multiplier over one number. CSS caps
+a corner at half the shorter side of the box, so one very large number gives a button a perfect
+pill and turns a dialog into a lozenge. No single factor produces both results. At `full`, the
+hand-picked values give buttons a true capsule and hold cards at the values `large` uses.
 
 The values get further apart as they get bigger, because your eye reads roundness that way. At
-the small end 2 pixels is a visible difference; at the large end 30 and 32 pixels on a card look
-identical. That curve is a judgment.
+the small end 2 pixels is a visible difference; at the large end 30 and 32 pixels on a card
+look identical. That curve is a judgment.
 
-Why one word instead of a prop per component: in an app where one card is rounder than the next,
-the corner tells you nothing. Roundness only reads as a property of the product when no
-individual screen can change it.
+There is one word rather than a prop per component. In an app where one card is rounder than
+the next, the corner tells you nothing, and roundness only reads as a property of the product
+when no individual screen can change it.
 
 ## Ask for the family, not the number
 
@@ -41,9 +40,8 @@ There are five families, each with its own set of values.
 --radius-mark-2      /* a size-2 checkbox */
 ```
 
-In your own CSS, write `--radius-control-2` rather than `--radius-2`. The numbers happen to
-agree today. They will stop agreeing, and using the wrong family gives you a wrong shape rather
-than a build error.
+In your own CSS, write `--radius-control-2` rather than `--radius-2`. The numbers agree today
+and will stop agreeing, and the wrong family produces a wrong shape rather than a build error.
 
 The families are also indexed differently. Control corners follow density, because a control
 with more room inside it looks square at a fixed corner. Card and dialog corners follow only
@@ -57,28 +55,27 @@ belongs, or a corner the browser refuses to draw.
 
 ## A panel's corner comes from the rows inside it
 
-A panel that holds rows works out the row's corner from its own:
+A panel that holds rows calculates its own corner from the row's:
 
 **panel corner = row corner + panel padding**
 
 Two curves that share a centre nest cleanly. Two that do not either cut into each other or
 leave a visible gap beside every row.
 
-The system holds that relationship at every size and every setting. You never calculate it and
-there is no offset to pass.
+The system holds that relationship at every size and setting. You never calculate it, and there
+is no offset to pass.
 
 The same idea applies one level up. A dialog takes the corner of a card one size larger, so it
 is rounder than the cards inside it. `Surface` uses the same values, because anything holding
 panels needs to be rounder than the panels it holds.
 
-At zero the arithmetic has no answer, so `none` really means none. It does not round a square
-panel by its own padding.
+At zero the arithmetic has no answer, so `none` means none. It does not round a square panel by
+its own padding.
 
 ## Four shapes that `none` does not square
 
-`none` squares everything, including pills. A switch with an exception is not a switch.
-
-Four shapes survive it, and each survives because the shape is carrying the meaning.
+`none` squares everything, including pills. Four shapes survive it, and each survives because
+the shape is carrying the meaning.
 
 - A **radio** is a circle. A square radio reads as a checkbox.
 - The **slider handle** and the **switch thumb** are circles. A square handle reads as a bead
@@ -94,8 +91,8 @@ a bug.
 
 ## Change the corner for a region, not for one component
 
-No component takes a `radius` prop. When one region genuinely needs a different corner, nest a
-Theme on an element your layout already has:
+No component takes a `radius` prop. When one region needs a different corner, nest a Theme on
+an element your layout already has:
 
 ```tsx
 <Theme radius="medium">
@@ -122,4 +119,4 @@ The nested section squares everything inside it, while the radio, the handles an
 track keep their shapes.
 
 One line makes a decision about a region, and anyone reading the file can see it. A prop on
-every card gives you nine decisions on one screen and no consistent corner at all.
+every card leaves nine decisions on one screen and no consistent corner at all.
