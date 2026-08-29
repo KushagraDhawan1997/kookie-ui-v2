@@ -1067,6 +1067,14 @@ export const EXCLUDED: { name: string; why: string }[] = [
     why: "A part of the Shell, and the one that marks which region of a pane scrolls. It only means anything inside a pane that has given it a bounded column to grow into, which is a frame this canvas composes inside rather than places.",
   },
   {
+    name: "ShellPaneHeader",
+    why: "A part of the Shell: a pane's own chrome row, whose height and floating reach both derive from the pane it sits in. Outside a pane there is nothing to derive from, and the frame is what this canvas composes inside rather than places.",
+  },
+  {
+    name: "ShellPaneFooter",
+    why: "A part of the Shell, the pane chrome row's other end. The same derivations, the same reason.",
+  },
+  {
     name: "ShellRailItem",
     why: "A part of the Shell's rail: one square in the column that switches which region of the app you are in. Regions are the app frame's business, and the frame is what this canvas composes inside rather than something it places.",
   },

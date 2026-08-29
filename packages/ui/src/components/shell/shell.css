@@ -40,12 +40,15 @@
    header at an index is as tall as the rail at that index is wide". Collapsed when a THIRD
    reader appeared: the content pane has to price a floating header's or rail's reach to
    publish its own inset (below), and adding a third name for one number is the entropy this
-   repo keeps paying to remove. `inherits: false` for the same reason the two extents above
-   are — a Shell composed inside a pane would otherwise size its own panes from the outer
-   pane's index. */
+   repo keeps paying to remove. `inherits: true` since the pane grew chrome rows the same day
+   — a ShellPaneHeader is a CHILD of its pane, and a non-inheriting row is invisible to it.
+   The nested-Shell trap the two extents above guard against cannot bite here: every pane
+   DECLARES the row (the base rule below plus the size join's arms), so an inner pane always
+   shadows whatever the outer one would hand down, and inheritance only ever reaches things
+   that are not panes — which is the point. */
 @property --kui-shell-row {
   syntax: "*";
-  inherits: false;
+  inherits: true;
 }
 
 /* THE SAFE AREA A FLOATING PANE LEAVES (§27, 2026-08-29, Kushagra: "some value, equivalent
@@ -206,6 +209,11 @@
      rather than on the header and the rail: the content pane reads it too, to price a
      floating neighbour's reach. */
   --kui-shell-row: var(--control-height-2);
+  /* The pane-chrome reach resets here, for the floating ShellPaneHeader/Footer below: a
+     nested pane must not take the outer pane's reach (the shell root's own reset, one level
+     down). The containing block is NOT stated here — see the float block below. */
+  --kui-pane-inset-block-start: initial;
+  --kui-pane-inset-block-end: initial;
   min-inline-size: 0;
   min-block-size: 0;
   overflow: auto;
@@ -853,6 +861,91 @@
      minimal composition (a pane that IS a list) renders byte-identical with or without
      this declaration. */
   gap: var(--kui-sf-p);
+}
+
+/* ── The pane's own chrome rows (§27, 2026-08-29): ShellPaneHeader / ShellPaneFooter ──────
+   ADDITIVE to the pinned stack — an informal sibling before or after a ShellScroll pins
+   exactly as it always has, and these parts exist for what the informal stack cannot say.
+
+   IN FLOW, a part is ShellHeader's own recipe at pane scale: one control row at the pane's
+   index as a FLOOR (content-box, so the row binds whatever padding the part carries), a grid
+   for the centring (a flex container would shrink-wrap the one full-width row every consumer
+   writes), taller content growing it. What that buys over a plain sibling is the stated
+   height: a pane's chrome stands level with the rail and the frame header beside it, at
+   every index, with no number at the call site.
+
+   FLOATING (`data-float`), the row leaves flow and sits over the scroller — content passes
+   behind it, which is what pairs with ScrollArea's `fade`. It positions against the pane
+   (the pane is the containing block below), spans the pane's inline axis, and carries the
+   pane's own padding as its inset, so its controls sit exactly where pinned content would
+   start. It paints NOTHING: the chrome is its children (glass buttons over passing content
+   is the code block's own arrangement), and a fill here would be a second surface identity
+   inside a pane that already has one.
+
+   THE REACH IS PUBLISHED, never auto-spent — the frame's safe-area pattern one level down.
+   `--kui-pane-inset-block-start` / `-block-end` resolve on the pane to the row's DERIVED
+   box — one control row plus the pane's padding above and below it — and fall to their
+   registered zero when nothing floats. The app spends them where it wants them: a scroller's
+   content pads by the reach, a photograph ignores it. Derived and not measured, which means
+   the same staleness the frame's insets have: a part whose content outgrows the row publishes
+   less than it covers, and the fix is the same — keep a floating row one control row tall.
+
+   Registered `<length>` + `inherits: true` for the frame insets' reasons (a consumer reads
+   them deep inside a scroller; a registered length inherits its computed pixels), and RESET
+   on the pane for the shell root's reason: a nested pane must not take the outer pane's
+   reach. The reset lives in the pane rule above (`--kui-pane-inset-*: initial`). */
+@property --kui-pane-inset-block-start {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+@property --kui-pane-inset-block-end {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+.kui-pane-header,
+.kui-pane-footer {
+  box-sizing: content-box;
+  min-block-size: var(--kui-shell-row);
+  display: grid;
+  align-content: center;
+  min-inline-size: 0;
+}
+
+.kui-pane-header[data-float],
+.kui-pane-footer[data-float] {
+  position: absolute;
+  inset-inline: 0;
+  padding: var(--kui-sf-p);
+  z-index: 1;
+}
+
+.kui-pane-header[data-float] {
+  inset-block-start: 0;
+}
+
+.kui-pane-footer[data-float] {
+  inset-block-end: 0;
+}
+
+.kui-shell-pane:has(> .kui-pane-header[data-float]) {
+  --kui-pane-inset-block-start: calc(var(--kui-shell-row) + 2 * var(--kui-sf-p));
+}
+
+.kui-shell-pane:has(> .kui-pane-footer[data-float]) {
+  --kui-pane-inset-block-end: calc(var(--kui-shell-row) + 2 * var(--kui-sf-p));
+}
+
+/* The floating row's containing block: ITS pane, and only a pane that has one. Not written
+   on every pane — a blanket `position: relative` would have re-painted every pane into the
+   positioned layer and failed the "floats without a positioned box" law on its own terms —
+   and wrapped in `:where()` so the overlay treatment's `position: absolute` (0,2,0) still
+   wins on a drawer that also carries a floating row. */
+:where(.kui-shell-pane:has(> .kui-pane-header[data-float])),
+:where(.kui-shell-pane:has(> .kui-pane-footer[data-float])) {
+  position: relative;
 }
 
 /* NOTHING LEFT TO SAY HERE (merge with main, 2026-08-20), and that is the good outcome. Both

@@ -64,6 +64,8 @@ import {
   ShellRailList,
   ShellNavItem,
   ShellNavGroup,
+  ShellPaneFooter,
+  ShellPaneHeader,
   ShellScroll,
   ShellContent,
   ShellInspector,
@@ -1221,6 +1223,69 @@ function SeparatorSection() {
 function ShellSection() {
   return (
     <Stack gap="6">
+      {/* The pane's own chrome, FLOATING (2026-08-29): the header lifts over the scroller,
+          the rows pass behind it, and the scroller's fade is what keeps them legible while
+          they do. The list spends the published reach so its first row RESTS below the
+          chrome — the safe-area pattern at pane scale — and the maths at the call site is
+          reach minus the viewport's own re-pad, because the scroller already insets by the
+          pane's padding. */}
+      <Demo label="Pane chrome floats — rows pass behind it, the scroll edge fades">
+        <Box height="18rem">
+          <Shell>
+            <ShellSidebar aria-label="Files">
+              <ShellPaneHeader float>
+                <Flex align="center" justify="between">
+                  <Text size="2" weight="medium">
+                    Files
+                  </Text>
+                  <Button size="1" emphasis="quiet" iconOnly aria-label="New file">
+                    <PlusIcon />
+                  </Button>
+                </Flex>
+              </ShellPaneHeader>
+              <ShellScroll fade>
+                <Box
+                  style={{
+                    paddingBlockStart:
+                      "calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p))",
+                  }}
+                >
+                  <ShellNavGroup label="Recent">
+                    {["Brief", "Moodboard", "Wireframes", "Copy deck", "Handoff", "Archive", "Assets", "Exports", "Notes", "Research"].map((name) => (
+                      <ShellNavItem key={name} leading={<FolderIcon />}>
+                        {name}
+                      </ShellNavItem>
+                    ))}
+                  </ShellNavGroup>
+                </Box>
+              </ShellScroll>
+            </ShellSidebar>
+            <ShellContent>
+              <Stack gap="2">
+                <Heading size="6">Floating pane chrome</Heading>
+                <Text size="2" emphasis="medium">
+                  Scroll the file list: the rows dissolve under the header instead of
+                  stopping at it.
+                </Text>
+              </Stack>
+              {/* The footer, the same posture at the other end — in the content pane so both
+                  parts are judged in one demo, and both directions of the published reach are
+                  live on the page. */}
+              <ShellPaneFooter float>
+                <Flex align="center" justify="between">
+                  <Text size="1" emphasis="medium">
+                    3 environments
+                  </Text>
+                  <Button size="1" emphasis="quiet">
+                    Deploy
+                  </Button>
+                </Flex>
+              </ShellPaneFooter>
+            </ShellContent>
+          </Shell>
+        </Box>
+      </Demo>
+
       {/* Flush: the app-chrome posture — panes tile, each seam one hairline. The sidebar is
           untouched (`auto`): open here, closed on a narrow window, resolved by CSS alone —
           drag the window across 48rem and nothing re-renders. */}

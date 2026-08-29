@@ -2334,6 +2334,28 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "ShellPaneFooter": {
+    "element": "div",
+    "props": [
+      {
+        "name": "float",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Lift the row out of flow, over the pane's scroller: content passes behind it, and the pane publishes `--kui-pane-inset-block-start` — one control row plus the pane's padding — so what should clear the row can pad by it and what should run behind it can ignore it. Pairs with ScrollArea's `fade`, which is what keeps the passing content legible."
+      }
+    ]
+  },
+  "ShellPaneHeader": {
+    "element": "div",
+    "props": [
+      {
+        "name": "float",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Lift the row out of flow, over the pane's scroller: content passes behind it, and the pane publishes `--kui-pane-inset-block-start` — one control row plus the pane's padding — so what should clear the row can pad by it and what should run behind it can ignore it. Pairs with ScrollArea's `fade`, which is what keeps the passing content legible."
+      }
+    ]
+  },
   "Shell": {
     "element": "div",
     "props": [

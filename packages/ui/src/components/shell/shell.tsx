@@ -1070,6 +1070,56 @@ export function ShellScroll({ className, ...props }: ShellScrollProps) {
   return <ScrollArea {...props} className={cx("kui-shell-scroll", className)} />;
 }
 
+/* ── The pane's own chrome rows: header and footer, optionally FLOATING (§27, 2026-08-29) ──
+   ADDITIVE. The pinned stack stays the default way to build a pane: anything before a
+   ShellScroll pins above it and anything after pins below, no part names needed. These parts
+   exist for the one arrangement the informal stack cannot express — the row FLOATING over the
+   scroller, content passing behind it — because a floating row leaves flow and the content
+   needs to know its reach, which is a height only a named part can STATE (one control row at
+   the pane's index plus the pane's padding, ShellHeader's own derivation) rather than measure.
+
+   The reach is published as `--kui-pane-inset-block-start` / `-block-end` on the pane — the
+   frame's own safe-area pattern one level down (`--kui-shell-inset-*`): the app spends it
+   where it wants it, a scroller's content pads by it and a photograph ignores it, and it
+   falls to zero when nothing floats. In flow, the parts still earn their keep by stating the
+   height: a header is one control row wherever it appears, which is what keeps a pane's
+   chrome level with the rail beside it. */
+
+export type ShellPaneHeaderProps = Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
+  /**
+   * Lift the row out of flow, over the pane's scroller: content passes behind it, and the
+   * pane publishes `--kui-pane-inset-block-start` — one control row plus the pane's padding —
+   * so what should clear the row can pad by it and what should run behind it can ignore it.
+   * Pairs with ScrollArea's `fade`, which is what keeps the passing content legible.
+   */
+  float?: boolean;
+};
+
+/** A pane's own header row: one control row at the pane's index, pinned above the scroller —
+    or floating over it with `float`, its reach published for the pane's content to spend. */
+export function ShellPaneHeader({ className, float, ...props }: ShellPaneHeaderProps) {
+  return (
+    <div
+      {...props}
+      className={cx("kui-pane-header", className)}
+      {...(float ? { "data-float": "" } : {})}
+    />
+  );
+}
+
+export type ShellPaneFooterProps = ShellPaneHeaderProps;
+
+/** The same row at the pane's other end; with `float` it publishes `--kui-pane-inset-block-end`. */
+export function ShellPaneFooter({ className, float, ...props }: ShellPaneFooterProps) {
+  return (
+    <div
+      {...props}
+      className={cx("kui-pane-footer", className)}
+      {...(float ? { "data-float": "" } : {})}
+    />
+  );
+}
+
 /* ── Navigation: the sidebar's own vocabulary (§21, §27) ───────────────────────────────────
    OPTIONAL, and the shape has to say so. A sidebar's job is navigation often enough that the
    system owes it a row and a group, and NOT often enough to make them the only legal

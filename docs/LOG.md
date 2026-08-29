@@ -150,6 +150,54 @@ edges disagree by the pane's full inset).
 
 ---
 
+## 2026-08-29 The pane gets its own chrome rows, and only the floating posture earned the anatomy
+
+The third item of the scroll-edge discussion (Kushagra: "I would like the option to have the
+fixed parts, here the informal header and footer, to 'float' above"). The pinned stack has no
+part names on purpose — anything before a ShellScroll pins above it, anything after pins below —
+and his question exposed the one arrangement that informality cannot express.
+
+**Why floating forces a name.** A floating row leaves flow, and the content behind it needs to
+know the row's reach. CSS cannot measure an arbitrary sibling; a named part can STATE its
+height — one control row at the pane's index plus the pane's padding, which is ShellHeader's
+own derivation — so the reach is derived, never measured, and the first paint is right with no
+script. The informal alternative stays available (the docs' own collapse trigger is one,
+hand-positioned), but every app doing it re-derives the band by hand, which is the
+four-spellings defect the header's height already paid for once.
+
+**`ShellPaneHeader` / `ShellPaneFooter`, additive.** In flow they are ordinary pinned rows that
+also state the height, so a pane's chrome stands level with the rail and the frame header
+beside it at every index. With `float` they lift over the scroller and the pane publishes
+`--kui-pane-inset-block-start`/`-end` — the frame's safe-area pattern one level down, spent by
+the app and never auto-spent, falling to the registered zero when nothing floats, reset per
+pane so a nested Shell never takes the outer pane's reach. A floating part paints NOTHING: its
+children are the chrome (glass buttons over passing content, the code block's own arrangement),
+and a fill would be a second surface identity inside a pane that already has one. It pairs with
+ScrollArea's `fade` from the same session, which is what keeps the passing rows legible.
+
+**Two mechanism corrections on the way, both caught before shipping.** `--kui-shell-row` was
+registered `inherits: false` that morning, and the part — a child of the pane, not a pane — could
+not read the number its own floor derives from; flipped to `inherits: true`, safe because every
+pane DECLARES the row, so inheritance can never override a pane's own answer and only ever
+reaches things that are not panes, which is the point. And the containing block is NOT a blanket
+`position: relative` on every pane — that would have repainted every pane into the positioned
+layer and failed the "floats without a positioned box" law on its own terms — it appears only on
+a pane that has a floating part, wrapped in `:where()` so the overlay treatment's `absolute`
+still wins on a drawer.
+
+**Laws.** The in-flow height is an AGREEMENT with a mounted rail at every index (a pane header
+is exactly as tall as the rail is wide — the sentence, measured). The float law reads the
+published reach where the app reads it, deep inside the scroller, against the row's real box.
+The nested-reset law was DEGENERATE on its first spelling — the nested Shell sat in a different
+pane from the float, a path the value never inherits down, so 0 proved nothing; it mounts inside
+the floating pane now with a positive guard on the outer read. Three sabotages, each caught by
+exactly its law: the reset deleted, the published reach deleted, the float posture deleted.
+
++119 bytes gzipped, baseline 34,315 → 34,434. Judged live at /preview: a file list mid-scroll
+dissolves under the floating Files row instead of stopping at it.
+
+---
+
 ## 2026-08-29 The scroll edge fades as a mask, and the machinery was already publishing the numbers
 
 From the same scroll-edge discussion as the reach work. A scrolling region gives no sign that

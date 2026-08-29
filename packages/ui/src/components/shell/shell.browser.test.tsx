@@ -22,6 +22,8 @@ import {
   ShellInspector,
   ShellNavGroup,
   ShellNavItem,
+  ShellPaneFooter,
+  ShellPaneHeader,
   ShellRail,
   ShellRailItem,
   ShellRailList,
@@ -2260,6 +2262,153 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     const content = within(shell, ".kui-shell-content");
     expect(insetProbe(content, "inline-end").w).toBe(0);
     expect(insetProbe(content, "block-end").h).toBe(0);
+  });
+
+  /**
+   * THE PANE'S OWN CHROME ROWS (§27, 2026-08-29): ShellPaneHeader / ShellPaneFooter. The
+   * float posture and its published reach are the frame's safe-area pattern one level down,
+   * so the laws are the same shape: agreements against real boxes, never restated arithmetic.
+   */
+  it("an in-flow pane header is one control row at the pane's index — the stated height", () => {
+    for (const size of SIZES) {
+      const shell = mounted(
+        <Shell style={{ height: 600, width: 900 }} size={size}>
+          <ShellSidebar aria-label="Primary">
+            <ShellPaneHeader data-testid="ph">
+              <span>chrome</span>
+            </ShellPaneHeader>
+            <ShellScroll>rows</ShellScroll>
+          </ShellSidebar>
+          <ShellContent>c</ShellContent>
+        </Shell>,
+        { theme: {}, select: ".kui-shell" },
+      );
+      const ph = within(shell, "[data-testid='ph']");
+      const rail = mounted(
+        <Shell style={{ height: 600, width: 900 }} size={size}>
+          <ShellRail aria-label="Sections">r</ShellRail>
+          <ShellContent>c</ShellContent>
+        </Shell>,
+        { theme: {}, select: ".kui-shell" },
+      );
+      // The agreement: a pane header is exactly as tall as the rail at that index is wide —
+      // ShellHeader's own sentence, now true of the pane's chrome too.
+      expect(
+        ph.getBoundingClientRect().height,
+        `size ${size}: the pane header is not one control row`,
+      ).toBeCloseTo(
+        parseFloat(computed(within(rail, ".kui-shell-rail"), "inline-size")),
+        1,
+      );
+    }
+  });
+
+  it("a FLOATING pane header leaves flow, and the pane publishes exactly its reach (§27)", () => {
+    const shell = mounted(
+      <Shell style={{ height: 600, width: 900 }}>
+        <ShellSidebar aria-label="Primary">
+          <ShellPaneHeader float data-testid="ph">
+            <span>chrome</span>
+          </ShellPaneHeader>
+          <ShellScroll>
+            <Box data-testid="deep">rows</Box>
+          </ShellScroll>
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const pane = within(shell, ".kui-shell-sidebar");
+    const ph = within(shell, "[data-testid='ph']");
+    const scroller = within(shell, ".kui-shell-scroll");
+    // Out of flow: the scroller starts at the pane's top, BEHIND the row.
+    expect(scroller.getBoundingClientRect().top, "the scroller did not reach under the row")
+      .toBeLessThan(ph.getBoundingClientRect().bottom - 4);
+    // The published reach is the row's real box — measured against the pane's edge, and read
+    // where the app actually reads it: deep inside the scroller (the inherit is the law).
+    const probe = document.createElement("div");
+    probe.style.blockSize = "var(--kui-pane-inset-block-start)";
+    within(shell, "[data-testid='deep']").appendChild(probe);
+    const reach = probe.getBoundingClientRect().height;
+    probe.remove();
+    expect(reach, "the reach and the row's real box disagree").toBeCloseTo(
+      ph.getBoundingClientRect().bottom - pane.getBoundingClientRect().top,
+      1,
+    );
+  });
+
+  it("a floating FOOTER publishes the other end, an in-flow one publishes nothing, and a nested pane resets (§27)", () => {
+    const shell = mounted(
+      <Shell style={{ height: 600, width: 900 }}>
+        <ShellSidebar aria-label="Primary">
+          <ShellScroll>
+            <Box data-testid="deep">
+              <Card data-testid="inner">card content</Card>
+            </Box>
+          </ShellScroll>
+          <ShellPaneFooter float data-testid="pf">
+            <span>chrome</span>
+          </ShellPaneFooter>
+        </ShellSidebar>
+        <ShellContent>
+          <ShellPaneHeader data-testid="plain">
+            <span>in flow</span>
+          </ShellPaneHeader>
+          <ShellScroll>c</ShellScroll>
+        </ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const pane = within(shell, ".kui-shell-sidebar");
+    const pf = within(shell, "[data-testid='pf']");
+    const read = (host: Element, name: string) => {
+      const probe = document.createElement("div");
+      probe.style.blockSize = `var(${name})`;
+      host.appendChild(probe);
+      const v = probe.getBoundingClientRect().height;
+      probe.remove();
+      return v;
+    };
+    expect(read(within(shell, "[data-testid='deep']"), "--kui-pane-inset-block-end")).toBeCloseTo(
+      pane.getBoundingClientRect().bottom - pf.getBoundingClientRect().top,
+      1,
+    );
+    // An IN-FLOW part takes space instead of covering content, so it owes no reach.
+    expect(
+      read(within(shell, ".kui-shell-content"), "--kui-pane-inset-block-start"),
+      "an in-flow header claimed a reach",
+    ).toBe(0);
+
+    // And a NESTED pane resets. The nested Shell sits INSIDE the pane that has the float —
+    // the one path the value actually inherits down — because a nested Shell in a different
+    // pane reads 0 whether the reset exists or not, which is the degenerate fixture this
+    // repo keeps writing down. The guard above proves the value is live on that path;
+    // falsified by deleting the pane's `initial` reset, where the inner pane reads 64px.
+    const nested = mounted(
+      <Shell style={{ height: 600, width: 900 }}>
+        <ShellContent>
+          <ShellPaneFooter float>chrome</ShellPaneFooter>
+          <Box data-testid="beside">
+            <Shell data-testid="inner" style={{ height: 300 }}>
+              <ShellSidebar aria-label="Inner">n</ShellSidebar>
+              <ShellContent>inner</ShellContent>
+            </Shell>
+          </Box>
+        </ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    expect(
+      read(nested.querySelector("[data-testid='beside']")!, "--kui-pane-inset-block-end"),
+      "the outer pane published no reach on this path, so the reset check proves nothing",
+    ).toBeGreaterThan(30);
+    expect(
+      read(
+        nested.querySelector("[data-testid='inner'] .kui-shell-sidebar")!,
+        "--kui-pane-inset-block-end",
+      ),
+      "a nested pane inherited the outer pane's reach",
+    ).toBe(0);
   });
 
   it("nothing floating, nothing published (§27)", () => {
