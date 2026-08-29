@@ -924,6 +924,36 @@ describe("the boundary (§3, §13)", () => {
     expect(link.hasAttribute("type"), "type on an anchor is the linked resource's MIME type").toBe(false);
   });
 
+  it("a COMPONENT handed an href is a link by declaration (§5, 2026-08-27)", () => {
+    /**
+     * The 2026-08-26 flip to default-true fixed `render={<MyButton/>}` and re-shipped the
+     * anchor defect for the single commonest render target: a router's `<Link>` is a function
+     * whose inside `rootsInButton` cannot see, and whose rendered element is an <a>. Found on
+     * the docs' own homepage — `render={<Link href="/components"/>}` told Base UI "native
+     * button" and it warned in the console. The `href` prop is legible on the props we DO
+     * hold, so an opaque component carrying one answers non-native.
+     *
+     * Falsified against the bare `return true` fallback: reads `expected 'button' to be
+     * false` on the type attribute — the 2026-08-03 defect's own signature.
+     */
+    const RouterishLink = (props: React.ComponentProps<"a">) => <a {...props} />;
+    const el = render(
+      <Button render={<RouterishLink href="/components" />}>Components</Button>,
+    );
+    expect(el.tagName).toBe("A");
+    expect(el.getAttribute("href")).toBe("/components");
+    expect(el.hasAttribute("type"), "type on an anchor is the linked resource's MIME type").toBe(false);
+    expect(el.getAttribute("role")).toBe("button");
+    // ...and disabled still says so the ARIA way, the 2026-08-03 defect's second half.
+    const dead = render(
+      <Button render={<RouterishLink href="/x" />} disabled>
+        Go
+      </Button>,
+    );
+    expect(dead.getAttribute("aria-disabled")).toBe("true");
+    expect(dead.hasAttribute("disabled")).toBe(false);
+  });
+
   it("and a disabled link says so, instead of being a focusable dead end (§1)", () => {
     // Was: <a href="/x" data-disabled type="button" tabindex="0" disabled> — `disabled` is
     // inert on an anchor and ignored by assistive tech, so a screen-reader user heard "Go,

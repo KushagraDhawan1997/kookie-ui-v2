@@ -160,6 +160,8 @@ export function Button({
   // native attribute belongs. The shared helper recurses through `render={<Button render={<a/>}/>}`
   // and answers `true` for a component it cannot see inside, which is the honest default here:
   // an unforwardable case is one where Base UI's own default is what we would have chosen.
+  // One exception (2026-08-27): a component handed an `href` is a link by declaration — a
+  // router's `<Link>` is the commonest render target of all — and answers `false`.
   const isNativeButton = nativeButton ?? (target === undefined || rootsInButton(target));
   // §10 — the app says what things are built of; a control never does (2026-08-16). It only
   // states placement (backdrop, 2026-08-17): on calm ground it resolves solid and pays nothing.

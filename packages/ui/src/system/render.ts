@@ -143,12 +143,21 @@ export function filled(node: React.ReactNode): boolean {
  * PROMOTED ON ITS FOURTH CONSUMER, exactly as `slot()` was the same day: AlertDialog, Dialog
  * and Menu each carried a byte-identical private copy. `true` is the honest default for a
  * component (we cannot see inside it) — the recursion is what makes that safe.
+ *
+ * ONE opaque component IS legible: a component handed an `href` is a link by declaration
+ * (2026-08-27). The 2026-08-26 flip to default-true re-shipped the anchor defect for the
+ * single commonest render target — a router's `<Link>`, which is a function whose inside we
+ * cannot see and whose rendered element is an `<a>`. Measured on the docs' own homepage:
+ * `render={<Link href/>}` told Base UI "native button" and it warned. The prop is read off
+ * the props we DO hold, so no inspection is needed; `nativeButton` stays the escape for a
+ * component that takes `href` and renders a button anyway.
  */
 export function rootsInButton(el: RenderElement, depth = 0): boolean {
   const target = unwrapLazy(el);
   if (typeof target.type === "string") return target.type === "button";
   const inner = (target.props as { render?: unknown }).render;
   if (depth < 4 && React.isValidElement(inner)) return rootsInButton(inner as RenderElement, depth + 1);
+  if ((target.props as { href?: unknown }).href !== undefined) return false;
   return true;
 }
 
