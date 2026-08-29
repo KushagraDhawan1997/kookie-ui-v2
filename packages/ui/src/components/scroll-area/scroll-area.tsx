@@ -39,6 +39,16 @@ export type ScrollAreaProps = {
   /** Names the region from an element that already carries the words — the heading above it,
       usually. Same rules as `aria-label`, and the two are mutually exclusive in ARIA. */
   "aria-labelledby"?: string;
+  /**
+   * Fades content toward any edge that has more behind it (2026-08-29, opt-in). A MASK on the
+   * viewport, so the content dissolves and whatever the pane paints — seal, ground, a glass
+   * veil, a photograph — shows through; no colour is picked and none can be wrong. Each edge
+   * fades only while content is actually hidden on that side, ramping in over the first
+   * `--scrollbar-fade` pixels of scrolling, and it costs no JS of this package's: Base UI
+   * already publishes the per-edge overflow distances as CSS variables in the same pass that
+   * sizes the thumb, and the mask is pure CSS over them.
+   */
+  fade?: boolean;
 };
 
 /**
@@ -79,6 +89,7 @@ export function ScrollArea({
   focusable = true,
   "aria-label": label,
   "aria-labelledby": labelledBy,
+  fade,
 }: ScrollAreaProps) {
   /* The name lands on the VIEWPORT, because the viewport is the element that scrolls and the
      element that takes focus — a name on the root would describe a box nobody can reach.
@@ -91,6 +102,7 @@ export function ScrollArea({
       style={style}
       ref={ref}
       role="presentation"
+      {...(fade ? { "data-fade": "" } : {})}
     >
       <BaseScrollArea.Viewport
         className="kui-scroll-viewport"

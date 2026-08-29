@@ -110,6 +110,10 @@ export function CodeBlock({
   const body = (
     <>
       <ScrollArea
+        // The scroll-edge fade (2026-08-29): the lines dissolve under the floating chrome
+        // when there is more code that way, and the resting edges stay clean. A mask, so it
+        // costs no colour — the well's own fill shows through.
+        fade
         // Spread, because ScrollArea's `style` refuses an explicit undefined under
         // exactOptionalPropertyTypes. `--kui-sf-p` is the surface padding the scroller
         // re-states on its viewport.

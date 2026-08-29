@@ -1896,6 +1896,13 @@ export const scrollbar = {
   /** Alpha-ramp steps: resting thumb, and the darker one under the pointer's grip. */
   thumbStep: 6,
   thumbActiveStep: 8,
+  /** The scroll-edge fade's reach (2026-08-29, opt-in per ScrollArea): how far content fades
+      toward an edge that has more behind it. A MASK length, not a colour — the fade dissolves
+      the content itself, so the pane's own fill shows through and one number reads on the
+      seal, the ground, glass and a photograph alike. It also bounds the ramp-in: the fade
+      grows from nothing over the first `fade` pixels of scrolling, which is what keeps the
+      resting edge clean. Judged by eye like everything here. */
+  fade: 32,
 } as const;
 
 export const kbdRelief = {

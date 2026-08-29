@@ -904,6 +904,7 @@ export const ENTRIES: Entry[] = [
     axes: [
       { name: "focusable", values: "boolean", note: "a standalone region keeps its keyboard tab stop. A component that already owns keyboard scrolling, such as Menu, passes false" },
       { name: "aria-label / aria-labelledby", values: "string", note: "names the region. A focusable scroll area is a real tab stop, and a named one announces as a region landmark and draws the system focus ring; an unnamed one stays structural" },
+      { name: "fade", values: "boolean", note: "fades content toward any edge that has more behind it. It is a mask, so the content dissolves and whatever the pane paints shows through — one setting reads the same on a card, a ground, glass and a photograph. Each edge fades only while something is actually hidden on that side, grows in over the first pixels of scrolling, and needs no script of its own" },
     ],
     refusals: [
       { name: "size", why: "One stated thickness. A scrollbar has no box of its own to index against." },

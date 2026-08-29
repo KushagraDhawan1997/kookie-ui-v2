@@ -1874,6 +1874,12 @@ export const API: Record<string, ApiEntry> = {
         "doc": "Dresses the root. Outer spacing is the caller's Box, never this (the non-negotiable)."
       },
       {
+        "name": "fade",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Fades content toward any edge that has more behind it (2026-08-29, opt-in). A MASK on the viewport, so the content dissolves and whatever the pane paints — seal, ground, a glass veil, a photograph — shows through; no colour is picked and none can be wrong. Each edge fades only while content is actually hidden on that side, ramping in over the first `--scrollbar-fade` pixels of scrolling, and it costs no JS of this package's: Base UI already publishes the per-edge overflow distances as CSS variables in the same pass that sizes the thumb, and the mask is pure CSS over them."
+      },
+      {
         "name": "focusable",
         "type": "boolean",
         "optional": true,

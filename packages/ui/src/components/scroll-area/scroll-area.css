@@ -31,6 +31,49 @@
   display: none;
 }
 
+/* THE SCROLL-EDGE FADE (2026-08-29, opt-in via `fade`): content dissolves toward any edge
+   that has more behind it. A MASK, never a painted gradient — a paint has to fade toward a
+   colour and the right colour differs on every ground (seal, ground, glass, a photograph),
+   while a mask fades the CONTENT and lets whatever the pane paints show through, so no
+   colour exists to be wrong.
+
+   The stops ride Base UI's own per-edge overflow distances (`--scroll-area-overflow-*`,
+   written on the viewport in the same pass that sizes the thumb — machinery, not
+   interaction handling, the thumb variables' own sanction). `min()` against the designed
+   fade length is the whole behaviour: an edge with nothing behind it computes a 0px stop
+   and no fade, and the fade RAMPS IN over the first `--scrollbar-fade` pixels of scrolling
+   rather than popping. The `0px` fallbacks make the first frame honest — before the
+   machinery's first write the mask is fully opaque, never fully transparent.
+
+   Two layers, one per axis, composited by INTERSECT so a corner with hidden content both
+   ways fades both ways. The x layer's direction is a hook because a gradient's `to right`
+   is physical while Base UI measures from the INLINE start — the `:dir(rtl)` arm flips the
+   keyword and the stops keep their meaning. The scrollbars are siblings of the viewport,
+   outside the mask, so the thumb stays crisp over the faded band. */
+.kui-scroll-area[data-fade] > .kui-scroll-viewport {
+  --kui-sa-x-dir: to right;
+  mask-image:
+    linear-gradient(
+      var(--kui-sa-x-dir),
+      transparent 0%,
+      black min(var(--scroll-area-overflow-x-start, 0px), var(--scrollbar-fade)),
+      black calc(100% - min(var(--scroll-area-overflow-x-end, 0px), var(--scrollbar-fade))),
+      transparent 100%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      black min(var(--scroll-area-overflow-y-start, 0px), var(--scrollbar-fade)),
+      black calc(100% - min(var(--scroll-area-overflow-y-end, 0px), var(--scrollbar-fade))),
+      transparent 100%
+    );
+  mask-composite: intersect;
+}
+
+.kui-scroll-area[data-fade] > .kui-scroll-viewport:dir(rtl) {
+  --kui-sa-x-dir: to left;
+}
+
 /* THE ONE FOCUSABLE ELEMENT THIS COMPONENT MAKES OWES A RING (§8, 2026-08-26). A standalone
    ScrollArea leaves Base UI's computed tabIndex on the viewport, deliberately — a scroll
    region has to be reachable to be scrolled by keyboard — and no rule in the package drew

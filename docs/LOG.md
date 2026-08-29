@@ -150,6 +150,49 @@ edges disagree by the pane's full inset).
 
 ---
 
+## 2026-08-29 The scroll edge fades as a mask, and the machinery was already publishing the numbers
+
+From the same scroll-edge discussion as the reach work. A scrolling region gives no sign that
+there is more content past its edge — the code block's lines simply stop under the floating
+chrome — and the 2026-08-05 session had already built and shelved a scroll-edge treatment with
+"cheap and real if scroll-edge chrome ever wants it" written on it. This is that consumer.
+
+**It is a MASK, never a painted gradient, and that one choice is what makes it system-wide.** A
+painted fade must fade toward a colour, and the right colour differs on every ground — seal,
+ground, glass veil, a photograph — so a painted version needs an answer per surface and breaks
+on the one (glass) that has no colour at all. A mask fades the CONTENT; whatever the pane paints
+shows through. Zero colours minted, and Card and Surface get it free because a scrolling pane is
+already a ScrollArea inside one (§10's bleed-and-re-pad).
+
+**The stops ride Base UI's own numbers.** Base UI 1.7 writes the per-edge overflow distances
+onto the viewport (`--scroll-area-overflow-*`) in the same pass that sizes the thumb — the
+machinery seam the thumb variables already sanctioned — so the whole behaviour is one CSS rule:
+`min(distance, --scrollbar-fade)` per edge. An edge with nothing behind it computes a 0px stop
+(the resting edge stays clean), and the fade RAMPS IN over the first pixels of scrolling rather
+than popping. Two layers, one per axis, `mask-composite: intersect` so a corner fades both
+ways; the x layer's direction is a hook that a `:dir(rtl)` arm flips, because a gradient's
+`to right` is physical while Base UI measures from the inline start. The scrollbars sit outside
+the viewport, so the thumb stays crisp over the faded band. No scroll-driven animation and no
+JS of this package's — the recorded scroll-timeline alternative stays recorded.
+
+**Opt-in (`fade` on ScrollArea), not a default** — a fade is chrome, and most scrollers sit in
+frames whose edges already say where the content stops. The code block turns it on; the fade
+length is one config line (`scrollbar.fade`, 32), judged by eye like everything in that file.
+
+**Laws.** The computed mask IS the mechanism's resolved output (the vars substitute to real
+pixel stops), so the laws read it: opt-in (no prop, no mask), the per-edge behaviour across a
+real scroll (0px at the resting edge, the scrolled distance during the ramp, the token past it,
+clean again at the far end), the no-overflow case, and the RTL flip. Every geometric claim is
+stated against the token, never a restated 32. Three sabotages, each caught by exactly its law:
+the min() clamp dropped (the ramp law reads hundreds of px), the RTL arm dropped, the stamp
+never rendered. **And one working lesson re-learned the hard way**: a sabotage on uncommitted
+work is reverted by inverse edit, never `git checkout` — the checkout took the fade prop with
+it and it was re-applied by hand.
+
++152 bytes gzipped, baseline 34,163 → 34,315.
+
+---
+
 ## 2026-08-29 The frame publishes the reach a floating pane leaves, because a sibling cannot read a sibling
 
 Kushagra, after floating the docs sidebar and finding the reading column underneath it: *"the

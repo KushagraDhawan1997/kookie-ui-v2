@@ -1247,6 +1247,7 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     decl("scrollbar-inset", `${scrollbar.inset}px`),
     decl("scrollbar-thumb", `var(--neutral-a${scrollbar.thumbStep})`),
     decl("scrollbar-thumb-active", `var(--neutral-a${scrollbar.thumbActiveStep})`),
+    decl("scrollbar-fade", `${scrollbar.fade}px`),
     // The dead dim for non-tone roles (2026-08-17): one factor, see config.
     decl("disabled-dim", `${disabledDim}%`),
     decl("disabled-fill", `var(--neutral-a${disabledSteps[mode].fill})`),

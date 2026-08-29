@@ -311,6 +311,93 @@ describe("the thumb rides the alpha ramp, so one value reads on every bed (§7)"
   });
 });
 
+/**
+ * THE SCROLL-EDGE FADE (2026-08-29, opt-in): content dissolves toward any edge that has more
+ * behind it. The mask is pure CSS over Base UI's per-edge overflow distances, so what these
+ * laws read is the COMPUTED mask — the vars substituted to real pixel stops — which is the
+ * mechanism's resolved output, per the standing rule. Every geometric claim below is stated
+ * against the token (`--scrollbar-fade`), never a restated 32.
+ */
+describe("the scroll-edge fade (2026-08-29)", () => {
+  const faded = (
+    <ScrollArea fade aria-label="Faded" style={{ height: "120px", width: "160px" }}>
+      <div style={{ height: "600px", width: "160px" }} />
+    </ScrollArea>
+  );
+  /** The y layer of the computed mask, with its two inner stops. Chrome normalises
+      `to bottom` away, so the y layer is the one with no direction keyword. */
+  const yStops = (vp: HTMLElement) => {
+    const layers = computed(vp, "mask-image").split("), linear-gradient(");
+    const y = layers.find((l) => !l.includes("to right") && !l.includes("to left"));
+    const stops = /rgb\(0, 0, 0\) (.+?), rgb\(0, 0, 0\) (.+?), rgba/.exec(y ?? "");
+    return { start: stops?.[1], end: stops?.[2] };
+  };
+
+  it("without the prop there is no mask at all — the fade is opt-in", async () => {
+    const root = await laidOut(mounted(overflowing, { theme: {} }));
+    expect(computed(within(root, ".kui-scroll-viewport"), "mask-image")).toBe("none");
+  });
+
+  it("an edge fades only while content is hidden behind it, and the fade ramps in", async () => {
+    const root = await laidOut(mounted(faded, { theme: {} }));
+    const vp = within(root, ".kui-scroll-viewport");
+    const fade = tokenOn(root, "--scrollbar-fade");
+    expect(parseFloat(fade), "the token must be a real length").toBeGreaterThan(0);
+
+    // At rest at the top: nothing is hidden above, so the start stop is 0 — the resting edge
+    // is clean; plenty is hidden below, so the end stop holds the full designed fade.
+    let stops = yStops(vp);
+    expect(stops.start, "the resting top edge must not fade").toBe("0px");
+    expect(stops.end, "the bottom edge must fade by the designed length").toBe(
+      `calc(100% - ${fade})`,
+    );
+    expect(computed(vp, "mask-composite"), "a corner must fade both ways").toContain("intersect");
+
+    // Ten pixels in: the fade IS the distance scrolled — the ramp, and the clamp's negative
+    // control (without min() this would read the raw overflow distance).
+    vp.scrollTop = 10;
+    await laidOut(root);
+    expect(yStops(vp).start).toBe("10px");
+
+    // Past the ramp: clamped at the token. Without the min() this reads hundreds of px and
+    // the whole viewport is fade — the sabotage this line was falsified with.
+    vp.scrollTop = 200;
+    await laidOut(root);
+    stops = yStops(vp);
+    expect(stops.start).toBe(fade);
+    expect(stops.end).toBe(`calc(100% - ${fade})`);
+
+    // At the bottom: the end edge is the clean one now.
+    vp.scrollTop = 600;
+    await laidOut(root);
+    // Chrome simplifies calc(100% - 0px) to a plain 100%.
+    expect(yStops(vp).end, "the settled bottom edge must not fade").toBe("100%");
+  });
+
+  it("content that does not overflow never fades — both stops sit at the edges", async () => {
+    const root = await laidOut(
+      mounted(
+        <ScrollArea fade aria-label="Fits" style={{ height: "200px", width: "200px" }}>
+          <div style={{ height: "40px" }}>fits</div>
+        </ScrollArea>,
+        { theme: {} },
+      ),
+    );
+    const stops = yStops(within(root, ".kui-scroll-viewport"));
+    expect(stops.start).toBe("0px");
+    expect(stops.end).toBe("100%");
+  });
+
+  it("the x layer follows the writing direction — Base UI measures from the INLINE start", async () => {
+    const root = await laidOut(mounted(faded, { theme: {} }));
+    expect(computed(within(root, ".kui-scroll-viewport"), "mask-image")).toContain("to right");
+    const rtl = await laidOut(
+      mounted(<div dir="rtl">{faded}</div>, { theme: {}, select: ".kui-scroll-area" }),
+    );
+    expect(computed(within(rtl, ".kui-scroll-viewport"), "mask-image")).toContain("to left");
+  });
+});
+
 describe("stillness reaches it too (§8)", () => {
   it("the fade is stood down when the OS asks — pure paint is not an exemption", async () => {
     // `inMotion()` first, or the negative control reads the HARNESS's own stillness rather
