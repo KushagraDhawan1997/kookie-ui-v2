@@ -1,7 +1,7 @@
-An interruption stops whatever someone was doing. There are four levels of it here, and the
+An interruption stops whatever someone was doing. There are five levels of it here, and the
 rule is to take the cheapest one that does the job.
 
-## The four levels
+## The five levels
 
 From cheapest to most expensive:
 
@@ -11,14 +11,39 @@ From cheapest to most expensive:
 - **A menu.** Use `Menu` for a short list of actions and `Select` for a list of values. It
   covers a small rectangle and closes on Escape, on an outside press, or when you pick
   something. Everything underneath stays readable.
+- **A popover.** `Popover` covers a small rectangle like a menu, and holds whatever you put in
+  it: a filter form, a date picker, a short piece of detail. **The page stays live** — nothing
+  dims, focus is not trapped, and you can go on working around it. That is the whole line
+  between this and a dialog, and it is why a small form does not need one.
 - **A dialog.** `Dialog` dims the whole app and traps focus. Use it for work that needs room
   away from the page.
 - **An alert.** `AlertDialog` covers the app the same way, and does not let anyone leave without
   answering.
 
+`Tooltip` is not on this list, and the reason is worth stating: it interrupts nothing and
+carries nothing. It restates the name a control already announces, to a pointer resting on it.
+Anything that appears only in a tooltip is information a keyboard and a touch user never get.
+
 `Sheet` belongs on this list and has not shipped yet. Use a `Dialog` until it does, and keep
 any stand-in you build in one file so there is one place to change on the day the real thing
 arrives.
+
+## Choosing between a popover and a dialog
+
+Both cover a piece of the screen and hold content you wrote. The question is not how much
+content — it is whether the rest of the app should keep working.
+
+A popover leaves it working. The page is live behind it, so you can read the row it came from,
+scroll, or click elsewhere to dismiss it. Reach for it when the panel is *about* something on
+the page: filters over a list, a picker beside the field it fills, detail on the thing you
+pressed.
+
+A dialog stops the app. It dims everything and traps focus, which is right when the panel IS
+the task and the page behind it is nothing but context. Reach for it when leaving mid-way would
+lose work, or when the content needs more room than a panel beside a trigger can have.
+
+If you are wrapping a small form in a dialog because a dialog is the component you know, that
+is the popover case.
 
 ## Choosing between a dialog and an alert
 
@@ -64,7 +89,7 @@ Write cancel first. That order is what decides focus: cancel reads first, sits a
 flips correctly for a right-to-left language at no cost, and takes focus as the first thing you
 can tab to. Document order picks the safe answer for you.
 
-## The dimmed background is the separation
+## Why a dialog casts no shadow
 
 The dialog panel casts no shadow of its own. Anything floating has to show what it covers, and a
 dialog does that by darkening the entire window. A shadow under the panel would say the same

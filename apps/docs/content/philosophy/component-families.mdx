@@ -12,12 +12,12 @@ family is usually the reason.
 
 There are three levels underneath any screen, and the last two are the ones people mix up.
 
-The **page** is the bottom. The library does not paint it, because a Theme that painted a
-background would repaint it again every time you nested another Theme. Paint it yourself with
-`--color-page`.
+The **page** is the bottom. This is the one background the library never paints, because a
+Theme that painted one would paint it again every time you nested another Theme. You paint the
+page yourself, and [Colour](/foundations/color) gives you the value to use.
 
 A **ground** is a region that holds other things. `Surface` is a ground. It is barely a
-different colour from the page, and it casts no shadow, because it sits *in* the page rather
+different colour from the page, and it casts no shadow, because it sits in the page rather
 than above it.
 
 A **card** is an object with its own surface. `Card` is opaque, so anything behind it stops at
@@ -42,9 +42,9 @@ its edge, and in a raised theme it casts a shadow.
 </Surface>
 ```
 
-The Surface is the tray. The two cards are the things sitting on it, and each one lifts. If you
-find yourself nesting a Card inside a Card to get a quieter region, reach for a Surface
-instead. Neither one is a quieter version of the other.
+The Surface holds the two cards, and each card lifts off it. If you find yourself nesting a
+Card inside a Card to get a quieter region, use a Surface instead. Neither one is a quieter
+version of the other.
 
 A Card is also the one surface that can become a control. Render it as a button and it
 presses. Render it as the label of a radio and it can be selected. There is no prop for
@@ -63,12 +63,12 @@ screen.
 `emphasis` and no `tone`. A form where one field shouts louder than the next is telling you
 nothing. A field is also a recess rather than a raised object, so it never casts a shadow.
 
-**Marks** are the controls that *are* their own mark: `Checkbox`, `Radio`, the `Switch` track
-and the `Slider` handle. They sit beside a label instead of containing one, so they do not use
-the control height. A mark is exactly as tall as one line of the text next to it.
+**Marks** are small and hold no text: `Checkbox`, `Radio`, the `Switch` track and the `Slider`
+handle. Each one sits beside its label rather than containing it, so it does not use the
+control height. A mark is exactly as tall as one line of the text next to it.
 
-**Instruments** show or set a value along a length: `Slider` and `Progress`. An instrument has
-no panel and no border of its own, so material and surface styling do not apply to it.
+**Instruments** show or set a value on a track: `Slider` and `Progress`. An instrument is not
+a panel and has no border of its own, so it takes no material and no surface styling.
 
 ## A checkbox sits beside its label
 
@@ -87,16 +87,19 @@ a checkbox.
 
 ## Rows
 
-A row is one interactive line in a list. A menu item is a row. A sidebar item is a row.
+A row is one interactive line in a list. `Row` is the plain one, `MenuItem` is a row, and every
+line in a `NavTree` is a row.
 
-A row looks like a small button but is a different thing, for one reason: **rows are equal.**
-No option in a list is louder than the ones around it, so rows take no `emphasis` at all.
+A row looks like a small button and is a different thing, because no option in a list is more
+important than the ones around it. So a row takes no `emphasis` at all.
 
-The row you are currently on is not a louder row. It changes colour instead, which is what
-leaves it somewhere to go when you hover it.
+The row you are on is not a louder row. It changes colour instead. If it were louder, there
+would be nothing left for hover to do.
 
-A row also does not use the control height. Its height is its line of text plus a small fixed
-inset, which is what makes a column of rows read as a list rather than a stack of buttons.
+Height depends on where the row is. In a permanent column, such as a sidebar, a row stands at
+the same height as a `Button` of the same size, so the two read as the same size of thing. In a
+menu or a select the row is shorter: one line of text plus a small fixed amount of space above
+and below it. A panel of full-height rows reads as too sparse.
 
 ## Type, layout and the frame
 
@@ -106,7 +109,7 @@ picks a text colour rather than a background.
 
 `Link` is the one type component that responds to a pointer, and it is still type rather than
 a control. A control is a box with a height, a padding, a corner and a tap target. A link is a
-run of words inside a sentence: it has to stay selectable, wrap across lines, and sit on the
+run of words inside a sentence: it has to stay selectable, wrap across lines and sit on the
 same line as the paragraph around it. So it takes the hover and focus states and none of the
 box.
 
@@ -117,15 +120,12 @@ are Box with a fixed display and a shorter prop list.
 the things it owns. A pattern arranges things it does not own. If a child ever has to reach
 upward and configure its parent, you have built a pattern as a component.
 
-## Five pairs that look alike
+## Seven pairs that look alike
 
-These render almost identically and belong to different families. Rather than comparing how
-they look, ask whether you could want one without the other.
+These render almost identically and belong to different families.
 
 - **Tabs or SegmentedControl.** A tab bar changes what is below it. A segmented control sets a
-  value where it stands. You can change a view without setting a value, and set a value
-  without changing a view, so these are two operations. That is why one is a radio group and
-  the other is not.
+  value where it stands. That is why one is a radio group and the other is not.
 - **Dialog or AlertDialog.** A dialog holds work you asked for. An alert stops you to ask one
   question, and its contents are fixed, because the system lays them out.
 - **Menu or Select.** A menu picks an action. A select picks a value and submits it with a
@@ -135,7 +135,14 @@ they look, ask whether you could want one without the other.
   that submit a form are a quiet Button, and a Link that runs a handler has broken the one
   promise a link makes.
 - **Card or Surface.** An object, or the thing it is sitting on.
+- **Popover or Dialog.** A popover leaves the page live behind it; a dialog dims the app and
+  traps focus. Both hold content you wrote, so the size of that content is not the question —
+  whether the rest of the app should keep working is.
+- **Popover or Tooltip.** A popover holds things and answers a press. A tooltip holds a
+  sentence, appears under a resting pointer, and may only restate the name its control already
+  announces. Anything a tooltip alone carries is lost to every keyboard and touch user, which is
+  why it takes a string rather than nodes.
 
-The test that works for all five: ask what each one does when the other is not there. If the
-answers differ, they are different things, and one component with two variants would teach
-everyone who read your code that the difference was only cosmetic.
+The test that works for all seven: ask what each one does when the other is not there. If the
+answers differ, they are different things, and one name for both would teach everyone who
+reads your code that the difference is only cosmetic.

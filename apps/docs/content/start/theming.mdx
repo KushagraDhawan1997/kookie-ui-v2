@@ -1,22 +1,16 @@
-A theme is not a colour scheme. It is where your app answers seven questions once, at the
-root, so that no screen has to answer them again. Everything inside the Theme picks up those
-answers automatically.
-
-All seven are optional, and every default is the right answer for an app that has not decided
-yet. That is deliberate: to change one, you have to know something about your app that the
-library cannot know.
+A theme is a way for your app to answer seven fundamental questions once, ensuring no screen repeats them. Everything within the theme automatically picks up these answers. All seven questions are optional, and every default is the right answer for an app that hasn’t decided yet. This deliberate design choice means that changing one question requires knowledge about your app that the library cannot possess.
 
 ## The seven settings
 
 ```tsx
 <Theme
-  appearance="inherit"   // inherit | light | dark
-  density="default"      // compact | default | comfortable
-  radius="full"          // none | small | medium | large | full
-  contrast="normal"      // normal | high
-  pointer="auto"         // fine | coarse | auto
-  depth="elevated"       // flat | elevated
-  material="solid"       // solid | thin | regular | thick
+  appearance="inherit" // inherit | light | dark
+  density="default" // compact | default | comfortable
+  radius="full" // none | small | medium | large | full
+  contrast="normal" // normal | high
+  pointer="auto" // fine | coarse | auto
+  depth="elevated" // flat | elevated
+  material="solid" // solid | thin | regular | thick
 >
   {children}
 </Theme>
@@ -95,7 +89,11 @@ import { useMaterial, useWindowClass } from "@kookie-ui/react";
 
 // Your own panel, made of whatever the app is made of.
 function Pane({ children }: { children: React.ReactNode }) {
-  return <div className="kui-surface" data-material={useMaterial()}>{children}</div>;
+  return (
+    <div className="kui-surface" data-material={useMaterial()}>
+      {children}
+    </div>
+  );
 }
 
 // Which navigation shape to show.

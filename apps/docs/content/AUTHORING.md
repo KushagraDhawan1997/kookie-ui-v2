@@ -1,7 +1,9 @@
 # How to write a chapter
 
-The rules for `apps/docs/content` **and for every blurb in `app/(docs)/chapters.ts` and
-`app/(docs)/components/registry.ts`**. Read this before you write a chapter or a blurb.
+The rules for `apps/docs/content` **and for every word a reader sees outside it**: the front
+door (`app/(docs)/page.tsx`), the two index decks (`components/page.tsx`, `blocks/page.tsx`),
+and every blurb in `app/(docs)/chapters.ts` and `app/(docs)/components/registry.ts`. Read this
+before you write a chapter, a blurb, or a line on any of those pages.
 
 ## Blurbs
 
@@ -33,6 +35,67 @@ tells a reader what to do with it.
 
 **Never put a date, a version or a decision history in a blurb.** A reader has not seen an
 earlier version. `docs/LOG.md` holds that.
+
+## The front door and the indexes
+
+The home page and the two index decks are not chapters, and they fail differently. A chapter is
+read by somebody who has already decided to use this system. These are read by somebody who has
+not. The fault here is rarely jargon. It is **altitude**: true sentences about the API, written
+where a promise belongs.
+
+**Write what somebody gets, not what the API contains.**
+
+- Wrong: `You set a tone, a loudness and a size index. The theme resolves the colour, the length
+  and the corner. There is no colour prop and no variant prop.`
+- Right: `You say a button is the main action on the screen, or the one that deletes something.
+  The theme turns that into a colour, a height and a corner, and keeps it right in light mode
+  and dark, on a phone and on a desktop.`
+
+Every sentence in the wrong version is true. "There is no colour prop" is unreadable to somebody
+who arrived thirty seconds ago, because they do not yet know there could have been one. A
+refusal only means something to a reader who was expecting the thing refused.
+
+**The test.** Could a person who has never heard of this library decide, from this sentence,
+whether they want it? If the sentence only pays off once you know the API, it belongs in a
+chapter.
+
+**Name one concrete thing.** "the main action, or the one that deletes something" is a button
+anybody has seen. "a tone, a loudness and a size index" is three words they have not met.
+
+**Do not name a family on the front door.** A ground, a surface, a control, a mark, a row and an
+instrument are how this system thinks. They are the subject of a whole chapter, and a stranger
+has met none of them. Link to that chapter instead.
+
+**Do not explain the documentation.** "every chapter cites the specification, and a test resolves
+each citation" describes how this site is built. A reader on the front door has not agreed to
+care about that yet. Say what holds the rules, and stop.
+
+**Never praise the document.** "these pages are honest about what that costs you" and "rather
+than taking them on trust" both assert a virtue the reader has no way to check, and it is the
+one claim a document cannot make about itself. State the cost and let them judge it.
+
+- Wrong: `It is built to be correct rather than quick to adopt, and these pages are honest about
+  what that costs you.`
+- Right: `It has strong opinions and fewer ways out than you are used to, which is what keeps
+  screens built months apart looking like one product.`
+
+The same goes for the marketing adjectives — powerful, seamless, robust, elegant, intuitive —
+and for "not just a component library". None of them survives the question "how would I check
+that?"
+
+**A card title is a heading.** The three claims on the front door are `h3`s, so every heading
+rule below applies to them: no four-word verdict, no aphorism, and `X, not Y` only where X is a
+plain answer. "Meaning, not appearance" and "Types, not advice" both read as the conclusion of
+an argument the reader has not been given. A title that states the fact — "The theme decides how
+it looks", "The rules are built into the types" — tells them what the card is about before they
+read it.
+
+**A sentence borrowed from a chapter is not automatically safe here.** "your twentieth screen
+costs about what your second one did" is earned in
+[Why Kookie exists](/philosophy/why-kookie-exists), where three paragraphs first establish that
+the bill for inconsistency arrives around the twentieth screen. Lifted onto the deck it is a
+riddle: a reader who has not read those paragraphs cannot tell what "costs" is measuring. Check
+what a sentence was leaning on before you move it.
 
 ## The register: write to a reader, not to the team
 
@@ -86,8 +149,11 @@ have to add a sentence of explanation as you read, the paragraph is not finished
 
 ### What is checked, and what is not
 
-`app/(docs)/prose.test.ts` runs on every commit. It catches the half of these rules that is a
-word rather than a shape:
+`app/(docs)/prose.test.ts` runs on every commit. It reads the chapters, and it reads the five
+files outside `content/` that carry reader prose — the front door, the two index pages,
+`chapters.ts` and `registry.ts` — with their code comments stripped first, because a comment is
+written to the next maintainer and may say "the mark ladder". It catches the half of these rules
+that is a word rather than a shape:
 
 - an internal noun a reader has not met (rung, veil, ladder, ramp, posture, the seal)
 - a component acting like a person (prices, rides, owes, stands down)
@@ -95,11 +161,17 @@ word rather than a shape:
 - filler: simply, of course, it turns out, said plainly
 - "a call site" and "the reader", where the chapter means you
 - a date, which is development history and belongs in `docs/LOG.md`
+- the document praising itself: "honest about", "on trust", "we believe", "carefully crafted"
+- a marketing adjective with no measurement behind it: powerful, seamless, robust, elegant,
+  intuitive, delightful
+- a marketing phrase: "out of the box", "under the hood", "first-class", "not just a"
 - a chapter that says "you" fewer than five times
 
-It cannot catch a verdict, a riddle, or two abstractions equated, because those are shapes and
-not strings. "The mark ladder is the line box" is six ordinary words in an ordinary order. That
-half is yours, and it is the half worth reading this section for.
+It cannot catch a verdict, a riddle, two abstractions equated, or a sentence written at the
+wrong altitude, because those are shapes and not strings. "The mark ladder is the line box" is
+six ordinary words in an ordinary order, and "There is no colour prop and no variant prop" is a
+true sentence that was wrong only because of where it was printed. That half is yours, and it is
+the half worth reading this section for.
 
 ## Language: Simplified Technical English
 
@@ -122,6 +194,22 @@ These pages follow ASD-STE100. Apply these rules to every sentence.
 - **Do not use more than three nouns together.** Break up long noun groups.
 - **Give each paragraph one topic.** Use a maximum of six sentences.
 
+### Three conventions the corpus already holds
+
+These are not preferences. Each was measured across every shipped chapter, and each is written
+here because it kept being re-decided by whoever was editing.
+
+- **Do not use contractions.** Write "it is", "does not" and "that is", never "it's", "doesn't"
+  or "that's". No chapter contains one, and full forms are what ASD-STE100 asks for.
+- **Write "judgment", not "judgement".** The corpus uses the first spelling and no instance of
+  the second.
+- **Do not use a serial comma.** Write "a context, a problem and the shape of the solution".
+  Every list in the chapters is punctuated this way.
+
+Product names keep their own capitalisation even at the start of a sentence. It is `shadcn/ui`,
+never `Shadcn/UI`. If the lowercase opening reads badly, rewrite the sentence rather than the
+name.
+
 ## Register: four habits that keep coming back
 
 The rules above are about words. These four are about the shape of a sentence. They are the
@@ -135,8 +223,11 @@ the head is a subtitle glued on with a comma.
 - Wrong: `## Size prices the type, and render names the document`
 - Right: `## Size sets the step, render sets the element`
 
-`X, not Y` is a different construction and it is allowed. "An index, not a measurement"
-defines by exclusion and it is short. `X, and Y` crams two facts into one heading.
+`X, not Y` is a different construction, and it is allowed **only when X says what the thing is
+or does, in ordinary words**. "An index, not a measurement" passes, because "an index" is a
+plain answer on its own. "Meaning, not appearance" does not: it is two abstractions with no verb
+between them, so the correction lands before a reader has anything to correct. `X, and Y` crams
+two facts into one heading.
 
 **2. Name the thing.** Do not describe a product instead of naming it.
 

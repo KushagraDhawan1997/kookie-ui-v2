@@ -1,34 +1,32 @@
-KookieUI is built to be correct rather than to be easy to adopt. Those two goals pull apart
-more often than you would think, because the things that make a system spread are not the
-things that make it right.
+KookieUI is built to be correct rather than easy to adopt. Those two goals pull apart often,
+because what makes a system spread is not what makes it right.
 
-There are two questions worth asking about a system like this. Does it agree with what we
-actually know about how people use interfaces? Do the products built on it work better? How
-many people have starred it is not one of them.
+Two questions are worth asking about a system like this one. Does it agree with what research
+shows about how people use interfaces? Do the products built on it work better? How many people
+have starred it is not one of them.
 
 ## Find the pattern before you name the component
 
-A **pattern** is a structure that keeps turning up: a context, a problem, and the shape of the
-solution. You find patterns in the world rather than inventing them.
+A pattern is a recurring structure: a context, a problem and the shape of the solution. You
+discover patterns in the world rather than inventing them.
 
-A **component** is a pattern packaged so you can reuse it. A **name** is just the label on the
-package.
+A component is a pattern packaged for reuse, and a name is the label on that package.
 
-Work in that order — pattern, then component, then name. Most teams go the other way. They
-start with a name and a picture of how it should look, and work out what it does last. Almost
-every fault below comes from that reversal.
+Work in this order: first the pattern, then the component, then the name. Most teams reverse
+it. They start with a name and a picture of how it should look, and they work out what it does
+last. Almost every fault below comes from that reversal.
 
-## Two things that look alike can still be two things
+## Tell two components apart by what they do
 
-Tabs and SegmentedControl look nearly identical. Both draw a row of segments. They do
-completely different jobs.
+Tabs and SegmentedControl look almost identical, and both draw a row of segments. However, they
+serve different purposes.
 
-Tabs moves you between views, and the panel underneath changes. SegmentedControl sets a value
-where you are standing, and the chart underneath stays put.
+Tabs moves you between views, so the panel underneath changes. SegmentedControl sets a value in
+place, so the chart underneath stays where it is.
 
-It is tempting to make them one component with two variants. The problem is not that it would
-look bad. It is that putting two things in one box teaches everyone who reads your code that
-they are the same thing.
+Combining the two into one component with two variants is tempting. The problem is not the
+appearance of the result. It is that one name teaches everyone who reads your code that these
+are the same thing.
 
 ```tsx
 // Switching between views. The panel below changes.
@@ -55,67 +53,70 @@ they are the same thing.
 
 The difference is not only visual. Tabs announces itself as a tab list and gives each panel a
 name. SegmentedControl announces itself as a radio group, so a screen reader says "3 of 3
-selected" and the arrow keys change the value. You cannot get either behaviour out of the
-other component.
+selected" and the arrow keys change the value. Neither behaviour is available from the other
+component.
+
+One test settles cases like this. Ask what each component does when the other is absent. You can
+switch views without setting a value, and you can set a value without switching views. These are
+two operations rather than one operation with two appearances.
 
 ## Some design questions already have answers
 
-Not everything in design is taste. Some of it has been measured.
+Not everything in design is a matter of taste. Some of it has been measured.
 
 - Fitts's law, from 1954, predicts how long it takes to move a pointer to a target, from the
-  distance and the size of the target.
-- A fingertip is about 10 millimetres across. That measurement is where every platform's
-  44-point minimum tap target comes from.
-- The Gestalt principles, from 1923, describe how your eye groups things before you read them.
+  distance and the size of that target.
+- A fingertip is about 10 millimetres across. That is where every platform's 44-point minimum
+  tap target comes from.
+- The Gestalt principles, from 1923, explain how your eye groups things before you read them.
 - WCAG and APCA both measure whether text is readable against its background.
 
-Above those limits, it really is judgment: the exact corner radius, how saturated a glass
-panel should be, which blue is your blue.
+Beyond those measured limits a design decision is a judgment, such as the exact corner radius,
+how saturated a glass panel should be and which hue your accent takes.
 
-The important part is knowing which kind of answer you are holding. Where something is
-measured, cite it and leave it alone. Where it is a judgment, say so and own it. Dressing a
-judgment up as a measurement is how a system stops being trustworthy.
+What matters is knowing which kind of answer you are holding. Where something is measured, cite
+it and do not change it. Where it is a judgment, say so and own it. A system that presents a
+judgment as a measurement makes a claim nobody can check.
 
-## Being consistent is cheaper than being inconsistent
+## Why consistency saves time
 
-Shipping the same button twice costs less than deciding, a second time, how heavy that button
+Shipping the same button twice is cheaper than deciding a second time how heavy that button
 should be.
 
-An inconsistent system does not actually save you time. It just makes you decide the same
-things again, one screen at a time, with no way to see what the earlier screens decided. The
-bill arrives around the twentieth screen.
+An inconsistent system does not save you time. It makes you decide the same things again, one
+screen at a time, with no way to see what the earlier screens decided. That cost does not appear
+on the first screen or the fifth. It appears around the twentieth.
 
 ## Why so much of the field works the other way
 
 This is about incentives rather than skill.
 
-- **The popular tools have no middle.** shadcn/ui gives you source code to copy into your
+- **The popular tools have no middle ground.** shadcn/ui gives you source code to copy into your
   project, and once you copy it, it is yours and nothing updates it. Tailwind puts every style
-  choice on the element that uses it. Both are fast to start with. Neither gives you one place
-  to change a rule.
-- **Teams build patterns as though they were components.** A component contains things. A
-  sidebar coordinates things it does not contain: the header, the content, the width of the
-  window. You can spot the mistake when a child component has to reach upward and configure
-  its parent.
-- **Public work rewards a single screenshot.** Most careful systematic design happens inside
+  choice on the element that uses it. Both are quick to start with, but neither provides a
+  single place to change a rule.
+- **Teams build patterns as though they were components.** A component contains the things it
+  owns. A sidebar coordinates things it does not contain, such as the header, content and
+  window width. You can spot the mistake when a child component has to reach upward
+  and configure its parent.
+- **Public work rewards a single screenshot.** Most careful, systematic design happens inside
   companies, on systems nobody outside ever sees. What gets shared publicly is judged one
   component at a time, and consistency does not show up in one component. It shows up across
   twenty screens.
 - **The research stopped being read.** A missed tap on a website costs almost nothing, so
-  nothing punishes the mistake. That is how "responsive" changed meaning: it used to mean
-  "adapt to the person holding this device", and now it mostly means "reflow without a
-  sideways scrollbar". The easy measurement replaced the goal.
+  nothing punishes the mistake. That is how "responsive" changed meaning. It used to mean
+  "adapt to the person holding this device", but now it mostly means "reflow without a sideways
+  scrollbar". The easy measurement replaced the goal.
 - **AI produces more of it, faster.** A model writes each component on its own, and each one
-  looks fine. The set is inconsistent, and nothing tells you.
+  looks fine. The set is inconsistent, and nothing reports it.
 
 ## What this costs you
 
 A system built for correctness is harder to adopt than one built for adoption. That is a real
-trade and you should know it before you start.
+trade, and you should know it before you start.
 
 There is no `variant` prop to reach for when a design does not quite fit. Instead there are
-refusals, and every refusal comes with a reason and an alternative. There are fewer escape
-hatches, and this documentation tells you where the ones that exist are.
+refusals, and each one comes with a reason and an alternative. There are fewer ways out than
+you are used to, and these pages tell you where the ones that exist are.
 
-What you get in return is one thing: your twentieth screen costs about what your second screen
-cost.
+The result is that your twentieth screen takes about as long to build as your second.
