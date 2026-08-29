@@ -638,32 +638,22 @@
    rests live in shell.css, where no axis may be named; these arms out-rank them at (0,2,0)
    over (0,1,0).
 
-   The RAIL's square (§27, "the rail's extent is its item's") — its width is that square, and
-   the pane's padding is the air either side. */
-.kui-shell-rail[data-size="1"] {
-  --kui-shell-rail-square: var(--control-height-1);
+   ONE CONTROL ROW AT THE PANE'S INDEX (§27). It is the RAIL's square — "the rail's extent is
+   its item's", its width being that square with the pane's padding as the air either side —
+   and it is the HEADER's row, the same fact turned 90°, a header at an index standing as tall
+   as the rail at that index is wide. Those were two names for one number until 2026-08-29 and
+   are one now, on the PANE so the content pane reads it too: a content pane underlapping a
+   floating header or rail prices that reach for the inset it publishes. */
+.kui-shell-pane[data-size="1"] {
+  --kui-shell-row: var(--control-height-1);
 }
 
-.kui-shell-rail[data-size="3"] {
-  --kui-shell-rail-square: var(--control-height-3);
+.kui-shell-pane[data-size="3"] {
+  --kui-shell-row: var(--control-height-3);
 }
 
-.kui-shell-rail[data-size="4"] {
-  --kui-shell-rail-square: var(--control-height-4);
-}
-
-/* And the HEADER's row, the same fact turned 90°: a header's height is one control row plus
-   the pane's padding, so a header at an index is as tall as the rail at that index is wide. */
-.kui-shell-header[data-size="1"] {
-  --kui-shell-header-row: var(--control-height-1);
-}
-
-.kui-shell-header[data-size="3"] {
-  --kui-shell-header-row: var(--control-height-3);
-}
-
-.kui-shell-header[data-size="4"] {
-  --kui-shell-header-row: var(--control-height-4);
+.kui-shell-pane[data-size="4"] {
+  --kui-shell-row: var(--control-height-4);
 }
 
 /* Concentric arithmetic is undefined at zero: at `none` the control corner is already 0,

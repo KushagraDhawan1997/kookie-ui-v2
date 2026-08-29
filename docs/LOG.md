@@ -66,6 +66,112 @@ drawer law.
 every app to answer a question the layout can see for itself — the same argument that refuses a
 `gap` prop one paragraph over in §27.
 
+## 2026-08-29 The frame publishes the reach a floating pane leaves, because a sibling cannot read a sibling
+
+Kushagra, after floating the docs sidebar and finding the reading column underneath it: *"the
+package should provide something, some value, equivalent of the space sidebar is taking including
+gaps padding etc, to make content act as if sidebar is not floating, so that I can decide what
+content I want to bleed to edges and be behind sidebar, and what isnt."*
+
+**The underlap was never the bug.** A pane pulled off the frame needs something to float over, so
+the content's grid area grows to that pane's line and the content paints underneath it. That is
+right for a photograph and wrong for a paragraph, and the choice is the app's — but the app could
+not make it, because nothing said how far the reach was. The only route open to a call site was to
+restate the frame's own arithmetic, which is the four-spellings defect the header's height already
+paid for.
+
+**What made it hard is a fact about CSS, and it is worth writing down because it killed three
+designs before the fourth.** The sidebar's extent lives on the sidebar: `--kui-shell-w`, written
+as an inline style by the `width` prop and registered `inherits: false` on purpose (a sidebar at
+320 handing 320 to every descendant is the `--kui-h` trap). Custom properties flow DOWN. There is
+no route sideways to a sibling, and the only element both panes sit inside is the Shell root,
+which a child cannot style during render — a registration effect would run after the first paint
+and the content would render with no inset and then jump, which is the one thing §27's
+CSS-resolved first paint exists to prevent.
+
+**Rejected, each for its own reason.** *Subgrid* is exact and needs no number restated, and it
+dies on the actual case: it reaches direct children only, and the region an app wants inset is
+under a `ShellScroll`, inside a page's own frame. *Refusing `width` on a floating pane by type*
+was my own first proposal and Kushagra pushed on it — rightly: whether anything underlaps a pane
+depends on `flush` on a DIFFERENT component, which no type can see, so the refusal would have been
+blanket over every floating pane including the many where nothing reaches underneath, and it aims
+at the wrong thing anyway. *A ResizeObserver publishing the measured extent* is what v1's Toolbar
+did, and it is the post-paint jump again.
+
+**So: four lengths, computed from the frame's own extents.** `--kui-shell-inset-inline-start` /
+`-inline-end` / `-block-start` / `-block-end`, on the content pane, each the reach of the panes
+underlapping that side — the token width plus the gap either side, or one control row plus the
+pane's padding and its two borders. Measured against real boxes rather than trusted: 304 for a
+sidebar, 336 an inspector, 216 a bottom pane, 82 a rail or a header, 386 for a rail and a sidebar
+together, 130 for a rail at size 4. Registered `<length>` with `inherits: true`, which is the one
+descriptor here that is not this repo's usual answer: a registered length computes to absolute
+pixels where it is declared and inherits THAT, so a consumer reading it under a scroller gets a
+number rather than a token stream that would re-resolve against whatever element read it — and it
+is what makes the reach measurable at all, since an unregistered property comes back from
+`getComputedStyle` as the text that was written. The reset is on the shell ROOT (a Shell inside
+another Shell's content must not take the outer frame's reach) and it is spelled `initial`, not
+`0px`, because the descriptor owns the zero — the tokens-only law caught the other spelling.
+
+**The lengths are deliberately NOT on the placement rules beside them.** A placement is a no-op
+when its pane is not there: the track collapses and `sidebar-start` IS `content-start`, so those
+rules never had to ask whether the pane was standing. A length is simply wrong — a closed sidebar
+still publishing 304px would push every inset region a sidebar's width off the edge of a frame
+with no sidebar in it. The reach asks the stricter question, and four different things answer it
+no: a closed pane, an overlaying pane, a detail pane resting shut (`auto` means shut for an
+inspector and open for a nav column — §27's own table, and the reason reading one side would not
+have caught a missing arm on another), and a narrow window, where an `auto` nav column overlays.
+That last one had to overrule the others and gains nothing from being in a media query, so the
+reach rules' guards sit in `:where()` — the floating rule's own 2026-08-20 mechanism, for its
+reason — which drops them to (0,4,0) and (0,5,0) and lets one plain selector at (0,6,0) win on
+rank rather than order. It was written with `:is()` first and the component-sheet `:is()` ban
+caught it; two selectors cost four gzipped bytes.
+
+**One combination is knowingly wrong, and it is stated rather than hidden:** two nav columns where
+one is `fixed` and the other `auto`, on a narrow window — the narrow rule zeroes the whole side
+while the fixed column still stands. Nobody builds that frame, `auto` being the default for both.
+
+**The staleness that remains is real, and the guard MEASURES it rather than reading props.** A
+pane that overrides its `width`, `height` or `size` states something only that pane can see, so
+the published length goes stale. A development-only check compares it against where the floating
+panes actually are — on the layout frame and on resize, Box's own shape, stripped from the build —
+and names the fix: state the extent as `--shell-sidebar-w` on the Shell, where the pane and the
+content read one number. Reading the props would have been a proxy for the thing that matters and
+would go quietly wrong the day a new way to change a pane's extent exists; measuring cannot. It
+also had to learn that an empty list means a reach of ZERO rather than nothing to check, which is
+the direction that matters most, and to tell an overlaying pane by the position it computes rather
+than the attribute it carries — `auto` still says `auto` on a phone.
+
+**A name collapsed on the way, before the port rather than after it.** `--kui-shell-header-row`
+and `--kui-shell-rail-square` were two names for one number, with the header's own comment saying
+so out loud — *"a header at an index is as tall as the rail at that index is wide"* — and the
+content pane pricing a floating header's reach would have made a third. They are `--kui-shell-row`
+now, declared on the pane so every pane including the content reads its own, and six arms in the
+size join became three.
+
+**Laws.** Eight mounted, each an AGREEMENT that reads no token: a box padded by the published
+length must begin exactly where the floating pane's own margin box ends. Restating `288 + 2 * 8`
+in the law would have proved only that a `calc()` can be copied between two files. The rail and
+header law walks all four indexes, because the row is the one term that answers `size` and a law
+that reads one index cannot tell a ladder from a constant. Every one falsified against the
+pre-fix stylesheet; the guard falsified by widening its tolerance. **One of my own laws could not
+fail and its own sabotage caught it:** the nested-Shell law read `inline-start` alone, so three of
+the four resets on the shell root could be deleted with the suite green — "a law about one axis of
+a two-axis mechanism is half a law", here with four sides.
+
+**And the instrument lied twice before it told the truth.** `parseFloat` of a token's computed
+value is `NaN` (`calc(8px * 1)` is text, not a number), so the first measurement run reported every
+comparison as `null` and looked like a missing feature; the probe now measures a real box sized by
+the property. And batching sabotage-then-restore inside one shell invocation reads a stale CSS
+transform for one run, which shifted every attribution by one — each sabotage now runs alone.
+
+**Measured on the live docs site at 1440**, which is what the value exists for: with the sidebar
+floating the inset publishes 304px, the collapse trigger sits at 320 (clear of the sidebar's 296
+edge) and the h1 centres at 481 in the visible 1121px rather than over the whole window. Close the
+sidebar and the inset falls to 0, the trigger walks back to 16 and the column re-centres — with no
+branch anywhere in the app. On a phone, the same. +155 bytes gzipped, baseline 34,008 → 34,163.
+
+---
+
 ## 2026-08-29 A shell pane states its own backdrop, and the work area never gets one
 
 Kushagra, in two sentences: *"I dont think content should ever get glass, panels are fine"*, and

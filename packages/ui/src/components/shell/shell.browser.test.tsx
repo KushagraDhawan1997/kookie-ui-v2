@@ -39,9 +39,11 @@ import { Dialog, DialogContent, DialogTitle } from "../dialog/dialog.tsx";
 import {
   APPEARANCES,
   DEPTHS,
+  SIZES,
   colorOn,
   computed,
   mounted,
+  render,
   tokenOn,
   within,
 } from "../../test/browser.tsx";
@@ -1917,6 +1919,356 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     }
     // They tile rather than stack: the sidebar begins after the rail ends.
     expect(sidebar.getBoundingClientRect().left).toBeGreaterThan(rail.getBoundingClientRect().right);
+  });
+
+  /**
+   * THE SAFE AREA A FLOATING PANE LEAVES (§27, 2026-08-29). The underlap is deliberate — a
+   * floating pane needs something to float over — and until these four lengths existed an app
+   * had no way to say "this paragraph clears the sidebar, that photograph does not". Nothing
+   * published the reach, so the only route was to restate the frame's own arithmetic at the
+   * call site, which is the four-spellings defect the header's height already paid for.
+   *
+   * The law is an AGREEMENT and reads no token: a box padded by the published inset must
+   * begin exactly where the floating pane's own margin box ends, which is the line the
+   * content column would have started at. Restating `288 + 2 * 8` here would prove only that
+   * I can copy a `calc()` from one file into another.
+   *
+   * The pane's outer spacing is read as its distance from the FRAME's edge, not from its
+   * neighbour: two adjacent non-flush panes each pay in full and therefore double at the
+   * boundary between them (§27's deferred split, recorded in shell.css), so the rail|sidebar
+   * case has to take the frame-edge gap or it measures the deferred bug rather than the
+   * inset.
+   *
+   * Falsified against the pre-fix stylesheet, where every one of these reads 0px against a
+   * reach of 82–386.
+   */
+  const insetProbe = (content: Element, side: string) => {
+    const probe = document.createElement("div");
+    probe.style.position = "absolute";
+    probe.style.insetInlineStart = "0";
+    probe.style.insetBlockStart = "0";
+    probe.style.inlineSize = `var(--kui-shell-inset-${side})`;
+    probe.style.blockSize = `var(--kui-shell-inset-${side})`;
+    content.appendChild(probe);
+    const box = probe.getBoundingClientRect();
+    probe.remove();
+    return { w: box.width, h: box.height };
+  };
+
+  it("a floating SIDEBAR publishes exactly the reach it takes (§27)", () => {
+    const shell = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellSidebar aria-label="Primary" flush={false}>
+          s
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const frame = shell.getBoundingClientRect();
+    const sidebar = within(shell, ".kui-shell-sidebar").getBoundingClientRect();
+    const content = within(shell, ".kui-shell-content");
+    expect(
+      content.getBoundingClientRect().left,
+      "the content is not underlapping, so the inset has nothing to answer for",
+    ).toBeCloseTo(frame.left, 0);
+    expect(insetProbe(content, "inline-start").w).toBeCloseTo(
+      sidebar.right - frame.left + (sidebar.left - frame.left),
+      0,
+    );
+  });
+
+  it("a floating INSPECTOR and BOTTOM publish theirs, on the other two sides (§27)", () => {
+    const shell = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellContent>c</ShellContent>
+        <ShellInspector flush={false} defaultOpen>
+          i
+        </ShellInspector>
+        <ShellBottom flush={false} defaultOpen>
+          b
+        </ShellBottom>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const frame = shell.getBoundingClientRect();
+    const content = within(shell, ".kui-shell-content");
+    const inspector = within(shell, ".kui-shell-inspector").getBoundingClientRect();
+    const bottom = within(shell, ".kui-shell-bottom").getBoundingClientRect();
+    expect(insetProbe(content, "inline-end").w).toBeCloseTo(
+      frame.right - inspector.left + (frame.right - inspector.right),
+      0,
+    );
+    expect(insetProbe(content, "block-end").h).toBeCloseTo(
+      frame.bottom - bottom.top + (frame.bottom - bottom.bottom),
+      0,
+    );
+  });
+
+  /**
+   * The RAIL and the HEADER are priced differently from the three panes above — they are one
+   * control row, content-box, plus the pane's padding and its two borders — so they get their
+   * own law rather than riding the sidebar's. Both indexes are walked because the row is the
+   * one term that answers `size`, and a law that reads one index cannot tell a ladder from a
+   * constant (the 2026-08-23 composer finding).
+   */
+  it("a floating RAIL and HEADER publish a row's reach, at every index (§27)", () => {
+    for (const size of SIZES) {
+      const shell = mounted(
+        <Shell style={{ height: 600, width: 1280 }} size={size}>
+          <ShellHeader flush={false}>h</ShellHeader>
+          <ShellRail aria-label="Sections" flush={false}>
+            r
+          </ShellRail>
+          <ShellContent>c</ShellContent>
+        </Shell>,
+        { theme: {}, select: ".kui-shell" },
+      );
+      const frame = shell.getBoundingClientRect();
+      const rail = within(shell, ".kui-shell-rail").getBoundingClientRect();
+      const header = within(shell, ".kui-shell-header").getBoundingClientRect();
+      const content = within(shell, ".kui-shell-content");
+      expect(insetProbe(content, "inline-start").w, `rail at size ${size}`).toBeCloseTo(
+        rail.right - frame.left + (rail.left - frame.left),
+        0,
+      );
+      expect(insetProbe(content, "block-start").h, `header at size ${size}`).toBeCloseTo(
+        header.bottom - frame.top + (header.top - frame.top),
+        0,
+      );
+    }
+  });
+
+  /**
+   * TWO FLOATING COLUMNS ARE ONE REACH, and this is the case a single rule gets wrong. The
+   * content grows to the RAIL's line when both float, so the inset owes both tracks — the
+   * sidebar's rule alone answers 304 where the real reach is 386, and the rail's alone
+   * answers 82. It is stated as two mutually exclusive selectors in the stylesheet, and this
+   * law is the one that fails if either is dropped.
+   */
+  it("rail + sidebar floating: the inset is BOTH columns, not the outer one (§27)", () => {
+    const shell = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellRail aria-label="Sections" flush={false}>
+          r
+        </ShellRail>
+        <ShellSidebar aria-label="Primary" flush={false}>
+          s
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const frame = shell.getBoundingClientRect();
+    const rail = within(shell, ".kui-shell-rail").getBoundingClientRect();
+    const sidebar = within(shell, ".kui-shell-sidebar").getBoundingClientRect();
+    const content = within(shell, ".kui-shell-content");
+    const reach = insetProbe(content, "inline-start").w;
+    expect(reach).toBeCloseTo(sidebar.right - frame.left + (rail.left - frame.left), 0);
+    // The vacuity guard: the two columns must be far enough apart that answering only one of
+    // them would be a different number, or this law passes on a stylesheet that answers one.
+    expect(reach - (rail.right - frame.left + (rail.left - frame.left))).toBeGreaterThan(100);
+  });
+
+  /**
+   * IT REACHES THE PLACE THE APP ACTUALLY USES IT. The region an app wants inset is under a
+   * scroller and inside a page's own frame, which is why the property inherits rather than
+   * being registered `inherits: false` like every other private name in this file. The reset
+   * on the shell ROOT is the other half: a Shell composed inside another Shell's content must
+   * not hand the outer frame's reach to its own panes, and it is the root that stops it.
+   *
+   * Falsified both ways: `inherits: false` reads 0px at depth, and dropping the root's reset
+   * reads the outer frame's 304px inside the nested shell's sidebar.
+   */
+  it("the inset inherits to depth, and a nested Shell resets it (§27)", () => {
+    const shell = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellHeader flush={false}>h</ShellHeader>
+        <ShellSidebar aria-label="Primary" flush={false}>
+          s
+        </ShellSidebar>
+        <ShellContent>
+          <ShellScroll>
+            <Box data-testid="deep">
+              <Shell data-testid="nested" style={{ height: 200 }}>
+                <ShellSidebar aria-label="Inner">n</ShellSidebar>
+                <ShellContent>inner</ShellContent>
+              </Shell>
+            </Box>
+          </ShellScroll>
+        </ShellContent>
+        <ShellInspector flush={false} defaultOpen>
+          i
+        </ShellInspector>
+        <ShellBottom flush={false} defaultOpen>
+          b
+        </ShellBottom>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const deep = shell.querySelector("[data-testid='deep']")!;
+    const inner = shell.querySelector("[data-testid='nested'] .kui-shell-sidebar")!;
+    // ALL FOUR SIDES, and that is the law's own repair: the first spelling read only
+    // `inline-start`, so three of the four resets on the shell root could be deleted with
+    // the suite green — the "a law about one axis of a two-axis mechanism is half a law"
+    // finding (2026-08-08), here with four.
+    for (const side of ["inline-start", "inline-end", "block-start", "block-end"] as const) {
+      const axis = side.startsWith("inline") ? "w" : "h";
+      const outer = insetProbe(within(shell, ".kui-shell-content"), side)[axis];
+      expect(outer, `the outer frame published no ${side} reach, so this proves nothing`)
+        .toBeGreaterThan(60);
+      expect(
+        insetProbe(deep, side)[axis],
+        `the ${side} reach did not survive a scroller and a Box`,
+      ).toBeCloseTo(outer, 0);
+      expect(
+        insetProbe(inner, side)[axis],
+        `a nested Shell inherited the outer frame's ${side} reach`,
+      ).toBe(0);
+    }
+  });
+
+  /**
+   * AND THE STALE CASE WARNS, because the published length is the FRAME's extent and a pane
+   * that states its own `width` is stating something only that pane can see. The guard
+   * MEASURES — it compares the published length against where the floating panes actually
+   * are — rather than reading the props, so it cannot go quietly wrong the day a new way to
+   * change a pane's extent exists, and a flush pane standing between a floating one and the
+   * content (where nothing underlaps and the inset is correctly zero) raises nothing.
+   *
+   * Falsified by flipping the fixture: at the token's own 288 the warning does not fire.
+   */
+  it("dev builds warn when a pane's own width makes the published inset stale (§27)", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const stale = (msg: unknown) => String(msg).includes("--kui-shell-inset-inline-start");
+    try {
+      render(
+        <Shell style={{ height: 400, width: 900 }}>
+          <ShellSidebar aria-label="Primary" flush={false} width={200}>
+            s
+          </ShellSidebar>
+          <ShellContent>c</ShellContent>
+        </Shell>,
+      );
+      await vi.waitFor(() => {
+        expect(warn.mock.calls.some(([msg]) => stale(msg))).toBe(true);
+      });
+
+      warn.mockClear();
+      render(
+        <Shell style={{ height: 400, width: 900 }}>
+          <ShellSidebar aria-label="Primary" flush={false}>
+            s
+          </ShellSidebar>
+          <ShellContent>c</ShellContent>
+        </Shell>,
+      );
+      // The quiet case needs a flush of its own, or this half asserts nothing.
+      await new Promise((r) => setTimeout(r, 50));
+      expect(warn.mock.calls.some(([msg]) => stale(msg))).toBe(false);
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  /**
+   * A PANE THAT IS NOT STANDING IN THE FRAME LEAVES NO REACH, and this is why the four
+   * lengths are NOT declared on the placement rules beside them. A placement is a no-op when
+   * its pane is absent — the track collapses and `sidebar-start` IS `content-start` — so the
+   * grid rules never needed the question asked. A LENGTH is simply wrong: a closed sidebar
+   * that still published 304px would push every inset region a sidebar's width off the edge
+   * of a frame with no sidebar in it.
+   *
+   * Three ways a floating pane stops standing in the frame, and all three are here because
+   * each is a different rule: `closed` is the state, `overlay` is the presentation, and a
+   * NARROW window resolves an `auto` nav column to an overlay — the last being the path every
+   * phone takes, and the one this file already records being forgotten twice.
+   *
+   * Falsified: dropping any one of the three guards publishes 304 where 0 is measured.
+   */
+  it("a closed, overlaying or narrow-window pane publishes no reach (§27)", async () => {
+    const closed = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellSidebar aria-label="Primary" flush={false} open={false}>
+          s
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    expect(
+      insetProbe(within(closed, ".kui-shell-content"), "inline-start").w,
+      "a closed sidebar still claimed its column",
+    ).toBe(0);
+
+    const overlaying = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellSidebar aria-label="Primary" flush={false} presentation="overlay" defaultOpen>
+          s
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    expect(
+      insetProbe(within(overlaying, ".kui-shell-content"), "inline-start").w,
+      "an overlaying sidebar left a reach behind it",
+    ).toBe(0);
+    // The vacuity guard: the same pane in the same frame, standing in flow, DOES publish —
+    // otherwise the two reads above pass on a stylesheet that publishes nothing at all.
+    const standing = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellSidebar aria-label="Primary" flush={false}>
+          s
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    expect(insetProbe(within(standing, ".kui-shell-content"), "inline-start").w).toBeGreaterThan(
+      100,
+    );
+
+    await narrow();
+    const phone = mounted(
+      <Shell style={{ height: 600 }}>
+        <ShellSidebar aria-label="Primary" flush={false}>
+          s
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    expect(
+      insetProbe(within(phone, ".kui-shell-content"), "inline-start").w,
+      "an auto nav column overlays on a narrow window, so it leaves no reach",
+    ).toBe(0);
+  });
+
+  it("a detail pane resting SHUT publishes no reach (§27)", () => {
+    // `auto` means shut for an inspector and a bottom pane, where it means open for a nav
+    // column — which is why only these two exclude `auto` in the stylesheet, and why reading
+    // one of the four sides would not have caught a missing arm on the other.
+    const shell = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellContent>c</ShellContent>
+        <ShellInspector flush={false}>i</ShellInspector>
+        <ShellBottom flush={false}>b</ShellBottom>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const content = within(shell, ".kui-shell-content");
+    expect(insetProbe(content, "inline-end").w).toBe(0);
+    expect(insetProbe(content, "block-end").h).toBe(0);
+  });
+
+  it("nothing floating, nothing published (§27)", () => {
+    const shell = mountShell();
+    const content = within(shell, ".kui-shell-content");
+    for (const side of ["inline-start", "inline-end", "block-start", "block-end"] as const) {
+      const box = insetProbe(content, side);
+      expect(Math.max(box.w, box.h), `${side} claimed a reach in an all-flush frame`).toBe(0);
+    }
   });
 
   it("a grounded content in flush chrome takes the FULL gap on every side", () => {

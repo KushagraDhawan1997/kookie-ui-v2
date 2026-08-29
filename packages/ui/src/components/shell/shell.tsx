@@ -83,6 +83,9 @@ type ShellCtx = {
   rootRef: React.RefObject<HTMLDivElement | null>;
 };
 
+/** Development-only guards are stripped from production builds. */
+const DEV = typeof process === "undefined" || process.env?.NODE_ENV !== "production";
+
 const ShellContext = React.createContext<ShellCtx | null>(null);
 
 function useShellCtx(part: string): ShellCtx {
@@ -475,6 +478,104 @@ export function Shell({ size = "2", className, style, children, ref, ...props }:
     rootEl.addEventListener("keydown", onKeyDown);
     return () => rootEl.removeEventListener("keydown", onKeyDown);
   }, [liveCount, closeOverlays]);
+
+  /**
+   * THE PUBLISHED SAFE AREA, CHECKED AGAINST THE REAL ONE (§27, 2026-08-29). Development only,
+   * stripped from production builds.
+   *
+   * The four `--kui-shell-inset-*` lengths are the reach a floating pane leaves, and the
+   * stylesheet computes them from the frame's own extents — the `--shell-sidebar-w` token plus
+   * the gap either side, or one control row plus the pane's padding and borders. That is exact
+   * for a pane taking what the frame gives it, and stale for a pane that overrode its `width`,
+   * its `height` or its `size`: those live on the pane, `--kui-shell-w` is registered
+   * `inherits: false` on purpose, and no sibling can read another element's inline style.
+   *
+   * Refusing the override by type was the first proposal and it does not survive: whether
+   * anything underlaps a pane depends on `flush` on a DIFFERENT component, which no type can
+   * see, so the refusal would have to cover every floating pane — including the many where
+   * nothing reaches underneath and there is nothing to be stale about.
+   *
+   * So it MEASURES rather than inferring. Reading the props would be a proxy for the thing
+   * that matters and would go quietly wrong the day a new way to change a pane's extent
+   * exists; comparing the published length against where the panes actually are cannot. The
+   * underlap itself is measured too — a pane is underlapped when the content's box reaches
+   * past it — which is why a flush pane standing between a floating one and the content
+   * (where the content does NOT reach, and the inset is correctly zero) raises nothing.
+   */
+  React.useEffect(() => {
+    if (!DEV) return;
+    const rootEl = rootRef.current;
+    if (!rootEl) return;
+    let warned = false;
+
+    const check = () => {
+      const content = rootEl.querySelector<HTMLElement>(":scope > .kui-shell-content");
+      if (warned || !content || !content.checkVisibility?.()) return;
+      const frame = rootEl.getBoundingClientRect();
+      const box = content.getBoundingClientRect();
+      const style = getComputedStyle(content);
+
+      // Each side: the panes the content actually reaches past, the far edge among them, and
+      // the outer spacing of the OUTERMOST one — two adjacent floating panes double their gap
+      // at the boundary between them (§27's deferred split), so the frame-edge distance is
+      // the only one that is the pane's own.
+      const sides = [
+        { name: "inline-start", sel: ".kui-shell-rail, .kui-shell-sidebar",
+          under: (r: DOMRect) => r.right > box.left + 1,
+          reach: (r: DOMRect) => r.right - box.left, edge: (r: DOMRect) => r.left - frame.left },
+        { name: "inline-end", sel: ".kui-shell-inspector",
+          under: (r: DOMRect) => r.left < box.right - 1,
+          reach: (r: DOMRect) => box.right - r.left, edge: (r: DOMRect) => frame.right - r.right },
+        { name: "block-start", sel: ".kui-shell-header",
+          under: (r: DOMRect) => r.bottom > box.top + 1,
+          reach: (r: DOMRect) => r.bottom - box.top, edge: (r: DOMRect) => r.top - frame.top },
+        { name: "block-end", sel: ".kui-shell-bottom",
+          under: (r: DOMRect) => r.top < box.bottom - 1,
+          reach: (r: DOMRect) => box.bottom - r.top, edge: (r: DOMRect) => frame.bottom - r.bottom },
+      ] as const;
+
+      for (const side of sides) {
+        const panes = [...rootEl.querySelectorAll<HTMLElement>(`:scope > :is(${side.sel})`)]
+          .filter((el) => !el.hasAttribute("data-flush") && el.checkVisibility?.())
+          // An OVERLAYING pane is lifted out of the frame's flow, so it leaves no reach
+          // behind it — read as the position it computes rather than as the attribute it
+          // carries, because `auto` resolves to an overlay on a narrow window and the
+          // attribute still says `auto` there.
+          .filter((el) => getComputedStyle(el).position !== "absolute")
+          .map((el) => el.getBoundingClientRect())
+          .filter((r) => r.width > 0 && r.height > 0 && side.under(r));
+        // NOT `continue` when the list is empty, which is the direction that matters most: a
+        // pane that has closed, overlaid or been hidden by the window leaves a reach of zero,
+        // and a length still claiming 304px is exactly the staleness this guard is for.
+        const real = panes.length
+          ? Math.max(...panes.map(side.reach)) + Math.min(...panes.map(side.edge))
+          : 0;
+        const published = parseFloat(style.getPropertyValue(`--kui-shell-inset-${side.name}`));
+        if (Math.abs(published - real) <= 1) continue;
+        warned = true;
+        console.warn(
+          `[kookie-ui] --kui-shell-inset-${side.name} says ${Math.round(published)}px, but the ` +
+            `floating pane the content reaches under ends ${Math.round(real)}px in. The ` +
+            "published safe area is the frame's own extent, so a pane that overrides its " +
+            "`width`, `height` or `size` makes it stale — a sibling cannot read another " +
+            "pane's inline style. State the extent as `--shell-sidebar-w` (or the inspector " +
+            "or bottom token) on the Shell instead, where the pane and the content read one " +
+            "number.",
+        );
+        return;
+      }
+    };
+
+    // Layout, not mount: the panes have to have been placed. A resize re-runs it because
+    // every one of these lengths is a distance in a laid-out frame.
+    const frame = requestAnimationFrame(check);
+    const resize = new ResizeObserver(check);
+    resize.observe(rootEl);
+    return () => {
+      cancelAnimationFrame(frame);
+      resize.disconnect();
+    };
+  });
 
   return (
     <ShellContext.Provider value={ctx}>

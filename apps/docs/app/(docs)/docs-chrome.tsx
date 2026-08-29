@@ -70,7 +70,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
     // browser chrome does not leave the shell taller than the screen it is in.
     <Box style={{ blockSize: "100dvh" }}>
       <Shell>
-        <ShellSidebar aria-label="Documentation">
+        <ShellSidebar aria-label="Documentation" flush={false}>
           {/* The unofficial header — pinned above the scroller by position alone (§27's
               pinned-stack rule; no part names exist and none are needed). */}
           <Stack gap="3">
@@ -114,31 +114,56 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
               area — `--kui-sf-p` inherits from the pane deliberately (§10, the bleed
               mechanism), so the trigger sits exactly where pinned content would start.
               Out of flow, so the reading column never budges when the sidebar opens; above
-              the chapters' own positioned content (the sticky TOC) by the z-index. */}
+              the chapters' own positioned content (the sticky TOC) by the z-index.
+
+              PLUS THE SHELL'S OWN SAFE AREA (§27, 2026-08-29). The sidebar floats, so this
+              pane's box starts at the window's edge and runs UNDER it — which is what lets a
+              wide page bleed behind the nav, and what would otherwise put this button
+              underneath it. `--kui-shell-inset-inline-start` is the reach the floating pane
+              leaves, published by the frame and zero the moment the sidebar closes or
+              overlays, so the button walks back to the pane's own corner with no branch
+              here. */}
           <Box
             style={{
               position: "absolute",
               insetBlockStart: "var(--kui-sf-p)",
-              insetInlineStart: "var(--kui-sf-p)",
+              insetInlineStart:
+                "calc(var(--kui-shell-inset-inline-start) + var(--kui-sf-p))",
               zIndex: 1,
             }}
           >
             <ShellTrigger
               target="sidebar"
               render={
-                <Button emphasis="quiet" iconOnly aria-label="Toggle navigation">
+                <Button
+                  emphasis="quiet"
+                  iconOnly
+                  aria-label="Toggle navigation"
+                >
                   <PanelLeftIcon />
                 </Button>
               }
             />
           </Box>
           <ShellScroll className="kd-scroll">
-            {/* The page states its own measure, deliberately. A chapter is a reading column
-                with a table of contents beside it; a component page is a reading column with
-                wide tables under it; the home page is neither. One max-width here would have
-                to be wrong for two of the three, and the version of this file that had one
-                left a third of the window empty on every page. */}
-            {children}
+            {/* AND THE READING COLUMN CLEARS THE SIDEBAR. The pane runs under the floating
+                nav, so without this the measure would centre itself over the whole window —
+                half of it behind the sidebar. The page's own frame centres inside whatever
+                room it is given, so giving it the room that is actually visible is the entire
+                fix; nothing here restates the sidebar's width, and nothing changes when the
+                sidebar closes, because the published reach is zero then.
+
+                It is stated HERE rather than on the pane so a page can still choose to bleed:
+                a section that wants to run behind the nav says `m="bleed"` against this
+                padding, which is the choice the reach exists to make possible. */}
+            <Box style={{ paddingInlineStart: "var(--kui-shell-inset-inline-start)" }}>
+              {/* The page states its own measure, deliberately. A chapter is a reading column
+                  with a table of contents beside it; a component page is a reading column with
+                  wide tables under it; the home page is neither. One max-width here would have
+                  to be wrong for two of the three, and the version of this file that had one
+                  left a third of the window empty on every page. */}
+              {children}
+            </Box>
           </ShellScroll>
         </ShellContent>
       </Shell>

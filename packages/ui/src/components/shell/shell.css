@@ -34,6 +34,94 @@
   inherits: false;
 }
 
+/* ONE CONTROL ROW, AT THE PANE'S OWN INDEX — a header's height and a rail's width are the
+   same number, and until 2026-08-29 they were two names for it (`--kui-shell-header-row`
+   and `--kui-shell-rail-square`), with the header's own comment saying so out loud: "a
+   header at an index is as tall as the rail at that index is wide". Collapsed when a THIRD
+   reader appeared: the content pane has to price a floating header's or rail's reach to
+   publish its own inset (below), and adding a third name for one number is the entropy this
+   repo keeps paying to remove. `inherits: false` for the same reason the two extents above
+   are — a Shell composed inside a pane would otherwise size its own panes from the outer
+   pane's index. */
+@property --kui-shell-row {
+  syntax: "*";
+  inherits: false;
+}
+
+/* THE SAFE AREA A FLOATING PANE LEAVES (§27, 2026-08-29, Kushagra: "some value, equivalent
+   of the space sidebar is taking including gaps padding etc, to make content act as if
+   sidebar is not floating, so that I can decide what content I want to bleed to edges and be
+   behind sidebar, and what isnt").
+
+   The underlap below is deliberate: a floating pane has to have something to float over, so
+   the content's grid area grows to that pane's own line and the content paints underneath it.
+   That is right for a hero image and wrong for a paragraph, and the choice is the app's — but
+   the app could not make it, because nothing said how far the reach was. Four lengths say it,
+   one per side, and the app spends them wherever it likes: `padding-inline-start`, a `margin`,
+   a `scroll-padding`, an `inset` on something floating in the pane's own corner.
+
+   They INHERIT, and that is the requirement rather than a default: the region an app wants
+   inset is usually deep inside the pane — under a `ShellScroll`, inside a page's own frame —
+   and a non-inheriting length would be readable only by the pane's direct children. The reset
+   is on the shell ROOT rather than the content pane, which is what stops a Shell composed
+   inside another Shell's content from handing the outer frame's reach to its own panes.
+
+   WHAT MAKES THEM RIGHT, and the one way to make them wrong. Each length is the frame's own
+   extent for that pane — the token width plus the gap either side, or one control row plus
+   the pane's padding and borders — so it is exact for a pane that takes what the frame gives
+   it. A pane that overrides its `width`, its `height` or its `size` is stating something only
+   that pane can see (`--kui-shell-w` is registered `inherits: false` on purpose, and a sibling
+   cannot read an inline style anyway), so the published length goes stale. That case warns in
+   development rather than being refused by the type: whether anything underlaps a pane depends
+   on a prop on a DIFFERENT component, which no type can see, so a refusal would have to cover
+   every floating pane including the many where nothing reaches underneath. An app that wants
+   another width states it as `--shell-sidebar-w` on the Shell, where the pane and the content
+   read one number.
+
+   REGISTERED `<length>`, and `inherits: true` is the one descriptor here that is not the
+   usual answer. A registered length computes to an absolute pixel value where it is declared
+   and inherits THAT, so a consumer reading it deep inside a scroller gets a number rather
+   than a token stream carrying `var()`s that would re-resolve against whatever element read
+   them. It is also what makes the reach measurable: an unregistered property comes back from
+   `getComputedStyle` as the text that was written, which no law could compare against a
+   pane's real box.
+
+   THE RESET IS `initial`, not `0px`, and that is the `--kui-shell-outer` sentence one
+   registration down: the descriptor is the one place a zero length is not a raw literal, so
+   writing the zero twice would be a second home for "no reach". `initial` on a registered
+   property resolves to its registered initial value — which is what the reset means, said
+   once. (The tokens-only law catches the other spelling, and did.) */
+@property --kui-shell-inset-inline-start {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@property --kui-shell-inset-inline-end {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@property --kui-shell-inset-block-start {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@property --kui-shell-inset-block-end {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+.kui-shell {
+  --kui-shell-inset-inline-start: initial;
+  --kui-shell-inset-inline-end: initial;
+  --kui-shell-inset-block-start: initial;
+  --kui-shell-inset-block-end: initial;
+}
+
 /* THE PANE'S OWN OUTER SPACING, published so the overlay cap can subtract it (2026-08-26
    audit). The cap bounds a drawer's BORDER box against the frame; a non-flush pane then adds
    its margin outside that box, so the dismissal strip the cap exists to guarantee came out
@@ -112,6 +200,12 @@
    38.712px against 40, and the reason the drawer's restatement below is read as an AGREEMENT
    with a pulled-off pane rather than against a number). */
 .kui-shell-pane {
+  /* Size 2, the unstamped rest — the PER-INDEX arms live in the shell pane join
+     (system/surfaces.css), because a component sheet may not name `data-size`. They
+     out-rank this default at (0,2,0) over (0,1,0), whichever file loads first. On the PANE
+     rather than on the header and the rail: the content pane reads it too, to price a
+     floating neighbour's reach. */
+  --kui-shell-row: var(--control-height-2);
   min-inline-size: 0;
   min-block-size: 0;
   overflow: auto;
@@ -141,17 +235,11 @@
 
    A FLOOR, not a height: something taller than the row grows the header rather than being
    clipped by it. The per-index arms live in the shell pane join (system/surfaces.css),
-   because a component sheet may not name `data-size`; this is the size-2 rest. */
-@property --kui-shell-header-row {
-  syntax: "*";
-  inherits: false;
-}
-
+   because a component sheet may not name `data-size`; the size-2 rest is on the pane. */
 .kui-shell-header {
   grid-area: header;
-  --kui-shell-header-row: var(--control-height-2);
   box-sizing: content-box;
-  min-block-size: var(--kui-shell-header-row);
+  min-block-size: var(--kui-shell-row);
   display: grid;
   align-content: center;
   /* A header does not scroll — its box is its row. `visible` on the block axis keeps the
@@ -172,17 +260,8 @@
    contents answer, which is the icon-box finding (2026-08-10) one level up. So it derives,
    and it derives from the SIZE the pane was given: `--control-height-N` is the same token
    the control size join hands every control, read here by a surface that stamps the index. */
-@property --kui-shell-rail-square {
-  syntax: "*";
-  inherits: false;
-}
-
 .kui-shell-rail {
   grid-area: rail;
-  /* Size 2, the unstamped rest — the PER-INDEX arms live in the shell pane join
-     (system/surfaces.css), because a component sheet may not name `data-size`. They
-     out-rank this default at (0,2,0) over (0,1,0), whichever file loads first. */
-  --kui-shell-rail-square: var(--control-height-2);
   /* CONTENT-box, and the half pixel is why. A pane is border-box like everything else here,
      so a flush rail's own seam hairline came out of the derived extent rather than sitting
      outside it: the square landed 3.5px from the edge against a designed 4, and it would
@@ -193,7 +272,7 @@
      now the pane's own padding rather than a number of the rail's, so the extent IS the
      square and the padding does what padding does. */
   box-sizing: content-box;
-  inline-size: var(--kui-shell-rail-square);
+  inline-size: var(--kui-shell-row);
 }
 
 .kui-shell-sidebar {
@@ -649,7 +728,7 @@
    order-independent and does not need a `:not([data-presentation])` guard — one of those
    would have killed floating for the `auto` panes that are the common case. */
 :where(.kui-shell:has(> .kui-shell-content[data-flush]))
-  > .kui-shell-pane:where(:not([data-flush])) {
+  > .kui-shell-pane:where(:not([data-flush]):not([data-state="closed"]):not([data-presentation="overlay"])) {
   z-index: 1;
 }
 
@@ -686,6 +765,7 @@
   grid-column-start: rail-start;
 }
 
+
 .kui-shell:has(> .kui-shell-inspector:not([data-flush])) > .kui-shell-content[data-flush] {
   grid-column-end: inspector-end;
 }
@@ -696,6 +776,58 @@
 
 .kui-shell:has(> .kui-shell-bottom:not([data-flush])) > .kui-shell-content[data-flush] {
   grid-row-end: bottom-end;
+}
+
+/* ── The reach, published ──────────────────────────────────────────────────────────────────
+   The four `--kui-shell-inset-*` lengths of the head note, one rule per side. They are NOT
+   declared on the placement rules above, and the difference is the point: a placement is a
+   no-op when the pane it names is not there (the track collapses to zero and `sidebar-start`
+   IS `content-start`), while a LENGTH is simply wrong. So the reach asks the stricter
+   question — is this pane actually standing in the frame's flow — which a closed pane, an
+   overlaying pane and a detail pane resting shut all answer no to.
+
+   The state arms differ per pane because `auto` differs per pane (§27's own table): a nav
+   column rests OPEN on a roomy window and a detail pane rests SHUT, so only the second needs
+   `auto` excluded here. The narrow block at the foot of this file has the other half — there
+   an `auto` nav column overlays, and an overlaying pane leaves no reach behind it.
+
+   THE GUARDS SIT IN `:where()`, and that is the z-index rule's mechanism a few hundred lines
+   up, for its reason: `:has()` takes the specificity of its most specific argument, so a
+   chain of four `:not([attr])` would have made these rules (0,7,0) and (0,11,0) — heavy
+   enough that the narrow block, which has to overrule them and gains no weight from being in
+   a media query, could not. Zeroed, the reach rules sit at (0,4,0) and (0,5,0) and one plain
+   selector overrules them all. */
+.kui-shell:has(> .kui-shell-sidebar:where(:not([data-flush]):not([data-state="closed"]):not([data-presentation="overlay"]))) > .kui-shell-content[data-flush] {
+  --kui-shell-inset-inline-start: calc(var(--shell-sidebar-w) + 2 * var(--shell-gap));
+}
+
+/* Two floating columns are ONE reach, and it is the rail's line the content grows to, so the
+   inset owes both tracks. Two mutually exclusive selectors rather than a sum through a
+   private term: a sum needs a second name for the sidebar's reach, and that name would then
+   need its own reset for the same nested-Shell reason the four above have. Both out-rank the
+   sidebar's own rule, so neither depends on source order. The guard that keeps a FLUSH
+   sidebar standing between the rail and the content from claiming the rail's line is the
+   placement rule's, restated: there the content does not reach the rail at all. */
+.kui-shell:has(> .kui-shell-rail:where(:not([data-flush]):not([data-state="closed"]):not([data-presentation="overlay"]))):has(> .kui-shell-sidebar:where(:not([data-flush]):not([data-state="closed"]):not([data-presentation="overlay"])))
+  > .kui-shell-content[data-flush] {
+  --kui-shell-inset-inline-start: calc(calc(var(--kui-shell-row) + 2 * var(--kui-sf-p) + 2 * var(--border-width) + 2 * var(--shell-gap)) + calc(var(--shell-sidebar-w) + 2 * var(--shell-gap)));
+}
+
+.kui-shell:has(> .kui-shell-rail:where(:not([data-flush]):not([data-state="closed"]):not([data-presentation="overlay"]))):not(:has(> .kui-shell-sidebar))
+  > .kui-shell-content[data-flush] {
+  --kui-shell-inset-inline-start: calc(var(--kui-shell-row) + 2 * var(--kui-sf-p) + 2 * var(--border-width) + 2 * var(--shell-gap));
+}
+
+.kui-shell:has(> .kui-shell-inspector:where(:not([data-flush]):not([data-state="closed"]):not([data-state="auto"]):not([data-presentation="overlay"]))) > .kui-shell-content[data-flush] {
+  --kui-shell-inset-inline-end: calc(var(--shell-inspector-w) + 2 * var(--shell-gap));
+}
+
+.kui-shell:has(> .kui-shell-header:not([data-flush])) > .kui-shell-content[data-flush] {
+  --kui-shell-inset-block-start: calc(var(--kui-shell-row) + 2 * var(--kui-sf-p) + 2 * var(--border-width) + 2 * var(--shell-gap));
+}
+
+.kui-shell:has(> .kui-shell-bottom:where(:not([data-flush]):not([data-state="closed"]):not([data-state="auto"]):not([data-presentation="overlay"]))) > .kui-shell-content[data-flush] {
+  --kui-shell-inset-block-end: calc(var(--shell-bottom-h) + 2 * var(--shell-gap));
 }
 
 /* ── The pane's scrolling region (§27, 2026-08-20) ─────────────────────────────────────────
@@ -971,6 +1103,31 @@
     inset-inline-start: 0;
     max-inline-size: calc(100% - var(--touch-target-min) - 2 * var(--kui-shell-outer));
     z-index: 2;
+  }
+
+  /* AND AN OVERLAYING COLUMN LEAVES NO REACH BEHIND IT — the other half of the published safe
+     area (§27). Above, the reach rules exclude `[data-presentation="overlay"]`; here `auto`
+     resolves to the same treatment, so the same exclusion has to be restated for the resolved
+     value. This is the block's own standing hazard, twice recorded: a fact stated for the
+     explicit path and forgotten on the auto path is the path every phone takes. Stated as
+     `initial` for the same reason the root's reset is — the descriptor owns the zero.
+
+     (0,6,0) against the reach rules' (0,4,0) and (0,5,0), so it wins on RANK and not on
+     order — measured, not counted. `:not([data-flush])` earns its place twice: a flush nav
+     column has no reach to take away, and it is the sixth term. Two selectors rather than
+     one `:is()`: a component sheet may not use `:is()` at all (ENGINEERING §2.1, so that no
+     dress rule can tie with a state remap), and the law caught this written the short way.
+
+     THE ONE COMBINATION THIS GETS WRONG, stated rather than hidden: a frame with BOTH nav
+     columns where one is `fixed` and the other `auto`. On a narrow window the fixed one still
+     stands and this rule zeroes the whole side, so a region inset by the length sits under it.
+     Nobody builds that frame — `auto` is the default for both columns — and the development
+     guard measures it, which is the whole reason the guard measures rather than reads props. */
+  .kui-shell:has(> .kui-shell-rail[data-presentation="auto"]:not([data-flush]))
+    > .kui-shell-content[data-flush],
+  .kui-shell:has(> .kui-shell-sidebar[data-presentation="auto"]:not([data-flush]))
+    > .kui-shell-content[data-flush] {
+    --kui-shell-inset-inline-start: initial;
   }
 
   .kui-shell-inspector[data-presentation="auto"] {

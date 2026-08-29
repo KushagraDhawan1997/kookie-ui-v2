@@ -955,7 +955,15 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
       "system/clip.tsx": ["new ResizeObserver", "requestAnimationFrame"],
       // The shell's overlay Escape, moved off `document` so a Dialog inside a pane does not
       // dismiss the pane under it (audit 2026-08-16). A keydown is not interaction-time paint.
-      "components/shell/shell.tsx": ['addEventListener("keydown'],
+      // The observer and the frame are the DEV-ONLY safe-area guard (§27, 2026-08-29), Box's
+      // own shape: it compares the published `--kui-shell-inset-*` against where the floating
+      // panes actually are, on the layout frame and on resize, never on hover, press, focus or
+      // scroll. It writes no style and it is stripped from the build.
+      "components/shell/shell.tsx": [
+        'addEventListener("keydown',
+        "new ResizeObserver",
+        "requestAnimationFrame",
+      ],
     };
     const banned =
       /on(?:Pointer|Mouse|Touch)(?:Move|Enter|Leave|Over|Out|Down|Up)\s*=|addEventListener\(\s*["'](?:pointer|mouse|touch|scroll|wheel|keydown)|new (?:Resize|Mutation|Intersection)Observer|requestAnimationFrame|setInterval/g;
@@ -1576,6 +1584,14 @@ describe("tokens only: no raw length literals in a hand-authored stylesheet (non
       // gives it nothing, and that is 0px by definition. Exempting the descriptor rather than
       // the whole @property block, so a real literal inside one still fails.
       .replace(/^\s*initial-value:[^;]*;/gm, "")
+      // …and a `var()` FALLBACK of zero is the same descriptor by another spelling (2026-08-29).
+      // The exemption above says a registered <length> "must declare the value it computes to
+      // when the cascade gives it nothing, and that is 0px by definition"; a name the RUNNER
+      // writes cannot be registered — `--kui-fly-bw` is read as `var(--kui-fly-bw, auto)` on the
+      // body, and an `initial-value` would make that fallback unreachable and size every settled
+      // floating body at zero — so the same declaration is made at the reader instead. Matched
+      // STRUCTURALLY, by position inside a `var()`, so a real literal anywhere else still fails.
+      .replace(/var\(\s*--[\w-]+\s*,\s*0px\s*\)/g, "var(--zero)")
       // At-rule PRELUDES are not declarations. `@supports (backdrop-filter: blur(1px))` asks
       // the engine a question; it is the one place a length is a feature-detection token and
       // cannot be a `var()`. Removing the prelude and keeping the body is what lets the
