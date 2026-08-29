@@ -93,6 +93,10 @@ export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
             <Button
               emphasis="quiet"
               iconOnly
+              /* It floats in the sidebar's chrome band since 2026-08-30, with rows passing
+                 behind it — which is exactly what the material defends (§10), so it states
+                 its backdrop. */
+              backdrop
               onClick={() => setOpen(true)}
               aria-label="Search the documentation"
             >

@@ -30,7 +30,10 @@ export function AppearanceToggle() {
       items={LABELS}
       onValueChange={(value) => setAppearance(value as AppearanceChoice)}
     >
-      <SelectTrigger aria-label="Appearance" />
+      {/* `backdrop` since 2026-08-30: the toggle floats in the sidebar's footer band and
+          nav rows pass behind it (§10 — a floating control over content is what the
+          material defends). */}
+      <SelectTrigger aria-label="Appearance" backdrop />
       <SelectContent>
         {CHOICES.map((c) => (
           <SelectItem key={c} value={c}>
