@@ -1280,6 +1280,27 @@
        the page — high contrast's one glass lever is the veil (Kushagra: "we increased
        veil, why should there any other difference"). */
     --kui-border-color: transparent;
+    /* AND THE BAND GOES WITH THE COLOUR (§10, 2026-08-27, Kushagra: "this 1px border on glass,
+       only glass, bothers me"). Standing the colour down left the WIDTH, and a transparent
+       border still reserves a band the fill paints into — so a glass pane drew its veil for one
+       pixel OUTSIDE the ring, and the ring, sitting on the padding box, became a second line
+       inboard of it. Measured across a thick pane's left edge in device pixels: page 232, veil
+       252, ring 223, veil 245 — a lit rim and then a dark one, which is the doubled edge this
+       material has been read as having. At width 0 the padding box IS the border box and the
+       sequence is page 232, ring 223, veil 245: the ring is the boundary, with nothing outside
+       it, which is what §10 has claimed since the lab port.
+
+       Two alternatives were built and measured first. Moving the pseudos out to the border box
+       deletes the ring instead of moving it (the arc reads 244 against 223 — `overflow: clip`
+       takes the outermost pixel), and clipping the fill to the padding box only dims the rim
+       to 246 and leaves both lines standing. Only the width answers it.
+
+       WHAT IT COSTS is one pixel of content inset: with `box-sizing: border-box` the pane's
+       outer size does not move, but its content box grows by the band, so a glass pane's
+       contents sit a pixel nearer its edge than a solid pane's. Left uncompensated on purpose
+       — padding here is 16px and up, the two are rarely adjacent (material is a Theme
+       property), and compensating means re-declaring `--kui-sf-p`, which `m="bleed"` reads. */
+    border-width: 0;
     --kui-sf-pool: var(--kui-surface-pool, 0 0 0 0 transparent);
 
 
@@ -1300,6 +1321,27 @@
        the page — high contrast's one glass lever is the veil (Kushagra: "we increased
        veil, why should there any other difference"). */
     --kui-border-color: transparent;
+    /* AND THE BAND GOES WITH THE COLOUR (§10, 2026-08-27, Kushagra: "this 1px border on glass,
+       only glass, bothers me"). Standing the colour down left the WIDTH, and a transparent
+       border still reserves a band the fill paints into — so a glass pane drew its veil for one
+       pixel OUTSIDE the ring, and the ring, sitting on the padding box, became a second line
+       inboard of it. Measured across a thick pane's left edge in device pixels: page 232, veil
+       252, ring 223, veil 245 — a lit rim and then a dark one, which is the doubled edge this
+       material has been read as having. At width 0 the padding box IS the border box and the
+       sequence is page 232, ring 223, veil 245: the ring is the boundary, with nothing outside
+       it, which is what §10 has claimed since the lab port.
+
+       Two alternatives were built and measured first. Moving the pseudos out to the border box
+       deletes the ring instead of moving it (the arc reads 244 against 223 — `overflow: clip`
+       takes the outermost pixel), and clipping the fill to the padding box only dims the rim
+       to 246 and leaves both lines standing. Only the width answers it.
+
+       WHAT IT COSTS is one pixel of content inset: with `box-sizing: border-box` the pane's
+       outer size does not move, but its content box grows by the band, so a glass pane's
+       contents sit a pixel nearer its edge than a solid pane's. Left uncompensated on purpose
+       — padding here is 16px and up, the two are rarely adjacent (material is a Theme
+       property), and compensating means re-declaring `--kui-sf-p`, which `m="bleed"` reads. */
+    border-width: 0;
     --kui-sf-pool: var(--kui-surface-pool, 0 0 0 0 transparent);
     --kui-sf-cast: var(--kui-surface-chrome-regular, none);
   }
@@ -1318,6 +1360,27 @@
        the page — high contrast's one glass lever is the veil (Kushagra: "we increased
        veil, why should there any other difference"). */
     --kui-border-color: transparent;
+    /* AND THE BAND GOES WITH THE COLOUR (§10, 2026-08-27, Kushagra: "this 1px border on glass,
+       only glass, bothers me"). Standing the colour down left the WIDTH, and a transparent
+       border still reserves a band the fill paints into — so a glass pane drew its veil for one
+       pixel OUTSIDE the ring, and the ring, sitting on the padding box, became a second line
+       inboard of it. Measured across a thick pane's left edge in device pixels: page 232, veil
+       252, ring 223, veil 245 — a lit rim and then a dark one, which is the doubled edge this
+       material has been read as having. At width 0 the padding box IS the border box and the
+       sequence is page 232, ring 223, veil 245: the ring is the boundary, with nothing outside
+       it, which is what §10 has claimed since the lab port.
+
+       Two alternatives were built and measured first. Moving the pseudos out to the border box
+       deletes the ring instead of moving it (the arc reads 244 against 223 — `overflow: clip`
+       takes the outermost pixel), and clipping the fill to the padding box only dims the rim
+       to 246 and leaves both lines standing. Only the width answers it.
+
+       WHAT IT COSTS is one pixel of content inset: with `box-sizing: border-box` the pane's
+       outer size does not move, but its content box grows by the band, so a glass pane's
+       contents sit a pixel nearer its edge than a solid pane's. Left uncompensated on purpose
+       — padding here is 16px and up, the two are rarely adjacent (material is a Theme
+       property), and compensating means re-declaring `--kui-sf-p`, which `m="bleed"` reads. */
+    border-width: 0;
     --kui-sf-pool: var(--kui-surface-pool, 0 0 0 0 transparent);
     --kui-sf-cast: var(--kui-surface-chrome-thick, none);
   }
@@ -1328,10 +1391,36 @@
    collect opposite; thick's splits into spectral stops. Conic, not linear (lab 2026-08-15):
    a linear gradient cannot wrap a ring — its bright band terminates where the corner curves
    away, while a conic's first and last stops meet, so there is no seam anywhere. Painted by
-   an ::after so it can sit ON the padding box and wrap the squircle (border-image cannot
-   follow corner-shape); masked to its own 1px annulus. The angle is fixed at the light
-   model's 165°: the pointer-tracked version stays in the lab — JS at interaction time, and
-   a second light model against the one the shadow palette commits to. */
+   an ::after so it can wrap the squircle (border-image cannot follow corner-shape); masked
+   to its own 1px annulus. The angle is fixed at the light model's 165°: the pointer-tracked
+   version stays in the lab — JS at interaction time, and a second light model against the
+   one the shadow palette commits to.
+
+   `inset: 0` PUTS THE RING ONE BORDER-WIDTH INSIDE THE PANE'S EDGE, and that is the design
+   rather than an accident of the box model — established 2026-08-27, when it was read as a
+   defect and the repair was built, rendered and thrown away. Kushagra, from DevTools: "the
+   before element doesnt sit edge to edge with actual card, where is that 2px offset coming
+   from". The offset is real and it is exactly what makes the lip CRISP: an absolutely
+   positioned box resolves `inset: 0` against its containing block's PADDING box, so the
+   annulus lands one pixel in, with the pane's own flat veil on BOTH of its sides. A 1px line
+   needs flat ground either side to read as a line.
+
+   The repair — `inset: calc(-1 * var(--border-width))`, spanning the border box — was correct
+   about every geometric claim and wrong about the only one that matters. It brought the
+   annulus into the band the transparent border reserves, put `border-radius: inherit` on the
+   box a border-radius actually describes, and squared the glint mask below with the box the
+   hook mints it for (`getBoundingClientRect()` is the BORDER box). Then it was screenshotted
+   at 4x beside the shipped spelling: the ring stops being a line. At the outer boundary its
+   far side is antialiased against the world and composited with the cast, so the crisp lip
+   became a soft gradient — "now I have lost that sharpness and edge work that I had". The
+   tidier geometry buys nothing anyone can see and spends the thing the material is for.
+
+   So the offset stays, and what remains genuinely misaligned is the MASK, not the box: the
+   hook measures the border box and the band paints on the padding box. The fix for that half
+   is to mint the mask for the box it lands on — recorded, not taken, because it is sub-pixel
+   and this is where the next person will come looking. `overflow: clip` was measured on the
+   way and does not bear on it either way: Chromium's clip edge for `clip` is the border box,
+   so a pseudo at -1px does paint in the band. It simply should not. */
 .kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
   position: relative;
 }
@@ -1384,6 +1473,11 @@
 .kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before {
   content: "";
   position: absolute;
+  /* The padding box, in step with the ring above — the band and the lip are one bezel in two
+     renderings, so whatever inset one takes the other takes. Known cost, measured and left:
+     the mask is minted from `getBoundingClientRect()` (the BORDER box) and stretched by
+     `mask-size: 100% 100%` onto a box one border-width smaller, so the band's bezel sits a
+     hair inboard of the lens's. See the ring's note for why moving the BOX is not the repair. */
   inset: 0;
   border-radius: inherit;
   corner-shape: inherit;
@@ -1580,6 +1674,16 @@
        (audit 2026-08-18). A sealed pane has no light left to speak with, so the ring stands
        down with the rim below and the pigment line is the boundary. */
     --kui-border-color: var(--tone-border);
+    /* AND THE BAND COMES BACK WITH IT (2026-08-27). The glass rules above set `border-width: 0`
+       so the ring can be the pane's outermost pixel with no veil rim outside it — which is
+       correct exactly while the ring is what draws the boundary. Here it is not: the ring
+       stands down one line below, and the pigment hairline takes over. Restoring the colour
+       without the width paints nothing, and this is the ONE state where that leaves a pane
+       with no boundary of any kind. Measured before it shipped: colour
+       `color(display-p3 0.8507 …)` on a border of `0px`, with the law that guards this arm
+       green throughout — it read the colour and never the width, one indirection short of
+       the thing that was wrong. */
+    border-width: var(--border-width);
     --material-ring-opacity: 0;
     background-image: none;
     /* A sealed pane is no longer glass, so it stops transmitting: dropping its own cast lets

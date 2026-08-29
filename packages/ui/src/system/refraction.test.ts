@@ -70,9 +70,12 @@ describe("the lens ladder: three thicknesses bend by three amounts (§10)", () =
     expect(bends[0]).toBeLessThan(bends[1]!);
     expect(bends[1]).toBeLessThan(bends[2]!);
     // And each step is worth seeing: a rung that bends a third of a pixel more than its
-    // neighbour is a number, not a material.
-    expect(bends[1]! - bends[0]!).toBeGreaterThan(2);
-    expect(bends[2]! - bends[1]!).toBeGreaterThan(2);
+    // neighbour is a number, not a material. The floor was 2 until 2026-08-27, when the lip
+    // narrowed 4x (the bench's bezel dial at 0.25x) and the whole ladder scaled down with it —
+    // the solved steps are 1.46 and 1.93 now, and what reaches the screen is these times
+    // `boost`, which the applied law below still holds to the original 2px floor.
+    expect(bends[1]! - bends[0]!).toBeGreaterThan(1);
+    expect(bends[2]! - bends[1]!).toBeGreaterThan(1);
   });
 
   it("bends further at every step AFTER `boost`, which is what reaches the screen (§10)", () => {
@@ -161,9 +164,16 @@ describe("a clamped lip takes its depth with it (§10)", () => {
   it("scales the depth by exactly what the lip lost", () => {
     // Stated as the RATIO rather than as a recomputed number: the depth and the lip must
     // shrink together, which is what holds the slope the rung was judged at.
+    //
+    // The fixture shrank with the ladder (2026-08-27): at bezels 3/4.5/6.5 a 24px box no
+    // longer clamps ANY rung — the premise assertion below failed on every one, which is the
+    // degenerate-fixture rule doing its job. 8px is the largest box where all three rungs
+    // still clamp (cap = floor(8/2) - 2 = 2), and the three ratios it produces differ per
+    // rung, so the fixture still tells a right implementation from a broken one.
+    const CLAMPED = 8;
     for (const r of LADDER) {
       const p = lens[r];
-      const fit = fitLens(p, SMALL)!;
+      const fit = fitLens(p, CLAMPED)!;
       expect(fit.bezel).toBeLessThan(p.bezel); // the premise: this box really does clamp
       expect(fit.thickness / p.thickness).toBeCloseTo(fit.bezel / p.bezel, 10);
     }

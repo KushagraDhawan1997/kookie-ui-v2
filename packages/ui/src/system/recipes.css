@@ -1698,6 +1698,7 @@
     background-origin: border-box;
   }
   .kui-button:where([data-material="thin"]),
+  .kui-atom:where([data-material="thin"]),
   .kui-segmented:where([data-material="thin"]),
   .kui-field:where([data-material="thin"]),
   .kui-textarea:where([data-material="thin"]) {
@@ -1714,6 +1715,7 @@
       var(--kui-ct-light, none);
   }
   .kui-button:where([data-material="regular"]),
+  .kui-atom:where([data-material="regular"]),
   .kui-segmented:where([data-material="regular"]),
   .kui-field:where([data-material="regular"]),
   .kui-textarea:where([data-material="regular"]) {
@@ -1730,6 +1732,7 @@
       var(--kui-ct-light, none);
   }
   .kui-button:where([data-material="thick"]),
+  .kui-atom:where([data-material="thick"]),
   .kui-segmented:where([data-material="thick"]),
   .kui-field:where([data-material="thick"]),
   .kui-textarea:where([data-material="thick"]) {
@@ -1854,7 +1857,8 @@
    conic light masked to its own 1px annulus, per-thickness per-mode tokens, the fixed 165°
    light. Buttons only — a glass FIELD's edge is its translucent border (state arms need a
    border to stand down), and on-glass members are flush with their pane and take nothing. */
-.kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
+.kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"]),
+.kui-atom:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
   position: relative;
   /* ONE LINE, NEVER TWO (§10, audit 2026-08-26). `bordered` is Button's emphasis half-step
      and §10 explicitly sanctions composing it with a material, so `<Button bordered backdrop>`
@@ -1877,10 +1881,48 @@
      only edge it has. */
   --kui-ct-glass-edge: transparent;
 }
+/* THE ATOM FAMILY JOINS THE GLASS RULES (§10, 2026-08-28, Kushagra: a glass Badge "doesnt
+   look even close to how button looks"). It was two of the five parts — the veil and the
+   filter, both correct — and none of the light: measured against a glass Button in the same
+   document, the badge's ::after and ::before were `content: none` and its background-image
+   `none`, so it took the fog and left the ring, the rim and the glint behind.
+
+   The cause is the shape this repo keeps finding: Badge grew `backdrop` on 2026-08-26, TWO
+   DAYS after the glass contract was locked on 2026-08-24, and every rule the contract is made
+   of names `.kui-control`, `.kui-field`, `.kui-textarea` or `.kui-surface`. A member that
+   joins after a rule set is written inherits nothing. The fix is a selector list, not a value:
+   the atom twins consume exactly the tokens the button consumes, so the two cannot drift.
+
+   KEYED ON `.kui-atom`, NOT `.kui-badge`, and the guard is `[data-material]` rather than the
+   class. `Code` and `Kbd` refuse `backdrop` by their types, so they can never match — and if
+   an atom is ever given the prop, it arrives with the light already correct instead of
+   repeating this defect.
+
+   THE GLINT IS NOT HERE EITHER, and a law caught me trying. The glint's `::before` samples a
+   per-box lens mask, which costs an ImageData pass and a PNG encode on every mount — and
+   `refraction.browser.test.tsx` asserts the biconditional that a mask is minted exactly where
+   the cascade has a layer to put it on. That law was written on 2026-08-26 as a performance
+   repair for this very component, when a glass badge was doing the encode for a property with
+   nowhere to land. Widening the CSS without widening the JS gate would have painted the band
+   unmasked; widening both would make every badge in a list pay for a second map. The ring and
+   the rim are free by comparison — the ring's mask is two linear-gradients composited in CSS
+   — and they are what the eye was reading as missing.
+
+   WHAT IS DELIBERATELY NOT HERE IS THE POOL. A glass Button casts; a Badge is flat, and that
+   flatness is a shipped law about what a badge IS beside a Kbd, which casts always. §10 lets
+   a member vary WHERE a part is painted and the grips already gave up their cast on glass
+   (2026-08-24), so a flat member staying flat is inside the contract. If a floating badge
+   turns out to need separation from what is behind it, that is a judgment about the atom
+   family's own identity and not a hole in this fix. */
 .kui-segmented[data-material]::after,
-.kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after {
+.kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after,
+.kui-atom:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after {
   content: "";
   position: absolute;
+  /* The padding box — one border-width inside the control's own edge, which is what gives the
+     annulus flat fill on both sides and makes it read as a line. surfaces.css's ring rule
+     carries the argument, the screenshot and the repair that was built and reverted
+     (2026-08-27). One fact, one spelling: a control's lip sits where a pane's does. */
   inset: 0;
   border-radius: inherit;
   corner-shape: inherit;
@@ -1897,14 +1939,17 @@
   opacity: var(--material-ring-opacity, 1);
 }
 .kui-segmented:where([data-material="thin"])::after,
+.kui-atom:where([data-material="thin"])::after,
 .kui-button:where([data-material="thin"])::after {
   background: var(--material-thin-ring-control);
 }
 .kui-segmented:where([data-material="regular"])::after,
+.kui-atom:where([data-material="regular"])::after,
 .kui-button:where([data-material="regular"])::after {
   background: var(--material-regular-ring-control);
 }
 .kui-segmented:where([data-material="thick"])::after,
+.kui-atom:where([data-material="thick"])::after,
 .kui-button:where([data-material="thick"])::after {
   background: var(--material-thick-ring-control);
 }
@@ -1928,6 +1973,7 @@
 .kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before {
   content: "";
   position: absolute;
+  /* The padding box, in step with the ring above. See surfaces.css's glint. */
   inset: 0;
   border-radius: inherit;
   corner-shape: inherit;

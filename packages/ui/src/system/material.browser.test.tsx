@@ -440,3 +440,73 @@ describe("high contrast raises the control veil's floor (§10)", () => {
     }
   });
 });
+
+/**
+ * §10 — A GLASS PANE'S RING IS ITS OUTERMOST PIXEL (2026-08-27).
+ *
+ * Kushagra, three readings of the same edge over two days: first "I see the effect at a
+ * distance inside, so it makes it seem like I have two outlines", then the DevTools finding
+ * that the ring's pseudo is 2px narrower than the card, then "this 1px border on glass, only
+ * glass, bothers me". All one defect, and the pixels name it exactly. Scanned across a thick
+ * pane's left edge in device pixels, before: page 232, veil 252, RING 223, veil 245 — the
+ * ring sat on the padding box, and the transparent border's reserved band painted a pixel of
+ * undarkened veil outside it. A lit rim, then a dark one. Two outlines, as reported.
+ *
+ * The band goes, and only the band: `border-width: 0` under each glass rung, so the padding
+ * box IS the border box and the sequence becomes page 232, ring 223, veil 245.
+ *
+ * TWO OTHER REPAIRS WERE BUILT AND MEASURED FIRST, and both are worth staying rejected.
+ * Moving the pseudos out to the border box DELETES the ring rather than moving it (the arc
+ * measured 244 against 223 — `overflow: clip` takes the outermost pixel), which is why the
+ * first attempt at this read as "lost sharpness". Clipping the fill to the padding box only
+ * dims the rim from 252 to 246 and leaves both lines standing.
+ *
+ * WHAT THIS LAW GUARDS is the state where the rule inverts. A sealed pane (reduced
+ * transparency) stands the ring down and hands the boundary to the pigment hairline — so
+ * there the band must come BACK, or the setting that exists to make things plainer leaves a
+ * pane with no boundary at all. That shipped for the length of one edit and was caught by
+ * measuring rather than by the suite: the arm's own law reads the border COLOUR and never its
+ * width, so a pigment on a zero-width border satisfied it. Both halves are read here.
+ *
+ * Falsified in both arms: restoring `border-width` under the glass rungs fails the first with
+ * `a glass pane reserves a band outside its ring: expected 1 to be 0`; dropping it from the
+ * seal fails the second with `a sealed pane has a colour but no border to paint it on`.
+ */
+describe("a glass pane's ring is its edge, and the seal takes the band back (§10, 2026-08-27)", () => {
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: glass reserves no band, so nothing paints outside the ring`, () => {
+      const card = mounted(<Card backdrop>pane</Card>, { theme: { appearance, material: "regular" } });
+      expect(
+        parseFloat(computed(card, "border-top-width")),
+        "a glass pane reserves a band outside its ring",
+      ).toBe(0);
+      // CALIBRATION: a SOLID pane still reserves one, or this law is measuring a system with
+      // no borders in it at all rather than the one place they were removed.
+      const solid = mounted(<Card>pane</Card>, { theme: { appearance, material: "solid" } });
+      expect(
+        parseFloat(computed(solid, "border-top-width")),
+        "no pane reserves a band — this law no longer distinguishes glass",
+      ).toBeGreaterThan(0);
+    });
+
+    it(`${appearance}: a SEALED pane takes the band back, because the hairline is its boundary`, async () => {
+      const { cdp } = await import("vitest/browser");
+      await cdp().send("Emulation.setEmulatedMedia", {
+        features: [{ name: "prefers-reduced-transparency", value: "reduce" }],
+      });
+      try {
+        const sealed = mounted(<Card backdrop>pane</Card>, {
+          theme: { appearance, material: "regular" },
+        });
+        // The premise: the setting really reached the pane, so this is the sealed path.
+        expect(computed(sealed, "backdrop-filter"), "the setting never reached the pane").toBe("none");
+        const width = parseFloat(computed(sealed, "border-top-width"));
+        const color = computed(sealed, "border-top-color");
+        expect(color, "a sealed pane lost the pigment hairline").not.toBe("rgba(0, 0, 0, 0)");
+        expect(width, "a sealed pane has a colour but no border to paint it on").toBeGreaterThan(0);
+      } finally {
+        await cdp().send("Emulation.setEmulatedMedia", { features: [] });
+      }
+    });
+  }
+});

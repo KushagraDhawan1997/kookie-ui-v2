@@ -375,6 +375,16 @@ describe("the flight pins the body at the pane's OWN padding, on BOTH axes (§22
     const side = popup.getAttribute("data-side");
     const align = popup.getAttribute("data-align");
     expect(side, "the positioner stamped no side — the per-side arms cannot apply").toBeTruthy();
+    // A CENTRED AXIS HAS NO PADDING PIN, and saying so is what keeps this law from going vacuous
+    // (2026-08-29). Both fixtures below state `align="start"` for exactly this reason: on a
+    // centre-aligned panel the body is held by its own middle, so the axis `align` governs is
+    // pinned at 50% and reading a padding there measures nothing. It used to read 12px and pass,
+    // which was the OVER-CONSTRAINT's own output — two insets plus `margin: auto` on a box that
+    // did not fit resolve by dropping the end inset, leaving the start one showing the padding.
+    // The law was reading a defect and calling it the guarantee.
+    expect(align, "a centred axis is pinned by the body's middle, not by a padding").not.toBe(
+      "center",
+    );
     const blockEnd = side === "top" || align === "end";
     const inlineEnd = align === "end" && (side === "top" || side === "bottom");
     return {
@@ -395,7 +405,7 @@ describe("the flight pins the body at the pane's OWN padding, on BOTH axes (§22
         <div style={{ height: 200 }} />
         <Tooltip defaultOpen>
           <TooltipTrigger render={<Button>Undo</Button>} />
-          <TooltipContent>Undo the last change</TooltipContent>
+          <TooltipContent align="start">Undo the last change</TooltipContent>
         </Tooltip>
       </>,
       ".kui-tooltip-popup",
@@ -417,7 +427,7 @@ describe("the flight pins the body at the pane's OWN padding, on BOTH axes (§22
         <div style={{ height: 200 }} />
         <Popover defaultOpen>
           <PopoverTrigger render={<Button>Open</Button>} />
-          <PopoverContent aria-label="Details">Popover content here</PopoverContent>
+          <PopoverContent align="start" aria-label="Details">Popover content here</PopoverContent>
         </Popover>
       </>,
       ".kui-popover-popup",

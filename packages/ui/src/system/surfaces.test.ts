@@ -837,11 +837,18 @@ describe("the flight pins a panel's body at padding every panel HAS (§22)", () 
     // two differently — so the count is over both names together, and each must be reached (a
     // pair where one name is unused is the one-axis-of-two failure returning under a new
     // spelling).
+    //
+    // SEVEN since 2026-08-29, and the two that left did not stop being pinned. A CENTRED axis is
+    // held by the body's own middle (`inset: 50%` and a half-body negative margin), because two
+    // insets and an auto margin can only centre a box that fits and the body is held at its
+    // landed size while the pane is still growing into it. So the two centre arms pin by
+    // arithmetic rather than by a padding, and they are law-read as a SKEW in
+    // system/floating.browser.test.tsx instead. The floor is what still catches a mass revert.
     const bl = [...flight.matchAll(/var\(--kui-sf-p-block\)/g)].length;
     const inl = [...flight.matchAll(/var\(--kui-sf-p-inline\)/g)].length;
     expect(bl, "the flight's block-axis pin reads no per-axis padding").toBeGreaterThan(0);
     expect(inl, "the flight's inline-axis pin reads no per-axis padding").toBeGreaterThan(0);
-    expect(bl + inl, "the flight stopped reading the resolved padding").toBeGreaterThanOrEqual(9);
+    expect(bl + inl, "the flight stopped reading the resolved padding").toBeGreaterThanOrEqual(7);
     // The one-value name is what the pair replaced; a rule that reads it bare is a pane's block
     // inset answered with its inline one.
     expect(flight, "a flight rule still pins an axis with the one-value padding").not.toMatch(
@@ -860,5 +867,86 @@ describe("the flight pins a panel's body at padding every panel HAS (§22)", () 
     const join = raw("system/surfaces.css");
     expect(join).toContain("var(--kui-floating-p, var(--surface-p-1))");
     expect(join).toContain("var(--kui-floating-p, var(--surface-p-4))");
+  });
+});
+
+/**
+ * THE INSTANT EXEMPTION HAS TWO HOMES AND THEY MUST AGREE (§8, §22 — added 2026-08-29).
+ *
+ * Base UI stamps `data-instant` when a change "is not a reveal", and this system exempts the
+ * values that name an INPUT rather than a change. That set is stated twice, because the two
+ * halves do different work in different languages: `FLIES_ANYWAY` in system/floating.tsx decides
+ * whether the runner POSES the panel, and the `:not()` chain in surfaces.css decides whether any
+ * CLOCK runs. Exempt a value in one home only and you get a panel that is posed and never
+ * animates (it sits on its seed until the release timer strips it) or one that animates out of
+ * nothing.
+ *
+ * There was no such law until 2026-08-29 even though the runner's own comment named the
+ * obligation, and the coverage that existed was incidental and one-sided per value: three menu
+ * laws happen to fail if `dismiss` leaves either home or `click` leaves the runner, and nothing
+ * at all watched the stylesheet's `click`.
+ *
+ * It reads the two SOURCES rather than the two behaviours, which is the shape the fourteen
+ * private depth arrays were collapsed with (2026-08-16): a copy that agrees today is the copy
+ * that silently disagrees tomorrow, and the only thing that can catch that is reading both.
+ */
+describe("the instant exemption is one set stated twice, and the two agree (§8, §22)", () => {
+  const runner = raw("system/floating.tsx");
+  const css = raw("system/surfaces.css");
+
+  it("the runner's set and the stylesheet's guard name the same values", () => {
+    const declared = /const FLIES_ANYWAY = new Set\(\[([^\]]*)\]\)/.exec(runner);
+    if (!declared) throw new Error("FLIES_ANYWAY is gone or renamed — this law reads nothing");
+    const fromRunner = [...declared[1]!.matchAll(/"([^"]+)"/g)].map((m) => m[1]!).sort();
+    expect(fromRunner.length, "the runner exempts nothing").toBeGreaterThan(0);
+
+    // The stylesheet's stand-down: one selector carrying the whole chain, read off the FIRST
+    // arm. The three arms are asserted identical below, so reading one is reading all of them.
+    const stand = /\.kui-surface\.kui-floating\[data-instant\]((?::not\(\[data-instant="[^"]+"\]\))+)/.exec(css);
+    if (!stand) throw new Error("the instant stand-down is gone or respelled — this law reads nothing");
+    const fromCss = [...stand[1]!.matchAll(/data-instant="([^"]+)"/g)].map((m) => m[1]!).sort();
+
+    expect(fromCss, "the stylesheet exempts a different set from the runner").toEqual(fromRunner);
+  });
+
+  it("and every arm of the stand-down carries the whole chain", () => {
+    // A guard that exempts three values on the panel and two on its body is the same defect
+    // one element down: the box would fly and the print inside it would snap.
+    const arms = [...css.matchAll(/\.kui-surface\.kui-floating\[data-instant\]((?::not\(\[data-instant="[^"]+"\]\))+)/g)]
+      .map((m) => m[1]!);
+    expect(arms.length, "the stand-down lost its arms").toBeGreaterThanOrEqual(3);
+    expect(new Set(arms).size, "one arm of the instant stand-down exempts a different set").toBe(1);
+  });
+});
+
+/**
+ * THE TRIGGER GAP HAS ONE HOME (§22 — promoted and law-read 2026-08-29, the ultracode audit).
+ *
+ * `SIDE_OFFSET` was four private `const SIDE_OFFSET = 4` declarations, one in each anchored
+ * member, and two of them carried a comment saying the number was "deliberately shared rather
+ * than re-picked" directly above their own copy — as did the public JSDoc on both `sideOffset`
+ * props ("Defaults to the family's own"). No law read the value anywhere, so three of the four
+ * could drift while every comment in the package went on claiming they could not, and the person
+ * re-judging the gap had no reason to look for the others.
+ *
+ * It reads the SOURCE, which is the shape the fourteen private depth and thickness arrays were
+ * collapsed with on 2026-08-16, for the reason recorded there: a copy that agrees today is the
+ * copy that silently disagrees tomorrow, and only reading both can catch that. A mounted law
+ * measuring two panels at one distance would pass on four copies that happen to agree.
+ */
+describe("the floating family's trigger gap has one home (§22)", () => {
+  it("no member declares its own, and the shared one exists", () => {
+    const shared = raw("system/floating.tsx");
+    expect(shared, "the family's gap is gone from its own home").toMatch(
+      /export const SIDE_OFFSET = \d/,
+    );
+    for (const member of ["menu/menu", "select/select", "popover/popover", "tooltip/tooltip"]) {
+      const src = raw(`components/${member}.tsx`);
+      expect(src, `${member} re-declares the family's gap instead of importing it`).not.toMatch(
+        /^\s*const SIDE_OFFSET\s*=/m,
+      );
+      // …and it must actually REACH the component, or "one home" is a home nobody visits.
+      expect(src, `${member} does not use the family's gap at all`).toMatch(/SIDE_OFFSET/);
+    }
   });
 });

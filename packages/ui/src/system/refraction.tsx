@@ -195,9 +195,9 @@ export type LensThickness = Exclude<Material, "solid">;
  * as ONE dimension.
  *
  * The numbers are SOLVED, not typed. `bezel` and `ior` are the judged shape; `thickness` is
- * then binary-searched until the rung lands on its target bend — 7.4 / 13.2 / 23.1px — the
- * mechanism `--accent-label` and the solved edges already use. Regular is deliberately the
- * old constant's strength to within 3%, so the DEFAULT rung keeps exactly the lens that was
+ * then binary-searched until the rung lands on its target bend — the mechanism
+ * `--accent-label` and the solved edges already use. Regular was deliberately the
+ * old constant's strength to within 3%, so the DEFAULT rung kept exactly the lens that was
  * approved and gains only the band; thin steps down from it and thick steps up.
  *
  * `boost` is the sanctioned override of the physics, and 2026-08-23 is the eye pass it was
@@ -224,11 +224,20 @@ export type LensThickness = Exclude<Material, "solid">;
  * not, and the split at the lip is the thing that was asked for. Judged in the playground.
  * (A halving to 9/15/24 was tried and reverted 2026-08-25 — the blue band it chased came
  * from a 0.5px pre-blur, not the split; see the pre-blur note in `acquire`.)
+ *
+ * THE LIP NARROWED 4x ON 2026-08-27 (Kushagra, the bench's bezel dial at 0.25x: bezels
+ * 12/18/26 → 3/4.5/6.5). What the bench renders at that dial is a SATURATED lens — each
+ * rung's old thickness asks 11/20/34px of bend from a lip that can carry 3/4.5/6.5 — so
+ * typing the multiplier verbatim would ship every rung ON its clamp, the exact thing the
+ * "no rung saturates" law forbids. `thickness` is re-solved instead, each rung landing at
+ * 97% of its own clamp (2.91/4.37/6.30px of bend): within 3% of the pixels that were
+ * judged, and still a designed lens rather than whatever the clamp allowed. The glint band
+ * rides the bezel and narrows with it, which the same dial also showed.
  */
 export const lens: Record<LensThickness, LensParams> = {
-  thin: { bezel: 12, thickness: 19, ior: 1.45, fringe: 18, boost: 2 },
-  regular: { bezel: 18, thickness: 31, ior: 1.5, fringe: 30, boost: 2 },
-  thick: { bezel: 26, thickness: 47, ior: 1.62, fringe: 48, boost: 2 },
+  thin: { bezel: 3, thickness: 6.7, ior: 1.45, fringe: 18, boost: 2 },
+  regular: { bezel: 4.5, thickness: 9.6, ior: 1.5, fringe: 30, boost: 2 },
+  thick: { bezel: 6.5, thickness: 12.6, ior: 1.62, fringe: 48, boost: 2 },
 };
 
 /**
