@@ -82,12 +82,12 @@
    ring bends exactly as the pane does. A PACKAGE GAP wearing a local fix: every focusable
    scroller directly inside any pane has this; the surface layer's own scroller rule should
    own it — promote at integration. */
-.kd-code-well > .kui-scroll-area > .kui-scroll-viewport {
+.kd-code-well:not(.kd-code-hosted) > .kui-scroll-area > .kui-scroll-viewport {
   border-radius: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1));
 }
 
 @supports (corner-shape: squircle) {
-  .kd-code-well > .kui-scroll-area > .kui-scroll-viewport {
+  .kd-code-well:not(.kd-code-hosted) > .kui-scroll-area > .kui-scroll-viewport {
     corner-shape: squircle;
   }
 }

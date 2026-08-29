@@ -78,11 +78,14 @@ const weight: PropSchema = { kind: "axis", axis: "weight", optional: true };
 /** Layout distances are responsive: the package's curated props all take per-tier values,
     and these are the ones the builder models. */
 const space: PropSchema = { kind: "axis", axis: "space", optional: true, responsive: true };
-/** Margins take one value padding cannot: `bleed` cancels the enclosing surface's padding, so
-    a child reaches the pane's edge — a picture across the top of a card (§3, 2026-08-20). It is
-    a separate schema and not a widened `space` because offering it on `p` would be offering a
-    negative padding, which CSS rejects outright. */
+/** Margins and paddings each take one value plain distances cannot: `bleed`. On a margin it
+    cancels the enclosing surface's padding, so a child reaches the pane's edge — a picture
+    across the top of a card (§3, 2026-08-20). On a padding it re-applies the same inset
+    (2026-08-29), so a bled region hands the pane's own air back to its content — bleed the
+    tabs, re-pad the panel. Separate schemas and not one widened `space`, because `gap` takes
+    neither and must not offer the word. */
 const marginSpace: PropSchema = { kind: "axis", axis: "marginSpace", optional: true, responsive: true };
+const paddingSpace: PropSchema = { kind: "axis", axis: "paddingSpace", optional: true, responsive: true };
 const bool: PropSchema = { kind: "boolean" };
 const text: PropSchema = { kind: "text" };
 
@@ -146,7 +149,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
   Stack: {
     family: "Layout",
     blurb: "A column of things with one stated gap.",
-    props: { gap: space, align: { kind: "options", values: ALIGN, optional: true, responsive: true }, justify: { kind: "options", values: JUSTIFY, optional: true, responsive: true }, p: space, ...layoutChildProps },
+    props: { gap: space, align: { kind: "options", values: ALIGN, optional: true, responsive: true }, justify: { kind: "options", values: JUSTIFY, optional: true, responsive: true }, p: paddingSpace, ...layoutChildProps },
     children: "any",
     make: () => node("Stack", { gap: "3" }, { children: [] }),
   },
@@ -159,7 +162,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
       align: { kind: "options", values: ALIGN, optional: true, responsive: true },
       justify: { kind: "options", values: JUSTIFY, optional: true, responsive: true },
       wrap: { kind: "options", values: ["wrap", "nowrap"], optional: true, responsive: true },
-      p: space,
+      p: paddingSpace,
       ...layoutChildProps,
     },
     children: "any",
@@ -168,7 +171,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
   Grid: {
     family: "Layout",
     blurb: "Equal columns with token gaps.",
-    props: { columns: { kind: "options", values: COLUMN_VALUES, labels: COLUMN_LABELS, optional: true, responsive: true }, gap: space, p: space, ...layoutChildProps },
+    props: { columns: { kind: "options", values: COLUMN_VALUES, labels: COLUMN_LABELS, optional: true, responsive: true }, gap: space, p: paddingSpace, ...layoutChildProps },
     children: "any",
     make: () => node("Grid", { columns: gridColumns(2), gap: "3" }, { children: [] }),
   },
@@ -176,9 +179,9 @@ export const CATALOG: Record<string, CatalogEntry> = {
     family: "Layout",
     blurb: "Token padding and margin around whatever it holds — the one sanctioned outer-spacing escape.",
     props: {
-      p: space,
-      px: space,
-      py: space,
+      p: paddingSpace,
+      px: paddingSpace,
+      py: paddingSpace,
       m: marginSpace,
       mx: marginSpace,
       my: marginSpace,

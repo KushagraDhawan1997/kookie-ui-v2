@@ -153,9 +153,9 @@ export const ENTRIES: Entry[] = [
     axes: [
       { name: "p / m / px / py …", values: "layout space steps", note: "the density-aware layer, never the raw palette" },
       {
-        name: "m / mx / mt … = \"bleed\"",
+        name: "m / mx / p / px … = \"bleed\"",
         values: "the one named value on the space scale",
-        note: "cancels the enclosing surface's padding, so this box reaches the pane's edge. A picture across the top of a card is mt=\"bleed\" mx=\"bleed\". Margins only, because padding and gap reject a negative length. It reads the nearest surface, and outside one it computes a real zero",
+        note: "one keyword, two halves. On a margin it cancels the enclosing surface's padding, so this box reaches the pane's edge — a picture across the top of a card is mt=\"bleed\" mx=\"bleed\". On a padding it re-applies the same inset, so a bled region hands the pane's own air back to its content: bleed the tabs to the edges, then px=\"bleed\" on the panel puts its text exactly where the pane's padding would have. Gap takes neither, because a gap has no relation to the pane's inset. It reads the nearest surface, and outside one both halves compute a real zero",
       },
       { name: "any prop", values: "value | { initial, sm, md, lg }", note: "container tiers, compiled to variable remaps" },
       {

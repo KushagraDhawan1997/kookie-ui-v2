@@ -65,9 +65,32 @@ export type CodeBlockProps = {
    * pane, the mono step and the scroller; what sits in the row is `code-sample.tsx`'s.
    */
   topbar?: React.ReactNode;
+  /**
+   * The element is already inside a pane, so it draws none of its own (2026-08-29, Kushagra:
+   * "the code block inside specimen should not have its own surface").
+   *
+   * A pane inside a pane of the same kind is two grounds painting one colour, separated by a
+   * hairline that says nothing — the fault §10 names when it separates a Card (an object) from
+   * a Surface (what an object sits on). A code well is a ground, so a well inside a ground is
+   * the same ground twice. Hosted, the HOST's pane is the well: fill, corner, hairline, clip
+   * and inset all come from it, and what stays here is the one thing the host cannot give —
+   * a positioning context for the floating chrome.
+   *
+   * It is not a second appearance. The element still renders one arrangement; this says who
+   * owns the box around it, the way §4 says a hosted control's geometry comes from its
+   * container.
+   */
+  hosted?: boolean;
 };
 
-export function CodeBlock({ children, size = "2", className, maxLines, topbar }: CodeBlockProps) {
+export function CodeBlock({
+  children,
+  size = "2",
+  className,
+  maxLines,
+  topbar,
+  hosted,
+}: CodeBlockProps) {
   // `--line-height-N` is the line box of the size-N Text below — one index, two spellings.
   const lh = `var(--line-height-${size})`;
   /* The chrome's safe area, in the tokens the chrome is built from: its own inset, one control
@@ -77,13 +100,15 @@ export function CodeBlock({ children, size = "2", className, maxLines, topbar }:
      MINUS THE INSET THE SCROLLER ALREADY GIVES. The viewport re-pads by `--kui-sf-p` after
      bleeding to the pane's walls, so the first spelling stacked that on top of the whole band
      and the code rested three times too far below the buttons. This is the distance still
-     OWED, not the distance wanted. `max()` because a small enough size could make the pane's
-     own inset the larger of the two, and a negative padding is not a thing — there the
-     scroller's re-pad already clears the chrome and nothing more is owed. */
+     OWED, not the distance wanted.
+
+     `max()` because a small enough size could make the pane's own inset the larger of the two,
+     and a negative padding is not a thing — there the scroller's re-pad already clears the
+     chrome and nothing more is owed. */
   const band = `max(0px, calc(2 * var(--layout-space-4) + var(--control-height-${size}) - var(--kui-sf-p, 0px)))`;
 
-  return (
-    <Surface size={size} className="kd-code-well">
+  const body = (
+    <>
       <ScrollArea
         // Spread, because ScrollArea's `style` refuses an explicit undefined under
         // exactOptionalPropertyTypes. `--kui-sf-p` is the surface padding the scroller
@@ -132,6 +157,34 @@ export function CodeBlock({ children, size = "2", className, maxLines, topbar }:
           The pane is the row's containing block: `.kd-code-well` states `position: relative`
           in code.css, beside the rest of the well's own geometry. */}
       {topbar}
+    </>
+  );
+
+  /* HOSTED IS A PLAIN BOX, and everything it drops is a thing the host already draws. What it
+     keeps is `position: relative` (through `.kd-code-well` in code.css) for the floating chrome,
+     and it states `--kui-sf-p: 0px` — the hook is deliberately inheriting (it is how `m="bleed"`
+     reaches a child), so without this the code would re-pad itself by the HOST's inset and the
+     line wash would bleed against a wall that is not there. Zero is the identity, not a chosen
+     length: there is no pane inset to undo. */
+  return hosted ? (
+    /* TWO ELEMENTS, and the outer one is not decoration. The inner box must zero `--kui-sf-p`
+       (it has no inset of its own — the host pads), and a custom property cannot read its own
+       inherited value on the element that redeclares it: both declarations would resolve
+       against the cascaded value on that element, which is the zero. So the outer captures the
+       HOST's inset under a name of its own, and the chrome reaches back out by it — which is
+       what keeps "floating chrome sits closer to the wall than the code" true in a well that
+       has no wall. */
+    <div style={{ "--kd-host-p": "var(--kui-sf-p, 0px)" } as React.CSSProperties}>
+      <div
+        className="kd-code-well kd-code-hosted"
+        style={{ "--kui-sf-p": "0px" } as React.CSSProperties}
+      >
+        {body}
+      </div>
+    </div>
+  ) : (
+    <Surface size={size} className="kd-code-well">
+      {body}
     </Surface>
   );
 }

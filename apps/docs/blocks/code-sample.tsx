@@ -85,6 +85,21 @@ export type CodeSampleProps = {
   /** Bound the well to this many lines. Bounded means scrollable (see the element); an
       expand button appears only when the code actually exceeds the bound. */
   maxLines?: number;
+  /** The sample is already inside a pane, so the well draws none of its own — see the element.
+      A well inside a ground is the same ground twice. */
+  hosted?: boolean;
+  /**
+   * Does the sample name itself? `false` leaves the copy button alone in the row, for a host
+   * that has already said what this is (2026-08-29).
+   *
+   * It is not `bare` with a different spelling. `bare` suppresses the row entirely, for a fence
+   * too short to deserve chrome; this keeps the row and drops one of the two things in it,
+   * because the NAME belongs to whatever the code is the source of and the COPY belongs to the
+   * code. In a specimen figure the name is the figure's — it names the running component as
+   * much as the listing — while the copy button must stay over the text it copies, where the
+   * material has content passing behind it and therefore a job.
+   */
+  named?: boolean;
 };
 
 /** One rendered line: a block-level span carrying the author's flags as classes, so the
@@ -131,6 +146,8 @@ export async function CodeSample({
   meta,
   lineNumbers,
   maxLines,
+  hosted,
+  named = true,
 }: CodeSampleProps) {
   // An unlisted language would tokenize as plain text, which renders exactly like a fence
   // nobody got round to labelling — a silent downgrade. The docs law walks fences against
@@ -177,7 +194,7 @@ export async function CodeSample({
      The badge keeps `backdrop` and the button takes it by construction, so both resolve the
      theme's material — and since 2026-08-28 the atom family paints the same ring and rim the
      button does, which is what makes the two read as one kind of chrome. */
-  const name = title ? (
+  const name = !named ? null : title ? (
     <CopyButton code={title} label={title} size={size} icon={<FileIcon />} />
   ) : (
     <Badge size={size} backdrop>
@@ -198,9 +215,16 @@ export async function CodeSample({
 
      IT SPANS THE PANE AND PADS ITSELF (his call, kept from the in-flow cut). The pane's inset
      is a READING measure — the distance a line of code needs from a wall — and chrome is not
-     reading matter, so `inset-inline: 0` reaches both walls and `p` puts a smaller number
-     back. The buttons sit closer to the edge than the code does, which is what says they
-     belong to the pane rather than to the text.
+     reading matter, so `inset-inline` reaches both walls and `p` puts a smaller number back.
+     The buttons sit closer to the edge than the code does, which is what says they belong to
+     the pane rather than to the text.
+
+     THIS WAS BRIEFLY UNDONE AND PUT BACK (2026-08-29): the specimen figure's hosted sample had
+     chrome sitting FURTHER from the wall than its code, and I read that as the two arrangements
+     disagreeing and aligned both to the code. Wrong repair — one of them was right. A hosted
+     sample's own box IS the code column, so `inset-inline: 0` starts at the host's inset and
+     any padding adds to it; the fix is for the chrome to REACH the host's wall, which is the
+     line below, not for the standalone to give up the relationship.
 
      `z-index` is deliberately absent, and the row is rendered AFTER the scroller instead —
      see code-block.tsx. An earlier note here claimed paint order handled it because the row
@@ -210,10 +234,21 @@ export async function CodeSample({
   const topbar = (
     <Flex
       align="center"
-      justify="space-between"
+      // `space-between` with ONE child pushes it to the START — measured, an unnamed sample put
+      // its copy button on the left. The row's job is "name at the wall, action at the other
+      // wall", and with no name there is only the action, so it takes the end.
+      justify={name ? "space-between" : "end"}
       gap="3"
       p="4"
-      style={{ position: "absolute", insetBlockStart: 0, insetInline: 0 }}
+      style={{
+        position: "absolute",
+        insetBlockStart: 0,
+        // Reaches the HOST's wall when the well is hosted and has none of its own — the
+        // `m="bleed"` mechanism (§3) said inline. `--kd-host-p` is published by the hosted
+        // wrapper (see the element) and is absent everywhere else, where the fallback makes
+        // this the plain `0` it has always been.
+        insetInline: "calc(-1 * var(--kd-host-p, 0px))",
+      }}
     >
       {name}
       <CopyButton code={copyText} size={size} />
@@ -228,6 +263,7 @@ export async function CodeSample({
           maxLines={maxLines}
           lineCount={lines.length}
           topbar={bare ? undefined : topbar}
+          {...(hosted ? { hosted } : {})}
           className={className}
         >
           {content}
@@ -236,6 +272,7 @@ export async function CodeSample({
         <CodeBlock
           size={size}
           {...(bare ? {} : { topbar })}
+          {...(hosted ? { hosted } : {})}
           {...(className ? { className } : {})}
         >
           {content}

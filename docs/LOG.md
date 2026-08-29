@@ -113,6 +113,43 @@ drawer law.
 every app to answer a question the layout can see for itself — the same argument that refuses a
 `gap` prop one paragraph over in §27.
 
+## 2026-08-29 `bleed` grows its padding half, and the pair ScrollArea kept to itself becomes a call-site sentence
+
+From the scroll-edge discussion (Kushagra: the builder's shell panes always pad, "but I'd like
+tabs to bleed to edges"). Bleeding was half a mechanism: `mx="bleed"` takes a box to the pane's
+edge, and then nothing lets the content inside it say "give me the pane's inset back" — the
+only spelling was the raw `var(--kui-sf-p)` by hand, which is the pane's private hook leaking
+into call sites one app at a time.
+
+**The fix is the same keyword on the padding rows, sign flipped.** `px="bleed"` resolves
+`var(--kui-sf-p, 0px)` — positive where the margin's is negative, same hook, same explicit
+fallback, so outside any surface both halves are an honest zero. One keyword rather than a
+second word (`inset`, `surface`, `unbleed` were all worse: `inset` collides with the CSS
+property the margin work deliberately left out, and a new word means the pair no longer reads
+as a pair). ScrollArea has performed exactly this pair internally since §10 — bleed to the
+surface's edge, re-pad the viewport — so this is a promotion of an existing sentence, not an
+invention.
+
+**What kept it out was a sentence about the wrong value.** "Padding and gap reject a negative
+length" is true of the negative calc, which the padding rows never get, and silent about the
+positive one. The law that pinned the pass-through (`p="bleed"` emits the raw word) failed on
+the fix — a law encoding a superseded decision failing on the decision's reversal, which is
+what it was for. Gap and width keep the pass-through: a gap is a distance BETWEEN children and
+has no relation to the pane's inset, so a resolved number there would be a value nobody chose.
+
+**Zero CSS.** The value resolves in `resolveValue` and rides the padding rows' existing var
+chain, tiers included — 34,163 gzipped before and after, which is the evidence it was made at
+the right layer. The builder's padding rows widen from `space` to a `paddingSpace` schema
+(margin's own shape), so the tabs case is expressible there too.
+
+**Laws.** The node laws mirror the margin set: every padding spelling, every tier, and the
+type-list-equals-table-rows guard one family over. The mounted law is an AGREEMENT — a
+`px="bleed"` box inside a bled region must line its content up with an unbled sibling's edge,
+at every size — falsified by re-committing the pass-through (the inner box pads zero and the
+edges disagree by the pane's full inset).
+
+---
+
 ## 2026-08-29 The frame publishes the reach a floating pane leaves, because a sibling cannot read a sibling
 
 Kushagra, after floating the docs sidebar and finding the reading column underneath it: *"the

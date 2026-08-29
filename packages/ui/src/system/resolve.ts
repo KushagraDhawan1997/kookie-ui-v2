@@ -7,8 +7,10 @@ import { space } from "../tokens/config.ts";
 import {
   boxProps,
   isMarginProp,
+  isPaddingProp,
   type BoxPropName,
   type MarginPropName,
+  type PaddingPropName,
   type PropDef,
   type Tier,
 } from "./props.ts";
@@ -55,13 +57,20 @@ const DIGITS = /^\d+$/;
  */
 const BLEED = "bleed";
 const BLEED_VALUE = "calc(-1 * var(--kui-sf-p, 0px))";
+/* The padding half (2026-08-29): the same hook, positive. `mx="bleed"` takes a box to the
+   pane's edge; `px="bleed"` inside it puts the pane's inset back under the content. The
+   fallback carries the same weight as the margin's — outside any surface both halves are an
+   honest zero, so the pair is a no-op exactly where there is nothing to bleed out of. */
+const PAD_VALUE = "var(--kui-sf-p, 0px)";
 
 const resolveValue = (value: string | number, def: PropDef): string => {
   const v = String(value);
   if (def.scale !== "space") return v;
-  // Only where a negative length is meaningful. Elsewhere the word passes through as written,
-  // which CSS rejects visibly — the same choice the out-of-range digit rule above makes.
-  if (v === BLEED) return isMarginProp(def) ? BLEED_VALUE : v;
+  // Margins take the negative, paddings the positive (2026-08-29). Elsewhere — gap, width,
+  // inset — the word passes through as written, which CSS rejects visibly: a gap has no
+  // relation to the pane's inset, so a silent number there would be a value nobody chose
+  // (the same choice the out-of-range digit rule above makes).
+  if (v === BLEED) return isMarginProp(def) ? BLEED_VALUE : isPaddingProp(def) ? PAD_VALUE : v;
   if (!DIGITS.test(v)) return v;
   const step = Number(v);
   // LAYOUT space, not the raw palette (§3, §12): a layout prop names a distance between
@@ -84,11 +93,16 @@ const resolveValue = (value: string | number, def: PropDef): string => {
  */
 type SpaceValue = string | number;
 type MarginValue = typeof BLEED | (string & {}) | number;
+type PaddingValue = typeof BLEED | (string & {}) | number;
 
 export type BoxStyleProps = Partial<
-  Record<Exclude<BoxPropName, MarginPropName>, Responsive<SpaceValue> | undefined>
+  Record<
+    Exclude<BoxPropName, MarginPropName | PaddingPropName>,
+    Responsive<SpaceValue> | undefined
+  >
 > &
-  Partial<Record<MarginPropName, Responsive<MarginValue> | undefined>>;
+  Partial<Record<MarginPropName, Responsive<MarginValue> | undefined>> &
+  Partial<Record<PaddingPropName, Responsive<PaddingValue> | undefined>>;
 
 /**
  * Splits Box's style props off from everything else, returning the inline custom properties

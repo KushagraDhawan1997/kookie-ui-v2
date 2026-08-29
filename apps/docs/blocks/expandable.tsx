@@ -32,6 +32,7 @@ export function Expandable({
   lineCount,
   className,
   topbar,
+  hosted,
   children,
 }: {
   size: Size;
@@ -40,6 +41,8 @@ export function Expandable({
   className?: string | undefined;
   /** Passed straight through — the chrome belongs to the well, and this only bounds it. */
   topbar?: React.ReactNode;
+  /** Passed straight through — whether the well draws its own pane is the host's answer. */
+  hosted?: boolean;
   children: React.ReactNode;
 }) {
   const [expanded, setExpanded] = React.useState(false);
@@ -49,6 +52,7 @@ export function Expandable({
         size={size}
         {...(expanded ? {} : { maxLines })}
         {...(topbar ? { topbar } : {})}
+        {...(hosted ? { hosted } : {})}
         {...(className ? { className } : {})}
       >
         {children}

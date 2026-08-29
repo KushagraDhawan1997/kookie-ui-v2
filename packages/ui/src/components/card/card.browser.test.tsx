@@ -1653,6 +1653,43 @@ describe("a pane holds what it contains, and a child may reach its edge (§3, §
     }
   });
 
+  /**
+   * THE PADDING HALF (2026-08-29): `px="bleed"` inside a bled region restores the pane's own
+   * inset, so content sits exactly where the pane's padding would have put it. Read as an
+   * AGREEMENT — the re-padded content's edge against an unbled sibling's — not as a token,
+   * because the token agreeing while the layout mechanism dropped the value is the shape the
+   * standing lesson names. Falsified by re-committing the pass-through in resolveValue: the
+   * inner box then pads zero and the two edges disagree by the pane's full inset.
+   */
+  it("px=\"bleed\" inside a bled region restores the pane's own inset, at every size", () => {
+    for (const size of ["1", "2", "3", "4"] as const) {
+      const card = mounted(
+        <Card size={size}>
+          <Box mx="bleed" data-testid="bled">
+            <Box px="bleed" data-testid="repadded">
+              Row content
+            </Box>
+          </Box>
+          <Box data-testid="sibling">Plain sibling</Box>
+        </Card>,
+        { theme: {}, select: ".kui-card" },
+      );
+      const repadded = within(card, "[data-testid='repadded']");
+      const inner = repadded.getBoundingClientRect();
+      const pad = parseFloat(computed(repadded, "padding-left"));
+      const sibling = within(card, "[data-testid='sibling']").getBoundingClientRect();
+      expect(pad, `size ${size}: the re-pad must be a real inset`).toBeGreaterThan(0);
+      expect(
+        inner.left + pad,
+        `size ${size}: re-padded content does not line up with the pane's own inset`,
+      ).toBeCloseTo(sibling.left, 1);
+      expect(
+        inner.right - pad,
+        `size ${size}: the other edge`,
+      ).toBeCloseTo(sibling.right, 1);
+    }
+  });
+
   it("an unbled sibling is untouched — the child states this, the card never does", () => {
     const card = mounted(
       <Card size="3">

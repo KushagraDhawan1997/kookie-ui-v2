@@ -73,9 +73,11 @@ export const componentAxes = {
   weight: Object.keys(fontWeight) as (keyof typeof fontWeight)[],
   typeSize: fontSize.map((_, i) => String(i + 1)),
   space: space.map((_, i) => String(i + 1)),
-  /** The space scale plus its one named value (§3, 2026-08-20). A margin is the only distance
-      that may go negative, so `bleed` — cancel the enclosing surface's padding, and reach the
-      pane's edge — is offerable there and nowhere else. Derived from `space`, never a second
-      copy of the index list. */
+  /** The space scale plus its one named value (§3, 2026-08-20; the padding half 2026-08-29).
+      On a margin, `bleed` cancels the enclosing surface's padding and reaches the pane's
+      edge; on a padding it re-applies the same inset, so a bled region can hand the pane's
+      own air back to its content. One keyword, one hook, two signs. Derived from `space`,
+      never a second copy of the index list. */
   marginSpace: [...space.map((_, i) => String(i + 1)), "bleed"],
+  paddingSpace: [...space.map((_, i) => String(i + 1)), "bleed"],
 } as const;

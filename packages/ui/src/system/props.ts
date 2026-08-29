@@ -173,3 +173,21 @@ export const marginPropNames: MarginPropName[] = ["m", "mx", "my", "mt", "mr", "
 /** A margin prop's value resolves against the enclosing surface's padding (see `resolveValue`). */
 export const isMarginProp = (def: PropDef): boolean =>
   def.css.every((property) => property.startsWith("margin"));
+
+/**
+ * The padding rows take the SAME keyword since 2026-08-29, resolving the same hook with the
+ * sign flipped: `bleed` on a margin cancels the enclosing surface's padding, `bleed` on a
+ * padding re-applies it. One word because it is one mechanism seen from its two halves —
+ * `<Tabs mx="bleed">` runs a tab bar to the pane's edges, and the panel inside says
+ * `px="bleed"` to put the pane's own inset back under its content. ScrollArea has done
+ * exactly this pair internally since §10 (bleed to the surface's edge, re-pad the viewport);
+ * this is that mechanism handed to call sites. The sentence that kept it out — "padding
+ * rejects a negative length" — was true of the negative calc and silent about the positive
+ * one, which is the half the builder's bleeding tabs needed.
+ */
+export type PaddingPropName = "p" | "px" | "py" | "pt" | "pr" | "pb" | "pl";
+export const paddingPropNames: PaddingPropName[] = ["p", "px", "py", "pt", "pr", "pb", "pl"];
+
+/** A padding prop's `bleed` resolves to the same hook, positive (see `resolveValue`). */
+export const isPaddingProp = (def: PropDef): boolean =>
+  def.css.every((property) => property.startsWith("padding"));

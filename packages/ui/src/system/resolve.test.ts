@@ -9,7 +9,14 @@ import { describe, expect, it } from "vitest";
 import { raw, walkFiles } from "../test/stylesheets.ts";
 import { generatePreview } from "../tokens/preview.ts";
 import { space } from "../tokens/config.ts";
-import { boxProps, isMarginProp, marginPropNames, type BoxPropName } from "./props.ts";
+import {
+  boxProps,
+  isMarginProp,
+  isPaddingProp,
+  marginPropNames,
+  paddingPropNames,
+  type BoxPropName,
+} from "./props.ts";
 import { resolveBoxProps } from "./resolve.ts";
 
 describe("a value becomes a custom property, and nothing becomes a rule (§2)", () => {
@@ -80,12 +87,46 @@ describe("`bleed` — the one named value on the space scale (§3, §10, 2026-08
     });
   });
 
-  it("a prop that cannot go negative passes the word through, where CSS rejects it visibly", () => {
-    // Padding and gap reject a negative length outright, so emitting the calc there would be a
-    // silent zero — the out-of-range-index rule's own choice, one value over.
-    expect(resolveBoxProps({ p: "bleed" }).style).toEqual({ "--kui-p": "bleed" });
+  it("a padding prop resolves it to the same hook, positive (2026-08-29)", () => {
+    // The margin half bleeds a box OUT to the pane's edge; this half hands the pane's own
+    // inset BACK to the content inside it — `<Tabs mx="bleed">` then `px="bleed"` on the
+    // panel. One keyword because it is one mechanism seen from its two halves, and the same
+    // explicit fallback because outside any surface both must compute an honest zero. The
+    // law that stood here asserted the pass-through — "padding rejects a negative length",
+    // true of the calc this row never gets — and it failed on the fix, as a law encoding a
+    // superseded decision should.
+    expect(resolveBoxProps({ p: "bleed" }).style).toEqual({ "--kui-p": "var(--kui-sf-p, 0px)" });
+  });
+
+  it("every padding spelling takes it, and every tier", () => {
+    for (const name of paddingPropNames) {
+      const { var: stem } = boxProps[name];
+      expect(
+        resolveBoxProps({ [name]: "bleed" } as Record<string, string>).style,
+        `${name} does not take bleed`,
+      ).toEqual({ [`--kui-${stem}`]: "var(--kui-sf-p, 0px)" });
+    }
+    expect(resolveBoxProps({ px: { initial: "bleed", md: "4" } }).style).toEqual({
+      "--kui-px": "var(--kui-sf-p, 0px)",
+      "--kui-px-md": "var(--layout-space-4)",
+    });
+  });
+
+  it("a prop with no relation to the pane's inset passes the word through, where CSS rejects it visibly", () => {
+    // A gap is a distance BETWEEN children and a width is the box's own — neither cancels nor
+    // restores a surface's padding, so a resolved number there would be a value nobody chose.
     expect(resolveBoxProps({ gap: "bleed" }).style).toEqual({ "--kui-g": "bleed" });
     expect(resolveBoxProps({ width: "bleed" }).style).toEqual({ "--kui-w": "bleed" });
+  });
+
+  it("the type's padding list and the table's padding rows are the same set", () => {
+    // The margin law below, one family over — a padding row added to the table and forgotten
+    // in the list would accept `"bleed"` at the type level and emit it as a raw keyword.
+    const fromTable = (Object.keys(boxProps) as BoxPropName[]).filter((name) =>
+      isPaddingProp(boxProps[name]),
+    );
+    expect([...fromTable].sort()).toEqual([...paddingPropNames].sort());
+    expect(fromTable.length).toBeGreaterThan(0);
   });
 
   it("the type's margin list and the table's margin rows are the same set", () => {
