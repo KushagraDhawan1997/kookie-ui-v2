@@ -34,6 +34,7 @@ import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "../dialog/dialog.tsx";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "../menu/menu.tsx";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip/tooltip.tsx";
 import {
   Popover,
   PopoverClose,
@@ -907,9 +908,21 @@ describe("an overlong panel scrolls its content, not itself (§22)", () => {
  * two panels this branch added it resolved to nothing, the declarations were invalid at
  * computed-value time, and every inset fell to `auto`.
  *
- * The law reads the value the rules read NOW, on all three panels at once, because the claim
- * is that one name serves them all. The MENU is the load-bearing third: it proves the switch
- * cost nothing where the hook was already live.
+ * The law reads the value the rules read NOW, on every panel at once, because the claim is that
+ * one name serves them all. The MENU is the load-bearing member: it proves the switch cost
+ * nothing where the hook was already live.
+ *
+ * TWO CORRECTIONS, 2026-08-29 (the ultracode audit). Its title and its docstring said "all three
+ * panels" and "tooltip" and it mounted two — `.kui-tooltip-popup` appeared nowhere in the file —
+ * which is a law claiming coverage it does not have, and the reason the real coverage was
+ * assumed rather than looked for. The tooltip is now mounted, and it is the member that MATTERS
+ * here: it is the one pane in the family whose two axes are priced differently, which is the
+ * case the pair below exists for.
+ *
+ * And the NAME it reads was superseded on 2026-08-26: the nine flight pins read
+ * `--kui-sf-p-block` / `--kui-sf-p-inline`, and surfaces.test.ts asserts that no flight rule
+ * reads the one-value `--kui-sf-p` at all. So this law was reading a name the flight had stopped
+ * using — true of the pane, and no longer a statement about the flight. It reads the PAIR now.
  */
 describe("the padding hook the entry flight reads is set on every floating panel (§22)", () => {
   it("popover, tooltip and menu all resolve it — and the menu's value did not move", () => {
@@ -923,20 +936,34 @@ describe("the padding hook the entry flight reads is set on every floating panel
           <MenuTrigger render={<Button>m</Button>} />
           <MenuContent><MenuItem>Alpha</MenuItem></MenuContent>
         </Menu>
+        <Tooltip defaultOpen>
+          <TooltipTrigger render={<Button>t</Button>} />
+          <TooltipContent>t</TooltipContent>
+        </Tooltip>
       </Theme>,
     );
     settleAll();
-    for (const sel of [".kui-popover-popup", ".kui-menu-popup"]) {
+    for (const sel of [".kui-popover-popup", ".kui-menu-popup", ".kui-tooltip-popup"]) {
       const pane = document.querySelector<HTMLElement>(sel);
       if (!pane) throw new Error(`${sel} never mounted — the law would assert nothing`);
       const body = pane.querySelector<HTMLElement>(".kui-floating-body");
       if (!body) throw new Error(`${sel} has no floating body`);
       // The BODY is what the flight rules land on, so the value has to reach it — the hook
       // inherits, which is the mechanism, and reading it on the pane alone would not prove it.
-      expect(computed(body, "--kui-sf-p"), `${sel}: the body cannot see its pane's padding`)
-        .not.toBe("");
-      expect(computed(body, "--kui-sf-p"), sel).toBe(computed(pane, "--kui-sf-p"));
+      // PER AXIS, because a pane may price its two differently and the tooltip does: reading one
+      // number is the one-axis-of-two failure this pair was minted to end.
+      for (const axis of ["--kui-sf-p-block", "--kui-sf-p-inline"] as const) {
+        expect(computed(body, axis), `${sel}: the body cannot see its pane's ${axis}`).not.toBe("");
+        expect(computed(body, axis), `${sel}: ${axis}`).toBe(computed(pane, axis));
+      }
     }
+    // …and the tooltip's two axes really do DISAGREE, or the per-axis read above is a per-axis
+    // read of one number and this law is back to what it was.
+    const tip = document.querySelector<HTMLElement>(".kui-tooltip-popup")!;
+    expect(
+      computed(tip, "--kui-sf-p-block"),
+      "the tooltip pads its two axes alike — the pair has nothing to prove here",
+    ).not.toBe(computed(tip, "--kui-sf-p-inline"));
     // The menu is unchanged by the switch: its --kui-sf-p resolves THROUGH --kui-floating-p by
     // the size join, so both names give one value there. This is what says the repair was free.
     const menu = document.querySelector<HTMLElement>(".kui-menu-popup")!;
@@ -961,4 +988,273 @@ describe("the padding hook the entry flight reads is set on every floating panel
    *
    * So the declaration is asserted where a declaration can be read: `surfaces.test.ts`.
    */
+});
+
+/**
+ * TABBING OUT IS A DISMISSAL, AND A DISMISSAL DISSOLVES (§8, §22, §31 — 2026-08-29, the
+ * ultracode audit).
+ *
+ * `PopoverStore.setOpen` stamps `data-instant="focus"` whenever the close reason is `focusOut`,
+ * and the family's instant stand-down exempted only `click` and `dismiss` — so the ordinary
+ * keyboard way to leave a non-modal panel computed `transition: none` on the ending frame and
+ * the panel blinked out, while an outside press (no stamp) and Escape (`dismiss`, exempted
+ * 2026-08-22) both dissolved over the family's clocks. The same input-class asymmetry the Escape
+ * finding closed, on the gesture that finding did not reach.
+ *
+ * A CLOCK, not a duration: the law reads whether the exit has one at all. What that clock is
+ * worth is the shared layer's to state and is asserted there; what may never happen is a keyboard
+ * gesture silently getting a different exit from a pointer one.
+ */
+describe("a popover dismissed by tabbing out dissolves (§8, §31)", () => {
+  it("the ending frame carries the family's clocks, not zero", async () => {
+    inMotion();
+    render(
+      <Theme>
+        <div style={{ padding: 200 }}>
+          <Popover defaultOpen>
+            <PopoverTrigger render={<Button>Open</Button>} />
+            <PopoverContent>
+              <PopoverTitle>Filters</PopoverTitle>
+              <Button>the last stop inside</Button>
+            </PopoverContent>
+          </Popover>
+          <button type="button">the next stop outside</button>
+        </div>
+      </Theme>,
+    );
+    if (!(await until(() => !!document.querySelector(".kui-popover-popup"))))
+      throw new Error("the popover never mounted");
+    const popup = document.querySelector<HTMLElement>(".kui-popover-popup")!;
+    // THE ENTRY IS WAITED OUT BY ITS OWN ATTRIBUTE, and both halves of that are instrument
+    // lessons this law learned the hard way. Not `settleAll()`, which lands a panel by writing
+    // `transition: none !important` INLINE on the popup and everything inside it — the exact
+    // thing this law is asking about, so the first spelling read zero on a correct package. And
+    // not "straight away" either: while the panel is still seeded, `[data-unfurling][data-seed]`
+    // declares `transition: none` deliberately (the pose is HELD; the flight's clocks are the
+    // base rule's and apply the frame the seed comes off), so an exit stamped during the entry
+    // reads zero too — which is what made the second spelling fail one run in two.
+    if (!(await until(() => !popup.hasAttribute("data-unfurling"))))
+      throw new Error("the entry never landed — an exit measured mid-flight reads the pose");
+    const inside = [...document.querySelectorAll<HTMLElement>(".kui-popover-popup button")].pop();
+    if (!inside) throw new Error("nothing focusable inside — there is no tab to take");
+
+    // ARMED BEFORE THE GESTURE, and read at the ENDING STAMP rather than after it. A CDP
+    // keystroke takes many frames to come back, and the whole dissolve — 135ms with the fix,
+    // one frame without it — is over by then: the first spelling of this law read a detached
+    // node and got `NaN`, which is the instrument failing rather than the subject. The observer
+    // fires the microtask the attribute lands, and `getComputedStyle` there forces the recalc,
+    // so what it reads is the ending rule's own clock. No wall clock is involved, which is what
+    // makes it CI-safe.
+    //
+    // `catchDissolve` is the wrong instrument here and the reason is worth keeping: it seizes
+    // running ANIMATIONS, and a transition does not exist until the style change is computed —
+    // one style flush after the microtask it arms in. It rejected on correct code.
+    const atTheStamp = new Promise<{ clock: number; instant: string | null }>((resolve) => {
+      const seen = () => {
+        if (!popup.hasAttribute("data-ending-style")) return false;
+        watch.disconnect();
+        resolve({
+          clock: Math.max(
+            ...getComputedStyle(popup)
+              .transitionDuration.split(",")
+              .map((d) => parseFloat(d)),
+          ),
+          instant: popup.getAttribute("data-instant"),
+        });
+        return true;
+      };
+      const watch = new MutationObserver(seen);
+      watch.observe(popup, { attributes: true });
+      seen();
+    });
+    inside.focus();
+    await userEvent.keyboard("{Tab}");
+    const exit = await atTheStamp;
+
+    // THE PREMISE: this is the stamped path. Without it the law passes on a Base UI that stopped
+    // stamping, or on a fixture where the tab never left the panel.
+    expect(exit.instant, "tabbing out no longer stamps a focus close").toBe("focus");
+    expect(
+      exit.clock,
+      "every clock is zero: a keyboard exit still blinks where a pointer's dissolves",
+    ).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * …AND A CONTROLLED POPOVER KEEPS ITS ENTRY AFTERWARDS (§22, §31 — 2026-08-29, the same audit).
+ *
+ * The third and worst consequence of the same stamp, and it is `dismiss`'s 2026-08-22 defect
+ * arriving on a second value. `setOpen` is the only writer of `instantType`, and a CONTROLLED
+ * `<Popover open>` syncs its state through `useControlledProp`, which never runs it — so the
+ * stamp from one focus-out is still on the popup at the next state-driven open, and the runner
+ * and the stylesheet both read it as instant. A filter panel toggled from a toolbar silently and
+ * permanently stopped animating once the user had tabbed out of it, which from their side looks
+ * like the component broke.
+ *
+ * The law drives the component the way the defect is reachable — state, not a press — because
+ * every other popover law opens by pressing the trigger, and a press CLEARS the stamp. That is
+ * why the defect was invisible to twenty-three green laws.
+ */
+describe("a controlled popover still flies after a focus-out (§22, §31)", () => {
+  it("the second state-driven open is posed, like the first", async () => {
+    inMotion();
+    function Harness() {
+      const [open, setOpen] = React.useState(true);
+      return (
+        <Theme>
+          <div style={{ padding: 200 }}>
+            <button type="button" onClick={() => setOpen((o) => !o)}>
+              toggle
+            </button>
+            <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger render={<Button>Open</Button>} />
+              <PopoverContent>
+                <PopoverTitle>Filters</PopoverTitle>
+                <Button>the last stop inside</Button>
+              </PopoverContent>
+            </Popover>
+            <button type="button">the next stop outside</button>
+          </div>
+        </Theme>
+      );
+    }
+    render(<Harness />);
+    if (!(await until(() => !!document.querySelector(".kui-popover-popup"))))
+      throw new Error("the popover never mounted");
+    settleAll();
+
+    // Leave it the way a keyboard does, which is what writes the stamp.
+    const inside = [...document.querySelectorAll<HTMLElement>(".kui-popover-popup button")].pop()!;
+    inside.focus();
+    await userEvent.keyboard("{Tab}");
+    if (!(await until(() => !document.querySelector(".kui-popover-popup"))))
+      throw new Error("tabbing out did not close it — the premise never happened");
+
+    // …and open it again from STATE. A press would clear `instantType` and the law would be
+    // about a case the defect never reached.
+    const toggle = document.querySelector<HTMLElement>("button")!;
+    toggle.click();
+    if (!(await until(() => !!document.querySelector(".kui-popover-popup"))))
+      throw new Error("state did not reopen it");
+    const again = document.querySelector<HTMLElement>(".kui-popover-popup")!;
+    expect(
+      again.hasAttribute("data-unfurling"),
+      "a stale focus stamp survived the close and the reopen never flew",
+    ).toBe(true);
+  });
+});
+
+/**
+ * THE MATERIAL, WHICH HAD NO LAW AT ALL (§10, §20, §31 — added 2026-08-29, the ultracode audit).
+ *
+ * Three component-local calls decide what a popover is made of — `useMaterial({ backdrop: true })`,
+ * `useLensRef(material, ref)` and `<GlassScope material={material}>` — and until this describe
+ * not one of them was read by any law in the suite. The file mentioned "material" three times and
+ * all three were in comments; the hostile axis set pushed five axes and not that one; the §20
+ * agreement law's twin never stamped `data-material`. Deleting any of the three left twenty-three
+ * laws green, which is the whole reason this is here rather than a fourth restatement of a claim
+ * that already had a reader.
+ *
+ * Every clause below is a defect this exact mechanism has already shipped in a sibling: the read
+ * outside the portal (menu, 2026-08-16), the pane that scopes its subtree solid (the one-glass-
+ * per-stack rule), and a panel that is over content BY CONSTRUCTION rather than by asking
+ * (backdrop selectivity, 2026-08-17). A popover is the one member that reproduces all three.
+ */
+describe("a popover is made of what the app is made of (§10, §31)", () => {
+  it("it takes the theme's glass without being asked — a floating pane is always over content", () => {
+    // `backdrop` is NOT stated anywhere below. Since 2026-08-17 glass is SELECTIVE: an in-flow
+    // Card under a glass theme is solid until it says otherwise, because there may be nothing
+    // behind it to bend. A floating pane always has something behind it, which is what
+    // `useMaterial({ backdrop: true })` says — so the absence of the prop here is the law.
+    let panel: HTMLElement | null = null;
+    const host = render(
+      <Theme material="regular">
+        <Card id="plain-card" />
+        <Popover defaultOpen>
+          <PopoverTrigger render={<Button>Open</Button>} />
+          <PopoverContent ref={(n: HTMLDivElement | null) => void (panel = n)}>
+            <PopoverTitle>Filters</PopoverTitle>
+          </PopoverContent>
+        </Popover>
+      </Theme>,
+    );
+    if (!panel) throw new Error("the panel never mounted — the law would assert nothing");
+    const p = panel as HTMLElement;
+    expect(p.dataset["material"], "the panel did not take the theme's material").toBe("regular");
+    expect(computed(p, "backdrop-filter"), "the panel declares glass and paints none").not.toBe(
+      "none",
+    );
+    // THE NEGATIVE CONTROL, and it is what stops this passing on a package where glass had
+    // simply stopped being selective: an unmarked in-flow card under the same theme is solid.
+    const card = host.querySelector<HTMLElement>("#plain-card")!;
+    expect(card.dataset["material"], "glass stopped being selective — the law proves nothing").toBe(
+      undefined,
+    );
+  });
+
+  it("opened from inside a glass card, it is still glass — context follows the tree, the panel does not", () => {
+    // The read has to happen INSIDE `PortalScope`. React context follows the tree, so a popover
+    // triggered from within a glass Card is, in React's eyes, inside that card's glass scope and
+    // a naive read comes back `solid` — wrong, because the panel paints over the page. The card
+    // is the negative control: without it, an app switched wholly to solid would satisfy this.
+    let panel: HTMLElement | null = null;
+    const host = render(
+      <Theme material="regular">
+        <Card id="glass-host" backdrop>
+          <Popover defaultOpen>
+            <PopoverTrigger render={<Button>Open</Button>} />
+            <PopoverContent ref={(n: HTMLDivElement | null) => void (panel = n)}>
+              <PopoverTitle>Filters</PopoverTitle>
+            </PopoverContent>
+          </Popover>
+        </Card>
+      </Theme>,
+    );
+    expect(host.querySelector<HTMLElement>("#glass-host")!.dataset["material"]).toBe("regular");
+    if (!panel) throw new Error("the panel never mounted");
+    expect((panel as HTMLElement).dataset["material"]).toBe("regular");
+  });
+
+  it("but a card composed INSIDE it is solid — one glass per stack, structurally", () => {
+    // `GlassScope` is the third call, and this is the only thing that reads it. A glass pane
+    // scopes its subtree solid, so the rule is held by construction rather than asked of a call
+    // site — which is what makes "never glass on glass" a guarantee instead of a guideline.
+    let panel: HTMLElement | null = null;
+    const host = render(
+      <Theme material="regular">
+        <Popover defaultOpen>
+          <PopoverTrigger render={<Button>Open</Button>} />
+          <PopoverContent ref={(n: HTMLDivElement | null) => void (panel = n)}>
+            <PopoverTitle>Filters</PopoverTitle>
+            <Card id="inner" backdrop />
+          </PopoverContent>
+        </Popover>
+      </Theme>,
+    );
+    if (!panel) throw new Error("the panel never mounted");
+    // The pane itself IS glass — without this the law passes on an app that lost glass entirely.
+    expect((panel as HTMLElement).dataset["material"]).toBe("regular");
+    const inner = host.ownerDocument.querySelector<HTMLElement>("#inner")!;
+    expect(inner, "the inner card never rendered").toBeTruthy();
+    // `on-glass`, not `solid` (2026-08-19): a glass pane scopes its subtree ON-GLASS, so the
+    // card must neither filter (the panel already spent the backdrop) nor seal (a slab punched
+    // through the pane). Both halves, because the attribute alone passes on a rule that paints
+    // nothing and the filter alone passes on an opaque card. The card states `backdrop`
+    // explicitly, which is the strongest form of this: since 2026-08-19 an explicit statement
+    // inside a pane resolves the theme's material, and the pane scope is what still overrules it.
+    expect(
+      inner.dataset["material"],
+      "a card inside a glass popover asked for glass and got it — glass is stacking",
+    ).toBe("on-glass");
+    expect(computed(inner, "backdrop-filter"), "and it is spending the backdrop twice").toBe(
+      "none",
+    );
+    const alpha = (c: string) =>
+      c.includes("/") ? parseFloat(c.slice(c.lastIndexOf("/") + 1)) : 1;
+    expect(
+      alpha(computed(inner, "background-color")),
+      "the card sealed itself onto the panel",
+    ).toBeLessThan(1);
+  });
 });

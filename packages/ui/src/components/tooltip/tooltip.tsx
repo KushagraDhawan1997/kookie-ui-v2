@@ -9,14 +9,11 @@ import {
   FloatingBody,
   FloatingDirectionContext,
   PortalScope,
+  SIDE_OFFSET,
   useAmbientDirection,
 } from "../../system/floating.tsx";
 import { mergeRefs } from "../../system/render.ts";
 import { Text } from "../text/text.tsx";
-
-/* The gap from the trigger — the floating family's own, shared rather than re-picked: two
-   panels opening from two buttons in one toolbar must sit at one distance. */
-const SIDE_OFFSET = 4;
 
 /**
  * How long the pointer rests before a tooltip appears, and how long it lingers after it leaves.

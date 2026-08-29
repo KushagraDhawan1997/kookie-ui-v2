@@ -13,12 +13,14 @@
  * disappears. That is invisible to any law that reads only the pane.
  */
 import { describe, expect, it } from "vitest";
+import { userEvent } from "vitest/browser";
 
 import { Theme, type ThemeProps } from "../../theme/theme.tsx";
 import {
   APPEARANCES,
   colorOn,
   computed,
+  inMotion,
   render,
   settleAll,
   tokenOn,
@@ -28,6 +30,7 @@ import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "../dialog/dialog.tsx";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "../menu/menu.tsx";
+import { Text } from "../text/text.tsx";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip.tsx";
 
 function openTooltip(theme: ThemeProps, body?: string) {
@@ -90,10 +93,15 @@ describe("it is INVERTED, and it mints nothing to be (§11, §32)", () => {
     ).not.toBe(computed(dark.popup, "background-color"));
   });
 
-  it("contrast=high moves it, because it moves the two roles it is made of (§11)", () => {
+  it("contrast=high moves it, because it moves one of the two roles it is made of (§11)", () => {
     // §11's row has said "exception: high-contrast inverted" since the defaults table was
-    // written, and it costs nothing here: the conformance surface moves `--color-text` and
-    // `--color-surface`, so the inversion moves with them and the component knows nothing.
+    // written, and it costs nothing here — though it is ONE role that moves, not two
+    // (corrected 2026-08-29, the ultracode audit). `--color-text` chains to `--neutral-12`,
+    // which every high-contrast scope re-declares; `--color-surface` is declared once per
+    // appearance, no HC scope touches it, and it has no HC variant in config. So the pair
+    // SEPARATES — the fill travels toward the palette's end while the ink is already there —
+    // and the outcome this law reads is the same either way, which is exactly why the wrong
+    // explanation survived in four homes. What is asserted is still the outcome.
     for (const appearance of APPEARANCES) {
       const normal = openTooltip({ appearance });
       const high = openTooltip({ appearance, contrast: "high" });
@@ -420,5 +428,174 @@ describe("it names a control, and it takes nothing from it (§32)", () => {
     // than on the attribute's absence, which is what the first spelling got wrong.
     const tabindex = popup.getAttribute("tabindex");
     expect(tabindex === null || Number(tabindex) < 0, "the tooltip is a tab stop").toBe(true);
+  });
+});
+
+/**
+ * A KEYBOARD-FOCUSED TOOLTIP FLIES (§8, §22, §32 — added 2026-08-29, the ultracode audit).
+ *
+ * Base UI's shared open-change path stamps `data-instant="focus"` for a `triggerFocus` open, and
+ * the family's instant stand-down exempted only `click` and `dismiss` — so a keyboard user got a
+ * chip that snapped into existence and vanished with no clock, where a pointer user got the
+ * trigger's own silhouette unfurling. The tooltip is the member this reaches, because focus is
+ * its ONLY keyboard route: it opens on hover for a pointer and on focus for everything else.
+ *
+ * It is the third instance of one defect. `click` was the same sentence in 2026-08-18 (every
+ * keyboard Enter and Space lost the entry) and `dismiss` in 2026-08-22 (every keyboard Escape
+ * lost the exit). An open is an open, with the same physics for every input.
+ *
+ * NOT A TIMING LAW, deliberately: it reads the stand-down's own outcome — a clock and a pose —
+ * off a mounted popup, which is a static computed-value read and safe on any machine. The
+ * `data-instant` assertion is the PREMISE, and without it the law would pass on a package where
+ * Base UI had simply stopped stamping the attribute.
+ */
+describe("a keyboard-focused tooltip flies like a hovered one (§8, §32)", () => {
+  it("the pose is on and the clocks run, on the one route a keyboard has", async () => {
+    inMotion();
+    // Scoped to THIS mount, and the panel taken as the LAST: mounts accumulate across the file,
+    // so a bare `querySelector` reads a settled tooltip from an earlier law — the stale-popup
+    // trap that has cost this suite three separate instrument bugs.
+    const host = render(
+      <Theme>
+        <div style={{ padding: 200 }}>
+          <button type="button">somewhere else</button>
+          <Tooltip>
+            <TooltipTrigger render={<Button>Undo</Button>} />
+            <TooltipContent>Undo the last change</TooltipContent>
+          </Tooltip>
+        </div>
+      </Theme>,
+    );
+    // A real Tab, not `.focus()`: Base UI's reason is `triggerFocus` only for input it trusts,
+    // and a programmatic focus would stamp something else and make this law about nothing.
+    host.querySelector<HTMLElement>("button")!.focus();
+    await userEvent.keyboard("{Tab}");
+    // Selected by its OWN words. Earlier laws in this file leave settled tooltips mounted, so
+    // neither "the first" nor "the last" identifies this one — the stale-popup trap that has
+    // cost this suite three separate instrument bugs.
+    const mine = () =>
+      [...document.querySelectorAll<HTMLElement>(".kui-tooltip-popup")].find((el) =>
+        el.textContent?.includes("Undo the last change"),
+      );
+    if (!(await until(() => !!mine())))
+      throw new Error("focus opened no tooltip — the law would assert nothing");
+    const popup = mine()!;
+
+    // THE PREMISE: this really is the stamped path. Without it the law passes on a Base UI that
+    // stopped stamping, which is the case it exists to survive.
+    expect(popup.getAttribute("data-instant"), "Base UI no longer stamps a focus open").toBe(
+      "focus",
+    );
+    // The runner POSED it — a stand-down that returns before posing leaves no attribute at all.
+    expect(
+      popup.hasAttribute("data-unfurling"),
+      "the runner stood down: a focus-opened tooltip is never posed, so it cannot fly",
+    ).toBe(true);
+    // …and there is a clock for the pose to run on. READ AFTER THE SEED COMES OFF, which is not
+    // hygiene: `[data-unfurling][data-seed]` declares `transition: none` deliberately — the pose
+    // is a HELD one, and the flight's transitions are the base rule's, applying the frame the
+    // seed is released. A statement landing inside the seeded window therefore reads zero on a
+    // correct package, which is what one run in three did before this line. Waited for by the
+    // attribute rather than by a frame count, so no clock of the host's is involved.
+    if (!(await until(() => !popup.hasAttribute("data-seed"))))
+      throw new Error("the seed never came off — the flight never departed");
+    const clocks = computed(popup, "transition-duration")
+      .split(",")
+      .map((d) => parseFloat(d));
+    expect(
+      Math.max(...clocks),
+      "every clock is zero: the stylesheet still reads a focus open as instant",
+    ).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * THE AGREEMENT LAW: PORTALLED ≡ IN-FLOW (§20, ENGINEERING §2.1 — added 2026-08-29, the
+ * ultracode audit).
+ *
+ * ENGINEERING §2.1 names this as owed by every portalling component, and Tooltip was the only
+ * one in the package without it: menu, select, dialog, alert-dialog and popover each write their
+ * own, and §32's shipping record neither counted it nor waived it. The mechanism is shared —
+ * `PortalScope` renders the bare `<Theme>` that carries the axes across, because React context
+ * crosses a portal and DOM attributes do not — but the obligation is per component precisely
+ * because the shared walk cannot know which axes a given pane actually consumes.
+ *
+ * Three axes were already carried here by other laws (appearance, density, contrast) and three
+ * were not (radius, pointer, depth) — and `depth` is the one with a visible consequence: a
+ * dropped re-stamp means an elevated app's tooltips silently stop casting.
+ *
+ * The twin's identity is READ OFF a real panel rather than restated, which is the second-home
+ * lesson the menu and select twins learned: a hand-copied class list is a second statement of
+ * the component's identity and drifts the day the component's does.
+ */
+describe("the agreement law: portalled ≡ in-flow (§20, §32)", () => {
+  /** Every axis pushed off its default at once — the set a portal must carry (§20). */
+  const HOSTILE: ThemeProps = {
+    appearance: "dark",
+    density: "compact",
+    radius: "large",
+    pointer: "coarse",
+    depth: "elevated",
+  };
+
+  function facts(el: HTMLElement) {
+    const cs = getComputedStyle(el);
+    return {
+      bg: cs.backgroundColor,
+      border: cs.borderTopColor,
+      radius: cs.borderTopLeftRadius,
+      paddingBlock: cs.paddingBlockStart,
+      paddingInline: cs.paddingInlineStart,
+      shadow: cs.boxShadow,
+      direction: cs.direction,
+      // The POINTER's own reader, and it is the WORDS rather than the pane. Nothing about a
+      // tooltip's box answers that axis — the inset is a layout-space pick (density), the corner
+      // is the surface band (density-invariant), and it is not on the control height ladder — so
+      // a facts list of box values alone carries five axes of six and goes green on a portal
+      // that dropped the sixth. What coarse moves here is the type (§17's handheld band): the
+      // pane's own inherited size is 16px in both worlds and its `Text size="2"` is 14 against
+      // 16, which is why the twin below places one.
+      wordSize: getComputedStyle(el.querySelector<HTMLElement>(".kui-type")!).fontSize,
+    };
+  }
+
+  function twin(theme: ThemeProps, identity: string) {
+    let el: HTMLElement | null = null;
+    render(
+      <Theme {...theme}>
+        <div
+          ref={(n: HTMLDivElement | null) => void (el = n)}
+          className={identity}
+          data-size="1"
+          data-tone="neutral"
+          data-emphasis="quiet"
+        >
+          {/* The tooltip places its own words at the system's step (§15's ownership exception),
+              so the twin must place the same ones or the pointer axis has no reader on this
+              side of the comparison. */}
+          <Text size="2">Undo</Text>
+        </div>
+      </Theme>,
+    );
+    if (!el) throw new Error("twin never mounted");
+    return el as HTMLElement;
+  }
+
+  it("computes identical under the hostile axis set", () => {
+    const identity = openTooltip({}).popup.className;
+    const { popup } = openTooltip(HOSTILE);
+    const twinEl = twin(HOSTILE, identity);
+    expect(facts(popup)).toEqual(facts(twinEl));
+    // The comparison CAN fail: the same twin under default axes disagrees. Without this the law
+    // would pass on a package where every axis had stopped reaching either side.
+    expect(facts(twin({}, identity))).not.toEqual(facts(twinEl));
+  });
+
+  it("carries contrast=high through the portal", () => {
+    const identity = openTooltip({}).popup.className;
+    const { popup } = openTooltip({ ...HOSTILE, contrast: "high" });
+    const twinEl = twin({ ...HOSTILE, contrast: "high" }, identity);
+    expect(facts(popup)).toEqual(facts(twinEl));
+    expect(facts(twin(HOSTILE, identity))).not.toEqual(facts(twinEl));
   });
 });

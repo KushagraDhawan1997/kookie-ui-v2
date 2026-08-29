@@ -23,8 +23,15 @@
      the mode's two ends, and the pair that normal text already uses.
 
      `contrast="high"` reaches it for free, which is what §11's "exception: high-contrast
-     inverted" was asking for: both roles move under the conformance surface, so the inversion
-     moves with them and nothing here has to know. */
+     inverted" was asking for — and ONE of the two roles is what does it (corrected 2026-08-29,
+     the ultracode audit; the sentence here said "both roles move", and three documents repeated
+     it). `--color-text` chains to `--neutral-12`, which all four high-contrast scopes re-declare.
+     `--color-surface` is declared at exactly two sites, one per appearance, and no HC scope
+     touches it or anything it reads — it is generated from `surfaceColor`, which has no HC
+     variant. So the pair SEPARATES rather than both moving: light drives the fill #1f1f21 →
+     #030304 against an ink already pinned at the palette's white end, dark drives it #ebebec →
+     #fafafa against #151517. Contrast rises in both modes, which is why the guarantee stands and
+     only its explanation was wrong — and why no HC arm is owed here. */
   background-color: var(--color-text);
   /* AND NO PANE LIGHTING, because the pane is the mode's OTHER END (2026-08-26, audit).
      `.kui-surface` paints `--kui-sf-light` — the solid rim, grain plus a white sheen — at

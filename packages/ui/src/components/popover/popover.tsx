@@ -10,8 +10,10 @@ import {
   FloatingBody,
   FloatingDirectionContext,
   PortalScope,
+  SIDE_OFFSET,
   useAmbientDirection,
   useNameWarning,
+  useRestingAnchor,
 } from "../../system/floating.tsx";
 import { useLensRef } from "../../system/refraction.tsx";
 import { mergeRefs, rootsInButton, unwrapLazy, type RenderElement } from "../../system/render.ts";
@@ -20,11 +22,6 @@ import { OWNED_BODY_STEP, OWNED_TITLE_STEP } from "../../system/type-steps.ts";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
 import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
-
-/* The gap between the trigger and the panel. Menu's number, deliberately shared rather than
-   re-picked: two panels that open from two buttons on one toolbar must sit at one distance, and
-   a second constant would be a value nobody judged pretending to be a decision. */
-const SIDE_OFFSET = 4;
 
 /* Size crosses the portal by CONTEXT, exactly as Dialog's does — a portalled popup renders
    outside its trigger's DOM position, so an attribute cannot reach it and React context can.
@@ -188,10 +185,24 @@ export function PopoverContent({
   ref,
   ...props
 }: PopoverContentProps) {
+  /* The placement's anchor is the trigger's RESTING box (§8, §22 — Menu's 2026-08-25 fix,
+     applied here 2026-08-29 by the ultracode audit). A popover opens on a PRESS, and an open
+     trigger holds that press: `scale: 0.975` and a 2px sink, arriving over ~150ms of spring.
+     floating-ui's tracking watches resize and layout shift and never re-solves for a transform,
+     so the placement froze mid-spring and the release's one late re-solve popped the panel by
+     the difference, a frame after the entry had visibly finished — the same "theres a small
+     jump still" the menu fix was written for, and a `--available-height` cap solved against a
+     box 2.5% smaller than the trigger's real one.
+
+     TOOLTIP DELIBERATELY DOES NOT TAKE THIS, and the difference is the gesture: a tooltip's
+     trigger is HOVERED for the whole life of the panel, so its 1px rise is a static fact rather
+     than a spring in flight, and anchoring to the resting box would place the tooltip 1px off
+     the button a person is looking at. A press springs back; a hover does not. */
+  const anchor = useRestingAnchor();
   return (
     <BasePopover.Portal>
       <PortalScope>
-        <BasePopover.Positioner side={side} align={align} sideOffset={sideOffset}>
+        <BasePopover.Positioner side={side} align={align} sideOffset={sideOffset} anchor={anchor}>
           <PopoverPopup className={className} style={style} ref={ref} {...props}>
             {children}
           </PopoverPopup>

@@ -2897,8 +2897,18 @@ describe("the panel unfurls out of a seed (§22)", () => {
 
         // WHICH EDGE THE PIN NAMES, read rather than assumed: the loose side resolves to a large
         // negative number (the slack in a box wider than the body), the held side to the panel's
-        // own padding. `center` holds both and lets the margins split the difference.
-        const held = Math.abs(start - end) < 1 ? "center" : start < end ? "end" : "start";
+        // own padding.
+        //
+        // CENTRE IS READ AS AN OUTCOME since 2026-08-29, and the old spelling is why. It asked
+        // whether the two insets agreed, which was true of `inset-inline: pad` + `margin: auto`
+        // — and that spelling could not actually centre anything: the body is held at its landed
+        // width while the pane grows into it, so the equation was over-constrained and the
+        // cascade dropped the end inset. The insets AGREED as declared and the body sat against
+        // its start edge. A centred body is now held by its own middle, so the question is asked
+        // of the box: does the body's layout centre sit on the pane's padding-box centre?
+        const middle =
+          start + parseFloat(cs.marginInlineStart) + body.offsetWidth / 2 - popup.clientWidth / 2;
+        const held = Math.abs(middle) < 1 ? "center" : start < end ? "end" : "start";
         // CALIBRATION: a body as wide as its panel is pinned on both sides at once and this law
         // is about nothing.
         if (held !== "center") {

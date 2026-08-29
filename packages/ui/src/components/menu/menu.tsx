@@ -25,6 +25,7 @@ import {
   FloatingDirectionContext,
   PortalScope,
   useAmbientDirection,
+  SIDE_OFFSET,
   useRestingAnchor,
 } from "../../system/floating.tsx";
 import type { Size } from "../../system/axes.ts";
@@ -35,12 +36,6 @@ import { glyphStroke } from "../../tokens/config.ts";
 
 /* ── Designed constants (§22 — the switchInset precedent: Base UI takes numbers, so
       these cannot ride CSS tokens; one home, judged in the playground) ─────────────────── */
-
-/** Gap between the trigger's edge and the popup. (A COVERING default — the panel pulled
-    back over its anchor so the trigger visually became the menu — was built and reverted
-    2026-08-15, Kushagra: the silhouette departing across the small gap read better than
-    the morph-in-place. LOG carries it.) */
-const SIDE_OFFSET = 4;
 
 /**
  * A submenu's seam with its parent panel (§22, measured rather than designed since

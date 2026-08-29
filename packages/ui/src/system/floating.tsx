@@ -406,6 +406,7 @@ const FLIGHT_VARS = [
   "--kui-fly-h",
   "--kui-fly-r",
   "--kui-fly-bw",
+  "--kui-fly-bh",
   "--kui-anchor-w",
   "--kui-seed-w",
   "--kui-seed-h",
@@ -413,6 +414,45 @@ const FLIGHT_VARS = [
   "--kui-from-x",
   "--kui-from-y",
 ] as const;
+
+/**
+ * THE GAP BETWEEN A TRIGGER'S EDGE AND THE PANEL IT OPENS (§22, promoted 2026-08-29).
+ *
+ * One number for the whole anchored family, because it is one FACT about the family: two panels
+ * opening from two buttons in one toolbar must sit at one distance from them. It cannot ride a
+ * CSS token — Base UI takes a number, not a length — which is the `switchInset` precedent, so
+ * this is where a designed constant lives when the cascade cannot carry it.
+ *
+ * It was four private `const SIDE_OFFSET = 4` declarations before this, one per member, and two
+ * of them carried a comment saying the value was "deliberately shared rather than re-picked"
+ * directly above their own copy. No law read it in any of them, so three could drift silently
+ * while every comment in the package went on claiming they could not. Menu was the origin;
+ * Select recorded its copy honestly as a second-member self-key (§23); Popover and Tooltip were
+ * the third and fourth and recorded nothing. The CSS rule is that the second member self-keys
+ * and the third promotes, and the JS rule (render.ts, PortalScope, the type-step maps) is that a
+ * mechanism promotes on its second consumer — this was past both.
+ *
+ * A COVERING default — the panel pulled back over its anchor so the trigger visually became the
+ * menu — was built and reverted 2026-08-15 (Kushagra): the silhouette departing across the small
+ * gap read better than the morph in place. LOG carries it.
+ */
+export const SIDE_OFFSET = 4;
+
+/**
+ * The `data-instant` values that are still an OPEN or a CLOSE, and therefore still fly.
+ *
+ * Base UI stamps `data-instant` whenever a change "is not a reveal", and three of its values are
+ * about the INPUT rather than about the change: `click` is any press with `detail === 0`, which
+ * is every keyboard Enter and Space; `dismiss` is a keyboard Escape or an imperative close; and
+ * `focus` is a focus-driven open or a focus-out close. An open is an open and a close is a
+ * close, with the same physics for every input — stillness belongs to reduced motion alone (§8).
+ *
+ * THE STYLESHEET STATES THE SAME SET, and it has to: this guard decides whether the runner poses
+ * the panel and surfaces.css decides whether any clock runs, so a value exempt in one home and
+ * not the other is a panel that is posed and never animates, or animates out of nothing. The two
+ * are held in agreement by a law that reads both sources (system/surfaces.test.ts).
+ */
+const FLIES_ANYWAY = new Set(["click", "dismiss", "focus"]);
 
 /** Which cancelled transition means the FLIGHT died, rather than a paint channel ending.
     Deliberately a list of what geometry IS, not of what paint is: an unlisted geometry channel
@@ -475,8 +515,26 @@ function useFlight(plan: FlightPlan) {
         // and a real trigger press flew again. A command palette driven from a store lost its
         // animation after the first Escape and looked like it had randomly stopped working.
         // A stamp that means "this CLOSE was not a reveal" says nothing about an open.
+        //
+        // `focus` is EXEMPT TOO (2026-08-29, the ultracode audit — same clause, third value,
+        // and it is the LAST input-class stamp Base UI has). It is written on two opposite
+        // gestures and both are reveals: the shared open-change path stamps it for a
+        // `triggerFocus` OPEN — every keyboard-focused tooltip, so a keyboard user got no entry
+        // at all where a pointer user got the silhouette — and `PopoverStore.setOpen` stamps it
+        // for a `focusOut` CLOSE, which is the ordinary way a keyboard leaves a non-modal panel,
+        // so tabbing out blinked the panel away in one frame against ~135ms for an outside
+        // press. It carries `dismiss`'s third defect with it: a CONTROLLED popover syncs its
+        // open state through `useControlledProp` and never runs `setOpen`, so the stamp from one
+        // focus-out is still on the popup at the next state-driven open and the entry was gone
+        // for the rest of the page's life.
+        //
+        // What is NOT exempt stays not exempt, and both are the same sentence from the other
+        // side: `delay` means the group is already warm (a toolbar's second tooltip, which every
+        // platform shows instantly), `trigger-change` means the panel MOVED between triggers
+        // rather than being revealed, and `tracking-cursor` is a panel following the pointer.
+        // None of those is an input class.
         const instant = popup.getAttribute("data-instant");
-        if (instant !== null && instant !== "click" && instant !== "dismiss") return;
+        if (instant !== null && !FLIES_ANYWAY.has(instant)) return;
 
         // The previous flight retires only once THIS one is certain (2026-08-16 audit):
         // retiring above the bails meant a begin that could not fly still killed a live
@@ -792,7 +850,7 @@ function useFlight(plan: FlightPlan) {
           // block child, so measured after the pose is back it measures the pose, not the
           // panel, which is the bug this ordering exists to make impossible.
           const natural = popup.getBoundingClientRect();
-          const bodyWidth = node.getBoundingClientRect().width;
+          const bodyBox = node.getBoundingClientRect();
 
           popup.style.setProperty("--kui-fly-w", `${natural.width}px`);
           popup.style.setProperty("--kui-fly-h", `${natural.height}px`);
@@ -819,7 +877,16 @@ function useFlight(plan: FlightPlan) {
           // rather than re-derived from the padding token: the panel's padding is
           // `max(--floating-p, the focus ring's reach)`, and reconstructing that here is the
           // audits' own lesson about arithmetic that agrees with itself.
-          popup.style.setProperty("--kui-fly-bw", `${bodyWidth}px`);
+          popup.style.setProperty("--kui-fly-bw", `${bodyBox.width}px`);
+          // …and its HEIGHT, for the one thing that cannot be said any other way: half of it
+          // (2026-08-29). A CENTRED body is pinned by its own centre — `inset: 50%` plus a
+          // half-size negative margin — because the two-insets-and-`auto`-margins spelling it
+          // replaces can only centre a box that FITS, and this one is held at its landed size
+          // while the pane is still growing into it. A percentage margin would need no
+          // measurement and is not available: percentage margins resolve against the
+          // containing block's INLINE size on both axes, so the block arm would centre by a
+          // fraction of the panel's width.
+          popup.style.setProperty("--kui-fly-bh", `${bodyBox.height}px`);
 
           /**
            * The POSITIONER is held at the panel's final box for the whole flight (§22,

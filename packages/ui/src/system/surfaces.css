@@ -2222,10 +2222,33 @@
   inset-inline-start: auto;
   inset-inline-end: var(--kui-sf-p-inline);
 }
+/* A CENTRED BODY IS PINNED BY ITS OWN CENTRE, and never by two insets and an auto margin
+   (2026-08-29, Kushagra: a tooltip's *"content inside is in wrong pos, it jumps after
+   animation has finished"*).
+
+   Auto margins can only centre a box that FITS. The body is held at its LANDED size for the
+   whole flight — `--kui-fly-bw`, so its text cannot re-break mid-air — while the pane is still
+   growing into that size, so for the opening half of every entry the box is wider than the
+   space between the two insets. That is an over-constrained equation, and the cascade resolves
+   it by dropping the end inset: the body sits hard against its start edge and hangs off the
+   other one. Measured on the shipped default tooltip out of an icon button, at 30% opacity: the
+   words 13.4px from the pane's left edge and 7.4px PAST its right one on an 88.9px pane, then
+   sliding to 13/13 as the box caught up. Nothing was wrong at rest, which is why every law
+   comparing the last flight frame with the settled panel read zero.
+
+   `inset-inline-start: 50%` plus a half-body negative margin says the same thing and cannot be
+   over-constrained — one inset, one margin, no equation to balance. It also matches what the
+   origin table already claims for exactly these cells (`--kui-origin-x: center`): the body
+   scales about its own middle, so it must be HELD by its own middle too.
+
+   Percentage margins are not the cheaper spelling: they resolve against the containing block's
+   INLINE size on both axes, so the block arm below would centre by a fraction of the panel's
+   width. Hence `--kui-fly-bh`, measured in the same window as the width it sits beside. */
 .kui-surface.kui-floating[data-unfurling][data-side="bottom"][data-align="center"] .kui-floating-body,
 .kui-surface.kui-floating[data-unfurling][data-side="top"][data-align="center"] .kui-floating-body {
-  inset-inline: var(--kui-sf-p-inline);
-  margin-inline: auto;
+  inset-inline-start: 50%;
+  inset-inline-end: auto;
+  margin-inline-start: calc(var(--kui-fly-bw, 0px) / -2);
 }
 .kui-surface.kui-floating[data-unfurling][data-side="right"][data-align="end"] .kui-floating-body,
 .kui-surface.kui-floating[data-unfurling][data-side="inline-end"][data-align="end"] .kui-floating-body,
@@ -2236,12 +2259,18 @@
   /* The sink's origin — see the [data-side="top"] arm below for the whole argument. */
   transform-origin: var(--kui-origin-x, left) calc(100% - var(--kui-body-sink));
 }
+/* The same sentence on the block axis, for a panel that lands BESIDE its trigger — and here
+   the old spelling failed a second way as well. The body's height is `auto`, so two block
+   insets did not over-constrain, they SQUEEZED: the box was forced to the growing pane's
+   padding box and its own content overflowed it. Measured on a two-line tooltip at 30%
+   opacity: 56px of body holding 60px of words. */
 .kui-surface.kui-floating[data-unfurling][data-side="right"][data-align="center"] .kui-floating-body,
 .kui-surface.kui-floating[data-unfurling][data-side="inline-end"][data-align="center"] .kui-floating-body,
 .kui-surface.kui-floating[data-unfurling][data-side="left"][data-align="center"] .kui-floating-body,
 .kui-surface.kui-floating[data-unfurling][data-side="inline-start"][data-align="center"] .kui-floating-body {
-  inset-block: var(--kui-sf-p-block);
-  margin-block: auto;
+  inset-block-start: 50%;
+  inset-block-end: auto;
+  margin-block-start: calc(var(--kui-fly-bh, 0px) / -2);
 }
 .kui-surface.kui-floating[data-unfurling][data-side="top"] .kui-floating-body {
   inset-block-start: auto;
@@ -2300,8 +2329,8 @@
 }
 
 /* Base UI asks for instant when the change is not a reveal — reopening into an already-open
-   group, a sibling opening under the pointer, a focus that moved the panel rather than
-   revealing it. TWO values are exempt, and both exemptions are the same sentence.
+   group, a sibling opening under the pointer, a panel that MOVED between triggers rather than
+   being revealed. THREE values are exempt, and all three exemptions are the same sentence.
 
    `click` (2026-08-19): Base UI 1.7 stamps instantType "click" for any trigger press with
    nativeEvent.detail === 0, which is every keyboard Enter/Space — so a keyboard user lost the
@@ -2317,11 +2346,30 @@
    the pointer's dismissal is the one that keeps its dissolve, the keyboard's was the one
    erased.
 
+   `focus` (2026-08-29, the ultracode audit): the last input-class stamp Base UI has, written on
+   two opposite gestures that are both reveals. The shared open-change path stamps it for a
+   `triggerFocus` OPEN (`utils/popups/popupStoreUtils`), which is every keyboard-focused TOOLTIP
+   — the one member whose keyboard route this is — and `PopoverStore.setOpen` stamps it for a
+   `focusOut` CLOSE, which is the ordinary way a keyboard leaves a non-modal panel. Measured: a
+   tabbed-out popover went to opacity 0 in one frame against ~135ms for an outside press, and a
+   focus-opened tooltip did not fly at all. It carries `dismiss`'s third defect too — a
+   CONTROLLED popover never runs `setOpen`, so one focus-out left the stamp on the popup and
+   every later state-driven open was instant for the life of the page.
+
+   What stays instant is what is NOT about the input: `delay` (the group is already warm — a
+   toolbar's second tooltip, which every platform shows at once), `trigger-change` (the panel
+   moved), `tracking-cursor` (it is following the pointer).
+
    So: an open is an open and a close is a close, with the same physics for every input.
-   Reduced motion is the stand-down for stillness, and it is the only one. */
-.kui-surface.kui-floating[data-instant]:not([data-instant="click"]):not([data-instant="dismiss"]),
-.kui-surface.kui-floating[data-instant]:not([data-instant="click"]):not([data-instant="dismiss"]) .kui-floating-body,
-.kui-surface.kui-floating[data-instant]:not([data-instant="click"]):not([data-instant="dismiss"]) :where(.kui-row, .kui-separator) {
+   Reduced motion is the stand-down for stillness, and it is the only one.
+
+   The RUNNER states the same set (`FLIES_ANYWAY`, system/floating.tsx) and must: this rule
+   decides whether a clock runs and that guard decides whether the panel is posed at all, so a
+   value exempt in one home and not the other is a posed panel that never animates. A law reads
+   both sources and requires them to agree (system/surfaces.test.ts). */
+.kui-surface.kui-floating[data-instant]:not([data-instant="click"]):not([data-instant="dismiss"]):not([data-instant="focus"]),
+.kui-surface.kui-floating[data-instant]:not([data-instant="click"]):not([data-instant="dismiss"]):not([data-instant="focus"]) .kui-floating-body,
+.kui-surface.kui-floating[data-instant]:not([data-instant="click"]):not([data-instant="dismiss"]):not([data-instant="focus"]) :where(.kui-row, .kui-separator) {
   transition: none;
 }
 
@@ -2388,8 +2436,13 @@
      this is byte-identical, and it is spelled this way because "which axis is this inset on" is
      the question the floating pin got wrong (see it) and no rule should have to be asked twice. */
   inset-block-start: var(--kui-sf-p-block);
-  inset-inline: 0;
-  margin-inline: auto;
+  /* Pinned by its own centre rather than by two insets and an auto margin — the floating
+     family's 2026-08-29 finding, and the same defect for the same reason: the body is held at
+     `--kui-fly-bw` while the card is still growing out of its circle, so the auto margins had
+     nothing to distribute and the print sat against its start edge. */
+  inset-inline-start: 50%;
+  inset-inline-end: auto;
+  margin-inline-start: calc(var(--kui-fly-bw, 0px) / -2);
   inline-size: var(--kui-fly-bw, auto);
 }
 /* THE CIRCLE (2026-08-15, Kushagra: "the dialog container itself expanding from a circle in

@@ -20,6 +20,7 @@ import {
   SelectBody,
   FloatingDirectionContext,
   PortalScope,
+  SIDE_OFFSET,
   useAmbientDirection,
 } from "../../system/floating.tsx";
 import { mergeRefs } from "../../system/render.ts";
@@ -28,10 +29,6 @@ import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
 import { useControlSize } from "../../system/control-size.ts";
 import { glyphStroke } from "../../tokens/config.ts";
-
-/** Gap between the trigger's edge and the panel — the menu's designed constant, restated
-    because the second member self-keys (§23). */
-const SIDE_OFFSET = 4;
 
 const SelectSizeContext = React.createContext<Size>("2");
 
