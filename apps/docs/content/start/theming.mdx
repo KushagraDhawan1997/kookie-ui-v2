@@ -1,4 +1,8 @@
-A theme is a way for your app to answer seven fundamental questions once, ensuring no screen repeats them. Everything within the theme automatically picks up these answers. All seven questions are optional, and every default is the right answer for an app that hasn’t decided yet. This deliberate design choice means that changing one question requires knowledge about your app that the library cannot possess.
+A theme answers seven questions once, at the root of your app, so that no screen answers them
+again. Everything inside the theme picks up those answers automatically.
+
+All seven are optional, and every default suits an app that has not decided yet. To change one,
+you need to know something about your app that the library cannot know.
 
 ## The seven settings
 
@@ -16,31 +20,30 @@ A theme is a way for your app to answer seven fundamental questions once, ensuri
 </Theme>
 ```
 
-**`appearance`** is light or dark. Use `inherit` at the root. That tells the Theme not to
-choose a mode itself, and to take the one already written on `<html>` by the small script in
-[Installation](/start/installation). That script plus `inherit` is the whole of dark mode.
+**`appearance`** is light or dark. Use `inherit` at the root, so the theme takes the mode
+already written on `<html>` by the script in [Installation](/start/installation) instead of
+choosing one. That script and `inherit` are all of dark mode.
 
-**`density`** changes how much space sits between things. It does not shrink anything. A
-compact theme uses smaller gaps from the same set of spacing values; the text stays the same
-size and the corners stay the same shape.
+**`density`** changes how much space sits between things, and nothing else. A compact theme
+takes smaller gaps from the same set of spacing values. Text stays the same size and corners
+keep the same shape.
 
-**`radius`** sets how round your app is. Each kind of component works out its own corner from
+**`radius`** sets how round your app is. Each kind of component calculates its own corner from
 that one word, so a button, a card and a menu row stay in proportion at every setting.
 
 **`contrast`** raises contrast for people who need it. Set it to `high` yourself, or leave it
-alone: someone who has asked their operating system for more contrast gets it without you
-doing anything.
+alone. Anyone who has asked their operating system for more contrast gets it either way.
 
-**`pointer`** is whether people are using a mouse or a touch screen. `auto` follows the
-device. Setting it yourself switches everything at once, which is useful when you want to
-check phone sizing on your laptop.
+**`pointer`** is whether people are using a mouse or a touch screen. `auto` follows the device.
+Setting it yourself switches everything at once, which is useful for checking phone sizing on
+your laptop.
 
-**`depth`** is whether your app has light in it. Either surfaces sit above the page and cast a
-shadow, or everything sits flat. You decide once, for the whole app. There is no shadow prop
-on a Card.
+**`depth`** is whether your app has light in it. Surfaces either sit above the page and cast a
+shadow, or sit flat. You decide once for the whole app, because there is no shadow prop on a
+Card.
 
-**`material`** is what your app is made of. One value covers everything, because every panel
-in one app is made of the same stuff.
+**`material`** is what your app is made of. One value covers everything, because every panel in
+one app is made of the same stuff.
 
 ## Nest a Theme to change one region
 
@@ -56,33 +59,32 @@ A Theme inside a Theme changes only the settings it names and inherits the rest.
 </Theme>
 ```
 
-Use this when one region genuinely needs to behave differently: a dark hero on a light page, a
-tight inspector panel in a roomy app, or a glass panel sitting over a photograph.
+Use this when one region needs to behave differently: a dark hero on a light page, a tight
+inspector panel in a roomy app, or a glass panel over a photograph.
 
-Nesting is also what keeps menus and dialogs correct. Every floating layer applies the theme
-again inside itself, so a menu opened from a dark section opens dark.
+Nesting also keeps menus and dialogs correct. Every floating layer applies the theme again
+inside itself, so a menu opened from a dark section opens dark.
 
-One thing nesting does not do is make a region measurable. If you want a component to respond
-to the width of its container rather than the window, use `<Box container>` around it.
+Nesting does not make a region measurable. To make a component respond to the width of its
+container rather than the window, wrap it in `<Box container>`.
 
 ## You cannot set the accent colour as a prop
 
-This is the thing people expect and do not find. There is no `accentColor` prop.
+People expect an accent colour prop, but there is not one.
 
-Your accent is set in the colour config as a hue and a saturation, and every shade, every
-role, both light and dark, and every contrast level is worked out from those two numbers. A
-prop could only take a hex value, and a hex value is exactly what that generator exists to
-avoid: one hex cannot tell you what its hover state, its border or its readable text colour
-should be.
+Your accent is set in the colour config as a hue and a saturation. Every shade, role, light and
+dark, and contrast level is calculated from those two numbers. A prop could only take a hex
+value, and the generator avoids hex values because a single hex cannot tell you what its hover
+state, its border or its readable text colour should be.
 
-The consequence is that an app has one accent. A section with different branding inside the
-same app is not something you can express today.
+As a result, an app has a single accent. Expressing different branding within the same app is
+not possible today.
 
 ## Reading the theme in JavaScript
 
-Most code never needs to. Components pick up the settings through CSS, which is why nothing
-runs in JavaScript when you hover or press a control. Two hooks exist for the cases CSS cannot
-reach.
+Most code never reads the theme. Components pick up the settings through CSS, which is why
+nothing runs in JavaScript when you hover or press a control. Two hooks cover the cases CSS
+cannot reach.
 
 ```tsx
 import { useMaterial, useWindowClass } from "@kookie-ui/react";
@@ -103,20 +105,20 @@ function Nav() {
 }
 ```
 
-`useWindowClass` returns `null` on the server and until the first paint, because the server
-cannot measure a window and a hook that guessed would make React complain that the server and
-the browser disagree. If you need the answer before anything paints, write it in CSS instead.
-The library exports the same boundaries as `windowClassQueries`.
+`useWindowClass` returns `null` on the server and until the first paint. The server cannot
+measure a window, and a hook that guessed would make React report a mismatch between the server
+and the browser. To get the answer before anything paints, write the rule in CSS instead. The
+library exports the same boundaries as `windowClassQueries`.
 
 ## Two defaults worth explaining
 
-The resting theme is light, normal density, fully rounded, normal contrast, automatic pointer,
+The default theme is light, normal density, fully rounded, normal contrast, automatic pointer,
 raised surfaces and solid material. Two of those are choices rather than obvious answers.
 
-**`depth` starts at `elevated`** because most apps do have light in them. A flat app is the
+**`depth` starts at `elevated`** because most apps have light in them. A flat app is the
 deliberate exception, not the neutral starting point. That is a judgment.
 
 **`material` starts at `solid`**, and solid is a material rather than the absence of one. It is
-the setting where light stops passing through. Glass needs two things to be true: your theme
-has to be made of glass, and something has to be behind the panel for it to bend. A control
-sitting in ordinary page flow stays solid and costs you nothing.
+the setting where light stops passing through. Glass needs two things: a theme made of glass,
+and something behind the panel for it to bend. A control sitting in ordinary page flow stays
+solid and costs you nothing.

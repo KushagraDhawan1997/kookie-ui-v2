@@ -1,24 +1,23 @@
-Most design systems give you a flat list of components. This one sorts them into families,
-and the family a component belongs to decides which props it takes.
+Design systems usually provide a flat list of components. This one groups them into families,
+and a component's family determines its props.
 
-You can tell a `Card` what material it is made of. You cannot tell a `Checkbox`, because a
-checkbox has no material to be made of. You can rank a `Button` against the button beside it.
-You cannot rank a `MenuItem`, because every item in a menu is equal.
+You can specify a `Card`'s material, but a `Checkbox` has no material. You can rank a `Button`
+against the button beside it, but a `MenuItem` is equal to every other item in a menu.
 
-So when a component does not have the prop you were expecting, find its family below. The
-family is usually the reason.
+If a component lacks the prop you expected, find its family below. The family is usually the
+reason.
 
 ## Pages, grounds and cards
 
-There are three levels underneath any screen, and the last two are the ones people mix up.
+Three levels sit under any screen, and people mix up the last two.
 
-The **page** is the bottom. This is the one background the library never paints, because a
-Theme that painted one would paint it again every time you nested another Theme. You paint the
-page yourself, and [Colour](/foundations/color) gives you the value to use.
+The **page** is the bottom, and the one background the library never paints, because a Theme
+that painted one would repaint it every time you nested another Theme. You paint the page
+yourself, and [Colour](/foundations/color) gives you the value.
 
 A **ground** is a region that holds other things. `Surface` is a ground. It is barely a
-different colour from the page, and it casts no shadow, because it sits in the page rather
-than above it.
+different colour from the page and casts no shadow, because it sits in the page rather than
+above it.
 
 A **card** is an object with its own surface. `Card` is opaque, so anything behind it stops at
 its edge, and in a raised theme it casts a shadow.
@@ -42,33 +41,32 @@ its edge, and in a raised theme it casts a shadow.
 </Surface>
 ```
 
-The Surface holds the two cards, and each card lifts off it. If you find yourself nesting a
-Card inside a Card to get a quieter region, use a Surface instead. Neither one is a quieter
-version of the other.
+The Surface holds the two cards, and each card lifts off it. To get a quieter region, use a
+Surface rather than a Card inside a Card. Neither one is a quieter version of the other.
 
-A Card is also the one surface that can become a control. Render it as a button and it
-presses. Render it as the label of a radio and it can be selected. There is no prop for
-either, because the element you gave it already says which one it is.
+A Card is also the one surface that can become a control. Render it as a button and it presses,
+or as the label of a radio and it can be selected. Neither needs a prop, because the element
+you gave it already says which one it is.
 
 ## Controls
 
-A control is something people operate. Every control shares the same states, the same size
-steps and the same loudness setting. There are four kinds.
+A control is something people operate. Every control shares the same states, size steps and
+loudness setting. There are four kinds.
 
 **Buttons** do something, and they rank against each other. `emphasis` is how loud this action
 is compared to the ones beside it; `tone` is what the action means. Use one loud button per
 screen.
 
 **Fields** hold something people type. They do not rank, so `TextField` and `TextArea` take no
-`emphasis` and no `tone`. A form where one field shouts louder than the next is telling you
-nothing. A field is also a recess rather than a raised object, so it never casts a shadow.
+`emphasis` and no `tone`. A form where one field shouts louder than the next tells you nothing.
+A field is a recess rather than a raised object, so it never casts a shadow.
 
 **Marks** are small and hold no text: `Checkbox`, `Radio`, the `Switch` track and the `Slider`
 handle. Each one sits beside its label rather than containing it, so it does not use the
 control height. A mark is exactly as tall as one line of the text next to it.
 
-**Instruments** show or set a value on a track: `Slider` and `Progress`. An instrument is not
-a panel and has no border of its own, so it takes no material and no surface styling.
+**Instruments** show or set a value on a track: `Slider` and `Progress`. An instrument is not a
+panel and has no border of its own, so it takes no material and no surface styling.
 
 ## A checkbox sits beside its label
 
@@ -87,31 +85,30 @@ a checkbox.
 
 ## Rows
 
-A row is one interactive line in a list. `Row` is the plain one, `MenuItem` is a row, and every
-line in a `NavTree` is a row.
+A row is one interactive line in a list. `Row`, `MenuItem` and every line in a `NavTree` are
+rows.
 
-A row looks like a small button and is a different thing, because no option in a list is more
-important than the ones around it. So a row takes no `emphasis` at all.
+A row looks like a small button but is a different thing, because no option in a list is more
+important than the ones around it. A row therefore takes no `emphasis` at all.
 
-The row you are on is not a louder row. It changes colour instead. If it were louder, there
-would be nothing left for hover to do.
+The row you are on changes colour rather than getting louder. If it were louder, there would be
+nothing left for hover to do.
 
 Height depends on where the row is. In a permanent column, such as a sidebar, a row stands at
 the same height as a `Button` of the same size, so the two read as the same size of thing. In a
 menu or a select the row is shorter: one line of text plus a small fixed amount of space above
-and below it. A panel of full-height rows reads as too sparse.
+and below it. A panel of full-height rows looks too sparse.
 
 ## Type, layout and the frame
 
-**Type** components take their colour from whatever surface they are sitting on. `Text`,
-`Heading`, `Blockquote`, `Code` and `Kbd` have no fill of their own, so on type `emphasis`
-picks a text colour rather than a background.
+**Type** components take their colour from the surface they sit on. `Text`, `Heading`,
+`Blockquote`, `Code` and `Kbd` have no fill of their own, so on type `emphasis` picks a text
+colour rather than a background.
 
-`Link` is the one type component that responds to a pointer, and it is still type rather than
-a control. A control is a box with a height, a padding, a corner and a tap target. A link is a
-run of words inside a sentence: it has to stay selectable, wrap across lines and sit on the
-same line as the paragraph around it. So it takes the hover and focus states and none of the
-box.
+`Link` is the one type component that responds to a pointer, and it is still type rather than a
+control. A control is a box with a height, a padding, a corner and a tap target. A link is a
+run of words inside a sentence: it must stay selectable, wrap across lines and sit on the same
+line as the paragraph around it. It takes the hover and focus states, and none of the box.
 
 **Layout** components paint nothing at all. `Box` does the work, and `Flex`, `Stack` and `Grid`
 are Box with a fixed display and a shorter prop list.
@@ -136,13 +133,13 @@ These render almost identically and belong to different families.
   promise a link makes.
 - **Card or Surface.** An object, or the thing it is sitting on.
 - **Popover or Dialog.** A popover leaves the page live behind it; a dialog dims the app and
-  traps focus. Both hold content you wrote, so the size of that content is not the question —
-  whether the rest of the app should keep working is.
+  traps focus. Both hold content you wrote, so the question is not how much content there is,
+  but whether the rest of the app should keep working.
 - **Popover or Tooltip.** A popover holds things and answers a press. A tooltip holds a
   sentence, appears under a resting pointer, and may only restate the name its control already
-  announces. Anything a tooltip alone carries is lost to every keyboard and touch user, which is
-  why it takes a string rather than nodes.
+  announces. Anything that only a tooltip says is lost to every keyboard and touch user, so it
+  takes a string rather than nodes.
 
-The test that works for all seven: ask what each one does when the other is not there. If the
-answers differ, they are different things, and one name for both would teach everyone who
-reads your code that the difference is only cosmetic.
+For all seven, ask what each one does when the other is not there. If the answers differ, they
+are different things, and one name for both would teach everyone who reads your code that the
+difference is only cosmetic.
