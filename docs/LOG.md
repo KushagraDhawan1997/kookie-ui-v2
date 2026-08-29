@@ -8,6 +8,22 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-30 A mixed boundary gets one share of air, and it is the flush pane's padding
+
+**What.** A grounded content pane (`flush={false}`) pays no margin on any side where a flush, open, in-flow pane stands: five `:has()` rules in shell.css (sidebar, rail-when-adjacent, header, inspector, bottom), the narrow media block restating the restore for `presentation="auto"` neighbours, which resolve to overlay there. The card's edge lands on the flush pane's wall; the only visible air at that boundary is the flush pane's own safe-area padding.
+
+**Why.** Kushagra, from the docs shell (flush sidebar, card content): *"There is sidebar's own padding, and then there's gap between sidebar and shell content, which isn't needed when only one of them is flush."* The spacing model's claim — "paying in full is exact against a flush neighbour, because a flush pane pays nothing" — was true of margins and false of pixels: a flush pane pads 16 (the 2026-08-21 safe area), paints no fill, and draws no hairline toward a card (the 2026-08-29 seams), so its padding reads as air and the boundary got two shares. Measured: rows at x=272, card at x=296, and the sidebar's overlay scrollbar pinned to the pane's invisible wall in the middle of the 24px void — the scrollbar is what exposed it. After: card at the wall, rows→card exactly the padding, scrollbar 2px from the card's hairline, macOS's own divider arrangement.
+
+**Which share goes.** The card's, never the pane's padding: the padding is a safe area serving the pane's own rows, and the row press expander reaches `-1 * --kui-sf-p` symmetrically, so a per-side padding would push a row's highlight out the opposite wall. Kushagra confirmed the residual asymmetry (16 against the sidebar, 8 against frame edges) is not a defect: *"the double air isn't an issue… its only visible bc of scrollbar, and scrollbar exposes that double gap, so 16 is perfect."*
+
+**Scope.** The content pane only — in the grounded regime the content is THE card. A non-flush side pane beside a flush one keeps paying in full, the head comment's own 2026-08-20 deferral with one more entry. The floating regime is untouchable by construction: floating requires flush content, and the subject is `:not([data-flush])`.
+
+**Rejected.** Dropping the flush pane's trailing padding instead (breaks the safe area and the expander's symmetric arithmetic). Doing nothing (the 24px void is real and the scrollbar names it).
+
+**Laws.** Four new (all four sides at once on a per-side-mixed fixture; closed/overlay/non-flush negative controls; the rail's adjacency; the narrow restore), each falsified — the wide sabotage fails three, the narrow-only sabotage fails exactly the fourth. Two existing laws had encoded the old behaviour as guarantees (the seam-geometry law asserted the >1px void; the full-gap law asserted the doubled boundary) and are re-keyed, not deleted. +112 gzipped bytes, baseline 34583.
+
+---
+
 ## 2026-08-29 The docs site is one face, and the face is the variable
 
 Kushagra, continuing the typeface experiments: Cabinet Grotesk for headings, then General

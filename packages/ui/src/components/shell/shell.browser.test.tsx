@@ -1659,16 +1659,21 @@ describe("a seam needs something on the other side of it (§27, 2026-08-29)", ()
     }
   });
 
-  it("...and the geometry is why: the line had a gap on both sides of it", () => {
+  it("...and the geometry is why: the card's own edge is already on the wall", () => {
     // The claim measured as a DISTANCE rather than as a border width, because "the seam is
     // stray" is a statement about where the neighbour is, not about whether a border exists.
+    // RE-KEYED 2026-08-30 with the mixed-boundary rules: this law used to assert a >1px gap
+    // between the flush sidebar and the card — the void the stray seam floated in — and that
+    // void is exactly what those rules deleted. The seam stays dropped, with a sharper
+    // reason: the card's edge now lands ON the sidebar's wall, so a sidebar hairline there
+    // would be a second line on top of the boundary the card already draws.
     const shell = shellWith(<ShellContent flush={false}>c</ShellContent>);
     const sidebar = within(shell, ".kui-shell-sidebar").getBoundingClientRect();
     const content = within(shell, ".kui-shell-content").getBoundingClientRect();
     expect(
       content.left - sidebar.right,
-      "the content is touching the sidebar, so there was never a gap to argue about",
-    ).toBeGreaterThan(1);
+      "the card pulled away from the wall — the doubled-line argument no longer holds",
+    ).toBeCloseTo(0, 1);
   });
 
   it("a FLOATING pane keeps every seam — the content grew underneath it", () => {
@@ -1763,6 +1768,159 @@ describe("a seam needs something on the other side of it (§27, 2026-08-29)", ()
         "1px",
       );
     }
+  });
+});
+
+describe("a mixed boundary gets ONE share of air (§27, 2026-08-30)", () => {
+  /* Kushagra: "there's gap between sidebar and shell content, which isn't needed when only
+     one of them is flush." A flush pane pads (the safe area), paints no fill and draws no
+     hairline toward a card, so its padding reads as air — and the card's margin on top of it
+     made the boundary two shares wide, with the sidebar's overlay scrollbar pinned to the
+     pane's invisible wall in the middle of the void (measured: rows at 272, card at 296).
+     The card stops paying on any side where a flush pane already pays; the flush pane's
+     padding is untouchable because it serves the pane's own rows.
+
+     The fixture is per-side MIXED on purpose (the degenerate-fixture rule): every pane flush
+     except the content, so all four arms fire at once and the geometry can disagree with the
+     margins independently. */
+  const mixed = () =>
+    mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellHeader>h</ShellHeader>
+        <ShellSidebar aria-label="Primary">s</ShellSidebar>
+        <ShellContent flush={false}>c</ShellContent>
+        <ShellInspector defaultOpen>i</ShellInspector>
+        <ShellBottom defaultOpen>b</ShellBottom>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+
+  // Falsified: with the five mixed-boundary rules deleted from shell.css, every margin here
+  // reads the full gap and every touch reads gap-wide.
+  it("the card pays no margin toward a flush pane, on all four sides at once", () => {
+    const shell = mixed();
+    const content = within(shell, ".kui-shell-content");
+    for (const side of [
+      "margin-inline-start",
+      "margin-block-start",
+      "margin-inline-end",
+      "margin-block-end",
+    ]) {
+      expect(computed(content, side), side).toBe("0px");
+    }
+    // And the geometry agrees: the card's edge lands ON each flush pane's wall, so the only
+    // visible air is the flush pane's own padding.
+    const c = content.getBoundingClientRect();
+    expect(c.left).toBeCloseTo(within(shell, ".kui-shell-sidebar").getBoundingClientRect().right, 1);
+    expect(c.top).toBeCloseTo(within(shell, ".kui-shell-header").getBoundingClientRect().bottom, 1);
+    expect(c.right).toBeCloseTo(within(shell, ".kui-shell-inspector").getBoundingClientRect().left, 1);
+    expect(c.bottom).toBeCloseTo(within(shell, ".kui-shell-bottom").getBoundingClientRect().top, 1);
+  });
+
+  /* The rule keys on the NEIGHBOUR, and each of these is one way the neighbour stops being
+     one: closed leaves flow entirely, overlay is out of flow, and a non-flush sibling is
+     card-against-card (the deferred 2g, deliberately untouched). Falsified together with the
+     law above — a rule that dropped its guards passes it and fails these. */
+  it("negative controls: a closed, overlaying or non-flush neighbour buys the card no discount", () => {
+    const gap = (shell: HTMLElement) => tokenOn(shell, "--shell-gap");
+
+    const closed = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellSidebar aria-label="Primary" defaultOpen={false}>
+          s
+        </ShellSidebar>
+        <ShellContent flush={false}>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    expect(
+      computed(within(closed, ".kui-shell-content"), "margin-inline-start"),
+      "closed flush sidebar",
+    ).toBe(gap(closed));
+
+    const overlay = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellSidebar aria-label="Primary" presentation="overlay" defaultOpen>
+          s
+        </ShellSidebar>
+        <ShellContent flush={false}>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    expect(
+      computed(within(overlay, ".kui-shell-content"), "margin-inline-start"),
+      "overlaying flush sidebar",
+    ).toBe(gap(overlay));
+
+    const cards = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellHeader>h</ShellHeader>
+        <ShellSidebar aria-label="Primary" flush={false}>
+          s
+        </ShellSidebar>
+        <ShellContent flush={false}>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const content = within(cards, ".kui-shell-content");
+    expect(computed(content, "margin-inline-start"), "non-flush sidebar: card against card").toBe(
+      gap(cards),
+    );
+    // ...while the flush header above the same card still fires its arm — the discount is
+    // per-boundary, never per-shell.
+    expect(computed(content, "margin-block-start"), "the flush header's own side").toBe("0px");
+  });
+
+  it("the rail's arm fires only when it actually borders the content", () => {
+    const railOnly = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellRail aria-label="Sections">r</ShellRail>
+        <ShellContent flush={false}>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const alone = within(railOnly, ".kui-shell-content");
+    expect(computed(alone, "margin-inline-start")).toBe("0px");
+    expect(alone.getBoundingClientRect().left).toBeCloseTo(
+      within(railOnly, ".kui-shell-rail").getBoundingClientRect().right,
+      1,
+    );
+
+    // An open NON-flush sidebar stands between rail and content: the boundary that matters
+    // is card-against-card, and the rail's flushness buys nothing across it.
+    const interposed = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellRail aria-label="Sections">r</ShellRail>
+        <ShellSidebar aria-label="Primary" flush={false}>
+          s
+        </ShellSidebar>
+        <ShellContent flush={false}>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    expect(
+      computed(within(interposed, ".kui-shell-content"), "margin-inline-start"),
+      "the sidebar between them is a card",
+    ).toBe(tokenOn(interposed, "--shell-gap"));
+  });
+
+  // Falsified: with the restore dropped from the narrow media block ONLY, this fails and the
+  // wide law above stays green — the twice-recorded hazard, a fact stated for the explicit
+  // path and forgotten on the path every phone takes.
+  it("on a narrow window an auto-presentation neighbour leaves flow, and the card gets its air back", async () => {
+    await narrow();
+    const shell = mounted(
+      <Shell style={{ height: 600 }}>
+        <ShellSidebar aria-label="Primary">s</ShellSidebar>
+        <ShellContent flush={false}>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    // The untouched flush sidebar rests closed here (display: none), but `:has()` still sees
+    // it — which is exactly what the restatement exists to answer.
+    expect(computed(within(shell, ".kui-shell-content"), "margin-inline-start")).toBe(
+      tokenOn(shell, "--shell-gap"),
+    );
   });
 });
 
@@ -2521,10 +2679,12 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     }
   });
 
-  it("a grounded content in flush chrome takes the FULL gap on every side", () => {
-    // The mixed regime: the frame pays nothing and the flush panes pay nothing, so the one
-    // non-flush pane pays in full — which is what makes its gap to the chrome equal to its
-    // gap to the window edge. (Halving it is the defect this spelling exists to avoid.)
+  it("a grounded content pays the gap only where nothing else does", () => {
+    // RE-KEYED 2026-08-30 (this law used to assert the FULL gap on every side, halving being
+    // the defect it guarded — and against a flush neighbour that spelling was the double-air
+    // defect stated as a guarantee). The mixed regime now: the frame's edges pay nothing, so
+    // the card pays there in full; the flush sidebar pays with its own padding, so the card
+    // pays nothing across that boundary. One share everywhere, from two different pockets.
     const shell = mounted(
       <Shell style={{ height: 400, width: 900 }}>
         <ShellSidebar aria-label="Primary">nav</ShellSidebar>
@@ -2536,7 +2696,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     const frame = shell.getBoundingClientRect();
     const sidebar = within(shell, ".kui-shell-sidebar").getBoundingClientRect();
     const content = within(shell, ".kui-shell-content").getBoundingClientRect();
-    expect(content.left - sidebar.right, "the gap against the chrome").toBeCloseTo(gap, 0);
+    expect(content.left - sidebar.right, "the flush pane's padding is the air").toBeCloseTo(0, 1);
     expect(frame.right - content.right, "the gap against the window edge").toBeCloseTo(gap, 0);
     expect(content.top - frame.top, "the gap above").toBeCloseTo(gap, 0);
     // And the flush neighbour is still welded to the frame.

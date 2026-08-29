@@ -682,8 +682,19 @@
    `var(--tone-border)` resolves at the element. No shell rule buys that. */
 
 /* SPACING. A non-flush pane pays for its own air, in full, on every side — which is exactly
-   right against the frame edge and against a flush neighbour, because neither of those pays
-   anything. It is NOT right between two non-flush neighbours, which double to 2g.
+   right against the frame edge, because the frame pays nothing. It is NOT right between two
+   non-flush neighbours, which double to 2g — and it was not right against a flush neighbour
+   either, which the first spelling of this comment claimed it was: a flush pane "pays
+   nothing" as a matter of margins, but it PADS (the 2026-08-21 safe area), it paints no fill
+   and it draws no hairline toward a card (the 2026-08-29 seams), so its padding is
+   indistinguishable from the gap and the boundary got two shares of air where this model
+   promises one. Measured before the fix (2026-08-30, Kushagra — the sidebar's scrollbar is
+   what exposed it): sidebar rows ended at x=272 and the content card began at x=296, a 24px
+   void of 16px pane padding plus 8px margin, with the overlay scrollbar pinned to the pane's
+   invisible wall in the middle of it. The mixed-boundary rules below take the CARD's share
+   away instead of the pane's padding, because the padding is a safe area serving the pane's
+   own content (and the row press expander reaches `-1 * --kui-sf-p` symmetrically, so a
+   per-side padding would push a row's highlight out the opposite wall).
 
    That gap is forced, not a spelling problem: requiring flush|flush to be 0 and
    grounded|grounded to be g fixes grounded|flush at g/2 for EVERY split of the gap between
@@ -715,6 +726,65 @@
      (0,2,0), so a pane in the all-cards regime would otherwise publish the full gap while
      paying half of it. */
   --kui-shell-outer: calc(var(--shell-gap) / 2);
+}
+
+/* MIXED BOUNDARIES (2026-08-30, Kushagra: "there's gap between sidebar and shell content,
+   which isn't needed when only one of them is flush"). A grounded card pays no air toward a
+   flush pane — the flush pane's padding IS the air. The subject is the CONTENT pane only:
+   in the grounded regime the content is THE card (a non-flush content is what grounds
+   everything else), and a non-flush side pane beside a flush one is a frame nothing in
+   front of us builds — that boundary keeps paying in full, the head comment's own deferral
+   with one more entry.
+
+   These rules can never touch the floating regime by construction: floating requires
+   `.kui-shell-content[data-flush]`, and the subject here is `:not([data-flush])`. `initial`
+   rather than a zero literal because the property owns its zero (the safe-area reset's own
+   spelling). `:where()` inside every `:has()` so each rule sits at (0,3,0)–(0,4,0) — above
+   the base margin's (0,2,0) on RANK, not order. The guards are the reach rules' own: a
+   closed pane leaves flow entirely, an overlay pane is out of flow, and an inspector or
+   bottom at `auto` rests closed. The narrow media block restates the inline/detail arms for
+   `presentation="auto"`, which resolves to overlay there — the block's twice-recorded
+   hazard, stated for the explicit path and owed on the path every phone takes. */
+.kui-shell:has(
+    > .kui-shell-sidebar:where([data-flush]:not([data-state="closed"]):not([data-presentation="overlay"]))
+  )
+  > .kui-shell-content:not([data-flush]) {
+  margin-inline-start: initial;
+}
+
+/* The rail's arm fires only when no open in-flow sidebar stands between it and the content —
+   a non-flush sidebar there is card-against-card (the deferred 2g), and a flush one already
+   fired the arm above. */
+.kui-shell:has(
+    > .kui-shell-rail:where([data-flush]:not([data-state="closed"]):not([data-presentation="overlay"]))
+  ):not(
+    :has(> .kui-shell-sidebar:where(:not([data-state="closed"]):not([data-presentation="overlay"])))
+  )
+  > .kui-shell-content:not([data-flush]) {
+  margin-inline-start: initial;
+}
+
+.kui-shell:has(> .kui-shell-header:where([data-flush]:not([data-state="closed"])))
+  > .kui-shell-content:not([data-flush]) {
+  margin-block-start: initial;
+}
+
+.kui-shell:has(
+    > .kui-shell-inspector:where(
+        [data-flush]:not([data-state="closed"]):not([data-state="auto"]):not([data-presentation="overlay"])
+      )
+  )
+  > .kui-shell-content:not([data-flush]) {
+  margin-inline-end: initial;
+}
+
+.kui-shell:has(
+    > .kui-shell-bottom:where(
+        [data-flush]:not([data-state="closed"]):not([data-state="auto"]):not([data-presentation="overlay"])
+      )
+  )
+  > .kui-shell-content:not([data-flush]) {
+  margin-block-end: initial;
 }
 
 /* FLOATING, half one: the pane lifts above the content. `z-index` on a grid item works with
@@ -1241,6 +1311,30 @@
   .kui-shell:has(> .kui-shell-sidebar[data-presentation="auto"]:not([data-flush]))
     > .kui-shell-content[data-flush] {
     --kui-shell-inset-inline-start: initial;
+  }
+
+  /* AND A CARD GETS ITS AIR BACK where the mixed-boundary rules took it (2026-08-30): those
+     key on a flush neighbour being IN FLOW, and here `presentation="auto"` resolves to
+     overlay — hidden at rest, absolute when open — so the boundary the card stopped paying
+     for does not exist and its edge would sit bare against the frame. Restated per side with
+     the value the base rule pays, the all-cards arm's own precedent for naming the token
+     twice. Each selector carries the neighbour's `[data-flush]` so the restatement is scoped
+     to exactly the arms above; a non-flush neighbour never zeroed anything to restore. */
+  .kui-shell:has(> .kui-shell-sidebar[data-flush][data-presentation="auto"])
+    > .kui-shell-content:not([data-flush]),
+  .kui-shell:has(> .kui-shell-rail[data-flush][data-presentation="auto"])
+    > .kui-shell-content:not([data-flush]) {
+    margin-inline-start: var(--shell-gap);
+  }
+
+  .kui-shell:has(> .kui-shell-inspector[data-flush][data-presentation="auto"])
+    > .kui-shell-content:not([data-flush]) {
+    margin-inline-end: var(--shell-gap);
+  }
+
+  .kui-shell:has(> .kui-shell-bottom[data-flush][data-presentation="auto"])
+    > .kui-shell-content:not([data-flush]) {
+    margin-block-end: var(--shell-gap);
   }
 
   .kui-shell-inspector[data-presentation="auto"] {
