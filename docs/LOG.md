@@ -8,6 +8,53 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-29 The docs site is one face, and the face is the variable
+
+Kushagra, continuing the typeface experiments: Cabinet Grotesk for headings, then General
+Sans for body, then Switzer for body — *"General sans reads too light"* — then Switzer for
+headings too, kept.
+
+**What closed.** Two questions, both open since the app first stated a face on 2026-08-28.
+The first is whether the docs run one face or two: §15 gives the type layer three family
+SLOTS, and having two of them hold DIFFERENT faces is the app's right, so the trial was
+legitimate and the answer is one — Switzer titles and reads, and the size ladder plus the
+ink roles do the separating that a second face was being asked to do. Cabinet Grotesk held
+the heading slot for part of the day and lost it by eye. The slot keeps a line of its own in
+`globals.css` even while it names the same face, because tokens.css declares
+`--font-heading: var(--font-body)` at `:root` and a custom property substitutes where it is
+DECLARED — the line is what makes the slot the app's, and it is where a second face goes back
+if one is ever chosen.
+
+**The second is that a thin page is a FACE problem, not a ladder problem.** General Sans
+reading light is a real observation, and the cheap answer — walk the weight ladder up in the
+app — is the wrong one: 400/500/600 are the package's steps, and an app that restates them
+to compensate for its own choice of face has made the system's weights say something untrue
+about weight. So the face moved and the ladder did not. Recorded because the cheap answer is
+the one a later reader will reach for.
+
+**The italic is drawn now, and it was synthesized before.** The prose renders `<em>` and
+every face this site has tried shipped roman only, so an emphasized phrase has been a browser
+SHEARING a roman since the day the app stated a face. Switzer has a real italic, so both
+styles are declared — measured, the italic file downloads only on a page that uses one
+(`/foundations/typography` loads roman alone, `/foundations/color` loads both).
+
+**The licence class changed, and it decides how the file travels.** Chomsky and Valley Sans
+are OFL, which permits redistribution and left `git add -f` open as an explicit decision.
+Switzer is under the ITF Free Font License, which forbids making the file available through
+"another font website, font library, marketplace, REPOSITORY, download service" — so the
+blanket `*.woff2` rule in `.gitignore` is doing real work here rather than merely waiting to
+be overridden, and a fresh clone renders the fallback stack until somebody fetches the face
+from fontshare.com. `Fontshare-FFL.txt` sits beside it, kept once: the licence text Fontshare
+ships with each family is byte-identical, so two copies would have been two homes for one
+fact.
+
+**Measured, not assumed.** Headings resolve to the body face through a mounted page; the
+italic loads lazily; and while Cabinet Grotesk was parked (declared, unreferenced) it was
+NOT downloaded, which is what made keeping it free during the trial and made deleting it a
+tidy-up rather than a saving.
+
+---
+
 ## 2026-08-29 A seam needs something on the other side of it
 
 Kushagra, straight after the backdrop change: *"Say content is not flush, and the sidebar is.

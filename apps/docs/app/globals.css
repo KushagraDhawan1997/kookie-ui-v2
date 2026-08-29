@@ -21,6 +21,37 @@ html {
   scrollbar-gutter: stable;
 }
 
+/* The app states its own face (2026-08-28). §15 owns three family SLOTS and leaves the face to
+   the consumer; this is the consumer. The package's default is the system stack, and that is
+   still what anybody who states nothing gets.
+
+   BOTH SLOTS ARE STATED, and since 2026-08-29 they name the SAME face. The site is one face
+   with the ladder doing the separating: Cabinet Grotesk titled it for part of that day and
+   lost the slot by eye. Stating only `--font-body` would look right and be wrong anyway:
+   tokens.css declares `--font-heading: var(--font-body)` at `:root`, and a custom property
+   substitutes where it is DECLARED, so the heading slot resolved the system stack at the
+   moment tokens.css was read and a later `--font-body` here would move every paragraph while
+   leaving every heading behind. The slot keeps a line of its own for that reason — the line
+   is what makes the slot the app's rather than the package's, and it is where a second face
+   goes back if one is ever chosen.
+
+   `:root` rather than `html` deliberately: it is the same element with a higher specificity,
+   which is what tokens.css uses, so this wins on source order rather than on rank — and
+   globals.css is imported after the package's stylesheet in `layout.tsx`. Measured after the
+   change rather than assumed.
+
+   THE MONO SLOT IS STATED TOO SINCE 2026-08-29, reversing what stood here from 2026-08-28: a
+   code sample was set in whatever the reader's machine calls a monospace, on the argument that
+   a familiar face beats a chosen one. What overruled it is that the reader's machine then gets
+   a vote on a third of the page, and a site whose prose is one chosen face and whose code is
+   whichever grotesque mono the OS happens to ship is not one document. All three slots are the
+   app's, and all three are now filled. */
+:root {
+  --font-body: var(--kd-font-body), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-heading: var(--font-body);
+  --font-mono: var(--kd-font-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 body {
   margin: 0;
   min-height: 100dvh;
