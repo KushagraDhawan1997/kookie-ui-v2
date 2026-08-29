@@ -241,6 +241,48 @@ it and it was re-applied by hand.
 
 ---
 
+## 2026-08-30 The docs sidebar floats its chrome, and the bleed learns what "first" means
+
+The pane chrome shipped the day before; Kushagra: "lets have content go behind logo header and
+light dark mode footer." Executing it in the one real sidebar this repo has found the seam the
+preview demo had been too small to hit.
+
+**The wordmark row floated, and the rows clipped at a hard line 16px inside it.** The scroller's
+edge-bleed asks the DOM `:first-child` / `:last-child` — the right question for PINNED siblings,
+where DOM position and layout position are one fact. A floating part splits them: it is a DOM
+sibling that occupies no space, so the scroller stopped answering "touches the pane's edge" the
+moment chrome floated over it, and rows could never scroll into the very band the float exists
+to let them pass through. The code block hit this identical wall on 2026-08-28 and recorded it
+as *"a package gap wearing a local fix — promote at integration."* This was the integration.
+
+**The promotion is the selector saying the actual question.** `:nth-child(1 of
+:where(:not([data-float])))` reads as "first child that takes space" — the rule can no longer
+drift from its meaning, because its meaning is its spelling. The inner `:where()` zeroes its
+argument's weight, so the new selector sits at exactly `:first-child`'s (0,1,0) and no override
+anywhere changes hands — checked against the menu's and the code block's own viewport rules
+rather than asserted. Lightning preserves the `of` syntax through the build, probed before
+trusting. Not a fight with the system: "which edges bleed is asked of the DOM, never of a prop"
+was already the doctrine, and the selector now asks the DOM the question the doctrine meant.
+
+**The seam that remains, stated:** `data-float` is package vocabulary, so the code block's
+hand-positioned topbar is invisible to the promotion and keeps its local rule — one block doing
+by hand what every marked part now gets by construction.
+
+**The sidebar itself:** header and footer wrapped in the parts, the nav's scroller takes `fade`,
+and the tree spends both published reaches. Two costs measured and left for the eye: the
+wordmark row is 72px against a published 64 (the size-8 glyph outgrows one control row — the
+derived-reach staleness §27 records), and the 32px fade is shorter than the 72px chrome, so a
+row crosses the header's lower band at full opacity before dissolving. Both are one config or
+one size step if they read wrong.
+
+**The law reads three halves**: the bleed reaches the pane's edges past floating chrome, the
+re-pad keeps resting rows exactly where an unbled pane put them (a bleed with no re-pad is
+content against the wall — the 2026-08-21 inversion, still true), and an IN-FLOW sibling still
+blocks the bleed, which is the negative that stops the fix over-reaching into the pinned case
+it must not touch. Falsified by reverting the selector. +16 bytes, baseline 34,434 → 34,450.
+
+---
+
 ## 2026-08-29 The frame publishes the reach a floating pane leaves, because a sibling cannot read a sibling
 
 Kushagra, after floating the docs sidebar and finding the reading column underneath it: *"the

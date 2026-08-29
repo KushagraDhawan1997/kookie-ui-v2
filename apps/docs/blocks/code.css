@@ -211,9 +211,53 @@
    The re-pad goes back on the viewport in step, so the resting inset is unchanged and only
    the SCROLLABLE region grew. A PACKAGE GAP wearing a local fix, like the corner rule above:
    any pane with out-of-flow chrome over a scroller has this, and the surface layer's own
-   rule should learn to ignore an absolutely positioned sibling — promote at integration. */
+   rule should learn to ignore an absolutely positioned sibling — promote at integration.
+
+   PROMOTED 2026-08-30, half of it: the package's edge-bleed now asks "first IN-FLOW child"
+   (`:nth-child(1 of :where(:not([data-float])))`), so a ShellPaneHeader/Footer no longer
+   blocks the bleed. This well's chrome is a hand-positioned row, not a marked part — the
+   package can only see its own vocabulary — so this local rule stays, doing for one block
+   what the promotion does for every marked one. */
 .kd-code-well > .kui-scroll-area {
   margin-block: calc(-1 * var(--kui-sf-p));
+}
+
+/* A HOSTED well bleeds to its HOST's walls (2026-08-29, Kushagra: "in code sample even though
+   there is padding, scroll area container bleeds to edges, but that isnt the case with
+   specimen's code block").
+
+   The shared rule in surfaces.css keys on `.kui-surface > .kui-scroll-area`, and a hosted well
+   is deliberately not a surface — so it matched nothing, and the code scrolled inside a column
+   inset from the figure's edges while a standalone sample's scrolled wall to wall. The
+   horizontal scrollbar is the visible half of that: it belongs to the pane, so it must reach
+   the pane's edges.
+
+   `--kd-host-p` is the host's inset, published by the hosted wrapper for exactly this pair of
+   jobs (the floating chrome reaches out by it too). Bleed then re-pad, which is `m="bleed"`
+   said in CSS: the scroll REGION reaches the wall, the text stays where the reader expects it,
+   and no line moves by a pixel. */
+.kd-code-hosted > .kui-scroll-area {
+  margin-inline: calc(-1 * var(--kd-host-p, 0px));
+}
+.kd-code-hosted > .kui-scroll-area > .kui-scroll-viewport {
+  padding-inline: var(--kd-host-p, 0px);
+}
+
+/* And the BLOCK edge it actually faces (2026-08-29, Kushagra: "its fixed horizontally but
+   vertically its the same thing — not touching the edges").
+
+   Only the END edge, and `:last-child` is what says so rather than an assumption written in a
+   comment. A standalone well bleeds BOTH block edges because the scroller is the whole of the
+   pane's content; a hosted one sits in a stack, so its start edge faces a sibling and a gap —
+   bleeding there would pull the code up into the space that separates it from the specimen.
+   Its end edge is the only one that faces a wall, and it faces one only while nothing follows
+   it. The selector matches the wrapper that publishes the inset, so the rule is off the moment
+   that stops being true. */
+:last-child > .kd-code-hosted > .kui-scroll-area {
+  margin-block-end: calc(-1 * var(--kd-host-p, 0px));
+}
+:last-child > .kd-code-hosted > .kui-scroll-area > .kui-scroll-viewport {
+  padding-block-end: var(--kd-host-p, 0px);
 }
 .kd-code-well > .kui-scroll-area > .kui-scroll-viewport {
   padding-block: var(--kui-sf-p);

@@ -178,7 +178,16 @@
    only child touches all four edges whatever the axis — so what is unguarded is only the
    sibling case, which needs a flex column for the scroller to take the remaining height at all.
 
-   Which block edges bleed is asked of the DOM, never of a prop. A scroller with a heading
+   Which block edges bleed is asked of the DOM, never of a prop — and since 2026-08-30 the
+   question is "first IN-FLOW child", not "first child". A pane's chrome row can FLOAT
+   (ShellPaneHeader/Footer, `data-float`): it stays a DOM sibling while occupying no space,
+   and under plain `:first-child` the scroller stopped bleeding the moment chrome floated
+   over it — clipping rows at a hard line 16px inside the very band the float exists to let
+   them pass through. The code block hit this first and recorded it as a package gap wearing
+   a local fix (code.css, 2026-08-28); `:nth-child(1 of :where(:not([data-float])))` is the
+   promotion — the same question, skipping the siblings that take no space. The inner
+   `:where()` keeps the specificity at `:first-child`'s own (0,1,0), so no override anywhere
+   changes hands. A scroller with a heading
    above it is not touching the pane's top edge, so it reclaims nothing there and its
    neighbour's gap survives; `:first-child` / `:last-child` are that question. The viewport's
    padding mirrors them exactly — a side that did not bleed must not pad, or the gap doubles.
@@ -270,19 +279,25 @@
   flex-direction: column;
   margin-inline: calc(-1 * var(--kui-sf-p));
 }
-:is(.kui-surface, .kui-dialog-body) > .kui-scroll-area:first-child {
+:is(.kui-surface, .kui-dialog-body)
+  > .kui-scroll-area:nth-child(1 of :where(:not([data-float]))) {
   margin-block-start: calc(-1 * var(--kui-sf-p));
 }
-:is(.kui-surface, .kui-dialog-body) > .kui-scroll-area:last-child {
+:is(.kui-surface, .kui-dialog-body)
+  > .kui-scroll-area:nth-last-child(1 of :where(:not([data-float]))) {
   margin-block-end: calc(-1 * var(--kui-sf-p));
 }
 :is(.kui-surface, .kui-dialog-body) > .kui-scroll-area > .kui-scroll-viewport {
   padding-inline: var(--kui-sf-p);
 }
-:is(.kui-surface, .kui-dialog-body) > .kui-scroll-area:first-child > .kui-scroll-viewport {
+:is(.kui-surface, .kui-dialog-body)
+  > .kui-scroll-area:nth-child(1 of :where(:not([data-float])))
+  > .kui-scroll-viewport {
   padding-block-start: var(--kui-sf-p);
 }
-:is(.kui-surface, .kui-dialog-body) > .kui-scroll-area:last-child > .kui-scroll-viewport {
+:is(.kui-surface, .kui-dialog-body)
+  > .kui-scroll-area:nth-last-child(1 of :where(:not([data-float])))
+  > .kui-scroll-viewport {
   padding-block-end: var(--kui-sf-p);
 }
 

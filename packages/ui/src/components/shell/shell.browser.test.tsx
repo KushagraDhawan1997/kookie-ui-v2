@@ -2411,6 +2411,64 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     ).toBe(0);
   });
 
+  /**
+   * THE SCROLLER STILL BLEEDS PAST FLOATING CHROME (2026-08-30). The edge-bleed asks the DOM
+   * "first child?", and a floating part is a DOM sibling that occupies no space — so under
+   * plain `:first-child` the scroller stopped bleeding the moment chrome floated over it,
+   * clipping rows at a hard line inside the very band the float exists to let them pass
+   * through (the code block recorded this as a package gap, 2026-08-28). The question is
+   * "first IN-FLOW child" now. Both halves read: the scroller's box reaches the pane's edges
+   * (the bleed), and the first row rests where it always rested (the re-pad) — a bleed with
+   * no re-pad is content against the wall. Falsified by reverting any of the four selectors
+   * to the plain spelling.
+   */
+  it("a scroller bleeds past FLOATING chrome to the pane's edges, and still re-pads (§27)", () => {
+    const shell = mounted(
+      <Shell style={{ height: 400, width: 900 }}>
+        <ShellSidebar aria-label="Primary">
+          <ShellPaneHeader float>chrome</ShellPaneHeader>
+          <ShellScroll>
+            <Box data-testid="row">row</Box>
+          </ShellScroll>
+          <ShellPaneFooter float>chrome</ShellPaneFooter>
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const pane = within(shell, ".kui-shell-sidebar");
+    const scroller = within(shell, ".kui-shell-scroll").getBoundingClientRect();
+    const vp = within(shell, ".kui-scroll-viewport");
+    const paneBox = pane.getBoundingClientRect();
+    const border = parseFloat(computed(pane, "border-top-width"));
+    expect(scroller.top - paneBox.top, "the top edge did not bleed past the floating header")
+      .toBeCloseTo(border, 1);
+    expect(paneBox.bottom - scroller.bottom, "the bottom edge did not bleed past the footer")
+      .toBeCloseTo(border, 1);
+    // The re-pad: the viewport insets by the pane's own padding, so resting content sits
+    // exactly where an unbled pane would have put it.
+    expect(parseFloat(computed(vp, "padding-block-start")), "the bleed lost its re-pad")
+      .toBeGreaterThan(0);
+    expect(parseFloat(computed(vp, "padding-block-end"))).toBeGreaterThan(0);
+    // And an IN-FLOW sibling still blocks the bleed — the question is in-flow, not "skip
+    // everything": a scroller under a pinned heading must not pull itself up past it.
+    const pinned = mounted(
+      <Shell style={{ height: 400, width: 900 }}>
+        <ShellSidebar aria-label="Primary">
+          <ShellPaneHeader data-testid="pinned">chrome</ShellPaneHeader>
+          <ShellScroll>rows</ShellScroll>
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const pinnedHeader = within(pinned, "[data-testid='pinned']").getBoundingClientRect();
+    expect(
+      within(pinned, ".kui-shell-scroll").getBoundingClientRect().top,
+      "the scroller bled past an IN-FLOW header",
+    ).toBeGreaterThanOrEqual(pinnedHeader.bottom - 1);
+  });
+
   it("nothing floating, nothing published (§27)", () => {
     const shell = mountShell();
     const content = within(shell, ".kui-shell-content");

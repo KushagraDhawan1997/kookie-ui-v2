@@ -18,7 +18,7 @@
 import type * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { NavTree, ShellScroll, type TreeNode } from "@kookie-ui/react";
+import { Box, NavTree, ShellScroll, type TreeNode } from "@kookie-ui/react";
 
 import {
   BlocksIcon,
@@ -153,7 +153,19 @@ export function DocsNav({
   ];
 
   return (
-    <ShellScroll>
+    /* `fade` pairs with the pane's floating chrome (2026-08-30): the rows pass behind the
+       wordmark row and the footer, and the fade is what keeps them legible while they do. */
+    <ShellScroll fade>
+      {/* The pane's chrome FLOATS over this scroller, so the tree spends the published reach
+          (§27, the safe-area pattern at pane scale): the rows REST clear of the chrome and
+          scroll behind it. Minus the viewport's own re-pad, because the scroller already
+          insets by the pane's padding. */}
+      <Box
+        style={{
+          paddingBlockStart: "calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p))",
+          paddingBlockEnd: "calc(var(--kui-pane-inset-block-end) - var(--kui-sf-p))",
+        }}
+      >
       <NavTree
         items={items}
         // Every section open on arrival; Components only when you are standing in it. The
@@ -167,6 +179,7 @@ export function DocsNav({
         currentId={pathname ?? null}
         renderLink={(node) => <Link href={node.href!} />}
       />
+      </Box>
     </ShellScroll>
   );
 }

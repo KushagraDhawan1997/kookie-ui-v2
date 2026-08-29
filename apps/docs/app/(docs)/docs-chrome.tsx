@@ -35,6 +35,8 @@ import {
   Shell,
   ShellContent,
   ShellScroll,
+  ShellPaneFooter,
+  ShellPaneHeader,
   ShellSidebar,
   ShellTrigger,
 } from "@kookie-ui/react";
@@ -103,16 +105,23 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
               floating in the content pane, which sits flush at the pane's own top inset with
               no tall sibling beside it. Top-aligning puts both buttons' top edges at the same
               offset from their pane's own padding, which is what actually matches them. */}
-          <Flex align="start" justify="space-between">
-            <Link
-              href="/"
-              aria-label="KookieUI"
-              style={{ color: "inherit", textDecoration: "none" }}
-            >
-              <Wordmark />
-            </Link>
-            <DocsSearch index={buildSearchIndex()} />
-          </Flex>
+          {/* FLOATING since 2026-08-30 (Kushagra: "lets have content go behind logo header
+              and light dark mode footer") — the pane's own chrome parts, shipped the day
+              before. The rows pass behind this and behind the footer, the nav's scroller
+              fades them out on the way (its `fade`), and the tree rests clear by spending
+              the published reach — all three statements live in docs-nav.tsx. */}
+          <ShellPaneHeader float>
+            <Flex align="start" justify="space-between">
+              <Link
+                href="/"
+                aria-label="KookieUI"
+                style={{ color: "inherit", textDecoration: "none" }}
+              >
+                <Wordmark />
+              </Link>
+              <DocsSearch index={buildSearchIndex()} />
+            </Flex>
+          </ShellPaneHeader>
 
           {/* DocsNav renders its own ShellScroll as its root — wrapping it in another one
               here nested two scrollers: the inner took its content's height, never scrolled
@@ -121,18 +130,20 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
               pane's DIRECT child for the pinned-stack and bleed machinery to see it. */}
           <DocsNav sections={sections} components={components} />
 
-          {/* The unofficial footer — pinned below the scroller the same way. */}
-          <Flex align="center" justify="space-between" gap="2">
-            <Button
-              emphasis="quiet"
-              render={
-                <a href="https://github.com/KushagraDhawan1997/kookie-ui-v2" />
-              }
-            >
-              GitHub
-            </Button>
-            <AppearanceToggle />
-          </Flex>
+          {/* The footer, floating with the header — one posture for the pane's chrome. */}
+          <ShellPaneFooter float>
+            <Flex align="center" justify="space-between" gap="2">
+              <Button
+                emphasis="quiet"
+                render={
+                  <a href="https://github.com/KushagraDhawan1997/kookie-ui-v2" />
+                }
+              >
+                GitHub
+              </Button>
+              <AppearanceToggle />
+            </Flex>
+          </ShellPaneFooter>
         </ShellSidebar>
 
         {/* The shell rests at its default 2 (2026-08-26, Kushagra — it went to 3 for a day and
