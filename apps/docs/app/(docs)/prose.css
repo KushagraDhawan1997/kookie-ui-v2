@@ -133,38 +133,6 @@
   min-inline-size: 0 !important;
 }
 
-/* ── The component index ───────────────────────────────────────────────────────────────────
-   An entry is a link with two lines, on a `<Surface>` ground rather than in open space
-   (2026-08-25's closure argument was about a lone card in open space; a SET of them on a
-   ground is the case §10's own "a ground holds cards" example makes). 2026-08-29 tried three
-   divider spellings in between — a hand-rolled bordered frame, a hairline-gap grid, a
-   border-per-transparent-cell grid — and landed back on a plain `<Card>`: the ground plus
-   Card's own seal and edge is already the identity this needed, and every divider experiment
-   was building a second one beside it. What a Card WAS buying is a hover affordance, so the
-   underline buys it back for the price of two declarations — the same trade `.kd-toc-link`
-   below makes.
-
-   The clamp is a floor under a fact the page cannot control: a blurb's opening sentence is
-   usually short and occasionally is not, and one long entry must not set the row height for
-   every entry beside it in the track. */
-.kd-index-item {
-  color: inherit;
-  text-decoration: none;
-}
-
-.kd-index-item:hover .kd-index-name {
-  text-decoration-line: underline;
-  text-underline-offset: 0.2em;
-}
-
-.kd-index-blurb {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-}
-
 /* ── The table of contents ─────────────────────────────────────────────────────────────────
    A sticky aside in the gutter the reading measure leaves over. Two properties are the app's
    to state and neither belongs in a component: how wide this column is (a measurement about
