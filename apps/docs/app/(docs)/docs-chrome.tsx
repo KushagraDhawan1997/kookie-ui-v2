@@ -194,6 +194,9 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
                   <Button
                     emphasis="quiet"
                     iconOnly
+                    /* Floating chrome over the reading column, like the search button and
+                       the appearance toggle — it states its backdrop (§10). */
+                    backdrop
                     aria-label="Toggle navigation"
                   >
                     <PanelLeftIcon />
