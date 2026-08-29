@@ -1,5 +1,5 @@
 KookieUI needs three things: the package, one stylesheet, and a `Theme` wrapped around your
-app. There is no config file and no build plugin. Every value is worked out ahead of time and
+app. There is no config file and no build plugin. Every value is calculated ahead of time and
 shipped as CSS custom properties.
 
 ## The package is not on npm yet
@@ -14,7 +14,7 @@ pnpm install
 pnpm run build
 ```
 
-Then depend on it from an app in the same workspace. This site does exactly that:
+Then depend on it from an app in the same workspace. This site does that:
 
 ```json title="package.json"
 {
@@ -37,8 +37,8 @@ Import it one time, at the root of your app. This single file contains everythin
 and spacing values, the shared rules for controls, and the rules for every component. There is
 no separate stylesheet per component.
 
-The file is the same size no matter how many components you use, so adding a component
-tomorrow costs you no extra CSS.
+The file is the same size no matter how many components you use, so adding a component tomorrow
+costs you no extra CSS.
 
 ## Wrap your app in a Theme
 
@@ -71,19 +71,19 @@ body {
 ```
 
 Use `--color-ground` instead of `--color-page` if your page is mostly cards. It steps away from
-the page in both modes — darker in light, lighter in dark — so the cards on it have something to
-sit on.
+the page in both modes — darker in light, lighter in dark — so the cards on it have something
+to sit on.
 
 ## Set dark mode before the page paints
 
-Your server cannot know whether to render light or dark. Whether someone chose a mode, and
-what their operating system prefers, are both things only their browser knows. If the server
-guesses, you get one of two problems: the page flashes the wrong colours, or React complains
-that the server and browser disagree.
+Your server cannot know whether to render light or dark. Only the browser knows whether someone
+chose a mode, and what their operating system prefers. If the server guesses, you get one of
+two problems: the page flashes the wrong colours, or React complains that the server and
+browser disagree.
 
-The fix is a small script in your `<head>` that writes the answer onto `<html>` before
-anything paints. Then set your root `Theme` to `appearance="inherit"` so it does not write an
-appearance of its own, and one element holds the answer.
+Put a small script in your `<head>` that writes the answer onto `<html>` before anything
+paints. Then set your root `Theme` to `appearance="inherit"`, so it writes no appearance of its
+own and one element holds the answer.
 
 ```html
 <script>
@@ -114,11 +114,11 @@ appearance of its own, and one element holds the answer.
 
 Two details in that script matter, and both are easy to get wrong.
 
-**Put the `try` around the read, not around everything.** Some browsers throw an error just
-for reading `localStorage`. Safari does it when someone blocks all cookies. If you wrap the
-whole function in one `try`, that error also skips the two `setAttribute` calls, and someone
-with a dark operating system gets a light page. Reading the media query never throws, so guard
-the read and leave the writes outside.
+**Put the `try` around the read, not around everything.** Some browsers throw an error when
+you read `localStorage`. Safari does it when someone blocks all cookies. If you wrap the whole
+function in one `try`, that error also skips the two `setAttribute` calls, and someone with a
+dark operating system gets a light page. Reading the media query never throws, so guard the
+read and leave the writes outside.
 
 **Write both attributes onto the same element.** The high-contrast colours only apply when
 `data-appearance` and `data-contrast` are on one element together. If your script takes over
@@ -155,4 +155,5 @@ export function Smoke() {
 }
 ```
 
-If the card has rounded corners and the button shows your accent colour, everything is wired up.
+If the card has rounded corners and the button shows your accent colour, everything is wired
+up.

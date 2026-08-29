@@ -11,8 +11,7 @@ picking the wrong one rather than making an ugly one.
 | Outcome | It finished | Words where the action was, in the tone that names the result |
 | Error | It failed, or the input was wrong | The control's invalid state, plus a sentence |
 
-Outcome is the one row with no component. The last section of this chapter says what to build
-instead.
+Outcome is the one row with no component. The last section below says what to build instead.
 
 ## A busy button keeps its label
 
@@ -29,14 +28,14 @@ refuses to be activated again. The spinner inside it is hidden from screen reade
 because the button is already saying it.
 
 Use a standalone `Spinner` for a region with nothing to show yet. It takes its colour from the
-text around it and the icon size of whatever it sits in, so it needs neither a colour nor a size
-from you.
+text around it and the icon size of whatever it sits in, so it needs neither a colour nor a
+size from you.
 
 ## Progress when you know the fraction
 
 `Progress` is a track with a fill in it. Give it a number and it shows a fraction; give it
-`value={null}` and it sweeps instead. The prop is required, so you have to say "I do not know how
-far along this is" rather than arriving there by forgetting.
+`value={null}` and it sweeps instead. The prop is required, so you have to say "I do not know
+how far along this is" rather than arriving there by forgetting.
 
 `Progress` has no `size`, and that absence is a decision. The nearest scale sizes a track as a
 fraction of a slider's handle, and a bar has no handle. Its width comes from whatever contains
@@ -66,19 +65,19 @@ the words say how it ended.
 </Card>
 ```
 
-Notice the outcome replaces the bar exactly where the bar was, rather than appearing somewhere
-else on the screen.
+The outcome replaces the bar in the same place, rather than appearing somewhere else on the
+screen.
 
-Give every bar a name. A bar with no accessible name and no heading wired to it reports a number
-nobody can read. And use a real fraction wherever you have one — a sweeping bar only says that
-something is happening. That is a judgment.
+Give every bar a name. A bar with no accessible name and no heading wired to it reports a
+number nobody can read. Use a real fraction wherever you have one, because a sweeping bar only
+says that something is happening. That is a judgment.
 
 ## When the movement is the message
 
-Everything else here stops moving when someone asks their operating system for reduced motion. A
-spinner and a sweeping progress bar are the exception, because their movement is not a response
-to a state change — the movement *is* the message. Stopping them would remove the only thing they
-were saying, so they slow down instead.
+Everything else here stops moving when someone asks their operating system for reduced motion.
+A spinner and a sweeping progress bar are the exception, because their movement is not a
+response to a state change. The movement *is* the message, so stopping them would remove the
+only thing they were saying, and they slow down instead.
 
 Carry that distinction into anything you build. A shimmer, a pulsing dot and a sweeping bar all
 say what they say by moving. A hover colour, a panel opening and a focus ring landing are all
@@ -86,12 +85,12 @@ responses to a change, so they stop.
 
 ## Use a status tone for what it means
 
-Four names carry meaning: `success`, `warning`, `info` and `destructive`. Four more are colour as
-data: `blue`, `green`, `orange` and `amber`. Use the second set for a chart series, a project
-label or a category, where the colour itself is the information.
+Four names carry meaning: `success`, `warning`, `info` and `destructive`. Four more are colour
+as data: `blue`, `green`, `orange` and `amber`. Use the second set for a chart series, a
+project label or a category, where the colour itself is the information.
 
 `success` and `green` render the same colour today and are still two separate families, because
-a meaning has to stay correctable on its own. Do not write `green` when you mean success — it
+a meaning has to stay correctable on its own. Do not write `green` when you mean success. It
 looks right today and goes wrong the day either name is re-judged.
 
 ```tsx
@@ -102,25 +101,27 @@ looks right today and goes wrong the day either name is re-judged.
 <Text size="2" tone="success">Deployed</Text>
 ```
 
-Keep the count down. Four or more data tones on one surface read as a palette rather than a set
+Keep the count low. Four or more data tones on one surface read as a palette rather than a set
 of meanings. Three reads as a legend.
 
 ## Colour is never the whole message
 
 Colour on its own is not enough (WCAG 1.4.1), so every status the system paints is only half a
-message. The border, the ring and the text colour are the system's half. You write the sentence.
+message. The border, the ring and the text colour are the system's half. You write the
+sentence.
 
-A red field with nothing beside it fails this. A green dot with no label fails it. A chart keyed
-only by hue fails it. All three fail worst for exactly the people who cannot see the colour.
+A red field with nothing beside it fails this. A green dot with no label fails it. A chart
+keyed only by hue fails it. All three fail worst for exactly the people who cannot see the
+colour.
 
 In an error, write what to do next. A colour could never carry that.
 
 ## Use a Notice for something that stays true
 
-`Notice` is for a condition that is true right now. Nobody caused it, and it lasts as long as the
-condition does. It takes up layout space and never floats, so it cannot cover the thing it is
-telling you about. It rests neutral, because the tone says what kind of thing it is rather than
-how loudly to say it.
+`Notice` is for a condition that is true right now. Nobody caused it, and it lasts as long as
+the condition does. It takes up layout space and never floats, so it cannot cover the thing it
+is telling you about. It rests neutral, because the tone says what kind of thing it is rather
+than how loudly to say it.
 
 ```tsx
 <Notice
@@ -138,8 +139,8 @@ own, because a component cannot remember a dismissal across a page reload. Your 
 
 ## There is no toast
 
-`Toast` is refused and will not ship. Anything that deserves attention should get it *before* it
-runs, and anything that does not deserve attention does not need a report afterwards.
+`Toast` is refused and will not ship. Anything that deserves attention should get it *before*
+it runs, and anything that does not deserve attention does not need a report afterwards.
 
 The two cases people build a toast for both belong somewhere else. Undo belongs in an undo
 stack, on a control people can find later. A copy confirmation belongs on the button that

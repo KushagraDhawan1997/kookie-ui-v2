@@ -5,13 +5,13 @@ grouping — is yours.
 
 ## The label is a separate element
 
-A label is prose, and `Text` already handles every size, weight and colour prose needs. So no
-control here takes a `label` prop. Adding one would mean building a second, smaller text system
-inside a checkbox.
+A label is prose, and `Text` already handles every size, weight and colour prose needs. No
+control here takes a `label` prop, because adding one would mean building a second, smaller
+text system inside a checkbox.
 
-Because the label is a sibling, something has to tie the two together, and that is what `Field`
-does. It supplies the name, the description and the error message, and wires all three to the
-control, so you write the words and never the plumbing.
+Because the label is a sibling, something has to tie the two together, and `Field` does it. It
+supplies the name, the description and the error message, and wires all three to the control,
+so you write the words and never the plumbing.
 
 ```tsx
 <Field>
@@ -24,14 +24,14 @@ control, so you write the words and never the plumbing.
 The order is fixed: label, control, description, error. The label sits on the control it names,
 and everything about that control gathers underneath it.
 
-You only write the association yourself outside a Field: point `htmlFor` at an `id`, or wrap the
-control in a `<label>`. Do not rely on things being near each other.
+You only write the association yourself outside a Field: point `htmlFor` at an `id`, or wrap
+the control in a `<label>`. Do not rely on things being near each other.
 
 **A placeholder is not a label.** It disappears the moment somebody types, and it is grey. Use
 it for a real example of the value, not for the name of the field.
 
 A checkbox or radio sits beside its label rather than containing it, and the row between them
-sets the distance. `FieldItem` is that row — use one per option.
+sets the distance. `FieldItem` is that row. Use one per option.
 
 ```tsx
 <Field>
@@ -60,11 +60,11 @@ that one option.
 
 `TextField` and `TextArea` take no `emphasis` and no `tone`, and that absence is deliberate.
 Loudness ranks one action against another, and every field is equally there to be filled in. A
-form where one field shouts louder than the next is telling you nothing.
+form where one field shouts louder than the next tells you nothing.
 
 Show importance in the label, in the order of the form, and in what you leave out. Mark a
-required field with `required` on the control, and repeat that in the label if the form is long.
-Only the buttons at the end rank against each other.
+required field with `required` on the control, and repeat that in the label if the form is
+long. Only the buttons at the end rank against each other.
 
 ## One button saves the form
 
@@ -104,23 +104,23 @@ Three gaps carry the structure there: 3 from a label to its field, 5 between row
 and 6 between the title, the form and the buttons.
 
 Put the buttons at the end and align them to the end edge. A single button with nothing beside
-it can go full width instead — that is a balance decision, and a judgment.
+it can go full width instead, which is a balance decision and a judgment.
 
-Write what the button does. "Create project", not "Submit". Then keep that word through the rest
-of the flow.
+Write what the button does. "Create project", not "Submit". Then keep that word through the
+rest of the flow.
 
 ## Group with space
 
-Put related rows closer together than unrelated ones. The house intervals are gap 3 from a label
-to its field, gap 5 between groups, and gap 6 between sections.
+Put related rows closer together than unrelated ones. The house intervals are gap 3 from a
+label to its field, gap 5 between groups, and gap 6 between sections.
 
 Keep the gap inside a group at least two steps below the gap around it. A form where every gap
 is the same number reads as one undifferentiated column.
 
-Do not add a Separator or a Card to do work the spacing has already done. A container groups and
-so does distance; using both says it twice. Add a line only where distance genuinely cannot do
-it — a long settings list is the real case, where the groups are already at the section interval
-and something still has to divide them.
+Do not add a Separator or a Card to do work the spacing has already done. A container groups
+and so does distance; using both says it twice. Add a line only where distance cannot do it. A
+long settings list is the real case, where the groups are already at the section interval and
+something still has to divide them.
 
 ## Validity is a state, not a prop
 
@@ -135,7 +135,7 @@ There is no `invalid` prop, because nothing chooses to *look* invalid. The syste
 />
 ```
 
-A ticked checkbox is a resting appearance; being invalid is a state, and the state wins. So a
+A ticked checkbox is a resting appearance; being invalid is a state, and the state wins, so a
 ticked checkbox that is also invalid looks invalid. Disabled beats both.
 
 The border and the ring are the system's half of an error message. The words are yours. Colour
@@ -152,9 +152,9 @@ round corner cuts into text running sideways and not into text stacked above and
 There is no `cols`. Width belongs to the layout that owns the row. The `cols` attribute counts
 characters, predates CSS, and fights with it.
 
-A message composer is not a big TextArea. A box that needs a toolbar, attachments, a send button
-and a growth rule is its own component, and building it out of a TextArea means bolting parts
-onto a field.
+A message composer is not a big TextArea. A box that needs a toolbar, attachments, a send
+button and a growth rule is its own component, and building it out of a TextArea means bolting
+parts onto a field.
 
 ## Helper text has to change a decision
 

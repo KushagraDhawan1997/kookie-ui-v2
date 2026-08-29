@@ -9,8 +9,8 @@ the things it owns, and if a child ever has to reach upward and configure its pa
 built a pattern as a component.
 
 Every pane owns its own `open` state, exactly as `Dialog` does. Nothing inspects the children,
-and no pane closes another one. The only thing that crosses the frame is a `ShellTrigger`, which
-finds a pane by name.
+and no pane closes another one. The only thing that crosses the frame is a `ShellTrigger`,
+which finds a pane by name.
 
 ```tsx
 <Shell size="2">
@@ -32,32 +32,32 @@ header that only covers the content, write no `ShellHeader` and put a header ins
 The rail and the sidebar are two independent columns. The rail is the narrow icon column that
 picks a high-level area; the sidebar is the wide column showing what the rail picked. They
 coexist, and neither collapses into the other. A sidebar holds many items and a rail holds a
-few, so this frame never squashes one into the other. One column of navigation is a sidebar.
-Icons alone are a rail. Both together is the shape VS Code and Slack use.
+few. One column of navigation is a sidebar. Icons alone are a rail. Both together is the shape
+VS Code and Slack use.
 
 `ShellContent` renders `<main>` and is the one pane you must have. `ShellInspector` is the
 right-hand detail column. `ShellBottom` is a terminal or log drawer. Both of those rest closed,
 because detail is something people ask for.
 
-`ShellScroll` marks the one part of a pane that scrolls. Everything else in that column stays put
-by being an ordinary child of the pane, so a pinned header and footer in a sidebar are
+`ShellScroll` marks the one part of a pane that scrolls. Everything else in that column stays
+put by being an ordinary child of the pane, so a pinned header and footer in a sidebar are
 siblings rather than special parts.
 
 ## A pane pads its own content
 
 Every pane is a surface and pads like one, based on its `size`. Do not add your own `p` or `px`
-to the first child of a pane — you would be adding a second inset to one that is already there.
+to the first child of a pane, because that adds a second inset to one already there.
 
 The header's height comes from the same rule: one control row at the pane's size, inside the
-pane's padding. So at any given size, a header is exactly as tall as the rail is wide. It is a
-minimum rather than a fixed height, so something taller grows it and something shorter centres
-in it.
+pane's padding. At any given size, a header is therefore exactly as tall as the rail is wide.
+It is a minimum rather than a fixed height, so something taller grows it and something shorter
+centres in it.
 
 Two things still reach the pane's edges, and both are automatic:
 
-- **A `ShellScroll` reaches them on its own.** It is a scroll area, and a scroll area placed
-  directly inside a surface stretches to that surface's edges and re-pads its own contents. That
-  is what lets a highlighted nav row span its whole column.
+- **A `ShellScroll` reaches them on its own.** It is a scroll area, and one placed directly
+  inside a surface stretches to that surface's edges and re-pads its own contents. That is what
+  lets a highlighted nav row span its whole column.
 - **Anything else says `m="bleed"`.** A picture across the top of the content pane, or a canvas
   that wants the whole box, cancels the pane's padding with the same value any surface takes.
 
@@ -71,10 +71,11 @@ Two things still reach the pane's edges, and both are automatic:
 
 ## An untouched pane decides for itself
 
-A pane nobody has touched rests on `auto`, and CSS decides what auto means at the current window
-size. So the first paint is right on the server and in the browser with no script, and React
-cannot complain that the two disagree, because both produce the same attribute. The first time
-someone toggles a pane, that choice becomes explicit and beats any boundary.
+A pane nobody has touched rests on `auto`, and CSS decides what auto means at the current
+window size. The first paint is therefore right on the server and in the browser with no
+script, and React cannot complain that the two disagree, because both produce the same
+attribute. The first time someone toggles a pane, that choice becomes explicit and beats any
+boundary.
 
 Nothing in the frame measures anything when it mounts. `useWindowClass()` returns `null` on the
 server and until the first paint rather than guessing. Use the hook for decisions after mount;
@@ -82,15 +83,15 @@ let the stylesheet hold the resting shape of the app.
 
 ## Three window sizes, three shapes
 
-A window size picks the shape of the navigation, and you decide it once, at the top, against the
-window — not per container and not per component.
+A window size picks the shape of the navigation, and you decide it once, at the top, against
+the window, not per container and not per component.
 
 `narrow` shows one thing at a time and opens the navigation over it. `regular` and `wide` keep
-the navigation columns in the layout. The extra room at `wide` is what a second column such as
-an inspector costs you.
+the navigation columns in the layout. The extra room at `wide` pays for a second column such as
+an inspector.
 
-There are three because there are three shapes. That is a judgment. A fourth would be a question
-about how much room there is inside a pane, and container sizes already answer that.
+There are three because there are three shapes. That is a judgment. A fourth would be a
+question about how much room there is inside a pane, and container sizes already answer that.
 
 ## Tabs or a segmented control
 
@@ -109,19 +110,20 @@ form. A tab bar announces a tab list and owns the panels.
 </SegmentedControl>
 ```
 
-Formatting buttons are neither. Italic and underline both switched on at once is a set of toggle
-buttons, which is a third thing. A radio group holds one answer, so it cannot express that.
+Formatting buttons are neither. Italic and underline both switched on at once is a set of
+toggle buttons, which is a third thing. A radio group holds one answer, so it cannot express
+that.
 
 ## Menu or select
 
-The same test, one family over. A `Menu` is a list of actions: choosing one runs it and closes
-the panel. A `Select` is a list of values: choosing one fills a control that submits with a form.
-A select renders a hidden input and announces itself as a combobox, and a styled menu cannot do
-that.
+The same test works one family over. A `Menu` is a list of actions: choosing one runs it and
+closes the panel. A `Select` is a list of values: choosing one fills a control that submits
+with a form. A select renders a hidden input and announces itself as a combobox, and a styled
+menu cannot do that.
 
 Two things follow from it. A select positions its panel so the chosen row lands on the value it
-is replacing, which means the panel can hang both above and below the trigger. And a select
-nobody has opened needs `items` to turn its value into a label, because the labels live on
+is replacing, which means the panel can hang both above and below the trigger. A select nobody
+has opened also needs `items` to turn its value into a label, because the labels live on
 options that have not mounted yet.
 
 ## Say where you are

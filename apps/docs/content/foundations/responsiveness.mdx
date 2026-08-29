@@ -10,13 +10,14 @@ mistake.
 
 A missed tap on a website costs almost nothing, so nothing punishes the mistake. That is how
 "responsive" drifted from "adapt to the person holding this device" to "reflow without a
-sideways scrollbar" — the easy measurement replaced the goal.
+sideways scrollbar". The easy measurement replaced the goal.
 
 A layout can pass that test and still put a 24-pixel target under a thumb, inside a menu that
 only opens on hover.
 
-What actually changes between a desktop and a phone is how people interact. A dialog becomes a
-sheet. Targets get bigger. A sidebar stops standing beside the content and waits to be summoned.
+The real difference between a desktop and a phone is how people interact. A dialog becomes a
+sheet. Targets get bigger. A sidebar stops standing beside the content and waits to be
+summoned.
 
 Those are facts about people rather than matters of taste, so they ship as defaults you can opt
 out of, not options you have to opt into.
@@ -28,14 +29,14 @@ out of, not options you have to opt into.
 - **What is touching this?** The pointer setting, which follows the input device.
 - **Which interface should this app show?** Window size classes, measured against the window.
 
-These are genuinely three mechanisms rather than one with three names. Room and navigation
-agree on a phone, and stop agreeing the moment somebody drags a window to half a display.
+These are three mechanisms rather than one with three names. Room and navigation agree on a
+phone, and stop agreeing the moment somebody drags a window to half a display.
 
 ### Container sizes: how much room is there?
 
 A responsive value is measured against the nearest container you marked, never against the
-window. That is what makes a component correct wherever you put it: the same Flex stacks in a
-narrow drawer and spreads out in a main column, with no extra code.
+window. A component is therefore correct wherever you put it: the same Flex stacks in a narrow
+drawer and spreads out in a main column, with no extra code.
 
 ```tsx
 <Box container>
@@ -46,10 +47,10 @@ narrow drawer and spreads out in a main column, with no extra code.
 </Box>
 ```
 
-You have to mark them, because CSS charges for it: a box that can be measured can no longer size
-itself around its contents. Mark boxes your layout already gives a width to — a sidebar with a
-fixed width, a column that grows, a grid cell — and leave the rest alone. A `container` Box that
-has to shrink-wrap comes out zero pixels wide, and a development build warns you.
+You have to mark them, because CSS charges for it: a box that can be measured can no longer
+size itself around its contents. Mark boxes your layout already gives a width to — a sidebar
+with a fixed width, a column that grows, a grid cell — and leave the rest alone. A `container`
+Box that has to shrink-wrap renders zero pixels wide, and a development build warns you.
 
 If nothing nearby is marked, the value falls through to the root Theme, which behaves like the
 window, so a responsive value always resolves to something.
@@ -61,21 +62,21 @@ breakpoint per property.
 ### The pointer setting: what is touching this?
 
 `fine` and `coarse` are two complete sets of measurements, the way light and dark are two
-complete sets of colours. The components, the size numbers and the rules stay the same. Only the
-values differ.
+complete sets of colours. The components, the size numbers and the rules stay the same. Only
+the values differ.
 
 This is not a mobile mode, and it never looks at width. A touchscreen laptop being used with a
 trackpad reports `fine`. A tablet with its keyboard detached reports `coarse`. Both are right.
 
 Two minimum sizes apply, and they are not equally strict. **24 pixels is fixed**, because WCAG
 2.2 sets it at Level AA, and no combination of size, density and pointer goes below it. **44
-pixels is the default you can opt out of**: normal density at size 2 on a touch screen comes out
-at exactly 44, which is the Level AAA figure and Apple's number. Going smaller takes a
-deliberate act, which is what makes a smaller control a choice rather than an accident.
+pixels is the default you can opt out of**: normal density at size 2 on a touch screen comes
+out at exactly 44, which is the Level AAA figure and Apple's number. Going smaller takes a
+deliberate act, so a smaller control is a choice rather than an accident.
 
-A touch screen changes control heights, side padding, icon size, the gap between an icon and its
-label, control corners and reading text. It does *not* change spacing: gaps and gutters hold,
-because a phone needs more content per inch, not less.
+A touch screen changes control heights, side padding, icon size, the gap between an icon and
+its label, control corners and reading text. It does *not* change spacing: gaps and gutters
+hold, because a phone needs more content per inch, not less.
 
 ```tsx
 // `auto` follows the device. Setting it yourself is also how you check
@@ -86,7 +87,7 @@ because a phone needs more content per inch, not less.
 ### Window size classes: which interface should this be?
 
 A window class picks the shape of your navigation: a bottom bar, a narrow rail, or a full
-sidebar. Decide it once, at the top, against the window — never per container and never per
+sidebar. Decide it once, at the top, against the window, never per container and never per
 component.
 
 `narrow` is 48rem and under. `wide` is 75rem and over. `regular` is everything between. Two
@@ -94,7 +95,7 @@ numbers give three classes, so correcting one threshold cannot leave a gap or an
 boundary belongs to the smaller class, so a window at exactly 48rem is narrow.
 
 There are three rather than four because there are three navigation shapes. Material's fourth
-and fifth classes exist to make up for not having container queries — "at this width, add an
+and fifth classes exist because they have no container queries. "At this width, add an
 inspector" is a question about room, and container sizes already answer it inside the pane.
 
 Nothing about your colours or spacing changes with the window class. Type handles width through
@@ -104,8 +105,8 @@ window class at all.
 ## Classes describe room, never hardware
 
 A class names how much room there is. It never names a device. People run apps in windows, so a
-device name would be wrong: an app dragged to half a 5K display reports `regular`, and
-there is no tablet anywhere.
+device name would be wrong: an app dragged to half a 5K display reports `regular`, and there is
+no tablet anywhere.
 
 Ask the pointer setting about the device. Ask the window class about the room.
 
@@ -117,13 +118,14 @@ on a narrow window, because a short line has no room for a big heading.
 
 Those questions genuinely do not share an answer. Apple ships one Dynamic Type table covering
 iPhone and iPad, with body text at 17pt on both, so the reading question does not separate a
-phone from a tablet. Line length *does* separate a narrow window from a wide one, on any device.
+phone from a tablet. Line length *does* separate a narrow window from a wide one, on any
+device.
 
 Each rule only changes the sizes it needs, so both can apply on a phone without fighting.
 
 ## The hook returns null on the server
 
-`useWindowClass()` returns `"narrow" | "regular" | "wide"` — or `null` on the server and until
+`useWindowClass()` returns `"narrow" | "regular" | "wide"`, or `null` on the server and until
 the first paint in the browser.
 
 The server cannot measure a window, and no script changes that. React's first render has to
@@ -155,5 +157,5 @@ function Chrome({ children }: { children: React.ReactNode }) {
 }
 ```
 
-`Shell` works out an untouched pane in CSS at the narrow boundary, so the frame is already
+`Shell` resolves an untouched pane in CSS at the narrow boundary, so the frame is already
 correct before the hook has returned anything.

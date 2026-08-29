@@ -9,8 +9,8 @@ margin prop, and none ever will.
 
 The reason is that a margin describes a relationship rather than a property of a thing. How far
 a button should sit below the field above it depends on what that neighbour is, how dense your
-theme is, and what the group is doing — and the button can see none of those from the inside.
-A component that ships its own margin has answered a question it could not ask, which is why
+theme is, and what the group is doing, and the button can see none of those from the inside. A
+component that ships its own margin has answered a question it could not ask, which is why
 every layout built on top of it starts by cancelling that margin.
 
 When you do need a one-off distance, wrap it. A wrapper is visible in the file; a margin buried
@@ -66,9 +66,9 @@ end doubles, because past a certain size an eight-pixel difference stops being v
 every layout distance actually reads: `gap` on Flex, Stack and Grid, `p` and `m` on any
 primitive, and the padding inside a card.
 
-So when you write `gap="4"` you get step 4 of the current density, not a permanent alias for
-12 pixels. Without that middle layer the number would just be a unit conversion, and you might
-as well have written the pixels.
+When you write `gap="4"` you get step 4 of the current density, not a permanent alias for 12
+pixels. Without that middle layer the number would be a unit conversion, and you might as well
+write the pixels.
 
 ```css
 /* the raw scale, which density never touches */
@@ -95,14 +95,14 @@ an app-level choice, not a per-component one.
 
 Each level is a set of hand-picked numbers rather than a multiplier. It restates every control
 height and padding directly, and it picks twelve steps out of the raw scale, which itself never
-moves. Nothing ends up at 26.78 pixels, and any single value can be corrected without dragging
+moves. Nothing lands on 26.78 pixels, and any single value can be corrected without dragging
 the others with it. A multiplier could only move a whole level at once, which would make every
 small correction global. That is a judgment.
 
 Density leaves two things alone. It never touches the raw scale, so a compact app cannot
-collapse the big gutters around a page — the small steps shift down by one and steps 9 to 12
-stay where they are. And it never touches text size, which is the whole reason the setting
-exists: density buys you room without changing how big the words are. If you want the words to
+collapse the big gutters around a page: the small steps shift down by one and steps 9 to 12
+stay where they are. It also never touches text size, which is the whole reason the setting
+exists. Density buys you room without changing how big the words are. If you want the words to
 change too, you want `size`.
 
 ```tsx
@@ -120,11 +120,10 @@ Those sizes measure the nearest measurable ancestor rather than the window, so t
 behaves correctly in a narrow sidebar and in a wide main column without you writing two
 versions.
 
-Measuring is something you opt into, because CSS makes you trade for it: a box that can be
-measured can no longer size itself around its contents. Put `container` on something the layout
-already gives a width to, or set `width`, `flexGrow` or `flexBasis` yourself. A `container` Box
-left to shrink-wrap comes out zero pixels wide, and a development build warns you when that
-happens.
+You opt into measuring, because CSS makes you trade for it. A box that can be measured can no
+longer size itself around its contents. Put `container` on something the layout already gives a
+width to, or set `width`, `flexGrow` or `flexBasis` yourself. A `container` Box left to
+shrink-wrap renders zero pixels wide, and a development build warns you when that happens.
 
 ```tsx
 <Box container>
@@ -134,11 +133,11 @@ happens.
 </Box>
 ```
 
-Window size is a different question, which is why there is a separate answer for it. Container
-sizes ask how much room this component has. `useWindowClass()` returns `narrow`, `regular` or
-`wide`, and it asks which shape the whole interface should take: a bottom bar, a narrow rail,
-or a full sidebar. You answer that once, at the top. It is a hook rather than a token because
-the answer changes which components you render, not how they look.
+Window size is a different question with a separate answer. Container sizes ask how much room
+this component has. `useWindowClass()` returns `narrow`, `regular` or `wide`, and it asks which
+shape the whole interface should take: a bottom bar, a narrow rail, or a full sidebar. You
+answer that once, at the top. It is a hook rather than a token because the answer changes which
+components you render, not how they look.
 
 ## Let a picture reach the edge with bleed
 
@@ -147,8 +146,8 @@ see. `bleed` is the one named value on the spacing scale: on any margin prop, it
 the negative of the padding of whatever surface contains it.
 
 It is a value rather than a prop, which means every per-side and per-size spelling you already
-know still works — `mt="bleed" mx="bleed"` bleeds the top and the sides. The nearest surface
-wins, so a card inside a dialog bleeds to the card. Outside any surface it comes out as zero.
+know still works. `mt="bleed" mx="bleed"` bleeds the top and the sides. The nearest surface
+wins, so a card inside a dialog bleeds to the card. Outside any surface it resolves to zero.
 
 Shell panes are surfaces too, so `bleed` is also how a canvas or an image reaches the edges of
 a pane. A `ShellScroll` needs no help: a scroll area placed directly inside a surface already

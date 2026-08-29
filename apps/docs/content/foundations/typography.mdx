@@ -16,8 +16,8 @@ so a button and the text beside it cannot drift out of step.
 
 ## Size sets how big, render sets what it is
 
-How large text looks and where it sits in the document outline are two different questions,
-and each has its own prop.
+How large text looks and where it sits in the document outline are two different questions, and
+each has its own prop.
 
 ```tsx
 // The page title: an h1 in the outline, at the top of the scale
@@ -41,8 +41,8 @@ The three weights are `--font-weight-regular`, `--font-weight-medium` and
 
 There is no bold, and the weight itself is not the problem. The system already has two designed
 ways to say that one thing outranks another: the nine steps, and the three text colours. A bold
-face is a third way that sits on neither scale — one heavy step that lands wherever anybody
-puts it, which in practice means on everything. That is a judgment.
+face is a third way that sits on neither scale, one heavy step that lands wherever anybody puts
+it, which in practice means on everything. That is a judgment.
 
 The refusal is in the type, so the code will not compile, and the token is deleted as well: a
 value left within reach is one every screen can bring back. An app that genuinely needs a bold
@@ -76,13 +76,12 @@ fixed character width, and every platform sets shortcuts in its interface font.
 
 `emphasis` means three different things depending on what carries it. On a button it picks a
 fill. On a card it picks the styling. On text it picks a colour: loud is `--color-text`, medium
-is `--color-text-muted`, quiet is `--color-text-faint`. Add a `tone` and those same three levels
-move onto that colour family.
+is `--color-text-muted`, quiet is `--color-text-faint`. Add a `tone` and those same three
+levels move onto that colour family.
 
 Text rests at loud, which is the opposite of how controls behave, and it is deliberate. Full
 contrast is the right resting state for reading, because a screen ranks its actions, not its
-paragraphs. A paragraph that arrives greyed out is telling you that reading it is
-optional.
+paragraphs. A paragraph that arrives greyed out tells you that reading it is optional.
 
 Quiet deliberately sits below the contrast floor for body text. Use it for something nobody has
 to read or act on, such as a disabled option. Do not set a whole paragraph in it.
@@ -104,9 +103,9 @@ Each rule only changes the steps it needs, so the two never fight on a phone, wh
 A tablet in landscape gets bigger reading text and keeps its full-size titles. A narrow desktop
 window gets smaller titles and leaves the reading text alone.
 
-You opt into none of this, and no component knows it is happening. What it means for you is
-that a size number names a role rather than a pixel value, so do not build a layout around a
-pixel measurement you once took from a step.
+You opt into none of this, and no component knows it is happening. A size number names a role
+rather than a pixel value, so do not build a layout around a pixel measurement you once took
+from a step.
 
 ## The five steps to compose with
 
@@ -124,7 +123,7 @@ which is a rounding error rather than a hierarchy. The bigger step also earns it
 spacing: spacing is neutral through steps 1 to 3 and tightens from step 4 upward, so a title
 that stays small never gets that tightening.
 
-**Do not use size 1 on a real screen.** Twelve pixels is for genuinely marginal text: a footer,
+**Do not use size 1 on a real screen.** Twelve pixels is for marginal text: a footer,
 a legal line, the chrome of a dense table. It is not for a label or a caption. If something
 matters less, say so with the muted or faint colour at 14 or 16 pixels. A screen reaching for
 12 pixels to make room has a spacing problem rather than a type problem.

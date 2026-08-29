@@ -17,17 +17,17 @@ the main action catches light, and handles lift.
 
 `flat` means there is no light. Lines and fills do all the separating instead.
 
-The reason this lives on the Theme is that people read light as a property of the room rather
-than of one object. Two cards on one screen, one raised and one not, describe two different
-rooms. So there is no `shadow` prop, no `elevation` prop and no `raised` boolean.
+This lives on the Theme because people read light as a property of the room rather than of one
+object. Two cards on one screen, one raised and one not, describe two different rooms. There is
+no `shadow` prop, no `elevation` prop and no `raised` boolean.
 
 ## What casts a shadow, and what does not
 
 These cast: `Card` and the panels that look like one, a **loud** button, the handles on sliders
 and switches, and `Kbd`.
 
-These do not: `Surface`, text fields, text areas, medium and quiet buttons, checkboxes, progress
-bars, separators and tab bars.
+These do not: `Surface`, text fields, text areas, medium and quiet buttons, checkboxes,
+progress bars, separators and tab bars.
 
 Shadows are spent on two things only: the thing you are meant to act on, and the thing floating
 above everything else. Three of those refusals change what you write.
@@ -44,8 +44,8 @@ A ticked checkbox catches light and never casts a shadow, because it is a well t
 rather than a key that rises.
 
 **A disabled card loses its shadow**, and that is a statement rather than a dimming. A shadow
-says a thing is above the page and can be picked up. A dead card cannot be picked up, so it
-goes back down to the page.
+says a thing is above the page and can be picked up. A dead card cannot be, so it returns to
+the page.
 
 ## Turn off the light for one region
 
@@ -120,5 +120,5 @@ platform ships handles with a shadow in every context.
 `Kbd` is the opposite case. A key presses *into* its surface, so its depth is a recess rather
 than a lift.
 
-"Always" describes the world, not the state. A disabled handle drops its shadow and dims, but it
-keeps its colour: a grey handle in a grey track removes the reading rather than quieting it.
+"Always" describes the world, not the state. A disabled handle drops its shadow and dims, but
+it keeps its colour: a grey handle in a grey track removes the reading rather than quieting it.

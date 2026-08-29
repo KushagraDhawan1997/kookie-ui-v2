@@ -2,8 +2,8 @@ KookieUI is built to be correct rather than easy to adopt. Those two goals pull 
 because what makes a system spread is not what makes it right.
 
 Two questions are worth asking about a system like this one. Does it agree with what research
-shows about how people use interfaces? Do the products built on it work better? How many people
-have starred it is not one of them.
+shows about how people use interfaces? Do the products built on it work better? The number of
+stars it has is not one of those questions.
 
 ## Find the pattern before you name the component
 
@@ -13,20 +13,19 @@ discover patterns in the world rather than inventing them.
 A component is a pattern packaged for reuse, and a name is the label on that package.
 
 Work in this order: first the pattern, then the component, then the name. Most teams reverse
-it. They start with a name and a picture of how it should look, and they work out what it does
+it. They start with a name and a picture of how it should look, and they decide what it does
 last. Almost every fault below comes from that reversal.
 
 ## Tell two components apart by what they do
 
-Tabs and SegmentedControl look almost identical, and both draw a row of segments. However, they
-serve different purposes.
+Tabs and SegmentedControl look almost identical, and both draw a row of segments. They do
+different jobs.
 
 Tabs moves you between views, so the panel underneath changes. SegmentedControl sets a value in
 place, so the chart underneath stays where it is.
 
-Combining the two into one component with two variants is tempting. The problem is not the
-appearance of the result. It is that one name teaches everyone who reads your code that these
-are the same thing.
+Combining the two into one component with two variants is tempting. The result would look fine.
+The cost is that one name teaches everyone who reads your code that these are the same thing.
 
 ```tsx
 // Switching between views. The panel below changes.
@@ -56,9 +55,9 @@ name. SegmentedControl announces itself as a radio group, so a screen reader say
 selected" and the arrow keys change the value. Neither behaviour is available from the other
 component.
 
-One test settles cases like this. Ask what each component does when the other is absent. You can
-switch views without setting a value, and you can set a value without switching views. These are
-two operations rather than one operation with two appearances.
+One test settles cases like this. Ask what each component does when the other is absent. You
+can switch views without setting a value, and you can set a value without switching views.
+These are two operations rather than one operation with two appearances.
 
 ## Some design questions already have answers
 
@@ -74,9 +73,9 @@ Not everything in design is a matter of taste. Some of it has been measured.
 Beyond those measured limits a design decision is a judgment, such as the exact corner radius,
 how saturated a glass panel should be and which hue your accent takes.
 
-What matters is knowing which kind of answer you are holding. Where something is measured, cite
-it and do not change it. Where it is a judgment, say so and own it. A system that presents a
-judgment as a measurement makes a claim nobody can check.
+Know which kind of answer you are holding. Where something is measured, cite it and do not
+change it. Where it is a judgment, say so and own it. A system that presents a judgment as a
+measurement makes a claim nobody can check.
 
 ## Why consistency saves time
 
@@ -84,12 +83,12 @@ Shipping the same button twice is cheaper than deciding a second time how heavy 
 should be.
 
 An inconsistent system does not save you time. It makes you decide the same things again, one
-screen at a time, with no way to see what the earlier screens decided. That cost does not appear
-on the first screen or the fifth. It appears around the twentieth.
+screen at a time, with no way to see what the earlier screens decided. That cost does not
+appear on the first screen or the fifth. It appears around the twentieth.
 
 ## Why so much of the field works the other way
 
-This is about incentives rather than skill.
+The cause is incentives rather than skill.
 
 - **The popular tools have no middle ground.** shadcn/ui gives you source code to copy into your
   project, and once you copy it, it is yours and nothing updates it. Tailwind puts every style
@@ -100,11 +99,10 @@ This is about incentives rather than skill.
   window width. You can spot the mistake when a child component has to reach upward
   and configure its parent.
 - **Public work rewards a single screenshot.** Most careful, systematic design happens inside
-  companies, on systems nobody outside ever sees. What gets shared publicly is judged one
-  component at a time, and consistency does not show up in one component. It shows up across
-  twenty screens.
+  companies, on systems nobody outside ever sees. Public work is judged one component at a
+  time, and consistency does not appear in one component. It appears across twenty screens.
 - **The research stopped being read.** A missed tap on a website costs almost nothing, so
-  nothing punishes the mistake. That is how "responsive" changed meaning. It used to mean
+  nothing punishes the mistake, and "responsive" changed meaning as a result. It used to mean
   "adapt to the person holding this device", but now it mostly means "reflow without a sideways
   scrollbar". The easy measurement replaced the goal.
 - **AI produces more of it, faster.** A model writes each component on its own, and each one
@@ -117,6 +115,6 @@ trade, and you should know it before you start.
 
 There is no `variant` prop to reach for when a design does not quite fit. Instead there are
 refusals, and each one comes with a reason and an alternative. There are fewer ways out than
-you are used to, and these pages tell you where the ones that exist are.
+you are used to, and these pages name every one that exists.
 
-The result is that your twentieth screen takes about as long to build as your second.
+Your twentieth screen takes about as long to build as your second.
