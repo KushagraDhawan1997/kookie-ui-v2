@@ -112,20 +112,38 @@ const cx = (...parts: (string | undefined)[]) => parts.filter(Boolean).join(" ")
     here** (2026-08-20), which closes the API question this comment used to carry open: a
     pane pulled off the frame has something behind it and a welded one does not, so the
     posture prop already answers the material's question and no second prop is owed. */
-function usePaneDress(flush: boolean, forwarded?: React.Ref<HTMLElement>) {
-  // ONE-DIRECTIONAL, and the direction matters (corrected before shipping, 2026-08-20 — the
-  // first spelling passed `backdrop: !flush` and two existing laws caught it). A NON-FLUSH
-  // pane is the CARD case and answers for itself: something is behind it either way — the
-  // content if it floats, the ground if it does not — so it states the backdrop and resolves
-  // the theme's material exactly as `<Card backdrop>` does. "Floating gets the material" then
-  // needs no shell rule of its own; it is §10's selectivity read from the other end.
+function usePaneDress(
+  flush: boolean,
+  backdrop: boolean | undefined,
+  forwarded?: React.Ref<HTMLElement>,
+) {
+  // THE AUTHOR STATES THE BACKDROP; THE POSTURE NO LONGER INFERS IT (2026-08-29, Kushagra:
+  // "all panels should support backdrop prop, we already have precedence for it"). This is
+  // Card's line verbatim — the prop when it is stated, the ambient `<Box backdrop>` region
+  // when it is not — and taking the precedent means taking it whole, inference included.
   //
-  // A FLUSH pane states NOTHING and follows the ambient region, because its backdrop is a
-  // question about what the APP put behind the shell, not about the pane. Passing `false`
-  // here would have been the author contradicting an enclosing `<Box backdrop>` in writing,
-  // and that forecloses full-window vibrancy — a macOS sidebar is flush against the window
-  // edge AND translucent over the wallpaper, which is the oldest glass app frame there is.
-  const material = useMaterial(flush ? undefined : { backdrop: true });
+  // What it replaces read `useMaterial(flush ? undefined : { backdrop: true })`: a non-flush
+  // pane volunteered a backdrop on the argument that "something is behind it either way — the
+  // content if it floats, the ground if it does not". The first half is true and the second
+  // half was never true of a MATERIAL. A grounded pane sits on the app's ground, which is a
+  // flat colour, and §10's selectivity is exactly the rule that a surface expresses glass only
+  // where something PASSES behind it. Measured under `material="regular"` before the change: a
+  // `flush={false}` content pane resolved a 49% white veil, `blur(4px) saturate(2.07)` and its
+  // own lens map — the largest box in the app bending a flat fill, re-minted on every resize.
+  //
+  // DECISIONS §27 already carried the residue as a recorded open item ("a grounded pane still
+  // resolves the theme's glass — the material is decided in JS from `flush` while floating is
+  // derived in CSS"). A prop closes it rather than narrowing it: JS never has to guess what
+  // CSS will derive, because nothing is derived any more. The inference cannot come back as a
+  // default either — a prop whose default is computed from a different prop is the shape this
+  // system refuses, and `flush` is now a statement about the FRAME and nothing else.
+  //
+  // Unset still follows the ambient region, which is what keeps full-window vibrancy reachable:
+  // a macOS sidebar is flush against the window edge AND translucent over the wallpaper, and
+  // passing a hard `false` here would be the library contradicting an enclosing
+  // `<Box backdrop>` in writing. The work area is the ONE pane that does pass `false`, and
+  // ShellContent carries the reason.
+  const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   const stamps = {
     "data-tone": "neutral",
     "data-emphasis": "quiet",
@@ -149,7 +167,17 @@ function usePaneDress(flush: boolean, forwarded?: React.Ref<HTMLElement>) {
   return { material, stamps, ref };
 }
 
-/** Every pane's posture prop. */
+/** Every pane's two questions, and they are independent (2026-08-29): where it sits in the
+    FRAME, and whether anything passes BEHIND it. They were briefly wired together — LOG
+    2026-08-29 — which is why each doc comment says what it does not decide.
+
+    ONE FLAT TYPE, not `PanePostureProps & { backdrop }`. The intersection is the tidier
+    spelling and it is measurably worse: `generate-api.ts` walks the AST depth-capped at 4, so
+    one more level of indirection dropped `flush` off the rail's, the sidebar's and the
+    inspector's published tables — silently, because the drift law compares the generator's
+    output against the generator's output and agrees with itself. `ShellContent` states its
+    refusal with `Omit` instead, which the generator handles explicitly and which keeps the
+    `flush` sentence in one home. */
 type PaneDressProps = {
   /**
    * Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours
@@ -159,8 +187,22 @@ type PaneDressProps = {
    * own surface resting on the app's ground. One boolean reaches all four arrangements, and it
    * cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded
    * content card.
+   *
+   * It says nothing about the material. A pane over a canvas states `backdrop`, whatever its
+   * posture — the two questions are independent and were briefly wired together (LOG 2026-08-29).
    */
   flush?: boolean;
+  /**
+   * Says whether something passes behind this pane: a canvas, a map, a photograph, the work
+   * area itself when this pane floats over it. A pane in an ordinary frame sits on the app's
+   * ground, where glass blurs a flat colour and still costs a full backdrop read on every
+   * paint — and a pane is the largest box in the library, so it is the most expensive place to
+   * pay for nothing. By default it renders solid whatever the theme's material is. Unset, it
+   * follows the surrounding `<Box backdrop>` region, which is what makes a flush pane
+   * translucent over a window-wide wallpaper. The material itself is still the theme's: this
+   * prop cannot pick one.
+   */
+  backdrop?: boolean;
 };
 
 /* ── Size context: the panes answer `size`, and every ROW stamps it on its own element ─────
@@ -468,15 +510,17 @@ export type ShellHeaderProps = Omit<React.ComponentPropsWithoutRef<"header">, "c
     whole frame came out 28px, with the controls against the top edge. */
 export function ShellHeader({
   flush = true,
+  backdrop,
   size: statedSize,
   className,
   children,
   ...props
 }: ShellHeaderProps) {
   // Destructured out of the spread under another name as well as resolved: `size` is not an
-  // attribute of `<header>`, so leaving it in `props` writes invalid HTML.
+  // attribute of `<header>`, so leaving it in `props` writes invalid HTML. `backdrop` is out
+  // for the same reason.
   const size = usePaneSize(statedSize);
-  const { material, stamps, ref } = usePaneDress(flush);
+  const { material, stamps, ref } = usePaneDress(flush, backdrop);
   return (
     <header
       {...props}
@@ -493,7 +537,9 @@ export function ShellHeader({
 }
 
 export type ShellContentProps = Omit<React.ComponentPropsWithoutRef<"main">, "color"> &
-  PaneDressProps & {
+  // The refusal, stated in the type — see the component's own comment for why the work area is
+  // the one pane that never gets glass.
+  Omit<PaneDressProps, "backdrop"> & {
     /**
      * The index this pane is drawn at: its padding, and anything it holds. It defaults to the app's.
      */
@@ -502,7 +548,21 @@ export type ShellContentProps = Omit<React.ComponentPropsWithoutRef<"main">, "co
 
 /** The work area — renders `<main>`, scrolls itself, takes whatever room the panes leave.
     It pads like every other pane; a picture or a canvas that wants the full box says
-    `m="bleed"`, and a `ShellScroll` inside it reaches the edges on its own (§3, §10). */
+    `m="bleed"`, and a `ShellScroll` inside it reaches the edges on its own (§3, §10).
+
+    IT TAKES NO `backdrop`, AND THAT IS THE ONE ASYMMETRY IN THE FAMILY (2026-08-29, Kushagra:
+    "I dont think content should ever get glass, panels are fine"). Not a preference: the
+    stylesheet derives floating as *a pane floats if the content is underneath it*, so the
+    content is by construction the one pane nothing is ever underneath. Every panel can be over
+    something and answers for itself; the work area is the bottom of the stack and has only the
+    app's ground behind it, which is a flat colour. Glass there blurs nothing, costs a full
+    backdrop read on the largest box on screen, and mints a lens map that is re-minted on every
+    resize.
+
+    The escape is the system's own sentence rather than a prop: a solid surface HOSTS glass
+    (§10, 2026-08-19), so a `<Box backdrop>` or a `<Card backdrop>` composed INSIDE the content
+    resolves the theme's material exactly as it does on a solid Card. A vibrant work area is a
+    glass pane placed in the work area — not the work area pretending to be one. */
 export function ShellContent({
   flush = true,
   size: statedSize,
@@ -511,7 +571,10 @@ export function ShellContent({
   ...props
 }: ShellContentProps) {
   const size = usePaneSize(statedSize);
-  const { material, stamps, ref } = usePaneDress(flush);
+  // The hard `false`, where every panel passes its prop through: this is the one pane that
+  // contradicts an ambient region on purpose, because a region marked around the whole shell
+  // is a claim about what is behind the FRAME and the work area is not in front of it.
+  const { material, stamps, ref } = usePaneDress(flush, false);
   return (
     <main
       {...props}
@@ -718,6 +781,7 @@ function SidePane({
     width,
     size: statedSize,
     flush = true,
+    backdrop,
     id,
     className,
     style,
@@ -744,7 +808,7 @@ function SidePane({
   // eleven-node `<filter>` graft on the largest boxes in the library — the thing
   // refraction.tsx's "on mount and resize, never at interaction time" rule exists to forbid.
   const composedRef = React.useMemo(() => mergeRefs(ref, pane.paneRef), [ref, pane.paneRef]);
-  const { material, stamps, ref: paneRef } = usePaneDress(flush, composedRef);
+  const { material, stamps, ref: paneRef } = usePaneDress(flush, backdrop, composedRef);
   const Element = element;
   return (
     <Element
@@ -822,6 +886,7 @@ export function ShellBottom(props: ShellBottomProps) {
     height,
     size: statedSize,
     flush = true,
+    backdrop,
     id,
     className,
     style,
@@ -842,7 +907,7 @@ export function ShellBottom(props: ShellBottomProps) {
   // Memoised for the reason SidePane states in full: an unmemoised merge is a new DOM ref
   // callback per render, which tears the lens down and rebuilds its map.
   const composedRef = React.useMemo(() => mergeRefs(ref, pane.paneRef), [ref, pane.paneRef]);
-  const { material, stamps, ref: paneRef } = usePaneDress(flush, composedRef);
+  const { material, stamps, ref: paneRef } = usePaneDress(flush, backdrop, composedRef);
   return (
     <aside
       {...rest}

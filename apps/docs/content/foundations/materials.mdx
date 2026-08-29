@@ -54,9 +54,16 @@ and shows the artwork underneath. A toolbar of five controls is one fact, not fi
 
 `backdrop` is a boolean. It says where a panel sits. It never says how thick the glass is.
 
-`Card`, `Button`, `TextField`, `TextArea`, `SelectTrigger` and `SegmentedControl` each take
-`backdrop` when you want a single control to be glass. `backdrop={false}` marks a smaller region
-as plain again.
+`Card`, `Button`, `TextField`, `TextArea`, `SelectTrigger`, `SegmentedControl`, `Notice`,
+`Badge` and `Composer` each take `backdrop` when you want a single control to be glass.
+`backdrop={false}` marks a smaller region as plain again.
+
+The five `Shell` panels take it too: `ShellHeader`, `ShellRail`, `ShellSidebar`,
+`ShellInspector` and `ShellBottom`. A sidebar that floats over a canvas is the clearest case for
+glass in a whole app. `ShellContent` does not take it, and that is the one place the library
+refuses the prop rather than defaulting it: the work area is the bottom of the stack, so nothing
+ever passes behind it. A vibrant region inside the work area is still yours to build — put a
+`Box backdrop` or a `Card backdrop` in it, because a solid panel hosts glass.
 
 The material is resolved in this order: the component's own prop, then the region it is in, then
 `solid`. Floating panels mark themselves, because a popup always covers something.

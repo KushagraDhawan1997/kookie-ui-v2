@@ -1430,14 +1430,15 @@ function ShellSection() {
         </Box>
       </Demo>
 
-      {/* GLASS: the posture is what makes the material legible. A floating column is the one
-          pane with something genuinely behind it, so it takes the theme's glass without the
-          shell deciding anything — and over a photograph you can see what it is bending. */}
-      <Demo label="Floating over a photograph — the posture is what earns the material">
+      {/* GLASS: the pane STATES its backdrop, exactly as a Card does (2026-08-29). The posture
+          used to state it for the pane, which meant a grounded pane over the app's flat ground
+          glassed too — blur over nothing. A floating column is the case where the statement is
+          true, and over a photograph you can see what it is bending. */}
+      <Demo label="Floating over a photograph — the pane states its backdrop, and earns it">
         <HostileBed>
           <Box height="20rem">
             <Shell>
-              <ShellSidebar aria-label="Primary" flush={false}>
+              <ShellSidebar aria-label="Primary" flush={false} backdrop>
                 <Stack gap="1" p="3">
                   <Text size="2" weight="medium">
                     Layers

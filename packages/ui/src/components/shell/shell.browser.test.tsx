@@ -1665,27 +1665,36 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     );
   });
 
-  it("a non-flush pane expresses the theme's material on CALM GROUND; a flush one does not", () => {
-    // The one-directional rule (corrected 2026-08-20): a non-flush pane answers for itself
-    // because something is behind it either way; a flush pane follows the ambient region,
-    // which is what keeps full-window vibrancy — a flush translucent sidebar — reachable.
-    const shell = mounted(
-      <Shell style={{ height: 300 }}>
-        <ShellSidebar aria-label="Primary" flush={false}>
-          nav
-        </ShellSidebar>
-        <ShellContent>c</ShellContent>
-      </Shell>,
-      { theme: { material: "regular" }, select: ".kui-shell" },
-    );
+  it("POSTURE DOES NOT BUY THE MATERIAL — a pane pulled off the frame is still solid", () => {
+    // REWRITTEN 2026-08-29 (Kushagra: "all panels should support backdrop prop, we already
+    // have precedence for it"). This law used to assert the opposite, because `flush={false}`
+    // used to state `backdrop: true` on the argument that "something is behind it either
+    // way — the content if it floats, the ground if it does not". The second half was never
+    // true of a MATERIAL: a grounded pane sits on the app's ground, a flat colour, and §10's
+    // selectivity is the rule that glass is expressed only where something PASSES behind.
+    //
+    // The FIXTURE is what makes this a law rather than a spelling: the same pane, in the same
+    // shell, under the same glass theme, is read twice — once without the prop and once with
+    // it. Without the second read, a theme whose glass never resolved at all would satisfy the
+    // first, which is the degenerate fixture this file has already paid for twice.
+    const shellOf = (backdrop?: boolean) =>
+      mounted(
+        <Shell style={{ height: 300 }}>
+          <ShellSidebar aria-label="Primary" flush={false} {...(backdrop ? { backdrop } : {})}>
+            nav
+          </ShellSidebar>
+          <ShellContent>c</ShellContent>
+        </Shell>,
+        { theme: { material: "regular" }, select: ".kui-shell" },
+      );
     expect(
-      within(shell, ".kui-shell-sidebar").dataset.material,
-      "a pane pulled off the frame did not take the material it now has a backdrop for",
-    ).toBe("regular");
-    expect(
-      within(shell, ".kui-shell-content").dataset.material,
-      "a welded pane expressed glass with nothing stated behind the shell",
+      within(shellOf(), ".kui-shell-sidebar").dataset.material,
+      "the posture volunteered a backdrop the pane does not have",
     ).toBeUndefined();
+    expect(
+      within(shellOf(true), ".kui-shell-sidebar").dataset.material,
+      "the pane stated a backdrop and still resolved solid — the theme's glass is unreachable",
+    ).toBe("regular");
   });
 
   it("a FLUSH pane standing between a floating one and the content is not buried by it", () => {
@@ -2461,7 +2470,8 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
     // one glass in the library defended by blur alone, on the largest boxes in the library.
     const shell = mounted(
       <Shell style={{ height: 300, width: 600 }}>
-        <ShellSidebar aria-label="Primary" flush={false}>
+        {/* `backdrop` since 2026-08-29: the posture no longer states one for the pane. */}
+        <ShellSidebar aria-label="Primary" flush={false} backdrop>
           nav
         </ShellSidebar>
         <ShellContent>c</ShellContent>
@@ -2505,14 +2515,14 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
       bump = () => flushSync(() => setN((v) => v + 1));
       return (
         <Shell style={{ height: 300, width: 600 }} data-tick={n}>
-          <ShellSidebar aria-label="Primary" flush={false}>
+          <ShellSidebar aria-label="Primary" flush={false} backdrop>
             nav
           </ShellSidebar>
           <ShellContent>c</ShellContent>
           {/* BOTH pane implementations, because they are two code paths: `SidePane` serves
               rail/sidebar/inspector and `ShellBottom` is its own function, and each merges
               its own refs. A law that mounts one is a law about one of them. */}
-          <ShellBottom flush={false} defaultOpen>
+          <ShellBottom flush={false} backdrop defaultOpen>
             b
           </ShellBottom>
         </Shell>
@@ -2542,17 +2552,123 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
   });
 
   it("a Card composed inside a glass pane goes ON-GLASS — glass does not stack", () => {
+    // RE-TARGETED 2026-08-29 onto a PANEL. The subject is glass-does-not-stack, and it needs a
+    // glass pane to stack on; the content pane used to be the cheapest one to reach and is now
+    // the one pane in the family that never resolves glass at all (the law below states why).
     const shell = mounted(
-      <Box backdrop>
-        <Shell style={{ height: 300 }}>
-          <ShellContent>
-            <Card>on the pane</Card>
-          </ShellContent>
-        </Shell>
-      </Box>,
+      <Shell style={{ height: 300 }}>
+        <ShellSidebar aria-label="Primary" backdrop>
+          <Card>on the pane</Card>
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
       { theme: { material: "regular" }, select: ".kui-shell" },
     );
-    expect(within(shell, ".kui-shell-content").dataset.material).toBe("regular");
+    expect(within(shell, ".kui-shell-sidebar").dataset.material).toBe("regular");
     expect(within(shell, ".kui-card").dataset.material).toBe("on-glass");
+  });
+
+  it("EVERY PANEL takes the prop — five components, not one code path", () => {
+    // 2026-08-29. `SidePane` serves rail/sidebar/inspector while `ShellHeader` and
+    // `ShellBottom` are their own functions, each destructuring and forwarding its own props:
+    // a law that mounts one is a law about one of them (this file's own sentence, from the
+    // lens-churn audit). The rail is included even though it shares SidePane's body, because
+    // what is under test is the prop reaching the DOM through each export.
+    const shell = mounted(
+      <Shell style={{ height: 600, width: 1280 }}>
+        <ShellHeader backdrop>h</ShellHeader>
+        <ShellRail aria-label="Sections" backdrop>
+          r
+        </ShellRail>
+        <ShellSidebar aria-label="Primary" backdrop>
+          s
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+        <ShellInspector backdrop defaultOpen>
+          i
+        </ShellInspector>
+        <ShellBottom backdrop defaultOpen>
+          b
+        </ShellBottom>
+      </Shell>,
+      { theme: { material: "regular" }, select: ".kui-shell" },
+    );
+    for (const name of ["header", "rail", "sidebar", "inspector", "bottom"]) {
+      expect(
+        within(shell, `.kui-shell-${name}`).dataset.material,
+        `${name} did not express the theme's material for a backdrop it stated`,
+      ).toBe("regular");
+    }
+  });
+
+  describe("the work area never gets glass (§10, §27, 2026-08-29)", () => {
+    // Kushagra: "I dont think content should ever get glass, panels are fine". Structural, not
+    // a preference: shell.css derives floating as "a pane floats if the content is underneath
+    // it", so the content is the one pane nothing is ever underneath. Every panel can be over
+    // something; the work area is the bottom of the stack.
+    //
+    // The prop itself is refused in the TYPE (shell-types.test.tsx), which is the half of this
+    // that no mount can assert. These two read the two runtime routes to glass that remain.
+
+    it("a marked region reaches every panel and stops at the work area", () => {
+      // The positive control is the point of the fixture: a sidebar in the SAME region must
+      // go glass, or this passes under a theme whose glass never resolved and proves nothing.
+      const shell = mounted(
+        <Box backdrop>
+          <Shell style={{ height: 300 }}>
+            <ShellSidebar aria-label="Primary">nav</ShellSidebar>
+            <ShellContent>c</ShellContent>
+          </Shell>
+        </Box>,
+        { theme: { material: "regular" }, select: ".kui-shell" },
+      );
+      expect(
+        within(shell, ".kui-shell-sidebar").dataset.material,
+        "the marked region never reached the panes, so the content's silence proves nothing",
+      ).toBe("regular");
+      expect(
+        within(shell, ".kui-shell-content").dataset.material,
+        "the work area took glass from a region marked around the whole frame",
+      ).toBeUndefined();
+      // And it pays none of the cost: no filter, and no lens map for the largest box on screen.
+      expect(computed(within(shell, ".kui-shell-content"), "backdrop-filter")).toBe("none");
+      expect(within(shell, ".kui-shell-content").style.getPropertyValue("--kui-lens")).toBe("");
+    });
+
+    it("...at either posture — pulling it off the frame does not buy it either", () => {
+      const shell = mounted(
+        <Shell style={{ height: 300 }}>
+          <ShellSidebar aria-label="Primary" flush={false} backdrop>
+            nav
+          </ShellSidebar>
+          <ShellContent flush={false}>c</ShellContent>
+        </Shell>,
+        { theme: { material: "regular" }, select: ".kui-shell" },
+      );
+      expect(within(shell, ".kui-shell-sidebar").dataset.material).toBe("regular");
+      expect(
+        within(shell, ".kui-shell-content").dataset.material,
+        "a grounded work area resolved glass over the app's flat ground",
+      ).toBeUndefined();
+    });
+
+    it("but it HOSTS glass — the escape is the system's own sentence, not a prop", () => {
+      // §10, 2026-08-19: a solid surface hosts glass. So a vibrant region inside the work area
+      // is reachable and is what a caller wanting one actually composes — the refusal above is
+      // the pane declining to pretend it is that region, never the library withholding glass.
+      const shell = mounted(
+        <Shell style={{ height: 300 }}>
+          <ShellContent>
+            <Card backdrop>over the canvas</Card>
+          </ShellContent>
+        </Shell>,
+        { theme: { material: "regular" }, select: ".kui-shell" },
+      );
+      expect(within(shell, ".kui-shell-content").dataset.material).toBeUndefined();
+      expect(
+        within(shell, ".kui-card").dataset.material,
+        "a solid pane refused to host the glass composed inside it",
+      ).toBe("regular");
+    });
   });
 });

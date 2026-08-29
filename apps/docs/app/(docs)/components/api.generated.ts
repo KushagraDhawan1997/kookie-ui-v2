@@ -2146,6 +2146,12 @@ export const API: Record<string, ApiEntry> = {
     "element": "aside",
     "props": [
       {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Says whether something passes behind this pane: a canvas, a map, a photograph, the work area itself when this pane floats over it. A pane in an ordinary frame sits on the app's ground, where glass blurs a flat colour and still costs a full backdrop read on every paint — and a pane is the largest box in the library, so it is the most expensive place to pay for nothing. By default it renders solid whatever the theme's material is. Unset, it follows the surrounding `<Box backdrop>` region, which is what makes a flush pane translucent over a window-wide wallpaper. The material itself is still the theme's: this prop cannot pick one."
+      },
+      {
         "name": "defaultOpen",
         "type": "boolean",
         "optional": true,
@@ -2155,7 +2161,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "flush",
         "type": "boolean",
         "optional": true,
-        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card."
+        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card. It says nothing about the material. A pane over a canvas states `backdrop`, whatever its posture — the two questions are independent and were briefly wired together (LOG 2026-08-29)."
       },
       {
         "name": "height",
@@ -2196,7 +2202,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "flush",
         "type": "boolean",
         "optional": true,
-        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card."
+        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card. It says nothing about the material. A pane over a canvas states `backdrop`, whatever its posture — the two questions are independent and were briefly wired together (LOG 2026-08-29)."
       },
       {
         "name": "size",
@@ -2210,10 +2216,16 @@ export const API: Record<string, ApiEntry> = {
     "element": "header",
     "props": [
       {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Says whether something passes behind this pane: a canvas, a map, a photograph, the work area itself when this pane floats over it. A pane in an ordinary frame sits on the app's ground, where glass blurs a flat colour and still costs a full backdrop read on every paint — and a pane is the largest box in the library, so it is the most expensive place to pay for nothing. By default it renders solid whatever the theme's material is. Unset, it follows the surrounding `<Box backdrop>` region, which is what makes a flush pane translucent over a window-wide wallpaper. The material itself is still the theme's: this prop cannot pick one."
+      },
+      {
         "name": "flush",
         "type": "boolean",
         "optional": true,
-        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card."
+        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card. It says nothing about the material. A pane over a canvas states `backdrop`, whatever its posture — the two questions are independent and were briefly wired together (LOG 2026-08-29)."
       },
       {
         "name": "size",
@@ -2227,6 +2239,12 @@ export const API: Record<string, ApiEntry> = {
     "element": "nav",
     "props": [
       {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Says whether something passes behind this pane: a canvas, a map, a photograph, the work area itself when this pane floats over it. A pane in an ordinary frame sits on the app's ground, where glass blurs a flat colour and still costs a full backdrop read on every paint — and a pane is the largest box in the library, so it is the most expensive place to pay for nothing. By default it renders solid whatever the theme's material is. Unset, it follows the surrounding `<Box backdrop>` region, which is what makes a flush pane translucent over a window-wide wallpaper. The material itself is still the theme's: this prop cannot pick one."
+      },
+      {
         "name": "defaultOpen",
         "type": "boolean",
         "optional": true,
@@ -2236,7 +2254,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "flush",
         "type": "boolean",
         "optional": true,
-        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card."
+        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card. It says nothing about the material. A pane over a canvas states `backdrop`, whatever its posture — the two questions are independent and were briefly wired together (LOG 2026-08-29)."
       },
       {
         "name": "onOpenChange",
@@ -2352,6 +2370,12 @@ export const API: Record<string, ApiEntry> = {
     "element": "nav",
     "props": [
       {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Says whether something passes behind this pane: a canvas, a map, a photograph, the work area itself when this pane floats over it. A pane in an ordinary frame sits on the app's ground, where glass blurs a flat colour and still costs a full backdrop read on every paint — and a pane is the largest box in the library, so it is the most expensive place to pay for nothing. By default it renders solid whatever the theme's material is. Unset, it follows the surrounding `<Box backdrop>` region, which is what makes a flush pane translucent over a window-wide wallpaper. The material itself is still the theme's: this prop cannot pick one."
+      },
+      {
         "name": "defaultOpen",
         "type": "boolean",
         "optional": true,
@@ -2361,7 +2385,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "flush",
         "type": "boolean",
         "optional": true,
-        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card."
+        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card. It says nothing about the material. A pane over a canvas states `backdrop`, whatever its posture — the two questions are independent and were briefly wired together (LOG 2026-08-29)."
       },
       {
         "name": "onOpenChange",
@@ -2397,6 +2421,12 @@ export const API: Record<string, ApiEntry> = {
     "element": "nav",
     "props": [
       {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Says whether something passes behind this pane: a canvas, a map, a photograph, the work area itself when this pane floats over it. A pane in an ordinary frame sits on the app's ground, where glass blurs a flat colour and still costs a full backdrop read on every paint — and a pane is the largest box in the library, so it is the most expensive place to pay for nothing. By default it renders solid whatever the theme's material is. Unset, it follows the surrounding `<Box backdrop>` region, which is what makes a flush pane translucent over a window-wide wallpaper. The material itself is still the theme's: this prop cannot pick one."
+      },
+      {
         "name": "defaultOpen",
         "type": "boolean",
         "optional": true,
@@ -2406,7 +2436,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "flush",
         "type": "boolean",
         "optional": true,
-        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card."
+        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card. It says nothing about the material. A pane over a canvas states `backdrop`, whatever its posture — the two questions are independent and were briefly wired together (LOG 2026-08-29)."
       },
       {
         "name": "onOpenChange",

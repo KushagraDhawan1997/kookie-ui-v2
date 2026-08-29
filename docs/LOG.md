@@ -8,6 +8,79 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-08-29 A shell pane states its own backdrop, and the work area never gets one
+
+Kushagra, in two sentences: *"I dont think content should ever get glass, panels are fine"*, and
+then *"all panels should support backdrop prop, we already have precedence for it."* The second
+is the larger of the two and it subsumes the first.
+
+**What was there.** `usePaneDress` decided the material from the posture:
+`useMaterial(flush ? undefined : { backdrop: true })`. A pane pulled off the frame stated a
+backdrop and answered for itself; a flush pane stated nothing and followed the ambient region.
+The comment beside it gave the reason as *"something is behind it either way — the content if it
+floats, the ground if it does not"*.
+
+**The first half of that sentence is true and the second half was never true of a MATERIAL.** A
+grounded pane sits on the app's ground, which is a flat colour, and §10's selectivity is exactly
+the rule that a surface expresses glass only where something PASSES behind it. Measured on
+mounted panes under `material="regular"` before anything moved: a `flush={false}` content pane
+resolved a 49% white veil, `backdrop-filter: url(#kui-lens-2) blur(4px) saturate(2.07)
+brightness(1.05)`, and a lens map of its own. The largest box in the app bending a flat fill, and
+re-minting that map on every resize. A grounded *sidebar* measured identically, which is what
+says the fault was never about the content pane in particular — it was about deriving a material
+from a posture.
+
+**Why a prop rather than a narrower inference.** My first cut was the narrow one: keep the
+inference and carve the content out of it, on the argument that shell.css derives floating as
+*"a pane floats if the content is underneath it"*, so the content is the one pane that can never
+float and therefore the one pane where JS knows the real answer without consulting a sibling.
+That is sound as far as it goes, and it goes about half as far as it needs to: it leaves the
+grounded *panel* glassing over the same flat ground, which is the same defect with a smaller
+blast radius. It also leaves `flush` answering two unrelated questions.
+
+The prop is the precedent Kushagra named. `Card`, `Button`, `TextField`, `TextArea`,
+`SelectTrigger`, `SegmentedControl`, `Notice`, `Badge` and `Composer` all take `backdrop` and
+none of them infers it from anything; the pane now takes Card's line verbatim —
+`useMaterial(backdrop === undefined ? undefined : { backdrop })`. Unset still follows the ambient
+region, which is what keeps full-window vibrancy reachable (a macOS sidebar is flush against the
+window edge AND translucent over the wallpaper, the oldest glass app frame there is).
+
+**It closes a recorded open item rather than narrowing it.** The 2026-08-16 shell audit logged
+*"a grounded pane still resolves the theme's glass — the material is decided in JS from `flush`
+while floating is derived in CSS — a decision, not a defect, and it waits."* Every plan for it
+until now was some version of teaching JS what CSS derives. A prop dissolves the question: there
+is nothing to derive, so there is nothing to keep in agreement. The inference cannot come back as
+a default either — a prop whose default is computed from a different prop is the shape this
+system refuses — and `flush` is now a statement about the FRAME and nothing else.
+
+**`ShellContent` takes no `backdrop` at all**, which is the family's one asymmetry and the reason
+it is not arbitrary: the content is by construction the pane nothing is ever underneath. It
+passes a hard `false`, contradicting even a region marked around the whole shell, because such a
+region is a claim about what is behind the FRAME and the work area is not in front of it. The
+escape is the system's own sentence rather than a second prop: **a solid surface hosts glass**
+(§10, 2026-08-19), so a vibrant region inside the work area is a `<Box backdrop>` or a
+`<Card backdrop>` placed there — which is also what a caller actually wants, since a work area
+that IS the glass has no opaque bed for its own content to sit on. The refusal is in the TYPE,
+which is the half no mount can assert.
+
+**Rejected:** `backdrop` on `ShellContent` as an escape hatch (it makes "never" a default, and
+the composed answer above is strictly better and already works); keeping the inference and adding
+the prop as an override (two mechanisms answering one question, and the override's absent value
+would then mean *"whatever the posture guessed"*); and the narrow content-only carve-out above.
+
+**One consequence stated rather than hidden:** a floating panel no longer glasses for free under
+a glass theme. `/preview`'s photograph demo was the one consumer relying on it and now says
+`backdrop`. That is the change working — the demo's own caption used to claim the pane "takes the
+theme's glass without the shell deciding anything", while the shell was deciding it.
+
+**Laws.** Five browser laws, each falsified: restoring the old inference fails five, the content
+following the ambient region fails exactly the marked-region law, one panel dropping the prop on
+the floor fails the five-components law, and breaking §10's hosts-glass arm fails the escape law.
+The fixture for the prop law reads the SAME pane twice, with and without `backdrop`, because
+without the positive read a theme whose glass never resolved at all would satisfy it — the
+degenerate fixture this repo has paid for repeatedly. The type refusal fails in both directions:
+widening `ShellContentProps` back reports `Unused '@ts-expect-error' directive`.
+
 ## 2026-08-26 A ground is lit like a dent, and the glass ring stays on the glass
 
 Kushagra, on a glass app: "I think we should have conic gradient hairline on components like
