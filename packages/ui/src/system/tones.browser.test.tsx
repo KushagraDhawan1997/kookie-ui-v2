@@ -82,6 +82,13 @@ for (const appearance of APPEARANCES) {
       // now neutral either way.
       expect(computed(accent, "color")).toBe(colorOn(accent, "var(--accent-ink)"));
       expect(computed(blue, "color")).toBe(colorOn(blue, "var(--blue-ink)"));
+      // HELD THROUGH BOTH DIRECTIONS OF THE BRAND CHANGE, which is why it is worth saying what
+      // it rests on: `--accent-ink` and `--neutral-ink` differ by STEP (`--accent-11` vs
+      // `--neutral-12` — every named tone's ink sits one step short of neutral's own, §15's
+      // "≡ the tone-less roles" reserving 12 for neutral alone), not by hue or vividness. It
+      // was true on 2026-08-28 when accent's `{ hue, vividness }` was byte-for-byte neutral's,
+      // and it is true again now that accent is blue. The LOUD rung below is the one that
+      // moved, because there a grey brand takes the low-chroma branch onto neutral's own step.
       expect(computed(accent, "color"), "nothing distinguishes a toned button").not.toBe(
         computed(neutral, "color"),
       );
@@ -134,7 +141,12 @@ for (const appearance of APPEARANCES) {
       expect(blueHover, "blue still hovers to a tint").toBe(neutralHover);
     });
 
-    it("a LOUD accent button keeps the pigment — this is the rung the rule protects", () => {
+    it("a LOUD accent button keeps the pigment (2026-08-29, Kushagra: accent is blue again)", () => {
+      // REVERSED TWICE, and the second reversal restores the first spelling. This law read
+      // "accent IS neutral's solid" for one day, while `color-config.ts` held accent at
+      // `vividness: 0.04` — true then, and true only by the low-chroma branch collapsing both
+      // families onto step 12. With a pigment brand the loud rung is where accent and neutral
+      // are furthest apart, which is what makes it the one rung worth reading.
       const { accent, neutral } = trio("loud", appearance);
       expect(fill(accent)).toBe(colorOn(accent, "var(--accent-solid)"));
       expect(fill(accent), "accent went neutral at the one rung it must not").not.toBe(

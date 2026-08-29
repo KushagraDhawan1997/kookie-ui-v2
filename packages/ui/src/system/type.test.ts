@@ -219,3 +219,27 @@ describe("the inert atoms have ONE identity, and the third member is what moved 
     }
   });
 });
+
+describe("the Firefox half of the smoothing pair, which no Chromium law can read (§15)", () => {
+  it("`.kui-theme` declares BOTH smoothing properties, not just the WebKit one", () => {
+    // WHY THIS IS A NODE LAW and its sibling in text.browser.test.tsx is not. The mounted law
+    // is the standard for an appearance rule and it reads `-webkit-font-smoothing` through a
+    // real Theme — but `-moz-osx-font-smoothing` is not a property Chromium exposes to
+    // getComputedStyle at all. It resolves to the empty string there, so the browser cannot
+    // tell a stylesheet that declares it from one that does not, and a law asserting it in
+    // that engine would fail against correct CSS.
+    //
+    // So the guarantee is split by what each instrument can actually see: the browser proves
+    // the value the engine resolves, and this reads the declaration the generator emitted. A
+    // rule that set only the WebKit property would leave Firefox on macOS rendering subpixel,
+    // half a weight heavier than the ladder was drawn, with the whole browser suite green.
+    expect(
+      stripped,
+      "the WebKit property is missing from type.css",
+    ).toContain("-webkit-font-smoothing: antialiased");
+    expect(
+      stripped,
+      "the Firefox property is missing — this is the half no mounted law can catch",
+    ).toContain("-moz-osx-font-smoothing: grayscale");
+  });
+});

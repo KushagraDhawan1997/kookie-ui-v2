@@ -403,3 +403,40 @@ describe("a word longer than its line WRAPS, because a pane deletes what it cann
     expect(computed(pre, "white-space"), "a pre still refuses to wrap").toBe("pre");
   });
 });
+
+describe("text is antialiased, so a weight reads at the weight it was drawn", () => {
+  it("both smoothing properties resolve on any text, through inheritance from the Theme", () => {
+    // WHY IT IS A DECISION, not a preference. macOS renders with SUBPIXEL antialiasing by
+    // default, which lays colour along every stem and reads about half a weight heavier than
+    // the face was drawn. This ladder is three adjacent steps — 400, 500, 600 — so half a
+    // weight is most of the distance between two of them.
+    //
+    // On the Theme root because both properties INHERIT: one declaration covers text a
+    // component wrote, text a call site wrote, and text inside a portal, which is the same
+    // argument `overflow-wrap` is placed by directly above.
+    const text = mounted(<Text>word</Text>, { theme: {}, select: ".kui-text" });
+    expect(computed(text, "-webkit-font-smoothing")).toBe("antialiased");
+    // The Firefox half is deliberately NOT read here. `-moz-osx-font-smoothing` is not a
+    // property Chromium exposes to getComputedStyle — it comes back as the empty string, so a
+    // law asserting it in this engine fails against correct CSS. It is checked where it can
+    // be, in type.test.ts, which reads the emitted declaration.
+
+    const heading = mounted(<Heading>word</Heading>, { theme: {}, select: ".kui-heading" });
+    expect(computed(heading, "-webkit-font-smoothing"), "a heading inherits it too").toBe("antialiased");
+  });
+
+  it("WHAT THIS LAW CANNOT PROVE, stated so nobody reads more into it than it says", () => {
+    // It reads the DECLARATION and stops there, which for every other appearance rule in this
+    // repo would be one indirection short of the thing that could be wrong. Here it is the
+    // end of the road: headless Chromium renders grayscale-only — 0 colour-fringed pixels in
+    // 10,080 sampled — so the suite cannot tell a page it changed from one it did not, and a
+    // law claiming to have measured the effect would be a law measuring nothing.
+    //
+    // The consequence is judged by eye at /matrix, not here. It also lands on the ink ladder:
+    // grayscale puts less ink on screen than subpixel, so every rung reads slightly lighter
+    // than it did when the rungs were judged. The APCA solve is untouched — it measures
+    // colour, and no colour moves — but apparent contrast at small sizes does.
+    const text = mounted(<Text>word</Text>, { theme: {}, select: ".kui-text" });
+    expect(computed(text, "-webkit-font-smoothing")).not.toBe("auto");
+  });
+});

@@ -20,7 +20,7 @@ import {
   type Mode,
   type ToneName,
 } from "./color-config.ts";
-import { dress, groundColor, surfaceColor } from "./config.ts";
+import { dress, groundColor, pageColor, surfaceColor } from "./config.ts";
 import {
   alphaBackdrop,
   apcaLc,
@@ -928,7 +928,16 @@ describe("the control edge renders its stated targets, and the floors bind under
         ? neutral.steps[Number(value.match(/--neutral-(\d+)/)![1]!) - 1]!
         : value;
     return {
-      page: neutral.steps[0]!,
+      // FROM `pageColor`, NOT rung 1 (2026-08-28). This read `neutral.steps[0]` — true of both
+      // modes until 2026-08-25, when light's page took the seal's own pure white and dark's
+      // stayed on the rung. Nothing failed, because the two values are 0.013 apart and every
+      // floor here cleared on either: the solve had simply been measuring its edges against a
+      // page the site does not paint. Surfaced by moving the GROUND onto rung 1, which made
+      // this law's page and its ground the same string and fired the assertion below.
+      //
+      // Read through the config's own export so a third mode, or another move of the page,
+      // cannot leave this behind again.
+      page: resolve(pageColor[mode]),
       seal: resolve(surfaceColor[mode].rest),
       ground: resolve(groundColor[mode]),
     };

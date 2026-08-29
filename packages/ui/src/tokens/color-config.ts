@@ -185,36 +185,40 @@ export const solidPinBounds = { min: 0.42, max: 0.92 } as const;
  * pre-shipped.
  */
 /**
- * The user's brand colour, and it is BLUE again (2026-08-16, Kushagra) — blue's own
- * recipe verbatim, so accent ≡ blue by construction and the two cannot drift apart.
+ * The user's brand colour, and it is BLUE (Kushagra, 2026-08-29) — hue 250 at full
+ * vividness, which is `blue`'s own recipe one row down, reversing the 2026-08-28 move to
+ * grey. The two costs that move was written to accept are what it reverses, and they are
+ * kept here because they are the reason a low-chroma brand is a real decision rather than
+ * an oversight:
  *
- * It was GREY between 2026-08-10 and today, and that experiment is worth stating rather
- * than deleting: a grey brand meant `lowChromaThreshold` (0.18) routed `--accent-solid`
- * to step 12 instead of step 9, so the primary button was near-black in light and
- * near-white in dark. Nothing in the generator needed an exception then and nothing
- * needs one now — the threshold is keyed on CHROMA, not on a family name, so it simply
- * stops applying at full vividness. What the material work made plain is that a brand
- * with no chroma has nothing to carry through a translucent veil: on glass the primary
- * action arrived as smoke, and every tone in the sweep said something except the one
- * that is meant to say the most.
+ * `lowChromaThreshold` (0.18) routes a desaturated `--accent-solid` to step 12 instead of
+ * step 9, so a grey brand's primary button is near-black in light and near-white in dark —
+ * the same branch neutral's own solid takes. At full vividness accent is nowhere near that
+ * branch, so the primary action is pigment again and carries through a translucent veil
+ * instead of arriving as smoke. `undilutedTones` (2026-08-26, below) is untouched: accent's
+ * WASHED rungs still point at neutral, so a brand never paints a faded background.
  *
- * Either direction is one line: `{ hue: 250, vividness: 0.04 }` is the grey that was
- * here, and any `{ hue, vividness }` or `{ color: "#hex" }` works the same way — but a
- * hex pin loses the `.hue` field neutral derives from below, and the `tsc` error that
- * causes is deliberate: re-branding by pin means restating the grey's lean on purpose
- * (`toneFromColor` in color.ts computes the hue if you want to keep the derivation).
+ * `accent ≡ blue` STILL DOES NOT HOLD, and that is worth saying now that the recipes agree
+ * again. The two resolve identically at the pigment rungs by construction — same hue, same
+ * vividness, same generator — and differ at exactly the roles `undilutedTones` withholds
+ * from accent: the washes, `a3` and the faded inks. That is why `blue` remains this file's
+ * control family in the laws rather than being folded into accent.
  *
- * A named const rather than a row, because neutral DERIVES from it.
+ * ONE LAW ASSERTED THE OPPOSITE AND IS UPDATED IN THE SAME COMMIT
+ * (`system/tones.browser.test.tsx`): "a LOUD accent button is neutral's own solid now" was
+ * true only while the low-chroma branch collapsed both onto step 12, and reads the other way
+ * again.
+ *
+ * Every direction is one line: `{ hue: 295, vividness: 1 }` is VIOLET, judged live
+ * 2026-08-26 against a day of alternatives; `{ hue: 295, vividness: 0.04 }` is the grey that
+ * was here yesterday. A hex pin loses the `.hue` field neutral derives from below, and the
+ * `tsc` error that causes is deliberate.
+ *
+ * A named const rather than a row, because neutral DERIVES from it — so the greys' lean
+ * moved from 295 to 250 with this line, which is the mechanism working rather than a second
+ * change.
  */
-// VIOLET since 2026-08-26 (Kushagra, judged live against a day of alternatives; blue was
-// { hue: 250, vividness: 1 } and remains one line away). The whole wheel is brandable now:
-// the bright half (yellow { hue: 100, 0.95 } lemon with a solved dark-gold ring, neon green
-// { hue: 150, 1 }) passes every law through the ring solve and the high-contrast flip solve
-// (LOG 2026-08-26 — the bright-brand mechanism); rose { hue: 15, 0.95 } passes but collides
-// with destructive's hue, so choosing it means moving destructive off the shared red. A
-// warmed yellow (hue 90) was tried for light mode's olive label and rejected — it dulled
-// dark mode's perfect lemon; the dark-gold label is the accepted cost of a bright brand.
-const accent = { hue: 295, vividness: 1 } as const;
+const accent = { hue: 250, vividness: 1 } as const;
 
 export const tones = {
   /** Not a brand colour: THE ACCENT'S OWN HUE at near-zero chroma, which is all a tinted

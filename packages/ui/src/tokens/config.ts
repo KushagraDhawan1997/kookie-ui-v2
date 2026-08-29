@@ -735,6 +735,7 @@ export const tabInset = 2;
 export const borderWidth = 1;
 export const focusRing = { width: 2, offset: 2 } as const;
 
+
 /**
  * §8 — motion's SIGNAL clock: the one a colour or an opacity change rides.
  *
@@ -1152,16 +1153,19 @@ export const cursor = {
  * at the lip and feathering inward at `falloff`. Colour and intensity stay in the ring tokens
  * (per mode, per thickness, solved at the element), which is what keeps the map colourless and
  * an appearance flip correct with no JS. kube.io's specular is the method's source (credited):
- * theirs is confined to ~1-2px; iOS's reads wider, which is what `band` prices. Lives in
- * CONFIG because two consumers read it: the hook (the mask and the rim clip) and the
- * generator (the bare textarea's flat-band gradients sample the same feather curve) — one
- * home or the curve drifts.
+ * theirs is confined to ~1-2px; iOS's reads wider, which is what `band` prices. Its second
+ * consumer — the generator's flat-band gradients for the bare textarea — died 2026-08-25
+ * with the TextArea wrapper; the hook (the mask and the rim clip) is the one reader now,
+ * and this stays in config because the numbers are judged, not because they fan out.
  */
 export const glint = {
   /** the band's width as a fraction of the rung's bezel. 0.5 since 2026-08-25 (Kushagra) —
       judged back DOWN from 1.5 on the bench: the wide band read as a wash, and the light
-      belongs at the lip. */
-  band: 0.5,
+      belongs at the lip. 1.0 since 2026-08-27 (Kushagra, the bench's band dial at 2x),
+      judged AFTER the bezel narrowed 4x the same day: the whole lip lights now, and in
+      pixels the band is still narrower than the 0.5 it replaces was on the old lip
+      (3-6.5px against 6-13). The wash verdict was about pixels, not the fraction. */
+  band: 1.0,
   /** feather: alpha = (1 - t)^falloff across the band — HIGHER hugs the lip tighter, with a
       longer soft tail. 2.2 read as haze on a plain ground; 3 was the correction; 4 with the
       wider band (same day, same feedback) keeps the mass at the edge while the reach grows. */
@@ -2000,7 +2004,23 @@ export const surfaceColor = {
  * Judged like every colour here.
  */
 export const groundColor = {
-  light: "var(--neutral-2)",
+  /* ONE RUNG UP, 2026-08-28 (Kushagra: a light ground "doesnt look good, its 'too' gray").
+     Not a taste correction so much as a consequence nobody followed through: the paragraph
+     above reasons that light "already had room" because "the page sits on rung 1 and still
+     leaves rung 2 underneath for a ground" — and the page STOPPED sitting on rung 1 on
+     2026-08-25, when it took the seal's own pure white. The ground stayed on rung 2, so the
+     one step it is supposed to be from the page silently became two.
+
+     Measured against dark, which is the mode that was tuned deliberately: a dark ground sits
+     0.011 in lightness off its page and reads. Light's sat 0.033 — three times the distance,
+     in the mode with a harder ceiling. At --neutral-1 it is 0.013, which is the same order as
+     the step dark was judged at.
+
+     THIS MOVES A CONFORMANCE INPUT, which the groundRim note above warns about: the ground is
+     a BED in the high-contrast edge solve, so `color.test.ts` re-measures the solved control
+     and field edges against it. That is the reason to state the move here rather than paint
+     around it in a stylesheet — the solve gets to see it. */
+  light: "var(--neutral-1)",
   /* Midway between --neutral-1 (#0f0f10) and --neutral-2 (#141516) — a literal because there is
      no rung there, which is the whole finding. Judged at a quarter of the way (#101112) first
      and it read too dark; the midpoint only became judgeable once the ground stopped wearing

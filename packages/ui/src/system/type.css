@@ -52,6 +52,30 @@
    discoverable rather than invisible. */
 .kui-theme {
   overflow-wrap: break-word;
+  /* ANTIALIASED TEXT (2026-08-28, Kushagra: "we're not using anti aliasing or sth"). macOS
+     renders text with SUBPIXEL antialiasing by default, which lays colour fringes along every
+     stem and reads about half a weight heavier than the face was drawn. On a system whose
+     weight ladder is three adjacent steps — 400, 500, 600 — that is enough to close the gap
+     between two of them, and closing it is the one thing the ladder may not do.
+
+     Here for the same reason `overflow-wrap` is: the property INHERITS, so one declaration
+     covers text a component wrote, text a call site wrote, and text inside a portal. It is
+     also why this belongs to the package rather than to the app that supplies the face — if
+     the reference site renders one way and every consumer another, the system's own screens
+     stop being evidence about the system.
+
+     THE COST IS REAL AND IT LANDS ON THE INK LADDER. Grayscale antialiasing puts less ink on
+     the screen than subpixel does, so every rung reads slightly lighter than it did — and the
+     rungs were SOLVED against APCA targets and then judged by eye in a browser doing subpixel.
+     The solve is unaffected (it measures colour, and no colour moves); what moves is apparent
+     contrast at small sizes, where a thinner stem covers fewer pixels. The ladder is worth
+     re-judging under this, and the place to do it is the type ramp at /matrix.
+
+     Not measurable from this repo's own harness: headless Chromium renders grayscale only,
+     0 colour-fringed pixels in 10,080 sampled, so a law here could assert the declaration but
+     never that it changed anything. Stated as a declaration law only, and judged by eye. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* The family is the Theme's slot (§5), never a stack written here. `--font-heading` chains
