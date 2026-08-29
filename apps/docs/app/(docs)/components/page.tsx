@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Box, Flex, Grid, Heading, Stack, Text } from "@kookie-ui/react";
+import { Card, Flex, Grid, Heading, Stack, Text } from "@kookie-ui/react";
 
 import { InlineCode } from "../../inline-code";
-import { PageFrame } from "../page-frame";
+import { PageFrame, PageTitle } from "../page-frame";
 import { ENTRIES, type Entry } from "./registry";
 
 const FAMILIES: Entry["family"][] = ["Layout", "Type", "Control", "Surface", "Indicator"];
@@ -38,21 +38,21 @@ function opener(blurb: string): string {
  * difficulty: Tabs against SegmentedControl, Card against Surface, Dialog against AlertDialog.
  * The spec reference did not disappear; it is on the component's own page, where the reader
  * has asked for it.
+ *
+ * THE ROWS ARE CARDS IN OPEN SPACE. They sat on a `<Surface>` for a day (2026-08-28) and it
+ * came off on 2026-08-29 (Kushagra): a ground exists to hold CONTENT, and a card is already an
+ * object — one that is a link here, with its own click target and press physics — so a pane
+ * around a grid of panes is enclosure drawn twice, under a family heading that has already
+ * closed the set. The front door went the other way the same day and for the same rule: there
+ * the ground stayed and the cards became cells of it, because those cells were never objects.
  */
 export default function ComponentsIndex() {
   return (
     <PageFrame width="62rem">
       <Stack gap="9">
-        <Stack gap="3" className="kd-prose">
-          <Heading size="8" render={<h1 />}>
-            Components
-          </Heading>
-          <Text size="5" render={<p />}>
-            Every component the package exports, grouped by the family it belongs to. Each page
-            states what the component is, the axes it exposes, and — the part that carries the
-            argument — what it refuses and why.
-          </Text>
-        </Stack>
+        <PageTitle deck="Every component in the package, grouped by family. Each page tells you what the component is, which props it takes, and what it will not do and why.">
+          Components
+        </PageTitle>
 
         {FAMILIES.map((family) => {
           const members = ENTRIES.filter((e) => e.family === family);
@@ -71,12 +71,21 @@ export default function ComponentsIndex() {
                   {members.length}
                 </Text>
               </Flex>
-              {/* Definite tracks: a Box shrink-wrapping in a row collapses to zero width (the
-                  recorded §2 defect), so the grid hands each entry a track instead. */}
-              <Grid columns="repeat(auto-fill, minmax(17rem, 1fr))" gapX="6" gapY="5">
+              {/* NO GROUND UNDER THESE (2026-08-29, Kushagra). A ground per family shipped
+                  2026-08-28 and came off the day the front door's grounds stopped holding
+                  cards: what a ground is FOR is holding content, and these cards are already
+                  objects — `render={<Link/>}` makes each one a real click target with its own
+                  seal, cast and press physics. A pane full of panes states the grouping the
+                  family heading directly above it already states, and the two shapes reading
+                  differently on two index pages was the thing that made it visible.
+
+                  `kd-index-item` resets the anchor's own colour and underline; Card's press
+                  and hover physics are the affordance on top of that. */}
+              <Grid columns="repeat(auto-fill, minmax(17rem, 1fr))" gapX="5" gapY="5">
                 {members.map((entry) => (
-                  <Box
+                  <Card
                     key={entry.slug}
+                    size="2"
                     className="kd-index-item"
                     render={<Link href={`/components/${entry.slug}`} />}
                   >
@@ -88,7 +97,7 @@ export default function ComponentsIndex() {
                         <InlineCode text={opener(entry.blurb)} />
                       </Text>
                     </Stack>
-                  </Box>
+                  </Card>
                 ))}
               </Grid>
             </Stack>

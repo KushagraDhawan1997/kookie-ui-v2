@@ -7,7 +7,7 @@ import { Heading, Stack, Text } from "@kookie-ui/react";
 import { CodeSample } from "../../../../blocks/code-sample";
 import { BLOCK_BY_SLUG, BLOCKS } from "../../../../blocks";
 import { isLang } from "../../../../blocks/highlight";
-import { PageFrame } from "../../page-frame";
+import { PageFrame, PageTitle } from "../../page-frame";
 
 /**
  * One block's page: what it is, the block running live, then every file a consumer copies —
@@ -58,14 +58,12 @@ export default async function BlockPage({
   return (
     <PageFrame width="48rem">
       <Stack gap="9">
-        <Stack gap="3" className="kd-prose">
-          <Heading size="8" render={<h1 />}>
-            {block.title}
-          </Heading>
-          <Text size="3" emphasis="medium" render={<p />}>
-            {block.blurb}
-          </Text>
-        </Stack>
+        {/* THE DECK WAS `size 3 medium` HERE and `size 5` loud on every other page of the
+            site (2026-08-27) — the same role in two spellings, which is the similarity rule
+            broken on the one page nobody compared against its siblings. The 2026-08-25 call
+            was that a deck rests LOUD and one step up; this page was written after it and
+            missed it. `PageTitle` is what makes the spelling unrepeatable. */}
+        <PageTitle deck={block.blurb}>{block.title}</PageTitle>
 
         {/* The demo sits directly on the page — NOT on a Card (caught by Kushagra's eye,
             2026-08-26). A code sample's well is a Surface, a ground, and a ground sits IN

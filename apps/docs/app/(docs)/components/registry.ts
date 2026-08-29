@@ -98,7 +98,7 @@ export const ENTRIES: Entry[] = [
     ],
     refusals: [
       {
-        name: "a fill ladder, or a variant prop",
+        name: "a fill scale, or a variant prop",
         why: "Tone is the category, not the volume. A badge does not come in loud. Two badges of different loudness on one screen say something about importance that neither of them means, and a failed deploy is destructive whether or not it is the most important thing on the page. Ranking is what emphasis does for actions.",
       },
       {
@@ -192,7 +192,7 @@ export const ENTRIES: Entry[] = [
     blurb:
       "Button is the action control, and the one the shared control layer was built for. Loudness is its only ranking axis. You never set an appearance directly: the theme works it out from `tone`, `emphasis` and `bordered`, over whatever material the Theme says the app is made of.",
     axes: [
-      { name: "size", values: "1 | 2 | 3 | 4", note: "an index into the height ladder, not a measurement" },
+      { name: "size", values: "1 | 2 | 3 | 4", note: "an index into the height scale, not a measurement" },
       { name: "tone", values: "any family", note: "picks the meaning. accent resolves through the Theme" },
       { name: "emphasis", values: "loud | medium | quiet", note: "three levels, because a level has to earn a visible step" },
       { name: "bordered", values: "boolean", note: "containment, and about half a level: medium with a border reads louder than medium" },
@@ -207,7 +207,7 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "a shadow prop",
-        why: "There is no elevation axis. Depth is an app identity, set once by Theme depth, and never chosen at a call site.",
+        why: "There is no elevation axis. Depth is an app identity, set once by Theme depth, and never chosen per component.",
       },
     ],
   },
@@ -228,7 +228,7 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "a border toggle",
-        why: "Button's `bordered` ranks: quiet, quiet with a border and medium say three different things about loudness. Two grounds, one lined and one not, would say the same thing. The line is also load-bearing in dark mode, where a ground sits barely above the page — #121213 against #0f0f10, a step of 0.011 in lightness — so the hairline is most of what says the region is there. (This read “the same colour” until 2026-08-26: true of the pair as first written, and retracted on 2026-08-21 when the dark ground took a literal of its own, because there is no palette rung between the two.)",
+        why: "Button's `bordered` ranks: quiet, quiet with a border and medium say three different things about loudness. Two grounds, one lined and one not, would say the same thing. The line is also load-bearing in dark mode, where a ground sits barely above the page — #121213 against #0f0f10, a step of 0.011 in lightness — so the hairline is most of what says the region is there, and there is no palette step between the two colours to fall back on.",
       },
       {
         name: "material and backdrop",
@@ -285,7 +285,7 @@ export const ENTRIES: Entry[] = [
     spec: "§4, §6, §11",
     blurb:
       "Checkbox is a control that is its own mark. Its box is exactly one line of its label's text, so it lines up with the words beside it and grows on a phone without anything being designed twice. Its tappable area extends to the size a Button of the same index would occupy, whether or not you can see that area.",
-    axes: [{ name: "size", values: "1 | 2 | 3 | 4", note: "an index into the mark ladder, which is the line-height ladder" }],
+    axes: [{ name: "size", values: "1 | 2 | 3 | 4", note: "an index into the checkbox's own size scale, which keeps it exactly as tall as one line of the text beside it" }],
     refusals: [
       {
         name: "tone and emphasis",
@@ -332,7 +332,7 @@ export const ENTRIES: Entry[] = [
     blurb:
       "Dialog shows a panel over a dimmed app. The panel looks like a Card with a slightly rounder corner, and it casts no shadow of its own, because the dimmed background behind it is what separates it from the page. On a narrow window it slides up from the bottom edge as a sheet instead. The part names follow shadcn/ui's dialog (MIT), with credit, and the behaviour is Base UI's Dialog, including the focus trap and scroll lock.",
     axes: [
-      { name: "size", values: "1 | 2 | 3 | 4", note: "sets the box \u2014 a maximum width, the padding and the corner \u2014 and the two parts the system owns, DialogTitle and DialogDescription, which take the same step map an alert\u2019s title and description take. Type the call site wrote is untouched. The window wins when there is less room than the size asks for" },
+      { name: "size", values: "1 | 2 | 3 | 4", note: "sets the box \u2014 a maximum width, the padding and the corner \u2014 and the two parts the system owns, DialogTitle and DialogDescription, which take the same step map an alert\u2019s title and description take. Text you wrote elsewhere in the panel is untouched. The window wins when there is less room than the size asks for" },
     ],
     refusals: [
       {
@@ -361,7 +361,7 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "a size on the title",
-        why: "The title and description take their type steps from the dialog's own index, and no call site can set them. They are parts the system owns, forced into existence by the accessibility wiring. Everything you wrote inside the panel is untouched, which is what `no surface sizes the type inside it` protects.",
+        why: "The title and description take their type steps from the dialog's own index, and you cannot set them yourself. They are parts the system owns, forced into existence by the accessibility wiring. Everything you wrote inside the panel is untouched, which is what `no surface sizes the type inside it` protects.",
       },
     ],
     parts: [
@@ -435,7 +435,7 @@ export const ENTRIES: Entry[] = [
       {
         name: "gap / gapX / gapY",
         values: "layout space steps",
-        note: "the density-aware layer, not the raw palette. A comfortable theme widens the grid and a compact theme narrows it, with no call site changing. The two axes are separate because a grid is the one layout where row spacing and column spacing answer different questions",
+        note: "the density-aware layer, not the raw palette. A comfortable theme widens the grid and a compact theme narrows it, with nothing for you to change. The two axes are separate because a grid is the one layout where row spacing and column spacing answer different questions",
       },
     ],
     refusals: [{ name: "auto-placement helpers", why: "A prop earns its place only if it adds token resolution, tiers or a constraint. Everything else is style." }],
@@ -622,7 +622,7 @@ export const ENTRIES: Entry[] = [
     spec: "§10, §30",
     parts: [
       { part: "ComposerInput", blurb: "ComposerInput is the box a person types their message into. It is a plain textarea with no border of its own, because the Composer around it is already the box, and putting a TextArea here would show two. It grows with the text and stops at a maximum height, and the Composer's focus ring watches this element, so pressing a button inside the composer does not light up the whole panel." },
-      { part: "ComposerRow", blurb: "The row of controls under the text. It states the alignment, the split and the spacing so no call site writes them, and stops there: which controls sit left and which sit right is what those controls mean, so group them yourself with a Flex or leave one flat list and let it space evenly" },
+      { part: "ComposerRow", blurb: "The row of controls under the text. It sets the alignment, the split and the spacing so you never write them, and stops there: which controls sit left and which sit right is what those controls mean, so group them yourself with a Flex or leave one flat list and let it space evenly" },
       { part: "ComposerSend", blurb: "One button with four meanings, read off status: send, in flight, stop, retry. Streaming is the one that earns it, because a person watching a reply arrive needs a way to end it. Each state carries its own accessible name, and stopping is an action on the request rather than another submit" },
     ],
     blurb:
@@ -674,7 +674,7 @@ export const ENTRIES: Entry[] = [
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "sets the whole strip: the padding, the corner, the symbol's grid, the dismiss button and the message. A surface normally never sizes the type inside it, and the exception is type the system owns. A notice is one sentence in a fixed arrangement rather than a composition you built, so it uses the alert dialog's own steps and the two cannot drift. State a step on your own Text and yours still wins. It rests at 2 rather than a card's 3, because a notice is a strip across the top of something rather than an object in its own right" },
       { name: "backdrop", values: "boolean", note: "says content passes behind this strip, so the theme's material can show. Pin a notice over a scrolling region and it can be glass. Leave it in flow and it resolves solid and costs nothing. A glass strip scopes everything inside it, so its action button never paints a second layer of glass" },
-      { name: "tone", values: "the ten families", note: "the category, never the volume. It rests neutral, and a warning can be grey. The tone tints the box and re-scopes the ink, so the words follow the box without you colouring anything" },
+      { name: "tone", values: "the ten families", note: "the category, never the volume. It rests neutral, and a warning can be grey. The tone tints the box and moves the ink roles to match, so the words follow the box without you colouring anything" },
     ],
     refusals: [
       {
@@ -724,11 +724,11 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "an arrow",
-        why: "An arrow is a second boundary on a pane whose boundary is already drawn, and on glass it would need its own veil, ring and lens for a shape the lens cannot describe. What says where the panel came from is that it is anchored to the thing you pressed and grows out of it.",
+        why: "An arrow is a second boundary on a pane whose boundary is already drawn, and on glass it would need its own tint, ring and lens for a shape the lens cannot describe. What says where the panel came from is that it is anchored to the thing you pressed and grows out of it.",
       },
       {
         name: "free positioning",
-        why: "You choose a side and an alignment, and the system does the rest — flipping when that side has no room, keeping the panel on screen, matching the gap every other floating panel uses. A panel that could be placed anywhere is a panel every call site places differently.",
+        why: "You choose a side and an alignment, and the system does the rest — flipping when that side has no room, keeping the panel on screen, matching the gap every other floating panel uses. A panel that could be placed anywhere is a panel you would place differently every time.",
       },
       {
         name: "a width that matches the trigger",
@@ -761,7 +761,7 @@ export const ENTRIES: Entry[] = [
     refusals: [
       {
         name: "size",
-        why: "The slider's track ladder is a fraction of a slider's thumb, and a bar has no thumb, so riding it would size the bar against a box it does not have. It uses one stated thickness instead, and takes its width from the container.",
+        why: "The slider's track scale is a fraction of the slider's own thumb, and a bar has no thumb, so using that scale would size the bar against a box it does not have. It uses one stated thickness instead, and takes its width from the container.",
       },
       {
         name: "tone",
@@ -776,7 +776,7 @@ export const ENTRIES: Entry[] = [
     spec: "§4, §6, §11",
     blurb:
       "Radio lets someone pick one option from a group. Its circle carries the meaning: a square radio reads as a checkbox, so no theme setting can square it off. It is one of only four shapes in the system that stays round whatever the corner setting says.",
-    axes: [{ name: "size", values: "1 | 2 | 3 | 4", note: "the mark ladder, shared with Checkbox and the slider thumb" }],
+    axes: [{ name: "size", values: "1 | 2 | 3 | 4", note: "the mark scale, shared with Checkbox and the slider thumb" }],
     refusals: [
       { name: "tone and emphasis", why: "The same as Checkbox: neutral when off and accent when on is an identity, not an axis." },
       { name: "readOnly", why: "The same as Checkbox: HTML does not define readonly for a radio, so there is no appearance to inherit." },
@@ -798,7 +798,7 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§21",
     blurb:
-      "Row is one row in a list. It is the same object a menu item and a sidebar item are: the same rest, the same hover, the same content weight. A standing row rides the height ladder, so it sits level with a Button at its index; only a menu's rows keep their tighter box, because a panel opened for a second is read denser than a column that is on screen all day. Use it for search results, command lists, settings rows and file lists. Inside a Menu, use MenuItem instead.",
+      "Row is one row in a list. It is the same object a menu item and a sidebar item are: the same rest, the same hover, the same content weight. A standing row shares the height scale, so it sits level with a Button at its index; only a menu's rows keep their tighter box, because a panel opened for a second is read denser than a column that is on screen all day. Use it for search results, command lists, settings rows and file lists. Inside a Menu, use MenuItem instead.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "the row's box. It rests at 2" },
       { name: "tone", values: "any family", note: "the one meaning a row carries beyond being itself. A destructive row is the delete in a list of verbs" },
@@ -860,7 +860,7 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "an indent prop",
-        why: "One level is one icon box, derived from the designed glyph ladder. A stated indent would be a second number for a distance the system already prices per size and per pointer world.",
+        why: "One level is one icon box, derived from the designed icon-size scale. A stated indent would be a second number for a distance the system already sets per size and per pointer world.",
       },
     ],
   },
@@ -873,7 +873,7 @@ export const ENTRIES: Entry[] = [
       "NavTree is the tree machine's navigation member: the same data, indent and disclosure as Tree, announced as navigation instead of a tree view — sections are real buttons with aria-expanded, pages are real links, and the page you are on says aria-current. Use it for a sidebar's navigation, a docs chapter list, anything where pressing a row goes somewhere. The docs sidebar you are reading is one. Use Tree when pressing a row selects it.",
     axes: [
       { name: "size", values: "1 | 2 | 3 | 4", note: "the rows' index — the row family's own size. It rests at 2" },
-      { name: "currentId", values: "string | null", note: "the node for the page the person is on. It announces aria-current=\"page\" and takes the current identity: accent ink, the medium rung — ShellNavItem's own pair" },
+      { name: "currentId", values: "string | null", note: "the node for the page the person is on. It announces aria-current=\"page\" and takes the current identity: accent ink at medium emphasis — the same pair ShellNavItem uses" },
     ],
     refusals: [
       {
@@ -992,7 +992,7 @@ export const ENTRIES: Entry[] = [
     blurb:
       "Slider lets someone set a value along a length. The whole strip is pressable, and it stands as tall a target as the Button beside it. A range slider is the same component: pass an array and it renders a handle for each entry.",
     axes: [
-      { name: "size", values: "1 | 2 | 3 | 4", note: "the height ladder for the target, and the mark ladder for the thumb" },
+      { name: "size", values: "1 | 2 | 3 | 4", note: "the height scale for the target, and the mark scale for the thumb" },
       { name: "value / defaultValue", values: "number | number[]", note: "an array makes it a range" },
     ],
     refusals: [
@@ -1068,7 +1068,7 @@ export const ENTRIES: Entry[] = [
     spec: "§4, §6, §11, §19",
     blurb:
       "Switch turns one thing on or off. Its track is slightly larger than a checkbox at the same size, which is the relationship every other design system arrives at by hand. When it is off, the track is a neutral channel with no visible border, so you feel for it rather than reading it as a small panel.",
-    axes: [{ name: "size", values: "1 | 2 | 3 | 4", note: "one index up the mark ladder, with its own width for each step" }],
+    axes: [{ name: "size", values: "1 | 2 | 3 | 4", note: "one index up the mark scale, with its own width for each step" }],
     refusals: [
       { name: "tone and emphasis", why: "The same as every mark: neutral when off, accent when on, as an identity rather than an axis." },
       { name: "children", why: "The label is a sibling, as it is for every mark. The row sets the distance between them." },
@@ -1091,7 +1091,7 @@ export const ENTRIES: Entry[] = [
     refusals: [
       {
         name: "tone and emphasis",
-        why: "A bar where one tab is louder than the next says nothing. Which tab is active is a state, not a loudness a call site picks.",
+        why: "A bar where one tab is louder than the next says nothing. Which tab is active is a state, not a loudness you pick.",
       },
       {
         name: "TabsTrigger and TabsContent",
@@ -1105,7 +1105,7 @@ export const ENTRIES: Entry[] = [
     ],
     parts: [
       { part: "TabsList", blurb: "The bar, the hairline, and the one place the size is set. It places the rule itself, so nobody has to remember to" },
-      { part: "TabsTab", blurb: "One tab: a control on the height ladder wearing the quiet colour, marked active by ink rather than by a fill" },
+      { part: "TabsTab", blurb: "One tab: a control on the height scale wearing the quiet colour, marked active by ink rather than by a fill" },
       { part: "TabsPanel", blurb: "What the tab reveals. It paints nothing: a region that draws its own box is a Card" },
     ],
   },
@@ -1132,11 +1132,15 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "a delay you set per tooltip",
-        why: "Timing is a property of a region of the interface, not of one label — a delay that changed per call site would make one product feel like several. Wrap your app in a TooltipProvider once and every tooltip inside it shares both the timing and the group, so the first one in a toolbar waits and the rest appear as the pointer travels.",
+        why: "Timing is a property of a region of the interface, not of one label — a delay you set per tooltip would make one product feel like several. Wrap your app in a TooltipProvider once and every tooltip inside it shares both the timing and the group, so the first one in a toolbar waits and the rest appear as the pointer travels.",
       },
       {
         name: "a touch story",
         why: "There is no hover on a phone, so nothing opens — and because a tooltip never carries anything of its own, nothing is missing. A hint a touch user genuinely needs belongs in a FieldDescription, a Notice, or on the screen.",
+      },
+      {
+        name: "a material",
+        why: "A tooltip defends its words by INVERTING — it is the highest contrast the palette has — and that is the stronger answer than glass. Two defences on one 28px chip is a doubled edge, so the panel stays solid whatever the app is made of.",
       },
       {
         name: "an arrow",
@@ -1185,7 +1189,7 @@ export const ENTRIES: Entry[] = [
       { name: "resize", why: "It would rename raw CSS. Vertical-only is the shipped behaviour, and style on the wrapper is the escape — the handle inherits it." },
       {
         name: "cols",
-        why: "The container sets the width. A textarea sized in characters uses a unit the type ramp does not use, so an 80-column box is a different width at every size step and every density.",
+        why: "The container sets the width. A textarea sized in characters uses a unit the type scale does not use, so an 80-column box is a different width at every size step and every density.",
       },
       {
         name: "render",
@@ -1232,7 +1236,7 @@ export const ENTRIES: Entry[] = [
     refusals: [
       {
         name: "an accentColor prop",
-        why: "Accent is written as a hue in the config and baked by the generator, so it is one app-wide identity rather than a per-subtree choice. A runtime prop would mean shipping every family's whole ladder for every subtree.",
+        why: "Accent is written as a hue in the config and baked by the generator, so it is one app-wide identity rather than a per-subtree choice. A runtime prop would mean shipping every family's whole colour scale for every subtree.",
       },
       {
         name: "a scale prop",
@@ -1240,7 +1244,7 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "an elevation axis",
-        why: "Deleted. Nothing ever varied it per call site, so it was a component fact wearing an axis's clothes. depth is what survived of it.",
+        why: "Deleted. Nothing ever varied it per component, so it was a component fact wearing an axis's clothes. depth is what survived of it.",
       },
       {
         name: "a look axis",

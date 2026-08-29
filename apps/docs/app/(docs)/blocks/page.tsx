@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Heading, Stack, Text } from "@kookie-ui/react";
 
-import { PageFrame } from "../page-frame";
+import { PageFrame, PageTitle } from "../page-frame";
 import { BLOCKS } from "../../../blocks";
 
 export const metadata = { title: "Blocks — KookieUI" };
@@ -18,17 +18,9 @@ export default function BlocksIndex() {
   return (
     <PageFrame width="48rem">
       <Stack gap="9">
-        <Stack gap="3" className="kd-prose">
-          <Heading size="8" render={<h1 />}>
-            Blocks
-          </Heading>
-          <Text size="5" render={<p />}>
-            Copied source, not published code. Each block is a few files that compose the
-            package — paste them into your app and they are yours. Every colour and distance
-            in them resolves through the package, so the copy carries the arrangement and the
-            behaviour, never the decisions.
-          </Text>
-        </Stack>
+        <PageTitle deck="A block is a few files you copy into your app and own from then on. It arranges components you already have, and every colour and distance in it still comes from the package — so you can change how a block behaves without changing how your app looks.">
+          Blocks
+        </PageTitle>
         <Stack gap="6">
           {BLOCKS.map((block) => (
             <Stack key={block.slug} gap="2">

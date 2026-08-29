@@ -13,7 +13,6 @@ import { notFound } from "next/navigation";
 import {
   Box,
   Flex,
-  Heading,
   Link as KookieLink,
   Separator,
   Stack,
@@ -22,7 +21,7 @@ import {
 
 import { ProseFlow } from "../../../mdx-components";
 import { BY_SLUG, CHAPTERS, neighbours, SECTIONS } from "../chapters";
-import { PageFrame } from "../page-frame";
+import { PageFrame, PageTitle } from "../page-frame";
 import { chapterToc } from "../toc";
 
 export function generateStaticParams() {
@@ -101,19 +100,7 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
 
               `kd-prose` for the reading measure alone: the deck is prose and belongs on the
               same column as the prose under it, and the class is where that width is stated. */}
-          <Stack gap="3" className="kd-prose">
-            <Heading size="8" render={<h1 />}>
-              {chapter.title}
-            </Heading>
-            {/* LOUD, and one step up (2026-08-25). This is the most important sentence on the
-                page and it was rendered FAINTER than the body it introduces — 18px muted over
-                16px loud — so it read as a caption under the title rather than as the deck it
-                is. §15 already says reading-length prose rests loud; this was the one place on
-                the site that did not. */}
-            <Text size="5" render={<p />}>
-              {chapter.blurb}
-            </Text>
-          </Stack>
+          <PageTitle deck={chapter.blurb}>{chapter.title}</PageTitle>
 
           <ProseFlow>
             <Content />

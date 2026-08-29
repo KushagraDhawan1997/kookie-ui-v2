@@ -57,17 +57,20 @@ export const SECTIONS: readonly Section[] = [
   {
     id: "philosophy",
     title: "Philosophy",
-    blurb: "Learn what this system optimizes for, and how it sorts every component into a family.",
+    blurb:
+      "Why this system is built the way it is, and how it decides which component you reach for.",
   },
   {
     id: "foundations",
     title: "Foundations",
-    blurb: "Colour, type, space, size, material, depth and motion. Every other decision in the system is built from these seven.",
+    blurb:
+      "Colour, type, space, size, material, depth and motion. Every other decision in the system is built from these seven.",
   },
   {
     id: "patterns",
     title: "Patterns",
-    blurb: "Build the structures that repeat across an app, such as forms, dialogs, navigation and feedback.",
+    blurb:
+      "Build the structures that repeat across an app, such as forms, dialogs, navigation and feedback.",
   },
 ];
 
@@ -139,8 +142,15 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Why Kookie exists",
     section: "philosophy",
     blurb:
-      "This system sorts components before it styles them. This page explains why that order matters, and what it buys you.",
-    spec: ["THESIS §1", "THESIS §2", "THESIS §3", "THESIS §4", "THESIS §5", "THESIS §6"],
+      "This system sorts components before styling them. This page explains why this order matters and what it provides.",
+    spec: [
+      "THESIS §1",
+      "THESIS §2",
+      "THESIS §3",
+      "THESIS §4",
+      "THESIS §5",
+      "THESIS §6",
+    ],
     source: "philosophy/why-kookie-exists.mdx",
     Content: WhyKookieExists,
   },
@@ -318,7 +328,9 @@ export const CHAPTERS: readonly Chapter[] = [
   },
 ];
 
-export const BY_SLUG = new Map(CHAPTERS.map((chapter) => [chapter.slug, chapter]));
+export const BY_SLUG = new Map(
+  CHAPTERS.map((chapter) => [chapter.slug, chapter]),
+);
 
 export const chaptersIn = (section: SectionId) =>
   CHAPTERS.filter((chapter) => chapter.section === section);

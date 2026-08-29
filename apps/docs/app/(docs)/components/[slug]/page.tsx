@@ -28,7 +28,7 @@ import {
 import { Example } from "../../example";
 import { InlineCode } from "../../../inline-code";
 import { API } from "../api.generated";
-import { PageFrame } from "../../page-frame";
+import { PageFrame, PageTitle } from "../../page-frame";
 import { propDescription } from "../prop-description";
 import { BY_SLUG, ENTRIES } from "../registry";
 
@@ -110,20 +110,13 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
           The back link stays, because navigation is a job. It is a Link rather than the
           `size 1` Button it was: it goes somewhere, and §15 retires size 1 from composed
           surfaces anyway. */}
-      <Stack gap="4" className="kd-prose">
+      <Stack gap="4">
         <Flex>
           <KookieLink size="2" render={<Link href="/components" />}>
             ← Components
           </KookieLink>
         </Flex>
-        <Stack gap="3">
-          <Heading size="8" render={<h1 />}>
-            {entry.name}
-          </Heading>
-          <Text size="5" render={<p />}>
-            <InlineCode text={entry.blurb} />
-          </Text>
-        </Stack>
+        <PageTitle deck={<InlineCode text={entry.blurb} />}>{entry.name}</PageTitle>
       </Stack>
 
       <Section title="Example">

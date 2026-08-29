@@ -292,6 +292,671 @@ without the positive read a theme whose glass never resolved at all would satisf
 degenerate fixture this repo has paid for repeatedly. The type refusal fails in both directions:
 widening `ShellContentProps` back reports `Unused '@ts-expect-error' directive`.
 
+---
+
+## 2026-08-29 A centred body cannot be centred by auto margins, and every entry in the family was sliding its content
+
+**Kushagra, on a tooltip: "after it animates, the content inside is in wrong pos, it jumps after
+animation has finished."** Four probes found nothing — the last flight frame and the settled
+panel agreed to a hundredth of a pixel on every side, at every placement, with short text and
+wrapped text — which is exactly the measurement every existing law here already makes. What the
+report describes happens IN the flight, and reading the words' distance from each pane edge per
+frame showed it at once: at 30% opacity the words sat **13.4px from the left edge and 7.4px PAST
+the right one** on an 88.9px pane, sliding to 13/13 as the box caught up.
+
+**The cause is an over-constrained equation, and the fix is to stop writing one.** The flying body
+is held at its LANDED width (`--kui-fly-bw`) so its text cannot re-break mid-air, while the pane
+is still growing into that width; `inset-inline: pad` + `margin-inline: auto` therefore had more
+box than room, and CSS resolves that by dropping the end inset. The body sat hard against its
+start edge and hung off the other one. A centred body is now pinned by its own centre —
+`inset-inline-start: 50%` and a half-body negative margin — which cannot be over-constrained and
+which matches what the origin table already claimed for these cells (`--kui-origin-x: center`).
+
+**The block axis had the same defect failing a second way.** There the body's height is `auto`, so
+two insets did not over-constrain, they SQUEEZED: the box was forced to the growing pane's
+padding box and its own content overflowed it — measured on a two-line tooltip, 56px of body
+holding 60px of words. Same repair, needing `--kui-fly-bh`, because percentage margins resolve
+against the containing block's INLINE size on both axes and would have centred the block arm by a
+fraction of the panel's width.
+
+**It reached three places, not one.** `align="center"` is the DEFAULT of both Tooltip and Popover,
+and the alert dialog's own body carried the identical spelling with the identical comment. A menu
+escaped only because menus align `start`.
+
+**Why 2,165 laws were green over it.** Every law in the family compares the last flight frame with
+the settled panel, and by then the box has caught up — the defect is a distance that is wrong in
+the MIDDLE and right at both ends. The two new laws read the SKEW (the difference between the two
+gaps) and the CONTAINMENT (the body's own box against its content) across a SEIZED clock, so they
+sample the whole curve rather than whichever frames the host scheduled. Falsified at 157.9px and
+78.0px of skew, and at 22px of body holding 60px of words.
+
+**Three shipped laws failed on the fix and each encoded the old behaviour.** The per-axis pin law
+read `inset-inline-start` and expected the pane's padding — which is what the OVER-CONSTRAINT was
+producing, the dropped end inset leaving the start one showing 12px, so the law was reading a
+defect and calling it the guarantee; it states `align="start"` now and refuses a centred axis
+out loud. The menu's pivot law decided "is this centred?" by asking whether the two insets AGREED,
+which was true of a spelling that could not centre anything; it asks the box instead. And a count
+law counting nine padding pins is seven, because two of them stopped pinning by a padding.
+
+---
+
+## 2026-08-29 `data-instant="focus"` is an input class, and the family had exempted only two of three
+
+**The ultracode audit of Tooltip and Popover.** Base UI stamps `data-instant` when a change "is not
+a reveal", and this system exempts the values that name an INPUT rather than a change — `click`
+since 2026-08-18 (every keyboard Enter and Space had lost the entry) and `dismiss` since
+2026-08-22 (every keyboard Escape had lost the exit). `focus` is the third and last, it was
+exempt in neither home, and it is written on two opposite gestures that are both reveals.
+
+**Three symptoms, one cause.** A keyboard-focused TOOLTIP got no entry and no exit — focus is the
+only keyboard route a tooltip has, so this was every keyboard user of every tooltip in the
+library. Tabbing out of a POPOVER — the ordinary way a keyboard leaves a non-modal panel — blinked
+it away in one frame against ~135ms for an outside press. And a CONTROLLED popover lost its entry
+permanently after one focus-out: `setOpen` is the only writer of `instantType`, a controlled root
+syncs through `useControlledProp` and never runs it, so the stale stamp was still on the popup at
+every later state-driven open. That last one is `dismiss`'s own 2026-08-22 defect arriving on a
+second value, in the same component, four days later.
+
+**What stays instant is what is not about the input**: `delay` (the group is already warm — a
+toolbar's second tooltip, which every platform shows at once), `trigger-change` (the panel moved
+between triggers), `tracking-cursor`.
+
+**The set had two homes and no agreement law, which the runner's own comment named as owed.** The
+runner decides whether the panel is POSED and the stylesheet decides whether any CLOCK runs, so a
+value exempt in one and not the other is a panel posed and never animated. The coverage that
+existed was incidental and one-sided per value — three menu laws happen to fail if `dismiss`
+leaves either home, and nothing at all watched the stylesheet's `click`. It reads both SOURCES
+now, the shape the fourteen private depth arrays were collapsed with, plus a clause that every
+arm of the stand-down carries the whole chain.
+
+**Two instrument findings, both recorded because both produced the defect they were looking for.**
+`settleAll()` lands a panel by writing `transition: none !important` inline on it and everything
+inside — so an exit law that used it read a clock of zero on a correct package. And
+`[data-unfurling][data-seed]` declares `transition: none` deliberately (the pose is HELD; the
+flight's clocks are the base rule's and apply the frame the seed comes off), so a law reading the
+clock during the seeded window reads zero too — which is what made one run in two fail. Both are
+waited out by the panel's own attributes, never by a frame count. `catchDissolve` was tried and is
+the wrong instrument here for a reason worth keeping: it seizes running ANIMATIONS, and a
+transition does not exist until the style change is computed, one flush after the microtask it
+arms in — it rejected on correct code.
+
+---
+
+## 2026-08-29 The floating family's trigger gap had four homes, each commented as if it had one
+
+**Same audit.** `const SIDE_OFFSET = 4` was declared privately in menu, select, popover and
+tooltip, and two of the four carried a comment saying the number was "deliberately shared rather
+than re-picked" directly above their own copy — as did the public JSDoc on both `sideOffset`
+props. No law read the value anywhere, so three could drift while every comment in the package
+went on claiming they could not, and the person re-judging the gap had no reason to look for the
+others. Menu was the origin and Select recorded its copy honestly as a second-member self-key;
+the third and fourth recorded nothing, which is past both of this repo's promotion rules (CSS:
+the third member promotes; JS: the second consumer does).
+
+Promoted to `system/floating.tsx` with a law that reads the SOURCE of all four — a mounted law
+measuring two panels at one distance would pass on four copies that happen to agree.
+
+**Popover also took `useRestingAnchor` in the same change.** It opens on a PRESS, an open trigger
+holds that press as a spring, and floating-ui never re-solves for a transform — so the placement
+froze mid-spring and the release's late re-solve popped the panel, which is verbatim the defect
+Menu's 2026-08-25 fix was written for. **Tooltip deliberately does not take it**, and the
+difference is the gesture: a tooltip's trigger is HOVERED for the whole life of the panel, so its
+1px rise is a static fact rather than a spring in flight, and anchoring to the resting box would
+place the tooltip 1px off the button a person is looking at.
+
+**Popover's material path had no reader at all.** Three component-local calls decide what the pane
+is made of — `useMaterial({ backdrop: true })`, `useLensRef` and `GlassScope` — and deleting any
+of them left twenty-three laws green. Three laws now, each falsified by its own sabotage, and each
+clause is a defect this mechanism has already shipped in a sibling.
+
+**Tooltip was the only portalling component with no §20 agreement law**, which ENGINEERING §2.1
+names as owed per component. Writing it turned up why the shared walk cannot substitute: three
+axes were already carried here by other laws and three were not, and one of the three — `pointer`
+— has no reader in a tooltip's BOX at all. Its inset is a density pick, its corner is the
+density-invariant surface band, and it is not on the control height ladder. What coarse moves is
+the TYPE, so the in-flow twin has to place the same `Text` the component does or the law carries
+five axes of six and goes green on a portal that dropped the sixth.
+
+---
+
+## 2026-08-29 The code theme spends two hues, and the brand change had already broken it
+
+**Kushagra: "I dont like the shiki theme were using."** Measuring it first turned up a defect
+rather than a taste problem, and it was mine from that morning. The theme spent five families —
+`accent` for keywords, `blue` for functions, `green` for strings, `orange` for constants, plus
+the grey ladder — and `accent` went back to blue's own recipe hours earlier, so `--accent-ink`
+and `--blue-ink` are byte-identical: **keyword and function painted one colour** while the file's
+own comment described them as two decisions. `--success-ink` against `--green-ink` is the same
+collapse (success sits on green's hue by design), so a diff's added line matched every string.
+Four assignments resolving to two colours, silently, because nothing reads a code sample's
+pixels.
+
+**The fix is a smaller palette rather than a re-shuffled one.** Identifiers take the FOREGROUND:
+a component name and a prop name are the subject of a KookieUI sample, and the subject reads at
+full strength rather than in a hue chosen to tell it from its neighbour. What stays coloured is
+the language's vocabulary (`accent`) and the values (`green`) — the one distinction a reader of
+these samples actually makes. Comments came up from `--color-text-faint` to `--color-text-muted`
+on the way: faint is the below-floor EXCEPTION rung (§15, 30 Lc), and in a docs sample the
+comment is often the explanation.
+
+**Two hues cannot repeat the collapse**, which is the structural half of the fix: the palette
+spends `accent` once and `green` once and everything else is the grey ladder, so no future brand
+move can make two roles agree. The diff trio keeps the three status families — `success ≡ green`
+survives there because a diff is carried by the line wash and the gutter marker, not by the token
+colour.
+
+---
+
+## 2026-08-29 The front door stops arguing and starts pointing
+
+**The question was Kushagra's and the references answered it.** "I dont think What this design
+system claims should be the first thing user sees, or am I wrong" — holding the page up against
+Apple's HIG and Material's own front pages. He is not wrong. Apple: a title, one sentence, then
+"Design fundamentals" and "Foundations of design", each a heading plus a sentence plus a grid of
+real destinations. Material: one line and a Get started. Neither asks a visitor to agree with
+anything before they have seen a component. A claim a reader cannot check yet is a slogan.
+
+**The claims were DELETED rather than moved down the page or into a chapter.** Six cards, each
+stating a position in three sentences, is a compressed second copy of a chapter that already
+argues the same thing at length: Appearance and Colour are `foundations/color` and
+`philosophy/why-these-rules-hold`, Responsiveness and Material and Motion are their own
+chapters, and Correctness is the opening paragraph of `philosophy/why-kookie-exists` almost word
+for word. One home per fact, and the chapters are the home. Kept at the foot of the page they
+would have been dead space as well — a reader handed the routes does not scroll past them to
+read a manifesto. What still carries the position is the deck, one sentence above the fold, and
+the Philosophy cell the index routes into.
+
+**A CORRECTION IN THE OTHER DIRECTION, mine.** I argued on 2026-08-28 that the site index
+duplicates the sidebar and should be cut. Apple's HIG has that exact sidebar AND repeats the
+whole tree as tiles on its front page. A permanent nav is for returning to a place; a front-page
+index is for finding out what the places ARE. The index is now the page.
+
+**Six destinations: the four authored sections, plus Components and Workbench.** Neither of the
+last two is added to `chapters.ts` — that registry drives the sidebar, and a fifth entry would
+invent a section the navigation does not have. The component count is read off `ENTRIES` and the
+block count off `BLOCKS`, because a number typed into prose is the first thing to go stale.
+
+**And then the ground came off it too** ("do we need it on main page? Keep a 2 col layout,
+remove the surface and grid lines, just promote them one level up"). The divided ground, built
+that morning, holds CELLS OF ONE THING — six claims that were six faces of one argument, where a
+rule between two of them says "these belong together, and here is where one ends". Six
+destinations are not that. They are six separate places, and a pane around them says they are
+one region of a page that IS them. Distance carries the grouping instead, which is §15's own
+instruction to take whichever of enclosure, a line and distance is doing the work and only that
+one.
+
+**That deletion is the tell that the shape was fighting the content: three mechanisms went with
+it.** The fixed two-column track list, the `@container (min-width: 40rem)` rule and the
+`<Box container>` that the rule keyed against all existed because the separators had to know
+which edges touch. Nothing has to know that any more, so `auto-fit` — which ships in the box —
+does the whole job. `.kd-cells` is deleted rather than left behind a name with no consumer; it
+is one day old, it is in git, and it is described here if a page ever wants it back.
+
+---
+
+## 2026-08-29 Preview and Matrix leave the docs, and a section of one gives up its ground
+
+**Unlinked, not deleted** (Kushagra: "we dont care about matrix and preview... its for me
+only"). Both routes still exist, still build and are still law-checked — the playground law
+walks the package's exports against what `/preview` renders, and nothing about that changed.
+What changed is who they are for: one is the judging surface for a visual change and the other
+is a cell inspector for one exact axis combination, and a docs navigation that lists them is
+offering a stranger two rooms with nothing in them. They come out of the sidebar's Workbench
+group and off the front door. Someone who wants them types the path.
+
+**The tools section became one tool, and the ground went with the other two.** A division of
+one is not a division: with a single tool there is nothing for a rule to separate, so the pane
+would have been a card drawn round one heading and one paragraph — the enclosure §15 spends
+most of its words refusing, and the same argument that took the cards off `/components` two
+hours earlier. The section's deck merged into the body for the same reason: two sentences
+ranked apart when there is one thing to say is a hierarchy invented to fill a shape.
+
+**What the page keeps is the point of the section.** The builder is the shortest demonstration
+this system has that its guidelines are enforced rather than asserted — it is the reason the
+tools were on the front door at all — and that survives the other two leaving.
+
+---
+
+## 2026-08-29 The brand goes blue, and the front door's ladder steps down under a smaller title
+
+**Accent is `{ hue: 250, vividness: 1 }`** (Kushagra), reversing the one-day-old grey and the
+violet before it. One config line, as the file promises, and the two things that move with it
+are both mechanisms rather than second decisions: neutral derives `hue` from the accent, so
+the greys' lean went 295 → 250; and the low-chroma branch is no longer taken, so the primary
+button is pigment again rather than neutral's own step 12. **CSS fell 236 gzipped bytes**
+(34,212 → 33,976, re-recorded) because accent and blue now compress against each other at the
+pigment rungs — they are still not equal, and the roles `undilutedTones` withholds from accent
+are exactly where they differ, which is why `blue` stays the control family in the tone laws.
+
+**One law asserted the opposite and was reversed back to what it said two days ago.** "A LOUD
+accent button is neutral's own solid" was written on 2026-08-28 and was true only while the
+low-chroma branch collapsed both families onto step 12; the loud rung is the one place a
+pigment brand is furthest from neutral, which is what makes it worth reading at all. Nothing
+else in the suite moved — 2,162 laws green — and the law directly above it, which reads the
+INK rather than the fill, held through both directions of the change because it rests on a
+step difference rather than on hue.
+
+**The front door's type ladder stepped down one rung**, because the title went `9` → `8` when
+the mark arrived and the four steps under it did not follow: a 40px title sat one step over a
+30px section heading, and the page had spent its top two rungs on each other. Now title `8`,
+section `6`, cell title `5`, body `3` — and the claim's summary line joins the body's step,
+since it is `weight="medium"` at LOUD against a `medium` body and two differences already rank
+it. The deck went `5` → `4` with it: a deck is ranked against its own title, so the two cannot
+be chosen apart.
+
+**Then `8` became the whole app, an hour later** (Kushagra: "why is only main page's title size
+8"). It shipped scoped to the front door as a `size` prop, on the argument that only that page
+sets the mark above its title — which was a reason for that page to be FIRST, never a reason
+for it to be the only one. 56px is a poster and 40px is a document, and a docs site is
+documents. So the prop is DELETED with the exception, and the deck's two-entry map went with
+it: a map with one live entry is a mechanism for a variation that does not exist.
+
+**The site was already agreeing with the section rung, which is what settles it.** A chapter's
+`h2` is `6` and a component page's is `6`, so both read title-then-two-ramp-steps all along
+while the front door alone read `9 / 7` — it was the outlier, not the exception. At `8 / 6`
+every page states one interval and a section heading is the same size wherever a reader meets
+one. The one cost is on chapters rather than here: the deck is now one ramp step over the body
+(18 against 16) where it was two, and size is the only thing ranking it, so a chapter reading
+flat at the top is that line.
+
+**The cost is written down rather than absorbed: §15's house ladder is page `8`, section `7`,
+card title `6`, body `3`, and the front door now reads `8 / 6 / 5 / 3`.** That brief was
+written for a composed app surface, where the rungs sit close together with nothing between
+them. A document puts a deck, a section break and 48px of nothing between each rung, and at
+that spacing one step of the ramp is not a rank a reader can see. If the rest of the site
+follows this page, §15 owes the distinction — a page is not a pane — rather than this page
+owing an exception.
+
+---
+
+## 2026-08-29 The mark comes into the reading column, and the two index pages stop arguing
+
+Three of Kushagra's calls on the docs, all from the rendered page, and two of them are the
+same rule read from opposite ends.
+
+**The front door's title is `8`, not `9`, because the MARK is above it now.** The logo had
+only ever been chrome — the sidebar's masthead, a single blackletter capital — and it is in
+the reading column on the front door as well, which makes that page the one place the
+identity is stated twice. 56px of type under a 56px glyph is two titles competing, and the
+one made of words loses. So the title steps down one and `PageTitle` gains a `size` prop
+whose union is `"8" | "9"` and nothing else: there are exactly two answers, and a page asking
+for `4` is not making a decision this component should accept. This is NOT the knob
+`deckEmphasis` was refused for being two days ago — that one spelled one relationship as a
+choice at six call sites; this one records that one page has a mark and the others do not.
+
+**The glyph became `<Wordmark>` on its second placement.** Three facts make it the mark (the
+display face, `weight="regular"`, the collapsed line box) and two of them are stated in the
+markup rather than the stylesheet on purpose, so a hand-copied second instance is two chances
+to ship a synthesized bold or drop the class. The mark is `aria-hidden` in both placements: in
+the sidebar the anchor carries `aria-label="KookieUI"`, and on the front door the title says
+the name in the next line, so a lone "K" announced as text is noise either way.
+
+**The mark and the title are a LOCKUP, at `4` (12px), against `6` to the deck.** The mark says
+the name as a drawn letter and the title says it in words — one unit, with the deck as the
+sentence under that unit. Proximity's two-step rule is what stops the three reading as a
+column of equals.
+
+**And `/components` lost its grounds the same day, which is the divided-ground entry's rule
+read backwards.** Those grids were `<Surface>` panes holding `<Card>`s, shipped 2026-08-28.
+The front door's cards became cells of their ground because they were never objects; these
+cards ARE objects — each one is `render={<Link/>}`, a real click target with its own seal,
+cast and press physics — so what came off was the ground, not the card. A pane full of panes
+states the grouping the family heading directly above it already states. The tell was that two
+index pages, built a day apart from the same instinct, read differently.
+
+---
+
+## 2026-08-29 The front door's grounds are divided, not filled with cards
+
+**The shape that was there.** Three `<Surface>` grounds on the front door, each holding a
+grid of `<Card>`s — the claims, the site index, the tools. Kushagra, on the rendered page: a
+Surface is designed to hold content, and while a card inside one is not wrong, it is not
+needed here. He asked for a two-column grid inside the Surface with a separator drawn between
+the edges where two cells touch, and said the card's padding was less than it should be.
+
+**Why the card was the wrong object.** §10's pair is the argument: a Card is an OBJECT and a
+Surface is a GROUND. These cells are not objects — a claim does not sit on the section, it is
+a division of it — and §15 asks which one of enclosure, a rule and distance is carrying the
+grouping. The cards were carrying all three at once: a border all the way round, a cast and a
+16px gutter. What is left is the rule, drawn only where two cells actually meet, never around
+the outside where the ground's own edge already is one.
+
+**The padding complaint was two paddings on one edge.** A ground pads by `--surface-p-3`
+(24px) and the card inside it padded by 16, so a claim's first word sat 40px inside the ground
+while its own paragraph had 16px of air — the two smallest distances on the page were the ones
+nearest the text, and the largest was spent where nothing reads it. The cells bleed to the
+ground's edges now (`m="bleed"`) and state one number, `7` (32px), on all four sides. At the
+frame's 768px that is two 384px columns with 320px of text, about 40 characters a line — under
+the 45–75 band, which is the price of two columns at this width and is recorded rather than
+pretended away.
+
+**The count moved from the call sites into the rules, because the rules need it.** Each grid
+had stated its own `repeat(auto-fit, minmax(…))`, and a track list that arranges itself cannot
+tell a stylesheet which edges touch. So `.kd-cells` states two columns and derives the
+separators from that one fact: a line to the left of every cell in the second column, a line
+above everything from the third cell on, and one column with a line between every pair under
+40rem. An odd count takes the whole of the last row rather than leaving a rule drawn across an
+empty half — which is what the three tools do.
+
+**40rem is a CONTAINER query, and the caller opts in.** This is a question about how much room
+the grid has, not about which interface the window should show (§2, §18), so the section is
+wrapped in `<Box container>`. The package's own tiers are unusable for it: they resolve
+against the root Theme, so at a 900px window the content column is 563px while the `md` tier
+says 768, and two columns there would be 217px of text. Opting the region in re-keys the tiers
+for everything inside it, which is the documented mechanism rather than a side effect —
+nothing in these sections states a responsive value.
+
+**Rejected:** the gap-as-line trick (grid gap of one border width over a ground-coloured
+background) — column-count agnostic and therefore attractive, but an incomplete last row paints
+a solid block of border colour where the missing cells are, which the tools grid would have hit
+the moment its track count changed. And negative-margin overlap, which is the same trick's
+cousin: `.kui-box` declares every margin longhand from its own properties, so a docs rule
+setting one would be an equal-specificity fight decided by stylesheet order. Borders are the
+one thing the layout mechanism does not declare, which is why the separators are borders.
+
+**Left alone on purpose:** `/components`, whose per-family grids are the same Surface-holding-
+Cards shape. Those cards are `render={<Link/>}` — the whole card is the click target, so it is
+a pressable object and Card is the right component for it.
+
+---
+
+## 2026-08-28 Every deck is medium, and the front door is as narrow as its own grid allows
+
+Three changes to `apps/docs`, all Kushagra's, all judged on the rendered page.
+
+**The front door narrowed 52rem → 48rem, and 48 is a floor rather than a preference.** The
+claims grid is two tracks at `minmax(22rem, 1fr)` with a 32px gutter, so it needs 736px to
+stay two tracks and anything under 48rem collapses six claims into one column six cards long.
+Measured at 1440: frame 768, a claim's paragraph 368px at 46 characters a line, against 50 at
+52rem and 61 at 62. 46 is the bottom of the 45–75 band and deliberately close to the edge —
+46rem lands exactly on the collapse and 44rem reads 42 characters, under the floor. The tools
+grid moved with it rather than being left to break (three `minmax(15rem)` tracks do not fit at
+48rem, so that row would have silently become two cards and an orphan); its floor is 14rem,
+which holds three tracks at 235px. That is 29 characters a line, under the band — recorded as
+the one measured cost, not fixed, because it is three short paragraphs and the fix is two
+tools to a row.
+
+**Every body paragraph on the front door went medium**, which reverses a two-day-old comment
+in the same file arguing they should be loud. The argument was the typography chapter's: a
+paragraph that arrives greyed out says reading it is optional, and a claim's body is the
+argument, so it may not say that. What that rule governs is a paragraph of PROSE — a page
+whose text is the whole content. A claim's body is supporting text under a claim line, which
+is the case the same chapter gives `medium` by name. Loud also left the card with no rank to
+read: six cards of full-strength black differ from their own claim lines by one weight step
+and one type step, both small at this size, so the section read as one block of text with
+headings in it. Contrast is the third difference and the only one a reader takes in before
+reading a word.
+
+**Then the deck went medium too, on EVERY page, and the `deckEmphasis` prop that shipped it
+lived about ten minutes.** The first spelling scoped it — front door medium, chapters loud —
+on a measurement that is real: chapter prose is loud (checked on `/foundations/color` and
+`/philosophy/why-kookie-exists`), so a medium deck there sits fainter than its own first
+paragraph, which is the direction of the defect fixed 2026-08-25. Kushagra refused the prop
+outright, and he is right that one relationship spelled as a knob at six call sites is worse
+than one answer: the deck is one thing, so it reads one way. **The 2026-08-25 defect is not
+re-committed, because that deck was QUIET at 26%** — under the readability floor the colour
+chapter names, on the one sentence a reader is most likely to read. Medium sits ON that floor.
+What a chapter now states by SIZE rather than by contrast is which line comes first: 24px
+against the body's 16, half again the size of everything under it. All four decks measured at
+52% after the change; 751 docs laws green, lint clean.
+
+---
+
+## 2026-08-27 The front door was written for people who already use the system
+
+Kushagra, reading the landing page: *"We're on first page of kookie ui, and you're saying 'no
+color prop'. What does a consumer or dev who has landed on landing page care about this at this
+stage."* And on the claim beside it: *"??? user has no context, who wrote this."*
+
+**The fault is ALTITUDE, and it is a different fault from the one AUTHORING.md was written
+about.** Every sentence he quoted is true, grammatical, short, active, and free of internal
+vocabulary — it would pass every rule the guide states and every check `prose.test.ts` runs.
+"There is no colour prop and no variant prop" is a correct fact about a real API, printed where
+somebody is deciding whether this library is worth thirty more seconds. A refusal only means
+something to a reader who was expecting the thing refused, and on the front door nobody is yet.
+The 2026-08-25 rewrite fixed register — writing to a reader rather than to the team — and never
+asked which reader. A chapter is read by somebody who has already decided; the front door is
+read by somebody who has not.
+
+**The deck had the same fault one level worse**: it named a ground, a surface, a control and a
+mark in its second sentence — four families that are the subject of a whole chapter — and closed
+on how the docs are built ("every chapter cites the specification, and a test resolves each
+citation"), which is a sentence about this site's own machinery on the page with the least
+earned attention on the site. Rewritten to say what the library does, give one concrete example
+a stranger has seen, and state the trade THESIS already owns: correct rather than quick to
+adopt. Same pass over the three claims, the three workbench blurbs, the `/components` deck ("the
+axes it exposes, and — the part that carries the argument —") and the `/blocks` deck.
+
+**Both landing claims were verified against the types rather than carried over.** `<Button m="4">`
+and `<Card shadow>` are both `TS2322`, so "you cannot put a margin on a button, or a shadow on a
+card" and "your editor stops you before you run anything" are checked sentences, not inherited
+ones.
+
+**The law was widened, and what it still cannot do is the point.** `prose.test.ts` read
+`content/*.mdx` and nothing else, so the front door, the two index pages, `chapters.ts` and
+`registry.ts` were unchecked — and across two sessions that is exactly where the register kept
+coming back (19 internal nouns and 9 third-person constructions in `registry.ts` alone the day
+before). `registry.ts` already carried a header telling writers these rules; nothing read it,
+which is the failure AUTHORING.md itself was written about, one layer up. It now reads those
+five files with **comments stripped first** — they are source, and a comment written to the next
+maintainer may legitimately say "the mark ladder", which both `page.tsx` and `registry.ts` do
+today, so the strip is exercised by real code rather than by a probe. Falsified four ways:
+re-introducing "rungs" in a tool blurb fails with the line and the sentence; deleting the strip
+fails all five files on their own maintainer comments (so it is load-bearing, not a no-op);
+renaming a surface fails the vacuity guard by name; and a `https://` inside a string does not eat
+the prose after it, so the strip cannot silently under-report. 745 → 751 docs tests.
+
+**The rewrite then committed two faults of its own, and both are now checked.** Kushagra, on the
+new deck: *"the 'these pages are honest about what that costs you' is AI jargon!"* — and it is,
+in the exact way the rule one paragraph above says: it explains the documentation instead of the
+product, which I had just written down and then broke in my own sentence. Asserting your own
+honesty is also the one claim a reader cannot check, and a document cannot make it about itself.
+A scan of all 26 reader-facing files found the register in exactly two places, both mine, both
+that day — the deck, and "rather than taking them on trust" under the workbench. The chapters
+were clean. So the sales register joins the banned list: self-praise (`honest about`, `on trust`,
+`we believe`, `carefully crafted`), the marketing adjectives (powerful, seamless, robust,
+elegant, intuitive), the marketing phrases (`out of the box`, `under the hood`, `first-class`),
+and `not just a`. Every pattern was checked against the corpus before it was added — zero hits,
+so nothing on the list is a word this corpus already used for a reason — and falsified by
+restoring the flagged sentence, which fails naming the phrase and printing the whole deck.
+
+**And the replacement was a riddle, which is the subtler half.** The first fix ended the deck on
+*"your twentieth screen costs about what your second one did"* — his answer: *"The hell is..."*.
+The sentence is lifted verbatim from `why-kookie-exists.mdx`, where it is **earned**: three
+paragraphs first establish that the bill for inconsistency arrives around the twentieth screen,
+so "costs" has a referent by the time it lands. On a deck read cold it is AUTHORING's own rule 2
+— a phrase that only works once you know the answer. This is a failure mode worth naming on its
+own, because the sentence came from inside the corpus and looked pre-approved: **a sentence
+borrowed from a chapter is not automatically safe, because what made it work may be the
+paragraphs above it.** The deck now states the same trade with nothing to decode — strong
+opinions, fewer ways out, screens built months apart that look like one product.
+
+**Then the titles, which were the same fault in four words.** *"Even the titles 'Meaning, not
+appearance'"*. Read cold, that is the conclusion of an argument nobody has been given — and
+`AUTHORING.md` had **licensed it**: habit 1 said `X, not Y` "is a different construction and it
+is allowed", which is true of "An index, not a measurement" and false of this, because there "an
+index" is a plain answer standing on its own while "meaning" and "appearance" are two
+abstractions with no verb between them. The correction arrives before the reader has anything to
+correct. The allowance is now narrowed to X saying what the thing is or does in ordinary words,
+and the guide states that a card title is a heading, so habits 1 and 4 reach it. Three titles
+became statements of fact ("The theme decides how it looks", "Missing props are deliberate",
+"The rules are built into the types"), and the same sweep took five chapter headings of the same
+shape — "Two clocks" (which `AUTHORING.md` already prints as a *wrong* blurb), "Curves nest",
+"One region can leave the light", "Handles cast in both worlds" (an internal noun), and "The
+dimmed background is the separation" (X is Y, two abstractions). No in-page anchor links pointed
+at any of them, checked before renaming.
+
+**The register itself was corrected by Kushagra rewriting the deck by hand**, and the diff is the
+lesson: he opened with what the library is *for*, replaced shorthand with ordinary words ("fewer
+options", where mine said "fewer ways out" — internal shorthand for escape hatches), and used
+explicit connectives ("While…", "this consistency", "automatically") where mine used clipped
+juxtaposition and ended on a rhetorical turn. **Mine was written for cadence.** His text ships,
+with serial commas normalised to the corpus (measured: 8+ instances without against 1 with), and
+the same register applied to the three claims and three workbench blurbs. One flag raised and
+left to him: "helps you design components" sits against the deck's own next sentence and against
+"The reader composes a screen" in `why-these-rules-hold.mdx` — you compose screens *from*
+components the library has already designed.
+
+**Then the set itself was wrong, which is the largest finding of the day.** *"Are these three
+claims the only three claims? This section should follow MECE."* No — and nothing had ever asked.
+"Three claims" was inherited framing, and a front door that states three of nine is not a summary,
+it is a sample with no label saying so. The set is now **derived from `THESIS.md` section by
+section** rather than invented at the page: function over appearance (§2, §3), the empirical
+floors and the duty to call taste taste (§4), coherence as the cheaper option (§5), the
+governance tiers and the opt-out inversion (§7), and the pattern layer (§8), plus two the spec
+owns rather than the thesis — how a component is described (DECISIONS §9's axis model) and what
+the whole thing costs at runtime (§8). Nine cards: Function, Meaning, Constraints, Defaults,
+Evidence, Adaptation, Centre, Patterns, Cost. **Exclusivity was the harder half**: refusal and
+enforcement had been two of the three cards, and they are one thing here — a refusal *is* a type
+— so stating them separately made one promise twice and left a reader working out the difference.
+They are one card. `Defaults` and `Evidence` look adjacent and are kept apart on purpose: they
+are §7's two tiers, one being the thing you may override and the other the thing you may not.
+
+**The card shape is Apple's HIG design-principles page, at Kushagra's direction** — a marker, a
+one-word name, a sentence that states the claim, then the paragraph that pays for it. The
+one-word name is what structurally prevents the fault three messages earlier: "Meaning" is a
+label and cannot be a verdict, where "Meaning, not appearance" was the conclusion of an argument
+nobody had been given. Icons are the app's existing Hugeicons wrappers, so nine cards added no
+dependency and no new glyph export; they paint `--accent-glyph`, which is the icon role §7
+already designed and the right one over the text colour, since a text colour is solved for
+reading and pays for that bar in saturation. Measured on the rendered page: 36px, and
+`color(display-p3 0.4754 0.1219 0.9616)` — the CSS beats Hugeicons' `width="24"` presentation
+attribute, which `icons.tsx` had flagged as a mechanism nobody had written down, and now it is
+written down. Per-card links were dropped with the reference: the site index is the very next
+section, so nine "read more" links would be nine invitations out of a list still making its case.
+
+**The front door had never claimed a width, and the intro was 65% of the page.** *"Why such a
+width difference?"* Measured at 1440 before touching anything: the title and deck sit at the
+40rem reading measure (640px) while the claims grid and the site index ran the full 62rem
+(992px). Both numbers are individually right — 640px is about 64 characters at the deck's 20px,
+and a 484px card is about 65 at 16px — so this was not a bad measure, it was two good measures
+that did not relate, and the step read as an accident. `page-frame.tsx` already said the width
+is the caller's *because* "the front door is neither" a chapter nor a component page; the page
+had simply never stated a number and was using the component index's. 52rem: deck 640 against
+832, **65% → 77%**, and the cards improve on the way, 484px → 404px, roughly 65 characters a line
+down to 57. The deck keeps its own narrower measure, because a measure is characters and not
+pixels.
+
+**And the width he could still feel was the TITLE, not the paragraph.** *"Why does the width
+feel different, is it the wrapping of paragraph?"* — half right, and the half that was wrong is
+the finding. Narrowing the frame had closed the container gap and left the real one untouched.
+Measured in one page load with the fonts settled, so the two rows are comparable: the deck's
+longest line is 622px at **64 characters**, which is where `prose.css`'s own cited band (45–75,
+ceiling 80) says a line belongs — the paragraph was never the problem. The title's longest line
+was **559px holding 19 characters**, inside an 832px column. The block had **three right edges**
+— title 559, deck 622, container 832 — and the shortest of them was the largest type on the page,
+which is what the eye reads as an accident.
+
+**The cause is that `--kd-measure` is a pixel number derived at body size**, and `.kd-prose > *`
+applies it to everything. A measure is CHARACTERS, so one pixel cap cannot be right at both ends
+of a nine-step type scale: 640px is 64 characters at the deck's 20px and 19 at the title's 56px.
+The title opts out the way `.kd-figure` already does, and for a reason of the same kind. After:
+title 752px at 26 characters, deck unchanged at 622/64 — **two edges instead of three**, with the
+narrow one being the reading column, where narrow means something. `h1` is the exact selector
+rather than a new class, because a chapter may not write one (the registry supplies the page
+title and a second `h1` fails a law), so the only `h1` under `.kd-prose` on this site is
+`PageTitle`'s. Checked on all three page types: the chapter and component titles are short enough
+that the cap was never binding there, so nothing moved for them.
+
+**The deck was the same fault, and the first answer to it was wrong.** Told the title was fixed
+but the blurb still looked short, I explained that 64 characters is where the band says a line
+belongs — which is true, and is not an answer to somebody looking at a paragraph that stops 210px
+before everything under it. **The cap was chasing the type.** Filling an 832px column at 20px
+costs 85 characters, past the 80 ceiling, so the deck had been shrunk to fit a measure instead of
+being sized so that the column IS one. Measured at one step up: 24px fills the column at **70**
+characters on the front door, **60** in a chapter and **69** on a component page — every one
+inside 45–75, and every one reaching its container. So the cap comes off both children and the
+deck goes to `6`.
+
+`PageTitle` no longer carries `.kd-prose` at all, which also retires the `.kd-prose > h1` opt-out
+added an hour earlier: with the title out of the class there is no `h1` under it to exempt, and
+an opt-out for an element that cannot occur is the kind of rule that reads as a guard and is
+really just dead. What is left under `.kd-prose` is the running prose of a chapter, which is what
+its 40rem was measured for. The front door now reads title 752, deck 807, container 832 — one
+edge where there were three — and a chapter's BODY is the only narrow column left, which is what
+lets narrow mean something there.
+
+**Nine claims became five, because most of the nine were the category rather than the argument.**
+Kushagra, reading them: *"most are ordinary… 'you put a prop that you cant use and editor warns
+you' like bro, duh! Thats how it works no?… Same with no JS. What are the true claims that kookie
+ui brings into the world?"* Each objection lands on inspection. `Constraints` was TypeScript,
+which every typed package on npm gets. `Cost` was CSS state selectors, which any library not
+running JS at interaction gets. `Meaning` and `Centre` were a theme resolving semantic props,
+which is Radix Themes, HeroUI and MUI — **a theme is not a position, it is the ordinary way to
+build one of these**, and citing shadcn's lack of one does not make it novel. `Defaults` was
+"we have defaults".
+
+**The test now applied, and worth keeping:** could a competent library ship without this and
+still be called a design system? If yes it is a claim; if no it is the category, and printing
+the category on a front door leaves a reader unable to tell one from the other. The five that
+pass are the four he named plus one — Appearance (no `variant`, and the taxonomy that splits
+tabs from a segmented control), Responsiveness (a second complete set of measurements for touch
+rather than a breakpoint), Material (a displacement map refracting the pane's own backdrop, with
+the spring and the first-frame press folded in as the same argument about modelling something
+physical), Colour (ten families from two numbers each, inks solved to a contrast target rather
+than picked) and Correctness (the loss function, the cited floors, and taste labelled as taste).
+
+**What was cut is not untrue, it is unclaimed** — the type-level refusals, the runtime cost, one
+centre, the defaults and the pattern layer are each documented beside the code they govern. Two
+survive as EVIDENCE inside a card rather than as a headline, which is the right demotion: the
+refusals sit under Appearance as the consequence of the argument, and the motion clocks under
+Material. The pattern layer (THESIS §8) is the one cut worth arguing about, since that document
+calls it "the position"; it is left to the Navigation chapter and flagged rather than quietly
+dropped.
+
+**Motion was clubbed with Material, and the reason was the count.** *"Why is motion clubbed with
+material?"* Because five was a nicer number than six. The stated justification — that glass and
+movement are one argument about modelling something physical — is a category invented to hold a
+total, not a joint in the subject: glass is how a surface treats light passing through it, and
+motion is how a thing moves in time, and a reader can have either without the other. That is
+`THESIS` §3's own rule (carve at functional joints, and functional dissociation is the test),
+broken on the page that argues for it. Motion is its own card: two clocks, and a press whose
+colour lands on the first frame because a tap is about 60 milliseconds and an eased fill never
+arrives inside one. Six claims.
+
+**The register was corrected a second time, by rewrite.** Kushagra rewrote the Correctness body
+and the diff is again the lesson: he leads with the subject and the verb where I led with a
+subordinate condition ("Where a question has a measured answer…"), uses explicit connectives
+("However", "This means", "but") where I used bare juxtaposition, and writes "such as" where I
+used an em-dash aside. The habit is the same one that produced the cadence problem in the deck.
+Applied to all six bodies rather than the one he touched. **Two of his choices were held back
+against the corpus and he was told**: the shipped chapters contain ZERO contractions across all
+21 files, and "judgment" appears 21 times against no "judgement" — both measured before deciding,
+because a convention is only a convention if it is the same everywhere.
+
+**The cards then stated mechanisms where they owed principles, and the instruction that caused
+it was one I had written into the file two edits earlier.** Kushagra: *"what the fuck is 'A tap
+lasts about 60 milliseconds…' dude at this point, the reader doesnt care about component names
+or low level details, THIS SHOULD BE ABOUT THE PRINCIPLES."* The trimming rule written above the
+array had said the body owes "one concrete thing that pays for it — the 44 pixels, the
+displacement map, the 60 milliseconds". **Concrete was the wrong axis.** It is the right axis in
+a chapter, where a reader has asked how something works; on a front door it produces a
+millisecond count and a pair of component names in front of somebody who does not yet know what
+a segmented control is. The altitude of the SET had been fixed a message earlier and the altitude
+of the BODIES had not, which is the same fault one level down.
+
+Each card now names a value and says why it matters to a person, with no API in it: appearance is
+a consequence rather than an input, a phone is not a small desktop, a surface follows the physics
+people already know, motion never sits between you and an answer, colour is derived rather than
+decorated, and a judgment is never dressed as a finding. The test written into the file is
+whether a sentence could appear in a specification — if it could, it is not a principle. The
+mechanisms are not lost; they are what the chapters have room to earn.
+
+**The register law caught its author again, on the new copy, within the same commit** — "a press
+rides a damped spring" tripped the personification arm that was added an hour earlier. That is
+the third time this session a law written for a past mistake failed the person who wrote it, and
+the only reason it did not ship is that it runs.
+
+**What no law catches is the fault that started this.** Altitude is a shape, not a string.
+`AUTHORING.md` gains "The front door and the indexes" for it — write the promise not the API, name
+one concrete thing, never name a family on the front door, do not explain the documentation —
+with the test stated as a question: could somebody who has never heard of this library decide,
+from this sentence, whether they want it? The "what is checked" section now says altitude is
+uncheckable in the same breath as verdicts and riddles, so the widened law cannot be trusted past
+its reach.
+
+---
+
 ## 2026-08-26 A ground is lit like a dent, and the glass ring stays on the glass
 
 Kushagra, on a glass app: "I think we should have conic gradient hairline on components like

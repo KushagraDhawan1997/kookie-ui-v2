@@ -32,13 +32,11 @@ import {
   Box,
   Button,
   Flex,
-  Heading,
   Shell,
   ShellContent,
   ShellScroll,
   ShellSidebar,
   ShellTrigger,
-  Stack,
 } from "@kookie-ui/react";
 
 import { AppearanceToggle } from "../appearance-toggle";
@@ -46,6 +44,7 @@ import { PanelLeftIcon } from "../icons";
 import { CHAPTERS, SECTIONS } from "./chapters";
 import { DocsNav, type NavSection } from "./docs-nav";
 import { DocsSearch } from "./docs-search";
+import { Wordmark } from "./wordmark";
 import { buildSearchIndex } from "./search-index";
 import { ENTRIES } from "./components/registry";
 import "./prose.css";
@@ -54,10 +53,12 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
   const sections: NavSection[] = SECTIONS.map((section) => ({
     id: section.id,
     title: section.title,
-    links: CHAPTERS.filter((chapter) => chapter.section === section.id).map((chapter) => ({
-      href: `/${chapter.slug}`,
-      label: chapter.title,
-    })),
+    links: CHAPTERS.filter((chapter) => chapter.section === section.id).map(
+      (chapter) => ({
+        href: `/${chapter.slug}`,
+        label: chapter.title,
+      }),
+    ),
   })).filter((section) => section.links.length > 0);
 
   const components = ENTRIES.map((entry) => ({
@@ -72,15 +73,46 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
       <Shell>
         <ShellSidebar aria-label="Documentation" flush={false}>
           {/* The unofficial header — pinned above the scroller by position alone (§27's
-              pinned-stack rule; no part names exist and none are needed). */}
-          <Stack gap="3">
-            <Heading size="4" render={<span />}>
-              <Link href="/" style={{ color: "inherit", textDecoration: "none" }}>
-                KookieUI
-              </Link>
-            </Heading>
+              pinned-stack rule; no part names exist and none are needed).
+
+              THE LOGO IS ONE LETTER (Kushagra, 2026-08-28). It was the full word in a
+              condensed grotesque, then the full word in this blackletter, and the second of
+              those is what produced this one: a blackletter's capitals are its ornate half,
+              so "KookieUI" set here has two adjacent capitals at the end that read as one
+              shape, and the same word in full capitals cannot be read at all. A single
+              drawn capital is the form this kind of face has always been best at.
+
+              THE ACCESSIBLE NAME IS STILL THE WHOLE NAME. The letter is decoration doing a
+              logo's job, so the link states `aria-label` and a screen reader announces
+              "KookieUI" rather than the letter K. Without it the one route back to the home
+              page would announce itself as a single letter.
+
+              THE GLYPH ITSELF IS `<Wordmark>` (2026-08-29), because the front door now sets
+              the same mark above its title and the three facts that make it the mark — the
+              face, the regular weight, the collapsed line box — cannot be copied to a second
+              call site and stay one thing. Why each of them is what it is lives beside the
+              component. What stays HERE is the only fact that is about this placement rather
+              than the mark: the link. */}
+          {/* One row, not two (2026-08-28) — search moved in beside the mark once it became
+              an icon button rather than a full-width fake input, the same `Flex
+              justify="space-between"` shape the footer row below already uses.
+
+              `align="start"`, NOT `"center"` (2026-08-29): the wordmark's line box is a size-8
+              display glyph, far taller than an icon button, so centering the row centered the
+              button against the GLYPH's height — measurably lower than the collapse trigger
+              floating in the content pane, which sits flush at the pane's own top inset with
+              no tall sibling beside it. Top-aligning puts both buttons' top edges at the same
+              offset from their pane's own padding, which is what actually matches them. */}
+          <Flex align="start" justify="space-between">
+            <Link
+              href="/"
+              aria-label="KookieUI"
+              style={{ color: "inherit", textDecoration: "none" }}
+            >
+              <Wordmark />
+            </Link>
             <DocsSearch index={buildSearchIndex()} />
-          </Stack>
+          </Flex>
 
           {/* DocsNav renders its own ShellScroll as its root — wrapping it in another one
               here nested two scrollers: the inner took its content's height, never scrolled
@@ -93,7 +125,9 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
           <Flex align="center" justify="space-between" gap="2">
             <Button
               emphasis="quiet"
-              render={<a href="https://github.com/KushagraDhawan1997/kookie-ui-v2" />}
+              render={
+                <a href="https://github.com/KushagraDhawan1997/kookie-ui-v2" />
+              }
             >
               GitHub
             </Button>

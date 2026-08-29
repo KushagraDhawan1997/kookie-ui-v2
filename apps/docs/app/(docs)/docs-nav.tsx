@@ -33,11 +33,9 @@ import {
   IdeaIcon,
   InstallIcon,
   LayoutIcon,
-  MatrixIcon,
   MaterialIcon,
   MegaphoneIcon,
   MotionIcon,
-  PreviewIcon,
   RadiusIcon,
   RocketIcon,
   RulesIcon,
@@ -91,17 +89,23 @@ const leaf = ({ href, label }: NavLink): TreeNode => {
 /**
  * The instruments, in the navigation rather than only in the header.
  *
- * They are public on purpose (LOG 2026-08-21): a system whose claim is "the guidelines are
- * enforced" owes a reader somewhere to go and watch that happen, and the builder's live review
- * is the shortest demonstration there is.
+ * The BUILDER is public on purpose (LOG 2026-08-21): a system whose claim is "the guidelines
+ * are enforced" owes a reader somewhere to go and watch that happen, and the builder's live
+ * review is the shortest demonstration there is.
+ *
+ * `/preview` AND `/matrix` ARE NOT LINKED FROM HERE any more (Kushagra, 2026-08-29). Both
+ * routes still exist and both are still built and law-checked — the playground law walks the
+ * package's exports against what `/preview` renders, and neither is going anywhere. They are
+ * simply not for a reader: one is the judging surface for a visual change and the other is a
+ * cell inspector for one exact axis combination, and a docs navigation that lists them is
+ * offering a stranger two rooms with nothing in them for a stranger. Someone who wants them
+ * types the path.
  *
  * A plain array rather than a prop, because unlike the chapters and the components these are
- * not derived from anything — there are four of them and they are named here.
+ * not derived from anything — there are two of them and they are named here.
  */
 const WORKBENCH: (NavLink & { icon: React.ComponentType })[] = [
   { href: "/builder", label: "Builder", icon: BoardIcon },
-  { href: "/preview", label: "Preview", icon: PreviewIcon },
-  { href: "/matrix", label: "Matrix", icon: MatrixIcon },
   // Blocks sits here for now rather than earning a section of its own: with one block the
   // index IS the section, and where the entry lives can be re-judged when there are several.
   { href: "/blocks", label: "Blocks", icon: BlocksIcon },

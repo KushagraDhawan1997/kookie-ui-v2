@@ -29,11 +29,13 @@ import {
   DialogDescription,
   DialogTitle,
   Flex,
-  Kbd,
   Stack,
   Row,
   Text,
   TextField,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "@kookie-ui/react";
 
 import { SearchIcon } from "../icons";
@@ -79,20 +81,27 @@ export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
 
   return (
     <>
-      <Button
-        emphasis="quiet"
-        bordered
-        leading={<SearchIcon />}
-        onClick={() => setOpen(true)}
-        aria-label="Search the documentation"
-      >
-        <Flex align="center" gap="3">
-          <Text size="2" emphasis="quiet">
-            Search
-          </Text>
-          <Kbd>⌘K</Kbd>
-        </Flex>
-      </Button>
+      {/* An icon button, not a fake input (2026-08-28, Kushagra: "this isn't a real search,
+          might as well use an icon button"). The full-width bar dressed a BUTTON as a text
+          field — a promise this component never keeps, since typing never happens here, only
+          in the Dialog it opens — and it cost a whole row beside the wordmark for one glyph's
+          worth of actual affordance. `⌘K` moves into the tooltip, the one place a shortcut
+          hint belongs on a control that already states its name. */}
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button
+              emphasis="quiet"
+              iconOnly
+              onClick={() => setOpen(true)}
+              aria-label="Search the documentation"
+            >
+              <SearchIcon />
+            </Button>
+          }
+        />
+        <TooltipContent>Search (⌘K)</TooltipContent>
+      </Tooltip>
 
       <Dialog size="3" open={open} onOpenChange={setOpen}>
         <DialogContent>
