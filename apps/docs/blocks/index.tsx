@@ -20,7 +20,8 @@
 import * as React from "react";
 
 import { CodeSample } from "./code-sample";
-import { Stack } from "@kookie-ui/react";
+import { Specimen } from "./specimen";
+import { Button, Grid, Stack } from "@kookie-ui/react";
 
 export type BlockEntry = {
   /** The URL segment, and the block's name in every law message. Kebab-case. */
@@ -52,7 +53,46 @@ export function Submit() {
 }
 `;
 
+/** The specimen block's own demo source — the code shown IS the code rendered beside it, which
+    is the figure's whole claim. Written out rather than read off disk: a block may not reach
+    for the filesystem, which is the line that kept this pairing out of the registry until now. */
+const SPECIMEN = `import { Button, Grid } from "@kookie-ui/react";
+
+export default function Example() {
+  return (
+    <Grid columns="repeat(3, minmax(0, 1fr))" gap="3">
+      <Button size="1">A</Button>
+      <Button size="1">B</Button>
+      <Button size="1">C</Button>
+    </Grid>
+  );
+}
+`;
+
 export const BLOCKS: readonly BlockEntry[] = [
+  {
+    slug: "specimen",
+    title: "Specimen",
+    blurb:
+      "A live component and its source, as one figure. The ground holds the running thing on paper and its code beneath, so the pair reads as a thing and its source rather than as two boxes that drifted together — the arrangement is the system's own sentence about grounds and objects, and the surface bands make the ground out-round the paper without a number being picked. The code half is the code-sample block whole, so annotations, the copy button, line numbers and the line bound all arrive with it. A specimen that is already a pane says so, because wrapping a card in paper is the fault this figure exists on the right side of.",
+    files: ["specimen.tsx"],
+    // Awaited rather than rendered as an element, for the reason the entry below documents:
+    // `Specimen` is an async server component, and a suspending element cannot be handed to
+    // the laws' synchronous renderer.
+    demo: async () =>
+      Specimen({
+        code: SPECIMEN,
+        lang: "tsx",
+        title: "examples/grid.tsx",
+        children: (
+          <Grid columns="repeat(3, minmax(0, 1fr))" gap="3">
+            <Button size="1">A</Button>
+            <Button size="1">B</Button>
+            <Button size="1">C</Button>
+          </Grid>
+        ),
+      }),
+  },
   {
     slug: "code-sample",
     title: "Code sample",

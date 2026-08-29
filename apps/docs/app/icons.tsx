@@ -33,8 +33,9 @@ import {
   CompassIcon as HugeCompassIcon,
   Cursor01Icon,
   Download01Icon,
+  File01Icon,
+  DraftingCompassIcon,
   IdeaIcon as HugeIdeaIcon,
-  JusticeScale01Icon,
   Layers01Icon,
   Layout01Icon,
   Megaphone01Icon,
@@ -120,6 +121,9 @@ export const LayersIcon = glyph(LayerIcon);
 export const PanelLeftIcon = glyph(SidebarLeftIcon);
 export const PanelRightIcon = glyph(SidebarRightIcon);
 export const CopyIcon = glyph(Copy01Icon);
+/* The code sample's NAME button (2026-08-28). It copies a path, so its glyph names the object
+   rather than the verb — the copy mark is the code button's, one pane-width away. */
+export const FileIcon = glyph(File01Icon);
 export const TrashIcon = glyph(Delete02Icon);
 /* The composer's four (2026-08-23). The send button is one control with four meanings, so the
    three it can turn into are named for the meaning rather than the drawing: a filled square is
@@ -149,7 +153,15 @@ export const ThemeIcon = glyph(SwatchIcon);
 export const RocketIcon = glyph(Rocket01Icon);
 export const IdeaIcon = glyph(HugeIdeaIcon);
 export const FamiliesIcon = glyph(ShapesIcon);
-export const RulesIcon = glyph(JusticeScale01Icon);
+/* Not the scales of justice, which is what this was until 2026-08-28 (Kushagra). Those read
+   as law and as a balance between two sides, and the chapter argues the opposite: some rules
+   are types you cannot write incorrectly, some are checked automatically, and the rest are
+   judgments — evidence, not arbitration. A microscope was tried and failed the small size:
+   this glyph appears in the nav on every page at 16px, where its detail collapsed into a
+   smudge. The drafting compass is the instrument of exact construction, and its silhouette is
+   two legs and a point, which survives 16px and does not join the four circular glyphs already
+   in that column. */
+export const RulesIcon = glyph(DraftingCompassIcon);
 export const ColorIcon = glyph(ColorsIcon);
 export const TypeIcon = glyph(TextFontIcon);
 export const LayoutIcon = glyph(Layout01Icon);

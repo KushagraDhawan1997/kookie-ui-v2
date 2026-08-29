@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { Card, Stack } from "@kookie-ui/react";
+import { Card } from "@kookie-ui/react";
 
-import { CodeSample } from "../../blocks/code-sample";
+import { Specimen } from "../../blocks/specimen";
 import { EXAMPLES } from "../../examples";
 
 /**
@@ -62,32 +62,38 @@ export function Example({ name, quiet }: ExampleProps) {
   }
   const specimen = <Component />;
   const source = readExampleSource(name);
-  // ONE FIGURE, and the gaps are what say so (2026-08-25). The specimen and its source used
-  // to sit 8px apart with the source's own label 4px above the well — one step between the
-  // two halves and one step inside the second half, so the label belonged to neither and the
-  // pair read as two boxes that had drifted into each other rather than as a thing and its
-  // code. §15 asks group and sibling distances to differ by two steps at minimum; `code-sample`
-  // binds its label to its well at 4px, and the 16px here is what separates the specimen from
-  // that pair. The figure's air from the prose around it is the chapter renderer's, and it is
-  // now 32px a side, which is what lets a tighter inside read as one unit.
-  return (
-    <Stack gap="5">
-      {/* The specimen sits on a CARD — paper above the page, which is where most components
-          actually live. A Surface would be the other reading (a ground holding objects) and
-          is wrong here for one reason: the code block below is already a well, and two wells
-          stacked read as one region rather than as a thing and its source.
 
-          UNLESS THE EXAMPLE BRINGS ITS OWN PANE (2026-08-21). Four examples root a Card and
-          one roots a Surface, because the component they document IS the pane — and the frame
-          wrapped them anyway, which is how this site shipped card-inside-card on four
-          component pages for weeks. Nothing static could see it: the frame is one file, the
-          example is another, and the nesting only exists in the rendered tree. Derived from
-          the source the component already reads rather than a flag beside it, so there is no
-          second place for the answer to go stale. */}
-      {rootsOwnPane(source) ? specimen : <Card size="4">{specimen}</Card>}
-      {quiet ? null : (
-        <CodeSample code={source} lang="tsx" title={`examples/${name}.tsx`} />
-      )}
-    </Stack>
+  /* ONE FIGURE, AND NOW ONE SURFACE (2026-08-29, Kushagra: "the preview and the code should
+     belong to same surface, inside one surface").
+
+     This was a Stack of two siblings — paper, a gap, then the code well — with a comment here
+     arguing that the gap was what made them one figure. It was not: two boxes a step apart are
+     two boxes, and a comment doing the eye's job is the tell. `Specimen` is the pairing as a
+     block, so the shape is stated once and a consumer can copy it; what stays here is the only
+     thing a copied file could not carry, which is the filesystem read.
+
+     `quiet` still means "the source is already on this page", and with the code inside the
+     figure there is no figure left to draw — so the specimen falls back to plain paper rather
+     than an empty ground. */
+  if (quiet) {
+    return rootsOwnPane(source) ? specimen : <Card size="4">{specimen}</Card>;
+  }
+
+  /* UNLESS THE EXAMPLE BRINGS ITS OWN PANE (2026-08-21). Four examples root a Card and one a
+     Surface, because the component they document IS the pane — and the frame wrapped them
+     anyway, which is how this site shipped card-inside-card on four component pages for weeks.
+     Nothing static could see it: the frame is one file, the example is another, and the
+     nesting only exists in the rendered tree. Derived from the source the component already
+     reads rather than a flag beside it, so there is no second place for the answer to go
+     stale. The block takes the ANSWER and never the source, which is what keeps it copyable. */
+  return (
+    <Specimen
+      code={source}
+      lang="tsx"
+      title={`examples/${name}.tsx`}
+      pane={!rootsOwnPane(source)}
+    >
+      {specimen}
+    </Specimen>
   );
 }

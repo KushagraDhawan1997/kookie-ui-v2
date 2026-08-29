@@ -14,20 +14,38 @@
 
    The assignments themselves are taste, like every other pigment decision in this system,
    and they are judged here. What is NOT taste is the shape: a token colour is a family's ink, and
-   a family means what §7 says it means. Strings are green because a string is data; a keyword
-   is the brand because the language's own vocabulary is the one constant in every sample;
-   inserted/deleted/changed are the three status families, so a diff in the docs reads with the
-   same three colours a status callout would. */
+   a family means what §7 says it means. A keyword is the brand, because the language's own
+   vocabulary is the one constant in every sample. A string is green because a string is DATA.
+   Inserted/deleted/changed are the three status families, so a diff in the docs reads with the
+   same three colours a status callout would.
+
+   TWO HUES, NOT FOUR (2026-08-29, Kushagra: "I dont like the shiki theme were using"). It had
+   spent five colours — accent, blue, green, orange and the grey ladder — on a site whose whole
+   argument is that colour is derived rather than decorated. Identifiers take the FOREGROUND now:
+   a component name and a prop name are the subject of a KookieUI sample, and the subject reads
+   at full strength rather than in a hue picked to tell it from its neighbour. What is left
+   coloured is the language's vocabulary and the values, which is the one distinction a reader
+   of these samples actually makes.
+
+   IT WAS ALSO BROKEN, and by me, that morning. `--accent-ink` and `--blue-ink` are now
+   byte-identical — accent went back to blue's own recipe on 2026-08-29 — so `keyword` and
+   `function` painted one colour while the comment above claimed they were two decisions; the
+   same collapse hit `--success-ink` against `--green-ink`, which share green's hue by design.
+   Four assignments resolving to two colours is what a five-family palette buys you the day the
+   brand moves onto one of them. The palette below cannot repeat it: it spends `accent` once and
+   `green` once, and every other token is the grey ladder. The diff trio keeps the status
+   families, where `success ≡ green` is survivable because the line wash and the gutter marker
+   carry a diff, not the token colour. */
 .kd-code {
   --kd-code-foreground: var(--color-text);
   --kd-code-background: transparent;
 
-  --kd-code-token-comment: var(--color-text-faint);
+  --kd-code-token-comment: var(--color-text-muted);
   --kd-code-token-keyword: var(--accent-ink);
   --kd-code-token-string: var(--green-ink);
   --kd-code-token-string-expression: var(--green-ink);
-  --kd-code-token-function: var(--blue-ink);
-  --kd-code-token-constant: var(--orange-ink);
+  --kd-code-token-function: var(--color-text);
+  --kd-code-token-constant: var(--color-text);
   --kd-code-token-parameter: var(--color-text);
   --kd-code-token-punctuation: var(--color-text-muted);
   --kd-code-token-link: var(--accent-ink);
@@ -42,6 +60,18 @@
    that safe. */
 .kd-code {
   white-space: pre;
+}
+
+/* The inner <code> has to be TOLD to inherit, and the reason is the UA stylesheet (2026-08-29,
+   Kushagra: the fence "reads as menlo still"). The family is stated on the `<pre>`, which is the
+   type element; the `<code>` nested inside it carries the UA's own `font-family: monospace`, and
+   an author declaration on an ancestor does not beat a UA declaration on the element itself. So
+   every glyph in every fence was painting in whatever the reader's machine calls monospace while
+   the pre above it held the chosen face — invisible until 2026-08-29, because until that morning
+   `--font-mono` WAS the system stack and both answers were the same pixels. Menlo in the Rendered
+   Fonts panel is what showed it. */
+.kd-code code {
+  font-family: inherit;
 }
 
 /* ── The scroller's focus ring follows the pane's corner ───────────────────────────────────
@@ -157,4 +187,34 @@
   margin-inline-end: 1.5ch;
   text-align: end;
   color: var(--color-text-faint);
+}
+
+/* The floating chrome needs the pane as its containing block (2026-08-28). Stated here
+   rather than inline, because it is a fact about the WELL — its geometry lives in this file
+   with the rest of it. */
+.kd-code-well {
+  position: relative;
+}
+
+/* The scroller fills the pane on BOTH block edges (2026-08-28, Kushagra: "its still not full
+   height of the card").
+
+   surfaces.css bleeds a pane's scroller with `:first-child` / `:last-child`, which is right
+   for a pane whose siblings are in flow — a scroller under a heading must not bleed past it.
+   Our chrome row IS a sibling in the DOM and is NOT one in the layout: it is absolutely
+   positioned, so nothing above the scroller occupies space. The selectors cannot see that,
+   because CSS has no "first in-flow child", so the scroller matched `:last-child` alone and
+   the pane's top inset stayed outside it — measured, the scroll area sat 25px below the
+   card's top edge and content could never scroll into that band. Which is the whole point of
+   floating the row: the code has to pass all the way under it.
+
+   The re-pad goes back on the viewport in step, so the resting inset is unchanged and only
+   the SCROLLABLE region grew. A PACKAGE GAP wearing a local fix, like the corner rule above:
+   any pane with out-of-flow chrome over a scroller has this, and the surface layer's own
+   rule should learn to ignore an absolutely positioned sibling — promote at integration. */
+.kd-code-well > .kui-scroll-area {
+  margin-block: calc(-1 * var(--kui-sf-p));
+}
+.kd-code-well > .kui-scroll-area > .kui-scroll-viewport {
+  padding-block: var(--kui-sf-p);
 }

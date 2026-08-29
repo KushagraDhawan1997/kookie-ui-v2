@@ -37,8 +37,9 @@
  * only when the bound binds, the expand control.
  */
 import * as React from "react";
-import { Box, Code, Flex, Stack, Text, type Size } from "@kookie-ui/react";
+import { Badge, Flex, type Size } from "@kookie-ui/react";
 
+import { FileIcon } from "../app/icons";
 import { CodeBlock } from "./code-block";
 import { CopyButton } from "./copy-button";
 import { Expandable } from "./expandable";
@@ -161,52 +162,91 @@ export async function CodeSample({
   // floating control over content takes `backdrop`. It hangs from a positioned wrapper
   // OUTSIDE the pane (inside, it broke the scroller's bleed — see the element), offset by
   // the same inset token the pane pads with, so it rests exactly one inset off the corner.
+  /* The NAME FLOATS OVER THE PANE (2026-08-28, Kushagra: "I dont like how the filename
+     appears… so that it can stay floating above content behind"). It sat outside until now, a
+     sibling row indented to the code — his own 2026-08-26 call, reversed here. What it is now
+     is the mirror of the copy button: same corner, same inset, opposite side, same material.
+
+     A PATH IS COPIABLE AND A LANGUAGE IS NOT, so the two are not one component. `examples/
+     dialog.tsx` is a thing you want in your clipboard — it is how you find the file — so it is
+     the same `CopyButton` the code uses, with the path as both its label and its payload. A
+     language name is a caption: there is nothing to copy and nothing to press, so it stays an
+     inert `Badge`. They look different because they DO different things, which is this
+     system's own rule rather than an inconsistency to tidy away.
+
+     The badge keeps `backdrop` and the button takes it by construction, so both resolve the
+     theme's material — and since 2026-08-28 the atom family paints the same ring and rim the
+     button does, which is what makes the two read as one kind of chrome. */
+  const name = title ? (
+    <CopyButton code={title} label={title} size={size} icon={<FileIcon />} />
+  ) : (
+    <Badge size={size} backdrop>
+      {LANG_LABEL[lang]}
+    </Badge>
+  );
+
+  /* ONE ROW, FLOATING OVER THE CODE (2026-08-28, Kushagra: "the content doesnt float behind
+     buttons now? It needs to float, else whats the point of glass").
+     
+     It was moved into FLOW for an hour and that was the wrong repair. The row overlapped the
+     first line, I read the overlap as the defect and deleted the float — but a translucent
+     control exists to be legible with content passing behind it, so a glass row with nothing
+     behind it is decoration wearing a material's name. What was actually wrong was that the
+     first line had nowhere to rest, and the answer to that is an inset, not flow: this is the
+     platform pattern, where a scroll view holds a top contentInset and its content passes
+     under a translucent toolbar. The band is a safe area, not an apology.
+
+     IT SPANS THE PANE AND PADS ITSELF (his call, kept from the in-flow cut). The pane's inset
+     is a READING measure — the distance a line of code needs from a wall — and chrome is not
+     reading matter, so `inset-inline: 0` reaches both walls and `p` puts a smaller number
+     back. The buttons sit closer to the edge than the code does, which is what says they
+     belong to the pane rather than to the text.
+
+     `z-index` is deliberately absent, and the row is rendered AFTER the scroller instead —
+     see code-block.tsx. An earlier note here claimed paint order handled it because the row
+     is positioned and the code is not; that was wrong, since `.kui-scroll-area` is positioned
+     too, so the two settled it on DOM order and the code won. Order is the whole fix: a
+     z-index would be the number ladder §20 exists to avoid. */
+  const topbar = (
+    <Flex
+      align="center"
+      justify="space-between"
+      gap="3"
+      p="4"
+      style={{ position: "absolute", insetBlockStart: 0, insetInline: 0 }}
+    >
+      {name}
+      <CopyButton code={copyText} size={size} />
+    </Flex>
+  );
+
   const well = (
-    <Box style={{ position: "relative" }}>
+    <>
       {bounded ? (
-        <Expandable size={size} maxLines={maxLines} lineCount={lines.length} className={className}>
+        <Expandable
+          size={size}
+          maxLines={maxLines}
+          lineCount={lines.length}
+          topbar={bare ? undefined : topbar}
+          className={className}
+        >
           {content}
         </Expandable>
       ) : (
-        <CodeBlock size={size} {...(className ? { className } : {})}>
+        <CodeBlock
+          size={size}
+          {...(bare ? {} : { topbar })}
+          {...(className ? { className } : {})}
+        >
           {content}
         </CodeBlock>
       )}
-      <Flex
-        style={{
-          position: "absolute",
-          insetBlockStart: `var(--surface-p-${size})`,
-          insetInlineEnd: `var(--surface-p-${size})`,
-        }}
-      >
-        <CopyButton code={copyText} size={size} />
-      </Flex>
-    </Box>
+    </>
   );
 
-  if (bare) return well;
-  return (
-    <Stack gap="3">
-      {/* The NAME stays outside (Kushagra: "file name is ok outside"), indented to the code:
-          the row states the pane's own inset token, so the label's first character sits over
-          the code's first column at every size and density. */}
-      <Flex align="center" style={{ paddingInline: `var(--surface-p-${size})` }}>
-        {/* A title is a file path — code vocabulary, so it wears the inline code atom; a
-            language label is a word and stays prose. Content decides the dress. LOUD
-            (Kushagra, 2026-08-26, after a day at quiet and an hour at medium): the label
-            names the figure — it is this pane's title, not a group caption — and §15 rests
-            reading text loud. Size and the atom's dress do the ranking; the ink does not. */}
-        {title ? (
-          <Code size={size} emphasis="loud">
-            {title}
-          </Code>
-        ) : (
-          <Text size={size} emphasis="loud">
-            {LANG_LABEL[lang]}
-          </Text>
-        )}
-      </Flex>
-      {well}
-    </Stack>
-  );
+  /* One element now. The figure used to be a Stack of a header row and the pane, which is
+     what the wrapping Stack existed for; with the name inside the pane there is nothing left
+     to stack, and `bare` stops being a different SHAPE — it is the same well with the label
+     suppressed. */
+  return well;
 }

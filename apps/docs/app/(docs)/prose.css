@@ -40,6 +40,13 @@
   max-inline-size: none;
 }
 
+/* There is deliberately no opt-out here for a page title, because a page title is no longer
+   inside this class at all: `PageTitle` used to wrap both of its children in `.kd-prose` and
+   now wraps neither, for the reason written above it in `page-frame.tsx`. A measure is
+   characters, `--kd-measure` is a pixel number taken at body size, and the title and the deck
+   are not at body size. What is left under this class is what the class was measured for —
+   the running prose of a chapter. */
+
 /* ── Lists ─────────────────────────────────────────────────────────────────────────────────
    Type and ink arrive from `<Text render={<ul/>}>` and inherit; what is left is the indent
    and the marker. `li + li` rather than a gap, because a flex list stops generating markers
@@ -127,11 +134,15 @@
 }
 
 /* ── The component index ───────────────────────────────────────────────────────────────────
-   An entry is a link with two lines, and it is deliberately NOT a Card: a grid already groups
-   these, and boxing what alignment has grouped is the closure rule's own failure case (§15).
-   What a box WAS buying is a hover affordance, so the underline buys it back for the price of
-   two declarations — the same trade `.kd-toc-link` below makes, and the same one the system
-   will delete the day a list row wants a second line.
+   An entry is a link with two lines, on a `<Surface>` ground rather than in open space
+   (2026-08-25's closure argument was about a lone card in open space; a SET of them on a
+   ground is the case §10's own "a ground holds cards" example makes). 2026-08-29 tried three
+   divider spellings in between — a hand-rolled bordered frame, a hairline-gap grid, a
+   border-per-transparent-cell grid — and landed back on a plain `<Card>`: the ground plus
+   Card's own seal and edge is already the identity this needed, and every divider experiment
+   was building a second one beside it. What a Card WAS buying is a hover affordance, so the
+   underline buys it back for the price of two declarations — the same trade `.kd-toc-link`
+   below makes.
 
    The clamp is a floor under a fact the page cannot control: a blurb's opening sentence is
    usually short and occasionally is not, and one long entry must not set the row height for
@@ -190,3 +201,34 @@
 /* The code theme (`.kd-code`) lives in `blocks/code.css`, beside the highlighter it is the
    other half of — moved 2026-08-26 when the code element became a block, so the theme arrives
    wherever the element renders rather than only where the docs chrome is imported. */
+
+/* The wordmark's face (2026-08-28). The variable is published on `<html>` by the root layout
+   and consumed here and nowhere else, which is the whole containment story: nothing inherits
+   a display face, and the one rule that applies it is the one place to look.
+
+   The fallback in the chain is load-bearing rather than defensive. The font file is gitignored
+   under the licence rule until somebody force-adds it, so a fresh checkout resolves the second
+   entry and gets a correctly-set wordmark in the body face — the same fallback Next generates
+   metrics against, so the box does not move either.
+
+   ONE LETTER, so the case rules that governed a word are gone rather than adjusted. There is
+   no `text-transform` (the K is a capital because it is typed as one) and no
+   `letter-spacing` (nothing to space against). The WEIGHT is not here either, but for the
+   opposite reason: it is a real fact about the mark, so it is said with the component's own
+   `weight` prop where a reader of the markup will see it, rather than hidden in a stylesheet
+   override. See the note beside it for what leaving it unsaid cost.
+
+   `line-height: 1` is the one thing a single glyph needs that a word did not. The type step's
+   line box is built for a run of text with room for descenders on both sides, and a lone
+   capital sits in the middle of it with visible air above and below that belongs to letters
+   that are not there — measured 48px of box around a 40px letter. Collapsing the box to the
+   glyph is what lets the mark sit at the pane's own padding instead of a dozen pixels inside
+   it. `display: block` because a line box cannot be collapsed on an inline element. */
+.kd-wordmark {
+  font-family: var(--kd-font-wordmark), var(--font-body);
+}
+
+.kui-type.kd-wordmark[data-size] {
+  display: block;
+  line-height: 1;
+}

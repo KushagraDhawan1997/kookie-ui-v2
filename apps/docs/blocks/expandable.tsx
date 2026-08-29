@@ -31,12 +31,15 @@ export function Expandable({
   maxLines,
   lineCount,
   className,
+  topbar,
   children,
 }: {
   size: Size;
   maxLines: number;
   lineCount: number;
   className?: string | undefined;
+  /** Passed straight through — the chrome belongs to the well, and this only bounds it. */
+  topbar?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const [expanded, setExpanded] = React.useState(false);
@@ -45,6 +48,7 @@ export function Expandable({
       <CodeBlock
         size={size}
         {...(expanded ? {} : { maxLines })}
+        {...(topbar ? { topbar } : {})}
         {...(className ? { className } : {})}
       >
         {children}
