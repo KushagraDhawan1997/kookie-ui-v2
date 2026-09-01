@@ -7,7 +7,7 @@ import * as React from "react";
 import type { Size } from "../../system/axes.ts";
 import { useControlSize } from "../../system/control-size.ts";
 import { useAmbientDirection } from "../../system/floating.tsx";
-import { mergeRefs } from "../../system/render.ts";
+import { useMergedRefs } from "../../system/render.ts";
 
 export type SliderProps = Omit<
   React.ComponentPropsWithoutRef<typeof BaseSlider.Root>,
@@ -95,9 +95,8 @@ export function Slider({
    * too. `DirectionProvider` renders no DOM, so the wrapper costs nothing in the tree.
    */
   const dir = useAmbientDirection();
-  // Memoised because `mergeRefs` returns a fresh closure and an unstable ref callback detaches
-  // and re-attaches every render (shell.tsx carries the same note). `dir.measure` is stable.
-  const rootRef = React.useMemo(() => mergeRefs(ref, dir.measure), [ref, dir.measure]);
+  // Memoised by the hook (system/render.ts states why). `dir.measure` is stable.
+  const rootRef = useMergedRefs(ref, dir.measure);
   /**
    * `aria-invalid` reaches the node AT calls the slider (added 2026-08-26, audit R5).
    *

@@ -23,7 +23,7 @@ import {
   SIDE_OFFSET,
   useAmbientDirection,
 } from "../../system/floating.tsx";
-import { mergeRefs } from "../../system/render.ts";
+import { useMergedRefs } from "../../system/render.ts";
 import type { Size, SlotName } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
@@ -196,6 +196,7 @@ export function SelectTrigger({
   // its TextField sibling wears, lens included; on-glass never filters, never bends.
   const lensRef = useLensRef<HTMLElement>(material, undefined);
   const cls = "kui-control kui-field kui-select-trigger";
+  const setTrigger = useMergedRefs(ref, measure, lensRef);
   return (
     <BaseSelect.Trigger
       className={className ? `${cls} ${className}` : cls}
@@ -205,7 +206,7 @@ export function SelectTrigger({
       // spelling).
       data-material={material === "solid" ? undefined : material}
       {...props}
-      ref={mergeRefs(ref, measure, lensRef)}
+      ref={setTrigger}
     >
       <BaseSelect.Value
         className="kui-select-value"

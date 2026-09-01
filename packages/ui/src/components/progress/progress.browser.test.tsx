@@ -282,6 +282,76 @@ describe("indeterminate is content, not a state change (§8's line, held)", () =
     expect(computed(fill, "animation-iteration-count")).toBe("infinite");
   });
 
+  it("the sweep moves the segment WITHOUT moving its box (2026-08-31 performance pass)", () => {
+    /**
+     * WHICH PROPERTY a keyframe animates was asserted by nothing. The two laws above read
+     * `animation-name`, `animation-duration`, `animation-play-state` and
+     * `animation-iteration-count` — every channel except the one that decides whether the
+     * browser does compositor work or LAYOUT work — and the shipped spelling animated
+     * `inset-inline-start`, measured at 120.3 layouts and 120.3 style recalculations per
+     * second against 0.47 ms/s for the identical keyframe on `translate`. A bar whose sweep
+     * drives layout freezes when the main thread blocks, which is the one thing a busy
+     * indicator may not do (the Spinner's 2026-08-06 finding, one instrument over).
+     *
+     * IT SEEKS THE ANIMATION RATHER THAN WATCHING FRAMES, so it is not a wall-clock law and
+     * stays in CI: `pause()` then a written `currentTime` is deterministic on a starved
+     * machine, where sampling two rAF callbacks is exactly the shape the 2026-08-20 frame
+     * exclusions were written for.
+     *
+     * The assertion is a PAIR and both halves are load-bearing: the painted position must
+     * travel, and the box must not. Either alone passes on the defect — the old spelling
+     * travelled too, and a bar with no animation at all keeps a still box.
+     */
+    inMotion();
+    const { fill } = parts(<Progress value={null} />);
+    const [sweep] = fill.getAnimations();
+    expect(sweep, "the segment is not animating — this law would measure nothing").toBeDefined();
+    sweep!.pause();
+
+    const at = (ms: number) => {
+      sweep!.currentTime = ms;
+      return { x: fill.getBoundingClientRect().x, left: computed(fill, "left") };
+    };
+    const start = at(0);
+    const mid = at(800);
+    const end = at(1599);
+
+    // THE PAINT TRAVELS, left to right, across the whole run.
+    expect(mid.x, "the segment did not move between 0ms and 800ms").toBeGreaterThan(start.x);
+    expect(end.x, "the segment did not move between 800ms and the end").toBeGreaterThan(mid.x);
+
+    // AND THE BOX DOES NOT. This is the half that fails on the pre-fix stylesheet: an animated
+    // `inset-inline-start` moves the used value of `left`, which is a layout property, so the
+    // browser re-lays-out the subtree on every frame of every one of these bars.
+    expect(start.left, "the sweep moves a LAYOUT property — it must be a transform").toBe(mid.left);
+    expect(mid.left).toBe(end.left);
+    expect(parseFloat(start.left)).toBe(0);
+  });
+
+  it("the sweep runs the other way in RTL — `translate` is physical where an inset was not", () => {
+    /**
+     * The old spelling got direction FREE (`inset-inline-start` flips itself) and the new one
+     * must state it. Without the `:dir(rtl)` arm an Arabic page's bar sweeps out of the side
+     * it should sweep into — a silent visual defect that no colour, geometry or timing law in
+     * this file can see, which is why it is asserted here rather than assumed.
+     */
+    inMotion();
+    const { fill } = parts(
+      <div dir="rtl">
+        <Progress value={null} />
+      </div> as never,
+    );
+    const [sweep] = fill.getAnimations();
+    sweep!.pause();
+    sweep!.currentTime = 0;
+    const start = fill.getBoundingClientRect().x;
+    sweep!.currentTime = 800;
+    expect(
+      fill.getBoundingClientRect().x,
+      "an RTL bar sweeps left-to-right — the :dir(rtl) arm is not reaching it",
+    ).toBeLessThan(start);
+  });
+
   it("the root still reports indeterminate to AT — no aria-valuenow to read", () => {
     const { root } = parts(<Progress value={null} aria-label="Loading" />);
     expect(root.getAttribute("role")).toBe("progressbar");

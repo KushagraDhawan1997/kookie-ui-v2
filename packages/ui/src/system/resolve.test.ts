@@ -206,25 +206,62 @@ describe("no row emits a shorthand into a space another row also feeds (§2, req
 });
 
 describe("the runtime touches no ambient global (§13, audit 2026-08-08)", () => {
-  it("no shipped source reads `process` except through the guarded DEV constant", () => {
-    // The defect this pins: `process.env.NODE_ENV` on Box's RENDER path was the package's
-    // only reference to `process`, and it survived tsdown into dist — so a browser-native
-    // ESM consumer (no bundler to define it) threw `ReferenceError: process is not defined`
-    // on every Box, Flex, Grid and Stack. A bare read is now illegal; the one legal form
-    // carries its own `typeof` guard, which is what makes it safe where `process` is absent.
+  it("`process` is read in exactly ONE file, and that file is the DEV constant's home", () => {
+    /**
+     * The original defect: `process.env.NODE_ENV` on Box's RENDER path was the package's only
+     * reference to `process`, and it survived tsdown into dist — so a browser-native ESM
+     * consumer (no bundler to define it) threw `ReferenceError: process is not defined` on
+     * every Box, Flex, Grid and Stack.
+     *
+     * THE FIRST SPELLING OF THIS LAW PINNED A DEFECT (2026-08-31 performance pass). It accepted
+     * any read within 200 characters of a `typeof process` guard — and that guard is precisely
+     * what stops a bundler folding the expression: `typeof process === "undefined" || <folded
+     * false>` is TRUE at runtime wherever the global is absent, which is Vite, Rollup, Parcel
+     * and bare ESM. So the form the law called safe was the one shipping a ResizeObserver per
+     * Card, Surface and Dialog into production, and the law agreed with the code because both
+     * were written from the same premise. It asserts CONTAINMENT now: one home, so the spelling
+     * has one place to be wrong and one place to be fixed.
+     */
     const offenders: string[] = [];
     for (const file of walkFiles(".", ".ts").concat(walkFiles(".", ".tsx"))) {
-      if (file.includes(".test.")) continue;
-      const code = raw(file).replace(/\/\*[\s\S]*?\*\//g, " ").replace(/\/\/[^\n]*/g, " ");
-      for (const match of code.matchAll(/process\s*\.\s*env/g)) {
-        const line = code.slice(0, match.index).split("\n").length;
-        const guarded = /typeof\s+process\s*[!=]==\s*["']undefined["']/.test(
-          code.slice(Math.max(0, match.index! - 200), match.index!),
-        );
-        if (!guarded) offenders.push(`${file}:${line}`);
+      if (file.includes(".test.") || file === "system/dev.ts") continue;
+      const code = raw(file)
+        .replace(/\/\*[\s\S]*?\*\//g, " ")
+        .replace(/\/\/[^\n]*/g, " ");
+      for (const match of code.matchAll(/process\s*\.\s*env|typeof\s+process/g)) {
+        offenders.push(`${file}:${code.slice(0, match.index).split("\n").length}`);
       }
     }
-    expect(offenders, "an unguarded `process.env` read reaches the browser").toEqual([]);
+    expect(offenders, "`process` is read outside system/dev.ts").toEqual([]);
+
+    /**
+     * AND THE HOME MUST STILL ANSWER ALL THREE ENVIRONMENTS. A containment law alone is
+     * satisfied by any expression in that one file, the folded-wrong one included — so the
+     * shape is asserted too. The read sits inside a `try`, which is what lets a bundler's
+     * substituted literal decide without ever consulting the global, and the `catch` is what
+     * makes a realm with no `process` land on DEVELOPMENT rather than throwing (Box's own
+     * 2026-08-08 scar: the browser suite is that realm, and a DEV that answers false there
+     * makes every dev-warning law in the package silently measure nothing).
+     */
+    // Comments STRIPPED: the home explains at length why a `typeof process` guard is wrong, and
+    // a law that greps its own documentation fires on the explanation (two existing laws in this
+    // repo learned the same thing, LOG 2026-08-05).
+    const home = raw("system/dev.ts");
+    const homeCode = home.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/\/\/[^\n]*/g, " ");
+    expect(
+      home,
+      "the read must be the exact token sequence every bundler's define matches",
+    ).toContain("env = process.env.NODE_ENV;");
+    expect(home, "the read must sit inside a try, or a bare realm throws").toMatch(
+      /try\s*\{\s*env = process\.env\.NODE_ENV;\s*\}\s*catch/,
+    );
+    expect(
+      homeCode,
+      "a `typeof process` guard is what stops the fold — it must not come back",
+    ).not.toContain("typeof process");
+    expect(home, "DEV must fall to development when nothing substituted the read").toContain(
+      'export const DEV = env !== "production";',
+    );
   });
 });
 

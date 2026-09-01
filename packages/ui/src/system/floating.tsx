@@ -15,6 +15,7 @@
 import * as React from "react";
 
 import { Theme, useThemeRooted } from "../theme/theme.tsx";
+import { DEV } from "./dev.ts";
 
 export type TextDirection = "ltr" | "rtl";
 
@@ -1713,8 +1714,6 @@ export function overlayOpenChange(
     });
 }
 
-/** Box's own spelling and its own scar: an ABSENT `process` means dev (audit 2026-08-08). */
-const DEV = typeof process === "undefined" || process.env?.NODE_ENV !== "production";
 
 /**
  * A panel with no name is announced as its role and nothing else (measured 2026-08-21:

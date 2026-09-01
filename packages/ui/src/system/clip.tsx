@@ -25,9 +25,8 @@
  * Select and AlertDialog own what is inside them, so there is nobody to warn.
  */
 import * as React from "react";
+import { DEV } from "./dev.ts";
 
-/** Box's own spelling and its own scar: an ABSENT `process` means dev (audit 2026-08-08). */
-const DEV = typeof process === "undefined" || process.env?.NODE_ENV !== "production";
 
 export function useClipWarning(what: string): (node: HTMLElement | null) => void {
   const seen = React.useRef<HTMLElement | null>(null);

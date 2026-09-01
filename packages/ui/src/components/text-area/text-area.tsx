@@ -4,7 +4,7 @@ import { Input as BaseInput } from "@base-ui/react/input";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
-import { mergeRefs } from "../../system/render.ts";
+import { useMergedRefs } from "../../system/render.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { useMaterial } from "../../theme/theme.tsx";
 import { useControlSize } from "../../system/control-size.ts";
@@ -127,10 +127,7 @@ export function TextArea({
   // Memoised on the caller's ref: a fresh callback ref every render would be detached with
   // null and reattached on each one, and Base UI reads the node in effects that would then run
   // against a momentarily empty ref (TextField's own note, same mechanism).
-  const setArea = React.useMemo(
-    () => mergeRefs(ref, areaRef) as React.Ref<HTMLInputElement>,
-    [ref],
-  );
+  const setArea = useMergedRefs(ref, areaRef) as React.Ref<HTMLInputElement>;
 
   return (
     <span

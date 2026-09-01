@@ -35,12 +35,13 @@
  */
 import * as React from "react";
 
-import { composeRender, mergeRefs, slot, type RenderElement } from "../../system/render.ts";
+import { composeRender, slot, useMergedRefs, type RenderElement } from "../../system/render.ts";
 import { useWindowClass } from "../../system/window.ts";
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { ScrollArea, type ScrollAreaProps } from "../scroll-area/scroll-area.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
+import { DEV } from "../../system/dev.ts";
 
 /* ── The registry: the one thing that crosses the shell ─────────────────────────────────── */
 
@@ -83,8 +84,6 @@ type ShellCtx = {
   rootRef: React.RefObject<HTMLDivElement | null>;
 };
 
-/** Development-only guards are stripped from production builds. */
-const DEV = typeof process === "undefined" || process.env?.NODE_ENV !== "production";
 
 const ShellContext = React.createContext<ShellCtx | null>(null);
 
@@ -577,11 +576,12 @@ export function Shell({ size = "2", className, style, children, ref, ...props }:
     };
   });
 
+  const setRoot = useMergedRefs(ref, rootRef);
   return (
     <ShellContext.Provider value={ctx}>
       <div
         {...props}
-        ref={mergeRefs(ref, rootRef)}
+        ref={setRoot}
         className={cx("kui-shell", className)}
         style={style}
       >
@@ -905,15 +905,9 @@ function SidePane({
   // both still land (the `render` escape's 2026-08-03 lesson — eight hand-rolled merges is how
   // one of them overwrites another).
   //
-  // MEMOISED, and it is not hygiene (2026-08-26 audit). `mergeRefs` returns a FRESH closure
-  // per call and `useLensRef` memoises on that closure, so an unmemoised merge gave the DOM a
-  // new ref callback every render — React then detaches (`null`) and reattaches, and the lens's
-  // detach path RELEASES the filter: the last reference goes, `acquire` misses its cache and
-  // mints a whole new displacement map. So every keystroke, hover-with-state or route change
-  // anywhere above a glass pane re-ran a per-pixel Snell solve, a `toDataURL` encode and an
-  // eleven-node `<filter>` graft on the largest boxes in the library — the thing
-  // refraction.tsx's "on mount and resize, never at interaction time" rule exists to forbid.
-  const composedRef = React.useMemo(() => mergeRefs(ref, pane.paneRef), [ref, pane.paneRef]);
+  // Memoised by the hook, and it is not hygiene — `useMergedRefs` (system/render.ts) states
+  // what an unstable ref costs a lens-bearing pane.
+  const composedRef = useMergedRefs(ref, pane.paneRef);
   const { material, stamps, ref: paneRef } = usePaneDress(flush, backdrop, composedRef);
   const Element = element;
   return (
@@ -1012,7 +1006,7 @@ export function ShellBottom(props: ShellBottomProps) {
   });
   // Memoised for the reason SidePane states in full: an unmemoised merge is a new DOM ref
   // callback per render, which tears the lens down and rebuilds its map.
-  const composedRef = React.useMemo(() => mergeRefs(ref, pane.paneRef), [ref, pane.paneRef]);
+  const composedRef = useMergedRefs(ref, pane.paneRef);
   const { material, stamps, ref: paneRef } = usePaneDress(flush, backdrop, composedRef);
   return (
     <aside

@@ -73,16 +73,43 @@
 .kui-progress-fill[data-indeterminate] {
   position: absolute;
   inset-block: 0;
+  inset-inline-start: 0;
   inline-size: 40%;
   animation: kui-progress-sweep 1.6s linear infinite;
+  /* THE SWEEP IS A TRANSFORM, NOT A BOX OFFSET (2026-08-31 performance pass), and it is the one
+     place in the library where that distinction was got wrong. `inset-inline-start` is a
+     LAYOUT property: animating it ran 120.3 layouts and 120.3 style recalculations per second
+     on the main thread, measured at 16.55 ms/s against 0.47 ms/s for the identical keyframe
+     written as `translate` — and it kept running offscreen and under `prefers-reduced-motion`,
+     where only the distance per frame changes. Eight bars on one screen cost 35.30 ms/s.
+
+     That is the Spinner's own 2026-08-06 finding, one instrument over: its rotation was moved
+     onto a composited HTML wrapper because "a busy indicator that freezes when the main thread
+     blocks fails its one job" — and this bar was exactly that indicator, freezing for exactly
+     that reason, while the file's own comment above argued it was in the Spinner's category.
+     A composited transform keeps sweeping while the main thread is busy, which is the whole
+     claim the component makes to the person watching it.
+
+     The percentage resolves against the SEGMENT's own box, not the track's, so the distances
+     are the old ones divided by 0.4: -40% of the track is -100% of the segment, and 100% of
+     the track is 250% of it. */
+  --kui-progress-sweep: 1;
+}
+
+/* `translate` is PHYSICAL where `inset-inline-start` flipped itself, so the direction the old
+   spelling got free is now stated. `:dir()` is the house spelling (tree, accordion,
+   scroll-area) and it reads the element's resolved direction, so an `rtl` subtree under an
+   `ltr` document is answered without a document-scoped selector. */
+.kui-progress-fill[data-indeterminate]:dir(rtl) {
+  --kui-progress-sweep: -1;
 }
 
 @keyframes kui-progress-sweep {
   from {
-    inset-inline-start: -40%;
+    translate: calc(-100% * var(--kui-progress-sweep));
   }
   to {
-    inset-inline-start: 100%;
+    translate: calc(250% * var(--kui-progress-sweep));
   }
 }
 

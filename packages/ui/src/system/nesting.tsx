@@ -31,9 +31,8 @@
  * component — so this costs them nothing either way.
  */
 import * as React from "react";
+import { DEV } from "./dev.ts";
 
-/** Box's own spelling and its own scar: an ABSENT `process` means dev (audit 2026-08-08). */
-const DEV = typeof process === "undefined" || process.env?.NODE_ENV !== "production";
 
 const CardContext = React.createContext(false);
 

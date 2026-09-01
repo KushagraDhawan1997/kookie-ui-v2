@@ -28,7 +28,12 @@ import * as React from "react";
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
-import { mergeRefs, rootsInButton, unwrapLazy, type RenderElement } from "../../system/render.ts";
+import {
+  rootsInButton,
+  unwrapLazy,
+  useMergedRefs,
+  type RenderElement,
+} from "../../system/render.ts";
 import {
   FloatingDirectionContext,
   PortalScope,
@@ -172,12 +177,13 @@ export function DialogTrigger({ render, nativeButton, ref, ...props }: DialogTri
   // lazy node whose `type` answers wrong, silently (facebook/react#32392).
   const target = render === undefined ? undefined : unwrapLazy(render);
   const isNativeButton = nativeButton ?? (target === undefined || rootsInButton(target));
+  const setTrigger = useMergedRefs(ref, measure);
   return (
     <BaseDialog.Trigger
       {...(target ? { render: target } : {})}
       nativeButton={isNativeButton}
       {...props}
-      ref={mergeRefs(ref, measure)}
+      ref={setTrigger}
     />
   );
 }
@@ -316,12 +322,13 @@ function DialogPopup({
   const nameRef = useNameWarning("Dialog");
   // A pane clips (§3, 2026-08-21): content wider than the panel is not reachable at all.
   const clipRef = useClipWarning("<Dialog>");
+  const setPopup = useMergedRefs(lensRef, nameRef, clipRef);
   return (
     <BaseDialog.Popup
       {...rest}
       {...popupProps(size, material, className)}
       {...(style !== undefined ? { style } : {})}
-      ref={mergeRefs(lensRef, nameRef, clipRef)}
+      ref={setPopup}
     >
             {/**
               * The body exists for ONE reason and holds one channel: the content comes into

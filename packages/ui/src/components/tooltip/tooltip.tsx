@@ -12,7 +12,7 @@ import {
   SIDE_OFFSET,
   useAmbientDirection,
 } from "../../system/floating.tsx";
-import { mergeRefs } from "../../system/render.ts";
+import { useMergedRefs } from "../../system/render.ts";
 import { Text } from "../text/text.tsx";
 
 /**
@@ -132,7 +132,8 @@ export function TooltipTrigger({ ref, ...props }: TooltipTriggerProps) {
   // here, and the entry's seed is photographed off it (§20, §22 — Menu's sentence). Both refs
   // get the node, so the caller's is not spent.
   const { measure } = React.use(FloatingDirectionContext);
-  return <BaseTooltip.Trigger {...props} ref={mergeRefs(ref, measure)} />;
+  const setTrigger = useMergedRefs(ref, measure);
+  return <BaseTooltip.Trigger {...props} ref={setTrigger} />;
 }
 
 export type TooltipContentProps = Omit<

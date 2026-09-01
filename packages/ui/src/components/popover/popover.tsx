@@ -16,7 +16,7 @@ import {
   useRestingAnchor,
 } from "../../system/floating.tsx";
 import { useLensRef } from "../../system/refraction.tsx";
-import { mergeRefs, rootsInButton, unwrapLazy, type RenderElement } from "../../system/render.ts";
+  useMergedRefs,
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { OWNED_BODY_STEP, OWNED_TITLE_STEP } from "../../system/type-steps.ts";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
@@ -142,12 +142,13 @@ export function PopoverTrigger({ render, nativeButton, ref, ...props }: PopoverT
   // node. It unwraps lazily at every level for the RSC boundary (§5).
   const target = render === undefined ? undefined : unwrapLazy(render);
   const isNativeButton = nativeButton ?? (target === undefined || rootsInButton(target));
+  const setTrigger = useMergedRefs(ref, measure);
   return (
     <BasePopover.Trigger
       {...(target ? { render: target } : {})}
       nativeButton={isNativeButton}
       {...props}
-      ref={mergeRefs(ref, measure)}
+      ref={setTrigger}
     />
   );
 }
@@ -258,11 +259,12 @@ function PopoverPopup({
   // AlertDialog both made it. A popover with no heading is an ORDINARY shape, which is what
   // makes the omission expensive here rather than theoretical (added 2026-08-26, audit).
   const nameRef = useNameWarning("Popover");
+  const setPopup = useMergedRefs(lensRef, nameRef);
   return (
     <BasePopover.Popup
       {...popupProps(React.use(PopoverSizeContext), material, className)}
       style={style}
-      ref={mergeRefs(lensRef, nameRef)}
+      ref={setPopup}
       {...props}
     >
       {/* THE CONTENT SCROLLS, THE PANEL NEVER DOES — Menu's 2026-08-17 adoption, one family

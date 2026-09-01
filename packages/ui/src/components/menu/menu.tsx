@@ -19,7 +19,13 @@ import * as React from "react";
 import { Menu as BaseMenu } from "@base-ui/react/menu";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
-import { mergeRefs, rootsInButton, slot, unwrapLazy, type RenderElement } from "../../system/render.ts";
+import {
+  rootsInButton,
+  slot,
+  unwrapLazy,
+  useMergedRefs,
+  type RenderElement,
+} from "../../system/render.ts";
 import {
   FloatingBody,
   FloatingDirectionContext,
@@ -219,12 +225,13 @@ export function MenuTrigger({ render, nativeButton, ref, ...props }: MenuTrigger
   // RSC boundary as a lazy node whose `type` answers wrong, silently (facebook/react#32392).
   const target = render === undefined ? undefined : unwrapLazy(render);
   const isNativeButton = nativeButton ?? (target === undefined || rootsInButton(target));
+  const setTrigger = useMergedRefs(ref, measure);
   return (
     <BaseMenu.Trigger
       {...(target ? { render: target } : {})}
       nativeButton={isNativeButton}
       {...props}
-      ref={mergeRefs(ref, measure)}
+      ref={setTrigger}
     />
   );
 }
@@ -763,13 +770,14 @@ export function MenuSubTrigger({
 }: MenuSubTriggerProps) {
   // The child panel measures its seam from the panel this row sits in (§22).
   const captured = React.use(MenuSubTriggerContext);
+  const setRow = useMergedRefs(ref, capture);
   return (
     <BaseMenu.SubmenuTrigger
       {...rowProps(React.use(MenuSizeContext), undefined, "kui-menu-item", className)}
       {...props}
-      ref={mergeRefs(ref, (node: HTMLElement | null) => {
         if (captured) captured.current = node;
       })}
+      ref={setRow}
     >
       {slot(leading, "leading")}
       {children}

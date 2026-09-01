@@ -29,7 +29,12 @@ import * as React from "react";
 import { AlertDialog as BaseAlertDialog } from "@base-ui/react/alert-dialog";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
-import { mergeRefs, rootsInButton, unwrapLazy, type RenderElement } from "../../system/render.ts";
+import {
+  rootsInButton,
+  unwrapLazy,
+  useMergedRefs,
+  type RenderElement,
+} from "../../system/render.ts";
 import {
   FloatingDirectionContext,
   OverlayBody,
@@ -149,12 +154,13 @@ export function AlertDialogTrigger({ render, nativeButton, ref, ...props }: Aler
   const { measure } = React.use(FloatingDirectionContext);
   const target = render === undefined ? undefined : unwrapLazy(render);
   const isNativeButton = nativeButton ?? (target === undefined || rootsInButton(target));
+  const setTrigger = useMergedRefs(ref, measure);
   return (
     <BaseAlertDialog.Trigger
       {...(target ? { render: target } : {})}
       nativeButton={isNativeButton}
       {...props}
-      ref={mergeRefs(ref, measure)}
+      ref={setTrigger}
     />
   );
 }
@@ -238,6 +244,7 @@ function AlertPopup({
      than it is… not reachable" while its settled `scrollWidth === clientWidth`. A dev warning
      that fires on every ordinary open is a dev warning nobody reads on the day it is true. */
   const identity = "kui-surface kui-overlay kui-alert-popup";
+  const setPopup = useMergedRefs(lensRef, nameRef);
   return (
     <BaseAlertDialog.Popup
       // The call site's props go on FIRST, so the identity below cannot be taken from it —
@@ -250,7 +257,7 @@ function AlertPopup({
       {...(material !== "solid" ? { "data-material": material } : {})}
       className={className ? `${identity} ${className}` : identity}
       {...(style !== undefined ? { style } : {})}
-      ref={mergeRefs(lensRef, nameRef)}
+      ref={setPopup}
     >
       <OverlayBody>
         <GlassScope material={material}>{children}</GlassScope>

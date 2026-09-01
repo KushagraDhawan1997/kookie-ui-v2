@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { composeRender, mergeRefs, type RenderElement } from "../../system/render.ts";
+import { composeRender, useMergedRefs, type RenderElement } from "../../system/render.ts";
 import { useClipWarning } from "../../system/clip.tsx";
 import { BackdropContext } from "../../theme/theme.tsx";
 import type { Size } from "../../system/axes.ts";
@@ -60,6 +60,7 @@ export type SurfaceProps = Omit<
 export function Surface({ size = "3", render, className, style, children, ref, ...props }: SurfaceProps) {
   // A pane clips, so content wider than it is is not reachable at all (§3, 2026-08-21).
   const clipRef = useClipWarning("<Surface>");
+  const setRoot = useMergedRefs(ref, clipRef);
   const merged = {
     /**
      * THE CONSUMER'S PROPS COME FIRST, and the two `undefined`s below are the identity — do
@@ -75,7 +76,7 @@ export function Surface({ size = "3", render, className, style, children, ref, .
     ...props,
     "data-tone": undefined,
     "data-emphasis": undefined,
-    ref: mergeRefs(ref, clipRef),
+    ref: setRoot,
     "data-size": size,
     className: className ? `kui-surface kui-ground ${className}` : "kui-surface kui-ground",
     style,

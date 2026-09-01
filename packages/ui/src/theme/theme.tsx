@@ -5,6 +5,7 @@ import * as React from "react";
 import { composeRender, type RenderElement } from "../system/render.ts";
 import { CardScopeReset } from "../system/nesting.tsx";
 import { MATERIALS, type Material } from "../system/axes.ts";
+import { DEV } from "../system/dev.ts";
 
 /**
  * EVERY THEME AXIS AND EVERY VALUE IT TAKES — one home, and the unions derive from it
@@ -170,8 +171,6 @@ export type ThemeProps = {
   render?: RenderElement;
 };
 
-/** Same fold as Box's container warning: bundlers replace NODE_ENV, production drops it. */
-const DEV = typeof process === "undefined" || process.env?.NODE_ENV !== "production";
 
 /** §20 — the one Theme placement the stacking frame cannot survive. A portal's home is
     `document.body`; a theme rendered ONTO body (or html) makes every portal its DOM

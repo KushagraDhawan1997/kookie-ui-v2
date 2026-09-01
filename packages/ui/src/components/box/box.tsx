@@ -5,22 +5,8 @@ import * as React from "react";
 import { composeRender, type RenderElement } from "../../system/render.ts";
 import { resolveBoxProps, type BoxStyleProps } from "../../system/resolve.ts";
 import { BackdropContext } from "../../theme/theme.tsx";
+import { DEV } from "../../system/dev.ts";
 
-/**
- * The dev flag, resolved ONCE and defensively (audit 2026-08-08). A bare
- * `process.env.NODE_ENV` on the render path was this package's only reference to `process`,
- * and it survived into `dist` — so a browser-native ESM consumer (no bundler to define it)
- * threw `ReferenceError: process is not defined` on every Box, Flex, Grid and Stack.
- *
- * The polarity is deliberate and was wrong in its first spelling: an ABSENT `process` means
- * dev, not production. Written the other way (`typeof process !== "undefined" && …`) the
- * flag is false in every browser where the global does not exist — which silently killed
- * the warning for every bundler that substitutes the inner read but leaves no runtime
- * `process`, and the browser suite caught it immediately. A bundler that defines
- * NODE_ENV=production still folds this to false; the worst case anywhere else is a console
- * line nobody needed. A law forbids the bare, unguarded form.
- */
-const DEV = typeof process === "undefined" || process.env?.NODE_ENV !== "production";
 
 export type BoxProps = BoxStyleProps &
   Omit<React.ComponentPropsWithoutRef<"div">, keyof BoxStyleProps> & {

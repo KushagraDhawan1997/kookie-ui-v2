@@ -4,7 +4,6 @@ import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
-import { mergeRefs } from "../../system/render.ts";
 import { ControlSizeContext } from "../../system/control-size.ts";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { Button } from "../button/button.tsx";
@@ -134,7 +133,7 @@ export function Composer({
       <ControlSizeContext.Provider value={size}>
         <ComposerFilesContext.Provider value={onFiles ?? null}>
           <form
-            ref={mergeRefs(lensRef) as React.Ref<HTMLFormElement>}
+            ref={lensRef as React.Ref<HTMLFormElement>}
             data-size={size}
             // Fixed identity, not API — Card's sentence. The tone indirection needs a family to
             // resolve `--tone-border` against, and the fill is the seal rather than a tone alpha.

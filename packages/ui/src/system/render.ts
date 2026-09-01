@@ -21,7 +21,19 @@ export type RenderProps = {
 
 export type RenderElement = React.ReactElement<RenderProps>;
 
-/** Both refs get the node. Neither wins, which is the whole point. */
+/**
+ * Both refs get the node. Neither wins, which is the whole point.
+ *
+ * NOT for a `ref=` position — use `useMergedRefs` there, and a law walks every source for it.
+ *
+ * The one caller left holding the bare merge is `composeRender`, and it is a KNOWN NARROWER
+ * CASE rather than a safe one: its arm runs only when the caller's `render` target carries its
+ * OWN ref (`render={<div ref={r}/>}`), and when it does, that element gets a fresh ref identity
+ * per render exactly as an inline merge would. It cannot reach `useMergedRefs` — the target's
+ * own ref is not known until `composeRender` runs, and a plain function cannot hold a hook. The
+ * cost is the same detach/reattach; the exposure is the call sites that both pass `render` with
+ * a ref and carry a lens, which today is Card and Surface. Recorded, not fixed.
+ */
 export function mergeRefs<T>(...refs: (React.Ref<T> | undefined)[]): React.RefCallback<T> {
   return (value: T | null) => {
     for (const ref of refs) {
@@ -29,6 +41,30 @@ export function mergeRefs<T>(...refs: (React.Ref<T> | undefined)[]): React.RefCa
       else if (ref) (ref as React.RefObject<T | null>).current = value;
     }
   };
+}
+
+/**
+ * The merge, MEMOISED — and it is not hygiene (2026-08-26 audit, promoted 2026-08-31).
+ *
+ * `mergeRefs` returns a FRESH closure on every call, and React answers a new ref identity by
+ * DETACHING (`ref(null)`) and reattaching. On a lens-bearing element that detach releases the
+ * filter, which drops its last reference, so the reattach misses `acquire`'s cache and mints a
+ * whole new displacement map: a per-pixel Snell solve, a `toDataURL` encode and an eleven-node
+ * `<filter>` graft, on the largest boxes in the library, for every unrelated re-render above the
+ * pane. That is what refraction.tsx's "on mount and resize, never at interaction time" rule
+ * exists to forbid — and on a controlled Composer the re-render above it is every keystroke.
+ *
+ * It was written five times as a per-component `React.useMemo` and MISSED at five more call
+ * sites (Dialog, AlertDialog, Popover, Select, Composer — 2026-08-31 performance pass), which
+ * is the shape a fact in five homes always takes. One home, and the law below it: no bare
+ * `mergeRefs` in a `ref=` position anywhere in the package.
+ *
+ * The deps array is the ref list itself, so an identity change still detaches — that is a
+ * SEMANTIC of React's ref protocol, not churn, and a permanently-stable callback would strand
+ * the outgoing ref holding a node it no longer owns. Its length is fixed per call site.
+ */
+export function useMergedRefs<T>(...refs: (React.Ref<T> | undefined)[]): React.RefCallback<T> {
+  return React.useMemo(() => mergeRefs(...refs), refs);
 }
 
 /** React's own symbol for a lazy node. Read through `Symbol.for`, which is the registry

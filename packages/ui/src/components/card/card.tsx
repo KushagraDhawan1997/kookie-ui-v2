@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import { composeRender, mergeRefs, type RenderElement } from "../../system/render.ts";
+import { composeRender, useMergedRefs, type RenderElement } from "../../system/render.ts";
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { useClipWarning } from "../../system/clip.tsx";
@@ -89,17 +89,9 @@ export function Card({
   // so nothing static can see it; the rendered tree is the only place the question can be
   // asked. Dev-only warning, and the builder and the reviewer refuse it outright.
   useNestedCardWarning(useInsideCard());
-  /**
-   * MEMOISED, and it is not hygiene (2026-08-26 audit). `mergeRefs` returns a FRESH closure
-   * per call, so an inline merge hands React a new ref identity on every render — and React
-   * answers a new identity by DETACHING (`ref(null)`) and reattaching. `useLens`'s detach path
-   * releases the filter, which drops its last reference, so the next attach misses `acquire`'s
-   * cache and mints a whole new displacement map: a per-pixel Snell solve, a `toDataURL`
-   * encode and an eleven-node `<filter>` graft, on the largest boxes in the library, for every
-   * unrelated re-render above the card. That is what refraction.tsx's "on mount and resize,
-   * never at interaction time" rule exists to forbid.
-   */
-  const setRoot = React.useMemo(() => mergeRefs(lensRef, clipRef), [lensRef, clipRef]);
+  // Memoised by the hook, and it is not hygiene — `useMergedRefs` (system/render.ts) states
+  // what an unstable ref costs a lens-bearing pane.
+  const setRoot = useMergedRefs(lensRef, clipRef);
   const merged = {
     /**
      * THE CONSUMER'S PROPS COME FIRST, so the identity below cannot be overridden (2026-08-26

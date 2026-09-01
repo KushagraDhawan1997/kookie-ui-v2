@@ -3,7 +3,7 @@
 import { Input as BaseInput } from "@base-ui/react/input";
 import * as React from "react";
 
-import { filled, mergeRefs } from "../../system/render.ts";
+import { filled, useMergedRefs } from "../../system/render.ts";
 import type { Size, SlotName } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
@@ -156,7 +156,7 @@ export function TextField({
   // Memoised on the caller's ref: a fresh callback ref every render would be detached with
   // null and reattached on each one, and Base UI reads the node in effects that would then run
   // against a momentarily empty ref.
-  const setInput = React.useMemo(() => mergeRefs(ref, inputRef), [ref]);
+  const setInput = useMergedRefs(ref, inputRef);
 
   const hasLeading = filled(leading);
   const hasTrailing = filled(trailing);
