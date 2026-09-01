@@ -2,7 +2,7 @@
  * The docs' own CSS, and it is deliberately this short.
  *
  * Everything here is one of two things, never a third: a prose primitive the system has not
- * shipped (a list, an inline link, a data table), or the code theme's variable bindings. Both
+ * shipped (a list; the inline link and the data table have since shipped), or the code theme's variable bindings. Both
  * resolve entirely through the public token contract (§13) — there is no raw colour and no
  * raw distance in this file — so a re-judged palette or a density change moves the docs with
  * the system rather than leaving them behind.
@@ -72,40 +72,6 @@
    Tone comes from `<Text tone="accent">`, so this owns only the underline. Offset and
    thickness are stated because the UA's default underline sits on the baseline and cuts every
    descender in the line. */
-/* ── Tables ────────────────────────────────────────────────────────────────────────────────
-   A data table, which the system has never specified. The horizontal scroller is the app's
-   own: a table is the one block in prose whose content can genuinely exceed the measure, and
-   a page that scrolls sideways because of one table is worse than a table that does. */
-.kd-table-wrap {
-  overflow-x: auto;
-}
-
-.kd-table {
-  border-collapse: collapse;
-  inline-size: 100%;
-  text-align: start;
-}
-
-.kd-table th,
-.kd-table td {
-  padding: var(--layout-space-2) var(--layout-space-3);
-  border-block-end: var(--border-width) solid var(--color-border);
-  text-align: start;
-  vertical-align: baseline;
-}
-
-.kd-table th {
-  color: var(--color-text);
-}
-
-.kd-table td {
-  color: var(--color-text-muted);
-}
-
-.kd-table tr:last-child td {
-  border-block-end: none;
-}
-
 /* ── The page scroller must not inherit its content's appetite ─────────────────────────────
    Base UI's ScrollArea puts `min-width: fit-content` on its content wrapper AS AN INLINE
    STYLE, so that content wider than the viewport can be scrolled to rather than crushed. That

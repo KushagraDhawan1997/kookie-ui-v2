@@ -23,6 +23,12 @@ import {
   Separator,
   Stack,
   Text,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@kookie-ui/react";
 
 import { Example } from "../../example";
@@ -195,49 +201,35 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
               : "A script generates this table from the types."
           }
         >
-          <Box className="kd-table-wrap">
-            <Text size="2" render={<table className="kd-table" />}>
-              <thead>
-                <tr>
-                  <th>
-                    <Text size="2" weight="medium">
-                      Prop
-                    </Text>
-                  </th>
-                  <th>
-                    <Text size="2" weight="medium">
-                      Type
-                    </Text>
-                  </th>
-                  <th>
-                    <Text size="2" weight="medium">
-                      What it does
-                    </Text>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {api.props.map((prop) => (
-                  <tr key={prop.name}>
-                    <td>
-                      <Code size="2">
-                        {prop.name}
-                        {prop.optional ? "?" : ""}
-                      </Code>
-                    </td>
-                    <td>
-                      <Code size="2" emphasis="medium">
-                        {prop.type}
-                      </Code>
-                    </td>
-                    <td>
-                      <InlineCode text={propDescription(prop)} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Text>
-          </Box>
+          <Table size="2">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Prop</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>What it does</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {api.props.map((prop) => (
+                <TableRow key={prop.name}>
+                  <TableCell>
+                    <Code size="2">
+                      {prop.name}
+                      {prop.optional ? "?" : ""}
+                    </Code>
+                  </TableCell>
+                  <TableCell>
+                    <Code size="2" emphasis="medium">
+                      {prop.type}
+                    </Code>
+                  </TableCell>
+                  <TableCell>
+                    <InlineCode text={propDescription(prop)} />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </Section>
       ) : null}
 

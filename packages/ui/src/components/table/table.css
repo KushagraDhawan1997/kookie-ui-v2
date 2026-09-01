@@ -1,0 +1,59 @@
+/* Table draws hairlines, an inset and the header ink (§11, §36) — the docs' own judged table
+ * (`prose.css`, 2026-08-21) promoted into the package the day it had a second consumer.
+ *
+ * The wrapper is the scroller: a table is the one block whose content can genuinely exceed
+ * its measure, so it scrolls inside its own box rather than making the page scroll sideways.
+ * `auto`, and honestly a scroll container — this is the case the flight rules' `clip` argument
+ * is NOT about. The type step and the cell inset arrive from the joins (type.css for the step;
+ * the table size join in surfaces.css publishes `--kui-tb-py`/`--kui-tb-px` per index, so this
+ * file names no index). */
+.kui-table {
+  overflow-x: auto;
+  inline-size: 100%;
+}
+
+.kui-table-el {
+  border-collapse: collapse;
+  inline-size: 100%;
+  text-align: start;
+  color: var(--color-text);
+}
+
+/* The cells: the published inset, a hairline under every row, baseline-aligned so a Code
+   chip and a word in one row share a line. */
+.kui-table-el th,
+.kui-table-el td {
+  padding-block: var(--kui-tb-py);
+  padding-inline: var(--kui-tb-px);
+  border-block-end: var(--border-width) solid var(--color-border);
+  text-align: start;
+  vertical-align: baseline;
+}
+
+/* The header names the columns, and a name is secondary to what it names: the muted ink at
+   medium weight, macOS's own column headers and shadcn's. */
+.kui-table-el th {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+}
+
+/* The table's edge is the end — no hairline under the last body row. */
+.kui-table-el tbody tr:last-child > * {
+  border-block-end: none;
+}
+
+/* Alignment is per cell, stated on the head and the cells of a column together. */
+.kui-table-el [data-align="center"] {
+  text-align: center;
+}
+.kui-table-el [data-align="end"] {
+  text-align: end;
+}
+
+/* The caption is the table's name, under it, quietly. */
+.kui-table-el caption {
+  caption-side: bottom;
+  padding-block: var(--kui-tb-py);
+  color: var(--color-text-muted);
+  text-align: start;
+}

@@ -39,14 +39,14 @@
  * a figure keep the column. They share a left edge, so there is still one axis; only the right
  * edge differs, which is the arrangement HIG and Material both use for the same reason.
  *
- * TWO ELEMENTS HAVE NO COMPONENT TO RESOLVE TO — lists and tables — and they are handled here
- * in the only honest way: the semantic element, kept for what it announces, with its type
- * coming from `<Text render>` and its remaining details from `prose.css` in tokens. §11 plans
- * a table row and has shipped neither it nor a static table; nothing in the system has ever
- * named a list. Writing the docs is what turned that from an absence nobody had noticed into
- * three recorded gaps (LOG 2026-08-21), which is the pattern this repo keeps having:
- * /preview forced the composition rules, the builder forced `componentAxes`, and the canon
- * forced the prose primitives — the third of which, `Link`, shipped as a result.
+ * ONE ELEMENT HAS NO COMPONENT TO RESOLVE TO — the list — and it is handled here in the only
+ * honest way: the semantic element, kept for what it announces, with its type coming from
+ * `<Text render>` and its remaining details from `prose.css` in tokens. Nothing in the system
+ * has ever named a list. Writing the docs is what turned that from an absence nobody had
+ * noticed into three recorded gaps (LOG 2026-08-21), which is the pattern this repo keeps
+ * having: /preview forced the composition rules, the builder forced `componentAxes`, and the
+ * canon forced the prose primitives — `Link` shipped as a result, and the static `Table`
+ * followed 2026-08-31 (§36), taking the hand-drawn `.kd-table` rules with it.
  */
 import * as React from "react";
 import type { MDXComponents } from "mdx/types";
@@ -60,6 +60,12 @@ import {
   Separator,
   Stack,
   Text,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@kookie-ui/react";
 
 import { CodeSample } from "./blocks/code-sample";
@@ -231,25 +237,20 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       );
     },
 
-    // Tables: the semantic element, kept because a table announces its own structure, with
-    // type from Text and the grid lines from tokens in prose.css. §11 plans a table ROW (an
-    // interactive surface); a static data table has never been specified.
+    // Tables: the package's own since 2026-08-31 (§36) — the static table these docs drew
+    // by hand in prose.css for ten days was the forcing case, and the swap is the one-import
+    // kind. Markdown's `align` attribute is dropped: the package's word is `align` on the
+    // head and the cell, and a chapter that needs a numeric column writes the JSX.
     table: ({ children }) => (
       <Figure>
-        <Box className="kd-table-wrap">
-          <Text size="2" render={<table className="kd-table" />}>
-            {children}
-          </Text>
-        </Box>
+        <Table size="2">{children}</Table>
       </Figure>
     ),
-    th: ({ children }) => (
-      <th>
-        <Text size="2" weight="medium">
-          {children}
-        </Text>
-      </th>
-    ),
+    thead: ({ children }) => <TableHeader>{children}</TableHeader>,
+    tbody: ({ children }) => <TableBody>{children}</TableBody>,
+    tr: ({ children }) => <TableRow>{children}</TableRow>,
+    th: ({ children }) => <TableHead>{children}</TableHead>,
+    td: ({ children }) => <TableCell>{children}</TableCell>,
 
     /**
      * Components a chapter may use by name, with no import line of its own.
