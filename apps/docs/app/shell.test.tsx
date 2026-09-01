@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 import RootLayout from "./layout";
 import DocsLayout from "./(docs)/layout";
 import NotFound from "./not-found";
+import DocsNotFound from "./(docs)/not-found";
 import { appearanceScript } from "./appearance-script";
 
 /**
@@ -84,6 +85,37 @@ describe("a page-shaped route gets the page chrome — including the one Next re
     // itself, and did not between 0d192d4 and this commit.
     const chrome = wearsChrome(html(NotFound()));
     expect(chrome).toEqual({ nav: true, trigger: true, main: true, inset: true });
+  });
+
+  it("a 404 inside the docs group wears the chrome ONCE, not twice", () => {
+    /* THE OTHER NOT-FOUND, and the reason there are two (2026-09-01, reported by following a
+       link into `/foundations` — a URL `[...slug]` MATCHES and then hands to `notFound()`).
+       Next keeps every layout above that boundary, so `(docs)/layout.tsx` has already drawn
+       the chrome; the root 404 drawing it again put a second whole shell inside the first —
+       two sidebars, two wordmarks, and the pane trigger over the heading.
+
+       Read as a COUNT through the real layout, which is the shape of the defect: the old law
+       above asks whether the chrome is PRESENT, and it was — twice. Presence cannot see a
+       duplicate, so nothing in the suite could.
+
+       IT COUNTS THE SIDEBAR, NOT `<nav>` (2026-09-01). The first spelling counted opening
+       `<nav` tags, which was a proxy for "how many sidebars" that held only while the sidebar
+       was the one navigation on the page. The site footer landed and each of its columns is its
+       own named `<nav>` — correctly, that is the guarantee the footer block exists to make —
+       so a correct page counted six and the law failed on a page with exactly one shell. The
+       subject was always the shell's own nav; naming it is what makes the count mean what the
+       sentence above says. */
+    const inGroup = html(DocsLayout({ children: DocsNotFound() }));
+    const count = (needle: string, out: string) => out.split(needle).length - 1;
+    const SIDEBAR = 'aria-label="Documentation"';
+    expect(count(SIDEBAR, inGroup), "the docs 404 renders more than one sidebar").toBe(1);
+    expect(count("<main", inGroup)).toBe(1);
+    // ...and it IS the 404, so the count above is not one because the body vanished.
+    expect(inGroup).toContain("404");
+    // The other boundary still draws its own, because in ITS case nothing else will.
+    const bare = html(NotFound());
+    expect(count(SIDEBAR, bare), "the root 404 lost the chrome it has to supply").toBe(1);
+    expect(bare).toContain("404");
   });
 
   it("every page.tsx outside (docs) is a deliberate bare-viewport route", () => {

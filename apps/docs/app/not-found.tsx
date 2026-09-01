@@ -1,7 +1,5 @@
-import Link from "next/link";
-import { Button, Flex, Heading, Stack, Text } from "@kookie-ui/react";
-
 import { DocsChrome } from "./(docs)/docs-chrome";
+import { NotFoundBody } from "./(docs)/not-found-body";
 
 /**
  * The 404, and it exists for two reasons that turn out to be one.
@@ -22,29 +20,18 @@ import { DocsChrome } from "./(docs)/docs-chrome";
  *
  * So the stance and the bug have the same fix, which is the sort of coincidence that means the
  * stance was load-bearing rather than decorative.
+ *
+ * AMENDED 2026-09-01: that reasoning covers a URL matching NOTHING, and there is a second case
+ * it does not. A URL that matches `[...slug]` and then calls `notFound()` keeps every layout
+ * above the boundary, so `(docs)/layout.tsx` has already drawn the chrome — and this file
+ * drawing it again put a second whole shell inside the first. The body moved to
+ * `not-found-body.tsx` and `(docs)/not-found.tsx` renders it bare; this one still wraps it,
+ * because in ITS case nothing else will.
  */
 export default function NotFound() {
   return (
     <DocsChrome>
-      <Stack gap="6" style={{ maxWidth: "34rem" }}>
-        <Stack gap="3">
-          <Heading size="7" render={<h1 />}>
-            404
-          </Heading>
-          <Text size="3" emphasis="medium" render={<p />}>
-            That page does not exist. It may have been renamed while the system was being built —
-            most things here still are.
-          </Text>
-        </Stack>
-        <Flex gap="3">
-          <Button size="2" tone="accent" emphasis="loud" render={<Link href="/" />}>
-            Back to the start
-          </Button>
-          <Button size="2" emphasis="quiet" bordered render={<Link href="/matrix" />}>
-            The judging matrix
-          </Button>
-        </Flex>
-      </Stack>
+      <NotFoundBody />
     </DocsChrome>
   );
 }
