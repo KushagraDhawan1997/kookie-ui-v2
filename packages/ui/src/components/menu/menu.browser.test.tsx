@@ -4612,3 +4612,76 @@ describe("a lit menu row paints LESS than full soft — the quiet half-step (§2
     expect(lit, `lit ${lit} vs soft ${soft}`).toBeLessThan(soft * 0.9);
   });
 });
+
+describe("a row can BE a link — the render escape (§21, 2026-09-01)", () => {
+  /**
+   * `MenuItem` gained `render` for `BreadcrumbEllipsis`, which opens a menu of PLACES rather
+   * than of verbs. The change shipped with no law of its own — the ultracode audit's own
+   * completeness critic named it, and it is the change the slice made to a component that was
+   * already shipped, which is the riskiest kind.
+   *
+   * The claim in its JSDoc is that the row stays ONE target. That is the whole reason this is a
+   * render escape rather than an anchor nested inside the row: `trailing`'s note already refuses
+   * a control inside a row, and a link inside one would be a second target inside a target.
+   */
+  it("renders INTO the anchor, keeping the row's role, class and one target", async () => {
+    const el = renderSettled(
+      <Theme>
+        <Menu defaultOpen>
+          <MenuTrigger render={<Button>Go</Button>} />
+          <MenuContent>
+            <MenuItem render={<a href="/docs" />}>Docs</MenuItem>
+            <MenuItem>Plain</MenuItem>
+          </MenuContent>
+        </Menu>
+      </Theme>,
+    );
+    const rows = Array.from(document.querySelectorAll<HTMLElement>('[role="menuitem"]'));
+    expect(rows.length).toBe(2);
+    const [link, plain] = rows;
+
+    // The row IS the anchor — not a div holding one, which is the shape that would make two.
+    expect(link!.tagName).toBe("A");
+    expect(link!.getAttribute("href")).toBe("/docs");
+    expect(link!.querySelectorAll("a").length, "the row holds a second link inside itself").toBe(0);
+    // ONE target: nothing focusable inside the row but the row.
+    expect(
+      link!.querySelectorAll('a, button, [tabindex]:not([tabindex="-1"])').length,
+      "a second focusable node inside the row",
+    ).toBe(0);
+
+    // ...and it is still a ROW: same role, same class list, same paint as the plain one beside
+    // it. Read as an agreement, so a render that quietly dropped the row identity fails here.
+    expect(link!.className).toBe(plain!.className);
+    expect(computed(link!, "block-size")).toBe(computed(plain!, "block-size"));
+    expect(computed(link!, "padding-inline-start")).toBe(computed(plain!, "padding-inline-start"));
+    expect(el).toBeTruthy();
+  });
+
+  it("the highlight still reaches it, so the keyboard can walk onto a link row", () => {
+    renderSettled(
+      <Theme>
+        <Menu defaultOpen>
+          <MenuTrigger render={<Button>Go</Button>} />
+          <MenuContent>
+            <MenuItem render={<a href="/docs" />}>Docs</MenuItem>
+            <MenuItem render={<a href="/more" />}>More</MenuItem>
+          </MenuContent>
+        </Menu>
+      </Theme>,
+    );
+    // `data-highlighted` is the row family's own lit state (§21 — lit by the stamp, never by
+    // :hover), so a render escape that lost it would leave a keyboard user with no cursor.
+    // The popup-focus + dispatched keydown idiom is this file's own: a synthetic pointermove
+    // does not reach Base UI's highlight tracking, and `userEvent.keyboard` alone lands
+    // nowhere because a `defaultOpen` popup is not focused.
+    const popup = document.querySelector<HTMLElement>(".kui-menu-popup")!;
+    popup.focus();
+    flushSync(() => {
+      popup.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+    });
+    const lit = document.querySelectorAll('[role="menuitem"][data-highlighted]');
+    expect(lit.length, "no row is lit after an arrow key").toBe(1);
+    expect(lit[0]!.tagName).toBe("A");
+  });
+});

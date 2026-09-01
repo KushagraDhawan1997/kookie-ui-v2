@@ -441,6 +441,15 @@ export type MenuItemProps = {
    */
   trailing?: React.ReactNode;
   /**
+   * Render the row into the element it really is — your framework's link component, or an
+   * `<a href>`, for a menu of PLACES rather than of verbs. The row stays one target, which is
+   * the whole reason this is a render escape and not a nested anchor: a link inside the row
+   * would be a second target inside a target, and `trailing`'s own note already refuses that.
+   *
+   * Opened 2026-09-01 for `BreadcrumbEllipsis`, which is a list of places by definition.
+   */
+  render?: RenderElement;
+  /**
    * The row's words, which are the verb. Plain text keeps typeahead working. Anything richer
    * needs a `label`.
    */
@@ -450,9 +459,16 @@ export type MenuItemProps = {
   ref?: React.Ref<HTMLDivElement>;
 };
 
-export function MenuItem({ tone, leading, trailing, children, className, ...props }: MenuItemProps) {
+export function MenuItem({ tone, leading, trailing, render, children, className, ...props }: MenuItemProps) {
+  // Unwrapped FIRST (§5, the 2026-08-07 finding): an element created in a Server Component
+  // crosses the RSC boundary as a lazy node whose `type` answers wrong, silently.
+  const target = render === undefined ? undefined : unwrapLazy(render);
   return (
-    <BaseMenu.Item {...rowProps(React.use(MenuSizeContext), tone, "kui-menu-item", className)} {...props}>
+    <BaseMenu.Item
+      {...rowProps(React.use(MenuSizeContext), tone, "kui-menu-item", className)}
+      {...(target ? { render: target } : {})}
+      {...props}
+    >
       {slot(leading, "leading")}
       {children}
       {slot(trailing, "trailing")}
