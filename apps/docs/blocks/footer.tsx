@@ -49,7 +49,7 @@
  * arrangements exist in the wild and only one of them can be the default.
  */
 import * as React from "react";
-import { Flex, Separator, Stack, Surface, Text } from "@kookie-ui/react";
+import { Flex, Stack, Surface, Text } from "@kookie-ui/react";
 
 import "./footer.css";
 
@@ -133,41 +133,40 @@ export function Footer({ brand, groups, note, legal }: FooterProps) {
           ))}
         </div>
 
+        {/* NO HAIRLINE (2026-09-01, Kushagra: "No separator needed in footer"). One shipped
+            here, between the browsing half and the legal half, and §15's rule is that a
+            separator earns its place only where DISTANCE cannot group — which is not the case
+            here: the outer stack already sets these two regions nine steps apart against the
+            two and three inside a column, and a rule drawn across a gap that is already doing
+            the work is a line saying what the space said. */}
         {note || legal?.length ? (
-          <Stack gap="6">
-            {/* The hairline, and the reason it is here rather than at the top of the block: it
-                separates the browsing half from the legal half, which is a relationship inside
-                the footer. A rule ABOVE the footer would be the page saying where the footer
-                begins, and where the footer begins is the page's business, not this file's. */}
-            <Separator />
-            <Flex justify="space-between" align="center" gap="4" wrap="wrap">
-              {/* Quiet, the rung §15 minted for something deliberately stood down — a
-                  copyright line is read once a year and never scanned. */}
-              {note ? (
-                <Text size="2" emphasis="quiet">
-                  {note}
-                </Text>
-              ) : (
-                /* Holds the end position when there is no note: one child and
-                   `space-between` pushes it to the wrong wall. */
-                <span />
-              )}
-              {legal?.length ? (
-                <Flex gap="5" wrap="wrap" render={<nav aria-label="Legal" />}>
-                  {legal.map((link) => (
-                    <Text
-                      key={link.href}
-                      size="2"
-                      emphasis="medium"
-                      render={<a className="kb-footer-link" href={link.href} />}
-                    >
-                      {link.label}
-                    </Text>
-                  ))}
-                </Flex>
-              ) : null}
-            </Flex>
-          </Stack>
+          <Flex justify="space-between" align="center" gap="4" wrap="wrap">
+            {/* Quiet, the rung §15 minted for something deliberately stood down — a
+                copyright line is read once a year and never scanned. */}
+            {note ? (
+              <Text size="2" emphasis="quiet">
+                {note}
+              </Text>
+            ) : (
+              /* Holds the end position when there is no note: one child and
+                 `space-between` pushes it to the wrong wall. */
+              <span />
+            )}
+            {legal?.length ? (
+              <Flex gap="5" wrap="wrap" render={<nav aria-label="Legal" />}>
+                {legal.map((link) => (
+                  <Text
+                    key={link.href}
+                    size="2"
+                    emphasis="medium"
+                    render={<a className="kb-footer-link" href={link.href} />}
+                  >
+                    {link.label}
+                  </Text>
+                ))}
+              </Flex>
+            ) : null}
+          </Flex>
         ) : null}
       </Stack>
     </Surface>
