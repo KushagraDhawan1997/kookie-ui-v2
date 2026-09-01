@@ -1,0 +1,41 @@
+/* Badge is a loud mark priced as a share of its line (§11, §38).
+ *
+ * Two forms, one identity. The DOT is a disc `--badge-box` of the line tall; the COUNT is a
+ * pill the same height with digits at `--badge-text` of the line. Both wear the tone's SOLID
+ * with the APCA-chosen contrast label — the loud rung's pairing, stated here directly because a
+ * badge has no ladder to climb: loud is what it is. `1lh` is the line the badge sits in (it
+ * declares no line of its own unless `size` is set), so a badge on a size-2 tab label and one
+ * pinned to a size-7 avatar are the same share of two different lines. */
+.kui-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  block-size: calc(1lh * var(--badge-box));
+  min-inline-size: calc(1lh * var(--badge-box));
+  /* `middle` seats the centre at half the parent's x-height — measurably low beside the
+     capitals a count sits with (2026-09-01) — and it is kept because it is the one anchor
+     that reads the BOX and not a baseline the content may or may not supply (a digit hands
+     the flex container a real baseline, a bare dot does not; a length here measured them
+     4.4px apart). The correction is a relative lift, which moves paint and not layout, so
+     the line cannot grow around it. */
+  vertical-align: middle;
+  position: relative;
+  inset-block-start: calc(-1lh * var(--badge-lift));
+  border-radius: calc(1lh * var(--badge-box));
+  background-color: var(--tone-solid);
+  color: var(--tone-contrast);
+  font-size: calc(1lh * var(--badge-text));
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* The count breathes at its ends in its own em — a single digit is a disc (the min-inline-size
+   above), two or three grow a pill. The bare DOT needs no rule of its own: with no content and
+   no padding it is exactly the minimum, a disc — a `[data-dot]` rule was written and deleted
+   when its sabotage pass proved it redundant (the attribute stays, as the honest stamp). */
+.kui-badge:not([data-dot]) {
+  padding-inline: 0.35em;
+}
