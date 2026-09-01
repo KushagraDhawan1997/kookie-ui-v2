@@ -37,6 +37,7 @@ import { API } from "../api.generated";
 import { PageFrame, PageTitle } from "../../page-frame";
 import { propDescription } from "../prop-description";
 import { BY_SLUG, ENTRIES } from "../registry";
+import { humanLabel } from "../../label";
 
 export function generateStaticParams() {
   return ENTRIES.map((entry) => ({ slug: entry.slug }));
@@ -50,7 +51,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const entry = BY_SLUG.get(slug);
   return entry
-    ? { title: `${entry.name} — KookieUI`, description: entry.blurb }
+    ? { title: `${humanLabel(entry.name)} — KookieUI`, description: entry.blurb }
     : { title: "KookieUI" };
 }
 
@@ -122,7 +123,7 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
             ← Components
           </KookieLink>
         </Flex>
-        <PageTitle deck={<InlineCode text={entry.blurb} />}>{entry.name}</PageTitle>
+        <PageTitle deck={<InlineCode text={entry.blurb} />}>{humanLabel(entry.name)}</PageTitle>
       </Stack>
 
       <Section title="Example">

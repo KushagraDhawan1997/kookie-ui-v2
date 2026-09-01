@@ -3,6 +3,7 @@ import { Flex, Grid, Heading, Link as KookieLink, Stack, Text } from "@kookie-ui
 
 import { PageFrame, PageTitle } from "../page-frame";
 import { ENTRIES, type Entry } from "./registry";
+import { humanLabel } from "../label";
 
 const FAMILIES: Entry["family"][] = ["Layout", "Type", "Control", "Surface", "Indicator"];
 
@@ -67,7 +68,7 @@ export default function ComponentsIndex() {
                       size="3"
                       render={<Link href={`/components/${entry.slug}`} />}
                     >
-                      {entry.name}
+                      {humanLabel(entry.name)}
                     </KookieLink>
                   ))}
                 </Stack>

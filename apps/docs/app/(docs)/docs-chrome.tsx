@@ -46,6 +46,7 @@ import { CHAPTERS, SECTIONS } from "./chapters";
 import { DocsNav, type NavSection } from "./docs-nav";
 import { DocsSearch } from "./docs-search";
 import { Wordmark } from "./wordmark";
+import { humanLabel } from "./label";
 import { buildSearchIndex } from "./search-index";
 import { ENTRIES } from "./components/registry";
 import "./prose.css";
@@ -64,7 +65,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
 
   const components = ENTRIES.map((entry) => ({
     href: `/components/${entry.slug}`,
-    label: entry.name,
+    label: humanLabel(entry.name),
   }));
 
   return (
@@ -72,7 +73,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
     // browser chrome does not leave the shell taller than the screen it is in.
     <Box style={{ blockSize: "100dvh" }}>
       <Shell>
-        <ShellSidebar aria-label="Documentation" flush={false}>
+        <ShellSidebar aria-label="Documentation" flush={true}>
           {/* The unofficial header — pinned above the scroller by position alone (§27's
               pinned-stack rule; no part names exist and none are needed).
 
@@ -119,7 +120,11 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
             <Link
               href="/"
               aria-label="KookieUI"
-              style={{ color: "inherit", textDecoration: "none", alignSelf: "start" }}
+              style={{
+                color: "inherit",
+                textDecoration: "none",
+                alignSelf: "start",
+              }}
             >
               <Wordmark />
             </Link>
@@ -157,7 +162,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
             `position: relative` is the trigger's containing block, stated inline because the
             shell root is the nearest positioned ancestor otherwise and the trigger would
             resolve its inset over the sidebar column, not this pane. */}
-        <ShellContent style={{ position: "relative" }}>
+        <ShellContent style={{ position: "relative" }} flush={false}>
           {/* The route back to a closed or overlaying sidebar floats in the pane's own safe
               area — `--kui-sf-p` inherits from the pane deliberately (§10, the bleed
               mechanism), so the trigger sits exactly where pinned content would start.
@@ -216,7 +221,11 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
                 It is stated HERE rather than on the pane so a page can still choose to bleed:
                 a section that wants to run behind the nav says `m="bleed"` against this
                 padding, which is the choice the reach exists to make possible. */}
-            <Box style={{ paddingInlineStart: "var(--kui-shell-inset-inline-start)" }}>
+            <Box
+              style={{
+                paddingInlineStart: "var(--kui-shell-inset-inline-start)",
+              }}
+            >
               {/* The page states its own measure, deliberately. A chapter is a reading column
                   with a table of contents beside it; a component page is a reading column with
                   wide tables under it; the home page is neither. One max-width here would have

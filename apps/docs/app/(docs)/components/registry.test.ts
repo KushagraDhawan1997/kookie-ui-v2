@@ -28,6 +28,7 @@ import { describe, expect, it } from "vitest";
 import { readPackageExports } from "../../package-exports";
 import { ENTRIES } from "./registry";
 import { EXAMPLES } from "../../../examples";
+import { humanLabel } from "../label";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const packageIndex = join(here, "../../../../../packages/ui/src/index.ts");
@@ -43,6 +44,38 @@ const decisions = join(here, "../../../../../docs/DECISIONS.md");
  * one law and not the other.
  */
 const exportedComponents = (): string[] => readPackageExports(packageIndex);
+
+describe("a name a reader sees is written for a reader (2026-08-31)", () => {
+  /* `entry.name` is the EXPORTED name — the coverage law's key and the generated API table's
+     key — so it stays `AvatarGroup`, and every place a person READS it goes through
+     `humanLabel`. The law is over the function rather than the call sites because this app has
+     one node project and cannot lay a page out; what it can do is prove the rule holds for
+     every name the registry actually carries, which is the input the call sites pass.
+
+     Falsified by dropping either half of the replace: without the split, `AvatarGroup` keeps
+     its run; without the leading capital, `size` stays lowercase. */
+  it("every compound export name is split, and nothing else moves", () => {
+    expect(humanLabel("AvatarGroup")).toBe("Avatar Group");
+    expect(humanLabel("SegmentedControl")).toBe("Segmented Control");
+    // A prop is the same rule with the first word uncapitalized to begin with.
+    expect(humanLabel("size")).toBe("Size");
+    expect(humanLabel("lineNumbers")).toBe("Line Numbers");
+    // Single words are already right and must not gain a space.
+    expect(humanLabel("Shell")).toBe("Shell");
+    expect(humanLabel("Kbd")).toBe("Kbd");
+  });
+
+  it("no registry name still reads as code once labelled", () => {
+    // The general case over the real input: after labelling, no lowercase letter may be
+    // followed directly by an uppercase one anywhere in the set.
+    const wrong = ENTRIES.map((entry) => humanLabel(entry.name)).filter((label) =>
+      /[a-z][A-Z]/.test(label),
+    );
+    expect(wrong).toEqual([]);
+    // Vacuity: the set must actually contain compound names, or the walk above proves nothing.
+    expect(ENTRIES.filter((entry) => /[a-z][A-Z]/.test(entry.name)).length).toBeGreaterThan(3);
+  });
+});
 
 const documented = ENTRIES.map((entry) => entry.name);
 const slugs = ENTRIES.map((entry) => entry.slug);

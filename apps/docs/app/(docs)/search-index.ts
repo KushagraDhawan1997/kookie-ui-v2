@@ -2,6 +2,7 @@ import { CHAPTERS } from "./chapters";
 import { ENTRIES } from "./components/registry";
 import { chapterToc } from "./toc";
 import type { SearchEntry } from "./search";
+import { humanLabel } from "./label";
 
 /**
  * The search index, built at build time out of our own data (2026-08-21; LOG).
@@ -44,7 +45,7 @@ export function buildSearchIndex(): SearchEntry[] {
 
   for (const entry of ENTRIES) {
     entries.push({
-      title: entry.name,
+      title: humanLabel(entry.name),
       context: `${entry.family} component`,
       href: `/components/${entry.slug}`,
       // The refusals are in the haystack deliberately: "no margin prop" and "why can't I set
