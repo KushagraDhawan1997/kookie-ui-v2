@@ -52,6 +52,7 @@ import {
   FieldItem,
   FieldLabel,
   Flex,
+  Attachment,
   Grid,
   Heading,
   Kbd,
@@ -1131,6 +1132,79 @@ function HeadingSection() {
   );
 }
 
+
+function AttachmentSection() {
+  return (
+    <Stack gap="6">
+      {/* The specimen the component was designed from: a composer's strip, where a file about
+          to be sent and one already sent are the same tile (§30). The composer is the frame;
+          the tiles are not part of it, which is the whole reason this is its own component. */}
+      <Box maxWidth="34rem">
+        <Stack gap="3">
+          <Stack gap="2">
+            <Attachment meta="2.4 MB" onRemove={() => {}}>
+              quarterly-report.pdf
+            </Attachment>
+            <Attachment state="uploading" progress={0.62} meta="62% of 18 MB">
+              product-walkthrough.mp4
+            </Attachment>
+          </Stack>
+          <TextArea rows={3} placeholder="Say something about these files…" />
+        </Stack>
+      </Box>
+
+      {/* The four states, and the two busy ones are the pair to judge: a fraction FILLS and a
+          server working on a file SWEEPS, which is why they are two states and not one flag. */}
+      <Stack gap="4">
+        <Text size="2" emphasis="medium">
+          The state is the category, not a colour a call site picked
+        </Text>
+        <Box maxWidth="34rem">
+          <Stack gap="2">
+            <Attachment meta="2.4 MB" onRemove={() => {}}>
+              quarterly-report.pdf
+            </Attachment>
+            <Attachment state="uploading" progress={0.62} meta="62% of 18 MB">
+              product-walkthrough.mp4
+            </Attachment>
+            <Attachment state="processing" meta="Extracting text">
+              contract-signed.pdf
+            </Attachment>
+            <Attachment state="error" meta="File is larger than 25 MB" onRemove={() => {}}>
+              dataset-export.csv
+            </Attachment>
+          </Stack>
+        </Box>
+      </Stack>
+
+      {/* A name with nothing to break on, which is the fixture the arrangement law uses: the
+          middle goes and both ends survive, and the ✕ never leaves the tile. */}
+      <Stack gap="4">
+        <Text size="2" emphasis="medium">A name longer than the tile</Text>
+        <Box maxWidth="20rem">
+          <Attachment meta="18.2 MB" onRemove={() => {}}>
+            averyveryverylongsinglewordfilenamewithnobreakopportunity.pdf
+          </Attachment>
+        </Box>
+      </Stack>
+
+      {/* The box is the surface layer's, so a tile and a card at one index share a padding and
+          a corner — and the index reaches the name, because the tile owns it. */}
+      <Stack gap="4">
+        <Text size="2" emphasis="medium">One index, the surface layer's own box</Text>
+        <Box maxWidth="34rem">
+          <Stack gap="2">
+            {(["1", "2", "3", "4"] as const).map((size) => (
+              <Attachment key={size} size={size} meta="2.4 MB" onRemove={() => {}}>
+                quarterly-report.pdf
+              </Attachment>
+            ))}
+          </Stack>
+        </Box>
+      </Stack>
+    </Stack>
+  );
+}
 
 function NoticeSection() {
   return (
@@ -2821,6 +2895,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "link", name: "Link", body: <LinkSection /> },
   ported("menu"),
   ported("composer"),
+  { id: "attachment", name: "Attachment", body: <AttachmentSection /> },
   { id: "notice", name: "Notice", body: <NoticeSection /> },
   ported("select"),
   { id: "layout", name: "Layout — Box, Flex, Grid, Stack", body: <LayoutSection /> },

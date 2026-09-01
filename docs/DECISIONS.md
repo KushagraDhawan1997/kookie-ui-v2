@@ -2148,7 +2148,7 @@ This replaces `sendMode` entirely. v1's prop decides whether the button is *visi
 
 **`ComposerRow` SHIPPED, and what it carries is the rhythm rather than the grouping (amended 2026-08-26 — this paragraph listed the part among the section's refusals while it was a public export, which is the drift a law now catches: `src/index.test.ts` walks every name this document says is refused against the barrel, so restating an old refusal as a quotation is not available here — say what the paragraph used to do, do not re-say it).** The first cut refused it because a row of buttons is a `Flex`, and that argument is right about the GROUPING: which controls sit left and which sit right is what those controls mean, which is the app's to say, so v1's `Row`/`RowStart`/`RowEnd` collapse to one part rather than three. What it is wrong about is the alignment, the split and the gap — those are the system's rhythm, and a caller writing `align="center" justify="between" gap="2"` at every call site is the nine-opinions-per-screen §15 exists to stop. So the part states the three distances and nothing else; a caller groups inside it with `Flex`, or drops one flat list in and lets it space evenly.
 
-**The attachment tile is refused *here* and shipped separately.** A file about to be sent and a file already sent are the same tile, so it cannot belong to the composer. It ships as `Attachment`, and it takes its state as a prop — `idle | uploading | processing | error | done` — set by the caller and drawn in CSS. **The system draws the state; the app owns the file.** This is the answer to the audit's open question 2, and it is what v1 gets wrong: v1 holds `File` objects and mints object URLs, then revokes them one commit after handing them to `onSubmit`, so the preview of the message you just sent is already broken.
+**The attachment tile is refused *here* and shipped separately.** A file about to be sent and a file already sent are the same tile, so it cannot belong to the composer. It ships as `Attachment`, and it takes its state as a prop — `idle | uploading | processing | error` — set by the caller and drawn in CSS. **This row named five states and the component ships four (2026-09-01, §43): `done` is dropped because the sentence above it is the reason — if a file about to be sent and a file already sent are the same tile, then `done` and `idle` are one appearance, and a value that cannot be told from another is not a value.** **The system draws the state; the app owns the file.** This is the answer to the audit's open question 2, and it is what v1 gets wrong: v1 holds `File` objects and mints object URLs, then revokes them one commit after handing them to `onSubmit`, so the preview of the message you just sent is already broken.
 
 **Compact is refused for now, and the refusal is the additive direction.** assistant-ui ships a compact composer and the axis is real, so this is a deferral rather than a judgement. But compact only means something when there is something to collapse — their condition is "no attachments, no quote, no queue, no dictation, no newline" — and this component ships none of those. A composer whose control row is always present has nothing to compact into. It ships when something wants it, and when it does it follows their mechanism and not v1's: driven by **content**, never by focus, latching until the text is empty, with no blur handler, emitting one `data-compact` attribute and unmounting nothing. v1 drives the same axis from focus and branches the React tree, which is what produces the bar that can get stuck shut, both slot vocabularies, and the focus that lands on `<body>` when a slot unmounts.
 
@@ -2537,6 +2537,73 @@ shadcn/ui ships a full parallel set, and Base UI re-exports the very same compon
 **One sabotage was kept after it SURVIVED, rather than the law being stretched to cover it.** A rule painting the panel red on coarse pointers hits the twin as well, so an agreement law goes on agreeing — recorded in the law itself, with the falsification that does belong to it (a `PortalScope` that resets an axis) and a note that "no rule paints the panel red" is the stylesheet's claim, not §20's. 18 mounted laws, nine sabotage passes; the ledger above is corrected in the same commit.
 
 **Zero gzipped bytes for the whole placement** — it ships no CSS, so there is nothing for the budget to move; the `+84` this line carried until the 2026-09-02 audit was a stale first-design figure. 18 mounted laws, nine sabotage passes.
+
+## 43. Attachment (2026-09-01) — one file, and what is happening to it
+
+**§30 refused it *there* and named it here, and the refusal is the design.** A file about to be
+sent and a file already sent are the same tile, so the tile cannot belong to the thing that
+sends: it sits in a composer's strip today and in a message tomorrow, and neither owns it.
+Building it inside `Composer` would have made "show me what I already sent" un-expressible
+without a second component that looked identical.
+
+**The system draws the state; the app owns the file.** Every value is a prop the caller sets
+from state it already has. The component never receives a `File`, never reads bytes, never
+starts a timer and never mints an object URL — which is precisely what v1 did, revoking the URL
+one commit after handing it to `onSubmit`, so the preview of the message you just sent was
+already broken. There is no internal state of any kind here, which is `onDismiss`'s argument
+one component over: a tile that removed itself would disagree with the array it came from.
+
+**Four states, not the five §30 named — `done` is dropped, and that section's own sentence is
+the argument.** "A file about to be sent and a file already sent are the same tile" makes
+`done` and `idle` one appearance, and a value that cannot be told from another is not a value;
+this system deleted an entire axis on that finding (`controlLook`, 2026-08-19, both values
+emitting identical declarations). What separates a pending attachment from a sent one is what
+the app puts IN the tile — a remove button before, a download after — not a state the system
+draws. Re-adding it is additive the day a real screen wants a distinct terminal drawing, which
+is the direction that makes the call cheap to be wrong about.
+
+**`uploading` and `processing` survive as two, because one can be counted and the other cannot.**
+That is the whole distinction and it is drawn rather than asserted: `uploading` with a fraction
+fills the bar, `uploading` without one and `processing` sweep it — Progress's own indeterminate,
+motion that IS the content, so §8's zeroed-transition law is untouched and reduced motion slows
+it rather than stopping it. `progress` is read only in `uploading`, law-asserted, because a
+server working on a file reports no fraction and pretending otherwise is inventing information.
+
+**The state is the category, so there is no `tone`** (§29's sentence one family over). `error`
+stamps `destructive` and the tone indirection moves the fill and the ink together at zero cost
+in this stylesheet. A second colour axis would let a call site paint `success` on a failed
+upload, which is a sentence the system should not be able to write. `emphasis` goes with it: a
+tile is one thing at one volume, and what changes its weight is the state.
+
+**It rests as a Card and reports as a Notice, and both halves had to be stamped.** A
+`.kui-surface` resolves its fill from `[data-tone]` and `[data-emphasis]` TOGETHER — the first
+draft stamped the tone alone on error, which reached the ink and left the box byte-identical to
+a healthy tile, measured. So the tile rests `neutral`/`quiet`, which is Card's identity at tile
+scale and is law-asserted as an agreement with a mounted Card rather than as a token name; and
+`error` moves to the tone-forward `medium` rung, which is where a Notice rests, for the same
+reason — a condition is being reported.
+
+**It does not cast** (§5, the plane criterion's fourth application after the field, the ground
+and the notice): a tile in a strip is content ON the composer's plane, not a plane above it.
+Stated at (0,2,0) on `.kui-surface.kui-attachment`, because the material's transmitted cast is
+written at `.kui-surface[data-material="thin"]` and a one-class selector would lose on
+specificity rather than on order — the trap `notice.css` records paying for. The pool survives
+on glass: that is what the material HAS, not what the app SAYS.
+
+**The ✕ promoted on its second consumer.** `DISMISS_PATH` moves from `notice.tsx` into
+`system/glyphs.ts`, which is that file's own written rule ("only once a second component needs
+the same one"), and Notice now reads it. `aria-hidden` on the bar, because it restates what the
+tile's `aria-busy` already announces — Tooltip's rule — and a fraction's words are the app's:
+an app that wants 40% announced writes it into `meta`, in its own language.
+
+15 mounted laws, four sabotage passes each caught by exactly its own law. One instrument
+finding worth keeping: the tone law first read `colorOn(el, "background-color")`, and `colorOn`
+resolves a colour EXPRESSION, so it was handed a property name, resolved nothing, and reported
+both tiles transparent and therefore equal — a green law over a component that was painting
+correctly the whole time. Calibrate, then measure. And the first cast law tested
+`/0px 0px 0px 0px/` against the whole shadow string, which the pool's own transparent first
+layer satisfies, so it passed on a tile casting two real shadows; the agreement law against a
+mounted Notice is what caught it.
 
 ## Open questions / deferred
 

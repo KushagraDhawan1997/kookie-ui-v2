@@ -2,6 +2,7 @@
 export { Accordion, AccordionItem, AccordionTrigger, AccordionPanel, type AccordionProps, type AccordionItemProps, type AccordionTriggerProps, type AccordionPanelProps } from "./components/accordion/accordion.tsx";
 export { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction, type AlertDialogProps, type AlertDialogTriggerProps, type AlertDialogContentProps, type AlertDialogTitleProps, type AlertDialogDescriptionProps, type AlertDialogCancelProps, type AlertDialogActionProps } from "./components/alert-dialog/alert-dialog.tsx";
 export { Avatar, AvatarGroup, type AvatarProps, type AvatarGroupProps } from "./components/avatar/avatar.tsx";
+export { Attachment, type AttachmentProps, type AttachmentState } from "./components/attachment/attachment.tsx";
 export { Badge, type BadgeProps } from "./components/badge/badge.tsx";
 export { Chip, type ChipProps } from "./components/chip/chip.tsx";
 export {

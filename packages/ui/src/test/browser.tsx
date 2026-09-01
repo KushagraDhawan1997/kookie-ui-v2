@@ -37,6 +37,7 @@ import { density } from "../tokens/config.ts";
 // by position; `recipes.test.ts` still owns membership in both directions.
 import accordionCss from "../components/accordion/accordion.css?raw";
 import alertDialogCss from "../components/alert-dialog/alert-dialog.css?raw";
+import attachmentCss from "../components/attachment/attachment.css?raw";
 import avatarCss from "../components/avatar/avatar.css?raw";
 import badgeCss from "../components/badge/badge.css?raw";
 import chipCss from "../components/chip/chip.css?raw";
@@ -92,6 +93,7 @@ export function installStyles(): void {
     spinnerCss,
     accordionCss,
     alertDialogCss,
+    attachmentCss,
     avatarCss,
     badgeCss,
     chipCss,

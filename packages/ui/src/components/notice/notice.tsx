@@ -8,6 +8,7 @@ import { OWNED_BODY_STEP } from "../../system/type-steps.ts";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { Button } from "../button/button.tsx";
 import { Text } from "../text/text.tsx";
+import { DISMISS_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
 import { glyphStroke } from "../../tokens/config.ts";
 
 export type NoticeProps = {
@@ -74,9 +75,9 @@ export type NoticeProps = {
     next package glyph would hand-write a heavier line than everything around it. */
 function dismissGlyph() {
   return (
-    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+    <svg viewBox={GLYPH_VIEWBOX} fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
       <path
-        d="M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5"
+        d={DISMISS_PATH}
         stroke="currentColor"
         strokeWidth={glyphStroke}
         strokeLinecap="round"

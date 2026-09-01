@@ -25,3 +25,12 @@ export const CHECK_PATH = "M4 8.5 6.75 11.25 12 5.75";
 
 /** The grid every path here is drawn on. */
 export const GLYPH_VIEWBOX = "0 0 16 16";
+
+/** The dismissal ✕. A Notice's acknowledgement and an Attachment's remove — both mean "take
+    this away", and both draw it at the same weight in the same box. It was written inline in
+    `notice.tsx` while it had one consumer, which is this file's own rule (a path in two files
+    is one drawing with two homes); Attachment is the second, so it lands here.
+
+    Two strokes rather than a glyph font's single ✗, and round caps, because at 16px a mitred
+    crossing thickens visibly at the centre where the two lines meet. */
+export const DISMISS_PATH = "M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5";

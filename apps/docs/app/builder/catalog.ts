@@ -783,6 +783,19 @@ export const CATALOG: Record<string, CatalogEntry> = {
     children: "text",
     make: () => node("Notice", { tone: "warning" }, { text: "Your certificate expires in six days." }),
   },
+  Attachment: {
+    family: "Surface",
+    blurb: "One file and what is happening to it. The system draws the state; the app owns the file.",
+    props: {
+      size: size(),
+      state: { kind: "options", values: ["idle", "uploading", "processing", "error"] },
+      progress: { kind: "number", min: 0, max: 1, note: "read only while uploading — omit it and the bar sweeps" },
+      meta: text,
+      backdrop: bool,
+    },
+    children: "text",
+    make: () => node("Attachment", { meta: "2.4 MB" }, { text: "quarterly-report.pdf" }),
+  },
   Progress: {
     family: "Indicator",
     blurb: "A rail with no grip. One designed thickness; extent is the container's.",

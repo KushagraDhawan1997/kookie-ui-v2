@@ -312,6 +312,77 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "Attachment": {
+    "element": null,
+    "props": [
+      {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Says content passes behind this tile, so the theme's material can show. Unset, it follows the surrounding `<Box backdrop>` region. Card's wiring verbatim."
+      },
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": false,
+        "doc": "The file's name. This is the tile's accessible name, so it is required and it is text."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Dresses the tile. Outer spacing is the caller's Box, never this (the non-negotiable)."
+      },
+      {
+        "name": "icon",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The file's symbol or thumbnail, if your app has one. The package ships no icon set, so the slot is safe when empty. It carries no meaning of its own and is hidden from assistive technology, because the name is what identifies the file."
+      },
+      {
+        "name": "meta",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The second line — a size, a type, a failure reason. Muted and one step down, because it describes the name rather than competing with it."
+      },
+      {
+        "name": "onRemove",
+        "type": "() => void",
+        "optional": true,
+        "doc": "Removes the file. Renders the ✕ only when given: an attachment nobody may detach should not draw a control that does nothing. **The list is the app's**, exactly as a Notice's dismissal is — a tile that removed itself would disagree with the array it came from."
+      },
+      {
+        "name": "progress",
+        "type": "number",
+        "optional": true,
+        "doc": "How far, 0 to 1, and read only while `state=\"uploading\"`. Omit it and the bar sweeps instead of filling, which is the honest drawing when nobody is counting bytes. `processing` never reads it: a server working on a file reports no fraction, and that difference is the whole reason these are two states rather than one busy flag."
+      },
+      {
+        "name": "removeLabel",
+        "type": "string",
+        "optional": true,
+        "doc": "The remove control's accessible name. English by default, because the package ships no translation layer; state your own and it is stated once, here."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "optional": true,
+        "doc": "Prices the tile: padding, corner, the symbol's box, the remove button and the file's own name. It owns all of that, so the index reaches the words — the composer's rule (§30, 2026-08-23): a component that owns its content sizes it, one that hosts yours does not."
+      },
+      {
+        "name": "state",
+        "type": "AttachmentState",
+        "optional": true,
+        "doc": "What is happening to this file. **The system draws the state; the app owns the file** (§30). Nothing here starts a timer, holds a `File`, or mints an object URL — v1 did the last of those and revoked the URL one commit after handing it to `onSubmit`, so the preview of the message you just sent was already broken."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
   "AvatarGroup": {
     "element": "span",
     "props": [

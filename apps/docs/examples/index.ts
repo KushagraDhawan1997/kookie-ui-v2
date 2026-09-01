@@ -18,6 +18,7 @@
 import type * as React from "react";
 
 import AlertDialogExample from "./alert-dialog";
+import AttachmentExample from "./attachment";
 import AccordionExample from "./accordion";
 import AvatarExample from "./avatar";
 import AvatarGroupExample from "./avatar-group";
@@ -71,6 +72,7 @@ import ThemeExample from "./theme";
 export const EXAMPLES: Record<string, React.ComponentType> = {
   "alert-dialog": AlertDialogExample,
   "accordion": AccordionExample,
+  attachment: AttachmentExample,
   "avatar": AvatarExample,
   "avatar-group": AvatarGroupExample,
   "badge": BadgeExample,

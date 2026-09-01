@@ -1,0 +1,92 @@
+/**
+ * Attachment (§43) — one file and what is happening to it.
+ *
+ * Almost everything about how it LOOKS arrives from the surface layer: the tile wears
+ * `.kui-surface`, so the seal, the corner, the padding, the edge, the material and the
+ * foreground context are all the system's, and the only thing this file states is the
+ * arrangement plus the one refusal below. Card's relationship, at tile scale.
+ *
+ * There is no colour here and no distance that is not a token — the state's colour is the
+ * tone indirection doing its job under a stamped `[data-tone]`, which is why `error` costs
+ * this stylesheet nothing at all.
+ */
+
+/* AN ATTACHMENT DOES NOT CAST (§5, §10).
+   The plane criterion, for the fourth time: elevation dresses boxes that establish a plane of
+   their own. A field left the elevated world because a well is carved in, a ground because a
+   hole in a plane throws no shadow, a notice because a strip is a marker ON a plane — and a
+   tile in a composer's strip is the same reading again. It is content on the composer's
+   surface, not a second surface above it.
+
+   Stated at (0,2,0) deliberately. The material's own transmitted cast is written at
+   `.kui-surface[data-material="thin"]`, so a one-class `.kui-attachment` would lose this on
+   SPECIFICITY rather than on order and a `<Attachment backdrop>` in an elevated world would
+   cast the very shadow this refuses — the exact trap notice.css records paying for. The root
+   already wears `.kui-surface`, so the tie is bought here and this file's import position
+   wins it.
+
+   `0 0 0 0 transparent`, never `none`: `none` is illegal inside a shadow list, which is the
+   scar the rim carries from the other direction (§10). The POOL survives on glass, because
+   that is what the material HAS and not what the app SAYS. */
+.kui-surface.kui-attachment {
+  --kui-sf-cast: 0 0 0 0 transparent;
+  display: flex;
+  flex-direction: column;
+  /* The bar sits under the row it reports on, close enough to belong to it. */
+  gap: var(--layout-space-2);
+}
+
+.kui-attachment-row {
+  display: flex;
+  align-items: center;
+  /* The same interval a Notice puts between its symbol and its sentence: wide enough that the
+     remove control does not read as part of the name, tight enough that the tile is one thing. */
+  gap: var(--layout-space-3);
+}
+
+/* The name column takes the slack and the two ends do not.
+   `min-inline-size: 0` because a flex item's floor is its content, and a file name is the
+   single most likely string in this system to be long and unbreakable — the row family's own
+   scar (audit 2026-08-09, where one address gave a menu 90px of sideways scroll). Without it
+   the ✕ walks off the end of the tile. */
+.kui-attachment-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-inline-size: 0;
+}
+
+/* A file name is one line and the middle of it is worth less than either end — `document` and
+   `.pdf` both survive, the middle goes. `ellipsis` rather than `clip` so the truncation is
+   visible, which is what stops a reader trusting a name that is not the whole name. */
+.kui-attachment-name,
+.kui-attachment-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Neither end may grow into the slack the name is claiming, and neither may shrink under its
+   own content — the mistake Progress made and paid for (2026-08-08), where `flex: none` beside
+   `inline-size: 100%` put 381px of bar inside a 300px row. */
+.kui-attachment-icon,
+.kui-attachment-remove {
+  flex: none;
+}
+
+/* The symbol lands on the same drawing grid every other glyph on a surface lands on, and grows
+   with the pointer world exactly as they do. The colour is inherited: a stamped `error` has
+   already re-scoped the foreground context, so the symbol tints without this file knowing that
+   any family exists. */
+.kui-attachment-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--kui-sf-icon);
+  block-size: var(--kui-sf-icon);
+}
+
+.kui-attachment-icon > svg {
+  inline-size: 100%;
+  block-size: 100%;
+}

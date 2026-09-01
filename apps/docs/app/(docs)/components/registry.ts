@@ -108,6 +108,50 @@ export const ENTRIES: Entry[] = [
     ],
   },
   {
+    slug: "attachment",
+    name: "Attachment",
+    family: "Surface",
+    spec: "§43",
+    blurb:
+      "Attachment is one file and what is happening to it. It is not part of the composer, because a file about to be sent and a file already sent are the same tile, so the tile cannot belong to the thing that sends. The system draws the state and the app owns the file: every value is a prop you set from state you already have, and the component never sees a File, never starts a timer, and never mints a URL it would have to revoke.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "sets the tile — padding, corner, the symbol's grid, the remove button and the file's own name. The index reaches the words because the tile owns them: a component that owns its content sizes it, one that hosts yours does not" },
+      { name: "state", values: "idle | uploading | processing | error", note: "what is happening, set by you. A busy tile announces itself busy and draws a bar; an error tile moves to the destructive family. Two busy values rather than one, because an upload can be counted and a server working on a file cannot" },
+      { name: "progress", values: "0 to 1", note: "read only while uploading. Omit it and the bar sweeps instead of filling, which is the honest drawing when nobody is counting bytes" },
+      { name: "backdrop", values: "boolean", note: "says content passes behind the tile, so the theme's material can show. A glass tile scopes everything inside it, so the remove button never paints a second layer of glass" },
+    ],
+    refusals: [
+      {
+        name: "a done state",
+        why: "The spec named five and this ships four. A file about to be sent and a file already sent are the same tile, which makes done and idle one appearance, and a value that cannot be told from another is not a value — this system deleted a whole axis for that reason. What separates a pending attachment from a sent one is what you put in the tile: a remove button before, a download after.",
+      },
+      {
+        name: "tone",
+        why: "The state is the category. An error tile reads destructive because it failed, not because you chose a colour. A second colour axis would let you paint success on a failed upload, which is a sentence the system should not be able to write.",
+      },
+      {
+        name: "holding the file",
+        why: "It never receives a File, reads bytes, or creates an object URL. Version one of this idea did, and revoked the URL one commit after handing it on, so the preview of the message you just sent was already broken. Give it a name, a state, and an icon you drew.",
+      },
+      {
+        name: "a built-in preview",
+        why: "An image goes in the icon slot, already decoded by you. A component that fetched or decoded one would own the file it is not allowed to own.",
+      },
+      {
+        name: "emphasis",
+        why: "A tile is one thing at one volume. Nothing here gets louder or quieter: what changes its weight is the state, and the state is not a preference.",
+      },
+      {
+        name: "a shadow",
+        why: "It never casts, in a flat theme or an elevated one. A shadow belongs to a box that is a plane of its own; a tile in a composer's strip is content on that composer's plane, the same reading that keeps a notice flat. On glass it keeps the pool every pane gets, which is what the material has rather than what the app says.",
+      },
+      {
+        name: "render",
+        why: "There are two elements here, the tile and its name, and neither can move. render would have to silently mean one of them.",
+      },
+    ],
+  },
+  {
     slug: "avatar",
     name: "Avatar",
     family: "Type",
