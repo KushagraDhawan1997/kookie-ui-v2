@@ -7381,3 +7381,43 @@ fail on exactly their law. One motion law re-anchored (`area.focus()` on a span 
 — the law was silently asserting an unfocused element never rings). The docs API tables
 regenerated on the type change, and the one-element prose in DECISIONS, the registry and
 recipes.css was amended in the same change — doc-code drift ships together.
+## 2026-08-31 — the menu separator moves in a second time: it divides the labels, not the rows
+
+**The ask.** Kushagra, on a screenshot of the Actions menu: the separator "extends to almost
+the edge, but I need it to extend to where text labels start and end."
+
+**It is the same argument, one layer further in.** The line shipped full-bleed, breaking out
+of the panel's padding by a negative margin, on the theory that a rule stopping short reads
+as broken. 2026-08-09 pulled it back to the rows' own extent: a separator divides ROWS, the
+rows sit inside the panel's padding, so a line wider than they are was dividing the panel
+instead. The same sentence answers this one — a row's box is its HIGHLIGHT, and what a
+reader groups is the words, so the line that groups them starts where they start.
+
+**Its own strongest objection, answered rather than dodged.** The line is now narrower than
+the fill it divides, which is precisely the mirror of the complaint that killed the full
+bleed, and if the 2026-08-09 argument were about width alone this would be a reversal of it.
+It is not: the argument is about SCOPE — what the line claims to be dividing — and a divider
+inside the labels claims the labels. Every list that insets a rule reaches the same place
+from the same reasoning (iOS table views inset to the text after the leading glyph;
+Material's inset divider does the same), and each of them lets the row's press feedback keep
+the wider box. The two are different facts.
+
+**The mechanism is a publish, because a separator is not a row's descendant.** The row's own
+text inset is `--kui-ct-px-pill`, declared by the control size join on each ROW's element;
+the separator is their sibling and inherits none of it. So the floating family's size join
+publishes `--kui-sf-row-px` onto the pane, which is `--kui-sf-icon`'s reason one join up: a
+per-size spelling belongs to the shared layer and the no-axis walk forbids `data-size` in a
+component sheet outright. The PILL token, not the plain one — it is the plain padding at
+every level below `full` and the corner-corrected one at `full`, so what it names is where a
+bare-edged row's label starts. That is also where the group label starts (§21); a checkable
+row's label sits one indicator further in by the reserved-gutter rule, which is a designed
+difference and not a second alignment to chase.
+
+**The law was re-keyed, not relaxed, and it needed a second calibration.** It read "the
+separator spans the rows" against a mounted row's border box; it now reads the row's own
+computed padding and asserts the CONTENT box, so `--kui-sf-row-px` and the control join's
+pill token cannot drift apart silently. The first arm of the calibration (the panel's padding
+is a real distance) was already there; the second (the row's padding is too) is what makes
+the law fail on the pre-fix stylesheet at all — without it, "the labels" and "the rows" are
+the same answer and the law is about neither. Falsified at `expected 14 to be less than or
+equal to 0.5`. +148 bytes gzipped: four join declarations and one `margin-inline`.

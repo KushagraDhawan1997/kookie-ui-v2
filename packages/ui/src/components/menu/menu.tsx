@@ -770,13 +770,17 @@ export function MenuSubTrigger({
 }: MenuSubTriggerProps) {
   // The child panel measures its seam from the panel this row sits in (§22).
   const captured = React.use(MenuSubTriggerContext);
+  const capture = React.useCallback(
+    (node: HTMLElement | null) => {
+      if (captured) captured.current = node;
+    },
+    [captured],
+  );
   const setRow = useMergedRefs(ref, capture);
   return (
     <BaseMenu.SubmenuTrigger
       {...rowProps(React.use(MenuSizeContext), undefined, "kui-menu-item", className)}
       {...props}
-        if (captured) captured.current = node;
-      })}
       ref={setRow}
     >
       {slot(leading, "leading")}

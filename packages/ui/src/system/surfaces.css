@@ -416,22 +416,37 @@
    judged in the playground. The padding is the COMPONENT's, supplied through the
    --kui-floating-p hook (the --kui-sf-cast shape: the system declares the fallback, the
    pane's own sheet supplies the value); the higher specificity over the surface join
-   above is what lets these arms re-state the padding the join would otherwise pick. */
+   above is what lets these arms re-state the padding the join would otherwise pick.
+
+   `--kui-sf-row-px` publishes the ROWS' OWN TEXT INSET to the pane (2026-08-31, Kushagra: a
+   separator should "extend to where text labels start and end"). It is here for `--kui-sf-icon`'s
+   reason one join up — a per-size spelling belongs to the shared layer, and the no-axis walk
+   forbids `data-size` in a component stylesheet — and it is here rather than left to inheritance
+   because a separator is a SIBLING of the rows, not a descendant: `--kui-ct-px-pill` is declared
+   by the control join on each row's own element and never reaches the line between two of them.
+   It is the PILL token, which is the plain padding at every level below `full` and the
+   corner-corrected one at `full`: what it names is where a bare-edged row's label starts, the
+   same anchor the group label takes (§21). A slotted row's text starts one correction further in
+   by design; that is the reserved-gutter fact, not a second alignment. */
 .kui-surface.kui-floating-rows[data-size="1"] {
   --kui-sf-p: var(--kui-floating-p, var(--surface-p-1));
   --kui-sf-radius: calc(var(--radius-row-1) + var(--kui-sf-p));
+  --kui-sf-row-px: var(--control-px-pill-1);
 }
 .kui-surface.kui-floating-rows[data-size="2"] {
   --kui-sf-p: var(--kui-floating-p, var(--surface-p-2));
   --kui-sf-radius: calc(var(--radius-row-2) + var(--kui-sf-p));
+  --kui-sf-row-px: var(--control-px-pill-2);
 }
 .kui-surface.kui-floating-rows[data-size="3"] {
   --kui-sf-p: var(--kui-floating-p, var(--surface-p-3));
   --kui-sf-radius: calc(var(--radius-row-3) + var(--kui-sf-p));
+  --kui-sf-row-px: var(--control-px-pill-3);
 }
 .kui-surface.kui-floating-rows[data-size="4"] {
   --kui-sf-p: var(--kui-floating-p, var(--surface-p-4));
   --kui-sf-radius: calc(var(--radius-row-4) + var(--kui-sf-p));
+  --kui-sf-row-px: var(--control-px-pill-4);
 }
 
 /* THE ONE PANE WITH TWO INSETS (§32, 2026-08-26 audit). A tooltip is one line of words priced

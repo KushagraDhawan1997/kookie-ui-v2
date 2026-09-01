@@ -1272,15 +1272,17 @@ describe("behavior: the platform's menu, not a styled div", () => {
 /* ── The panel's interior (§22) ───────────────────────────────────────────────────────── */
 
 describe("what the panel does to what is inside it (§22)", () => {
-  /* The separator is INSET to the rows' own extent (reversed 2026-08-09 from a full bleed):
-     it divides rows, and the rows sit inside the panel's padding, so a line wider than they
-     are divides the panel instead. Two facts, and the group arm is why the law exists at all —
-     a group is a transparent wrapper, so a separator between one group's rows must land
-     exactly where a loose one does. Asserted against a ROW rather than a number, so the
-     designed padding stays the single source. Falsified both ways: restoring the negative
-     margin fails the row-extent arm, dropping the group arm from the selector fails the
-     agreement arm. */
-  it("a separator spans the rows, not the panel — in a group or out of one", () => {
+  /* The separator is INSET TO THE LABELS (2026-08-31; it was inset to the rows' own extent
+     from 2026-08-09, and full-bleed before that — the same argument applied one layer further
+     each time). It divides what the reader groups, which is the words, so it starts and ends
+     where a bare-edged row's TEXT does. Two facts, and the group arm is why the law exists at
+     all — a group is a transparent wrapper, so a separator between one group's rows must land
+     exactly where a loose one does. Asserted against a ROW's own computed padding rather than
+     a number, so `--kui-sf-row-px` and the control join's pill token cannot drift apart
+     silently. Falsified three ways: dropping `margin-inline` lands it on the row's border box,
+     restoring the old negative margin lands it on the panel's, and dropping the group arm from
+     the selector fails the agreement arm. */
+  it("a separator spans the labels, not the rows — in a group or out of one", () => {
     const { popup } = openMenu({}, (
       <>
         <MenuItem>Alpha</MenuItem>
@@ -1295,15 +1297,19 @@ describe("what the panel does to what is inside it (§22)", () => {
     const [loose, grouped] = [...popup.querySelectorAll<HTMLElement>(".kui-separator")];
     const row = popup.querySelector<HTMLElement>(".kui-menu-item");
     if (!loose || !grouped || !row) throw new Error("both separators and a row must mount");
-    // Calibration: the panel's padding is a real distance, so "spans the rows" and "spans
-    // the panel" are distinguishable answers in this cell.
+    // Calibration, both boundaries this law has to tell apart: the panel's padding is a real
+    // distance (so "the labels" and "the panel" differ), and so is the row's own (so "the
+    // labels" and "the rows" differ — without this the law passes on the pre-fix stylesheet).
     expect(parseFloat(computed(padBox(popup), "padding-left")), "nothing to inset").toBeGreaterThan(0);
-    // The rows' extent, both edges, both separators.
+    expect(parseFloat(computed(row, "padding-left")), "no label inset to find").toBeGreaterThan(0);
+    // The row's CONTENT box — where its label starts and ends — both edges, both separators.
     const rowBox = row.getBoundingClientRect();
+    const textLeft = rowBox.left + parseFloat(computed(row, "padding-left"));
+    const textRight = rowBox.right - parseFloat(computed(row, "padding-right"));
     for (const [name, el] of [["loose", loose], ["grouped", grouped]] as const) {
       const box = el.getBoundingClientRect();
-      expect(Math.abs(box.left - rowBox.left), `${name} starts where a row does`).toBeLessThanOrEqual(0.5);
-      expect(Math.abs(box.right - rowBox.right), `${name} ends where a row does`).toBeLessThanOrEqual(0.5);
+      expect(Math.abs(box.left - textLeft), `${name} starts where a label does`).toBeLessThanOrEqual(0.5);
+      expect(Math.abs(box.right - textRight), `${name} ends where a label does`).toBeLessThanOrEqual(0.5);
     }
     // And BOTH keep the panel's own rhythm above and below — which is now the only thing
     // the group arm of the selector supplies, so asserting it on the loose one alone left
