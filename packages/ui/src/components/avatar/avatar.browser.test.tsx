@@ -9,7 +9,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { APPEARANCES, computed, mounted, until } from "../../test/browser.tsx";
+import { APPEARANCES, DENSITIES, POINTERS, SIZES, computed, mounted, until } from "../../test/browser.tsx";
 import { avatarBadge, avatarBadgeOut, avatarOverlap, avatarScale, badgeBox } from "../../tokens/config.ts";
 import { Chip } from "../chip/chip.tsx";
 import { Kbd } from "../kbd/kbd.tsx";
@@ -45,6 +45,32 @@ describe("the box is the atom family's: one line, and a circle (§11, §15, §35
       // step failed exactly here (step 9 filled the disc) before the share was stated.
       const fallback = avatar.querySelector<HTMLElement>(".kui-avatar-fallback")!;
       expect(parseFloat(computed(fallback, "font-size"))).toBeCloseTo(box.height * avatarScale, 0);
+    });
+  }
+
+  for (const size of ["3", "6", "9"] as const) {
+    it(`size ${size}: a GROUP in a line does not spread it either`, () => {
+      // THE HALF THAT WAS UNREAD (ultracode audit 2026-09-01). "Never spreads the line" was
+      // asserted for a lone Avatar and for nothing else, and all three group laws mounted the
+      // group standalone — where `vertical-align` cannot change any answer. Measured before
+      // the fix: `<Text size="9">Team <AvatarGroup/> x</Text>` rendered a 72.95px paragraph
+      // against a 62px line, because an inline-flex box with no `vertical-align` sits on the
+      // BASELINE and a box one line tall then pushes past the strut.
+      const host = mounted(
+        <Text size={size} render={<p />}>
+          Team{" "}
+          <AvatarGroup>
+            <Avatar fallback="KD" />
+            <Avatar fallback="MC" />
+          </AvatarGroup>{" "}
+          ships today
+        </Text>,
+        { theme: {} },
+      );
+      const line = parseFloat(computed(host, "line-height"));
+      const group = host.querySelector<HTMLElement>(".kui-avatar-group")!;
+      expect(group.getBoundingClientRect().height, "the group is one line tall").toBeCloseTo(line, 1);
+      expect(host.getBoundingClientRect().height, "and the line did not grow around it").toBeCloseTo(line, 1);
     });
   }
 
@@ -104,16 +130,40 @@ describe("the picture and what stands in for it (§35)", () => {
     expect(el.querySelector(".kui-avatar-fallback")!.textContent).toBe("KD");
   });
 
-  it("without a picture or initials it draws the generic person, at the derived stroke", () => {
-    const el = mounted(<Avatar size="5" />, { theme: {} });
-    const glyph = el.querySelector<SVGElement>("svg.kui-avatar-glyph")!;
-    expect(glyph).not.toBeNull();
-    expect(glyph.getAttribute("aria-hidden")).toBe("true");
-    // Sized in the atom's own em, so it lands inside the disc with a face around it.
-    const g = glyph.getBoundingClientRect();
-    const box = el.getBoundingClientRect();
-    expect(g.width).toBeLessThan(box.width);
-    expect(g.width).toBeGreaterThan(box.width * 0.4);
+  for (const size of ["1", "3", "5", "9"] as const) {
+    it(`size ${size}: without a picture or initials it draws the generic person, at its stated share`, () => {
+      const el = mounted(<Avatar size={size} />, { theme: {} });
+      const glyph = el.querySelector<SVGElement>("svg.kui-avatar-glyph")!;
+      expect(glyph).not.toBeNull();
+      expect(glyph.getAttribute("aria-hidden")).toBe("true");
+      // THE DERIVATION, NOT A WINDOW (ultracode audit 2026-09-01). It read `0.4 x box < g <
+      // box` at one step, and a window that wide is satisfied by values the rule does not
+      // produce: respelling `1.5em` as `1.5rem` — a one-character slip carrying no px, so the
+      // tokens-only walk cannot see it — lands inside the window at steps 5 and 7 and breaks
+      // the derivation at 1, 3 and 9. The glyph is 1.5 of the fallback's own em, and the
+      // fallback is `--avatar-scale` of the disc, so the whole chain is read here.
+      const em = parseFloat(computed(el.querySelector<HTMLElement>(".kui-avatar-fallback")!, "font-size"));
+      expect(glyph.getBoundingClientRect().width).toBeCloseTo(em * 1.5, 0);
+      expect(em).toBeCloseTo(el.getBoundingClientRect().height * avatarScale, 0);
+    });
+  }
+
+  it("a supplied alt names the FALLBACK too, and an empty one hides it", async () => {
+    // The name has to survive the picture not arriving (ultracode audit 2026-09-01). Measured
+    // before the fix: `<Avatar src="…broken" alt="Kushagra" fallback="KD"/>` rendered exactly
+    // `<span>KD</span>` — a reader heard "K D" and never the name — while the default
+    // `alt=""`, documented as decorative, emitted a bare "KD" into the line beside the
+    // person's own name. Both arms, because each fails on its own.
+    const named = mounted(<Avatar alt="Kushagra Dhawan" fallback="KD" />, { theme: {} });
+    const fallback = named.querySelector<HTMLElement>(".kui-avatar-fallback")!;
+    expect(fallback.getAttribute("role")).toBe("img");
+    expect(fallback.getAttribute("aria-label")).toBe("Kushagra Dhawan");
+    expect(fallback.hasAttribute("aria-hidden")).toBe(false);
+
+    const bare = mounted(<Avatar fallback="KD" />, { theme: {} });
+    const decorative = bare.querySelector<HTMLElement>(".kui-avatar-fallback")!;
+    expect(decorative.getAttribute("aria-hidden")).toBe("true");
+    expect(decorative.hasAttribute("aria-label")).toBe(false);
   });
 
   it("the default alt is empty — decorative beside the name it sits next to", async () => {
@@ -251,12 +301,19 @@ describe("glass, and the avatar that is a button (§10, §35)", () => {
     expect(computed(plain, "backdrop-filter")).toBe("none");
   });
 
-  it("inside an icon-only Button it fills the button, and its initials keep their share of the disc", () => {
+  // EVERY CELL, and the audit's reason (2026-09-01): the law mounted default/fine/size 2, the
+  // one cell where the button's height, the line and the disc are all 30 — a constant satisfies
+  // every assertion there, while the other 23 cells span 22px to 66px. A law that mounts one
+  // cell of a 24-cell ladder is a law about that cell.
+  for (const density of DENSITIES)
+    for (const pointer of POINTERS)
+      for (const size of SIZES) {
+  it(`${density}/${pointer}/${size}: inside an icon-only Button it fills the button, and its initials keep their share of the disc`, () => {
     const button = mounted(
-      <Button iconOnly aria-label="Kushagra Dhawan" size="2">
+      <Button iconOnly aria-label="Kushagra Dhawan" size={size}>
         <Avatar fallback="KD" />
       </Button>,
-      { theme: {} },
+      { theme: { density, pointer } },
     );
     const avatar = button.querySelector<HTMLElement>(".kui-avatar")!;
     const a = avatar.getBoundingClientRect();
@@ -272,4 +329,5 @@ describe("glass, and the avatar that is a button (§10, §35)", () => {
     const fallback = avatar.querySelector<HTMLElement>(".kui-avatar-fallback")!;
     expect(parseFloat(computed(fallback, "font-size"))).toBeCloseTo(a.height * avatarScale, 0);
   });
+      }
 });

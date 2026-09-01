@@ -91,49 +91,80 @@
   font-family: var(--font-heading);
 }
 
+/* THE STEP, PUBLISHED (2026-09-01, ultracode audit). Two of the join's own values are needed
+   by a component that is a SHARE of the line it sits in, and neither is readable from CSS
+   otherwise: `1lh` in `font-size` resolves against the PARENT's line, not the element's, so a
+   badge that states its own size priced its box against the stated line and its digits against
+   the surrounding one — measured, `<Badge size="9">128</Badge>` painted 56px digits in a
+   43.39px pill, 10.3px of line box out of each end. And the cap-centre seat needs the FONT
+   size of the line it sits in, because the cap is a share of the font while `lh` is not: a
+   constant fraction of the line was right at steps 1-4 and 2.41px low at step 9.
+
+   They INHERIT, and here that is the mechanism rather than the trap: a badge with no size of
+   its own takes the line it sits in, which is what these two properties say. An element that
+   states a size re-declares both on itself, so the nearest statement always wins — Box's
+   `--kui-sf-p` bleed hook, one family over. */
 .kui-type[data-size="1"] {
   font-size: calc(var(--font-size-1) * var(--kui-ty-scale));
   line-height: var(--line-height-1);
+  --kui-ty-line: var(--line-height-1);
+  --kui-ty-font: calc(var(--font-size-1) * var(--kui-ty-scale));
   letter-spacing: var(--letter-spacing-1);
 }
 .kui-type[data-size="2"] {
   font-size: calc(var(--font-size-2) * var(--kui-ty-scale));
   line-height: var(--line-height-2);
+  --kui-ty-line: var(--line-height-2);
+  --kui-ty-font: calc(var(--font-size-2) * var(--kui-ty-scale));
   letter-spacing: var(--letter-spacing-2);
 }
 .kui-type[data-size="3"] {
   font-size: calc(var(--font-size-3) * var(--kui-ty-scale));
   line-height: var(--line-height-3);
+  --kui-ty-line: var(--line-height-3);
+  --kui-ty-font: calc(var(--font-size-3) * var(--kui-ty-scale));
   letter-spacing: var(--letter-spacing-3);
 }
 .kui-type[data-size="4"] {
   font-size: calc(var(--font-size-4) * var(--kui-ty-scale));
   line-height: var(--line-height-4);
+  --kui-ty-line: var(--line-height-4);
+  --kui-ty-font: calc(var(--font-size-4) * var(--kui-ty-scale));
   letter-spacing: var(--letter-spacing-4);
 }
 .kui-type[data-size="5"] {
   font-size: calc(var(--font-size-5) * var(--kui-ty-scale));
   line-height: var(--line-height-5);
+  --kui-ty-line: var(--line-height-5);
+  --kui-ty-font: calc(var(--font-size-5) * var(--kui-ty-scale));
   letter-spacing: var(--letter-spacing-5);
 }
 .kui-type[data-size="6"] {
   font-size: calc(var(--font-size-6) * var(--kui-ty-scale));
   line-height: var(--line-height-6);
+  --kui-ty-line: var(--line-height-6);
+  --kui-ty-font: calc(var(--font-size-6) * var(--kui-ty-scale));
   letter-spacing: var(--letter-spacing-6);
 }
 .kui-type[data-size="7"] {
   font-size: calc(var(--font-size-7) * var(--kui-ty-scale));
   line-height: var(--line-height-7);
+  --kui-ty-line: var(--line-height-7);
+  --kui-ty-font: calc(var(--font-size-7) * var(--kui-ty-scale));
   letter-spacing: var(--letter-spacing-7);
 }
 .kui-type[data-size="8"] {
   font-size: calc(var(--font-size-8) * var(--kui-ty-scale));
   line-height: var(--line-height-8);
+  --kui-ty-line: var(--line-height-8);
+  --kui-ty-font: calc(var(--font-size-8) * var(--kui-ty-scale));
   letter-spacing: var(--letter-spacing-8);
 }
 .kui-type[data-size="9"] {
   font-size: calc(var(--font-size-9) * var(--kui-ty-scale));
   line-height: var(--line-height-9);
+  --kui-ty-line: var(--line-height-9);
+  --kui-ty-font: calc(var(--font-size-9) * var(--kui-ty-scale));
   letter-spacing: var(--letter-spacing-9);
 }
 

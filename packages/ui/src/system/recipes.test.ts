@@ -1184,7 +1184,11 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     // not overturn it, it separated it — the paint clock is one variable, and press sets it to
     // zero while the geometry keeps its spring. If that variable ever stops being zeroed here,
     // every control in the library goes soft under the thumb.
-    const press = block(sheet("system/recipes.css"), ".kui-control:active:not([data-disabled], [data-loading])");
+    // The selector is SPLIT into two `:not()`s on purpose (2026-09-01): `:not()` takes the
+    // specificity of its most specific argument rather than summing its list, so the one-list
+    // spelling sat at (0,3,0) and lost to three lit rules that had reached (0,4,0) by the same
+    // accident. Pinning the spelling here is what makes that deliberate rather than a typo.
+    const press = block(sheet("system/recipes.css"), ".kui-control:active:not([data-disabled]):not([data-loading])");
     expect(press).toMatch(/--kui-ct-paint:\s*0s/);
     const hover = block(sheet("system/recipes.css"), ".kui-control:hover:not([data-disabled], [data-loading], :disabled)");
     expect(hover).toContain("var(--motion-hover-in)");
@@ -1257,6 +1261,22 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
    * The stems are the layers' own (`ct` control, `sf` surface, §12's namespace rule), so a
    * third layer that starts moving joins here rather than getting a law of its own.
    */
+  /**
+   * A component may READ the layer's hooks, so the layer's declarations count (2026-09-01).
+   *
+   * `--kui-ct-paint` and `--kui-ct-move` are declared once, on `.kui-control` in recipes.css,
+   * and a component that wears that class reads them by membership — the same mechanism the
+   * segmented control uses for `--kui-ct-h`. Resolving a component's channel against its own
+   * file alone therefore reports a correctly-tokenised clock as undeclared, which is what
+   * happened the moment the accordion's heading had to restate the skeleton's transition list
+   * to add a channel to it. The stems still have to resolve SOMEWHERE, which is the half of
+   * this that catches an invented hook.
+   */
+  const withLayers = (file: string): string =>
+    file.startsWith("system/")
+      ? sheet(file)
+      : `${sheet(file)}\n${sheet("system/recipes.css")}\n${sheet("system/surfaces.css")}`;
+
   function resolveHooks(sheetBody: string, channel: string): string {
     return channel.replace(/var\((--kui-(?:ct|sf)-[\w-]+)\)/g, (_, name: string) => {
       const declared = [...sheetBody.matchAll(new RegExp(`${name}:\\s*([^;]+);`, "g"))].map(
@@ -1277,7 +1297,7 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
         const body = declaration[1]!;
         if (body.trim() === "none") continue;
         for (const raw of body.split(",")) {
-          const channel = resolveHooks(sheet(file), raw);
+          const channel = resolveHooks(withLayers(file), raw);
           // The var() references are STRIPPED before the check, which is the whole law: the
           // first spelling asked whether the channel mentioned a motion token anywhere, and
           // every channel does — its easing is one. So `scale 150ms var(--motion-spring-stiff)`
@@ -1318,7 +1338,7 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
         for (const raw of body.split(",")) {
           const [property] = raw.trim().split(/\s+/);
           if (!property) continue;
-          const channel = resolveHooks(sheet(file), raw);
+          const channel = resolveHooks(withLayers(file), raw);
           if (channel.includes("0s") && !channel.includes("--motion-spring")) continue;
           if (PAINT.has(property)) {
             expect(channel, `${file}: ${property} is a signal, it must not spring`).not.toContain("--motion-spring");

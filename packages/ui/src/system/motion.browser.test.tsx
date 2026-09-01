@@ -11,12 +11,14 @@
  * have a fill that moves.
  */
 import { describe, expect, it } from "vitest";
+import { userEvent } from "vitest/browser";
 
 import { Theme } from "../theme/theme.tsx";
 import {
   APPEARANCES,
   asksForStillness,
   computed,
+  holdPress,
   inMotion,
   mounted,
   render,
@@ -28,9 +30,11 @@ import { Button } from "../components/button/button.tsx";
 import { Checkbox } from "../components/checkbox/checkbox.tsx";
 import { Radio, RadioGroup } from "../components/radio/radio.tsx";
 import { Slider } from "../components/slider/slider.tsx";
+import { Row } from "../components/row/row.tsx";
 import { Switch } from "../components/switch/switch.tsx";
 import { TextArea } from "../components/text-area/text-area.tsx";
 import { TextField } from "../components/text-field/text-field.tsx";
+import { Toggle } from "../components/toggle/toggle.tsx";
 
 const frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
 
@@ -364,5 +368,66 @@ describe("a field does not move (§8)", () => {
       computed(wrapper, "background-color"),
       "a field's own currency is its fill, and the pointer moves it",
     ).not.toBe(restingFill);
+  });
+});
+
+
+/**
+ * A PRESS IS THE LAST WORD ON A CONTROL'S FILL (§8, §10, ultracode audit 2026-09-01).
+ *
+ * Three rules that light a control were each written to beat the shared hover at (0,3,0), and
+ * `:not()` takes the specificity of its most specific ARGUMENT rather than summing its list — so
+ * all three landed at (0,4,0) and beat the shared PRESS as well. Measured before the fix: a plain
+ * `<Row>` went rest -> hover -> press all `oklab(0 0 0 / 0.03575)` with `:active` true, and an
+ * unpressed `<Toggle>` held under a real pointer painted its hover fill while the quiet Button
+ * beside it moved `0.055` -> `0.078` — so the one press a toggle exists for was the only press in
+ * the control family with no colour. Nobody who wrote those guards was reasoning about the press.
+ *
+ * IT IS A MEASUREMENT, NOT ARITHMETIC. The repair is a specificity one and could have been
+ * asserted by reading selectors, which is the indirection this repo keeps being caught by: a
+ * selector that is present still has to WIN. So each subject is held down with a real pointer and
+ * its PAINTED fill has to leave the lit value.
+ *
+ * Three subjects because there are three lit rules, and they fail independently: the Toggle's own
+ * half-step (a component sheet, imported after the shared layer), the row family's
+ * `data-hover-lit` arm, and `data-highlighted` — which is not inside the hover guard, so its
+ * failure reached touch as well.
+ */
+describe("a press outranks every rule that lights a control (audit 2026-09-01)", () => {
+  const litThenPressed = async (el: HTMLElement, lit: () => Promise<void>) => {
+    const rest = computed(el, "background-color");
+    await lit();
+    const litFill = computed(el, "background-color");
+    const release = await holdPress(el);
+    const pressed = computed(el, "background-color");
+    await release();
+    await userEvent.unhover(el);
+    return { rest, litFill, pressed };
+  };
+
+  it("a toggle's half-step: pressing an unpressed toggle paints something else", async () => {
+    const toggle = mounted(<Toggle>Bold</Toggle>, { theme: {} });
+    const seen = await litThenPressed(toggle, () => userEvent.hover(toggle));
+    expect(seen.litFill, "the hover half-step must actually light it").not.toBe(seen.rest);
+    expect(seen.pressed, "a held toggle paints its own press, not its hover").not.toBe(seen.litFill);
+  });
+
+  it("a row's pointer light: pressing a lit row paints something else", async () => {
+    const el = mounted(<Row>Item</Row>, { theme: {} });
+    const seen = await litThenPressed(el, () => userEvent.hover(el));
+    expect(seen.litFill, "a Row lights under the pointer").not.toBe(seen.rest);
+    expect(seen.pressed, "a held row paints its own press, not its hover").not.toBe(seen.litFill);
+  });
+
+  it("a highlighted row: the press wins over the highlight, on touch too", async () => {
+    // `data-highlighted` is stamped, not hovered, and its rule sits OUTSIDE the hover guard —
+    // which is why this arm's failure was the one that reached a finger.
+    const el = mounted(<Row highlighted>Item</Row>, { theme: {} });
+    const litFill = computed(el, "background-color");
+    const release = await holdPress(el);
+    const pressed = computed(el, "background-color");
+    await release();
+    await userEvent.unhover(el);
+    expect(pressed, "a held highlighted row paints its press, not its highlight").not.toBe(litFill);
   });
 });

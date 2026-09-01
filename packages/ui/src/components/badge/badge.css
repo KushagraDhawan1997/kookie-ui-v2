@@ -21,15 +21,38 @@
      the line cannot grow around it. */
   vertical-align: middle;
   position: relative;
-  inset-block-start: calc(-1lh * var(--badge-lift));
+  /* The lift is a share of the FONT of the line it sits in, not of the line (2026-09-01,
+     ultracode audit). The gap `middle` leaves is (cap - x-height)/2, and both are shares of
+     the FONT, while the line's own ratio to the font falls from 1.33 to 1.11 up the ramp — so
+     a constant fraction of the line was right at steps 1-4 and 2.41px low at step 9, where a
+     badge sat visibly under the capitals it counts for. `--kui-ty-font` is the join's own
+     value (type.css), inherited from the text the badge sits in; the `1em` fallback is the
+     un-joined case, where the badge's own font is the only thing there is to reckon with. */
+  inset-block-start: calc(-1 * var(--kui-ty-font, 1em) * var(--badge-lift));
   border-radius: calc(1lh * var(--badge-box));
   background-color: var(--tone-solid);
   color: var(--tone-contrast);
-  font-size: calc(1lh * var(--badge-text));
   font-weight: var(--font-weight-medium);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   user-select: none;
+}
+
+/* THE DIGITS ARE A SHARE OF THE LINE, AND THE RULE HAS TO OUT-RANK THE JOIN (2026-09-01,
+   ultracode audit). Two faults in one declaration, and each on its own painted the same
+   defect. `lh` in `font-size` is the PARENT's line, not the element's, so a badge that states
+   its own size priced its box against the stated line and its digits against the surrounding
+   one. And `.kui-badge` is (0,1,0) against the join's `.kui-type[data-size]` at (0,2,0), so
+   once a size was stated the badge's own share never applied at all: measured,
+   `<Badge size="9">128</Badge>` painted 56px digits in a 43.39px pill — 10.3px of line box out
+   of each end, `scrollHeight` 54 against `clientHeight` 43, at every step of the ramp. It is
+   the case the prop is documented for and the one the builder offers.
+
+   `.kui-type.kui-badge` ties the join at (0,2,0) and wins on file order (a component sheet
+   imports after the type layer), and `--kui-ty-line` is the join's own published line — the
+   number `1lh` resolves to wherever the two agree, and the right one where they do not. */
+.kui-type.kui-badge {
+  font-size: calc(var(--kui-ty-line, 1lh) * var(--badge-text));
 }
 
 /* The count breathes at its ends in its own em — a single digit is a disc (the min-inline-size

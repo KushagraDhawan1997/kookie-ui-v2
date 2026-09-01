@@ -28,6 +28,7 @@ const AvatarGroup = dynamic(() => import("../../examples/avatar-group"));
 const Badge = dynamic(() => import("../../examples/badge"));
 const Blockquote = dynamic(() => import("../../examples/blockquote"));
 const Box = dynamic(() => import("../../examples/box"));
+const Breadcrumb = dynamic(() => import("../../examples/breadcrumb"));
 const Button = dynamic(() => import("../../examples/button"));
 const Card = dynamic(() => import("../../examples/card"));
 const Checkbox = dynamic(() => import("../../examples/checkbox"));
@@ -70,6 +71,7 @@ export const CONTROLLED: Record<string, React.ComponentType<any>> = {
   "badge": Badge,
   "blockquote": Blockquote,
   "box": Box,
+  "breadcrumb": Breadcrumb,
   "button": Button,
   "card": Card,
   "checkbox": Checkbox,

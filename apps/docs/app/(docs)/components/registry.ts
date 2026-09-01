@@ -61,7 +61,7 @@ export const ENTRIES: Entry[] = [
     ],
     parts: [
       { part: "AccordionItem", blurb: "One section: a trigger and its panel, named by value for the root's value array" },
-      { part: "AccordionTrigger", blurb: "The section's heading: a heading element at the level you state, holding a row button with the chevron in its trailing slot" },
+      { part: "AccordionTrigger", blurb: "The section's heading: a heading element at the level you state, holding a button that stands as tall as a Button of the same size, underlines its label under the pointer and carries the chevron in its trailing slot" },
       { part: "AccordionPanel", blurb: "The section's content, opening and closing by height on the geometry clock, its words starting under the heading's label" },
     ],
   },

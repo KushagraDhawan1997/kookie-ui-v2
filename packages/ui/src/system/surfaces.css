@@ -497,24 +497,32 @@
    air between a section's hairline and its row (2026-09-01, Kushagra — the table's "a bit
    less" one component over): the row itself stays on the height ladder, level with the Button
    beside it, so the breath is the item's and not the box's, and it is layout-space for the
-   same density reason. */
+   same density reason. `--kui-ac-px-end` is the TRAILING pick, and it is a different number on
+   purpose: the skeleton resets the trailing padding to the plain value for any control holding
+   a `[data-slot="trailing"]`, which every accordion heading does, so the label's divider ends
+   where the chevron's side actually starts rather than where the pill correction would put it
+   (2026-09-01, ultracode audit — the line stopped 3px inside the glyph). */
 .kui-accordion[data-size="1"] {
   --kui-ac-px: var(--control-px-pill-1);
+  --kui-ac-px-end: var(--control-px-1);
   --kui-ac-py: var(--layout-space-2);
   --kui-ac-pb: var(--layout-space-3);
 }
 .kui-accordion[data-size="2"] {
   --kui-ac-px: var(--control-px-pill-2);
+  --kui-ac-px-end: var(--control-px-2);
   --kui-ac-py: var(--layout-space-3);
   --kui-ac-pb: var(--layout-space-4);
 }
 .kui-accordion[data-size="3"] {
   --kui-ac-px: var(--control-px-pill-3);
+  --kui-ac-px-end: var(--control-px-3);
   --kui-ac-py: var(--layout-space-4);
   --kui-ac-pb: var(--layout-space-5);
 }
 .kui-accordion[data-size="4"] {
   --kui-ac-px: var(--control-px-pill-4);
+  --kui-ac-px-end: var(--control-px-4);
   --kui-ac-py: var(--layout-space-5);
   --kui-ac-pb: var(--layout-space-6);
 }

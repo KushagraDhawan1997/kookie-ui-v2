@@ -46,7 +46,26 @@ export type BadgeProps = BadgeBase & (Bare | Counted);
  * owns the corner and the cut-out, the badge owns only itself.
  */
 export function Badge({ size, tone = "accent", className, children, ...props }: BadgeProps) {
-  const bare = children === undefined || children === null || children === false;
+  /**
+   * EMPTY IS NOT THE SAME AS BARE, and the type cannot tell them apart (ultracode audit
+   * 2026-09-01). `<Badge>{count > 0 && count}</Badge>` is the commonest spelling of a
+   * conditional badge, and at zero — where the caller means "no badge" — `children` is
+   * `false`, which the `Counted` arm accepts because `React.ReactNode` admits
+   * `false | null | undefined`. Measured: it rendered a 6.3px accent disc with a null
+   * `aria-label` and empty text, an unnamed coloured dot, which is WCAG 1.4.1's own case and
+   * the one thing this component's type exists to prevent. `{""}` did it without even the
+   * `data-dot` stamp.
+   *
+   * So the runtime closes what the union cannot: a badge with no content renders only if it
+   * was NAMED. Named, an empty badge is exactly the dot the bare form means — `<Badge
+   * aria-label="Unread" />` and `<Badge aria-label="Unread">{n || null}</Badge>` are the same
+   * marker. Unnamed, it renders nothing at all, which is Chip's own answer to the identical
+   * four inputs (`chip.tsx`, 2026-08-23) and is what the caller meant by writing the
+   * condition. ZERO is content and still renders: `{0}` is a count.
+   */
+  const empty = children === undefined || children === null || children === false || children === "";
+  if (empty && !props["aria-label"]) return null;
+  const bare = empty;
   return (
     <span
       data-size={size}

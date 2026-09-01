@@ -10,6 +10,13 @@
 .kui-table {
   overflow-x: auto;
   inline-size: 100%;
+  /* A CLIPPING BOX PADS AT LEAST THE RING'S REACH (DECISIONS §3, `--kui-menu-pad`'s own
+     sentence, 2026-09-01). Declaring one overflow axis promotes the other to `auto`, so this
+     box clips the BLOCK axis too — and the block axis cannot be scrolled to bring anything
+     back. Measured at compact/size 1: a focused `<Link>` in a header cell had 2.00px of its
+     4px ring painted above the content edge, with compact/2 and default/1 at exactly zero
+     clearance. The reach is the ring's own two tokens, so this is not a second number. */
+  padding-block: calc(var(--focus-ring-width) + var(--focus-ring-offset));
 }
 
 .kui-table-el {
@@ -37,8 +44,13 @@
   font-weight: var(--font-weight-medium);
 }
 
-/* The table's edge is the end — no hairline under the last body row. */
-.kui-table-el tbody tr:last-child > * {
+/* The table's edge is the end — no hairline under its last row, whichever section that row is
+   in. It read `tbody tr:last-child` until 2026-09-01, which is the BODY's last row and not the
+   table's: with a `<tfoot>` — ordinary markup a caller can pass — the rule stripped the line
+   between the body and the footer and left one under the table's own bottom edge, the inverse
+   of the sentence it states (ultracode audit). The table's last child is its last section
+   whatever sections exist. */
+.kui-table-el > :last-child > tr:last-child > * {
   border-block-end: none;
 }
 

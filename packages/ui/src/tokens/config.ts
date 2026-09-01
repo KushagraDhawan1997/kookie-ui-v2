@@ -2276,18 +2276,18 @@ export const badgeBox = 0.7;
 export const badgeText = 0.48;
 
 /**
- * §38 — the LIFT that seats the badge's centre on the cap centre, as a share of the line
- * (2026-09-01, Kushagra: "Badge isnt vertically aligned"). `vertical-align: middle` parks the
- * centre at half the parent's x-height — measured 4.26px above the baseline against a cap
- * centre of 5.44 at step 3, a badge visibly low beside the capitals it counts for. The cap is
- * not expressible in the badge's own units (its font is priced off the LINE, so the parent's
- * metrics are out of reach), and a baseline-relative length is content-dependent (a count's
- * digit hands the box a real baseline where the dot has none — measured 4.4px apart), so the
- * badge keeps `middle` and rises from it by this share of the line, layout untouched.
- * 0.049 measured at step 3; the ramp's font/line ratio moves the true gap a little across the
- * steps, and one number sits on the text steps where inline badges live. Taste, one home: here.
+ * §38 — the LIFT that seats the badge's centre on the cap centre, as a share of the FONT SIZE
+ * of the line it sits in (2026-09-01, Kushagra: "Badge isnt vertically aligned"; re-based off
+ * the line by the ultracode audit the same day). `vertical-align: middle` parks the centre at
+ * half the parent's x-height, and the gap to the cap centre is (cap - x-height)/2 — both of
+ * them shares of the FONT. The first spelling made it a share of the LINE, which is a
+ * different quantity: the ramp's line/font ratio falls from 1.33 to 1.11, so one fraction of
+ * the line was right at steps 1-4 (0.2-0.3px out) and 2.41px low at step 9. Measured against
+ * the parent font's own cap metrics, 0.095 lands every step of the ramp inside a quarter of a
+ * pixel. A relative offset, so it moves the PAINT and the line cannot grow around it. Taste,
+ * one home: here.
  */
-export const badgeLift = 0.05;
+export const badgeLift = 0.095;
 
 /**
  * §35, §38 — the LINE a badge pinned to an avatar is priced against, as a share of the face

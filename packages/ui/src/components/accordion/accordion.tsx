@@ -30,8 +30,11 @@ export type AccordionProps = Omit<
  * Sections that open and close, one under the other (§11, §37). Base UI carries the machine —
  * the value, one-open or many, `hidden="until-found"` when asked; Tab moves between headers,
  * which is the APG pattern's required keyboard (the arrow keys are its optional half, and
- * Base UI 1.7 does not implement them) — and this system carries the rows: every trigger is a row-family member standing on
- * the height ladder, lit by the pointer, with the disclosure chevron the tree turns.
+ * Base UI 1.7 does not implement them) — and this system carries the headings: every trigger
+ * wears the control skeleton, stands on the height ladder like the Button beside it, underlines
+ * its label under the pointer, and turns the disclosure chevron the tree draws. NOT a row
+ * (2026-09-01): a row is a line in a list you read and PICK, and a heading is pressed to
+ * disclose what is under it.
  *
  * It paints no pane. An accordion is a list of headings in whatever surface it sits in; put it
  * in a Card when it wants a boundary. The hairlines between items are the table's.
