@@ -16,6 +16,9 @@ import { Chip } from "../chip/chip.tsx";
 import { Text } from "../text/text.tsx";
 import { Badge } from "./badge.tsx";
 
+/** The whole type ramp — a badge is a share of ANY line it can sit in. */
+const TYPE_STEPS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
+
 describe("a badge is a share of the line it sits in (§38)", () => {
   for (const size of ["1", "3", "6", "9"] as const) {
     it(`size ${size}: the dot is a disc and the count a pill, both --badge-box of the line, digits --badge-text of it`, () => {
@@ -40,7 +43,12 @@ describe("a badge is a share of the line it sits in (§38)", () => {
     });
   }
 
-  for (const size of ["1", "2", "3"] as const) {
+  // THE WHOLE RAMP, and the reason is the audit's (2026-09-01): the first spelling looped
+  // steps 1-3, which are the three where a constant fraction of the LINE happens to land on
+  // the cap. Measured across all nine it ran -0.27 to -2.41px, so the law was walking the
+  // cells that could not fail. A law that walks two or three steps of a nine-step ramp cannot
+  // tell a ladder from a constant.
+  for (const size of TYPE_STEPS) {
     it(`size ${size}: the centre sits on the CAP centre, dot and count alike`, () => {
       // `vertical-align: middle` alone parked it at half the x-height — measured 4.26px above
       // the baseline against a cap centre of 5.44 at step 3, visibly low beside the capitals
@@ -71,7 +79,7 @@ describe("a badge is a share of the line it sits in (§38)", () => {
     });
   }
 
-  it("a stated size wins over the line", () => {
+  it("a stated size wins over the line — in the BOX and in the DIGITS", () => {
     const host = mounted(
       <Text size="3" render={<p />}>
         <Badge size="7">3</Badge>
@@ -81,6 +89,34 @@ describe("a badge is a share of the line it sits in (§38)", () => {
     const alone = mounted(<Badge size="7">3</Badge>, { theme: {} });
     const inLine = host.querySelector<HTMLElement>(".kui-badge")!;
     expect(inLine.getBoundingClientRect().height).toBeCloseTo(alone.getBoundingClientRect().height, 1);
+    // THE HALF THIS LAW USED TO SKIP (ultracode audit 2026-09-01). It compared HEIGHT, which is
+    // the one property the fault could not reach: the box is `calc(1lh * --badge-box)` off the
+    // element's OWN line and was always right, while the join's `.kui-type[data-size]` at
+    // (0,2,0) beat the badge's own (0,1,0) font-size — so a stated-size badge drew the full
+    // step's digits inside the badge's own pill (56px in a 43.39px box at step 9, at every
+    // step of the ramp). Both halves are read now, and the digits are read against the line
+    // the box is priced from, so the two cannot be right about different lines.
+    for (const el of [inLine, alone]) {
+      expect(parseFloat(computed(el, "font-size"))).toBeCloseTo(
+        parseFloat(computed(el, "line-height")) * badgeText,
+        1,
+      );
+    }
+  });
+
+  it("a stated step and the same step read from the line are one badge", () => {
+    // The agreement the two spellings owe each other: `<Badge size="7">` and a badge sitting
+    // in a `<Text size="7">` are the same marker, box and digits alike. It is what makes the
+    // stated size mean "the line I would have sat in".
+    const stated = mounted(<Badge size="7">128</Badge>, { theme: {} });
+    const inherited = mounted(
+      <Text size="7" render={<p />}>
+        x <Badge>128</Badge>
+      </Text>,
+      { theme: {} },
+    ).querySelector<HTMLElement>(".kui-badge")!;
+    expect(computed(stated, "font-size")).toBe(computed(inherited, "font-size"));
+    expect(stated.getBoundingClientRect().height).toBeCloseTo(inherited.getBoundingClientRect().height, 1);
   });
 });
 
@@ -124,5 +160,69 @@ describe("loud by identity, the system's tones (§38)", () => {
     // @ts-expect-error — no margin prop on any component (first non-negotiable)
     void (<Badge m="2">3</Badge>);
     expect(true).toBe(true);
+  });
+});
+
+
+/**
+ * AN UNNAMED EMPTY BADGE RENDERS NOTHING (ultracode audit 2026-09-01).
+ *
+ * The type has two arms — a bare badge that must carry `aria-label`, and a counted one whose
+ * content is its name — and `React.ReactNode` admits `false | null | undefined`, so the
+ * commonest spelling of a conditional badge (`{count > 0 && count}`) typechecks into the
+ * COUNTED arm and then arrives empty. Measured before the guard: a 6.3px accent disc with a
+ * null `aria-label` and no text — colour carrying meaning alone, which is the one thing the
+ * type exists to prevent, and `{""}` did it without even the `data-dot` stamp.
+ *
+ * The fixture walks all four inputs because the type closes none of them, and both directions
+ * matter: named, an empty badge IS the dot; unnamed, it is nothing. Chip's identical law
+ * (`chip.browser.test.tsx`) is one component over, and this is the blind spot that copying it
+ * would have carried — Badge's own type law tested `<Badge />`, the one spelling the union
+ * does catch.
+ */
+describe("an empty badge is refused at runtime, because the type cannot refuse it", () => {
+  for (const [label, child] of [
+    ["a false conditional", false],
+    ["an empty string", ""],
+    ["null", null],
+    ["undefined", undefined],
+  ] as const) {
+    it(`${label}, unnamed, renders no element at all`, () => {
+      const root = mounted(
+        <div data-t="host">
+          <Badge>{child}</Badge>
+        </div>,
+        { theme: {} },
+      );
+      expect(root.querySelector(".kui-badge"), `${label} still drew a marker`).toBeNull();
+    });
+
+    it(`${label}, NAMED, is the dot the bare form means`, () => {
+      const root = mounted(
+        <div data-t="host">
+          <Badge aria-label="Unread">{child}</Badge>
+        </div>,
+        { theme: {} },
+      );
+      const badge = root.querySelector<HTMLElement>(".kui-badge")!;
+      expect(badge, `${label} with a name must still render`).not.toBeNull();
+      expect(badge.hasAttribute("data-dot")).toBe(true);
+      const box = badge.getBoundingClientRect();
+      expect(box.width).toBeCloseTo(box.height, 1);
+    });
+  }
+
+  it("but ZERO is content, and it renders as a count", () => {
+    // The other half, and it is what stops the guard being "render nothing when it looks
+    // empty": `0` is a legitimate count and a falsy value, and the guard must not confuse them.
+    const root = mounted(
+      <div data-t="host">
+        <Badge>{0}</Badge>
+      </div>,
+      { theme: {} },
+    );
+    const badge = root.querySelector<HTMLElement>(".kui-badge")!;
+    expect(badge.textContent).toBe("0");
+    expect(badge.hasAttribute("data-dot")).toBe(false);
   });
 });
