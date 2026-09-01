@@ -89,7 +89,7 @@ type ButtonBase = Omit<
  * most common a11y defect in any component library. Here it does not compile. ENGINEERING §1.3:
  * types are the refusals, enforced.
  */
-type IconOnly =
+export type IconOnly =
   | { iconOnly: true; "aria-label": string }
   | { iconOnly: true; "aria-labelledby": string };
 

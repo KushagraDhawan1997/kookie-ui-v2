@@ -1,0 +1,27 @@
+/* Toggle adds one rule, and it is a RANKING (§10's fifth clause, §34).
+ *
+ * Everything else is Button's: a toggle wears `kui-button`, so the skeleton, the size join, the
+ * emphasis rungs, the press travel, the ring, the material and the disabled remap all arrive by
+ * membership. What a toggle has that a button does not is a PERSISTENT state painted in the
+ * quiet rung's own hover currency — pressed rests on the medium rung, `--tone-soft`, and an
+ * unpressed toggle's hover is `--tone-soft` too. Measured before this rule existed, a pressed
+ * Bold and a hovered Italic were byte-identical, which is the segmented control's 2026-08-24
+ * finding and the tree's 2026-08-26 finding a third time.
+ *
+ * The answer is the row family's: the transient light is a half-step, so pressed (soft) >
+ * hovered (soft at --kui-ct-lit-mix) everywhere toggles exist, and a pressed toggle under the
+ * pointer still darkens to soft-hover because the medium rung keeps its full step. Keyed on the
+ * UNPRESSED state, not on the quiet rung, because the rung IS the state here and the selector
+ * should say what it means.
+ *
+ * (0,4,0) against the shared hover's (0,3,0): `:not()` takes its most specific argument, so
+ * this outranks `.kui-control:hover:not(...)` by rank rather than by file order. */
+@media (hover: hover) {
+  .kui-toggle:not([data-pressed]):hover:not([data-disabled], [data-loading], :disabled) {
+    background-color: color-mix(
+      in oklab,
+      var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover)) var(--kui-ct-lit-mix),
+      transparent
+    );
+  }
+}
