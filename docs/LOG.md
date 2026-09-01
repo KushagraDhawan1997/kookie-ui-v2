@@ -8,6 +8,62 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-02 The empty state ships as a block, and `reason` is not a prop
+
+**What.** `apps/docs/blocks/empty-state.tsx` + `.css`, registered with three demos. Slots: `mark`, `title`, `description`, `action`, `secondary`. No `size`, no `tone`, no pane, no `minHeight`, no `aria-live`, and no `reason`.
+
+**Why it is a block and not a component.** Its substance is entirely the app's — which words, which mark, which action — and §11 has no row for it. **Why it is a SOURCE block and not a builder document** is the objection that nearly killed it: if the three states produce the same markup, this is pure assembly, and assembly is a document. The answer is the rule the builder already states about itself — a document cannot express a handler. An empty state's action is a real button with an `onClick`; none of that is a frozen tree. The same cut kept `Specimen` out of the builder and put `Tree`'s keyboard in the package.
+
+**Apple, checked rather than remembered.** The HIG has no empty-state COMPONENT — the same finding as the message family (§29), where their answer is guidance in the Onboarding and Writing register. But SwiftUI ships `ContentUnavailableView` (iOS 17) and its slots are the four above in this order: a label carrying title and symbol, a description, actions last. The shape here was specified before that was read and did not have to move, which is the strongest evidence available that it is the shape.
+
+**The three states are editorial, so they are demos.** Nothing created yet (the action CREATES), a filter that matched nothing (the action CLEARS, quietly), something that failed (the action RETRIES). They differ in words and in RANK, not in arrangement, so a `reason` prop would switch nothing. Offering "Create your first project" under a search that returned nothing is what most libraries ship, and it is held by a law on the demos: the no-results demo must not contain the create action's words and must contain no loud button. Apple reaches the same conclusion by a different road — their one concession is `ContentUnavailableView.search(text:)`, a separate constructor whose words are already written, which we cannot copy because it bakes English (`Notice`'s `dismissLabel` set that precedent: Apple ships localisations and a copied file does not).
+
+**Two measurements settled the geometry.** The mark is `--line-height-6` on both axes — one line of the title, the mark family's own identity (§4) read across, so the caller passes no size. And `block-size: 100%` was measured in all three cases rather than claimed: a region with a DEFINITE height fills and centres (400px in, 400 out, first child 123px down against 122 of exact centring); a region with `min-height` alone hugs at 156, because a percentage resolves against the containing block's `height` whatever the used size comes out at; a region with no height hugs. This block's own figures are the middle case and read as centred because the specimen's stage centres what it holds.
+
+**It holds a measure, and centred text without one is the worst of both.** Measured before the cap: the sentence ran 1152px, about 130 characters, with a centred left edge the reader has to hunt for on every line. `42ch` — the unit is the argument (a measure is a statement about text, the carve-out `Code`'s padding and the footer's columns both make), and the low end of the range because a centred blurb is read in one glance rather than scanned.
+
+**A defect the laws missed and a screenshot caught.** `title="…\u201cinvoice\u201d"` — a JSX string ATTRIBUTE is not a JavaScript string, so nine backslash characters shipped to the page. Every law was green over it: the demo rendered, was long, and had a label. There is now a law that no demo's markup contains a `\uXXXX` escape, falsified against the attribute form. **And one of my own laws was wrong before it was right**: the rank law counted `data-emphasis="loud"` anywhere and found two, because the TITLE rests loud — a rank law that also reads the type's rank is measuring the wrong axis.
+
+**Rejected.** `reason` as a prop (switches nothing). An illustration set or `variant="search" | "error"` — §8 ships no icon set, and a named set of states is a product vocabulary the system must not own (`Badge`'s refusal). An `actions` array — two named slots are the one-action rule, and an array is an invitation. `aria-live` — whether this should be announced depends on whether it ARRIVED, which only the caller knows; the live region belongs on the results region wrapping both the list and this, and saying it here would announce a first-use state on every page load. The name `ContentUnavailable`, which is more accurate than "empty" and reads as an error to a web audience, biasing every call site toward the third case.
+
+## 2026-09-02 Numbers on by default, which turned a two-state flag into a three-state one
+
+**What.** `Specimen` takes `lineNumbers`, default `true`, threaded to BOTH arms — the single-file well and each tab panel. Chapter fences default to numbered in `mdx-components.tsx`. `parseMeta`'s `lineNumbers` becomes `boolean | undefined`, with `lineNumbers=false` as the refusal.
+
+**Why the third state.** The docs number every fence now, and a bare `lineNumbers` used to be the only thing a fence could say — so a two-state flag left nothing to say NO with, and a one-line shell command has nothing to count. Flipping the default inside the block instead would have made every authored `lineNumbers` a no-op that still reads as a decision. Three states: `lineNumbers` asks, `lineNumbers=false` refuses, silence lets the consumer's default stand.
+
+**The default lives in the docs, not in the block.** Numbering everything is this site's house rule; `code-sample.tsx` is copied source and must not arrive carrying it.
+
+**One assertion was wrong on correct code.** The law asked for two `kd-numbered` in a two-file figure and failed: Base UI renders only the ACTIVE panel on the server, so a static render of a tabbed figure contains one well however many tabs the bar carries. Measured, not assumed. What the assertion still catches is the whole fault — drop the prop from `file-tabs.tsx` and it is zero.
+
+## 2026-09-02 A block that answers to its room was shrink-wrapped by the figure holding it
+
+**What.** `Specimen` takes `fill`. The stage keeps centring on the block axis and stretches on the inline one — a column with `justify="center"` and `align="stretch"`, which is the same stage with one axis released rather than a second arrangement. The footer, code-sample and specimen demos all ask for it.
+
+**Why.** Kushagra, on the footer block's page: "it can easily fit 3 cols, so why restrict at 2". The column rule was right and the figure was wrong. Measured before anything moved: the footer demos came out **454px and 230px** wide inside a **684px** stage, because a centred flex item shrink-wraps to its content — and multicol then counted its columns against the width the footer had just chosen for itself. Two columns is arithmetically correct at 454 (`2 x 184 + 32` fits, three needs 584). The site's own footer, which is not inside a figure, already drew three.
+
+**It was two older defects as well**, found by the same measurement and invisible because a centred well looks deliberate: the code-sample demo sat at 554 in a 684 stage and the specimen's own figure at 504 in 718.
+
+**Stated by the caller, for `pane`'s own reason:** whether a subject is a REGION is a fact about the subject, and this file has only a rendered element to look at.
+
+**And the demo data was evened.** Five groups across three columns left the first holding one short list beside two carrying two each, which reads as a mistake rather than as a footer; six and nine divide. A consumer's own footer is ragged wherever their groups do not divide by their width, which is true of every footer on the web and is not something the file can decide for them.
+
+## 2026-09-02 The footer draws no pane, and a footer with no columns is a line
+
+**What.** The `pane` boolean is deleted; the block's root is a `Stack`. When `groups` is empty the mark comes down into the sign-off row. The demos' brand is the site's own `Wordmark` at `size="8"`.
+
+**Why the boolean was the wrong repair.** It shipped as a `Surface`, then for an hour as a `pane` prop when the second consumer wanted the other answer (Kushagra: "I dont think any footer block should have Surface as part of the block, that is up to the user"). What a footer sits ON is the page's business, which is §3's own sentence about a component never owning where it sits, said one level up: a footer that wants a ground is `<Surface><Footer/></Surface>`, one element at the call site rather than a prop and a branch in the file.
+
+**The line is DERIVED, not a variant.** The minimal footer — a mark, two or three destinations, a copyright, all on one row — is this block with nothing to stack: no columns means the mark has nothing to stand over, and leaving it there draws a title above an empty region. One `groups.length` reads it and no call site has to know which footer it is asking for.
+
+**There is no `brand` placement prop**, so the mark-beside-the-columns shape every second product site draws is not reachable. It is a taste, not a derivation — and a demo showing an arrangement the file cannot produce is a copy button handing over something that does not make the picture, which is the bound on what any block's page may show.
+
+**"Kookie only" is the wordmark's own refusal read back.** It takes a closed `form` and not `children`, deliberately, so no call site can set arbitrary words in that face — which means "Northwind" was never reachable without breaking that, and the copyright lines went with it. A mark and a sign-off naming two different companies is a demo contradicting itself. The links stay invented, which is the half that matters.
+
+**A law was wrong before it was right, in the shape this repo keeps finding.** "The mark comes down into the row" matched the brand's TEXT and SURVIVED its own sabotage, because the copyright line names the same product — dropping the brand entirely left the assertion satisfied by the note beside it. It reads the mark's own element now.
+
+**Rejected.** `pane` as a prop (two answers to a question the call site already answers by composition). A `brand` placement prop. Keeping "Northwind" in the wordmark's face, which would have meant giving `Wordmark` children.
+
 ## 2026-09-02 The builder's Layers panel becomes the package's Tree, and the drag stays in the app
 
 **What.** `apps/docs/app/builder/layers.tsx` renders `<Tree>` (§33). The hand-rolled `TreeRows` walk is deleted. What the app still owns is the drag: the label carries `draggable`, and the drops are read on the tree's ROOT with the row resolved by DOM position.
