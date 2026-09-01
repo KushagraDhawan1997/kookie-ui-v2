@@ -856,7 +856,8 @@ function useFlight(plan: FlightPlan) {
           popup.style.setProperty("--kui-fly-w", `${natural.width}px`);
           popup.style.setProperty("--kui-fly-h", `${natural.height}px`);
           /**
-           * The panel's RESTING corner, published for one reader: the lens (system/refraction).
+           * The panel's RESTING corner, published for two readers: the lens (system/refraction),
+           * and the tooltip's pose, whose seed is the landed box itself (tooltip.css, §32).
            *
            * It is read here and nowhere else because here is the only moment it exists. A
            * flying panel's `border-radius` is mid-transition between the seed's corner and its

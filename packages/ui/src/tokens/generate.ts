@@ -77,6 +77,8 @@ import {
   floatingPadding,
   tooltipPadding,
   tooltipMaxWidth,
+  tooltipMotion,
+  tooltipEntry,
   overlayWidth,
   alertWidth,
   dialogInset,
@@ -321,6 +323,7 @@ export function generateTokens(): string {
   put("floating-spread", `${floatingMotion.spread}ms`);
   put("floating-corner", `${floatingMotion.corner}ms`);
   put("floating-reveal", `${floatingMotion.reveal}ms`);
+  put("floating-paint", `${floatingMotion.paint}ms`);
   put("floating-reveal-delay", `${floatingMotion.revealDelay}ms`);
   put("floating-dissolve", `${floatingMotion.dissolve}ms`);
   put("floating-settle", `${floatingMotion.settle}ms`);
@@ -342,6 +345,10 @@ export function generateTokens(): string {
   put("print-blur", `${printBlur}px`);
   put("overlay-dissolve", `${overlayMotion.dissolve}ms`);
   put("overlay-settle", `${overlayMotion.settle}ms`);
+  /* §32 — the tooltip's entry: one geometry clock, one paint clock, and a seed that is a scale. */
+  put("tooltip-form", `${tooltipMotion.form}ms`);
+  put("tooltip-paint", `${tooltipMotion.paint}ms`);
+  put("tooltip-seed", `${tooltipEntry.seed}`);
 
   lines.push("", "  /* §8 — pointer feedback; `button` is the contested one, so it is overridable */");
   put("cursor-button", cursor.button);

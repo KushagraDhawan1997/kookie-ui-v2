@@ -87,6 +87,20 @@
   inherits: false;
   initial-value: 0px;
 }
+/* The seed's OWN offset from the trigger's box (2026-08-31): the runner measures the seed's
+   top-left onto the trigger's top-left, and a member whose seed is not the trigger's box
+   (a popover's circle) states how far its seed sits inside that box. Zero by registration
+   wherever no member wrote one, non-inheriting for the same reason as every flight hook. */
+@property --kui-seed-dx {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --kui-seed-dy {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
 
 
 .kui-surface {
@@ -2012,7 +2026,7 @@
      own body lifting, and a body does not fade in. What still arrives gradually is the LIGHT
      — the seed is castless, and the floating shadow fades up as the panel lifts. Anchorless
      panels fall back to the designed-diameter dot in place. */
-  translate: var(--kui-from-x, 0) var(--kui-from-y, 0);
+  translate: calc(var(--kui-from-x, 0px) + var(--kui-seed-dx)) calc(var(--kui-from-y, 0px) + var(--kui-seed-dy));
   inline-size: var(--kui-seed-w, var(--kui-seed));
   block-size: var(--kui-seed-h, var(--kui-seed));
   min-inline-size: 0;
@@ -2281,6 +2295,46 @@
 .kui-surface.kui-floating[data-unfurling][data-side="inline-start"][data-align="end"] {
   inset-block-start: auto;
   inset-block-end: 0;
+}
+/* A CENTRED bottom or top panel is held by its own middle too (2026-08-31, Kushagra: the
+   popover "for some reason goes left"). It was pinned by its START edge — the base rule's
+   default, with no arm for this cell — and the aim then measured the seed's offset from
+   that edge: 182px on a default popover, the only alignment for which the offset is not
+   zero by geometry (a start-pinned panel's seed sits AT its start, an end-pinned one's at
+   its end). That offset rides `translate` on the FALL clock (345ms) while the width rides
+   the SPREAD clock (510ms), so the start edge slammed left in the fall's time while the far
+   edge was still opening — the panel's centre swung 442 → 630 → 623, measured — which is
+   the "falls first, then spreads" ordering carrying an inline distance it was designed
+   never to carry.
+
+   Held at the positioner's middle by an inset and pulled back half its OWN width by
+   `transform`, and both halves of that spelling are load-bearing. Auto margins were the
+   first spelling and they centre only while the box FITS: past the landed width — every
+   elastic overshoot — an over-constrained box clamps at its start inset and the spill goes
+   one way, so the pane's centre (and the body held at it) stepped 5px sideways and back on
+   every open. A percentage translate is of the box's own width and cannot be
+   over-constrained. It is `transform`, not `translate`, because `translate` is the
+   flight's animated channel: a `-50%` there would start a half-width slide the frame the
+   pin comes off at release, where `transform` — in no transition list — snaps with the
+   inset it belongs to, on the same pixels. The seed's x then measures the trigger's
+   distance from the positioner's MIDDLE (offsetLeft is the inset; a transform never moves
+   it), so the seed arm below adds half the seed's width to land the silhouette's start on
+   the trigger's — and a member whose seed is narrower than the box it measured (the
+   popover's circle) lands centred by the same term, with no offset of its own. ~0 for an
+   unshifted trigger; a shifted panel (a viewport edge) keeps the offset it really has. */
+.kui-surface.kui-floating[data-unfurling][data-side="bottom"][data-align="center"],
+.kui-surface.kui-floating[data-unfurling][data-side="top"][data-align="center"] {
+  inset-inline-start: 50%;
+  inset-inline-end: auto;
+  transform: translateX(-50%);
+}
+[dir="rtl"] .kui-surface.kui-floating[data-unfurling][data-side="bottom"][data-align="center"],
+[dir="rtl"] .kui-surface.kui-floating[data-unfurling][data-side="top"][data-align="center"] {
+  transform: translateX(50%);
+}
+.kui-surface.kui-floating[data-unfurling][data-seed][data-side="bottom"][data-align="center"],
+.kui-surface.kui-floating[data-unfurling][data-seed][data-side="top"][data-align="center"] {
+  translate: calc(var(--kui-from-x, 0px) + var(--kui-seed-w, var(--kui-seed)) / 2) calc(var(--kui-from-y, 0px) + var(--kui-seed-dy));
 }
 /* A side placement centred on its row is held by its own middle, the same sentence the body's
    `[data-align="center"]` arm already made for the inline axis on a bottom or top panel. */

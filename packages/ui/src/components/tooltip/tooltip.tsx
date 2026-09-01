@@ -129,7 +129,8 @@ export type TooltipTriggerProps = Omit<
  */
 export function TooltipTrigger({ ref, ...props }: TooltipTriggerProps) {
   // The one node a tooltip owns that stands in ordinary flow: the ambient direction is read
-  // here, and the entry's seed is photographed off it (§20, §22 — Menu's sentence). Both refs
+  // here, and the entry's origin is measured off it (§20, §22 — Menu's sentence; since
+  // 2026-08-31 the chip lifts at its own size and only the trigger's POSITION is read, §32). Both refs
   // get the node, so the caller's is not spent.
   const { measure } = React.use(FloatingDirectionContext);
   const setTrigger = useMergedRefs(ref, measure);

@@ -207,6 +207,7 @@
   --floating-spread: 510ms;
   --floating-corner: 420ms;
   --floating-reveal: 195ms;
+  --floating-paint: 80ms;
   --floating-reveal-delay: 45ms;
   --floating-dissolve: 105ms;
   --floating-settle: 120ms;
@@ -227,6 +228,9 @@
   --print-blur: 6px;
   --overlay-dissolve: 105ms;
   --overlay-settle: 120ms;
+  --tooltip-form: 300ms;
+  --tooltip-paint: 120ms;
+  --tooltip-seed: 0.9;
 
   /* §8 — pointer feedback; `button` is the contested one, so it is overridable */
   --cursor-button: pointer;

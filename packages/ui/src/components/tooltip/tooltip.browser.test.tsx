@@ -23,6 +23,7 @@ import {
   inMotion,
   render,
   settleAll,
+  sweep,
   tokenOn,
   until,
 } from "../../test/browser.tsx";
@@ -597,5 +598,222 @@ describe("the agreement law: portalled ≡ in-flow (§20, §32)", () => {
     const twinEl = twin({ ...HOSTILE, contrast: "high" }, identity);
     expect(facts(popup)).toEqual(facts(twinEl));
     expect(facts(twin(HOSTILE, identity))).not.toEqual(facts(twinEl));
+  });
+});
+
+/**
+ * THE ENTRY IS A LIFT, NOT A SILHOUETTE (§32, 2026-08-31 — Kushagra: the family's unfurl is
+ * "way too much, especially when it's on a larger surface"; the Clip-vs-Physics bench's
+ * "Physics" tooltip is the reference).
+ *
+ * Three claims, each read off a SEIZED clock rather than raced: the chip's box never moves
+ * (no size or travel channel is running — only scale and paint), the seed is the landed box
+ * scaled toward the trigger's edge (station 0 of the scale sweep is the pose itself), and the
+ * words ride with the chip rather than printing into it (no blur, no fade of their own).
+ *
+ * THE FIXTURE IS THE LAW: the trigger is far WIDER than the chip. On a button-sized trigger the
+ * silhouette and the landed chip are nearly one box, so a pose that photographed the trigger
+ * would pass every assertion below — which is the degenerate-fixture rule, and the exact case
+ * the complaint names. A Menu on an identical trigger is the negative control: its width DOES
+ * fly, so if the tooltip's box also flew the tooltip's rule reached nothing.
+ */
+describe("the entry is a LIFT, not a silhouette (§32, 2026-08-31)", () => {
+  const WIDE = 420;
+  function mountWide() {
+    inMotion();
+    render(
+      <Theme>
+        <div style={{ padding: "200px 0 0 200px" }}>
+          <Tooltip defaultOpen>
+            <TooltipTrigger
+              render={
+                <Button emphasis="quiet" bordered style={{ width: WIDE }}>
+                  A whole card-width trigger
+                </Button>
+              }
+            />
+            <TooltipContent>Open this</TooltipContent>
+          </Tooltip>
+          <Menu>
+            <MenuTrigger
+              render={
+                <Button emphasis="quiet" bordered style={{ width: WIDE }}>
+                  The same trigger, a menu
+                </Button>
+              }
+            />
+            <MenuContent align="center">
+              <MenuItem>Rename</MenuItem>
+            </MenuContent>
+          </Menu>
+        </div>
+      </Theme>,
+    );
+    const popups = document.querySelectorAll<HTMLElement>(".kui-tooltip-popup");
+    const popup = popups[popups.length - 1];
+    if (!popup) throw new Error("the tooltip never mounted — the law would read nothing");
+    const [trigger, menuTrigger] = [...document.querySelectorAll<HTMLElement>("button")];
+    return { popup, trigger: trigger!, menuTrigger: menuTrigger! };
+  }
+  const channels = (el: Element) =>
+    el.getAnimations().map((a) => (a as CSSTransition).transitionProperty);
+
+  it("only scale and paint move: no size, no travel, no corner — the box is its landed box from frame one", async () => {
+    const { popup, trigger, menuTrigger } = mountWide();
+    // The flight must DEPART — the runner's laid-out guard reads the posed rect against the
+    // natural one, and a pose the same size as its box would be read as "not laid out yet" and
+    // bail without flying. A scaled rect measures narrower, which is what lets it pass; this
+    // line is where that would fail.
+    if (!(await until(() => channels(popup).includes("scale"))))
+      throw new Error("the entry never departed on the scale channel — the guard bailed, or the pose is gone");
+    const running = channels(popup);
+    for (const still of ["width", "height", "translate", "border-top-left-radius"])
+      expect(running, `${still} is flying — the tooltip's box is not its landed box`).not.toContain(still);
+    expect(running, "the chip paints in on its own clock").toContain("opacity");
+
+    // Calibration: the trigger out-sizes the chip by a wide margin, or a silhouette and a lift
+    // are the same box.
+    const landed = popup.getBoundingClientRect();
+    expect(trigger.getBoundingClientRect().width, "the trigger must dwarf the chip").toBeGreaterThan(
+      landed.width + 100,
+    );
+
+    // The negative control: the family's size channel is alive on the same trigger. HEIGHT,
+    // because a menu's floor is its trigger's width and its silhouette IS that box, so on a wide
+    // trigger the width never changes — the first run of this law waited for a width clock that
+    // a correct menu never starts.
+    menuTrigger.click();
+    const menu = () => {
+      const all = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
+      return all[all.length - 1];
+    };
+    if (!(await until(() => !!menu() && channels(menu()!).includes("height"))))
+      throw new Error("the menu's height never flew — the control proves nothing");
+  });
+
+  it("the seed is the landed box scaled toward the trigger's edge, faint — and the centre and that edge never move", async () => {
+    const { popup, trigger } = mountWide();
+    if (!(await until(() => channels(popup).includes("scale"))))
+      throw new Error("the entry never departed on the scale channel");
+    // LAYOUT width, not the rect: the rect is already scaled by the flight this line is
+    // standing inside (measured 79.8 against an 88px chip on the first run of this law).
+    const landedWidth = popup.offsetWidth;
+    const seedScale = parseFloat(computed(popup, "--tooltip-seed"));
+    expect(seedScale, "the seed scale token resolves").toBeGreaterThan(0.5);
+    expect(seedScale, "…and is a seed, not full size").toBeLessThan(1);
+
+    // Station 0 of the seized clock IS the pose. Read as a rect, which includes the scale.
+    const series = await sweep(popup, "scale", () => {
+      const r = popup.getBoundingClientRect();
+      return { w: r.width, cx: (r.left + r.right) / 2, bottom: r.bottom, opacity: computed(popup, "opacity") };
+    });
+    const first = series[0]!;
+    // The last station is scale 1 — the landed geometry, read the same way as every other.
+    const last = series[series.length - 1]!;
+    expect(first.w, "the seed is the chip's own box, scaled — not the trigger's width").toBeCloseTo(
+      landedWidth * seedScale,
+      0,
+    );
+    expect(first.w, "…and nowhere near the trigger").toBeLessThan(trigger.getBoundingClientRect().width / 2);
+    expect(last.w, "and it lands at full size").toBeCloseTo(landedWidth, 0);
+    // The chip lifts from the edge facing its trigger (a tooltip above its trigger grows up
+    // from its bottom edge) and stays centred: at EVERY station the centre and that edge hold.
+    for (const s of series) {
+      expect(Math.abs(s.cx - last.cx), `the centre drifted at w=${s.w.toFixed(1)}`).toBeLessThan(1);
+      expect(Math.abs(s.bottom - last.bottom), `the trigger-facing edge moved at w=${s.w.toFixed(1)}`).toBeLessThan(1);
+    }
+    // Vacuity guard: the sweep genuinely passed through sizes.
+    expect(Math.max(...series.map((s) => s.w)) - first.w, "the scale never opened").toBeGreaterThan(2);
+
+    // Faint at the seed, on the PAINT channel — read on its own seized clock.
+    const paint = await sweep(popup, "opacity", () => computed(popup, "opacity"), 4);
+    expect(paint[0], "the chip arrives faint, not opaque like a silhouette").toBe("0");
+    expect(paint[paint.length - 1], "…and paints in").toBe("1");
+  });
+
+  it("the words ride WITH the chip: no print of their own, and no clock for one", async () => {
+    const { popup } = mountWide();
+    if (!(await until(() => channels(popup).includes("scale"))))
+      throw new Error("the entry never departed on the scale channel");
+    const body = popup.querySelector<HTMLElement>(".kui-floating-body")!;
+    // Nothing on the body is animating: the family's molten print (blur, fade, echo, squish)
+    // is stood down whole, so the body has no changed channel to run.
+    expect(channels(body), "the body is printing on its own — it should be part of the chip").toEqual([]);
+    expect(computed(body, "filter"), "the words are not blurred").toBe("none");
+    expect(computed(body, "opacity"), "the words carry no fade of their own").toBe("1");
+    expect(computed(body, "scale"), "the words are not squished").toBe("none");
+  });
+
+  it("the curve is the CALM spring on the tooltip's own clock — the bench's physics, not the family's elastic", async () => {
+    const { popup, trigger } = mountWide();
+    if (!(await until(() => channels(popup).includes("scale"))))
+      throw new Error("the entry never departed on the scale channel");
+    const scale = popup.getAnimations().find((a) => (a as CSSTransition).transitionProperty === "scale")!;
+    const timing = scale.effect!.getComputedTiming();
+    // The curve's SAMPLES, one per stop: the browser re-serializes `linear()` (the first stop
+    // comes back as `0 0%`), so the strings never agree and the values are what identify a
+    // curve. The bench's `--spring` IS this package's `--motion-spring` — same samples — and
+    // the family's channel rides `--motion-spring-elastic`, which is what this law tells apart.
+    const samples = (v: string) =>
+      v
+        .replace(/^linear\(|\)$/g, "")
+        .split(",")
+        .map((stop) => stop.trim().split(/\s+/)[0] ?? "")
+        .join(",");
+    expect(samples(timing.easing ?? ""), "the scale rides the elastic spring, not the calm one").toBe(
+      samples(computed(popup, "--motion-spring")),
+    );
+    expect(samples(computed(popup, "--motion-spring")), "calibration: the two curves differ").not.toBe(
+      samples(computed(popup, "--motion-spring-elastic")),
+    );
+    expect(timing.duration, "the scale is on the tooltip's own clock").toBe(parseFloat(computed(popup, "--tooltip-form")));
+    const paint = popup.getAnimations().find((a) => (a as CSSTransition).transitionProperty === "opacity")!;
+    expect(paint.effect!.getComputedTiming().duration).toBe(parseFloat(computed(popup, "--tooltip-paint")));
+    // Calibration: the family's clocks differ, so the list is the tooltip's and not a borrow.
+    expect(computed(trigger, "--floating-corner")).not.toBe(computed(trigger, "--tooltip-form"));
+    // And the flight RELEASES on that clock: the runner reads the longest declared clock off
+    // the element, so left on the family's list a chip landed at 300 sat posed past the 510
+    // spread. Bounded well under that and well over the tooltip's own.
+    const form = parseFloat(computed(popup, "--tooltip-form"));
+    const t0 = performance.now();
+    if (!(await until(() => !popup.hasAttribute("data-unfurling"), form * 3)))
+      throw new Error("the flight never released");
+    expect(performance.now() - t0, "released on the family's long clock, not the tooltip's").toBeLessThan(form + 200);
+  });
+
+  it("the exit returns to the seed, not the family's 2% settle", async () => {
+    inMotion();
+    render(
+      <Theme>
+        <div style={{ padding: 200 }}>
+          <Tooltip defaultOpen>
+            <TooltipTrigger render={<Button emphasis="quiet" bordered>Undo</Button>} />
+            <TooltipContent>Undo the last change</TooltipContent>
+          </Tooltip>
+        </div>
+      </Theme>,
+    );
+    const mine = () =>
+      [...document.querySelectorAll<HTMLElement>(".kui-tooltip-popup")].find((el) =>
+        el.textContent?.includes("Undo the last change"),
+      )!;
+    if (!(await until(() => !!mine() && !mine().hasAttribute("data-unfurling"))))
+      throw new Error("the tooltip never landed");
+    const popup = mine();
+    const trigger = [...document.querySelectorAll<HTMLElement>("button")].find((b) => b.textContent === "Undo")!;
+    // A real leave: the pointer arrives and departs, which is the only way a tooltip closes.
+    await userEvent.hover(trigger);
+    await userEvent.unhover(trigger);
+    if (!(await until(() => popup.hasAttribute("data-ending-style"))))
+      throw new Error("the tooltip never began to close");
+    // The TARGET, read off the running transition's keyframes — the computed value mid-exit
+    // is wherever the clock has got to, and would pass on the family's 0.98 for a frame.
+    const scale = popup.getAnimations().find((a) => (a as CSSTransition).transitionProperty === "scale");
+    if (!scale) throw new Error("no scale transition on the exit — the exit is not moving");
+    const frames = (scale.effect as KeyframeEffect).getKeyframes() as { scale?: string }[];
+    expect(parseFloat(frames[frames.length - 1]!.scale ?? ""), "the exit settles somewhere other than the seed").toBeCloseTo(
+      parseFloat(computed(popup, "--tooltip-seed")),
+      3,
+    );
   });
 });

@@ -16,7 +16,12 @@ import {
   useRestingAnchor,
 } from "../../system/floating.tsx";
 import { useLensRef } from "../../system/refraction.tsx";
+import {
+  rootsInButton,
+  unwrapLazy,
   useMergedRefs,
+  type RenderElement,
+} from "../../system/render.ts";
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { OWNED_BODY_STEP, OWNED_TITLE_STEP } from "../../system/type-steps.ts";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";

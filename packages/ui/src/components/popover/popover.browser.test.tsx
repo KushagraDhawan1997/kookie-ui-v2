@@ -508,6 +508,127 @@ describe("the panel knows its direction and its anchor (§20, §22)", () => {
     expect(ltr.computed).toBe("ltr");
   });
 
+  it("the seed is a CIRCLE on the trigger's centre, faint — the alert's grammar at the family's origin (§31, 2026-08-31)", async () => {
+    /**
+     * Read at the LAST aimed seed frame (menu's own submenu law says why: the first aimed
+     * frame can precede floating-ui's placement). The negative control is a Menu opened the
+     * same way: its seed is the trigger's own box, so if the two agree the popover's rule
+     * reached nothing.
+     */
+    inMotion();
+    render(
+      <Theme>
+        <div style={{ padding: "200px 0 0 300px" }}>
+          <Popover>
+            <PopoverTrigger render={<Button emphasis="quiet" bordered>Rename the project</Button>} />
+            <PopoverContent aria-label="Rename">
+              <p>This changes the name everywhere it appears in the workspace.</p>
+            </PopoverContent>
+          </Popover>
+          <Menu>
+            <MenuTrigger render={<Button emphasis="quiet" bordered>Rename the project</Button>} />
+            <MenuContent align="center">
+              <MenuItem>This changes the name everywhere it appears</MenuItem>
+            </MenuContent>
+          </Menu>
+        </div>
+      </Theme>,
+    );
+    const seedFrame = async (trigger: HTMLElement, selector: string) => {
+      trigger.click();
+      let seed: DOMRect | undefined;
+      let style: { width: string; radius: string; opacity: string } | undefined;
+      for (let i = 0; i < 40; i++) {
+        await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+        const popups = document.querySelectorAll<HTMLElement>(selector);
+        const posed = popups[popups.length - 1];
+        if (posed?.hasAttribute("data-seed") && posed.hasAttribute("data-aimed")) {
+          seed = posed.getBoundingClientRect();
+          const cs = getComputedStyle(posed);
+          style = { width: cs.inlineSize, radius: cs.borderTopLeftRadius, opacity: cs.opacity };
+        } else if (seed) break;
+      }
+      if (!seed || !style) throw new Error(`${selector} never reached an aimed seed frame`);
+      return { seed, style };
+    };
+    const [popoverTrigger, menuTrigger] = [...document.querySelectorAll<HTMLElement>("button")];
+    const tBox = popoverTrigger!.getBoundingClientRect();
+    const { seed, style } = await seedFrame(popoverTrigger!, ".kui-popover-popup");
+    const designed = parseFloat(tokenOn(popoverTrigger!, "--floating-seed"));
+    // Calibration: the trigger must be far wider than the circle, or "sits on the trigger"
+    // and "is the trigger's box" are the same number.
+    expect(tBox.width, "the trigger must out-size the seed for the two poses to differ").toBeGreaterThan(designed + 40);
+
+    expect(seed.width, "the seed is the family's designed circle, not the trigger's width").toBeCloseTo(designed, 0);
+    expect(seed.height, "and it is round").toBeCloseTo(designed, 0);
+    expect(style.radius, "a circle: 50%, so it stays curvy as it opens").toBe("50%");
+    expect(style.opacity, "the alert's paint: the circle does not arrive opaque").toBe("0");
+    expect((seed.left + seed.right) / 2, "centred on the trigger, inline").toBeCloseTo((tBox.left + tBox.right) / 2, 0);
+    expect((seed.top + seed.bottom) / 2, "centred on the trigger, block").toBeCloseTo((tBox.top + tBox.bottom) / 2, 0);
+
+    // THE CLOCKS ARE THE ALERT'S (2026-08-31): the popover re-points the family's clock tokens
+    // to the overlay's on its own element, so the pane's fall/spread/becoming and the body's
+    // reveal, delay and print all read the alert's numbers. Read as the resolved tokens on the
+    // popup rather than as `transition-duration` strings, which would pin the property order.
+    const popup = document.querySelector<HTMLElement>(".kui-popover-popup")!;
+    for (const [family, overlay] of [
+      ["--floating-fall", "--overlay-fall"],
+      ["--floating-spread", "--overlay-spread"],
+      ["--floating-corner", "--overlay-materialize"],
+      ["--floating-paint", "--overlay-reveal"],
+      ["--floating-reveal", "--overlay-reveal"],
+      ["--floating-reveal-delay", "--overlay-reveal-delay"],
+    ] as const) {
+      expect(computed(popup, family), `${family} is not the alert's ${overlay}`).toBe(computed(popup, overlay));
+    }
+    // And the calibration that the re-pointing did something: the family's own numbers differ.
+    expect(computed(popoverTrigger!, "--floating-fall")).not.toBe(computed(popoverTrigger!, "--overlay-fall"));
+
+    // The negative control: a menu opened the same way seeds as its trigger's silhouette.
+    await userEvent.keyboard("{Escape}");
+    const mBox = menuTrigger!.getBoundingClientRect();
+    const menu = await seedFrame(menuTrigger!, ".kui-menu-popup");
+    expect(menu.seed.width, "the menu's seed is still its trigger's box — the rule leaked past the popover").toBeCloseTo(mBox.width, 0);
+    expect(menu.style.opacity, "and a lifting body is opaque from frame one").toBe("1");
+  });
+
+  it("and on a START-aligned placement the circle still sits on the trigger's centre — the inline hook's law", async () => {
+    /**
+     * A centred placement lands the seed by the family's own middle arm, so the popover's
+     * `--kui-seed-dx` is never consulted there; a start-aligned one pins the seed's start on
+     * the trigger's start and the hook is the whole of the inline centring. Both axes read,
+     * because the block hook is consulted in both cells.
+     */
+    inMotion();
+    render(
+      <Theme>
+        <div style={{ padding: "200px 0 0 300px" }}>
+          <Popover>
+            <PopoverTrigger render={<Button emphasis="quiet" bordered>Rename the project</Button>} />
+            <PopoverContent align="start" aria-label="Rename">
+              <p>This changes the name everywhere it appears in the workspace.</p>
+            </PopoverContent>
+          </Popover>
+        </div>
+      </Theme>,
+    );
+    const trigger = document.querySelector<HTMLElement>("button")!;
+    const tBox = trigger.getBoundingClientRect();
+    trigger.click();
+    let seed: DOMRect | undefined;
+    for (let i = 0; i < 40; i++) {
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+      const popups = document.querySelectorAll<HTMLElement>(".kui-popover-popup");
+      const posed = popups[popups.length - 1];
+      if (posed?.hasAttribute("data-seed") && posed.hasAttribute("data-aimed")) seed = posed.getBoundingClientRect();
+      else if (seed) break;
+    }
+    if (!seed) throw new Error("the popover never reached an aimed seed frame");
+    expect(document.querySelector(".kui-popover-popup")!.parentElement!.getAttribute("data-align"), "the premise").toBe("start");
+    expect((seed.left + seed.right) / 2, "inline: the circle sat at the trigger's START, the hook's term is missing").toBeCloseTo((tBox.left + tBox.right) / 2, 0);
+    expect((seed.top + seed.bottom) / 2, "block: the circle sat at the trigger's TOP").toBeCloseTo((tBox.top + tBox.bottom) / 2, 0);
+  });
+
   it("the flight's anchor is the popover's OWN trigger, standing alone and inside a dialog", async () => {
     /**
      * `--kui-anchor-w` is the persistent half of the runner's `if (trigger)` block — the one

@@ -2,8 +2,9 @@
  * ever named an exception.
  *
  * Everything about where this pane sits is the floating family's: it portals, it anchors, it
- * casts its coverage, it flies out of its trigger. What is here is the two facts that are the
- * tooltip's own — the inversion, and a box priced for one line of words.
+ * casts its coverage, it is posed and released by the family's runner. What is here is three
+ * facts that are the tooltip's own — the inversion, a box priced for one line of words, and an
+ * entry that LIFTS rather than unfurls (the block at the end of this file).
  *
  * It deliberately does NOT wear `kui-floating-rows`: that class carries the concentric corner
  * and the squircle bump, both of which are arithmetic about the ROWS a pane hugs (§31), and a
@@ -97,4 +98,140 @@
   --color-text: var(--color-surface);
   --color-text-muted: var(--color-surface);
   color: var(--color-text);
+}
+
+/* THE ENTRY IS A LIFT, NOT A SILHOUETTE (§32, 2026-08-31 — Kushagra: the family's unfurl is
+   "way too much, especially when it's on a larger surface, it looks very weird for a tooltip";
+   the Clip-vs-Physics bench's "Physics" tooltip is the reference, and it is built here out of
+   the family's own channels with nothing new in the runner).
+
+   §22's silhouette answers "where did this come from" by growing the trigger's own box into
+   the panel, and that is honest exactly where the panel IS the thing pressed — a menu is its
+   button's list, a select straddles its field. A tooltip is a LABEL. A label is not the thing
+   it names, so photographing a 400px card and shrinking it into a 28px chip narrates a lineage
+   the chip does not have, and on a small trigger the same recipe swells a button into a strip
+   and back. Measured on a card trigger before this block: the chip's first frame was the
+   card's full box, collapsing ~370px of width on the spread clock into a 60px chip.
+
+   The bench's answer, and this block: the chip arrives at its OWN size and shape, already at
+   its resting place, scaled down a little toward the trigger's edge and faint — and it grows
+   to full size on the family's spring while it paints. Three things are stood down and one is
+   added, and every one is the family's own channel re-aimed, which is why the runner needs no
+   plan of its own:
+
+   THE BOX IS ITS LANDED BOX from the first frame. The runner measures and publishes
+   `--kui-fly-w/h/r` for every anchored flight (system/floating.tsx); the family's pose reads
+   the trigger's photograph (`--kui-seed-w/h/r`) and this pose reads the landed box instead,
+   so no size channel ever changes and no corner morphs. In the runner's laid-out guard — the
+   one read taken with every flight var stripped — `--kui-fly-r` is unset and the corner falls
+   back to the unscaled hook; that frame is inside a pinned window and never painted, and the
+   guard reads only the width. Reading the pane's OWN resting corner rather than restating the
+   surface's formula keeps the corner in one home.
+
+   IT DOES NOT TRAVEL. `translate: 0 0` — the family's pose carries the seed onto the trigger
+   through `--kui-from-x/y`, and the family's centred arm (surfaces.css, the `[data-seed]`
+   centre pair) lands the seed by its middle; both are statements about a box that is
+   somewhere else, and this box is already home.
+
+   THE SEED IS A SCALE. `--tooltip-seed` (0.9) about the origin the family's own table already
+   answers for every (side, align, dir) cell — `center bottom` for a tooltip above its trigger,
+   which is the edge it lifts from — so the growth is toward the trigger's edge in every
+   placement with no per-side arm here. A scale rather than a size because scale is relative:
+   3px on a 28px chip, and the same proportion on the widest label the cap allows. The
+   laid-out guard reads the posed rect, and a rect includes its transform, so a scaled pose
+   measures narrower than its natural box and the guard passes — the reason the guard exists
+   (a positioner not yet sized) still trips it, since an unsized box scaled is still tiny.
+
+   IT ARRIVES FAINT. A body that lifts is opaque from frame one (the silhouette's rule) and a
+   body that appears is not: `opacity: 0`, on the paint clock.
+
+   AND THE WORDS RIDE WITH THE CHIP. The family prints its content as a molten unit inside a
+   box that is still becoming — blurred, faint, echoing upward — because the box's shape is not
+   known until it lands. This box's shape is known from frame one, so the body's seed pose is
+   stood down whole (no blur, no fade of its own, no echo, no squish): the chip and its words
+   are one object, which is what the bench draws.
+
+   THE CLOCKS AND THE CURVE ARE ITS OWN — a transition list of three, not the family's seven
+   (2026-08-31, second pass; Kushagra on the first: "Doesnt seem the same physics tho").
+   Measured beside the bench's tooltip, frozen at the same times: opacity identical, scale
+   not — the family's `scale` channel rides the ELASTIC spring (ζ0.715, ω10.8), which had the
+   chip at 0.995 by 90ms and landed at 120 with no tail, where the bench's `--spring` is this
+   package's `--motion-spring` (calm, ζ0.65, ω7.7; the samples are byte-identical) and is
+   still at 0.983 at 90, crossing 1 near 130 and easing back through 1.004. Same clock, a
+   faster spring: ours popped where the bench settles. A curve cannot be re-pointed through
+   the family's list (the easing is a token name in that list, and re-declaring
+   `--motion-spring-elastic` on this element would rename a system curve), so the tooltip
+   states its own list: scale on `--tooltip-form` and the calm curve, opacity on
+   `--tooltip-paint`, and the cast on the family's reveal. The runner's release reads the
+   LONGEST declared clock off the un-posed element, so it lands at 300 — left on the family's
+   list, a chip landed at 300 sat posed for the 510ms spread. (0,3,0) over the family's (0,2,0)
+   base list; the family's exit, instant and seed rules all outrank it, as they should.
+
+   AND THE EXIT RETURNS TO THE SEED. The family's dissolve settles a pane back 2% toward its
+   anchor; the bench's tooltip shrinks back to where it came from (0.9). The distance is the
+   seed's, on the family's settle clock and its STIFF spring rather than the bench's
+   `ease-in` — an exit that ends at maximum velocity slams (LOG, principle 14), and at 120ms
+   over a tenth of scale the curve is not what the eye reads; the distance is.
+
+   Keyed on `[data-seed]` for the pose, like the family's, so the runner's held-pose contract
+   (a static frame under `transition: none`, released on its own frame) is inherited verbatim.
+   `[aria-hidden]` and the two placement stamps are carried for RANK: the family's centred
+   arms are (0,6,0) and one of them is prefixed `[dir="rtl"]`, so a tooltip rule must reach
+   (0,7,0) to win by rank rather than by sheet order. `aria-hidden` is the tooltip's own
+   permanent stamp (§32 — the pane hidden from AT because it only restates its control), so
+   it names this component and nothing else in the family. The exemption
+   for warm groups is untouched: `data-instant="delay"` still zeroes every clock, so a
+   toolbar's second tooltip appears at once, which is the bench's warm half. */
+.kui-surface.kui-floating.kui-tooltip-popup {
+  transition:
+    scale var(--tooltip-form) var(--motion-spring),
+    opacity var(--tooltip-paint) ease-out,
+    box-shadow var(--floating-reveal) ease-out;
+}
+.kui-surface.kui-floating.kui-tooltip-popup[data-ending-style] {
+  scale: var(--tooltip-seed);
+}
+/* Stood down at the RECIPE's own weight (the surfaces.css sentence: a stand-down must weigh
+   what it stands down). The family's guard names `.kui-surface.kui-floating` at (0,2,0) and
+   this list is (0,3,0), so the family's stillness could not reach it; the exit's own list is
+   the family's and the family's guard already covers it. */
+@media (prefers-reduced-motion: reduce) {
+  .kui-surface.kui-floating.kui-tooltip-popup {
+    transition: none;
+  }
+}
+.kui-surface.kui-floating.kui-tooltip-popup[aria-hidden][data-unfurling][data-seed][data-side][data-align] {
+  inline-size: var(--kui-fly-w, auto);
+  block-size: var(--kui-fly-h, auto);
+  border-radius: var(--kui-fly-r, var(--kui-sf-radius));
+  translate: 0 0;
+  scale: var(--tooltip-seed);
+  opacity: 0;
+}
+/* AND THE PIN IS STOOD DOWN FOR THE FLIGHT, because a full-size box needs none and the
+   centred one DRIFTS under a scale (measured on the first run of the entry law: the chip's
+   centre 4.4px off at the seed, sliding home as it grew). The family holds a centred pane by
+   its middle with `inset-inline-start: 50%` + `transform: translateX(-50%)` (surfaces.css,
+   2026-08-31), and `transform` composes INSIDE the individual `scale` — the list is
+   translate · rotate · scale · transform — so the half-width shift is scaled with the box:
+   at 0.9 the pin pulls back 45% of the width, not 50%, and the centre lands 5% of the chip
+   away from where it rests. On a growing pane that is the right composition (the pin must
+   track the box the scale is applied to); on a box that is already its landed size inside a
+   positioner the runner has sized to it, every inset is `0` and the box sits where it will
+   rest by construction. All four insets and the transform, so the end-aligned and the side
+   arms are covered by the same sentence. */
+.kui-surface.kui-floating.kui-tooltip-popup[aria-hidden][data-unfurling][data-side][data-align] {
+  inset-block-start: 0;
+  inset-block-end: auto;
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+  transform: none;
+}
+.kui-surface.kui-floating.kui-tooltip-popup[data-unfurling][data-seed] .kui-floating-body {
+  opacity: 1;
+  filter: none;
+  /* `none`, not `1`: the settled body declares no scale, and `1` → `none` is a transition the
+     browser runs (a no-op visually, a live clock to any law reading the body's channels). */
+  scale: none;
+  translate: 0 var(--kui-body-sink);
 }

@@ -979,6 +979,13 @@ export const floatingMotion = {
   corner: 420,
   /** The panel's own fade-in, and its rows'. Paint is signal: it does not ride a spring. */
   reveal: 195,
+  /** The PANE's paint clock — what its opacity channel eases on (2026-08-31). It was
+      `--motion-hover-in` (80) by borrow: a menu's silhouette is opaque from frame one, so the
+      pane's opacity never moved on an entry and the clock only ever carried a caught reopen
+      back from mid-dissolve. The number is unchanged; it is a family token now so that a
+      member whose seed does NOT arrive opaque (Popover, whose entry paces like the alert's)
+      can re-point it to the overlay's reveal on its own element. */
+  paint: 80,
   /** 60 since 2026-08-16 (Kushagra: "I prefer whatever is on lab" — the lab's menus have
       carried these five clocks since 2026-08-14 and were judged there ever since, while the
       package was never brought level with them). This REVERSES the 280 below, which is kept
@@ -1473,6 +1480,40 @@ export const tooltipPadding = { block: 2, inline: 4 } as const;
  * tooltip — this is the cap that makes a long label wrap into a small block instead. v0.
  */
 export const tooltipMaxWidth = 240;
+
+/**
+ * §32 — the tooltip's ENTRY: a lift, not a silhouette (2026-08-31, Kushagra: the family's
+ * unfurl is "way too much, especially when it's on a larger surface, it looks very weird for a
+ * tooltip"; the "Physics" cell of the Clip-vs-Physics bench is the reference).
+ *
+ * §22's silhouette answers "where did this come from" by growing the trigger's own box into the
+ * panel — honest for a menu, which IS its button's list. A tooltip is a label, and a label is
+ * not the thing it names, so photographing a 400px card and shrinking it into a 28px chip
+ * narrates a lineage the chip does not have. The tooltip's answer is the bench's: the chip
+ * arrives at its own size and shape, already where it will rest, scaled down a little toward
+ * the trigger's edge and faint, and it grows to full size on the family's spring while it
+ * paints. One geometry clock, one paint clock; no measured travel, no box to photograph.
+ *
+ * Time, so no --scale, like every other clock here.
+ */
+export const tooltipMotion = {
+  /** The one geometry clock: the chip's scale from its seed to full size. Every box channel the
+      floating family declares is re-pointed to this on the tooltip's element, so the runner's
+      release lands on it too — a tooltip has no fall and no spread to wait out. The bench's
+      300 against the family's 420 corner clock: a small object settles sooner. */
+  form: 300,
+  /** Paint. The bench's 120 against the family's 80: a chip that starts invisible needs a
+      beat longer than one that starts as an opaque silhouette, or it pops. */
+  paint: 120,
+} as const;
+
+/**
+ * The tooltip's seed is a SCALE, not a box — how much smaller than itself the chip starts. The
+ * bench's 0.9; on a 28px chip that is 3px of growth toward the trigger's edge, which is the
+ * whole of the entry's travel. A distance rather than a clock, so it sits beside `dialogEntry`
+ * in kind.
+ */
+export const tooltipEntry = { seed: 0.9 } as const;
 
 
 /**

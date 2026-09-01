@@ -47,3 +47,54 @@
 .kui-popover-popup > .kui-scroll-area > .kui-scroll-viewport {
   max-block-size: calc(var(--available-height, 100vh) - 2 * var(--border-width));
 }
+
+/* THE ENTRY IS THE ALERT'S, at the floating family's origin (2026-08-31, Kushagra: the entry
+   should "feel like alert dialog's… in how it expands, in how content appears" — chosen over
+   the alert's recipe verbatim, which rises from below the panel's own footprint and forgets
+   the trigger, and over a fade alone).
+
+   §22's silhouette is honest where the panel IS the thing pressed, lifting: a menu is its
+   button's own list, a select straddles its field. A popover is a CARD that floats (§31) —
+   its content is the caller's and has no shape in common with the button that summoned it —
+   so a pill the width of the trigger swelling into a form read as the button inflating.
+   What the panel shares with its trigger is a POINT, and the alert's materialization is the
+   family's other grammar for exactly that: a circle, faint, becoming the box. So it takes
+   three things from the alert and keeps the floating family's origin.
+
+   THE SEED: the family's designed circle, `50%` rather than a length so it stays curvy as it
+   opens (the alert's own finding), sitting on the trigger's centre. The runner still measures
+   the trigger's box and offsets (`--kui-seed-w/h`, `--kui-from-x/y` — the seed's top-left
+   onto the trigger's top-left, read off the box THIS pose lays out); the hooks say how far
+   inside that box the circle sits, and the family's pose adds them. On a centred placement
+   the family's own arm lands the seed by its middle and the inline hook is not consulted.
+   NOT `corner-shape: round` (Kushagra's screenshot, "a second much more circular corner
+   radius border inside"): the glint's mask reads `corner-shape` off the element on the
+   premise that it never changes during a flight, and a seed that flips it got a circular
+   band built over a squircle box.
+
+   THE PAINT: a circle is not a body lifting, so it does not arrive opaque.
+
+   THE CLOCKS: the alert's, re-pointed token for token on this element — the box's fall,
+   spread and becoming, and the content's reveal, its delay and its print — so a popover and
+   an alert are ONE pace and one arrival, and a retune of the overlay's clocks reaches both.
+   The family's own clocks are speed-matched to a menu's drop; a popover covers a card's
+   distance and was arriving before its circle could be seen (measured: 175 × 153 at 90%
+   opacity by 60ms on an 80ms fade). The exit keeps the family's dissolve and settle, which
+   the alert shares anyway. Self-keyed, the family's second-member rule; one specificity step
+   over the base pose, which is also what makes it win regardless of sheet order. */
+.kui-popover-popup {
+  --floating-fall: var(--overlay-fall);
+  --floating-spread: var(--overlay-spread);
+  --floating-corner: var(--overlay-materialize);
+  --floating-paint: var(--overlay-reveal);
+  --floating-reveal: var(--overlay-reveal);
+  --floating-reveal-delay: var(--overlay-reveal-delay);
+}
+.kui-surface.kui-floating.kui-popover-popup[data-unfurling][data-seed] {
+  inline-size: var(--kui-seed);
+  block-size: var(--kui-seed);
+  border-radius: 50%;
+  --kui-seed-dx: calc((var(--kui-seed-w, var(--kui-seed)) - var(--kui-seed)) / 2);
+  --kui-seed-dy: calc((var(--kui-seed-h, var(--kui-seed)) - var(--kui-seed)) / 2);
+  opacity: 0;
+}
