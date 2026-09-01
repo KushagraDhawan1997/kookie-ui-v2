@@ -99,9 +99,15 @@ The justification is Box's own, one element over: **containment serves a box's C
 
 The file is small by construction, not by post-hoc minification. Process the output with **Lightning CSS** (minify, autoprefix, nesting).
 
-**Budget and validation:** set a hard target (e.g. core CSS under ~30-40KB gzipped for a typical config), measure in CI, fail the build on regression. Validate early — the first component built (Button) gets its CSS measured to prove the variant-as-token-remap thesis before scaling to the full set.
+**Budget and validation:** a hard ceiling and a regression ratchet, both in `budget.json` and nowhere else. Measure in CI, fail the build on regression. Validate early — the first component built (Button) got its CSS measured to prove the variant-as-token-remap thesis before scaling to the full set.
 
-Optional later: per-component CSS modules for granular tree-shaking. Likely unnecessary because the monolith is already small; revisit only if measurement says otherwise.
+**The ceiling moved to 65,536 on 2026-09-01, and the basis is a fraction of Radix rather than a round number.** It was ~40KB, set in §14 step 1 when the package shipped nothing; at 50 components it had 3,800 bytes of headroom, which is about one more batch the size of the nine that landed on 2026-08-31 — and the components left (Combobox, Calendar, Command) are each heavier than any of those. Measured, from the published tarballs rather than from memory: `@radix-ui/themes` 3.3.0 ships **85,405 gzipped** in one `styles.css`, of which its `tokens.css` entry alone is 34,741 — roughly 40% of its bundle is palette breadth (~30 colour families against our ten) plus a layout/utility-prop layer this system forbids outright. `@mantine/core` 9.6.0 ships 38,863. So 65,536 is 77% of Radix while carrying a tenth of its palette, the glass, the lens, the springs and the shell — a number that survives the next ten components and can be argued from, where "current + some" cannot.
+
+**And the gate is denominated in a format nobody receives.** The artifact measures 36,574 gzipped and **26,654 brotli** — every browser that fetches it gets the second number. The gate stays on gzip because the recorded baseline has to be comparable across four months of history, but the ceiling's real-world meaning is ~28% under its face value, and that is the honest frame for judging how much room is left.
+
+**The ceiling's job is to be a wall, not a target.** Raising it is a decision with a written basis, taken once; nudging it per commit would end the mechanism, and the mechanism has paid for itself repeatedly — `surfaceLook` −267, the flat band −113, the centring fix −12, the shell padding −18, each a fix at the right layer that removed more than it added.
+
+Optional later: per-component CSS modules for granular tree-shaking. **Still open and now the largest unspent lever (2026-09-01):** one stylesheet means an app using six components pays for fifty, and Radix ships split entry points for exactly this. Adding `./styles/<layer>.css` beside the existing `styles.css` is purely additive — no existing import breaks — but the layer ordering (tokens → system → components) is load-bearing, so it is an architecture decision and not a build flag. It does not reduce the bundle; it reduces what a real consumer downloads, which is the only number that reaches a user.
 
 ---
 
@@ -1264,6 +1270,16 @@ it is config, baked by the generator at build time (section 7), and no Theme pro
 **Tailwind bridge (optional, sanctioned):** for teams that keep Tailwind in app code, ship a preset mapping its theme onto our variables (`spacing: { 4: "var(--space-4)" }`, colors onto `--accent-N`, …). The threat Tailwind poses to the system is its parallel token scale, not its syntax; with the preset, even `mt-4` written by a defector resolves through the token contract and reflows with the Theme. Our own components never use it.
 
 ---
+
+### Two size optimisations the contract refuses (2026-09-01)
+
+Both were measured against the built artifact, and both look like free wins until you ask what the names are for.
+
+**A purge would delete the contract. 228 custom properties are declared in `styles.css` and never referenced by any `var()` in it — stripping them saves 4,524 gzipped bytes, and they are `--radius-full`, `--space-*`, `--accent-1`, `--neutral-9`, `--neutral-a1`: the base palettes this section requires to ship COMPLETE.** They are unreferenced internally *because* they are public — their consumers are user-authored components, which a build tool cannot see. "Unused" is what a public palette looks like from the inside, so no dead-code pass may be pointed at this file, and any tool that offers to is offering to remove the API. This is the same shape as the base-scale argument above, arriving from the tooling side.
+
+**Mangling the private `--kui-*` names is impossible, not merely unwise, and this section's own permission is what misled me.** The rule above says private mechanism vars are "undocumented, unstable" — which reads as licence to shorten them in the artifact, worth a measured 842 bytes. It is not, because the CSS is not their only reader: 86 of them are named in `.ts`/`.tsx`, and the runtime builds names by CONCATENATION — `--kui-ct-`, `--kui-sf-`, `--kui-fly-`, `--kui-material-` and, decisively, the bare stem `--kui-` are all assembled at run time, so **zero of the 317 are provably safe to rename** by a pass that reads only the stylesheet. A mangler would have to share one map with the JS build and would still lose to the dynamic stems. What survives is the original sentence: private means a consumer may not depend on the name. It never meant the name is free.
+
+What the same measurement pass DID find is recorded where it was spent: the P3 block's fourth decimal (§7, `p3Decimals`, −586 bytes), and the finding that 58,858 raw bytes of duplicated declaration bodies — the radius × density × pointer cells, the high-contrast palette written once per arm — are worth **184 bytes** merged, because gzip resolves repetition to back-references and the duplication is very nearly free. Raw duplication is not a size problem in this file; it is what a token system looks like compressed.
 
 ## 14. Build order (first vertical slice)
 

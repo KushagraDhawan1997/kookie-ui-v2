@@ -78,11 +78,29 @@ function toGamut(color: Oklch, gamut: Gamut = "srgb"): Oklch {
   return oklch(color.l, lo, color.h);
 }
 
-/** The emitted form: hex for sRGB, `color(display-p3 ...)` for P3. */
+/**
+ * The emitted form: hex for sRGB, `color(display-p3 ...)` for P3.
+ *
+ * **Three decimals, not four (2026-09-01), and the bound is the argument.** The P3 block is
+ * the single largest thing in the artifact after the component rules — 678 literals, 5,507
+ * gzipped bytes — and every channel was carrying a digit no display can show. A third
+ * decimal bounds the error at 5e-4: an eighth of an 8-bit step (1/255 = 3.9e-3) and about
+ * half of a 10-bit one (1/1023 = 9.8e-4), so an ordinary panel cannot resolve it at all and
+ * the best available panel can differ by at most one least-significant code. That is orders
+ * of magnitude under the perceptual threshold, and it is stated as a bound rather than as
+ * "no change" because a bound is the true claim and can be checked.
+ *
+ * Measured: -571 gzipped bytes, and it is spent at the generator rather than as a regex over
+ * the built artifact, so `tokens.css` shrinks with it and the drift law still reads one home.
+ * A fourth decimal buys nothing; a second (max error 5e-3) crosses the 8-bit step and would.
+ */
+export const p3Decimals = 3;
+
 function format(color: Oklch, gamut: Gamut): string {
   if (gamut === "srgb") return formatHex(color)!;
   const { r, g, b } = toP3(color)!;
-  const n = (v: number) => Math.min(1, Math.max(0, v)).toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
+  const n = (v: number) =>
+    Math.min(1, Math.max(0, v)).toFixed(p3Decimals).replace(/0+$/, "").replace(/\.$/, "");
   return `color(display-p3 ${n(r)} ${n(g)} ${n(b)})`;
 }
 

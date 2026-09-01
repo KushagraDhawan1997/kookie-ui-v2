@@ -29,6 +29,7 @@ import {
   colorDeclarations,
   contrastHighDeclarations,
   cuspLightness,
+  p3Decimals,
   resolveTone,
   solveRing,
   toneFromColor,
@@ -1495,5 +1496,40 @@ describe("the generator ships no dead exports (ENGINEERING §7's entropy audit)"
 
     const dead = exported.filter((name) => usesOf(name) === 0);
     expect(dead, `dead export(s) in color.ts: ${dead.join(", ")}`).toEqual([]);
+  });
+});
+
+/**
+ * The P3 block is the largest thing in the artifact after the component rules, and until
+ * 2026-09-01 every channel in it carried a fourth decimal no display can resolve. The claim
+ * the change makes is a BOUND, not "nothing moved", so the law states the bound.
+ */
+describe("the P3 block spends no digit a display can show (§7, 2026-09-01)", () => {
+  const generated = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "tokens.css"), "utf8");
+
+  /**
+   * A DRIFT law, and its reach is narrower than it looks: it reads the same constant the
+   * generator writes from, so raising `p3Decimals` moves the law with it and this arm stays
+   * green. What it catches is the artifact disagreeing with the generator — a hand-edited or
+   * stale `tokens.css` — which is falsified by editing one channel in the committed file.
+   * Spending the digits again is caught by the BUDGET gate, not here: the file grows and the
+   * regression ratchet fails. Two mechanisms, one for each way this can go wrong.
+   */
+  it("every emitted channel carries at most `p3Decimals` decimals", () => {
+    const channels = [...generated.matchAll(/color\(display-p3([^)]*)\)/g)].flatMap((m) =>
+      m[1].trim().split(/\s+/),
+    );
+    // Calibration: a corpus of nothing satisfies any negative assertion.
+    expect(channels.length, "no display-p3 channels found — this law reads nothing").toBeGreaterThan(500);
+
+    const tooFine = channels.filter((c) => (c.split(".")[1] ?? "").length > p3Decimals);
+    expect(tooFine.slice(0, 8), `${tooFine.length} channels finer than ${p3Decimals} decimals`).toEqual([]);
+  });
+
+  it("that precision cannot move an 8-bit code, which is what makes it not a visual change", () => {
+    // The rounding error is half the emitted quantum. It has to stay under half an 8-bit
+    // step or a channel could land on a different code and the claim would be false.
+    // At 3 decimals: 5e-4 against 1.96e-3. At 2 it would be 5e-3, and this fails.
+    expect(0.5 * 10 ** -p3Decimals).toBeLessThan(0.5 * (1 / 255));
   });
 });
