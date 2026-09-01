@@ -1253,12 +1253,11 @@
 .kui-surface[data-material="thin"],
 .kui-surface[data-material="regular"],
 .kui-surface[data-material="thick"] {
-  /* The rim must sit UNDER the translucent edge, not beside it (Kushagra, 2026-08-07: "why
-     am I seeing this thicker top border") — backgrounds originate at the padding box by
-     default, which parked the rim line just below the border: two stacked lines reading as
-     one thick edge, the exact dead end §5's chrome notes record for the inset ring. From
-     the border box, the rim and the edge composite into one brighter line. */
-  background-origin: border-box;
+  /* The rim sits UNDER the translucent edge, not beside it (Kushagra, 2026-08-07: "why am I
+     seeing this thicker top border") — that used to be this block's own `background-origin:
+     border-box`, and since 2026-08-30 the base rule states it for every material, because
+     the padding-box default was also wrapping the sheen into a bottom light line on SOLID
+     panes (see the base rule). */
   /* One lift per pane (§10, 2026-08-07 — Kushagra, from the preview: buttons on dark glass
      cast "an extremely dark shadow"): dark's shadow alphas are heavy because a dark PAGE
      swallows them, but a pane swallows nothing — the backdrop shows through and the cast

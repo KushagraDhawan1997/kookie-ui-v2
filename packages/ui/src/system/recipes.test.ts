@@ -938,21 +938,58 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
         'addEventListener("scroll',
         "new MutationObserver",
         "requestAnimationFrame",
+        // The flight measurement itself. The panel's box is read on the mount frame and the
+        // pose is stamped from it; the entry is what these reads serve, start to finish.
+        "getBoundingClientRect",
+        "getComputedStyle",
       ],
       // THE LENS (DECISIONS §10, the second bounded exception): built on mount and on resize,
       // never on hover, press, focus or scroll — and never while a pane is flying (2026-08-22).
       // Its only listener is `change` on a MediaQueryList, which this regex does not ban at
       // all, so it needs no listener exemption; what it needs is the two observers.
-      "system/refraction.tsx": ["new ResizeObserver", "new MutationObserver"],
+      "system/refraction.tsx": [
+        "new ResizeObserver",
+        "new MutationObserver",
+        // The pane's box and corner, which is WHAT a displacement map is computed from.
+        "getBoundingClientRect",
+        "getComputedStyle",
+      ],
       // THE SEGMENTED THUMB (DECISIONS §26, the fourth bounded exception): the selection is
       // watched through `data-checked` because an uncontrolled RadioGroup never re-renders the
       // component, and the seats are measured because a squeezed track's segments are NOT
       // equal (measured 62/62/72 at 200px where arithmetic answers 65.3).
-      "components/segmented-control/segmented-control.tsx": ["new MutationObserver", "new ResizeObserver"],
+      "components/segmented-control/segmented-control.tsx": [
+        "new MutationObserver",
+        "new ResizeObserver",
+        // The seats, which are NOT equal on a squeezed track (measured 62/62/72 at 200px where
+        // arithmetic answers 65.3) — the measurement the exception was granted for.
+        "getBoundingClientRect",
+        "getComputedStyle",
+      ],
       // DEV-ONLY WARNINGS, both stripped from the build: the shrink-wrap collapse (§2) and the
       // clipped-content warning (§10's clipping pane). Neither ships, and neither writes style.
-      "components/box/box.tsx": ["new ResizeObserver", "new MutationObserver"],
+      "components/box/box.tsx": ["new ResizeObserver", "new MutationObserver", "getBoundingClientRect", "getComputedStyle"],
       "system/clip.tsx": ["new ResizeObserver", "requestAnimationFrame"],
+      // DEV-ONLY, and it reads the ancestor chain ONCE per Theme mount: §20's stacking-frame
+      // warning, which cannot be answered in CSS because the frame cannot reach outside itself.
+      "theme/theme.tsx": ["getComputedStyle"],
+      /**
+       * THE PANEL SEAM — the FIFTH bounded exception (DECISIONS §22, recorded 2026-08-31).
+       *
+       * A submenu's child panel aligns its first row with the row that opened it, and the
+       * distance is the parent panel's own padding plus its border: two density-derived
+       * lengths that live in CSS and that JavaScript can only ask for. It is handed to Base
+       * UI's positioner as a function, so it is evaluated three times per position pass and
+       * re-run whenever floating-ui re-solves — including on scroll inside the parent panel,
+       * which is the clause the other four exceptions each buy their licence by refusing.
+       *
+       * It is recorded rather than removed because it was MEASURED and it is not a cost: a
+       * scroll frame with the menu open is 8.33 ms against 8.33 ms closed, and 8.50 ms at 6x
+       * CPU throttle. Caching it was refused — the function returns 0 while the parent panel
+       * is not yet in the DOM, and a cache that kept that 0 re-commits the exact defect the
+       * seam law upstairs exists to catch. An honest exception beats a stale number.
+       */
+      "components/menu/menu.tsx": ["getComputedStyle"],
       // The shell's overlay Escape, moved off `document` so a Dialog inside a pane does not
       // dismiss the pane under it (audit 2026-08-16). A keydown is not interaction-time paint.
       // The observer and the frame are the DEV-ONLY safe-area guard (§27, 2026-08-29), Box's
@@ -963,10 +1000,22 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
         'addEventListener("keydown',
         "new ResizeObserver",
         "requestAnimationFrame",
+        // The same DEV-only safe-area guard: it compares the published `--kui-shell-inset-*`
+        // against where the floating panes actually are, so the comparison IS the measurement.
+        "getBoundingClientRect",
+        "getComputedStyle",
       ],
     };
+    // `getComputedStyle` and `getBoundingClientRect` joined the ban 2026-08-31 (performance
+    // pass). The doctrine's four exceptions are all MEASUREMENTS, and until this line the law
+    // could only see the machinery around a measurement — an observer, a frame, a listener —
+    // never the measurement itself. `panelSeam` (menu.tsx) is what that blind spot cost: a
+    // plain function handed to a third-party positioning prop, evaluated three times per
+    // position pass and re-run on every ancestor scroll, matching no banned shape and carrying
+    // no exemption, so the law reported the file clean for three weeks. A forced layout read is
+    // the thing the doctrine is actually about, so it is the thing the regex now looks for.
     const banned =
-      /on(?:Pointer|Mouse|Touch)(?:Move|Enter|Leave|Over|Out|Down|Up)\s*=|addEventListener\(\s*["'](?:pointer|mouse|touch|scroll|wheel|keydown)|new (?:Resize|Mutation|Intersection)Observer|requestAnimationFrame|setInterval/g;
+      /on(?:Pointer|Mouse|Touch)(?:Move|Enter|Leave|Over|Out|Down|Up)\s*=|addEventListener\(\s*["'](?:pointer|mouse|touch|scroll|wheel|keydown)|new (?:Resize|Mutation|Intersection)Observer|requestAnimationFrame|setInterval|getComputedStyle|getBoundingClientRect/g;
     const files = [
       ...walkFiles("components", ".tsx").filter((f) => !f.includes("test")),
       ...walkFiles("system", ".tsx").filter((f) => !f.includes("test")),
@@ -997,6 +1046,81 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
       }
     }
   });
+
+  /**
+   * A `ref=` NEVER TAKES A BARE `mergeRefs` (2026-08-31 performance pass).
+   *
+   * `mergeRefs` returns a fresh closure per call, so an inline merge hands React a new ref
+   * identity every render, and React answers a new identity by detaching and reattaching. On a
+   * lens-bearing pane the detach RELEASES the filter, so the reattach misses `acquire`'s cache
+   * and mints a whole new displacement map — the per-pixel Snell solve and eleven-node
+   * `<filter>` graft that the "on mount and resize, never at interaction time" rule exists to
+   * forbid. `useMergedRefs` (system/render.ts) is the memoised spelling.
+   *
+   * THE LAW EXISTS BECAUSE THE FACT HAD FIVE HOMES AND FIVE HOLES: the memo was hand-written in
+   * Card, Shell (twice), Slider, TextArea and TextField, each with its own paragraph explaining
+   * why — and MISSED in Dialog, AlertDialog, Popover, Select and Composer, the five components
+   * whose panes are the largest boxes in the library. Three per-component browser laws guarded
+   * their own subject and none could see a sibling. This one walks every source.
+   *
+   * `composeRender` is the one exemption and it is not a `ref=`: it composes into a props object
+   * for a single `cloneElement`, so there is no per-render identity for React to diff.
+   */
+  it("no component hands React an unmemoised merged ref", () => {
+    const files = [
+      ...walkFiles("components", ".tsx").filter((f) => !f.includes("test")),
+      ...walkFiles("system", ".tsx").filter((f) => !f.includes("test")),
+      ...walkFiles("theme", ".tsx").filter((f) => !f.includes("test")),
+      "system/render.ts",
+    ];
+    expect(files.length, "the walk must find the component sources").toBeGreaterThan(10);
+
+    // `ref={mergeRefs(…)}` in JSX, and `ref: mergeRefs(…)` in a props object. An ASSIGNMENT
+    // (`next.ref = mergeRefs(…)`) is deliberately not matched — that is composeRender's arm,
+    // exempted and explained in system/render.ts.
+    const bare = /ref\s*=\s*\{\s*mergeRefs\s*\(|ref\s*:\s*mergeRefs\s*\(/g;
+    for (const file of files) {
+      const source = stripped(raw(file));
+      const hits = [...source.matchAll(bare)].map((m) => m[0]);
+      expect(
+        hits,
+        `${file} puts a bare mergeRefs in a ref position — use useMergedRefs (system/render.ts)`,
+      ).toEqual([]);
+    }
+
+    // AND THE HOOK MUST STILL BE THE MEMOISED ONE. Without this the law above is satisfied by a
+    // `useMergedRefs` that simply forwards, which is the defect wearing the fix's name.
+    const home = stripped(raw("system/render.ts"));
+    expect(home, "useMergedRefs must exist").toContain("export function useMergedRefs");
+    const body = home.slice(home.indexOf("export function useMergedRefs"));
+    expect(
+      body.slice(0, body.indexOf("}")),
+      "useMergedRefs must memoise the merge on the ref list itself",
+    ).toContain("React.useMemo(() => mergeRefs(...refs), refs)");
+
+    // AND THE INSTRUMENT MUST BE ABLE TO SEE THE DEFECT. A negative law over a clean tree is a
+    // law that has never fired, and the first spelling of this one shipped with a THIRD arm
+    // ("every lens-bearing file mentions useMergedRefs") that its own sabotage pass survived:
+    // every one of those files calls the hook somewhere ELSE — Popover's trigger satisfied it
+    // while Popover's popup was sabotaged back to a bare merge. Deleted, and replaced by a
+    // calibration: both shapes the regex claims to catch, checked against the regex itself.
+    for (const shape of [
+      'ref={mergeRefs(lensRef, nameRef)}',
+      'ref: mergeRefs(ref, clipRef),',
+      'ref={ mergeRefs(a, b) }',
+    ]) {
+      expect(
+        [...shape.matchAll(new RegExp(bare.source, "g"))].length,
+        `the ref-position regex must match \`${shape}\``,
+      ).toBe(1);
+    }
+    // …and must NOT match the assignment form, which is composeRender's exempted arm.
+    expect(
+      [...("next.ref = mergeRefs(merged.ref, ownRef);").matchAll(new RegExp(bare.source, "g"))].length,
+      "the regex must leave composeRender's assignment alone",
+    ).toBe(0);
+  });
+
 
   /** Everything a `@media (hover: hover)` block encloses, removed — brace-matched, and EVERY
       guard rather than the first (2026-08-17: the control-scale port added a second one nested
@@ -1161,12 +1285,15 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
           for (const literal of channel.replace(/var\([^)]*\)/g, "").match(/\d*\.?\d+m?s/g) ?? []) {
             expect(literal, `${file}: ${raw.trim()} — hand-typed duration`).toBe("0s");
           }
-          // Four clock families: the control clocks (--motion-*), the floating panes'
-          // (--floating-*), the alert's materialization (--overlay-*, §24/§25) and the
-          // dialog's own entry (--dialog-*, 2026-08-16 — depth, not distance). A family
-          // shares the grammar, never the token home; `alert` is listed against the day its
-          // prefix is renamed to match the component that owns those clocks.
-          expect(channel, `${file}: ${raw.trim()}`).toMatch(/var\(--(motion|floating|overlay|alert|dialog)-[\w-]+\)|\b0s\b/);
+          // Five clock families: the control clocks (--motion-*), the floating panes'
+          // (--floating-*), the alert's materialization (--overlay-*, §24/§25), the
+          // dialog's own entry (--dialog-*, 2026-08-16 — depth, not distance) and the
+          // tooltip's lift (--tooltip-*, 2026-08-31, §32 — one geometry clock and one paint
+          // clock, its own because a label's entry shares the family's spring and nothing
+          // else). A family shares the grammar, never the token home; `alert` is listed
+          // against the day its prefix is renamed to match the component that owns those
+          // clocks.
+          expect(channel, `${file}: ${raw.trim()}`).toMatch(/var\(--(motion|floating|overlay|alert|dialog|tooltip)-[\w-]+\)|\b0s\b/);
         }
       }
     }

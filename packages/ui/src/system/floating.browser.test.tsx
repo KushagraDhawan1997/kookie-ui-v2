@@ -14,7 +14,6 @@ import { userEvent } from "vitest/browser";
 import { Button } from "../components/button/button.tsx";
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "../components/popover/popover.tsx";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "../components/select/select.tsx";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../components/tooltip/tooltip.tsx";
 import { FloatingDirectionContext, PortalScope } from "./floating.tsx";
 import { Theme } from "../theme/theme.tsx";
 import { inMotion, render, sweep, until } from "../test/browser.tsx";
@@ -198,17 +197,14 @@ describe("a centre-aligned panel keeps its content centred for every frame (§22
     return { skew: b.left - p.left - (p.right - b.right), width: p.width };
   };
 
+  // ONE case since 2026-08-31, and the deletion is the record: this law was written on a
+  // tooltip and a popover, and the tooltip's box no longer passes through any width — its entry
+  // is a lift at its landed size (§32, tooltip.css), so "at every width the box passes through"
+  // is one width there and the fixture would wait forever for a `width` clock. The mechanism
+  // under test (a centred body pinned by its own middle while the pane grows) is the family's,
+  // and the popover is the member that still exercises it; the tooltip's own entry law reads
+  // its centre across the scale sweep instead (tooltip.browser.test.tsx).
   const cases = [
-    {
-      what: "tooltip",
-      selector: ".kui-tooltip-popup",
-      ui: (
-        <Tooltip defaultOpen>
-          <TooltipTrigger render={<Button iconOnly aria-label="Comment">…</Button>} />
-          <TooltipContent>Comment on this revision</TooltipContent>
-        </Tooltip>
-      ),
-    },
     {
       what: "popover",
       selector: ".kui-popover-popup",
@@ -272,20 +268,26 @@ describe("a centre-aligned panel keeps its content centred for every frame (§22
 describe("a panel beside its trigger never squeezes its content (§22)", () => {
   it("the body holds its words at every height the pane passes through", async () => {
     inMotion();
+    // A POPOVER since 2026-08-31 — the tooltip this was measured on no longer grows (its entry
+    // is a lift at its landed size, §32), so the fixture moved to the member that still passes
+    // through heights. The paragraph is capped so it genuinely wraps: a one-line body cannot be
+    // shorter than its words at any height, and the law would be about nothing.
     render(
       <Theme>
         <div style={{ padding: 240 }}>
-          <Tooltip defaultOpen>
-            <TooltipTrigger render={<Button iconOnly aria-label="Restore">…</Button>} />
-            <TooltipContent side="left">
-              Restore this document to the version saved before the last import
-            </TooltipContent>
-          </Tooltip>
+          <Popover defaultOpen>
+            <PopoverTrigger render={<Button iconOnly aria-label="Restore">…</Button>} />
+            <PopoverContent side="left" aria-label="Restore">
+              <p style={{ margin: 0, maxWidth: 160 }}>
+                Restore this document to the version saved before the last import
+              </p>
+            </PopoverContent>
+          </Popover>
         </div>
       </Theme>,
     );
-    await until(() => !!document.querySelector(".kui-tooltip-popup"));
-    const pane = document.querySelector<HTMLElement>(".kui-tooltip-popup")!;
+    await until(() => !!document.querySelector(".kui-popover-popup"));
+    const pane = document.querySelector<HTMLElement>(".kui-popover-popup")!;
     const body = pane.querySelector<HTMLElement>(".kui-floating-body")!;
     const flying = () =>
       pane.getAnimations().some((a) => (a as CSSTransition).transitionProperty === "height");
