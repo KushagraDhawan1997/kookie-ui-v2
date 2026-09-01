@@ -39,7 +39,26 @@ import { Heading } from "@kookie-ui/react";
  * is a span in the chrome — this is a mark, not a heading, so it must not put an entry in the
  * document outline.
  */
-export function Wordmark({ size = "8" }: { size?: "7" | "8" | "9" }) {
+/**
+ * TWO FORMS OF ONE NAME (2026-09-01, Kushagra: "Footer should say Kookie User Interface in the
+ * wordmark"). A masthead is glanced at and a footer is arrived at, so the short form is what
+ * sits above the navigation all day and the long form is what signs the page off — which is the
+ * arrangement every foundry and every newspaper uses, and the one the reference footer this
+ * block was drawn against uses too.
+ *
+ * A CLOSED PROP RATHER THAN `children`, because a mark is not a text component: taking children
+ * would let any call site set any words in this face, and then the brand is whatever somebody
+ * typed. Two forms, both stated here, and this is the only file that knows either string.
+ */
+const FORMS = { short: "Kookie", full: "Kookie User Interface" } as const;
+
+export function Wordmark({
+  size = "8",
+  form = "short",
+}: {
+  size?: "7" | "8" | "9";
+  form?: keyof typeof FORMS;
+}) {
   return (
     <Heading
       size={size}
@@ -47,7 +66,7 @@ export function Wordmark({ size = "8" }: { size?: "7" | "8" | "9" }) {
       className="kd-wordmark"
       render={<span aria-hidden="true" />}
     >
-      Kookie
+      {FORMS[form]}
     </Heading>
   );
 }

@@ -44,10 +44,16 @@ export function SiteFooter() {
            doing a logo's job — the same arrangement the sidebar's header states. */
         <Link
           href="/"
-          aria-label="KookieUI"
+          /* The NAME MATCHES WHAT IS DRAWN. The glyph is `aria-hidden`, so the link states the
+             name — and a link whose visible words and announced name disagree is the failure
+             SC 2.5.3 is about, even where the visible words are decoration. The sidebar says
+             "KookieUI" because that is the form it draws. */
+          aria-label="Kookie User Interface"
           style={{ color: "inherit", textDecoration: "none" }}
         >
-          <Wordmark />
+          {/* The long form, and one step down from the masthead's: the name signs the page off
+              here rather than heading it, and the extra two words are the emphasis. */}
+          <Wordmark form="full" size="7" />
         </Link>
       }
       groups={[
