@@ -23,6 +23,19 @@
   position: relative;
   padding-block: var(--kui-ac-py);
 }
+/* AND THE OUTER ENDS CARRY NONE (2026-09-01, ultracode audit). `--kui-ac-py` is the air
+   between a section's hairline and its row — the join's own comment and §37 both say so — and
+   the first item has no hairline above it and the last none below, so at both ends it was air
+   outside anything it separates: measured, 8px above the first heading and 8px below the last
+   panel at size 2, which put the first heading 8px lower than the pane's own inset inside a
+   Card and reads as the component owning outer spacing (the non-negotiable it is not allowed
+   to own). */
+.kui-accordion-item:first-child {
+  padding-block-start: 0;
+}
+.kui-accordion-item:last-child {
+  padding-block-end: 0;
+}
 
 /* THE HAIRLINE DIVIDES THE LABELS, NOT THE ROWS (2026-09-01, Kushagra: "the separators extend
    beyond the text, they go till hover boundary, and we recently fixed this with menu"). The
@@ -35,7 +48,15 @@
   content: "";
   position: absolute;
   inset-block-start: 0;
-  inset-inline: var(--kui-ac-px);
+  /* The two ends are DIFFERENT insets, because the two sides hold different things
+     (2026-09-01, ultracode audit). `--kui-ac-px` is the pill-corrected pick the label starts
+     at; the trailing side holds the chevron, and the skeleton resets the trailing padding to
+     the plain pick for any control with a `[data-slot="trailing"]` — so a single value ended
+     the line 3px inside the glyph it is meant to end level with (measured at size 2,
+     `radius="full"`: line at x=306, chevron at x=309). The join publishes both, and each end
+     is the padding its own side actually wears. */
+  inset-inline-start: var(--kui-ac-px);
+  inset-inline-end: var(--kui-ac-px-end);
   block-size: var(--border-width);
   background-color: var(--color-border);
   pointer-events: none;
@@ -60,9 +81,20 @@
 .kui-accordion-trigger {
   display: flex;
   inline-size: 100%;
-  justify-content: space-between;
   text-align: start;
   overflow-wrap: anywhere;
+  /* A WRAPPED HEADING STILL BREATHES (2026-09-01, ultracode audit). The row family declared
+     this block padding and the skeleton does not — `--kui-ct-py` is declared by exactly one
+     file in the package — so leaving the family took it away and nothing replaced it: measured
+     at 220px, a three-line heading was 62px of glyphs against a 70px row, with `0px/0px` of
+     padding and the text flush against the border box the focus ring follows. On one line the
+     ladder's `min-height` binds and the flex centring absorbs this, which is exactly why it
+     was invisible; a heading that wraps is the case it exists for, and the file states
+     `overflow-wrap: anywhere` two lines up, so it expects to wrap. The row's own expression,
+     because the question is the row's: how much air a line of text gets inside a box on the
+     ladder. The border term is in the spelling for the checkbox target's reason — box-sizing
+     is border-box, so the padding cedes what the hairline occupies. */
+  padding-block: calc(var(--kui-ct-row-inset) - var(--border-width));
   --kui-ct-fill-src: transparent;
   --kui-ct-fill-src-hover: transparent;
   --kui-ct-fill-src-active: transparent;
@@ -76,8 +108,60 @@
   text-decoration-thickness: var(--border-width);
   text-decoration-color: transparent;
   text-underline-offset: 0.2em;
-  transition: text-decoration-color var(--motion-duration) var(--motion-easing);
+  /* THE WHOLE LIST, RESTATED, AND THE RESTATEMENT IS THE POINT (2026-09-01, ultracode audit).
+     `transition` is a shorthand: this rule ties `.kui-control`'s own at (0,1,0) and wins on
+     file order, so the first spelling — copied verbatim from link.css, where the element is
+     not a control — REPLACED the skeleton's five channels with one. Measured: the trigger
+     computed `text-decoration-color / 0.12s` where a Button at the same index computes
+     `background-color, border-color, color, translate, scale / 0.22s ... 0.55s`, so the
+     heading's ink stopped easing on any state change and the paint clock this file's own
+     comment invokes was not read at all. A channel cannot be appended in CSS, so the list is
+     stated in full with the skeleton's own tokens, and a law derives it from a mounted
+     Button's — the exit-channel lesson (2026-08-16) one layer down. */
+  transition:
+    background-color var(--kui-ct-paint) var(--motion-easing),
+    border-color var(--kui-ct-paint) var(--motion-easing),
+    color var(--kui-ct-paint) var(--motion-easing),
+    text-decoration-color var(--kui-ct-paint) var(--motion-easing),
+    translate var(--kui-ct-move) var(--kui-ct-move-ease),
+    scale var(--kui-ct-move) var(--kui-ct-move-ease);
 }
+
+/* THE CHEVRON IS PUSHED, THE REST PACKS (2026-09-01, ultracode audit). `justify-content:
+   space-between` is only "label at one end, chevron at the other" while the trigger holds
+   exactly two flex items, and the row family's `margin-inline-start: auto` on the trailing
+   slot — which spends the free space before `justify-content` ever sees it — left with
+   `.kui-row`. Measured: `<AccordionTrigger>Returns <Badge>3</Badge></AccordionTrigger>` put
+   the badge 172.75px into a 320px heading, floating in the middle of it, where the same
+   markup on a row puts it 73.11px in, immediately after the word. Nothing in the type says a
+   trigger holds one child. */
+.kui-accordion-disclosure {
+  margin-inline-start: auto;
+}
+
+/* A DEAD HEADING'S CHEVRON RECEDES WITH IT (2026-09-01, ultracode audit). The glyph names a
+   tone-LESS foreground role directly, and the shared disabled remap rewrites `--tone-*` roles,
+   so it could not reach: measured, a disabled item's label went
+   `color(display-p3 0.1193 …)` -> `color(display-p3 0.7625 …)` and its cursor went `default`
+   while the chevron stayed byte-identical — a greyed-out heading with a full-strength glyph
+   beside it. Dimmed by `--disabled-dim`, the package's own spelling for a non-tone role that
+   must stand down (segmented-control.css, the slider's rail). Both spellings of the state,
+   because the trigger is a native `<button disabled>` and Base UI also stamps the attribute. */
+.kui-accordion-trigger:disabled .kui-accordion-disclosure,
+.kui-accordion-trigger[data-disabled] .kui-accordion-disclosure {
+  color: color-mix(in srgb, var(--color-text-muted) var(--disabled-dim), transparent);
+}
+
+/* THE UNDERLINE ANSWERS A PRESS TOO, AND THAT ARM IS UNGUARDED (2026-09-01, ultracode audit).
+   The fill triple is pinned transparent and a heading is not a `.kui-button`, so it has no
+   travel either: on a `hover: none` device every channel this control has was inside the hover
+   guard, and press-and-hold produced nothing at all until the panel began to move. `:active`
+   is the shared layer's own answer — "unguarded, the only feedback touch has" — and here the
+   currency is the label's line rather than a fill. */
+.kui-accordion-trigger:active:not([data-disabled], :disabled) {
+  text-decoration-color: currentcolor;
+}
+
 @media (hover: hover) {
   /* Guarded like every hover rule in the system (§8): a touch device synthesises hover on tap
      and holds it until the next tap. */
