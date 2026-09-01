@@ -17,6 +17,18 @@ export type TableProps = Omit<React.ComponentPropsWithoutRef<"table">, "color"> 
   style?: React.CSSProperties;
   /** Reaches the `<table>` element itself. */
   ref?: React.Ref<HTMLTableElement>;
+  /**
+   * Names the SCROLL REGION around the table — the box a keyboard reaches when the table is
+   * wider than its room. DECLARED rather than left to ride the rest spread, both because it
+   * has to be pulled off the props that reach the `<table>` and because TypeScript exempts
+   * hyphenated attribute names from excess-property checking, which is how a prop can compile,
+   * render, and reach the DOM nowhere at all (ScrollArea's own scar, 2026-08-26). A `<caption>`
+   * names the table itself, natively, and needs nothing here.
+   */
+  "aria-label"?: string;
+  /** The same, from an element that already carries the words — a heading above the table,
+      usually. Mutually exclusive with `aria-label`, as ARIA has it. */
+  "aria-labelledby"?: string;
 };
 
 /**
@@ -34,12 +46,38 @@ export type TableProps = Omit<React.ComponentPropsWithoutRef<"table">, "color"> 
  * The parts wear shadcn/ui's names (MIT, credited): `TableHeader`, `TableBody`, `TableRow`,
  * `TableHead`, `TableCell`, `TableCaption`.
  */
-export function Table({ size = "2", className, style, ref, children, ...props }: TableProps) {
+export function Table({
+  size = "2",
+  className,
+  style,
+  ref,
+  children,
+  "aria-label": label,
+  "aria-labelledby": labelledBy,
+  ...props
+}: TableProps) {
+  /* THE NAME LANDS ON THE SCROLLER (2026-09-01, ultracode audit), which is ScrollArea's own
+     rule one component over: "the name lands on the viewport, because the viewport is the
+     element that scrolls and the element that takes focus". A scrollable box is keyboard
+     focusable in every current browser — WCAG 2.1.1 being satisfied, not a bug — and this one
+     had the whole attribute set `["data-size", "class"]`, so Tab landed on a node CDP reports
+     as `{role: "generic", ignored: false}` with no name, while `aria-label` on `<Table>` rode
+     the rest spread onto the `<table>`, where it could not name the thing the user had just
+     reached. A `<caption>` still names the TABLE natively; this names the region around it.
+
+     `role="region"` only when there is a name for it — an unnamed region is ignored by every
+     screen reader, so stamping one unconditionally adds a landmark that says nothing. And no
+     `tabIndex`: the browser makes a scroller focusable exactly when it overflows, which is the
+     only time a tab stop here is worth having. */
+  const named = label !== undefined || labelledBy !== undefined;
   return (
     <div
       data-size={size}
       className={className ? `kui-type kui-table ${className}` : "kui-type kui-table"}
       style={style}
+      {...(named ? { role: "region" } : {})}
+      {...(label !== undefined ? { "aria-label": label } : {})}
+      {...(labelledBy !== undefined ? { "aria-labelledby": labelledBy } : {})}
     >
       <table ref={ref} className="kui-table-el" {...props}>
         {children}

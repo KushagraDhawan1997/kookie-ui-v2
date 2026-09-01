@@ -136,11 +136,20 @@ describe("the size join publishes the inset and the step (§4, §36)", () => {
     });
   }
 
-  it("tightens with density, because the inset is layout-space (§12)", () => {
+  it("tightens with density on BOTH axes, because the inset is layout-space (§12)", () => {
+    // BOTH, and the audit's reason (2026-09-01): this read `padding-top` alone while the
+    // per-size law above ran at the one density where `--layout-space-N` and `--space-N` are
+    // identical at every index — so §36's stated choice of layout-space was proven for the
+    // block inset and unread for the inline one. Demonstrated: pointing `--kui-tb-px` at
+    // `--space-4` left the inline inset constant at 16px across compact and comfortable
+    // (against a correct 12 and 24) with both laws green. A law about one axis of a two-axis
+    // mechanism is half a law.
     const loose = mounted(<Fixture size="3" />, { theme: { density: "comfortable" } });
     const tight = mounted(<Fixture size="3" />, { theme: { density: "compact" } });
-    const py = (el: HTMLElement) => parseFloat(computed(el.querySelector("td")!, "padding-top"));
-    expect(py(tight)).toBeLessThan(py(loose));
+    const pad = (el: HTMLElement, side: "top" | "left") =>
+      parseFloat(computed(el.querySelector("td")!, `padding-${side}`));
+    expect(pad(tight, "top"), "the block inset tightens").toBeLessThan(pad(loose, "top"));
+    expect(pad(tight, "left"), "and so does the inline one").toBeLessThan(pad(loose, "left"));
   });
 });
 
@@ -149,15 +158,20 @@ describe("hairlines and ink (§7, §15, §36)", () => {
     const el = mounted(<Fixture />, { theme: {} });
     const separator = mounted(<Separator />, { theme: {} });
     const rows = Array.from(el.querySelectorAll<HTMLElement>("tr"));
-    const under = (tr: HTMLElement) => tr.firstElementChild as HTMLElement;
+    // EVERY CELL OF THE ROW (ultracode audit 2026-09-01). It read `tr.firstElementChild` —
+    // one cell of three — so a rule restoring the border on cells 2 and 3 of the last row
+    // drew a visibly broken line under the table's bottom edge with the law green. A line is
+    // a property of the ROW, and the fixture already has the columns to prove it.
+    const cells = (tr: HTMLElement) => Array.from(tr.children) as HTMLElement[];
     // The Separator IS the hairline (§7's edge order): its paint is the line's colour and its
     // block-size is the line's width, so both halves are read off it rather than a token name.
-    for (const tr of rows.slice(0, -1)) {
-      expect(computed(under(tr), "border-bottom-width")).toBe(computed(separator, "height"));
-      expect(parseFloat(computed(under(tr), "border-bottom-width"))).toBeGreaterThan(0);
-      expect(computed(under(tr), "border-bottom-color")).toBe(computed(separator, "background-color"));
-    }
-    expect(computed(under(rows.at(-1)!), "border-bottom-style")).toBe("none");
+    for (const tr of rows.slice(0, -1))
+      for (const cell of cells(tr)) {
+        expect(computed(cell, "border-bottom-width")).toBe(computed(separator, "height"));
+        expect(parseFloat(computed(cell, "border-bottom-width"))).toBeGreaterThan(0);
+        expect(computed(cell, "border-bottom-color")).toBe(computed(separator, "background-color"));
+      }
+    for (const cell of cells(rows.at(-1)!)) expect(computed(cell, "border-bottom-style")).toBe("none");
   });
 
   it("the header reads the muted role, the body reads the text role", () => {
@@ -177,5 +191,134 @@ describe("hairlines and ink (§7, §15, §36)", () => {
     expect(computed(ths[0]!, "text-align")).toBe("start");
     expect(computed(ths[2]!, "text-align")).toBe("end");
     expect(computed(tds[2]!, "text-align")).toBe("end");
+  });
+
+  it("and `center` is a value of that word, not a documented one nothing reads", () => {
+    // `center` had two mentions in the whole component — the rule and the union member — and
+    // none in this file, so deleting its rule left the suite green while a documented value of
+    // a closed union computed `start` (ultracode audit 2026-09-01).
+    const el = mounted(
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead align="center">Status</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell align="center">Paid</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>,
+      { theme: {} },
+    );
+    expect(computed(el.querySelector<HTMLElement>("th")!, "text-align")).toBe("center");
+    expect(computed(el.querySelector<HTMLElement>("td")!, "text-align")).toBe("center");
+  });
+
+  it("the table's edge is the end, whichever section the last row is in", () => {
+    // A raw `<tfoot>` is ordinary markup a caller can pass, and the rule read `tbody
+    // tr:last-child` — the BODY's last row, not the table's — so a footer inverted the
+    // sentence: no line between the body and the footer, and one under the table's own bottom
+    // edge (ultracode audit 2026-09-01).
+    const el = mounted(
+      <Table>
+        <TableBody>
+          <TableRow>
+            <TableCell>Acme</TableCell>
+          </TableRow>
+        </TableBody>
+        <tfoot>
+          <TableRow>
+            <TableCell>Total</TableCell>
+          </TableRow>
+        </tfoot>
+      </Table>,
+      { theme: {} },
+    );
+    const [bodyRow, footRow] = Array.from(el.querySelectorAll<HTMLElement>("tr"));
+    expect(
+      parseFloat(computed(bodyRow!.firstElementChild as HTMLElement, "border-bottom-width")),
+      "the body's last row still divides itself from the footer",
+    ).toBeGreaterThan(0);
+    expect(
+      computed(footRow!.firstElementChild as HTMLElement, "border-bottom-style"),
+      "and the table's own bottom edge draws nothing",
+    ).toBe("none");
+  });
+});
+
+
+/**
+ * THE SCROLL REGION CAN BE NAMED (ultracode audit 2026-09-01).
+ *
+ * A box that scrolls is keyboard focusable in every current browser, which is WCAG 2.1.1 being
+ * satisfied rather than a defect — but the wrapper's entire attribute set was
+ * `["data-size", "class"]`, so Tab landed on a node CDP reports as `{role: "generic", ignored:
+ * false}` with no name, and `aria-label` on `<Table>` rode the rest spread onto the `<table>`
+ * where it could not name the thing the user had just reached. ScrollArea states this system's
+ * rule verbatim one component over — "a tab stop with no name is announced as nothing" — and
+ * this component hand-rolls a second scroll region.
+ *
+ * Both directions are read, because each fails on its own: the name has to REACH the wrapper,
+ * and the `role` has to stay off it when there is no name to give (an unnamed region is a
+ * landmark that says nothing).
+ */
+describe("the scroller is nameable, and unnamed it claims nothing (§36)", () => {
+  it("a name reaches the WRAPPER, with the region role", () => {
+    const el = mounted(
+      <Table aria-label="Invoices">
+        <TableBody>
+          <TableRow>
+            <TableCell>Acme</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>,
+      { theme: {} },
+    );
+    expect(el.getAttribute("aria-label")).toBe("Invoices");
+    expect(el.getAttribute("role")).toBe("region");
+    // And not on the table, where it would name something that never takes focus.
+    expect(el.querySelector("table")!.hasAttribute("aria-label")).toBe(false);
+  });
+
+  it("aria-labelledby reaches it too", () => {
+    const el = mounted(
+      <Table aria-labelledby="heading-id">
+        <TableBody>
+          <TableRow>
+            <TableCell>Acme</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>,
+      { theme: {} },
+    );
+    expect(el.getAttribute("aria-labelledby")).toBe("heading-id");
+    expect(el.getAttribute("role")).toBe("region");
+  });
+
+  it("unnamed, it is a plain box — no role, no landmark", () => {
+    const el = mounted(
+      <Table>
+        <TableBody>
+          <TableRow>
+            <TableCell>Acme</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>,
+      { theme: {} },
+    );
+    expect(el.hasAttribute("role")).toBe(false);
+    expect(el.hasAttribute("aria-label")).toBe(false);
+  });
+
+  it("and it pads the focus ring it would otherwise clip", () => {
+    // Declaring one overflow axis promotes the other to `auto`, so this box clips the BLOCK
+    // axis — which cannot be scrolled to bring anything back. Read as the ring's own reach.
+    const el = mounted(<Fixture size="1" />, { theme: { density: "compact" } });
+    const reach =
+      parseFloat(tokenOn(el, "--focus-ring-width")) + parseFloat(tokenOn(el, "--focus-ring-offset"));
+    expect(parseFloat(computed(el, "padding-top"))).toBeCloseTo(reach, 1);
+    expect(parseFloat(computed(el, "padding-bottom"))).toBeCloseTo(reach, 1);
   });
 });

@@ -2965,6 +2965,18 @@ export const API: Record<string, ApiEntry> = {
     "element": "table",
     "props": [
       {
+        "name": "aria-label",
+        "type": "string",
+        "optional": true,
+        "doc": "Names the SCROLL REGION around the table — the box a keyboard reaches when the table is wider than its room. DECLARED rather than left to ride the rest spread, both because it has to be pulled off the props that reach the `<table>` and because TypeScript exempts hyphenated attribute names from excess-property checking, which is how a prop can compile, render, and reach the DOM nowhere at all (ScrollArea's own scar, 2026-08-26). A `<caption>` names the table itself, natively, and needs nothing here."
+      },
+      {
+        "name": "aria-labelledby",
+        "type": "string",
+        "optional": true,
+        "doc": "The same, from an element that already carries the words — a heading above the table, usually. Mutually exclusive with `aria-label`, as ARIA has it."
+      },
+      {
         "name": "className",
         "type": "string",
         "optional": true,
