@@ -50,6 +50,7 @@ import {
   TextFontIcon,
   ArrowTurnBackwardIcon,
   ArrowTurnForwardIcon,
+  ArrowLeft02Icon,
   ArrowUp02Icon,
   Attachment01Icon,
   Cancel01Icon,
@@ -105,6 +106,7 @@ export const LockIcon = glyph(SquareLock02Icon);
 export const BellIcon = glyph(Notification02Icon);
 export const MoreIcon = glyph(MoreHorizontalIcon);
 export const ArrowUpIcon = glyph(ArrowUp02Icon);
+export const ArrowLeftIcon = glyph(ArrowLeft02Icon);
 export const PaperclipIcon = glyph(Attachment01Icon);
 export const HomeIcon = glyph(Home01Icon);
 export const FolderIcon = glyph(Folder01Icon);

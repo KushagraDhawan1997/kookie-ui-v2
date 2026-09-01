@@ -31,6 +31,7 @@ import Link from "next/link";
 import {
   Box,
   Button,
+  Flex,
   Shell,
   ShellContent,
   ShellScroll,
@@ -43,6 +44,7 @@ import {
 import { AppearanceToggle } from "../appearance-toggle";
 import { PanelLeftIcon } from "../icons";
 import { CHAPTERS, SECTIONS } from "./chapters";
+import { DocsBack } from "./docs-back";
 import { DocsNav, type NavSection } from "./docs-nav";
 import { DocsSearch } from "./docs-search";
 import { Wordmark } from "./wordmark";
@@ -73,21 +75,23 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
     // browser chrome does not leave the shell taller than the screen it is in.
     <Box style={{ blockSize: "100dvh" }}>
       <Shell>
-        <ShellSidebar aria-label="Documentation" flush={true}>
+        <ShellSidebar aria-label="Documentation" flush={false}>
           {/* The unofficial header — pinned above the scroller by position alone (§27's
               pinned-stack rule; no part names exist and none are needed).
 
-              THE LOGO IS ONE LETTER (Kushagra, 2026-08-28). It was the full word in a
-              condensed grotesque, then the full word in this blackletter, and the second of
-              those is what produced this one: a blackletter's capitals are its ornate half,
-              so "KookieUI" set here has two adjacent capitals at the end that read as one
-              shape, and the same word in full capitals cannot be read at all. A single
-              drawn capital is the form this kind of face has always been best at.
+              THE LOGO IS THE WORD (Kushagra, 2026-09-01). It has been three things: the word
+              in a condensed grotesque, then a single drawn capital in a blackletter, and now
+              the word again in a script. The middle one was right for the face it was set in —
+              a blackletter's capitals are its ornate half, so "KookieUI" set there had two
+              adjacent capitals at the end reading as one shape, and a lone initial is what that
+              kind of face has always been best at. A script is a face for WRITING a name, so it
+              took the word back. `wordmark.tsx` carries the reasoning; what changed here is
+              only that the link now wraps a word rather than a letter.
 
-              THE ACCESSIBLE NAME IS STILL THE WHOLE NAME. The letter is decoration doing a
-              logo's job, so the link states `aria-label` and a screen reader announces
-              "KookieUI" rather than the letter K. Without it the one route back to the home
-              page would announce itself as a single letter.
+              THE ACCESSIBLE NAME IS STILL THE LINK'S. The mark is decoration doing a logo's
+              job and is `aria-hidden` either way, so the link states `aria-label` and a screen
+              reader announces "KookieUI" — which is what keeps the one route back to the home
+              page from announcing itself as a picture with no name.
 
               THE GLYPH ITSELF IS `<Wordmark>` (2026-08-29), because the front door now sets
               the same mark above its title and the three facts that make it the mark — the
@@ -99,12 +103,15 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
               an icon button rather than a full-width fake input, the same `Flex
               justify="space-between"` shape the footer row below already uses.
 
-              `align="start"`, NOT `"center"` (2026-08-29): the wordmark's line box is a size-8
-              display glyph, far taller than an icon button, so centering the row centered the
-              button against the GLYPH's height — measurably lower than the collapse trigger
-              floating in the content pane, which sits flush at the pane's own top inset with
-              no tall sibling beside it. Top-aligning puts both buttons' top edges at the same
-              offset from their pane's own padding, which is what actually matches them. */}
+              THE ROW CENTRES ITSELF AGAIN (2026-09-01, Kushagra: the mark is "not center
+              aligned with say, search"). Both children carried `alignSelf: "start"` from
+              2026-08-29, and the reason was real THEN: the mark was a lone display capital
+              whose line box towers over a 32px icon button, so centring the row sank the
+              button against the GLYPH's height, below the collapse trigger floating in the
+              content pane next door. Now the mark is a word with a collapsed line box — 40px
+              against the button's 32 — and the two are close enough that centring is simply
+              what the eye wants. The overrides are gone rather than re-tuned, so the part's own
+              `align-items: center` is what places them and nothing here restates it. */}
           {/* FLOATING since 2026-08-30 (Kushagra: "lets have content go behind logo header
               and light dark mode footer") — the pane's own chrome parts, shipped the day
               before. The rows pass behind this and behind the footer, the nav's scroller
@@ -120,17 +127,11 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
             <Link
               href="/"
               aria-label="KookieUI"
-              style={{
-                color: "inherit",
-                textDecoration: "none",
-                alignSelf: "start",
-              }}
+              style={{ color: "inherit", textDecoration: "none" }}
             >
               <Wordmark />
             </Link>
-            <Box style={{ alignSelf: "start" }}>
-              <DocsSearch index={buildSearchIndex()} />
-            </Box>
+            <DocsSearch index={buildSearchIndex()} />
           </ShellPaneHeader>
 
           {/* DocsNav renders its own ShellScroll as its root — wrapping it in another one
@@ -162,7 +163,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
             `position: relative` is the trigger's containing block, stated inline because the
             shell root is the nearest positioned ancestor otherwise and the trigger would
             resolve its inset over the sidebar column, not this pane. */}
-        <ShellContent style={{ position: "relative" }} flush={false}>
+        <ShellContent style={{ position: "relative" }} flush={true}>
           {/* The route back to a closed or overlaying sidebar floats in the pane's own safe
               area — `--kui-sf-p` inherits from the pane deliberately (§10, the bleed
               mechanism), so the trigger sits exactly where pinned content would start.
@@ -188,7 +189,9 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
                 box — so a padded spacer was a 336px pointer-catcher lying over the floating
                 sidebar's own chrome, which this pane's band paints above. A margin clears
                 the same distance while the child's box stays the button's. */}
-            <Box
+            <Flex
+              gap="2"
+              align="center"
               style={{
                 marginInlineStart: "var(--kui-shell-inset-inline-start)",
               }}
@@ -208,7 +211,11 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
                   </Button>
                 }
               />
-            </Box>
+              {/* The route back OUT of a component's page, beside the one that opens the nav
+                  (2026-09-01). It draws nothing on every other route, so this band is the
+                  toggle alone almost everywhere and the `gap` costs nothing. */}
+              <DocsBack />
+            </Flex>
           </ShellPaneHeader>
           <ShellScroll className="kd-scroll" fade>
             {/* AND THE READING COLUMN CLEARS THE SIDEBAR. The pane runs under the floating
