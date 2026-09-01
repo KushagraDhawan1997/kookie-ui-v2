@@ -1517,7 +1517,7 @@ describe("the P3 block spends no digit a display can show (§7, 2026-09-01)", ()
    */
   it("every emitted channel carries at most `p3Decimals` decimals", () => {
     const channels = [...generated.matchAll(/color\(display-p3([^)]*)\)/g)].flatMap((m) =>
-      m[1].trim().split(/\s+/),
+      m[1]!.trim().split(/\s+/),
     );
     // Calibration: a corpus of nothing satisfies any negative assertion.
     expect(channels.length, "no display-p3 channels found — this law reads nothing").toBeGreaterThan(500);
