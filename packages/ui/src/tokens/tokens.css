@@ -86,6 +86,7 @@
   --badge-lift: 0.05;
   --avatar-badge: 0.55;
   --avatar-badge-out: 0.1;
+  --breadcrumb-glyph: 0.75;
 
   /* the icon box (§4) — size-indexed and POINTER-indexed (2026-08-10), never density-indexed:
      a glyph is read at the distance the screen is held, and a compact control is the same
@@ -800,6 +801,20 @@
   --color-track: var(--neutral-a4);
   --color-thumb: var(--color-surface);
   --color-thumb-label: var(--color-text);
+  --code-foreground: var(--color-text);
+  --code-background: transparent;
+  --code-token-comment: var(--color-text-muted);
+  --code-token-keyword: var(--accent-ink);
+  --code-token-string: var(--green-ink);
+  --code-token-string-expression: var(--green-ink);
+  --code-token-function: var(--color-text);
+  --code-token-constant: var(--color-text);
+  --code-token-parameter: var(--color-text);
+  --code-token-punctuation: var(--color-text-muted);
+  --code-token-link: var(--accent-ink);
+  --code-token-inserted: var(--success-ink);
+  --code-token-deleted: var(--destructive-ink);
+  --code-token-changed: var(--warning-ink);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
      light scrollbar track, and a consumer's <input> or <select> renders with a white UA
@@ -1474,6 +1489,20 @@
   --color-track: var(--neutral-a4);
   --color-thumb: var(--neutral-12);
   --color-thumb-label: var(--neutral-contrast);
+  --code-foreground: var(--color-text);
+  --code-background: transparent;
+  --code-token-comment: var(--color-text-muted);
+  --code-token-keyword: var(--accent-ink);
+  --code-token-string: var(--green-ink);
+  --code-token-string-expression: var(--green-ink);
+  --code-token-function: var(--color-text);
+  --code-token-constant: var(--color-text);
+  --code-token-parameter: var(--color-text);
+  --code-token-punctuation: var(--color-text-muted);
+  --code-token-link: var(--accent-ink);
+  --code-token-inserted: var(--success-ink);
+  --code-token-deleted: var(--destructive-ink);
+  --code-token-changed: var(--warning-ink);
 
   /* Tell the UA which world it is painting in (§5). Without it a dark subtree keeps the
      light scrollbar track, and a consumer's <input> or <select> renders with a white UA
@@ -2032,6 +2061,20 @@
     --color-track: var(--neutral-a4);
     --color-thumb: var(--color-surface);
     --color-thumb-label: var(--color-text);
+    --code-foreground: var(--color-text);
+    --code-background: transparent;
+    --code-token-comment: var(--color-text-muted);
+    --code-token-keyword: var(--accent-ink);
+    --code-token-string: var(--green-ink);
+    --code-token-string-expression: var(--green-ink);
+    --code-token-function: var(--color-text);
+    --code-token-constant: var(--color-text);
+    --code-token-parameter: var(--color-text);
+    --code-token-punctuation: var(--color-text-muted);
+    --code-token-link: var(--accent-ink);
+    --code-token-inserted: var(--success-ink);
+    --code-token-deleted: var(--destructive-ink);
+    --code-token-changed: var(--warning-ink);
   }
   [data-appearance="light"] {
     /* neutral */
@@ -2361,6 +2404,20 @@
     --color-track: var(--neutral-a4);
     --color-thumb: var(--color-surface);
     --color-thumb-label: var(--color-text);
+    --code-foreground: var(--color-text);
+    --code-background: transparent;
+    --code-token-comment: var(--color-text-muted);
+    --code-token-keyword: var(--accent-ink);
+    --code-token-string: var(--green-ink);
+    --code-token-string-expression: var(--green-ink);
+    --code-token-function: var(--color-text);
+    --code-token-constant: var(--color-text);
+    --code-token-parameter: var(--color-text);
+    --code-token-punctuation: var(--color-text-muted);
+    --code-token-link: var(--accent-ink);
+    --code-token-inserted: var(--success-ink);
+    --code-token-deleted: var(--destructive-ink);
+    --code-token-changed: var(--warning-ink);
   }
   [data-appearance="dark"] {
     /* neutral */
@@ -2690,6 +2747,20 @@
     --color-track: var(--neutral-a4);
     --color-thumb: var(--neutral-12);
     --color-thumb-label: var(--neutral-contrast);
+    --code-foreground: var(--color-text);
+    --code-background: transparent;
+    --code-token-comment: var(--color-text-muted);
+    --code-token-keyword: var(--accent-ink);
+    --code-token-string: var(--green-ink);
+    --code-token-string-expression: var(--green-ink);
+    --code-token-function: var(--color-text);
+    --code-token-constant: var(--color-text);
+    --code-token-parameter: var(--color-text);
+    --code-token-punctuation: var(--color-text-muted);
+    --code-token-link: var(--accent-ink);
+    --code-token-inserted: var(--success-ink);
+    --code-token-deleted: var(--destructive-ink);
+    --code-token-changed: var(--warning-ink);
   }
 }
 
@@ -2778,6 +2849,20 @@
   --control-edge: #878b8f;
   --field-edge: #a3a6aa;
   --color-track: var(--neutral-6);
+  --code-foreground: var(--color-text);
+  --code-background: transparent;
+  --code-token-comment: var(--color-text-muted);
+  --code-token-keyword: var(--accent-ink);
+  --code-token-string: var(--green-ink);
+  --code-token-string-expression: var(--green-ink);
+  --code-token-function: var(--color-text);
+  --code-token-constant: var(--color-text);
+  --code-token-parameter: var(--color-text);
+  --code-token-punctuation: var(--color-text-muted);
+  --code-token-link: var(--accent-ink);
+  --code-token-inserted: var(--success-ink);
+  --code-token-deleted: var(--destructive-ink);
+  --code-token-changed: var(--warning-ink);
   --material-thin-alpha: 72%;
   --material-thin-alpha-hover: 77%;
   --material-thin-alpha-active: 82%;
@@ -2882,6 +2967,20 @@
     --control-edge: #878b8f;
     --field-edge: #a3a6aa;
     --color-track: var(--neutral-6);
+    --code-foreground: var(--color-text);
+    --code-background: transparent;
+    --code-token-comment: var(--color-text-muted);
+    --code-token-keyword: var(--accent-ink);
+    --code-token-string: var(--green-ink);
+    --code-token-string-expression: var(--green-ink);
+    --code-token-function: var(--color-text);
+    --code-token-constant: var(--color-text);
+    --code-token-parameter: var(--color-text);
+    --code-token-punctuation: var(--color-text-muted);
+    --code-token-link: var(--accent-ink);
+    --code-token-inserted: var(--success-ink);
+    --code-token-deleted: var(--destructive-ink);
+    --code-token-changed: var(--warning-ink);
     --material-thin-alpha: 72%;
     --material-thin-alpha-hover: 77%;
     --material-thin-alpha-active: 82%;
@@ -2987,6 +3086,20 @@
   --control-edge: #b0b3b5;
   --field-edge: #95999c;
   --color-track: var(--neutral-6);
+  --code-foreground: var(--color-text);
+  --code-background: transparent;
+  --code-token-comment: var(--color-text-muted);
+  --code-token-keyword: var(--accent-ink);
+  --code-token-string: var(--green-ink);
+  --code-token-string-expression: var(--green-ink);
+  --code-token-function: var(--color-text);
+  --code-token-constant: var(--color-text);
+  --code-token-parameter: var(--color-text);
+  --code-token-punctuation: var(--color-text-muted);
+  --code-token-link: var(--accent-ink);
+  --code-token-inserted: var(--success-ink);
+  --code-token-deleted: var(--destructive-ink);
+  --code-token-changed: var(--warning-ink);
   --material-thin-alpha: 76%;
   --material-thin-alpha-hover: 80%;
   --material-thin-alpha-active: 84%;
@@ -3094,6 +3207,20 @@
     --control-edge: #b0b3b5;
     --field-edge: #95999c;
     --color-track: var(--neutral-6);
+    --code-foreground: var(--color-text);
+    --code-background: transparent;
+    --code-token-comment: var(--color-text-muted);
+    --code-token-keyword: var(--accent-ink);
+    --code-token-string: var(--green-ink);
+    --code-token-string-expression: var(--green-ink);
+    --code-token-function: var(--color-text);
+    --code-token-constant: var(--color-text);
+    --code-token-parameter: var(--color-text);
+    --code-token-punctuation: var(--color-text-muted);
+    --code-token-link: var(--accent-ink);
+    --code-token-inserted: var(--success-ink);
+    --code-token-deleted: var(--destructive-ink);
+    --code-token-changed: var(--warning-ink);
     --material-thin-alpha: 76%;
     --material-thin-alpha-hover: 80%;
     --material-thin-alpha-active: 84%;
@@ -3203,6 +3330,20 @@
     --control-edge: color(display-p3 0.5339 0.545 0.5592);
     --field-edge: color(display-p3 0.6431 0.6525 0.6646);
     --color-track: var(--neutral-6);
+    --code-foreground: var(--color-text);
+    --code-background: transparent;
+    --code-token-comment: var(--color-text-muted);
+    --code-token-keyword: var(--accent-ink);
+    --code-token-string: var(--green-ink);
+    --code-token-string-expression: var(--green-ink);
+    --code-token-function: var(--color-text);
+    --code-token-constant: var(--color-text);
+    --code-token-parameter: var(--color-text);
+    --code-token-punctuation: var(--color-text-muted);
+    --code-token-link: var(--accent-ink);
+    --code-token-inserted: var(--success-ink);
+    --code-token-deleted: var(--destructive-ink);
+    --code-token-changed: var(--warning-ink);
   }
   @media (prefers-contrast: more) {
     :root:not([data-contrast="normal"]), [data-appearance="light"]:not([data-contrast="normal"]) {
@@ -3290,6 +3431,20 @@
       --control-edge: color(display-p3 0.5339 0.545 0.5592);
       --field-edge: color(display-p3 0.6431 0.6525 0.6646);
       --color-track: var(--neutral-6);
+      --code-foreground: var(--color-text);
+      --code-background: transparent;
+      --code-token-comment: var(--color-text-muted);
+      --code-token-keyword: var(--accent-ink);
+      --code-token-string: var(--green-ink);
+      --code-token-string-expression: var(--green-ink);
+      --code-token-function: var(--color-text);
+      --code-token-constant: var(--color-text);
+      --code-token-parameter: var(--color-text);
+      --code-token-punctuation: var(--color-text-muted);
+      --code-token-link: var(--accent-ink);
+      --code-token-inserted: var(--success-ink);
+      --code-token-deleted: var(--destructive-ink);
+      --code-token-changed: var(--warning-ink);
     }
   }
 }
@@ -3380,6 +3535,20 @@
     --control-edge: color(display-p3 0.6915 0.6997 0.71);
     --field-edge: color(display-p3 0.5865 0.5976 0.6116);
     --color-track: var(--neutral-6);
+    --code-foreground: var(--color-text);
+    --code-background: transparent;
+    --code-token-comment: var(--color-text-muted);
+    --code-token-keyword: var(--accent-ink);
+    --code-token-string: var(--green-ink);
+    --code-token-string-expression: var(--green-ink);
+    --code-token-function: var(--color-text);
+    --code-token-constant: var(--color-text);
+    --code-token-parameter: var(--color-text);
+    --code-token-punctuation: var(--color-text-muted);
+    --code-token-link: var(--accent-ink);
+    --code-token-inserted: var(--success-ink);
+    --code-token-deleted: var(--destructive-ink);
+    --code-token-changed: var(--warning-ink);
   }
   @media (prefers-contrast: more) {
     [data-appearance="dark"]:not([data-contrast="normal"]) {
@@ -3467,6 +3636,20 @@
       --control-edge: color(display-p3 0.6915 0.6997 0.71);
       --field-edge: color(display-p3 0.5865 0.5976 0.6116);
       --color-track: var(--neutral-6);
+      --code-foreground: var(--color-text);
+      --code-background: transparent;
+      --code-token-comment: var(--color-text-muted);
+      --code-token-keyword: var(--accent-ink);
+      --code-token-string: var(--green-ink);
+      --code-token-string-expression: var(--green-ink);
+      --code-token-function: var(--color-text);
+      --code-token-constant: var(--color-text);
+      --code-token-parameter: var(--color-text);
+      --code-token-punctuation: var(--color-text-muted);
+      --code-token-link: var(--accent-ink);
+      --code-token-inserted: var(--success-ink);
+      --code-token-deleted: var(--destructive-ink);
+      --code-token-changed: var(--warning-ink);
     }
   }
 }

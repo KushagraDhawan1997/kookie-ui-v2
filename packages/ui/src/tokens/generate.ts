@@ -31,6 +31,7 @@ import {
   avatarScale,
   badgeLift,
   badgeBox,
+  breadcrumbGlyph,
   badgeText,
   chipScale,
   kbdScale,
@@ -185,6 +186,7 @@ export function generateTokens(): string {
   put("badge-lift", String(badgeLift));
   put("avatar-badge", String(avatarBadge));
   put("avatar-badge-out", String(avatarBadgeOut));
+  put("breadcrumb-glyph", String(breadcrumbGlyph));
 
   lines.push(
     "",

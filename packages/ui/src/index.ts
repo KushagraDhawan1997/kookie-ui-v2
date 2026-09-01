@@ -4,12 +4,26 @@ export { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogTitle, 
 export { Avatar, AvatarGroup, type AvatarProps, type AvatarGroupProps } from "./components/avatar/avatar.tsx";
 export { Badge, type BadgeProps } from "./components/badge/badge.tsx";
 export { Chip, type ChipProps } from "./components/chip/chip.tsx";
+export {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbEllipsis,
+  type BreadcrumbProps,
+  type BreadcrumbItemProps,
+  type BreadcrumbLinkProps,
+  type BreadcrumbPageProps,
+  type BreadcrumbEllipsisProps,
+  type BreadcrumbEllipsisItem,
+} from "./components/breadcrumb/breadcrumb.tsx";
 export { Blockquote, type BlockquoteProps } from "./components/blockquote/blockquote.tsx";
 export { Box, type BoxProps } from "./components/box/box.tsx";
 export { Button, type ButtonProps } from "./components/button/button.tsx";
 export { Card, type CardProps } from "./components/card/card.tsx";
 export { Checkbox, type CheckboxProps } from "./components/checkbox/checkbox.tsx";
 export { Code, type CodeProps } from "./components/code/code.tsx";
+export { CodeBlock, type CodeBlockProps } from "./components/code-block/code-block.tsx";
 export { Field, FieldItem, FieldLabel, FieldDescription, FieldError, type FieldProps, type FieldItemProps, type FieldLabelProps, type FieldDescriptionProps, type FieldErrorProps } from "./components/field/field.tsx";
 export { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogClose, type DialogProps, type DialogTriggerProps, type DialogContentProps, type DialogTitleProps, type DialogDescriptionProps, type DialogCloseProps } from "./components/dialog/dialog.tsx";
 // The overlay family's `onOpenChange` second argument, forwarded 2026-08-26 (ultracode audit).

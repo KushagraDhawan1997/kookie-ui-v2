@@ -2309,6 +2309,23 @@ export const avatarBadge = 0.55;
 export const avatarBadgeOut = 0.1;
 
 /**
+ * §39 — the breadcrumb's punctuation, as a share of the LINE it sits on (2026-09-01). A
+ * breadcrumb is not a control, so the designed icon ladder (`--kui-ct-icon`) prices a box it
+ * does not have — the fraction wall's ninth instance, reached by inheritance rather than by
+ * arithmetic. A glyph standing between two runs of words is a property of the line those
+ * words set, which is the mark family's rule (`--mark-N` IS `--line-height-N`) and the atoms'
+ * `1lh` box arriving at a third family.
+ *
+ * The SEPARATOR alone reads it. The ellipsis was priced here too until 2026-09-01, when it
+ * became a real control (an icon-only Button opening a Menu) and its glyph joined the icon
+ * ladder every other glyph inside a control takes — which is the right ladder for it, because
+ * it now has a control box to hang on where the chevron still does not. Judged against the
+ * caps beside it, where a chevron as tall as a capital reads as a control and one at half the
+ * cap reads as a comma. Taste, one home: here.
+ */
+export const breadcrumbGlyph = 0.75;
+
+/**
  * §6, §15 — the atom corner (2026-08-08, Kushagra: every sized component's corner scales
  * with it, and the atoms' did not — Code at size 9 wore the same 4px as size 1). The atoms
  * are not on the height ladder, so a control-band pick would hold a fraction of a box they

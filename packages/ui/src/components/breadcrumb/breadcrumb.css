@@ -1,0 +1,138 @@
+/* Breadcrumb draws a line of places, the punctuation between them, and two inks (§11, §39).
+ *
+ * The ramp, the body family slot and the zeroed margin are all the shared type layer's
+ * (`type.css`) — the `<nav>` wears `kui-type` and stamps the step, and every crumb inherits
+ * it, so nothing in this file names a size. What is here is the row, the chevron, and the
+ * one thing that makes a breadcrumb read as a path: two ranks of ink, where the places you
+ * can go back to are muted and the place you are is not.
+ *
+ * NOT a `.kui-control`, and none of the skeleton reaches it: a crumb is a run of text on a
+ * line. It grows no target either — WCAG 2.2 SC 2.5.8 exempts a target in text, which is
+ * Link's own citation, and §16's expansion exists for a mark that has no container. */
+
+/* The list. Wraps, because a deep path on a narrow window has to go somewhere and the only
+   alternative is a component deciding what to hide (§3 — and see `BreadcrumbEllipsis`).
+   The UA's own list dress is removed rather than overridden anywhere later: a marker on a
+   breadcrumb is the browser drawing a second, wrong separator. */
+.kui-breadcrumb-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  /* ONE distance, read twice — the item below reads the same token for the gap between a
+     crumb and its own chevron. Two tokens here would be two numbers for one rhythm, and the
+     chevron would sit closer to one neighbour than the other. Layout space, so a breadcrumb
+     tightens with density like every other distance in the system (§12). */
+  gap: var(--layout-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kui-breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-2);
+}
+
+/* The chevron the item draws after itself (see `BreadcrumbItem` for why it is not a part).
+   Priced as a share of the LINE, not off `--kui-ct-icon`: that ladder is the control family's
+   designed icon box and a breadcrumb has no control box to hang it on, which is the fraction
+   wall §4 has now recorded nine times. A glyph between two runs of words is a property of
+   the line those words set — the mark family's `--mark-N` IS `--line-height-N`, and the atoms'
+   `1lh` box, arriving at a third family. */
+.kui-breadcrumb-separator {
+  flex: none;
+  inline-size: calc(1lh * var(--breadcrumb-glyph));
+  block-size: calc(1lh * var(--breadcrumb-glyph));
+  /* The faint role, which is legal here exactly because this is not text: the rung sits below
+     the reading floor on purpose (§15, the 2026-08-10 solve) and the thing wearing it is
+     `aria-hidden` punctuation. Quieter than the crumbs it separates, so it reads as texture
+     rather than as a third rank competing with them — Link's underline and Blockquote's rule
+     resting on the quiet hairline, one component over (§7's edge order). */
+  color: var(--color-text-faint);
+}
+
+/* "And not after the last one", which is the whole of what shadcn hands to the call site. */
+.kui-breadcrumb-item:last-child .kui-breadcrumb-separator {
+  display: none;
+}
+
+/* A chevron points along the reading direction, so it mirrors — the tree's own spelling. */
+.kui-breadcrumb-separator:dir(rtl) {
+  scale: -1 1;
+}
+
+/* The stretch that is not being shown has NO RULE HERE, and the absence is the design: since
+   2026-09-01 it is a priced icon-only Button opening a Menu, so its box, its ink, its light,
+   its ring and its press all arrive from the control layer by membership, and its dots are
+   sized by `--kui-ct-icon` like every other glyph inside a control. A rule here would be this
+   file re-deciding something the skeleton already answers. */
+
+/* A place above this one. The TONE-LESS foreground roles, which is why this is not a `Link`:
+   stamping a family re-scopes all three of them onto that family's ink trio, so a crumb built
+   out of `Link` could read a family's greys and never the system's (`type.css`, and the same
+   pair Tabs reads for the same reason). */
+.kui-breadcrumb-link {
+  color: var(--color-text-muted);
+  cursor: pointer;
+
+  /* The underline rests TRANSPARENT rather than absent, so the line's metrics never move and
+     §8's paint clock has a colour to carry — a `text-decoration-line` appearing is a discrete
+     change and would arrive in one frame.
+
+     Resting invisible is a carve-out from Link's unconditional underline, not a drift from it.
+     That rule is WCAG 1.4.1, whose case (technique F73) is a link INSIDE A BLOCK OF TEXT,
+     where hue is the only thing separating it from the words around it. Nothing here is inside
+     prose: every item before the last is a link, the chevrons say where one ends and the next
+     begins, and the current page is a different ink in a different position. */
+  text-decoration-line: underline;
+  text-decoration-thickness: var(--border-width);
+  text-decoration-color: transparent;
+  /* Relative to the crumb's own type, for the reason link.css and blockquote.css both state:
+     the distance between a rule and the glyphs above it is a property of the glyphs. */
+  text-underline-offset: 0.2em;
+
+  transition:
+    color var(--motion-duration) var(--motion-easing),
+    text-decoration-color var(--motion-duration) var(--motion-easing);
+}
+
+@media (hover: hover) {
+  /* Guarded like every hover rule in the system (§8): a touch device synthesises hover on tap
+     and holds it until the next tap, so an unguarded rule leaves a tapped crumb lit. */
+  .kui-breadcrumb-link:hover {
+    color: var(--color-text);
+    text-decoration-color: currentcolor;
+  }
+}
+
+/* One ring, and it is the system's — the tokens rather than a second designed value, which
+   the directory-walked ring law requires of every focus rule in the package. Drawn here for
+   Link's reason: a breadcrumb is not a `.kui-control`, so it never meets `recipes.css`'s rule.
+   NOT the second, and the ordinal was wrong when it was written (ultracode audit 2026-09-01):
+   a directory walk finds ten focus rules. What holds them to one designed value is the walked
+   law in recipes.test.ts, which is the guarantee — a count with no reader is the shape that
+   goes stale. No `kui-ring-land` arrival, for Link's measured reason:
+   §8 bounds ring travel below at about four pixels, and an inline ring sits closer to its
+   glyphs than that. */
+.kui-breadcrumb-link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Where you are. The full ink is the whole of the rank — no heavier weight, because §15 puts
+   hierarchy in size and the ink roles, and a semibold crumb would also reflow the bar every
+   time the page changed, which is Tabs' own measured argument. */
+.kui-breadcrumb-page {
+  color: var(--color-text);
+}
+
+/* The stand-down, on the DECLARING selector (§8, the 2026-08-10 rule): the shared block in
+   recipes.css covers `.kui-control` and `.kui-mark`, and a crumb is neither — so a clock
+   declared here is a clock nothing else can stop. Same selector, later in the file, so the
+   tie goes to source order by construction. */
+@media (prefers-reduced-motion: reduce) {
+  .kui-breadcrumb-link {
+    transition: none;
+  }
+}

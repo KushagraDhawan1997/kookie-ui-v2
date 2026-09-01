@@ -41,9 +41,11 @@ import avatarCss from "../components/avatar/avatar.css?raw";
 import badgeCss from "../components/badge/badge.css?raw";
 import chipCss from "../components/chip/chip.css?raw";
 import blockquoteCss from "../components/blockquote/blockquote.css?raw";
+import breadcrumbCss from "../components/breadcrumb/breadcrumb.css?raw";
 import buttonCss from "../components/button/button.css?raw";
 import checkboxCss from "../components/checkbox/checkbox.css?raw";
 import codeCss from "../components/code/code.css?raw";
+import codeBlockCss from "../components/code-block/code-block.css?raw";
 import dialogCss from "../components/dialog/dialog.css?raw";
 import fieldCss from "../components/field/field.css?raw";
 import kbdCss from "../components/kbd/kbd.css?raw";
@@ -94,9 +96,11 @@ export function installStyles(): void {
     badgeCss,
     chipCss,
     blockquoteCss,
+    breadcrumbCss,
     buttonCss,
     checkboxCss,
     codeCss,
+    codeBlockCss,
     dialogCss,
     fieldCss,
     kbdCss,
