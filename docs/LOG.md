@@ -8,6 +8,76 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-01 Two size optimisations that look free, and only one of them is
+
+**What.** The P3 block emits three decimals instead of four (`p3Decimals`, tokens/color.ts): −586 gzipped bytes. Nothing else from the measurement pass shipped.
+
+**Why the bound and not "no change".** Three decimals bound the error at 5e-4 — an eighth of an 8-bit step (3.9e-3), about half a 10-bit one (9.8e-4). An ordinary panel cannot resolve it; the best available one can differ by at most a single least-significant code. That is a bound, so the law states a bound, and it fails at two decimals (5e-3 crosses the 8-bit step). Spent at the generator rather than as a regex over the built artifact, so `tokens.css` shrinks with it and the drift law still reads one home.
+
+**A purge would delete the contract, and it measures as the biggest win on the page.** 228 custom properties are declared in `styles.css` and never referenced by any `var()` in it; stripping them saves 4,524 bytes. They are `--radius-full`, `--space-*`, `--accent-1`, `--neutral-9`, `--neutral-a1` — the base palettes §13 requires to ship COMPLETE, unreferenced internally *because* their consumers are user-authored components a build tool cannot see. Unreferenced is what a public palette looks like from the inside. Recorded as a refusal so no dead-code pass is ever pointed at this file.
+
+**Mangling the private names is impossible, not unwise, and §13's own sentence is what misled me.** "Private `--kui-*` mechanism vars are not part of the contract: undocumented, unstable" reads as licence to shorten them in the artifact — worth a measured 842 bytes. It is not: 86 of them are named in `.ts`/`.tsx`, and the runtime assembles names by CONCATENATION from `--kui-ct-`, `--kui-sf-`, `--kui-fly-`, `--kui-material-` and the bare stem `--kui-`, so **zero of the 317 are provably safe** to a pass that reads only the stylesheet. Private means a consumer may not depend on the name; it never meant the name is free. The proposal was refuted by measurement before any of it was built, which is the working rule doing its job.
+
+**And the thing that looked like the real problem is not one.** There are 58,858 raw bytes of duplicated declaration bodies — the radius × density × pointer cells repeat one 455-byte body 24 times, the high-contrast palette is written once per arm. Merging them into selector lists saves **184 bytes**, because gzip resolves repetition to back-references. Raw duplication is not a size problem in this file; it is what a token system looks like compressed. Rejected on that measurement, and worth staying rejected — the cascade refactor it would need is real and the return is 0.5%.
+
+---
+
+## 2026-09-01 The ceiling moves to 64KB, on a fraction of Radix rather than a round number
+
+**What.** `ceilingGzipBytes` 40,960 → 65,536.
+
+**Why now.** The old number was set in §14 step 1 when the package shipped nothing. At 50 components it had 3,800 bytes of headroom — about one more batch the size of the nine that landed on 2026-08-31 — while the components still owed (Combobox, Calendar, Command) are each heavier than any of those.
+
+**The basis, measured from the published tarballs rather than remembered.** `@radix-ui/themes` 3.3.0 ships 85,405 gzipped in one `styles.css`, of which its `tokens.css` entry alone is 34,741: roughly 40% of its bundle is palette breadth (~30 colour families against our ten) plus a layout and utility-prop layer this system forbids outright. `@mantine/core` 9.6.0 ships 38,863. So 64KB is 77% of Radix while carrying a tenth of its palette, the glass, the lens, the springs and the shell — a number that survives the next ten components and can be argued from, where "current plus some" cannot.
+
+**Recorded with it, because it is the honest frame: the gate is denominated in a format nobody receives.** The artifact is 36,574 gzipped and **26,654 brotli**, and every browser gets the second number. The gate stays on gzip so the baseline stays comparable across four months of history, but the ceiling's real-world meaning is ~28% under its face value.
+
+**Raised once, with a written basis, never nudged per commit** — the mechanism is a wall, and it has paid for itself repeatedly (surfaceLook −267, the flat band −113, the centring fix −12, the shell padding −18, each a fix at the right layer that removed more than it added). Rejected: nudging it to fit the next component, and leaving it at 40,960 and spending the remaining 3,800 on Combobox alone.
+
+---
+
+## 2026-09-01 Attachment drops the `done` state its own spec named
+
+**What.** §30 specified `idle | uploading | processing | error | done`. The component ships four.
+
+**Why.** That section's own sentence is the argument: "a file about to be sent and a file already sent are the same tile." If that is true, `done` and `idle` are one appearance, and a value that cannot be told from another is not a value — this system deleted an entire axis on that finding (`controlLook`, 2026-08-19, both values emitting identical declarations). What separates a pending attachment from a sent one is what the app puts IN the tile: a remove button before, a download after.
+
+**`uploading` and `processing` survive as two for the opposite reason**: one can be counted and the other cannot, and the difference is DRAWN — a fraction fills the bar, `processing` sweeps it. A server working on a file reports no fraction, and pretending otherwise invents information.
+
+**Re-adding `done` is additive**, which is what makes the call cheap to be wrong about — the same reasoning that let Progress ship without `size`. Rejected: keeping five values with two of them rendering identically, and inventing a distinct terminal drawing nobody asked for.
+
+---
+
+## 2026-09-01 Command is a Dialog, and three of its first five sabotages survived
+
+**What.** `Command` composes the shipped `Dialog` rather than growing a second overlay; `rowProps` promoted to `system/rows.ts` on its third consumer.
+
+**Why a Dialog.** A palette covers the app, traps focus, locks the page and leaves on Escape — the definition of a component this system already ships. Composing it means the scrim, the focus trap, the scroll lock, the portal re-theming, the entry motion and the stacking frame arrive by membership, and a law reads the corner and the cast against a plain dialog at the same index so the membership is checked rather than claimed. Rejected: an anchored floating panel (a palette is not anchored to anything), and a bespoke overlay.
+
+**The forcing case was in the repo**, which is the only reason this got built now: the builder's ⌘K composed a palette by hand and wrote its own keyboard model.
+
+**Three sabotages survived the first pass, and that is the entry's real content.** The padding law read only `padding-top`, so `padding-block: 0` satisfied it. The zoom-floor law could only read the cell where the floor is a no-op — the handheld band already raises step 3 past 16 — so it was DELETED rather than kept green; the declaration stays with a comment saying why it is redundant and when it stops being. And the hook law could not be falsified the way its own CSS comment claimed: the comment said `padding: 0` was chosen over `--kui-sf-p: 0` to protect the token, and the sabotage proved the overlay size join outranks this file at (0,3,0) so the token could not have been zeroed anyway. **The comment was corrected to what the sabotage proved.** A law that cannot fail is worse than no law, and a comment that overclaims is how the next reader inherits a false model.
+
+**A palette's row rides the ladder and does not take the menu's notch** — the row family's 2026-08-26 posture, since the panel is a Dialog and the list is one you browse rather than a sparse set of actions. Asserted against a mounted Button.
+
+---
+
+## 2026-09-01 A drag is the fifth exception, and it is a different kind from the four before it
+
+**What.** `resizable` on the Shell's sidebar, inspector and bottom pane, into the room §27's one-variable width design left for it.
+
+**Why it is allowed at all.** The four existing exceptions to "no JS at interaction time" — the flight's measurement, the lens, Tabs' indicator, the segmented thumb — are all measure-once-at-a-seam: they read geometry when something has finished happening. A drag runs while a finger is moving, which no seam can defer. The doctrine's purpose is that STATE styling costs no frames, and a resize is not a state: the gesture IS the value, and there is no CSS that expresses "this boundary is where the pointer is". Every system with resizable panes runs script here.
+
+**So it is bounded instead, and each bound is law-asserted**: nothing runs unless a pointer is down on the handle; the move writes ONE custom property directly on the pane, so no component re-renders during the gesture and a glass pane never re-mints its lens map (2026-08-22's finding, where an animating pane minted 27 filters); the listeners live on the handle through pointer capture and leave with the gesture; and `onResize` fires ONCE, at the end. The §1.5 law's exemption carries all four in writing.
+
+**The rail cannot take it**, and that is the width table's own reason arriving one prop later: a rail's extent is its item's box plus the air around it, so there is nothing free to drag. Refused in the TYPE, which is the half no mount can assert.
+
+**It is a window splitter, not a div with a mousedown.** `role="separator"` with a live value, focusable because it is operable, with the WAI-ARIA keyboard — a drag-only boundary is unreachable without a pointer, which is a spec question rather than a taste one (§33's argument for owning the tree's keyboard). Direction is READ off the pane and never stamped; the law asserts the SIGN in both, because a stamped direction gives both the same one, which is the defect the 2026-08-09 audit found in three places at once.
+
+**Two Shell laws were widened, both bounded by VALUE rather than by selector** — the handle may name no colour (only `none` and the tone indirection under the accent it stamps) and carries one clock riding the motion tokens, with `box-shadow` still banned outright so it has no way to become a raised strip. Rejected: a boundary visible at rest (it draws a second line beside the seam hairline that already marks it), and `onResize` per frame (a per-frame callback is a per-frame re-render).
+
+---
+
 ## 2026-09-02 The empty state ships as a block, and `reason` is not a prop
 
 **What.** `apps/docs/blocks/empty-state.tsx` + `.css`, registered with three demos. Slots: `mark`, `title`, `description`, `action`, `secondary`. No `size`, no `tone`, no pane, no `minHeight`, no `aria-live`, and no `reason`.
