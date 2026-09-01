@@ -25,10 +25,12 @@ import BadgeExample from "./badge";
 import ChipExample from "./chip";
 import BlockquoteExample from "./blockquote";
 import BoxExample from "./box";
+import BreadcrumbExample from "./breadcrumb";
 import ButtonExample from "./button";
 import CardExample from "./card";
 import CheckboxExample from "./checkbox";
 import CodeExample from "./code";
+import CodeBlockExample from "./code-block";
 import DialogExample from "./dialog";
 import FieldExample from "./field";
 import FlexExample from "./flex";
@@ -74,10 +76,12 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "chip": ChipExample,
   "blockquote": BlockquoteExample,
   "box": BoxExample,
+  "breadcrumb": BreadcrumbExample,
   "button": ButtonExample,
   "card": CardExample,
   "checkbox": CheckboxExample,
   "code": CodeExample,
+  "code-block": CodeBlockExample,
   "dialog": DialogExample,
   "flex": FlexExample,
   "grid": GridExample,

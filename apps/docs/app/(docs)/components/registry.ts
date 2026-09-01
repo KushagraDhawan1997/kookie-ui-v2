@@ -47,9 +47,9 @@ export const ENTRIES: Entry[] = [
     family: "Control",
     spec: "§11, §21, §37",
     blurb:
-      "Accordion stacks sections that open and close, one under the other. Each heading is a row that stands as tall as a Button at the same size, lights under the pointer and turns its chevron when its panel opens; the panel slides open by height and its words start under the heading's label. One section is open at a time unless you say multiple. It paints no box of its own: put it in a Card when it wants one.",
+      "Accordion stacks sections that open and close, one under the other. Each heading stands as tall as a Button at the same size, underlines under the pointer and turns its chevron when its panel opens; the panel slides open by height and its words start under the heading's label. One section is open at a time unless you say multiple. It paints no box of its own: put it in a Card when it wants one.",
     axes: [
-      { name: "size", values: "1 | 2 | 3 | 4", note: "sets the heading rows and the panel's inset with them, so the panel's words line up under the label at every step. Defaults to 2" },
+      { name: "size", values: "1 | 2 | 3 | 4", note: "sets the heading rows, the panel's inset and the step its plain words read at, so the panel lines up under the label and scales with it. A Text inside keeps the size you give it. Defaults to 2" },
       { name: "multiple", values: "boolean", note: "lets several sections stay open. Off, opening one closes the others" },
       { name: "hiddenUntilFound", values: "boolean", note: "keeps closed panels in the page as hidden-until-found, so the browser's find-in-page can open them" },
     ],
@@ -263,6 +263,50 @@ export const ENTRIES: Entry[] = [
     ],
   },
   {
+    slug: "breadcrumb",
+    name: "Breadcrumb",
+    family: "Type",
+    spec: "§11, §39",
+    blurb:
+      "Breadcrumb shows the path to where you are: the places above this one, each a way back, ending in the place you are now. It is a navigation landmark holding an ordered list, so a screen reader can find it by name and read it as a path. It draws the chevron between the crumbs itself, so no page has to place them and no two pages can use different ones.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9", note: "one of the nine text steps, stated once on the nav and taken by every crumb under it. Defaults to 2, the step labels and small print are set at: a breadcrumb tells you where you are, and where you are is not what you came to read" },
+      { name: "label", values: "string", note: "the landmark's accessible name, which is how a screen reader's landmark list tells this nav from the app's own. Defaults to Breadcrumb; a non-English app states its own word" },
+    ],
+    refusals: [
+      {
+        name: "BreadcrumbSeparator",
+        why: "shadcn/ui has you place a separator between every pair of crumbs and leave it off the last. That is three things this system does not hand to you: it is layout wearing a part's name, it makes an off-by-one rule yours to keep by hand, and it lets each page pick its own chevron. The item draws its own chevron and the stylesheet hides the last one.",
+      },
+      {
+        name: "BreadcrumbList",
+        why: "A breadcrumb is always a landmark holding a list, so nothing would ever choose between the two. shadcn/ui splits them because its parts are styling hooks; the layout here is the system's, so the list is inside Breadcrumb and is not yours to dress.",
+      },
+      {
+        name: "tone and emphasis",
+        why: "A breadcrumb is a location, not a meaning, so it has no family to colour. Its three shades of text — the page you are on, the places you can go back to, and the punctuation between them — are the design, not a scale you pick a level from.",
+      },
+      {
+        name: "maxItems and any automatic collapse",
+        why: "Which levels to drop depends on the room and on which of them mean anything, and no component here decides what it shows. Render the crumbs you are keeping and hand the rest to a BreadcrumbEllipsis, which opens them.",
+      },
+      {
+        name: "an ellipsis that does nothing",
+        why: "Three dots say there is more here, which is a promise. shadcn/ui ships a static marker and then wraps it in a dropdown in the one example anybody copies, so the dead one stays reachable and is the one a reader presses first. Here the menu is the component and items is required, so a dead ellipsis cannot be written.",
+      },
+      {
+        name: "role=link and aria-disabled on the current page",
+        why: "shadcn/ui announces the last crumb as a link that has been switched off. Both halves are false: there is nothing to follow, and nothing was disabled. aria-current on plain text is what the ARIA practices example carries.",
+      },
+    ],
+    parts: [
+      { part: "BreadcrumbItem", blurb: "One place on the path, and the chevron that follows it. The chevron is drawn here rather than placed by you, and the last item's is not drawn" },
+      { part: "BreadcrumbLink", blurb: "A place above this one, and a way back to it. It is not a Link: a Link rests on the accent family, and a crumb carries no meaning, so it reads the plain foreground inks. Its underline rests invisible and paints under the pointer. Takes render for your framework's own link" },
+      { part: "BreadcrumbPage", blurb: "Where you are: the end of the path, in the full ink, carrying aria-current=page. Not a link, because there is nothing to follow" },
+      { part: "BreadcrumbEllipsis", blurb: "The stretch of the path you are not showing, and the way back into it. Hand it the levels you dropped and it opens them in a menu, each one a real link. items is required: three dots say there is more here, so an ellipsis that opens nothing is a control promising something it does not have" },
+    ],
+  },
+  {
     slug: "button",
     name: "Button",
     family: "Control",
@@ -399,6 +443,43 @@ export const ENTRIES: Entry[] = [
       {
         name: "block code",
         why: "A code block owns overflow, wrapping and a scroll container. That is a different component, not a mode of this one.",
+      },
+    ],
+  },
+  {
+    slug: "code-block",
+    name: "CodeBlock",
+    family: "Type",
+    spec: "§15, §40",
+    blurb:
+      "CodeBlock shows a block of code in a well recessed into the page. Long lines scroll sideways rather than wrapping, because a wrapped line breaks where the language does not. Give it maxLines and the well stops at that many lines and scrolls; nothing is ever clipped away, so every line stays reachable by wheel, keyboard and screen reader. Size sets the pane and the code together. It ships no highlighter, and it does ship the colours one uses: point a highlighter at the --code- variables and every colour it draws is one the system already solved against the surface it sits on.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "sets the pane's padding and corner and the step the code is set at, together. Defaults to 2" },
+      { name: "maxLines", values: "number", note: "the height of the well, counted in lines of its own code. The well scrolls past it and clips nothing. Unset, the well is as tall as the code" },
+      { name: "topbar / footer", values: "ReactNode", note: "a row of chrome floating over the top or the bottom of the pane — a file name, a copy button, an expand control. Hand it content: the element places the row, so it reaches the pane's walls and rests closer to them than the code does" },
+      { name: "band", values: "boolean", note: "say the top row reaches both walls, and the code reserves a safe area under it. A row holding one control in a corner does not need one" },
+      { name: "hosted", values: "boolean", note: "the block is already inside a Card or a Surface, so it draws no pane of its own and its scroller reaches that pane's walls" },
+    ],
+    refusals: [
+      {
+        name: "highlighting",
+        why: "Turning code into coloured spans means shipping a grammar for every language, and the choice of tokenizer belongs to whatever builds your pages. The colours are the system's part, and it publishes them as --code- variables that any highlighter's CSS-variables mode can be pointed at.",
+      },
+      {
+        name: "wrapping, and a switch for it",
+        why: "A wrapped line puts a break where the language has none, which changes what the code says. The well scrolls instead, which is also why a long line is safe here.",
+      },
+      {
+        name: "a copy button, line numbers, and a collapse",
+        why: "Those are behaviour and markup, not the well. Line numbers belong to whatever renders the lines, a copy button is a Button you put in the topbar, and hiding lines behind a collapse takes them out of reach. Bounding scrolls, so the lines are still there.",
+      },
+      {
+        name: "tone and emphasis",
+        why: "Code has no meaning of its own to colour, and no block of it is louder than the next. The colours inside it come from the syntax theme, which reads the same inks as the prose around it.",
+      },
+      {
+        name: "a Card as the pane",
+        why: "The code is not an object sitting on the page, it is a well recessed into it. So the pane is a Surface, which is what the rest of the page's grounds are.",
       },
     ],
   },

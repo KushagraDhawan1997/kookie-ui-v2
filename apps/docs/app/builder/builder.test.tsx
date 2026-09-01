@@ -42,6 +42,7 @@ import {
   type BuilderDoc,
   type BuilderNode,
 } from "./model";
+import { API } from "../(docs)/components/api.generated";
 import { renderNode } from "./render";
 import { BuilderApp, LEFT_REGIONS } from "./builder-app";
 import { deriveParams, serializeBlock, serializeDocument, themeDiffs, toComponentName } from "./serialize";
@@ -91,6 +92,45 @@ describe("coverage: every export is placeable, or its exclusion is written", () 
       expect(real.has(name), `exclusion "${name}" names nothing the package exports`).toBe(true);
     }
   });
+});
+
+/**
+ * MATERIAL IS AN AXIS, AND AN AXIS OWES A READER (2026-09-01, Kushagra: "Button supports
+ * backdrop, right? Shouldn't it be there?").
+ *
+ * It was not: Button, Toggle, SegmentedControl and Chip each declare `backdrop` in the package
+ * and none of them declared it here, so neither the builder's inspector nor the docs page —
+ * whose knobs are DERIVED from this catalog — could ask for it. Every other axis is covered by
+ * the entry-exists law above, which passes the moment a component is placeable and says nothing
+ * about which of its axes are reachable.
+ *
+ * `backdrop` alone, deliberately, and not "every declared prop": the catalog omits most props on
+ * purpose (`className`, handlers, refs), so a law over all of them would be a law about the
+ * omissions. This one is about §10 selectivity — a component that can be asked to express the
+ * theme's material, in a tool whose whole job is stating props, with no way to ask.
+ *
+ * Read off the GENERATED API rather than a list written here, so the day a component gains the
+ * prop this law starts asking about it without anyone remembering to.
+ */
+describe("every component that can be asked for the material can be asked here", () => {
+  const takesBackdrop = Object.entries(API)
+    .filter(([, entry]) => entry.props.some((prop) => prop.name === "backdrop"))
+    .map(([name]) => name);
+
+  it("the API was read — an empty list audits nothing", () => {
+    expect(takesBackdrop).toContain("Button");
+    expect(takesBackdrop.length).toBeGreaterThan(5);
+  });
+
+  for (const name of Object.keys(CATALOG)) {
+    if (!takesBackdrop.includes(name)) continue;
+    it(`${name} declares backdrop`, () => {
+      expect(
+        (CATALOG[name]!.props as Record<string, unknown>)["backdrop"],
+        `${name} takes a backdrop prop and the catalog does not offer it — the axis has no reader`,
+      ).toBeDefined();
+    });
+  }
 });
 
 describe("the grammar is closed over the catalog", () => {
@@ -500,6 +540,48 @@ describe("every catalog entry survives the round trip it was added for", () => {
       );
       expect(html.length, `${type} rendered nothing`).toBeGreaterThan(20);
     }
+  });
+
+  it("A PART renders in its own seat too — the half this walk was missing", () => {
+    /* `placeable` filters `!entry.partOf`, so every law above is blind to exactly the entries
+       a user reaches through the "Inside X" group and the right-click insert menu — which is
+       most of the catalog. `BreadcrumbEllipsis` shipped 2026-09-01 with `make: () => node(…, {})`
+       against a REQUIRED `items` prop, so the one insert the grammar allowed threw
+       `Cannot read properties of undefined (reading 'map')` and replaced the canvas with the
+       error boundary, while 180 of 180 laws stayed green (ultracode audit, six of six lenses).
+
+       A part cannot be rendered alone — it needs the ancestor whose context it reads — so this
+       places each one inside its own root's default tree at the first seat the GRAMMAR allows,
+       which is the same question the palette asks. A part with no legal seat in that tree is
+       skipped and named, because "nowhere to put it" is a fact about the preset, not a defect. */
+    const parts = Object.entries(CATALOG).filter(([, e]) => e.partOf);
+    expect(parts.length, "no parts to walk").toBeGreaterThan(15);
+
+    const seatIn = (node: BuilderNode, type: string, chain: string[]): BuilderNode | null => {
+      if (canContain(node.type, type, chain)) return node;
+      for (const child of node.children ?? []) {
+        const found = seatIn(child, type, [...chain, node.type]);
+        if (found) return found;
+      }
+      return null;
+    };
+
+    let placed = 0;
+    for (const [type, entry] of parts) {
+      const root = CATALOG[entry.partOf!];
+      if (!root) continue;
+      const tree = root.make();
+      const seat = seatIn(tree, type, []);
+      if (!seat) continue; // no legal seat in the preset — not this law's subject
+      seat.children = [...(seat.children ?? []), entry.make()];
+      placed += 1;
+      const html = renderToStaticMarkup(
+        React.createElement(Theme, null, renderNode(tree, {} as never)),
+      );
+      expect(html.length, `${type} threw or rendered nothing inside ${entry.partOf}`).toBeGreaterThan(20);
+    }
+    // Vacuity in the other direction: a `seatIn` that always answered null would pass silently.
+    expect(placed, "no part found a legal seat — the walk proved nothing").toBeGreaterThan(8);
   });
 });
 

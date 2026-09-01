@@ -265,7 +265,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
     /* `aria-label` is here for the icon-only case, which §4 ships on purpose: a Button with
        no text is a glyph with no name, and the review rule that says so had no remedy to
        point at until this field existed. */
-    props: { size: size(), tone, emphasis, bordered: bool, loading: bool, disabled: bool, "aria-label": text },
+    props: { size: size(), tone, emphasis, bordered: bool, loading: bool, disabled: bool, backdrop: bool, "aria-label": text },
     children: "text",
     slots: ["leading", "trailing"],
     make: () => node("Button", {}, { text: "Button" }),
@@ -359,6 +359,55 @@ export const CATALOG: Record<string, CatalogEntry> = {
     children: "none",
     make: () => node("Switch", { "aria-label": "Switch" }),
   },
+  Breadcrumb: {
+    family: "Type",
+    blurb: "The path to where you are: a named landmark holding an ordered list of the places above this one.",
+    // `size` is stated ONCE, on the nav, and every crumb inherits it — a path of mixed steps
+    // is not a thing anyone means, so no part below carries one.
+    props: { size: typeSize, label: text },
+    children: { only: ["BreadcrumbItem"] },
+    make: () =>
+      node("Breadcrumb", {}, {
+        children: [
+          node("BreadcrumbItem", {}, {
+            children: [node("BreadcrumbLink", { href: "#" }, { text: "Home" })],
+          }),
+          node("BreadcrumbItem", {}, {
+            children: [node("BreadcrumbLink", { href: "#" }, { text: "Components" })],
+          }),
+          node("BreadcrumbItem", {}, {
+            children: [node("BreadcrumbPage", {}, { text: "Breadcrumb" })],
+          }),
+        ],
+      }),
+  },
+  BreadcrumbItem: {
+    family: "Type",
+    blurb: "One place on the path. It draws the chevron after itself, and the last one's is not drawn.",
+    props: {},
+    /* NOT `BreadcrumbEllipsis`: it is EXCLUDED (see below), and a grammar that still offered
+       it would put an insert on the menu that cannot render. */
+    children: { only: ["BreadcrumbLink", "BreadcrumbPage"] },
+    partOf: "Breadcrumb",
+    make: () =>
+      node("BreadcrumbItem", {}, { children: [node("BreadcrumbLink", { href: "#" }, { text: "Level" })] }),
+  },
+  BreadcrumbLink: {
+    family: "Type",
+    blurb: "A place above this one, and a way back to it. Muted at rest, coming forward with its underline under the pointer.",
+    props: { href: text },
+    children: "text",
+    partOf: "Breadcrumb",
+    make: () => node("BreadcrumbLink", { href: "#" }, { text: "Level" }),
+  },
+  BreadcrumbPage: {
+    family: "Type",
+    blurb: "Where you are: the end of the path, in the full ink. Not a link, because there is nothing to follow.",
+    props: {},
+    children: "text",
+    partOf: "Breadcrumb",
+    make: () => node("BreadcrumbPage", {}, { text: "This page" }),
+  },
   Table: {
     family: "Type",
     blurb: "Rows and columns as the real table element, scrolling sideways in its own box. Inert rows.",
@@ -447,7 +496,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
   Toggle: {
     family: "Control",
     blurb: "A button that stays pressed. Off is quiet, on is the medium wash; the tone says what on means.",
-    props: { size: size(), tone, bordered: bool, defaultPressed: bool, disabled: bool, value: text },
+    props: { size: size(), tone, bordered: bool, defaultPressed: bool, disabled: bool, backdrop: bool, value: text },
     children: "text",
     make: () => node("Toggle", {}, { text: "Bold" }),
   },
@@ -505,7 +554,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
   SegmentedControl: {
     family: "Control",
     blurb: "One choice among a few, shown all at once — a radio group wearing a track.",
-    props: { size: size(), defaultValue: text, "aria-label": text },
+    props: { size: size(), defaultValue: text, backdrop: bool, "aria-label": text },
     children: { only: ["SegmentedItem"] },
     make: () =>
       node("SegmentedControl", { defaultValue: "list", "aria-label": "View" }, {
@@ -673,7 +722,10 @@ export const CATALOG: Record<string, CatalogEntry> = {
   Chip: {
     family: "Type",
     blurb: "A word or a count stating what the thing beside it is. Tone is the category, not the volume; unset size takes the line it sits beside.",
-    props: typeProps,
+    // NOT bare `typeProps`: a chip is the one member of that shared set that carries a FILL, so
+    // it is the one that can be asked for the theme's material. Code, Kbd and Badge take the
+    // set as it stands.
+    props: { ...typeProps, backdrop: bool },
     children: "text",
     make: () => node("Chip", { tone: "success" }, { text: "Live" }),
   },
@@ -683,6 +735,19 @@ export const CATALOG: Record<string, CatalogEntry> = {
     props: typeProps,
     children: "text",
     make: () => node("Code", {}, { text: "pnpm run ci" }),
+  },
+  CodeBlock: {
+    family: "Type",
+    blurb:
+      "A block of code in a recessed well that scrolls sideways instead of wrapping. Size sets the pane and the code together.",
+    props: { size: size(false), hosted: bool },
+    children: "text",
+    make: () =>
+      node(
+        "CodeBlock",
+        { size: "2" },
+        { text: 'const theme = { appearance: "dark" }' },
+      ),
   },
   Link: {
     family: "Type",
@@ -1283,6 +1348,10 @@ export const EXCLUDED: { name: string; why: string }[] = [
   {
     name: "NavTree",
     why: "Tree's own exclusion, inherited with the machine: its hierarchy is data (`items`), which the canvas cannot edit.",
+  },
+  {
+    name: "BreadcrumbEllipsis",
+    why: "The levels it opens are DATA (`items`), and they are REQUIRED — the component exists so that an ellipsis opening nothing cannot be written. The canvas has no way to edit a list of places, so a placeable one could only ever be built with no items: it would throw where it stands, and the exported JSX would not compile. Tree's exclusion, arriving one component over. It joins the palette the day `items` has a canvas-editable shape.",
   },
   {
     name: "Tree",

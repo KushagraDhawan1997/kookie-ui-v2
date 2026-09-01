@@ -33,10 +33,16 @@ import {
   Chip,
   Blockquote,
   Box,
+  Breadcrumb,
+  BreadcrumbEllipsis,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
   Button,
   Card,
   Checkbox,
   Code,
+  CodeBlock,
   Field,
   FieldDescription,
   FieldError,
@@ -323,11 +329,7 @@ function AccordionAt({ size, multiple }: { size: (typeof SIZES)[number]; multipl
       {FAQ.map(([value, title, body]) => (
         <AccordionItem key={value} value={value}>
           <AccordionTrigger>{title}</AccordionTrigger>
-          <AccordionPanel>
-            <Text size="2" emphasis="medium">
-              {body}
-            </Text>
-          </AccordionPanel>
+          <AccordionPanel>{body}</AccordionPanel>
         </AccordionItem>
       ))}
     </Accordion>
@@ -581,6 +583,110 @@ function ChipSection() {
   );
 }
 
+function BreadcrumbSection() {
+  return (
+    <Stack gap="6">
+      {/* What the eye judges here: the chevron against the caps beside it. It is a share of
+          the LINE (--breadcrumb-glyph), so the ratio has to hold as the step climbs — a
+          chevron as tall as a capital reads as a control, one at half the cap reads as a
+          comma. Four steps, because two agree under any spelling. */}
+      <SpecTable
+        wide
+        cols={["The path, at four steps"]}
+        rows={(["1", "2", "3", "5"] as const).map((size) => ({
+          label: `size ${size}`,
+          cells: [
+            <Breadcrumb key="1" size={size}>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="#">Projects</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="#">Northwind</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbItem>
+                <BreadcrumbPage>Settings</BreadcrumbPage>
+              </BreadcrumbItem>
+            </Breadcrumb>,
+          ],
+        }))}
+      />
+      {/* Three ranks of ink, and they have to be three: where you are, where you can go back
+          to, and the punctuation. The middle rank comes forward under the pointer and brings
+          its underline with it — hover the crumbs to judge the pair moving together. */}
+      {/* The ellipsis IS the opener since 2026-09-01: `items` is required, so the inert
+          marker that used to sit here — the one a reader presses first and nothing happens —
+          is no longer expressible. */}
+      <Demo label="Press the dots — they hold the levels that were dropped">
+        <Breadcrumb>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="#">Home</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbItem>
+            <BreadcrumbEllipsis
+              items={[
+                { label: "Docs", href: "#docs" },
+                { label: "Foundations", href: "#foundations" },
+                { label: "Patterns", href: "#patterns" },
+              ]}
+            />
+          </BreadcrumbItem>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="#">Components</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Breadcrumb</BreadcrumbPage>
+          </BreadcrumbItem>
+        </Breadcrumb>
+      </Demo>
+      {/* A deep path in a narrow room WRAPS. The alternative is the component deciding what to
+          hide, which is the app's call and nobody else's (§3). */}
+      <Demo label="A deep path in a narrow room">
+        <Box width="260px">
+          <Breadcrumb>
+            {["Workspace", "Engineering", "Design system", "Foundations"].map((name) => (
+              <BreadcrumbItem key={name}>
+                <BreadcrumbLink href="#">{name}</BreadcrumbLink>
+              </BreadcrumbItem>
+            ))}
+            <BreadcrumbItem>
+              <BreadcrumbPage>Colour</BreadcrumbPage>
+            </BreadcrumbItem>
+          </Breadcrumb>
+        </Box>
+      </Demo>
+      {/* Where it actually lives: above the thing it locates, at the meta rung, with the page
+          title under it doing the work the breadcrumb is deliberately not doing. */}
+      <Demo label="In place">
+        <Card size="3">
+          <Stack gap="5">
+            <Stack gap="2">
+              <Breadcrumb>
+                <BreadcrumbItem>
+                  <BreadcrumbLink href="#">Billing</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbItem>
+                  <BreadcrumbLink href="#">Invoices</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbItem>
+                  <BreadcrumbPage>INV-0042</BreadcrumbPage>
+                </BreadcrumbItem>
+              </Breadcrumb>
+              <Heading size="6">Northwind, March</Heading>
+            </Stack>
+            <Text size="3" emphasis="medium">
+              Due 31 March. Sent to accounts@northwind.example on 2 March.
+            </Text>
+            <Flex gap="3">
+              <Button emphasis="loud">Send reminder</Button>
+              <Button emphasis="quiet">Download PDF</Button>
+            </Flex>
+          </Stack>
+        </Card>
+      </Demo>
+    </Stack>
+  );
+}
+
 function BlockquoteSection() {
   return (
     <Stack gap="6">
@@ -727,6 +833,96 @@ function CheckboxSection() {
             </Stack>
           </Card>
         </Box>
+      </Demo>
+    </Stack>
+  );
+}
+
+function CodeBlockSection() {
+  const source = `export function App() {
+  return (
+    <Theme appearance="dark">
+      <Button tone="accent">Ship it</Button>
+    </Theme>
+  )
+}`;
+  return (
+    <Stack gap="6">
+      {/* The claim to judge first: one index moves the pane AND the code. Three of the four
+          steps only pad the box if the type is pinned, which is the fault that shipped twice
+          in the composer and was found by a person reading the ladder as a ladder. */}
+      <SpecTable
+        cols={["1", "2", "3", "4"]}
+        rows={[
+          {
+            label: "size",
+            cells: SIZES.map((size) => (
+              <CodeBlock key={size} size={size}>
+                {"const scale = 1"}
+              </CodeBlock>
+            )),
+          },
+        ]}
+      />
+      {/* Bounded means SCROLLABLE. The right-hand well holds the same code as the left and
+          stops at three lines — every line of it still reachable by wheel and by keyboard,
+          which is what makes an expand control a convenience rather than a gate. */}
+      <SpecTable
+        cols={["Unbounded", "maxLines={3}"]}
+        rows={[
+          {
+            label: "bound",
+            cells: [
+              <CodeBlock key="1">{source}</CodeBlock>,
+              <CodeBlock key="2" maxLines={3}>
+                {source}
+              </CodeBlock>,
+            ],
+          },
+        ]}
+      />
+      {/* A long line scrolls sideways rather than wrapping, because a wrap puts a break where
+          the language has none. Judge the scroller's edge fade here. */}
+      <Demo label="A line longer than its pane">
+        <Box maxWidth="26rem">
+          <CodeBlock>
+            {'const endpoint = "https://api.kookie.dev/v1/projects/8f21/deployments/latest"'}
+          </CodeBlock>
+        </Box>
+      </Demo>
+      {/* Chrome floats over the pane and the code passes under it, which is the arrangement
+          the material exists for. The row reaches both walls and rests CLOSER to them than
+          the code does — the relationship that says the buttons belong to the pane rather
+          than to the text — and `band` is what buys the first line somewhere to sit. */}
+      <Demo label="A row over the top, with its safe area">
+        <CodeBlock
+          band
+          topbar={
+            <Flex align="center" justify="space-between" gap="3">
+              <Chip size="2" backdrop>
+                app/page.tsx
+              </Chip>
+              <Button size="2" backdrop>
+                Copy
+              </Button>
+            </Flex>
+          }
+        >
+          {source}
+        </CodeBlock>
+      </Demo>
+      {/* Hosted: the well is already inside a pane, so it draws none of its own and its
+          scroller reaches THAT pane's walls. A well inside a ground is the same ground twice,
+          so what should be visible here is one box, not two. */}
+      <Demo label="Hosted in a Card">
+        <Card size="3">
+          <Stack gap="3">
+            <Text size="2" emphasis="medium">
+              Run this from the repository root.
+            </Text>
+            <CodeBlock hosted>{"pnpm run ci"}</CodeBlock>
+          </Stack>
+        </Card>
       </Demo>
     </Stack>
   );
@@ -2493,10 +2689,12 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "badge", name: "Badge", body: <BadgeSection /> },
   { id: "chip", name: "Chip", body: <ChipSection /> },
   { id: "blockquote", name: "Blockquote", body: <BlockquoteSection /> },
+  { id: "breadcrumb", name: "Breadcrumb", body: <BreadcrumbSection /> },
   { id: "button", name: "Button", body: <ButtonSection /> },
   ported("card"),
   { id: "checkbox", name: "Checkbox", body: <CheckboxSection /> },
   { id: "code", name: "Code and Kbd", body: <CodeSection /> },
+  { id: "code-block", name: "CodeBlock", body: <CodeBlockSection /> },
   ported("alert-dialog"),
   { id: "field", name: "Field", body: <FieldSection /> },
   ported("dialog"),

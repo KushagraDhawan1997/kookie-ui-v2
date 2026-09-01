@@ -451,6 +451,121 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "BreadcrumbEllipsis": {
+    "element": null,
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "items",
+        "type": "BreadcrumbEllipsisItem[]",
+        "optional": false,
+        "doc": "The levels you dropped, in path order. REQUIRED, and that is the design: three dots say \"there is more here\", so an ellipsis that opens nothing is a control promising something it does not have. The component owns the menu so that no call site can ship a dead one."
+      },
+      {
+        "name": "label",
+        "type": "string",
+        "optional": true,
+        "doc": "What the hidden stretch is called — the button's accessible name. A WORD, so a non-English app states its own."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "BreadcrumbItem": {
+    "element": "li",
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "BreadcrumbLink": {
+    "element": "a",
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "render",
+        "type": "RenderElement",
+        "optional": true,
+        "doc": "Render into your framework's own link component, or an `<a>` carrying `target` and `rel`. `BreadcrumbLink` supplies the treatment; where it goes is yours."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "BreadcrumbPage": {
+    "element": "span",
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "Breadcrumb": {
+    "element": "nav",
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Dresses the `<nav>` — the element you lay out. The list inside it is the system's."
+      },
+      {
+        "name": "label",
+        "type": "string",
+        "optional": true,
+        "doc": "The landmark's accessible name, which is how a screen reader's landmark list tells this `<nav>` from the app's own. It is a WORD, so a non-English app states its own — `Notice`'s `dismissLabel` is the same prop for the same reason."
+      },
+      {
+        "name": "size",
+        "type": "TypeSize",
+        "optional": true,
+        "doc": "A step on the shared ramp, and it reaches every crumb by inheritance — a bar of mixed steps is not a thing anyone means, which is Tabs' own sentence one family over. Defaults to 2, §15's label-and-meta rung: a breadcrumb tells you where you are, and where you are is not the thing you came to read."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
   "Button": {
     "element": "button",
     "props": [
@@ -642,6 +757,65 @@ export const API: Record<string, ApiEntry> = {
         "type": "Weight",
         "optional": true,
         "doc": "Token names, never numbers, and semibold is the heaviest. Unset with no default, as `size` is: the fill and the pill are what mark a chip out, never the weight."
+      }
+    ]
+  },
+  "CodeBlock": {
+    "element": null,
+    "props": [
+      {
+        "name": "band",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Does the top row SPAN the pane, so the code owes it a safe area? A BAND IS RESERVED FOR A ROW THAT REACHES TWO WALLS, NOT FOR ONE CONTROL IN A CORNER. A name at one wall and an action at the other cover the whole of the first line, so the first line needs somewhere else to be. A row holding only an action occupies one corner, and reserving a pane's width of clearance for it puts a hand's width of nothing in the other one. A FLAG HERE AND A NODE ABOVE, deliberately: the well cannot read its chrome's shape off the node — counting the row's children would be this element guessing at the caller's arrangement. What it can be told is the one geometric fact it needs, by the code that decided it."
+      },
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": false,
+        "doc": "The code. Plain text, or the spans a highlighter produced from it."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Dresses the code element (the `<pre>`), which is where a highlighter's own classes go. Outer spacing is the caller's Box, never this."
+      },
+      {
+        "name": "footer",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The same row at the BOTTOM of the pane — an expand control, a status line. Both rows hang from the pane itself, so in a hosted well they measure from the same box: hanging one of them from a wrapper around the element counts the host's inset twice."
+      },
+      {
+        "name": "hosted",
+        "type": "boolean",
+        "optional": true,
+        "doc": "The element is already inside a pane, so it draws none of its own. A pane inside a pane of the same kind is two grounds painting one colour, separated by a hairline that says nothing — the fault §10 names when it separates a Card (an object) from a Surface (what an object sits on). A code well is a ground, so a well inside a ground is the same ground twice. Hosted, the HOST's pane is the well: fill, corner, hairline, clip and inset all come from it, and what stays here is the one thing the host cannot give — a positioning context for the floating chrome, and a scroller that reaches the host's own walls. It is not a second appearance. The element still renders one arrangement; this says who owns the box around it, the way §4 says a hosted control's geometry comes from its container."
+      },
+      {
+        "name": "maxLines",
+        "type": "number",
+        "optional": true,
+        "doc": "The bound: the well's maximum height, in LINES of its own code. Bounded means SCROLLABLE, never clipped — every line stays reachable by wheel, keyboard and assistive technology. That is what lets an expand control be a convenience rather than a gate: a collapse that hides code leaves it in the tab order, and this shape makes that defect inexpressible. No fade over the last lines. A scrollable well with a visible scrollbar already says there is more."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "optional": true,
+        "doc": "One index for the whole element: the pane's padding and corner, the mono step, and the arithmetic the bound and the chrome's safe area are built from. SIZE PRICES EVERYTHING here for the reason §24/§25/§30 already state: a component that owns its pane AND its text prices both. `Dialog` stops at the box because its content is the caller's; a code well's content is code, and code is the one thing this element knows it is holding."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "topbar",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "A row floating over the TOP of the pane — a file name, a language chip, a copy button. A NODE RATHER THAN A FLAG, because the well does not know what its chrome is. It owns the pane, the mono step, the scroller and the row's BOX; what sits in the row, and how that content is arranged, belongs to the caller. Pass content, not a positioned element: the element places the row itself, reaching both walls and padding itself back by less than the code's own inset, so the chrome reads as belonging to the pane rather than to the text. It floats rather than sitting in flow because a translucent control exists to be legible with content passing behind it. A glass row with nothing behind it is decoration wearing a material's name. The platform pattern is the same one: a scroll view holds a top content inset and its content passes under a translucent toolbar."
       }
     ]
   },
@@ -1323,6 +1497,12 @@ export const API: Record<string, ApiEntry> = {
         "type": "React.MouseEventHandler<HTMLElement>",
         "optional": true,
         "doc": "What choosing the row does. The menu closes around it, so this is where work starts. Anything that has to report back needs a surface that outlives the panel."
+      },
+      {
+        "name": "render",
+        "type": "RenderElement",
+        "optional": true,
+        "doc": "Render the row into the element it really is — your framework's link component, or an `<a href>`, for a menu of PLACES rather than of verbs. The row stays one target, which is the whole reason this is a render escape and not a nested anchor: a link inside the row would be a second target inside a target, and `trailing`'s own note already refuses that. Opened 2026-09-01 for `BreadcrumbEllipsis`, which is a list of places by definition."
       },
       {
         "name": "style",

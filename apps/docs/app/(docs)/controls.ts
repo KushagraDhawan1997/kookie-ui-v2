@@ -70,11 +70,12 @@ const OFFERED: Record<string, readonly string[]> = {
   "avatar-group": ["size"],
   badge: ["size"],
   blockquote: ["size", "emphasis", "tone"],
+  breadcrumb: ["size"],
   box: ["p"],
-  button: ["size", "tone", "emphasis", "bordered", "loading"],
+  button: ["size", "tone", "emphasis", "bordered", "loading", "backdrop"],
   card: ["size", "backdrop"],
   checkbox: ["size"],
-  chip: ["size", "weight", "emphasis"],
+  chip: ["size", "weight", "emphasis", "backdrop"],
   code: ["weight", "tone"],
   dialog: ["size"],
   field: ["size"],
@@ -91,7 +92,7 @@ const OFFERED: Record<string, readonly string[]> = {
   row: ["size"],
   select: ["size"],
   slider: ["size"],
-  "segmented-control": ["size"],
+  "segmented-control": ["size", "backdrop"],
   stack: ["gap", "align"],
   surface: ["size"],
   switch: ["size"],
@@ -108,7 +109,7 @@ const OFFERED: Record<string, readonly string[]> = {
   // other page works because its values come from `componentAxes`, which is not in a client
   // module. Restating the lists would fix the page and break the one-home rule the catalog
   // exists to keep, so this waits on `themeAxes` moving to a server-reachable home.
-  toggle: ["size", "tone", "bordered"],
+  toggle: ["size", "tone", "bordered", "backdrop"],
 };
 
 /** The catalog's component key for a docs slug. Most are the pascal case of the slug. */
@@ -163,6 +164,15 @@ const CATALOG_KEY: Record<string, string> = {
  * copy. The initial value is the EXAMPLE's, read from its source rather than assumed — see
  * `initialFromSource`.
  */
+/**
+ * The catalog entry a slug's knobs are derived from.
+ *
+ * Exported for the laws, which need to ask what a page COULD offer — `controlsFor` only answers
+ * what it DOES. One lookup rather than a second copy of the mapping.
+ */
+export const catalogEntryFor = (slug: string) =>
+  CATALOG[CATALOG_KEY[slug] as keyof typeof CATALOG] as { props: Record<string, unknown> } | undefined;
+
 export function controlsFor(slug: string, source: string): Control[] {
   const offered = OFFERED[slug];
   const key = CATALOG_KEY[slug];
