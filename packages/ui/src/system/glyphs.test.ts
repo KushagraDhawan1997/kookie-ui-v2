@@ -38,6 +38,46 @@ describe("the stroke has one home", () => {
   });
 });
 
+describe("a stroked glyph is not a filled one (ultracode audit 2026-09-01)", () => {
+  /**
+   * SVG's initial `fill` is absolute black, not `currentColor`. So a stroked glyph that omits
+   * `fill="none"` paints as a solid wedge AND stops following the ink role it was drawn to
+   * follow — wrong in light, and wrong in a second way in dark.
+   *
+   * Nothing read it. Deleting `fill="none"` from breadcrumb's chevron left 29 breadcrumb laws,
+   * 611 node laws and 31 glyph laws green while the path computed `fill: rgb(0, 0, 0)`; a grep
+   * for `"fill"` across every test in the package found it asserted on Spinner alone. Twelve
+   * hand-written glyphs carry the declaration and none of them had a reader.
+   *
+   * The SOURCE half, for the reason the stroke's source half exists: the browser laws measure
+   * the glyphs they mount, and the next chevron is the one they do not.
+   */
+  it("every svg that strokes a path states fill=\"none\" on itself", () => {
+    // PER SVG, not per stroke: `fill` inherits, so one declaration on the root covers every
+    // path inside it — the checkbox draws two ticks in one svg and the avatar a head and
+    // shoulders, and a per-stroke count called both of them defects on the law's first run.
+    const offenders: string[] = [];
+    for (const file of sources) {
+      const body = stripped(raw(file));
+      if (!/strokeWidth=\{glyphStroke\}/.test(body)) continue;
+      for (const chunk of body.split("<svg").slice(1)) {
+        const el = chunk.slice(0, chunk.indexOf("</svg>") + 1 || undefined);
+        if (!/strokeWidth=\{glyphStroke\}/.test(el)) continue;
+        // The attribute belongs to the svg's own opening tag, not to a path inside it.
+        const openTag = el.slice(0, el.indexOf(">") + 1);
+        if (!/fill="none"/.test(openTag)) offenders.push(`${file}: <svg${openTag.trim()}`);
+      }
+    }
+    expect(offenders, "a stroked glyph with no fill paints a solid black wedge").toEqual([]);
+  });
+
+  it("...and the walk really reaches the files that draw", () => {
+    // Vacuity: the loop above is satisfied by a walk that finds nothing to check.
+    const drawing = sources.filter((f) => /strokeWidth=\{glyphStroke\}/.test(raw(f)));
+    expect(drawing.length).toBeGreaterThan(3);
+  });
+});
+
 describe("the two grids state one painted weight", () => {
   it("glyphStroke is iconStroke restated for the package's own viewBox", () => {
     // The derivation, read as the guarantee rather than the arithmetic: a 16-unit glyph and a
