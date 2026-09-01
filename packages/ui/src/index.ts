@@ -26,6 +26,7 @@ export { Checkbox, type CheckboxProps } from "./components/checkbox/checkbox.tsx
 export { Code, type CodeProps } from "./components/code/code.tsx";
 export { CodeBlock, type CodeBlockProps } from "./components/code-block/code-block.tsx";
 export { Field, FieldItem, FieldLabel, FieldDescription, FieldError, type FieldProps, type FieldItemProps, type FieldLabelProps, type FieldDescriptionProps, type FieldErrorProps } from "./components/field/field.tsx";
+export { Command, CommandTrigger, CommandContent, CommandInput, CommandList, CommandGroup, CommandGroupLabel, CommandCollection, CommandItem, CommandEmpty, type CommandProps, type CommandTriggerProps, type CommandContentProps, type CommandInputProps, type CommandListProps, type CommandGroupProps, type CommandItemProps } from "./components/command/command.tsx";
 export { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogClose, type DialogProps, type DialogTriggerProps, type DialogContentProps, type DialogTitleProps, type DialogDescriptionProps, type DialogCloseProps } from "./components/dialog/dialog.tsx";
 // The overlay family's `onOpenChange` second argument, forwarded 2026-08-26 (ultracode audit).
 // `dialog.tsx` re-exports these two expressly to make them public and the barrel did not carry

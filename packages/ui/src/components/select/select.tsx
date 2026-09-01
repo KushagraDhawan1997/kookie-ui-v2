@@ -25,6 +25,7 @@ import {
 } from "../../system/floating.tsx";
 import { useMergedRefs } from "../../system/render.ts";
 import type { Size, SlotName } from "../../system/axes.ts";
+import { rowProps } from "../../system/rows.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
 import { useControlSize } from "../../system/control-size.ts";
@@ -355,17 +356,6 @@ export function SelectContent({ children, className, style, ref, ...rest }: Sele
 
 /* ── Rows ─────────────────────────────────────────────────────────────────────────────── */
 
-/** The row identity (§21) — the menu's rowProps, self-keyed on the second member. */
-function rowProps(size: Size, part: string, className?: string) {
-  const cls = `kui-control kui-row ${part}`;
-  return {
-    "data-size": size,
-    "data-tone": "neutral",
-    "data-emphasis": "quiet",
-    className: className ? `${cls} ${className}` : cls,
-  } as const;
-}
-
 export type SelectItemProps = {
   /** The value this option names: what the form submits and what the trigger displays. */
   value: string;
@@ -392,7 +382,7 @@ export type SelectItemProps = {
 export function SelectItem({ children, className, ...props }: SelectItemProps) {
   return (
     <BaseSelect.Item
-      {...rowProps(React.use(SelectSizeContext), "kui-select-item", className)}
+      {...rowProps(React.use(SelectSizeContext), "kui-select-item", { ...(className !== undefined ? { className } : {}) })}
       {...props}
     >
       <BaseSelect.ItemIndicator keepMounted render={<span data-slot={"leading" satisfies SlotName} />}>
@@ -456,7 +446,7 @@ export type SelectLabelProps = {
 /** A heading for option rows: the row skeleton for alignment, control-ness stood down.
     Legal in a group and legal on its own; see SelectInGroupContext for why both. */
 export function SelectLabel({ className, ...props }: SelectLabelProps) {
-  const skeleton = rowProps(React.use(SelectSizeContext), "kui-select-label", className);
+  const skeleton = rowProps(React.use(SelectSizeContext), "kui-select-label", { ...(className !== undefined ? { className } : {}) });
   if (!React.use(SelectInGroupContext)) return <div {...skeleton} {...props} />;
   return <BaseSelect.GroupLabel {...skeleton} {...props} />;
 }

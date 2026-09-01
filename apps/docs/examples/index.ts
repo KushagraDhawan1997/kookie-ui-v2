@@ -19,6 +19,7 @@ import type * as React from "react";
 
 import AlertDialogExample from "./alert-dialog";
 import AttachmentExample from "./attachment";
+import CommandExample from "./command";
 import AccordionExample from "./accordion";
 import AvatarExample from "./avatar";
 import AvatarGroupExample from "./avatar-group";
@@ -84,6 +85,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "card": CardExample,
   "checkbox": CheckboxExample,
   "code": CodeExample,
+  command: CommandExample,
   "code-block": CodeBlockExample,
   "context-menu": ContextMenuExample,
   "dialog": DialogExample,

@@ -943,6 +943,172 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "CommandContent": {
+    "element": null,
+    "props": [
+      {
+        "name": "aria-label",
+        "type": "string",
+        "optional": false,
+        "doc": "The palette's accessible name. It has no visible title — the field is the affordance — so the name is stated here and it is required by the type."
+      },
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": false,
+        "doc": "The field, the list, and the sentence shown when nothing matches."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Dresses the panel. Outer spacing is not yours to set here — a palette covers the app."
+      },
+      {
+        "name": "filter",
+        "type": "React.ComponentPropsWithoutRef<typeof Autocomplete.Root>[\"filter\"]",
+        "optional": true,
+        "doc": "Base UI's matcher, if the app wants a different one. Left alone, it is Base UI's own."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "CommandGroup": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": false,
+        "doc": "The section's caption and its rows."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Dresses the section."
+      },
+      {
+        "name": "items",
+        "type": "readonly unknown[]",
+        "optional": false,
+        "doc": "This group's own items, so the filter can narrow a section and hide it when it empties."
+      }
+    ]
+  },
+  "CommandInput": {
+    "element": null,
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Dresses the input line."
+      },
+      {
+        "name": "leading",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "Before the field: a magnifier, if your app draws one. Empty-safe — the package ships no icon set."
+      }
+    ]
+  },
+  "CommandItem": {
+    "element": null,
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Dresses the row."
+      },
+      {
+        "name": "leading",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "Before the label: an icon, an avatar."
+      },
+      {
+        "name": "tone",
+        "type": "\"destructive\"",
+        "optional": true,
+        "doc": "The one meaning a row may carry. Not a palette — the list stays this narrow on purpose."
+      },
+      {
+        "name": "trailing",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "After it, pushed to the far edge: the chord that also runs this, a category, a count."
+      }
+    ]
+  },
+  "CommandList": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "(item: T) => React.ReactNode",
+        "optional": false,
+        "doc": "Called for each item that survives the filter."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Dresses the scrolling list."
+      }
+    ]
+  },
+  "Command": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": false,
+        "doc": "The trigger, if there is one, and the panel."
+      },
+      {
+        "name": "defaultOpen",
+        "type": "DialogProps[\"defaultOpen\"]",
+        "optional": true,
+        "doc": "Open on the first render and manage itself after that. Useful for a demo; almost never what a real palette wants, because the chord that opens it lives in your key handler."
+      },
+      {
+        "name": "items",
+        "type": "readonly unknown[]",
+        "optional": false,
+        "doc": "Everything the palette can offer, before filtering. Base UI matches against these and renders only what survives, which is why `CommandList` takes a function rather than children: the list you write is the list of ALL commands, and the panel decides which of them exist right now."
+      },
+      {
+        "name": "onOpenChange",
+        "type": "DialogProps[\"onOpenChange\"]",
+        "optional": true,
+        "doc": "Called when it opens or closes, with the reason — an Escape, an outside press, or a row being run. The second argument carries `cancel()` if you need to refuse the dismissal."
+      },
+      {
+        "name": "open",
+        "type": "DialogProps[\"open\"]",
+        "optional": true,
+        "doc": "Open state. A palette is almost always controlled, because the chord that opens it lives in the app's own key handler."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "optional": true,
+        "doc": "Sets the panel and everything the component places in it: the box, the filter field, the rows and the group labels. It owns all of it, so the index reaches the type — the rule AlertDialog and Composer both settled on, where a Dialog stops at the box because the content is yours."
+      }
+    ]
+  },
+  "CommandTrigger": {
+    "element": null,
+    "props": []
+  },
   "ComposerInput": {
     "element": "textarea",
     "props": []

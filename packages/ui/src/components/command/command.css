@@ -1,0 +1,112 @@
+/**
+ * Command (§44) — one field over everything the app can do.
+ *
+ * There is almost nothing here, and that is the design: the panel is a `DialogContent`, so the
+ * seal, the corner, the edge, the scrim, the material, the cast and the entry motion are the
+ * overlay family's; the rows are `.kui-row`, so their height, ring, hover and disabled arms are
+ * the row family's. What this file states is the one arrangement a palette needs that neither
+ * of those already has — a field flush at the top of a pane whose padding it does not want.
+ */
+
+/* THE PANE'S PADDING GOES, AND THE TOKEN STAYS.
+   A palette is edge-to-edge: the field is a line across the top and the rows reach both walls,
+   which is what makes a highlighted row read as a band rather than as a chip floating in a
+   card. But every part below reads `--kui-sf-p` to place its own text on the vertical the
+   pane's own padding would have used, so the number has to survive its own removal. One
+   source, two consumers.
+
+   THE RANKS ARE WHY THIS IS SAFE, and they were measured rather than assumed. The padding
+   declaration is `.kui-surface { padding: var(--kui-sf-p) }` at (0,1,0), so this rule at
+   (0,2,0) beats it from anywhere. The hook is declared by the overlay size join at
+   `.kui-surface.kui-overlay[data-size="N"]` — (0,3,0) — so a rule at this rank CANNOT zero it
+   even by mistake. An earlier draft of this comment claimed the choice of `padding: 0` over
+   `--kui-sf-p: 0` was what protected the token; the sabotage pass proved otherwise, and the
+   protection is structural.
+
+   This file is imported AFTER dialog.css for the same family of reasons: a palette specialises
+   a dialog, so its overrides have to land after the dialog's. Both import lists say so, and
+   test/cascade.test.ts compares them position by position. */
+.kui-surface.kui-command {
+  padding: 0;
+}
+
+/* The field: one line across the top, with the rule under it drawn by the same token a
+   Separator paints — a palette's field and its list are two regions of one pane, and the
+   boundary between them is a hairline, not a gap. */
+.kui-command-field {
+  display: flex;
+  align-items: center;
+  gap: var(--layout-space-3);
+  padding-inline: var(--kui-sf-p);
+  border-block-end: var(--border-width) solid var(--color-border);
+}
+
+.kui-command-field-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  inline-size: var(--kui-sf-icon);
+  block-size: var(--kui-sf-icon);
+  color: var(--color-text-muted);
+}
+
+.kui-command-field-icon > svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+/* A BARE LINE, NOT A FIELD (§30's sentence, one component over).
+   A `TextField` is a bounded box with a seal, an edge and a focus ring; drawing one here would
+   put a box inside a box that is already the only focused thing on the screen. So the input
+   states the platform facts a field would otherwise have stated for it — no border, no
+   background, no ring — and takes its height from the control ladder so the top line stands
+   level with a control at the same index. */
+.kui-command-input {
+  flex: 1;
+  min-inline-size: 0;
+  block-size: var(--control-height-2);
+  border: 0;
+  background: none;
+  outline: none;
+  color: var(--color-text);
+  font: inherit;
+  /* The zoom floor rides the pointer axis (§17): a coarse world floors an input's font at 16
+     so Safari does not zoom the page on focus. It is REDUNDANT at this step and kept anyway —
+     the handheld band already raises step 3 past 16 on a coarse pointer, so the `max()` picks
+     the same number either way. It is the spelling every input in this package uses, and it
+     becomes load-bearing the moment the field's step drops. The law that would have guarded it
+     was deleted rather than kept green: it could only read the cell where the floor is a no-op,
+     which is a law about the special case wearing the general one's name. */
+  font-size: max(var(--font-size-3), var(--input-font-floor));
+}
+
+.kui-command-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* The list scrolls, because a palette exists to hold more than fits. The height is a maximum
+   rather than a height: a palette with four commands in it is four rows tall. */
+.kui-command-list {
+  display: block;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  max-block-size: 24rem;
+  padding-block: var(--layout-space-2);
+}
+
+/* Group labels and the empty line sit on the vertical the rows' text sits on, so the caption
+   above a section lines up with the section. `--kui-sf-p` is the pane's own inset, plus the
+   row's — the row family pads itself, and a label is not a row. */
+.kui-command-group-label,
+.kui-command-empty {
+  display: block;
+  padding-inline: calc(var(--kui-sf-p) + var(--control-px-2));
+  padding-block: var(--layout-space-2);
+}
+
+/* A section after another one needs air, and the first one must not have it — the interval is
+   between groups, not above the list. */
+.kui-command-group + .kui-command-group {
+  margin-block-start: var(--layout-space-2);
+}

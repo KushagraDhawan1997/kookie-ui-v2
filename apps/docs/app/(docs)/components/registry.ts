@@ -851,6 +851,60 @@ export const ENTRIES: Entry[] = [
     ],
   },
   {
+    slug: "command",
+    name: "Command",
+    family: "Surface",
+    spec: "§44",
+    blurb:
+      "Command is one field over everything your app can do. It is a Dialog, so it covers the app, traps focus, locks the page behind it and leaves on Escape — all of which the overlay family already owns, and none of which this component rebuilds. What it adds is the keyboard model every palette needs and no app should write twice: a row highlighted from the first frame, the highlight surviving each keystroke, and Enter running the row you are looking at.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "sets the panel and everything the component places in it — the box, the field, the rows and the section captions. The index reaches the type because the palette owns all of it, which is the same rule that makes a dialog stop at its box and an alert go all the way through" },
+      { name: "items", values: "your array", note: "everything the palette can offer, before filtering. Only the rows that match render, so the list you write is the list of everything and the panel decides what exists right now" },
+      { name: "filter", values: "a matcher", note: "left alone it is Base UI's own. Pass your own to match differently, or hand in an already-narrowed array and the matcher will find all of it" },
+    ],
+    refusals: [
+      {
+        name: "a second overlay",
+        why: "The panel is a Dialog and wears its class. The scrim, the focus trap, the scroll lock, the re-theming inside the portal and the entry motion all arrive by membership, and a law reads the corner and the shadow against a plain dialog at the same size to keep it that way.",
+      },
+      {
+        name: "modal",
+        why: "An open palette is the interaction. A panel that left the page live behind it is a different component — a Popover — not a flag on this one. Dialog's own refusal, inherited.",
+      },
+      {
+        name: "fuzzy reordering as you type",
+        why: "Rows keep the order you wrote them in. A palette that re-sorts itself on every keystroke is one nobody can build muscle memory for, and muscle memory is most of what a palette is for.",
+      },
+      {
+        name: "a title",
+        why: "The field is the affordance and there is nothing to say above it. The panel is named by aria-label instead, which the type requires rather than suggests.",
+      },
+      {
+        name: "its own empty sentence",
+        why: "CommandEmpty takes your words. The system cannot write them, because they are in your language and about your app.",
+      },
+      {
+        name: "a TextField at the top",
+        why: "A field is a bounded box with a fill, an edge and a focus ring. Drawing one inside a panel that is already the only focused thing on screen puts a box inside a box. The line states the platform facts instead, and stands at the height of a control at the same index.",
+      },
+      {
+        name: "opening on a chord by itself",
+        why: "The shortcut lives in your key handler, because which chord opens the palette is your app's decision and it has to agree with everything else you bind. Control open, and render no trigger at all if the chord is the only way in.",
+      },
+    ],
+    parts: [
+      { part: "CommandTrigger", blurb: "The control that opens it. A palette usually opens on a chord instead, and then this is not rendered at all — which is why it is a part rather than a prop" },
+      { part: "CommandContent", blurb: "The panel: a dialog's own popup, holding the field and the list. It carries the palette's accessible name, which the type requires because there is no visible title to take it from" },
+      { part: "CommandInput", blurb: "The filter line across the top. Not a field — it draws no box, because the panel is already the only focused thing on the screen — and it stands at the height of a control of the same size" },
+      { part: "CommandList", blurb: "The scrolling list. It takes a function rather than children, because the rows that exist are the ones that survived the filter" },
+      { part: "CommandGroup", blurb: "A section, carrying its own items so it can disappear when nothing in it matches" },
+      { part: "CommandGroupLabel", blurb: "The section's caption. Muted, not reachable, and it does nothing" },
+      { part: "CommandCollection", blurb: "Renders each surviving item of the group it sits in" },
+      { part: "CommandItem", blurb: "One command: a row, standing level with a button of the same size, with slots before and after for an icon and the chord that also runs it" },
+      { part: "CommandEmpty", blurb: "What the panel says when nothing matches. Your words, because they are in your language and about your app" },
+    ],
+  },
+  {
     slug: "composer",
     name: "Composer",
     family: "Surface",

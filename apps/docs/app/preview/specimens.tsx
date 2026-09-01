@@ -53,6 +53,16 @@ import {
   FieldLabel,
   Flex,
   Attachment,
+  Command,
+  CommandCollection,
+  CommandContent,
+  CommandEmpty,
+  CommandGroup,
+  CommandGroupLabel,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandTrigger,
   Grid,
   Heading,
   Kbd,
@@ -1132,6 +1142,68 @@ function HeadingSection() {
   );
 }
 
+
+type PaletteAction = { value: string; label: string; chord?: string };
+type PaletteSection = { value: string; items: PaletteAction[] };
+
+const PALETTE: PaletteSection[] = [
+  {
+    value: "Actions",
+    items: [
+      { value: "new", label: "New project", chord: "N" },
+      { value: "import", label: "Import from GitHub" },
+      { value: "invite", label: "Invite a teammate" },
+    ],
+  },
+  {
+    value: "Settings",
+    items: [
+      { value: "appearance", label: "Appearance" },
+      { value: "shortcuts", label: "Keyboard shortcuts", chord: "?" },
+    ],
+  },
+];
+
+function CommandSection() {
+  return (
+    <Stack gap="6">
+      {/* The claim to judge first: this is a Dialog. The corner, the scrim, the cast and the
+          entry are the overlay family's, and the palette adds an arrangement — a field flush at
+          the top of a pane whose padding it does not want, and rows that reach both walls so a
+          highlighted row reads as a band rather than as a chip floating in a card (§44). */}
+      <Command items={PALETTE}>
+        <CommandTrigger render={<Button emphasis="medium">Open command palette</Button>} />
+        <CommandContent aria-label="Command palette">
+          <CommandInput placeholder="Search for commands…" />
+          <CommandList>
+            {(section: PaletteSection) => (
+              <CommandGroup key={section.value} items={section.items}>
+                <CommandGroupLabel>{section.value}</CommandGroupLabel>
+                <CommandCollection>
+                  {(action: PaletteAction) => (
+                    <CommandItem
+                      key={action.value}
+                      value={action}
+                      {...(action.chord ? { trailing: <Kbd>{action.chord}</Kbd> } : {})}
+                    >
+                      {action.label}
+                    </CommandItem>
+                  )}
+                </CommandCollection>
+              </CommandGroup>
+            )}
+          </CommandList>
+          <CommandEmpty>No commands match that.</CommandEmpty>
+        </CommandContent>
+      </Command>
+
+      <Text size="2" emphasis="medium">
+        Type to narrow it. A row is highlighted from the first frame, so Enter runs without an
+        arrow key first, and a section disappears when nothing in it survives.
+      </Text>
+    </Stack>
+  );
+}
 
 function AttachmentSection() {
   return (
@@ -2896,6 +2968,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   ported("menu"),
   ported("composer"),
   { id: "attachment", name: "Attachment", body: <AttachmentSection /> },
+  { id: "command", name: "Command", body: <CommandSection /> },
   { id: "notice", name: "Notice", body: <NoticeSection /> },
   ported("select"),
   { id: "layout", name: "Layout — Box, Flex, Grid, Stack", body: <LayoutSection /> },

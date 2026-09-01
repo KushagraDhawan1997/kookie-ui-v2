@@ -38,6 +38,7 @@ import {
 } from "../../system/floating.tsx";
 import { CHECK_PATH } from "../../system/glyphs.ts";
 import type { Size } from "../../system/axes.ts";
+import { rowProps } from "../../system/rows.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
@@ -423,17 +424,6 @@ function MenuPopup({
       quiet by STAMP (emphasis is refused — a menu is a list of peers), neutral unless the
       one meaning with its own ink is asked for. ────────────────────────────────────────── */
 
-function rowProps(size: Size, tone: "destructive" | undefined, part: string, className?: string) {
-  return {
-    "data-size": size,
-    "data-tone": tone ?? "neutral",
-    "data-emphasis": "quiet",
-    className: className
-      ? `kui-control kui-row ${part} ${className}`
-      : `kui-control kui-row ${part}`,
-  } as const;
-}
-
 export type MenuItemProps = {
   /**
    * The one meaning a row may carry. It is not a palette: the list stays this narrow on purpose,
@@ -491,7 +481,7 @@ export function MenuItem({ tone, leading, trailing, render, children, className,
   const target = render === undefined ? undefined : unwrapLazy(render);
   return (
     <BaseMenu.Item
-      {...rowProps(React.use(MenuSizeContext), tone, "kui-menu-item", className)}
+      {...rowProps(React.use(MenuSizeContext), "kui-menu-item", { ...(tone !== undefined ? { tone } : {}), ...(className !== undefined ? { className } : {}) })}
       {...(target ? { render: target } : {})}
       {...props}
     >
@@ -560,7 +550,7 @@ export type MenuLabelProps = {
     (faint ink, regular weight, no pointer). Legal in a group and legal on its own; see
     MenuInGroupContext for why both. */
 export function MenuLabel({ className, ...props }: MenuLabelProps) {
-  const skeleton = rowProps(React.use(MenuSizeContext), undefined, "kui-menu-label", className);
+  const skeleton = rowProps(React.use(MenuSizeContext), "kui-menu-label", { ...(className !== undefined ? { className } : {}) });
   if (!React.use(MenuInGroupContext)) return <div {...skeleton} {...props} />;
   return <BaseMenu.GroupLabel {...skeleton} {...props} />;
 }
@@ -628,7 +618,7 @@ export type MenuCheckboxItemProps = {
 export function MenuCheckboxItem({ trailing, children, className, ...props }: MenuCheckboxItemProps) {
   return (
     <BaseMenu.CheckboxItem
-      {...rowProps(React.use(MenuSizeContext), undefined, "kui-menu-item", className)}
+      {...rowProps(React.use(MenuSizeContext), "kui-menu-item", { ...(className !== undefined ? { className } : {}) })}
       {...props}
     >
       <BaseMenu.CheckboxItemIndicator keepMounted render={<span data-slot="leading" />}>
@@ -711,7 +701,7 @@ export type MenuRadioItemProps = {
 export function MenuRadioItem({ trailing, children, className, ...props }: MenuRadioItemProps) {
   return (
     <BaseMenu.RadioItem
-      {...rowProps(React.use(MenuSizeContext), undefined, "kui-menu-item", className)}
+      {...rowProps(React.use(MenuSizeContext), "kui-menu-item", { ...(className !== undefined ? { className } : {}) })}
       {...props}
     >
       <BaseMenu.RadioItemIndicator keepMounted render={<span data-slot="leading" />}>
@@ -831,7 +821,7 @@ export function MenuSubTrigger({
   const setRow = useMergedRefs(ref, capture);
   return (
     <BaseMenu.SubmenuTrigger
-      {...rowProps(React.use(MenuSizeContext), undefined, "kui-menu-item", className)}
+      {...rowProps(React.use(MenuSizeContext), "kui-menu-item", { ...(className !== undefined ? { className } : {}) })}
       {...props}
       ref={setRow}
     >

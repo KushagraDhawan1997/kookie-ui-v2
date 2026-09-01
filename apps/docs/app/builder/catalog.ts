@@ -1275,6 +1275,46 @@ export const CATALOG: Record<string, CatalogEntry> = {
  */
 export const EXCLUDED: { name: string; why: string }[] = [
   {
+    name: "Command",
+    why: "A palette is a list built from a data array, and an array of commands with handlers on them is not a value class the builder has — the same wall ScrollArea's stated height runs into. It also covers the whole app, where this canvas composes inside a frame. Its parts are excluded with it, because none of them means anything outside the palette.",
+  },
+  {
+    name: "CommandTrigger",
+    why: "Command's exclusion, inherited: a button that opens a palette is nothing without the palette it opens, and the palette cannot be placed here.",
+  },
+  {
+    name: "CommandContent",
+    why: "Command's exclusion, inherited: the panel only exists inside a palette, and a panel with no root to open it would render nothing at all.",
+  },
+  {
+    name: "CommandInput",
+    why: "Command's exclusion, inherited: the filter line reads the palette's own context, so outside one it is a bare input with nothing to narrow.",
+  },
+  {
+    name: "CommandList",
+    why: "Command's exclusion, inherited: the list takes a render function over the palette's items, which is a data array the builder cannot express.",
+  },
+  {
+    name: "CommandGroup",
+    why: "Command's exclusion, inherited: a section carries its own slice of the items array, and that array is the thing the builder has no value class for.",
+  },
+  {
+    name: "CommandGroupLabel",
+    why: "Command's exclusion, inherited: a section's caption means nothing outside the section, and sections only exist inside a palette.",
+  },
+  {
+    name: "CommandCollection",
+    why: "Command's exclusion, inherited: it renders each surviving item of the group around it, so it is meaningless without both the group and the filter.",
+  },
+  {
+    name: "CommandItem",
+    why: "Command's exclusion, inherited: a row here is driven by Base UI's highlight inside the palette; placed anywhere else it is a Row, which the builder does offer.",
+  },
+  {
+    name: "CommandEmpty",
+    why: "Command's exclusion, inherited: the empty sentence is shown by the filter when nothing matches, and there is no filter outside a palette.",
+  },
+  {
     name: "ContextMenu",
     why: "A context menu is opened by right-clicking a region, and on this canvas right-click already belongs to the editor: it selects what is under the pointer and opens the editor's own menu. A ContextMenu placed here could never be opened, which makes it a control that promises something it does not have. Its trigger and content are excluded with it, because neither means anything outside the pair.",
   },

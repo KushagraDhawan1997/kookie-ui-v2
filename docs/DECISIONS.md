@@ -2605,6 +2605,78 @@ correctly the whole time. Calibrate, then measure. And the first cast law tested
 layer satisfies, so it passed on a tile casting two real shadows; the agreement law against a
 mounted Notice is what caught it.
 
+## 44. Command (2026-09-01) — one field over everything the app can do
+
+**It is a Dialog, and that is the whole architecture.** A palette covers the app, traps focus,
+locks the page behind it and leaves on Escape — which is the definition of the component this
+system already shipped. So `Command` composes `Dialog` rather than growing a second overlay:
+the scrim, the focus trap, the scroll lock, the portal re-theming (§20), the entry motion, the
+stacking frame and the `onOpenChange` reason all arrive by membership, and this component adds
+no floating mechanism of its own. A mounted law reads the corner and the cast against a plain
+dialog at the same index in both appearances, so the membership is checked rather than claimed.
+
+**The forcing case was in the repo, which is the only reason this got built now.** The builder's
+⌘K (`apps/docs/app/builder/command-palette.tsx`) composed a palette by hand out of Dialog, Row,
+TextField and ScrollArea, and wrote its own keyboard model. §11 has carried a "Command item" row
+since the defaults table.
+
+**The machine is the package's, the list is the app's** — Tree's sentence (§33) one component
+over. What a palette owes, and what an app must not write twice, is the keyboard model: a row
+highlighted from the first frame, the highlight surviving a keystroke, Enter running the
+highlighted row, and the announcement tying the field to the list. Base UI's `Autocomplete`
+owns exactly that, so this wraps it rather than reimplementing it — and it is used in Base UI's
+own command-palette shape (`open inline autoHighlight="always" keepHighlight`). What rows exist,
+what they mean and what they do stays the app's.
+
+**Filtering is Base UI's and this package invents no matching policy.** `items` in, matching
+rows out; `filter` passes a different matcher through; an app that wants none hands in an
+already-narrowed array. What IS refused is fuzzy reordering as you type — rows keep the order
+they were written in, because muscle memory is most of what a palette is for.
+
+**A row rides the height ladder and does NOT take the menu's notch.** The row family's
+2026-08-26 posture: a standing row stands level with the Button beside it, and only a FLOATING
+panel notches, on the sparse-menu judgment. A palette's panel is a Dialog and its list is one
+you browse rather than a sparse set of actions, so it stands — law-asserted against a mounted
+Button, which is what "rides the ladder" means, rather than against a token.
+
+**`rowProps` promoted on its third consumer.** Menu wrote it, Select copied it with the note
+"self-keyed on the second member", and this is the third — LOG 2026-08-05's rule, executed. The
+two copies had already drifted in SHAPE if not in output (menu's took a tone parameter, select's
+did not), which is how the next difference becomes a real one. It lives in `system/rows.ts`, as
+props rather than a component, because each consumer hands them to a different Base UI part and
+the identity is the fact they share. Menu's and Select's 176 laws needed no edit, which is the
+promotion proving it changed nothing.
+
+**The field is not a `TextField`.** A field's identity is a bounded box with a fill, an edge and
+a focus ring, and drawing one at the top of a panel that is already the only focused thing puts
+a box inside a box — Composer's reasoning for a bare `<textarea>`, reaching the same conclusion.
+The line states the platform facts a field would have stated for it and stands at the control
+ladder's height for its index.
+
+**The pane's padding goes and the token stays**, and the ranks are why that is safe rather than
+lucky. `padding` is declared at (0,1,0) on `.kui-surface`, so `.kui-surface.kui-command` beats it
+from anywhere; the `--kui-sf-p` hook is declared by the overlay size join at (0,3,0), so a rule
+at this rank cannot zero it even by mistake, and every part reads it to sit on the vertical the
+pane's own padding would have used. `command.css` is imported AFTER `dialog.css` — a palette
+specialises a dialog, so its overrides must land after the dialog's, and `test/cascade.test.ts`
+compares the two import lists position by position.
+
+10 mounted laws. Four sabotage passes, and **three of the first five survived**, which is the
+record worth keeping: the padding law read only `padding-top`, so `padding-block: 0` satisfied
+it; the zoom-floor law could only read the cell where the floor is a no-op (the handheld band
+already raises step 3 past 16), so it was DELETED rather than kept green — a law about the
+special case wearing the general one's name; and the hook law could not be falsified the way its
+own comment claimed, because the overlay join outranks this file. The comment was corrected to
+what the sabotage proved, and the law is now falsified the two ways it can actually break — the
+field ceasing to read the hook, and the hook zeroed at a rank that can win.
+
+Refused: a second overlay, `modal` (Dialog's own refusal, inherited), fuzzy reordering, a title
+(the field is the affordance; `aria-label` is required by the type), a system-written empty
+sentence, a `TextField` at the top, and opening on a chord by itself — which chord opens the
+palette is the app's decision and has to agree with everything else it binds. Excluded from the
+builder with its parts: a palette's list is a data array with handlers on it, which is not a
+value class the builder has, and it covers the whole app where that canvas composes in a frame.
+
 ## Open questions / deferred
 
 **A dialog could not scroll its body, and one composition silently lost content — RAISED 2026-08-20, CLOSED 2026-08-21.** Two separate faults wore one symptom. The first was never the dialog's: `max-block-size: 100%` on a scroll viewport cannot resolve against an indefinite parent, so any pane sized with `max-height` handed the viewport its CONTENT's height (a 160px pane holding a 496px viewport, 336px gone) — fixed 2026-08-20 by making the scroller itself a flex column. The second was the dialog's own, and it was worse than logged: `height` did not work either, because `.kui-dialog-body` stands between the pane and the caller's children and every rule in the surface layer's scroll block asks about a direct child. Closed by the two clauses in §3 above — the body is a column when it holds a scroller, and the member rules reach through it. The same measurement found the fault in Card that made this more than a dialog bug: a plain pane with neighbours had no column at all, which is the clause beside it. Six laws, six sabotage passes.

@@ -38,6 +38,7 @@ export default defineConfig({
             "react-dom/client",
             "react/jsx-dev-runtime",
             "@base-ui/react/accordion",
+            "@base-ui/react/autocomplete",
             "@base-ui/react/avatar",
             "@base-ui/react/button",
             "@base-ui/react/checkbox",
