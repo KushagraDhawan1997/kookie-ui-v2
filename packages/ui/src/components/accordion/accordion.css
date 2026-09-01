@@ -1,0 +1,90 @@
+/* Accordion adds a hairline, a chevron's turn and a panel that travels by height (§11, §37).
+ *
+ * The trigger is a ROW — `kui-control kui-row` — so its box, its quiet rest, its pointer
+ * light, its ring, its size join and its disabled remap all arrive from the shared layer and
+ * this file says nothing about any of them. What is here is what only an accordion needs. */
+
+/* Items stack; each after the first is separated by the table's hairline, and each breathes
+   `--kui-ac-py` between that hairline and its row (the join publishes it; the row itself stays
+   on the height ladder — the air is the item's, never the box's). */
+.kui-accordion {
+  display: flex;
+  flex-direction: column;
+}
+.kui-accordion-item {
+  padding-block: var(--kui-ac-py);
+}
+.kui-accordion-item + .kui-accordion-item {
+  border-block-start: var(--border-width) solid var(--color-border);
+}
+
+/* The heading is a box, not a heading: no margin, no type of its own — the row inside it is
+   the type. */
+.kui-accordion-item > :where(h2, h3, h4, h5, h6) {
+  margin: 0;
+  font: inherit;
+}
+
+/* The row spans its section, reads from the start, and holds the chevron at the far end. */
+.kui-accordion-trigger {
+  inline-size: 100%;
+  justify-content: space-between;
+  text-align: start;
+}
+
+/* The disclosure chevron: the tree's glyph in the row's trailing slot — the slot wrapper
+   already sizes an svg to the icon box the row prices, so nothing is restated here — with a
+   turn on the geometry clock. `rotate`, not `transform`, so the pose composes with the
+   mirror. */
+.kui-accordion-disclosure {
+  display: inline-flex;
+  color: var(--color-text-muted);
+}
+.kui-accordion-chevron {
+  rotate: 0deg;
+  transition: rotate var(--motion-mark) var(--motion-spring);
+}
+.kui-accordion-trigger[data-panel-open] .kui-accordion-chevron {
+  rotate: 90deg;
+}
+/* Points INTO the reading direction; mirrored, the turn goes the other way (the tree's
+   2026-08-26 finding: the transform list composes R·S, so the sign flips with the mirror). */
+.kui-accordion-chevron:dir(rtl) {
+  scale: -1 1;
+}
+.kui-accordion-trigger[data-panel-open] .kui-accordion-chevron:dir(rtl) {
+  rotate: -90deg;
+}
+
+/* THE PANEL TRAVELS BY HEIGHT (§8). Base UI measures the content and publishes it as
+   `--accordion-panel-height`; the panel is that tall when open and zero at the starting and
+   ending styles, and the distance rides the travel clock on the spring — geometry moves on a
+   spring, everywhere. `clip`, never `hidden`: a hidden box is a scroll container, and a focus
+   inside a closing panel would scroll it (the select flight's own hazard). */
+.kui-accordion-panel {
+  box-sizing: border-box;
+  block-size: var(--accordion-panel-height, auto);
+  overflow: clip;
+  transition: block-size var(--motion-travel) var(--motion-spring);
+}
+.kui-accordion-panel[data-starting-style],
+.kui-accordion-panel[data-ending-style] {
+  block-size: 0;
+}
+
+/* The words start under the trigger's label: the same inline inset the row wears (published
+   by the accordion size join in surfaces.css from the control family's own picks, pill
+   correction included), and a layout-space breath below. */
+.kui-accordion-panel-body {
+  padding-inline: var(--kui-ac-px);
+  padding-block-end: var(--kui-ac-pb);
+}
+
+/* Stillness (§8): same selectors as the arrivals above, later in the file, so the stand-down
+   wins by order and not by arithmetic. */
+@media (prefers-reduced-motion: reduce) {
+  .kui-accordion-chevron,
+  .kui-accordion-panel {
+    transition: none;
+  }
+}
