@@ -1,0 +1,133 @@
+/* Avatar is an atom with a picture in it (§11, §35).
+ *
+ * The box is the atom family's: one line tall (`1lh`, the cap's and the chip's own height,
+ * so an avatar beside a name occupies exactly the name's line and grows on a phone with the
+ * type), and as wide as it is tall. The fill and the inherited-size arm arrive from
+ * `.kui-atom`; what this file states is the circle, the square, the clipped picture and the
+ * discounted initials. */
+.kui-avatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  block-size: 1lh;
+  inline-size: 1lh;
+  flex: none;
+  vertical-align: top;
+  /* A circle, at every radius level: a person is a disc on every platform, and a square
+     avatar reads as a picture — the radio's own sentence one family over (§6). The root does
+     NOT clip: the picture rounds itself (below), so the group's ring can paint outside the box. */
+  border-radius: 50%;
+  color: var(--color-text);
+  user-select: none;
+}
+
+.kui-avatar-image {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 50%;
+}
+
+/* The initials are a SHARE OF THE DISC, not a discount on the type step (§15, §35). A constant
+   discount cannot hold: the ramp's line ratio falls from 1.33 at step 1 to 1.107 at step 9, so
+   letters that sit inside the disc at step 3 fill it at step 9 (measured: 0.7 x step 9's 56px
+   is 39px in a 62px disc). In `font-size`, `1lh` is the PARENT's line height — here the
+   avatar's own box — so this states the letters against the disc they sit in, at every step
+   and in every line the avatar inherits, with no step named in this file. */
+.kui-avatar-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(1lh * var(--avatar-scale));
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/* The generic person, sized in the atom's own currency: a share of the glyph line it sits
+   in, which is a share of the box by derivation. */
+.kui-avatar-glyph {
+  inline-size: 1.5em;
+  block-size: 1.5em;
+}
+
+/* ── Inside an icon-only Button, the avatar IS the button (§35, Kushagra 2026-08-31) ─────────
+   A pressable face is a Button with an avatar in it — the press machine exists once — and the
+   avatar fills the button's square rather than sitting one line tall inside it, so
+   `<Button iconOnly backdrop><Avatar/></Button>` reads as one disc the size of a button. It
+   reads the control's height by inheritance (the segmented control's own move), less the
+   skeleton's border so the button keeps its ladder height rather than growing around the disc,
+   and re-states its line to that height so the initials stay their share of the disc. */
+.kui-control[data-icon-only] > .kui-avatar {
+  block-size: calc(var(--kui-ct-h) - 2 * var(--border-width));
+  inline-size: calc(var(--kui-ct-h) - 2 * var(--border-width));
+  line-height: calc(var(--kui-ct-h) - 2 * var(--border-width));
+}
+
+/* ── The badge slot (§38) ───────────────────────────────────────────────────────────────────
+   The host owns the corner: TOP-end of the disc (Kushagra, 2026-08-31 — the platform's own
+   corner for a count on an icon), stepped `--avatar-badge-out` of its line PAST the box on
+   both axes so its centre lands on the rim (2026-09-01 — flush at the corner it sat inside
+   the rim and read stuck on the face, not pinned to it), and the cut-out — the group's own ring, in the surface
+   colour, drawn as the badge's border so the disc appears notched. The badge is a share of
+   ITS line by construction; the slot hands it a smaller line than the face's (`--avatar-badge`
+   of it — in `line-height`, `1lh` is the parent's line, the face), so a pinned badge lands
+   near a third of the face where a free one would be 60% of it (judged 2026-08-31), and a
+   bigger face still carries a bigger badge with nothing said twice. */
+.kui-avatar-badge {
+  position: absolute;
+  /* `1lh` below is this wrapper's OWN line — the slot line stated one property down — so the
+     step scales with the badge it moves. */
+  inset-block-start: calc(-1lh * var(--avatar-badge-out));
+  inset-inline-end: calc(-1lh * var(--avatar-badge-out));
+  display: inline-flex;
+  line-height: calc(1lh * var(--avatar-badge));
+}
+/* The cut-out is a pseudo-element past the badge's edge — the group ring's own mechanism — so
+   the badge's box is byte-identical to a free one (a border with `content-box` let the padding
+   add on top of the disc's minimum, and a single digit went pill; measured 22.7 x 16.5). */
+.kui-avatar-badge > .kui-badge {
+  position: relative;
+  /* The free badge's cap-centre lift (badge.css) is an inline-text correction; a pinned badge
+     is seated by the SLOT, so the lift stands down here. */
+  inset-block-start: 0;
+}
+.kui-avatar-badge > .kui-badge::after {
+  content: "";
+  position: absolute;
+  inset: calc(-2 * var(--border-width));
+  border: calc(2 * var(--border-width)) solid var(--color-surface);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* ── The group ────────────────────────────────────────────────────────────────────────────
+   A line of text with no words in it: it wears `kui-type` so a `size` on the group sets the
+   line every unset avatar takes. Each later face sits a share of a face over the one before
+   it, and every face in a group wears a ring in the surface colour, which is what keeps two
+   overlapped discs reading as two.
+
+   THE RING IS OUTSIDE THE BOX (Kushagra, 2026-08-31): a border inside the box shrank every
+   grouped face by twice its width, so a group read smaller than the lone avatar beside it. A
+   pseudo-element drawn past the edge costs no layout and shrinks nothing — the face is the
+   full line, and the ring paints over the neighbour it overlaps. Not `outline` (every outline
+   in the package is the focus ring, by law) and not `box-shadow` (fenced to the depth roles). */
+.kui-avatar-group {
+  display: inline-flex;
+  align-items: center;
+}
+.kui-avatar-group > .kui-avatar::after {
+  content: "";
+  position: absolute;
+  inset: calc(-2 * var(--border-width));
+  border: calc(2 * var(--border-width)) solid var(--color-surface);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.kui-avatar-group > .kui-avatar + .kui-avatar {
+  margin-inline-start: calc(-1lh * var(--avatar-overlap));
+}
