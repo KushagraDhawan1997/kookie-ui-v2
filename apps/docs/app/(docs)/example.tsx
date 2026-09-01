@@ -143,7 +143,7 @@ export async function Example({ name, quiet }: ExampleProps) {
   }
 
   return (
-    <Specimen code={source} lang="tsx" pane={!rootsOwnPane(source)}>
+    <Specimen sources={[{ code: source, lang: "tsx" }]} pane={!rootsOwnPane(source)}>
       {specimen}
     </Specimen>
   );

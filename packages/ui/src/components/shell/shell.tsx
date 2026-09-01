@@ -1044,10 +1044,11 @@ export function ShellBottom(props: ShellBottomProps) {
    scrolling-body shape (Figma's Design/Prototype) and so does the bottom pane (VS Code's tab
    strip), so one part serves all of them and the name says so.
 
-   The evidence that it was missing is our own builder, which does not use ShellSidebar at
-   all: it rebuilds the panel by hand with 31 raw `style` escapes, five of them `minHeight:
-   0` — the flexbox incantation an inner scroller needs, which everybody gets wrong once and
-   then copies forever. That is the whole of what this part deletes. */
+   The evidence that it was missing was our own builder, which rebuilt the panel by hand with
+   31 raw `style` escapes, five of them `minHeight: 0` — the flexbox incantation an inner
+   scroller needs, which everybody gets wrong once and then copies forever. That is the whole
+   of what this part deletes, and the builder was ported onto it (2026-08-20 for the panes,
+   2026-09-02 for the chrome rows), so the sentence is history rather than a standing case. */
 
 export type ShellScrollProps = ScrollAreaProps;
 

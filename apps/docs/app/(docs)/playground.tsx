@@ -152,10 +152,10 @@ export function Playground({
   return (
     <SpecimenView
       pane={pane}
-      lines={shown}
-      focused={focused}
-      diff={diff}
-      copyText={plainText(shown)}
+      /* ONE FILE, and the shape says so (2026-09-01). A driveable page shows the example's own
+         source and nothing else — the tab bar exists for a block that is several files, and an
+         example is one by construction. */
+      files={[{ lines: shown, focused, diff, copyText: plainText(shown), lang: "tsx" }]}
       {...(glass ? { stageBackground: `url('${bed("pattern").image}') center / cover` } : {})}
       controls={
         controls.length === 0 ? null : (

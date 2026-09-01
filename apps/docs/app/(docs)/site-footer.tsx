@@ -19,6 +19,10 @@ import { Wordmark } from "./wordmark";
  * this repo spends most of its time removing. `Reference` is the one hand-written column,
  * because those three destinations are not chapters and there is no list to derive them from.
  *
+ * IT SITS ON NOTHING, which is the block's own answer since it stopped drawing a pane: a footer
+ * that wants a ground is wrapped in a `Surface` by whoever wants one, and a page of documents
+ * does not — a floor under a reading column reads as one more card at the end of the article.
+ *
  * WHERE IT RENDERS is `PageFrame`, not the chrome, and that is the whole reason this is a
  * component rather than four lines in `docs-chrome.tsx`. A footer hung in the pane would be the
  * one full-window block under a 40rem reading column — the mismatch Kushagra had just had fixed
@@ -51,9 +55,14 @@ export function SiteFooter() {
           aria-label="Kookie User Interface"
           style={{ color: "inherit", textDecoration: "none" }}
         >
-          {/* The long form, and one step down from the masthead's: the name signs the page off
-              here rather than heading it, and the extra two words are the emphasis. */}
-          <Wordmark form="full" size="7" />
+          {/* THE RAMP'S TOP, AND UP FROM THE MASTHEAD'S RATHER THAN DOWN (2026-09-01, Kushagra:
+              "its too small"). It shipped at `7` on the argument that a footer signs a page off
+              rather than heading it — which reasons about the ROLE and ignores the room: the
+              masthead sits in a 288px sidebar and this sits in the page's own column, so the
+              step that reads as a mark there reads as a caption here. Measured at `9`: 344px of
+              ink across an 830px column, which is the proportion the reference footer this
+              block was drawn against holds. */}
+          <Wordmark form="full" size="9" />
         </Link>
       }
       groups={[

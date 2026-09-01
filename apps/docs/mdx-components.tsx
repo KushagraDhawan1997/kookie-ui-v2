@@ -136,6 +136,12 @@ function fence(props: { children?: React.ReactNode }): React.ReactElement {
   // put on the element by our remark plugin (MDX drops it otherwise). The chrome facts
   // become props; what parseMeta does not claim rides through to Shiki's own directives.
   const meta = parseMeta(child.props.metastring);
+  /* NUMBERED UNLESS THE FENCE REFUSES (2026-09-02, Kushagra: "I want them on"). The chapters and
+     the figures now agree — a reader pointing at a line has somewhere to point in both — and
+     `lineNumbers=false` is what a fence says when it is one command with nothing to count.
+
+     The default lives HERE and not in the block: numbering every sample is this site's house
+     rule, and `code-sample.tsx` is copied source that must not arrive carrying it. */
   return (
     <Figure>
       <CodeSample
@@ -143,7 +149,7 @@ function fence(props: { children?: React.ReactNode }): React.ReactElement {
         lang={lang}
         {...(meta.title !== undefined ? { title: meta.title } : {})}
         {...(meta.bare ? { bare: true } : {})}
-        {...(meta.lineNumbers ? { lineNumbers: true } : {})}
+        {...((meta.lineNumbers ?? true) ? { lineNumbers: true } : {})}
         {...(meta.maxLines !== undefined ? { maxLines: meta.maxLines } : {})}
         {...(meta.rest ? { meta: meta.rest } : {})}
       />

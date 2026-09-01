@@ -33,18 +33,37 @@
 import * as React from "react";
 import { Card, Flex, Stack, Surface, type Size } from "@kookie-ui/react";
 
-import { FileIcon } from "../app/icons";
 import { CodeSampleView } from "./code-sample";
 import { CopyButton } from "./copy-button";
-import { plainText, tokenize, type CodeLine } from "./highlight";
+import { FileTabs, type TabbedFile } from "./file-tabs";
+import { plainText, tokenize, type Lang } from "./highlight";
+
+/** One file in the figure's code half. Several of them get a tab bar; one gets none. */
+export type SpecimenSource = {
+  /**
+   * What a reader calls this file. Required once there are several, because it is the tab's
+   * label; optional for a single source, where the figure shows no name at all (a docs example's
+   * path is a fact about this repo and tells a reader nothing about where the code goes).
+   */
+  name?: string;
+  code: string;
+  /** The fence language, as `code-sample` spells them (`tsx`, `ts`, `css`, `bash`, …). */
+  lang: string;
+};
 
 export type SpecimenProps = {
   /** The live thing. Rendered first, on paper, above its own source. */
   children: React.ReactNode;
-  /** The source shown beneath it. One string — this block does not read files. */
-  code: string;
-  /** The fence language, as `code-sample` spells them (`tsx`, `ts`, `css`, `bash`, …). */
-  lang: string;
+  /**
+   * The source shown beneath it. A LIST since 2026-09-01 (Kushagra: "it has multiple files,
+   * which means our specimen's code area must support segmented control or tabs"), because a
+   * block is allowed to be several files and a figure that can only show one of them makes the
+   * page choose between showing the thing and showing what to copy.
+   *
+   * One entry is the old arrangement exactly — no tab bar, because a bar with one tab is
+   * furniture that says nothing. Strings rather than paths: this block does not read files.
+   */
+  sources: readonly SpecimenSource[];
   /**
    * A control for the figure, placed beside the copy button (2026-08-30).
    *
@@ -71,8 +90,6 @@ export type SpecimenProps = {
    * photograph.
    */
   stageBackground?: string;
-  /** A file path, when the code IS a file. Names the sample and becomes its copy payload. */
-  title?: string;
   /** One index for the whole figure: the ground, the paper, the code step and the chrome. */
   size?: Size;
   /**
@@ -81,6 +98,36 @@ export type SpecimenProps = {
    * the pane-in-pane fault this block exists on the right side of.
    */
   pane?: boolean;
+  /**
+   * Does the subject take the stage's whole measure? (2026-09-02, Kushagra: "it can easily fit
+   * 3 cols, so why restrict at 2".)
+   *
+   * The stage centres what it holds, which is right for a control and wrong for a REGION. A
+   * footer, a page section, an app frame — anything whose own layout answers to how much room it
+   * has — is a flex item under that centring, so it shrink-wraps to its content and then decides
+   * its layout against the width it just chose. Measured on this block's own page before the
+   * prop existed: the footer demos came out 454px and 230px wide inside a 684px stage, and their
+   * column count followed the smaller number — two columns in a figure with room for three, with
+   * nothing on the page to say why.
+   *
+   * So the stage stretches its subject on the inline axis and keeps centring it on the block
+   * one, which is the same stage with one axis released rather than a second arrangement.
+   * Stated by the caller for `pane`'s own reason: whether a subject is a region is a fact about
+   * the subject, and this file has only a rendered element to look at.
+   */
+  fill?: boolean;
+  /**
+   * Number the code's lines. ON by default in a figure (2026-09-02, Kushagra: "I need numbers on
+   * both, and I want them on"), which is the one place this block differs from the standalone
+   * code sample beneath it: a figure's source is a whole file or a whole example, and a reader
+   * pointing at it — in a comment, in a message, in their own head — needs somewhere to point.
+   * A fence inside a sentence is usually two lines with nothing to count.
+   *
+   * CSS counters all the way down, so the digits are never in the markup, never in a selection
+   * and never in what the copy button hands over — `code.css` carries that, and this prop only
+   * decides whether the class is on.
+   */
+  lineNumbers?: boolean;
   /** Bound the code to this many lines. Bounded means scrollable, with an expand control.
       Unset, the well's own `CODE_MAX_LINES` applies — a figure whose source runs long bounds
       itself, which is the fault no call site remembers to fix. */
@@ -103,33 +150,37 @@ export type SpecimenProps = {
    split into wrapper and view made the wrapper the one place that tokenizes, so `plainText` now
    reads the same `lines` the view paints and the guarantee is structural rather than argued. */
 
-export async function Specimen({ code, lang, ...view }: SpecimenProps) {
-  const { lines, focused, diff } = await tokenize(code, lang as never);
-  return (
-    <SpecimenView lines={lines} focused={focused} diff={diff} copyText={plainText(lines)} {...view} />
+export async function Specimen({ sources, ...view }: SpecimenProps) {
+  const files = await Promise.all(
+    sources.map(async (source) => {
+      const { lines, focused, diff } = await tokenize(source.code, source.lang as Lang);
+      return {
+        ...(source.name === undefined ? {} : { name: source.name }),
+        lines,
+        focused,
+        diff,
+        copyText: plainText(lines),
+        lang: source.lang,
+      };
+    }),
   );
+  return <SpecimenView files={files} {...view} />;
 }
 
-export type SpecimenViewProps = Omit<SpecimenProps, "code" | "lang"> & {
+export type SpecimenViewProps = Omit<SpecimenProps, "sources"> & {
   /** Already tokenized — see `CodeSample`'s own split for why the two halves exist. */
-  lines: readonly CodeLine[];
-  focused: boolean;
-  diff: boolean;
-  /** What the copy button hands over: the source with every annotation stripped. */
-  copyText: string;
+  files: readonly (Omit<TabbedFile, "name"> & { name?: string })[];
 };
 
 export function SpecimenView({
   children,
-  lines,
-  focused,
-  diff,
-  copyText,
+  files,
   controls,
   stageBackground,
-  title,
   size = "2",
   pane = true,
+  fill = false,
+  lineNumbers = true,
   maxLines,
   // Two steps of the palette's gutter band. The specimen bed is CHROME, so the number is
   // allowed to be arithmetic on a token rather than a designed step in its own right — the
@@ -175,10 +226,14 @@ export function SpecimenView({
      Only the block axis, and only where the block axis bled — the paneless case bleeds inline
      alone, so its floor is untouched. */
   const floor = bleed && pane ? `calc(${minHeight} + 2 * var(--kui-sf-p, 0px))` : minHeight;
+  /* One axis released, not a second stage (see `fill`): a column with `justify="center"` centres
+     on the block axis exactly as the row's `align` did, and `align="stretch"` is what hands the
+     subject the width it is supposed to be answering to. */
   const stage = (
     <Flex
-      align="center"
-      justify="center"
+      {...(fill
+        ? { direction: "column" as const, justify: "center" as const, align: "stretch" as const }
+        : { align: "center" as const, justify: "center" as const })}
       {...(bleed ? (pane ? { m: "bleed" as const } : { mx: "bleed" as const }) : {})}
       style={{ minBlockSize: floor, ...(stageBackground ? { background: stageBackground } : {}) }}
     >
@@ -245,17 +300,20 @@ export function SpecimenView({
               gap to what follows. Which is the code sample's arrangement exactly: the band under
               its row is the same inset, and the first line begins where it ends. */}
           <Flex align="center" justify="space-between" gap="3" mt="bleed" mx="bleed" p="4">
-            {/* The name, or nothing. The knobs moved out of this row on 2026-08-30 and took the
-                only reason it ever held two things; what is left is a filename where there is
-                one, and the empty span holding the end position where there is not. */}
-            {title ? (
-              <CopyButton code={title} label={title} size={size} icon={<FileIcon />} />
-            ) : (
-              <span />
-            )}
+            {/* The end wall holds the row on its own: one child and `space-between` pushes it to
+                the wrong one. The filename left this row on 2026-09-01 with the copy button —
+                see below — so what is on the reading wall now is nothing at all. */}
+            <span />
             <Flex gap="2" align="center">
               {controls}
-              <CopyButton code={copyText} size={size} iconOnly />
+              {/* THE COPY BUTTON IS HERE ONLY WHILE THERE IS ONE FILE (2026-09-01). With
+                  several, the button has to hand over the one you are LOOKING AT, and which one
+                  that is is state — so it travels down to the tab bar, which is the element that
+                  holds that state. A button up here would copy whichever file the server
+                  happened to put first, which is the kind of wrong that looks right. */}
+              {files.length === 1 ? (
+                <CopyButton code={files[0]!.copyText} size={size} iconOnly />
+              ) : null}
             </Flex>
           </Flex>
           {/* THE FIGURE'S OWN INDEX (2026-08-30, Kushagra: "dont pass size 4 on card"). It was a
@@ -266,22 +324,41 @@ export function SpecimenView({
               §24's line read straight — a component prices what it owns. */}
           {pane ? <Card size={size}>{stage}</Card> : stage}
         </Stack>
-        <CodeSampleView
-          lines={lines}
-          focused={focused}
-          diff={diff}
-          lang="tsx"
-          size={size}
-          {...(maxLines === undefined ? {} : { maxLines })}
-          // HOSTED, because the figure IS the well. A code sample draws a ground of its own,
-          // and a ground inside a ground is one colour twice with a hairline between saying
-          // nothing (Kushagra, 2026-08-29). The pane above it is a Card — an OBJECT on this
-          // ground — which is the pair §10 separates and the reason only one of the two halves
-          // wears paper.
-          hosted
-          // No chrome at all: the figure's own row above carries both the knobs and the copy.
-          bare
-        />
+        {/* ONE FILE OR SEVERAL, and the difference is a tab bar (2026-09-01). A bar with one tab
+            is furniture that says nothing, so a single source renders exactly as it always did:
+            no row of its own, the copy button up in the figure's chrome.
+
+            HOSTED either way, because the figure IS the well. A code sample draws a ground of
+            its own, and a ground inside a ground is one colour twice with a hairline between
+            saying nothing (Kushagra, 2026-08-29). The pane above it is a Card — an OBJECT on
+            this ground — which is the pair §10 separates and the reason only one of the two
+            halves wears paper. */}
+        {files.length === 1 ? (
+          <CodeSampleView
+            lines={files[0]!.lines}
+            focused={files[0]!.focused}
+            diff={files[0]!.diff}
+            lang={files[0]!.lang}
+            size={size}
+            {...(lineNumbers ? { lineNumbers: true } : {})}
+            {...(maxLines === undefined ? {} : { maxLines })}
+            hosted
+            bare
+          />
+        ) : (
+          <FileTabs
+            files={files.map((file, index) => ({
+              ...file,
+              // A tab needs a label. The type makes the name optional for the single-file case
+              // and there is no honest label to invent here, so an unnamed file in a set is a
+              // call site's mistake and says so rather than rendering an empty tab.
+              name: file.name ?? `File ${index + 1}`,
+            }))}
+            size={size}
+            {...(lineNumbers ? { lineNumbers: true } : {})}
+            {...(maxLines === undefined ? {} : { maxLines })}
+          />
+        )}
       </Stack>
     </Surface>
   );

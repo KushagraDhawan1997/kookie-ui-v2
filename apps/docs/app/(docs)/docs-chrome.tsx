@@ -75,7 +75,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
     // browser chrome does not leave the shell taller than the screen it is in.
     <Box style={{ blockSize: "100dvh" }}>
       <Shell>
-        <ShellSidebar aria-label="Documentation" flush={false}>
+        <ShellSidebar aria-label="Documentation" flush={true}>
           {/* The unofficial header — pinned above the scroller by position alone (§27's
               pinned-stack rule; no part names exist and none are needed).
 
@@ -108,10 +108,15 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
               2026-08-29, and the reason was real THEN: the mark was a lone display capital
               whose line box towers over a 32px icon button, so centring the row sank the
               button against the GLYPH's height, below the collapse trigger floating in the
-              content pane next door. Now the mark is a word with a collapsed line box — 40px
-              against the button's 32 — and the two are close enough that centring is simply
-              what the eye wants. The overrides are gone rather than re-tuned, so the part's own
-              `align-items: center` is what places them and nothing here restates it. */}
+              content pane next door. Now the mark is a word rather than a display capital, so
+              centring is what the eye wants and the overrides are gone rather than re-tuned:
+              the part's own `align-items: center` places both children and nothing here
+              restates it.
+
+              THAT LEFT FOUR PIXELS, closed 2026-09-02: centring is only level with the pane
+              next door while both rows are the same height, and the mark's own collapsed box
+              was 40px against the row's 32, so the sidebar's band grew and took both of its
+              children down with it. The mark's box is the row now — see `kd-masthead` below. */}
           {/* FLOATING since 2026-08-30 (Kushagra: "lets have content go behind logo header
               and light dark mode footer") — the pane's own chrome parts, shipped the day
               before. The rows pass behind this and behind the footer, the nav's scroller
@@ -120,13 +125,15 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
           {/* The part IS the row (2026-08-30) — its children are clusters, never a
               full-width wrapper, because the floating band is transparent to the pointer
               and each child takes itself back: a wrapper spanning the row would swallow
-              the clicks on the rows passing beneath. `align-self` keeps the 2026-08-29
-              top-alignment call: the wordmark's line box is a display glyph, and centring
-              the search button against it sank it below the collapse trigger next door. */}
+              the clicks on the rows passing beneath. */}
           <ShellPaneHeader float>
+            {/* `kd-masthead` is the one placement fact: in a chrome row the mark's box is
+                the row, so it cannot grow the band and sink the search button below the
+                collapse trigger next door. prose.css carries the measurement. */}
             <Link
               href="/"
               aria-label="KookieUI"
+              className="kd-masthead"
               style={{ color: "inherit", textDecoration: "none" }}
             >
               <Wordmark />
@@ -163,7 +170,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
             `position: relative` is the trigger's containing block, stated inline because the
             shell root is the nearest positioned ancestor otherwise and the trigger would
             resolve its inset over the sidebar column, not this pane. */}
-        <ShellContent style={{ position: "relative" }} flush={true}>
+        <ShellContent style={{ position: "relative" }} flush={false}>
           {/* The route back to a closed or overlaying sidebar floats in the pane's own safe
               area — `--kui-sf-p` inherits from the pane deliberately (§10, the bleed
               mechanism), so the trigger sits exactly where pinned content would start.

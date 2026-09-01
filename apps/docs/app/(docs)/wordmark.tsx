@@ -49,15 +49,21 @@ import { Heading } from "@kookie-ui/react";
  * A CLOSED PROP RATHER THAN `children`, because a mark is not a text component: taking children
  * would let any call site set any words in this face, and then the brand is whatever somebody
  * typed. Two forms, both stated here, and this is the only file that knows either string.
+ *
+ * THE `©` IS ON THE LONG FORM ONLY (2026-09-01, Kushagra: "add a copyright symbol © after
+ * Kookie"). It is part of the name as the name is SIGNED — which is the long form's whole job,
+ * and why every foundry and newspaper carries its mark in the footer and not in the masthead
+ * they look at all day. Putting it on the short form would have put it in the sidebar too,
+ * which nobody asked for and which a glanced-at mark does not want.
  */
-const FORMS = { short: "Kookie", full: "Kookie User Interface" } as const;
+type Form = "short" | "full";
 
 export function Wordmark({
   size = "8",
   form = "short",
 }: {
   size?: "7" | "8" | "9";
-  form?: keyof typeof FORMS;
+  form?: Form;
 }) {
   return (
     <Heading
@@ -66,7 +72,18 @@ export function Wordmark({
       className="kd-wordmark"
       render={<span aria-hidden="true" />}
     >
-      {FORMS[form]}
+      {form === "full" ? (
+        <>
+          {/* RAISED AND SMALL, the way a mark is set (2026-09-01). At full size the glyph is a
+              circle the height of the capitals and the word reads "KookieO" — measured on
+              screen, not guessed. Both values are in `em`, so the mark is a property of the
+              letters it sits beside and follows the step without a second number: `prose.css`
+              carries the rule beside the face it is set in. */}
+          Kookie<span className="kd-wordmark-mark">©</span> User Interface
+        </>
+      ) : (
+        "Kookie"
+      )}
     </Heading>
   );
 }

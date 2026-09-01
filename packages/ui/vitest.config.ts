@@ -46,6 +46,7 @@ export default defineConfig({
             "@base-ui/react/direction-provider",
             "@base-ui/react/field",
             "@base-ui/react/input",
+            "@base-ui/react/context-menu",
             "@base-ui/react/menu",
             "@base-ui/react/popover",
             "@base-ui/react/progress",

@@ -43,13 +43,35 @@
  *    API to grow — the steps are stated once, below, and if you want other steps you change
  *    them in your copy. That is the whole difference between this and the package.
  *
- * THE PANE IS A `Surface` — a ground, because a footer HOLDS things and is not one of them
- * (§10's own sentence). If your page wants a footer that is just a hairline and some text on
- * the page's own colour, delete the `Surface` and put a `<Separator/>` above the stack; both
- * arrangements exist in the wild and only one of them can be the default.
+ * IT DRAWS NO PANE AT ALL, and that is a refusal rather than a default (2026-09-01, Kushagra:
+ * "I dont think any footer block should have Surface as part of the block, that is up to the
+ * user, its easy to compose").
+ *
+ * It shipped as a `Surface`, then for an hour as a `pane` boolean when the second consumer
+ * wanted the other answer — and the boolean was the wrong repair. What a footer sits ON is the
+ * page's business, which is §3's own sentence about a component never owning where it sits,
+ * said one level up: a footer that wants a ground is `<Surface><Footer/></Surface>`, one
+ * element at the call site rather than a prop and a branch in here. Every consumer keeps the
+ * choice and this file keeps none of it.
+ *
+ * A FOOTER WITH NO COLUMNS IS A LINE, and it is DERIVED rather than asked for (2026-09-02).
+ * The minimal footer — a mark, two or three destinations, a copyright, all on one row — is the
+ * second composition that actually recurs in the wild, and it is not a different arrangement so
+ * much as this one with nothing to stack: there are no columns, so the mark has nothing to sit
+ * above, and leaving it there draws a title over an empty region. So when `groups` is empty the
+ * mark joins the sign-off row, and everything else about that row is unchanged — the note keeps
+ * the start wall and the legal links keep the end. One `groups.length` reads it, and no call
+ * site has to know which footer it is asking for.
+ *
+ * WHICH IS ALSO WHY THERE IS NO `brand` PLACEMENT PROP, and the mark-beside-the-columns shape
+ * every second product site draws is not reachable from this file. It is a taste, not a
+ * derivation — and the moment a demo on this block's page shows an arrangement the file cannot
+ * produce, the copy button hands over something that does not make the picture. If you want the
+ * mark beside the columns, that is a `Flex` around two children in your copy, which is the same
+ * answer this file gives about steps and colours.
  */
 import * as React from "react";
-import { Flex, Stack, Surface, Text } from "@kookie-ui/react";
+import { Flex, Stack, Text } from "@kookie-ui/react";
 
 import "./footer.css";
 
@@ -85,90 +107,119 @@ export function Footer({ brand, groups, note, legal }: FooterProps) {
      claim the same name and leave every `aria-labelledby` pointing at the first. */
   const id = React.useId();
 
-  return (
-    /* The landmark is the `<footer>` element itself: it announces as `contentinfo` when it is
-       a child of the body rather than of an article, which is where a page footer sits. No
-       `role`, because stating the role the element already has is the aria rule this system
-       follows everywhere else. */
-    <Surface size="4" render={<footer />}>
-      {/* 9 between the three regions against 3 inside a column and 2 between links — §15 asks
-          a group and its siblings to differ by at least two steps, and this is the largest
-          interval the block has because these are the largest things in it. */}
-      <Stack gap="9">
-        {brand ? <div>{brand}</div> : null}
+  /* Nothing to stack — see the header. The mark comes down into the row rather than standing
+     over an empty region. */
+  const line = groups.length === 0;
 
-        {/* THE COLUMNS ARE A CSS COLUMN LAYOUT, and `footer.css` carries why: a grid's row is
-            as tall as its tallest item, so six groups of unequal length leave a hole nothing in
-            grid can close. A plain `div` because there is no layout prop for this — `columns`
-            on Box is `grid-template-columns`, which is the mechanism this had to leave. */}
-        <div className="kb-footer-columns">
-          {groups.map((group, index) => (
-            <Stack
-              key={group.title}
-              gap="3"
-              render={<nav aria-labelledby={`${id}-${index}`} />}
-            >
-              {/* Full ink at medium against muted links: the title is the one thing in the
-                  column that is not a destination, and §15 puts that rank in the ink rather
-                  than in a heavier face or a larger step. */}
-              <Text size="2" weight="medium" id={`${id}-${index}`}>
-                {group.title}
+  /* NO HAIRLINE (2026-09-01, Kushagra: "No separator needed in footer"). One shipped here,
+     between the browsing half and the legal half, and §15's rule is that a separator earns its
+     place only where DISTANCE cannot group — which is not the case here: the outer stack already
+     sets these two regions nine steps apart against the two and three inside a column, and a
+     rule drawn across a gap that is already doing the work is a line saying what the space
+     said. */
+  const signOff =
+    note || legal?.length || (line && brand) ? (
+      <Flex justify="space-between" align="center" gap="5" wrap="wrap">
+        {/* The start wall, always rendered even when it holds nothing: one child and
+            `space-between` pushes it to the wrong wall, and an empty flex is a cheaper way to
+            hold a position than a placeholder element that means nothing to a reader of the
+            markup. */}
+        <Flex align="center" gap="5" wrap="wrap">
+          {line && brand ? brand : null}
+          {/* Quiet, the rung §15 minted for something deliberately stood down — a copyright
+              line is read once a year and never scanned. */}
+          {note ? (
+            <Text size="2" emphasis="quiet">
+              {note}
+            </Text>
+          ) : null}
+        </Flex>
+        {legal?.length ? (
+          <Flex gap="5" wrap="wrap" render={<nav aria-label="Legal" />}>
+            {legal.map((link) => (
+              <Text
+                key={`${link.label}|${link.href}`}
+                size="2"
+                emphasis="medium"
+                render={<a className="kb-footer-link" href={link.href} />}
+              >
+                {link.label}
               </Text>
-              <Stack gap="2" render={<ul className="kb-footer-list" />}>
-                {group.links.map((link) => (
-                  <li key={link.href}>
-                    {/* `medium` IS the muted ink role — the resting rank stated through the
-                        system rather than repainted in the block's own stylesheet. */}
-                    <Text
-                      size="2"
-                      emphasis="medium"
-                      render={<a className="kb-footer-link" href={link.href} />}
-                    >
-                      {link.label}
-                    </Text>
-                  </li>
-                ))}
-              </Stack>
-            </Stack>
-          ))}
-        </div>
-
-        {/* NO HAIRLINE (2026-09-01, Kushagra: "No separator needed in footer"). One shipped
-            here, between the browsing half and the legal half, and §15's rule is that a
-            separator earns its place only where DISTANCE cannot group — which is not the case
-            here: the outer stack already sets these two regions nine steps apart against the
-            two and three inside a column, and a rule drawn across a gap that is already doing
-            the work is a line saying what the space said. */}
-        {note || legal?.length ? (
-          <Flex justify="space-between" align="center" gap="4" wrap="wrap">
-            {/* Quiet, the rung §15 minted for something deliberately stood down — a
-                copyright line is read once a year and never scanned. */}
-            {note ? (
-              <Text size="2" emphasis="quiet">
-                {note}
-              </Text>
-            ) : (
-              /* Holds the end position when there is no note: one child and
-                 `space-between` pushes it to the wrong wall. */
-              <span />
-            )}
-            {legal?.length ? (
-              <Flex gap="5" wrap="wrap" render={<nav aria-label="Legal" />}>
-                {legal.map((link) => (
-                  <Text
-                    key={link.href}
-                    size="2"
-                    emphasis="medium"
-                    render={<a className="kb-footer-link" href={link.href} />}
-                  >
-                    {link.label}
-                  </Text>
-                ))}
-              </Flex>
-            ) : null}
+            ))}
           </Flex>
         ) : null}
-      </Stack>
-    </Surface>
+      </Flex>
+    ) : null;
+
+  /* The landmark is the `<footer>` element itself: it announces as `contentinfo` when it is a
+     child of the body rather than of an article, which is where a page footer sits. No `role`,
+     because stating the role the element already has is the aria rule this system follows
+     everywhere else. */
+  /* THE RHYTHM IS 32 / 64 / 96, AND THE SIGN-OFF IS THE ONE THAT HAD TO MOVE (2026-09-01,
+      Kushagra: "the gap between rest of the footer and this row").
+
+      Every region sat at `9` (48px) while two stacked groups inside a column sat at `7`
+      (32) — sixteen pixels apart, which is a rhythm nobody can read. With the hairline gone
+      distance is the ONLY thing separating the browsing half from the sign-off, so it has to
+      be unmistakably the largest interval in the block rather than nominally the largest.
+      Doubling each level states it: 32 inside the columns, 64 between the mark and them, 96
+      before the line that ends the page.
+
+      Two stacks rather than one gap, because the three intervals are not one relationship:
+      the mark and the columns are both what the footer SAYS, and the sign-off is what it
+      ends with. */
+  return (
+    <Stack gap="11" render={<footer />}>
+      {line ? null : (
+        <Stack gap="10">
+          {brand ? <div>{brand}</div> : null}
+
+          {/* THE COLUMNS ARE A CSS COLUMN LAYOUT, and `footer.css` carries why: a grid's row is
+              as tall as its tallest item, so six groups of unequal length leave a hole nothing in
+              grid can close. A plain `div` because there is no layout prop for this — `columns`
+              on Box is `grid-template-columns`, which is the mechanism this had to leave. */}
+          <div className="kb-footer-columns">
+            {groups.map((group, index) => (
+              <Stack
+                key={group.title}
+                gap="3"
+                render={<nav aria-labelledby={`${id}-${index}`} />}
+              >
+                {/* Full ink at medium against muted links: the title is the one thing in the
+                    column that is not a destination, and §15 puts that rank in the ink rather
+                    than in a heavier face or a larger step. */}
+                <Text size="2" weight="medium" id={`${id}-${index}`}>
+                  {group.title}
+                </Text>
+                <Stack gap="2" render={<ul className="kb-footer-list" />}>
+                  {group.links.map((link) => (
+                    /* KEYED BY BOTH (2026-09-01). `href` alone is not a key: a footer may point
+                       two links at one place — a "Status" under Product and under Legal is the
+                       ordinary case — and the demo data on this block's own page pointed every
+                       link at "#", which React reported as duplicate children the moment there
+                       was more than one demo on the page. Two entries with the same label AND the
+                       same destination are the same link written twice, which is a data mistake
+                       rather than a case to key around. */
+                    <li key={`${link.label}|${link.href}`}>
+                      {/* `medium` IS the muted ink role — the resting rank stated through the
+                          system rather than repainted in the block's own stylesheet. */}
+                      <Text
+                        size="2"
+                        emphasis="medium"
+                        render={<a className="kb-footer-link" href={link.href} />}
+                      >
+                        {link.label}
+                      </Text>
+                    </li>
+                  ))}
+                </Stack>
+              </Stack>
+            ))}
+          </div>
+        </Stack>
+      )}
+
+      {signOff}
+    </Stack>
   );
 }

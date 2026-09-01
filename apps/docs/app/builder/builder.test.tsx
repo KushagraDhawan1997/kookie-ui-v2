@@ -45,6 +45,7 @@ import {
 import { API } from "../(docs)/components/api.generated";
 import { renderNode } from "./render";
 import { BuilderApp, LEFT_REGIONS } from "./builder-app";
+import { Layers } from "./layers";
 import { deriveParams, serializeBlock, serializeDocument, themeDiffs, toComponentName } from "./serialize";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
@@ -854,5 +855,174 @@ describe("the editor's own frame (§27)", () => {
       expect(squares.some((s) => s.includes(`aria-label="${region.label}"`))).toBe(true);
     }
     expect(squares.filter((s) => s.includes('aria-current="page"'))).toHaveLength(1);
+  });
+});
+
+/* ── Layers: the panel is the package's Tree, not a drawing of one ─────────────────────────
+   THE SWAP LEFT EVERY LAW GREEN (2026-09-02), which is this repo's own recurring finding:
+   nothing in 911 docs laws read the Layers panel at all, so a hand-rolled tree with no
+   keyboard, no disclosure and a mis-announced structure and the package's machine were
+   indistinguishable to the suite. Each law below was falsified against the panel as it stood
+   before the swap — the shapes named in the comments are what that panel actually rendered. */
+describe("Layers announces a real tree", () => {
+  const tree = node("Stack", {}, {
+    children: [
+      node("Card", {}, { children: [node("Text", {}, { text: "hello" })] }),
+      node("Button", {}, { text: "Go" }),
+    ],
+  });
+  const html = renderToStaticMarkup(
+    <Theme>
+      <Layers
+        roots={[tree]}
+        selection={[tree.children![0]!.id]}
+        empty={false}
+        onSelect={() => {}}
+        onDragBegin={() => {}}
+        onDragFinish={() => {}}
+        canRowDrop={() => true}
+        onRowDrop={() => {}}
+        visible={null}
+      />
+    </Theme>,
+  );
+  const rows = [...html.matchAll(/<(\w+)([^>]*\brole="treeitem"[^>]*)>/g)].map((m) => ({
+    tag: m[1]!,
+    attrs: m[2]!,
+  }));
+
+  it("the panel drew rows at all — an empty match audits nothing", () => {
+    expect(rows.length).toBe(4);
+  });
+
+  /* THE ROW IS THE FOCUSABLE THING. The old panel put a `<Button>` INSIDE a `<Box
+     role="treeitem">`, which is the generic-node-between-container-and-item defect the menu's
+     ScrollArea viewport was fixed for (2026-08-19): assistive technology is told the item is
+     the div, and the thing a keyboard can reach is a child of it. */
+  it("every treeitem IS the button, never a box holding one", () => {
+    for (const row of rows) expect(row.tag).toBe("button");
+    expect(html).not.toMatch(/role="treeitem"[^>]*>\s*<button/);
+  });
+
+  /* The old rows carried `aria-level` alone, so a screen reader could say how deep a row was
+     and never "3 of 7" — which is the half of the announcement that tells you a branch has
+     more in it than the one row you are standing on. */
+  it("every row states its whole position, not just its depth", () => {
+    for (const row of rows) {
+      expect(row.attrs).toMatch(/\baria-level="\d+"/);
+      expect(row.attrs).toMatch(/\baria-setsize="\d+"/);
+      expect(row.attrs).toMatch(/\baria-posinset="\d+"/);
+    }
+  });
+
+  /* ONE VOCABULARY FOR SELECTION. The old rows said `aria-selected` on the wrapper AND
+     `aria-pressed` on the button inside it — two different things announced about one row,
+     and `aria-pressed` means a toggle, which a tree row is not. */
+  it("a selected row is selected, and is not also a pressed toggle", () => {
+    expect(rows.filter((r) => /aria-selected="true"/.test(r.attrs))).toHaveLength(1);
+    expect(html).not.toMatch(/aria-pressed/);
+  });
+
+  /* THE INDENT IS DERIVED (§33): one level is one `--kui-ct-icon`, stamped as the level and
+     spent by the stylesheet. The old panel multiplied a layout-space step by the depth in a
+     `style` prop — a second answer to "how far in does a child sit", picked by hand. */
+  it("the indent is the level, not a hand-multiplied space step", () => {
+    expect(html).toMatch(/--kui-tree-level:\s*0/);
+    expect(html).toMatch(/--kui-tree-level:\s*1/);
+    const source = readFileSync(new URL("./layers.tsx", import.meta.url), "utf8");
+    expect(source).not.toMatch(/paddingInlineStart/);
+    expect(source).not.toMatch(/layout-space/);
+  });
+});
+
+/* ── The panes' own chrome rows (§27) ──────────────────────────────────────────────────────
+   Both laws read the app's real server render and were falsified by putting each row back
+   where it was: the filter inside the scroller, and the jump bar as a bare `Flex` with hand
+   written padding. */
+describe("a pane's chrome is a pane part", () => {
+  const html = renderToStaticMarkup(<BuilderApp />);
+  /** One pane's markup, from its own class to the next pane's. */
+  const pane = (region: string): string => {
+    const from = html.indexOf(`kui-shell-${region}`);
+    const rest = html.slice(from + 1);
+    const next = rest.search(/kui-shell-(?:header|rail|sidebar|content|inspector)\b/);
+    return next === -1 ? rest : rest.slice(0, next);
+  };
+  /** The pane header's OWN opening tag — read as a tag, never as a byte window around it.
+      The first spelling of these two laws took `slice(index - 100, …)`, and in the content
+      pane that index is 31, so the start went NEGATIVE and JavaScript counted it from the far
+      end of the string: the window came back empty and a negative assertion over an empty
+      string passes whatever the code does. Caught by its own sabotage pass — floating the
+      jump bar changed nothing the law could see. */
+  const headerTag = (region: string): string | null =>
+    pane(region).match(/<div class="[^"]*kui-pane-header[^"]*"[^>]*>/)?.[0] ?? null;
+
+  it("both panes drew a header at all — a null audits nothing", () => {
+    expect(headerTag("sidebar")).not.toBeNull();
+    expect(headerTag("content")).not.toBeNull();
+  });
+
+  it("the sidebar's filter row floats over its scroller", () => {
+    const sidebar = pane("sidebar");
+    expect(headerTag("sidebar")).toMatch(/data-float/);
+    expect(
+      sidebar.indexOf("kui-pane-header"),
+      "the header comes before the scroller it floats over",
+    ).toBeLessThan(sidebar.indexOf("kui-shell-scroll"));
+    // And the scroller fades, which is what keeps the rows legible as they pass behind it.
+    expect(sidebar).toMatch(/data-fade/);
+  });
+
+  /* NOT FLOATING, and the absence is the design: this pane's scroller is a drop surface, so
+     content passing under the bar is content the pointer has to fight during a drag. */
+  it("the jump bar is a pane header in flow, over a canvas you can drop onto", () => {
+    expect(headerTag("content")).not.toMatch(/data-float/);
+  });
+
+  /* THE INSPECTOR'S PANE ELEMENT IS THE TABS ROOT (2026-09-02). Both halves of Kushagra's
+     report were one cause: the strip sat inside the scroller under a second inset, so its
+     rule stopped short of the pane's content edge and it scrolled away with the panel it
+     switches. Making it the pane's chrome row needs `TabsList` inside a `ShellPaneHeader`,
+     and both parts are read with `:has(> …)`, so the Tabs root has to BE the pane.
+
+     Read structurally, because Base UI's Tabs root writes nothing on the element a law could
+     recognise: the pane has a header, the tab bar is in it, and the bar comes BEFORE the
+     scroller. Falsified by putting the old `<ShellScroll><Box p="3"><Tabs>` back — the header
+     vanishes and the bar moves after the scroller's opening tag. */
+  it("the inspector's tab bar is its chrome row, not the first thing in its scroller", () => {
+    const inspector = pane("inspector");
+    expect(headerTag("inspector"), "the inspector has a pane header").not.toBeNull();
+    const list = inspector.indexOf("kui-tabs-list");
+    const scroll = inspector.indexOf("kui-shell-scroll");
+    expect(list, "the bar rendered at all").toBeGreaterThan(-1);
+    expect(scroll, "the scroller rendered at all").toBeGreaterThan(-1);
+    expect(list, "the bar is pinned above the scroller, not inside it").toBeLessThan(scroll);
+    expect(inspector.indexOf("kui-pane-header")).toBeLessThan(list);
+  });
+});
+
+/* ── The palette is a list of rows ─────────────────────────────────────────────────────────
+   Kushagra, with the Layers tree open beside it: "this is the same (the add thing)?" The
+   entries were quiet Buttons in a two-column grid — a button is a thing you press to DO
+   something and every entry here is a thing you pick out of a list, which is §21's own
+   sentence. Falsified by restoring the Buttons. */
+describe("the component palette is the row family", () => {
+  const html = renderToStaticMarkup(<BuilderApp />);
+  const sidebar = html.slice(html.indexOf("kui-shell-sidebar"), html.indexOf("kui-shell-content"));
+
+  it("the palette rendered at all — an empty panel audits nothing", () => {
+    expect(sidebar).toContain(">Stack<");
+  });
+
+  it("every entry is a row, and none of them is a button wearing a row's job", () => {
+    expect(sidebar).toMatch(/<button[^>]*class="kui-control kui-row"[^>]*>Stack<\/button>/);
+    expect((sidebar.match(/kui-row/g) ?? []).length).toBeGreaterThan(30);
+    expect(sidebar, "a Button in the palette is the shape this replaced").not.toMatch(/kui-button/);
+  });
+
+  /* The group label wears the row too, which is what lines it up with the words under it —
+     a row's text inset is declared on each ROW's element, so a sibling cannot read it. */
+  it("a family's label is an inert row, not a control", () => {
+    expect(sidebar).toMatch(/<div[^>]*class="kui-control kui-row"[^>]*>[^<]*<span[^>]*>Layout<\/span>/);
   });
 });

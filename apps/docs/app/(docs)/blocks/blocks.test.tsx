@@ -11,9 +11,12 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import * as Kookie from "@kookie-ui/react";
+
+import { Specimen, SpecimenView } from "../../../blocks/specimen";
 
 import { BLOCK_BY_SLUG, BLOCKS } from "../../../blocks";
 import { CODE_MAX_LINES, CodeSample } from "../../../blocks/code-sample";
@@ -126,7 +129,9 @@ describe("no block stylesheet decides a value the package decides", () => {
 describe("the footer names what it navigates", () => {
   const markup = async () => {
     const block = BLOCK_BY_SLUG.get("footer")!;
-    return renderToStaticMarkup(await block.demo());
+    // The FIRST demo, which is the full one — the others exist to show the axis and the small
+    // case, and a law about naming wants the fixture with the most names in it.
+    return renderToStaticMarkup(await block.demos[0]!.render());
   };
 
   it("every navigation region carries a name, and the names are the columns", async () => {
@@ -174,14 +179,209 @@ describe("the footer names what it navigates", () => {
   });
 });
 
+describe("the empty state", () => {
+  const demo = async (starts: string) => {
+    const entry = BLOCK_BY_SLUG.get("empty-state")!.demos.find((d) => d.label.startsWith(starts));
+    expect(entry, `no demo starting "${starts}" — this law now reads nothing`).toBeTruthy();
+    return renderToStaticMarkup(await entry!.render());
+  };
+
+  it("the no-results demo does not offer the first-use action", async () => {
+    /* THE MISTAKE THE BLOCK EXISTS TO PREVENT, held as a law on the demos rather than as a prop
+       on the component — the three states differ in words and rank, so the taxonomy can only be
+       taught by examples, and an example that teaches the wrong thing is worse than none.
+
+       Offering "Create your first project" under a search that returned nothing is what most
+       libraries ship. Both halves are asserted, and each fails on its own: the WORDS must not be
+       the create action's, and the RANK must not be loud, because a filter-clearing action takes
+       something away and a loud button says the opposite.
+
+       Falsified by copying the first demo's `action` into the second. */
+    const created = await demo("Nothing yet");
+    const matched = await demo("Nothing matched");
+
+    expect(created, "the first-use demo must offer creation, or this compares nothing").toContain(
+      "New project",
+    );
+    expect(matched, "the no-results demo offers the create action").not.toContain("New project");
+    /* SCOPED TO BUTTONS, and the first spelling was not — it counted `data-emphasis="loud"`
+       anywhere and found two in the first-use demo, because the TITLE rests loud as well. A rank
+       law that also reads the type's rank is measuring the wrong axis. */
+    const loudButtons = (html: string) =>
+      (html.match(/<button[^>]*data-emphasis="loud"[^>]*>/g) ?? []).length;
+    expect(loudButtons(created), "the first-use action must be the loud one").toBe(1);
+    expect(loudButtons(matched), "a filter-clearing action must not be loud").toBe(0);
+  });
+
+  it("the primary comes before the secondary", async () => {
+    // Reading order and tab order at once, which is why it is DOM order and not a visual one.
+    const html = await demo("Nothing yet");
+    expect(html.indexOf("New project")).toBeLessThan(html.indexOf("Import from GitHub"));
+  });
+
+  it("it draws no pane", async () => {
+    /* What it sits in is the caller's region, exactly as a footer's ground is the page's. Read
+       off the rendered markup rather than off the stylesheet, because a pane could arrive from
+       either — a `Card` in the tsx or a fill in the css — and this catches both. */
+    const html = await demo("Nothing yet");
+    expect(html).not.toMatch(/kui-card|kui-surface/);
+    const css = source("empty-state.css").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(css, "a pane's own properties").not.toMatch(/background|border|box-shadow|position/);
+  });
+
+  it("the mark is one line of the title, and the two files agree which line", async () => {
+    /* AN AGREEMENT LAW, and it is the only kind that can hold this: the title's STEP lives in the
+       tsx and the mark's LINE lives in the css, so moving one is a silent drift that renders a
+       glyph sized to a heading the block no longer has. Neither file can see the other.
+
+       Falsified by changing the title to `size="5"` and leaving the stylesheet, or the reverse. */
+    const tsx = source("empty-state.tsx");
+    const step = /<Heading size="(\d)" render=/.exec(tsx)?.[1];
+    expect(step, "the title's step is gone — this law now reads nothing").toBeTruthy();
+    expect(
+      source("empty-state.css"),
+      `the title is step ${step} and the mark is not one line of it`,
+    ).toContain(`--line-height-${step}`);
+  });
+
+  it("two named slots, never a list", async () => {
+    /* THE TYPE IS THE ONE-ACTION RULE, so the law reads the SOURCE — the fault is a widening of
+       the props, and a widened prop that nobody passes renders identically to one that does not
+       exist. The `liveFix` law in the builder reads source for the same reason: what is being
+       guarded is a shape, and the shape has no runtime.
+
+       Falsified by adding `actions?: React.ReactNode[]` to the props. */
+    const tsx = source("empty-state.tsx").replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");
+    expect(tsx).toMatch(/\baction\?: React\.ReactNode;/);
+    expect(tsx).toMatch(/\bsecondary\?: React\.ReactNode;/);
+    expect(tsx, "an array is an invitation to put three buttons in an empty state").not.toMatch(
+      /\bactions\??:/,
+    );
+  });
+});
+
+describe("a footer with no columns is a line", () => {
+  /* THE ONE SHAPE THAT IS DERIVED (2026-09-02). The minimal footer — a mark, two or three
+     destinations, a copyright, all on one row — is not a variant of this block, it is this block
+     with nothing to stack: no `groups` means no columns, so the mark has nothing to stand over.
+     The failure the derivation removes is a title drawn above an EMPTY region, which is exactly
+     what a call site gets if the branch goes away.
+
+     Falsified by deleting the `line ? null :` branch in `footer.tsx`: the columns element comes
+     back empty and the first assertion fails. Falsified the other way by dropping
+     `{line && brand}` from the sign-off row: the brand disappears and the second fails. */
+  const markup = async (label: string) => {
+    const block = BLOCK_BY_SLUG.get("footer")!;
+    const demo = block.demos.find((entry) => entry.label === label);
+    expect(demo, `no demo labelled "${label}" — this law now reads nothing`).toBeTruthy();
+    return renderToStaticMarkup(await demo!.render());
+  };
+
+  it("draws no column region, and keeps the mark", async () => {
+    const line = await markup("No columns at all: a mark and a line");
+    expect(line, "a footer with no groups still drew a columns region").not.toMatch(
+      /kb-footer-columns/,
+    );
+    /* THE MARK, NOT THE WORD. The first spelling matched the brand's text and SURVIVED its own
+       sabotage: the copyright line names the same product, so dropping the brand entirely left
+       the assertion satisfied by the note beside it. `kd-wordmark` is the mark's own element and
+       the note is a plain `Text`, which is what tells the two apart. */
+    expect(line, "the mark did not come down into the row").toMatch(/class="[^"]*kd-wordmark/);
+    // And it is still a footer with a legal row, or this proves only that the demo is small.
+    expect(line).toMatch(/aria-label="Legal"/);
+  });
+
+  it("and the columned demo beside it does draw one", async () => {
+    /* THE CONTROL, without which the law above passes against a block that has stopped drawing
+       columns at all — the degenerate fixture this repo keeps finding, where a right and a wrong
+       implementation give the same answer. */
+    const columned = await markup("A mark, the columns, and a sign-off");
+    expect(columned).toMatch(/kb-footer-columns/);
+    expect(columned).toMatch(/class="[^"]*kd-wordmark/);
+  });
+});
+
+describe("a figure hands a region the whole measure", () => {
+  /* THE STAGE CENTRES WHAT IT HOLDS, which is right for a control and wrong for anything whose
+     own layout answers to the room it has (2026-09-02, Kushagra: "it can easily fit 3 cols, so
+     why restrict at 2"). Measured on the footer block's page before `fill` existed: the demos
+     came out 454px and 230px wide inside a 684px stage, because a centred flex item shrink-wraps
+     — and multicol then counted its columns against the width the footer had just chosen for
+     itself. Two columns in a figure with room for three, with nothing on the page to say why.
+
+     This is a node law, so it reads the DECLARATIONS the stage emits rather than a painted
+     width: `Flex` writes its axes as custom properties inline, and the fault this guards is a
+     branch going missing rather than a value being wrong.
+
+     Falsified by making the stage's arrangement unconditional in `specimen.tsx` — either
+     spelling — which collapses the two renderings onto each other and fails the first
+     assertion. */
+  const stageOf = (html: string) => {
+    const match = /<div class="kui-box" style="([^"]*min-block-size[^"]*)"/.exec(html);
+    expect(match, "no stage in the figure — this law now reads nothing").toBeTruthy();
+    return match![1]!;
+  };
+
+  const figure = async (fill: boolean) => {
+    // The VIEW, not the async wrapper: `renderToStaticMarkup` cannot await a server component,
+    // which is the same reason every demo on the page is resolved before it is rendered.
+    const { lines, focused, diff } = await tokenize("const a = 1\n", "ts");
+    return renderToStaticMarkup(
+      <SpecimenView
+        files={[{ lines, focused, diff, copyText: "const a = 1", lang: "ts" }]}
+        {...(fill ? { fill: true } : {})}
+      >
+        <span>subject</span>
+      </SpecimenView>,
+    );
+  };
+
+  it("stretches a filled subject and centres an unfilled one", async () => {
+    const plain = stageOf(await figure(false));
+    const filled = stageOf(await figure(true));
+    expect(plain, "fill changed nothing — the branch is gone").not.toBe(filled);
+    // Centred on both axes: the arrangement a control wants.
+    expect(plain).toMatch(/--kui-ai:center/);
+    expect(plain).not.toMatch(/--kui-fd:column/);
+    // One axis released: still centred on the block axis, stretched on the inline one.
+    expect(filled).toMatch(/--kui-fd:column/);
+    expect(filled).toMatch(/--kui-jc:center/);
+    expect(filled).toMatch(/--kui-ai:stretch/);
+  });
+
+  it("and every footer demo asks for it", () => {
+    /* The block whose whole subject is how it fills a page may not be shown shrink-wrapped.
+       Named rather than inferred: this file cannot tell a region from a control, and neither can
+       the figure — which is why the flag is the caller's in the first place. */
+    for (const demo of BLOCK_BY_SLUG.get("footer")!.demos) {
+      expect(demo.fill, `${demo.label} is shown shrink-wrapped`).toBe(true);
+    }
+  });
+});
+
 describe("every demo renders", () => {
   it("to real markup", async () => {
     // `demo()` resolves the async server component before anything renders, so the tree
     // renderToStaticMarkup sees is sync components only — the same reason the chapter law
     // substitutes `pre` cannot bite here.
     for (const block of BLOCKS) {
-      const markup = renderToStaticMarkup(await block.demo());
-      expect(markup.length, `${block.slug}: demo renders nothing`).toBeGreaterThan(100);
+      expect(block.demos.length, `${block.slug} shows nothing`).toBeGreaterThan(0);
+      for (const demo of block.demos) {
+        // A LABEL IS A PHRASE (2026-09-01). Several demos are only worth several demos if the
+        // reader is told what each one is showing; "Example 2" is what an unlabelled variant
+        // becomes, and this is the same anti-hollow clause the blurb already carries.
+        expect(demo.label.length, `${block.slug}: a demo label says nothing`).toBeGreaterThan(8);
+        const markup = renderToStaticMarkup(await demo.render());
+        expect(markup.length, `${block.slug}/${demo.label}: renders nothing`).toBeGreaterThan(100);
+        /* AND NOT AS A LITERAL ESCAPE (2026-09-02). A JSX string ATTRIBUTE is not a JavaScript
+           string, so `title="…\u201cinvoice\u201d"` reaches the page as those nine characters
+           — which shipped here and which every law above was green over, because a demo full of
+           backslashes renders, is long, and has a label. It looks like a typo and reads like a
+           broken page. Falsified by putting the attribute form back. */
+        expect(markup, `${block.slug}/${demo.label}: a \\u escape reached the page`).not.toMatch(
+          /\\u[0-9a-fA-F]{4}/,
+        );
+      }
     }
   });
 
@@ -194,6 +394,102 @@ describe("every demo renders", () => {
     );
     expect(markup).toContain("--code-token-");
     expect(markup).toContain("Copy");
+  });
+});
+
+/**
+ * THE CODE HALF TAKES A TAB PER FILE, AND ONLY WHEN THERE IS MORE THAN ONE (2026-09-01).
+ *
+ * A block is allowed to be several files, and until now a figure could show one of them — so a
+ * block page had to choose between showing the thing and showing what to copy, and chose both
+ * in two places. Both arms are the law, because either alone passes with the mechanism wrong: a
+ * bar that never appears satisfies "one file has no bar", and a bar that always appears
+ * satisfies "two files have one".
+ *
+ * Read off the RENDERED markup and by ROLE, not by class: what makes this a tab bar rather than
+ * a row of buttons is `role="tab"`, and that is the thing a keyboard and a screen reader use.
+ */
+describe("a figure with several files", () => {
+  const figure = async (sources: { name?: string; code: string; lang: string }[]) =>
+    renderToStaticMarkup(
+      await Specimen({ sources, children: React.createElement("p", null, "live") }),
+    );
+
+  it("shows a tab per file, labelled with its name", async () => {
+    const html = await figure([
+      { name: "footer.tsx", code: "export const a = 1\n", lang: "tsx" },
+      { name: "footer.css", code: ".a { color: red }\n", lang: "css" },
+    ]);
+    expect((html.match(/role="tab"/g) ?? []).length, "one tab per file").toBe(2);
+    expect(html).toContain("footer.tsx");
+    expect(html).toContain("footer.css");
+    // The FIRST file is what the figure opens on, and it is really rendered — a bar over an
+    // empty well would carry both names and show nothing. Asserted on a token rather than on
+    // the line, because the highlighter splits a line into one span per token and the source
+    // text never appears contiguously in the markup (learned by reading the output, which is
+    // the only way this fixture could have been right).
+    expect(html).toContain("export");
+    expect(html).toContain('class="kd-line"');
+  });
+
+  it("and the copy button is in exactly one place either way", async () => {
+    /* It moves rather than multiplies. With one file it sits in the figure's chrome row; with
+       several it travels down to the tab bar, because it has to hand over the file you are
+       LOOKING at and which one that is is state. Both arms count, because the failure this
+       catches is a button left behind in the row copying whichever file the server put first —
+       two buttons, one of them lying. */
+    const many = await figure([
+      { name: "a.tsx", code: "const a = 1\n", lang: "tsx" },
+      { name: "b.css", code: ".b { color: red }\n", lang: "css" },
+    ]);
+    const one = await figure([{ code: "const a = 1\n", lang: "tsx" }]);
+    expect((many.match(/aria-label="Copy"/g) ?? []).length, "several files").toBe(1);
+    expect((one.match(/aria-label="Copy"/g) ?? []).length, "one file").toBe(1);
+  });
+
+  it("numbers its lines, in both arms", async () => {
+    /* NUMBERED BY DEFAULT IN A FIGURE (2026-09-02, Kushagra: "I need numbers on both, and I want
+       them on"). A figure's source is a whole file or a whole example, which is the thing a
+       reader points at.
+
+       BOTH ARMS, and the arms are the point: one file renders a `CodeSampleView` directly and
+       several render one per tab panel, so the prop is threaded through two call sites and a
+       single-arm law would pass over a figure that numbers the file it shows and stops numbering
+       the moment there are two. Falsified by dropping the prop from either call site in
+       `specimen.tsx`, and by dropping it from `file-tabs.tsx` — each leaves exactly one of these
+       assertions red. */
+    const one = await figure([{ name: "a.tsx", code: "const a = 1\n", lang: "tsx" }]);
+    expect(one, "a one-file figure does not number").toContain("kd-numbered");
+
+    const two = await figure([
+      { name: "a.tsx", code: "const a = 1\n", lang: "tsx" },
+      { name: "b.css", code: ".a { color: red }\n", lang: "css" },
+    ]);
+    /* ONE, not two, and the reason is the instrument rather than the subject: Base UI renders
+       only the ACTIVE panel on the server, so a static render of a two-file figure contains one
+       well however many tabs the bar carries. Measured, not assumed — the first spelling asked
+       for two and failed on correct code. What the assertion still catches is the whole fault:
+       drop the prop from `file-tabs.tsx` and this is zero. */
+    expect(two, "a tabbed figure does not number").toContain("kd-numbered");
+
+    // AND IT IS A DECISION, not something the well does on its own — without which both
+    // assertions above hold against a block that numbers everything unconditionally.
+    const off = renderToStaticMarkup(
+      await Specimen({
+        sources: [{ name: "a.tsx", code: "const a = 1\n", lang: "tsx" }],
+        lineNumbers: false,
+        children: <span>x</span>,
+      }),
+    );
+    expect(off, "the figure cannot be told to stop").not.toContain("kd-numbered");
+  });
+
+  it("and no bar at all when there is one", async () => {
+    const html = await figure([{ code: "export const a = 1\n", lang: "tsx" }]);
+    expect(html, "a bar with one tab is furniture that says nothing").not.toContain('role="tab"');
+    // Calibration: the well still rendered, so the assertion above is not passing against an
+    // empty figure. One token, for the reason the law above states.
+    expect(html).toContain('class="kd-line"');
   });
 });
 
@@ -410,11 +706,24 @@ describe("the fence meta vocabulary", () => {
     });
     expect(parseMeta(undefined)).toEqual({
       title: undefined,
-      lineNumbers: false,
+      // SILENCE IS NOT A REFUSAL (2026-09-02). `undefined` is what lets the consumer's own
+      // default stand — the docs number every fence — while `lineNumbers=false` is a fence
+      // saying no. A two-state flag had nothing to say no with once the default flipped.
+      lineNumbers: undefined,
       maxLines: undefined,
       bare: false,
       rest: "",
     });
+  });
+
+  it("and a fence can refuse the numbers it would otherwise get", () => {
+    /* The third state, which is the whole reason the flag stopped being a boolean. Falsified by
+       putting the presence-only regex back: `lineNumbers=false` then leaves `=false` in `rest`
+       and reads as an ASK, so a one-line command gets the numbering it asked not to have. */
+    expect(parseMeta("lineNumbers=false").lineNumbers).toBe(false);
+    expect(parseMeta("lineNumbers=false").rest, "the directive must not reach Shiki").toBe("");
+    expect(parseMeta("lineNumbers=true").lineNumbers).toBe(true);
+    expect(parseMeta("lineNumbers").lineNumbers).toBe(true);
   });
 
   it("both compilers load the meta plugin", () => {

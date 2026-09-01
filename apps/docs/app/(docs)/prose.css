@@ -184,3 +184,41 @@
   display: block;
   line-height: 1;
 }
+
+/* IN A CHROME ROW, THE MARK'S BOX IS THE ROW (2026-09-02, Kushagra: "both panels are flush, so
+   why arent the buttons not in line").
+
+   Measured: the sidebar's search button sat 4px lower than the collapse trigger in the content
+   pane beside it, and neither button was placed wrong. A ShellPaneHeader is one control row as
+   a FLOOR and centres what is in it, so the tallest child sets the row — and the mark's own
+   collapsed box is its ink, 40px at step 8 against the row's 32. The row grew, both of its
+   children re-centred 4px down, and the pane next door, holding nothing but a 32px button,
+   stayed at the floor.
+
+   So the row is fixed by taking the mark out of the height question rather than by moving a
+   button: `line-height` collapses the box to one control row while the glyph keeps centring
+   inside it, so the ink is painted exactly where it was judged and only its BOX changes. It is
+   stated here, at the placement, because the front door's mark sits in prose and wants its own
+   ink for its box — this is a fact about sitting in a chrome row, not about the mark.
+
+   `--kui-shell-row` rather than `--control-height-2`: the pane publishes the row it uses and
+   registers it `inherits: true` for exactly this reason, so nothing here restates the shell's
+   index and the mark follows if it ever moves.
+
+   IT ALSO MAKES THE PANE'S REACH HONEST. A floating row publishes `--kui-pane-inset-block-start`
+   as one control row plus the pane's padding — derived, never measured — so an overgrown row
+   covers more than it declares, and the nav's first item was passing 8px under the mark's band
+   with nothing saying so. The package's own note says to keep a floating row one control row
+   tall; this is the docs doing that. */
+.kd-masthead .kui-type.kd-wordmark[data-size] {
+  line-height: var(--kui-shell-row);
+}
+
+/* The wordmark's mark (2026-09-01). Set the way every foundry and masthead sets one: raised to
+   the cap line and a third of the size, so it reads as a mark ON the name rather than as a
+   letter IN it. Both numbers are `em` — the mark is a property of the glyphs beside it, so it
+   rides the ramp step the call site chose and nothing here knows which one that is. */
+.kd-wordmark-mark {
+  font-size: 0.32em;
+  vertical-align: super;
+}

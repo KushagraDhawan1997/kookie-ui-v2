@@ -128,7 +128,14 @@ export const plainText = (lines: readonly CodeLine[]): string =>
     `{1,3-5}` and `/word/` stay in `rest` and ride Shiki's own meta transformers. */
 export type FenceMeta = {
   title?: string | undefined;
-  lineNumbers: boolean;
+  /**
+   * `undefined` when the fence did not say, which is not the same as `false` (2026-09-02). The
+   * docs number every fence by default and a bare `lineNumbers` used to be the only way to ask,
+   * so a two-state flag left nothing to say NO with — and a flag whose default flipped would
+   * have made every authored `lineNumbers` a no-op that still reads as a decision. Three states:
+   * `lineNumbers` asks, `lineNumbers=false` refuses, and silence is the consumer's own default.
+   */
+  lineNumbers?: boolean | undefined;
   maxLines?: number | undefined;
   bare: boolean;
   /** Whatever this file did not claim, handed to Shiki as the raw meta. */
@@ -136,7 +143,7 @@ export type FenceMeta = {
 };
 
 /**
- * Parse a fence's meta string — ```ts title="x.ts" lineNumbers maxLines=20 {1,3} — into the
+ * Parse a fence's meta string — ```ts title="x.ts" lineNumbers=false maxLines=20 {1,3} — into
  * block's own props plus a remainder for Shiki. Closed vocabulary: an unrecognised WORD is
  * left in `rest` deliberately (Shiki's `{…}` and `/…/` live there), but the four claimed
  * directives are removed so they cannot also match as code words.
@@ -151,7 +158,10 @@ export function parseMeta(meta: string | undefined): FenceMeta {
   };
   const title = take(/title="([^"]*)"/);
   const maxLinesRaw = take(/(?:^|\s)maxLines=(\d+)(?=\s|$)/);
-  const lineNumbers = take(/(?:^|\s)lineNumbers(?=\s|$)/) !== undefined;
+  /* `=true`/`=false` return the captured word; the bare form has no capture, so `take` gives
+     back the whole match and anything that is not the literal "false" is an ask. */
+  const lineNumbersRaw = take(/(?:^|\s)lineNumbers(?:=(true|false))?(?=\s|$)/);
+  const lineNumbers = lineNumbersRaw === undefined ? undefined : lineNumbersRaw !== "false";
   const bare = take(/(?:^|\s)bare(?=\s|$)/) !== undefined;
   return {
     title,
