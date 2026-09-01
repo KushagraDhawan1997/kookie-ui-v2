@@ -97,6 +97,14 @@
   padding-block: var(--kui-ct-py, 0);
   gap: var(--kui-ct-gap);
   border-radius: var(--kui-ct-radius);
+  /* THE HALF-STEP (2026-08-26, one home since 2026-08-31): how much of the quiet rung's hover
+     fill a TRANSIENT light paints where a PERSISTENT state rests at that same fill — a quiet
+     row under the pointer beside a selected row, an unpressed toggle beside a pressed one.
+     §10's clause is that the persistent state outranks the transient one, and quiet's hover
+     token is shared with quiet Buttons, which must not move; so the transient mixes toward
+     transparent by this one percentage. It was a literal in two rules when the third consumer
+     (toggle.css) arrived. A judged lever: taste, here and nowhere else. */
+  --kui-ct-lit-mix: 65%;
 
   font-family: var(--font-body);
   font-size: var(--kui-ct-font);
@@ -630,8 +638,9 @@
    mix is §8's boundary-hover precedent — one percentage, correct in both modes by
    construction, carrying the tone with it. Scoped to QUIET rows only: a medium row (a
    selected tree row, a current nav row) rests at full soft and hovers to soft-hover, so the
-   ranking reads selected(soft) > hovered(65% of soft) everywhere rows exist. The percentage
-   is a judged lever (taste, one home: here).
+   ranking reads selected(soft) > hovered(--kui-ct-lit-mix of soft) everywhere rows exist. The
+   percentage lives on the skeleton (`--kui-ct-lit-mix`), one home since the toggle became its
+   third consumer.
 
    THE EMPHASIS IS MATCHED, NOT :where()d, AND THAT IS THE WHOLE RULE (audit 2026-08-26). It
    shipped inside `:where()`, which made this (0,3,0) — an exact tie with the shared
@@ -647,7 +656,7 @@
 .kui-row[data-popup-open][data-emphasis="quiet"]:not([data-disabled]) {
   background-color: color-mix(
     in oklab,
-    var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover)) 65%,
+    var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover)) var(--kui-ct-lit-mix),
     transparent
   );
 }
@@ -1186,7 +1195,7 @@
   .kui-row[data-hover-lit]:where([data-emphasis="quiet"]):hover:not([data-disabled], [data-loading], :disabled) {
     background-color: color-mix(
       in oklab,
-      var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover)) 65%,
+      var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover)) var(--kui-ct-lit-mix),
       transparent
     );
   }

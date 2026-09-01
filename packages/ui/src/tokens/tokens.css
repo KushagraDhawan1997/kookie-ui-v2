@@ -78,7 +78,14 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --mono-scale: 0.925;
   --kbd-scale: 0.9;
-  --badge-scale: 0.9;
+  --chip-scale: 0.9;
+  --avatar-scale: 0.45;
+  --avatar-overlap: 0.25;
+  --badge-box: 0.7;
+  --badge-text: 0.48;
+  --badge-lift: 0.05;
+  --avatar-badge: 0.55;
+  --avatar-badge-out: 0.1;
 
   /* the icon box (§4) — size-indexed and POINTER-indexed (2026-08-10), never density-indexed:
      a glyph is read at the distance the screen is held, and a compact control is the same

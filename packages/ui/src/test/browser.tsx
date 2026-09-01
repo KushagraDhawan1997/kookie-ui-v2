@@ -35,8 +35,11 @@ import { density } from "../tokens/config.ts";
 // loads — while both existing laws stayed green, because both are MEMBERSHIP laws and a
 // `toContain` never reads an index. `test/cascade.test.ts` compares the two orders position
 // by position; `recipes.test.ts` still owns membership in both directions.
+import accordionCss from "../components/accordion/accordion.css?raw";
 import alertDialogCss from "../components/alert-dialog/alert-dialog.css?raw";
+import avatarCss from "../components/avatar/avatar.css?raw";
 import badgeCss from "../components/badge/badge.css?raw";
+import chipCss from "../components/chip/chip.css?raw";
 import blockquoteCss from "../components/blockquote/blockquote.css?raw";
 import buttonCss from "../components/button/button.css?raw";
 import checkboxCss from "../components/checkbox/checkbox.css?raw";
@@ -59,8 +62,10 @@ import shellCss from "../components/shell/shell.css?raw";
 import sliderCss from "../components/slider/slider.css?raw";
 import spinnerCss from "../components/spinner/spinner.css?raw";
 import switchCss from "../components/switch/switch.css?raw";
+import tableCss from "../components/table/table.css?raw";
 import tabsCss from "../components/tabs/tabs.css?raw";
 import textAreaCss from "../components/text-area/text-area.css?raw";
+import toggleCss from "../components/toggle/toggle.css?raw";
 import tooltipCss from "../components/tooltip/tooltip.css?raw";
 import textFieldCss from "../components/text-field/text-field.css?raw";
 import treeCss from "../components/tree/tree.css?raw";
@@ -83,8 +88,11 @@ export function installStyles(): void {
     surfacesCss,
     typeCss,
     spinnerCss,
+    accordionCss,
     alertDialogCss,
+    avatarCss,
     badgeCss,
+    chipCss,
     blockquoteCss,
     buttonCss,
     checkboxCss,
@@ -106,10 +114,12 @@ export function installStyles(): void {
     shellCss,
     sliderCss,
     switchCss,
+    tableCss,
     tabsCss,
     textFieldCss,
     tooltipCss,
     textAreaCss,
+    toggleCss,
     treeCss,
   ].join("\n");
   document.head.append(sheet);

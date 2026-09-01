@@ -8,6 +8,92 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-01 — The badge finds its seat: cap-centred inline, rim-riding pinned
+
+Kushagra, from the badge example: "Badge isnt vertically aligned, and the top right ones feel too 'inside', they feel they should be further out I feel." Both measured before either moved.
+
+**Inline: the centre was 1.2px low, and the first fix was thrown away by its own laws.** `vertical-align: middle` seats the box's centre at half the parent's x-height (4.26px above the baseline at step 3) while the capitals a count sits beside centre at half the cap (5.44px). The cap is not expressible in the badge's own units — its font is priced off the LINE (`badgeText`), so the parent's metrics are out of reach — and the obvious spelling, a baseline-relative `vertical-align` length, shipped for one test run and failed five laws at once: a length keys on the box's BASELINE, and a flex container's baseline is content-dependent (a count's digit hands it a real one, a bare dot synthesizes from the box — measured 4.4px apart), and the box hanging below the baseline grew the line (25.27px for a 24px line). So `middle` stays — the one anchor that reads the box and not the content — and `badgeLift` (0.05 of the line, config) raises the PAINT with `position: relative`, which cannot move layout. The law reads the painted centre against canvas cap metrics of the parent's own font at steps 1-3, dot and count asserted to seat identically; sabotage (lift deleted) fails all three steps.
+
+**Pinned: flush at the corner is inside the rim.** A badge at `inset 0` on a circular face has its centre ~0.065 of the face INSIDE the rim (the corner of a square inscribing a circle), which is what read as "stuck on the face". `avatarBadgeOut` (0.1 of the slot's line, per axis) steps it past the box so the centre lands ON the rim — where iOS hangs its own — spelled as negative logical insets on the slot wrapper, whose own `1lh` is already the slot line, so the step scales with the badge. The pinned badge also stands the inline lift down (`inset-block-start: 0`): it is seated by the slot, not by a line. The rim-riding law reads the overhang through both config numbers and the centre-to-rim distance; sabotage (flush corner) fails exactly it.
+
+Both numbers are taste, one config line each. +36 gzipped bytes, baseline re-recorded 36060.
+
+## 2026-08-31 Badge is the platform's badge; the word-with-a-tint is a Chip
+
+**What.** The 2026-08-23 `Badge` renamed to `Chip` across the package and the docs (`chipScale`, `--chip-scale`, `kui-chip`, slug `chip`). A new `Badge` shipped (§38): bare = a named dot, with content = a count pill, loud by identity (tone solid + contrast label), `tone` limited to `accent | destructive`, sized as a share of the line it sits in. `Avatar` grew a `badge` slot (bottom-end, over the rim, surface-ringed).
+
+**Why.** Kushagra, on Avatar: the system should provide what iOS provides — a badge on the thing. Three proposals were refuted on the way (§38 carries them): `emphasis` on the chip (traffic-light status columns), a `status` slot with a named set (a product vocabulary), one slot taking a Chip (a count and a dot are not a word). What survived is the marker the platform already names, and the collision was ours: Apple's badge counts or points; ours labelled. The rename is the honest fix, made before anyone imported the wrong meaning.
+
+**Rejected.** `Notification` as the name (an event, §29's territory — this waits on an object); `Indicator` (a made-up word where the platform has one); a tone-less-only dot (the two meanings are real and iOS draws both); generalising the anchor now (the cut-out works because a face is a circle; the second consumer forces the geometry); a `[data-dot]` CSS rule (its sabotage pass proved it redundant — a bare badge is the minimum disc by construction).
+
+**Judged the same hour:** a pinned badge priced on the face's own line came out 60% of the face and covered the initials; the slot now hands the badge a smaller line (`avatarBadge` 0.55 of the face), so it lands near a third — iOS's ratio — and the badge's own two numbers did not move. The slot's `translate` past the rim went with it; the mark sits inside the face.
+
+**And two more of Kushagra's calls the same hour:** the pinned badge moved to the TOP-end (the platform's corner), and `tone` opened from two values to the system's whole closed set — his argument: the status set was refused because it was not fixed and could not be assumed; the tone set IS fixed, so an app maps "alert" to `destructive` itself and the badge never learns the word. A pinned single digit was measured as a pill (22.7 x 16.5): the ring was a border under `content-box`, which let the padding add on top of the disc's minimum; it is a pseudo-element past the badge's edge now and the pinned box equals the free one.
+
+**Laws.** 9 mounted for Badge, 2 for the slot; five sabotages each caught by exactly its law. The rename ran through 30 files by one script and left zero `Badge` in code before the new one landed — checked by grep, not assumed.
+
+---
+
+## 2026-08-31 An accordion's heading is a row, and its panel's words start under the label
+
+**What.** `Accordion` and three parts shipped (§37). The trigger renders as a row-family member (`kui-control kui-row`, quiet, hover-lit) inside a heading whose level is a prop; the panel travels by `block-size` on the travel clock; an accordion size join publishes the row's pill-corrected inset so the panel's inline padding equals the trigger's at every index and radius level; hairlines between items are `--color-border`.
+
+**Why the row and not a new recipe.** §11 had carried "Accordion trigger" in the interactive-surfaces list beside the row family from the start, and the family's standing posture (2026-08-26) made a heading row exactly a Button's height with zero new numbers. The Tree's disclosure chevron and its RTL sign rule transfer whole; the icon-box law refused a restated glyph size and was right — the row's trailing slot already prices it.
+
+**Rejected.** `ControlSizeContext` for the root→trigger index (Field's one supply; a compound's own context is Menu's shape). `overflow: hidden` on the panel (a scroll container; the select flight's own hazard). Arrow-key navigation as a claim: Base UI 1.7 declares `loopFocus` and implements no key handling — measured, focus stayed on the first header — and the APG lists arrows as optional, so the law was deleted rather than the behaviour re-implemented in this package.
+
+**Laws.** 14 mounted, four sabotages; one law was unfalsifiable on the first pass (an `until` with no assertion behind it) and repaired before the sabotage was accepted. +297 gzipped bytes.
+
+---
+
+## 2026-08-31 The docs' hand-drawn table became the package's Table, and both consumers swapped
+
+**What.** `Table` and six parts shipped (§36). The cell inset is published per index by a table size join in surfaces.css from layout-space picks; the type step is the identity through `kui-type`; the wrapper scrolls; hairlines are `--color-border`; the header is muted. `prose.css`'s `.kd-table` rules are deleted and the MDX element map and the component reference's API table render the package's parts.
+
+**Why now.** Kushagra named Table among the simple components missing. The docs site had recorded a static table as an unshipped prose primitive on 2026-08-21 and drawn one by hand; the component reference then drew a second from the same rules — a judged cell (4 / 8, size 2) living in a stylesheet no law walks, consumed twice. The second consumer is the promotion rule's own trigger.
+
+**Decisions.** (1) *Static, with the interactive row a different component* — §11's "Table row" is a row-family member; a `selectable` prop here would fuse two things wearing one element. (2) *Layout-space insets, not `em` and not a new ladder* — a cell's inset is a layout distance and must hear density; the palette already holds the values. (3) *Header muted, body full* — the docs' own table had it inverted (th full, td muted) because its body was descriptions; the package takes the platform's reading (a column's name is secondary to what it names), and the docs' description column reads full ink now, which was judged fine on the page. (4) *`align` is a closed logical word* — `left`/`right` refused by the type.
+
+**Rejected.** A sticky header (position is never a component's); sorting (state + keyboard, a Button in the head); a `variant`/`striped`/`bordered` set (dress with no meaning — one table, as one card); wrapping the table in the package's ScrollArea (it wants a stated height and a table wants none; a plain `overflow-x: auto` wrapper is the honest scroller here).
+
+**Laws.** 11 mounted; four sabotages each caught by exactly its law. The wide-table law mounts inside a 240px Box with a 120-character cell and reads the BOX's width, the wrapper's `scrollWidth` and its `overflow-x` — a law reading only the table would have been green with the page scrolling.
+
+---
+
+## 2026-08-31 An avatar is an atom with a picture in it, and its initials are a share of the disc
+
+**What.** `Avatar` and `AvatarGroup` shipped (§35). The box is the atom family's one-line box (`1lh` both ways, a circle), the fill is the atom's, `size` is an optional type step; the fallback's font-size is `calc(1lh * var(--avatar-scale))` — a share of the disc — and a group overlaps by `avatarOverlap` of a face with a `--color-surface` ring.
+
+**Why the atom family, and not a ladder of its own.** Three ladders were asked before a fourth was minted (the fraction-wall rule): the control height ladder stands an avatar level with a Button and stops at four steps, where a profile header needs the top of the ramp; the mark ladder is five steps priced for a tick box; the type ramp's line boxes run 16 → 62 and are what an avatar mostly sits beside. The atom box IS that ladder, with "unset = the line beside me" already designed for Badge.
+
+**The measurement that moved the initials.** The first cut discounted the type step through `--kui-ty-scale`, the cap's and badge's mechanism. The law walked steps 1, 3, 6 and 9 and step 9 failed: 0.7 × 56px is 39px in a 62px disc — the letters filled it — while step 3 kept a face. The ramp's line ratio falls from 1.33 to 1.107, so no constant discount on the STEP holds a constant face on the BOX. `lh` in `font-size` resolves against the parent's line height, which is the avatar's own box, so the share is stated against the disc directly and the component sheet names no step. `avatarScale` went 0.7 → 0.45 with the change of denominator.
+
+**Rejected.** A `shape` prop (one value today; the rounded-square workspace avatar waits for its screen). A `status` dot (WCAG 1.4.1; a Badge with a word). A press (inert; compose inside Button or Card). `max` on the group (product decision; `<Avatar fallback="+3" />` is already the shape). A `box-shadow` ring (the count law, and a ring is not a cast — a border inside the box keeps the face one line tall).
+
+**The ring moved outside the box the same day** (Kushagra, from the preview: the group looked smaller than the singles — and it was, by 4px, because the ring was a border inside a one-line box). Three ways to paint outside without touching layout were weighed: `outline` fails the law that every outline is the focus ring; `box-shadow` is fenced to the depth roles and counted; a `::after` past the edge costs nothing and conflicts with nothing. The root stopped clipping so the pseudo can extend, and the picture rounds itself. The ring law now asserts the ring's box starts BEFORE the face's edge and the grouped face equals the lone one.
+
+**`tone` removed the same day** (Kushagra: "I question the need"): it only tinted the initials, which is too faint to be a per-person colour, and the tinted wash that would make it one is refused system-wide. **`AvatarGroup` took its own reference page** on RadioGroup's precedent — one page, one thing, one configurator — since the docs' knobs drive a page component's own props and cannot toggle composition.
+
+**A press, re-argued and still refused (same day, from the shell).** Kushagra had to write `<Button emphasis="quiet" iconOnly backdrop aria-label=…><Avatar/></Button>` to get a glass, pressable face, and asked whether Avatar should just be a button. No: the press machine lives once, in Button, and giving an atom a press re-implements it. The flaw was the look — the avatar sat one line tall inside a 32px square. It fills the button now (the control's height by inheritance, less the hairline; its line re-stated so the initials keep their share), and `backdrop` reached Avatar directly for the inert case. Badge shares raised 0.6/0.42 → 0.7/0.48 the same hour ("too small").
+
+**Laws.** 16 mounted, seven sabotages across the day each caught by exactly its law. The one-line law's fixture places the avatar INSIDE a paragraph beside a Kbd, so "never spreads the line" is read against a line that has something else in it.
+
+---
+
+## 2026-08-31 Toggle is a Button whose emphasis is its state — and the half-step got one home
+
+**What.** `Toggle` and `ToggleGroup` shipped (§34). A toggle wears `kui-control kui-button kui-toggle` and stamps `data-emphasis` from Base UI's resolved `pressed` state through the render function: quiet off, medium on. `toggle.css` is one rule — an unpressed toggle's hover is the row family's half-step — and the percentage that rule shares with two row rules moved from two literals to `--kui-ct-lit-mix` on the control skeleton. `ToggleGroup` pins Base UI's `multiple` on and does not offer it.
+
+**Why.** Kushagra asked what simple components were missing and named Toggle Button first; §11 had carried the row since the beginning and §26 had handed it the multi-select case by name. The design questions were three. (1) *A separate component or a `pressed` prop on Button?* A component: `aria-pressed` is a different accessibility contract (Base UI's Toggle owns it), and a prop would put two contracts behind one type — IconButton's lesson runs the other way only when the two things share a contract, which `iconOnly` does and pressed does not. (2) *What does ON look like?* §11 said "accent when active", written before the library had a selected vocabulary; since then a chosen Card and a selected tree row both rest on the medium rung of neutral, and the 2026-08-23 rule made the wash tone-blind. The medium rung of the toggle's own tone is one answer across the library; accent is one word away. (3) *Does the group offer single-select?* No: a single-select toggle group is the radio group §26 refused to spell with `aria-pressed`, and offering it would re-open the question by another name.
+
+**The measured defect that shaped the CSS.** With the emphasis stamped and no stylesheet of its own, a pressed toggle and a hovered unpressed one painted the same pixels (quiet hover = medium rest = `--tone-soft`) — the third time this exact collision has been found (segmented 2026-08-24, tree 2026-08-26). The row family's answer transfers verbatim, and doing so made the toggle the half-step's third consumer, which is what promotes a literal into a name.
+
+**Rejected.** A pressed toggle holding Button's press travel (the latched-trigger rule stills a panel hanging from the trigger; nothing hangs from a toggle, and a Bold sitting 1px lower than the Italic beside it reads as a misprint). A local `useState` mirror for the emphasis (a second home for a state the group already owns). `loading` (a toggle does not wait). `render` (the state-to-attribute stamp lives on the element the primitive renders).
+
+**Laws.** 22 mounted, three sabotage passes each caught by exactly the laws written for it; two of my own fixtures were wrong before they were right (a `.kui-flex` class that does not exist — Flex is a Box; and "a tone moves the pressed fill", which the 2026-08-23 rule had already made false — re-keyed to the agreement with a medium destructive Button).
+
+---
+
 ## 2026-08-30 A mixed boundary gets one share of air, and it is the flush pane's padding
 
 **What.** A grounded content pane (`flush={false}`) pays no margin on any side where a flush, open, in-flow pane stands: five `:has()` rules in shell.css (sidebar, rail-when-adjacent, header, inspector, bottom), the narrow media block restating the restore for `presentation="auto"` neighbours, which resolve to overlay there. The card's edge lands on the flush pane's wall; the only visible air at that boundary is the flush pane's own safe-area padding.

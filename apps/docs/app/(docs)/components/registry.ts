@@ -42,6 +42,30 @@ export type Entry = {
 
 export const ENTRIES: Entry[] = [
   {
+    slug: "accordion",
+    name: "Accordion",
+    family: "Control",
+    spec: "§11, §21, §37",
+    blurb:
+      "Accordion stacks sections that open and close, one under the other. Each heading is a row that stands as tall as a Button at the same size, lights under the pointer and turns its chevron when its panel opens; the panel slides open by height and its words start under the heading's label. One section is open at a time unless you say multiple. It paints no box of its own: put it in a Card when it wants one.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "sets the heading rows and the panel's inset with them, so the panel's words line up under the label at every step. Defaults to 2" },
+      { name: "multiple", values: "boolean", note: "lets several sections stay open. Off, opening one closes the others" },
+      { name: "hiddenUntilFound", values: "boolean", note: "keeps closed panels in the page as hidden-until-found, so the browser's find-in-page can open them" },
+    ],
+    refusals: [
+      { name: "a horizontal orientation", why: "Sections side by side are a different thing with a different keyboard, and nothing here has asked for one. The vertical stack is the accordion." },
+      { name: "tone and emphasis", why: "A list of headings has no meaning of its own to colour and no heading is louder than the next. The words inside a panel can carry a tone through Text." },
+      { name: "an icon slot or a custom chevron", why: "The chevron is the system's disclosure glyph, the same one the Tree turns. A different glyph per accordion would mean two ways to say open." },
+      { name: "a boundary of its own", why: "An accordion is a list of headings in whatever surface it sits in. Give it a Card when it wants an edge; the hairlines between items are all it draws." },
+    ],
+    parts: [
+      { part: "AccordionItem", blurb: "One section: a trigger and its panel, named by value for the root's value array" },
+      { part: "AccordionTrigger", blurb: "The section's heading: a heading element at the level you state, holding a row button with the chevron in its trailing slot" },
+      { part: "AccordionPanel", blurb: "The section's content, opening and closing by height on the geometry clock, its words starting under the heading's label" },
+    ],
+  },
+  {
     slug: "alert-dialog",
     name: "AlertDialog",
     family: "Surface",
@@ -84,38 +108,92 @@ export const ENTRIES: Entry[] = [
     ],
   },
   {
+    slug: "avatar",
+    name: "Avatar",
+    family: "Type",
+    spec: "§11, §35",
+    blurb:
+      "Avatar shows a person, a team or a thing as a small round picture, with initials or a generic figure standing in until the picture loads. Its box is one line of the text beside it, so an avatar next to a name in a list is list-sized and one in a page header is header-sized without a second number. A row of overlapped faces is an AvatarGroup, on its own page.",
+    axes: [
+      { name: "size", values: "1-9", note: "optional with no default. Unset, the avatar is one line of the text it sits beside. Set it when the avatar stands alone" },
+      { name: "fallback", values: "initials, or anything", note: "what shows without a picture. A string is drawn at a fixed share of the disc, so two letters keep a face around them at every size. Unset, a generic person" },
+      { name: "backdrop", values: "boolean", note: "says content passes behind the avatar, so the theme's glass shows through its fallback face. Unset, it follows the region it sits in" },
+    ],
+    refusals: [
+      { name: "a shape prop", why: "A person is a disc on every platform, at every radius level. A square picture is a picture, and you have Card and Box for that. A rounded square for a workspace waits for the screen that needs it." },
+      { name: "emphasis", why: "No avatar is louder than the one beside it. Rank in a list of people is order and size, never a heavier face." },
+      { name: "tone", why: "It was a prop for a day. Since no family paints a tinted wash, a tone could only colour the initials, which is too faint to be the per-person colour people want from it. A person's colour is their picture." },
+      { name: "a status vocabulary", why: "Online, away and busy are an app's words. Pin a Badge with the badge prop for a count or a named dot, and say a status with a Chip in the row." },
+      { name: "a press", why: "An avatar is inert. A person you can open is an icon-only Button with the avatar inside it: the avatar fills the button, so the two read as one disc, and the press has a name, a ring and a keyboard from the one place those live." },
+      { name: "a max count on the group", why: "How many to show and what the rest reads as is a product decision. The group overlaps whatever you give it, and the rest is an Avatar whose fallback says +3." },
+    ],
+  },
+  {
+    slug: "avatar-group",
+    name: "AvatarGroup",
+    family: "Type",
+    spec: "§35",
+    blurb:
+      "AvatarGroup shows several avatars overlapped, each ringed in the surface colour so the discs stay separate. It is a line of text with no words in it: a size on the group reaches every avatar inside that states none, and an avatar that states its own still wins. How many to show is yours, and the rest is an Avatar whose fallback says +3.",
+    axes: [
+      { name: "size", values: "1-9", note: "one step for every avatar in the group that states none. The overlap and the ring grow with it" },
+    ],
+    refusals: [
+      { name: "a max count", why: "How many to show and what the rest reads as is a product decision. The group overlaps whatever you give it, and the rest is an Avatar whose fallback says +3." },
+      { name: "a spacing prop", why: "The overlap is one share of a face, stated once in the system. A group that overlapped less would be a row of avatars, which is a Flex." },
+    ],
+  },
+  {
     slug: "badge",
     name: "Badge",
     family: "Type",
-    spec: "§11, §15",
+    spec: "§11, §38",
     blurb:
-      "Badge shows a short word or a count that says what the thing beside it is right now. It is built from the same parts as Code and Kbd: the same fill, the same corner and the same one-line box. What it adds is tone, so that words such as failed, running and done read the same way everywhere in a product.",
+      "Badge is the small mark that waits on a thing until you look: the number on an app icon, the unread dot on a tab. Bare, it is a dot. With a number in it, it is a pill. Both are bold by nature and sized as a share of the line they sit in, so a badge on a tab and one pinned to a large avatar are the same shape at two sizes. Pin one to an Avatar with its badge prop, at the top-end corner.",
     axes: [
-      { name: "size", values: "1-9", note: "optional with no default. Unset, a badge takes the size of the line it sits beside, so one next to a card title is bigger than one in a table row. Set it when the badge stands alone" },
-      { name: "tone", values: "any family", note: "the axis a badge exists for. It moves the INK — the chip itself stays neutral, because no family paints a faded fill. A destructive badge is a grey chip with a red word" },
+      { name: "size", values: "1-9", note: "optional with no default. Unset, the badge is a share of the line it sits in. Set it only when it stands alone" },
+      { name: "tone", values: "any family", note: "the system's own closed set, so an app maps its words onto it: an alert is destructive, a pending job is warning. Defaults to accent, which means something is here" },
+    ],
+    refusals: [
+      { name: "emphasis", why: "A badge is loud by nature. A mark that whispers is not a mark, and a quieter one is a Chip with a word." },
+      { name: "a status vocabulary", why: "Online, away and busy are an app's words, and the app decides which tone each one maps to. The badge takes the tone, never the word; if the word must show, it is a Chip." },
+      { name: "an unnamed dot", why: "A bare dot is colour alone. The type requires an accessible name on it, so what a sighted reader infers, the name states." },
+      { name: "a position of its own", why: "The thing it is pinned to owns the corner and the cut-out. Avatar takes a badge prop; nothing here decides where it sits." },
+    ],
+  },
+  {
+    slug: "chip",
+    name: "Chip",
+    family: "Type",
+    spec: "§11, §15, §38",
+    blurb:
+      "Chip shows a short word or a count that says what the thing beside it is right now. It is built from the same parts as Code and Kbd: the same fill, the same corner and the same one-line box. What it adds is tone, so that words such as failed, running and done read the same way everywhere in a product.",
+    axes: [
+      { name: "size", values: "1-9", note: "optional with no default. Unset, a chip takes the size of the line it sits beside, so one next to a card title is bigger than one in a table row. Set it when the chip stands alone" },
+      { name: "tone", values: "any family", note: "the axis a chip exists for. It moves the INK — the chip itself stays neutral, because no family paints a faded fill. A destructive chip is a grey chip with a red word" },
       { name: "emphasis", values: "loud | medium | quiet", note: "picks an ink colour. It moves the letters, never the fill" },
-      { name: "weight", values: "regular | medium | semibold", note: "token names, never numbers. Unset by default: the fill and the pill are what mark a badge out" },
+      { name: "weight", values: "regular | medium | semibold", note: "token names, never numbers. Unset by default: the fill and the pill are what mark a chip out" },
     ],
     refusals: [
       {
         name: "a fill scale, or a variant prop",
-        why: "Tone is the category, not the volume. A badge does not come in loud. Two badges of different loudness on one screen say something about importance that neither of them means, and a failed deploy is destructive whether or not it is the most important thing on the page. Ranking is what emphasis does for actions.",
+        why: "Tone is the category, not the volume. A chip does not come in loud. Two chips of different loudness on one screen say something about importance that neither of them means, and a failed deploy is destructive whether or not it is the most important thing on the page. Ranking is what emphasis does for actions.",
       },
       {
         name: "a dismissal",
-        why: "A badge you can remove is a control: it takes focus, it answers a key, and it needs an accessible name for the removal. That is a different component and it is not built. A removable chip today is a Button.",
+        why: "A chip you can remove is a control: it takes focus, it answers a key, and it needs an accessible name for the removal. That is a different component and it is not built. A removable chip today is a Button.",
       },
       {
         name: "a count prop",
-        why: "A badge renders what you give it. Formatting a number is the app's job, and where the cut-off sits — 99+, 9+, no cut-off at all — is a product decision that changes per surface.",
+        why: "A chip renders what you give it. Formatting a number is the app's job, and where the cut-off sits — 99+, 9+, no cut-off at all — is a product decision that changes per surface.",
       },
       {
         name: "a position",
-        why: "Apple's badge sits on its container: a tab, an app icon, a row. That is a position, and no component here owns its own position. Put a badge in the row beside a title, in a table cell, or over the thing it counts with a Box.",
+        why: "Apple's chip sits on its container: a tab, an app icon, a row. That is a position, and no component here owns its own position. Put a chip in the row beside a title, in a table cell, or over the thing it counts with a Box.",
       },
       {
-        name: "an empty badge, or a bare dot",
-        why: "A coloured dot is colour carrying meaning on its own, which is what WCAG 1.4.1 is about, and it is the same reason a Link stays underlined. Give it a word.",
+        name: "an empty chip",
+        why: "A chip is a word. The dot and the count that wait on a thing are a Badge, which requires a name when it is bare.",
       },
     ],
   },
@@ -1052,7 +1130,7 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "multi-select",
-        why: "Two options on at once is a set of toggle buttons, which is a different component. A radio group holds exactly one answer.",
+        why: "Two options on at once is a set of toggle buttons, which is a different component: a ToggleGroup of Toggles. A radio group holds exactly one answer.",
       },
       {
         name: "nativeButton and render",
@@ -1079,6 +1157,32 @@ export const ENTRIES: Entry[] = [
         name: "readOnly",
         why: "The same answer Checkbox gives. A read-only switch is a disabled one with a different name.",
       },
+    ],
+  },
+  {
+    slug: "table",
+    name: "Table",
+    family: "Type",
+    spec: "§11, §36",
+    blurb:
+      "Table lays data out in rows and columns, as the real table element, inside a box that scrolls sideways when the columns need more room than the page has. It draws the lines between rows, the space inside each cell and the quiet header, and nothing else. Its rows do nothing when you point at them: a row you can select or open is a different component that has not shipped yet.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "sets the space inside each cell and the text step at once. Defaults to 2, the step tables are set at almost everywhere. The space is layout space, so it tightens with density" },
+      { name: "align", values: "start | center | end", note: "on TableHead and TableCell: where the content sits in the cell. Numbers end-align so their digits line up. Set it on the head and the cells of a column together" },
+    ],
+    refusals: [
+      { name: "hover, selection and a press on rows", why: "A row you can point at, pick or open is an interactive surface with a keyboard and a name. That is the table row in the plan, a member of the row family, and it will ship as its own component rather than as a prop that turns this one into it." },
+      { name: "tone and emphasis", why: "A table is not louder than the block beside it, and it has no meaning of its own to colour. A cell's words can carry a tone through Text or Chip." },
+      { name: "a sticky header", why: "Pinning the header means the table decides how tall the room around it is, and no component here owns its own position. Put a tall table in a ScrollArea and pin the header there when that pattern is designed." },
+      { name: "sorting and column controls", why: "Sorting is state and a keyboard, and the header button that carries it is a Button. The table draws what you give it in the order you give it." },
+    ],
+    parts: [
+      { part: "TableHeader", blurb: "The head section. Its cells are TableHeads, set in the muted ink at medium weight, because a column's name is secondary to what it names" },
+      { part: "TableBody", blurb: "The body section. Its last row draws no line under itself: the table's edge is the end" },
+      { part: "TableRow", blurb: "One row. It does nothing when you point at it: no hover, no selection, no press. A row you can pick is a different component" },
+      { part: "TableHead", blurb: "A header cell, with scope=col unless you say otherwise, and an align word for the column" },
+      { part: "TableCell", blurb: "A body cell, with an align word. Words start-align and numbers end-align" },
+      { part: "TableCaption", blurb: "What this table is, drawn under it in the muted ink. It is also the table's accessible name" },
     ],
   },
   {
@@ -1110,6 +1214,29 @@ export const ENTRIES: Entry[] = [
       { part: "TabsList", blurb: "The bar, the hairline, and the one place the size is set. It places the rule itself, so nobody has to remember to" },
       { part: "TabsTab", blurb: "One tab: a control on the height scale wearing the quiet colour, marked active by ink rather than by a fill" },
       { part: "TabsPanel", blurb: "What the tab reveals. It paints nothing: a region that draws its own box is a Card" },
+    ],
+  },
+  {
+    slug: "toggle",
+    name: "Toggle",
+    family: "Control",
+    spec: "§11, §34",
+    blurb:
+      "Toggle is a button that stays pressed: bold in a formatting bar, a filter that is on or off, a pane you show or hide. It is a Button in every respect but one. Its loudness is its state: off is quiet and on is the medium wash, the same soft fill a chosen card or a selected tree row rests on. A screen reader hears it as a pressed or unpressed button.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "Button's own index. A toggle stands level with the Button beside it at every step" },
+      { name: "tone", values: "any family", note: "what being on means. The pressed wash stays grey for every family; the tone reaches the word, exactly as it does on a medium Button" },
+      { name: "bordered", values: "boolean", note: "adds the hairline in both states. It is separate from the pressed state: an unpressed bordered toggle is the outline button" },
+      { name: "pressed", values: "boolean", note: "controlled. `defaultPressed` is the uncontrolled counterpart, and `onPressedChange` reports the change" },
+    ],
+    refusals: [
+      { name: "emphasis", why: "The pressed state IS the emphasis. Off is quiet and on is medium, and if you could pick a loudness, a toggle that is off could look louder than one that is on." },
+      { name: "loading", why: "A toggle does not wait for anything. It flips. A control that starts a job and waits for it is a Button, and a switch that persists is a Switch." },
+      { name: "a single-select group", why: "ToggleGroup is always multiple. Pick one of several is a radio group, and this library spells that SegmentedControl, which announces itself as one and moves the value with the arrow keys." },
+      { name: "render", why: "The primitive's pressed state drives the element's attributes, and the emphasis is stamped from that state. Swapping the element would leave the stamp behind. A toggle is a button." },
+    ],
+    parts: [
+      { part: "ToggleGroup", blurb: "The shared state for a set of toggles: one value array, roving arrow keys, a group announcement. It draws nothing, so make it the layout with render" },
     ],
   },
   {

@@ -25,7 +25,14 @@ import {
   typeBands,
   focusRing,
   fontFamily,
-  badgeScale,
+  avatarBadge,
+  avatarBadgeOut,
+  avatarOverlap,
+  avatarScale,
+  badgeLift,
+  badgeBox,
+  badgeText,
+  chipScale,
   kbdScale,
   monoScale,
   fontSize,
@@ -168,7 +175,14 @@ export function generateTokens(): string {
   put("font-mono", fontFamily.mono);
   put("mono-scale", String(monoScale));
   put("kbd-scale", String(kbdScale));
-  put("badge-scale", String(badgeScale));
+  put("chip-scale", String(chipScale));
+  put("avatar-scale", String(avatarScale));
+  put("avatar-overlap", String(avatarOverlap));
+  put("badge-box", String(badgeBox));
+  put("badge-text", String(badgeText));
+  put("badge-lift", String(badgeLift));
+  put("avatar-badge", String(avatarBadge));
+  put("avatar-badge-out", String(avatarBadgeOut));
 
   lines.push(
     "",

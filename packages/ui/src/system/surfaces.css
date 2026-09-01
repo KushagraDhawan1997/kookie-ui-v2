@@ -450,6 +450,64 @@
   --kui-sf-p-inline: var(--tooltip-p-inline);
 }
 
+/* ── The ACCORDION's size join (§37, shipped 2026-08-31) ─────────────────────────────────────
+   The trigger is a row and takes the control size join itself; what the accordion adds is a
+   PANEL whose words must start under the trigger's label, and the panel is not a control, so
+   the row's inset is published here for it — the control family's own pill-corrected pick,
+   the exact value the row's `--kui-ct-px-pill` resolves at the same index, so the two cannot
+   disagree by construction. The breath under the panel is layout-space, one step under the
+   card's rung, so a compact app tightens it. The ITEM's block breath (`--kui-ac-py`) is the
+   air between a section's hairline and its row (2026-09-01, Kushagra — the table's "a bit
+   less" one component over): the row itself stays on the height ladder, level with the Button
+   beside it, so the breath is the item's and not the box's, and it is layout-space for the
+   same density reason. */
+.kui-accordion[data-size="1"] {
+  --kui-ac-px: var(--control-px-pill-1);
+  --kui-ac-py: var(--layout-space-2);
+  --kui-ac-pb: var(--layout-space-3);
+}
+.kui-accordion[data-size="2"] {
+  --kui-ac-px: var(--control-px-pill-2);
+  --kui-ac-py: var(--layout-space-3);
+  --kui-ac-pb: var(--layout-space-4);
+}
+.kui-accordion[data-size="3"] {
+  --kui-ac-px: var(--control-px-pill-3);
+  --kui-ac-py: var(--layout-space-4);
+  --kui-ac-pb: var(--layout-space-5);
+}
+.kui-accordion[data-size="4"] {
+  --kui-ac-px: var(--control-px-pill-4);
+  --kui-ac-py: var(--layout-space-5);
+  --kui-ac-pb: var(--layout-space-6);
+}
+
+/* ── The TABLE's size join (§36, shipped 2026-08-31) ─────────────────────────────────────────
+   A table is not a surface — it paints no pane — but its cell inset is a per-index fact, and
+   a component stylesheet may not name `data-size` (recipes.test.ts walks for it), so the join
+   lives here beside the other families' joins and PUBLISHES the two insets the cells read. The
+   picks are layout-space, the palette every layout distance consumes (§3, §12), so a table
+   tightens under `density="compact"` the way the Stack around it does. The picks stepped up
+   one rung 2026-09-01 (Kushagra: "the inset seems a bit less") — size 2 is 8 / 12 now, one
+   over the docs' promoted 4 / 8 cell. The type step is the type join's, on the
+   same attribute — `Table` wears `kui-type` — and is the identity: size N reads step N. */
+.kui-table[data-size="1"] {
+  --kui-tb-py: var(--layout-space-2);
+  --kui-tb-px: var(--layout-space-3);
+}
+.kui-table[data-size="2"] {
+  --kui-tb-py: var(--layout-space-3);
+  --kui-tb-px: var(--layout-space-4);
+}
+.kui-table[data-size="3"] {
+  --kui-tb-py: var(--layout-space-4);
+  --kui-tb-px: var(--layout-space-5);
+}
+.kui-table[data-size="4"] {
+  --kui-tb-py: var(--layout-space-5);
+  --kui-tb-px: var(--layout-space-6);
+}
+
 /* ── The OVERLAY pane's size join (§6, §24 — shipped with Dialog 2026-08-10) ─────────────────
    A pane that COVERS is not a card and not an anchored panel: nothing about it hugs rows, so
    there is no concentric arithmetic to do, and its corner comes from the radius palette's own

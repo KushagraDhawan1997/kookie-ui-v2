@@ -2184,17 +2184,83 @@ export const monoScale = 0.925;
 export const kbdScale = 0.9;
 
 /**
- * §15 — the badge's own factor (2026-08-23; v0 for the eye pass). A badge sits BESIDE the
+ * §15 — the chip's own factor (2026-08-23; v0 for the eye pass). A chip sits BESIDE the
  * thing it marks rather than inside a sentence, and it is secondary to it: the label is what
- * you read, the badge is what you glance at. Small glyphs in a roomy pill are what make that
+ * you read, the chip is what you glance at. Small glyphs in a roomy pill are what make that
  * relationship legible, which is the cap's argument arriving at the third atom.
  *
  * It equals `kbdScale` today and is deliberately NOT the same constant — `segmentInset` and
  * `switchInset` set that precedent (§26). Both mean "discount the glyphs so the box has a
  * face", and they are free to diverge the moment either is judged on its own: the cap's is
- * about symbols like ⌘ drawing full-size in the sans, the badge's is about rank.
+ * about symbols like ⌘ drawing full-size in the sans, the chip's is about rank.
  */
-export const badgeScale = 0.9;
+export const chipScale = 0.9;
+
+/**
+ * §11, §35 — the initials' share of the disc (2026-08-31). An avatar's box is one line of
+ * the name beside it (`1lh`, the atom box's height), and the INITIALS are drawn at this
+ * share of that box — of the box, not of the type step, because the ramp's line ratio falls
+ * from 1.33 to 1.107 up the ladder and a constant discount on the step fills the disc at the
+ * top while leaving a face at the bottom. Radix parks two letters at half the box; this
+ * lands just under. Taste, one home: here.
+ */
+export const avatarScale = 0.45;
+
+/**
+ * §35 — how far a later avatar in a group sits over the one before it, as a share of the
+ * box (`1lh`), so the overlap grows with the size the way the ring around each face does.
+ * Mantine, Chakra and Ant sit near a third of the diameter; a quarter here, judged in the playground 2026-08-31 — at a third the next disc clipped the initials it covered. Taste, one home: here.
+ */
+export const avatarOverlap = 0.25;
+
+/**
+ * §38 — the BADGE's box, as a share of the line it sits in (2026-08-31). A badge is the
+ * platform's badge: the count or the dot that waits on a thing until you look. It has no
+ * ladder of its own — it is a share of the line beside it, the atom argument — and one number
+ * prices both forms: the dot is a disc this tall, the count is a pill this tall. iOS parks its
+ * badge near a third of the icon; on a text line a third reads as a speck, so this sits well
+ * over half (0.6 was judged too small 2026-08-31). Taste, one home: here.
+ */
+export const badgeBox = 0.7;
+
+/**
+ * §38 — the count's digits, as a share of the LINE (not of the box, so both numbers move
+ * against one reference and the eye can move either alone). Taste, one home: here.
+ */
+export const badgeText = 0.48;
+
+/**
+ * §38 — the LIFT that seats the badge's centre on the cap centre, as a share of the line
+ * (2026-09-01, Kushagra: "Badge isnt vertically aligned"). `vertical-align: middle` parks the
+ * centre at half the parent's x-height — measured 4.26px above the baseline against a cap
+ * centre of 5.44 at step 3, a badge visibly low beside the capitals it counts for. The cap is
+ * not expressible in the badge's own units (its font is priced off the LINE, so the parent's
+ * metrics are out of reach), and a baseline-relative length is content-dependent (a count's
+ * digit hands the box a real baseline where the dot has none — measured 4.4px apart), so the
+ * badge keeps `middle` and rises from it by this share of the line, layout untouched.
+ * 0.049 measured at step 3; the ramp's font/line ratio moves the true gap a little across the
+ * steps, and one number sits on the text steps where inline badges live. Taste, one home: here.
+ */
+export const badgeLift = 0.05;
+
+/**
+ * §35, §38 — the LINE a badge pinned to an avatar is priced against, as a share of the face
+ * (2026-08-31, judged in the playground: a pinned badge that took the face's own line came out
+ * 60% of the face and covered the initials). The badge stays a share of its line; the slot
+ * hands it a smaller line, so the pinned badge lands near a third of the face — where iOS
+ * parks its own — with the badge's numbers untouched. Taste, one home: here.
+ */
+export const avatarBadge = 0.55;
+
+/**
+ * §35, §38 — how far a pinned badge steps PAST the face, per axis, as a share of its slot's
+ * line (2026-09-01, Kushagra: the corner badges "feel too inside"). Flush at the corner, a
+ * badge's centre sits ~0.065 of the face INSIDE the rim (the corner of a square inscribing a
+ * circle); 0.1 of the slot line ≈ 0.055 of the face per axis puts the centre on the rim —
+ * where iOS hangs its own — so the disc reads pinned to the face's edge rather than stuck on
+ * it. Taste, one home: here.
+ */
+export const avatarBadgeOut = 0.1;
 
 /**
  * §6, §15 — the atom corner (2026-08-08, Kushagra: every sized component's corner scales

@@ -18,7 +18,11 @@
 import type * as React from "react";
 
 import AlertDialogExample from "./alert-dialog";
+import AccordionExample from "./accordion";
+import AvatarExample from "./avatar";
+import AvatarGroupExample from "./avatar-group";
 import BadgeExample from "./badge";
+import ChipExample from "./chip";
 import BlockquoteExample from "./blockquote";
 import BoxExample from "./box";
 import ButtonExample from "./button";
@@ -50,6 +54,8 @@ import SpinnerExample from "./spinner";
 import StackExample from "./stack";
 import SurfaceExample from "./surface";
 import SwitchExample from "./switch";
+import TableExample from "./table";
+import ToggleExample from "./toggle";
 import TabsExample from "./tabs";
 import TextAreaExample from "./text-area";
 import TextFieldExample from "./text-field";
@@ -61,7 +67,11 @@ import ThemeExample from "./theme";
 
 export const EXAMPLES: Record<string, React.ComponentType> = {
   "alert-dialog": AlertDialogExample,
+  "accordion": AccordionExample,
+  "avatar": AvatarExample,
+  "avatar-group": AvatarGroupExample,
   "badge": BadgeExample,
+  "chip": ChipExample,
   "blockquote": BlockquoteExample,
   "box": BoxExample,
   "button": ButtonExample,
@@ -93,6 +103,8 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "stack": StackExample,
   "surface": SurfaceExample,
   "switch": SwitchExample,
+  "table": TableExample,
+  "toggle": ToggleExample,
   "tabs": TabsExample,
   "text-area": TextAreaExample,
   "text-field": TextFieldExample,

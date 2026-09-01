@@ -1,6 +1,9 @@
 // Public surface of @kookie-ui/react. Every export here is a decision (ENGINEERING.md §1.6).
+export { Accordion, AccordionItem, AccordionTrigger, AccordionPanel, type AccordionProps, type AccordionItemProps, type AccordionTriggerProps, type AccordionPanelProps } from "./components/accordion/accordion.tsx";
 export { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction, type AlertDialogProps, type AlertDialogTriggerProps, type AlertDialogContentProps, type AlertDialogTitleProps, type AlertDialogDescriptionProps, type AlertDialogCancelProps, type AlertDialogActionProps } from "./components/alert-dialog/alert-dialog.tsx";
+export { Avatar, AvatarGroup, type AvatarProps, type AvatarGroupProps } from "./components/avatar/avatar.tsx";
 export { Badge, type BadgeProps } from "./components/badge/badge.tsx";
+export { Chip, type ChipProps } from "./components/chip/chip.tsx";
 export { Blockquote, type BlockquoteProps } from "./components/blockquote/blockquote.tsx";
 export { Box, type BoxProps } from "./components/box/box.tsx";
 export { Button, type ButtonProps } from "./components/button/button.tsx";
@@ -78,7 +81,9 @@ export {
 } from "./components/shell/shell.tsx";
 export { Slider, type SliderProps } from "./components/slider/slider.tsx";
 export { Switch, type SwitchProps } from "./components/switch/switch.tsx";
+export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableCaption, type TableProps, type TableHeaderProps, type TableBodyProps, type TableRowProps, type TableHeadProps, type TableCellProps, type TableCaptionProps } from "./components/table/table.tsx";
 export { Tabs, TabsList, TabsTab, TabsPanel, type TabsProps, type TabsListProps, type TabsTabProps, type TabsPanelProps } from "./components/tabs/tabs.tsx";
+export { Toggle, ToggleGroup, type ToggleProps, type ToggleGroupProps } from "./components/toggle/toggle.tsx";
 export { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent, type TooltipProps, type TooltipProviderProps, type TooltipTriggerProps, type TooltipContentProps } from "./components/tooltip/tooltip.tsx";
 export { Text, type TextProps, type TypeSize, type Weight } from "./components/text/text.tsx";
 export { TextArea, type TextAreaProps } from "./components/text-area/text-area.tsx";

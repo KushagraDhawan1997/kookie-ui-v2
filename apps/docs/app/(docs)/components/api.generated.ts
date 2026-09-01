@@ -11,6 +11,86 @@ export type ApiProp = { name: string; type: string; optional: boolean; doc: stri
 export type ApiEntry = { element: string | null; props: ApiProp[] };
 
 export const API: Record<string, ApiEntry> = {
+  "AccordionItem": {
+    "element": null,
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "AccordionPanel": {
+    "element": null,
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "Accordion": {
+    "element": null,
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "optional": true,
+        "doc": "An index into the control family, 1–4. It sets the trigger rows — height, inset, type step, the chevron's box — and the panel's inset with them, so the panel's words start under the trigger's label. Defaults to `2`."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "AccordionTrigger": {
+    "element": null,
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "headingLevel",
+        "type": "2 | 3 | 4 | 5 | 6",
+        "optional": true,
+        "doc": "The heading level the trigger sits in. An accordion's triggers are headings — that is how a screen reader user finds them — and the level should follow the page's outline. Defaults to `3`."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
   "AlertDialogAction": {
     "element": "button",
     "props": [
@@ -232,62 +312,72 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
-  "Badge": {
+  "AvatarGroup": {
     "element": "span",
     "props": [
+      {
+        "name": "size",
+        "type": "TypeSize",
+        "optional": true,
+        "doc": "One step for every avatar in the group. The group is a line of text with no words in it, and each unset avatar takes that line — so the size is said once, here, and an avatar that states its own still wins."
+      }
+    ]
+  },
+  "Avatar": {
+    "element": "span",
+    "props": [
+      {
+        "name": "alt",
+        "type": "string",
+        "optional": true,
+        "doc": "What the picture is, for someone who cannot see it. Defaults to empty, which marks the image decorative — right when the person's name is written beside it, which is where an avatar usually is. State the name here when the avatar is the only thing naming them."
+      },
       {
         "name": "backdrop",
         "type": "boolean",
         "optional": true,
-        "doc": "States PLACEMENT, never a material (§10, 2026-08-26 — Kushagra: \"badge must grow backdrop\", the floating-controls-take-glass rule reaching the one inert atom that floats): a badge overlaying content — a status chip over an image, a count over a map, a file label over a code well — marks itself as over-content and resolves the theme's material. On calm ground it resolves solid and pays nothing. `Code` and `Kbd` deliberately do not take it: they live inside running text, which never floats."
+        "doc": "Says that content passes behind this avatar, so the theme's material can show through its fallback face (a picture is opaque and covers it). Unset, it follows the surrounding `<Box backdrop>` region — Chip's wiring."
       },
       {
-        "name": "children",
+        "name": "badge",
         "type": "React.ReactNode",
-        "optional": false,
-        "doc": "The word, or the count. A badge with nothing in it is refused by this type: see below."
+        "optional": true,
+        "doc": "A `Badge` pinned to the top-end of the disc — a count, or a bare dot. The avatar owns the corner and the cut-out (a ring in the surface colour, the group's own); the badge owns only itself. A word beside the avatar is a Chip in the row, not this."
       },
       {
-        "name": "className",
-        "type": "string",
+        "name": "fallback",
+        "type": "React.ReactNode",
         "optional": true,
-        "doc": ""
-      },
-      {
-        "name": "emphasis",
-        "type": "Emphasis",
-        "optional": true,
-        "doc": "Picks an ink colour, the same three the surrounding copy uses. It moves the letters, not the fill — a badge that faded its box would be reading one axis two ways."
-      },
-      {
-        "name": "render",
-        "type": "RenderElement",
-        "optional": true,
-        "doc": "Render into the element the document needs."
+        "doc": "What shows when there is no picture: initials, usually. Unset, a generic person glyph. A string is drawn at the avatar's own type step; anything else is placed as given."
       },
       {
         "name": "size",
         "type": "TypeSize",
         "optional": true,
-        "doc": "A step on the shared ramp. Optional with no default, for the same reason `Code` and `Kbd` are: a badge takes the size of the line it sits beside, so a badge next to a card title is bigger than one in a table row without either call site repeating the index. Set it only when the badge stands alone."
+        "doc": "A step on the type ramp, 1–9, and OPTIONAL with no default: unset, an avatar is exactly one line of the text beside it, so the one next to a name in a list is list-sized and the one in a profile header is header-sized with nothing said twice. Set it when the avatar stands alone."
       },
       {
-        "name": "style",
-        "type": "React.CSSProperties",
+        "name": "src",
+        "type": "string",
         "optional": true,
-        "doc": ""
+        "doc": "The picture. When it has not loaded, or fails, the fallback shows in its place."
+      }
+    ]
+  },
+  "Badge": {
+    "element": "span",
+    "props": [
+      {
+        "name": "size",
+        "type": "TypeSize",
+        "optional": true,
+        "doc": "A step on the type ramp, 1–9, and OPTIONAL with no default: unset, a badge is a share of the line it sits in — the tab label, the row, the avatar it is pinned to — so it is never priced twice. Set it only when it stands alone."
       },
       {
         "name": "tone",
         "type": "Tone",
         "optional": true,
-        "doc": "The family, and this is the axis a badge exists for. `success` for a finished job, `destructive` for a failed one, `warning` for one that needs attention, `info` for one that is merely running. It moves the INK, and the chip stays grey. That reversed on 2026-08-23 (Kushagra, from the tone x emphasis board: *\"why do these buttons continue to have a light filter?\"*): no family paints a faded wash any more, so a badge's box is one neutral whatever category it carries and the category arrives in the letters. Measured, a `destructive` chip is byte-identical to a `neutral` one and only the word is red. `Notice` deliberately did NOT follow, and that is the line the change was drawn along: a badge's chip reads `--tone-soft` and a Notice's box reads `--tone-a3`, so a tone-forward SURFACE keeps its tint while a chip loses one. Defaults to `neutral`."
-      },
-      {
-        "name": "weight",
-        "type": "Weight",
-        "optional": true,
-        "doc": "Token names, never numbers, and semibold is the heaviest. Unset with no default, as `size` is: the fill and the pill are what mark a badge out, never the weight."
+        "doc": "What the badge means, in the system's own vocabulary: `accent` (the default) for \"something is here\", `destructive` for \"something needs you\", `warning`, `success`, `info` or any family. It is the same closed set every tone-carrying component reads, so an app maps its own words onto it — \"alert\" is `destructive` — and the system never learns them."
       }
     ]
   },
@@ -493,6 +583,65 @@ export const API: Record<string, ApiEntry> = {
         "type": "Size",
         "optional": true,
         "doc": "An index into the mark ladder, which every control that is its own mark shares. It leaves the height ladder, because that is the geometry of a box that contains a label and this one sits beside one. It keeps the index, so a checkbox, a radio and a switch at the same number read as the same size of thing. The ladder is the line box, so the mark is exactly one line of the label beside it and lines up with no offset. Defaults to 2."
+      }
+    ]
+  },
+  "Chip": {
+    "element": "span",
+    "props": [
+      {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "States PLACEMENT, never a material (§10, 2026-08-26 — Kushagra: \"chip must grow backdrop\", the floating-controls-take-glass rule reaching the one inert atom that floats): a chip overlaying content — a status chip over an image, a count over a map, a file label over a code well — marks itself as over-content and resolves the theme's material. On calm ground it resolves solid and pays nothing. `Code` and `Kbd` deliberately do not take it: they live inside running text, which never floats."
+      },
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": false,
+        "doc": "The word, or the count. A chip with nothing in it is refused by this type: see below."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "emphasis",
+        "type": "Emphasis",
+        "optional": true,
+        "doc": "Picks an ink colour, the same three the surrounding copy uses. It moves the letters, not the fill — a chip that faded its box would be reading one axis two ways."
+      },
+      {
+        "name": "render",
+        "type": "RenderElement",
+        "optional": true,
+        "doc": "Render into the element the document needs."
+      },
+      {
+        "name": "size",
+        "type": "TypeSize",
+        "optional": true,
+        "doc": "A step on the shared ramp. Optional with no default, for the same reason `Code` and `Kbd` are: a chip takes the size of the line it sits beside, so a chip next to a card title is bigger than one in a table row without either call site repeating the index. Set it only when the chip stands alone."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "tone",
+        "type": "Tone",
+        "optional": true,
+        "doc": "The family, and this is the axis a chip exists for. `success` for a finished job, `destructive` for a failed one, `warning` for one that needs attention, `info` for one that is merely running. It moves the INK, and the chip stays grey. That reversed on 2026-08-23 (Kushagra, from the tone x emphasis board: *\"why do these buttons continue to have a light filter?\"*): no family paints a faded wash any more, so a chip's box is one neutral whatever category it carries and the category arrives in the letters. Measured, a `destructive` chip is byte-identical to a `neutral` one and only the word is red. `Notice` deliberately did NOT follow, and that is the line the change was drawn along: a chip's chip reads `--tone-soft` and a Notice's box reads `--tone-a3`, so a tone-forward SURFACE keeps its tint while a chip loses one. Defaults to `neutral`."
+      },
+      {
+        "name": "weight",
+        "type": "Weight",
+        "optional": true,
+        "doc": "Token names, never numbers, and semibold is the heaviest. Unset with no default, as `size` is: the fill and the pill are what mark a chip out, never the weight."
       }
     ]
   },
@@ -2598,6 +2747,67 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "TableBody": {
+    "element": "tbody",
+    "props": []
+  },
+  "TableCaption": {
+    "element": "caption",
+    "props": []
+  },
+  "TableCell": {
+    "element": "td",
+    "props": [
+      {
+        "name": "align",
+        "type": "\"start\" | \"center\" | \"end\"",
+        "optional": true,
+        "doc": "Where the cell's content sits on the inline axis. Numbers end-align so their digits line up; words start-align. Defaults to `start`. Set it on the head and the cells of a column together, or the column reads as two."
+      }
+    ]
+  },
+  "TableHeader": {
+    "element": "thead",
+    "props": []
+  },
+  "TableHead": {
+    "element": "th",
+    "props": [
+      {
+        "name": "align",
+        "type": "\"start\" | \"center\" | \"end\"",
+        "optional": true,
+        "doc": "Where the cell's content sits on the inline axis. Numbers end-align so their digits line up; words start-align. Defaults to `start`. Set it on the head and the cells of a column together, or the column reads as two."
+      }
+    ]
+  },
+  "Table": {
+    "element": "table",
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Dresses the scroll wrapper, never the table — the wrapper is the element you lay out."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "optional": true,
+        "doc": "An index into the control family, 1–4, and it sets two things at once: the cell inset, picked from the layout-space palette so it tightens with density, and the type step the cells read at. Defaults to `2` — the step tables are set at almost everywhere, because a table is dense by nature."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "TableRow": {
+    "element": "tr",
+    "props": []
+  },
   "TabsList": {
     "element": null,
     "props": [
@@ -2832,6 +3042,94 @@ export const API: Record<string, ApiEntry> = {
         "type": "React.CSSProperties",
         "optional": true,
         "doc": ""
+      }
+    ]
+  },
+  "ToggleGroup": {
+    "element": null,
+    "props": [
+      {
+        "name": "orientation",
+        "type": "\"horizontal\" | \"vertical\"",
+        "optional": true,
+        "doc": "The axis the arrow keys walk. The group draws nothing, so the layout is the caller's Flex or Stack; this only tells the keyboard which way the toggles run. Defaults to `horizontal`."
+      }
+    ]
+  },
+  "Toggle": {
+    "element": "button",
+    "props": [
+      {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Says that content passes behind this toggle, so the theme's material can show. Unset, it follows the surrounding `<Box backdrop>` region."
+      },
+      {
+        "name": "bordered",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Adds a hairline. Orthogonal to the pressed state: an unpressed bordered toggle is the old outline button, and pressing it fills the same box."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "defaultPressed",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Whether the toggle starts on. The uncontrolled counterpart of `pressed`."
+      },
+      {
+        "name": "leading",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The slot before the label, usually an icon."
+      },
+      {
+        "name": "onPressedChange",
+        "type": "(pressed: boolean) => void",
+        "optional": true,
+        "doc": "Fires when the pressed state changes, with the new state."
+      },
+      {
+        "name": "pressed",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Whether the toggle is on. The controlled counterpart of `defaultPressed`."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "optional": true,
+        "doc": "An index into the control family, never a measurement — Button's own prop, because a toggle IS a button that holds its state. Defaults to `2`, or to the index of the Field it sits in."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "tone",
+        "type": "Tone",
+        "optional": true,
+        "doc": "What the state means, not what colour it is. Defaults to `neutral`: a pressed toggle rests on the soft wash of its own family, so a toolbar of neutral toggles reads as one set and a `destructive` toggle says what being on does."
+      },
+      {
+        "name": "trailing",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The slot after the label."
+      },
+      {
+        "name": "value",
+        "type": "string",
+        "optional": true,
+        "doc": "The value this toggle contributes to a `ToggleGroup`. Unused outside one."
       }
     ]
   },

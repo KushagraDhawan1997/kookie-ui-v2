@@ -359,6 +359,111 @@ export const CATALOG: Record<string, CatalogEntry> = {
     children: "none",
     make: () => node("Switch", { "aria-label": "Switch" }),
   },
+  Table: {
+    family: "Type",
+    blurb: "Rows and columns as the real table element, scrolling sideways in its own box. Inert rows.",
+    props: { size: size() },
+    children: { only: ["TableHeader", "TableBody", "TableCaption"] },
+    make: () =>
+      node("Table", {}, {
+        children: [
+          node("TableHeader", {}, {
+            children: [
+              node("TableRow", {}, {
+                children: [
+                  node("TableHead", {}, { text: "Name" }),
+                  node("TableHead", { align: "end" }, { text: "Amount" }),
+                ],
+              }),
+            ],
+          }),
+          node("TableBody", {}, {
+            children: [
+              node("TableRow", {}, {
+                children: [
+                  node("TableCell", {}, { text: "Acme Studio" }),
+                  node("TableCell", { align: "end" }, { text: "$1,250.00" }),
+                ],
+              }),
+              node("TableRow", {}, {
+                children: [
+                  node("TableCell", {}, { text: "Northwind" }),
+                  node("TableCell", { align: "end" }, { text: "$640.00" }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      }),
+  },
+  TableHeader: {
+    family: "Type",
+    blurb: "The head section: a row of TableHeads.",
+    props: {},
+    children: { only: ["TableRow"] },
+    partOf: "Table",
+    make: () => node("TableHeader", {}, { children: [node("TableRow", {}, { children: [node("TableHead", {}, { text: "Name" })] })] }),
+  },
+  TableBody: {
+    family: "Type",
+    blurb: "The body section: rows of TableCells.",
+    props: {},
+    children: { only: ["TableRow"] },
+    partOf: "Table",
+    make: () => node("TableBody", {}, { children: [node("TableRow", {}, { children: [node("TableCell", {}, { text: "Cell" })] })] }),
+  },
+  TableRow: {
+    family: "Type",
+    blurb: "One row, inert.",
+    props: {},
+    children: { only: ["TableHead", "TableCell"] },
+    partOf: "Table",
+    make: () => node("TableRow", {}, { children: [node("TableCell", {}, { text: "Cell" })] }),
+  },
+  TableHead: {
+    family: "Type",
+    blurb: "A header cell, in the muted ink.",
+    props: { align: { kind: "options", values: ["start", "center", "end"], optional: true } },
+    children: "text",
+    partOf: "Table",
+    make: () => node("TableHead", {}, { text: "Name" }),
+  },
+  TableCell: {
+    family: "Type",
+    blurb: "A body cell.",
+    props: { align: { kind: "options", values: ["start", "center", "end"], optional: true } },
+    children: "text",
+    partOf: "Table",
+    make: () => node("TableCell", {}, { text: "Cell" }),
+  },
+  TableCaption: {
+    family: "Type",
+    blurb: "What the table is, drawn under it. Also its accessible name.",
+    props: {},
+    children: "text",
+    partOf: "Table",
+    make: () => node("TableCaption", {}, { text: "Invoices this month" }),
+  },
+  Toggle: {
+    family: "Control",
+    blurb: "A button that stays pressed. Off is quiet, on is the medium wash; the tone says what on means.",
+    props: { size: size(), tone, bordered: bool, defaultPressed: bool, disabled: bool, value: text },
+    children: "text",
+    make: () => node("Toggle", {}, { text: "Bold" }),
+  },
+  ToggleGroup: {
+    family: "Control",
+    blurb: "Shared state for independent toggles: one value array, arrow keys between them. Draws nothing.",
+    props: { "aria-label": text },
+    children: { only: ["Toggle"] },
+    make: () =>
+      node("ToggleGroup", { "aria-label": "Format" }, {
+        children: [
+          node("Toggle", { value: "bold" }, { text: "Bold" }),
+          node("Toggle", { value: "italic" }, { text: "Italic" }),
+        ],
+      }),
+  },
   RadioGroup: {
     family: "Control",
     blurb: "Wiring for one choice: keyboard and form value. What it looks like is the layout inside it.",
@@ -484,12 +589,93 @@ export const CATALOG: Record<string, CatalogEntry> = {
     children: "text",
     make: () => node("Blockquote", { size: "3" }, { text: "Taste is the last layer." }),
   },
+  Accordion: {
+    family: "Control",
+    blurb: "Sections that open and close under headings that are rows. One open at a time unless multiple.",
+    props: { size: size(), multiple: bool },
+    children: { only: ["AccordionItem"] },
+    make: () =>
+      node("Accordion", {}, {
+        children: [
+          node("AccordionItem", { value: "a" }, {
+            children: [
+              node("AccordionTrigger", {}, { text: "Shipping" }),
+              node("AccordionPanel", {}, { children: [node("Text", { size: "2", emphasis: "medium" }, { text: "Orders ship within two business days." })] }),
+            ],
+          }),
+          node("AccordionItem", { value: "b" }, {
+            children: [
+              node("AccordionTrigger", {}, { text: "Returns" }),
+              node("AccordionPanel", {}, { children: [node("Text", { size: "2", emphasis: "medium" }, { text: "Thirty days from delivery." })] }),
+            ],
+          }),
+        ],
+      }),
+  },
+  AccordionItem: {
+    family: "Control",
+    blurb: "One section: a trigger and its panel.",
+    props: { value: text, disabled: bool },
+    children: { only: ["AccordionTrigger", "AccordionPanel"] },
+    partOf: "Accordion",
+    make: () =>
+      node("AccordionItem", { value: "new" }, {
+        children: [
+          node("AccordionTrigger", {}, { text: "Section" }),
+          node("AccordionPanel", {}, { children: [node("Text", { size: "2", emphasis: "medium" }, { text: "Content." })] }),
+        ],
+      }),
+  },
+  AccordionTrigger: {
+    family: "Control",
+    blurb: "The section's heading: a row with the disclosure chevron.",
+    props: {},
+    children: "text",
+    partOf: "Accordion",
+    make: () => node("AccordionTrigger", {}, { text: "Section" }),
+  },
+  AccordionPanel: {
+    family: "Control",
+    blurb: "The section's content; its words start under the heading's label.",
+    props: {},
+    children: "any",
+    partOf: "Accordion",
+    make: () => node("AccordionPanel", {}, { children: [node("Text", { size: "2", emphasis: "medium" }, { text: "Content." })] }),
+  },
+  Avatar: {
+    family: "Type",
+    blurb: "A person or a thing as a round picture, with initials standing in. One line of the text beside it.",
+    props: { size: typeSize, fallback: text, src: text, alt: text, backdrop: bool },
+    children: "none",
+    make: () => node("Avatar", { fallback: "KD" }),
+  },
+  AvatarGroup: {
+    family: "Type",
+    blurb: "Several avatars overlapped and ringed. A size here reaches every avatar that states none.",
+    props: { size: typeSize },
+    children: { only: ["Avatar"] },
+    make: () =>
+      node("AvatarGroup", { size: "5" }, {
+        children: [
+          node("Avatar", { fallback: "KD" }),
+          node("Avatar", { fallback: "MC" }),
+          node("Avatar", { fallback: "+3" }),
+        ],
+      }),
+  },
   Badge: {
+    family: "Type",
+    blurb: "The count or the dot that waits on a thing. Loud by nature; a share of its line.",
+    props: { size: typeSize, tone, "aria-label": text },
+    children: "text",
+    make: () => node("Badge", {}, { text: "3" }),
+  },
+  Chip: {
     family: "Type",
     blurb: "A word or a count stating what the thing beside it is. Tone is the category, not the volume; unset size takes the line it sits beside.",
     props: typeProps,
     children: "text",
-    make: () => node("Badge", { tone: "success" }, { text: "Live" }),
+    make: () => node("Chip", { tone: "success" }, { text: "Live" }),
   },
   Code: {
     family: "Type",

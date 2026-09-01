@@ -23,7 +23,14 @@
  */
 import * as React from "react";
 import {
+  Accordion,
+  AccordionItem,
+  AccordionPanel,
+  AccordionTrigger,
+  Avatar,
+  AvatarGroup,
   Badge,
+  Chip,
   Blockquote,
   Box,
   Button,
@@ -76,7 +83,16 @@ import {
   Surface,
   Stack,
   Switch,
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
   Text,
+  Toggle,
+  ToggleGroup,
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -295,40 +311,214 @@ function TonesSection() {
 
 /* ── Sections, alphabetical ────────────────────────────────────────────────────────────── */
 
+const FAQ = [
+  ["shipping", "Shipping", "Orders ship within two business days. Tracking arrives by email."],
+  ["returns", "Returns", "Thirty days from delivery, in the original packaging."],
+  ["warranty", "Warranty", "Two years on every part, covering defects and not wear."],
+] as const;
+
+function AccordionAt({ size, multiple }: { size: (typeof SIZES)[number]; multiple?: boolean }) {
+  return (
+    <Accordion size={size} multiple={multiple} defaultValue={["shipping"]}>
+      {FAQ.map(([value, title, body]) => (
+        <AccordionItem key={value} value={value}>
+          <AccordionTrigger>{title}</AccordionTrigger>
+          <AccordionPanel>
+            <Text size="2" emphasis="medium">
+              {body}
+            </Text>
+          </AccordionPanel>
+        </AccordionItem>
+      ))}
+    </Accordion>
+  );
+}
+
+function AccordionSection() {
+  return (
+    <Stack gap="6">
+      {/* Each heading is a standing row: judge it against the Button at the same index in the
+          Sizes section, and read the panel's first word against the label above it. */}
+      <Flex gap="6" wrap="wrap" align="start">
+        {SIZES.map((size) => (
+          <Box key={size} width="20rem">
+            <Demo label={`size ${size}`}>
+              <AccordionAt size={size} />
+            </Demo>
+          </Box>
+        ))}
+      </Flex>
+      {/* The accordion paints no pane: in a Card it takes the card's edge, and the hairlines
+          between items are the only lines it brings. */}
+      <Demo label="In a Card, multiple — two sections open at once">
+        <Box maxWidth="26rem">
+          <Card size="2">
+            <AccordionAt size="2" multiple />
+          </Card>
+        </Box>
+      </Demo>
+    </Stack>
+  );
+}
+
+function AvatarSection() {
+  return (
+    <Stack gap="6">
+      {/* The box is one line of the text beside it: an unset avatar in a paragraph at each
+          step is exactly that step's line, and the initials hold their share of the disc as
+          the disc grows — the reason the share is stated against the box, not the type. */}
+      <SpecTable
+        cols={["Picture", "Initials", "Badged", "Generic", "In its line"]}
+        rows={(["2", "3", "5", "7", "9"] as const).map((size) => ({
+          label: `size ${size}`,
+          cells: [
+            <Avatar key="1" size={size} src="/backdrop.jpg" alt="" fallback="MC" />,
+            <Avatar key="2" size={size} fallback="KD" />,
+            <Avatar key="3" size={size} fallback="AR" badge={<Badge>3</Badge>} />,
+            <Avatar key="4" size={size} />,
+            <Text key="5" size={size}>
+              <Avatar fallback="KD" /> Kushagra
+            </Text>,
+          ],
+        }))}
+      />
+      <Demo label="A group — overlapped, ringed in the surface colour, the rest is an Avatar">
+        <Flex gap="4" align="center" wrap="wrap">
+          <AvatarGroup size="5">
+            <Avatar src="/backdrop.jpg" alt="" fallback="MC" />
+            <Avatar fallback="KD" />
+            <Avatar fallback="AR" />
+            <Avatar fallback="+3" />
+          </AvatarGroup>
+          <Card size="2">
+            <AvatarGroup size="4">
+              <Avatar fallback="KD" />
+              <Avatar fallback="MC" />
+              <Avatar fallback="AR" />
+            </AvatarGroup>
+          </Card>
+        </Flex>
+      </Demo>
+      {/* A pressable face is an icon-only Button with the avatar inside it — the avatar fills the
+          button, so the two read as one disc — and over content the button's glass is the
+          avatar's glass. Beside it, an inert avatar stating `backdrop` on its own. */}
+      <Demo label="As a button, and on glass — the press machine is Button's">
+        <Theme material="regular">
+          <BedSurface bed={PHOTO_BED} minHeight="160px">
+          <Flex gap="4" align="center">
+            <Button iconOnly emphasis="quiet" aria-label="Kushagra Dhawan">
+              <Avatar fallback="KD" />
+            </Button>
+            <Button iconOnly emphasis="quiet" size="3" aria-label="Mira Chen">
+              <Avatar src="/backdrop.jpg" alt="" fallback="MC" />
+            </Button>
+            <Avatar size="6" fallback="AR" backdrop />
+            <Avatar size="6" fallback="KD" badge={<Badge>3</Badge>} backdrop />
+          </Flex>
+          </BedSurface>
+        </Theme>
+      </Demo>
+      {/* Where it lives: a row. The avatar takes the row's line, the name reads beside it,
+          and the Chip one cell over says what a dot would have only coloured. */}
+      <Demo label="In a list — the avatar is the row's line">
+        <Box maxWidth="22rem">
+          <Card size="2">
+            <Stack gap="2">
+              {[
+                ["MC", "Mira Chen", "Owner"],
+                ["KD", "Kushagra Dhawan", "Editor"],
+                ["AR", "Ana Ruiz", "Viewer"],
+              ].map(([initials, name, role]) => (
+                <Flex key={name} gap="3" align="center" justify="space-between">
+                  <Flex gap="3" align="center">
+                    <Avatar size="4" fallback={initials} />
+                    <Text size="2">{name}</Text>
+                  </Flex>
+                  <Chip size="1">{role}</Chip>
+                </Flex>
+              ))}
+            </Stack>
+          </Card>
+        </Box>
+      </Demo>
+    </Stack>
+  );
+}
+
 function BadgeSection() {
   return (
     <Stack gap="6">
+      {/* A share of the line: the same badge on a size-2 label and a size-7 heading is one
+          shape at two sizes. Judge the digits against the pill and the dot against the count. */}
+      <SpecTable
+        cols={["Dot", "One digit", "Three digits", "Needs you", "In its line"]}
+        rows={(["2", "3", "5", "7"] as const).map((size) => ({
+          label: `size ${size}`,
+          cells: [
+            <Text key="1" size={size}><Badge aria-label="New" /></Text>,
+            <Text key="2" size={size}><Badge>3</Badge></Text>,
+            <Text key="3" size={size}><Badge>128</Badge></Text>,
+            <Text key="4" size={size}><Badge tone="destructive">9</Badge></Text>,
+            <Text key="5" size={size}>Inbox <Badge>12</Badge></Text>,
+          ],
+        }))}
+      />
+      {/* Pinned: the avatar owns the corner and the surface-coloured cut-out. */}
+      <Demo label="Pinned to an Avatar — the host owns the corner">
+        <Flex gap="5" align="center">
+          <Avatar size="5" fallback="KD" badge={<Badge>3</Badge>} />
+          <Avatar size="7" fallback="MC" badge={<Badge aria-label="Online" />} />
+          <Avatar size="9" src="/backdrop.jpg" alt="" fallback="AR" badge={<Badge tone="destructive">12</Badge>} />
+          <Card size="2">
+            <Avatar size="6" fallback="KD" badge={<Badge>2</Badge>} />
+          </Card>
+        </Flex>
+      </Demo>
+      {/* Not a chip: a chip is a word beside the row; a badge counts or points. */}
+      <Demo label="Beside a Chip — a word, and a count">
+        <Flex gap="3" align="center">
+          <Chip tone="success">Live</Chip>
+          <Badge>4</Badge>
+        </Flex>
+      </Demo>
+    </Stack>
+  );
+}
+
+function ChipSection() {
+  return (
+    <Stack gap="6">
       {/* The claim to judge first: an atom with no `size` takes the line it sits beside, so a
-          badge next to a card title is bigger than one in a meta row without either call site
-          repeating an index. The step is on the TEXT only — every badge here is bare. */}
+          chip next to a card title is bigger than one in a meta row without either call site
+          repeating an index. The step is on the TEXT only — every chip here is bare. */}
       <Stack gap="3">
         {(["6", "3", "2"] as const).map((size) => (
           <Flex key={size} align="center" gap="3">
             <Text size={size}>api-gateway</Text>
-            <Badge tone="success">Live</Badge>
+            <Chip tone="success">Live</Chip>
           </Flex>
         ))}
       </Stack>
       {/* Tone is the axis this component exists for: the ten families as one vocabulary. The
           question to read down the column is whether ten of these still look like one system. */}
       <SpecTable
-        cols={["Badge", "Beside a cap", "Beside a chip"]}
+        cols={["Chip", "Beside a cap", "Beside a chip"]}
         rows={TONES.map((tone) => ({
           label: tone,
           cells: [
-            <Badge key="1" size="2" tone={tone}>{cap(tone)}</Badge>,
+            <Chip key="1" size="2" tone={tone}>{cap(tone)}</Chip>,
             <Kbd key="2" size="2" tone={tone}>⌘K</Kbd>,
             <Code key="3" size="2" tone={tone}>{tone}</Code>,
           ],
         }))}
       />
       {/* The family side by side at one step: same fill, same corner, same box — and the cap
-          is the only one that stands proud of the surface. If a badge ever grows an edge or a
+          is the only one that stands proud of the surface. If a chip ever grows an edge or a
           shadow, this row is where it shows. */}
       <SpecTable
         cols={["1", "3", "6", "9"]}
         rows={[
-          { label: "badge", cells: (["1", "3", "6", "9"] as const).map((s) => <Badge key={s} size={s}>Live</Badge>) },
+          { label: "chip", cells: (["1", "3", "6", "9"] as const).map((s) => <Chip key={s} size={s}>Live</Chip>) },
           { label: "kbd", cells: (["1", "3", "6", "9"] as const).map((s) => <Kbd key={s} size={s}>⌘K</Kbd>) },
           { label: "code", cells: (["1", "3", "6", "9"] as const).map((s) => <Code key={s} size={s}>x</Code>) },
         ]}
@@ -1546,6 +1736,90 @@ function SpinnerSection() {
   );
 }
 
+const TABLE_ROWS = [
+  ["INV-0041", "Acme Studio", "Paid", "$1,250.00"],
+  ["INV-0042", "Northwind", "Pending", "$640.00"],
+  ["INV-0043", "Globex", "Overdue", "$2,100.00"],
+] as const;
+
+function TableAt({ size }: { size: (typeof SIZES)[number] }) {
+  return (
+    <Table size={size}>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Invoice</TableHead>
+          <TableHead>Customer</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead align="end">Amount</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {TABLE_ROWS.map(([id, customer, status, amount]) => (
+          <TableRow key={id}>
+            <TableCell>{id}</TableCell>
+            <TableCell>{customer}</TableCell>
+            <TableCell>
+              <Chip tone={status === "Paid" ? "success" : status === "Overdue" ? "destructive" : "neutral"}>
+                {status}
+              </Chip>
+            </TableCell>
+            <TableCell align="end">{amount}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+
+function TableSection() {
+  return (
+    <Stack gap="6">
+      {/* One index sets the inset and the step together; the hairline and the header ink never
+          move. Judge the row height against the Chip riding the cell's line. */}
+      {SIZES.map((size) => (
+        <Demo key={size} label={`size ${size}`}>
+          <Box maxWidth="40rem">
+            <TableAt size={size} />
+          </Box>
+        </Demo>
+      ))}
+      {/* Wide content scrolls INSIDE the table's own box: the card holds its width and the
+          columns slide under it. */}
+      <Demo label="Wider than its room — the table scrolls, the page does not">
+        <Box maxWidth="20rem">
+          <Card size="2">
+            <Table size="2">
+              <TableCaption>Deploys, last hour</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Commit</TableHead>
+                  <TableHead>Environment</TableHead>
+                  <TableHead>Region</TableHead>
+                  <TableHead align="end">Duration</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell><Code size="2">a3f9c21e</Code></TableCell>
+                  <TableCell>production</TableCell>
+                  <TableCell>eu-central-1</TableCell>
+                  <TableCell align="end">2m 14s</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell><Code size="2">91be07d4</Code></TableCell>
+                  <TableCell>preview</TableCell>
+                  <TableCell>us-east-1</TableCell>
+                  <TableCell align="end">48s</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </Card>
+        </Box>
+      </Demo>
+    </Stack>
+  );
+}
+
 function TextSection() {
   return (
     <Stack gap="6">
@@ -1784,6 +2058,48 @@ function MaterialScene() {
  * behind each pane — and the PATTERN bed specifically: flat shapes at high frequency are
  * where a bend is visible at all, which is the reason beds.tsx gives for having it.
  */
+function ToggleSection() {
+  return (
+    <Stack gap="6">
+      {/* The ranking the component exists to hold (§10's clause): a pressed toggle rests on
+          the medium wash, and an unpressed one under the pointer paints only a half-step of
+          it — hover the second toggle and the first must still read as the one that is on. */}
+      <Demo label="A formatting bar — independent toggles, one keyboard">
+        <ToggleGroup aria-label="Format" defaultValue={["bold"]} render={<Flex gap="1" />}>
+          <Toggle value="bold">Bold</Toggle>
+          <Toggle value="italic">Italic</Toggle>
+          <Toggle value="underline">Underline</Toggle>
+        </ToggleGroup>
+      </Demo>
+      <SpecTable
+        cols={["Off", "On", "On, bordered", "Off, disabled", "On, disabled"]}
+        rows={SIZES.map((size) => ({
+          label: `size ${size}`,
+          cells: [
+            <Toggle key="1" size={size}>Wrap</Toggle>,
+            <Toggle key="2" size={size} defaultPressed>Wrap</Toggle>,
+            <Toggle key="3" size={size} defaultPressed bordered>Wrap</Toggle>,
+            <Toggle key="4" size={size} disabled>Wrap</Toggle>,
+            <Toggle key="5" size={size} defaultPressed disabled>Wrap</Toggle>,
+          ],
+        }))}
+      />
+      {/* Beside a Button at the same index: same box, same quiet rest — the toggle is the
+          button that stays down. */}
+      <Demo label="Beside a Button — one box, one quiet rest">
+        <Flex gap="2" align="center">
+          <Button emphasis="quiet">Preview</Button>
+          <Toggle>Wrap</Toggle>
+          <Toggle defaultPressed>Line numbers</Toggle>
+          <Toggle iconOnly aria-label="Pin" defaultPressed>
+            ⌘
+          </Toggle>
+        </Flex>
+      </Demo>
+    </Stack>
+  );
+}
+
 function TooltipSection() {
   return (
     <Stack gap="6">
@@ -2172,7 +2488,10 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "sizes", name: "Sizes — every control at one index", body: <SizesSection /> },
   { id: "tones", name: "Tones — ten families, every consumer", body: <TonesSection /> },
   { id: "materials", name: "Materials — placement decides expression", body: <MaterialsSection /> },
+  { id: "accordion", name: "Accordion", body: <AccordionSection /> },
+  { id: "avatar", name: "Avatar", body: <AvatarSection /> },
   { id: "badge", name: "Badge", body: <BadgeSection /> },
+  { id: "chip", name: "Chip", body: <ChipSection /> },
   { id: "blockquote", name: "Blockquote", body: <BlockquoteSection /> },
   { id: "button", name: "Button", body: <ButtonSection /> },
   ported("card"),
@@ -2200,10 +2519,12 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "spinner", name: "Spinner", body: <SpinnerSection /> },
   { id: "surface", name: "Surface", body: <SurfaceSection /> },
   ported("switch"),
+  { id: "table", name: "Table", body: <TableSection /> },
   ported("tabs"),
   { id: "text", name: "Text", body: <TextSection /> },
   ported("text-area"),
   ported("text-field"),
+  { id: "toggle", name: "Toggle", body: <ToggleSection /> },
   { id: "tooltip", name: "Tooltip", body: <TooltipSection /> },
   { id: "tree", name: "Tree", body: <TreeSection /> },
 ];
