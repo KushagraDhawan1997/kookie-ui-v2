@@ -1,15 +1,14 @@
-import { Card, Kbd, Row, Stack, Text } from "@kookie-ui/react";
+import { Row, Stack, Text } from "@kookie-ui/react";
+import type { Size } from "@kookie-ui/react";
 
-export default function Example() {
+export default function Example({ size = "2" }: { size?: Size }) {
   return (
-    <Card size="3">
-      <Stack gap="1">
-        <Row current>Overview</Row>
-        <Row trailing={<Kbd>⌘1</Kbd>}>Deployments</Row>
-        <Row trailing={<Text size="2" emphasis="quiet">12</Text>}>Environments</Row>
-        <Row disabled>Billing</Row>
-        <Row tone="destructive">Delete project</Row>
-      </Stack>
-    </Card>
+    <Stack gap="1" style={{ minWidth: "18rem" }}>
+      <Row size={size} current>Overview</Row>
+      <Row size={size}>Deployments</Row>
+      <Row size={size} trailing={<Text size="2" emphasis="quiet">12</Text>}>Environments</Row>
+      <Row size={size} disabled>Billing</Row>
+      <Row size={size} tone="destructive">Delete project</Row>
+    </Stack>
   );
 }

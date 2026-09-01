@@ -12,10 +12,11 @@ import {
   Stack,
   TextField,
 } from "@kookie-ui/react";
+import type { Size } from "@kookie-ui/react";
 
-export default function Example() {
+export default function Example({ size = "2" }: { size?: Size }) {
   return (
-    <Popover>
+    <Popover size={size}>
       <PopoverTrigger render={<Button emphasis="quiet" bordered>Rename</Button>} />
       <PopoverContent>
         <Stack gap="4">

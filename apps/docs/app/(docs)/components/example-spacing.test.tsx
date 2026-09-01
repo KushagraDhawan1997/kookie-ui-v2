@@ -111,11 +111,17 @@ describe("no shipped example stacks marks under the 12px rule", () => {
   const names = Object.keys(EXAMPLES);
 
   it("the walk found stacked marks — a law over nothing audits nothing", () => {
-    // The vacuity guard, and the calibration: the three examples this was written for must be
-    // the ones it sees. If a rename or a rewrite empties this set the law goes quiet, which is
-    // the way this repo's coverage laws have failed before.
+    // The vacuity guard, and the calibration: the examples this was written for must be the ones
+    // it sees. If a rename or a rewrite empties this set the law goes quiet, which is the way
+    // this repo's coverage laws have failed before.
+    //
+    // `switch` left the list on 2026-08-30 and the guard is doing its job by having noticed.
+    // That page became a DRIVEN specimen — one switch a reader resizes — so it no longer stacks
+    // two marks and has nothing for this law to measure. Checkbox and radio still do, so the
+    // walk is not empty and the guarantee still has subjects; a page that shows one control is
+    // not a page that violates the spacing rule.
     const withStacks = names.filter((n) => markStacks(render(n)).length > 0);
-    expect(withStacks).toEqual(expect.arrayContaining(["checkbox", "switch", "radio"]));
+    expect(withStacks).toEqual(expect.arrayContaining(["checkbox", "radio"]));
   });
 
   for (const name of names) {

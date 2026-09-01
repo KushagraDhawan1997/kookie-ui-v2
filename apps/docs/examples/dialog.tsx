@@ -9,10 +9,11 @@ import {
   Flex,
   Stack,
 } from "@kookie-ui/react";
+import type { Size } from "@kookie-ui/react";
 
-export default function Example() {
+export default function Example({ size = "2" }: { size?: Size }) {
   return (
-    <Dialog size="2">
+    <Dialog size={size}>
       <DialogTrigger render={<Button emphasis="medium">Rename project</Button>} />
       <DialogContent>
         <Stack gap="6">

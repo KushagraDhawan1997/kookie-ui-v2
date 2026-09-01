@@ -1,12 +1,21 @@
-import { Button, Flex } from "@kookie-ui/react";
+import { Button, type Emphasis, type Size, type Tone } from "@kookie-ui/react";
 
-export default function Example() {
+export default function Example({
+  size = "2",
+  tone = "accent",
+  emphasis = "loud",
+  bordered = false,
+  loading = false,
+}: {
+  size?: Size;
+  tone?: Tone;
+  emphasis?: Emphasis;
+  bordered?: boolean;
+  loading?: boolean;
+}) {
   return (
-    <Flex gap="3" wrap="wrap" align="center">
-      <Button tone="accent" emphasis="loud">Save</Button>
-      <Button emphasis="medium">Cancel</Button>
-      <Button emphasis="quiet" bordered>More</Button>
-      <Button tone="destructive" emphasis="quiet">Delete</Button>
-    </Flex>
+    <Button size={size} tone={tone} emphasis={emphasis} bordered={bordered} loading={loading}>
+      Save changes
+    </Button>
   );
 }

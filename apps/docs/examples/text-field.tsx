@@ -1,10 +1,19 @@
-import { Stack, TextField } from "@kookie-ui/react";
+import { TextField, type Size } from "@kookie-ui/react";
 
-export default function Example() {
+export default function Example({
+  size = "2",
+  backdrop = false,
+}: {
+  size?: Size;
+  backdrop?: boolean;
+}) {
   return (
-    <Stack gap="3" style={{ maxWidth: "22rem" }}>
-      <TextField placeholder="Search" aria-label="Search" />
-      <TextField placeholder="Invalid" aria-label="Invalid" aria-invalid="true" />
-    </Stack>
+    <TextField
+      size={size}
+      backdrop={backdrop}
+      placeholder="Search"
+      aria-label="Search"
+      style={{ maxWidth: "22rem" }}
+    />
   );
 }

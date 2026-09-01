@@ -1,4 +1,4 @@
-import { Card, NavTree, type TreeNode } from "@kookie-ui/react";
+import { Box, NavTree, type TreeNode } from "@kookie-ui/react";
 
 const chapters: readonly TreeNode[] = [
   {
@@ -21,12 +21,12 @@ const chapters: readonly TreeNode[] = [
 
 export default function Example() {
   return (
-    <Card size="2" style={{ maxWidth: "20rem" }}>
+    <Box style={{ minWidth: "20rem" }}>
       <NavTree
         items={chapters}
         defaultExpandedIds={["start"]}
         currentId="/start/installation"
       />
-    </Card>
+    </Box>
   );
 }

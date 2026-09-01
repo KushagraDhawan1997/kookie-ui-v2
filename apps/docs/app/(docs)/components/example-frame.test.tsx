@@ -28,7 +28,13 @@ const rootIsPane = (name: string): boolean => {
   );
   // The Theme's own div is first; the example's root is the element after it.
   const afterTheme = html.slice(html.indexOf(">", html.indexOf("kui-theme")) + 1);
-  return /^<[a-z]+[^>]*class="[^"]*\bkui-(card|surface)\b/.test(afterTheme);
+  // PAPER, not any pane (2026-08-29). The frame withholds a CARD, and a Surface at the root is
+  // not one — it is a ground, which belongs inside the paper like any other content. Reading
+  // `kui-surface` here would agree with a predicate that exempted grounds, which is the answer
+  // that put a ground inside the figure's own ground. A composer is paper by the same reading
+  // as the predicate's (§30 — a box that holds full-size controls is a Card), and it wears its
+  // own class rather than `kui-card`, so it is named.
+  return /^<[a-z]+[^>]*class="[^"]*\bkui-(card|composer)\b/.test(afterTheme);
 };
 
 /** HTML void elements: they open nothing, so they must not move the depth counter. React's
@@ -37,24 +43,49 @@ const rootIsPane = (name: string): boolean => {
 const VOID = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"]);
 
 /**
- * Does a card open while a card is still open? Counted rather than pattern-matched, because
- * the panes are separated by whatever the example nests between them.
+ * Does a card open while a card is still open, with no ground between them?
+ *
+ * Counted rather than pattern-matched, because the panes are separated by whatever the example
+ * nests between them.
  *
  * EVERY tag, not just `<div>` (2026-08-26). `depth > 0` means "inside a card": a non-card
  * element opening at depth 0 is outside every pane and is not counted, and once a card has
  * opened everything nested in it is, so the counter comes back to 0 at the card's close.
+ *
+ * A GROUND RESETS THE COUNT (2026-08-29), and that is a rule about what the fault IS rather
+ * than a hole cut for a failing example. Paper on paper is the fault: two panes of the same
+ * kind, one inside the other, saying the same thing twice. A ground is the thing that HOLDS
+ * paper — §10's own sentence, and Apple's grouped background — so paper, a ground, then paper
+ * is an ordinary arrangement and the only one a Surface example can show. Without this the law
+ * forbids the component's own meaning from being documented.
  */
 const panesNested = (html: string): boolean => {
   let depth = 0;
   let nested = false;
+  // Card depths suspended at each open ground, restored when that ground closes. A stack
+  // rather than a flag, because a ground may sit inside a ground.
+  const suspended: Array<{ at: number; cards: number }> = [];
+  let element = 0;
   for (const tag of html.match(/<\/?[a-zA-Z][^>]*>/g) ?? []) {
     const name = /^<\/?\s*([a-zA-Z0-9-]+)/.exec(tag)?.[1]?.toLowerCase();
     if (!name) continue;
     if (tag.startsWith("</")) {
-      depth = Math.max(0, depth - 1);
+      element = Math.max(0, element - 1);
+      if (suspended.length && suspended[suspended.length - 1]!.at === element) {
+        depth = suspended.pop()!.cards;
+      } else {
+        depth = Math.max(0, depth - 1);
+      }
       continue;
     }
     if (VOID.has(name) || /\/>$/.test(tag)) continue;
+    if (/class="[^"]*\bkui-ground\b/.test(tag)) {
+      suspended.push({ at: element, cards: depth });
+      depth = 0;
+      element++;
+      continue;
+    }
+    element++;
     if (/class="[^"]*\bkui-card\b/.test(tag)) {
       if (depth > 0) nested = true;
       depth++;
@@ -73,8 +104,14 @@ describe("the specimen frame agrees with what the example renders", () => {
   it("some examples root a pane and some do not — both arms are exercised", () => {
     // Vacuity: an agreement law over a set that is all one answer proves nothing about the
     // other. Named here so a future change that flattens the set fails loudly.
+    // The threshold is ONE, not a count (2026-08-29). It read `> 2` while the predicate also
+    // matched a Surface at the root and while three examples wrapped themselves in a card for
+    // no reason; narrowing the predicate to paper and taking those wrappers out left exactly
+    // the examples whose SUBJECT is a pane, which is a small set by construction. What the
+    // guard is for is that both arms are reached at all — a set that is all one answer proves
+    // nothing about the other — and one example on each side does that.
     const paned = names.filter((n) => rootsOwnPane(readExampleSource(n)));
-    expect(paned.length, "no example roots a pane; the frame has nothing to skip").toBeGreaterThan(2);
+    expect(paned.length, "no example roots a pane; the frame has nothing to skip").toBeGreaterThan(0);
     expect(paned.length).toBeLessThan(names.length);
   });
 

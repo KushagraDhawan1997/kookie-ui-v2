@@ -15,10 +15,11 @@ import {
   MenuTrigger,
   Separator,
 } from "@kookie-ui/react";
+import type { Size } from "@kookie-ui/react";
 
-export default function Example() {
+export default function Example({ size = "2" }: { size?: Size }) {
   return (
-    <Menu>
+    <Menu size={size}>
       <MenuTrigger render={<Button emphasis="medium">Actions</Button>} />
       <MenuContent>
         <MenuGroup>

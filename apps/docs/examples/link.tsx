@@ -1,15 +1,18 @@
-import { Card, Link, Stack, Text } from "@kookie-ui/react";
+import { Link, Text } from "@kookie-ui/react";
+import type { Tone, Weight } from "@kookie-ui/react";
 
-export default function Example() {
+export default function Example({
+  weight = "regular",
+  tone = "accent",
+}: {
+  weight?: Weight;
+  tone?: Tone;
+}) {
   return (
-    <Card size="3">
-      <Stack gap="2">
-        <Text size="2" weight="medium">Storage</Text>
-        <Text size="3" emphasis="medium" render={<p />}>
-          You are using 42 of 100 gigabytes. See{" "}
-          <Link href="#plans">the plans on this workspace</Link> before the renewal.
-        </Text>
-      </Stack>
-    </Card>
+    <Text size="3" render={<p />} style={{ maxWidth: "28rem" }}>
+      You are using 42 of 100 gigabytes. See{" "}
+      <Link href="#plans" weight={weight} tone={tone}>the plans on this workspace</Link> before
+      the renewal.
+    </Text>
   );
 }

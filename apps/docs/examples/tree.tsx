@@ -1,4 +1,4 @@
-import { Card, Tree, type TreeNode } from "@kookie-ui/react";
+import { Box, Tree, type TreeNode } from "@kookie-ui/react";
 
 const files: readonly TreeNode[] = [
   {
@@ -22,7 +22,7 @@ const files: readonly TreeNode[] = [
 
 export default function Example() {
   return (
-    <Card size="2" style={{ maxWidth: "20rem" }}>
+    <Box style={{ minWidth: "20rem" }}>
       <Tree
         items={files}
         multiselectable
@@ -30,6 +30,6 @@ export default function Example() {
         defaultSelectedIds={["index"]}
         aria-label="Project files"
       />
-    </Card>
+    </Box>
   );
 }

@@ -6,10 +6,11 @@ import {
   SelectLabel,
   SelectTrigger,
 } from "@kookie-ui/react";
+import type { Size } from "@kookie-ui/react";
 
-export default function Example() {
+export default function Example({ size = "2" }: { size?: Size }) {
   return (
-    <Select defaultValue="banana" items={{ apple: "Apple", banana: "Banana", carrot: "Carrot", leek: "Leek" }}>
+    <Select size={size} defaultValue="banana" items={{ apple: "Apple", banana: "Banana", carrot: "Carrot", leek: "Leek" }}>
       <SelectTrigger placeholder="Pick one" />
       <SelectContent>
         <SelectGroup>

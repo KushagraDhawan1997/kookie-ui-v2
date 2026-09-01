@@ -1,36 +1,23 @@
-"use client";
+import { Card, Stack, Text, type Size } from "@kookie-ui/react";
 
-import { Card, Flex, Grid, Radio, RadioGroup, Stack, Surface, Text } from "@kookie-ui/react";
-
-export default function Example() {
+export default function Example({
+  size = "3",
+  backdrop = false,
+}: {
+  size?: Size;
+  backdrop?: boolean;
+}) {
   return (
-    <Surface size="3">
-      <RadioGroup defaultValue="pro" aria-label="Plan">
-        <Grid columns="repeat(3, minmax(0, 1fr))" gapX="4" gapY="4">
-          {(
-            [
-              ["starter", "Starter", "$0", "Three projects."],
-              ["pro", "Pro", "$20", "Unlimited projects."],
-              ["scale", "Scale", "$99", "SSO and an audit log."],
-            ] as const
-          ).map(([value, label, price, body]) => (
-            <Card key={value} size="3" render={<label />}>
-              <Stack gap="3">
-                <Flex justify="space-between" align="center">
-                  <Text size="3" weight="medium">
-                    {label}
-                  </Text>
-                  <Radio value={value} />
-                </Flex>
-                <Text size="5">{price}</Text>
-                <Text size="2" emphasis="medium">
-                  {body}
-                </Text>
-              </Stack>
-            </Card>
-          ))}
-        </Grid>
-      </RadioGroup>
-    </Surface>
+    <Card size={size} backdrop={backdrop} style={{ maxWidth: "24rem" }}>
+      <Stack gap="2">
+        <Text size="3" weight="medium">
+          Paper above the page
+        </Text>
+        <Text size="2" emphasis="medium">
+          One fixed treatment: a sealed fill, a hairline and a corner. No tone, no emphasis, no
+          anatomy — what a card holds is the caller&apos;s.
+        </Text>
+      </Stack>
+    </Card>
   );
 }
