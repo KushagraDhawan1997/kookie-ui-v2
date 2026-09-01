@@ -271,6 +271,80 @@ describe("the grip casts always, and stands down when dead (§5, §6, §26)", ()
   });
 });
 
+describe("a box mid-flight is not its own size (2026-09-01)", () => {
+  /* THE GRIP LAPPED ITS NEIGHBOUR ON A FIRST OPEN (Kushagra: "when opening it for the first
+     time, theres an overlap between two values, but once I click something, then it corrects
+     the size of each thumb").
+
+     `getBoundingClientRect` reports the VISUAL box, and this control writes what it reads back
+     as LAYOUT insets. Every overlay in this system scales as it opens, so a segmented control
+     inside a popover, dialog or alert was measured mid-entry and kept those numbers for the
+     rest of its life — nothing re-measures until the selection changes, and the resize
+     observers are right not to fire, since the layout box never moved. Measured on the docs'
+     props popover: the seat's true insets are 40.078 / 78.156, the first open wrote 38.074 /
+     74.248 — the same numbers times the entry's own 0.95 — and the grip sat 5.9px wider than
+     its seat.
+
+     AN AGREEMENT, because there is no absolute number to assert: the same control scaled and
+     unscaled must write the same two lengths, since the lengths describe a layout that the
+     scaling does not touch. The vacuity guard is the half that matters — a scale of 1 makes
+     this law pass against any implementation — so the two subjects' RECTS are asserted to
+     differ first, which is the one thing the fixture is for.
+
+     Falsified by removing the division: the scaled subject's insets come back at 0.95 of the
+     plain one's. */
+  const scaled = () =>
+    mounted(
+      <div style={{ scale: "0.8" }}>
+        <SegmentedControl defaultValue="list">
+          <SegmentedItem value="list">List</SegmentedItem>
+          <SegmentedItem value="grid">Grid</SegmentedItem>
+        </SegmentedControl>
+      </div>,
+      { theme: {} },
+    );
+
+  const insets = (root: Element) => {
+    const thumb = within(root, ".kui-segment-thumb");
+    return [
+      px(thumb.style.getPropertyValue("--kui-seg-left")),
+      px(thumb.style.getPropertyValue("--kui-seg-right")),
+    ] as const;
+  };
+
+  it("a control measured inside a scaled ancestor writes the same lengths as one that is not", () => {
+    const plain = control();
+    const inside = scaled();
+
+    // Vacuity: without a real difference in visual size, any implementation passes below.
+    const plainWidth = within(plain, ".kui-segmented").getBoundingClientRect().width;
+    const scaledWidth = within(inside, ".kui-segmented").getBoundingClientRect().width;
+    expect(scaledWidth, "the fixture is not actually scaled").toBeLessThan(plainWidth - 1);
+
+    const [plainLeft, plainRight] = insets(plain);
+    const [scaledLeft, scaledRight] = insets(inside);
+    expect(scaledLeft, "the left inset carries the ancestor's scale").toBeCloseTo(plainLeft, 1);
+    expect(scaledRight, "the right inset carries the ancestor's scale").toBeCloseTo(plainRight, 1);
+  });
+
+  it("and the grip still covers its seat there, in layout terms", () => {
+    // The consequence the eye sees, stated on its own: the two lengths leave exactly the seat's
+    // share of the track, so the grip cannot lap the segment beside it.
+    const inside = scaled();
+    const track = within(inside, ".kui-segmented");
+    const seat = within(track, ".kui-segment[data-checked]");
+    const [left, right] = insets(inside);
+    const edges = getComputedStyle(track);
+    const layout =
+      edges.boxSizing === "border-box"
+        ? px(edges.width)
+        : px(edges.width) + px(edges.paddingLeft) + px(edges.paddingRight);
+    const gripWidth = layout - px(edges.borderLeftWidth) - px(edges.borderRightWidth) - left - right;
+    const seatWidth = seat.getBoundingClientRect().width / (track.getBoundingClientRect().width / layout);
+    expect(gripWidth, "the grip is not its seat's width").toBeCloseTo(seatWidth, 1);
+  });
+});
+
 describe("the corner is concentric (§6, §26)", () => {
   it("the segment's radius is the track's minus the inset, at every level and size", () => {
     for (const radius of ["small", "medium", "large", "full"] as const) {

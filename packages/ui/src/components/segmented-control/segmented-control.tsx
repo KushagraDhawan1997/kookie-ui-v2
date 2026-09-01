@@ -101,6 +101,45 @@ function useTravelingThumb(track: React.RefObject<HTMLDivElement | null>) {
     const thumb = el.querySelector<HTMLElement>(":scope > .kui-segment-thumb");
     if (!thumb) return;
 
+    /* A BOX MID-FLIGHT IS NOT ITS OWN SIZE (2026-09-01, Kushagra: "when opening it for the first
+       time, theres an overlap between two values, but once I click something, then it corrects").
+
+       `getBoundingClientRect` reports the VISUAL box, so a scaled ancestor scales every number
+       read here — and this control's two lengths are written back as LAYOUT insets, where they
+       mean something the browser never scales. Every overlay in this system scales as it opens,
+       so a segmented control inside a popover, dialog or alert was measured mid-entry and kept
+       those numbers: measured on the docs' props popover, a seat's true insets are 40.078 /
+       78.156 and the first open wrote 38.074 / 74.248 — the same values times 0.95, the entry's
+       own scale, leaving the grip 5.9px wider than its seat and lapping its neighbour until a
+       click re-measured it at rest.
+
+       The resize observers cannot see it and are right not to: nothing resized. Layout width
+       held at 156 for every frame of the entry while the rect went 148.5 → 156.3, which is the
+       whole distinction — one is the box, the other is a picture of it.
+
+       So the scale is measured and divided back out, and the measurement is EXACT rather than
+       toleranced. `offsetWidth` was the first spelling and it is an integer: on a track whose
+       layout width is 156.31 it answers 156, which is a phantom scale of 1.002 that shifted
+       every resting inset by a fifth of a pixel — the rounding scar the comment above already
+       records, arriving through the back door. `getComputedStyle` reports used values in
+       fractional pixels, so the border box rebuilt from them is the layout box to the decimal,
+       the ratio is exactly 1 wherever nothing is scaling, and no tolerance has to be chosen. */
+    const visualScale = (box: DOMRect, edges: CSSStyleDeclaration) => {
+      // `width` resolves to the used value, which is the CONTENT box under `content-box` and
+      // the border box under `border-box` — so the box model is asked rather than assumed. The
+      // first spelling added the paddings unconditionally and measured a scale of 1.02 on a
+      // resting control, which pulled the grip 3px narrower than its seat and failed six laws.
+      const layout =
+        edges.boxSizing === "border-box"
+          ? parseFloat(edges.width)
+          : parseFloat(edges.width) +
+            parseFloat(edges.paddingLeft) +
+            parseFloat(edges.paddingRight) +
+            parseFloat(edges.borderLeftWidth) +
+            parseFloat(edges.borderRightWidth);
+      return layout > 0 ? box.width / layout : 1;
+    };
+
     const place = (flying: boolean) => {
       const chosen = el.querySelector<HTMLElement>(".kui-segment[data-checked]");
       if (!chosen) {
@@ -121,8 +160,9 @@ function useTravelingThumb(track: React.RefObject<HTMLDivElement | null>) {
       const box = el.getBoundingClientRect();
       const seat = chosen.getBoundingClientRect();
       const edges = getComputedStyle(el);
-      const left = seat.left - (box.left + parseFloat(edges.borderLeftWidth));
-      const right = box.right - parseFloat(edges.borderRightWidth) - seat.right;
+      const scale = visualScale(box, edges);
+      const left = (seat.left - box.left) / scale - parseFloat(edges.borderLeftWidth);
+      const right = (box.right - seat.right) / scale - parseFloat(edges.borderRightWidth);
       const from = previousLeft.current;
       thumb.hidden = false;
       thumb.dataset.activationDirection =

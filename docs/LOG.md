@@ -8,6 +8,22 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-01 A box mid-flight is not its own size — the segmented thumb measured through an ancestor's scale
+
+**What.** `useTravelingThumb` divides the ancestor's visual scale back out of its measurement. The scale is `getBoundingClientRect().width` over the layout border-box width rebuilt from `getComputedStyle`, and the box model is asked (`box-sizing`) rather than assumed. JS only; no CSS, so the budget does not move.
+
+**Why.** Kushagra: *"in segment control, when opening it for the first time, theres an overlap between two values, but once I click something, then it corrects the size of each thumb."* `getBoundingClientRect` reports the VISUAL box and this control writes what it reads back as LAYOUT insets, which nothing scales. Every overlay in this system scales as it opens, so a segmented control inside a popover, dialog or alert was measured mid-entry and kept those numbers for the rest of its life. Measured on the docs' props popover: the chosen seat's true insets are 40.078 / 78.156 and the first open wrote 38.074 / 74.248 — the same numbers times 0.95, the entry's own scale — leaving the grip 5.9px wider than its seat and lapping its neighbour until a click re-measured it at rest.
+
+**Why nothing caught it.** The resize observers (2026-08-23, widened 2026-08-26) are correct and were right not to fire: nothing resized. Sampled per frame through the entry, the track's layout width held at 156 for every frame while its rect went 148.5 → 156.3 — one is the box, the other is a picture of it, and a `ResizeObserver` watches the first. The mount placement was CORRECT and was then overwritten mid-flight by the `data-checked` observer, which is why the fault needed an overlay to appear at all: in every specimen this control has ever been judged in, nothing was scaling.
+
+**The measurement was wrong twice before it was right, both times over the layout width.** `offsetWidth` was the first spelling and is an integer: on a track whose layout width is 156.312 it answers 156, a phantom scale of 1.002 that moved every resting inset by a fifth of a pixel — the rounding scar the hook's own comment already records, coming back through the door marked "detect". Rebuilding the border box from `getComputedStyle` fixed that and then over-counted, because Chrome resolves `width` to the BORDER box under `box-sizing: border-box` and the paddings were added on top: a resting control measured a scale of 1.02, the grip came out 3px narrower than its seat, and six existing laws failed — which is the suite doing its job on a fix.
+
+**Laws.** Two, both falsified. An AGREEMENT — the same control scaled and unscaled must write the same two lengths, since the lengths describe a layout the scaling does not touch — because there is no absolute number to assert. Its VACUITY GUARD is the half that matters: a scale of 1 makes the law pass against any implementation, so the two subjects' rects are asserted to differ first, and setting the fixture's scale to 1 fails it (`expected 115.8 to be less than 114.8`). Removing the division fails both (`expected 1.6 to be close to 2`; the grip 12.4px off its seat). The second law states the consequence the eye sees on its own: the two lengths leave exactly the seat's share of the track.
+
+**Not claimed.** Whether Base UI's tab indicator has the same fault one component over is UNVERIFIED — a bare mount publishes no `--active-tab-*` to read, so a probe answered nothing, and guessing from the shared vocabulary is what this repo's own drift rules forbid.
+
+---
+
 ## 2026-09-01 — The badge finds its seat: cap-centred inline, rim-riding pinned
 
 Kushagra, from the badge example: "Badge isnt vertically aligned, and the top right ones feel too 'inside', they feel they should be further out I feel." Both measured before either moved.
