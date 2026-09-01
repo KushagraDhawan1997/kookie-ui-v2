@@ -8,8 +8,8 @@
  * colour is ours.
  *
  * The mechanism is Shiki's CSS-variables theme: instead of baking hexes, the tokenizer emits
- * `var(--kd-code-token-*)` and `code.css` resolves those names against the ten tones' SOLVED
- * ink ladder (§15, 2026-08-10). That is the load-bearing part. A stock highlight theme is a
+ * `var(--code-token-*)` and the package's `CodeBlock` resolves those names against the ten
+ * tones' SOLVED ink ladder (§15, 2026-08-10). That is the load-bearing part. A stock highlight theme is a
  * second colour system living inside the first — the one place on a site made of KookieUI
  * where the pixels would not be KookieUI's — and it would also be the only text on the page
  * held to no contrast target at all.
@@ -59,7 +59,7 @@ const THEME_NAME = "kookie";
 
 const theme = createCssVariablesTheme({
   name: THEME_NAME,
-  variablePrefix: "--kd-code-",
+  variablePrefix: "--code-",
   // No defaults. A `var()` with a fallback would paint SOMETHING when a name is unresolved,
   // which is how a token that code.css forgot ends up looking deliberate — the material
   // edge's `initial` argument (§10), one system over. Unresolved here means invalid at
@@ -198,7 +198,7 @@ const textOf = (node: HastElement | HastText): string => {
 };
 
 /** A token span's two styled facts, off its inline style string. The CSS-variables theme
-    writes `color:var(--kd-code-…)` and `font-style:italic`; bold (`font-weight`) is dropped
+    writes `color:var(--code-…)` and `font-style:italic`; bold (`font-weight`) is dropped
     here, which is the §15 refusal as a filter rather than a regex over emitted HTML. */
 const styleOf = (node: HastElement): { color?: string; italic: boolean } => {
   const style = String(node.properties?.["style"] ?? "");

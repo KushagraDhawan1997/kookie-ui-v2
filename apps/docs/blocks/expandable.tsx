@@ -23,9 +23,7 @@
  * this is not a disclosure pattern and takes none of its wiring.
  */
 import * as React from "react";
-import { Button, Flex, type Size } from "@kookie-ui/react";
-
-import { CodeBlock } from "./code-block";
+import { Button, CodeBlock, Flex, type Size } from "@kookie-ui/react";
 
 export function Expandable({
   size,
@@ -59,29 +57,7 @@ export function Expandable({
       {...(hosted ? { hosted } : {})}
       {...(className ? { className } : {})}
       footer={
-        <Flex
-          justify="center"
-          style={{
-            position: "absolute",
-            insetInline: 0,
-            /* THE PANE'S OWN INSET, AND NO ARITHMETIC (2026-09-01, Kushagra: "the button still
-               has more padding than code sample").
-
-               Measured: the standalone twin's button sat 16px off its pane wall and a hosted
-               well's sat 41 — the host's inset counted twice, the scrollbar fault of the same
-               morning one element over. The cause was the BOX, not the number: this row used to
-               hang from a positioned wrapper around the well, and the bleed's negative bottom
-               margin COLLAPSES out of the well onto that wrapper (measured: wrapper bottom
-               1374, well bottom 1398, pane 1399). So the well's box already coincides with the
-               pane's and the wrapper's is short by exactly the inset.
-
-               A compensating term was written first and measured 8px BELOW the pane's wall,
-               which is the same mistake being made a third time. Hung from the well, the plain
-               inset is right in both arrangements — 16 and 16, from each pane's own padding
-               box. */
-            insetBlockEnd: `var(--surface-p-${size})`,
-          }}
-        >
+        <Flex justify="center">
           <Button
             size={size}
             backdrop

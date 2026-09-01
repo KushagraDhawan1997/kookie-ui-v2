@@ -140,11 +140,47 @@ export function SpecimenView({
   /* CENTRED ON BOTH AXES, which is the other half of the floor being useful. A floor alone
      just puts a small control at the top of a tall box with a field of empty pane under it;
      what makes the stage read as a stage is the subject sitting in the middle of it. */
+  /* A BACKDROP REACHES THE PANE'S EDGE (2026-09-01, Kushagra: "when backdrop is enabled, it
+     should bleed fully into the card edge to edge").
+
+     The stage is an ordinary child of the paper, so it took the paper's reading inset like any
+     content — which is right for the subject and wrong for the ground behind it. A photograph
+     sitting inside a band of white pane is a picture ON the paper, and what `backdrop` says is
+     that content passes BEHIND it: the figure was drawing the opposite of the thing the knob
+     turns on. `m="bleed"` cancels the paper's own inset (§3, §10) and the pane clips it to its
+     corner, so the photograph is the paper's whole face and the specimen floats on it.
+
+     ONLY WHEN THERE IS A BACKDROP. Bleeding an unbacked stage would delete the paper's padding
+     around the subject, which is the one thing the paper is there to provide.
+
+     WHICH SIDES DEPENDS ON WHAT HOLDS IT, and that is the same sentence rather than an exception.
+     A stage on paper is the paper's only child, so it reaches all four walls. A stage with no
+     paper — a Card or a Composer documenting itself — is one child of the GROUND, between the
+     chrome row above it and the source below, so only its inline axis faces a wall: bleeding the
+     block axis would run the photograph under the buttons and up against the code. Either way
+     the backdrop reaches the edge it HAS, which is what stops one page's figure being a photo
+     edge to edge and the next one's a band floating in a margin. */
+  const bleed = Boolean(stageBackground);
+  /* AND THE FIGURE KEEPS ITS HEIGHT (2026-09-01, Kushagra: "card changes its height when bg is
+     on"). Measured: 290px of paper without the backdrop and 258 with it. The floor is written on
+     the STAGE, and a stage that has eaten the paper's inset is a stage that stops paying for it —
+     the paper's own box is the floor plus two paddings when the stage sits inside them, and the
+     floor alone when it does not. So a knob that is supposed to change what is BEHIND the subject
+     was moving the figure on the page, and a reader flipping it watched the code jump.
+
+     What the floor means is the PAPER's height, so the bled stage puts back exactly what its
+     margins took: the same expression the bleed itself is written in, with the sign the other way
+     round. Both states then compute one number rather than agreeing by a value picked twice.
+
+     Only the block axis, and only where the block axis bled — the paneless case bleeds inline
+     alone, so its floor is untouched. */
+  const floor = bleed && pane ? `calc(${minHeight} + 2 * var(--kui-sf-p, 0px))` : minHeight;
   const stage = (
     <Flex
       align="center"
       justify="center"
-      style={{ minBlockSize: minHeight, ...(stageBackground ? { background: stageBackground } : {}) }}
+      {...(bleed ? (pane ? { m: "bleed" as const } : { mx: "bleed" as const }) : {})}
+      style={{ minBlockSize: floor, ...(stageBackground ? { background: stageBackground } : {}) }}
     >
       {children}
     </Flex>

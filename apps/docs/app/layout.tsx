@@ -9,35 +9,34 @@ import { appearanceScript } from "./appearance-script";
 import { DevOutlineGate } from "./dev-outline";
 
 /**
- * The wordmark's face, and the ONLY thing on this site that is not the system stack.
+ * The wordmark's face.
  *
  * §15 gives the type layer three family SLOTS and says an app supplies the face, so a display
  * face here is the app exercising that rather than the library growing a fourth slot. It is
- * loaded for one word in one place — the sidebar wordmark — which is why it is a single
- * static face rather than a family: no italic, no second weight, nothing else may reach for
- * it. Everything the reader actually reads stays on the system stack, and that is deliberate:
- * a documentation site that ships a licensed face for its body text pays a download on every
- * page for prose that reads no better.
+ * loaded for one word in one place — the masthead — which is why it is a single static face
+ * rather than a family: no italic, no second weight, nothing else may reach for it. Everything
+ * the reader actually reads stays on the system stack's replacement, and that is deliberate: a
+ * documentation site that ships a licensed face for its body text pays a download on every page
+ * for prose that reads no better.
  *
- * CHOMSKY, Fredrick Brennan's clone of the New York Times masthead — a blackletter, which is
- * a different proposition from the condensed grotesque it replaced rather than a tuning of it.
- * It ships as one style with no bold and no italic, which suits a wordmark and would suit
- * nothing else on this site.
+ * PP PLAYGROUND (2026-09-01, Kushagra), from the same Pangram Pangram starter pack the mono
+ * slot already draws on. It replaces Chomsky, and the change is not a tuning: a blackletter
+ * capital is a MONOGRAM — one drawn letter standing for a name — and Playground is a script,
+ * which is a face for writing the name out. So the mark changed with the face; see
+ * `wordmark.tsx` for what it now says and why the size moved with it.
  *
- * IT IS OFL 1.1, AND THAT CHANGES THE LICENCE STORY. PP Monument could never be committed —
- * Pangram Pangram forbid redistribution, so the file stayed gitignored and every contributor
- * got the fallback. The Open Font License permits redistribution with the copyright and the
- * licence carried along, so `Chomsky-LICENSE.txt` sits beside the face and the pair can be
- * tracked with `git add -f`, which is the explicit decision `.gitignore` asks for. Until that
- * happens the blanket `*.woff2` rule still hides it, so the fallback below is still what a
- * fresh clone renders.
+ * ITS LICENCE IS THE MONO SLOT'S, NOT CHOMSKY'S. Chomsky is OFL and could in principle have
+ * been committed with its licence beside it; PPF permit commercial use and forbid
+ * redistribution, so this file is covered by the blanket rule in `.gitignore` and a fresh clone
+ * renders the fallback — the arrangement Switzer and Neue Montreal Mono already have, and the
+ * reason that rule is stated as a file type rather than a vendor's folder name.
  *
  * `weight: "400"` is what the file is. There is no second weight to resolve to, so a heading
  * asking for semibold gets this face and cannot synthesize a bolder one — which is the whole
  * reason the wordmark's own rule states no weight.
  */
 const wordmark = localFont({
-  src: "./fonts/Chomsky.woff2",
+  src: "./fonts/PPPlayground-Regular.woff2",
   variable: "--kd-font-wordmark",
   weight: "400",
   display: "swap",
@@ -84,7 +83,11 @@ const wordmark = localFont({
 const body = localFont({
   src: [
     { path: "./fonts/Switzer.woff2", weight: "100 900", style: "normal" },
-    { path: "./fonts/Switzer-Italic.woff2", weight: "100 900", style: "italic" },
+    {
+      path: "./fonts/Switzer-Italic.woff2",
+      weight: "100 900",
+      style: "italic",
+    },
   ],
   variable: "--kd-font-body",
   display: "swap",
@@ -127,11 +130,21 @@ const body = localFont({
 const mono = localFont({
   src: [
     { path: "./fonts/NeueMontrealMono.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/NeueMontrealMono-Medium.woff2", weight: "500", style: "normal" },
+    {
+      path: "./fonts/NeueMontrealMono-Medium.woff2",
+      weight: "500",
+      style: "normal",
+    },
   ],
   variable: "--kd-font-mono",
   display: "swap",
-  fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "Consolas", "monospace"],
+  fallback: [
+    "ui-monospace",
+    "SFMono-Regular",
+    "Menlo",
+    "Consolas",
+    "monospace",
+  ],
 });
 
 export const metadata: Metadata = {
@@ -172,7 +185,7 @@ export default function RootLayout({
             kookie"; `thin` after an hour at `regular`, judged live). Selectivity means this
             costs nothing at rest: popups pass it by construction, `backdrop`-marked controls
             take it, and every unmarked in-flow control still resolves solid. */}
-        <Theme appearance="inherit" material="thin">
+        <Theme appearance="inherit" material="regular">
           {children}
         </Theme>
         {/* Dev only: bare `o` outlines every box on the page. Null in a production build. */}

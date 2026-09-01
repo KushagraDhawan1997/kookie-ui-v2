@@ -23,6 +23,7 @@ import {
   controlEdgeLc,
   thumbFill,
   thumbLabel,
+  codeTheme,
   trackWellStep,
   trackWellStepHigh,
   solidBand,
@@ -786,6 +787,11 @@ export function contrastHighDeclarations(mode: Mode, gamut: Gamut = "srgb"): str
   // block left one control deaf to the one setting the system calls the conformance surface.
   // See trackWellStepHigh for why a band step and not a solve.
   out.push(decl("color-track", `var(--neutral-${trackWellStepHigh[mode]})`));
+  /* And the syntax theme, for the same reason and by the same rule (§15, 2026-09-01): this
+     scope re-declares every family's ink, and a custom property is substituted where it is
+     DECLARED — so without this line a code sample inside `contrast="high"` paints the standard
+     inks while every other word on the page has moved. */
+  for (const [name, value] of Object.entries(codeTheme)) out.push(decl(`code-${name}`, value));
   return out;
 }
 
@@ -968,6 +974,27 @@ export function colorDeclarations(
   // answers to the fill: a grip that carries a label needs one, and the two must move together
   // or the label goes invisible the next time the grip is re-priced.
   out.push(decl("color-thumb-label", thumbLabel[mode]));
+
+  /* The syntax theme (§15, 2026-09-01, shipped with `CodeBlock`) — the one role block whose
+     consumer is OUTSIDE this package. A highlighter pointed at the `--code-` prefix lands on
+     these names, and every one of them is a family's SOLVED ink, so a code sample is held to
+     the same contrast targets as the prose around it.
+
+     IN EVERY SCOPE THAT MOVES THE INKS, and the first spelling emitted it once at `:root` on
+     the argument that it names ROLES and a role is what carries the mode. The argument is
+     wrong in this system for the oldest reason in it: a custom property is substituted where
+     it is DECLARED (§6), so a `--code-token-keyword: var(--accent-ink)` written at the root
+     bakes the root's accent, and a light `<Theme>` inside a dark document then paints a code
+     sample in the dark family's inks. Measured, and caught by the law that walks all four of
+     the light palette's cases — which is the fourth time that rule has had to be re-learned.
+
+     Emitted here rather than in the component's stylesheet, and that is not a filing
+     preference: a component sheet may not name a family (`recipes.test.ts` walks every one of
+     them, and it is the law that caught the first spelling of this), because §7's tone
+     indirection exists so that a component never reaches past it. A theme is a cross-family
+     assignment, so it belongs where the families are declared. The assignments live in
+     `color-config.ts`, with everything else that is taste. */
+  for (const [name, value] of Object.entries(codeTheme)) out.push(decl(`code-${name}`, value));
 
   return out;
 }

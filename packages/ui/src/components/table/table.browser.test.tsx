@@ -70,6 +70,27 @@ describe("a table is the semantic element in a scroller (§36)", () => {
     expect(computed(table.querySelector("caption")!, "caption-side")).toBe("bottom");
   });
 
+  it("the caption starts where the first column's text does", () => {
+    /* THE NAME LINES UP WITH THE THING IT NAMES (2026-09-01, Kushagra: "table caption should be
+       padded so that its visually inline with table item text"). It stated only the block inset,
+       so it began at the table's own edge while every cell began one `--kui-tb-px` in —
+       measured, x=196 under a first column starting at 222, which reads as a stray line of
+       prose under the figure rather than as its name.
+
+       AN AGREEMENT, not a number: the caption and the cell read the SAME published token, and a
+       law that pinned a length would pass while the two drifted apart. Read as painted left
+       edges rather than as declarations, since that is the thing that was wrong. Falsified by
+       deleting the `padding-inline`, which puts the caption back at the table's own edge. */
+    const el = mounted(<Fixture caption />, { theme: {} });
+    const table = el.querySelector("table")!;
+    const caption = table.querySelector("caption")!;
+    const cell = table.querySelector("tbody td")!;
+    const textStart = (node: Element) =>
+      node.getBoundingClientRect().left + parseFloat(computed(node, "padding-left"));
+    expect(parseFloat(computed(cell, "padding-left")), "no cell inset to line up with").toBeGreaterThan(0);
+    expect(textStart(caption)).toBeCloseTo(textStart(cell), 1);
+  });
+
   it("a wide table scrolls inside its own box — the room around it never widens", () => {
     // 240px of room, one unbreakable 120-character cell. Without the wrapper's scroll the
     // table would push its parent wide; with it, the parent holds and the wrapper scrolls.

@@ -8,19 +8,6 @@
    presupposed (the seal's own comment calls a card "paper above the page"). The role resolves
    to exactly what was here, so nothing moves — which is the check on whether the name was
    honest. A page made of CARDS is --color-ground instead; see §10. */
-/* Reserve the scrollbar's gutter always (2026-08-16). Opening any anchored panel makes Base
-   UI lock the page — `body { overflow: hidden }`, with no gutter of its own — and on a
-   platform whose scrollbars take space that widens the content area by ~15px for as long as
-   the panel is open. Nothing moves sideways, because the page is left-aligned; what moves is
-   /preview's `wrap` specimen rows, which sit close enough to a wrap boundary that 15px pulls
-   a control up onto the previous line and everything below it jumps (measured: one row went
-   76px to 32px across a single boundary). Reserving the gutter makes the lock free. This is
-   the APP's line to write, not the library's: the library paints no page background for the
-   same reason — the page is the consumer's. */
-html {
-  scrollbar-gutter: stable;
-}
-
 /* The app states its own face (2026-08-28). §15 owns three family SLOTS and leaves the face to
    the consumer; this is the consumer. The package's default is the system stack, and that is
    still what anybody who states nothing gets.

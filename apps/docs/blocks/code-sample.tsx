@@ -36,11 +36,18 @@
  * reader nothing but the markup it produces. The client components are the copy button and,
  * only when the bound binds, the expand control.
  */
+/* THE STYLESHEET IS IMPORTED BY THE FILE THAT EMITS ITS CLASSES (2026-09-01). It used to be
+   imported at the top of the local `code-block.tsx`, and when that stub was deleted for the
+   package's own element nothing pulled `code.css` in any more — so `.kd-line` stopped being a
+   block, every line of every fence on the site ran together onto one line, and the whole suite
+   stayed green. The classes below are this file's, so the import is this file's; a law in
+   `blocks.test.tsx` now pairs the two. */
+import "./code.css";
+
 import * as React from "react";
-import { Chip, Flex, type Size } from "@kookie-ui/react";
+import { Chip, CodeBlock, Flex, type Size } from "@kookie-ui/react";
 
 import { FileIcon } from "../app/icons";
-import { CodeBlock } from "./code-block";
 import { CopyButton } from "./copy-button";
 import { Expandable } from "./expandable";
 import {
@@ -288,21 +295,7 @@ export function CodeSampleView({
      row means "name at one wall, action at the other", and with no name there is only the
      action, which takes the end. */
   const topbar = (
-    <Flex
-      align="center"
-      justify={name ? "space-between" : "end"}
-      gap="3"
-      p="4"
-      style={{
-        position: "absolute",
-        insetBlockStart: 0,
-        // Reaches the HOST's wall when the well is hosted and has none of its own — the
-        // `m="bleed"` mechanism (§3) said inline. `--kd-host-p` is published by the hosted
-        // wrapper (see the element) and is absent everywhere else, where the fallback makes
-        // this the plain `0` it has always been.
-        insetInline: "calc(-1 * var(--kd-host-p, 0px))",
-      }}
-    >
+    <Flex align="center" justify={name ? "space-between" : "end"} gap="3">
       {name}
       <CopyButton code={copyText} size={size} iconOnly />
     </Flex>

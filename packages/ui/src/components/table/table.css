@@ -50,10 +50,19 @@
   text-align: end;
 }
 
-/* The caption is the table's name, under it, quietly. */
+/* The caption is the table's name, under it, quietly.
+
+   IT STARTS WHERE THE COLUMN DOES (2026-09-01, Kushagra: "table caption should be padded so
+   that its visually inline with table item text"). It stated only the block inset, so it began
+   at the table's own edge while every cell beside it began one `--kui-tb-px` in — measured, the
+   caption at x=196 under a first column starting at 222. A caption is the table's name and a
+   name that does not line up with the thing it names reads as a stray line of prose under the
+   figure. The SAME token the cells read, so the two cannot drift and no second number exists to
+   keep in step. */
 .kui-table-el caption {
   caption-side: bottom;
   padding-block: var(--kui-tb-py);
+  padding-inline: var(--kui-tb-px);
   color: var(--color-text-muted);
   text-align: start;
 }

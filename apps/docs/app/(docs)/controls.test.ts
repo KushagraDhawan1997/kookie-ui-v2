@@ -13,7 +13,7 @@ import * as React from "react";
 import { Theme } from "@kookie-ui/react";
 
 import { CONTROLLED } from "./controlled-examples";
-import { controlsFor, inlineControls, sentinel, slotNode, slotStates } from "./controls";
+import { catalogEntryFor, controlsFor, inlineControls, sentinel, slotNode, slotStates } from "./controls";
 import { Example, readExampleSource, rootsOwnPane } from "./example";
 
 const SLUGS = Object.keys(CONTROLLED);
@@ -60,6 +60,44 @@ describe("every page that offers controls can drive one", () => {
     // Vacuity: the laws below are a loop over this set, and an empty set passes all of them.
     expect(SLUGS.length).toBeGreaterThan(2);
   });
+});
+
+/**
+ * A PAGE OFFERS THE MATERIAL WHERE ITS COMPONENT TAKES IT (2026-09-01, Kushagra: "Button
+ * supports backdrop, right? Shouldn't it be there?").
+ *
+ * The catalog half of this is in the builder's laws — a component that takes `backdrop` must
+ * have it in its schema. This is the other half, and it is a genuinely different failure: the
+ * schema can be right while `OFFERED` never lists the name, and then the knob a reader would
+ * use to see glass at all simply is not on the page. Both halves have to hold for the axis to
+ * be reachable, and neither implies the other.
+ *
+ * WRITTEN EXCEPTIONS, because one is real: a Box's `backdrop` marks a REGION for the panes
+ * inside it and paints nothing itself, so a knob on the Box page would move no pixels — the
+ * "knob that moves nothing" fault this file exists to prevent. It is stated rather than skipped
+ * silently, and the reason is checked for being a reason.
+ */
+describe("every page whose component takes the material offers it", () => {
+  const NO_KNOB: Record<string, string> = {
+    box: "A Box's backdrop marks a region for the panes inside it and paints nothing of its own, so the knob would move no pixels on a page whose specimen is the box itself.",
+  };
+
+  it("the catalog was reached — an empty walk audits nothing", () => {
+    expect(catalogEntryFor("button")?.props["backdrop"]).toBeDefined();
+  });
+
+  for (const slug of SLUGS) {
+    const entry = catalogEntryFor(slug);
+    if (!entry?.props["backdrop"]) continue;
+    it(`${slug} offers the backdrop knob`, () => {
+      if (NO_KNOB[slug]) {
+        expect(NO_KNOB[slug]!.length, `${slug}'s exception is too short to be a reason`).toBeGreaterThan(40);
+        return;
+      }
+      const names = controlsFor(slug, readExampleSource(slug)).map((c) => c.name);
+      expect(names, `${slug} can be asked for the theme's material and its page does not ask`).toContain("backdrop");
+    });
+  }
 });
 
 describe("the shown source is the source", () => {

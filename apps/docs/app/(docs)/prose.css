@@ -19,16 +19,30 @@
    80 is the ceiling anything technical is usually granted, so the column was about a quarter
    too wide — which is most of why a chapter read as a wall even before the rhythm was flat.
 
-   Narrowing the COLUMN would have paid for reading with the figures: at 40rem a fenced sample
-   loses 128px and starts scrolling sideways for lines that fit today. So the two are split.
-   Text takes `--kd-measure`; a figure keeps the column it is in. They share a left edge — one
-   axis, which is the alignment rule — and differ only on the right, which is the arrangement
-   the HIG and Material both use, for this reason.
+   IT IS A COLUMN WIDTH, AND A CHAPTER SIZES ITSELF BY IT (2026-09-01, Kushagra: "I dont like
+   that the title + specimen + the page desc. have a different width than prose"). He is right,
+   and what was here was the reason: the measure capped TEXT while the title, the deck and every
+   figure kept the column, so a chapter had two right edges — 640px of prose inside a 736px
+   column — and the wider one belonged to the blocks a reader is not reading. The argument for
+   the split was that narrowing the column pays for reading with the figures. That is a real
+   cost and it is smaller than it sounds: a fenced sample already scrolls (measured, the widest
+   line on this very page is 738px against a 673px well), so the split was buying width for
+   samples that overflow either way.
+
+   Which side gives is settled by measurement rather than by taste: prose at 40rem already
+   measures 80 characters, exactly the ceiling, so the column cannot come to the text — the text
+   has to be what the column is. `:root`, not `.kd-prose`, because a page now sizes its COLUMN
+   by this number and the column is the thing outside the prose.
+
+   THE CAP BELOW STAYS, and it is not redundant. `.kd-prose` is also used inside pages whose
+   column is deliberately wider than a reading column — a component page's API tables, the front
+   door's cards — where the text still owes the measure and the table still owes the room. On a
+   chapter, where the column IS the measure, both rules are inert by construction.
 
    Stated as `> *` with figures opting out, rather than the reverse, because there are three
    kinds of figure and every other block is prose; marking the minority is the smaller claim
    and it cannot go stale when a new prose element is mapped. */
-.kd-prose {
+:root {
   --kd-measure: 40rem;
 }
 
@@ -107,8 +121,9 @@
 
    The breakpoint is a WINDOW query rather than a container tier, and that is the §18
    distinction rather than laziness: this is a question about which interface shape the page
-   shows, not about how much room a component has been given. 64rem is where a 46rem reading
-   column plus this column plus the sidebar stop coexisting. */
+   shows, not about how much room a component has been given. 64rem is where the reading column
+   plus this column plus the sidebar stop coexisting — judged, not derived, which is why it did
+   not move when the column narrowed to the measure. */
 .kd-toc {
   position: sticky;
   inset-block-start: 0;
@@ -132,9 +147,10 @@
   }
 }
 
-/* The code theme (`.kd-code`) lives in `blocks/code.css`, beside the highlighter it is the
-   other half of — moved 2026-08-26 when the code element became a block, so the theme arrives
-   wherever the element renders rather than only where the docs chrome is imported. */
+/* The code theme lives in the PACKAGE now (2026-09-01), declared on `CodeBlock`: point a
+   highlighter's CSS-variables mode at `--code-token-` and every colour it emits resolves
+   against the system's own ink ladder. What is left in `blocks/code.css` is the block's half —
+   the line washes, the diff gutter and the line numbers the sample paints around the tokens. */
 
 /* The wordmark's face (2026-08-28). The variable is published on `<html>` by the root layout
    and consumed here and nowhere else, which is the whole containment story: nothing inherits
@@ -152,12 +168,14 @@
    `weight` prop where a reader of the markup will see it, rather than hidden in a stylesheet
    override. See the note beside it for what leaving it unsaid cost.
 
-   `line-height: 1` is the one thing a single glyph needs that a word did not. The type step's
-   line box is built for a run of text with room for descenders on both sides, and a lone
-   capital sits in the middle of it with visible air above and below that belongs to letters
-   that are not there — measured 48px of box around a 40px letter. Collapsing the box to the
-   glyph is what lets the mark sit at the pane's own padding instead of a dozen pixels inside
-   it. `display: block` because a line box cannot be collapsed on an inline element. */
+   `line-height: 1` is the one thing the mark needs that a paragraph does not. The type step's
+   line box is built for a run of text with room for descenders on both sides, and a display
+   step spends that room on letters this word does not have — measured 48px of box around a
+   40px capital when the mark was one letter, and the same air above and below the word now.
+   Collapsing the box to the ink is what lets the mark sit at the pane's own padding instead of
+   a dozen pixels inside it. `display: block` because a line box cannot be collapsed on an
+   inline element, and it is why the front door's mark measures its container's width while its
+   ink is a fraction of it. */
 .kd-wordmark {
   font-family: var(--kd-font-wordmark), var(--font-body);
 }

@@ -1,110 +1,25 @@
-/* ── The code theme ────────────────────────────────────────────────────────────────────────
-   Shiki emits `var(--kd-code-token-*)`; this is where those names become KookieUI colours.
-   Moved here from `prose.css` (2026-08-26) when the code element became a block: the theme is
-   the highlight mechanism's other half, so it lives beside `highlight.ts` and arrives wherever
-   the element renders — a /blocks page as much as a chapter — rather than only where the docs
-   chrome happened to import it.
+/* ── The author's annotations ──────────────────────────────────────────────────────────────
+   What is left here after the well itself became a package component (2026-09-01). The pane,
+   the scroller, the mono family, the bound and the syntax token contract are `CodeBlock`'s;
+   this file is the block's own half — the markup `code-sample.tsx` paints around the
+   highlighter's tokens, and the five ways an author says "look here".
 
-   Every one of them resolves to a SOLVED value — the ink ladder (§15, 2026-08-10) states two
-   contrast targets and the generator solves each family's fade against the harder of the seal
-   and the page, in both appearances. So the syntax colours are not a palette anybody picked:
-   they are the same numbers the rest of the type on the page is held to, which is the whole
-   argument for not shipping a stock highlight theme. Nothing here needs a dark variant,
-   because every token on the right-hand side already has one.
+   The colours the tokens themselves resolve to are NOT here and must not come back: they are
+   the package's, declared on the element, and Shiki is pointed at that prefix in
+   `highlight.ts`. A copy of them in this file would be the same decision in two homes.
 
-   The assignments themselves are taste, like every other pigment decision in this system,
-   and they are judged here. What is NOT taste is the shape: a token colour is a family's ink, and
-   a family means what §7 says it means. A keyword is the brand, because the language's own
-   vocabulary is the one constant in every sample. A string is green because a string is DATA.
-   Inserted/deleted/changed are the three status families, so a diff in the docs reads with the
-   same three colours a status callout would.
-
-   TWO HUES, NOT FOUR (2026-08-29, Kushagra: "I dont like the shiki theme were using"). It had
-   spent five colours — accent, blue, green, orange and the grey ladder — on a site whose whole
-   argument is that colour is derived rather than decorated. Identifiers take the FOREGROUND now:
-   a component name and a prop name are the subject of a KookieUI sample, and the subject reads
-   at full strength rather than in a hue picked to tell it from its neighbour. What is left
-   coloured is the language's vocabulary and the values, which is the one distinction a reader
-   of these samples actually makes.
-
-   IT WAS ALSO BROKEN, and by me, that morning. `--accent-ink` and `--blue-ink` are now
-   byte-identical — accent went back to blue's own recipe on 2026-08-29 — so `keyword` and
-   `function` painted one colour while the comment above claimed they were two decisions; the
-   same collapse hit `--success-ink` against `--green-ink`, which share green's hue by design.
-   Four assignments resolving to two colours is what a five-family palette buys you the day the
-   brand moves onto one of them. The palette below cannot repeat it: it spends `accent` once and
-   `green` once, and every other token is the grey ladder. The diff trio keeps the status
-   families, where `success ≡ green` is survivable because the line wash and the gutter marker
-   carry a diff, not the token colour. */
-.kd-code {
-  --kd-code-foreground: var(--color-text);
-  --kd-code-background: transparent;
-
-  --kd-code-token-comment: var(--color-text-muted);
-  --kd-code-token-keyword: var(--accent-ink);
-  --kd-code-token-string: var(--green-ink);
-  --kd-code-token-string-expression: var(--green-ink);
-  --kd-code-token-function: var(--color-text);
-  --kd-code-token-constant: var(--color-text);
-  --kd-code-token-parameter: var(--color-text);
-  --kd-code-token-punctuation: var(--color-text-muted);
-  --kd-code-token-link: var(--accent-ink);
-
-  --kd-code-token-inserted: var(--success-ink);
-  --kd-code-token-deleted: var(--destructive-ink);
-  --kd-code-token-changed: var(--warning-ink);
-}
-
-/* A fence sets its own measure — code is not reading-length text, and wrapping it would put a
-   line break somewhere the language does not have one. The ScrollArea around it is what makes
-   that safe. */
-.kd-code {
-  white-space: pre;
-}
-
-/* The inner <code> has to be TOLD to inherit, and the reason is the UA stylesheet (2026-08-29,
-   Kushagra: the fence "reads as menlo still"). The family is stated on the `<pre>`, which is the
-   type element; the `<code>` nested inside it carries the UA's own `font-family: monospace`, and
-   an author declaration on an ancestor does not beat a UA declaration on the element itself. So
-   every glyph in every fence was painting in whatever the reader's machine calls monospace while
-   the pre above it held the chosen face — invisible until 2026-08-29, because until that morning
-   `--font-mono` WAS the system stack and both answers were the same pixels. Menlo in the Rendered
-   Fonts panel is what showed it. */
-.kd-code code {
-  font-family: inherit;
-}
-
-/* ── The scroller's focus ring follows the pane's corner ───────────────────────────────────
-   The well's ScrollArea viewport is a keyboard tab stop, and the surface layer pulls it out
-   to the pane's edges — so its focus ring drew a sharp rectangle inside a squircle pane
-   (Kushagra, 2026-08-26). The viewport takes the pane's own corner expression (both hooks
-   inherit from the pane, and `corner-shape` shapes the outline as well as the box), so the
-   ring bends exactly as the pane does. A PACKAGE GAP wearing a local fix: every focusable
-   scroller directly inside any pane has this; the surface layer's own scroller rule should
-   own it — promote at integration. */
-.kd-code-well:not(.kd-code-hosted) > .kui-scroll-area > .kui-scroll-viewport {
-  border-radius: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1));
-}
-
-@supports (corner-shape: squircle) {
-  .kd-code-well:not(.kd-code-hosted) > .kui-scroll-area > .kui-scroll-viewport {
-    corner-shape: squircle;
-  }
-}
-
-/* ── Lines ─────────────────────────────────────────────────────────────────────────────────
    Each line is a block-level span (the renderer emits no "\n" between them), because a line
    is the unit the author points at: a wash, a marker gutter and a number all belong to the
    LINE, and an inline run has no box to carry them.
 
    The wash reaches the well's edges through the surface-padding hook — the `m="bleed"`
    mechanism (§3) said in CSS: the negative margin undoes the pane's inset, the padding puts
-   the text back, so an unwashed line renders byte-identically and a washed one paints
-   edge to edge. `max-content` + `min-inline-size` keep the wash covering the full scrolled
-   width rather than stopping at the viewport.
+   the text back, so an unwashed line renders byte-identically and a washed one paints edge to
+   edge. `max-content` + `min-inline-size` keep the wash covering the full scrolled width
+   rather than stopping at the viewport.
 
-   `min-block-size: 1lh` is what keeps an EMPTY line one line tall — a block span with no
-   text has no line box of its own. */
+   `min-block-size: 1lh` is what keeps an EMPTY line one line tall — a block span with no text
+   has no line box of its own. */
 .kd-line {
   display: block;
   inline-size: max-content;
@@ -114,11 +29,10 @@
   padding-inline: var(--kui-sf-p, 0px);
 }
 
-/* ── The author's annotations ──────────────────────────────────────────────────────────────
-   Five ways to say "look here", every colour a token. The washes are the families' own alpha
+/* Five ways to say "look here", every colour a token. The washes are the families' own alpha
    steps so they composite against the well's local ground; a diff's added and removed lines
-   are the status families — the same vocabulary the token colours below already speak
-   (inserted/deleted/changed). */
+   are the status families — the same vocabulary the token colours speak (inserted, deleted,
+   changed). */
 .kd-line-highlight {
   background: var(--neutral-a3);
 }
@@ -139,10 +53,10 @@
    every stand-down in the system, and `--disabled-dim` is the one token that already means
    "present, not current". A hover restores the whole block, because a reader leaning in has
    asked to inspect. */
-.kd-code.kd-focused .kd-line:not(.kd-line-focus) {
+.kd-focused .kd-line:not(.kd-line-focus) {
   opacity: var(--disabled-dim);
 }
-.kd-code.kd-focused:hover .kd-line {
+.kd-focused:hover .kd-line {
   opacity: 1;
 }
 
@@ -176,10 +90,10 @@
    CSS counters, never markup — the ecosystem's one unanimous answer — which is also what
    keeps a number out of every selection and every copy. Faint: a number is wayfinding, not
    content. */
-.kd-code.kd-numbered {
+.kd-numbered {
   counter-reset: kd-line;
 }
-.kd-code.kd-numbered .kd-line::before {
+.kd-numbered .kd-line::before {
   counter-increment: kd-line;
   content: counter(kd-line);
   display: inline-block;
@@ -187,128 +101,4 @@
   margin-inline-end: 1.5ch;
   text-align: end;
   color: var(--color-text-faint);
-}
-
-/* The floating chrome needs the pane as its containing block (2026-08-28). Stated here
-   rather than inline, because it is a fact about the WELL — its geometry lives in this file
-   with the rest of it. */
-.kd-code-well {
-  position: relative;
-}
-
-/* THE BOUND BINDS IN THE PACKAGE NOW (2026-09-01, Kushagra: "how will a consumer get it
-   right").
-
-   A local rule lived here making a hosted well and its scroller flex columns, because that is
-   what makes a `max-block-size` on a ScrollArea root definite: measured on the 198-line
-   sample, the root took its 480px and the viewport rendered 3984px inside it, so nothing
-   scrolled and the ground above it clipped the overflow into something that LOOKED bounded.
-   The standalone twin was right at the same moment for one reason only — it renders a
-   `Surface`, and `surfaces.css` gave any pane's direct-child scroller the flex column the
-   viewport needs.
-
-   Which is a promise `ScrollArea` makes in its own props (`children`: "a scroll region needs a
-   bounded height... state one here through `style`") and could only keep inside a pane. It
-   keeps it everywhere now: the root is a flex column and the viewport a flex item, so the
-   bound is definite wherever the scroller sits. Verified by deleting this rule and measuring
-   the same well — 480px viewport against 3984px of scroll, with nothing local left. */
-
-/* The scroller fills the pane on BOTH block edges (2026-08-28, Kushagra: "its still not full
-   height of the card").
-
-   surfaces.css bleeds a pane's scroller with `:first-child` / `:last-child`, which is right
-   for a pane whose siblings are in flow — a scroller under a heading must not bleed past it.
-   Our chrome row IS a sibling in the DOM and is NOT one in the layout: it is absolutely
-   positioned, so nothing above the scroller occupies space. The selectors cannot see that,
-   because CSS has no "first in-flow child", so the scroller matched `:last-child` alone and
-   the pane's top inset stayed outside it — measured, the scroll area sat 25px below the
-   card's top edge and content could never scroll into that band. Which is the whole point of
-   floating the row: the code has to pass all the way under it.
-
-   The re-pad goes back on the viewport in step, so the resting inset is unchanged and only
-   the SCROLLABLE region grew. A PACKAGE GAP wearing a local fix, like the corner rule above:
-   any pane with out-of-flow chrome over a scroller has this, and the surface layer's own
-   rule should learn to ignore an absolutely positioned sibling — promote at integration.
-
-   PROMOTED 2026-08-30, half of it: the package's edge-bleed now asks "first IN-FLOW child"
-   (`:nth-child(1 of :where(:not([data-float])))`), so a ShellPaneHeader/Footer no longer
-   blocks the bleed. This well's chrome is a hand-positioned row, not a marked part — the
-   package can only see its own vocabulary — so this local rule stays, doing for one block
-   what the promotion does for every marked one. */
-.kd-code-well > .kui-scroll-area {
-  margin-block: calc(-1 * var(--kui-sf-p));
-}
-
-/* A HOSTED well bleeds to its HOST's walls (2026-08-29, Kushagra: "in code sample even though
-   there is padding, scroll area container bleeds to edges, but that isnt the case with
-   specimen's code block").
-
-   The shared rule in surfaces.css keys on `.kui-surface > .kui-scroll-area`, and a hosted well
-   is deliberately not a surface — so it matched nothing, and the code scrolled inside a column
-   inset from the figure's edges while a standalone sample's scrolled wall to wall. The
-   horizontal scrollbar is the visible half of that: it belongs to the pane, so it must reach
-   the pane's edges.
-
-   `--kd-host-p` is the host's inset, published by the hosted wrapper for exactly this pair of
-   jobs (the floating chrome reaches out by it too). Bleed then re-pad, which is `m="bleed"`
-   said in CSS: the scroll REGION reaches the wall, the text stays where the reader expects it,
-   and no line moves by a pixel. */
-.kd-code-hosted > .kui-scroll-area {
-  margin-inline: calc(-1 * var(--kd-host-p, 0px));
-}
-.kd-code-hosted > .kui-scroll-area > .kui-scroll-viewport {
-  padding-inline: var(--kd-host-p, 0px);
-}
-
-/* THE BARS BELONG TO THE SCROLLER, NOT TO THE TEXT (2026-08-31, Kushagra: "why isnt it
-   touching?").
-
-   A rule lived here that pushed both bars inward by the host's inset, so a hosted well's bars
-   sat where its CODE COLUMN ends rather than where its scroller does. It was written 2026-08-31
-   against a real observation — the vertical bar with the host's padding between it and the
-   thing it scrolls — and the observation was misread: a bar outside the text column is what a
-   scroller looks like everywhere in this system. Measured against the standalone twin the same
-   complaint keeps naming as correct, a standalone well's bars sit 3px off the pane's walls
-   (its border plus `--scrollbar-inset`) on every edge; the rule put the hosted well's at 27,
-   and the 24 was the host's padding counted a second time.
-
-   So there is nothing here. The bleed puts the scroller on the pane's walls and Base UI pins
-   the bars to the scroller, which is the arrangement both wells now share by having no local
-   rule rather than by agreeing on one — and `--scrollbar-inset` stays the single home for how
-   far a bar sits from its own edge. */
-
-/* And the BLOCK edge it actually faces (2026-08-29, Kushagra: "its fixed horizontally but
-   vertically its the same thing — not touching the edges").
-
-   Only the END edge, and `:last-child` is what says so rather than an assumption written in a
-   comment. A standalone well bleeds BOTH block edges because the scroller is the whole of the
-   pane's content; a hosted one sits in a stack, so its start edge faces a sibling and a gap —
-   bleeding there would pull the code up into the space that separates it from the specimen.
-   Its end edge is the only one that faces a wall, and it faces one only while nothing follows
-   it. The selector matches the wrapper that publishes the inset, so the rule is off the moment
-   that stops being true.
-
-   IT FAILED FOR A WHILE BECAUSE SOMETHING DID FOLLOW IT (2026-09-01, Kushagra: "why isnt it
-   touching?"). The expand control was an absolutely positioned SIBLING of this wrapper — in the
-   DOM and not in the layout — and `:last-child` cannot tell those apart, so every bounded
-   hosted sample failed all three arms: measured on the 198-line shell sample, the scroller
-   ended at y=1398 against a pane wall at y=1423, with both bars 25px up the pane while the
-   inline edges reached the wall the whole time.
-
-   The repair is not a cleverer selector. That row belongs to the WELL, beside the topbar that
-   had already moved there, and once it does nothing follows this wrapper at all — so the
-   question `:last-child` asks is the right one and its answer is true. (`surfaces.css` filters
-   its own bleed arms on `[data-float]` for the case where a pane's chrome really is a sibling;
-   that marker was carried here for a day, and it went with the sibling it described.) */
-:last-child > .kd-code-hosted > .kui-scroll-area {
-  margin-block-end: calc(-1 * var(--kd-host-p, 0px));
-}
-:last-child
-  > .kd-code-hosted
-  > .kui-scroll-area
-  > .kui-scroll-viewport {
-  padding-block-end: var(--kd-host-p, 0px);
-}
-.kd-code-well > .kui-scroll-area > .kui-scroll-viewport {
-  padding-block: var(--kui-sf-p);
 }

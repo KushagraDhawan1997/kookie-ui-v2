@@ -1,21 +1,44 @@
 /* Accordion adds a hairline, a chevron's turn and a panel that travels by height (§11, §37).
  *
- * The trigger is a ROW — `kui-control kui-row` — so its box, its quiet rest, its pointer
- * light, its ring, its size join and its disabled remap all arrive from the shared layer and
- * this file says nothing about any of them. What is here is what only an accordion needs. */
+ * The trigger wears the control SKELETON — `kui-control` — so its box, its quiet rest, its
+ * ring, its size join and its disabled remap all arrive from the shared layer. It is NOT a row
+ * (2026-09-01): a row lights under the pointer because it is a line you pick from a list, and a
+ * heading you press is not one, so what this file adds is the heading's own hover — the label
+ * underlines, Link's mechanism — and nothing else the skeleton does not already say. */
 
 /* Items stack; each after the first is separated by the table's hairline, and each breathes
    `--kui-ac-py` between that hairline and its row (the join publishes it; the row itself stays
-   on the height ladder — the air is the item's, never the box's). */
+   on the height ladder — the air is the item's, never the box's).
+
+   THE LIST FILLS ITS CONTAINER (2026-09-01, Kushagra: the accordion "keeps changing its width
+   based on whats open"). A flex column inside a flex row shrink-wraps its widest child, so the
+   whole list breathed with whichever panel was open — Table's answer: the extent is the
+   container's, never the content's. */
 .kui-accordion {
   display: flex;
   flex-direction: column;
+  inline-size: 100%;
 }
 .kui-accordion-item {
+  position: relative;
   padding-block: var(--kui-ac-py);
 }
-.kui-accordion-item + .kui-accordion-item {
-  border-block-start: var(--border-width) solid var(--color-border);
+
+/* THE HAIRLINE DIVIDES THE LABELS, NOT THE ROWS (2026-09-01, Kushagra: "the separators extend
+   beyond the text, they go till hover boundary, and we recently fixed this with menu"). The
+   menu's own sentence: what the row lights is its highlight, what the reader groups is the
+   words, so the divider runs from where the text starts to where it ends. A border cannot be
+   inset without narrowing the row, so the line is a pseudo-element placed at the item's top
+   edge, inset by `--kui-ac-px` — the row's pill-corrected text inset the join publishes, the
+   same value the panel's words start at — and the row's own light keeps its wider box. */
+.kui-accordion-item + .kui-accordion-item::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: var(--kui-ac-px);
+  block-size: var(--border-width);
+  background-color: var(--color-border);
+  pointer-events: none;
 }
 
 /* The heading is a box, not a heading: no margin, no type of its own — the row inside it is
@@ -25,11 +48,42 @@
   font: inherit;
 }
 
-/* The row spans its section, reads from the start, and holds the chevron at the far end. */
+/* The heading spans its section, reads from the start, and holds the chevron at the far end.
+   The skeleton's medium weight applies — a heading over words read at the same step in the
+   full ink needs the rank, and the row family's stand-down to regular no longer reaches it
+   (Kushagra, 2026-09-01: "like button, the trigger should be a thicker weight").
+
+   NO FILL, IN ANY STATE. The quiet rung's hover step is a fill, and a fill under the pointer is
+   what a row does; a heading is not picked, so the triple is pinned transparent at every source
+   — all three, because a rule that moves one fill source moves them all (the fill-triple law),
+   and the disabled remap still reaches the ROLE names it rewrites. */
 .kui-accordion-trigger {
+  display: flex;
   inline-size: 100%;
   justify-content: space-between;
   text-align: start;
+  overflow-wrap: anywhere;
+  --kui-ct-fill-src: transparent;
+  --kui-ct-fill-src-hover: transparent;
+  --kui-ct-fill-src-active: transparent;
+  /* THE HOVER IS THE LABEL'S, NOT THE BOX'S — Link's mechanism verbatim (link.css): the
+     underline exists at rest in no colour and takes the ink under the pointer, so the change
+     is a PAINT and eases on the paint clock. The skeleton sets `text-decoration: none`; this
+     rule follows it in the cascade and states the line. The offset is in the glyphs' own em,
+     for the reason link.css and blockquote.css both give. The chevron is an svg, which a text
+     decoration never reaches. */
+  text-decoration-line: underline;
+  text-decoration-thickness: var(--border-width);
+  text-decoration-color: transparent;
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color var(--motion-duration) var(--motion-easing);
+}
+@media (hover: hover) {
+  /* Guarded like every hover rule in the system (§8): a touch device synthesises hover on tap
+     and holds it until the next tap. */
+  .kui-accordion-trigger:hover:not([data-disabled], :disabled) {
+    text-decoration-color: currentcolor;
+  }
 }
 
 /* The disclosure chevron: the tree's glyph in the row's trailing slot — the slot wrapper
@@ -83,6 +137,7 @@
 /* Stillness (§8): same selectors as the arrivals above, later in the file, so the stand-down
    wins by order and not by arithmetic. */
 @media (prefers-reduced-motion: reduce) {
+  .kui-accordion-trigger,
   .kui-accordion-chevron,
   .kui-accordion-panel {
     transition: none;

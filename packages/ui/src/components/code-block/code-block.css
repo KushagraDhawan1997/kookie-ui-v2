@@ -1,0 +1,139 @@
+/* ── CodeBlock ─────────────────────────────────────────────────────────────────────────────
+   The well, its scroller, its floating chrome, and the syntax token contract. Display and
+   position only: there is no state here, because there is none in the component.
+
+   Promoted from the docs' own block (2026-08-26 → 2026-09-01). Two rules in that file carried
+   the note "a PACKAGE GAP wearing a local fix — promote at integration", and both dissolve
+   here rather than moving: the well's chrome rows are marked `data-float`, so the surface
+   layer's own edge-bleed arms already ignore them, and the scroller's corner is stated once
+   for the one pane that pulls a focusable scroller out to its own edges. */
+
+/* The floating chrome's containing block. A fact about the WELL, so it lives with the rest of
+   the well's geometry rather than inline. */
+.kui-code-block {
+  position: relative;
+}
+
+/* ── The chrome's rows ─────────────────────────────────────────────────────────────────────
+   The ELEMENT places the row and the CALLER arranges what is in it. That split is the whole
+   of why the slot takes content rather than a positioned node: the row has to reach a wall
+   the caller cannot name — in a hosted well the pane belongs to somebody else — and asking a
+   call site to consume a private hook correctly is the `--kui-h` trap with extra steps.
+
+   IT SPANS THE PANE AND PADS ITSELF BY LESS THAN THE CODE DOES. The pane's inset is a READING
+   measure, the distance a line of code needs from a wall, and chrome is not reading matter.
+   So the row reaches both walls and puts a smaller number back: the controls sit closer to
+   the edge than the code, which is what says they belong to the pane rather than to the text.
+
+   `--kui-cb-host-p` is the host's inset, published by the hosted wrapper. It is absent
+   everywhere else, where the fallback makes this the plain `0` a standalone pane wants.
+
+   THE TWO ROWS DO NOT REST AT THE SAME DISTANCE, and that is carried over rather than decided:
+   the top row rests at a fixed layout step and the bottom one at the PANE's own inset, which
+   at the default index are 12 and 16. Both numbers were judged where they are, one at a time,
+   and neither was judged against the other — so unifying them is a taste call and not a
+   promotion's to make. It is stated here, in one place, instead of living in two call sites
+   where nobody could see that they disagree.
+
+   The bottom row asks for the pane's inset in the one spelling that is true in both
+   arrangements: a hosted well has zeroed its own `--kui-sf-p` and its wrapper has published
+   the HOST's, so the fallback chain reads whichever pane the row is actually resting in. An
+   index-keyed spelling was written first and is wrong twice over — a component stylesheet may
+   not branch on `data-size`, and a hosted well's size need not be its host's. */
+.kui-code-block-float {
+  position: absolute;
+  inset-inline: calc(-1 * var(--kui-cb-host-p, 0px));
+}
+.kui-code-block-float[data-edge="start"] {
+  inset-block-start: 0;
+  padding: var(--layout-space-4);
+}
+.kui-code-block-float[data-edge="end"] {
+  inset-block-end: 0;
+  padding: var(--kui-cb-host-p, var(--kui-sf-p, 0px));
+}
+
+/* ── The code ──────────────────────────────────────────────────────────────────────────────
+   A fence sets its own measure. Code is not reading-length text, and wrapping it would put a
+   line break somewhere the language does not have one — the ScrollArea around it is what
+   makes that safe. */
+.kui-code-block-code {
+  font-family: var(--font-mono);
+  white-space: pre;
+}
+
+/* The inner `<code>` has to be TOLD to inherit, and the reason is the UA stylesheet. The
+   family is stated on the `<pre>`, which is the type element; the `<code>` nested inside it
+   carries the UA's own `font-family: monospace`, and an author declaration on an ancestor
+   does not beat a UA declaration on the element itself. So every glyph paints in whatever the
+   reader's machine calls monospace while the pre above it holds the chosen face — invisible
+   for as long as `--font-mono` is that same system stack, and wrong the moment it is not. */
+.kui-code-block-code code {
+  font-family: inherit;
+}
+
+/* ── The syntax token contract ─────────────────────────────────────────────────────────────
+   This package ships no highlighter. What it ships is the THEME, and the theme is NOT here:
+   the `--code-token-*` names are emitted into `tokens.css` per appearance, from `codeTheme` in
+   the colour config, because every one of them resolves to a family's solved ink and a
+   component stylesheet may not name a family (§7's tone indirection, enforced by the walk in
+   `recipes.test.ts` — which is the law that caught the first spelling of this file).
+
+   Point a highlighter's CSS-variables mode at the `--code-` prefix and it lands there. Nothing
+   is needed on this element for that to work: the names are declared on the theme scope and
+   they inherit. */
+
+/* ── The scroller's focus ring follows the pane's corner ───────────────────────────────────
+   The viewport is a keyboard tab stop, and the surface layer pulls it out to the pane's
+   edges — so without this its focus ring draws a sharp rectangle inside a squircle pane. It
+   takes the pane's own corner expression (both hooks inherit from the pane, and `corner-shape`
+   shapes the outline as well as the box), so the ring bends exactly as the pane does.
+
+   Stated for this component rather than for every pane-hosted scroller, and that scope is
+   deliberate: a border-radius on a viewport clips its own content at the corners, which is
+   harmless for a well whose content is inset text and is not harmless for a panel of rows
+   that reach the walls. The general rule stays an open question. */
+.kui-code-block:not([data-hosted]) > .kui-scroll-area > .kui-scroll-viewport {
+  border-radius: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1));
+}
+
+@supports (corner-shape: squircle) {
+  .kui-code-block:not([data-hosted]) > .kui-scroll-area > .kui-scroll-viewport {
+    corner-shape: squircle;
+  }
+}
+
+/* ── A hosted well bleeds to its HOST's walls ──────────────────────────────────────────────
+   The surface layer's bleed keys on `.kui-surface > .kui-scroll-area`, and a hosted well is
+   deliberately not a surface — so it matches nothing, and the code scrolls inside a column
+   inset from the host's edges while a standalone well's scrolls wall to wall. The horizontal
+   scrollbar is the visible half of that: it belongs to the pane, so it must reach the pane's
+   edges.
+
+   Bleed then re-pad, which is `m="bleed"` (§3) said in CSS: the scroll REGION reaches the
+   wall, the text stays where the reader expects it, and no line moves by a pixel. */
+.kui-code-block[data-hosted] > .kui-scroll-area {
+  margin-inline: calc(-1 * var(--kui-cb-host-p, 0px));
+}
+.kui-code-block[data-hosted] > .kui-scroll-area > .kui-scroll-viewport {
+  padding-inline: var(--kui-cb-host-p, 0px);
+}
+
+/* And the BLOCK edge it actually faces. Only the END edge, and `:last-child` is what says so
+   rather than an assumption written in a comment: a standalone well bleeds both block edges
+   because the scroller is the whole of the pane's content, and a hosted one sits in a stack,
+   so its start edge faces a sibling and a gap — bleeding there would pull the code up into
+   the space that separates it from what precedes it. Its end edge is the only one that faces
+   a wall, and it faces one only while nothing follows it. The selector matches the wrapper
+   that publishes the inset, so the rule is off the moment that stops being true.
+
+   This is also why both chrome rows are the element's own children rather than siblings of
+   it: an absolutely positioned sibling is in the DOM and not in the layout, `:last-child`
+   cannot tell those apart, and a bounded hosted well then ends an inset short of the wall it
+   is supposed to reach. */
+:last-child > .kui-code-block[data-hosted] > .kui-scroll-area {
+  margin-block-end: calc(-1 * var(--kui-cb-host-p, 0px));
+}
+:last-child > .kui-code-block[data-hosted] > .kui-scroll-area > .kui-scroll-viewport {
+  padding-block-end: var(--kui-cb-host-p, 0px);
+}

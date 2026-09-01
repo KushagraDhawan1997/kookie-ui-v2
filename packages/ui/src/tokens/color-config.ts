@@ -415,6 +415,57 @@ export const thumbLabel = {
 } as const;
 
 /**
+ * §15 — the syntax theme: what a highlighter's token classes are made of.
+ *
+ * This package ships no highlighter. What it ships is the THEME, and this is where the
+ * assignments live, because they are pigment decisions and every pigment decision in this
+ * system is a config line. Point a highlighter's CSS-variables mode at the `--code-` prefix
+ * and every colour it emits resolves through the names below.
+ *
+ * That is the load-bearing part. A stock highlight theme is a palette somebody else picked at
+ * contrasts nobody measured — the one place a design system usually gives up and ships a
+ * photograph of an editor. Every value here is a family's SOLVED ink: `inkLc` states two
+ * contrast targets and the generator solves each family's fade against the harder of the seal
+ * and the page, in both appearances. So a code sample is held to the same numbers as the
+ * prose around it, and nothing here needs a dark variant, because every name on the right
+ * already has one.
+ *
+ * The assignments are taste. What is NOT taste is the shape: a token colour is a family's ink,
+ * and a family means what §7 says it means. A keyword is the brand, because the language's own
+ * vocabulary is the one constant in every sample. A string is green because a string is DATA.
+ * Inserted, deleted and changed are the three status families, so a diff reads in the same
+ * three colours a status message does.
+ *
+ * TWO HUES, NOT FOUR. The first cut spent five families — accent, blue, green, orange and the
+ * grey ladder — on a system whose whole argument is that colour is derived rather than
+ * decorated, and two of the five collapsed onto one colour each the day the brand moved onto
+ * blue's own recipe (`accent-ink` ≡ `blue-ink`, `success-ink` ≡ `green-ink`). Identifiers take
+ * the FOREGROUND: a component name and a prop name are the subject of a sample, and the
+ * subject reads at full strength rather than in a hue picked to tell it from its neighbour.
+ * What stays coloured is the language's vocabulary and its values, which is the one
+ * distinction a reader actually makes. This palette cannot repeat that collapse — it spends
+ * `accent` once and `green` once, and everything else is the grey ladder.
+ */
+export const codeTheme = {
+  foreground: "var(--color-text)",
+  background: "transparent",
+
+  "token-comment": "var(--color-text-muted)",
+  "token-keyword": "var(--accent-ink)",
+  "token-string": "var(--green-ink)",
+  "token-string-expression": "var(--green-ink)",
+  "token-function": "var(--color-text)",
+  "token-constant": "var(--color-text)",
+  "token-parameter": "var(--color-text)",
+  "token-punctuation": "var(--color-text-muted)",
+  "token-link": "var(--accent-ink)",
+
+  "token-inserted": "var(--success-ink)",
+  "token-deleted": "var(--destructive-ink)",
+  "token-changed": "var(--warning-ink)",
+} as const;
+
+/**
  * The APCA floors (§7) — WCAG-anchored, so NOT taste numbers: body is the AA-equivalent Lc 60
  * every label pairing must clear, aaa the Lc 75 `contrast="high"` raises it to, nonText the
  * Lc 45 floor for the focus ring and the invalid edge (WCAG 1.4.11's territory). WHERE they

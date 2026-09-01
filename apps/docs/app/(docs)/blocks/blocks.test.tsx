@@ -71,6 +71,109 @@ describe("the file walk, both directions", () => {
   });
 });
 
+/**
+ * A BLOCK INVENTS NO VALUE (2026-09-01).
+ *
+ * This is the condition the whole arrangement rests on and it had no law: a block is copied
+ * source, and copied source is only safe while every colour and distance in it resolves through
+ * the package (THESIS §6 — the center stays in the dependency). One stylesheet was covered, by
+ * a law about `code.css`'s syntax tokens specifically; nothing said the general thing, so the
+ * second block's stylesheet could have shipped a hex and a 12px and no law would have moved.
+ *
+ * ABSOLUTE lengths only. `em`, `ch` and `%` are allowed and are not an exemption: a length
+ * relative to the type is a property of the glyphs it sits with, which is the argument `Code`'s
+ * padding, `Kbd`'s box and `Breadcrumb`'s underline offset all make inside the package. A `px`
+ * is a decision about how big something is on a screen, and that decision is the system's.
+ *
+ * `0px` passes, because zero is the same length in every unit — it is a fallback for a var()
+ * that has not been declared, not a size anybody chose.
+ */
+describe("no block stylesheet decides a value the package decides", () => {
+  const stylesheets = readdirSync(blocksDir).filter((name) => name.endsWith(".css"));
+
+  it("the walk found stylesheets — an empty walk audits nothing", () => {
+    expect(stylesheets.length).toBeGreaterThan(1);
+  });
+
+  for (const name of stylesheets) {
+    it(`${name} names no colour and no absolute length`, () => {
+      // Comments are prose about the system and quote its values by name; the stripper is why
+      // this law does not fire on its own documentation (the package's own laws learned this).
+      const css = source(name).replace(/\/\*[\s\S]*?\*\//g, "");
+      expect(css, `${name} writes a literal colour`).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
+      expect(css, `${name} writes a colour function`).not.toMatch(
+        /\b(rgba?|hsla?|oklch|oklab|color)\s*\(/,
+      );
+      const absolute = [...css.matchAll(/(?<![\w-])(\d*\.?\d+)(px|rem|pt|cm|mm|in)\b/g)].filter(
+        (match) => Number(match[1]) !== 0,
+      );
+      expect(
+        absolute.map((match) => match[0]),
+        `${name} writes an absolute length — a distance is the system's`,
+      ).toEqual([]);
+    });
+  }
+});
+
+/**
+ * THE FOOTER'S TWO GUARANTEES (2026-09-01), which are the two things it owns beyond arrangement.
+ *
+ * Read off the RENDERED markup rather than the source, because both are claims about what a
+ * screen reader is handed. The demo is the fixture on purpose: it is four groups plus a legal
+ * row, so "every nav" and "the first nav" cannot agree by accident — a one-group fixture would
+ * pass with the id built from a constant instead of from the index.
+ */
+describe("the footer names what it navigates", () => {
+  const markup = async () => {
+    const block = BLOCK_BY_SLUG.get("footer")!;
+    return renderToStaticMarkup(await block.demo());
+  };
+
+  it("every navigation region carries a name, and the names are the columns", async () => {
+    const html = await markup();
+    const navs = [...html.matchAll(/<nav\b[^>]*>/g)].map((match) => match[0]);
+    expect(navs.length, "the fixture must have several regions or this proves nothing").toBeGreaterThan(3);
+    for (const nav of navs) {
+      const labelled = /aria-labelledby="([^"]+)"/.exec(nav);
+      const label = /aria-label="([^"]+)"/.exec(nav);
+      expect(
+        Boolean(labelled ?? label),
+        `a footer nav has no accessible name: ${nav}`,
+      ).toBe(true);
+      if (labelled) {
+        // The id must resolve to an element that says something — a name pointing at nothing
+        // is the failure this law exists for, and it looks identical in the markup.
+        const target = new RegExp(`id="${labelled[1]}"[^>]*>([^<]+)`).exec(html);
+        expect(target?.[1]?.trim(), `${labelled[1]} names nothing`).toBeTruthy();
+      }
+    }
+  });
+
+  it("a column of links is a list", async () => {
+    const html = await markup();
+    // The `<ul>` is why a screen reader can say "list of five items" before reading them, which
+    // is the whole reason the element was chosen over a stack of divs.
+    expect(html).toMatch(/<ul[^>]*class="[^"]*kb-footer-list/);
+    expect((html.match(/<li>/g) ?? []).length).toBeGreaterThan(8);
+  });
+
+  it("the resting rank is the ink role, not a colour this file repaints", () => {
+    /* The first spelling wrote `color: var(--color-text-muted)` here and it LOST — `Text` stamps
+       `data-emphasis="loud"`, and `.kui-type[data-emphasis="loud"]` outranks a bare class, so
+       the link painted full ink while the stylesheet said otherwise. The repair was to stop
+       stating the colour twice: `emphasis="medium"` IS the muted role. This holds that, because
+       the tempting fix is to paste the declaration back with more specificity.
+
+       Falsified by restoring `color: var(--color-text-muted)` to the resting rule. */
+    const css = source("footer.css").replace(/\/\*[\s\S]*?\*\//g, "");
+    const resting = /\.kb-footer-link\s*\{([^}]*)\}/.exec(css);
+    expect(resting, "the resting rule is gone — this law now reads nothing").toBeTruthy();
+    expect(resting![1], "the resting colour has one home, and it is the ink role").not.toMatch(
+      /(^|[^-])color:/,
+    );
+  });
+});
+
 describe("every demo renders", () => {
   it("to real markup", async () => {
     // `demo()` resolves the async server component before anything renders, so the tree
@@ -89,7 +192,7 @@ describe("every demo renders", () => {
     const markup = renderToStaticMarkup(
       await CodeSample({ code: 'const greeting = "hello"\n', lang: "ts" }),
     );
-    expect(markup).toContain("--kd-code-token-");
+    expect(markup).toContain("--code-token-");
     expect(markup).toContain("Copy");
   });
 });
@@ -213,7 +316,7 @@ describe("the bound and the numbers", () => {
     expect(padding(named), "a named row must clear the first line").toContain("control-height");
 
     const alone = renderToStaticMarkup(await CodeSample({ code: FIVE_LINES, lang: "tsx" }));
-    expect(alone, "the unnamed sample still floats its copy button").toContain("kd-code-well");
+    expect(alone, "the unnamed sample still floats its copy button").toContain("kui-code-block-float");
     expect(padding(alone), "a lone copy button reserves nothing").toBe(null);
   });
 
@@ -260,7 +363,7 @@ describe("the bound and the numbers", () => {
       const button = markup.indexOf("Show all");
       expect(button, `hosted=${hosted}: no expand control rendered`).toBeGreaterThan(-1);
       // The well's own element: back up from its class to the `<` that opens the tag.
-      const cls = markup.indexOf("kd-code-well");
+      const cls = markup.indexOf("kui-code-block");
       expect(cls, `hosted=${hosted}: no well rendered`).toBeGreaterThan(-1);
       const open = markup.lastIndexOf("<", cls);
       expect(
@@ -291,7 +394,7 @@ describe("the bound and the numbers", () => {
     );
     const plain = renderToStaticMarkup(await CodeSample({ code: FIVE_LINES, lang: "bash" }));
     expect(numbered).toContain("kd-numbered");
-    expect(ids(numbered).replace(" kd-code kd-numbered", " kd-code")).toBe(ids(plain));
+    expect(ids(numbered).replace("kui-code-block-code kd-numbered", "kui-code-block-code")).toBe(ids(plain));
   });
 });
 
@@ -329,34 +432,112 @@ describe("the fence meta vocabulary", () => {
   });
 });
 
-describe("the stub is a stub, and the swap cannot be forgotten", () => {
-  it("the package does not ship CodeBlock yet", () => {
-    // THE SWAP LAW. The day this fails is the day the package exports the block-level code
-    // element: change `code-sample.tsx` to import it from `@kookie-ui/react`, delete
-    // `blocks/code-block.tsx`, remove it from the registry's files, and rewrite this law to
-    // assert the import instead.
-    // The calibration half: prove the namespace is the real package before trusting its
-    // absence — an import resolving to an empty module would pass the line below vacuously.
-    expect("Code" in Kookie).toBe(true);
-    expect(
-      "CodeBlock" in Kookie,
-      "the package now exports CodeBlock — swap the stub (see this law's comment)",
-    ).toBe(false);
+describe("the well is the package's, and the block owns none of it", () => {
+  it("the block reaches CodeBlock through the package", () => {
+    /* THE SWAP LAW, THE OTHER WAY ROUND (2026-09-01). It used to assert the package did NOT
+       export `CodeBlock`, so that the day the element shipped the suite failed and named the
+       one-import swap. The element has shipped, the stub is deleted, and the law now asserts
+       what replaced it: the block imports the well from the dependency, and there is no local
+       module for it to fall back to.
+
+       Both halves matter. The import alone would still pass if somebody re-created the stub
+       and shadowed the name, so the export is read off the real package too — the calibration
+       the old spelling already carried, kept for the same reason. */
+    expect("CodeBlock" in Kookie, "the package must export the block-level code element").toBe(
+      true,
+    );
+    for (const file of ["code-sample.tsx", "expandable.tsx"]) {
+      expect(source(file), `${file} must take the well from the package`).toMatch(
+        /import \{[^}]*\bCodeBlock\b[^}]*\} from "@kookie-ui\/react"/s,
+      );
+      expect(source(file), `${file} must not re-grow a local well`).not.toContain(
+        'from "./code-block"',
+      );
+    }
   });
 
-  it("the block consumes the stub through one import", () => {
-    // Reading source, stated honestly: what this catches is the pairing being quietly
-    // dropped — a chrome that stops using the element makes the swap a lie.
-    expect(source("code-sample.tsx")).toContain('from "./code-block"');
+  it("every class a block paints is dressed by a stylesheet something imports", () => {
+    /* THE ORPHANED STYLESHEET (2026-09-01, Kushagra: "why is it inline now, the code").
+
+       `code.css` was imported at the top of the local `code-block.tsx`. Deleting that stub for
+       the package's own element took the import with it, so nothing pulled the stylesheet in:
+       `.kd-line` stopped being a block, and every line of every fence on the site ran together
+       onto one line. 891 docs laws and 2372 package laws were green throughout, because a
+       stylesheet's classes are strings in one file and its rules are strings in another, and
+       nothing had ever asked whether the two meet.
+
+       So the law pairs them by NAME rather than by any one file's import list: for each class
+       a block's source paints, some source file in `blocks/` must both define it in CSS and
+       import that CSS. Reading membership on both sides is what makes it survive the rename —
+       the fault was not a missing rule and not a missing class, it was the join between them.
+
+       Falsified by removing the import line from `code-sample.tsx`, which is the defect. */
+    const files = readdirSync(blocksDir).filter((f) => f.endsWith(".tsx") || f.endsWith(".ts"));
+    const sheets = readdirSync(blocksDir).filter((f) => f.endsWith(".css"));
+    expect(sheets.length, "no block stylesheets found — this law stopped reading").toBeGreaterThan(0);
+
+    // Which stylesheets are actually pulled into the bundle, and by whom.
+    const imported = new Set<string>();
+    for (const file of files) {
+      for (const m of source(file).matchAll(/import "\.\/([^"]+\.css)"/g)) imported.add(m[1]!);
+    }
+
+    for (const sheet of sheets) {
+      expect(
+        imported.has(sheet),
+        `${sheet} is never imported — its rules do not reach the page, and nothing else here would say so`,
+      ).toBe(true);
+    }
+
+    // And the other direction: a class a block paints must be defined in one of them. Scoped
+    // to the `kd-` prefix, which is this app's own namespace — `kui-` classes are the
+    // package's and are dressed by the package's stylesheet.
+    const rules = sheets.map((s) => source(s)).join("\n");
+    const painted = new Set<string>();
+    for (const file of files) {
+      for (const m of source(file).matchAll(/["'`\s](kd-[a-z0-9-]+)/g)) painted.add(m[1]!);
+    }
+    expect(painted.size, "no kd- classes found in any block — this law stopped reading").toBeGreaterThan(3);
+    for (const cls of painted) {
+      expect(rules, `.${cls} is painted by a block and defined by no block stylesheet`).toContain(
+        `.${cls}`,
+      );
+    }
   });
 
-  it("the stub decides nothing — no hex, no raw px", () => {
-    // The discipline that makes the swap free. A hex colour or a pixel literal in the stub is
-    // a decision the package would not have made, and it would ship into the copied block.
-    const stub = source("code-block.tsx");
-    expect(stub).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
-    // Nonzero px only: `var(--kui-sf-p, 0px)` is the identity fallback for an unresolved
-    // hook — the package's own spelling — not a length anybody chose.
-    expect(stub).not.toMatch(/[1-9]\d*px/);
+  it("the block's stylesheet decides no colour the package already decides", () => {
+    /* The theme moved WITH the element — Shiki is pointed at `--kui-code-token-` and the
+       package resolves those names against the solved ink ladder. A copy of them here would be
+       the same decision in two homes, and it would win, because this file loads after the
+       package's stylesheet. What is left in `code.css` is the block's own markup: line washes,
+       the diff gutter, line numbers.
+
+       Falsified by pasting one `--kd-code-token-*` declaration back. */
+    const css = source("code.css");
+    expect(css, "the token contract belongs to the element").not.toMatch(/--kd-code-token-/);
+    expect(css, "and so does the mono family and the fence's own measure").not.toMatch(
+      /font-family|white-space/,
+    );
+    // The calibration half: prove this file still says something, so the assertions above are
+    // not passing against an empty stylesheet.
+    expect(css).toContain(".kd-line");
+  });
+
+  it("the block writes no geometry the well already owns", () => {
+    /* The chrome rows are the ELEMENT's children now, placed by it, and that is what lets the
+       surface layer's own edge-bleed arms ignore them (`data-float`). A call site that
+       positions its own row is the arrangement the promotion removed: two rows hanging from
+       two different boxes, which in a hosted well have different bottoms.
+
+       Read off the block's source, because the fault is a call site writing `position:
+       absolute` again — the rendered markup would look plausible either way. */
+    for (const file of ["code-sample.tsx", "expandable.tsx"]) {
+      expect(source(file), `${file} must not place its own chrome`).not.toMatch(
+        /position:\s*"absolute"/,
+      );
+      expect(source(file), `${file} must not reach for the well's private inset`).not.toContain(
+        "--kui-cb-host-p",
+      );
+    }
   });
 });

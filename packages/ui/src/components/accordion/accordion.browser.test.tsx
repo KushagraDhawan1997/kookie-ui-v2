@@ -1,8 +1,8 @@
 /**
  * Accordion's laws, mounted (§11, §37).
  *
- * The trigger is a row-family member, so its laws are AGREEMENTS with a mounted Button at
- * the same index (the height ladder — a standing row rides it) and with the row family's own
+ * The trigger wears the control skeleton (not a row — 2026-09-01), so its laws are AGREEMENTS
+ * with a mounted Button at the same index (the height ladder) and with the control family's own
  * quiet rest. What is the accordion's alone: the panel's words start under the trigger's
  * label at every index (the join publishes the row's own pick), the hairline between items
  * is the Separator's, the chevron turns when the panel opens, and one-open is the default
@@ -14,6 +14,7 @@ import { userEvent } from "vitest/browser";
 import { SIZES, computed, inMotion, mounted, until } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Separator } from "../separator/separator.tsx";
+import { Text } from "../text/text.tsx";
 import { Accordion, AccordionItem, AccordionPanel, AccordionTrigger } from "./accordion.tsx";
 
 function Fixture(props: { size?: "1" | "2" | "3" | "4"; multiple?: boolean; open?: boolean; keepMounted?: boolean }) {
@@ -40,7 +41,7 @@ const triggersOf = (root: HTMLElement) => Array.from(root.querySelectorAll<HTMLE
 const openPanels = (root: HTMLElement) =>
   Array.from(root.querySelectorAll<HTMLElement>(".kui-accordion-panel")).filter((p) => !p.hidden);
 
-describe("the trigger is a row standing on the height ladder (§21, §37)", () => {
+describe("the trigger is a heading on the height ladder — a control, not a row (§37)", () => {
   it("is a heading holding a button that announces its panel", () => {
     const root = mounted(<Fixture open />, { theme: {} });
     const trigger = triggersOf(root)[0]!;
@@ -48,7 +49,11 @@ describe("the trigger is a row standing on the height ladder (§21, §37)", () =
     expect(trigger.parentElement!.tagName).toBe("H3");
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
     expect(trigger.getAttribute("aria-controls")).toBe(root.querySelector(".kui-accordion-panel")!.id);
-    expect(trigger.classList.contains("kui-row")).toBe(true);
+    // A control, NOT a row (2026-09-01, Kushagra: "is it a row tho?"): a heading you press
+    // is not a line you pick, so it neither wears the row class nor asks for the row's light.
+    expect(trigger.classList.contains("kui-control")).toBe(true);
+    expect(trigger.classList.contains("kui-row")).toBe(false);
+    expect(trigger.hasAttribute("data-hover-lit")).toBe(false);
     expect(trigger.getAttribute("data-emphasis")).toBe("quiet");
   });
 
@@ -72,6 +77,11 @@ describe("the trigger is a row standing on the height ladder (§21, §37)", () =
       const trigger = triggersOf(root)[0]!;
       expect(computed(trigger, "min-height")).toBe(computed(button, "min-height"));
       expect(computed(trigger, "font-size")).toBe(computed(button, "font-size"));
+      // A heading, not a list line (2026-09-01): it wears Button's weight, and ranks above the
+      // panel's words, which read at the same step in the full ink.
+      expect(computed(trigger, "font-weight")).toBe(computed(button, "font-weight"));
+      const words = root.querySelector<HTMLElement>(".kui-accordion-panel-body")!;
+      expect(parseInt(computed(trigger, "font-weight"))).toBeGreaterThan(parseInt(computed(words, "font-weight")));
       expect(trigger.getBoundingClientRect().width).toBeCloseTo(root.getBoundingClientRect().width, 0);
       // The panel body's inline inset IS the row's — read as computed padding on both.
       const body = root.querySelector<HTMLElement>(".kui-accordion-panel-body")!;
@@ -98,13 +108,77 @@ describe("the trigger is a row standing on the height ladder (§21, §37)", () =
     );
   });
 
-  it("items are separated by the Separator's hairline, and the first has none above it", () => {
+  it("under the pointer the label underlines and the box does not fill — Link's hover, not a row's", async () => {
+    // The fill light is what a row does because a row is picked from a list; a heading is
+    // not, so its hover is the label's (2026-09-01). Read as the two computed values that
+    // could each be wrong: the fill must stay transparent, and the underline must take the ink.
+    const root = mounted(<Fixture />, { theme: {} });
+    const trigger = triggersOf(root)[0]!;
+    const ink = computed(trigger, "color");
+    expect(computed(trigger, "background-color")).toBe("rgba(0, 0, 0, 0)");
+    expect(computed(trigger, "text-decoration-line")).toBe("underline");
+    expect(computed(trigger, "text-decoration-color")).toBe("rgba(0, 0, 0, 0)");
+    await userEvent.hover(trigger);
+    await until(() => computed(trigger, "text-decoration-color") === ink);
+    expect(computed(trigger, "text-decoration-color")).toBe(ink);
+    expect(computed(trigger, "background-color")).toBe("rgba(0, 0, 0, 0)");
+    await userEvent.unhover(trigger);
+  });
+
+  it("fills its container, whatever is open — the extent is the container's, never a panel's", () => {
+    // Inside a flex ROW (the shape the playground and any toolbar-like composition put it in)
+    // a flex column shrink-wraps its widest child, so the list breathed with whichever panel
+    // was open (2026-09-01, Kushagra). Table's answer, law-read in the arrangement that fails.
+    const host = mounted(
+      <div style={{ display: "flex", width: 480 }}>
+        <Fixture />
+      </div>,
+      { theme: {} },
+    );
+    const root = host.querySelector<HTMLElement>(".kui-accordion")!;
+    expect(root.getBoundingClientRect().width).toBeCloseTo(480, 0);
+    const closed = mounted(
+      <div style={{ display: "flex", width: 480 }}>
+        <Accordion>
+          <AccordionItem value="a">
+            <AccordionTrigger>Aa</AccordionTrigger>
+            <AccordionPanel>Short</AccordionPanel>
+          </AccordionItem>
+        </Accordion>
+      </div>,
+      { theme: {} },
+    );
+    expect(closed.querySelector<HTMLElement>(".kui-accordion")!.getBoundingClientRect().width).toBeCloseTo(480, 0);
+  });
+
+  for (const size of SIZES) {
+    it(`size ${size}: the panel's plain words take the heading's own step`, () => {
+      // "The expanded text doesnt respond to size" (2026-09-01): the body wears the type join
+      // at the identity step, so words written straight into the panel scale with the section.
+      const root = mounted(<Fixture size={size} open />, { theme: {} });
+      const text = mounted(<Text size={size}>x</Text>, { theme: {} });
+      const body = root.querySelector<HTMLElement>(".kui-accordion-panel-body")!;
+      expect(computed(body, "font-size")).toBe(computed(text, "font-size"));
+      expect(computed(body, "line-height")).toBe(computed(text, "line-height"));
+    });
+  }
+
+  it("items are separated by the Separator's hairline, inset to the labels, and the first has none above it", () => {
     const root = mounted(<Fixture />, { theme: {} });
     const separator = mounted(<Separator />, { theme: {} });
     const items = Array.from(root.querySelectorAll<HTMLElement>(".kui-accordion-item"));
-    expect(computed(items[0]!, "border-top-style")).toBe("none");
-    expect(computed(items[1]!, "border-top-width")).toBe(computed(separator, "height"));
-    expect(computed(items[1]!, "border-top-color")).toBe(computed(separator, "background-color"));
+    expect(getComputedStyle(items[0]!, "::before").content).toBe("none");
+    const line = getComputedStyle(items[1]!, "::before");
+    expect(line.height).toBe(computed(separator, "height"));
+    expect(line.backgroundColor).toBe(computed(separator, "background-color"));
+    // The line divides the LABELS (2026-09-01, the menu's sentence): it starts where the
+    // row's text starts and ends where it ends, while the row's own light keeps the full box.
+    const trigger = triggersOf(root)[1]!;
+    expect(line.left).toBe(computed(trigger, "padding-left"));
+    // Symmetric — the same text inset at both ends (the trailing side's own padding is the
+    // plain pick, because the chevron's slot stands between the text and the curve).
+    expect(line.right).toBe(line.left);
+    expect(parseFloat(line.left)).toBeGreaterThan(0);
   });
 
   it("paints no pane of its own", () => {
@@ -174,7 +248,7 @@ describe("the machine: one open by default, many with multiple, and the chevron 
     void (<Accordion m="4" />);
     // @ts-expect-error — the axis is vertical; a horizontal accordion is a different thing
     void (<Accordion orientation="horizontal" />);
-    // @ts-expect-error — the trigger is a row: no render, its element is the machine's
+    // @ts-expect-error — the trigger has no render: its element is the machine's
     void (<AccordionTrigger render={<a />} />);
     // @ts-expect-error — no tone: a heading list has no meaning of its own to colour
     void (<Accordion tone="accent" />);

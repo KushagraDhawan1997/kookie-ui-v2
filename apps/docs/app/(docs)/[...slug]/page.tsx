@@ -88,9 +88,17 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
   const { Content } = chapter;
 
   return (
-    <PageFrame width="62rem">
+    /* ONE COLUMN, ONE WIDTH (2026-09-01, Kushagra: "I dont like that the title + specimen +
+       the page desc. have a different width than prose").
+
+       The column was 46rem and the prose inside it 40, so the title, the deck and every figure
+       ran 96px past the sentences — two right edges on a page whose whole job is reading. The
+       column is the measure now, and the frame is that plus the gutter the table of contents
+       sits in (40 + 2 + 14), so the pair still centres on the pane rather than the column
+       drifting left of it. `prose.css` carries why the text is what gives and not the column. */
+    <PageFrame width="56rem">
       <Flex gap="7" align="flex-start">
-        <Stack gap="8" style={{ maxWidth: "46rem", minWidth: 0, flex: 1 }}>
+        <Stack gap="8" style={{ maxWidth: "var(--kd-measure)", minWidth: 0, flex: 1 }}>
           {/* THE SECTION NAME USED TO SIT HERE, at `size 2 quiet`, and it was an eyebrow: two
               elements doing one element's job, which §15 refuses by name and this renderer
               was publishing on every page of the site. It said nothing the reader did not

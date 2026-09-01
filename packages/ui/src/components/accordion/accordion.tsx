@@ -83,10 +83,16 @@ export type AccordionTriggerProps = Omit<
 };
 
 /**
- * The section's heading: a heading element holding a button that is a ROW — `kui-control
- * kui-row`, quiet, lit by the pointer, standing on the height ladder like the Button beside
- * it — with the disclosure chevron in the trailing slot. The chevron points into the reading
- * direction and turns down when the panel is open, the tree's own glyph and turn.
+ * The section's heading: a heading element holding a button that wears the control SKELETON
+ * — `kui-control`, quiet, standing on the height ladder like the Button beside it — with the
+ * disclosure chevron in the trailing slot. NOT a row (2026-09-01, Kushagra: "is it a row
+ * tho?"): a row is a line in a list you read and pick, lit under the pointer and selectable;
+ * this is a heading you press to disclose what is under it — nothing is picked, its siblings
+ * are independent, "open" is not "selected". It shipped as `kui-row` for its geometry, and the
+ * geometry was the skeleton's all along; what the row added was the fill light, which is the
+ * one thing a heading should not do. Under the pointer the label underlines, Link's own
+ * mechanism (accordion.css). The chevron points into the reading direction and turns down
+ * when the panel is open, the tree's own glyph and turn.
  */
 export function AccordionTrigger({ headingLevel = 3, className, children, ...props }: AccordionTriggerProps) {
   const size = React.useContext(AccordionSizeContext);
@@ -97,11 +103,8 @@ export function AccordionTrigger({ headingLevel = 3, className, children, ...pro
         data-size={size}
         data-tone="neutral"
         data-emphasis="quiet"
-        data-hover-lit=""
         className={
-          className
-            ? `kui-control kui-row kui-accordion-trigger ${className}`
-            : "kui-control kui-row kui-accordion-trigger"
+          className ? `kui-control kui-accordion-trigger ${className}` : "kui-control kui-accordion-trigger"
         }
         {...props}
       >
@@ -143,12 +146,20 @@ export type AccordionPanelProps = Omit<
  * label. The content inside is yours: a Text, a Stack, a form.
  */
 export function AccordionPanel({ className, children, ...props }: AccordionPanelProps) {
+  const size = React.use(AccordionSizeContext);
   return (
     <BaseAccordion.Panel
       className={className ? `kui-accordion-panel ${className}` : "kui-accordion-panel"}
       {...props}
     >
-      <div className="kui-accordion-panel-body">{children}</div>
+      {/* The body wears the type join at the IDENTITY step (2026-09-01, Kushagra: "the
+          expanded text doesnt respond to size"): the panel's words take the same step the
+          heading row above them takes, so plain text scales with the section — Table's
+          sentence for its cells. A `Text` inside still states its own step; ownership of the
+          content stays the caller's, only the line it is read in is the section's. */}
+      <div className="kui-type kui-accordion-panel-body" data-size={size}>
+        {children}
+      </div>
     </BaseAccordion.Panel>
   );
 }

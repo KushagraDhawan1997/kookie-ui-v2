@@ -1,5 +1,7 @@
 import { Box, Heading, Stack, Text } from "@kookie-ui/react";
 
+import { SiteFooter } from "./site-footer";
+
 /**
  * The frame every documentation page sits in (2026-08-25).
  *
@@ -33,7 +35,19 @@ export function PageFrame({
 }) {
   return (
     <Box pt="7" pb="9" style={{ maxInlineSize: width, marginInline: "auto" }}>
-      {children}
+      {/* THE FOOTER IS THE FRAME'S, NOT THE CHROME'S (2026-09-01). It was hung in the content
+          pane first, which put one full-window block under a 40rem reading column — the exact
+          mismatch that had just been fixed one route over. Here it takes whatever measure the
+          page states, so every page's floor is that page's own width and nothing in
+          `site-footer.tsx` knows any of the three numbers.
+
+          `10` under it, against the `9` the pages use between their own sections: the footer is
+          not another section, it is what the page ends at, and §15 asks the outer interval to
+          be the larger one. */}
+      <Stack gap="10">
+        {children}
+        <SiteFooter />
+      </Stack>
     </Box>
   );
 }
@@ -92,8 +106,13 @@ export function PageFrame({
  * loud and the body under it is loud — so if a chapter starts reading flat at the top, this is
  * the line to look at first.
  *
- * A chapter's BODY still takes the measure. That column is narrow because reading wants it
- * narrow, and now it is the only narrow thing, which is what makes it read as a decision.
+ * AND ON A CHAPTER THE POINT IS NOW MOOT, which is the better answer (2026-09-01): that page's
+ * COLUMN is the measure, so the title and the deck are held to it by the box they sit in rather
+ * than by a cap of their own — one right edge for the title, the deck, the prose and every
+ * figure. This block still states no width, and that is what let the chapter change its mind
+ * without touching this file. The paragraphs above stay because they are still the reason a cap
+ * does not belong HERE, and because the pages whose column is deliberately wider than a reading
+ * column — a component page, the front door — are still the case they were written about.
  */
 const TITLE_GAP = "6";
 

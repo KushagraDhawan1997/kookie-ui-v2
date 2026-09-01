@@ -40,6 +40,7 @@ import { CodeSampleView } from "../../blocks/code-sample";
 import { CopyButton } from "../../blocks/copy-button";
 import { SpecimenView } from "../../blocks/specimen";
 import { plainText, type CodeLine, type HighlightedCode } from "../../blocks/highlight";
+import { bed } from "../preview/beds";
 import { SettingsIcon } from "../icons";
 import { humanLabel } from "./label";
 import { CONTROLLED } from "./controlled-examples";
@@ -67,6 +68,24 @@ function withValues(lines: readonly CodeLine[], values: ControlValues): readonly
     }),
   }));
 }
+
+/**
+ * Does this knob show its options side by side, or behind a trigger? (2026-09-01, Kushagra:
+ * "lets make weight a select or dropdown".)
+ *
+ * A segmented control's whole argument is that every option is readable at once, and that is
+ * only worth a row's full width when the options are SHORT. `weight` is three words —
+ * regular, medium, semibold — and laid out flat it set the panel's width for every other row
+ * in it; `size` is four digits and costs almost nothing.
+ *
+ * So the test is both halves, and neither alone is right: a count with no length makes a
+ * segmented control out of three long words, and a length with no count makes one out of the
+ * type ladder's nine digits. Nothing here names a prop — a rule that said "except weight"
+ * would be a list that grows every time a page gains an axis, and the next long trio would
+ * ship laid out flat because nobody remembered to add it.
+ */
+const laidOut = (values: readonly string[]) =>
+  values.length <= 4 && values.every((value) => value.length <= 2);
 
 export function Playground({
   slug,
@@ -115,7 +134,19 @@ export function Playground({
      BEHIND this pane, and a pane over a flat ground has nothing to refract — the material would
      be switched on and invisible, which teaches the opposite of what the control is for. The
      photograph is the docs app's own, passed IN rather than reached for by the block: a copied
-     file may not depend on this site's assets. */
+     file may not depend on this site's assets.
+
+     FROM THE BED SET, NOT A PATH TYPED HERE (2026-09-01, Kushagra: "use the blue purple one we
+     have in preview beds"). `beds.tsx` is where this app states which grounds it judges material
+     over, and a second copy of an asset path here is one more place for the set to be edited and
+     this page to keep pointing at a file nobody looks at any more. `bed()` throws on a name that
+     left the set, so the build fails rather than the figure rendering a bare stage.
+
+     THE PATTERN, and the set's own note says why it is the one to judge against ("blur and
+     refraction are invisible over smooth gradients; this is where they show"). The blue flow was
+     here for an hour and it is a smooth gradient: a lens bending it produces a slightly different
+     gradient, so the material's whole argument went unphotographed. Flat shapes with hard edges
+     are what a displacement map has something to displace. */
   const glass = values["backdrop"] === true;
 
   return (
@@ -125,7 +156,7 @@ export function Playground({
       focused={focused}
       diff={diff}
       copyText={plainText(shown)}
-      {...(glass ? { stageBackground: "url('/backdrop.jpg') center / cover" } : {})}
+      {...(glass ? { stageBackground: `url('${bed("pattern").image}') center / cover` } : {})}
       controls={
         controls.length === 0 ? null : (
           /* BEHIND A TRIGGER, BESIDE THE COPY BUTTON (2026-08-30, Kushagra: "we can probably try
@@ -204,7 +235,7 @@ export function Playground({
                         checked={values[control.name] === true}
                         onCheckedChange={(next) => setValues((v) => ({ ...v, [control.name]: next }))}
                       />
-                    ) : control.values.length <= 4 ? (
+                    ) : laidOut(control.values) ? (
                       <SegmentedControl
                         aria-label={humanLabel(control.name)}
                         value={String(values[control.name])}

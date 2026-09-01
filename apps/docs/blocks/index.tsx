@@ -20,8 +20,9 @@
 import * as React from "react";
 
 import { CodeSample } from "./code-sample";
+import { Footer } from "./footer";
 import { Specimen } from "./specimen";
-import { Button, Grid, Stack } from "@kookie-ui/react";
+import { Button, Grid, Heading, Stack } from "@kookie-ui/react";
 
 export type BlockEntry = {
   /** The URL segment, and the block's name in every law message. Kebab-case. */
@@ -69,6 +70,48 @@ export default function Example() {
 }
 `;
 
+/** The footer demo's own content. Four columns of ordinary destinations for a product that
+    does not exist — a demo whose links are the docs' own would teach that the block knows
+    about this site, and it knows about nothing. */
+const FOOTER_GROUPS = [
+  {
+    title: "Product",
+    links: [
+      { label: "Overview", href: "#" },
+      { label: "Pricing", href: "#" },
+      { label: "Changelog", href: "#" },
+      { label: "Roadmap", href: "#" },
+      { label: "Status", href: "#" },
+    ],
+  },
+  {
+    title: "Developers",
+    links: [
+      { label: "Documentation", href: "#" },
+      { label: "API reference", href: "#" },
+      { label: "SDKs", href: "#" },
+      { label: "Examples", href: "#" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "About", href: "#" },
+      { label: "Careers", href: "#" },
+      { label: "Customers", href: "#" },
+      { label: "Contact", href: "#" },
+    ],
+  },
+  {
+    title: "Follow us",
+    links: [
+      { label: "GitHub", href: "#" },
+      { label: "Bluesky", href: "#" },
+      { label: "YouTube", href: "#" },
+    ],
+  },
+] as const;
+
 export const BLOCKS: readonly BlockEntry[] = [
   {
     slug: "specimen",
@@ -100,7 +143,6 @@ export const BLOCKS: readonly BlockEntry[] = [
       "A labelled, copyable, annotatable code figure. A quiet header row names the language or the file, a copy button confirms on its own label, and the code sits in a recessed well that scrolls sideways instead of wrapping. The author can point — highlight a line or a word, dim everything but the part being explained, mark a diff's added and removed lines — with comment notations that never reach the clipboard. Long files take a line bound that scrolls rather than clips, with an expand button when it binds. Highlighting is Shiki over the system's own ink ladder, so every colour is a value the generator already solved against the surface it sits on.",
     files: [
       "code-sample.tsx",
-      "code-block.tsx",
       "copy-button.tsx",
       "expandable.tsx",
       "highlight.ts",
@@ -116,6 +158,29 @@ export const BLOCKS: readonly BlockEntry[] = [
             claiming a filename while doing so. */}
         {await CodeSample({ code: ANNOTATED, lang: "tsx", lineNumbers: true })}
       </Stack>
+    ),
+  },
+  {
+    slug: "footer",
+    title: "Footer",
+    blurb:
+      "The last region of a page: a mark, columns of links, and the line at the bottom. It is data-driven rather than a set of wrapper parts — a column of links is a list, so it is a prop, and the file itself is where the arrangement lives. What it owns beyond the layout is the naming: every column is its own navigation region labelled by its own title, so a screen reader announces where each one goes instead of reading five unnamed navigations in a row. Links rest muted and take the full ink under the pointer, with the underline resting transparent so nothing moves when it appears. Icons, a newsletter and payment marks are refused with reasons — the file is yours, and adding them is editing it.",
+    files: ["footer.tsx", "footer.css"],
+    demo: () => (
+      <Footer
+        brand={
+          <Heading size="6" render={<span />}>
+            Northwind
+          </Heading>
+        }
+        groups={FOOTER_GROUPS}
+        note="© 2018 – 2026 Northwind. All rights reserved."
+        legal={[
+          { label: "Privacy", href: "#" },
+          { label: "Terms", href: "#" },
+          { label: "Status", href: "#" },
+        ]}
+      />
     ),
   },
 ];
