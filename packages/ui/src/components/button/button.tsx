@@ -5,10 +5,12 @@ import * as React from "react";
 
 import type { Emphasis, Size, Tone } from "../../system/axes.ts";
 import { useControlSize } from "../../system/control-size.ts";
+import { CHECK_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { rootsInButton, slot, unwrapLazy, type RenderElement } from "../../system/render.ts";
 import { Spinner } from "../spinner/spinner.tsx";
+import { glyphStroke } from "../../tokens/config.ts";
 
 type ButtonBase = Omit<
   React.ComponentPropsWithoutRef<"button">,
@@ -44,6 +46,34 @@ type ButtonBase = Omit<
    *  button the Spinner takes the glyph's place rather than sitting beside it, because there
    *  the glyph IS the label. */
   loading?: boolean;
+  /**
+   * The action finished, and the button says so where the eyes already are: its glyph becomes
+   * a tick.
+   *
+   * THIS IS WHAT THE TOAST REFUSAL OWED (§29). A copy button is the one case where an
+   * operation genuinely has no visible result, and the answer is the control reporting its own
+   * outcome in place — not a window that appears somewhere else, too late to act on, and
+   * disappears.
+   *
+   * THE STATE IS YOURS AND THE DRAWING IS THE SYSTEM'S, which is §29's own rule for
+   * `onDismiss` one component over: a control that ran its own timer would forget on reload
+   * and would decide, for every app, how long "just now" lasts. You hold the boolean and clear
+   * it; the button draws the tick and moves it.
+   *
+   * IT DOES NOT BLOCK THE PRESS, and that is the difference from `loading`. Loading blocks
+   * because the action is still running; done means it finished, and pressing copy a second
+   * time is an ordinary thing to want. A button that goes dead for two seconds after
+   * succeeding is worse than either state.
+   *
+   * SAY THE WORD TOO. The tick is a drawing, and a drawing is silent: assistive technology
+   * announces a name, not a glyph. On a labelled button change the label (`Copy` → `Copied`);
+   * on an `iconOnly` one change `aria-label`. The system cannot write those words — they are
+   * in your language, not its.
+   *
+   * Passing it at all — even `false` — mounts the tick beside the glyph so the two can cross.
+   * A button with no done state renders exactly as it always has.
+   */
+  done?: boolean;
   /**
    * The slot before the label, usually an icon. While `loading` is true the Spinner takes this
    * slot, in the same box, so nothing shifts.
@@ -107,12 +137,48 @@ export type ButtonProps = ButtonBase & (IconOnly | { iconOnly?: false | undefine
  * It defaults to `medium` and `neutral`, so nothing is loud and accent by accident and a
  * screen has one focal point unless somebody asks for a second.
  */
+/**
+ * The done state's two glyphs, stacked in one cell.
+ *
+ * BOTH ARE MOUNTED, ALWAYS, and that is the whole mechanism. React would unmount the outgoing
+ * glyph the moment `done` flips, and an unmounted element cannot leave — so the exit would not
+ * exist and the tick would appear in one frame. Stacked, the swap is entirely CSS keyed on
+ * `data-done`, which also means no JS runs at interaction time (§9) and reduced motion stands
+ * it down through the shared hook like every other recipe.
+ *
+ * A grid with one cell, so the two occupy the same box and nothing reflows around them —
+ * `loading`'s own "same box, zero shift" sentence, one state over. The tick is `aria-hidden`
+ * because a drawing is not a name: what a screen reader hears is the label the call site
+ * changed, which is why the prop's doc asks for one.
+ */
+function DoneSwap({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="kui-button-swap">
+      <span className="kui-button-swap-from" data-glyph>
+        {children}
+      </span>
+      <span className="kui-button-swap-to" data-glyph aria-hidden>
+        <svg viewBox={GLYPH_VIEWBOX} fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d={CHECK_PATH}
+            stroke="currentColor"
+            strokeWidth={glyphStroke}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </span>
+    </span>
+  );
+}
+
 export function Button({
   size: sizeProp,
   tone = "neutral",
   emphasis = "medium",
   bordered = false,
   loading = false,
+  done,
   backdrop,
   disabled = false,
   focusableWhenDisabled,
@@ -171,13 +237,23 @@ export function Button({
   // The Spinner takes the icon's place when there is one — same box, zero shift — and joins
   // the label when there is not. The label never goes: a button that stops saying what it is
   // doing is worse than one that changes width (§8).
-  const leading = loading && !iconOnly ? <Spinner /> : leadingSlot;
+  const leading =
+    loading && !iconOnly
+      ? <Spinner />
+      : done !== undefined && !iconOnly
+        ? <DoneSwap>{leadingSlot}</DoneSwap>
+        : leadingSlot;
   // AN ICON-ONLY BUTTON'S GLYPH IS `children`, so the Spinner has to replace THAT (2026-08-26
   // audit). Substituting only the leading slot put the Spinner BESIDE the glyph inside a box
   // `aspect-ratio: 1` gives no room to grow — two icon boxes plus the label gap in a square
   // the size of one — so a busy icon button showed the thing it was busy doing, squashed. The
   // slot stays untouched, which is why this is a second expression rather than a wider one.
-  const content = loading && iconOnly ? <Spinner /> : children;
+  const content =
+    loading && iconOnly
+      ? <Spinner />
+      : done !== undefined && iconOnly
+        ? <DoneSwap>{children}</DoneSwap>
+        : children;
 
   // Slots wear the system's adornment wrapper (`data-slot`, ENGINEERING §3) since 2026-08-05.
   // The wrapper is what lets the shared layer read structure off the DOM instead of asking the
@@ -208,6 +284,10 @@ export function Button({
       // Solid is the absence of a material, so it writes no attribute (§10).
       data-material={material === "solid" ? undefined : material}
       data-loading={loading || undefined}
+      // The swap is CSS's, keyed here: both glyphs are mounted and stacked, and this picks
+      // which one is up. No JS runs when the state flips, which is what lets the outgoing
+      // glyph have an exit at all — an unmounted element cannot leave (§8).
+      data-done={done || undefined}
       className={className ? `kui-control kui-button ${className}` : "kui-control kui-button"}
       {...props}
     >

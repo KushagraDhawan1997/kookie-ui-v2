@@ -70,3 +70,97 @@
   translate: 0 var(--press-travel);
   scale: var(--press-scale);
 }
+
+/* ── The done state's swap (§8, §29, 2026-09-02) ───────────────────────────────────────────
+   What the Toast refusal owed: a control reporting its own outcome in place, where the eyes
+   already are. Two glyphs cross in one cell — the button's own icon leaves, the system's tick
+   arrives — and the box never moves, because the box is already spoken for. A press owns the
+   1px sink and the 0.975 scale, and a done state lands milliseconds after a press; a second
+   geometry channel on the same box would make the two indistinguishable.
+
+   IT IS A SWAP, NOT A DRAW, and that is a real distinction from the mark family. A checkbox's
+   tick draws along its own stroke because it is a state you SET and it persists. This is a
+   momentary report that reverts, and there are two glyphs rather than one appearing on an
+   empty box — drawing in and out on a two-second round trip reads fussy. So the tick arrives
+   the way a small object arrives: it scales up out of a seed and paints in.
+
+   ONE CELL, so nothing reflows around the glyph. */
+.kui-button-swap {
+  display: grid;
+  place-items: center;
+}
+.kui-button-swap-from,
+.kui-button-swap-to {
+  grid-area: 1 / 1;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* The icon box is the shared layer's, reached here by the `[data-glyph]` structural
+   attribute the two cells wear — see the rule in recipes.css. It is NOT restated in this file,
+   and a law forbids that: the first spelling sized the glyphs here and `recipes.test.ts`
+   refused it, which is the same law that has kept the ladder in one place through four
+   components. */
+
+/* §8's TWO CLOCKS, unchanged: the fade is paint (a signal, short, no spring) and the scale is
+   geometry (physics, on a spring). Neither is a new clock — the tick's own `--motion-mark` in,
+   the press's `--motion-press` out, and the hover clock carries both fades.
+
+   IN on the calm spring, OUT on stiff. That pairing is the system's own vocabulary rather
+   than a preference: `stiff` is named as "the press-down, and every EXIT — it never
+   overshoots", because an exit that bounces is an object that did not mean to leave. */
+.kui-button-swap-from,
+.kui-button-swap-to {
+  transition:
+    opacity var(--motion-hover-in) var(--motion-easing),
+    filter var(--motion-hover-in) var(--motion-easing),
+    scale var(--motion-press) var(--motion-spring-stiff);
+}
+
+/* Resting: the button's own glyph is up, the tick waits under the seed and out of focus. */
+.kui-button-swap-to {
+  opacity: 0;
+  scale: var(--done-seed);
+  filter: blur(var(--done-blur));
+}
+
+/* Done: they trade places. The ARRIVING glyph is the one on the long clock and the lively
+   spring, and the leaving one keeps the short stiff exit it already had — asymmetry entirely
+   in the durations, which is §8's own shape for a pair that shares one character. */
+.kui-button[data-done] .kui-button-swap-from {
+  opacity: 0;
+  scale: var(--done-seed);
+  filter: blur(var(--done-blur));
+}
+.kui-button[data-done] .kui-button-swap-to {
+  opacity: 1;
+  scale: 1;
+  filter: blur(0);
+  transition:
+    opacity var(--motion-hover-in) var(--motion-easing),
+    filter var(--motion-mark) var(--motion-easing),
+    scale var(--motion-mark) var(--motion-spring);
+}
+
+/* THE LABEL TRAVELS (Kushagra, 2026-09-02, asked as a choice: travel it, or reserve the wider
+   word). `Copy` becomes `Copied` and the button is wider, so the width is a real geometry
+   change and it rides the geometry clock like every other one.
+
+   `interpolate-size` is what makes that expressible: an intrinsic width is `auto`, and `auto`
+   is not interpolable without it. Where an engine does not have it the width simply snaps,
+   which is exactly what it does today — so this is additive, and the fallback is the current
+   behaviour rather than a broken one. Reduced motion stands the transition down through the
+   shared hook and the width snaps there too, which is the right answer for someone who asked
+   for stillness.
+
+   SCOPED TO A BUTTON THAT HAS A DONE STATE, and the first spelling was not — it put
+   `inline-size` in the shared control layer's transition list, which would have animated the
+   width of every field, select trigger and segmented track in the system. That is the mistake
+   this repo's audits name most often: a rule written for one element applied to a different
+   one. Two of the skeleton's own clock laws failed on it, correctly. `interpolate-size` is
+   also INHERITED, so scoping matters twice: on every button it would change how `auto` behaves
+   for everything inside one. */
+.kui-button:has(.kui-button-swap) {
+  interpolate-size: allow-keywords;
+  --kui-ct-width: var(--motion-travel);
+}

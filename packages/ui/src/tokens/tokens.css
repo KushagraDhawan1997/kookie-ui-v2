@@ -192,6 +192,8 @@
   --press-travel: calc(2px * var(--scale));
   --press-scale: 0.975;
   --press-squash: 0.9;
+  --done-seed: 0.6;
+  --done-blur: calc(1.5px * var(--scale));
   --press-travel-surface: calc(1px * var(--scale));
   --press-scale-surface: 0.995;
   --thumb-lean: calc(6px * var(--scale));

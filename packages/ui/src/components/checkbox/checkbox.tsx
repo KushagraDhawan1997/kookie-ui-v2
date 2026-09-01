@@ -5,6 +5,7 @@ import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
 import { useControlSize } from "../../system/control-size.ts";
+import { CHECK_PATH } from "../../system/glyphs.ts";
 import { glyphStroke } from "../../tokens/config.ts";
 
 export type CheckboxProps = Omit<
@@ -117,7 +118,7 @@ export function Checkbox({ size: sizeProp, className, ref, ...props }: CheckboxP
             pairing the checked fill sets. */}
         <path
           className="kui-checkbox-check"
-          d="M4 8.5 6.75 11.25 12 5.75"
+          d={CHECK_PATH}
           /* Normalised so CSS can draw the stroke without measuring it (§8): with pathLength
              1, a dash array of 1 spans the whole glyph whatever the viewBox or the size. */
           pathLength={1}

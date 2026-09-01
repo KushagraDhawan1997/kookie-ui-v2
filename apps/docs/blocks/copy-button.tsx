@@ -18,7 +18,7 @@
 import * as React from "react";
 import { Button, type Size } from "@kookie-ui/react";
 
-import { CheckIcon, CopyIcon } from "../app/icons";
+import { CopyIcon } from "../app/icons";
 
 export function CopyButton({
   code,
@@ -61,10 +61,20 @@ export function CopyButton({
   const timer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   React.useEffect(() => () => clearTimeout(timer.current), []);
 
-  // One glyph expression for both arms: an icon-only button puts it in `children` (there the
-  // glyph IS the content), a labelled one puts it in `leading` (there it adorns a label).
-  // Button's own comment states that split; this is the only place it has to be honoured.
-  const glyph = copied ? <CheckIcon /> : (icon ?? <CopyIcon />);
+  /* THE GLYPH IS THE RESTING ONE, ALWAYS (2026-09-02). This used to be
+     `copied ? <CheckIcon/> : ...`, which swapped the element and therefore swapped it in one
+     frame — React unmounts the outgoing glyph, and an unmounted element cannot leave.
+
+     `done` is Button's own state now, and it draws the confirmation: it mounts the system's
+     tick beside this glyph, stacked in one cell, and CSS crosses them. The tick is the same
+     drawing a checkbox's mark is. What stays here is the STATE and its timer, which is the
+     rule §29 states one component over — a control that ran its own clock would decide, for
+     every app, how long "just now" lasts.
+
+     One glyph expression for both arms: an icon-only button puts it in `children` (there the
+     glyph IS the content), a labelled one puts it in `leading` (there it adorns a label).
+     Button's own comment states that split; this is the only place it has to be honoured. */
+  const glyph = icon ?? <CopyIcon />;
 
   return (
     // Medium is Button's own default, so no emphasis is stated; `backdrop` because this
@@ -72,6 +82,7 @@ export function CopyButton({
     <Button
       size={size}
       backdrop
+      done={copied}
       {...(iconOnly
         ? { iconOnly: true as const, "aria-label": copied ? "Copied" : label }
         : { leading: glyph })}

@@ -897,6 +897,26 @@ export const controlMotion = {
   pressTravel: 2,
   pressScale: 0.975,
   /**
+   * The done state's swap (§8, §29, 2026-09-02, Kushagra: *"a small scale down + blur +
+   * appear"*) — how far under full size a glyph sits at each end of the crossing, and how far
+   * out of focus.
+   *
+   * A DISTANCE, not a duration, which is §8's rule: the swap rides clocks that already exist
+   * (the tick's own `mark` in, the `stiff` exit out, paint on the hover clock) and states only
+   * how far it travels. One seed for both directions, because the two glyphs are the same size
+   * in the same cell — an asymmetric seed would say one of them is further away than the other,
+   * and neither is.
+   *
+   * THE BLUR IS THE DIAL MOST LIKELY TO GO TO ZERO. A glyph is 16-24px drawn at a ~1.17px
+   * painted stroke, and a radius large enough to read as defocus is a radius that eats the
+   * stroke — which is not what blur means anywhere else in this system, where §24 licenses it
+   * on a large box because depth of field is a property of mass. It is small on purpose and it
+   * is judged in the preview; if it does not earn its place it goes to 0 and the dial stays,
+   * the rim-saturate precedent.
+   */
+  doneSeed: 0.6,
+  doneBlur: 1.5,
+  /**
    * The same press on an INTERACTIVE SURFACE — a card-as-button (2026-08-17, Kushagra: *"should
    * work like button, but because of larger area, perhaps a little different physics"*).
    *
@@ -1519,6 +1539,7 @@ export const tooltipMotion = {
  * in kind.
  */
 export const tooltipEntry = { seed: 0.9 } as const;
+
 
 
 /**

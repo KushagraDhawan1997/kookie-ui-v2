@@ -308,6 +308,9 @@ export function generateTokens(): string {
   put("press-travel", zoom(controlMotion.pressTravel));
   put("press-scale", String(controlMotion.pressScale));
   put("press-squash", String(controlMotion.pressSquash));
+  // The done state's swap — a distance and a defocus, on clocks that already exist (§8).
+  put("done-seed", String(controlMotion.doneSeed));
+  put("done-blur", zoom(controlMotion.doneBlur));
   // The interactive surface's own two distances — same clocks, same springs, bigger box (§8).
   put("press-travel-surface", zoom(controlMotion.surfacePressTravel));
   put("press-scale-surface", String(controlMotion.surfacePressScale));

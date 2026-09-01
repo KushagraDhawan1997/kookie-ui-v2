@@ -38,6 +38,59 @@ describe("the stroke has one home", () => {
   });
 });
 
+describe("a drawing shared by two components has one home (2026-09-02)", () => {
+  /**
+   * `glyphs.ts` holds the handful of paths the package draws ITSELF and more than one component
+   * needs — today the tick, which is a checkbox's checked mark and a Button's done state,
+   * because those mean the same thing.
+   *
+   * THE SOURCE HALF, for the reason the stroke's source half exists. A mounted law comparing
+   * the two `d` attributes cannot fail once both import the constant: it proves they AGREE,
+   * which they do by construction, and it would go on agreeing if one of them went back to a
+   * literal that happened to match. Its own sabotage caught that — editing `CHECK_PATH` left it
+   * green, because both sides moved together. What is checkable is that nobody writes the path
+   * down: a literal is how the second home returns.
+   */
+  it("no component hand-writes a path that glyphs.ts already owns", () => {
+    const shared = Object.entries(
+      Object.fromEntries(
+        [...raw("system/glyphs.ts").matchAll(/export const ([A-Z_]+_PATH) = "([^"]+)"/g)].map(
+          (m) => [m[1]!, m[2]!],
+        ),
+      ),
+    );
+    // Vacuity: a renamed export or a changed spelling would empty this and the walk below
+    // would assert nothing at all.
+    expect(shared.length, "glyphs.ts publishes no paths; this law stopped reading").toBeGreaterThan(0);
+
+    const offenders: string[] = [];
+    for (const file of sources) {
+      if (file.endsWith("system/glyphs.ts")) continue;
+      const source = stripped(raw(file));
+      for (const [name, d] of shared) {
+        if (source.includes(`"${d}"`)) offenders.push(`${file}: writes ${name} as a literal`);
+      }
+    }
+    expect(offenders, "a path in two files is one drawing with two homes").toEqual([]);
+  });
+
+  it("every path glyphs.ts publishes has at least two consumers", () => {
+    /* The rule that keeps this module from becoming a dumping ground: a drawing moves here on
+       its SECOND consumer, and one that has fallen back to a single consumer is a fact with a
+       home it does not need. Read by import site, which is the only thing a source law can
+       honestly count. */
+    const names = [...raw("system/glyphs.ts").matchAll(/export const ([A-Z_]+_PATH)\b/g)].map(
+      (m) => m[1]!,
+    );
+    for (const name of names) {
+      const users = sources.filter(
+        (f) => !f.endsWith("system/glyphs.ts") && new RegExp(`\\b${name}\\b`).test(raw(f)),
+      );
+      expect(users.length, `${name} has ${users.length} consumer(s): ${users.join(", ")}`).toBeGreaterThan(1);
+    }
+  });
+});
+
 describe("a stroked glyph is not a filled one (ultracode audit 2026-09-01)", () => {
   /**
    * SVG's initial `fill` is absolute black, not `currentColor`. So a stroked glyph that omits

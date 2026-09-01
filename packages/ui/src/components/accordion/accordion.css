@@ -124,7 +124,12 @@
     color var(--kui-ct-paint) var(--motion-easing),
     text-decoration-color var(--kui-ct-paint) var(--motion-easing),
     translate var(--kui-ct-move) var(--kui-ct-move-ease),
-    scale var(--kui-ct-move) var(--kui-ct-move-ease);
+    scale var(--kui-ct-move) var(--kui-ct-move-ease),
+    /* The skeleton's width channel, restated because this rule restates the whole list (§8,
+       2026-09-02). Dead here — `--kui-ct-width` is `0s` unless a control asks — and it has to
+       be present anyway: an existing law asserts a heading keeps every channel the Button
+       beside it has, and it caught this file the day the channel was added. */
+    inline-size var(--kui-ct-width) var(--kui-ct-move-ease);
 }
 
 /* THE CHEVRON IS PUSHED, THE REST PACKS (2026-09-01, ultracode audit). `justify-content:

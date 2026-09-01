@@ -157,9 +157,21 @@
    a field's leading and trailing slots — where the icon is a grandchild. It lives HERE rather
    than in that component's stylesheet because the icon box is a mechanism, and a mechanism
    copied into a fourth component is how the shared layer stops being shared (ENGINEERING §4).
-   `[data-slot]` is the system's name for that wrapper. */
+   `[data-slot]` is the system's name for that wrapper.
+
+   THE THIRD ARM IS A GLYPH CELL (2026-09-02), and it is here for the reason this rule's own
+   comment gives: a mechanism copied into a fourth component is how the shared layer stops
+   being shared. Button's done state stacks two glyphs in one cell so they can cross, which
+   puts each svg a level deeper than either selector above could reach — and the caller's OWN
+   icon fell out of the ladder the moment the state was added, rendering at CSS's 300x150
+   replaced-element default. `[data-glyph]` is a structural attribute like `[data-slot]`,
+   never a component's class: it says "this box holds a glyph that takes the size index's
+   box", which is a thing any control may need to say. Descendant rather than child, because
+   the cell sits inside a slot wrapper on a labelled button and directly under the control on
+   an icon-only one. */
 .kui-control > svg,
-.kui-control > [data-slot] > svg {
+.kui-control > [data-slot] > svg,
+.kui-control [data-glyph] > svg {
   width: var(--kui-ct-icon);
   height: var(--kui-ct-icon);
   flex: none;
@@ -1122,12 +1134,21 @@
      and stiff, and giving them one clock flattens both (LOG, judged on the Key button). */
   --kui-ct-move: var(--motion-rise);
   --kui-ct-move-ease: var(--motion-spring-lively);
+  /* Off unless a control asks (see the width channel in the list below). */
+  --kui-ct-width: 0s;
   transition:
     background-color var(--kui-ct-paint) var(--motion-easing),
     border-color var(--kui-ct-paint) var(--motion-easing),
     color var(--kui-ct-paint) var(--motion-easing),
     translate var(--kui-ct-move) var(--kui-ct-move-ease),
-    scale var(--kui-ct-move) var(--kui-ct-move-ease);
+    scale var(--kui-ct-move) var(--kui-ct-move-ease),
+    /* A control's WIDTH, off by default (§8, 2026-09-02). It is here rather than in the one
+       component that wants it so the list has one home, and it is a HOOK rather than a value
+       so nothing else in the system starts animating: `0s` is a no-op, and only a control that
+       opts in — today a Button whose label changes with its done state — gives it a duration.
+       Appended rather than inserted, because the paint channels lead the list and a law reads
+       them. */
+    inline-size var(--kui-ct-width) var(--kui-ct-move-ease);
 }
 
 /* AND THE GUARDS SPELL `:disabled` TOO (audit 2026-08-26). The disabled remap three rules up
