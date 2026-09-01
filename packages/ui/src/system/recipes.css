@@ -124,6 +124,15 @@
   background-color: var(--kui-ct-fill, var(--kui-ct-fill-src));
   color: var(--kui-ct-label-color);
   border: var(--border-width) solid var(--kui-border-color, transparent);
+  /* Every image layer here positions against the BORDER box (2026-08-30). The defaults —
+     origin: padding-box, clip: border-box, repeat: repeat — plus the transparent border
+     above meant any gradient layer's tile ran one border-width short of its painted area,
+     and repeat filled the bottom strip with the tile wrapped around: a dark loud Button's
+     light catch drew its own bright top as a one-pixel line along the button's bottom edge.
+     The surface layer had the identical defect on the solid pane's sheen, fixed the same
+     day, and the glass field family had already stated this for itself on 2026-08-07 (its
+     rule folded into this one). */
+  background-origin: border-box;
 
   cursor: var(--cursor-button);
   /* Prefixed by hand, not left to the build: Safari only honours -webkit-user-select, and
@@ -1686,7 +1695,8 @@
      identity, and an opaque tone border on a pane of light is the sticker the surface fix
      named; the pane's own translucent EDGE takes its place, and the RIM — the top light
      catch, lifted under an elevated sun by the world's remap — paints from the border box
-     so it slides UNDER the edge (the two-stacked-lines dead end, §5). Routed through ONE
+     so it slides UNDER the edge (the two-stacked-lines dead end, §5; the origin is the
+     skeleton's own declaration since 2026-08-30, so no rule here states it). Routed through ONE
      private name so the state arms can stand the glass edge down with one line: an invalid
      or disabled glass field wears the state's border, never the material's. Buttons are
      untouched — borderless by rank, their glass needs no edge (and since 2026-08-26 their
@@ -1702,10 +1712,6 @@
      the member that joined the ring one file-section down. The edge hook comes along and is
      inert there — a track's border is stood down BY WIDTH (audit D2), so nothing consumes it
      — which is the same inertness the button carried in this list before its own pin. */
-  .kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"]),
-  .kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
-    background-origin: border-box;
-  }
   .kui-button:where([data-material="thin"]),
   .kui-atom:where([data-material="thin"]),
   .kui-segmented:where([data-material="thin"]),

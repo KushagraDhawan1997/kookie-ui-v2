@@ -1336,8 +1336,13 @@ export const material = {
       catch. It had been borrowing the regular GLASS rim (bloom + 45% sheen + a 0.52 white
       catch line), which is a glass recipe: in dark the catch stacked on the old inset
       rim-light and drew the "weird boundary" double edge, and in light the bloom read as a
-      glow no matte slab has. Percent sheen alphas, the glass cells' own unit. */
-  sealSheen: { light: 30, dark: 10 },
+      glow no matte slab has. Percent sheen alphas, the glass cells' own unit.
+
+      Dark went 10 → 6 (2026-08-30, Kushagra: the dark card is "too light at the top" —
+      measured, the sheen nearly doubled the lip's luminance, L≈27 body to L≈50). 6 keeps
+      the solid-over-thick-glass relation light already has: light solid 30 over thick's
+      25.5 is ~1.18×, and dark thick's 4.95 × 1.18 ≈ 6. One line to tune. */
+  sealSheen: { light: 30, dark: 6 },
   /** §10 — the GROUND's own lighting (2026-08-26). A ground stood down its lighting WHOLE on
       2026-08-21 because one ingredient was wrong: the grain is a fixed white overlay, so it
       lifted a dark ground by 0.042 against tonal steps of ~0.011 — four times the whole

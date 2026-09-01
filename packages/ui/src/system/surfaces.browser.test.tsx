@@ -24,6 +24,8 @@ import {
   mounted,
   probeIn,
   render,
+  sweep,
+  until,
   within,
 } from "../test/browser.tsx";
 import { Theme } from "../theme/theme.tsx";
@@ -82,6 +84,47 @@ describe("the instrument", () => {
     // that scored a defect and its fix identically twice in this repo.
     expect(() => alphaOf("none")).toThrow();
   });
+});
+
+/* ── The lighting positions against the border box, on panes AND controls (2026-08-30) ──────
+   The defect this pins: origin defaults to the padding box while clip defaults to the border
+   box and repeat defaults on — so over a transparent border, a sheen gradient's tile ran one
+   border-width short of its painted area and REPEAT wrapped the tile's own bright top into
+   the bottom strip: a one-pixel light line lying along a dark card's bottom edge, stopping
+   where the corner curve leaves it (measured: body L≈27, bottom edge rows 49–51, the top
+   sheen's own value). A dark loud Button had the identical wrap from its light catch, one
+   layer down. Light mode hid both — a white line on a white seal — which is why the law
+   walks both appearances. Falsified by construction: against the pre-fix stylesheets this
+   read "padding-box" in every cell. */
+
+describe("a gradient painted over a transparent border cannot wrap (2026-08-30)", () => {
+  for (const appearance of APPEARANCES) {
+    it(`pane and control lighting originate at the border box (${appearance})`, () => {
+      // A real wrapper div: mounted() hands back the FIRST child, and a fragment's first
+      // child would be the Card itself — querySelector then searches its descendants and
+      // finds neither subject (the 2026-08-08 `within()` finding, caught here by the
+      // not-null guard).
+      const host = mounted(
+        <div>
+          <Card>Body</Card>
+          <Button tone="accent" emphasis="loud">
+            Send
+          </Button>
+        </div>,
+        { theme: { appearance } },
+      );
+      for (const sel of [".kui-surface", ".kui-button"] as const) {
+        const el = host.querySelector<HTMLElement>(sel);
+        expect(el, `${sel} mounted`).not.toBeNull();
+        const cs = getComputedStyle(el!);
+        // Every layer: a multi-layer background resolves one origin per layer, and the wrap
+        // returns the moment any gradient layer slips back to the padding box.
+        for (const origin of cs.backgroundOrigin.split(",")) {
+          expect(origin.trim(), `${sel}'s lighting origin (${appearance})`).toBe("border-box");
+        }
+      }
+    });
+  }
 });
 
 /* ── A card that is DEAD because the control it labels is (§10, 2026-08-26 audit) ──────────── */
@@ -438,6 +481,90 @@ describe("the flight pins the body at the pane's OWN padding, on BOTH axes (§22
     // The pane this one is: an isotropic inset, which is what makes it the control rather than
     // a second copy of the law above.
     expect(block[1]).toBe(inline[1]);
+  });
+});
+
+/* ── A CENTRED panel grows out of its trigger from the MIDDLE (§22, 2026-08-31) ───────────── */
+
+/**
+ * Kushagra: the popover "for some reason goes left". Measured on a default popover (a narrow
+ * trigger, a wide panel): the pane was pinned by its START edge — the base flight rule's
+ * default, and the one alignment for which the aim's inline offset is not zero by geometry —
+ * so `--kui-from-x` read 182px and rode the FALL clock while the width rode the SPREAD clock.
+ * The start edge slammed left in 345ms while the far edge was still opening over 510ms, and
+ * the pane's centre swung 442 → 630 → 623 across one unfurl.
+ *
+ * Read as two numbers the fix writes and one it cannot: the seed's offset (which a start-pinned
+ * centre cell writes as the half-difference of the two widths, and a centre-pinned one writes
+ * as ~0), and the pane's centre across the width's OWN seized clock, which holds only while both
+ * insets and auto margins re-centre the box on every layout of that travel. The overshoot
+ * stations are named and excluded rather than tolerated: past the landed width the box is
+ * over-constrained, the margins clamp at the start inset and the spill goes one way — the
+ * elastic spring's own character, not a pin failure — so the law reads only the stations up to
+ * the landed width, where a start-pinned pane is out by up to 90px.
+ */
+describe("a centred panel grows out of its trigger symmetrically (§22)", () => {
+  it("the seed's inline offset is ~0 and the pane's centre holds through the width's travel", async () => {
+    inMotion();
+    // A MENU, centred by prop, because the law is about the family's pin and the menu is the
+    // member whose seed is the trigger's silhouette — so `--kui-from-x` is the whole offset.
+    // (Popover was the fixture that found it; its seed is a centred circle since the same day
+    // and carries its own centring term, so the offset alone would no longer tell the story.)
+    render(
+      <Theme>
+        <div style={{ padding: "200px 0 0 400px" }}>
+          <Menu>
+            <MenuTrigger render={<Button emphasis="quiet" bordered>Rename</Button>} />
+            <MenuContent align="center">
+              <MenuItem>This changes the name everywhere it appears in the workspace</MenuItem>
+            </MenuContent>
+          </Menu>
+        </div>
+      </Theme>,
+    );
+    const trigger = document.querySelector<HTMLElement>("button")!;
+    const triggerBox = trigger.getBoundingClientRect();
+    trigger.click();
+    const departed = await until(() => {
+      const p = document.querySelector<HTMLElement>(".kui-menu-popup");
+      return !!p && p.hasAttribute("data-unfurling") && !p.hasAttribute("data-seed");
+    });
+    expect(departed, "the premise: the flight departed").toBe(true);
+    const popup = document.querySelector<HTMLElement>(".kui-menu-popup")!;
+    expect(popup.getAttribute("data-align"), "the premise: the default alignment is centre").toBe("center");
+    const landed = parseFloat(popup.style.getPropertyValue("--kui-fly-w"));
+    // THE CALIBRATION: a start pin and a centre pin coincide when the panel is no wider than
+    // its trigger, so the fixture must hold a panel far wider than the button that opened it.
+    expect(landed - triggerBox.width, "the panel must out-size its trigger to tell the pins apart").toBeGreaterThan(200);
+
+    // The offset is measured from the positioner's MIDDLE (the inset is 50%), so for an
+    // unshifted trigger it is exactly minus half the seed's width — the seed arm adds that
+    // half back to land the silhouette's start on the trigger's. A start-pinned centre cell
+    // measured the half-difference of the two widths here instead: 182px on this fixture.
+    const fromX = parseFloat(popup.style.getPropertyValue("--kui-from-x"));
+    const seedW = parseFloat(popup.style.getPropertyValue("--kui-seed-w"));
+    expect(
+      Math.abs(fromX + seedW / 2),
+      "the seed was measured off an edge the trigger does not share — the start-pinned offset",
+    ).toBeLessThan(2);
+
+    const centre = (triggerBox.left + triggerBox.right) / 2;
+    const series = await sweep(popup, "width", () => {
+      const b = popup.getBoundingClientRect();
+      return { width: b.width, centre: (b.left + b.right) / 2 };
+    }, 20);
+    // EVERY station, the overshoot included (2026-08-31, later the same day): the first
+    // spelling of the pin was auto margins, which centre only while the box fits, so this law
+    // excluded the stations past the landed width and called the 5px step there "the spring's
+    // character". It was the pin's: an over-constrained box clamps at its start inset. The
+    // transform pin cannot be over-constrained, so the calibration is now that the sweep
+    // MUST contain overshoot stations, and the centre must hold on them too.
+    expect(
+      series.filter((s) => s.width > landed + 2).length,
+      "the sweep never overshot — the elastic curve's own excursion is the case this law exists for",
+    ).toBeGreaterThan(0);
+    for (const s of series)
+      expect(s.centre, `at width ${s.width.toFixed(1)} the pane's centre left its trigger's`).toBeCloseTo(centre, 0);
   });
 });
 

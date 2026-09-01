@@ -119,6 +119,16 @@
      material changes is the fill's alpha and the backdrop-filter, which are exactly the two
      things that do nothing when there is nothing behind the pane. */
   background-image: var(--kui-sf-light, var(--material-regular-rim, none));
+  /* The lighting's positioning area is the BORDER box, at every material including solid
+     (2026-08-30; the glass block stated this for its three rungs on 2026-08-07 — Kushagra:
+     "why am I seeing this thicker top border" — and solid never inherited the fix). The
+     defaults are origin: padding-box, clip: border-box, repeat: repeat, and a pane wears a
+     transparent border — so the sheen's tile ran one border-width short of its painted area
+     and REPEAT filled the bottom strip with the tile wrapped around: the gradient's own
+     bright top, a one-pixel light line lying along the bottom edge and stopping where the
+     corner curve leaves it (measured on a dark card: body L≈27, bottom edge rows 49–51,
+     the top sheen's own 51–52). Light mode hid it — a white line on a white seal. */
+  background-origin: border-box;
   border: var(--border-width) solid var(--kui-border-color, transparent);
   /* The fallback is the default size's corner, for a surface that carries no size index.
      --kui-corner-k is 1 everywhere except under the squircle block below, which is where
@@ -1915,7 +1925,7 @@
     border-radius var(--floating-corner) var(--motion-spring-elastic),
     scale var(--floating-corner) var(--motion-spring-elastic),
     /* paint is signal, not physics: it eases, it does not spring (§8's two clocks). */
-    opacity var(--motion-hover-in) ease-out,
+    opacity var(--floating-paint) ease-out,
     box-shadow var(--floating-reveal) ease-out;
 }
 
