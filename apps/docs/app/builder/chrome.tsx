@@ -13,6 +13,7 @@ import {
   Box,
   Button,
   Card,
+  ContextMenuContent,
   Dialog,
   DialogClose,
   DialogContent,
@@ -33,6 +34,7 @@ import {
   SelectItem,
   SelectTrigger,
   Separator,
+  ShellPaneHeader,
   Stack,
   Text,
   TextField,
@@ -178,7 +180,18 @@ export function Breadcrumb({
   const chain = primary ? [...ancestorChain(roots, primary), ...(node ? [node] : [])] : [];
 
   return (
-    <Flex align="center" justify="space-between" gapX="3" px="4" py="1">
+    /* A `ShellPaneHeader` since 2026-09-02, and the part is what deletes the numbers: this
+       row used to state `px="4" py="1"` by hand and came out whatever height its content
+       happened to be, so it stood level with nothing. A pane's header is one control row at
+       the pane's index wherever it appears, which is what keeps it level with the rail and
+       the frame's own header beside it.
+
+       NOT `float`, deliberately, where the docs shell's chrome floats: this pane's scroller
+       is a DROP SURFACE, and a bar with content passing beneath it is a bar the pointer has
+       to fight during a drag. Floating buys legibility for reading and costs targeting for
+       building. */
+    <ShellPaneHeader>
+      <Flex align="center" justify="space-between" gapX="3" style={{ flex: 1, minWidth: 0 }}>
       <Flex align="center" gap="1" wrap="wrap" style={{ minWidth: 0 }}>
         {hidePath ? null : chain.length === 0 ? (
           <Text size="2" emphasis="quiet">
@@ -208,8 +221,9 @@ export function Breadcrumb({
           </Text>
         ) : null}
       </Flex>
-      {extra}
-    </Flex>
+        {extra}
+      </Flex>
+    </ShellPaneHeader>
   );
 }
 
@@ -288,22 +302,24 @@ export const CONTEXT_COMMANDS = [
 ] as const;
 
 /**
- * A menu anchored to a POINT rather than to a control. Base UI positions against its
- * trigger's element, so the trigger here is a one-pixel span parked where the pointer was —
- * the standard virtual-anchor shape, and the reason a right-click can open the system's own
- * Menu rather than something hand-drawn for the occasion.
+ * The rows a right-click offers. The PANEL is the package's since 2026-09-02 (§42): the point
+ * it opens at, the platform menu it suppresses, the long press that stands in for a
+ * right-click on touch and the flight out of that point are all the system's, and what is
+ * left here is the only part that is the editor's — which commands, in which order, and what
+ * the grammar will let you insert.
+ *
+ * It used to be a `Menu` anchored to a one-pixel `<span>` parked where the pointer was: the
+ * standard virtual-anchor shape, and the workaround this placement exists to remove. That
+ * span was also the box the entry flew out of, so the panel unfurled from one pixel. Deleted
+ * with the swap — the trigger is the canvas itself now (builder-app.tsx).
  */
-export function ContextMenu({
-  point,
-  onOpenChange,
+export function CanvasMenu({
   run,
   enabled,
   titleOf,
   inserts,
   onInsert,
 }: {
-  point: { x: number; y: number } | null;
-  onOpenChange: (open: boolean) => void;
   run: (id: string) => void;
   enabled: (id: string) => boolean;
   titleOf: (id: string) => string;
@@ -313,49 +329,38 @@ export function ContextMenu({
   inserts: string[];
   onInsert: (type: string) => void;
 }) {
-  if (!point) return null;
   return (
-    <Menu open onOpenChange={onOpenChange}>
-      <MenuTrigger
-        render={
-          <span
-            aria-hidden
-            style={{ position: "fixed", left: point.x, top: point.y, width: 1, height: 1, pointerEvents: "none" }}
-          />
-        }
-      />
-      <MenuContent>
-        {inserts.length > 0 ? (
-          <>
-            <MenuSub>
-              <MenuSubTrigger>Insert here</MenuSubTrigger>
-              <MenuSubContent>
-                {inserts.map((type) => (
-                  <MenuItem key={type} onClick={() => onInsert(type)}>
-                    {type}
-                  </MenuItem>
-                ))}
-              </MenuSubContent>
-            </MenuSub>
-            <Separator />
-          </>
-        ) : null}
-        {CONTEXT_COMMANDS.map((id, i) =>
-          id === "·" ? (
-            <Separator key={`sep${i}`} />
-          ) : (
-            <MenuItem
-              key={id}
-              disabled={!enabled(id)}
-              {...(id === "delete" ? { tone: "destructive" as const } : {})}
-              onClick={() => run(id)}
-            >
-              {titleOf(id)}
-            </MenuItem>
-          ),
-        )}
-      </MenuContent>
-    </Menu>
+    <ContextMenuContent>
+      {inserts.length > 0 ? (
+        <>
+          <MenuSub>
+            <MenuSubTrigger>Insert here</MenuSubTrigger>
+            <MenuSubContent>
+              {inserts.map((type) => (
+                <MenuItem key={type} onClick={() => onInsert(type)}>
+                  {type}
+                </MenuItem>
+              ))}
+            </MenuSubContent>
+          </MenuSub>
+          <Separator />
+        </>
+      ) : null}
+      {CONTEXT_COMMANDS.map((id, i) =>
+        id === "·" ? (
+          <Separator key={`sep${i}`} />
+        ) : (
+          <MenuItem
+            key={id}
+            disabled={!enabled(id)}
+            {...(id === "delete" ? { tone: "destructive" as const } : {})}
+            onClick={() => run(id)}
+          >
+            {titleOf(id)}
+          </MenuItem>
+        ),
+      )}
+    </ContextMenuContent>
   );
 }
 

@@ -24,19 +24,21 @@ import Link from "next/link";
 import {
   Box,
   Button,
+  ContextMenu,
+  ContextMenuTrigger,
   Dialog,
   DialogClose,
   DialogContent,
   DialogDescription,
   DialogTitle,
   Flex,
-  Grid,
   Heading,
   Kbd,
   Menu,
   MenuContent,
   MenuItem,
   MenuTrigger,
+  Row,
   ScrollArea,
   Separator,
   Shell,
@@ -45,6 +47,7 @@ import {
   ShellInspector,
   ShellRail,
   ShellRailItem,
+  ShellPaneHeader,
   ShellRailList,
   ShellScroll,
   ShellSidebar,
@@ -63,6 +66,7 @@ import {
 } from "@kookie-ui/react";
 
 import { LayersIcon, PanelLeftIcon, PanelRightIcon, PlusIcon, RedoIcon, UndoIcon, XIcon } from "../icons";
+import { Layers, LayersFilter } from "./layers";
 import { CATALOG, canContain, gapStepsFor, paletteEntries, sanitizeNode, seatVocabularyFor, sizeStepsFor, PALETTE_FAMILIES, type CatalogEntry, type SeatVocabulary } from "./catalog";
 import {
   cloneWithNewIds,
@@ -118,7 +122,7 @@ import {
 import { CommandPalette } from "./command-palette";
 import { liveFix, reviewDocument, type Finding } from "./review";
 import { ReviewPanel } from "./review-panel";
-import { Breadcrumb, CanvasBoundary, ContextMenu, DocumentBar, ShortcutSheet, TemplatePicker, Toast } from "./chrome";
+import { Breadcrumb, CanvasBoundary, CanvasMenu, DocumentBar, ShortcutSheet, TemplatePicker, Toast } from "./chrome";
 
 /** The rungs the magnifier steps through — a closed list, like everything else here. */
 const ZOOMS: number[] = [0.5, 0.67, 0.8, 1, 1.25, 1.5, 2];
@@ -237,11 +241,6 @@ export function BuilderApp() {
 
   const [blockName, setBlockName] = React.useState("");
   const [drop, setDrop] = React.useState<DropSpot | null>(null);
-  /** Where a drag is hovering in the Layers tree: on a row, and WHERE on it. The thirds are
-      the tree convention every file browser uses — the edges mean "between", the middle means
-      "inside" — and they are what make the tree a rearrangement surface rather than a list of
-      shortcuts. */
-  const [dropRow, setDropRow] = React.useState<{ id: string; mode: "before" | "into" | "after" } | null>(null);
   /** What is being dragged, held in a ref because HTML5 DnD only surfaces payload DATA on
       drop — during dragover only the type names are readable, and the grammar needs the
       component type to say yes or no while hovering. Same-window drags own this fully. */
@@ -275,6 +274,15 @@ export function BuilderApp() {
       cut off is a match nobody can place. */
   const [layerFilter, setLayerFilter] = React.useState("");
   const layerFilterRef = React.useRef<HTMLInputElement | null>(null);
+  /** The palette's filter — the Add region's half of the pane's chrome row. Forty entries in
+      five families had no way to say a name, so a hand went hunting through the families for
+      something it could already spell. */
+  const [paletteFilter, setPaletteFilter] = React.useState("");
+  /** Case-insensitive on the component's own name — the one word an author knows to type. */
+  const matchesPalette = React.useCallback(
+    (type: string) => type.toLowerCase().includes(paletteFilter.trim().toLowerCase()),
+    [paletteFilter],
+  );
   /** Which region the rail has picked — the sidebar shows it. Controlled so ⌘F can bring
       the tree forward before focusing it. */
   const [leftTab, setLeftTab] = React.useState<LeftRegion>("add");
@@ -323,7 +331,6 @@ export function BuilderApp() {
   const [exportBlock, setExportBlock] = React.useState<number | null>(null);
   const [toast, setToast] = React.useState<string | null>(null);
   /** Where a right-click landed, and therefore where the context menu anchors. */
-  const [contextPoint, setContextPoint] = React.useState<{ x: number; y: number } | null>(null);
 
   const doc = activeDoc(state);
   const blocks = state.blocks;
@@ -681,7 +688,6 @@ export function BuilderApp() {
   const endDrag = () => {
     dragRef.current = null;
     setDrop(null);
-    setDropRow(null);
   };
 
   const onCanvasDrop = (e: React.DragEvent) => {
@@ -1132,17 +1138,27 @@ export function BuilderApp() {
   };
 
   /** Right-click selects what is under the pointer (unless it is already in the selection,
-      which is what makes "wrap these three" reachable) and opens the menu there. */
-  const onContextMenu = (e: React.MouseEvent) => {
-    if (preview) return;
+      which is what makes "wrap these three" reachable). The MENU is the system's since
+      2026-09-02 — `ContextMenuTrigger` catches this same event on the canvas and opens the
+      panel at the point — so all this handler does is the selection, and the one thing the
+      component cannot decide for us: whether there is anything here to act ON.
+
+      The refusal is `preventBaseUIHandler`, Base UI's own escape, and it is spelled that way
+      rather than as `stopPropagation` because this handler sits on the trigger ELEMENT: Base
+      UI merges the caller's handlers to run FIRST and lets them stand its own down, so the
+      order is a documented guarantee rather than a bet on where the listener happens to be.
+      Without it, a right-click on the empty gutter would open a menu whose every command
+      acts on whatever was selected last — a node you are not pointing at. */
+  const onContextMenu = (e: React.MouseEvent & { preventBaseUIHandler?: () => void }) => {
     const near = (e.target as Element).closest("[data-b-id], .kui-field");
     const el =
       near && !near.hasAttribute("data-b-id") ? near.querySelector(":scope > .kui-field-input[data-b-id]") : near;
     const id = el?.getAttribute("data-b-id") ?? null;
-    if (!id) return;
-    e.preventDefault();
+    if (preview || !id) {
+      e.preventBaseUIHandler?.();
+      return;
+    }
     if (!state.selection.includes(id)) setSelection(id);
-    setContextPoint({ x: e.clientX, y: e.clientY });
   };
 
   /* A canvas control never takes real focus: clicking is selection, not operation (the
@@ -1450,14 +1466,56 @@ export function BuilderApp() {
           was. Passing `!preview` instead would have frozen the pane open on a phone and
           killed the responsive default outright. */}
       <ShellSidebar aria-label="Editing panels" width={320} {...(preview ? { open: false } : {})}>
-        <ShellScroll>
-          <Box>
+        {/* THE PANE'S OWN CHROME ROW (§27, 2026-09-02) — the docs shell's pattern, which is
+            where it was proven: a floating header with the panel's rows passing behind it and
+            the scroller's `fade` keeping them legible. It holds the ONE control the picked
+            region owns and nothing else — no title, because the rail's lit square already
+            says which region this is and a row repeating it would be the 100%-chrome header
+            the docs site deleted.
+
+            THE ADD REGION GOT A FILTER TO PUT HERE, and the row is what forced the question:
+            the palette is forty entries in five families and had no way to say a name, so the
+            row was going to be empty half the time. A filter in each region is the answer that
+            makes the row honest in both. */}
+        <ShellPaneHeader float>
+          {leftTab === "layers" ? (
+            <LayersFilter value={layerFilter} onChange={setLayerFilter} inputRef={layerFilterRef} />
+          ) : (
+            <TextField
+              aria-label="Filter components"
+              placeholder="Filter by name"
+              value={paletteFilter}
+              onChange={(e) => setPaletteFilter(e.target.value)}
+              style={{ flex: 1 }}
+              {...(paletteFilter
+                ? {
+                    trailing: (
+                      <Button
+                        emphasis="quiet"
+                        iconOnly
+                        aria-label="Clear the filter"
+                        onClick={() => setPaletteFilter("")}
+                      >
+                        <XIcon />
+                      </Button>
+                    ),
+                  }
+                : {})}
+            />
+          )}
+        </ShellPaneHeader>
+        {/* The rows scroll BEHIND the chrome and rest clear of it — the pane publishes the
+            row's reach and the content spends it (§27's safe-area pattern at pane scale),
+            minus the viewport's own re-pad, because a ShellScroll already insets by the
+            pane's padding. */}
+        <ShellScroll fade>
+          <Box style={{ paddingBlockStart: "calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p))" }}>
             {leftTab === "add" ? (
               <Stack gap="4">
                 {contextualParts.length ? (
                   <PaletteGroup
                     label={`Inside ${selected!.type}`}
-                    entries={contextualParts}
+                    entries={contextualParts.filter(([type]) => matchesPalette(type))}
                     canInsert={() => true}
                     onInsert={insertType}
                     onDragBegin={(payload) => (dragRef.current = payload)}
@@ -1468,26 +1526,37 @@ export function BuilderApp() {
                   <PaletteGroup
                     key={family}
                     label={family}
-                    entries={paletteEntries().filter(([, e]) => e.family === family)}
+                    entries={paletteEntries().filter(
+                      ([type, e]) => e.family === family && matchesPalette(type),
+                    )}
                     canInsert={(type) => insertionTarget(doc.roots, selection, type) !== null}
                     onInsert={insertType}
                     onDragBegin={(payload) => (dragRef.current = payload)}
                     onDragFinish={endDrag}
                   />
                 ))}
-                <Stack gap="2">
-                  <Text size="2" weight="medium">
-                    Blocks
-                  </Text>
-                  {blocks.length === 0 ? (
-                    <Text size="1" emphasis="quiet">
-                      Save a selection as a block and it lands here.
+                <Stack gap="1">
+                  {/* The palette's own group label — an inert row, so it lines up with the
+                      words under it for the reason PaletteGroup states. */}
+                  <Row render={<div />}>
+                    <Text size="1" emphasis="quiet" weight="medium">
+                      Blocks
                     </Text>
+                  </Row>
+                  {blocks.length === 0 ? (
+                    <Row render={<div />}>
+                      <Text size="1" emphasis="quiet">
+                        Save a selection as a block and it lands here.
+                      </Text>
+                    </Row>
                   ) : (
                     blocks.map((b, i) => (
                       <Flex key={`${b.name}-${i}`} gap="1" align="center">
-                        <Button
-                          emphasis="quiet"
+                        {/* The row keeps its own box and the ⋯ stays a SIBLING: Row's
+                            trailing slot is for a shortcut, a count or a chevron, and a
+                            menu trigger in it would be a control nested in a control's
+                            element. */}
+                        <Row
                           draggable
                           onDragStart={(e) => {
                             dragRef.current = { kind: "block", index: i };
@@ -1496,10 +1565,10 @@ export function BuilderApp() {
                           }}
                           onDragEnd={endDrag}
                           onClick={() => insertBlock(b)}
-                          style={{ justifyContent: "flex-start", flex: 1 }}
+                          style={{ flex: 1 }}
                         >
                           {b.name}
-                        </Button>
+                        </Row>
                         <Menu>
                           <MenuTrigger
                             render={
@@ -1537,64 +1606,23 @@ export function BuilderApp() {
                 </Stack>
               </Stack>
             ) : leftTab === "layers" ? (
-              /* A tree, said in the markup: assistive technology gets the structure the
-                 eye gets from the indent, and the rows carry their own level. */
-              <Stack gap="2">
-                {canvasChildren(doc).length > 0 ? (
-                  <TextField
-                    aria-label="Filter layers"
-                    placeholder="Filter by type or words"
-                    ref={layerFilterRef}
-                    value={layerFilter}
-                    onChange={(e) => setLayerFilter(e.target.value)}
-                    {...(layerFilter
-                      ? {
-                          trailing: (
-                            <Button
-                              emphasis="quiet"
-                              iconOnly
-                              aria-label="Clear the filter"
-                              onClick={() => setLayerFilter("")}
-                            >
-                              <XIcon />
-                            </Button>
-                          ),
-                        }
-                      : {})}
-                  />
-                ) : null}
-                <Stack gap="1" render={<div role="tree" aria-label="Layers" />}>
-                  {canvasChildren(doc).length === 0 ? (
-                    <Text size="1" emphasis="quiet">
-                      The canvas is empty.
-                    </Text>
-                  ) : visibleRows !== null && visibleRows.size === 0 ? (
-                    <Text size="1" emphasis="quiet">
-                      Nothing here is called that.
-                    </Text>
-                  ) : (
-                    doc.roots.map((r) => (
-                      <TreeRows
-                        key={r.id}
-                        node={r}
-                        depth={0}
-                        selection={state.selection}
-                        onSelect={(id, additive) => setSelection(id, additive)}
-                        dropRow={dropRow}
-                        onDragBegin={(id) => {
-                          dragRef.current = { kind: "move", id };
-                          setSelection(id);
-                        }}
-                        onDragFinish={endDrag}
-                        canRowDrop={(id, mode) => rowSpot(id, mode) !== null}
-                        onHoverRow={setDropRow}
-                        onRowDrop={onRowDrop}
-                        visible={visibleRows}
-                      />
-                    ))
-                  )}
-                </Stack>
-              </Stack>
+              /* THE PACKAGE'S OWN TREE since 2026-09-02 — see layers.tsx for what the swap
+                 deleted and why the drag stayed here. The filter row moved to the pane's
+                 floating chrome; what is left in the scroller is the structure itself. */
+              <Layers
+                roots={doc.roots}
+                selection={state.selection}
+                empty={canvasChildren(doc).length === 0}
+                onSelect={(ids) => dispatch({ type: "select", ids })}
+                onDragBegin={(id) => {
+                  dragRef.current = { kind: "move", id };
+                  setSelection(id);
+                }}
+                onDragFinish={endDrag}
+                canRowDrop={(id, mode) => rowSpot(id, mode) !== null}
+                onRowDrop={onRowDrop}
+                visible={visibleRows}
+              />
             ) : (
               /* EXHAUSTIVE, and that is the other half of what one region list buys. The
                  rail derives its squares from LEFT_REGIONS, so adding a region adds a square
@@ -1679,159 +1707,190 @@ export function BuilderApp() {
           className="kb-canvas-scroller"
           style={{ flex: 1, minHeight: 0, display: "grid", background: "var(--neutral-2)" }}
         >
-          <Box
-            /* 48px, not 24: an elevated Card's own shadow reaches ~44px below its box
-               (`0 24px 64px -12px`), so the old gutter clipped it by 20px. The gutter is the
-               whole world a canvas surface has — nothing outside it can be painted into. */
-            p="9"
-            onClickCapture={onCanvasClick}
-            onContextMenu={onContextMenu}
-            onFocusCapture={onCanvasFocus}
-            onDragStartCapture={onCanvasDragStart}
-            onDragOver={onCanvasDragOver}
-            onDrop={onCanvasDrop}
-            onDragLeave={onCanvasDragLeave}
-            onDragEnd={endDrag}
-            style={{ minHeight: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column" }}
-          >
-            {tiersView ? (
-              <TierCompare doc={doc} />
-            ) : (
-            <Box maxWidth="880px" style={{ marginInline: "auto", width: "100%", flex: 1, display: "flex", flexDirection: "column" }}>
-              <div
-                ref={canvasRef}
-                style={{
-                  position: "relative",
-                  // The PAINTED width. The overlays live in this box and measure in screen
-                  // pixels, so it has to be the size the content actually occupies.
-                  width: canvasW ? `${Math.round(canvasW * zoom)}px` : "100%",
-                  maxWidth: "100%",
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                {/* The zoomed box holds ONLY the rendered document. Every overlay below is
-                    its sibling, so their coordinates stay in unscaled pixels. */}
+          {/* THE RIGHT-CLICK IS THE SYSTEM'S (§42, 2026-09-02). The trigger is the canvas
+              itself, which is the whole point of the placement: it used to be a `Menu`
+              anchored to a one-pixel `<span>` parked at the pointer, so the panel unfurled
+              out of one pixel and the editor carried the platform menu's suppression, the
+              touch long press and the point by hand. All three are the component's now.
+
+              `render` puts the trigger INTO the canvas rather than around it: a wrapper
+              element would sit between the grid parent and the box it stretches (the
+              `display: grid` above is load-bearing, and its child is this Box). */}
+          <ContextMenu>
+            <ContextMenuTrigger
+              onContextMenu={onContextMenu}
+              render={
+                <Box
+                  /* 48px, not 24: an elevated Card's own shadow reaches ~44px below its box
+                     (`0 24px 64px -12px`), so the old gutter clipped it by 20px. The gutter is the
+                     whole world a canvas surface has — nothing outside it can be painted into. */
+                  p="9"
+                  onClickCapture={onCanvasClick}
+                  onFocusCapture={onCanvasFocus}
+                  onDragStartCapture={onCanvasDragStart}
+                  onDragOver={onCanvasDragOver}
+                  onDrop={onCanvasDrop}
+                  onDragLeave={onCanvasDragLeave}
+                  onDragEnd={endDrag}
+                  style={{ minHeight: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column" }}
+                />
+              }
+            >
+              {tiersView ? (
+                <TierCompare doc={doc} />
+              ) : (
+              <Box maxWidth="880px" style={{ marginInline: "auto", width: "100%", flex: 1, display: "flex", flexDirection: "column" }}>
                 <div
-                  style={
-                    zoom === 1
-                      ? ({ flex: 1, display: "flex", flexDirection: "column" } as React.CSSProperties)
-                      : ({ zoom, width: canvasW ? `${canvasW}px` : "100%", flex: 1, display: "flex", flexDirection: "column" } as React.CSSProperties)
-                  }
-                >
-                <Theme
-                  appearance={doc.theme.appearance}
-                  density={doc.theme.density}
-                  pointer={doc.theme.pointer}
-                  radius={doc.theme.radius}
-                  depth={doc.theme.depth}
-                  material={doc.theme.material}
-                  /* THE PAGE — and it is a `Surface`, the ground shipped 2026-08-20 for
-                     exactly this. It was three hand-painted values here (a raw `--neutral-1`,
-                     a surface-2 corner and a hairline shadow), the one place in the builder
-                     that stated a colour, and the component's own doc names this canvas as
-                     the call site that went wrong: a size-2 corner around size-3 cards, which
-                     the ground's overlay-band arithmetic makes impossible. Rendered THROUGH
-                     the Theme rather than inside it (`render`, the system's own escape) so
-                     the page is one element wearing both jobs — and painted inside the
-                     document's Theme, so a dark document shows a dark page against the light
-                     workbench. Its padding is the ground's, not a number chosen here, which
-                     is the internal padding the canvas was missing. */
-                  render={<Surface />}
-                  style={{ flex: 1 }}
-                >
-                  {/* The canvas is a REAL query container (§2's opt-in, layout-sized by
-                      the width handle), so a per-tier value inside it answers the canvas's
-                      room — which is what it will answer in an app column. */}
-                  <Box container width="100%">
-                    <CanvasBoundary tree={doc.roots} onRecover={undo} canRecover={canUndo(state)}>
-                      <>
-                        {canvasChildren(doc).length === 0 ? (
-                          <TemplatePicker
-                            onPick={(id) => {
-                              const template = TEMPLATES.find((t) => t.id === id);
-                              if (!template) return;
-                              const roots = templateDoc(template).roots.map(cloneWithNewIds);
-                              dispatch({ type: "edit", roots, selection: [] });
-                              // A document nobody has named takes the template's name — but a
-                              // named one keeps its own, because that name was a decision.
-                              if (/^Untitled/.test(activeDoc(stateRef.current).name)) {
-                                dispatch({ type: "docRename", id: stateRef.current.activeId, name: template.name });
-                              }
-                            }}
-                          />
-                        ) : (
-                          doc.roots.map((r) => renderNode(r, preview ? "export" : "canvas"))
-                        )}
-                      </>
-                    </CanvasBoundary>
-                  </Box>
-                </Theme>
-                </div>
-                <div
-                  data-kb-width-handle
-                  role="separator"
-                  aria-orientation="vertical"
-                  aria-label="Canvas width"
-                  tabIndex={0}
-                  onPointerDown={startWidthDrag}
-                  onKeyDown={nudgeWidth}
+                  ref={canvasRef}
                   style={{
-                    position: "absolute",
-                    top: 0,
-                    bottom: 0,
-                    right: "-18px",
-                    width: "12px",
-                    cursor: "ew-resize",
+                    position: "relative",
+                    // The PAINTED width. The overlays live in this box and measure in screen
+                    // pixels, so it has to be the size the content actually occupies.
+                    width: canvasW ? `${Math.round(canvasW * zoom)}px` : "100%",
+                    maxWidth: "100%",
+                    flex: 1,
                     display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    flexDirection: "column",
                   }}
                 >
+                  {/* The zoomed box holds ONLY the rendered document. Every overlay below is
+                      its sibling, so their coordinates stay in unscaled pixels. */}
                   <div
-                    aria-hidden
+                    style={
+                      zoom === 1
+                        ? ({ flex: 1, display: "flex", flexDirection: "column" } as React.CSSProperties)
+                        : ({ zoom, width: canvasW ? `${canvasW}px` : "100%", flex: 1, display: "flex", flexDirection: "column" } as React.CSSProperties)
+                    }
+                  >
+                  <Theme
+                    appearance={doc.theme.appearance}
+                    density={doc.theme.density}
+                    pointer={doc.theme.pointer}
+                    radius={doc.theme.radius}
+                    depth={doc.theme.depth}
+                    material={doc.theme.material}
+                    /* THE PAGE — and it is a `Surface`, the ground shipped 2026-08-20 for
+                       exactly this. It was three hand-painted values here (a raw `--neutral-1`,
+                       a surface-2 corner and a hairline shadow), the one place in the builder
+                       that stated a colour, and the component's own doc names this canvas as
+                       the call site that went wrong: a size-2 corner around size-3 cards, which
+                       the ground's overlay-band arithmetic makes impossible. Rendered THROUGH
+                       the Theme rather than inside it (`render`, the system's own escape) so
+                       the page is one element wearing both jobs — and painted inside the
+                       document's Theme, so a dark document shows a dark page against the light
+                       workbench. Its padding is the ground's, not a number chosen here, which
+                       is the internal padding the canvas was missing. */
+                    render={<Surface />}
+                    style={{ flex: 1 }}
+                  >
+                    {/* The canvas is a REAL query container (§2's opt-in, layout-sized by
+                        the width handle), so a per-tier value inside it answers the canvas's
+                        room — which is what it will answer in an app column. */}
+                    <Box container width="100%">
+                      <CanvasBoundary tree={doc.roots} onRecover={undo} canRecover={canUndo(state)}>
+                        <>
+                          {canvasChildren(doc).length === 0 ? (
+                            <TemplatePicker
+                              onPick={(id) => {
+                                const template = TEMPLATES.find((t) => t.id === id);
+                                if (!template) return;
+                                const roots = templateDoc(template).roots.map(cloneWithNewIds);
+                                dispatch({ type: "edit", roots, selection: [] });
+                                // A document nobody has named takes the template's name — but a
+                                // named one keeps its own, because that name was a decision.
+                                if (/^Untitled/.test(activeDoc(stateRef.current).name)) {
+                                  dispatch({ type: "docRename", id: stateRef.current.activeId, name: template.name });
+                                }
+                              }}
+                            />
+                          ) : (
+                            doc.roots.map((r) => renderNode(r, preview ? "export" : "canvas"))
+                          )}
+                        </>
+                      </CanvasBoundary>
+                    </Box>
+                  </Theme>
+                  </div>
+                  <div
+                    data-kb-width-handle
+                    role="separator"
+                    aria-orientation="vertical"
+                    aria-label="Canvas width"
+                    tabIndex={0}
+                    onPointerDown={startWidthDrag}
+                    onKeyDown={nudgeWidth}
                     style={{
-                      width: "4px",
-                      height: "44px",
-                      borderRadius: chromeCorner(2),
-                      background: "var(--color-border)",
+                      position: "absolute",
+                      top: 0,
+                      bottom: 0,
+                      right: "-18px",
+                      width: "12px",
+                      cursor: "ew-resize",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
-                  />
-                </div>
-                {!preview
-                  ? alsoRings.map((r, i) => (
+                  >
+                    <div
+                      aria-hidden
+                      style={{
+                        width: "4px",
+                        height: "44px",
+                        borderRadius: chromeCorner(2),
+                        background: "var(--color-border)",
+                      }}
+                    />
+                  </div>
+                  {!preview
+                    ? alsoRings.map((r, i) => (
+                        <div
+                          key={i}
+                          aria-hidden
+                          style={
+                            {
+                              position: "absolute",
+                              top: r.top,
+                              left: r.left,
+                              width: r.width,
+                              height: r.height,
+                              outline: `1px solid ${SEL_COLOR}`,
+                              outlineOffset: "-1px",
+                              borderRadius: r.radius,
+                              cornerShape: r.corner,
+                              opacity: 0.55,
+                              pointerEvents: "none",
+                            } as React.CSSProperties
+                          }
+                        />
+                      ))
+                    : null}
+                  {ring && !preview ? (
+                    <div aria-hidden style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}>
+                      {/* Both lines are drawn as OUTLINES on a zero-border box: an outline
+                          is painted outside the box without joining it, so the traced
+                          rectangle is the element's own — a border would add its width to
+                          the box and overshoot by 2px in each axis. */}
+                      {/* The shape outline: the element's box and its own corners. */}
                       <div
-                        key={i}
-                        aria-hidden
                         style={
                           {
                             position: "absolute",
-                            top: r.top,
-                            left: r.left,
-                            width: r.width,
-                            height: r.height,
+                            top: ring.top,
+                            left: ring.left,
+                            width: ring.width,
+                            height: ring.height,
                             outline: `1px solid ${SEL_COLOR}`,
                             outlineOffset: "-1px",
-                            borderRadius: r.radius,
-                            cornerShape: r.corner,
-                            opacity: 0.55,
-                            pointerEvents: "none",
+                            borderRadius: ring.radius,
+                            // Not in React's CSSProperties yet; assigned through CSSOM,
+                            // where an engine that lacks it drops it harmlessly.
+                            cornerShape: ring.corner,
                           } as React.CSSProperties
                         }
                       />
-                    ))
-                  : null}
-                {ring && !preview ? (
-                  <div aria-hidden style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}>
-                    {/* Both lines are drawn as OUTLINES on a zero-border box: an outline
-                        is painted outside the box without joining it, so the traced
-                        rectangle is the element's own — a border would add its width to
-                        the box and overshoot by 2px in each axis. */}
-                    {/* The shape outline: the element's box and its own corners. */}
-                    <div
-                      style={
-                        {
+                      {/* The bounding box: always rectangular, whatever the shape. */}
+                      <div
+                        style={{
                           position: "absolute",
                           top: ring.top,
                           left: ring.left,
@@ -1839,194 +1898,188 @@ export function BuilderApp() {
                           height: ring.height,
                           outline: `1px solid ${SEL_COLOR}`,
                           outlineOffset: "-1px",
-                          borderRadius: ring.radius,
-                          // Not in React's CSSProperties yet; assigned through CSSOM,
-                          // where an engine that lacks it drops it harmlessly.
-                          cornerShape: ring.corner,
-                        } as React.CSSProperties
-                      }
-                    />
-                    {/* The bounding box: always rectangular, whatever the shape. */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: ring.top,
-                        left: ring.left,
-                        width: ring.width,
-                        height: ring.height,
-                        outline: `1px solid ${SEL_COLOR}`,
-                        outlineOffset: "-1px",
-                      }}
-                    />
-                    {/* The gutters: a soft fill, never an outline — an outline here would
-                        read as another boundary beside the selection's own. */}
-                    {bands.map((g, i) => {
-                      // Inset on all four sides so the band reads as an object lying in the
-                      // gutter rather than a rung fused to the selection outline. Each axis
-                      // caps its own inset at a quarter of that dimension, which is what
-                      // keeps a 2px gap from insetting itself out of existence: the band
-                      // then shrinks WITH the gap instead of disappearing at the bottom of
-                      // the scale. It is a target and a location, not a ruler — the drag
-                      // states the rung, and the chip names it.
-                      const px = Math.min(GAP_BAND_INSET, g.w / 4);
-                      const py = Math.min(GAP_BAND_INSET, g.h / 4);
-                      const h = g.h - py * 2;
-                      const w = g.w - px * 2;
-                      // The PAINT may be a hairline; the target may not. At the bottom of
-                      // the space scale an inset band is 1-2px, so the hit area grows to a
-                      // floor around the true gutter while the paint stays honest — §16's
-                      // own move for the mark family, and the shape the corner handles here
-                      // already use (14px box, 6px square).
-                      const hitH = g.axis === "x" ? g.h : Math.max(g.h, GAP_BAND_HIT);
-                      const hitW = g.axis === "x" ? Math.max(g.w, GAP_BAND_HIT) : g.w;
-                      return (
-                        <div
-                          key={i}
-                          data-kb-resize
-                          onPointerDown={(e) => startGapDrag(e, g.axis)}
-                          style={{
-                            position: "absolute",
-                            top: g.y - (hitH - g.h) / 2,
-                            left: g.x - (hitW - g.w) / 2,
-                            width: hitW,
-                            height: hitH,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            pointerEvents: gapIsResponsive ? "none" : "auto",
-                            cursor: gapIsResponsive ? "default" : g.axis === "x" ? "ew-resize" : "ns-resize",
-                            touchAction: "none",
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: w,
-                              height: h,
-                              background: `${SEL_COLOR}22`,
-                              // Rounded, but never past the system's own smallest corner:
-                              // half the short side alone made a tall gutter a stadium.
-                              borderRadius: chromeCorner(w / 2, h / 2),
-                            }}
-                          />
-                        </div>
-                      );
-                    })}
-                    {/* Corner handles, shown only where a size vocabulary exists — their
-                        PRESENCE is the information, so a node the system cannot resize
-                        shows none rather than a grip that writes nothing. */}
-                    {sizeSteps
-                      ? (
-                          [
-                            [ring.top, ring.left, [-1, -1], "nwse-resize"],
-                            [ring.top, ring.left + ring.width, [1, -1], "nesw-resize"],
-                            [ring.top + ring.height, ring.left, [-1, 1], "nesw-resize"],
-                            [ring.top + ring.height, ring.left + ring.width, [1, 1], "nwse-resize"],
-                          ] as [number, number, [number, number], string][]
-                        ).map(([y, x, out, cursor], i) => (
+                        }}
+                      />
+                      {/* The gutters: a soft fill, never an outline — an outline here would
+                          read as another boundary beside the selection's own. */}
+                      {bands.map((g, i) => {
+                        // Inset on all four sides so the band reads as an object lying in the
+                        // gutter rather than a rung fused to the selection outline. Each axis
+                        // caps its own inset at a quarter of that dimension, which is what
+                        // keeps a 2px gap from insetting itself out of existence: the band
+                        // then shrinks WITH the gap instead of disappearing at the bottom of
+                        // the scale. It is a target and a location, not a ruler — the drag
+                        // states the rung, and the chip names it.
+                        const px = Math.min(GAP_BAND_INSET, g.w / 4);
+                        const py = Math.min(GAP_BAND_INSET, g.h / 4);
+                        const h = g.h - py * 2;
+                        const w = g.w - px * 2;
+                        // The PAINT may be a hairline; the target may not. At the bottom of
+                        // the space scale an inset band is 1-2px, so the hit area grows to a
+                        // floor around the true gutter while the paint stays honest — §16's
+                        // own move for the mark family, and the shape the corner handles here
+                        // already use (14px box, 6px square).
+                        const hitH = g.axis === "x" ? g.h : Math.max(g.h, GAP_BAND_HIT);
+                        const hitW = g.axis === "x" ? Math.max(g.w, GAP_BAND_HIT) : g.w;
+                        return (
                           <div
                             key={i}
                             data-kb-resize
-                            onPointerDown={(e) => startResize(e, out)}
+                            onPointerDown={(e) => startGapDrag(e, g.axis)}
                             style={{
                               position: "absolute",
-                              top: y - 7,
-                              left: x - 7,
-                              width: 14,
-                              height: 14,
-                              cursor,
-                              pointerEvents: "auto",
+                              top: g.y - (hitH - g.h) / 2,
+                              left: g.x - (hitW - g.w) / 2,
+                              width: hitW,
+                              height: hitH,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              pointerEvents: gapIsResponsive ? "none" : "auto",
+                              cursor: gapIsResponsive ? "default" : g.axis === "x" ? "ew-resize" : "ns-resize",
                               touchAction: "none",
                             }}
                           >
                             <div
                               style={{
-                                position: "absolute",
-                                inset: 4,
-                                background: "#fff",
-                                outline: `1px solid ${SEL_COLOR}`,
+                                width: w,
+                                height: h,
+                                background: `${SEL_COLOR}22`,
+                                // Rounded, but never past the system's own smallest corner:
+                                // half the short side alone made a tall gutter a stadium.
+                                borderRadius: chromeCorner(w / 2, h / 2),
                               }}
                             />
                           </div>
-                        ))
-                      : null}
-                    {/* Side handles, on the inline axis only, and only where the parent's
-                        measured layout gives this node something to say about its seat. */}
-                    {seat
-                      ? (
-                          [
-                            [ring.left, [-1, 0]],
-                            [ring.left + ring.width, [1, 0]],
-                          ] as [number, [number, number]][]
-                        ).map(([x, out], i) => (
-                          <div
-                            key={i}
-                            data-kb-resize
-                            onPointerDown={(e) => startSeatDrag(e, out)}
-                            style={{
-                              position: "absolute",
-                              top: ring.top + ring.height / 2 - 11,
-                              left: x - 7,
-                              width: 14,
-                              height: 22,
-                              cursor: "ew-resize",
-                              pointerEvents: "auto",
-                              touchAction: "none",
-                            }}
-                          >
+                        );
+                      })}
+                      {/* Corner handles, shown only where a size vocabulary exists — their
+                          PRESENCE is the information, so a node the system cannot resize
+                          shows none rather than a grip that writes nothing. */}
+                      {sizeSteps
+                        ? (
+                            [
+                              [ring.top, ring.left, [-1, -1], "nwse-resize"],
+                              [ring.top, ring.left + ring.width, [1, -1], "nesw-resize"],
+                              [ring.top + ring.height, ring.left, [-1, 1], "nesw-resize"],
+                              [ring.top + ring.height, ring.left + ring.width, [1, 1], "nwse-resize"],
+                            ] as [number, number, [number, number], string][]
+                          ).map(([y, x, out, cursor], i) => (
                             <div
+                              key={i}
+                              data-kb-resize
+                              onPointerDown={(e) => startResize(e, out)}
                               style={{
                                 position: "absolute",
-                                insetBlock: 4,
-                                insetInline: 5,
-                                background: "#fff",
-                                outline: `1px solid ${SEL_COLOR}`,
+                                top: y - 7,
+                                left: x - 7,
+                                width: 14,
+                                height: 14,
+                                cursor,
+                                pointerEvents: "auto",
+                                touchAction: "none",
                               }}
-                            />
-                          </div>
-                        ))
-                      : null}
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: ring.top + ring.height + 8,
-                        left: ring.left + ring.width / 2,
-                        transform: "translateX(-50%)",
-                        background: SEL_COLOR,
-                        color: "#fff",
-                        font: "500 11px/1 var(--font-body, system-ui)",
-                        padding: "4px 6px",
-                        borderRadius: CHROME_RADIUS,
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {/* Mid-drag the chip names the RUNG, because that is what the
-                          gesture is writing; the pixels are only its consequence. */}
-                      {resizing
-                        ? `${resizing.label} · ${Math.round(ring.width / zoom)} × ${Math.round(ring.height / zoom)}`
-                        : `${Math.round(ring.width / zoom)} × ${Math.round(ring.height / zoom)}`}
+                            >
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  inset: 4,
+                                  background: "#fff",
+                                  outline: `1px solid ${SEL_COLOR}`,
+                                }}
+                              />
+                            </div>
+                          ))
+                        : null}
+                      {/* Side handles, on the inline axis only, and only where the parent's
+                          measured layout gives this node something to say about its seat. */}
+                      {seat
+                        ? (
+                            [
+                              [ring.left, [-1, 0]],
+                              [ring.left + ring.width, [1, 0]],
+                            ] as [number, [number, number]][]
+                          ).map(([x, out], i) => (
+                            <div
+                              key={i}
+                              data-kb-resize
+                              onPointerDown={(e) => startSeatDrag(e, out)}
+                              style={{
+                                position: "absolute",
+                                top: ring.top + ring.height / 2 - 11,
+                                left: x - 7,
+                                width: 14,
+                                height: 22,
+                                cursor: "ew-resize",
+                                pointerEvents: "auto",
+                                touchAction: "none",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  insetBlock: 4,
+                                  insetInline: 5,
+                                  background: "#fff",
+                                  outline: `1px solid ${SEL_COLOR}`,
+                                }}
+                              />
+                            </div>
+                          ))
+                        : null}
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: ring.top + ring.height + 8,
+                          left: ring.left + ring.width / 2,
+                          transform: "translateX(-50%)",
+                          background: SEL_COLOR,
+                          color: "#fff",
+                          font: "500 11px/1 var(--font-body, system-ui)",
+                          padding: "4px 6px",
+                          borderRadius: CHROME_RADIUS,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {/* Mid-drag the chip names the RUNG, because that is what the
+                            gesture is writing; the pixels are only its consequence. */}
+                        {resizing
+                          ? `${resizing.label} · ${Math.round(ring.width / zoom)} × ${Math.round(ring.height / zoom)}`
+                          : `${Math.round(ring.width / zoom)} × ${Math.round(ring.height / zoom)}`}
+                      </div>
                     </div>
-                  </div>
-                ) : null}
-                {drop?.line && !preview ? (
-                  <div
-                    aria-hidden
-                    style={{
-                      position: "absolute",
-                      left: drop.line.x,
-                      top: drop.line.y,
-                      width: drop.line.w,
-                      height: drop.line.h,
-                      background: "var(--focus-ring)",
-                      borderRadius: chromeCorner(drop.line.w / 2, drop.line.h / 2),
-                      pointerEvents: "none",
-                    }}
-                  />
-                ) : null}
-                {drop && !drop.line && drop.boxId ? <DropHint canvasRef={canvasRef} id={drop.boxId} /> : null}
-              </div>
-            </Box>
-            )}
-          </Box>
+                  ) : null}
+                  {drop?.line && !preview ? (
+                    <div
+                      aria-hidden
+                      style={{
+                        position: "absolute",
+                        left: drop.line.x,
+                        top: drop.line.y,
+                        width: drop.line.w,
+                        height: drop.line.h,
+                        background: "var(--focus-ring)",
+                        borderRadius: chromeCorner(drop.line.w / 2, drop.line.h / 2),
+                        pointerEvents: "none",
+                      }}
+                    />
+                  ) : null}
+                  {drop && !drop.line && drop.boxId ? <DropHint canvasRef={canvasRef} id={drop.boxId} /> : null}
+                </div>
+              </Box>
+              )}
+            </ContextMenuTrigger>
+            <CanvasMenu
+              run={runCommand}
+              enabled={(id) => {
+                const cmd = COMMANDS.find((c) => c.id === id);
+                return Boolean(cmd && ctxRef.current && armed(cmd, ctxRef.current));
+              }}
+              titleOf={(id) => COMMANDS.find((c) => c.id === id)?.title ?? id}
+              inserts={contextInserts}
+              onInsert={insertType}
+            />
+          </ContextMenu>
         </ShellScroll>
       </ShellContent>
 
@@ -2045,22 +2098,45 @@ export function BuilderApp() {
           rule the library does not offer, and the honest library answer is an inspector
           whose `auto` an app can mean — this app is the first consumer with an opinion, so
           the rule lives here until a second one wants it. */}
-      <ShellInspector
-        aria-label="Inspector"
-        width={304}
-        open={inspectorShown}
-        onOpenChange={setInspectorOpen}
-      >
-        <ShellScroll>
-          <Box p="3">
-            <Tabs value={rightTab} onValueChange={(v) => setRightTab(v as typeof rightTab)}>
-              <TabsList>
-                <TabsTab value="inspect">Selected</TabsTab>
-                <TabsTab value="theme">Theme</TabsTab>
-                <TabsTab value="review">{findings.length ? `Review ${findings.length}` : "Review"}</TabsTab>
-              </TabsList>
+      {/* THE TABS ROOT *IS* THE PANE (2026-09-02, Kushagra: "property panel has no bleed
+            stuff, tabs are floating in the middle"). Two faults, one cause. The strip sat
+            inside the scroller under a `Box p="3"` — a second inset on top of the padding the
+            pane has carried since 2026-08-21 — so its rule stopped a whole layout step short
+            of the pane's own content edge on both sides and read as a widget dropped in the
+            middle rather than as the pane's chrome; and it scrolled away with the panel it
+            switches.
+
+            Both need the strip to be the pane's chrome row, which needs `TabsList` inside a
+            `ShellPaneHeader` — and that needs the `Tabs` context to reach BOTH the header and
+            the scroller, which `ShellPaneHeader` and `ShellScroll` are read with `:has(> …)`
+            and so cannot survive a wrapper between them and the pane. `render` is the way out
+            and it is the primitive's own escape, not a trick: the pane element becomes Base
+            UI's Tabs root, so both parts stay direct children. It composes cleanly because
+            SidePane MERGES the two props Base UI writes rather than replacing them — `cx()`
+            for the class and `useMergedRefs` for the ref — which is the 2026-08-03 `render`
+            lesson holding on the receiving side for once. */}
+        <Tabs
+          value={rightTab}
+          onValueChange={(v) => setRightTab(v as typeof rightTab)}
+          render={
+            <ShellInspector
+              aria-label="Inspector"
+              width={304}
+              open={inspectorShown}
+              onOpenChange={setInspectorOpen}
+            />
+          }
+        >
+          <ShellPaneHeader>
+            <TabsList style={{ flex: 1 }}>
+              <TabsTab value="inspect">Selected</TabsTab>
+              <TabsTab value="theme">Theme</TabsTab>
+              <TabsTab value="review">{findings.length ? `Review ${findings.length}` : "Review"}</TabsTab>
+            </TabsList>
+          </ShellPaneHeader>
+          <ShellScroll>
               <TabsPanel value="inspect">
-                <Box pt="3">
+                <Box pt="4">
                   {selected ? (
                     <Stack gap="5">
                       {/* One panel or the other, never both: two `size` pickers over one
@@ -2149,12 +2225,12 @@ export function BuilderApp() {
                 </Box>
               </TabsPanel>
               <TabsPanel value="theme">
-                <Box pt="3">
+                <Box pt="4">
                   <ThemePanel theme={doc.theme} onAxis={setThemeAxis} />
                 </Box>
               </TabsPanel>
               <TabsPanel value="review">
-                <Box pt="3">
+                <Box pt="4">
                   <ReviewPanel
                     findings={findings}
                     selection={state.selection}
@@ -2163,30 +2239,10 @@ export function BuilderApp() {
                   />
                 </Box>
               </TabsPanel>
-            </Tabs>
-          </Box>
-        </ShellScroll>
-      </ShellInspector>
+          </ShellScroll>
+        </Tabs>
 
       {/* ── The editor's own dialogs ── */}
-      <ContextMenu
-        point={contextPoint}
-        onOpenChange={(open) => !open && setContextPoint(null)}
-        run={(id) => {
-          setContextPoint(null);
-          runCommand(id);
-        }}
-        enabled={(id) => {
-          const cmd = COMMANDS.find((c) => c.id === id);
-          return Boolean(cmd && ctxRef.current && armed(cmd, ctxRef.current));
-        }}
-        titleOf={(id) => COMMANDS.find((c) => c.id === id)?.title ?? id}
-        inserts={contextInserts}
-        onInsert={(type) => {
-          setContextPoint(null);
-          insertType(type);
-        }}
-      />
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} ctx={ctx} />
       <ShortcutSheet open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
       {/* SIZE 4, and the code is why (2026-08-21): the export block is a `<pre>` that must
@@ -2351,6 +2407,26 @@ function TierCompare({ doc }: { doc: BuilderDoc }) {
   );
 }
 
+/**
+ * A family of the palette, as ROWS (2026-09-02, Kushagra: "this is the same (the add
+ * thing)?" — asked with the Layers tree open beside it).
+ *
+ * It was a two-column `Grid` of quiet Buttons, which is the shape a palette takes before the
+ * system has a row: a button is a thing you press to DO something, and every entry here is a
+ * thing you pick out of a list — which is §21's own sentence and what the row family is for.
+ * Beside the tree next door the difference was the whole complaint: one panel's items filled
+ * the pane and lit across it, the other's were two columns of indented chips.
+ *
+ * ONE COLUMN, not two rows of the family in a grid: a row is a full-width thing, and the
+ * filter in the pane's chrome is what replaced the scan the two columns were buying.
+ *
+ * THE GROUP LABEL IS AN INERT ROW, which is how it lines up with the words beneath it without
+ * anybody picking a number. A row's text inset is `--kui-ct-px`, declared by the control size
+ * join on each ROW's element, so a sibling cannot read it — the menu had to publish
+ * `--kui-sf-row-px` for exactly this and that token is the floating family's. Wearing the row
+ * is the alignment (§21: a menu label IS a `.kui-row` that is not a control), and
+ * `render={<div/>}` is what stops it promising a press it does not answer.
+ */
 function PaletteGroup({
   label,
   entries,
@@ -2368,132 +2444,30 @@ function PaletteGroup({
 }) {
   if (entries.length === 0) return null;
   return (
-    <Stack gap="2">
-      <Text size="2" weight="medium">
-        {label}
-      </Text>
-      <Grid columns="repeat(2, minmax(0, 1fr))" gap="1">
-        {entries.map(([type, entry]) => (
-          <Button
-            key={type}
-            emphasis="quiet"
-            disabled={!canInsert(type)}
-            title={entry.blurb}
-            draggable
-            onDragStart={(e) => {
-              onDragBegin({ kind: "insert", type });
-              e.dataTransfer.setData(DRAG_TYPE, type);
-              e.dataTransfer.effectAllowed = "copy";
-            }}
-            onDragEnd={onDragFinish}
-            onClick={() => onInsert(type)}
-            style={{ justifyContent: "flex-start" }}
-          >
-            {type}
-          </Button>
-        ))}
-      </Grid>
-    </Stack>
-  );
-}
-
-function TreeRows({
-  node: n,
-  depth,
-  selection,
-  onSelect,
-  dropRow,
-  onDragBegin,
-  onDragFinish,
-  canRowDrop,
-  onHoverRow,
-  onRowDrop,
-  visible,
-}: {
-  node: BuilderNode;
-  depth: number;
-  selection: string[];
-  onSelect: (id: string, additive: boolean) => void;
-  dropRow: { id: string; mode: "before" | "into" | "after" } | null;
-  onDragBegin: (id: string) => void;
-  onDragFinish: () => void;
-  canRowDrop: (id: string, mode: "before" | "into" | "after") => boolean;
-  onHoverRow: (spot: { id: string; mode: "before" | "into" | "after" } | null) => void;
-  onRowDrop: (id: string, mode: "before" | "into" | "after") => void;
-  /** The filter's answer, or null for no filter. A row outside it is not drawn — dimming it
-      would leave a tree you have to read past to use. */
-  visible: Set<string> | null;
-}) {
-  if (visible && !visible.has(n.id)) return null;
-  /** Which third of the row the pointer is in. The edges are deliberately narrow (a quarter
-      each): "into" is the common intent, and a tree where every hover lands between rows is
-      a tree you fight. */
-  const thirdOf = (e: React.DragEvent<HTMLElement>): "before" | "into" | "after" => {
-    const box = e.currentTarget.getBoundingClientRect();
-    const y = (e.clientY - box.top) / box.height;
-    return y < 0.25 ? "before" : y > 0.75 ? "after" : "into";
-  };
-  // The root row reads "Canvas": it is a real Stack (and exports as one), but its ROLE in the
-  // document is the page every other node sits on, and `depth === 0` is exactly that node.
-  const label =
-    depth === 0
-      ? `Canvas · ${n.type}`
-      : n.text
-        ? `${n.type} · ${n.text.slice(0, 18)}${n.text.length > 18 ? "…" : ""}`
-        : n.type;
-  const pass = { dropRow, onDragBegin, onDragFinish, canRowDrop, onHoverRow, onRowDrop, visible };
-  return (
-    <>
-      <Box
-        role="treeitem"
-        aria-level={depth + 1}
-        aria-selected={selection.includes(n.id)}
-        {...(n.children?.length ? { "aria-expanded": true } : {})}
-        style={{ paddingInlineStart: `calc(${depth} * var(--layout-space-4))`, display: "flex" }}
-      >
-        <Button
-          emphasis={selection.includes(n.id) ? "medium" : "quiet"}
-          aria-pressed={selection.includes(n.id)}
-          bordered={dropRow?.id === n.id && dropRow.mode === "into"}
-          onClick={(e) => onSelect(n.id, e.shiftKey || e.metaKey || e.ctrlKey)}
+    <Stack gap="1">
+      <Row render={<div />}>
+        <Text size="1" emphasis="quiet" weight="medium">
+          {label}
+        </Text>
+      </Row>
+      {entries.map(([type, entry]) => (
+        <Row
+          key={type}
+          disabled={!canInsert(type)}
+          title={entry.blurb}
           draggable
           onDragStart={(e) => {
-            onDragBegin(n.id);
-            e.dataTransfer.setData(MOVE_TYPE, n.id);
-            e.dataTransfer.effectAllowed = "move";
+            onDragBegin({ kind: "insert", type });
+            e.dataTransfer.setData(DRAG_TYPE, type);
+            e.dataTransfer.effectAllowed = "copy";
           }}
           onDragEnd={onDragFinish}
-          onDragOver={(e) => {
-            const mode = thirdOf(e);
-            if (!canRowDrop(n.id, mode)) return;
-            e.preventDefault();
-            e.stopPropagation();
-            if (dropRow?.id !== n.id || dropRow.mode !== mode) onHoverRow({ id: n.id, mode });
-          }}
-          onDragLeave={() => onHoverRow(null)}
-          onDrop={(e) => {
-            const mode = thirdOf(e);
-            e.preventDefault();
-            e.stopPropagation();
-            onRowDrop(n.id, mode);
-          }}
-          style={{
-            justifyContent: "flex-start",
-            flex: 1,
-            // The between-rows line: drawn on the row itself, so it cannot drift from the
-            // row it names the way a separately positioned overlay could.
-            ...(dropRow?.id === n.id && dropRow.mode !== "into"
-              ? { boxShadow: `inset 0 ${dropRow.mode === "before" ? "" : "-"}2px 0 0 ${SEL_COLOR}` }
-              : {}),
-          }}
+          onClick={() => onInsert(type)}
         >
-          {label}
-        </Button>
-      </Box>
-      {n.children?.map((c) => (
-        <TreeRows key={c.id} node={c} depth={depth + 1} selection={selection} onSelect={onSelect} {...pass} />
+          {type}
+        </Row>
       ))}
-    </>
+    </Stack>
   );
 }
 
