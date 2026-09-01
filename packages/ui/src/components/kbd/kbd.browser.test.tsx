@@ -182,7 +182,7 @@ describe("it inherits the atom's typography rules, not a second set (§15)", () 
     const one = mounted(<Kbd>K</Kbd>, { theme: {} });
     expect(computed(one, "white-space")).toBe("nowrap");
     expect(computed(one, "justify-content")).toBe("center");
-    // REWRITTEN 2026-08-23, when Badge copied this law and its sabotage pass caught them both.
+    // REWRITTEN 2026-08-23, when Chip copied this law and its sabotage pass caught them both.
     // The old spelling measured `K` against `1.6 * font - 0.5` — and `K` renders 1.654em wide,
     // which is CONTENT, not the floor: deleting `min-inline-size` outright moved the width by
     // less than the tolerance and the law stayed green. `i` is a glyph the floor really binds

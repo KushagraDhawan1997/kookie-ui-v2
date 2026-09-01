@@ -22,7 +22,7 @@
 import { describe, expect, it } from "vitest";
 import { cdp } from "@vitest/browser/context";
 
-import { Badge } from "../components/badge/badge.tsx";
+import { Chip } from "../components/chip/chip.tsx";
 import { Button } from "../components/button/button.tsx";
 import { Card } from "../components/card/card.tsx";
 import { Theme } from "../theme/theme.tsx";
@@ -274,38 +274,38 @@ describe("a mask is minted only where something samples it (§10, 2026-08-26)", 
    *
    * The glint is a mask on a `::before`, and only five families declare one: `.kui-surface`
    * (surfaces.css) and `.kui-button` / `.kui-segmented` / `.kui-field` / `.kui-textarea`
-   * (recipes.css). Badge became glass-capable when it grew `backdrop`, and the atom family
-   * declares no pseudo at all — so every glass badge ran a `glintMap` ImageData pass, a
+   * (recipes.css). Chip became glass-capable when it grew `backdrop`, and the atom family
+   * declares no pseudo at all — so every glass chip ran a `glintMap` ImageData pass, a
    * `canvas.toDataURL()` PNG encode and a 645-character inline write for a property with
-   * nowhere to land. Measured before the fix, on one mount: badge `--kui-glint` 645 chars
+   * nowhere to land. Measured before the fix, on one mount: chip `--kui-glint` 645 chars
    * with `::before` content `none` and mask-image `none`; button 1605 chars with content
    * `""` and mask-image `url("data:image/png…")`.
    *
-   * The law is the biconditional, not the badge: a mask is written exactly where the cascade
-   * has a layer to put it on. Removing the gate fails the badge arm; widening it to skip
+   * The law is the biconditional, not the chip: a mask is written exactly where the cascade
+   * has a layer to put it on. Removing the gate fails the chip arm; widening it to skip
    * everything fails the two sampling arms.
    */
   it("the atom family mints none, and the families that paint one still do", async () => {
     const host = render(
       <Theme material="regular">
-        <Badge backdrop>New</Badge>
+        <Chip backdrop>New</Chip>
         <Button backdrop>Go</Button>
         <Card backdrop style={{ width: 320, height: 200 }}>
           pane
         </Card>
       </Theme>,
     );
-    const badge = host.querySelector<HTMLElement>(".kui-badge")!;
+    const chip = host.querySelector<HTMLElement>(".kui-chip")!;
     const button = host.querySelector<HTMLElement>(".kui-button")!;
     const pane = host.querySelector<HTMLElement>(".kui-surface")!;
 
     // THE CALIBRATION, and it is the whole fixture. `useMaterial` resolves ON_GLASS inside a
-    // pane and `solid` outside a region, and the hook returns early for both — so a badge that
+    // pane and `solid` outside a region, and the hook returns early for both — so a chip that
     // is not really glass would satisfy this law with the gate deleted. Measured while writing
-    // it: the first fixture put the badge INSIDE the glass Card and read `data-material:
+    // it: the first fixture put the chip INSIDE the glass Card and read `data-material:
     // "on-glass"`, glint 0, from code that had not been changed yet.
-    expect(badge.getAttribute("data-material"), "the badge is not glass — the fixture is the defect").toBe("regular");
-    expect(getComputedStyle(badge).backdropFilter, "the badge resolved no material chain").not.toBe("none");
+    expect(chip.getAttribute("data-material"), "the chip is not glass — the fixture is the defect").toBe("regular");
+    expect(getComputedStyle(chip).backdropFilter, "the chip resolved no material chain").not.toBe("none");
 
     expect(await until(() => pane.style.getPropertyValue("--kui-glint") !== ""), "the pane never measured").toBe(true);
 
@@ -315,11 +315,11 @@ describe("a mask is minted only where something samples it (§10, 2026-08-26)", 
       expect(getComputedStyle(el, "::before").maskImage, `${name}'s band is not masked`).toMatch(/^url\("data:image\/png/);
     }
 
-    expect(getComputedStyle(badge, "::before").content, "the atom family grew a ::before — widen the gate, do not delete it").toBe("none");
+    expect(getComputedStyle(chip, "::before").content, "the atom family grew a ::before — widen the gate, do not delete it").toBe("none");
     expect(
-      badge.style.getPropertyValue("--kui-glint"),
-      "a glass badge minted a mask no rule can sample — a canvas pass and a PNG encode for nothing",
+      chip.style.getPropertyValue("--kui-glint"),
+      "a glass chip minted a mask no rule can sample — a canvas pass and a PNG encode for nothing",
     ).toBe("");
-    expect(badge.style.getPropertyValue("--kui-glint-on"), "the badge switched a band on that it cannot paint").toBe("");
+    expect(chip.style.getPropertyValue("--kui-glint-on"), "the chip switched a band on that it cannot paint").toBe("");
   });
 });

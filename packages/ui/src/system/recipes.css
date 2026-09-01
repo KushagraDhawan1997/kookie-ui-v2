@@ -1881,19 +1881,19 @@
      only edge it has. */
   --kui-ct-glass-edge: transparent;
 }
-/* THE ATOM FAMILY JOINS THE GLASS RULES (§10, 2026-08-28, Kushagra: a glass Badge "doesnt
+/* THE ATOM FAMILY JOINS THE GLASS RULES (§10, 2026-08-28, Kushagra: a glass Chip "doesnt
    look even close to how button looks"). It was two of the five parts — the veil and the
    filter, both correct — and none of the light: measured against a glass Button in the same
-   document, the badge's ::after and ::before were `content: none` and its background-image
+   document, the chip's ::after and ::before were `content: none` and its background-image
    `none`, so it took the fog and left the ring, the rim and the glint behind.
 
-   The cause is the shape this repo keeps finding: Badge grew `backdrop` on 2026-08-26, TWO
+   The cause is the shape this repo keeps finding: Chip grew `backdrop` on 2026-08-26, TWO
    DAYS after the glass contract was locked on 2026-08-24, and every rule the contract is made
    of names `.kui-control`, `.kui-field`, `.kui-textarea` or `.kui-surface`. A member that
    joins after a rule set is written inherits nothing. The fix is a selector list, not a value:
    the atom twins consume exactly the tokens the button consumes, so the two cannot drift.
 
-   KEYED ON `.kui-atom`, NOT `.kui-badge`, and the guard is `[data-material]` rather than the
+   KEYED ON `.kui-atom`, NOT `.kui-chip`, and the guard is `[data-material]` rather than the
    class. `Code` and `Kbd` refuse `backdrop` by their types, so they can never match — and if
    an atom is ever given the prop, it arrives with the light already correct instead of
    repeating this defect.
@@ -1902,16 +1902,16 @@
    per-box lens mask, which costs an ImageData pass and a PNG encode on every mount — and
    `refraction.browser.test.tsx` asserts the biconditional that a mask is minted exactly where
    the cascade has a layer to put it on. That law was written on 2026-08-26 as a performance
-   repair for this very component, when a glass badge was doing the encode for a property with
+   repair for this very component, when a glass chip was doing the encode for a property with
    nowhere to land. Widening the CSS without widening the JS gate would have painted the band
-   unmasked; widening both would make every badge in a list pay for a second map. The ring and
+   unmasked; widening both would make every chip in a list pay for a second map. The ring and
    the rim are free by comparison — the ring's mask is two linear-gradients composited in CSS
    — and they are what the eye was reading as missing.
 
-   WHAT IS DELIBERATELY NOT HERE IS THE POOL. A glass Button casts; a Badge is flat, and that
-   flatness is a shipped law about what a badge IS beside a Kbd, which casts always. §10 lets
+   WHAT IS DELIBERATELY NOT HERE IS THE POOL. A glass Button casts; a Chip is flat, and that
+   flatness is a shipped law about what a chip IS beside a Kbd, which casts always. §10 lets
    a member vary WHERE a part is painted and the grips already gave up their cast on glass
-   (2026-08-24), so a flat member staying flat is inside the contract. If a floating badge
+   (2026-08-24), so a flat member staying flat is inside the contract. If a floating chip
    turns out to need separation from what is behind it, that is a judgment about the atom
    family's own identity and not a hole in this fix. */
 .kui-segmented[data-material]::after,
@@ -2087,13 +2087,13 @@
   }
 }
 
-/* ── The atom under glass (Badge `backdrop`, 2026-08-26) ─────────────────────────────────
+/* ── The atom under glass (Chip `backdrop`, 2026-08-26) ─────────────────────────────────
    The inert chip, floating over content: the same veil formula as the controls, at the
    control-scale alphas and filters, because a chip is control-scale. The source is
    `--kui-atom-fill-src` (type.css) — the opaque twin, for the alpha-multiplication reason
-   the controls' twins exist. Only Badge stamps `data-material` in this family (Code and Kbd
+   the controls' twins exist. Only Chip stamps `data-material` in this family (Code and Kbd
    live inside running text and never float), and only when it says `backdrop` over glass —
-   a solid badge writes no attribute and never matches here. Same three-environment shape:
+   a solid chip writes no attribute and never matches here. Same three-environment shape:
    fallback base, real recipe under @supports, reduced-transparency winning last. */
 .kui-atom[data-material="thin"],
 .kui-atom[data-material="regular"],

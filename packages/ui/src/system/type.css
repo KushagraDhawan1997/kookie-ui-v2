@@ -173,9 +173,9 @@
   font-weight: var(--font-weight-semibold);
 }
 
-/* ── The inert atoms' shared identity (§11, §15; promoted 2026-08-23 with Badge) ───────────
+/* ── The inert atoms' shared identity (§11, §15; promoted 2026-08-23 with Chip) ───────────
    Code self-keyed, Kbd self-keyed while repeating it, and the THIRD member is what promotes
-   (the field family's rule, LOG 2026-08-05). Badge is that third member, so what all three
+   (the field family's rule, LOG 2026-08-05). Chip is that third member, so what all three
    atoms are made of moves here and what each one IS stays in its own sheet.
 
    Three facts, and each is the same fact for the same reason in all three:
@@ -190,10 +190,10 @@
    - The optical SCALE is applied here, in the inherited-size arm. `em` reads the PARENT'S
      size, which is exactly what an unset size means; when a size IS stated, the join's
      `[data-size]` declaration wins on specificity, so the two arms never fight. Each member
-     declares its own factor (`--mono-scale`, `--kbd-scale`, `--badge-scale`) — the atoms
+     declares its own factor (`--mono-scale`, `--kbd-scale`, `--chip-scale`) — the atoms
      deliberately do not share one discount, because they do not share a reason for it. */
 .kui-atom {
-  /* The fill through one level of indirection since Badge grew `backdrop` (2026-08-26):
+  /* The fill through one level of indirection since Chip grew `backdrop` (2026-08-26):
      at rest the derived name is unset and the fallback IS the old declaration, byte for
      byte. Under glass the material region (recipes.css) writes the derived name as the
      veil — its own fill mixed toward transparent — through `--kui-atom-fill-src`, which
@@ -215,7 +215,7 @@
   inherits: false;
 }
 
-/* ── The one-line box (promoted 2026-08-23 with Badge) ────────────────────────────────────
+/* ── The one-line box (promoted 2026-08-23 with Chip) ────────────────────────────────────
    Kbd's geometry, which is now two members' geometry: a cap and a pill are both blocks that
    sit BESIDE running text rather than inside it. Code deliberately does not wear it — an
    inline chip belongs to its sentence, wraps with it, and pays `box-decoration-break` for the

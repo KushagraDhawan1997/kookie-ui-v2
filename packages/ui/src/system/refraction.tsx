@@ -1005,11 +1005,11 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
          *
          * The glint is a mask on a `::before` that the glint families declare (`.kui-surface`
          * in surfaces.css, `.kui-button` / `.kui-segmented` / `.kui-field` / `.kui-textarea`
-         * in recipes.css). Badge is glass-capable too since it grew `backdrop` — and the atom
-         * family declares no pseudo at all, so a `<Badge backdrop>` ran a full `glintMap`
+         * in recipes.css). Chip is glass-capable too since it grew `backdrop` — and the atom
+         * family declares no pseudo at all, so a `<Chip backdrop>` ran a full `glintMap`
          * ImageData pass, a `canvas.toDataURL()` PNG encode and a 645-character inline
-         * `--kui-glint` write for a property with nowhere to land. Measured on a mounted badge
-         * beside a mounted button: badge `::before` content `none`, mask-image `none`, glint
+         * `--kui-glint` write for a property with nowhere to land. Measured on a mounted chip
+         * beside a mounted button: chip `::before` content `none`, mask-image `none`, glint
          * 645 chars; button `::before` content `""`, mask-image `url("data:image/png…")`.
          *
          * Read off the CASCADE, not off a class list, for the same reason the seal is: this

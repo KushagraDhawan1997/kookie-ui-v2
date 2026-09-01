@@ -6,8 +6,8 @@
  * itself sets shortcuts in the UI sans (macOS menus; Radix's cap is sans too).
  *
  * The atom's shared facts were restated here under the second-member rule until 2026-08-23,
- * when Badge arrived as the third and promoted them: the fill, the corner and the optical
- * scale are `.kui-atom`'s, and the one-line box — which Kbd designed and Badge now wears — is
+ * when Chip arrived as the third and promoted them: the fill, the corner and the optical
+ * scale are `.kui-atom`'s, and the one-line box — which Kbd designed and Chip now wears — is
  * `.kui-atom-box`'s. What is left is the cap: the body family, its own discount, an edge and
  * the relief that says a key is a physical thing. */
 
@@ -29,7 +29,7 @@
      whisper of drop, cap-scale (--kbd-relief). Still role semantics — it holds in a flat
      world — and a PANE still stands it down (§10, lab: relief in the pane, not a sticker
      on it), so a glass surface's --kui-kbd-cast wins the first slot.
-     This is the one thing the cap has that the family's other box does NOT: a badge is flat,
+     This is the one thing the cap has that the family's other box does NOT: a chip is flat,
      which is most of what keeps the two legible side by side. */
   --kui-ct-cast: var(--kui-kbd-cast, var(--kbd-relief, none));
   box-shadow: var(--kui-ct-cast, none);

@@ -132,7 +132,7 @@
      the real scrollport rather than to a box that cannot scroll. Those two flight rules used
      to state this themselves; the fact has one home now.
 
-     What it costs: an element that deliberately hangs off a pane's corner — a badge, an
+     What it costs: an element that deliberately hangs off a pane's corner — a chip, an
      avatar overlapping the edge — cannot, and the escape is `style={{ overflow: "visible" }}`
      at the call site, where opting out of the shape is visible in review.
 

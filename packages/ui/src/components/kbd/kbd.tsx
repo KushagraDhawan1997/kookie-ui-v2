@@ -53,7 +53,7 @@ export type KbdProps = Omit<
  * always is about the WORLD, and a material is a different axis.)
  *
  * **The stylesheet repeats Code's facts on purpose.** TextArea set the rule (LOG 2026-08-05):
- * the SECOND member of a family self-keys, the THIRD promotes it into the shared layer. Badge
+ * the SECOND member of a family self-keys, the THIRD promotes it into the shared layer. Chip
  * and Tag are the third and fourth atoms on §11's list; whichever lands first is what pulls
  * the mono chip's box into a layer of its own.
  */

@@ -37,7 +37,7 @@
  * only when the bound binds, the expand control.
  */
 import * as React from "react";
-import { Badge, Flex, type Size } from "@kookie-ui/react";
+import { Chip, Flex, type Size } from "@kookie-ui/react";
 
 import { FileIcon } from "../app/icons";
 import { CodeBlock } from "./code-block";

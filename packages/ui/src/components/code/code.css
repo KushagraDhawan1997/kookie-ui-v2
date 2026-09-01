@@ -3,7 +3,7 @@
  * Almost all of what a code chip looks like is already written. `.kui-type` zeroes the margin
  * and points the colour at the foreground role; the ramp, the weights and the emphasis rungs
  * are the shared layer's; and since 2026-08-23 the fill, the corner and the optical-scale
- * application are `.kui-atom`'s, promoted when Badge landed as the family's third member.
+ * application are `.kui-atom`'s, promoted when Chip landed as the family's third member.
  *
  * What is left here is what a code chip IS and the other two atoms are not: the mono family,
  * its own discount, and the inline model — a chip belongs to its sentence and wraps with it,

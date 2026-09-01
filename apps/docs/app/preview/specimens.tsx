@@ -338,14 +338,14 @@ function BadgeSection() {
         cols={["loud", "medium", "quiet"]}
         rows={[
           {
-            label: "badge",
+            label: "chip",
             cells: (["loud", "medium", "quiet"] as const).map((e) => (
-              <Badge key={e} size="2" emphasis={e}>Queued</Badge>
+              <Chip key={e} size="2" emphasis={e}>Queued</Chip>
             )),
           },
         ]}
       />
-      {/* The count case: a badge over the thing it counts. The position is the call site's —
+      {/* The count case: a chip over the thing it counts. The position is the call site's —
           the component knows nothing about where it goes (§3), so this is a Box doing what a
           Box does. */}
       <Demo label="A count, placed by its call site">
@@ -354,13 +354,13 @@ function BadgeSection() {
             <Box key={n} position="relative">
               <Button emphasis="quiet" bordered>Inbox</Button>
               <Box position="absolute" style={{ insetInlineEnd: "-6px", insetBlockStart: "-8px" }}>
-                <Badge size="1" tone={tone}>{n}</Badge>
+                <Chip size="1" tone={tone}>{n}</Chip>
               </Box>
             </Box>
           ))}
         </Flex>
       </Demo>
-      {/* Composed: the shape a product actually uses it in, where the badge is the only thing
+      {/* Composed: the shape a product actually uses it in, where the chip is the only thing
           carrying colour and the words carry everything else. */}
       <Demo label="Composed — a deploy list">
         <Box maxWidth="30rem">
@@ -368,7 +368,7 @@ function BadgeSection() {
             <Stack gap="4">
               <Flex align="center" gap="3">
                 <Heading size="6">Deployments</Heading>
-                <Badge tone="info">Preview</Badge>
+                <Chip tone="info">Preview</Chip>
               </Flex>
               {(
                 [
@@ -380,7 +380,7 @@ function BadgeSection() {
               ).map(([build, state, tone]) => (
                 <Flex key={build} justify="space-between" align="center" gap="4">
                   <Text size="2">Build {build}</Text>
-                  <Badge size="2" tone={tone}>{state}</Badge>
+                  <Chip size="2" tone={tone}>{state}</Chip>
                 </Flex>
               ))}
             </Stack>

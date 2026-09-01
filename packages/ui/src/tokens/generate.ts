@@ -876,14 +876,14 @@ export const ROLES = [
  * *"why do these buttons continue to have a light filter?"*).
  *
  * The wash trio and its opaque glass twins read NEUTRAL for every family, not only for the
- * undiluted ones. A medium button, a quiet one under the pointer and a badge's chip are grey
+ * undiluted ones. A medium button, a quiet one under the pointer and a chip's chip are grey
  * whatever tone they carry, and the family arrives in the label instead.
  *
  * This is the accent rule generalised, and the generalisation is narrower than it first looks
  * because the roles are not interchangeable. The surface tint (`a3`) and the two faded inks
  * stay per-family below: a Notice is a tone-forward SURFACE and its tint is that component's
  * whole design, and a `destructive` paragraph at medium emphasis is meant to be a quieter red
- * rather than a grey. Buttons and badges read `--tone-soft`; Notice reads `--tone-a3`; text
+ * rather than a grey. Buttons and chips read `--tone-soft`; Notice reads `--tone-a3`; text
  * reads the ink trio. Three different roles, so "no faded fills" costs the other two nothing.
  */
 const WASH_ROLES: ReadonlySet<string> = new Set([
