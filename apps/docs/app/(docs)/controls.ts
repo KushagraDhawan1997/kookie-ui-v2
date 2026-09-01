@@ -63,7 +63,7 @@ export type ControlValues = Record<string, string | boolean>;
  * and a knob for the axis being swept would flatten the thing the page is showing. So those
  * pages offer every axis the sweep does not use, and the sweep stays the specimen.
  */
-const OFFERED: Record<string, readonly string[]> = {
+export const OFFERED: Record<string, readonly string[]> = {
   accordion: ["size", "multiple"],
   "alert-dialog": ["size"],
   avatar: ["size", "backdrop", "badge"],
@@ -114,6 +114,7 @@ const OFFERED: Record<string, readonly string[]> = {
 
 /** The catalog's component key for a docs slug. Most are the pascal case of the slug. */
 const CATALOG_KEY: Record<string, string> = {
+  breadcrumb: "Breadcrumb",
   accordion: "Accordion",
   "alert-dialog": "AlertDialog",
   avatar: "Avatar",

@@ -220,15 +220,35 @@ export function Playground({
               >
                 {controls.map((control) => (
                   <React.Fragment key={control.name}>
-                    {/* The label is the one cell that reads left. */}
-                    <Text
-                      size="2"
-                      emphasis="medium"
-                      render={<label htmlFor={`ctl-${control.name}`} />}
-                      style={{ justifySelf: "start" }}
-                    >
-                      {humanLabel(control.name)}
-                    </Text>
+                    {/* The label is the one cell that reads left — AND IT IS A `<label>` ONLY
+                        WHERE THERE IS SOMETHING LABELABLE (2026-09-01, ultracode audit). Every
+                        knob rendered `<label for="ctl-…">` while only the boolean branch
+                        renders a matching `id`; the SegmentedControl and Select branches carry
+                        a name of their own instead. Measured on five pages, `{htmlFor:
+                        "ctl-size", targetExists: false}` — so on all 37 configured pages the
+                        word "Size" was a dead click target sitting next to Switch rows whose
+                        labels work. A radiogroup and a listbox are not labelable elements:
+                        `for` cannot name them and `aria-labelledby` is what ARIA has for
+                        exactly this, so the text names them rather than pointing at nothing. */}
+                    {control.kind === "boolean" || control.kind === "slot" ? (
+                      <Text
+                        size="2"
+                        emphasis="medium"
+                        render={<label htmlFor={`ctl-${control.name}`} />}
+                        style={{ justifySelf: "start" }}
+                      >
+                        {humanLabel(control.name)}
+                      </Text>
+                    ) : (
+                      <Text
+                        size="2"
+                        emphasis="medium"
+                        id={`ctl-label-${control.name}`}
+                        style={{ justifySelf: "start" }}
+                      >
+                        {humanLabel(control.name)}
+                      </Text>
+                    )}
                     {control.kind === "boolean" || control.kind === "slot" ? (
                       <Switch
                         id={`ctl-${control.name}`}
@@ -237,7 +257,7 @@ export function Playground({
                       />
                     ) : laidOut(control.values) ? (
                       <SegmentedControl
-                        aria-label={humanLabel(control.name)}
+                        aria-labelledby={`ctl-label-${control.name}`}
                         value={String(values[control.name])}
                         onValueChange={(next) => setValues((v) => ({ ...v, [control.name]: String(next) }))}
                       >
@@ -253,7 +273,7 @@ export function Playground({
                         onValueChange={(next) => setValues((v) => ({ ...v, [control.name]: String(next) }))}
                         items={Object.fromEntries(control.values.map((v) => [v, v]))}
                       >
-                        <SelectTrigger aria-label={humanLabel(control.name)} />
+                        <SelectTrigger aria-labelledby={`ctl-label-${control.name}`} />
                         <SelectContent>
                           {control.values.map((value) => (
                             <SelectItem key={value} value={value}>

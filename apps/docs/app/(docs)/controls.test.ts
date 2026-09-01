@@ -13,7 +13,7 @@ import * as React from "react";
 import { Theme } from "@kookie-ui/react";
 
 import { CONTROLLED } from "./controlled-examples";
-import { catalogEntryFor, controlsFor, inlineControls, sentinel, slotNode, slotStates } from "./controls";
+import { OFFERED, catalogEntryFor, controlsFor, inlineControls, sentinel, slotNode, slotStates } from "./controls";
 import { Example, readExampleSource, rootsOwnPane } from "./example";
 
 const SLUGS = Object.keys(CONTROLLED);
@@ -46,6 +46,19 @@ const shown = (slug: string, values: Record<string, string | boolean>) => {
 const slotValues = (slug: string) => slotStates(controlsFor(slug, readExampleSource(slug)));
 
 describe("every page that offers controls can drive one", () => {
+  it("BOTH directions, because one of them was live (audit 2026-09-01)", () => {
+    // `OFFERED` decides which slugs offer knobs and `CONTROLLED` holds the components those
+    // knobs move; the law below walked `CONTROLLED` only, because `OFFERED` was not exported —
+    // its own header claims both directions. Measured: 38 offered against 37 controlled, with
+    // `breadcrumb` in one and not the other, so `/components/breadcrumb` returned 200 with no
+    // configurator at all — the exact "a knob that moves nothing" fault this file exists to
+    // prevent, under 21 green docs laws.
+    const offered = Object.keys(OFFERED).sort();
+    const controlled = Object.keys(CONTROLLED).sort();
+    expect(offered.filter((slug) => !controlled.includes(slug)), "offered, but nothing to drive").toEqual([]);
+    expect(controlled.filter((slug) => !offered.includes(slug)), "driveable, but no knobs offered").toEqual([]);
+  });
+
   it("the two tables agree", () => {
     // `controls.ts` decides which slugs offer knobs and `controlled-examples.ts` holds the
     // components those knobs move. A slug in one and not the other renders a page whose
