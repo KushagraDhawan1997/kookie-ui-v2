@@ -1004,6 +1004,18 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
         // against where the floating panes actually are, so the comparison IS the measurement.
         "getBoundingClientRect",
         "getComputedStyle",
+        // ── Pane resize (§27, 2026-09-01): THE FIFTH EXCEPTION, and the first that is not a
+        // measurement taken at a seam. A drag runs while a finger is moving, which no seam can
+        // defer; the doctrine's purpose is that STATE styling costs no frames, and a resize is
+        // not a state — the gesture IS the value, and no CSS expresses "this boundary is where
+        // the pointer is". It is bounded instead, and each bound is law-asserted in
+        // shell-resize.browser.test.tsx: nothing runs unless a pointer is down on the handle,
+        // the move writes ONE custom property directly on the pane (no React state, so no
+        // re-render and no lens re-mint), the listeners live on the handle through pointer
+        // capture and leave with the gesture, and `onResize` fires ONCE at the end.
+        "onPointerDown =",
+        "onPointerDown=",
+        'addEventListener("pointer',
       ],
     };
     // `getComputedStyle` and `getBoundingClientRect` joined the ban 2026-08-31 (performance

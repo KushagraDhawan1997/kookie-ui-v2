@@ -30,8 +30,13 @@
  * registers its toggle by name on mount; the trigger looks it up and stamps
  * `aria-expanded` / `aria-controls`. The registry carries no layout state.
  *
- * Deferred, not refused (§27): drag-to-resize (the one-variable width design below is the
- * room left for it), peek, the `stacked` presentation, the mixed flush/floating posture.
+ * SHIPPED 2026-09-01: drag-to-resize, into exactly the room the one-variable width design
+ * left for it — the drag writes the same custom property the `width` prop writes, so
+ * nothing about that shape was revisited and `minWidth`/`maxWidth` arrive with it, as §27
+ * said they would.
+ *
+ * Deferred, not refused (§27): peek, the `stacked` presentation, the mixed flush/floating
+ * posture.
  */
 import * as React from "react";
 
@@ -42,6 +47,7 @@ import { useLensRef } from "../../system/refraction.tsx";
 import { ScrollArea, type ScrollAreaProps } from "../scroll-area/scroll-area.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { DEV } from "../../system/dev.ts";
+import { shellResize } from "../../tokens/config.ts";
 
 /* ── The registry: the one thing that crosses the shell ─────────────────────────────────── */
 
@@ -861,8 +867,186 @@ type SidePaneProps = Omit<React.ComponentPropsWithoutRef<"nav">, "color"> &
      * is why `width` is a raw number and this is an index.
      */
     size?: Size;
+    /**
+     * Lets a person move this pane's edge. Draws a boundary the pointer can drag and the
+     * keyboard can step — `role="separator"` with a value, which is the platform's own window
+     * splitter and the reason this is not a bare div with a mousedown on it.
+     *
+     * The rail cannot take it: a rail's extent is its item's box plus the air around it (§27),
+     * so there is nothing free to drag.
+     */
+    resizable?: boolean;
+    /** The floor, in CSS pixels. Defaults to the system's, because a resize with no floor is a
+        way to destroy a layout by accident and not be able to get back. */
+    minWidth?: number;
+    /** The ceiling, in CSS pixels. Unset, the only limit is the frame. */
+    maxWidth?: number;
+    /**
+     * Called once when the gesture ENDS, with the pane's new extent — not on every frame,
+     * because the app's job is to remember the number rather than to watch it move.
+     *
+     * **The memory is yours**, exactly as a Notice's dismissal is. During the drag the DOM
+     * leads; afterwards you are told. A pane given `width` is CONTROLLED, so a render after the
+     * gesture re-asserts that prop: store what this hands you, or the pane snaps back.
+     */
+    onResize?: (width: number) => void;
+    /** The handle's accessible name. English by default because the package ships no
+        translation layer; state your own and it is stated once, here. */
+    resizeLabel?: string;
     ref?: React.Ref<HTMLElement>;
   };
+
+
+/* ── Resize (§27, 2026-09-01): the pane's extent, moved by hand ─────────────────────────── */
+
+/**
+ * A DRAG IS THE FIFTH BOUNDED EXCEPTION TO "no JS at interaction time", and it is a different
+ * KIND of exception from the four before it.
+ *
+ * The flight's measurement, the lens, Tabs' indicator and the segmented thumb are all
+ * measure-once-at-a-seam: they read geometry when something has finished happening. This one
+ * runs while a finger is moving, which no seam can defer. The non-negotiable's purpose is that
+ * STATE styling costs no frames — hover, press and focus are data-attributes and CSS — and a
+ * resize is not a state: the gesture IS the value, and there is no CSS that can express "this
+ * boundary is where the pointer is". Every system with resizable panes runs script here.
+ *
+ * So it is bounded instead, four ways. Nothing runs unless a pointer is down on the handle.
+ * The move writes ONE custom property directly on the pane element — no React state, so no
+ * component re-renders during the gesture and the lens never re-mints its map (2026-08-22's
+ * finding, where an animating pane minted 27 filters). The listeners live on the handle via
+ * pointer capture and leave with the gesture. And `onResize` fires ONCE, at the end, because
+ * the app's job is to remember the number rather than to watch it move.
+ *
+ * WHO OWNS THE WIDTH: the DOM leads during the drag and the app is told at the end. That is
+ * `onDismiss`'s rule (§29) — the memory is the app's. A pane given a `width` prop is
+ * controlled, so a render after the gesture re-asserts the prop: an app that does not store
+ * what `onResize` hands it will see the pane snap back, which is correct controlled behaviour
+ * and is documented on the prop rather than worked around.
+ */
+function useResizeHandle(opts: {
+  paneRef: React.RefObject<HTMLElement | null>;
+  axis: "inline" | "block";
+  /** Which physical edge the handle sits on in LTR. RTL flips it, read off the pane. */
+  anchor: "start" | "end";
+  min: number;
+  max: number | undefined;
+  onResize: ((extent: number) => void) | undefined;
+}) {
+  const { paneRef, axis, anchor, min, max, onResize } = opts;
+  const [dragging, setDragging] = React.useState(false);
+
+  const extentOf = (pane: HTMLElement) =>
+    axis === "inline" ? pane.getBoundingClientRect().width : pane.getBoundingClientRect().height;
+
+  const write = (pane: HTMLElement, next: number) => {
+    const clamped = Math.max(min, max === undefined ? next : Math.min(max, next));
+    pane.style.setProperty("--kui-shell-w", `${Math.round(clamped)}px`);
+    return Math.round(clamped);
+  };
+
+  /** +1 when moving the pointer along the axis GROWS the pane. Read off the pane's own
+      resolved direction, because `dir` is a platform attribute this package never stamps and
+      a start-anchored pane in Arabic sits on the other side of the window (§20's stale-stamp
+      finding, by a different road). */
+  const sign = (pane: HTMLElement) => {
+    if (axis === "block") return anchor === "start" ? -1 : 1;
+    const rtl = getComputedStyle(pane).direction === "rtl";
+    const growsRight = anchor === "end" ? !rtl : rtl;
+    return growsRight ? 1 : -1;
+  };
+
+  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    const pane = paneRef.current;
+    if (!pane || event.button !== 0) return;
+    event.preventDefault();
+    const handle = event.currentTarget;
+    handle.setPointerCapture(event.pointerId);
+    const start = axis === "inline" ? event.clientX : event.clientY;
+    const startExtent = extentOf(pane);
+    const direction = sign(pane);
+    setDragging(true);
+
+    const move = (e: PointerEvent) => {
+      const now = axis === "inline" ? e.clientX : e.clientY;
+      write(pane, startExtent + (now - start) * direction);
+    };
+    const up = (e: PointerEvent) => {
+      handle.removeEventListener("pointermove", move);
+      handle.removeEventListener("pointerup", up);
+      handle.removeEventListener("pointercancel", up);
+      if (handle.hasPointerCapture(e.pointerId)) handle.releasePointerCapture(e.pointerId);
+      setDragging(false);
+      onResize?.(Math.round(extentOf(pane)));
+    };
+    handle.addEventListener("pointermove", move);
+    handle.addEventListener("pointerup", up);
+    handle.addEventListener("pointercancel", up);
+  };
+
+  /** The WAI-ARIA window-splitter keyboard. A drag-only boundary is unreachable without a
+      pointer, which is not a taste question — it is the same spec argument that made the tree's
+      keyboard the package's rather than each app's (§33). */
+  const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const pane = paneRef.current;
+    if (!pane) return;
+    const grow = axis === "inline" ? "ArrowRight" : "ArrowDown";
+    const shrink = axis === "inline" ? "ArrowLeft" : "ArrowUp";
+    const here = extentOf(pane);
+    let next: number | undefined;
+    if (event.key === grow) next = here + shellResize.step * sign(pane);
+    else if (event.key === shrink) next = here - shellResize.step * sign(pane);
+    else if (event.key === "Home") next = min;
+    else if (event.key === "End" && max !== undefined) next = max;
+    if (next === undefined) return;
+    event.preventDefault();
+    onResize?.(write(pane, next));
+  };
+
+  return { dragging, onPointerDown, onKeyDown, extentOf };
+}
+
+/** The boundary itself. `role="separator"` with a value is the platform's own window splitter;
+    it is focusable BECAUSE it is operable, which is the one case a separator takes a tab stop. */
+function ResizeHandle(props: {
+  paneRef: React.RefObject<HTMLElement | null>;
+  axis: "inline" | "block";
+  anchor: "start" | "end";
+  min: number;
+  max: number | undefined;
+  onResize: ((extent: number) => void) | undefined;
+  label: string;
+  controls: string;
+}) {
+  const { paneRef, axis, anchor, min, max, onResize, label, controls } = props;
+  const { dragging, onPointerDown, onKeyDown, extentOf } = useResizeHandle({
+    paneRef,
+    axis,
+    anchor,
+    min,
+    max,
+    onResize,
+  });
+  const pane = paneRef.current;
+  return (
+    <div
+      className="kui-shell-resize"
+      role="separator"
+      tabIndex={0}
+      aria-label={label}
+      aria-controls={controls}
+      aria-orientation={axis === "inline" ? "vertical" : "horizontal"}
+      aria-valuemin={min}
+      {...(max !== undefined ? { "aria-valuemax": max } : {})}
+      {...(pane ? { "aria-valuenow": Math.round(extentOf(pane)) } : {})}
+      data-axis={axis}
+      data-anchor={anchor}
+      data-tone="accent"
+      {...(dragging ? { "data-dragging": "" } : {})}
+      onPointerDown={onPointerDown}
+      onKeyDown={onKeyDown}
+    />
+  );
+}
 
 function sidePaneStyle(width: number | undefined, style: React.CSSProperties | undefined) {
   if (width === undefined) return style;
@@ -885,6 +1069,11 @@ function SidePane({
     onOpenChange,
     presentation,
     width,
+    resizable,
+    minWidth,
+    maxWidth,
+    onResize,
+    resizeLabel = "Resize panel",
     size: statedSize,
     flush = true,
     backdrop,
@@ -907,7 +1096,10 @@ function SidePane({
   //
   // Memoised by the hook, and it is not hygiene — `useMergedRefs` (system/render.ts) states
   // what an unstable ref costs a lens-bearing pane.
-  const composedRef = useMergedRefs(ref, pane.paneRef);
+  // The handle measures the pane, so it needs a handle ON the pane — joined to the chain
+  // rather than replacing anything, the `render` escape's 2026-08-03 lesson.
+  const ownRef = React.useRef<HTMLElement | null>(null);
+  const composedRef = useMergedRefs(ref, pane.paneRef, ownRef);
   const { material, stamps, ref: paneRef } = usePaneDress(flush, backdrop, composedRef);
   const Element = element;
   return (
@@ -931,11 +1123,28 @@ function SidePane({
       <GlassScope material={material}>
         <ShellSizeContext.Provider value={size}>{children}</ShellSizeContext.Provider>
       </GlassScope>
+      {resizable && name !== "rail" ? (
+        <ResizeHandle
+          paneRef={ownRef}
+          axis="inline"
+          /* The sidebar opens from the start edge, so its free boundary is the END one; the
+             inspector is the mirror. RTL flips both, read off the pane rather than stamped. */
+          anchor={name === "inspector" ? "start" : "end"}
+          min={minWidth ?? shellResize.min}
+          max={maxWidth}
+          onResize={onResize}
+          label={resizeLabel}
+          controls={pane.id}
+        />
+      ) : null}
     </Element>
   );
 }
 
-export type ShellRailProps = Omit<SidePaneProps, "width">;
+export type ShellRailProps = Omit<
+  SidePaneProps,
+  "width" | "resizable" | "minWidth" | "maxWidth" | "onResize" | "resizeLabel"
+>;
 
 /** The narrow icon column — the one that switches sections. Independent of the sidebar:
     nothing excludes anything, because nothing overlaps (§27 deleted v1's thin mode, the

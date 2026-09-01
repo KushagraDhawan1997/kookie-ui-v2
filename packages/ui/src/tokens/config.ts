@@ -1699,6 +1699,22 @@ export const dialogInset = 6;
 export const shellWidth = { sidebar: 288, inspector: 320, bottom: 200 } as const;
 
 /**
+ * §27 — how far one arrow key moves a resize handle, and the floor a pane may be dragged to.
+ *
+ * These join `shellWidth` as sanctioned raw numbers for the same reason it is one: a pane's
+ * extent has no ladder to consult, so the step across it has none either. The step is a
+ * KEYBOARD affordance and nothing else — a pointer drag is continuous — so it is chosen to
+ * move a 288px column visibly without needing thirty presses to cross it.
+ *
+ * `min` is a floor rather than a designed width: below it a nav column stops being able to
+ * hold a row's text and the pane becomes a smear the user cannot recover from, which is the
+ * failure the 2026-08-16 audit found in the overlay panes and fixed with a cap. An app that
+ * wants a different floor states `minWidth`, and an app that wants none still gets this one,
+ * because a resize with no floor is a way to destroy a layout by accident.
+ */
+export const shellResize = { step: 16, min: 160 } as const;
+
+/**
  * §27 — the RAIL is not in the table above, and its absence is the decision (2026-08-20,
  * Kushagra: "Rail is sidebar but thin, and so therefore will have a different layout and
  * anatomy"). The table's own reason for existing — "a pane's width is the app's content

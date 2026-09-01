@@ -1364,3 +1364,125 @@
     display: block;
   }
 }
+
+/* ── Resize (§27, 2026-09-01) ────────────────────────────────────────────────────────────
+   The boundary a person can move. It sits ON the pane's free edge, paints nothing at rest, and
+   comes forward when it is under the pointer or holding focus.
+
+   THE PAINT IS THIN AND THE TARGET IS NOT. A visible 2px line is the honest width of a
+   boundary; 2px is not a target anyone can hit, and WCAG 2.5.8 does not care that the thing is
+   a hairline. So the box is the touch minimum and the LINE is drawn inside it — §16's own move
+   for the mark family, which grew a target around a 16px box for exactly this reason. The box
+   straddles the edge (half in, half out) so the pointer finds it from either side, which is
+   also what every window manager does.
+
+   It paints nothing at rest deliberately: the seam between two flush panes is already a
+   hairline (2026-08-29), and a second line beside it would draw the boundary twice. */
+/* The handle is positioned against its pane, and the pane deliberately has NO `position` of
+   its own — the floating treatment relies on `z-index` working on a grid item without one, and
+   the overlay treatment sets `position: absolute` on the pane itself. So the containing block
+   is granted ONLY to a pane that actually has a handle, and at ZERO weight: `:where()` around
+   the `:has()` drops this to (0,1,0), so the overlay arm still wins outright rather than
+   tying. Asserting specificity arithmetic instead of measuring it is the mistake this file
+   already records paying for once (audit 2026-08-20), so the drawer law reads it. */
+.kui-shell-pane:where(:has(> .kui-shell-resize)) {
+  position: relative;
+}
+
+.kui-shell-resize {
+  position: absolute;
+  z-index: 1;
+  cursor: col-resize;
+  /* No colour of its own — the tone indirection, under the accent this element stamps. The
+     line is a background rather than a border so the box can stay the target while the paint
+     stays the boundary. */
+  background: none;
+  touch-action: none;
+}
+
+.kui-shell-resize[data-axis="block"] {
+  cursor: row-resize;
+}
+
+/* Vertical: the full height of the pane, straddling one inline edge. */
+.kui-shell-resize[data-axis="inline"] {
+  inset-block: 0;
+  inline-size: var(--touch-target-min);
+}
+
+.kui-shell-resize[data-axis="inline"][data-anchor="end"] {
+  inset-inline-end: calc(var(--touch-target-min) / -2);
+}
+
+.kui-shell-resize[data-axis="inline"][data-anchor="start"] {
+  inset-inline-start: calc(var(--touch-target-min) / -2);
+}
+
+/* Horizontal: the bottom pane's top edge. */
+.kui-shell-resize[data-axis="block"] {
+  inset-inline: 0;
+  block-size: var(--touch-target-min);
+  inset-block-start: calc(var(--touch-target-min) / -2);
+}
+
+/* The line, drawn inside the target. It is the one thing this element paints, and it only
+   paints while the boundary is live — under the pointer, holding focus, or being dragged. */
+.kui-shell-resize::after {
+  content: "";
+  position: absolute;
+  background: var(--tone-solid);
+  opacity: 0;
+  transition: opacity var(--motion-duration) var(--motion-easing);
+}
+
+.kui-shell-resize[data-axis="inline"]::after {
+  inset-block: 0;
+  inset-inline-start: 50%;
+  inline-size: calc(2 * var(--border-width));
+  translate: -50% 0;
+}
+
+.kui-shell-resize[data-axis="block"]::after {
+  inset-inline: 0;
+  inset-block-start: 50%;
+  block-size: calc(2 * var(--border-width));
+  translate: 0 -50%;
+}
+
+.kui-shell-resize:focus-visible::after,
+.kui-shell-resize[data-dragging]::after {
+  opacity: 1;
+}
+
+/* The hover arm is guarded, like every other one in the package: a touch screen has no
+   pointer resting on anything, and an unguarded `:hover` there sticks after a tap. Focus and
+   the drag itself are outside the guard, because both are real on any input. */
+@media (hover: hover) {
+  .kui-shell-resize:hover::after {
+    opacity: 1;
+  }
+}
+
+/* The ring is the skeleton's, so a keyboard user sees the same arrival every other focusable
+   thing in this system gives them. */
+.kui-shell-resize:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* A pane that is closed, or overlaying, has no boundary to move: its edge is the scrim's
+   business, not a layout the person is adjusting. */
+.kui-shell-pane[data-state="closed"] .kui-shell-resize,
+.kui-shell-pane[data-presentation="overlay"] .kui-shell-resize {
+  display: none;
+}
+
+/* Stillness (§8): the same selector as the arrival above, later in the file, so the stand-down
+   wins by order and not by arithmetic. The boundary still appears under the pointer and under
+   focus — it has to, or a person who asked their OS for stillness cannot see what they are
+   about to drag. What goes is the fade, not the information. */
+@media (prefers-reduced-motion: reduce) {
+  .kui-shell-resize::after {
+    transition: none;
+  }
+}

@@ -1229,6 +1229,11 @@ export const ENTRIES: Entry[] = [
       "Shell is the app frame: a header, a rail, a sidebar, the content, an inspector and a bottom pane. Each pane places itself in one grid, so Shell never inspects its children and the DOM order stays the reading order. A pane you have not touched rests on auto, and CSS decides what auto means at the current window size, so the first paint is correct with no script. State lives on each pane, in the same controlled pattern Dialog uses.",
     axes: [
       {
+        name: "resizable",
+        values: "boolean, per pane",
+        note: "lets a person move this pane's edge. It draws a boundary the pointer can drag and the keyboard can step — a separator carrying a live value, which is the platform's own window splitter rather than a bare div listening for a press. The rail cannot take it: a rail is as wide as its items plus their air, so there is nothing free to drag. Bound the travel with minWidth and maxWidth; a floor applies either way, because a resize with no floor is a way to wreck a layout and not be able to get back. onResize hands you the new width once, when the gesture ends — store it, or a pane you also control with width snaps back on the next render",
+      },
+      {
         name: "flush",
         values: "boolean, per pane (default true)",
         note: "is this pane part of the app frame. A flush pane is level with the page: no fill, no corner and no edge of its own, and the app's page shows through. One hairline separates two flush panes, and exactly one of them owns it, because a pane draws only its inner edge. A seam needs something on the other side of it, so pulling the content off the frame takes every seam facing it away: the card's own gap and edge already draw that boundary, and a second line a few pixels off reads as a stray rule. A rail beside a flush sidebar keeps its seam, because both of those are still in the frame. One exception the app never states: a pane presenting as an overlay is not in the frame while it does so, so a drawer takes the surface identity back. Turn it off and the pane floats over the content or grounds beside it, whichever is true. It says nothing about the material: a pane over a canvas says backdrop, flush or not",

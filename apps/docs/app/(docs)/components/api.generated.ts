@@ -2922,10 +2922,28 @@ export const API: Record<string, ApiEntry> = {
         "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card. It also decides the seams. A flush pane draws one hairline on its inner edge, and that edge needs something on the other side of it: pull the content off the frame and every seam facing it goes, because the card's own gap and edge already draw that boundary. A rail beside a flush sidebar keeps its seam — both of those are still in the frame. It says nothing about the material. A pane over a canvas states `backdrop`, whatever its posture — the two questions are independent and were briefly wired together (LOG 2026-08-29)."
       },
       {
+        "name": "maxWidth",
+        "type": "number",
+        "optional": true,
+        "doc": "The ceiling, in CSS pixels. Unset, the only limit is the frame."
+      },
+      {
+        "name": "minWidth",
+        "type": "number",
+        "optional": true,
+        "doc": "The floor, in CSS pixels. Defaults to the system's, because a resize with no floor is a way to destroy a layout by accident and not be able to get back."
+      },
+      {
         "name": "onOpenChange",
         "type": "(open: boolean) => void",
         "optional": true,
         "doc": "Fires on user-driven changes only: a trigger, Escape, a press on the scrim. It never fires at mount, and never when the window crosses a size boundary, because auto is resolved in CSS and CSS calls nobody."
+      },
+      {
+        "name": "onResize",
+        "type": "(width: number) => void",
+        "optional": true,
+        "doc": "Called once when the gesture ENDS, with the pane's new extent — not on every frame, because the app's job is to remember the number rather than to watch it move. **The memory is yours**, exactly as a Notice's dismissal is. During the drag the DOM leads; afterwards you are told. A pane given `width` is CONTROLLED, so a render after the gesture re-asserts that prop: store what this hands you, or the pane snaps back."
       },
       {
         "name": "open",
@@ -2938,6 +2956,18 @@ export const API: Record<string, ApiEntry> = {
         "type": "ShellPresentation",
         "optional": true,
         "doc": "How this pane occupies the window while it is open. `auto` answers a question about the room, and it answers it in CSS from the window size, so first paint is right with no script and nothing for hydration to mismatch. Stating a value instead answers a question about the product, and it does more than pin the arrangement: `overlay` also makes the pane rest closed at every width, because an overlay is something you summon rather than live in, where `auto` lets a nav column rest open on a roomy window. So state a value for a pane whose behaviour is a decision, such as a drawer that must never be ambient. Leave it auto for a pane whose behaviour follows from how much window there is."
+      },
+      {
+        "name": "resizable",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Lets a person move this pane's edge. Draws a boundary the pointer can drag and the keyboard can step — `role=\"separator\"` with a value, which is the platform's own window splitter and the reason this is not a bare div with a mousedown on it. The rail cannot take it: a rail's extent is its item's box plus the air around it (§27), so there is nothing free to drag."
+      },
+      {
+        "name": "resizeLabel",
+        "type": "string",
+        "optional": true,
+        "doc": "The handle's accessible name. English by default because the package ships no translation layer; state your own and it is stated once, here."
       },
       {
         "name": "size",
@@ -3126,10 +3156,28 @@ export const API: Record<string, ApiEntry> = {
         "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card. It also decides the seams. A flush pane draws one hairline on its inner edge, and that edge needs something on the other side of it: pull the content off the frame and every seam facing it goes, because the card's own gap and edge already draw that boundary. A rail beside a flush sidebar keeps its seam — both of those are still in the frame. It says nothing about the material. A pane over a canvas states `backdrop`, whatever its posture — the two questions are independent and were briefly wired together (LOG 2026-08-29)."
       },
       {
+        "name": "maxWidth",
+        "type": "number",
+        "optional": true,
+        "doc": "The ceiling, in CSS pixels. Unset, the only limit is the frame."
+      },
+      {
+        "name": "minWidth",
+        "type": "number",
+        "optional": true,
+        "doc": "The floor, in CSS pixels. Defaults to the system's, because a resize with no floor is a way to destroy a layout by accident and not be able to get back."
+      },
+      {
         "name": "onOpenChange",
         "type": "(open: boolean) => void",
         "optional": true,
         "doc": "Fires on user-driven changes only: a trigger, Escape, a press on the scrim. It never fires at mount, and never when the window crosses a size boundary, because auto is resolved in CSS and CSS calls nobody."
+      },
+      {
+        "name": "onResize",
+        "type": "(width: number) => void",
+        "optional": true,
+        "doc": "Called once when the gesture ENDS, with the pane's new extent — not on every frame, because the app's job is to remember the number rather than to watch it move. **The memory is yours**, exactly as a Notice's dismissal is. During the drag the DOM leads; afterwards you are told. A pane given `width` is CONTROLLED, so a render after the gesture re-asserts that prop: store what this hands you, or the pane snaps back."
       },
       {
         "name": "open",
@@ -3142,6 +3190,18 @@ export const API: Record<string, ApiEntry> = {
         "type": "ShellPresentation",
         "optional": true,
         "doc": "How this pane occupies the window while it is open. `auto` answers a question about the room, and it answers it in CSS from the window size, so first paint is right with no script and nothing for hydration to mismatch. Stating a value instead answers a question about the product, and it does more than pin the arrangement: `overlay` also makes the pane rest closed at every width, because an overlay is something you summon rather than live in, where `auto` lets a nav column rest open on a roomy window. So state a value for a pane whose behaviour is a decision, such as a drawer that must never be ambient. Leave it auto for a pane whose behaviour follows from how much window there is."
+      },
+      {
+        "name": "resizable",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Lets a person move this pane's edge. Draws a boundary the pointer can drag and the keyboard can step — `role=\"separator\"` with a value, which is the platform's own window splitter and the reason this is not a bare div with a mousedown on it. The rail cannot take it: a rail's extent is its item's box plus the air around it (§27), so there is nothing free to drag."
+      },
+      {
+        "name": "resizeLabel",
+        "type": "string",
+        "optional": true,
+        "doc": "The handle's accessible name. English by default because the package ships no translation layer; state your own and it is stated once, here."
       },
       {
         "name": "size",

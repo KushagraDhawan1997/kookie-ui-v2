@@ -293,6 +293,11 @@ export function BuilderApp() {
       explicit for good. Measured before this existed: the builder opened on a 600px window
       with the inspector overlaying half the screen and a scrim over the canvas. */
   const [inspectorOpen, setInspectorOpen] = React.useState<boolean | null>(null);
+  /* The panels are resizable, and this state is what the contract asks for: `onResize` hands
+     over the new width once, when the gesture ends, and the app stores it. A pane given
+     `width` is controlled, so without this the next render would snap it back — which is
+     correct controlled behaviour, and the reason the prop's doc says to keep the number. */
+  const [panelWidth, setPanelWidth] = React.useState({ sidebar: 320, inspector: 304 });
   /** `null` on the server and through hydration (§18, honestly) — and `null !== "narrow"`
       resolves to OPEN, which is the right first paint for a desktop tool. */
   const roomy = useWindowClass() !== "narrow";
@@ -1465,7 +1470,16 @@ export function BuilderApp() {
           Preview is the one thing that overrules it, and letting go restores whatever it
           was. Passing `!preview` instead would have frozen the pane open on a phone and
           killed the responsive default outright. */}
-      <ShellSidebar aria-label="Editing panels" width={320} {...(preview ? { open: false } : {})}>
+      <ShellSidebar
+        aria-label="Editing panels"
+        resizable
+        width={panelWidth.sidebar}
+        minWidth={240}
+        maxWidth={560}
+        resizeLabel="Resize the editing panels"
+        onResize={(w) => setPanelWidth((p) => ({ ...p, sidebar: w }))}
+        {...(preview ? { open: false } : {})}
+      >
         {/* THE PANE'S OWN CHROME ROW (§27, 2026-09-02) — the docs shell's pattern, which is
             where it was proven: a floating header with the panel's rows passing behind it and
             the scroller's `fade` keeping them legible. It holds the ONE control the picked
@@ -2121,7 +2135,12 @@ export function BuilderApp() {
           render={
             <ShellInspector
               aria-label="Inspector"
-              width={304}
+              resizable
+              width={panelWidth.inspector}
+              minWidth={240}
+              maxWidth={560}
+              resizeLabel="Resize the inspector"
+              onResize={(w) => setPanelWidth((p) => ({ ...p, inspector: w }))}
               open={inspectorShown}
               onOpenChange={setInspectorOpen}
             />

@@ -64,9 +64,23 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     // shipped and the family took the rule back, and it failed this law on the way out too.
     // Both directions are the law working: an @media in this sheet is a decision, and the sheet
     // has no business holding a hover rule now that the family has one home for it.
+    //
+    // IT IS FOUR SINCE 2026-09-01, and both new forms arrived with the resize handle, which is
+    // the first thing this sheet draws that a person operates. `(hover: hover)` is REQUIRED of
+    // it by the recipes law — an unguarded `:hover` sticks after a tap on a touch screen — and
+    // `(prefers-reduced-motion: reduce)` is required by §8's stand-down law, because the
+    // handle's line fades in. Two laws in other files oblige these two blocks, so the choice
+    // here is not whether to allow them but whether the handle should draw at all; it should,
+    // and the alternative (a boundary visible at rest) draws a second line beside the seam
+    // hairline that already marks it.
     const queries = (css.match(/@media[^{]+/g) ?? []).map((q) => q.replace(/\s+/g, " ").trim());
     expect(queries.sort()).toEqual(
-      [`@media ${narrowMedia}`, "@media (prefers-reduced-transparency: reduce)"].sort(),
+      [
+        `@media ${narrowMedia}`,
+        "@media (prefers-reduced-transparency: reduce)",
+        "@media (hover: hover)",
+        "@media (prefers-reduced-motion: reduce)",
+      ].sort(),
     );
   });
 
@@ -179,14 +193,35 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
         }
       }
     }
+    // A FIFTH IS SANCTIONED (2026-09-01): the resize handle. It is the first thing this sheet
+    // draws that a person operates, and a boundary that paints nothing at all cannot be found.
+    // Bounded by VALUE exactly as the stand-downs are — it may name no colour, only `none` and
+    // the tone indirection under the accent it stamps, and its one clock must ride the motion
+    // tokens. A bed cannot hide inside that, and neither can a cast: `box-shadow` stays banned
+    // outright, so the handle has no way to become a raised strip.
+    const handleRules = css.match(/\.kui-shell-resize[^{]*\{[^}]*\}/g) ?? [];
+    expect(handleRules.length, "the handle's rules vanished — this arm reads nothing").toBeGreaterThan(3);
+    for (const rule of handleRules) {
+      for (const decl of rule.match(/background[^;]*/g) ?? []) {
+        expect(decl.trim(), "the handle may not paint a colour of its own").toMatch(
+          /^background:\s*(none|var\(--tone-solid\))$/,
+        );
+      }
+      for (const decl of rule.match(/[^-\w]transition\s*:[^;]*/g) ?? []) {
+        expect(decl.trim(), "the handle has one clock, riding the motion tokens, plus its stillness stand-down").toMatch(
+          /^transition:\s*(opacity var\(--motion-duration\) var\(--motion-easing\)|none)$/,
+        );
+      }
+    }
     const sanctioned = css
       .replace(/\.kui-shell-scrim\s*\{[^}]*\}/g, " ")
       .replace(/\.kui-shell-nav-item:hover[^{]*\{[^}]*\}/g, " ")
+      .replace(/\.kui-shell-resize[^{]*\{[^}]*\}/g, " ")
       .replace(standDowns[0]!, " ")
       .replace(standDowns[1]!, " ");
     expect(sanctioned).not.toMatch(/background/);
     expect(css).not.toMatch(/box-shadow/);
-    expect(css).not.toMatch(/[^-\w]transition\s*:/);
+    expect(sanctioned).not.toMatch(/[^-\w]transition\s*:/);
   });
 });
 
