@@ -104,7 +104,20 @@ export function Avatar({
       {...props}
     >
       {src !== undefined ? <BaseAvatar.Image src={src} alt={alt} className="kui-avatar-image" /> : null}
-      <BaseAvatar.Fallback className="kui-avatar-fallback">
+      {/* THE FALLBACK CARRIES THE NAME, OR CARRIES NOTHING (2026-09-01, ultracode audit).
+          Whichever of the two is showing has to answer for the same thing, and the fallback
+          answered for neither: with `alt="Kushagra"` and a picture that never loaded, the
+          element rendered exactly `<span>KD</span>` — a reader heard "K D" and never the name
+          the caller supplied; with the default `alt=""`, documented as decorative, the same
+          span emitted a bare "KD" into the line beside the person's name. The picture's own
+          `alt` is the one place a name is stated, so the fallback reads it: named, it is an
+          image OF that person (`role="img"` prunes the initials, which are a rendering of the
+          name and not a second fact); unnamed, it is decorative, exactly as the `PersonGlyph`
+          inside it has always been. */}
+      <BaseAvatar.Fallback
+        className="kui-avatar-fallback"
+        {...(alt ? { role: "img", "aria-label": alt } : { "aria-hidden": true })}
+      >
         {fallback ?? <PersonGlyph />}
       </BaseAvatar.Fallback>
       {badge !== undefined && badge !== null ? (

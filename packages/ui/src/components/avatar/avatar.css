@@ -86,6 +86,14 @@
   inset-inline-end: calc(-1lh * var(--avatar-badge-out));
   display: inline-flex;
   line-height: calc(1lh * var(--avatar-badge));
+  /* AND THE PUBLISHED STEP IS STOOD DOWN HERE (2026-09-01). A badge prices its digits off
+     `--kui-ty-line`, the type join's own published line, so that a badge which states its own
+     size is priced on the line it states rather than on the surrounding one. This slot hands
+     the badge a line by DECLARING one, which no join can know about — left alone, the pinned
+     badge would read the face's full step and draw the free badge's digits inside the smaller
+     pinned box. `initial` makes the property guaranteed-invalid for everything inside, so the
+     badge takes its `1lh` fallback: the line it is actually in, which is this one. */
+  --kui-ty-line: initial;
 }
 /* The cut-out is a pseudo-element past the badge's edge — the group ring's own mechanism — so
    the badge's box is byte-identical to a free one (a border with `content-box` let the padding
@@ -116,9 +124,16 @@
    pseudo-element drawn past the edge costs no layout and shrinks nothing — the face is the
    full line, and the ring paints over the neighbour it overlaps. Not `outline` (every outline
    in the package is the focus ring, by law) and not `box-shadow` (fenced to the depth roles). */
+/* IT SITS ON THE LINE, NOT ON THE BASELINE (2026-09-01, ultracode audit). An inline-flex box
+   with no `vertical-align` sits its baseline on the line's, and a box exactly one line tall
+   then pushes past the strut: measured, `<Text size="9">Team <AvatarGroup/> x</Text>` rendered
+   a 72.95px paragraph against a 62px line, +1.61 to +10.95px up the ramp. `.kui-avatar` states
+   `vertical-align: top` for this reason and `.kui-atom-box` records it as the Kbd audit's
+   hard-won half — the member had it and the group did not, and no law put a group in a line. */
 .kui-avatar-group {
   display: inline-flex;
   align-items: center;
+  vertical-align: top;
 }
 .kui-avatar-group > .kui-avatar::after {
   content: "";
