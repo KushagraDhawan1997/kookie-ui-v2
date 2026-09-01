@@ -190,6 +190,53 @@ describe("the platform keeps the scrolling; the system only draws the bar (§13)
   });
 });
 
+describe("a stated bound is definite wherever the scroller sits (2026-09-01)", () => {
+  /* THE PROP'S OWN PROMISE, KEPT OUTSIDE A PANE (Kushagra: "how will a consumer get it right").
+
+     `children` says a scroll region needs a bounded height and to state one here through
+     `style`. With a `max-block-size` that was true only inside a pane: the root was a block
+     box, so its height was `auto` with a clamp on it, and the viewport's `max-block-size: 100%`
+     resolved against `auto` — which is `none`. The viewport took its CONTENT height, overflowed
+     the clamp, and whatever box was above it clipped the result into something that looked
+     bounded while nothing scrolled. A scroller directly inside a `.kui-surface` escaped, and
+     only because `surfaces.css` gave it the flex column the viewport needs — so the promise held
+     exactly where the caller had done nothing to earn it, and broke where they had.
+
+     THE FIXTURE IS THE LAW. A definite `height` binds under BOTH spellings, and the shipped
+     fixture above uses one — which is why 2,300 laws were green over this. The parent here is a
+     plain block `<div>`, the bound is a `max-block-size`, and there is no surface anywhere: the
+     one arrangement where a right implementation and a wrong one give different answers.
+
+     Falsified by putting `display: block` back on `.kui-scroll-area`: the viewport measures 600
+     inside an 80px root and `scrollHeight === clientHeight`, so both assertions fail. */
+  const bounded = (
+    <div>
+      <ScrollArea style={{ maxBlockSize: "80px", width: "120px" }}>
+        <div style={{ height: "600px", width: "60px" }} />
+      </ScrollArea>
+    </div>
+  );
+
+  it("a max-height on the root bounds the viewport, with no pane and no flex parent", async () => {
+    const root = await laidOut(mounted(bounded, { theme: {} }));
+    const area = within(root, ".kui-scroll-area");
+    const viewport = within(area, ".kui-scroll-viewport");
+    expect(area.getBoundingClientRect().height, "the root took its own bound").toBeLessThanOrEqual(80);
+    expect(viewport.clientHeight, "the viewport grew past the bound").toBeLessThanOrEqual(80);
+    expect(viewport.scrollHeight, "nothing scrolls, so the bound is a clip").toBeGreaterThan(
+      viewport.clientHeight,
+    );
+  });
+
+  it("and the bound is the caller's number, not one the component invented", async () => {
+    // Vacuity: the assertions above are all "no bigger than", which a viewport of zero also
+    // satisfies. This is the other side — the region is as tall as it was told to be.
+    const root = await laidOut(mounted(bounded, { theme: {} }));
+    const viewport = within(root, ".kui-scroll-viewport");
+    expect(viewport.clientHeight).toBeGreaterThan(70);
+  });
+});
+
 describe("the bar is an OVERLAY: no track, no gutter, gone at rest (§11)", () => {
   it("rests invisible and appears while scrolling — the paint is the whole state", async () => {
     const root = await laidOut(mounted(overflowing, { theme: {} }));

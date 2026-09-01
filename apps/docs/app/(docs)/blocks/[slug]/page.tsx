@@ -90,15 +90,13 @@ export default async function BlockPage({
             const lang = langOf(file);
             if (!isLang(lang)) notFound();
             return (
-              // Bounded: a block's files run long, and a page of five unbounded wells is
-              // unusable. 24 lines is the bound's first judged value; the expand button
-              // appears only where a file actually exceeds it.
+              // The bound is the well's own default now (`CODE_MAX_LINES`) — this route
+              // judged the number first, and a bound is not a property of this route.
               <CodeSample
                 key={file}
                 code={readBlockFile(file)}
                 lang={lang}
                 title={`blocks/${file}`}
-                maxLines={24}
               />
             );
           })}

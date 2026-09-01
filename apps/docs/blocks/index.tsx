@@ -109,12 +109,12 @@ export const BLOCKS: readonly BlockEntry[] = [
     demo: async () => (
       <Stack gap="6">
         {await CodeSample({ code: INSTALL, lang: "bash" })}
-        {await CodeSample({
-          code: ANNOTATED,
-          lang: "tsx",
-          title: "A diff, a highlight",
-          lineNumbers: true,
-        })}
+        {/* No `title` (2026-08-30, Kushagra: "do I need this 'A diff, a highlight'"). That slot
+            means the code IS a file — it is why pressing it copies the path — and this was a
+            caption borrowing it for want of anywhere else to put words. The blurb above already
+            says the block marks diffs and highlights, so the words were saying it twice and
+            claiming a filename while doing so. */}
+        {await CodeSample({ code: ANNOTATED, lang: "tsx", lineNumbers: true })}
       </Stack>
     ),
   },

@@ -65,6 +65,24 @@ const LANG_LABEL: Record<Lang, string> = {
   mdx: "MDX",
 };
 
+/**
+ * How many lines a well shows before it bounds itself (2026-08-31, Kushagra: "large code
+ * blocks should automatically get the show-x-more-lines across docs").
+ *
+ * It is a DEFAULT rather than a per-call-site prop because the fault it fixes is the one
+ * nobody remembers to fix: a fence or an example runs long, the page becomes a mile of
+ * scrolling code, and the author who wrote it never sees the page it landed on. The blocks
+ * route was the one place that had judged a number and stated it by hand — a bound is not a
+ * property of that route, so the number moves here and that call site drops it.
+ *
+ * NOT SILENT: bounded means SCROLLABLE, and the expand control names what it is holding back
+ * ("Show all N lines"), so nothing is hidden without saying how much.
+ *
+ * An unbounded well is `maxLines={Infinity}` — deliberately awkward, because wanting one is
+ * rare and the reason should be visible at the call site.
+ */
+export const CODE_MAX_LINES = 24;
+
 export type CodeSampleProps = {
   code: string;
   lang: string;
@@ -83,23 +101,12 @@ export type CodeSampleProps = {
   /** Number the lines. CSS counters — never markup, so never in a selection or the copy. */
   lineNumbers?: boolean;
   /** Bound the well to this many lines. Bounded means scrollable (see the element); an
-      expand button appears only when the code actually exceeds the bound. */
+      expand button appears only when the code actually exceeds the bound. Defaults to
+      `CODE_MAX_LINES`; `Infinity` opts out. */
   maxLines?: number;
   /** The sample is already inside a pane, so the well draws none of its own — see the element.
       A well inside a ground is the same ground twice. */
   hosted?: boolean;
-  /**
-   * Does the sample name itself? `false` leaves the copy button alone in the row, for a host
-   * that has already said what this is (2026-08-29).
-   *
-   * It is not `bare` with a different spelling. `bare` suppresses the row entirely, for a fence
-   * too short to deserve chrome; this keeps the row and drops one of the two things in it,
-   * because the NAME belongs to whatever the code is the source of and the COPY belongs to the
-   * code. In a specimen figure the name is the figure's — it names the running component as
-   * much as the listing — while the copy button must stay over the text it copies, where the
-   * material has content passing behind it and therefore a job.
-   */
-  named?: boolean;
 };
 
 /** One rendered line: a block-level span carrying the author's flags as classes, so the
@@ -137,18 +144,17 @@ function Line({ line, marker }: { line: CodeLine; marker: boolean }) {
   );
 }
 
-export async function CodeSample({
-  code,
-  lang,
-  size = "2",
-  title,
-  bare,
-  meta,
-  lineNumbers,
-  maxLines,
-  hosted,
-  named = true,
-}: CodeSampleProps) {
+/**
+ * Tokenize, then render. The split exists because tokenizing is SERVER work and rendering is
+ * not (2026-08-30): a docs page with live controls rewrites one token's text when a control
+ * moves, and it cannot call Shiki to do it — so the view below takes lines that are already
+ * tokenized and is an ordinary synchronous component that a client component may render.
+ *
+ * One renderer, not two. The alternative was a second component painting `.kd-line` markup for
+ * the live case, which is the shape this repo's own rule forbids: a mechanism with two
+ * implementations owes a law that they agree, and the cheaper answer is to have one.
+ */
+export async function CodeSample({ code, lang, meta, ...view }: CodeSampleProps) {
   // An unlisted language would tokenize as plain text, which renders exactly like a fence
   // nobody got round to labelling — a silent downgrade. The docs law walks fences against
   // LANGS so this throw is a backstop rather than the enforcement, but a backstop that says
@@ -159,6 +165,30 @@ export async function CodeSample({
     );
   }
   const { lines, focused, diff } = await tokenize(code, lang, meta);
+  return <CodeSampleView lines={lines} focused={focused} diff={diff} lang={lang} {...view} />;
+}
+
+export type CodeSampleViewProps = Omit<CodeSampleProps, "code" | "meta"> & {
+  /** Already tokenized. The one thing the view cannot do for itself. */
+  lines: readonly CodeLine[];
+  /** Some line said `[!code focus]`, so the rest stand down. */
+  focused: boolean;
+  /** Some line is an add or a remove, so every line gets a marker gutter. */
+  diff: boolean;
+};
+
+export function CodeSampleView({
+  lines,
+  focused,
+  diff,
+  lang,
+  size = "2",
+  title,
+  bare,
+  lineNumbers,
+  maxLines = CODE_MAX_LINES,
+  hosted,
+}: CodeSampleViewProps) {
   const copyText = plainText(lines);
 
   const paneClasses = [
@@ -173,7 +203,7 @@ export async function CodeSample({
 
   // The bound binds only when the code exceeds it — decided here, from the line count the
   // renderer already holds, never by measuring the DOM (v1's defect class).
-  const bounded = maxLines !== undefined && lines.length > maxLines;
+  const bounded = lines.length > maxLines;
 
   // The copy button FLOATS top-right over the pane, as glass (Kushagra, 2026-08-26): a
   // floating control over content takes `backdrop`. It hangs from a positioned wrapper
@@ -188,19 +218,32 @@ export async function CodeSample({
      dialog.tsx` is a thing you want in your clipboard — it is how you find the file — so it is
      the same `CopyButton` the code uses, with the path as both its label and its payload. A
      language name is a caption: there is nothing to copy and nothing to press, so it stays an
-     inert `Badge`. They look different because they DO different things, which is this
+     inert `Chip`. They look different because they DO different things, which is this
      system's own rule rather than an inconsistency to tidy away.
 
-     The badge keeps `backdrop` and the button takes it by construction, so both resolve the
+     The chip keeps `backdrop` and the button takes it by construction, so both resolve the
      theme's material — and since 2026-08-28 the atom family paints the same ring and rim the
      button does, which is what makes the two read as one kind of chrome. */
-  const name = !named ? null : title ? (
+  /* A LANGUAGE IS LABELLED ONLY WHERE THE LABEL CHANGES WHAT YOU DO (2026-08-30, Kushagra:
+     "isn't it obvious? This is a react app, it will always be tsx").
+
+     Every fence on this site that is not a shell command is source you paste into a file, and
+     `TSX` on a React library's docs is a label that is always true — it says nothing, and it
+     was saying it 63 times. `Terminal` is the one that survives: it tells a reader the lines go
+     in a shell rather than in their editor, which is the only thing here a reader could get
+     wrong. CSS, JSON and HTML are unlabelled for the same reason as TSX — a stylesheet looks
+     like a stylesheet, and knowing which file it belongs in is a question the prose around it
+     answers, not a chip.
+
+     Keyed on `bash` rather than on a list, so adding a language does not silently add a label:
+     a new one has to argue its way in here. */
+  const name = title ? (
     <CopyButton code={title} label={title} size={size} icon={<FileIcon />} />
-  ) : (
-    <Badge size={size} backdrop>
+  ) : lang === "bash" ? (
+    <Chip size={size} backdrop>
       {LANG_LABEL[lang]}
-    </Badge>
-  );
+    </Chip>
+  ) : null;
 
   /* ONE ROW, FLOATING OVER THE CODE (2026-08-28, Kushagra: "the content doesnt float behind
      buttons now? It needs to float, else whats the point of glass").
@@ -231,12 +274,22 @@ export async function CodeSample({
      is positioned and the code is not; that was wrong, since `.kui-scroll-area` is positioned
      too, so the two settled it on DOM order and the code won. Order is the whole fix: a
      z-index would be the number ladder §20 exists to avoid. */
+  /* AND A ROW WITH NO NAME RESERVES NOTHING (2026-08-31, Kushagra: "the one with no filename...
+     the top left just looks weird").
+
+     The band under this row is a safe area for chrome that reaches BOTH walls: a name at one
+     and the copy button at the other cover the whole of line 1, so line 1 needs somewhere else
+     to be. An unlabelled fence has only the button, and reserving a pane's width of clearance
+     for a control that occupies one corner of it is what put a hand's width of nothing in the
+     top-left. The rule is now stated where the row is built — the well takes `band` and this
+     file decides it — so the two cases differ in exactly the fact that differs between them.
+
+     `space-between` with ONE child pushes it to the START, so the justification flips too: the
+     row means "name at one wall, action at the other", and with no name there is only the
+     action, which takes the end. */
   const topbar = (
     <Flex
       align="center"
-      // `space-between` with ONE child pushes it to the START — measured, an unnamed sample put
-      // its copy button on the left. The row's job is "name at the wall, action at the other
-      // wall", and with no name there is only the action, so it takes the end.
       justify={name ? "space-between" : "end"}
       gap="3"
       p="4"
@@ -251,7 +304,7 @@ export async function CodeSample({
       }}
     >
       {name}
-      <CopyButton code={copyText} size={size} />
+      <CopyButton code={copyText} size={size} iconOnly />
     </Flex>
   );
 
@@ -263,6 +316,7 @@ export async function CodeSample({
           maxLines={maxLines}
           lineCount={lines.length}
           topbar={bare ? undefined : topbar}
+          {...(!bare && name ? { band: true } : {})}
           {...(hosted ? { hosted } : {})}
           className={className}
         >
@@ -272,6 +326,7 @@ export async function CodeSample({
         <CodeBlock
           size={size}
           {...(bare ? {} : { topbar })}
+          {...(!bare && name ? { band: true } : {})}
           {...(hosted ? { hosted } : {})}
           {...(className ? { className } : {})}
         >

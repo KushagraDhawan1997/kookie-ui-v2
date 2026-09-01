@@ -53,18 +53,50 @@ export type CodeBlockProps = {
    */
   maxLines?: number;
   /**
-   * The block's chrome row, rendered INSIDE the pane above the scroller (2026-08-28,
-   * Kushagra: "actually move the topbar").
-   *
-   * It floated over the code first, with a reserved band underneath so it covered nothing —
-   * and a band that exists to stop an overlap is an overlap nobody wanted. In flow there is
-   * no band to derive, no bound to correct, and no first line to defend: the row takes the
-   * pane's own inset like any other content, and the code starts under it.
+   * The block's chrome row, floating over the top of the pane (2026-08-28, Kushagra: "the
+   * content doesnt float behind buttons now? It needs to float, else whats the point of
+   * glass").
    *
    * A NODE RATHER THAN A FLAG, because the well does not know what its chrome is. It owns the
    * pane, the mono step and the scroller; what sits in the row is `code-sample.tsx`'s.
    */
   topbar?: React.ReactNode;
+  /**
+   * The block's other floating row, at the BOTTOM of the pane — the expand control.
+   *
+   * IT LIVES HERE FOR THE SAME REASON THE TOPBAR DOES (2026-09-01, Kushagra: "the button still
+   * has more padding than code sample"). It used to hang from a positioned `Box` around this
+   * element, which is where all the block's chrome started; the topbar moved inside when the
+   * well became the containing block, and this one did not. So the two rows floated against two
+   * different boxes — and in a HOSTED well those boxes have different bottoms, because the
+   * bleed's negative margin shortens the outer one by exactly the host's inset. Measured: the
+   * standalone twin's button sat 16 pixels off its pane wall and the hosted one 41, the host's inset
+   * counted twice. One containing block is the fix; compensating from outside it would have
+   * been the arithmetic that produced the fault.
+   */
+  footer?: React.ReactNode;
+  /**
+   * Does that row SPAN the pane, so the code owes it a safe area? (2026-08-31, Kushagra: "the
+   * one with no filename... the top left just looks weird".)
+   *
+   * A BAND IS RESERVED FOR A ROW THAT REACHES TWO WALLS, NOT FOR ONE CONTROL IN A CORNER. The
+   * band was added 2026-08-28 because the first line had nowhere to rest, and that was true of
+   * a row with a name at one wall and a copy button at the other: it covers all of line 1. An
+   * unlabelled sample has only the copy button, so the same band reserves a full pane's width
+   * to clear a control that occupies one corner of it — which is what the empty top-left was.
+   *
+   * Without it the button hangs in the corner and line 1 passes under the glass, which is what
+   * the material is for. The exposure is a first line long enough to reach the button, and it
+   * is small: across this site's fences the median first line is 27 characters, and one long
+   * enough to reach the corner already overflows the pane and scrolls, where the scroller's own
+   * edge fade dissolves it under the chrome.
+   *
+   * A FLAG HERE AND A NODE ABOVE, deliberately: the well cannot read its chrome's shape off the
+   * node (the row is one `Flex` either way, and counting its children would be this file
+   * guessing at another file's arrangement). What it can be told is the one geometric fact it
+   * needs, by the file that decides it.
+   */
+  band?: boolean;
   /**
    * The element is already inside a pane, so it draws none of its own (2026-08-29, Kushagra:
    * "the code block inside specimen should not have its own surface").
@@ -89,6 +121,8 @@ export function CodeBlock({
   className,
   maxLines,
   topbar,
+  footer,
+  band,
   hosted,
 }: CodeBlockProps) {
   // `--line-height-N` is the line box of the size-N Text below — one index, two spellings.
@@ -105,7 +139,7 @@ export function CodeBlock({
      `max()` because a small enough size could make the pane's own inset the larger of the two,
      and a negative padding is not a thing — there the scroller's re-pad already clears the
      chrome and nothing more is owed. */
-  const band = `max(0px, calc(2 * var(--layout-space-4) + var(--control-height-${size}) - var(--kui-sf-p, 0px)))`;
+  const clearance = `max(0px, calc(2 * var(--layout-space-4) + var(--control-height-${size}) - var(--kui-sf-p, 0px)))`;
 
   const body = (
     <>
@@ -125,8 +159,8 @@ export function CodeBlock({
                 // `maxLines={6}` shows six lines whether or not chrome floats above them.
                 // This is also the arrangement that makes the glass do its job — a bounded
                 // block scrolls, and the lines pass under the row.
-                maxBlockSize: topbar
-                  ? `calc(${maxLines} * ${lh} + 2 * var(--kui-sf-p, 0px) + ${band})`
+                maxBlockSize: band
+                  ? `calc(${maxLines} * ${lh} + 2 * var(--kui-sf-p, 0px) + ${clearance})`
                   : `calc(${maxLines} * ${lh} + 2 * var(--kui-sf-p, 0px))`,
               },
             })}
@@ -144,7 +178,7 @@ export function CodeBlock({
             fontFamily: "var(--font-mono)",
             // On the PRE, not the pane: `.kd-line` bleeds to the pane's inset and puts it
             // back, so growing the pane's own padding would move every line wash with it.
-            ...(topbar ? { paddingBlockStart: band } : {}),
+            ...(band ? { paddingBlockStart: clearance } : {}),
           }}
         >
           <code>{children}</code>
@@ -161,6 +195,7 @@ export function CodeBlock({
           The pane is the row's containing block: `.kd-code-well` states `position: relative`
           in code.css, beside the rest of the well's own geometry. */}
       {topbar}
+      {footer}
     </>
   );
 

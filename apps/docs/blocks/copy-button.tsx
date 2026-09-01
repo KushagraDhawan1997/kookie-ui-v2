@@ -5,10 +5,15 @@
  * only reason any of this is a client component — everything else about a fence is decided
  * at build time.
  *
- * The confirmation is the BUTTON's own label changing, not a toast: a toast is a floating
- * layer announcing something the thing you just pressed can say itself, and this system has
- * no toast anyway (§11 lists one; it has never shipped). The label reverts on a timer, which
- * is state, not motion — nothing here reads a motion token.
+ * The confirmation is the BUTTON ITSELF saying so, not a toast: a toast is a floating layer
+ * announcing something the thing you just pressed can say itself, and this system has no toast
+ * anyway (§11 lists one; it has never shipped). It reverts on a timer, which is state, not
+ * motion — nothing here reads a motion token.
+ *
+ * WHAT SAYS IT depends on what the button has (2026-08-30). A labelled button changes its
+ * label; an icon-only one changes its GLYPH to a check, and its accessible name with it, so a
+ * screen reader hears the confirmation a sighted reader sees. The check was always there — it
+ * is the label that turns out to be the optional half.
  */
 import * as React from "react";
 import { Button, type Size } from "@kookie-ui/react";
@@ -20,8 +25,10 @@ export function CopyButton({
   label = "Copy",
   size = "1",
   icon,
+  iconOnly,
 }: {
   code: string;
+  /** The accessible name, always. `iconOnly` decides whether it is also painted. */
   label?: string;
   /** The block's index, passed through — the chrome rides the same ladder as the pane. */
   size?: Size;
@@ -37,6 +44,16 @@ export function CopyButton({
    * silence it would let a call site ship a copy that never says it copied.
    */
   icon?: React.ReactNode;
+  /**
+   * Paint the glyph alone (2026-08-30, Kushagra). "Copy" beside a copy mark says one thing
+   * twice, and on a code figure the button sits in a corner where a verb earns no room —
+   * every editor, terminal and code host on the web has trained this glyph.
+   *
+   * The name does not go away, it stops being PAINTED: `aria-label` carries it, and Button's
+   * own type refuses an icon-only control without one, so this cannot silently ship a button
+   * a screen reader announces as "button".
+   */
+  iconOnly?: boolean;
 }) {
   const [copied, setCopied] = React.useState(false);
   // Held in a ref so a second press restarts one timer rather than racing two, and so the
@@ -44,13 +61,20 @@ export function CopyButton({
   const timer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   React.useEffect(() => () => clearTimeout(timer.current), []);
 
+  // One glyph expression for both arms: an icon-only button puts it in `children` (there the
+  // glyph IS the content), a labelled one puts it in `leading` (there it adorns a label).
+  // Button's own comment states that split; this is the only place it has to be honoured.
+  const glyph = copied ? <CheckIcon /> : (icon ?? <CopyIcon />);
+
   return (
     // Medium is Button's own default, so no emphasis is stated; `backdrop` because this
     // button FLOATS over the code — a floating control takes the theme's material (glass).
     <Button
       size={size}
       backdrop
-      leading={copied ? <CheckIcon /> : (icon ?? <CopyIcon />)}
+      {...(iconOnly
+        ? { iconOnly: true as const, "aria-label": copied ? "Copied" : label }
+        : { leading: glyph })}
       onClick={() => {
         // `?.` because clipboard access is absent on insecure origins — a docs site served
         // over plain HTTP on a LAN is the ordinary case, and there the press should do
@@ -62,7 +86,7 @@ export function CopyButton({
         });
       }}
     >
-      {copied ? "Copied" : label}
+      {iconOnly ? glyph : copied ? "Copied" : label}
     </Button>
   );
 }

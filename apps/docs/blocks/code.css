@@ -196,6 +196,23 @@
   position: relative;
 }
 
+/* THE BOUND BINDS IN THE PACKAGE NOW (2026-09-01, Kushagra: "how will a consumer get it
+   right").
+
+   A local rule lived here making a hosted well and its scroller flex columns, because that is
+   what makes a `max-block-size` on a ScrollArea root definite: measured on the 198-line
+   sample, the root took its 480px and the viewport rendered 3984px inside it, so nothing
+   scrolled and the ground above it clipped the overflow into something that LOOKED bounded.
+   The standalone twin was right at the same moment for one reason only — it renders a
+   `Surface`, and `surfaces.css` gave any pane's direct-child scroller the flex column the
+   viewport needs.
+
+   Which is a promise `ScrollArea` makes in its own props (`children`: "a scroll region needs a
+   bounded height... state one here through `style`") and could only keep inside a pane. It
+   keeps it everywhere now: the root is a flex column and the viewport a flex item, so the
+   bound is definite wherever the scroller sits. Verified by deleting this rule and measuring
+   the same well — 480px viewport against 3984px of scroll, with nothing local left. */
+
 /* The scroller fills the pane on BOTH block edges (2026-08-28, Kushagra: "its still not full
    height of the card").
 
@@ -243,6 +260,23 @@
   padding-inline: var(--kd-host-p, 0px);
 }
 
+/* THE BARS BELONG TO THE SCROLLER, NOT TO THE TEXT (2026-08-31, Kushagra: "why isnt it
+   touching?").
+
+   A rule lived here that pushed both bars inward by the host's inset, so a hosted well's bars
+   sat where its CODE COLUMN ends rather than where its scroller does. It was written 2026-08-31
+   against a real observation — the vertical bar with the host's padding between it and the
+   thing it scrolls — and the observation was misread: a bar outside the text column is what a
+   scroller looks like everywhere in this system. Measured against the standalone twin the same
+   complaint keeps naming as correct, a standalone well's bars sit 3px off the pane's walls
+   (its border plus `--scrollbar-inset`) on every edge; the rule put the hosted well's at 27,
+   and the 24 was the host's padding counted a second time.
+
+   So there is nothing here. The bleed puts the scroller on the pane's walls and Base UI pins
+   the bars to the scroller, which is the arrangement both wells now share by having no local
+   rule rather than by agreeing on one — and `--scrollbar-inset` stays the single home for how
+   far a bar sits from its own edge. */
+
 /* And the BLOCK edge it actually faces (2026-08-29, Kushagra: "its fixed horizontally but
    vertically its the same thing — not touching the edges").
 
@@ -252,11 +286,27 @@
    bleeding there would pull the code up into the space that separates it from the specimen.
    Its end edge is the only one that faces a wall, and it faces one only while nothing follows
    it. The selector matches the wrapper that publishes the inset, so the rule is off the moment
-   that stops being true. */
+   that stops being true.
+
+   IT FAILED FOR A WHILE BECAUSE SOMETHING DID FOLLOW IT (2026-09-01, Kushagra: "why isnt it
+   touching?"). The expand control was an absolutely positioned SIBLING of this wrapper — in the
+   DOM and not in the layout — and `:last-child` cannot tell those apart, so every bounded
+   hosted sample failed all three arms: measured on the 198-line shell sample, the scroller
+   ended at y=1398 against a pane wall at y=1423, with both bars 25px up the pane while the
+   inline edges reached the wall the whole time.
+
+   The repair is not a cleverer selector. That row belongs to the WELL, beside the topbar that
+   had already moved there, and once it does nothing follows this wrapper at all — so the
+   question `:last-child` asks is the right one and its answer is true. (`surfaces.css` filters
+   its own bleed arms on `[data-float]` for the case where a pane's chrome really is a sibling;
+   that marker was carried here for a day, and it went with the sibling it described.) */
 :last-child > .kd-code-hosted > .kui-scroll-area {
   margin-block-end: calc(-1 * var(--kd-host-p, 0px));
 }
-:last-child > .kd-code-hosted > .kui-scroll-area > .kui-scroll-viewport {
+:last-child
+  > .kd-code-hosted
+  > .kui-scroll-area
+  > .kui-scroll-viewport {
   padding-block-end: var(--kd-host-p, 0px);
 }
 .kd-code-well > .kui-scroll-area > .kui-scroll-viewport {

@@ -5,9 +5,26 @@
 
 .kui-scroll-area {
   /* The scrollbars position against the root; the root takes whatever box its caller's
-     layout gives it (a scrollbar has no opinion about size — Progress's sentence). */
+     layout gives it (a scrollbar has no opinion about size — Progress's sentence).
+
+     A FLEX COLUMN, WHICH IS WHAT MAKES A STATED BOUND DEFINITE (2026-09-01, Kushagra: "how
+     will a consumer get it right"). `children` promises that a scroll region needs a bounded
+     height and that you state one here through `style`, and with a `max-block-size` that was
+     only true inside a pane: as a block box the root's height is `auto` with a clamp on it,
+     and the viewport's `max-block-size: 100%` resolves a percentage against `auto`, which is
+     `none` — so the viewport took its CONTENT height and whatever box sat above it clipped the
+     overflow into something that looked bounded while nothing scrolled (measured: 3984px of
+     viewport inside a 480px root). A scroller directly inside a `.kui-surface` escaped, and
+     only because surfaces.css gave it this same column — so the promise held exactly where the
+     caller had done nothing to earn it and broke where they had.
+
+     As a flex container the root's own max-height is resolved before its items are laid out,
+     so the viewport below takes a real number instead of a percentage of nothing, at any depth
+     and with no cooperation from the parent. The surface layer keeps `flex: 1` — that is about
+     being an ITEM of the pane — and its copy of these two declarations is deleted. */
   position: relative;
-  display: block;
+  display: flex;
+  flex-direction: column;
   min-block-size: 0;
 }
 
@@ -21,6 +38,13 @@
      a ladder is the PAINTED box — and it is the same fix one family over. */
   box-sizing: border-box;
   inline-size: 100%;
+  /* The other half of the column above: a flex item, so the block size comes from the root's
+     resolved box rather than from a percentage of it. `min-block-size: 0` because a flex item's
+     automatic minimum is its content, which would defeat the bound the moment the content is
+     taller than it — the classic pair. `max-block-size: 100%` stays for the case the column
+     does not cover: a root whose height is definite from the outside. */
+  flex: 1 1 auto;
+  min-block-size: 0;
   max-block-size: 100%;
   overflow: auto;
   /* The custom bar REPLACES the native one, so the native one must go — both spellings,

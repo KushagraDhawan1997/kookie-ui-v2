@@ -16,7 +16,7 @@ import { describe, expect, it } from "vitest";
 import * as Kookie from "@kookie-ui/react";
 
 import { BLOCK_BY_SLUG, BLOCKS } from "../../../blocks";
-import { CodeSample } from "../../../blocks/code-sample";
+import { CODE_MAX_LINES, CodeSample } from "../../../blocks/code-sample";
 import { isLang, parseMeta, plainText, tokenize } from "../../../blocks/highlight";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -164,6 +164,120 @@ describe("the bound and the numbers", () => {
       await CodeSample({ code: FIVE_LINES, lang: "bash", maxLines: 24 }),
     );
     expect(roomy).not.toContain("Show all");
+  });
+
+  /* The bound is a DEFAULT, and the default is the half that has no call site to fail at
+     (2026-08-31). Every well on this site inherits it, so the guarantee is that a long sample
+     bounds ITSELF with nobody asking — falsified by removing `= CODE_MAX_LINES` from the
+     view's destructure, which leaves a 60-line fence unbounded and this red.
+
+     Both arms, because either alone passes with the default wrong: a sample OVER the bound
+     must bound, and one under it must not — a default of 0 satisfies the first on its own. */
+  it("a long sample bounds itself, and a short one does not", async () => {
+    const long = "x\n".repeat(CODE_MAX_LINES + 12);
+    const bounded = renderToStaticMarkup(await CodeSample({ code: long, lang: "bash" }));
+    expect(bounded).toContain(`Show all ${CODE_MAX_LINES + 12} lines`);
+
+    const short = "x\n".repeat(CODE_MAX_LINES - 1);
+    const roomy = renderToStaticMarkup(await CodeSample({ code: short, lang: "bash" }));
+    expect(roomy).not.toContain("Show all");
+  });
+
+  /* THE BOUND'S OTHER HALF MOVED INTO THE PACKAGE (2026-09-01).
+
+     A law lived here reading `code.css` for the flex column that makes a `max-block-size` on a
+     ScrollArea root definite, and it said in its own comment that the real assertion is
+     `clientHeight < scrollHeight` on a mounted well and belongs beside the ScrollArea's own
+     laws. It does now: the root is a flex column and the viewport a flex item in the package,
+     so the bound binds wherever a scroller sits, and `scroll-area.browser.test.tsx` mounts one
+     inside a plain block box and measures it. Nothing is left here to read. */
+
+  /* A BAND IS RESERVED FOR A ROW THAT REACHES TWO WALLS (2026-09-01, Kushagra: "the one with
+     no filename... the top left just looks weird").
+
+     The clearance under the chrome row exists because a name at one wall and a copy button at
+     the other cover the whole of line 1. An unlabelled fence has only the button, and the same
+     band then reserved a pane's width of nothing to clear a control in one corner of it.
+
+     BOTH ARMS, and each one alone passes with the rule inverted: the named sample must reserve,
+     the unnamed must not. Read off the RENDERED `<pre>` rather than off the flag that produces
+     it — the padding is an inline style, so this is the emitted value and not a restatement of
+     the branch. Falsified by putting `topbar` back as the condition, which turns the second
+     assertion red. */
+  it("a named row reserves a band and a lone copy button reserves none", async () => {
+    const padding = (markup: string) => /<pre[^>]*style="[^"]*padding-block-start:([^;"]*)/.exec(markup)?.[1]?.trim() ?? null;
+
+    const named = renderToStaticMarkup(
+      await CodeSample({ code: FIVE_LINES, lang: "bash", title: "app/page.tsx" }),
+    );
+    expect(padding(named), "a named row must clear the first line").toContain("control-height");
+
+    const alone = renderToStaticMarkup(await CodeSample({ code: FIVE_LINES, lang: "tsx" }));
+    expect(alone, "the unnamed sample still floats its copy button").toContain("kd-code-well");
+    expect(padding(alone), "a lone copy button reserves nothing").toBe(null);
+  });
+
+  /* BOTH CHROME ROWS FLOAT AGAINST THE SAME BOX (2026-09-01, Kushagra: "why isnt it touching?",
+     then "the button still has more padding than code sample").
+
+     One arrangement produced two faults. The expand control hung from a positioned wrapper
+     AROUND the well while the topbar hung from the well itself, and in a hosted well those two
+     boxes have different bottoms: the bleed's negative bottom margin collapses out of the well
+     onto the wrapper (measured — wrapper 1374, well 1398, pane wall 1399). So the button sat
+     41px off the pane wall against a standalone twin's 16, and the wrapper being a DOM sibling
+     of the well also turned the block-end bleed off, leaving the scroller and both bars an inset
+     short of the wall while the inline edges reached it.
+
+     The fix is the containing block, not a number: the row goes to the element as `footer` and
+     hangs from the well. A compensating inset was written first and measured 8px BELOW the wall
+     — the same double-counting a third time — which is why this law is about WHERE the row is
+     rather than about what its inset says.
+
+     The distance itself is a mounted measurement and the docs app has one node project by
+     decision, so it is not claimed here. Falsified by rendering the row outside the well again. */
+  it("the expand control floats from the well itself, not from a box around it", async () => {
+    /* THE FIRST SPELLING OF THIS LAW COULD NOT FAIL, and its own sabotage caught it: it
+       compared the INDEX of the well's class against the index of the button's text, and the
+       well opens before the button in both arrangements. Rebuilding the pre-fix version — a
+       relative `<div>` holding the CodeBlock and the row as siblings — left it green. The
+       question is containment, so the law has to find the well's CLOSING tag. */
+    const closesAfter = (markup: string, openIndex: number, needle: number) => {
+      let depth = 0;
+      for (const tag of markup.slice(openIndex).matchAll(/<(\/?)([a-zA-Z][^\s/>]*)([^>]*)>/g)) {
+        const [whole, slash, , rest] = tag;
+        if (rest!.endsWith("/") || /^(br|img|input|hr|meta|link|path|source)$/i.test(tag[2]!)) continue;
+        depth += slash ? -1 : 1;
+        if (depth === 0) return openIndex + tag.index! + whole.length > needle;
+      }
+      return false;
+    };
+
+    const long = "x\n".repeat(CODE_MAX_LINES + 12);
+    for (const hosted of [false, true]) {
+      const markup = renderToStaticMarkup(
+        await CodeSample({ code: long, lang: "bash", ...(hosted ? { hosted } : {}) }),
+      );
+      const button = markup.indexOf("Show all");
+      expect(button, `hosted=${hosted}: no expand control rendered`).toBeGreaterThan(-1);
+      // The well's own element: back up from its class to the `<` that opens the tag.
+      const cls = markup.indexOf("kd-code-well");
+      expect(cls, `hosted=${hosted}: no well rendered`).toBeGreaterThan(-1);
+      const open = markup.lastIndexOf("<", cls);
+      expect(
+        closesAfter(markup, open, button),
+        `hosted=${hosted}: the expand control renders outside the well`,
+      ).toBe(true);
+    }
+  });
+
+  it("Infinity is the way out, and it is the only one", async () => {
+    // Stated as a law because it is the escape the prop's own doc promises, and an escape
+    // nothing exercises is an escape that stops working quietly.
+    const long = "x\n".repeat(CODE_MAX_LINES + 12);
+    const free = renderToStaticMarkup(
+      await CodeSample({ code: long, lang: "bash", maxLines: Infinity }),
+    );
+    expect(free).not.toContain("Show all");
   });
 
   it("line numbers are a class, never markup", async () => {
