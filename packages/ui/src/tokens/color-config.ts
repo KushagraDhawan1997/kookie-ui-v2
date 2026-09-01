@@ -178,7 +178,7 @@ export const solidPinBounds = { min: 0.42, max: 0.92 } as const;
  * `accent` is the user's brand hue.
  *
  * The basics (LOG 2026-08-04) are colour-as-data vocabulary — tags, calendars, charts,
- * badges — where the colour IS the information and a status name would be dishonest. They
+ * chips — where the colour IS the information and a status name would be dishonest. They
  * are hue-authored, not pinned: the generator places them on the same spine as everything
  * else, which is what makes "blue step 9" and the brand's step 9 read as the same step.
  * The set widens here, by config, when a component forces it; the palette is never

@@ -117,7 +117,7 @@ describe("type never takes density or pointer, and only tokens carry values (§1
 describe("the inert atoms have ONE identity, and the third member is what moved it here (§11, §15)", () => {
   // The family rule (LOG 2026-08-05, TextArea's): the second member self-keys, the third
   // promotes. Code shipped the fill, the corner and the optical-scale application; Kbd
-  // restated all three verbatim while it was the second; Badge landed 2026-08-23 as the third
+  // restated all three verbatim while it was the second; Chip landed 2026-08-23 as the third
   // and they moved into `.kui-atom`, with the one-line box Kbd designed moving into
   // `.kui-atom-box` beside it.
   //
@@ -125,11 +125,11 @@ describe("the inert atoms have ONE identity, and the third member is what moved 
   // fill would look right for exactly as long as its copy happened to agree, which is the
   // drift the promotion exists to end — and no mounted law can catch it, because a copy that
   // agrees computes the same value.
-  const ATOMS = ["code", "kbd", "badge"] as const;
+  const ATOMS = ["code", "kbd", "chip"] as const;
 
   it("the shared identity is declared once, in the type layer", () => {
     for (const [name, decl] of [
-      // The fill's spelling gained one level of indirection when Badge grew `backdrop`
+      // The fill's spelling gained one level of indirection when Chip grew `backdrop`
       // (2026-08-26): the derived name is unset at rest and the fallback IS the old value,
       // so the identity this law protects — one declaration, in the type layer — is intact.
       ["the fill", "background-color: var(--kui-atom-fill, var(--tone-soft))"],
@@ -155,8 +155,8 @@ describe("the inert atoms have ONE identity, and the third member is what moved 
 
   it("every atom declares its OWN discount, and no two of them share the token", () => {
     // The atoms deliberately do not share one factor: mono's is a metric correction, the cap's
-    // is about symbols drawing full-size in the sans, the badge's is about rank. They may
-    // coincide numerically — `--kbd-scale` and `--badge-scale` do today — and they must stay
+    // is about symbols drawing full-size in the sans, the chip's is about rank. They may
+    // coincide numerically — `--kbd-scale` and `--chip-scale` do today — and they must stay
     // separately correctable, which is exactly what a shared token would take away.
     const factors = ATOMS.map((atom) => {
       const own = sheet(`components/${atom}/${atom}.css`);
@@ -188,7 +188,7 @@ describe("the inert atoms have ONE identity, and the third member is what moved 
     // and Code's own `padding-inline` still wins the (0,1,0) tie on source order. Every inline
     // `<Code>` would have become `display: inline-flex; block-size: 1lh; white-space: nowrap`,
     // destroying the one property code.css spends ten lines arguing for, with the suite green.
-    const BOXES: readonly (typeof ATOMS)[number][] = ["kbd", "badge"];
+    const BOXES: readonly (typeof ATOMS)[number][] = ["kbd", "chip"];
 
     expect(stripped).toContain("block-size: 1lh");
     expect(sheet("components/code/code.css"), "the chip grew a box").not.toContain("block-size");

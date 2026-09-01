@@ -2247,7 +2247,7 @@ describe("the springs are physics, and the emitted curve is that physics (§8)",
  *   WASH_ROLES     — the soft trio and its opaque glass twins. NEUTRAL for every family.
  *                    Kushagra, off the tone x emphasis board: "why do these buttons continue
  *                    to have a light filter?" A medium button, a quiet one under the pointer
- *                    and a badge's chip are grey whatever tone they carry.
+ *                    and a chip's chip are grey whatever tone they carry.
  *   DILUTED_ROLES  — `a3` and the two faded inks. Neutral only for `undilutedTones`, so a
  *                    Notice keeps its tint and a `destructive` paragraph at medium emphasis
  *                    keeps its red, while accent gives both up.
@@ -2269,7 +2269,7 @@ describe("the wash is neutral for everyone; accent gives up more (§7, §9, §11
    * they may not drift apart silently.
    */
   const WASHES = [
-    "soft",              // medium's resting fill, and a badge's chip
+    "soft",              // medium's resting fill, and a chip's chip
     "soft-hover",        // medium hovered, and quiet's hover
     "soft-active",       // medium pressed, and quiet's press
     "soft-solid",        // the trio's opaque twins — what the glass scopes re-point to
@@ -2320,7 +2320,7 @@ describe("the wash is neutral for everyone; accent gives up more (§7, §9, §11
 
   it("EVERY tone reads neutral at the wash roles — no faded fills anywhere", () => {
     // The rule Kushagra asked for, role by role and family by family. It is stated over the
-    // whole tone set rather than a sample, because "buttons and badges" was the ask and every
+    // whole tone set rather than a sample, because "buttons and chips" was the ask and every
     // family reaches both.
     for (const tone of Object.keys(tones)) {
       const scope = block(`[data-tone="${tone}"]`);
