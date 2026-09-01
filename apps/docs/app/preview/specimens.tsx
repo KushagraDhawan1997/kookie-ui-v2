@@ -43,6 +43,9 @@ import {
   Checkbox,
   Code,
   CodeBlock,
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuTrigger,
   Field,
   FieldDescription,
   FieldError,
@@ -57,6 +60,9 @@ import {
   MenuTrigger,
   MenuContent,
   MenuItem,
+  MenuSub,
+  MenuSubTrigger,
+  MenuSubContent,
   Notice,
   Popover,
   PopoverClose,
@@ -728,9 +734,52 @@ function BlockquoteSection() {
   );
 }
 
+/* THE DONE STATE, judged live (§29's obligation, 2026-09-02). A demo rather than a table,
+   because the thing to judge is the crossing and a still frame cannot show it: press either
+   button and the glyph scales out under a blur while the tick scales in, and the labelled one
+   travels its width from "Copy" to "Copied". What to look at is whether the blur earns its
+   place at 16px — it is one config line and it goes to zero if it does not. */
+function DoneDemo() {
+  const [labelled, setLabelled] = React.useState(false);
+  const [bare, setBare] = React.useState(false);
+  const clear = (set: (v: boolean) => void) => {
+    set(true);
+    setTimeout(() => set(false), 2000);
+  };
+  return (
+    <Demo label="Press one — the glyph crosses, the width travels">
+      <Flex gap="3" align="center">
+        <Button leading={<CopyGlyph />} done={labelled} onClick={() => clear(setLabelled)}>
+          {labelled ? "Copied" : "Copy"}
+        </Button>
+        <Button
+          iconOnly
+          aria-label={bare ? "Copied" : "Copy"}
+          done={bare}
+          onClick={() => clear(setBare)}
+        >
+          <CopyGlyph />
+        </Button>
+      </Flex>
+    </Demo>
+  );
+}
+
+/** A stand-in for the app's own icon set: §8 ships none, and a specimen must not import one
+    from the docs' chrome to prove a package behaviour. */
+function CopyGlyph() {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <rect x="5.5" y="5.5" width="8" height="8" rx="2" stroke="currentColor" strokeWidth={1.75 * 16 / 24} />
+      <path d="M10.5 3.5A2 2 0 0 0 8.5 2.5h-4a2 2 0 0 0-2 2v4a2 2 0 0 0 1 1.73" stroke="currentColor" strokeWidth={1.75 * 16 / 24} strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function ButtonSection() {
   return (
     <Stack gap="6">
+      <DoneDemo />
       <SpecTable
         cols={["Accent", "Neutral", "Destructive", "Disabled"]}
         rows={(
@@ -834,6 +883,75 @@ function CheckboxSection() {
           </Card>
         </Box>
       </Demo>
+    </Stack>
+  );
+}
+
+/* ContextMenu (§42) — the menu family's second PLACEMENT, and it gets its own section rather
+   than a demo inside Menu's, because it is its own export with its own reference page and
+   nobody looks for it under another component's heading.
+
+   What is judged here is only what differs: everything about the panel and the rows is Menu's
+   and is judged there. This is about WHERE it comes from. */
+function ContextMenuSection() {
+  return (
+    <Stack gap="6">
+      {/* THE POINT. Right-click at different places in the canvas — the panel's corner lands on
+          the cursor every time, and it grows OUT of that corner. If it ever appears to start
+          from the canvas's own box, the entry has fallen back to the family's silhouette,
+          which is the one thing this component had to replace. Try the corners too: the
+          viewport decides which way the panel opens, and that is the positioner's answer
+          rather than anything a call site said. */}
+      <Demo label="Right-click anywhere — the panel flies out of the point, not the region (and its submenu out of its row)">
+        <ContextMenu size="2">
+          <ContextMenuTrigger>
+            <Surface size="3" style={{ minBlockSize: 260, display: "grid", placeItems: "center" }}>
+              <Text size="2" emphasis="medium">
+                Right-click anywhere in here
+              </Text>
+            </Surface>
+          </ContextMenuTrigger>
+          <ContextMenuContent>
+            <MenuItem>Duplicate</MenuItem>
+            <MenuItem>Rename</MenuItem>
+            <MenuSub>
+              <MenuSubTrigger>Move to</MenuSubTrigger>
+              <MenuSubContent>
+                <MenuItem>Drafts</MenuItem>
+                <MenuItem>Archive</MenuItem>
+              </MenuSubContent>
+            </MenuSub>
+            <Separator />
+            <MenuItem tone="destructive">Delete</MenuItem>
+          </ContextMenuContent>
+        </ContextMenu>
+      </Demo>
+      {/* THE REGION PAINTS NOTHING, which is only judgeable against a region you can see. The
+          left card wears the trigger and the right one does not; at rest they must be the same
+          pixels, because a right-click is a gesture over content you can already see. */}
+      <SpecTable
+        cols={["Wears the trigger", "Plain card"]}
+        rows={[
+          {
+            label: "at rest",
+            cells: [
+              <ContextMenu key="1" size="2">
+                <ContextMenuTrigger>
+                  <Card size="3">
+                    <Text size="2">Right-click me</Text>
+                  </Card>
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <MenuItem>Open</MenuItem>
+                </ContextMenuContent>
+              </ContextMenu>,
+              <Card key="2" size="3">
+                <Text size="2">Ordinary card</Text>
+              </Card>,
+            ],
+          },
+        ]}
+      />
     </Stack>
   );
 }
@@ -2695,6 +2813,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "checkbox", name: "Checkbox", body: <CheckboxSection /> },
   { id: "code", name: "Code and Kbd", body: <CodeSection /> },
   { id: "code-block", name: "CodeBlock", body: <CodeBlockSection /> },
+  { id: "context-menu", name: "ContextMenu", body: <ContextMenuSection /> },
   ported("alert-dialog"),
   { id: "field", name: "Field", body: <FieldSection /> },
   ported("dialog"),

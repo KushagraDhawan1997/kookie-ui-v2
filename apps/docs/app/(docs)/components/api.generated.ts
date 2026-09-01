@@ -588,6 +588,12 @@ export const API: Record<string, ApiEntry> = {
         "doc": ""
       },
       {
+        "name": "done",
+        "type": "boolean",
+        "optional": true,
+        "doc": "The action finished, and the button says so where the eyes already are: its glyph becomes a tick. THIS IS WHAT THE TOAST REFUSAL OWED (§29). A copy button is the one case where an operation genuinely has no visible result, and the answer is the control reporting its own outcome in place — not a window that appears somewhere else, too late to act on, and disappears. THE STATE IS YOURS AND THE DRAWING IS THE SYSTEM'S, which is §29's own rule for `onDismiss` one component over: a control that ran its own timer would forget on reload and would decide, for every app, how long \"just now\" lasts. You hold the boolean and clear it; the button draws the tick and moves it. IT DOES NOT BLOCK THE PRESS, and that is the difference from `loading`. Loading blocks because the action is still running; done means it finished, and pressing copy a second time is an ordinary thing to want. A button that goes dead for two seconds after succeeding is worse than either state. SAY THE WORD TOO. The tick is a drawing, and a drawing is silent: assistive technology announces a name, not a glyph. On a labelled button change the label (`Copy` → `Copied`); on an `iconOnly` one change `aria-label`. The system cannot write those words — they are in your language, not its. Passing it at all — even `false` — mounts the tick beside the glyph so the two can cross. A button with no done state renders exactly as it always has."
+      },
+      {
         "name": "emphasis",
         "type": "Emphasis",
         "optional": true,
@@ -929,6 +935,93 @@ export const API: Record<string, ApiEntry> = {
         "type": "ComposerStatus",
         "optional": true,
         "doc": "What the request is doing. Defaults to `ready`."
+      }
+    ]
+  },
+  "ContextMenuContent": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The rows. `MenuItem` and its siblings — a context menu holds menu items."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "ContextMenu": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "A `<ContextMenuTrigger>` and a `<ContextMenuContent>`. Renders no DOM of its own."
+      },
+      {
+        "name": "defaultOpen",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Uncontrolled starting state. Mutually exclusive with `open`."
+      },
+      {
+        "name": "onOpenChange",
+        "type": "(open: boolean) => void",
+        "optional": true,
+        "doc": "Fires on every open and close, including the dismissals the menu handles itself."
+      },
+      {
+        "name": "open",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Controlled open state, paired with `onOpenChange`. Rare: opening is the gesture's job."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "optional": true,
+        "doc": "The same index a Menu wears. The rows, the glyphs and the type all take it."
+      }
+    ]
+  },
+  "ContextMenuTrigger": {
+    "element": "div",
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The area that answers a right-click."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "render",
+        "type": "RenderElement",
+        "optional": true,
+        "doc": "Render the region into the element you already have — a canvas, a row, a pane."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
       }
     ]
   },

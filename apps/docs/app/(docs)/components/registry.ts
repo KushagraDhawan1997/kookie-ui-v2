@@ -310,7 +310,7 @@ export const ENTRIES: Entry[] = [
     slug: "button",
     name: "Button",
     family: "Control",
-    spec: "§4, §8, §9",
+    spec: "§4, §8, §9, §41",
     blurb:
       "Button is the action control, and the one the shared control layer was built for. Loudness is its only ranking axis. You never set an appearance directly: the theme works it out from `tone`, `emphasis` and `bordered`, over whatever material the Theme says the app is made of.",
     axes: [
@@ -320,6 +320,7 @@ export const ENTRIES: Entry[] = [
       { name: "bordered", values: "boolean", note: "containment, and about half a level: medium with a border reads louder than medium" },
       { name: "backdrop", values: "boolean", note: "says content passes behind this button, so the theme's glass can show. Unset, it follows the surrounding <Box backdrop> region" },
       { name: "leading / trailing", values: "ReactNode", note: "an icon, or a whole control hosted inside" },
+      { name: "done", values: "boolean", note: "the action finished, and the button says so where the eyes already are: its glyph crosses to a tick. You hold the boolean and clear it, so nothing decides for your app how long just now lasts. It does not block the press, because the action is over. Change the label too, since a tick is a drawing and a screen reader reads a name" },
     ],
     refusals: [
       { name: "margin", why: "A component never sets outer spacing. The distance belongs to the container. The escape is <Box m>." },
@@ -481,6 +482,40 @@ export const ENTRIES: Entry[] = [
         name: "a Card as the pane",
         why: "The code is not an object sitting on the page, it is a well recessed into it. So the pane is a Surface, which is what the rest of the page's grounds are.",
       },
+    ],
+  },
+  {
+    slug: "context-menu",
+    name: "ContextMenu",
+    family: "Surface",
+    spec: "§21, §22, §42",
+    blurb:
+      "ContextMenu is the menu a right-click opens, over the area you right-clicked. On a touch screen a long press opens it instead. It is the same panel and the same rows as Menu, so you build it out of MenuItem and its siblings; what is different is that it is summoned at a point rather than opened by a control, and it grows out of that point instead of out of a button. The part names follow shadcn/ui's context-menu (MIT), with credit, and the behaviour is Base UI's ContextMenu.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "the same index a Menu wears. The rows, the glyphs and the type all take it. Defaults to 2" },
+      { name: "open / defaultOpen / onOpenChange", values: "boolean, callback", note: "the library's controlled-state trio. Rare here, because opening is the gesture's job" },
+    ],
+    refusals: [
+      {
+        name: "a parallel set of parts",
+        why: "shadcn/ui ships ContextMenuItem, ContextMenuLabel, ContextMenuSub and the rest, and every one of them is the menu part under a second name — Base UI re-exports the same components for both. A second name for one thing is the fault, not the fix. Build the rows out of MenuItem, MenuGroup, MenuLabel, MenuCheckboxItem, MenuRadioGroup and MenuSub, which work here because they are the same components.",
+      },
+      {
+        name: "side, align and an offset",
+        why: "Placement belongs to the system for every floating component, and here there is nothing you could usefully say: the panel's corner goes on the point you clicked, and the viewport decides which corner that is.",
+      },
+      {
+        name: "an appearance for the region",
+        why: "A right-click is a gesture over content you can already see, so the area draws no fill, no border and no cursor of its own. A region that announced itself would be a control, and this is not one.",
+      },
+      {
+        name: "opening on a left click",
+        why: "That is a Menu with a trigger. Two gestures on one component would mean the same panel appearing for two different reasons, and a reader could not tell which one they had.",
+      },
+    ],
+    parts: [
+      { part: "ContextMenuTrigger", blurb: "The area a right-click opens the menu over. It draws nothing. It exists because the work is not visual: suppressing the browser's own menu, the long press that stands in for a right-click on touch, the point the panel is placed at, and the state it wears while its menu is up. Takes render for a region that is already its own element" },
+      { part: "ContextMenuContent", blurb: "The panel, placed at the point that summoned it. It holds MenuItem and its siblings, and it takes no placement props at all" },
     ],
   },
   {

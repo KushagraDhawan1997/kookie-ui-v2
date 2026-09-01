@@ -31,6 +31,7 @@ import CardExample from "./card";
 import CheckboxExample from "./checkbox";
 import CodeExample from "./code";
 import CodeBlockExample from "./code-block";
+import ContextMenuExample from "./context-menu";
 import DialogExample from "./dialog";
 import FieldExample from "./field";
 import FlexExample from "./flex";
@@ -82,6 +83,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "checkbox": CheckboxExample,
   "code": CodeExample,
   "code-block": CodeBlockExample,
+  "context-menu": ContextMenuExample,
   "dialog": DialogExample,
   "flex": FlexExample,
   "grid": GridExample,

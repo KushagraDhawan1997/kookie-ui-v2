@@ -1262,6 +1262,18 @@ export const CATALOG: Record<string, CatalogEntry> = {
  */
 export const EXCLUDED: { name: string; why: string }[] = [
   {
+    name: "ContextMenu",
+    why: "A context menu is opened by right-clicking a region, and on this canvas right-click already belongs to the editor: it selects what is under the pointer and opens the editor's own menu. A ContextMenu placed here could never be opened, which makes it a control that promises something it does not have. Its trigger and content are excluded with it, because neither means anything outside the pair.",
+  },
+  {
+    name: "ContextMenuTrigger",
+    why: "ContextMenu's own exclusion, inherited: a region that answers a right-click is nothing without the menu it opens.",
+  },
+  {
+    name: "ContextMenuContent",
+    why: "ContextMenu's own exclusion, inherited: the panel exists only for the gesture that summons it.",
+  },
+  {
     name: "TooltipProvider",
     why: "Configuration for a REGION rather than a thing that goes in one: it states the delay every tooltip inside it waits and groups them so a row of buttons reads as one row. It belongs once near the root of an app, which is outside anything this canvas composes. Every Tooltip placed here works without it, on the library's own timing.",
   },

@@ -16,6 +16,7 @@
  * mounted so the gutter holds), collision knobs, `modal`/`openOnHover`.
  */
 import * as React from "react";
+import { ContextMenu as BaseContextMenu } from "@base-ui/react/context-menu";
 import { Menu as BaseMenu } from "@base-ui/react/menu";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
@@ -31,9 +32,11 @@ import {
   FloatingDirectionContext,
   PortalScope,
   useAmbientDirection,
+  type MeasuredDirection,
   SIDE_OFFSET,
   useRestingAnchor,
 } from "../../system/floating.tsx";
+import { CHECK_PATH } from "../../system/glyphs.ts";
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
@@ -81,6 +84,25 @@ const panelSeam = (trigger: HTMLElement | null): number => {
       the cells are inherits:false on purpose. Crosses the portal with React (§20). ─────── */
 
 const MenuSizeContext = React.createContext<Size>("2");
+
+/**
+ * True inside a `ContextMenu`'s tree, and read by one thing: whether a panel suppresses the
+ * platform's own menu over itself (audit 2026-09-02).
+ *
+ * Base UI suppresses `contextmenu` for the trigger's region and for its backdrop, which is a
+ * `position: fixed; inset: 0` sibling of the positioner — so the suppression covers the entire
+ * viewport EXCEPT the one rectangle the panel occupies. Measured: right-click a row and Chrome
+ * draws its own menu over the Kookie one, `defaultPrevented: false`, while the same event 40px
+ * outside the panel comes back prevented. §42 names suppressing the platform menu as one of the
+ * four jobs that license `ContextMenuTrigger`; doing it for the region and not for the surface
+ * the region draws is half a job.
+ *
+ * It is a context rather than `seedSize` — the neighbouring fact — because the two are different
+ * claims: `seedSize` says "THIS panel was summoned out of a point", which is exactly why a
+ * submenu must not inherit it, while this says "we are inside a right-click's menu", which every
+ * panel in the tree including a submenu's is. Inheriting is the whole point of it.
+ */
+const SummonedContext = React.createContext(false);
 
 /* ── Direction (§20, added 2026-08-09) ──────────────────────────────────────────────────
       RTL is the third thing a portal drops, after the CSS axes and the stacking frame — and
@@ -285,9 +307,8 @@ function popupProps(
   // as "never narrower than the panel you came from", and it compounded: measured 446.59 ->
   // 437 -> 427 across three levels, a panel holding one character 427px wide (audit
   // 2026-08-09). The argument for the floor is Button-shaped and does not survive the move.
-  const identity = anchored
-    ? "kui-surface kui-floating kui-floating-rows kui-menu-popup kui-menu-anchored"
-    : "kui-surface kui-floating kui-floating-rows kui-menu-popup";
+  const base = "kui-surface kui-floating kui-floating-rows kui-menu-popup";
+  const identity = anchored ? `${base} kui-menu-anchored` : base;
   return {
     "data-size": size,
     "data-tone": "neutral",
@@ -358,9 +379,14 @@ function MenuPopup({
   const material = useMaterial({ backdrop: true });
   // §10 — the lens on the pane itself (see Card).
   const lensRef = useLensRef<HTMLDivElement>(material, ref);
+  // The one hole in Base UI's own suppression — see `SummonedContext`. A `preventDefault` is
+  // not interaction-time work: nothing is measured, nothing is written, and the alternative is
+  // the platform's menu drawing over ours on the one surface the gesture just produced.
+  const summoned = React.use(SummonedContext);
   return (
     <BaseMenu.Popup
       {...popupProps(React.use(MenuSizeContext), material, anchored, className)}
+      {...(summoned ? { onContextMenu: (event: React.MouseEvent) => event.preventDefault() } : {})}
       style={style}
       ref={lensRef}
     >
@@ -549,7 +575,7 @@ function checkGlyph() {
   return (
     <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
       <path
-        d="M4 8.5 6.75 11.25 12 5.75"
+        d={CHECK_PATH}
         stroke="currentColor"
         strokeWidth={glyphStroke}
         strokeLinecap="round"
@@ -729,10 +755,20 @@ export function MenuSub({ open, defaultOpen, onOpenChange, children }: MenuSubPr
      lesson, now applied to the ENTRY's measurement): the floating body reads `anchor()` for
      the floor and the lean, and inheriting the root's would feed a submenu the width of a
      button it does not hang from. Direction and measure stay the root's — a subtree cannot
-     change which way the text runs. */
+     change which way the text runs.
+
+     AND `seedSize` IS DROPPED, which is the same sentence one field over (audit 2026-09-02).
+     It means "THIS panel was summoned out of a point, so it has no silhouette to photograph"
+     (§42) — a claim about one panel that every descendant flight reads, so a spread carried it
+     into every submenu of a context menu: measured, the sub wrote `--kui-seed-h: 0px` and
+     `--kui-seed-r: 0px` where the identical markup under a plain Menu writes its trigger row's
+     own 15px box and corner, and `--kui-seed-dy` then translated that flat sliver half a seed
+     ABOVE the row it was supposed to come out of. A submenu is never summoned — it always has
+     a trigger row, and §22 says that shared edge is real — so the field is stated back to its
+     unset meaning here rather than left to the spread. */
   const parentDir = React.use(FloatingDirectionContext);
   const dir = React.useMemo(
-    () => ({ ...parentDir, anchor: () => triggerRef.current }),
+    () => ({ ...parentDir, anchor: () => triggerRef.current, seedSize: undefined }),
     [parentDir],
   );
   return (
@@ -857,5 +893,158 @@ export function MenuSubContent({ children, className, style, ref }: MenuSubConte
         </BaseMenu.Positioner>
       </PortalScope>
     </BaseMenu.Portal>
+  );
+}
+
+
+/* ── ContextMenu (§42) ────────────────────────────────────────────────────────────────────
+   The menu family's SECOND PLACEMENT, not a second family. Everything a context menu shows is
+   a menu — the same panel, the same rows, the same glyphs, the same flight machinery — and the
+   only thing that differs is where it comes from and what summons it.
+
+   SO IT SHIPS THREE EXPORTS, NOT FOURTEEN. shadcn/ui ships a full parallel set
+   (`ContextMenuItem`, `ContextMenuLabel`, `ContextMenuSub`…) and Base UI re-exports the very
+   same components under both names — `ContextMenu.Item` IS `Menu.Item`, in their source. A
+   second name for one thing is the fault, not the fix: this package already refused a parallel
+   name when the name lied (§26, `TabsTrigger`), and it refuses one here when the name is
+   merely a duplicate. You compose a context menu out of `MenuItem`, `MenuGroup`, `MenuLabel`,
+   `MenuCheckboxItem`, `MenuRadioGroup`, `MenuRadioItem` and `MenuSub`, and they work because
+   they are the same components, not because anything was wired to make them. */
+
+export type ContextMenuProps = {
+  /** The same index a Menu wears. The rows, the glyphs and the type all take it. */
+  size?: Size;
+  /** Controlled open state, paired with `onOpenChange`. Rare: opening is the gesture's job. */
+  open?: boolean;
+  /** Uncontrolled starting state. Mutually exclusive with `open`. */
+  defaultOpen?: boolean;
+  /** Fires on every open and close, including the dismissals the menu handles itself. */
+  onOpenChange?: (open: boolean) => void;
+  /** A `<ContextMenuTrigger>` and a `<ContextMenuContent>`. Renders no DOM of its own. */
+  children?: React.ReactNode;
+};
+
+/** Renders no DOM — state and wiring only, exactly as `Menu` does. */
+export function ContextMenu({
+  size = "2",
+  open,
+  defaultOpen,
+  onOpenChange,
+  children,
+}: ContextMenuProps) {
+  const dir = useAmbientDirection();
+  /* THE SEED IS THE POINT (§42, §22). The panel flies out of its anchor exactly as a menu
+     does — the family's recipe is untouched — and the only thing this component supplies is
+     WHICH box that is. A context menu's trigger is a REGION, so the element is the right place
+     to read the ambient direction and the wrong box entirely to fly out of: photographing a
+     canvas starts the panel at the size of the canvas.
+
+     A zero-size silhouette is the honest one, and its POSITION needs no measuring: Base UI's
+     positioner has already put the panel's corner on the point, so the panel grows out of
+     where it already is. The first spelling tracked the cursor through handlers on the region
+     and the "no JS at interaction time" law refused it — rightly, since it was a handler on
+     every press over a canvas to learn a coordinate the layout already knew. */
+  const measured: MeasuredDirection = React.useMemo(
+    () => ({ ...dir, seedSize: () => ({ width: 0, height: 0 }) }),
+    [dir],
+  );
+
+  return (
+    <MenuSizeContext.Provider value={size}>
+      <SummonedContext.Provider value={true}>
+        <FloatingDirectionContext.Provider value={measured}>
+          <DirectionProvider direction={dir.direction}>
+            <BaseContextMenu.Root
+              {...(open !== undefined ? { open } : {})}
+              {...(defaultOpen !== undefined ? { defaultOpen } : {})}
+              {...(onOpenChange !== undefined ? { onOpenChange } : {})}
+            >
+              {children}
+            </BaseContextMenu.Root>
+          </DirectionProvider>
+        </FloatingDirectionContext.Provider>
+      </SummonedContext.Provider>
+    </MenuSizeContext.Provider>
+  );
+}
+
+export type ContextMenuTriggerProps = Omit<
+  React.ComponentPropsWithoutRef<"div">,
+  "color" | "className" | "style"
+> & {
+  /** Render the region into the element you already have — a canvas, a row, a pane. */
+  render?: RenderElement;
+  /** The area that answers a right-click. */
+  children?: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+  ref?: React.Ref<HTMLDivElement>;
+};
+
+/**
+ * The area a right-click opens the menu over.
+ *
+ * A COMPONENT WHOSE JOB IS TO CATCH AN EVENT ON ITS CHILDREN, which this system has refused
+ * before — `BreadcrumbSeparator` and `ComposerRow`'s grouping parts are both layout wearing a
+ * part's name. It survives §10's criterion because the work is NOT visual and there is a lot of
+ * it: `preventDefault` on the platform's own menu, the long press that stands in for a
+ * right-click on touch, the point the panel is placed at, and the `data-popup-open` the region
+ * wears while its menu is up (it named `data-open` until the audit 2026-09-02 — that is the
+ * POPUP's attribute, this is the only public surface naming one for the region, and it ships
+ * into the published types, so an app dressing `[data-open]` got silently inert CSS). None of that is a distance or a colour, and none of it can be done by
+ * the caller without writing the same thirty lines the builder had already written.
+ *
+ * IT PAINTS NOTHING. There is no fill, no corner, no cursor — a region that announced itself
+ * would be a control, and this is not one: a right-click is a gesture over content you can
+ * already see. `render` is the escape for a region that is its own element.
+ */
+export function ContextMenuTrigger({ render, ref, ...props }: ContextMenuTriggerProps) {
+  // The trigger is the one node this component owns that stands in ordinary flow, so it is
+  // where the ambient direction is read (§20) — the same read a `MenuTrigger` does, and for
+  // the same reason. The BOX it measures is deliberately not used for the entry: `seedSize`
+  // (see `ContextMenu` above) is what tells the runner this panel came out of a point, and a
+  // region is the wrong silhouette. (It said "see CONTEXT_PLAN in system/floating.tsx" until
+  // the audit 2026-09-02 — a symbol deleted with the first design, which the `*_PLAN`
+  // convention beside it made look live.)
+  const { measure } = React.use(FloatingDirectionContext);
+  const setRoot = useMergedRefs(ref, measure);
+  return (
+    <BaseContextMenu.Trigger
+      {...(render ? { render } : {})}
+      {...props}
+      ref={setRoot as React.Ref<HTMLDivElement>}
+    />
+  );
+}
+
+export type ContextMenuContentProps = {
+  /** The rows. `MenuItem` and its siblings — a context menu holds menu items. */
+  children?: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+  ref?: React.Ref<HTMLDivElement>;
+};
+
+/**
+ * The panel, placed at the point that summoned it.
+ *
+ * NO `side`, NO `align`, NO OFFSET — and unlike `MenuContent`, not even a default to override.
+ * Placement is the system's for every member of this family (§22), and here there is nothing a
+ * call site could usefully say: the panel's corner goes on the cursor and the viewport decides
+ * which corner that is. Base UI supplies the point as the positioner's anchor, which is also
+ * why this does NOT pass `useRestingAnchor()` — that virtual anchor reports a trigger's
+ * resting box, and handing it over here would replace the point with the region.
+ */
+export function ContextMenuContent({ children, className, style, ref }: ContextMenuContentProps) {
+  return (
+    <BaseContextMenu.Portal>
+      <PortalScope>
+        <BaseContextMenu.Positioner>
+          <MenuPopup anchored={false} className={className} style={style} ref={ref}>
+            {children}
+          </MenuPopup>
+        </BaseContextMenu.Positioner>
+      </PortalScope>
+    </BaseContextMenu.Portal>
   );
 }

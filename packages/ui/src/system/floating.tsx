@@ -45,6 +45,28 @@ export type FloatingDirection = {
       is what keeps the popup from reaching for `--anchor-width`, which floating-ui publishes
       too late for the seed frame (the 2026-08-09 corner collapse). */
   anchor: () => HTMLElement | null;
+  /**
+   * The SIZE of the silhouette the panel comes out of, when the thing that summoned it is not
+   * an element (§42).
+   *
+   * Every family until ContextMenu was opened by a control, so the seed's box and the ambient
+   * direction's node were the same thing and one accessor answered both. A context menu breaks
+   * that pair: it is summoned at a POINT, and its trigger is a REGION — a canvas, a pane, a
+   * whole window — so the element is still the right place to read the direction and the wrong
+   * box entirely to fly out of. The two questions separate rather than the entry being
+   * abandoned: `anchor` stays "which node is this component's in-flow one", and this is "what
+   * does the panel come out of".
+   *
+   * A SIZE AND NOT A RECT, which is the whole of why this needs no event handler. The
+   * positioner has already placed the panel AT the point — that is what a context menu's
+   * positioner does — so the seed's position is the panel's own corner and there is nothing to
+   * measure. The first spelling tracked the cursor through `contextmenu` and `pointerdown`
+   * handlers on the region, and the "no JS at interaction time" law refused it, correctly: a
+   * handler on every press over a canvas, to learn a coordinate the layout already knows.
+   *
+   * Unset everywhere else, where the trigger IS the silhouette and always was.
+   */
+  seedSize?: (() => { width: number; height: number } | null) | undefined;
 };
 
 /** The attributes a direction change can arrive on. `dir` is the platform's own spelling and
@@ -468,6 +490,25 @@ const FLIGHT_GEOMETRY = /^(inline-size|block-size|width|height|translate|scale|p
     explicitly-sided consumer would get. */
 const BESIDE = /^(inline-start|inline-end|left|right)$/;
 
+/** A plain `<x>px <y>px` pair — the only form of `--transform-origin` we read a number out of. */
+const PX_PAIR = /^\s*(-?[\d.]+)px\s+(-?[\d.]+)px\s*$/;
+
+/**
+ * Where the point that summoned a panel sits inside that panel's positioner, in the block axis.
+ *
+ * Base UI's `transformOrigin` middleware writes `--transform-origin` on the positioner every
+ * time it places one, and for a cross-axis-shifted panel — the state a context menu enters
+ * whenever it would overflow the bottom of the window — the y component IS the anchor point's
+ * own offset. Reading it is how a summoned seed stays on the cursor without anyone tracking a
+ * cursor. Every other form (the `calc(100% + …)` spellings the side placements publish, an
+ * absent property, a value written by some future middleware) answers zero, which is the panel's
+ * own corner and exactly what this returned before there was a reason not to.
+ */
+function summonedOriginY(positioner: HTMLElement): number {
+  const match = PX_PAIR.exec(positioner.style.getPropertyValue("--transform-origin"));
+  return match ? Number(match[2]) : 0;
+}
+
 /** The popup's CURRENT flight's release, so a new entry can retire the old one first
     (2026-08-16): a panel that is kept mounted can be reopened before the previous flight's
     clock has fired, and that stale timer — keyed on the very attributes the new flight also
@@ -476,7 +517,7 @@ const BESIDE = /^(inline-start|inline-end|left|right)$/;
 const flights = new WeakMap<HTMLElement, () => void>();
 
 function useFlight(plan: FlightPlan) {
-  const { anchor } = React.use(FloatingDirectionContext);
+  const { anchor, seedSize } = React.use(FloatingDirectionContext);
   return React.useCallback(
     (node: HTMLDivElement | null) => {
       const popup = node?.closest<HTMLElement>(`.${plan.popup}`);
@@ -603,6 +644,14 @@ function useFlight(plan: FlightPlan) {
         const parked = { x: window.scrollX, y: window.scrollY, protect: false };
         const roughlyOnTrigger = (trigger: HTMLElement | null) => {
           if (!trigger) return;
+          /* A SUMMONED PANEL TRAVELS NOWHERE. Its silhouette sits at its own corner, because
+             the positioner already put that corner on the point — so the offset is zero and
+             the panel simply grows out of where it is. */
+          if (seedSize?.()) {
+            popup.style.setProperty("--kui-from-x", "0px");
+            popup.style.setProperty("--kui-from-y", "0px");
+            return;
+          }
           const triggerBox = trigger.getBoundingClientRect();
           const popupBox = popup.getBoundingClientRect();
           popup.style.setProperty("--kui-from-x", `${triggerBox.left - popupBox.left}px`);
@@ -829,7 +878,18 @@ function useFlight(plan: FlightPlan) {
            * floating-ui measures anchors WITH their transforms, so two floors reading the same
            * trigger at different moments disagreed by 2.5% and the panel stepped at release.
            */
-          if (trigger) {
+          /* A POINT HAS NO CORNER AND NO WIDTH TO FLOOR (§42). When the family publishes a
+             seed box of its own, it is because the panel was summoned rather than opened: the
+             silhouette is a zero-size rect at the cursor, so the corner is `0px` (there is no
+             box to have one) and the anchor-width floor is skipped, which is right twice over —
+             a point's width is zero, and a point-placed panel never wears `kui-menu-anchored`
+             in the first place. */
+          const summoned = seedSize?.() ?? null;
+          if (summoned) {
+            popup.style.setProperty("--kui-seed-w", `${summoned.width}px`);
+            popup.style.setProperty("--kui-seed-h", `${summoned.height}px`);
+            popup.style.setProperty("--kui-seed-r", "0px");
+          } else if (trigger) {
             const box = trigger.getBoundingClientRect();
             const corner = getComputedStyle(trigger).borderTopLeftRadius;
             // The trigger's LAYOUT box, kept for the panel's life — both halves argued in the
@@ -1351,12 +1411,48 @@ function useFlight(plan: FlightPlan) {
              * carries `data-side`, and the pose is invisible until the aim stamps `data-aimed`,
              * so no frame can paint the wrong seed.
              */
+            /* A SUMMONED PANEL IS THE SAME SENTENCE AS `beside` ON THE INLINE AXIS (§42). The
+               submenu case gives up its x offset because the positioner already holds the
+               panel's start edge at its final place; a context menu's positioner holds that
+               edge there too, because it was placed against the point rather than against an
+               element. So the seed begins where the panel is and grows outward — no travel,
+               and direction-blind for free, for the same reason. A flipped `data-align="end"`
+               needs no arm here either: the panel's own origin table answers which corner it
+               grows from (surfaces.css).
+
+               THE BLOCK AXIS IS NOT THE SAME SENTENCE, and it shipped as one (audit
+               2026-09-02). "The corner is on the point" is true of an UNSHIFTED panel: a
+               context menu's positioner runs `shift({ crossAxis })` with `flip.mainAxis`
+               disabled, so a panel that would overflow the bottom slides UP the block axis
+               while `data-side` stays `bottom` and nothing in the placement attributes says
+               it moved. Measured in the builder at a click 408px down a 800px window: the
+               panel lands at top 301 — 107px above the pointer — and the seed was painted at
+               its corner, so the panel grew out of a point a third of its own height above
+               the cursor, at full opacity.
+
+               Base UI publishes the correction we need: its `transformOrigin` middleware
+               already detects this state (`|shift.y| > sideOffset`) and writes the anchor
+               point's own y, in the positioner's coordinates, into `--transform-origin`. We
+               READ that rather than re-deriving it — the alternative is tracking the cursor,
+               which is the spelling "no JS at interaction time" refused when this component
+               was built. The unshifted case publishes `0px -0px` and resolves to the same
+               zero it always did; anything that is not a plain px pair (a `calc(100% + …)`
+               form, which the side placements use) falls back to zero, which is the value
+               this line held before and is never worse than it. */
+            const summonedHere = seedSize?.() ?? null;
             const beside = BESIDE.test(positioner.getAttribute("data-side") ?? "");
             popup.style.setProperty(
               "--kui-from-x",
-              beside ? "0px" : `${triggerBox.left - (positionerBox.left + insetLeft)}px`,
+              summonedHere || beside
+                ? "0px"
+                : `${triggerBox.left - (positionerBox.left + insetLeft)}px`,
             );
-            popup.style.setProperty("--kui-from-y", `${triggerBox.top - (positionerBox.top + insetTop)}px`);
+            popup.style.setProperty(
+              "--kui-from-y",
+              summonedHere
+                ? `${summonedOriginY(positioner) - insetTop}px`
+                : `${triggerBox.top - (positionerBox.top + insetTop)}px`,
+            );
             if (beside) popup.style.removeProperty("--kui-seed-w");
             // The visibility gate: a silhouette painted before this write sits wherever the
             // last layout left it — measured, one frame at x=2275 — so the pose stays
@@ -1557,7 +1653,28 @@ function useFlight(plan: FlightPlan) {
             record.oldValue === null &&
             popup.hasAttribute("data-open"),
         );
-        if (opened && !popup.hasAttribute("data-ending-style")) begin();
+        /**
+         * EXCEPT WHEN THE ANCHOR MOVED (audit 2026-09-02). Every member the catch was written
+         * against reopens on the same anchor — a menu's trigger, a select's field, a popover's
+         * button — so "already placed" is true and continuing from where it is is right. A
+         * SUMMONED panel is the family's first member whose second gesture carries a NEW place:
+         * right-click here, right-click there, and Base UI closes and reopens the same mounted
+         * popup at the far point. The catch then produced the exact thing the 2026-08-20
+         * reversal was made to stop — measured with a real right-click, the same popup element
+         * moved 289px inline and 155px block between two frames, at full opacity, with no seed
+         * and no unfurl. So the rule is stated as what it always meant: a taken-back gesture
+         * continues from where it is; a gesture aimed somewhere else is a new arrival.
+         *
+         * A summoned panel has no taken-back gesture to protect. The only way to reopen one is
+         * to summon it AGAIN — the panel covers its own region and Base UI's backdrop covers
+         * the rest, so the second press is always a fresh right-click, and a fresh right-click
+         * is an arrival wherever it lands. That is why this asks whether the panel is summoned
+         * rather than comparing two placements: the placement at the instant this observer runs
+         * is the OLD one (floating-ui has not re-measured yet), so a comparison here would read
+         * the box the panel is leaving and answer "unmoved" for every reopen.
+         */
+        const summoned = seedSize?.() != null;
+        if (opened && (summoned || !popup.hasAttribute("data-ending-style"))) begin();
         /**
          * The catch keeps the BOX's flight, not the list's browsing (2026-08-25, Kushagra:
          * a constrained menu reopened "scrolled" — the top rows clipped above the panel's
@@ -1607,7 +1724,7 @@ function useFlight(plan: FlightPlan) {
         flights.get(popup)?.();
       };
     },
-    [anchor, plan],
+    [anchor, seedSize, plan],
   );
 }
 
