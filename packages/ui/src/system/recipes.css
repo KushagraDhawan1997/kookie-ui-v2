@@ -1226,15 +1226,33 @@
    third (Kushagra: *"dropdown menus trigger also should remain in state where it activated"*).
    One lit-while-in-use vocabulary across the floating family, stated once. Rows are named out:
    theirs does more (the solid conformance variant under contrast="high") and stays their own.
-   BEFORE the press rule on purpose — both are (0,2,0), so a trigger actively held shows the
-   press fill over the open one on source order. Unguarded like the row's: being in use is not
+   BEFORE the press rule on purpose, and since 2026-09-01 under it by RANK as well (the press
+   is (0,4,0)), so a trigger actively held shows the press fill over the open one. Unguarded like the row's: being in use is not
    a pointer fact, and a touch-opened menu must light its trigger too. */
 .kui-control[data-popup-open]:where(:not([data-disabled], .kui-row)) {
   background-color: var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover));
 }
 
 /* Press is deliberately NOT guarded: it fires on every input, and on touch it is the only
-   feedback there is — it is what "quiet fills on touch" (§9) literally means. */
+   feedback there is — it is what "quiet fills on touch" (§9) literally means.
+
+   AND IT OUTRANKS EVERY LIT RULE BY CONSTRUCTION (2026-09-01, ultracode audit). It was
+   (0,3,0) — `:not()` takes the specificity of its most specific ARGUMENT rather than summing
+   its list — and three lit rules written to beat the shared hover at (0,3,0) landed at (0,4,0)
+   and beat this as well: a quiet highlighted row (every menu item, on touch too), a
+   `data-hover-lit` row of either rung, and the Toggle's own half-step. Measured: a plain
+   `<Row>` went rest -> hover -> press all `oklab(0 0 0 / 0.03575)` with `:active` true, and an
+   unpressed Toggle held under the pointer painted its hover fill while the quiet Button beside
+   it moved `0.055` -> `0.078`. Nobody who wrote those guards was reasoning about the press.
+
+   The repair is here rather than in the three: a press is the last word on a control's fill,
+   so the rule that says so must be the strongest, not the strongest-so-far. Splitting the one
+   `:not()` into two raises this to (0,4,0) — the same trick the guards took by accident, spent
+   deliberately. Every lit rule in the package is at most (0,4,0) and every one of them is
+   EARLIER in the cascade — except a component sheet's, which imports after this file, so a
+   component's own lit rule must state (0,3,0) or lower and win its fight by order (toggle.css
+   does). The guarantee is read as a MEASUREMENT rather than as arithmetic: a mounted law holds
+   a real press on a Toggle and a Row and asserts the fill moves off the lit value. */
 /* A press travels toward the page, so the blast tightens with the travel (the lab's
    .l2-lit:active, ported 2026-08-17). Keyed to LOUD since elevation went selective
    (2026-08-17): the tighten is what a CAST does under travel, so it can only belong to the
@@ -1251,7 +1269,7 @@
   --kui-ct-cast: var(--kui-ct-cast-glass-active, var(--kui-ct-cast-glass, var(--kui-control-chrome-active, none)));
 }
 
-.kui-control:active:not([data-disabled], [data-loading]) {
+.kui-control:active:not([data-disabled]):not([data-loading]) {
   background-color: var(--kui-ct-fill-active, var(--kui-ct-fill-src-active));
   /* Instant, and this is the 2026-08-03 finding rather than a preference: a tap lasts about
      60ms, so an eased press never arrives and the control reads dead. Only the paint is

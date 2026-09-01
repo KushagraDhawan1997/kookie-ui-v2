@@ -14,10 +14,16 @@
  * UNPRESSED state, not on the quiet rung, because the rung IS the state here and the selector
  * should say what it means.
  *
- * (0,4,0) against the shared hover's (0,3,0): `:not()` takes its most specific argument, so
- * this outranks `.kui-control:hover:not(...)` by rank rather than by file order. */
+ * (0,3,0), AND THE GUARD IS INSIDE `:where()` ON PURPOSE (2026-09-01, ultracode audit). The
+ * first spelling wrote the guard bare, and `:not()` takes the specificity of its most specific
+ * argument, so it landed at (0,4,0) and outranked the shared PRESS at (0,3,0) as well as the
+ * shared hover — measured, an unpressed toggle held under a real pointer painted its hover fill
+ * while the quiet Button beside it moved `0.055` -> `0.078`, so the one press a toggle exists
+ * for was the only press in the control family with no colour. The press is (0,4,0) now and is
+ * the last word on a fill (recipes.css); this rule beats the shared hover by FILE ORDER, which
+ * is all a component sheet needs, and loses to the press by rank, which is what it owes. */
 @media (hover: hover) {
-  .kui-toggle:not([data-pressed]):hover:not([data-disabled], [data-loading], :disabled) {
+  .kui-toggle:not([data-pressed]):hover:where(:not([data-disabled], [data-loading], :disabled)) {
     background-color: color-mix(
       in oklab,
       var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover)) var(--kui-ct-lit-mix),

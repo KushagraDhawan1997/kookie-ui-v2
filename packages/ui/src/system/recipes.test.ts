@@ -1184,7 +1184,11 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     // not overturn it, it separated it — the paint clock is one variable, and press sets it to
     // zero while the geometry keeps its spring. If that variable ever stops being zeroed here,
     // every control in the library goes soft under the thumb.
-    const press = block(sheet("system/recipes.css"), ".kui-control:active:not([data-disabled], [data-loading])");
+    // The selector is SPLIT into two `:not()`s on purpose (2026-09-01): `:not()` takes the
+    // specificity of its most specific argument rather than summing its list, so the one-list
+    // spelling sat at (0,3,0) and lost to three lit rules that had reached (0,4,0) by the same
+    // accident. Pinning the spelling here is what makes that deliberate rather than a typo.
+    const press = block(sheet("system/recipes.css"), ".kui-control:active:not([data-disabled]):not([data-loading])");
     expect(press).toMatch(/--kui-ct-paint:\s*0s/);
     const hover = block(sheet("system/recipes.css"), ".kui-control:hover:not([data-disabled], [data-loading], :disabled)");
     expect(hover).toContain("var(--motion-hover-in)");
