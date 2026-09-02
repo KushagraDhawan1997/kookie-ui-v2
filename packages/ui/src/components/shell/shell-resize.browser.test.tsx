@@ -124,6 +124,21 @@ describe("the drag writes the pane's own width and nothing else (§27)", () => {
 });
 
 describe("the keyboard reaches the same boundary (§27, WAI-ARIA window splitter)", () => {
+  it("the keyboard moves the pane with NO onResize — the callback is a report, not the mechanism", async () => {
+    /* THE DEGENERATE FIXTURE THIS FILE SHIPPED WITH (audit 2026-09-02). Every keyboard law
+       below passes `onResize`, and the bug was `onResize?.(write(...))` — an optional CALL
+       short-circuits its whole expression, so `write()` never ran without a callback and the
+       pane did not move at all on the default path. The one input where the defect is
+       invisible is the one input the law used. Falsified by restoring the short-circuit. */
+    const root = frame();
+    const pane = paneOf(root);
+    const handle = handleOf(root);
+    const before = pane.getBoundingClientRect().width;
+    handle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    await until(() => pane.getBoundingClientRect().width > before);
+    expect(pane.getBoundingClientRect().width).toBeCloseTo(before + shellResize.step, 0);
+  });
+
   it("an arrow steps it, and Home takes it to the floor", async () => {
     const onResize = vi.fn();
     const root = frame({ minWidth: 200, onResize });

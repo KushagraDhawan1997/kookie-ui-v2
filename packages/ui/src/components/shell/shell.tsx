@@ -999,7 +999,11 @@ function useResizeHandle(opts: {
     else if (event.key === "End" && max !== undefined) next = max;
     if (next === undefined) return;
     event.preventDefault();
-    onResize?.(write(pane, next));
+    // The write happens FIRST and unconditionally. `onResize?.(write(...))` short-circuits the
+    // WHOLE expression when there is no callback, so the pane never moved unless the app
+    // happened to pass one — keyboard resize was dead on the default path (audit 2026-09-02).
+    const applied = write(pane, next);
+    onResize?.(applied);
   };
 
   return { dragging, onPointerDown, onKeyDown, extentOf };
