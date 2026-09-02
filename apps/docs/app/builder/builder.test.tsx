@@ -955,7 +955,7 @@ describe("a pane's chrome is a pane part", () => {
       string passes whatever the code does. Caught by its own sabotage pass — floating the
       jump bar changed nothing the law could see. */
   const headerTag = (region: string): string | null =>
-    pane(region).match(/<div class="[^"]*kui-pane-header[^"]*"[^>]*>/)?.[0] ?? null;
+    pane(region).match(/<div [^>]*class="[^"]*kui-pane-header[^"]*"[^>]*>/)?.[0] ?? null;
 
   it("both panes drew a header at all — a null audits nothing", () => {
     expect(headerTag("sidebar")).not.toBeNull();
@@ -998,6 +998,32 @@ describe("a pane's chrome is a pane part", () => {
     expect(scroll, "the scroller rendered at all").toBeGreaterThan(-1);
     expect(list, "the bar is pinned above the scroller, not inside it").toBeLessThan(scroll);
     expect(inspector.indexOf("kui-pane-header")).toBeLessThan(list);
+  });
+
+  /* AND THE SEAM IS FLUSH (2026-09-02, Kushagra: "inset tabs arent flush still"). The bar's
+     hairline is the boundary between the pane's chrome and its body, so a line stopping short
+     of the walls reads as drawn inside the pane rather than as the pane's own seam.
+
+     A SPELLING LAW, and it is worth saying why rather than pretending otherwise: what is true
+     here is a measurement (the rule spans 977→1280 against a pane of 976→1280) and this suite
+     renders to a string — the docs app has no browser project. What it CAN hold is the half
+     that is a decision rather than a distance: the row spends the pane's own padding back
+     through `--kui-sf-p`, never a stated length, so a hardcoded `-16px` fails it just as
+     loudly as a deleted margin. Falsified in both directions. */
+  it("the inspector's chrome row spends the pane's own padding back, not a number", () => {
+    const header = headerTag("inspector")!;
+    expect(header).toMatch(/margin-inline:\s*calc\(-1\s*\*\s*var\(--kui-sf-p\)\)/);
+  });
+
+  /* AND THE PADDING IS NEVER PUT BACK ON THE LIST. tabs.css states the constraint outright:
+     `--active-tab-left` is measured from the list's BORDER box while the travelling rule
+     resolves its insets against the PADDING box, so inline padding on the list shifts every
+     rule by its own width. It is exactly the repair a later reader reaches for when the labels
+     look two pixels off, so the source says no. */
+  it("nothing puts inline padding on the tab list", () => {
+    const source = readFileSync(new URL("./builder-app.tsx", import.meta.url), "utf8");
+    const list = source.slice(source.indexOf("<TabsList"), source.indexOf("</TabsList>"));
+    expect(list).not.toMatch(/padding(Inline|Left|Right)?\s*:/);
   });
 });
 

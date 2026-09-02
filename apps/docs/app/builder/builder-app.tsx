@@ -2127,7 +2127,23 @@ export function BuilderApp() {
             />
           }
         >
-          <ShellPaneHeader>
+          {/* THE SEAM IS FLUSH (2026-09-02, Kushagra: "inset tabs arent flush still"). The
+              bar's hairline is the boundary between the pane's chrome and its body, and a
+              boundary that stops short of the walls reads as a line drawn inside the pane
+              rather than as the pane's own seam — which is the fault the double inset only
+              halved. The row spends the pane's padding back (`--kui-sf-p`, the bleed
+              mechanism's own hook, §3), so the rule runs wall to wall.
+
+              THE PADDING GOES ON THE ROW, NEVER ON THE LIST, and that is not a preference:
+              tabs.css states it outright — `--active-tab-left` is measured from the list's
+              BORDER box while the travelling rule resolves its insets against the PADDING
+              box, so inline padding on the list would silently shift every rule by its own
+              width. Nothing is put back at all: a tab's own control padding is 14px against
+              the pane's 16, so the labels land within two pixels of the body's column with
+              no number stated here — measured, not assumed. */}
+          <ShellPaneHeader
+            style={{ marginInline: "calc(-1 * var(--kui-sf-p))" }}
+          >
             <TabsList style={{ flex: 1 }}>
               <TabsTab value="inspect">Selected</TabsTab>
               <TabsTab value="theme">Theme</TabsTab>
