@@ -26,6 +26,10 @@ export type CommandProps = {
    * renders only what survives, which is why `CommandList` takes a function rather than
    * children: the list you write is the list of ALL commands, and the panel decides which of
    * them exist right now.
+   *
+   * **Hold this array stable.** It crosses to the matcher by identity, so an inline literal —
+   * the shape every call site reaches for first — re-runs the whole filter pass on every
+   * unrelated render of whatever holds the palette. Module scope, or a `useMemo`.
    */
   items: readonly unknown[];
   /** Open state. A palette is almost always controlled, because the chord that opens it lives
@@ -63,9 +67,13 @@ export type CommandProps = {
  * `filter` through; an app that wants none passes its own already-narrowed array and the
  * matcher finds everything.
  *
- * **`autoHighlight="always"` and `keepHighlight`, because a palette is answered by Enter.**
- * A row is highlighted from the first frame, so the most common gesture — type three letters,
- * press Enter — never needs an arrow key first. Refused: opening with a row already RUN, and
+ * **`autoHighlight="always"`, because a palette is answered by Enter.** A row is highlighted
+ * from the first frame and re-established after every keystroke, so the most common gesture —
+ * type three letters, press Enter — never needs an arrow key first. `keepHighlight` rides with
+ * it and is deliberately not credited for that: measured, it is a no-op for the typing gesture,
+ * because `autoHighlight` has already re-established the highlight (audit 2026-09-02, where
+ * this paragraph credited it and no law read it). What it holds is the highlight across a
+ * pointer leaving the list. Refused: opening with a row already RUN, and
  * fuzzy reordering as you type, which is the thing that makes a palette impossible to build
  * muscle memory for.
  */
@@ -135,8 +143,15 @@ export function CommandContent({ "aria-label": label, filter, children, classNam
 
 export type CommandInputProps = Omit<
   React.ComponentPropsWithoutRef<typeof Autocomplete.Input>,
-  "className" | "render"
+  "className" | "render" | "aria-label"
 > & {
+  /**
+   * The field's accessible name, required by the type. It is the palette's one interactive
+   * control — a `role="combobox"` — and it shipped nameless whenever the placeholder was
+   * omitted, while the panel nobody focuses required a name two exports above. A placeholder
+   * is not a name: it disappears the moment anyone types.
+   */
+  "aria-label": string;
   /** Before the field: a magnifier, if your app draws one. Empty-safe — the package ships no
       icon set. */
   leading?: React.ReactNode;

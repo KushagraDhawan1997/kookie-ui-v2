@@ -2663,7 +2663,19 @@ promotion proving it changed nothing.
 a focus ring, and drawing one at the top of a panel that is already the only focused thing puts
 a box inside a box — Composer's reasoning for a bare `<textarea>`, reaching the same conclusion.
 The line states the platform facts a field would have stated for it and stands at the control
-ladder's height for its index.
+ladder's height for its index — **which it did not do for a day (audit 2026-09-02)**: its height,
+its font and the captions' inset were pinned at index 2, so three of the four sizes moved the
+panel and left its contents where they were, and every size-bearing law ran at the one index
+where the pin is invisible. A command size join in the shared layer publishes the cells now
+(`--kui-cmd-h/-font/-px`), because a component sheet may not name `data-size`. The captions were
+wrong twice over: the expression also ADDED `--kui-sf-p` to the row's inset, and the palette's
+pane pads nothing, so every caption sat a full surface inset right of the rows it named while
+the comment above it claimed they lined up.
+
+**And the field is NAMED.** `aria-label` is required on `CommandInput` by the type, exactly as
+it is on `CommandContent`: the palette's one interactive control is a `role="combobox"`, and it
+shipped nameless whenever the placeholder was omitted, while the panel nobody focuses required a
+name. A placeholder is not a name — it leaves the moment anyone types.
 
 **The pane's padding goes and the token stays**, and the ranks are why that is safe rather than
 lucky. `padding` is declared at (0,1,0) on `.kui-surface`, so `.kui-surface.kui-command` beats it

@@ -1005,6 +1005,12 @@ export const API: Record<string, ApiEntry> = {
     "element": null,
     "props": [
       {
+        "name": "aria-label",
+        "type": "string",
+        "optional": false,
+        "doc": "The field's accessible name, required by the type. It is the palette's one interactive control — a `role=\"combobox\"` — and it shipped nameless whenever the placeholder was omitted, while the panel nobody focuses required a name two exports above. A placeholder is not a name: it disappears the moment anyone types."
+      },
+      {
         "name": "className",
         "type": "string",
         "optional": true,
@@ -1083,7 +1089,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "items",
         "type": "readonly unknown[]",
         "optional": false,
-        "doc": "Everything the palette can offer, before filtering. Base UI matches against these and renders only what survives, which is why `CommandList` takes a function rather than children: the list you write is the list of ALL commands, and the panel decides which of them exist right now."
+        "doc": "Everything the palette can offer, before filtering. Base UI matches against these and renders only what survives, which is why `CommandList` takes a function rather than children: the list you write is the list of ALL commands, and the panel decides which of them exist right now. **Hold this array stable.** It crosses to the matcher by identity, so an inline literal — the shape every call site reaches for first — re-runs the whole filter pass on every unrelated render of whatever holds the palette. Module scope, or a `useMemo`."
       },
       {
         "name": "onOpenChange",

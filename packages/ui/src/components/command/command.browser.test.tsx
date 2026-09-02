@@ -49,7 +49,7 @@ function open(opts: { theme?: Record<string, unknown>; size?: "1" | "2" | "3" | 
     <Theme {...(opts.theme ?? {})}>
       <Command items={FLAT} defaultOpen {...(opts.size ? { size: opts.size } : {})}>
         <CommandContent aria-label="Command palette">
-          <CommandInput placeholder="Search commands…" />
+          <CommandInput aria-label="Search commands" placeholder="Search commands…" />
           <CommandList>
             {(item: Cmd) => <CommandItem key={item.value} value={item}>{item.label}</CommandItem>}
           </CommandList>
@@ -155,7 +155,7 @@ describe("the machine is the package's, the list is the app's (§44, §33)", () 
       <Theme>
         <Command items={GROUPS} defaultOpen>
           <CommandContent aria-label="Command palette">
-            <CommandInput placeholder="Search…" />
+            <CommandInput aria-label="Search commands" placeholder="Search…" />
             <CommandList>
               {(group: { value: string; items: Cmd[] }) => (
                 <CommandGroup key={group.value} items={group.items}>
@@ -212,7 +212,159 @@ describe("a command is a row, and the field is not a field (§21, §44)", () => 
     const { input } = open();
     expect(computed(input, "border-top-width")).toBe("0px");
     expect(computed(input, "background-color")).toBe("rgba(0, 0, 0, 0)");
-    expect(computed(input, "outline-style")).toBe("none");
+    // FOCUSED FIRST. `outline-style` is `none` by initial value on an unfocused element, so
+    // the clause could not fail where it stood — this repo's own 2026-08-17 lesson about a
+    // programmatic open not making anything `:focus-visible`, reproduced in a new law.
+    input.focus();
+    expect(computed(input, "outline-style"), "a field inside the panel draws no ring of its own").toBe("none");
   });
 
+});
+
+describe("size prices what four documents say it prices (audit 2026-09-02)", () => {
+  /* The field's height and font and the captions' inset were pinned at index 2, and every
+     size-bearing law ran at index 2 — the one index where the pin is invisible. */
+  for (const size of ["1", "3", "4"] as const) {
+    it(`${size}: the field stands level with a control at the same index`, () => {
+      const { input } = open({ size });
+      const bar = render(
+        <Theme>
+          <Button size={size}>Level</Button>
+        </Theme>,
+      );
+      settleAll();
+      expect(computed(input, "block-size")).toBe(computed(within(bar, ".kui-button"), "block-size"));
+    });
+  }
+
+  it("a section's caption sits on the vertical its rows' text sits on", () => {
+    /* The stylesheet's comment claimed this and nothing measured it; the caption hung 13-24px
+       to the right of the rows at every index but 2. Read as the two painted verticals. */
+    for (const size of ["1", "2", "3", "4"] as const) {
+      render(
+        <Theme>
+          <Command items={GROUPS} defaultOpen size={size}>
+            <CommandContent aria-label="Command palette">
+              <CommandInput aria-label="Search commands" placeholder="Search…" />
+              <CommandList>
+                {(group: { value: string; items: Cmd[] }) => (
+                  <CommandGroup key={group.value} items={group.items}>
+                    <CommandGroupLabel>{group.value}</CommandGroupLabel>
+                    <CommandCollection>
+                      {(item: Cmd) => <CommandItem key={item.value} value={item}>{item.label}</CommandItem>}
+                    </CommandCollection>
+                  </CommandGroup>
+                )}
+              </CommandList>
+            </CommandContent>
+          </Command>
+        </Theme>,
+      );
+      settleAll();
+      const popup = [...document.querySelectorAll<HTMLElement>(".kui-command")].pop()!;
+      const caption = popup.querySelector<HTMLElement>(".kui-command-group-label .kui-type")!;
+      const row = popup.querySelector<HTMLElement>(".kui-command-item")!;
+      // The row pads itself, so the row's TEXT starts one row-inset inside its own box.
+      const rowText = row.getBoundingClientRect().left + parseFloat(computed(row, "padding-left"));
+      expect(
+        caption.getBoundingClientRect().left,
+        `size ${size}: the caption must line up with the rows it names`,
+      ).toBeCloseTo(rowText, 0);
+    }
+  });
+});
+
+describe("the escapes and the dismissal are real (audit 2026-09-02)", () => {
+  it("a stated `filter` is what decides which rows exist", async () => {
+    render(
+      <Theme>
+        <Command items={FLAT} defaultOpen>
+          <CommandContent aria-label="Command palette" filter={() => false}>
+            <CommandInput aria-label="Search commands" placeholder="Search…" />
+            <CommandList>
+              {(item: Cmd) => <CommandItem key={item.value} value={item}>{item.label}</CommandItem>}
+            </CommandList>
+          </CommandContent>
+        </Command>
+      </Theme>,
+    );
+    settleAll();
+    const popup = [...document.querySelectorAll<HTMLElement>(".kui-command")].pop()!;
+    // A QUERY FIRST. With an empty field there is nothing to match against, so every row shows
+    // whatever the matcher says — which is correct, and which made the first spelling of this
+    // law read a list the `filter` prop had never been consulted about.
+    expect(popup.querySelectorAll(".kui-command-item").length).toBe(FLAT.length);
+    const input = popup.querySelector<HTMLInputElement>(".kui-command-input")!;
+    await userEvent.fill(input, "new");
+    await until(() => popup.querySelectorAll(".kui-command-item").length === 0);
+    expect(
+      popup.querySelectorAll(".kui-command-item").length,
+      "a matcher refusing everything must empty the list",
+    ).toBe(0);
+  });
+});
+
+describe("the agreement law: portalled ≡ in-flow (§20, §44)", () => {
+  /* EVERY portalling component in this package owes one, and this one shipped without it —
+     the same omission the 2026-08-29 audit caught in Tooltip. A palette portals through
+     DialogContent, so context crosses and attributes do not: the wrapper has to re-stamp every
+     axis, and a law has to read them through a real mount rather than trust that it does. */
+  const HOSTILE = {
+    appearance: "dark",
+    density: "compact",
+    radius: "large",
+    pointer: "coarse",
+    depth: "elevated",
+    contrast: "high",
+  } as const;
+
+  function facts(el: HTMLElement) {
+    const cs = getComputedStyle(el);
+    return {
+      bg: cs.backgroundColor,
+      border: cs.borderTopColor,
+      radius: cs.borderTopLeftRadius,
+      shadow: cs.boxShadow,
+      direction: cs.direction,
+    };
+  }
+
+  it("a palette's panel carries every axis across the portal", () => {
+    const root = render(
+      <Theme {...HOSTILE}>
+        <Command items={FLAT} defaultOpen>
+          <CommandContent aria-label="Command palette">
+            <CommandInput aria-label="Search commands" placeholder="Search…" />
+            <CommandList>
+              {(item: Cmd) => <CommandItem key={item.value} value={item}>{item.label}</CommandItem>}
+            </CommandList>
+          </CommandContent>
+        </Command>
+      </Theme>,
+    );
+    settleAll();
+    const popup = [...document.querySelectorAll<HTMLElement>(".kui-command")].pop()!;
+
+    /* THE TWIN TAKES ITS IDENTITY FROM THE PANEL IT COMPARES AGAINST — Menu's and Select's own
+       repair (2026-08-23), after hand-copied class lists drifted from the components they
+       claimed to mirror. Copying the popup's own marks and placing the copy IN FLOW is exactly
+       the §20 question: does the portal resolve what the tree resolves? */
+    const twin = document.createElement("div");
+    twin.className = popup.className;
+    for (const attr of popup.getAttributeNames()) {
+      if (attr.startsWith("data-")) twin.setAttribute(attr, popup.getAttribute(attr)!);
+    }
+    root.appendChild(twin);
+
+    expect(facts(popup)).toEqual(facts(twin));
+    twin.remove();
+  });
+
+  it("the ROWS carry the pointer axis too, which a box-only facts list would miss", () => {
+    /* Tooltip's own lesson: a facts list of box values alone can carry five axes of six and go
+       green on a portal that dropped the sixth. What coarse moves here is the row's height. */
+    const fine = open({ theme: { pointer: "fine" } });
+    const coarse = open({ theme: { pointer: "coarse" } });
+    expect(computed(coarse.rows()[0]!, "block-size")).not.toBe(computed(fine.rows()[0]!, "block-size"));
+  });
 });

@@ -86,3 +86,19 @@ describe("the browser harness installs the shipped cascade, in the shipped order
     ).toEqual([]);
   });
 });
+
+describe("a component that specialises another loads after it (audit 2026-09-02)", () => {
+  /* `command.css` overrides the overlay size join that `dialog.css` participates in, and its
+     comment credited `cascade.test.ts` with guaranteeing the order. This file compared the two
+     import LISTS against each other and asserted nothing about which of those two came first,
+     so the guarantee was cited and not held. Falsified by swapping the two imports. */
+  it("command.css is imported after dialog.css, in both homes", () => {
+    for (const list of [entryOrder(), harnessOrder()]) {
+      const dialog = list.findIndex((name) => name.includes("dialog") && !name.includes("alert"));
+      const command = list.findIndex((name) => name.includes("command"));
+      expect(dialog, "dialog.css is not in this list").toBeGreaterThanOrEqual(0);
+      expect(command, "command.css is not in this list").toBeGreaterThanOrEqual(0);
+      expect(command, "a palette specialises a dialog, so it must load after one").toBeGreaterThan(dialog);
+    }
+  });
+});

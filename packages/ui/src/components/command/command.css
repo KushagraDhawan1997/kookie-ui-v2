@@ -65,7 +65,7 @@
 .kui-command-input {
   flex: 1;
   min-inline-size: 0;
-  block-size: var(--control-height-2);
+  block-size: var(--kui-cmd-h);
   border: 0;
   background: none;
   outline: none;
@@ -78,7 +78,7 @@
      becomes load-bearing the moment the field's step drops. The law that would have guarded it
      was deleted rather than kept green: it could only read the cell where the floor is a no-op,
      which is a law about the special case wearing the general one's name. */
-  font-size: max(var(--font-size-3), var(--input-font-floor));
+  font-size: max(var(--kui-cmd-font), var(--input-font-floor));
 }
 
 .kui-command-input::placeholder {
@@ -97,11 +97,15 @@
 
 /* Group labels and the empty line sit on the vertical the rows' text sits on, so the caption
    above a section lines up with the section. `--kui-sf-p` is the pane's own inset, plus the
-   row's — the row family pads itself, and a label is not a row. */
+   ROW's inline padding at the palette's index. The original expression added `--kui-sf-p` to
+   it, and that was the larger half of the error: the pane's padding is ZERO here, so adding
+   the pane's designed inset put every caption a full surface inset right of the rows it names
+   — 13 to 24px, under a comment claiming they lined up. The index was pinned at 2 on top of
+   that. A law compares the two painted verticals at all four sizes now. */
 .kui-command-group-label,
 .kui-command-empty {
   display: block;
-  padding-inline: calc(var(--kui-sf-p) + var(--control-px-2));
+  padding-inline: var(--kui-cmd-px);
   padding-block: var(--layout-space-2);
 }
 

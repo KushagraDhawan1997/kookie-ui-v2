@@ -502,6 +502,39 @@
    a `[data-slot="trailing"]`, which every accordion heading does, so the label's divider ends
    where the chevron's side actually starts rather than where the pill correction would put it
    (2026-09-01, ultracode audit — the line stopped 3px inside the glyph). */
+/* ── The command palette's size join (§44, audit 2026-09-02) ────────────────────────────────
+   A palette's `size` is documented in four places as pricing "the box, the filter field, the
+   rows and the group labels", and for a day it priced the box and the rows and nothing else:
+   `command.css` pinned the field's height and font and the captions' inset at index 2, so
+   three of the four sizes moved the panel and left its contents where they were. Every
+   size-bearing law ran at index 2, the one index where the pin is invisible.
+
+   It lives here rather than in `command.css` for the reason the accordion's does: a component
+   sheet may not name `data-size` (the no-axis walk), so the shared layer publishes the cells
+   and the component reads one hook. `--kui-cmd-px` is the ROW's own inline padding at the same
+   index, which is what makes a caption line up with the rows under it — the thing the
+   stylesheet's comment claimed and no law measured. */
+.kui-command[data-size="1"] {
+  --kui-cmd-h: var(--control-height-1);
+  --kui-cmd-font: var(--font-size-1);
+  --kui-cmd-px: var(--control-px-pill-1);
+}
+.kui-command[data-size="2"] {
+  --kui-cmd-h: var(--control-height-2);
+  --kui-cmd-font: var(--font-size-2);
+  --kui-cmd-px: var(--control-px-pill-2);
+}
+.kui-command[data-size="3"] {
+  --kui-cmd-h: var(--control-height-3);
+  --kui-cmd-font: var(--font-size-3);
+  --kui-cmd-px: var(--control-px-pill-3);
+}
+.kui-command[data-size="4"] {
+  --kui-cmd-h: var(--control-height-4);
+  --kui-cmd-font: var(--font-size-4);
+  --kui-cmd-px: var(--control-px-pill-4);
+}
+
 .kui-accordion[data-size="1"] {
   --kui-ac-px: var(--control-px-pill-1);
   --kui-ac-px-end: var(--control-px-1);

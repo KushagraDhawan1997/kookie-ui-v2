@@ -1174,7 +1174,7 @@ function CommandSection() {
       <Command items={PALETTE}>
         <CommandTrigger render={<Button emphasis="medium">Open command palette</Button>} />
         <CommandContent aria-label="Command palette">
-          <CommandInput placeholder="Search for commands…" />
+          <CommandInput aria-label="Search commands" placeholder="Search for commands…" />
           <CommandList>
             {(section: PaletteSection) => (
               <CommandGroup key={section.value} items={section.items}>

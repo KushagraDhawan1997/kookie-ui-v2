@@ -46,7 +46,7 @@ export default function Example({ size = "3" }: { size?: TypeSize }) {
     <Command items={SECTIONS} open={open} onOpenChange={setOpen}>
       <CommandTrigger render={<Button emphasis="medium">Open command palette</Button>} />
       <CommandContent aria-label="Command palette">
-        <CommandInput placeholder="Search for commands…" />
+        <CommandInput aria-label="Search commands" placeholder="Search for commands…" />
         <CommandList>
           {(section: Section) => (
             <CommandGroup key={section.value} items={section.items}>
