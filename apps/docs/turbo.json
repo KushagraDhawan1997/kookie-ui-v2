@@ -4,7 +4,16 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**"]
+      // `.next/dev` IS EXCLUDED, and it is not hygiene (2026-09-03). Next's own recipe is
+      // `.next/**` minus `.next/cache`, which was written for the webpack layout — Turbopack
+      // puts the DEV SERVER's state in `.next/dev`, and a dev server has usually been running
+      // against the same directory when a build happens. So every `turbo run build` swept the
+      // dev cache into its own cache entry: measured, `.next/dev` was 5.4GB against 155MB of
+      // real build output, each cache entry came out at 3.4GB, and `.turbo/cache` reached
+      // **85GB** on a disk with 335MB left. Nothing here is a build artefact: it is one
+      // running process's scratch space, and restoring it on a cache hit would hand a build's
+      // leftovers to a dev server that did not make them.
+      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"]
     },
     "lint": {
       "dependsOn": ["build"]

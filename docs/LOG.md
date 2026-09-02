@@ -8,6 +8,22 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-03 Turbo was caching the dev server — 85GB of it
+
+**What.** `apps/docs/turbo.json` excludes `.next/dev` from the build task's outputs.
+
+**Why.** Kushagra, after a turbo cache write failed: *"Do I have a lot of cache? Because its taking a lot of spce I think"*. Measured: `.turbo/cache` was **85GB** on a disk with 335MB free, across 459 entries whose largest were 3.4GB each.
+
+**Next's own recipe is `.next/**` minus `.next/cache`, and it was written for the webpack layout.** Turbopack puts the DEV SERVER's state in `.next/dev` — and a dev server has usually been running against the same directory when a build happens, which in this repo it always is. So every `turbo run build` swept the dev server's scratch space into its own cache entry.
+
+The arithmetic is what settles it, since no `zstd` binary was available to list the archive: `.next` measured 6.2GB, of which `.next/dev` was 5.4GB (4.6 of that Turbopack's own cache) and `.next/cache` 603MB, already excluded. The real build output — `server`, `static`, `build` — came to **155MB**, which cannot compress *up* to a 3.4GB tarball. Only the dev directory accounts for it. After the exclusion the same build's entry is **12MB**, and a second run is `FULL TURBO`, so the cache still does its job.
+
+**It is not hygiene, and the reason is what the entry would DO on a hit.** `.next/dev` is one running process's scratch space, so restoring it would hand a build's leftovers to a dev server that did not make them — a cache entry that is wrong to write is also wrong to read back.
+
+Left alone deliberately: the live `.next/dev` itself, because the dev server is running on it and Turbopack rebuilds it either way. The pnpm store (7.3GB) and `node_modules` (727MB) are ordinary.
+
+---
+
 ## 2026-09-03 The builder writes no control the package already ships — and the top bar has three zones
 
 **What.** A scan of the builder's own source for controls written out by hand where the package ships the thing, and a restructure of the header. Nine repairs and eleven laws.
