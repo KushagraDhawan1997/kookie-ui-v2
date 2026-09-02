@@ -1248,6 +1248,15 @@
    Auto resolves here: the nav columns rest closed, and an open pane presents as an overlay.
    ONE media block so the boundary literal exists once in this file. */
 @media (max-width: 48rem) {
+  /* AND THE HANDLE GOES WITH IT (audit 2026-09-02). The stand-down further down names only the
+     literal `overlay`, but `auto` is not a third presentation — it is "let the window decide",
+     and in this band it resolves to an overlay. So an open drawer on a phone kept a focusable,
+     draggable 44px separator floating over its own scrim. Exactly the half-applied shape the
+     comment below already names. */
+  .kui-shell-pane[data-presentation="auto"] .kui-shell-resize {
+    display: none;
+  }
+
   /* `auto` overlays here, so the drawer exception applies to it too — restated for the
      resolved value, the way every overlay fact in this block is. Dropping it here is the
      shape of the 2026-08-16 half-applied width-cap repair, which reached the explicit arms
@@ -1410,19 +1419,31 @@
   inline-size: var(--touch-target-min);
 }
 
+/* IT SITS FULLY INSIDE THE PANE, and the first spelling did not (audit 2026-09-02).
+   It straddled the edge by half its width, which reads well and is false: a pane CLIPS
+   (§3, 2026-08-20), so the outward half was clipped away and the target measured 22px against
+   a rule that states 44 — half the painted line went with it. The comment claimed a reach the
+   box did not have, which is the shape this repo calls an overclaiming comment.
+
+   Fully inside is the honest version: the stated target is the real target. What it costs is
+   that the band overlaps the pane's own outermost 44px — which at every index is mostly the
+   pane's padding, so what sits under it is air rather than content. Moving the handle out of
+   the pane entirely would buy back that sliver and is the better answer the day a pane's
+   content reaches its edge; it is a grid change, not a stylesheet one, and it is recorded in
+   §27 rather than half-done here. */
 .kui-shell-resize[data-axis="inline"][data-anchor="end"] {
-  inset-inline-end: calc(var(--touch-target-min) / -2);
+  inset-inline-end: 0;
 }
 
 .kui-shell-resize[data-axis="inline"][data-anchor="start"] {
-  inset-inline-start: calc(var(--touch-target-min) / -2);
+  inset-inline-start: 0;
 }
 
 /* Horizontal: the bottom pane's top edge. */
 .kui-shell-resize[data-axis="block"] {
   inset-inline: 0;
   block-size: var(--touch-target-min);
-  inset-block-start: calc(var(--touch-target-min) / -2);
+  inset-block-start: 0;
 }
 
 /* The line, drawn inside the target. It is the one thing this element paints, and it only
@@ -1437,16 +1458,23 @@
 
 .kui-shell-resize[data-axis="inline"]::after {
   inset-block: 0;
-  inset-inline-start: 50%;
   inline-size: calc(2 * var(--border-width));
-  translate: -50% 0;
+}
+
+/* The line rides the pane's own edge, which is the boundary it represents — not the middle of
+   the target, which is 22px inside the pane and represents nothing. */
+.kui-shell-resize[data-axis="inline"][data-anchor="end"]::after {
+  inset-inline-end: 0;
+}
+
+.kui-shell-resize[data-axis="inline"][data-anchor="start"]::after {
+  inset-inline-start: 0;
 }
 
 .kui-shell-resize[data-axis="block"]::after {
   inset-inline: 0;
-  inset-block-start: 50%;
+  inset-block-start: 0;
   block-size: calc(2 * var(--border-width));
-  translate: 0 -50%;
 }
 
 .kui-shell-resize:focus-visible::after,
@@ -1476,6 +1504,7 @@
 .kui-shell-pane[data-presentation="overlay"] .kui-shell-resize {
   display: none;
 }
+
 
 /* Stillness (§8): the same selector as the arrival above, later in the file, so the stand-down
    wins by order and not by arithmetic. The boundary still appears under the pointer and under

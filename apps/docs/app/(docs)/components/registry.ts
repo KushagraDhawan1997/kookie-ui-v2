@@ -1231,7 +1231,7 @@ export const ENTRIES: Entry[] = [
       {
         name: "resizable",
         values: "boolean, per pane",
-        note: "lets a person move this pane's edge. It draws a boundary the pointer can drag and the keyboard can step — a separator carrying a live value, which is the platform's own window splitter rather than a bare div listening for a press. The rail cannot take it: a rail is as wide as its items plus their air, so there is nothing free to drag. Bound the travel with minWidth and maxWidth; a floor applies either way, because a resize with no floor is a way to wreck a layout and not be able to get back. onResize hands you the new width once, when the gesture ends — store it, or a pane you also control with width snaps back on the next render",
+        note: "lets a person move this pane's edge. It draws a boundary the pointer can drag and the keyboard can step — a separator carrying a live value, which is the platform's own window splitter rather than a bare div listening for a press. The rail cannot take it: a rail is as wide as its items plus their air, so there is nothing free to drag. Bound the travel with minWidth and maxWidth; a floor applies either way, because a resize with no floor is a way to wreck a layout and not be able to get back. onResize hands you the new width once, when the gesture ends. What a person dragged stays where they put it; store the number if you want it to survive a reload, and change width when you want to move the pane yourself",
       },
       {
         name: "flush",

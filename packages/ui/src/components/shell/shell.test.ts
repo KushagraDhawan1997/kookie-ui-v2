@@ -202,9 +202,14 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     const handleRules = css.match(/\.kui-shell-resize[^{]*\{[^}]*\}/g) ?? [];
     expect(handleRules.length, "the handle's rules vanished — this arm reads nothing").toBeGreaterThan(3);
     for (const rule of handleRules) {
-      for (const decl of rule.match(/background[^;]*/g) ?? []) {
-        expect(decl.trim(), "the handle may not paint a colour of its own").toMatch(
-          /^background:\s*(none|var\(--tone-solid\))$/,
+      // EVERY colour-bearing property, not just `background` (audit 2026-09-02). The first
+      // spelling inspected declarations whose property starts with `background`, so the stated
+      // bound — "it may name no colour" — did not bind: a `color`, a `border-color`, a `fill`
+      // or an `outline` could carry any literal past it. The handle's own focus ring is the
+      // proof the property list has to be wider than one word.
+      for (const decl of rule.match(/(?:background|border[a-z-]*color|outline[a-z-]*|[^-\w]color|fill)\s*:[^;]*/g) ?? []) {
+        expect(decl.trim().replace(/^[^a-z]/, ""), "the handle may not name a colour of its own").toMatch(
+          /^(background:\s*(none|var\(--tone-solid\))|outline(-offset)?:\s*var\(--focus-ring[a-z-]*\)(\s+solid\s+var\(--focus-ring\))?)$/,
         );
       }
       for (const decl of rule.match(/[^-\w]transition\s*:[^;]*/g) ?? []) {
@@ -221,7 +226,13 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
       .replace(standDowns[1]!, " ");
     expect(sanctioned).not.toMatch(/background/);
     expect(css).not.toMatch(/box-shadow/);
-    expect(sanctioned).not.toMatch(/[^-\w]transition\s*:/);
+    // THE TRANSITION BAN STAYS ON THE WHOLE SHEET MINUS THE HANDLE (audit 2026-09-02). Moving
+    // it to `sanctioned` — which also strips the scrim, the nav row and both flush stand-downs
+    // — widened it far past the one rule that needed the exemption, so the shell could have
+    // animated its scrim with the suite green. `sanctioned` is the right corpus for
+    // `background`, because each of those rules is a sanctioned PAINT; it is the wrong corpus
+    // for a clock, because none of them is a sanctioned clock.
+    expect(css.replace(/\.kui-shell-resize[^{]*\{[^}]*\}/g, " ")).not.toMatch(/[^-\w]transition\s*:/);
   });
 });
 

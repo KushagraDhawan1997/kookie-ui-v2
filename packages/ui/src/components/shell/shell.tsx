@@ -49,6 +49,11 @@ import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { DEV } from "../../system/dev.ts";
 import { shellResize } from "../../tokens/config.ts";
 
+/** The room the ceiling reserves so a dragged-open pane never carries its own handle off
+    the frame. Stated here rather than read off the token, because the clamp runs during a
+    gesture and `getComputedStyle` at interaction time is exactly what the doctrine bans. */
+const TOUCH_TARGET_FALLBACK = "44";
+
 /* ── The registry: the one thing that crosses the shell ─────────────────────────────────── */
 
 export type ShellPaneTarget = "rail" | "sidebar" | "inspector" | "bottom";
@@ -887,7 +892,8 @@ type SidePaneProps = Omit<React.ComponentPropsWithoutRef<"nav">, "color"> &
      *
      * **The memory is yours**, exactly as a Notice's dismissal is. During the drag the DOM
      * leads; afterwards you are told. A pane given `width` is CONTROLLED, so a render after the
-     * gesture re-asserts that prop: store what this hands you, or the pane snaps back.
+     * gesture leaves the dragged width in place. Store what this hands you if you want it to
+     * survive a reload; change `width` when you want to move the pane yourself.
      */
     onResize?: (width: number) => void;
     /** The handle's accessible name. English by default because the package ships no
@@ -910,39 +916,104 @@ type SidePaneProps = Omit<React.ComponentPropsWithoutRef<"nav">, "color"> &
  * resize is not a state: the gesture IS the value, and there is no CSS that can express "this
  * boundary is where the pointer is". Every system with resizable panes runs script here.
  *
- * So it is bounded instead, four ways. Nothing runs unless a pointer is down on the handle.
- * The move writes ONE custom property directly on the pane element — no React state, so no
- * component re-renders during the gesture and the lens never re-mints its map (2026-08-22's
- * finding, where an animating pane minted 27 filters). The listeners live on the handle via
- * pointer capture and leave with the gesture. And `onResize` fires ONCE, at the end, because
- * the app's job is to remember the number rather than to watch it move.
+ * So it is bounded instead, four ways, and the second is stated as what is MEASURED rather
+ * than as what reads well (corrected by the audit 2026-09-02). Nothing runs unless a pointer
+ * is down on the handle. The move writes ONE custom property directly on the pane element and
+ * sets no React state, so there is no re-render PER FRAME and the lens never re-mints its map
+ * (2026-08-22's finding, where an animating pane minted 27 filters) — there are exactly two
+ * re-renders per gesture, at its two ends, from the `dragging` flag the stylesheet reads; the
+ * first spelling of this paragraph said "no React state" while the hook plainly calls
+ * `useState`, which is a comment describing an intention rather than a mechanism. The
+ * listeners live on the handle via pointer capture, are pinned to the pointer that opened the
+ * gesture, and leave with it. And `onResize` fires ONCE, at the end, because the app's job is
+ * to remember the number rather than to watch it move.
  *
  * WHO OWNS THE WIDTH: the DOM leads during the drag and the app is told at the end. That is
- * `onDismiss`'s rule (§29) — the memory is the app's. A pane given a `width` prop is
- * controlled, so a render after the gesture re-asserts the prop: an app that does not store
- * what `onResize` hands it will see the pane snap back, which is correct controlled behaviour
- * and is documented on the prop rather than worked around.
+ * `onDismiss`'s rule (§29) — the memory is the app's. What a person dragged then STANDS until
+ * the app states a different `width`: an unrelated render does not discard it, and a CHANGE to
+ * the prop is what moves the pane. This paragraph claimed a snap-back for a day; it was false
+ * (React writes only the style keys whose value changed, and `setProperty` is invisible to
+ * that diff), and making it true was tried and thrown away because discarding a drag on the
+ * next unrelated render is hostile.
  */
 function useResizeHandle(opts: {
   paneRef: React.RefObject<HTMLElement | null>;
+  handleRef: React.RefObject<HTMLDivElement | null>;
   axis: "inline" | "block";
   /** Which physical edge the handle sits on in LTR. RTL flips it, read off the pane. */
   anchor: "start" | "end";
   min: number;
   max: number | undefined;
   onResize: ((extent: number) => void) | undefined;
+  /** The extent the app is controlling, if it states one. */
+  controlledExtent: number | undefined;
 }) {
-  const { paneRef, axis, anchor, min, max, onResize } = opts;
+  const { paneRef, handleRef, axis, anchor, min, max, onResize, controlledExtent } = opts;
   const [dragging, setDragging] = React.useState(false);
 
   const extentOf = (pane: HTMLElement) =>
     axis === "inline" ? pane.getBoundingClientRect().width : pane.getBoundingClientRect().height;
 
-  const write = (pane: HTMLElement, next: number) => {
-    const clamped = Math.max(min, max === undefined ? next : Math.min(max, next));
-    pane.style.setProperty("--kui-shell-w", `${Math.round(clamped)}px`);
-    return Math.round(clamped);
+  /** The ceiling when the app states none: the frame less one target, so the boundary can
+      always be grabbed back. Uncapped, a drag pushed the pane past the frame and carried the
+      handle off-screen — the 2026-08-16 uncapped-overlay finding at the other end, which is
+      the same audit `shellResize.min`'s own comment cites as the reason a floor exists. */
+  const ceiling = (pane: HTMLElement) => {
+    if (max !== undefined) return max;
+    const frame = pane.parentElement?.getBoundingClientRect();
+    const room = axis === "inline" ? frame?.width : frame?.height;
+    return room ? Math.max(min, Math.round(room) - Number.parseFloat(TOUCH_TARGET_FALLBACK)) : undefined;
   };
+
+  const write = (pane: HTMLElement, next: number) => {
+    const cap = ceiling(pane);
+    const clamped = Math.max(min, cap === undefined ? next : Math.min(cap, next));
+    const settled = Math.round(clamped);
+    // The pane names its own extent: a column reads `--kui-shell-w`, the bottom pane reads
+    // `--kui-shell-h`. Writing the inline name unconditionally is why the block arm could
+    // never have worked even once something rendered it.
+    pane.style.setProperty(axis === "inline" ? "--kui-shell-w" : "--kui-shell-h", `${settled}px`);
+    // THE ANNOUNCED VALUE IS WRITTEN HERE, not rendered (audit 2026-09-02). It was computed
+    // during render from `paneRef.current`, which is null on the first commit — so a focusable
+    // `role="separator"` shipped with a min and NO current value, and since the gesture sets no
+    // React state, nothing ever re-rendered to add one. ARIA marks `aria-valuenow` required on
+    // a focusable separator, and the keyboard is the only route this element exists for.
+    handleRef.current?.setAttribute("aria-valuenow", String(settled));
+    return settled;
+  };
+
+  // Seed the value once the pane has a box, and keep it true when the app moves the pane by
+  // prop. A layout effect, so no frame ever paints with the attribute missing.
+  // THE DRAG WINS UNTIL THE APP STATES A DIFFERENT NUMBER (audit 2026-09-02, and the prose
+  // moved rather than the code). Three homes said "a render after the gesture re-asserts the
+  // prop, so store what onResize hands you or the pane snaps back". That was false — React
+  // writes only the style keys whose VALUE changed between renders, and the drag's
+  // `setProperty` is invisible to that diff — and making it true turned out to be the wrong
+  // repair: re-asserting on EVERY render discards a person's drag the next time the app
+  // re-renders for any unrelated reason, which is hostile. So the honest contract is the one
+  // the code already had, now written down: what a person dragged stands until the app states
+  // a different `width`, and a CHANGE to that prop is what puts the pane where the app says.
+  React.useLayoutEffect(() => {
+    const pane = paneRef.current ?? (handleRef.current?.parentElement as HTMLElement | null);
+    if (!pane || controlledExtent === undefined) return;
+    pane.style.setProperty(axis === "inline" ? "--kui-shell-w" : "--kui-shell-h", `${controlledExtent}px`);
+  }, [controlledExtent, axis, paneRef]);
+
+  React.useLayoutEffect(() => {
+    const handle = handleRef.current;
+    // THE PANE IS RESOLVED FROM THE HANDLE, not from the pane's own ref. React attaches refs
+    // and runs layout effects in ONE bottom-up walk, so a child's layout effect runs before
+    // its parent's ref is attached — `paneRef.current` is still null here on the first commit,
+    // which is how the seeded value went missing again after being fixed once. The handle is a
+    // direct child of the pane, so its own parent is the pane, always, at this moment.
+    const pane = paneRef.current ?? (handle?.parentElement as HTMLElement | null);
+    if (!pane || !handle) return;
+    handle.setAttribute("aria-valuenow", String(Math.round(extentOf(pane))));
+    // The ceiling too, when the app stated none — it is the frame's, and it is only knowable
+    // once the frame has a box, which is why it is published here rather than rendered.
+    const cap = ceiling(pane);
+    if (max === undefined && cap !== undefined) handle.setAttribute("aria-valuemax", String(cap));
+  });
 
   /** +1 when moving the pointer along the axis GROWS the pane. Read off the pane's own
       resolved direction, because `dir` is a platform attribute this package never stamps and
@@ -960,21 +1031,27 @@ function useResizeHandle(opts: {
     if (!pane || event.button !== 0) return;
     event.preventDefault();
     const handle = event.currentTarget;
-    handle.setPointerCapture(event.pointerId);
+    // ONE pointer owns the gesture. Neither listener filtered on the id, so a second finger
+    // landing on the handle registered a second pair and the first lift ran both — `onResize`
+    // fired twice, which is bound (d) failing, and the second capture leaked.
+    const owner = event.pointerId;
+    handle.setPointerCapture(owner);
     const start = axis === "inline" ? event.clientX : event.clientY;
     const startExtent = extentOf(pane);
     const direction = sign(pane);
     setDragging(true);
 
     const move = (e: PointerEvent) => {
+      if (e.pointerId !== owner) return;
       const now = axis === "inline" ? e.clientX : e.clientY;
       write(pane, startExtent + (now - start) * direction);
     };
     const up = (e: PointerEvent) => {
+      if (e.pointerId !== owner) return;
       handle.removeEventListener("pointermove", move);
       handle.removeEventListener("pointerup", up);
       handle.removeEventListener("pointercancel", up);
-      if (handle.hasPointerCapture(e.pointerId)) handle.releasePointerCapture(e.pointerId);
+      if (handle.hasPointerCapture(owner)) handle.releasePointerCapture(owner);
       setDragging(false);
       onResize?.(Math.round(extentOf(pane)));
     };
@@ -996,7 +1073,7 @@ function useResizeHandle(opts: {
     if (event.key === grow) next = here + shellResize.step * sign(pane);
     else if (event.key === shrink) next = here - shellResize.step * sign(pane);
     else if (event.key === "Home") next = min;
-    else if (event.key === "End" && max !== undefined) next = max;
+    else if (event.key === "End") next = ceiling(pane) ?? here;
     if (next === undefined) return;
     event.preventDefault();
     // The write happens FIRST and unconditionally. `onResize?.(write(...))` short-circuits the
@@ -1018,21 +1095,25 @@ function ResizeHandle(props: {
   min: number;
   max: number | undefined;
   onResize: ((extent: number) => void) | undefined;
+  controlledExtent: number | undefined;
   label: string;
   controls: string;
 }) {
-  const { paneRef, axis, anchor, min, max, onResize, label, controls } = props;
-  const { dragging, onPointerDown, onKeyDown, extentOf } = useResizeHandle({
+  const { paneRef, axis, anchor, min, max, onResize, controlledExtent, label, controls } = props;
+  const handleRef = React.useRef<HTMLDivElement | null>(null);
+  const { dragging, onPointerDown, onKeyDown } = useResizeHandle({
     paneRef,
+    handleRef,
     axis,
     anchor,
     min,
     max,
     onResize,
+    controlledExtent,
   });
-  const pane = paneRef.current;
   return (
     <div
+      ref={handleRef}
       className="kui-shell-resize"
       role="separator"
       tabIndex={0}
@@ -1040,8 +1121,18 @@ function ResizeHandle(props: {
       aria-controls={controls}
       aria-orientation={axis === "inline" ? "vertical" : "horizontal"}
       aria-valuemin={min}
-      {...(max !== undefined ? { "aria-valuemax": max } : {})}
-      {...(pane ? { "aria-valuenow": Math.round(extentOf(pane)) } : {})}
+      /* THE RANGE IS ALWAYS CONSISTENT. Emitting `aria-valuemax` only when the app stated one
+         left the default path advertising a minimum of 160 against ARIA's implicit maximum of
+         100 — a range whose floor is above its ceiling. When the app states none, the frame is
+         the ceiling and it is announced as such. `aria-valuenow` is written imperatively by
+         `write()` and seeded in a layout effect; it is deliberately not rendered, because the
+         gesture sets no React state and a rendered value would freeze at the first commit. */
+      aria-valuemax={max ?? undefined}
+      /* The pane's ScrollArea bleeds to the pane's edge by being its last non-floating child
+         (surfaces.css `:nth-last-child(1 of :where(:not([data-float])))`). The handle is a real
+         last child, so without this stamp adding `resizable` silently took the scroller's
+         block-end bleed away — the recommended pane anatomy, broken by an unrelated prop. */
+      data-float=""
       data-axis={axis}
       data-anchor={anchor}
       data-tone="accent"
@@ -1136,6 +1227,7 @@ function SidePane({
           anchor={name === "inspector" ? "start" : "end"}
           min={minWidth ?? shellResize.min}
           max={maxWidth}
+          controlledExtent={width}
           onResize={onResize}
           label={resizeLabel}
           controls={pane.id}
@@ -1182,6 +1274,19 @@ export type ShellBottomProps = Omit<React.ComponentPropsWithoutRef<"aside">, "co
      */
     height?: number;
     /**
+     * Lets a person move this pane's top edge. The side panes' `resizable`, turned ninety
+     * degrees: the same separator, the same keyboard, the same floor.
+     */
+    resizable?: boolean;
+    /** The floor, in CSS pixels. Defaults to the system's. */
+    minHeight?: number;
+    /** The ceiling, in CSS pixels. Unset, the frame is the ceiling and it is announced. */
+    maxHeight?: number;
+    /** Called once when the gesture ends, with the pane's new height. The memory is yours. */
+    onResize?: (height: number) => void;
+    /** The handle's accessible name. */
+    resizeLabel?: string;
+    /**
      * The index this pane is drawn at: its padding, and anything it holds. It defaults to the app's.
      */
     size?: Size;
@@ -1197,6 +1302,11 @@ export function ShellBottom(props: ShellBottomProps) {
     onOpenChange,
     presentation,
     height,
+    resizable,
+    minHeight,
+    maxHeight,
+    onResize,
+    resizeLabel = "Resize panel",
     size: statedSize,
     flush = true,
     backdrop,
@@ -1219,7 +1329,8 @@ export function ShellBottom(props: ShellBottomProps) {
   });
   // Memoised for the reason SidePane states in full: an unmemoised merge is a new DOM ref
   // callback per render, which tears the lens down and rebuilds its map.
-  const composedRef = useMergedRefs(ref, pane.paneRef);
+  const ownRef = React.useRef<HTMLElement | null>(null);
+  const composedRef = useMergedRefs(ref, pane.paneRef, ownRef);
   const { material, stamps, ref: paneRef } = usePaneDress(flush, backdrop, composedRef);
   return (
     <aside
@@ -1241,6 +1352,20 @@ export function ShellBottom(props: ShellBottomProps) {
       <GlassScope material={material}>
         <ShellSizeContext.Provider value={size}>{children}</ShellSizeContext.Provider>
       </GlassScope>
+      {resizable ? (
+        <ResizeHandle
+          paneRef={ownRef}
+          axis="block"
+          /* The bottom pane opens upward, so its free boundary is the one at the top. */
+          anchor="start"
+          min={minHeight ?? shellResize.min}
+          max={maxHeight}
+          controlledExtent={height}
+          onResize={onResize}
+          label={resizeLabel}
+          controls={pane.id}
+        />
+      ) : null}
     </aside>
   );
 }

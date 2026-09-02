@@ -146,8 +146,9 @@ one law-asserted, and the most important is that `onResize` fires **once, at the
 table's own reason for excluding it. Refused in the type.
 
 **The builder is the first consumer**, and it stores the width, which is the contract: the DOM
-leads during the drag, the app is told at the end, and a controlled pane snaps back if you
-throw the number away.
+leads during the drag, the app is told at the end, and what a person dragged stands until
+the app states a different width (corrected by the audit 2026-09-02: the snap-back this
+originally described never happened, and making it happen would discard the drag).
 
 Three of this repo's guards caught real defects on the way — the interaction-handler law, the
 hover-guard law, and the motion-token laws (my transition and focus ring were both hand-spelled
