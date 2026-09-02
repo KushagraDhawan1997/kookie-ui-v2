@@ -39,6 +39,7 @@ import {
   moveNodeTo,
   node,
   removeNode,
+  TIER_KEYS,
   type BuilderDoc,
   type BuilderNode,
 } from "./model";
@@ -1111,7 +1112,13 @@ describe("the component palette is the row family", () => {
    began at the same x, the headings were the same size and weight as the labels under them,
    and a hairline appeared above two sections out of five.
 
-   inspector.tsx's header states the contract: SECTION, ROW, FIELD, and three text ranks.
+   The THIRD pass is what these laws mostly hold (2026-09-02, Kushagra with Figma open:
+   "every row is standard, every label standard"). The second pass built the column and left
+   the panel ragged inside it — half the value cells held a control that filled the column and
+   half held a small object sitting at its start — and it still had two label positions, plus
+   a third treatment for the readout, whose label was a composed node.
+
+   inspector.tsx's header states the contract: PANEL, SECTION, ROW, and four text ranks.
    These laws hold the parts of it a string can see. */
 describe("the inspector is built from its three shapes", () => {
   const node = { id: "n1", type: "TextField", props: { placeholder: "you@company.com" } };
@@ -1179,8 +1186,123 @@ describe("the inspector is built from its three shapes", () => {
     const sections = ["Content", "Properties", "Slots", "What that comes to", "Not here, on purpose"]
       .filter((t) => html.includes(">" + t + "<")).length;
     expect(sections, "the fixture reached several sections").toBeGreaterThanOrEqual(3);
-    // Plus ONE for the panel's own title, which is outside the sections and is the same rank:
-    // a panel title and a section title are the same kind of thing, so they share a voice.
+    // Plus ONE for the panel's own title, which is outside the sections. It is a step LARGER
+    // than a section heading (see the ladder law below) and shares its weight, because a
+    // panel title and a section title are the same kind of thing said at two scales.
     expect(headings, "one medium-weight voice per section, plus the panel's title").toBe(sections + 1);
+  });
+
+  /* THE RANKS ARE A LADDER, one type step apart (2026-09-02). Before this pass a heading and
+     a name were both size 2, separated by weight and ink alone — a difference you have to
+     look for, which is why the panel read flat however its rows were arranged. The law reads
+     the three steps in the rendered markup and asserts each is one below the last, so
+     collapsing any two of them back onto one size fails here rather than by eye. */
+  it("the panel's title, its headings and its names are three type steps", () => {
+    const step = (text: string) => {
+      const m = html.match(new RegExp(`<span data-size="(\\d)"[^>]*>${text}</span>`));
+      return m ? Number(m[1]) : null;
+    };
+    const title = step("TextField");
+    const heading = step("Properties");
+    const name = step("placeholder");
+    expect(title, "the panel titles itself").not.toBeNull();
+    expect(heading, "a section heads itself").not.toBeNull();
+    expect(name, "a row names itself").not.toBeNull();
+    expect(title! - heading!, "a panel title is one step over a section heading").toBe(1);
+    expect(heading! - name!, "a section heading is one step over a name").toBe(1);
+  });
+
+  /* EVERY NAME IS THE SAME NAME. "Every label standard" is a claim about the SPELLING, not
+     about the arrangement, and the panel had three: a row's name beside its control, a
+     string's name stacked above it, and the readout's, which was a composed node carrying a
+     quieter half inside it. Anchored on the value cell that FOLLOWS, so this only reads text
+     that is really a row's name; the law then asserts every one of them was written the same
+     way, which a second treatment cannot survive. */
+  it("every name in the panel is written the same way", () => {
+    const names = [
+      ...html.matchAll(
+        /<div class="kui-box"(?: style="--kui-pl:[^"]*")?><span ([^>]*)class="kui-type kui-text">([^<]*)<\/span><\/div><div class="kui-box" style="--kui-d:flex;/g,
+      ),
+    ];
+    expect(names.length, "the fixture reached several rows").toBeGreaterThanOrEqual(4);
+    const spellings = new Set(names.map((m) => m[1]));
+    expect([...spellings], "one spelling for every name in the panel").toEqual([
+      'data-size="2" data-weight="regular" data-emphasis="medium" ',
+    ]);
+  });
+
+  /* EVERY VALUE CELL IS THE SAME CELL. This is the rag the third pass was called on: a value
+     that filled the column and a value that sat at its start were two different cells, and
+     which one you got depended on whether the call site had remembered to say `flex: 1`. The
+     cell states it now, once, for every row — so there are exactly TWO spellings, and the
+     second is not a width, it is the far line a Switch lands on because filling is not
+     available to it. A call site that re-states a width shows up here as a third. */
+  it("a value cell fills its column, or sits on its far line — and nothing else", () => {
+    // `grid-auto-flow:column` is what makes it a value CELL rather than the panel's own grid
+    // — which is also a `kui-box` with `--kui-d:grid` and would otherwise be counted here.
+    const cells = [...html.matchAll(/<div class="kui-box" style="(--kui-d:grid;[^"]*grid-auto-flow:column[^"]*)"/g)]
+      .map((m) => m[1]!);
+    expect(cells.length, "the fixture reached several rows").toBeGreaterThanOrEqual(4);
+    const fill = cells.filter((c) => c.includes("justify-items:stretch"));
+    const end = cells.filter((c) => c.includes("justify-items:end"));
+    expect(fill.length, "most rows fill").toBeGreaterThan(0);
+    expect(end.length, "and the fixture reached a Switch").toBeGreaterThan(0);
+    expect(fill.length + end.length, "two spellings, no third").toBe(cells.length);
+    expect(new Set(fill).size, "one fill spelling").toBe(1);
+    expect(new Set(end).size, "one end spelling").toBe(1);
+    // And no call site states a width of its own on the control inside a cell.
+    const source = readFileSync(new URL("./inspector.tsx", import.meta.url), "utf8");
+    expect(source, "no row states its own fill").not.toMatch(/flex: 1, minInlineSize: 0/);
+  });
+
+  /* THE LABEL IS A STRING, BY TYPE. The readout's composed label is how a second treatment
+     got in, and prose in a header does not stop the next one. Read from the source, because
+     the type is the enforcement and a rendered panel cannot see it. */
+  it("a row's name is typed as a string, not a node", () => {
+    const source = readFileSync(new URL("./inspector.tsx", import.meta.url), "utf8");
+    const props = source.slice(source.indexOf("export function Row({"), source.indexOf("}) {", source.indexOf("export function Row({")));
+    expect(props, "Row declares its label").toMatch(/label: string;/);
+    expect(props, "and it is not a node").not.toMatch(/label: React\.ReactNode/);
+  });
+});
+
+/* A responsive row keeps its trailing control whether or not it has anything left to add
+   (2026-09-02). The `+` used to render only while a tier was unstated, which took the value's
+   right edge with it: state every tier and that row reached a line no other row in the
+   section reached. Disabled is the honest spelling — the same thing Arrange does with a
+   command that is not armed. */
+describe("a responsive row's trailing control never leaves", () => {
+  const render = (gap: unknown) =>
+    renderToStaticMarkup(
+      <Theme>
+        <Inspector
+          node={{ id: "n1", type: "Flex", props: { gap } } as never}
+          onProp={() => {}}
+          onText={() => {}}
+          onSlot={() => {}}
+          onSelect={() => {}}
+        />
+      </Theme>,
+    );
+
+  const plus = (html: string) =>
+    [...html.matchAll(/<button[^>]*aria-label="Add a breakpoint to gap"[^>]*>/g)].map((m) => m[0]);
+
+  it("it is there with tiers left to add, and there when there are none", () => {
+    const some = plus(render("3"));
+    expect(some.length, "a plain value offers the breakpoints").toBe(1);
+    expect(some[0], "and the control is live").not.toMatch(/disabled/);
+
+    const all = Object.fromEntries(TIER_KEYS.map((t) => [t, "3"]));
+    const none = plus(render(all));
+    expect(none.length, "every tier stated, and the control is still in the row").toBe(1);
+    expect(none[0], "standing down rather than leaving").toMatch(/disabled/);
+  });
+
+  it("a stated tier can be taken back from the row itself", () => {
+    const html = render({ initial: "3", ...(TIER_KEYS[1] ? { [TIER_KEYS[1]]: "5" } : {}) });
+    expect(html, "the tier's own row offers the way out").toContain(
+      `Remove the ${TIER_KEYS[1]} breakpoint from gap`,
+    );
   });
 });

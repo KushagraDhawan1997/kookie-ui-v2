@@ -94,7 +94,7 @@ import { canAccept, insertableInto, insertionTarget, placeNodes, typesThrough } 
 import { renderNode } from "./render";
 import { deriveParams, serializeBlock, serializeDocument } from "./serialize";
 import { TEMPLATES, templateDoc } from "./templates";
-import { Inspector, MultiInspector, Panel, Section, ThemePanel } from "./inspector";
+import { Inspector, MultiInspector, Section, Span, ThemePanel } from "./inspector";
 import {
   activeDoc,
   canRedo,
@@ -1334,6 +1334,57 @@ export function BuilderApp() {
       )
     : [];
 
+  /* THE SECTIONS THE APP OWNS rather than the schema, seated INSIDE whichever inspector is
+     showing (2026-09-02). They used to be a `<Panel>` of their own under a `<Stack gap="5">`,
+     which gave the pane two label columns and put a third distance between two sections
+     wherever the seam's own rhythm already said what that distance is. Same shapes as the
+     rest of the panel — see inspector.tsx's contract — so the seam above them is the same
+     hairline and the heading is the same heading. A run of commands is not a Row: there is
+     no name on the left, the buttons ARE the content. */
+  const appSections = (
+    <>
+      <Section title="Arrange">
+        <Span>
+          <Flex gap="1" wrap="wrap">
+            {["moveUp", "moveDown", "duplicate", "wrapInStack", "wrapInFlex", "unwrap", "delete"].map((id) => {
+              const cmd = COMMANDS.find((c) => c.id === id)!;
+              const on = ctxRef.current ? armed(cmd, ctxRef.current) : false;
+              return (
+                <Button
+                  key={id}
+                  emphasis="quiet"
+                  bordered
+                  {...(id === "delete" ? { tone: "destructive" as const } : {})}
+                  disabled={!on}
+                  onClick={() => runCommand(id)}
+                >
+                  {cmd.title}
+                </Button>
+              );
+            })}
+          </Flex>
+        </Span>
+      </Section>
+      <Section title="Save as block">
+        <Span>
+          <Flex gap="2">
+            <TextField
+              placeholder="Block name"
+              aria-label="Block name"
+              value={blockName}
+              onChange={(e) => setBlockName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && saveBlock()}
+              style={{ flex: 1 }}
+            />
+            <Button emphasis="medium" disabled={!blockName.trim()} onClick={saveBlock}>
+              Save
+            </Button>
+          </Flex>
+        </Span>
+      </Section>
+    </>
+  );
+
   return (
     /* THE FRAME IS THE SYSTEM'S (§27, 2026-08-20). It was a hand-rolled `100dvh` column
        holding three fixed-width boxes and four Separators; it is the Shell now, and the
@@ -2165,7 +2216,7 @@ export function BuilderApp() {
               <TabsPanel value="inspect">
                 <Box pt="4">
                   {selected ? (
-                    <Stack gap="5">
+                    <>
                       {/* One panel or the other, never both: two `size` pickers over one
                           selection is a panel arguing with itself about what it edits. */}
                       {state.selection.length > 1 ? (
@@ -2174,7 +2225,9 @@ export function BuilderApp() {
                           onProp={(key, next) =>
                             commitRoots(updatePropsMany(doc.roots, state.selection, { [key]: next }))
                           }
-                        />
+                        >
+                          {appSections}
+                        </MultiInspector>
                       ) : (
                         <Inspector
                           node={selected}
@@ -2200,51 +2253,11 @@ export function BuilderApp() {
                             const child = type ? CATALOG[type]!.make() : null;
                             commitRoots(setSlot(doc.roots, selected.id, slot, child), child ? [child.id] : [selected.id]);
                           }}
-                        />
+                        >
+                          {appSections}
+                        </Inspector>
                       )}
-                      {/* The two sections the app owns rather than the schema — same three
-                          shapes as the rest of the panel (see inspector.tsx's contract), so
-                          the seam above them is the same hairline and the heading is the same
-                          heading. A run of commands is not a Row: there is no name on the
-                          left, the buttons ARE the content. */}
-                      <Panel>
-                      <Section title="Arrange">
-                        <Flex gap="1" wrap="wrap">
-                          {["moveUp", "moveDown", "duplicate", "wrapInStack", "wrapInFlex", "unwrap", "delete"].map((id) => {
-                            const cmd = COMMANDS.find((c) => c.id === id)!;
-                            const on = ctxRef.current ? armed(cmd, ctxRef.current) : false;
-                            return (
-                              <Button
-                                key={id}
-                                emphasis="quiet"
-                                bordered
-                                {...(id === "delete" ? { tone: "destructive" as const } : {})}
-                                disabled={!on}
-                                onClick={() => runCommand(id)}
-                              >
-                                {cmd.title}
-                              </Button>
-                            );
-                          })}
-                        </Flex>
-                      </Section>
-                      <Section title="Save as block">
-                        <Flex gap="2">
-                          <TextField
-                            placeholder="Block name"
-                            aria-label="Block name"
-                            value={blockName}
-                            onChange={(e) => setBlockName(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && saveBlock()}
-                            style={{ flex: 1 }}
-                          />
-                          <Button emphasis="medium" disabled={!blockName.trim()} onClick={saveBlock}>
-                            Save
-                          </Button>
-                        </Flex>
-                      </Section>
-                      </Panel>
-                    </Stack>
+                    </>
                   ) : (
                     <Text size="1" emphasis="quiet">
                       Click something on the canvas, or pick it in Layers.

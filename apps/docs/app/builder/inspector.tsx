@@ -22,40 +22,49 @@
  *
  * Three parts, and every row in this file is one of them:
  *
+ *   PANEL   — the COLUMNS, declared once for the whole panel: `auto minmax(0, 1fr)`. This is
+ *             the part that makes it read as a panel, and the part the first two passes got
+ *             wrong. A grid per row aligns a row with itself; a grid per section lets every
+ *             section disagree with the next; one grid for the panel is the only arrangement
+ *             where "the label column" is a thing that exists. Measured: every control in
+ *             every section now starts at one x and ends at one x.
+ *             No number in it — the content sizes the names' column, and a stated width
+ *             would be a raw length in a system that has none for this.
+ *
  *   SECTION — a heading, a hairline above it running wall to wall, and rows underneath. Also
  *             a fragment, for the same reason: the panel owns the columns.
  *             The hairline is the panel's own seam, so it bleeds (`mx="bleed"`) exactly as
  *             the pane's chrome row does; a section boundary that stops short of the walls
  *             reads as a line drawn inside the panel rather than as a division of it.
  *
- *   PANEL   — the COLUMNS, declared once for the whole panel: `auto minmax(0, 1fr)`. This is
- *             the part that makes it read as a panel, and the part the first two passes got
- *             wrong. A grid per row aligns a row with itself; a grid per section lets every
- *             section disagree with the next; one grid for the panel is the only arrangement
- *             where "the label column" is a thing that exists. Measured: every control in
- *             every section now starts at one x and the value-bearing ones end at one x.
- *             No number in it — the content sizes the names' column, and a stated width
- *             would be a raw length in a system that has none for this.
+ *   ROW     — a name and its value, as TWO CELLS of that grid. The ONLY row shape there is,
+ *             which is the third pass's whole change (2026-09-02, Kushagra with Figma open:
+ *             "every row is standard, every label standard"). A fragment, never a wrapper: a
+ *             box around the pair would make it one grid item and put the halves back inside
+ *             their own box, the same mistake one level down. Its three rules are stated on
+ *             the component — the label is a STRING by type, the value cell divides evenly
+ *             among what is in it, and a control that cannot fill sits on the column's far
+ *             line rather than its near one.
  *
- *   ROW     — a name and its control, as TWO CELLS of that grid. A fragment, never a wrapper:
- *             a box around the pair would make it one grid item and put the halves back
- *             inside their own box, which is the same mistake one level down. A value fills
- *             its column, an action keeps its own width.
+ * There is no FIELD any more. A string used to stack its name above a full-width input, on
+ * the argument that a sentence does not fit a column — true of a paragraph, and not of what
+ * is typed here: a button's label, a placeholder, a heading. What it actually bought was a
+ * second label position, which is exactly what stops a panel reading as one thing.
  *
- *   FIELD   — a name above its control, which takes the full width. For a value you TYPE.
- *             The rule for choosing is the value, not the widget: a pick from a closed list
- *             or a toggle is a WORD and fits a column; a placeholder, a label or a line of
- *             body copy is a SENTENCE and does not. Two shapes, one rule, stated here so a
- *             third never gets invented at a call site.
- *
- * The header is outside all three: the node's name, its reference link and its blurb, over
+ * The header is outside all of it: the node's name, its reference link and its blurb, over
  * the first hairline. Figma's says less because Figma is not teaching anybody; the blurb
  * earns its place here for the same reason the refusals do.
  *
- * ONE VOICE PER RANK, which is what stops a structure from flattening back out: inside a
- * section exactly one thing is `weight="medium"` at full ink and it is the HEADING. A name is
- * `emphasis="medium"` — the muted ink, no weight — and a sentence is `emphasis="quiet"` at
- * size 1. Three ranks, and every piece of text in the panel is one of them.
+ * ONE RANK PER STEP, which is what stops a structure from flattening back out. Four ranks, one
+ * type step apart each, and every piece of text in the panel is one of them:
+ *
+ *   the panel's title    size 4, medium weight, full ink
+ *   a section heading    size 3, medium weight, full ink
+ *   a name               size 2, regular weight, the muted ink
+ *   a sentence           size 1, regular weight, the quiet ink
+ *
+ * Rank was carried by weight and ink alone before this — a heading and a name were both size
+ * 2 — and a difference you have to look for is not a rank.
  */
 
 import * as React from "react";
@@ -144,19 +153,35 @@ export const readPick = (
   return values.includes(raw) ? { value: raw } : null;
 };
 
-/* ── The three shapes (see the contract in the file header) ──────────────────────────────── */
+/* ── The one shape (see the contract in the file header) ─────────────────────────────────── */
 
 /**
- * A name and its control — TWO CELLS OF THE SECTION'S GRID, not a grid of its own.
+ * A name and its value — TWO CELLS OF THE PANEL'S GRID, and the only row shape there is.
  *
- * THAT IS THE WHOLE DIFFERENCE (2026-09-02, second pass — Kushagra: "Still looks the same, no
- * structure dude", and he was right). The first cut gave every row its own two-column grid,
- * which aligns a row with ITSELF and with nothing else: each row split its own width in half,
- * so the label column was as wide as half the panel whatever the label said, and the controls
- * began at one x by arithmetic rather than by being in one column. What reads as structure is
- * a real column — one grid per SECTION, `auto` for the names and the rest for the values, so
- * the label column is exactly as wide as the longest name in that section and every control
- * starts and ends on the same two lines. No number anywhere: the content sizes the column.
+ * THE THIRD PASS (2026-09-02, Kushagra with Figma open: "every row is standard, every label
+ * standard"). The second pass built the column and left the panel ragged inside it: half the
+ * value cells held a control that filled the column and half held a small object — a Switch, a
+ * bordered Button, a line of code — sitting at the column's start with dead space behind it, so
+ * the right-hand line existed for some rows and not others. And there were still two label
+ * treatments (beside for a pick, above for a string) and a third for the readout, whose label
+ * was a composed node with a quieter half inside it.
+ *
+ * So: one shape, and three rules that make it standard.
+ *
+ *   THE LABEL IS A STRING, enforced by the type. Not a node — a node is how a second label
+ *   treatment gets in. Anything a row wants to say beyond its name belongs on the value side
+ *   or in the note under it.
+ *
+ *   THE VALUE CELL DIVIDES EVENLY AMONG WHAT IS IN IT. One control fills the column; two split
+ *   it in half (the multi-selection's On/Off pair). That is `grid-auto-flow: column` with
+ *   `grid-auto-columns: 1fr` — the caller states nothing, so no call site can decide to be
+ *   ragged. A composed value is passed as ONE element and lays itself out inside its cell.
+ *
+ *   A STATE SITS AT THE COLUMN'S END, not its start (`end`). A Switch cannot fill anything —
+ *   its width is the mark family's, not the column's — so filling is not available to it and
+ *   the only two places it can be are the two lines the panel already has. At the end it lands
+ *   on the same right-hand line every filled control ends on; at the start it would be the one
+ *   row in the panel that ends nowhere.
  *
  * A fragment, because a wrapper element around the pair would make it ONE grid item and put
  * the two halves back inside their own box — the same mistake one level down.
@@ -164,29 +189,46 @@ export const readPick = (
 export function Row({
   label,
   children,
+  after,
+  end,
+  indent,
   note,
 }: {
-  label: React.ReactNode;
+  label: string;
   children: React.ReactNode;
+  /** A small control seated OUTSIDE the value's cell, keeping its own width — the responsive
+      row's + menu, the slot's clear button. Outside, because it is not part of the value and
+      dividing the column with it would make the value narrower than the row above. */
+  after?: React.ReactNode;
+  /** This row's control cannot fill a column, so it sits on the column's far line. */
+  end?: boolean;
+  /** A responsive override's tier row, one step in from the base it overrides. */
+  indent?: boolean;
   /** A sentence under the row, in the quiet ink — the schema's own note, or a warning. It
       spans both columns: it is about the row, not about the value. */
   note?: React.ReactNode;
 }) {
   return (
     <>
-      {typeof label === "string" ? (
+      <Box {...(indent ? { pl: "3" } : {})}>
         <Text size="2" emphasis="medium">
           {label}
         </Text>
-      ) : (
-        label
-      )}
-      {/* A VALUE FILLS THE COLUMN, AN ACTION KEEPS ITS OWN WIDTH. A Select and a field hold
-          the row's value and stretch to the column's right edge, which is what gives the
-          panel its second vertical line; a Switch and a button are fixed-size things and sit
-          at the column's start, where the first line already holds them. */}
-      <Flex gap="1" align="center" style={{ minInlineSize: 0 }}>
-        {children}
+      </Box>
+      <Flex gap="2" align="center" style={{ minInlineSize: 0 }}>
+        <Grid
+          gap="2"
+          style={{
+            gridAutoFlow: "column",
+            gridAutoColumns: "1fr",
+            justifyItems: end ? "end" : "stretch",
+            flex: 1,
+            minInlineSize: 0,
+          }}
+        >
+          {children}
+        </Grid>
+        {after}
       </Flex>
       {note ? (
         <Span>
@@ -196,34 +238,6 @@ export function Row({
         </Span>
       ) : null}
     </>
-  );
-}
-
-/** A name over its control, spanning both columns — for a value you TYPE. The rule is the
-    value and not the widget: a word fits a column, a sentence does not. */
-function Field({
-  label,
-  children,
-  note,
-}: {
-  label: string;
-  children: React.ReactNode;
-  note?: React.ReactNode;
-}) {
-  return (
-    <Span>
-      <Stack gap="1">
-        <Text size="2" emphasis="medium">
-          {label}
-        </Text>
-        {children}
-        {note ? (
-          <Text size="1" emphasis="quiet">
-            {note}
-          </Text>
-        ) : null}
-      </Stack>
-    </Span>
   );
 }
 
@@ -263,18 +277,23 @@ export function Section({
   return (
     <>
       {first ? null : (
-        <Span mx="bleed" my="2">
+        <Span mx="bleed" my="3">
           <Separator />
         </Span>
       )}
-      <Span mb="1">
-        <Text size="2" weight="medium">
+      {/* ONE STEP UP FROM ITS ROWS (2026-09-02). It was `size="2" weight="medium"` against
+          names at `size="2" emphasis="medium"` — the same step, separated only by ink and
+          weight, which at one size is a difference you have to look for. The ladder is the
+          panel's title, its section headings, its names and its sentences, and each rank is
+          one step of the type scale from the next. */}
+      <Span>
+        <Text size="3" weight="medium">
           {title}
         </Text>
       </Span>
       {children}
       {note ? (
-        <Span mb="2">
+        <Span>
           <Text size="1" emphasis="quiet">
             {note}
           </Text>
@@ -297,7 +316,7 @@ export function Section({
  */
 export function Panel({ children }: { children: React.ReactNode }) {
   return (
-    <Grid columns="auto minmax(0, 1fr)" gapX="3" gapY="1" align="center">
+    <Grid columns="auto minmax(0, 1fr)" gapX="4" gapY="3" align="center">
       {children}
     </Grid>
   );
@@ -312,6 +331,7 @@ function PickRow({
   mixed,
   onPick,
   after,
+  indent,
   note,
 }: {
   label: string;
@@ -324,6 +344,8 @@ function PickRow({
   onPick: (next: string | undefined) => void;
   /** A small control seated beside the picker — the responsive row's + menu. */
   after?: React.ReactNode;
+  /** A responsive override's tier row. */
+  indent?: boolean;
   /** A sentence under the row, in the quiet ink. Carried here rather than stacked by the
       caller so a row and what it warns about are one thing, at one indent. */
   note?: React.ReactNode;
@@ -333,27 +355,33 @@ function PickRow({
   const order = pickOrder(values, { ...(mixed ? { mixed } : {}), optional, ...(labels ? { labels } : {}) });
   const items: Record<string, string> = Object.fromEntries(order);
   return (
-    <Row label={label} {...(note ? { note } : {})}>
-        <Select
-          items={items}
-          value={mixed ? MIXED : (value ?? UNSET)}
-          onValueChange={(v) => {
-            // `null` is Base UI's own value-RESET, not a pick — see Select's `onValueChange`.
-            if (v === null) return;
-            const picked = readPick(v, values, optional);
-            if (picked) onPick(picked.value);
-          }}
-        >
-          <SelectTrigger style={{ flex: 1, minInlineSize: 0 }} />
-          <SelectContent>
-            {order.map(([v, l]) => (
-              <SelectItem key={v} value={v}>
-                {l}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {after}
+    <Row
+      label={label}
+      {...(after ? { after } : {})}
+      {...(indent ? { indent } : {})}
+      {...(note ? { note } : {})}
+    >
+      {/* No width stated here any more: the value cell fills the column, and it does it for
+          every row rather than for the rows whose author remembered. */}
+      <Select
+        items={items}
+        value={mixed ? MIXED : (value ?? UNSET)}
+        onValueChange={(v) => {
+          // `null` is Base UI's own value-RESET, not a pick — see Select's `onValueChange`.
+          if (v === null) return;
+          const picked = readPick(v, values, optional);
+          if (picked) onPick(picked.value);
+        }}
+      >
+        <SelectTrigger />
+        <SelectContent>
+          {order.map(([v, l]) => (
+            <SelectItem key={v} value={v}>
+              {l}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </Row>
   );
 }
@@ -400,7 +428,9 @@ function PropControl({
   }
   if (schema.kind === "boolean") {
     return (
-      <Row label={name}>
+      /* `end` — a Switch's width is the mark family's, so there is no filling for it to do
+         and the column's far line is the only line it can land on. */
+      <Row label={name} end>
         <Switch
           checked={value === true}
           onCheckedChange={(checked) => onChange(checked ? true : undefined)}
@@ -415,7 +445,6 @@ function PropControl({
         <TextField
           type="number"
           aria-label={name}
-          style={{ flex: 1, minInlineSize: 0 }}
           value={value === undefined ? "" : String(value)}
           onChange={(e) => {
             const raw = e.target.value;
@@ -425,16 +454,19 @@ function PropControl({
       </Row>
     );
   }
-  /* A string is a SENTENCE — a placeholder, a label, a line of copy — so it takes the full
-     width. The contract's one rule for choosing between the two shapes. */
+  /* A string is a row like every other row (2026-09-02). It used to take the full width with
+     its name stacked above it, on the argument that a sentence does not fit a column — which
+     is true of a paragraph and not of what is actually typed here: a button's label, a
+     placeholder, a heading. The panel's column is ~200px, a field scrolls its own value, and
+     a second label position costs the panel its one standard row. */
   return (
-    <Field label={name}>
+    <Row label={name}>
       <TextField
         aria-label={name}
         value={typeof value === "string" ? value : ""}
         onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value, true)}
       />
-    </Field>
+    </Row>
   );
 }
 
@@ -476,8 +508,13 @@ function ResponsiveControl({
     onChange(next);
   };
 
+  /* A FRAGMENT, not a Stack (2026-09-02). A Row contributes two CELLS, so wrapping its rows
+     in a flex column made each pair one grid item stacked inside column 1 — the base picker
+     and every tier rendered with its name above it, half the panel wide, while every other
+     row in the section sat in the column. The tiers are rows of the panel's grid like any
+     other; what marks them as overrides is the label's one step of indent. */
   return (
-    <Stack gap="1">
+    <>
       <PickRow
         label={name}
         value={base}
@@ -485,45 +522,70 @@ function ResponsiveControl({
         {...(labels ? { labels } : {})}
         optional={optional}
         onPick={(v) => write(v, resp)}
+        /* ALWAYS RENDERED, DISABLED WHEN THERE IS NOTHING LEFT TO ADD (2026-09-02). A
+           trailing control that comes and goes takes the value's right edge with it, so a
+           row with every tier stated would reach a line no other row in the section reaches.
+           Disabled is honest — it is the same thing Arrange does with a command that is not
+           armed — where absent would be the panel changing shape under you. */
         after={
-          unstated.length ? (
-            <Menu>
-              <MenuTrigger
-                render={
-                  <Button emphasis="quiet" iconOnly aria-label={`Add a breakpoint to ${name}`}>
-                    <PlusIcon />
-                  </Button>
-                }
-              />
-              <MenuContent>
-                {unstated.map((tier) => (
-                  <MenuItem key={tier} onClick={() => write(base, { ...resp, [tier]: base ?? values[0]! })}>
-                    {`at ${tier}`}
-                  </MenuItem>
-                ))}
-              </MenuContent>
-            </Menu>
-          ) : undefined
+          <Menu>
+            <MenuTrigger
+              render={
+                <Button
+                  emphasis="quiet"
+                  iconOnly
+                  disabled={unstated.length === 0}
+                  aria-label={`Add a breakpoint to ${name}`}
+                >
+                  <PlusIcon />
+                </Button>
+              }
+            />
+            <MenuContent>
+              {unstated.map((tier) => (
+                <MenuItem key={tier} onClick={() => write(base, { ...resp, [tier]: base ?? values[0]! })}>
+                  {`at ${tier}`}
+                </MenuItem>
+              ))}
+            </MenuContent>
+          </Menu>
         }
       />
       {stated.map((tier) => (
-        <Box key={tier} pl="4">
-          <PickRow
-            label={`@ ${tier}`}
-            value={resp[tier]}
-            values={values}
-            {...(labels ? { labels } : {})}
-            optional
-            onPick={(v) => {
-              const next = { ...resp };
-              if (v === undefined) delete next[tier];
-              else next[tier] = v;
-              write(base, next);
-            }}
-          />
-        </Box>
+        <PickRow
+          key={tier}
+          label={`@ ${tier}`}
+          indent
+          value={resp[tier]}
+          values={values}
+          {...(labels ? { labels } : {})}
+          optional
+          onPick={(v) => {
+            const next = { ...resp };
+            if (v === undefined) delete next[tier];
+            else next[tier] = v;
+            write(base, next);
+          }}
+          /* The tier's own trailing control — it keeps this row's right edge on the same
+             line as the base row it overrides, and it is the gesture the panel was missing:
+             taking a breakpoint back was only reachable by picking "(unset)" in its list. */
+          after={
+            <Button
+              emphasis="quiet"
+              iconOnly
+              aria-label={`Remove the ${tier} breakpoint from ${name}`}
+              onClick={() => {
+                const next = { ...resp };
+                delete next[tier];
+                write(base, next);
+              }}
+            >
+              <XIcon />
+            </Button>
+          }
+        />
       ))}
-    </Stack>
+    </>
   );
 }
 
@@ -551,10 +613,13 @@ const sameValue = (a: PropValue | undefined, b: PropValue | undefined): boolean 
 export function MultiInspector({
   nodes,
   onProp,
+  children,
 }: {
   nodes: BuilderNode[];
   /** Writes to every selected node, as ONE undoable edit. */
   onProp: (key: string, next: PropValue | undefined) => void;
+  /** The app's own sections — see `Inspector`'s note: a pane has one grid. */
+  children?: React.ReactNode;
 }) {
   const types = [...new Set(nodes.map((n) => n.type))];
   const shared = sharedProps(types);
@@ -569,9 +634,9 @@ export function MultiInspector({
 
   return (
     <Panel>
-      <Span mb="2">
+      <Span>
         <Stack gap="1">
-          <Text size="2" weight="medium">
+          <Text size="4" weight="medium">
             {nodes.length} selected
           </Text>
           <Text size="2" emphasis="medium">
@@ -654,6 +719,8 @@ export function MultiInspector({
           })
         )}
       </Section>
+
+      {children}
     </Panel>
   );
 }
@@ -666,6 +733,7 @@ export function Inspector({
   onSelect,
   textRef,
   measured,
+  children,
 }: {
   node: BuilderNode;
   onProp: (key: string, next: PropValue | undefined, continuous?: boolean) => void;
@@ -679,6 +747,11 @@ export function Inspector({
   /** What this node's stated indices actually come to, measured off the rendered element.
       The app owns the measurement; this panel only renders it. */
   measured?: { label: string; value: string; stated?: string | undefined }[];
+  /** Sections the APP owns rather than the schema — Arrange, Save as block. They come in
+      here rather than sitting in a panel of their own below, because a pane has ONE grid:
+      two panels stacked are two label columns and two rhythms, and the `Stack` holding them
+      apart was a third distance beside the seam's own. */
+  children?: React.ReactNode;
 }) {
   const entry = CATALOG[node.type];
   if (!entry) return null;
@@ -687,11 +760,12 @@ export function Inspector({
   return (
     <Panel>
       {/* The header spans both columns — it is about the panel, not about one value. What this
-          is, where to read about it, and what it is for. */}
-      <Span mb="2">
+          is, where to read about it, and what it is for. Its title is the ladder's top step:
+          one above a section heading, two above a name. */}
+      <Span>
       <Stack gap="1">
         <Flex align="center" justify="space-between" gap="2">
-          <Text size="2" weight="medium">
+          <Text size="4" weight="medium">
             {node.type}
           </Text>
           {SLUGS.has(node.type) ? (
@@ -711,14 +785,14 @@ export function Inspector({
 
       {entry.children === "text" ? (
         <Section title="Content">
-          <Field label="text">
+          <Row label="text">
             <TextField
               aria-label="Text content"
               {...(textRef ? { ref: textRef } : {})}
               value={node.text ?? ""}
               onChange={(e) => onText(e.target.value)}
             />
-          </Field>
+          </Row>
         </Section>
       ) : null}
 
@@ -745,21 +819,39 @@ export function Inspector({
           {slotsFor(node.type).map((slot) => {
             const seated = slottedChild(node, slot);
             return (
-              <Row key={slot} label={slot}>
+              <Row
+                key={slot}
+                label={slot}
+                {...(seated
+                  ? {
+                      /* The clear button sits OUTSIDE the value's cell: it is not half the
+                         value, and splitting the column with it would leave this row's
+                         picker narrower than every picker above it. */
+                      after: (
+                        <Button
+                          emphasis="quiet"
+                          iconOnly
+                          aria-label={`Clear the ${slot} slot`}
+                          onClick={() => onSlot(slot, null)}
+                        >
+                          <XIcon />
+                        </Button>
+                      ),
+                    }
+                  : {})}
+              >
                 {seated ? (
-                  <>
-                    <Button emphasis="quiet" bordered onClick={() => onSelect(seated.id)}>
-                      {seated.type}
-                    </Button>
-                    <Button emphasis="quiet" iconOnly aria-label={`Clear the ${slot} slot`} onClick={() => onSlot(slot, null)}>
-                      <XIcon />
-                    </Button>
-                  </>
+                  /* A button's label centres, which is right for a button standing on its
+                     own and wrong for one standing in the value column: it would be the one
+                     value in the panel that does not begin on the column's left line. */
+                  <Button emphasis="quiet" bordered style={{ justifyContent: "flex-start" }} onClick={() => onSelect(seated.id)}>
+                    {seated.type}
+                  </Button>
                 ) : (
                   <Menu>
                     <MenuTrigger
                       render={
-                        <Button emphasis="quiet" bordered>
+                        <Button emphasis="quiet" bordered style={{ justifyContent: "flex-start" }}>
                           Empty
                         </Button>
                       }
@@ -784,23 +876,23 @@ export function Inspector({
           title="What that comes to"
           note="Measured off this element, so density, the pointer world and the canvas width are all already in it."
         >
+          {/* THE LABEL IS THE NAME AND NOTHING ELSE (2026-09-02). It used to be a composed
+              node — the name plus the stated index in a quieter ink inside it — which is a
+              second label treatment, and the one place the panel's names were not all one
+              thing. What was stated moves to the value's side, where it belongs anyway: the
+              row reads "you said 4, that comes to 16px". */}
           {measured.map((row) => (
-            <Row
-              key={row.label}
-              label={
-                <Text size="2" emphasis="medium">
-                  {row.label}
-                  {row.stated ? (
-                    <Text size="2" emphasis="quiet">
-                      {` ${row.stated}`}
-                    </Text>
-                  ) : null}
+            <Row key={row.label} label={row.label}>
+              <Flex gap="1" align="baseline" style={{ minInlineSize: 0 }}>
+                {row.stated ? (
+                  <Text size="2" emphasis="quiet">
+                    {`${row.stated} →`}
+                  </Text>
+                ) : null}
+                <Text size="2" render={<code />}>
+                  {row.value}
                 </Text>
-              }
-            >
-              <Text size="2" render={<code />}>
-                {row.value}
-              </Text>
+              </Flex>
             </Row>
           ))}
         </Section>
@@ -817,6 +909,8 @@ export function Inspector({
           </Span>
         </Section>
       ) : null}
+
+      {children}
     </Panel>
   );
 }

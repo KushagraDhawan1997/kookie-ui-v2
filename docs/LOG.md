@@ -8,6 +8,36 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-02 One row shape, one label spelling — the panel's rag was the panel's structure
+
+**What.** The property panel has ONE row: a name in the left column, a value in the right, and a trailing control outside the value's cell. `Field` — the name-above-a-full-width-input shape — is deleted. The value cell states its own fill (`grid-auto-flow: column` over `grid-auto-columns: 1fr`), a control that cannot fill sits on the column's far line instead of its near one, and the ranks became a four-step type ladder. The app's own two sections (Arrange, Save as block) moved INSIDE whichever inspector is showing, so a pane has one grid.
+
+**Why.** Kushagra with Figma's inspector open: *"This is better, definitely better, but it needs more structure, better thought out, better spacing, please see Figma. Every row is standard, every label standard."*
+
+The previous pass built the column and left the panel ragged INSIDE it. Half the value cells held a control that filled to the column's right edge and half held a small object — a Switch, a bordered Button, a line of code — sitting at the column's start with dead space behind it, and which one you got depended on whether the call site had remembered to write `flex: 1`. So the panel had a left line and did not have a right one.
+
+**Three rules make a row standard, and each one takes a decision away from the call site.**
+
+*The label is a STRING, by type.* Not a node. A node is how a second label treatment gets in, and one already had: the readout's names were composed — the name plus the stated index in a quieter ink inside the same span — which is the one place the panel's names were not all one thing. What a row wants to say beyond its name goes on the value's side (`4 → 16px`) or in the note under it.
+
+*The value cell divides evenly among what is in it.* One control fills; two split it in half (the multi-selection's On/Off pair). The cell states that once, for every row, so no call site can decide to be ragged and the two `flex: 1` escapes that used to say it are gone.
+
+*A state sits on the column's FAR line.* A Switch's width is the mark family's, not the column's, so filling is not available to it — and the only two places it can be are the two lines the panel already has. At the end it lands on the same right-hand line every filled control ends on; at the start it would be the one row in the panel that ends nowhere. That is macOS System Settings' own answer, arrived at from the geometry rather than from the reference.
+
+**`Field` went because its argument had stopped being true.** A string took the full width on the grounds that a sentence does not fit a column — true of a paragraph, and not of what is actually typed here: a button's label, a placeholder, a heading. The column is ~200px and a field scrolls its own value. What the shape actually bought was a second label position, which is exactly what stops a panel reading as one thing.
+
+**The ranks are a ladder now, not a difference in weight.** A section heading and a row's name were both size 2, separated by weight and ink alone — a difference you have to look for, which is why the panel read flat however its rows were arranged. Four ranks, one type step apart each: the panel's title at 4, a section heading at 3, a name at 2, a sentence at 1.
+
+**Two things fell out of doing it that were defects rather than taste.** `ResponsiveControl` wrapped its rows in a `<Stack>`, and a Row contributes two CELLS — so every responsive prop rendered with its name stacked above its picker, inside column 1, at half the panel's width, while every other row in the same section sat in the column. It has been that way since the panel became a grid. And the `+` that adds a breakpoint rendered only while a tier was unstated, so stating every tier took the value's right edge with it; it is always rendered and DISABLED when there is nothing left to add — the same thing Arrange already does with a command that is not armed — and the tier rows gained the `×` that was missing, which is also the gesture that was missing: taking a breakpoint back was only reachable by picking "(unset)" from its own list.
+
+**One grid per pane, measured.** The app's Arrange and Save-as-block sections were a `<Panel>` of their own under a `<Stack gap="5">`, which gave the pane two label columns and put a third distance between two sections wherever the seam's own rhythm already says what that distance is. They are `children` of the inspector now. Measured after, on a real page: one `--kui-gtc` in the pane, every name cell 993→1069, every value cell 1081→1264, every hairline 977→1280.
+
+**The rhythm moved because the scale is not what I read it as.** `--layout-space-2` is 4px and `-3` is 8px, so `gapY="1"` was 2px between rows of 32px controls. Rows breathe at 8, columns at 12, and the section seam at 8 either side of the hairline — measured in the browser rather than counted off the prop names.
+
+**Six laws, all falsified.** The type ladder (headings back to size 2 fails it), the one name spelling (the composed readout label fails it), the label's type (widening it to `ReactNode` fails it), the value cell's two spellings and no third (deleting the fill, or standing a Switch back at the column's start, each fail it), the trailing control that never leaves, and the tier's own way out. Plus the panel-is-one-grid law from the pass before, which the app's second `<Panel>` would now break.
+
+---
+
 ## 2026-09-02 The panel owns the columns — a grid per row aligns a row with itself
 
 **What.** The property panel is ONE grid, `auto minmax(0, 1fr)`, declared once. `Section` and `Row` became fragments; anything about the panel rather than about a value is a `Span` across both columns.
