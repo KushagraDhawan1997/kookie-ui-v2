@@ -1484,6 +1484,9 @@ export function BuilderApp() {
             <TextField
               aria-label="Filter components"
               placeholder="Filter by name"
+              /* The same statement as the Layers filter beside it — see LayersFilter for
+                 why a floating field over passing rows has to express the material. */
+              backdrop
               value={paletteFilter}
               onChange={(e) => setPaletteFilter(e.target.value)}
               style={{ flex: 1 }}

@@ -298,6 +298,14 @@ export function LayersFilter({
     <TextField
       aria-label="Filter layers"
       placeholder="Filter by type or words"
+      /* IT STATES ITS BACKDROP (§10, 2026-09-02, Kushagra). The row floats and the tree
+         scrolls behind it, and a field's fill is an ALPHA over the neutral ramp (2026-08-17,
+         so fills composite against their local ground) — which here is passing rows, not the
+         pane. The words showed straight through it. A floating chrome control over moving
+         content is §10's own case for expressing the material, and the pane hosts it: the
+         sidebar is flush and therefore solid, and a solid surface HOSTS glass (2026-08-19).
+         The docs shell's own floating search button says the same word for the same reason. */
+      backdrop
       ref={inputRef}
       value={value}
       onChange={(e) => onChange(e.target.value)}

@@ -45,7 +45,7 @@ import {
 import { API } from "../(docs)/components/api.generated";
 import { renderNode } from "./render";
 import { BuilderApp, LEFT_REGIONS } from "./builder-app";
-import { Layers } from "./layers";
+import { Layers, LayersFilter } from "./layers";
 import { deriveParams, serializeBlock, serializeDocument, themeDiffs, toComponentName } from "./serialize";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
@@ -1020,6 +1020,46 @@ describe("a pane's chrome is a pane part", () => {
      resolves its insets against the PADDING box, so inline padding on the list shifts every
      rule by its own width. It is exactly the repair a later reader reaches for when the labels
      look two pixels off, so the source says no. */
+  /* A FLOATING CHROME CONTROL EXPRESSES THE MATERIAL (§10, 2026-09-02, Kushagra: "This text
+     field needs backdrop"). The sidebar's filter row floats and the panel scrolls behind it,
+     and a field's fill is an ALPHA over the neutral ramp (2026-08-17 — fills composite
+     against their LOCAL ground), which here is passing rows rather than the pane: the words
+     read straight through the box.
+
+     RENDERED UNDER THE APP'S OWN THEME, and that is the load-bearing half of the fixture. A
+     bare render resolves the default `material: "solid"`, so the stamp would read solid
+     whether the prop were there or not and the law would pass over a deleted `backdrop`.
+     `layout.tsx` wraps the site in `material="regular"`, so these render what the app
+     renders — demonstrated rather than asserted: swapping the fixture to `material="solid"`
+     fails the law, which is what says the environment is doing work.
+
+     BOTH FIELDS, because the row holds a different one per region and a single `backdrop`
+     would leave the other reading through. The Add region's is read off the whole app; the
+     Layers one is rendered directly, because reaching it through the app would mean a
+     test-only prop for switching regions and a production escape written for a law is worse
+     than a second fixture. Falsified by removing the prop from either. */
+  it("the Add region's floating filter states its backdrop", () => {
+    const themed = renderToStaticMarkup(
+      <Theme material="regular">
+        <BuilderApp />
+      </Theme>,
+    );
+    const sidebar = themed.slice(themed.indexOf("kui-shell-sidebar"), themed.indexOf("kui-shell-content"));
+    const header = sidebar.slice(sidebar.indexOf("kui-pane-header"), sidebar.indexOf("kui-shell-scroll"));
+    expect(header, "the header holds its field").toContain("Filter components");
+    expect(header, "and that field expresses the theme's material").toMatch(/data-material="(?!solid)/);
+  });
+
+  it("the Layers filter states its backdrop", () => {
+    const themed = renderToStaticMarkup(
+      <Theme material="regular">
+        <LayersFilter value="" onChange={() => {}} inputRef={null} />
+      </Theme>,
+    );
+    expect(themed, "the field rendered at all").toContain("Filter layers");
+    expect(themed).toMatch(/data-material="(?!solid)/);
+  });
+
   it("nothing puts inline padding on the tab list", () => {
     const source = readFileSync(new URL("./builder-app.tsx", import.meta.url), "utf8");
     const list = source.slice(source.indexOf("<TabsList"), source.indexOf("</TabsList>"));
