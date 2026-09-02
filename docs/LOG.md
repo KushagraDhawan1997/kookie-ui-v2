@@ -8,6 +8,23 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-02 A tree says its pick in ink, whichever front door you came in by
+
+**What.** `Tree`'s rows stamp `data-tone="accent"` like `NavTree`'s already did, and tree.css's ink pair moves from `.kui-tree-nav` to `.kui-tree` — so a SELECTED row takes `--tone-current` exactly as a CURRENT one does. +10 gzipped bytes, re-recorded.
+
+**Why.** Kushagra, with the builder's Layers open beside the docs sidebar: "why is clicked state not showing accent colored label", then "lets get parity". One machine was painting its pick two ways depending on which member you used — the nav said it in ink and in fill, the instrument in fill alone.
+
+Nothing was overridden to make that happen and nothing was overridden to undo it: the grey came from `[data-emphasis="medium"]` in the shared layer, which keys on the word and not on the component, so the old hand-rolled panel (a `Button` at `medium`) and the new one (a row at `medium`) had always resolved the same pixels. What was missing was the second half of ShellNavItem's pair, which the instrument never got.
+
+**Two things had to change together, and either alone draws nothing.** The rules key on the announced attribute, so a selected row could not read a colour it had no family for — `--tone-current` under `data-tone="neutral"` resolves grey. The unconditional accent stamp is safe for the same reason it is safe on ShellNavItem and NavTree: `undilutedTones` points an accent's washed rungs at neutral, so every fill stays grey and only the ink arrives in colour.
+
+**Both arms are stated rather than one selector covering both**, because the difference between them is the whole reason there are two components: a nav has a LOCATION (`aria-current`, at most one) and an instrument has a SELECTION (`aria-selected`, any number). And it is `[aria-selected="true"]`, never the bare attribute — `Tree` stamps the attribute on every row, false included, so the bare form paints the whole panel.
+
+**Rejected**, and it is the argument that held until he overruled it: leave the instrument grey, because Layers is `multiselectable` and a shift-range would light ten rows accent, and because accent has meant "the page you are on" everywhere else. Against it: in an editor the selected layer is the thing you are working on, and Figma and Xcode both tint it. His call.
+
+**The law reads both rows in both appearances.** Reading only the selected one passes on a stylesheet that paints the entire panel accent, which is exactly what the bare-attribute spelling does — so the resting assertion is what makes the law about the rule rather than about one row. Three sabotages: the neutral stamp, the nav-only scope, and the bare attribute. The third SURVIVED its first run, because the string it replaced appears in the comment above the rule before it appears in the rule — the sabotage never reached the code.
+
+
 ## 2026-09-02 The empty state ships as a block, and `reason` is not a prop
 
 **What.** `apps/docs/blocks/empty-state.tsx` + `.css`, registered with three demos. Slots: `mark`, `title`, `description`, `action`, `secondary`. No `size`, no `tone`, no pane, no `minHeight`, no `aria-live`, and no `reason`.
