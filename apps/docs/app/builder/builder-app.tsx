@@ -94,7 +94,7 @@ import { canAccept, insertableInto, insertionTarget, placeNodes, typesThrough } 
 import { renderNode } from "./render";
 import { deriveParams, serializeBlock, serializeDocument } from "./serialize";
 import { TEMPLATES, templateDoc } from "./templates";
-import { Inspector, MultiInspector, ThemePanel } from "./inspector";
+import { Inspector, MultiInspector, Section, ThemePanel } from "./inspector";
 import {
   activeDoc,
   canRedo,
@@ -2202,11 +2202,12 @@ export function BuilderApp() {
                           }}
                         />
                       )}
-                      <Separator />
-                      <Stack gap="2">
-                        <Text size="2" weight="medium">
-                          Arrange
-                        </Text>
+                      {/* The two sections the app owns rather than the schema — same three
+                          shapes as the rest of the panel (see inspector.tsx's contract), so
+                          the seam above them is the same hairline and the heading is the same
+                          heading. A run of commands is not a Row: there is no name on the
+                          left, the buttons ARE the content. */}
+                      <Section title="Arrange">
                         <Flex gap="1" wrap="wrap">
                           {["moveUp", "moveDown", "duplicate", "wrapInStack", "wrapInFlex", "unwrap", "delete"].map((id) => {
                             const cmd = COMMANDS.find((c) => c.id === id)!;
@@ -2225,11 +2226,8 @@ export function BuilderApp() {
                             );
                           })}
                         </Flex>
-                      </Stack>
-                      <Stack gap="2">
-                        <Text size="2" weight="medium">
-                          Save as block
-                        </Text>
+                      </Section>
+                      <Section title="Save as block">
                         <Flex gap="2">
                           <TextField
                             placeholder="Block name"
@@ -2237,12 +2235,13 @@ export function BuilderApp() {
                             value={blockName}
                             onChange={(e) => setBlockName(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && saveBlock()}
+                            style={{ flex: 1 }}
                           />
                           <Button emphasis="medium" disabled={!blockName.trim()} onClick={saveBlock}>
                             Save
                           </Button>
                         </Flex>
-                      </Stack>
+                      </Section>
                     </Stack>
                   ) : (
                     <Text size="1" emphasis="quiet">

@@ -8,6 +8,24 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-02 The property panel gets a structure: three shapes, three voices, one column rule
+
+**What.** `inspector.tsx` states a contract in its header and every row in the file is one of three things — `Section`, `Row`, `Field` — with three text ranks under it. The builder's own two panels (Arrange, Save as block) join them.
+
+**Why.** Kushagra, with Figma's inspector open beside ours: *"See how clean Figma's property panel looks? compare it to ours, we dont have a system yet"*. He is right, and the fault is legible in a screenshot: there were three different arrangements for the one thing a property panel does — a picker was a `space-between` row, a string was a label stacked over a full-width field, a boolean was a third — so **no two controls began at the same x**. The section headings were the same size and weight as the labels under them, and a hairline appeared above two sections out of five.
+
+**ROW is two EQUAL columns**, and the equality is what makes the panel read as one: every control begins at one x and ends at one x, at every row, whatever kind of control it is. It is also the only spelling available with no number in it — a stated column width would be a raw length in a system that has none for this, and `minmax(0, 1fr)` twice rather than `1fr 1fr` because a Select's trigger has a min-content width that would push its column past its half.
+
+**FIELD is the second shape and the rule for choosing is the VALUE, not the widget**: a pick from a closed list or a toggle is a WORD and fits a column; a placeholder, a label or a line of copy is a SENTENCE and does not. Two shapes with one written rule, so a third does not get invented at a call site — which is exactly how the three arrived.
+
+**The hairline bleeds**, `mx="bleed"`, the same sentence the pane's chrome row earned an hour earlier: a section boundary that stops short of the pane's edge reads as a line drawn inside the panel rather than as a division of it.
+
+**ONE VOICE PER RANK.** Inside a section exactly one thing is `weight="medium"` at full ink and it is the heading; a name is the muted ink with no weight; a sentence is quiet at size 1. Writing that down caught a real fault: the refusal names carried the heading's own identity, so "emphasis and tone" competed with "Not here, on purpose" one line above it and the section stopped reading as one thing.
+
+**Rejected.** Stretching every control to fill its column, Figma's own answer — a Switch cannot fill and would then be the one control that starts where the others end; start-aligned is the alignment that actually holds across kinds. And putting the strings in the column too, which would have given one shape for everything and made a placeholder unreadable at 136px.
+
+**The laws hold what a string can see** — the panel renders to markup and the docs app has no browser project. Every hairline resolves `--kui-sf-p` rather than a length (so a hand-written `-16px` fails as loudly as a deleted margin), the grid template has exactly ONE home in the file (a second one is how a third shape returns), and the count of heading voices equals the count of sections plus the panel's own title. Four sabotages, each caught by exactly its law.
+
 ## 2026-09-02 A tree says its pick in ink, whichever front door you came in by
 
 **What.** `Tree`'s rows stamp `data-tone="accent"` like `NavTree`'s already did, and tree.css's ink pair moves from `.kui-tree-nav` to `.kui-tree` — so a SELECTED row takes `--tone-current` exactly as a CURRENT one does. +10 gzipped bytes, re-recorded.

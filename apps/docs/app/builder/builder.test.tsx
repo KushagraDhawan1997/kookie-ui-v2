@@ -46,6 +46,7 @@ import { API } from "../(docs)/components/api.generated";
 import { renderNode } from "./render";
 import { BuilderApp, LEFT_REGIONS } from "./builder-app";
 import { Layers, LayersFilter } from "./layers";
+import { Inspector } from "./inspector";
 import { deriveParams, serializeBlock, serializeDocument, themeDiffs, toComponentName } from "./serialize";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
@@ -1098,5 +1099,81 @@ describe("the component palette is the row family", () => {
      a row's text inset is declared on each ROW's element, so a sibling cannot read it. */
   it("a family's label is an inert row, not a control", () => {
     expect(sidebar).toMatch(/<div[^>]*class="kui-control kui-row"[^>]*>[^<]*<span[^>]*>Layout<\/span>/);
+  });
+});
+
+
+/* ── The property panel's structure (2026-09-02) ──────────────────────────────────────────
+   Kushagra, with Figma's inspector open beside ours: "we dont have a system yet, lets try
+   and make a structure and system out of it". There were three different shapes for the one
+   thing a property panel does — a picker was a `space-between` row, a string was a label
+   stacked over a full-width field, a boolean was a third arrangement — so no two controls
+   began at the same x, the headings were the same size and weight as the labels under them,
+   and a hairline appeared above two sections out of five.
+
+   inspector.tsx's header states the contract: SECTION, ROW, FIELD, and three text ranks.
+   These laws hold the parts of it a string can see. */
+describe("the inspector is built from its three shapes", () => {
+  const node = { id: "n1", type: "TextField", props: { placeholder: "you@company.com" } };
+  const html = renderToStaticMarkup(
+    <Theme>
+      <Inspector
+        node={node as never}
+        onProp={() => {}}
+        onText={() => {}}
+        onSlot={() => {}}
+        onSelect={() => {}}
+        measured={[
+          { label: "box", value: "748 x 44" },
+          { label: "corner", value: "22px" },
+        ]}
+      />
+    </Theme>,
+  );
+
+  it("the panel rendered its sections at all — an empty match audits nothing", () => {
+    expect(html).toContain("Properties");
+    expect(html).toContain("Not here, on purpose");
+  });
+
+  /* EVERY SEAM REACHES THE WALLS. A section boundary that stops short of the pane's edge
+     reads as a line drawn inside the panel rather than as a division of it — the same
+     sentence the pane's own chrome row earned an hour earlier. `mx="bleed"` is the system's
+     spelling for it (§3), so the law reads the resolved hook and not a length: a hand-written
+     `-16px` fails this as loudly as a deleted margin. */
+  it("every hairline in the panel bleeds to the pane's walls", () => {
+    const seps = [...html.matchAll(/<div[^>]*style="([^"]*)"[^>]*>\s*<div[^>]*role="separator"/g)].map(
+      (m) => m[1],
+    );
+    expect(seps.length, "the panel drew hairlines").toBeGreaterThanOrEqual(3);
+    for (const style of seps) expect(style).toMatch(/--kui-sf-p/);
+  });
+
+  /* ONE COLUMN RULE, IN ONE PLACE. Every control in the panel begins at one x because every
+     row is the same two-column grid — which is only true while there is exactly one spelling
+     of it. Falsified by a second grid template anywhere in the file, which is how a third
+     shape gets invented. */
+  it("a row is two equal columns, and the template has one home", () => {
+    expect(html, "the rows render that grid").toContain("minmax(0, 1fr) minmax(0, 1fr)");
+    const source = readFileSync(new URL("./inspector.tsx", import.meta.url), "utf8");
+    const templates = source.match(/columns="[^"]*"/g) ?? [];
+    expect(templates, "one grid template in the file").toEqual([
+      'columns="minmax(0, 1fr) minmax(0, 1fr)"',
+    ]);
+  });
+
+  /* THREE RANKS, AND THE HEADING IS ALONE AT THE TOP OF ITS SECTION. The refusal names
+     carried the heading's own identity, so "emphasis and tone" competed with "Not here, on
+     purpose" one line above it. Counted rather than located: a section heading is the only
+     full-ink medium-weight text the panel writes, so the count of those must equal the count
+     of sections. */
+  it("only a section heading speaks in the heading's voice", () => {
+    const headings = (html.match(/data-weight="medium"/g) ?? []).length;
+    const sections = ["Content", "Properties", "Slots", "What that comes to", "Not here, on purpose"]
+      .filter((t) => html.includes(">" + t + "<")).length;
+    expect(sections, "the fixture reached several sections").toBeGreaterThanOrEqual(3);
+    // Plus ONE for the panel's own title, which is outside the sections and is the same rank:
+    // a panel title and a section title are the same kind of thing, so they share a voice.
+    expect(headings, "one medium-weight voice per section, plus the panel's title").toBe(sections + 1);
   });
 });

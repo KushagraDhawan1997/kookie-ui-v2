@@ -9,6 +9,44 @@
  * The "Not here" section is the part no other builder can render: the refusals come from
  * the component reference's own entries, so the gap where a knob would be carries the
  * system's argument for why there is no knob.
+ *
+ * ── THE PANEL'S STRUCTURE (2026-09-02, Kushagra, with Figma's own inspector open beside
+ *    ours: "we dont have a system yet, lets try and make a structure and system out of it")
+ *
+ * It had none, and that is a fair reading of what was there: three different shapes for the
+ * one thing a property panel does. A picker was a `space-between` row, a string was a label
+ * stacked over a full-width field, a boolean was a third arrangement — so no two controls
+ * began at the same x, and nothing in the column said where one group of knobs ended and the
+ * next began. The headings were the same size and weight as the labels under them, and a
+ * hairline appeared above two sections out of five.
+ *
+ * Three parts, and every row in this file is one of them:
+ *
+ *   SECTION — a heading, a hairline above it running wall to wall, and rows underneath.
+ *             The hairline is the panel's own seam, so it bleeds (`mx="bleed"`) exactly as
+ *             the pane's chrome row does; a section boundary that stops short of the walls
+ *             reads as a line drawn inside the panel rather than as a division of it.
+ *
+ *   ROW     — a name on the left, its control on the right, in TWO EQUAL COLUMNS. The equal
+ *             split is what makes the panel read as a panel: every control begins at one x
+ *             and ends at one x, at every row, whatever kind of control it is. It is also
+ *             the only spelling here with no number in it — a stated column width would be a
+ *             raw length in a system that has none for this.
+ *
+ *   FIELD   — a name above its control, which takes the full width. For a value you TYPE.
+ *             The rule for choosing is the value, not the widget: a pick from a closed list
+ *             or a toggle is a WORD and fits a column; a placeholder, a label or a line of
+ *             body copy is a SENTENCE and does not. Two shapes, one rule, stated here so a
+ *             third never gets invented at a call site.
+ *
+ * The header is outside all three: the node's name, its reference link and its blurb, over
+ * the first hairline. Figma's says less because Figma is not teaching anybody; the blurb
+ * earns its place here for the same reason the refusals do.
+ *
+ * ONE VOICE PER RANK, which is what stops a structure from flattening back out: inside a
+ * section exactly one thing is `weight="medium"` at full ink and it is the HEADING. A name is
+ * `emphasis="medium"` — the muted ink, no weight — and a sentence is `emphasis="quiet"` at
+ * size 1. Three ranks, and every piece of text in the panel is one of them.
  */
 
 import * as React from "react";
@@ -17,6 +55,7 @@ import {
   Box,
   Button,
   Flex,
+  Grid,
   Menu,
   MenuContent,
   MenuItem,
@@ -96,6 +135,105 @@ export const readPick = (
   return values.includes(raw) ? { value: raw } : null;
 };
 
+/* ── The three shapes (see the contract in the file header) ──────────────────────────────── */
+
+/** A name and its control, in two equal columns. Every control in the panel begins at one x
+    because they all sit in the same half. `minmax(0, 1fr)` twice rather than `1fr 1fr`: a
+    Select's trigger has a min-content width and would push its column wider than its half. */
+export function Row({
+  label,
+  children,
+  note,
+}: {
+  label: React.ReactNode;
+  children: React.ReactNode;
+  /** A sentence under the row, in the quiet ink — the schema's own note, or a warning. */
+  note?: React.ReactNode;
+}) {
+  return (
+    <Stack gap="1">
+      <Grid columns="minmax(0, 1fr) minmax(0, 1fr)" gapX="3" align="center">
+        {typeof label === "string" ? (
+          <Text size="2" emphasis="medium">
+            {label}
+          </Text>
+        ) : (
+          label
+        )}
+        <Flex gap="1" align="center" style={{ minWidth: 0 }}>
+          {children}
+        </Flex>
+      </Grid>
+      {note ? (
+        <Text size="1" emphasis="quiet">
+          {note}
+        </Text>
+      ) : null}
+    </Stack>
+  );
+}
+
+/** A name over its control, full width — for a value you TYPE. The rule is the value and not
+    the widget: a word fits a column, a sentence does not. */
+function Field({
+  label,
+  children,
+  note,
+}: {
+  label: string;
+  children: React.ReactNode;
+  note?: React.ReactNode;
+}) {
+  return (
+    <Stack gap="1">
+      <Text size="2" emphasis="medium">
+        {label}
+      </Text>
+      {children}
+      {note ? (
+        <Text size="1" emphasis="quiet">
+          {note}
+        </Text>
+      ) : null}
+    </Stack>
+  );
+}
+
+/** A named group of rows, under a hairline that runs to the pane's walls. The first section
+    states `first` and draws none — the header above it is already a division. */
+export function Section({
+  title,
+  first,
+  note,
+  children,
+}: {
+  title: string;
+  first?: boolean;
+  note?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <Stack gap="3">
+      {first ? null : (
+        <Box mx="bleed">
+          <Separator />
+        </Box>
+      )}
+      <Stack gap="2">
+        <Text size="2" weight="medium">
+          {title}
+        </Text>
+        <Stack gap="2">{children}</Stack>
+        {note ? (
+          <Text size="1" emphasis="quiet">
+            {note}
+          </Text>
+        ) : null}
+      </Stack>
+    </Stack>
+  );
+}
+
 function PickRow({
   label,
   value,
@@ -105,6 +243,7 @@ function PickRow({
   mixed,
   onPick,
   after,
+  note,
 }: {
   label: string;
   value: string | undefined;
@@ -116,17 +255,16 @@ function PickRow({
   onPick: (next: string | undefined) => void;
   /** A small control seated beside the picker — the responsive row's + menu. */
   after?: React.ReactNode;
+  /** A sentence under the row, in the quiet ink. Carried here rather than stacked by the
+      caller so a row and what it warns about are one thing, at one indent. */
+  note?: React.ReactNode;
 }) {
   /* `items` still goes to the Select for its label lookup; the options render from `order`,
      because the Record cannot hold one (see `pickOrder`). */
   const order = pickOrder(values, { ...(mixed ? { mixed } : {}), optional, ...(labels ? { labels } : {}) });
   const items: Record<string, string> = Object.fromEntries(order);
   return (
-    <Flex gap="3" align="center" justify="space-between">
-      <Text size="2" emphasis="medium">
-        {label}
-      </Text>
-      <Flex gap="1" align="center">
+    <Row label={label} {...(note ? { note } : {})}>
         <Select
           items={items}
           value={mixed ? MIXED : (value ?? UNSET)}
@@ -147,8 +285,7 @@ function PickRow({
           </SelectContent>
         </Select>
         {after}
-      </Flex>
-    </Flex>
+    </Row>
   );
 }
 
@@ -194,24 +331,18 @@ function PropControl({
   }
   if (schema.kind === "boolean") {
     return (
-      <Flex gap="3" align="center" justify="space-between">
-        <Text size="2" emphasis="medium">
-          {name}
-        </Text>
+      <Row label={name}>
         <Switch
           checked={value === true}
           onCheckedChange={(checked) => onChange(checked ? true : undefined)}
           aria-label={name}
         />
-      </Flex>
+      </Row>
     );
   }
   if (schema.kind === "number") {
     return (
-      <Flex gap="3" align="center" justify="space-between">
-        <Text size="2" emphasis="medium">
-          {name}
-        </Text>
+      <Row label={name}>
         <TextField
           type="number"
           aria-label={name}
@@ -220,21 +351,21 @@ function PropControl({
             const raw = e.target.value;
             onChange(raw === "" ? undefined : Number(raw), true);
           }}
+          style={{ inlineSize: "100%" }}
         />
-      </Flex>
+      </Row>
     );
   }
+  /* A string is a SENTENCE — a placeholder, a label, a line of copy — so it takes the full
+     width. The contract's one rule for choosing between the two shapes. */
   return (
-    <Stack gap="1">
-      <Text size="2" emphasis="medium">
-        {name}
-      </Text>
+    <Field label={name}>
       <TextField
         aria-label={name}
         value={typeof value === "string" ? value : ""}
         onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value, true)}
       />
-    </Stack>
+    </Field>
   );
 }
 
@@ -378,42 +509,40 @@ export function MultiInspector({
         </Text>
       </Stack>
 
-      {offered.length === 0 ? (
-        <Text size="1" emphasis="quiet">
-          {types.length === 1
-            ? "Nothing these share is a closed choice — this one is all identity."
-            : "These types share no knob that means the same thing on all of them. Select fewer kinds, or edit them one at a time."}
-        </Text>
-      ) : (
-        <Stack gap="2">
-          {offered.map(([name, schema]) => {
+      <Section
+        title="Shared properties"
+        note="Text and numbers stay one at a time — writing one label onto several nodes is a deletion wearing an edit's clothes."
+      >
+        {offered.length === 0 ? (
+          <Text size="1" emphasis="quiet">
+            {types.length === 1
+              ? "Nothing these share is a closed choice — this one is all identity."
+              : "These types share no knob that means the same thing on all of them. Select fewer kinds, or edit them one at a time."}
+          </Text>
+        ) : (
+          offered.map(([name, schema]) => {
             const first = nodes[0]!.props[name];
             const agreed = nodes.every((n) => sameValue(n.props[name], first));
             if (schema.kind === "boolean") {
               return (
-                <Flex key={name} gap="3" align="center" justify="space-between">
-                  <Text size="2" emphasis="medium">
-                    {name}
-                  </Text>
-                  <Flex gap="1" align="center">
-                    {/* Two buttons rather than a switch: a switch has no way to say "these
-                        disagree", and one drawn OFF over a mixed set would be a lie. */}
-                    <Button
-                      emphasis={agreed && first === true ? "medium" : "quiet"}
-                      bordered
-                      onClick={() => onProp(name, true)}
-                    >
-                      On
-                    </Button>
-                    <Button
-                      emphasis={agreed && first !== true ? "medium" : "quiet"}
-                      bordered
-                      onClick={() => onProp(name, undefined)}
-                    >
-                      Off
-                    </Button>
-                  </Flex>
-                </Flex>
+                <Row key={name} label={name}>
+                  {/* Two buttons rather than a switch: a switch has no way to say "these
+                      disagree", and one drawn OFF over a mixed set would be a lie. */}
+                  <Button
+                    emphasis={agreed && first === true ? "medium" : "quiet"}
+                    bordered
+                    onClick={() => onProp(name, true)}
+                  >
+                    On
+                  </Button>
+                  <Button
+                    emphasis={agreed && first !== true ? "medium" : "quiet"}
+                    bordered
+                    onClick={() => onProp(name, undefined)}
+                  >
+                    Off
+                  </Button>
+                </Row>
               );
             }
             const values = schema.kind === "axis" ? componentAxes[schema.axis] : schema.values;
@@ -435,31 +564,23 @@ export function MultiInspector({
                   ? (first as Record<string, string>).initial
                   : undefined;
             return (
-              <Stack key={name} gap="1">
-                <PickRow
-                  label={name}
-                  value={agreed ? plain : undefined}
-                  values={values}
-                  {...(labels ? { labels } : {})}
-                  optional={schema.optional ?? false}
-                  mixed={!agreed}
-                  onPick={(next) => onProp(name, next)}
-                />
-                {anyResponsive(name) ? (
-                  <Text size="1" emphasis="quiet">
-                    One of these states {name} per tier. Picking here replaces that.
-                  </Text>
-                ) : null}
-              </Stack>
+              <PickRow
+                key={name}
+                label={name}
+                value={agreed ? plain : undefined}
+                values={values}
+                {...(labels ? { labels } : {})}
+                optional={schema.optional ?? false}
+                mixed={!agreed}
+                onPick={(next) => onProp(name, next)}
+                {...(anyResponsive(name)
+                  ? { note: `One of these states ${name} per tier. Picking here replaces that.` }
+                  : {})}
+              />
             );
-          })}
-        </Stack>
-      )}
-
-      <Text size="1" emphasis="quiet">
-        Text and numbers stay one at a time — writing one label onto several nodes is a
-        deletion wearing an edit&apos;s clothes.
-      </Text>
+          })
+        )}
+      </Section>
     </Stack>
   );
 }
@@ -492,6 +613,8 @@ export function Inspector({
   const propNames = Object.keys(entry.props);
   return (
     <Stack gap="4">
+      {/* The header, outside the three shapes: what this is, where to read about it, and what
+          it is for. Over the first hairline, which the first Section draws. */}
       <Stack gap="1">
         <Flex align="center" justify="space-between" gap="2">
           <Text size="2" weight="medium">
@@ -512,64 +635,51 @@ export function Inspector({
       </Stack>
 
       {entry.children === "text" ? (
-        <Stack gap="1">
-          <Text size="2" emphasis="medium">
-            text
-          </Text>
-          <TextField
-            aria-label="Text content"
-            {...(textRef ? { ref: textRef } : {})}
-            value={node.text ?? ""}
-            onChange={(e) => onText(e.target.value)}
-          />
-        </Stack>
+        <Section title="Content">
+          <Field label="text">
+            <TextField
+              aria-label="Text content"
+              {...(textRef ? { ref: textRef } : {})}
+              value={node.text ?? ""}
+              onChange={(e) => onText(e.target.value)}
+            />
+          </Field>
+        </Section>
       ) : null}
 
-      {propNames.length ? (
-        <Stack gap="2">
-          {propNames.map((name) => (
-            <Stack key={name} gap="1">
-              <PropControl
-                name={name}
-                schema={entry.props[name]!}
-                value={node.props[name]}
-                onChange={(next, continuous) => onProp(name, next, continuous)}
-              />
-              {entry.props[name]!.note ? (
-                <Text size="1" emphasis="quiet">
-                  {entry.props[name]!.note}
-                </Text>
-              ) : null}
-            </Stack>
-          ))}
-        </Stack>
-      ) : (
-        <Text size="1" emphasis="quiet">
-          Nothing to configure — this one is all identity.
-        </Text>
-      )}
+      <Section
+        title="Properties"
+        {...(propNames.length ? {} : { note: "Nothing to configure — this one is all identity." })}
+      >
+        {propNames.map((name) => (
+          <PropControl
+            key={name}
+            name={name}
+            schema={entry.props[name]!}
+            value={node.props[name]}
+            onChange={(next, continuous) => onProp(name, next, continuous)}
+          />
+        ))}
+      </Section>
 
       {slotsFor(node.type).length ? (
-        <Stack gap="2">
-          <Text size="2" weight="medium">
-            Slots
-          </Text>
+        <Section
+          title="Slots"
+          note="Icons go in by hand — the package ships none, so a written one would not resolve."
+        >
           {slotsFor(node.type).map((slot) => {
             const seated = slottedChild(node, slot);
             return (
-              <Flex key={slot} gap="2" align="center" justify="space-between">
-                <Text size="2" emphasis="medium">
-                  {slot}
-                </Text>
+              <Row key={slot} label={slot}>
                 {seated ? (
-                  <Flex gap="1" align="center">
+                  <>
                     <Button emphasis="quiet" bordered onClick={() => onSelect(seated.id)}>
                       {seated.type}
                     </Button>
                     <Button emphasis="quiet" iconOnly aria-label={`Clear the ${slot} slot`} onClick={() => onSlot(slot, null)}>
                       <XIcon />
                     </Button>
-                  </Flex>
+                  </>
                 ) : (
                   <Menu>
                     <MenuTrigger
@@ -588,53 +698,47 @@ export function Inspector({
                     </MenuContent>
                   </Menu>
                 )}
-              </Flex>
+              </Row>
             );
           })}
-          <Text size="1" emphasis="quiet">
-            Icons go in by hand — the package ships none, so a written one would not resolve.
-          </Text>
-        </Stack>
+        </Section>
       ) : null}
 
       {measured && measured.length > 1 ? (
-        <Stack gap="2">
-          <Separator />
-          <Text size="2" weight="medium">
-            What that comes to
-          </Text>
+        <Section
+          title="What that comes to"
+          note="Measured off this element, so density, the pointer world and the canvas width are all already in it."
+        >
           {measured.map((row) => (
-            <Flex key={row.label} gap="3" align="center" justify="space-between">
-              <Text size="2" emphasis="medium">
-                {row.label}
-                {row.stated ? (
-                  <Text size="2" emphasis="quiet">
-                    {` ${row.stated}`}
-                  </Text>
-                ) : null}
-              </Text>
+            <Row
+              key={row.label}
+              label={
+                <Text size="2" emphasis="medium">
+                  {row.label}
+                  {row.stated ? (
+                    <Text size="2" emphasis="quiet">
+                      {` ${row.stated}`}
+                    </Text>
+                  ) : null}
+                </Text>
+              }
+            >
               <Text size="2" render={<code />}>
                 {row.value}
               </Text>
-            </Flex>
+            </Row>
           ))}
-          <Text size="1" emphasis="quiet">
-            Measured off this element, so density, the pointer world and the canvas width are
-            all already in it.
-          </Text>
-        </Stack>
+        </Section>
       ) : null}
 
       {refusals?.length ? (
-        <Stack gap="4">
-          <Separator />
-          <Text size="2" weight="medium">
-            Not here, on purpose
-          </Text>
-          {refusals.map((r) => (
-            <Refusal key={r.name} name={r.name} why={r.why} />
-          ))}
-        </Stack>
+        <Section title="Not here, on purpose">
+          <Stack gap="4">
+            {refusals.map((r) => (
+              <Refusal key={r.name} name={r.name} why={r.why} />
+            ))}
+          </Stack>
+        </Section>
       ) : null}
     </Stack>
   );
@@ -661,7 +765,11 @@ export function Inspector({
 function Refusal({ name, why }: { name: string; why: string }) {
   return (
     <Stack gap="1">
-      <Text size="2" weight="medium">
+      {/* A LABEL, not a heading (2026-09-02). It carried `weight="medium"` at full ink, which
+          is the section heading's own identity — so "emphasis and tone" competed with "Not
+          here, on purpose" one line above it and the section stopped reading as one thing.
+          Exactly one thing in a section is the heading; see the contract in the header. */}
+      <Text size="2" emphasis="medium">
         <InlineCode text={name} />
       </Text>
       <Text size="1" emphasis="quiet">
@@ -682,11 +790,11 @@ export function ThemePanel({
 }) {
   const axes = Object.keys(theme) as (keyof DocTheme)[];
   return (
-    <Stack gap="2">
-      <Text size="1" emphasis="medium">
-        One identity for the whole document — every axis re-prices tokens, no call site
-        answers twice.
-      </Text>
+    <Section
+      title="Document"
+      first
+      note="One identity for the whole document — every axis re-prices tokens, no call site answers twice."
+    >
       {axes.map((axis) => (
         <PickRow
           key={axis}
@@ -697,6 +805,6 @@ export function ThemePanel({
           onPick={(v) => v !== undefined && onAxis(axis, v)}
         />
       ))}
-    </Stack>
+    </Section>
   );
 }
