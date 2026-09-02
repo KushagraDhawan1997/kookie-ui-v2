@@ -8,6 +8,31 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-02 The builder's four emptinesses become the block — and two of them had no rendering at all
+
+**What.** The builder's empty regions are `EmptyState`: the inspector with nothing selected, a clean review, an empty canvas in Layers, and the two filters that matched nothing (Layers and the Add palette). The palette's blocks list answers the filter too, and the region derives whether it drew anything.
+
+**Why.** Kushagra, on the inspector with nothing selected: *"In builder shell, lets use empty state block we have now"*.
+
+Each of these was one quiet line at size 1 — the shape an empty state has before anybody has decided what one is. No rank, no arrangement, and in two of them **no words at all**: every `PaletteGroup` returns `null` when its entries are filtered out, so typing a word nothing is called rendered an *empty pane*. Nothing said the filter was the reason it was empty, and nothing offered the way out.
+
+**The block's contribution is the taxonomy, not the words.** Nothing yet, nothing matched, nothing available differ in rank and in whether there is anything to do, so the four call sites divide:
+
+- **Nothing matched** (two of them) carries the action, and the action CLEARS. That is the block's own second demo and the mistake it exists to prevent — offering "add a component" under a filter that returned nothing.
+- **Nothing yet** (an empty canvas) says what would be here and offers nothing to clear, because there is no filter to clear.
+- **A clean review** is the odd one and is the only one with a MARK. It is an outcome rather than an absence: the tick reads before the sentence does, and there is nothing to do about a state you wanted.
+- **Nothing selected** carries no action either, and the absence is the reading: everything that fills that panel happens on the canvas or in Layers, so a button here would be a button that sends you to a different pane.
+
+**The clear-filter action is quiet AND bordered.** The rank is the block's — an action that takes something away does not shout — and the border is Button's own half-step inside it (§9: quiet < quiet+bordered < medium). Judged in a real 320px panel: a bare quiet button under two lines of centred prose reads as a third line of prose.
+
+**It hugs the top rather than centring, and that is the block's documented answer.** `.kb-empty` is `block-size: 100%`, and the chain from the ScrollArea's content box down is auto-height, so the percentage resolves to auto. Measured: the viewport is 606px definite and `kui-scroll-content` is 84. The alternatives were a stated length — the thing this system has none of for a region — or `block-size: 100%` on the tab panel, which would clamp the non-empty panel inside a scroller. The block's own note names this case: *"a region with no height at all — hugging, which is the only thing it could do."*
+
+**Two things had to be true before the palette's state could be honest.** Saved blocks answer the filter now (they did not, so a filter matching only a saved block would have shown "nothing matched" over it) — and the INDEX travels with each block, because that index is the id every action on one uses: the drag payload, the export, the remove. Filtering a list you then address by position is how the wrong block gets deleted. And `paletteHits` counts what the region DRAWS, not what the catalog holds: `paletteEntries()` excludes parts, the family groups render only `PALETTE_FAMILIES`, and the contextual group is the only place a part appears at all — counting the catalog would have hidden a matching part behind a "nothing matched" that was not true. The count and the render read **one list per group** for the same reason: counting with one predicate and drawing with another is how the message comes to disagree with the pane.
+
+**Five laws, all falsified**: the filter state offers exactly one action and it clears (swapping the words for "Add a component" fails it, and so does adding a `secondary`); the empty canvas offers nothing to clear; the clean review carries the mark and no action; that tick is the ONLY mark across all four states; and no builder file writes an empty state by hand any more, read from the source of all three, because the way this is lost is not a rewrite — it is the next empty region getting one quiet line because that is what the file beside it used to do.
+
+---
+
 ## 2026-09-02 One row shape, one label spelling — the panel's rag was the panel's structure
 
 **What.** The property panel has ONE row: a name in the left column, a value in the right, and a trailing control outside the value's cell. `Field` — the name-above-a-full-width-input shape — is deleted. The value cell states its own fill (`grid-auto-flow: column` over `grid-auto-columns: 1fr`), a control that cannot fill sits on the column's far line instead of its near one, and the ranks became a four-step type ladder. The app's own two sections (Arrange, Save as block) moved INSIDE whichever inspector is showing, so a pane has one grid.

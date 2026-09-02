@@ -121,6 +121,7 @@ import {
 } from "./commands";
 import { CommandPalette } from "./command-palette";
 import { liveFix, reviewDocument, type Finding } from "./review";
+import { EmptyState } from "../../blocks/empty-state";
 import { ReviewPanel } from "./review-panel";
 import { Breadcrumb, CanvasBoundary, CanvasMenu, DocumentBar, ShortcutSheet, TemplatePicker, Toast } from "./chrome";
 
@@ -1326,6 +1327,11 @@ export function BuilderApp() {
     [selected, doc.roots],
   );
 
+  /* Saved blocks the palette's filter kept, each with the index it has in the store — see
+     the note at the call site: an action on a block is addressed by that index. */
+  const matchingBlocks: [Block, number][] = blocks
+    .map((b, i): [Block, number] => [b, i])
+    .filter(([b]) => matchesPalette(b.name));
   /* Parts the current selection can hold directly — the contextual half of the palette. */
   const contextualParts: [string, CatalogEntry][] = selected
     ? Object.entries(CATALOG).filter(
@@ -1333,6 +1339,23 @@ export function BuilderApp() {
           entry.partOf && canContain(selected.type, type, typesThrough(doc.roots, selected.id)),
       )
     : [];
+
+  /** What the Add region would DRAW — which is not what the catalog HOLDS, and the difference
+      is why this is derived here rather than counted off one list. `paletteEntries()` excludes
+      parts, the family groups render only `PALETTE_FAMILIES`, and the contextual group is the
+      only place a part appears at all — so counting the catalog would hide a matching part
+      behind a "nothing matched" that was not true.
+
+      Zero is a real state and it had no rendering: every group returns null when its entries
+      are filtered out, so a word nothing is called left an empty pane saying nothing about why. */
+  const matchingContextual = contextualParts.filter(([type]) => matchesPalette(type));
+  const matchingPalette = paletteEntries().filter(
+    ([type, e]) => matchesPalette(type) && (PALETTE_FAMILIES as readonly string[]).includes(e.family),
+  );
+  /* ONE LIST PER GROUP, read by the COUNT and by the render alike. Counting with one predicate
+     and drawing with another is how "nothing matched" comes to disagree with what is on screen
+     — the count would be right about the catalog and wrong about the pane. */
+  const paletteHits = matchingPalette.length + matchingContextual.length + matchingBlocks.length;
 
   /* THE SECTIONS THE APP OWNS rather than the schema, seated INSIDE whichever inspector is
      showing (2026-09-02). They used to be a `<Panel>` of their own under a `<Stack gap="5">`,
@@ -1565,11 +1588,29 @@ export function BuilderApp() {
         <ShellScroll fade>
           <Box style={{ paddingBlockStart: "calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p))" }}>
             {leftTab === "add" ? (
+              paletteHits === 0 ? (
+                /* THE FILTER'S OWN EMPTY STATE (2026-09-02). Every group returns null when
+                   its entries are filtered out, so a word that matched nothing rendered an
+                   EMPTY PANE — no rows, no message, nothing to say the filter was the reason
+                   it was empty. The block's second state, with the action that clears rather
+                   than one that offers to create. */
+                <EmptyState
+                  title="Nothing here is called that"
+                  description="The palette filters on a component's own name. Try a shorter one."
+                  action={
+                    /* Quiet and BORDERED — see the same call in layers.tsx: the rank is
+                       the block's, the border is what makes it read as a control. */
+                    <Button emphasis="quiet" bordered onClick={() => setPaletteFilter("")}>
+                      Clear the filter
+                    </Button>
+                  }
+                />
+              ) : (
               <Stack gap="4">
                 {contextualParts.length ? (
                   <PaletteGroup
                     label={`Inside ${selected!.type}`}
-                    entries={contextualParts.filter(([type]) => matchesPalette(type))}
+                    entries={matchingContextual}
                     canInsert={() => true}
                     onInsert={insertType}
                     onDragBegin={(payload) => (dragRef.current = payload)}
@@ -1580,15 +1621,14 @@ export function BuilderApp() {
                   <PaletteGroup
                     key={family}
                     label={family}
-                    entries={paletteEntries().filter(
-                      ([type, e]) => e.family === family && matchesPalette(type),
-                    )}
+                    entries={matchingPalette.filter(([, e]) => e.family === family)}
                     canInsert={(type) => insertionTarget(doc.roots, selection, type) !== null}
                     onInsert={insertType}
                     onDragBegin={(payload) => (dragRef.current = payload)}
                     onDragFinish={endDrag}
                   />
                 ))}
+                {blocks.length > 0 && matchingBlocks.length === 0 ? null : (
                 <Stack gap="1">
                   {/* The palette's own group label — an inert row, so it lines up with the
                       words under it for the reason PaletteGroup states. */}
@@ -1604,7 +1644,10 @@ export function BuilderApp() {
                       </Text>
                     </Row>
                   ) : (
-                    blocks.map((b, i) => (
+                    /* The INDEX travels with the block, because it is the id every action on
+                       one uses — the drag payload, the export, the remove — and filtering a
+                       list you then index by position is how the wrong block gets deleted. */
+                    matchingBlocks.map(([b, i]) => (
                       <Flex key={`${b.name}-${i}`} gap="1" align="center">
                         {/* The row keeps its own box and the ⋯ stays a SIBLING: Row's
                             trailing slot is for a shortcut, a count or a chevron, and a
@@ -1658,7 +1701,9 @@ export function BuilderApp() {
                     ))
                   )}
                 </Stack>
+                )}
               </Stack>
+              )
             ) : leftTab === "layers" ? (
               /* THE PACKAGE'S OWN TREE since 2026-09-02 — see layers.tsx for what the swap
                  deleted and why the drag stayed here. The filter row moved to the pane's
@@ -1676,6 +1721,7 @@ export function BuilderApp() {
                 canRowDrop={(id, mode) => rowSpot(id, mode) !== null}
                 onRowDrop={onRowDrop}
                 visible={visibleRows}
+                onClearFilter={() => setLayerFilter("")}
               />
             ) : (
               /* EXHAUSTIVE, and that is the other half of what one region list buys. The
@@ -2259,9 +2305,14 @@ export function BuilderApp() {
                       )}
                     </>
                   ) : (
-                    <Text size="1" emphasis="quiet">
-                      Click something on the canvas, or pick it in Layers.
-                    </Text>
+                    /* NO ACTION, and the absence is the reading: an empty state's action is
+                       what to do about the emptiness, and everything that fills this panel
+                       happens somewhere else — on the canvas, or in Layers. A button here
+                       would have to be a button that scrolls you to a different pane. */
+                    <EmptyState
+                      title="Nothing selected"
+                      description="Click something on the canvas, or pick it in Layers."
+                    />
                   )}
                 </Box>
               </TabsPanel>

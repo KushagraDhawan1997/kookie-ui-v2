@@ -47,6 +47,7 @@ import { API } from "../(docs)/components/api.generated";
 import { renderNode } from "./render";
 import { BuilderApp, LEFT_REGIONS } from "./builder-app";
 import { Layers, LayersFilter } from "./layers";
+import { ReviewPanel } from "./review-panel";
 import { Inspector } from "./inspector";
 import { deriveParams, serializeBlock, serializeDocument, themeDiffs, toComponentName } from "./serialize";
 
@@ -879,6 +880,7 @@ describe("Layers announces a real tree", () => {
         roots={[tree]}
         selection={[tree.children![0]!.id]}
         empty={false}
+        onClearFilter={() => {}}
         onSelect={() => {}}
         onDragBegin={() => {}}
         onDragFinish={() => {}}
@@ -1304,5 +1306,142 @@ describe("a responsive row's trailing control never leaves", () => {
     expect(html, "the tier's own row offers the way out").toContain(
       `Remove the ${TIER_KEYS[1]} breakpoint from gap`,
     );
+  });
+});
+
+/* ── The builder's empty states are the block (2026-09-02) ────────────────────────────────
+   Kushagra, looking at the inspector with nothing selected: *"In builder shell, lets use empty
+   state block we have now"*. Four regions in this app can be empty and each said so in one
+   quiet line, which is the shape an empty state has before anybody has decided what one is —
+   no rank, no arrangement, and in two of them no words at all: a palette filter that matched
+   nothing rendered an EMPTY PANE, because every group returns null when its entries are
+   filtered out.
+
+   What the block brings is not the words, it is the taxonomy. Nothing yet, nothing matched,
+   nothing available — they differ in RANK and in whether there is anything to do, and the
+   mistake it exists to prevent is offering "create one" under a filter that returned nothing.
+   So these laws hold the split rather than the copy. */
+describe("the builder's empty states are the block, and they carry its taxonomy", () => {
+  const paint = (ui: React.ReactElement) => renderToStaticMarkup(<Theme>{ui}</Theme>);
+  const tree = node("Stack", {}, { children: [node("Button", {}, { text: "Go" })] });
+
+  /* NOTHING MATCHED CARRIES THE WAY OUT, AND IT CLEARS. The one editorial rule the block
+     states outright. Read as a real button with a real handler rather than as a string: the
+     `×` in the filter field is not this, and a state whose action is absent is the one-line
+     version this replaced. */
+  it("a filter that matched nothing offers to clear it, and offers nothing else", () => {
+    const html = paint(
+      <Layers
+        roots={[tree]}
+        selection={[]}
+        empty={false}
+        onClearFilter={() => {}}
+        onSelect={() => {}}
+        onDragBegin={() => {}}
+        onDragFinish={() => {}}
+        canRowDrop={() => true}
+        onRowDrop={() => {}}
+        // Nothing survives the filter — the state this law is about.
+        visible={new Set<string>()}
+      />,
+    );
+    expect(html, "it is the block").toContain("kb-empty");
+    expect(html, "and it says what the filter is").toContain("Nothing here is called that");
+    expect(html, "with the one thing to do").toContain("Clear the filter");
+    // ONE action. `action` and `secondary` are two slots and a filter state wants one of them.
+    expect((html.match(/kui-button/g) ?? []).length, "one action, not two").toBe(1);
+    // And it does NOT offer to create something — the mistake the block exists to prevent.
+    expect(html.toLowerCase(), "no create under a filter").not.toMatch(/\bnew\b|\badd\b|template/);
+  });
+
+  /* NOTHING YET DOES NOT. The same panel, the same component, a different emptiness — and the
+     difference is visible in the markup, which is what stops the two collapsing back into one
+     string over time. */
+  it("an empty canvas says so and offers nothing to clear", () => {
+    const html = paint(
+      <Layers
+        roots={[]}
+        selection={[]}
+        empty
+        onClearFilter={() => {}}
+        onSelect={() => {}}
+        onDragBegin={() => {}}
+        onDragFinish={() => {}}
+        canRowDrop={() => true}
+        onRowDrop={() => {}}
+        visible={null}
+      />,
+    );
+    expect(html, "it is the block").toContain("kb-empty");
+    expect(html).toContain("The canvas is empty");
+    expect(html, "there is no filter to clear").not.toContain("Clear the filter");
+  });
+
+  /* A CLEAN REVIEW IS AN OUTCOME, NOT AN ABSENCE — which is why it is the only empty state in
+     the builder that carries a mark, and why it offers nothing to do. An action here would be
+     an action about a state you wanted. */
+  it("a clean review carries the mark, and nothing to do about it", () => {
+    const html = paint(<ReviewPanel findings={[]} selection={[]} onSelect={() => {}} onFix={() => {}} />);
+    expect(html, "it is the block").toContain("kb-empty");
+    expect(html, "and the tick reads before the sentence does").toContain("kb-empty-mark");
+    expect(html).toContain("Nothing to answer for");
+    expect((html.match(/kui-button/g) ?? []).length, "nothing to do").toBe(0);
+  });
+
+  /* AND THE ONE THAT IS NOT A MARK. A mark is for a state a reader meets before they know what
+     the region is for; three of these four are regions the reader has already used, so the tick
+     above must be the only one. Counted across all three, because "only" is the claim. */
+  it("the review's tick is the only mark in the builder's empty states", () => {
+    const marks = [
+      paint(<ReviewPanel findings={[]} selection={[]} onSelect={() => {}} onFix={() => {}} />),
+      paint(
+        <Layers
+          roots={[]}
+          selection={[]}
+          empty
+          onClearFilter={() => {}}
+          onSelect={() => {}}
+          onDragBegin={() => {}}
+          onDragFinish={() => {}}
+          canRowDrop={() => true}
+          onRowDrop={() => {}}
+          visible={null}
+        />,
+      ),
+      paint(
+        <Layers
+          roots={[tree]}
+          selection={[]}
+          empty={false}
+          onClearFilter={() => {}}
+          onSelect={() => {}}
+          onDragBegin={() => {}}
+          onDragFinish={() => {}}
+          canRowDrop={() => true}
+          onRowDrop={() => {}}
+          visible={new Set<string>()}
+        />,
+      ),
+    ].map((h) => (h.match(/kb-empty-mark/g) ?? []).length);
+    expect(marks, "exactly one of the three").toEqual([1, 0, 0]);
+  });
+
+  /* NO REGION STILL WRITES ITS OWN. The cheapest way to lose this is not a rewrite, it is the
+     next empty region getting one quiet line because that is what the file next to it used to
+     do. The law reads the SOURCE of all four files: an empty state is the block, and the
+     one-liners it replaced are gone by their own words. */
+  it("no builder region hand-writes an empty state any more", () => {
+    for (const file of ["builder-app.tsx", "layers.tsx", "review-panel.tsx"]) {
+      const source = readFileSync(new URL(`./${file}`, import.meta.url), "utf8");
+      for (const gone of [
+        "Click something on the canvas, or pick it in Layers.\n",
+        "The canvas is empty.\n",
+        "Nothing here is called that.\n",
+      ]) {
+        expect(source, `${file} still writes an empty state by hand`).not.toContain(gone);
+      }
+    }
+    const app = readFileSync(new URL("./builder-app.tsx", import.meta.url), "utf8");
+    expect(app, "and the block is where they come from").toContain('from "../../blocks/empty-state"');
   });
 });
