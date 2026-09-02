@@ -1012,7 +1012,15 @@ describe("a pane's chrome is a pane part", () => {
      loudly as a deleted margin. Falsified in both directions. */
   it("the inspector's chrome row spends the pane's own padding back, not a number", () => {
     const header = headerTag("inspector")!;
-    expect(header).toMatch(/margin-inline:\s*calc\(-1\s*\*\s*var\(--kui-sf-p\)\)/);
+    expect(header, "it spends the padding as a value, never a length").toMatch(
+      /margin:\s*calc\(-1\s*\*\s*var\(--kui-sf-p\)\)/,
+    );
+    // THREE EDGES, and the fourth is the point (2026-09-02, "Even the top bleed"): a band
+    // flush on the sides and inset at the top is a rule with a margin above it. The block-END
+    // stays, because that edge is the gap to the panel below rather than the pane's inset.
+    expect(header, "the block end is not spent — that gap is content spacing").toMatch(
+      /margin-block-end:\s*0/,
+    );
   });
 
   /* AND THE PADDING IS NEVER PUT BACK ON THE LIST. tabs.css states the constraint outright:

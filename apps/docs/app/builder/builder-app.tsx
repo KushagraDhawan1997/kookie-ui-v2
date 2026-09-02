@@ -2137,6 +2137,14 @@ export function BuilderApp() {
               halved. The row spends the pane's padding back (`--kui-sf-p`, the bleed
               mechanism's own hook, §3), so the rule runs wall to wall.
 
+              THE TOP GOES WITH THE SIDES (2026-09-02, "Even the top bleed. In inspector"):
+              a band that is flush on three edges and inset on the fourth is not a band, it is
+              a rule with a margin above it. The row reaches the pane's top corner and its own
+              `min-block-size` is what gives it height, so the tabs centre in one control row
+              sitting directly under the frame's header seam. The block-END is left alone —
+              that edge is the gap between the seam and the panel under it, which is content
+              spacing rather than the pane's own inset.
+
               THE PADDING GOES ON THE ROW, NEVER ON THE LIST, and that is not a preference:
               tabs.css states it outright — `--active-tab-left` is measured from the list's
               BORDER box while the travelling rule resolves its insets against the PADDING
@@ -2145,7 +2153,7 @@ export function BuilderApp() {
               the pane's 16, so the labels land within two pixels of the body's column with
               no number stated here — measured, not assumed. */}
           <ShellPaneHeader
-            style={{ marginInline: "calc(-1 * var(--kui-sf-p))" }}
+            style={{ margin: "calc(-1 * var(--kui-sf-p))", marginBlockEnd: 0 }}
           >
             <TabsList style={{ flex: 1 }}>
               <TabsTab value="inspect">Selected</TabsTab>
