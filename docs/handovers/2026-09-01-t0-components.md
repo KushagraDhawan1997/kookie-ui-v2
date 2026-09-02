@@ -158,6 +158,65 @@ it can never become a raised strip.
 
 ---
 
+## The audit round (2026-09-02)
+
+You asked for an ultracode audit of everything above, then for all of it to be fixed. Both
+happened. **The honest summary is that the audit found a lot, and most of it was mine.**
+
+A ten-lens fleet ran against the branch diff, each lens keyed to a defect shape this repo has
+already been bitten by and written down. It was badly over-scaled — I set three adversarial
+verifiers per finding against ~75 findings, which is 231 agents for a 3,700-line diff, and the
+container restarted before the verification pass finished. The findings were recovered off disk
+and each one was re-measured by hand before it was fixed, which is what the verifiers would have
+done. Four commits follow this one.
+
+**The six that reached a person:**
+
+1. **Keyboard resize did nothing.** `onResize?.(write(pane, next))` — an optional call does not
+   evaluate its argument, so arrows, Home and End were inert unless the app passed a callback.
+   Every keyboard law passed one, because it also wanted to count the calls: the fixture was
+   the single input where the defect is invisible.
+2. **The splitter never announced a position.** `aria-valuenow` was computed during render from
+   a ref that is null on the first commit, and the gesture sets no state, so it never appeared
+   and never changed. ARIA marks it required on a focusable separator. Its first repair also
+   silently seeded nothing, because a child's layout effect runs before its parent's ref is
+   attached.
+3. **The resize target was half its stated size.** The handle straddled the pane's edge and a
+   pane clips. The first repair's own sabotage PASSED, because the law read
+   `getBoundingClientRect` — a layout box, which cannot see a clip. It hit-tests now.
+4. **`resizable` silently broke its own pane**, displacing the `:nth-last-child` match that
+   bleeds a `ShellScroll` to the pane's edge. And on a phone the drawer kept a focusable,
+   draggable splitter over its own scrim, because the stand-down named `overlay` and a narrow
+   window resolves `auto`.
+5. **No attachment state reached assistive technology.** `idle` and `error` were identical
+   subtrees, so a failed upload was conveyed by colour alone. The tile was also a bare `<div>`
+   carrying a prop doc that called `children` its accessible name — a `<div>` is `role=generic`,
+   for which naming is prohibited, so the documented name could not exist.
+6. **My Attachment example broke `next build`** — a Server Component passing a handler. I told
+   you the docs build failed on fonts alone; that was wrong, and it is true now: the build's
+   only remaining errors are the three gitignored licensed fonts.
+
+**And the pattern behind them, which is the part worth keeping:** nine of the fixes were for
+laws that could not fail, and in four cases the FIRST repair's sabotage also passed. The
+recurring cause was never a law asserting the wrong thing — it was a law whose *fixture* could
+not tell a correct implementation from a broken one. A palette's size laws all ran at index 2,
+the one index where the pin was invisible. The cast law walked appearance × depth, so every cell
+was `solid` — the one world where the rule its specificity argument exists to beat does not
+apply. The glass-scope law used a child that resolves solid whether the scope exists or not.
+
+Two of my own widened laws had holes: moving the transition ban to the sanctioned corpus took it
+off the scrim and both stand-downs, and the exemption's stated bound ("it may name no colour")
+inspected only `background`.
+
+**Reversed on measurement:** I built the "controlled pane snaps back" behaviour the prose
+promised in four homes, then deleted it — re-asserting on every render discards a person's drag
+the next time the app re-renders for anything unrelated. The prose moved instead.
+
+**Still owed:** four pre-existing components re-spell the row identity inline instead of
+importing `rowProps`; they are named with an expiry in `rows.test.ts` and the law fails on a
+fifth. And the DEV safe-area guard cannot see a drag (its observer watches the shell root, whose
+box does not change), so `--kui-shell-inset-*` goes stale after one — recorded, not fixed.
+
 ## What I would do next
 
 1. **Fix RTL on Tabs and SegmentedControl.** Still the thing I would put ahead of any new
