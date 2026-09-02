@@ -1532,3 +1532,147 @@ describe("the jump bar is the Breadcrumb, and the app owns only the truncation",
     expect(source, "and each one goes somewhere").toMatch(/label: n\.type, onClick:/);
   });
 });
+
+/* ── The builder speaks the system's own vocabulary (2026-09-03) ──────────────────────────
+   Kushagra, on the top bar: *"Please scan for other things too, like not using hugeicons, not
+   using size 2 icon button as default, or any button etc etc."* The scan found one shape
+   repeated: a control written out BY HAND where the package ships the thing itself. A `⋯`
+   character where an icon goes, `aria-pressed` bolted onto a Button where a Toggle exists, a
+   count baked into a label where a Badge exists, four hand-painted declarations where a Card
+   does. These laws hold each one, so the next hand-written control fails here rather than
+   being noticed in a screenshot. */
+describe("the builder writes no control the package already ships", () => {
+  const FILES = ["builder-app.tsx", "chrome.tsx", "command-palette.tsx", "inspector.tsx", "layers.tsx", "review-panel.tsx"];
+  const sources = FILES.map((f) => [f, readFileSync(new URL(`./${f}`, import.meta.url), "utf8")] as const);
+  /** The source with its comments stripped — every claim below is about CODE, and this repo's
+      own laws have twice fired on their own explaining prose. */
+  const code = (src: string) =>
+    src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
+  /* A GLYPH IS DRAWN, NOT TYPED. A `⋯` or a `−` as a label is drawn by whatever face the line
+     resolved, at that face's weight, beside icons the package draws at `iconStroke` — the
+     2026-08-23 two-grids defect in its plainest form. Three of them shipped: the document
+     menu, a saved block's menu, and the two zoom steps. */
+  it("no character stands in for an icon", () => {
+    for (const [file, src] of sources) {
+      const found = [...code(src).matchAll(/>\s*([⋯…−–—×✕✓＋]|\+)\s*</g)].map((m) => m[1]);
+      expect(found, `${file} types a glyph instead of drawing one`).toEqual([]);
+    }
+  });
+
+  /* A TOGGLE IS A TOGGLE (§34). `aria-pressed` on a Button plus an emphasis the call site
+     computes IS the component, written out longhand — and the component is where the pressed
+     state comes from the primitive rather than from a prop nobody validates. */
+  it("nothing bolts aria-pressed onto a Button", () => {
+    for (const [file, src] of sources) {
+      expect(code(src), `${file} hand-writes a toggle`).not.toMatch(/aria-pressed=/);
+    }
+  });
+
+  /* `aria-current` NAMES A LOCATION IN A SET — a page in a nav, a crumb in a path. It was on
+     the Review button meaning "this pane is open", which is `aria-expanded` and which
+     `ShellTrigger` publishes already: redundant and wrong at once. The breadcrumb is the one
+     place in this app that has a set to be current in, and it says `page`. */
+  it("aria-current is only ever a place in a path", () => {
+    for (const [file, src] of sources) {
+      for (const m of code(src).matchAll(/aria-current=\{?["']?([a-z]*)/g)) {
+        expect(m[1], `${file} says aria-current="${m[1]}"`).toBe("page");
+      }
+    }
+  });
+
+  /* A COUNT IS A BADGE (§38), not part of a label. Baked into the string it changed the
+     button's WIDTH every time the document did, so the whole right-hand run shifted while you
+     were reaching for it — Tabs' own measured argument against a heavier active label. */
+  it("the review count is pinned to the word, not spliced into it", () => {
+    const html = renderToStaticMarkup(<BuilderApp />);
+    expect(html, "the button is there").toContain("Review");
+    const app = readFileSync(new URL("./builder-app.tsx", import.meta.url), "utf8");
+    expect(code(app), "no count spliced into a label").not.toMatch(/`Review \$\{/);
+    expect(code(app), "the count is a Badge").toMatch(/<Badge[\s\S]{0,200}findings\.length/);
+  });
+
+  /* THE FENCE (§13). `--shadow-1..5` is reached through the world's chrome roles, and a law
+     walks every package stylesheet asserting no rule names one directly. An app is not the
+     package, but a hand-painted pane is the same mistake with no law over it — the toast
+     stated the seal, a hairline, a corner and `var(--shadow-3)`, which is a Card. */
+  it("no app file paints a pane by hand", () => {
+    for (const [file, src] of sources) {
+      expect(code(src), `${file} reaches past the chrome roles`).not.toMatch(/--shadow-[1-5]/);
+      expect(code(src), `${file} paints its own seal`).not.toMatch(/background:\s*"var\(--color-surface\)"/);
+    }
+  });
+
+  /* ONE HOME FOR A MESSAGE. The toast rendered TWICE — as a `Text` in the header and as the
+     `Toast` at the root — so two `aria-live` regions announced the same string, which a screen
+     reader reads twice. */
+  it("a toast is announced once", () => {
+    const app = readFileSync(new URL("./builder-app.tsx", import.meta.url), "utf8");
+    expect((code(app).match(/aria-live/g) ?? []).length, "one live region in the app frame").toBe(1);
+    expect(code(app), "and the message has one renderer").toMatch(/<Toast message=\{toast\} \/>/);
+  });
+
+  /* A DEFAULT RESTATED IS A DEFAULT WITH TWO HOMES, and the one that is not the config drifts.
+     `size="2"` on a control is the baseline said again; the builder's own header comment names
+     the shape. Type and surface sizes are real choices and stay. */
+  it("no control restates the size it would have taken anyway", () => {
+    for (const [file, src] of sources) {
+      const lines = code(src).split("\n");
+      lines.forEach((line, i) => {
+        if (!/\bsize="2"/.test(line)) return;
+        expect.soft(line.trim(), `${file}:${i + 1} restates the default size`).toMatch(
+          /Card|Surface|Dialog|Text|Heading|Code|Kbd|Badge|Chip|CodeBlock/,
+        );
+      });
+    }
+  });
+});
+
+/* ── The top bar has three zones, and each is about one thing (2026-09-03) ─────────────────
+   Kushagra: *"the top bar is partociarlarly bad"*, and it was. Two clusters pushed apart by
+   `space-between` put the DOCUMENT at the far left beside the app's own name and everything
+   you do to that document at the other end, with a dead gap between them; six peer controls
+   ran along the right in one weight, so nothing said which of them you reach for. */
+describe("the top bar is three zones", () => {
+  const html = renderToStaticMarkup(<BuilderApp />);
+  const header = html.slice(html.indexOf("kui-shell-header"), html.indexOf("kui-shell-rail"));
+
+  /* A GRID, NOT `space-between` — and that is the mechanism rather than the styling. `1fr auto
+     1fr` centres the middle against the WINDOW however wide the side clusters get; a flex row
+     centres it against whatever room the sides leave, so the document name would drift every
+     time a finding count changed. */
+  it("the document is centred against the window, not against the room the sides leave", () => {
+    expect(header, "the header is a grid").toContain("--kui-gtc:1fr auto 1fr");
+    expect(header, "and not a pushed-apart row").not.toContain("--kui-jc:space-between");
+  });
+
+  it("three cells, and the document is the middle one", () => {
+    const grid = header.slice(header.indexOf("--kui-gtc"));
+    // The document switcher is a Select, so its trigger is the one combobox in the bar.
+    const before = grid.slice(0, grid.indexOf('role="combobox"'));
+    const after = grid.slice(grid.indexOf('role="combobox"'));
+    expect(before, "the identity is before it").toContain("Builder");
+    expect(after, "and the actions are after it").toContain("Export code");
+  });
+
+  /* ONE EMPHASIS PEAK, AT THE END OF THE RUN. Everything else in the bar is quiet or a
+     toggle's own state; `Export code` is the only loud thing, and nothing louder follows it. */
+  it("exactly one loud control, and the run ends on it", () => {
+    /* CONTROLS, not text. A `Heading` renders `data-emphasis="loud"` because loud is the type
+       family's own resting rung (§15) — the ladder's top, not a focal action — so a law that
+       counted every `loud` in the header counted the wordmark. Caught by its own first run. */
+    const loud = [...header.matchAll(/data-emphasis="loud" class="kui-control/g)];
+    expect(loud.length, "one focal action in the frame's header").toBe(1);
+    /* And nothing with a LABEL follows it. Only the pane toggle does, which is the frame's
+       own edge rather than an action — read as "every control after the loud one is icon-only"
+       rather than as "no capitalised word follows", which the loud button's own label
+       satisfied on the first run. */
+    const from = header.indexOf('data-emphasis="loud" class="kui-control');
+    const after = header.slice(header.indexOf("</button>", from) + "</button>".length);
+    const trailing = [...after.matchAll(/<button [^>]*>/g)].map((m) => m[0]);
+    expect(trailing.length, "the bar does end with the frame's edge").toBeGreaterThan(0);
+    for (const tag of trailing) {
+      expect(tag, "a labelled control follows the loud one").toContain('data-icon-only="true"');
+    }
+  });
+});

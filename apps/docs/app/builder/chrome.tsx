@@ -45,6 +45,7 @@ import {
   TextField,
 } from "@kookie-ui/react";
 
+import { MoreIcon } from "../icons";
 import { COMMANDS, chordLabel, type CommandGroup } from "./commands";
 import { ancestorChain, findNode, type BuilderNode } from "./model";
 import { TEMPLATES } from "./templates";
@@ -90,9 +91,14 @@ export function DocumentBar({
       {preview ? null : (
       <Menu>
         <MenuTrigger
+          /* THE DOTS ARE A GLYPH (2026-09-03). It was the character `⋯` as a label, which is
+             the 2026-08-23 two-grids defect wearing its plainest form: a text ellipsis is
+             drawn by whatever face the line resolved, at that face's weight, beside icons the
+             package draws at `iconStroke`. `iconOnly` with the set's own mark, so the box, the
+             stroke and the accessible name all arrive from the system. */
           render={
-            <Button emphasis="quiet" aria-label="Document actions">
-              ⋯
+            <Button emphasis="quiet" iconOnly aria-label="Document actions">
+              <MoreIcon />
             </Button>
           }
         />
@@ -551,19 +557,17 @@ export function Toast({ message }: { message: string | null }) {
         zIndex: 50,
       }}
     >
-      <Box
-        p="3"
-        style={{
-          background: "var(--color-surface)",
-          border: "var(--border-width) solid var(--color-border)",
-          borderRadius: "var(--radius-surface-2)",
-          boxShadow: "var(--shadow-3)",
-        }}
-      >
+      {/* A CARD (2026-09-03). It was four hand-painted declarations — the seal, a hairline, a
+          corner and `box-shadow: var(--shadow-3)` — which is the fenced resource read
+          directly (§13: `--shadow-N` is reached through the world's chrome roles, and a law
+          walks every package stylesheet asserting exactly that). A card is that pane, and the
+          world decides whether it lifts. The canvas page made the same mistake and became a
+          `Surface` on 2026-08-20. */}
+      <Card size="2">
         <Text size="2" aria-live="polite">
           {message}
         </Text>
-      </Box>
+      </Card>
     </Box>
   );
 }

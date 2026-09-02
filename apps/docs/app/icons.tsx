@@ -66,6 +66,7 @@ import {
   Home01Icon,
   Mail01Icon,
   Mic01Icon,
+  MinusSignIcon,
   MoreHorizontalIcon,
   Notification02Icon,
   PlusSignIcon,
@@ -104,6 +105,7 @@ export const CheckIcon = glyph(Tick02Icon);
 export const MailIcon = glyph(Mail01Icon);
 export const LockIcon = glyph(SquareLock02Icon);
 export const BellIcon = glyph(Notification02Icon);
+export const MinusIcon = glyph(MinusSignIcon);
 export const MoreIcon = glyph(MoreHorizontalIcon);
 export const ArrowUpIcon = glyph(ArrowUp02Icon);
 export const ArrowLeftIcon = glyph(ArrowLeft02Icon);

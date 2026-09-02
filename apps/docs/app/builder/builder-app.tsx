@@ -22,6 +22,7 @@ import * as React from "react";
 import Link from "next/link";
 
 import {
+  Badge,
   Box,
   Button,
   ContextMenu,
@@ -32,6 +33,7 @@ import {
   DialogDescription,
   DialogTitle,
   Flex,
+  Grid,
   Heading,
   Kbd,
   Menu,
@@ -40,7 +42,6 @@ import {
   MenuTrigger,
   Row,
   ScrollArea,
-  Separator,
   Shell,
   ShellContent,
   ShellHeader,
@@ -58,6 +59,7 @@ import {
   TabsList,
   TabsPanel,
   TabsTab,
+  Toggle,
   Text,
   TextField,
   Theme,
@@ -65,7 +67,7 @@ import {
   useWindowClass,
 } from "@kookie-ui/react";
 
-import { LayersIcon, PanelLeftIcon, PanelRightIcon, PlusIcon, RedoIcon, UndoIcon, XIcon } from "../icons";
+import { LayersIcon, MinusIcon, MoreIcon, PanelLeftIcon, PanelRightIcon, PlusIcon, RedoIcon, UndoIcon, XIcon } from "../icons";
 import { Layers, LayersFilter } from "./layers";
 import { CATALOG, canContain, gapStepsFor, paletteEntries, sanitizeNode, seatVocabularyFor, sizeStepsFor, PALETTE_FAMILIES, type CatalogEntry, type SeatVocabulary } from "./catalog";
 import {
@@ -296,7 +298,20 @@ export function BuilderApp() {
   const [inspectorOpen, setInspectorOpen] = React.useState<boolean | null>(null);
   /** `null` on the server and through hydration (§18, honestly) — and `null !== "narrow"`
       resolves to OPEN, which is the right first paint for a desktop tool. */
-  const roomy = useWindowClass() !== "narrow";
+  const windowClass = useWindowClass();
+  const roomy = windowClass !== "narrow";
+  /** Whether the header can afford to CENTRE the document (2026-09-03).
+   *
+   *  Centring against the window means the two side cells are equal by construction — that is
+   *  what `1fr auto 1fr` says — so the window has to be wide enough for twice the WIDER side
+   *  plus the middle. Measured: the right cluster is ~420px, the left ~102, the document ~204,
+   *  so three zones need ~1,076px and at 900 the right cluster overflowed its own cell and
+   *  drew over the document. The old two-cluster row degraded instead of overlapping because
+   *  the left one carried `min-width: 0` and simply squeezed the name.
+   *
+   *  `null` on the server resolves to CENTRED, which is the right first paint for a desktop
+   *  tool and is the same call the inspector's own `roomy` makes one line up. */
+  const centred = windowClass === null || windowClass === "wide";
   const inspectorShown = !preview && (inspectorOpen ?? roomy);
   /** The key listener is mounted once and never re-bound, so it needs the CURRENT mode
       rather than the one that was true when it was attached. */
@@ -1357,6 +1372,32 @@ export function BuilderApp() {
      — the count would be right about the catalog and wrong about the pane. */
   const paletteHits = matchingPalette.length + matchingContextual.length + matchingBlocks.length;
 
+  /* THE DOCUMENT AND ITS OWN HISTORY — one cluster, placed in the middle when the window can
+     centre it and beside the identity when it cannot. ONE thing rather than two spellings: the
+     two placements differ in where it sits, and nothing else. */
+  const documentZone = (
+    <Flex align="center" gap="2" justify="center" style={{ minWidth: 0 }}>
+      {/* Undo and redo belong HERE rather than in the right-hand run, because that is what
+          they are about: they act on this document and nothing else in the bar does. Among
+          Commands, Review and Preview they read as two more global modes.
+
+          They stand down in preview along with the panels. Guarding the keyboard and leaving
+          the buttons would be half a guard: a click on undo edits the document just as well as
+          ⌘Z does, and preview draws nothing to say it happened. */}
+      {!preview ? (
+        <>
+          <Button emphasis="quiet" disabled={!canUndo(state)} onClick={undo} aria-label="Undo" iconOnly>
+            <UndoIcon />
+          </Button>
+          <Button emphasis="quiet" disabled={!canRedo(state)} onClick={redo} aria-label="Redo" iconOnly>
+            <RedoIcon />
+          </Button>
+        </>
+      ) : null}
+      <DocumentBar state={state} dispatch={dispatch} preview={preview} />
+    </Flex>
+  );
+
   /* THE SECTIONS THE APP OWNS rather than the schema, seated INSIDE whichever inspector is
      showing (2026-09-02). They used to be a `<Panel>` of their own under a `<Stack gap="5">`,
      which gave the pane two label columns and put a third distance between two sections
@@ -1421,11 +1462,34 @@ export function BuilderApp() {
           root prop was added to end — and the index they were reaching for was the wrong one
           anyway. Stating `size="2"` here would be a second home for the baseline; the one
           that counts lives in the component. */}
-      {/* ── Top bar: identity, the document, the modes, the one loud action ── */}
+      {/* ── The top bar (2026-09-03, Kushagra: "the top bar is partociarlarly bad") ────────
+          THREE ZONES, AND EACH ONE IS ABOUT ONE THING. It was two clusters pushed apart by
+          `space-between`, which put the DOCUMENT at the far left beside the app's own name
+          and everything you do TO that document 1,200px away at the other end, with a dead
+          gap between them. Six peer controls ran along the right in one weight, so nothing
+          said which of them you reach for.
+
+          Now: the panes at the two extremes (the convention, and they are symmetric), the
+          identity beside the one it opens, the DOCUMENT centred with its own history beside
+          it, and the actions on the right ending on the one loud thing.
+
+          A GRID, not `space-between`, and that is the whole mechanism: `1fr auto 1fr` keeps
+          the middle centred against the WINDOW however wide the two side clusters get, where
+          a flex row centres it against whatever room the sides leave — so the document name
+          would drift every time a finding count changed. */}
       <ShellHeader>
-        <Flex align="center" justify="space-between" gapX="4">
+        <Grid
+          /* THREE ZONES WHILE THE WINDOW CAN AFFORD THEM, two when it cannot — see `centred`
+             for the arithmetic. Below the boundary the document rejoins the identity, which is
+             where it lived before, and the row is a plain `auto 1fr`: the actions take the rest
+             and land at its end. */
+          columns={centred ? "1fr auto 1fr" : "auto 1fr"}
+          gapX="4"
+          align="center"
+          style={{ flex: 1, minWidth: 0 }}
+        >
           <Flex align="center" gap="3" style={{ minWidth: 0 }}>
-            {/* The two pane toggles sit where every app frame puts them: beside the identity,
+            {/* The pane toggles sit where every app frame puts them — at the two ends,
                 driving panes BY NAME through the registry rather than through lifted state. */}
             {!preview ? (
               <ShellTrigger
@@ -1440,58 +1504,61 @@ export function BuilderApp() {
                 Builder
               </Link>
             </Heading>
-            <DocumentBar state={state} dispatch={dispatch} preview={preview} />
+            {centred ? null : documentZone}
           </Flex>
-          <Flex align="center" gap="2">
-            {toast ? (
-              <Text size="2" emphasis="quiet" aria-live="polite">
-                {toast}
-              </Text>
-            ) : null}
-            {/* The EDITING controls stand down in preview with the panels. Guarding the
-                keyboard and leaving the buttons would be half a guard: a click on undo edits
-                the document just as well as ⌘Z does, and preview draws nothing to say it
-                happened. */}
-            {!preview ? (
-              <>
-                <Button emphasis="quiet" disabled={!canUndo(state)} onClick={undo} aria-label="Undo" iconOnly>
-                  <UndoIcon />
-                </Button>
-                <Button emphasis="quiet" disabled={!canRedo(state)} onClick={redo} aria-label="Redo" iconOnly>
-                  <RedoIcon />
-                </Button>
-                <Separator orientation="vertical" style={{ height: "20px" }} />
-              </>
-            ) : null}
+
+          {centred ? documentZone : null}
+
+          {/* THE ACTIONS, ending on the one loud thing. The pane toggle sits after it because
+              a pane toggle is not an action on the document — it belongs at the frame's edge
+              with its twin, which is the one arrangement that reads as a frame rather than as
+              a sixth button. */}
+          <Flex align="center" gap="2" justify="flex-end" style={{ minWidth: 0 }}>
             <Button emphasis="quiet" onClick={() => setPaletteOpen(true)} trailing={<Kbd>{chordLabel("mod+k")}</Kbd>}>
               Commands
             </Button>
             {/* Review is a REGION of the inspector, so the button goes there and takes the
                 pane's visibility with it — the dead-control problem the last audit named,
                 answered structurally this time rather than by hiding the button. It still
-                stands down in preview, where the pane is closed on purpose. */}
+                stands down in preview, where the pane is closed on purpose.
+
+                THE COUNT IS A BADGE (§38, 2026-09-03), not part of the label. Baked into the
+                string it changed the button's WIDTH every time the document did, so the whole
+                right-hand run shifted while you were reaching for it — Tabs' own measured
+                argument against a heavier active label. A badge is a marker pinned to a thing;
+                the thing here is the word "Review".
+
+                `aria-current` is GONE with it. It said `"true"` on an open pane, and
+                `aria-current` names a location in a set — a page in a nav, a crumb in a path.
+                Whether a pane is open is `aria-expanded`, which `ShellTrigger` has been
+                publishing all along, so the attribute was redundant and wrong at once. */}
             {!preview ? (
               <ShellTrigger
                 target="inspector"
                 action="open"
                 onClick={() => setRightTab("review")}
-                render={
-                  <Button
-                    emphasis={reviewOpen ? "medium" : "quiet"}
-                    aria-current={reviewOpen ? "true" : undefined}
-                  />
-                }
+                render={<Button emphasis={reviewOpen ? "medium" : "quiet"} />}
               >
-                {findings.length ? `Review ${findings.length}` : "Review"}
+                Review
+                {findings.length ? (
+                  <Badge tone={findings.some((f) => f.severity === "error") ? "destructive" : "warning"}>
+                    {findings.length}
+                  </Badge>
+                ) : null}
               </ShellTrigger>
             ) : null}
-            <Button
-              emphasis={preview ? "medium" : "quiet"}
-              aria-pressed={preview}
-              onClick={() => setPreview((v) => !v)}
-            >
-              {preview ? "Editing off" : "Preview"}
-            </Button>
+            {/* A TOGGLE (§34, 2026-09-03). It was a Button with `aria-pressed` bolted on and
+                an emphasis the call site computed — which is the component, written out by
+                hand: a toggle's emphasis IS its state, which is why `Toggle` has no emphasis
+                prop and why `aria-pressed` comes from the primitive.
+
+                The LABEL stopped changing with it. "Preview" became "Editing off" when it was
+                on, so the control announced two different things and neither of them named
+                what pressing it does. A toggle says what it turns on, and its own state says
+                whether it is on. */}
+            <Toggle pressed={preview} onPressedChange={setPreview}>
+              Preview
+            </Toggle>
             <Button tone="accent" emphasis="loud" onClick={() => setExportOpen(true)}>
               Export code
             </Button>
@@ -1504,7 +1571,7 @@ export function BuilderApp() {
               </ShellTrigger>
             ) : null}
           </Flex>
-        </Flex>
+        </Grid>
       </ShellHeader>
 
       {/* ── The rail: which region the sidebar shows ──────────────────────────────────────
@@ -1669,8 +1736,8 @@ export function BuilderApp() {
                         <Menu>
                           <MenuTrigger
                             render={
-                              <Button emphasis="quiet" aria-label={`Actions for ${b.name}`}>
-                                ⋯
+                              <Button emphasis="quiet" iconOnly aria-label={`Actions for ${b.name}`}>
+                                <MoreIcon />
                               </Button>
                             }
                           />
@@ -1756,7 +1823,7 @@ export function BuilderApp() {
                   disabled={zoom === ZOOMS[0]}
                   onClick={() => ctx.ui.stepZoom(-1)}
                 >
-                  −
+                  <MinusIcon />
                 </Button>
                 {/* The reading is the button: pressing it goes back to actual size, which
                     is the only zoom anybody asks for by name. */}
@@ -1770,16 +1837,14 @@ export function BuilderApp() {
                   disabled={zoom === ZOOMS[ZOOMS.length - 1]}
                   onClick={() => ctx.ui.stepZoom(1)}
                 >
-                  +
+                  <PlusIcon />
                 </Button>
               </Flex>
-              <Button
-                emphasis={tiersView ? "medium" : "quiet"}
-                aria-pressed={tiersView}
-                onClick={() => setTiersView((v) => !v)}
-              >
+              {/* A Toggle for the reason Preview is one (§34): a mode you turn on, whose
+                  emphasis IS its state. */}
+              <Toggle pressed={tiersView} onPressedChange={setTiersView}>
                 Compare tiers
-              </Button>
+              </Toggle>
               {canvasW ? (
                 <>
                   <Text size="2" emphasis="quiet">
@@ -2255,7 +2320,19 @@ export function BuilderApp() {
             <TabsList style={{ flex: 1 }}>
               <TabsTab value="inspect">Selected</TabsTab>
               <TabsTab value="theme">Theme</TabsTab>
-              <TabsTab value="review">{findings.length ? `Review ${findings.length}` : "Review"}</TabsTab>
+              {/* THE COUNT IS A BADGE HERE TOO (§38, 2026-09-03) — and this is where a badge
+                  most belongs, pinned to the tab it is about. Spliced into the label it
+                  changed the TAB's width every time the document did, which moves the
+                  travelling rule under a bar you are reading: Tabs' own measured argument
+                  against a heavier active label, arriving as a wider one. */}
+              <TabsTab value="review">
+                Review
+                {findings.length ? (
+                  <Badge tone={findings.some((f) => f.severity === "error") ? "destructive" : "warning"}>
+                    {findings.length}
+                  </Badge>
+                ) : null}
+              </TabsTab>
             </TabsList>
           </ShellPaneHeader>
           <ShellScroll>
