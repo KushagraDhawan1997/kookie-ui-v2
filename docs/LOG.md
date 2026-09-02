@@ -8,6 +8,24 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-02 The panel owns the columns — a grid per row aligns a row with itself
+
+**What.** The property panel is ONE grid, `auto minmax(0, 1fr)`, declared once. `Section` and `Row` became fragments; anything about the panel rather than about a value is a `Span` across both columns.
+
+**Why.** Kushagra on the first pass: *"Still looks the same, no structure dude"*. He was right and the reason is exact. That pass fixed the SHAPES — one row shape, one field shape, hairlines, three text ranks — and gave each row its own two-column grid. A grid per row aligns a row **with itself**: each row split its own width in half, so the names column was half the panel whatever the name said, and the controls began at one x by arithmetic rather than by being in one column. Nothing tied a row to the row above it.
+
+The second attempt moved the grid up to the SECTION, which is better and still wrong: Properties, Slots and the readout each sized their own names column, so the panel had three left edges instead of one.
+
+**One grid for the whole panel is the only arrangement where "the label column" is a thing that exists.** Measured after: every control in every section starts at x=1061 and every value-bearing one ends at x=1264, with the names column at 59.75px — the width of the longest name in the panel, decided by the content and stated nowhere.
+
+**A ROW IS A FRAGMENT, never a wrapper.** A box around the pair makes it one grid item and puts the two halves back inside their own box, which is the same mistake one level down. Same for `Section`: it contributes its hairline, its heading and its closing sentence as spanning cells, and its rows contribute pairs, all into the caller's grid.
+
+**`auto minmax(0, 1fr)`, not two equal halves.** Equal halves was the first pass's "no number in it" answer and it is worse than the ratio it avoids: names are short words and values need room, so half the panel is too much for one and too little for the other. `auto` has no number in it either AND is right — the content sizes the column. `minmax(0, …)` rather than `1fr` because a Select's trigger has a min-content width that would otherwise push the value column past the panel and scroll it sideways.
+
+**A value fills its column, an action keeps its own width.** A Select and a field hold the row's value and stretch to the column's right edge, which is what gives the panel its second vertical line; a Switch and a button are fixed-size things and sit at the column's start, where the first line already holds them.
+
+**The law reads the COUNT as well as the template** — one grid, one spelling — because both wrong answers render a correct-looking template. Falsified against each: a grid per section, and equal halves.
+
 ## 2026-09-02 The property panel gets a structure: three shapes, three voices, one column rule
 
 **What.** `inspector.tsx` states a contract in its header and every row in the file is one of three things — `Section`, `Row`, `Field` — with three text ranks under it. The builder's own two panels (Arrange, Save as block) join them.

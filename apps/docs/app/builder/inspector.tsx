@@ -22,16 +22,25 @@
  *
  * Three parts, and every row in this file is one of them:
  *
- *   SECTION — a heading, a hairline above it running wall to wall, and rows underneath.
+ *   SECTION — a heading, a hairline above it running wall to wall, and rows underneath. Also
+ *             a fragment, for the same reason: the panel owns the columns.
  *             The hairline is the panel's own seam, so it bleeds (`mx="bleed"`) exactly as
  *             the pane's chrome row does; a section boundary that stops short of the walls
  *             reads as a line drawn inside the panel rather than as a division of it.
  *
- *   ROW     — a name on the left, its control on the right, in TWO EQUAL COLUMNS. The equal
- *             split is what makes the panel read as a panel: every control begins at one x
- *             and ends at one x, at every row, whatever kind of control it is. It is also
- *             the only spelling here with no number in it — a stated column width would be a
- *             raw length in a system that has none for this.
+ *   PANEL   — the COLUMNS, declared once for the whole panel: `auto minmax(0, 1fr)`. This is
+ *             the part that makes it read as a panel, and the part the first two passes got
+ *             wrong. A grid per row aligns a row with itself; a grid per section lets every
+ *             section disagree with the next; one grid for the panel is the only arrangement
+ *             where "the label column" is a thing that exists. Measured: every control in
+ *             every section now starts at one x and the value-bearing ones end at one x.
+ *             No number in it — the content sizes the names' column, and a stated width
+ *             would be a raw length in a system that has none for this.
+ *
+ *   ROW     — a name and its control, as TWO CELLS of that grid. A fragment, never a wrapper:
+ *             a box around the pair would make it one grid item and put the halves back
+ *             inside their own box, which is the same mistake one level down. A value fills
+ *             its column, an action keeps its own width.
  *
  *   FIELD   — a name above its control, which takes the full width. For a value you TYPE.
  *             The rule for choosing is the value, not the widget: a pick from a closed list
@@ -137,9 +146,21 @@ export const readPick = (
 
 /* ── The three shapes (see the contract in the file header) ──────────────────────────────── */
 
-/** A name and its control, in two equal columns. Every control in the panel begins at one x
-    because they all sit in the same half. `minmax(0, 1fr)` twice rather than `1fr 1fr`: a
-    Select's trigger has a min-content width and would push its column wider than its half. */
+/**
+ * A name and its control — TWO CELLS OF THE SECTION'S GRID, not a grid of its own.
+ *
+ * THAT IS THE WHOLE DIFFERENCE (2026-09-02, second pass — Kushagra: "Still looks the same, no
+ * structure dude", and he was right). The first cut gave every row its own two-column grid,
+ * which aligns a row with ITSELF and with nothing else: each row split its own width in half,
+ * so the label column was as wide as half the panel whatever the label said, and the controls
+ * began at one x by arithmetic rather than by being in one column. What reads as structure is
+ * a real column — one grid per SECTION, `auto` for the names and the rest for the values, so
+ * the label column is exactly as wide as the longest name in that section and every control
+ * starts and ends on the same two lines. No number anywhere: the content sizes the column.
+ *
+ * A fragment, because a wrapper element around the pair would make it ONE grid item and put
+ * the two halves back inside their own box — the same mistake one level down.
+ */
 export function Row({
   label,
   children,
@@ -147,34 +168,39 @@ export function Row({
 }: {
   label: React.ReactNode;
   children: React.ReactNode;
-  /** A sentence under the row, in the quiet ink — the schema's own note, or a warning. */
+  /** A sentence under the row, in the quiet ink — the schema's own note, or a warning. It
+      spans both columns: it is about the row, not about the value. */
   note?: React.ReactNode;
 }) {
   return (
-    <Stack gap="1">
-      <Grid columns="minmax(0, 1fr) minmax(0, 1fr)" gapX="3" align="center">
-        {typeof label === "string" ? (
-          <Text size="2" emphasis="medium">
-            {label}
-          </Text>
-        ) : (
-          label
-        )}
-        <Flex gap="1" align="center" style={{ minWidth: 0 }}>
-          {children}
-        </Flex>
-      </Grid>
-      {note ? (
-        <Text size="1" emphasis="quiet">
-          {note}
+    <>
+      {typeof label === "string" ? (
+        <Text size="2" emphasis="medium">
+          {label}
         </Text>
+      ) : (
+        label
+      )}
+      {/* A VALUE FILLS THE COLUMN, AN ACTION KEEPS ITS OWN WIDTH. A Select and a field hold
+          the row's value and stretch to the column's right edge, which is what gives the
+          panel its second vertical line; a Switch and a button are fixed-size things and sit
+          at the column's start, where the first line already holds them. */}
+      <Flex gap="1" align="center" style={{ minInlineSize: 0 }}>
+        {children}
+      </Flex>
+      {note ? (
+        <Span>
+          <Text size="1" emphasis="quiet">
+            {note}
+          </Text>
+        </Span>
       ) : null}
-    </Stack>
+    </>
   );
 }
 
-/** A name over its control, full width — for a value you TYPE. The rule is the value and not
-    the widget: a word fits a column, a sentence does not. */
+/** A name over its control, spanning both columns — for a value you TYPE. The rule is the
+    value and not the widget: a word fits a column, a sentence does not. */
 function Field({
   label,
   children,
@@ -185,22 +211,44 @@ function Field({
   note?: React.ReactNode;
 }) {
   return (
-    <Stack gap="1">
-      <Text size="2" emphasis="medium">
-        {label}
-      </Text>
-      {children}
-      {note ? (
-        <Text size="1" emphasis="quiet">
-          {note}
+    <Span>
+      <Stack gap="1">
+        <Text size="2" emphasis="medium">
+          {label}
         </Text>
-      ) : null}
-    </Stack>
+        {children}
+        {note ? (
+          <Text size="1" emphasis="quiet">
+            {note}
+          </Text>
+        ) : null}
+      </Stack>
+    </Span>
   );
 }
 
-/** A named group of rows, under a hairline that runs to the pane's walls. The first section
-    states `first` and draws none — the header above it is already a division. */
+/** Anything that is about the whole panel rather than about one value: a heading, a hairline,
+    a sentence, a field. One spelling, so a spanning cell cannot be spelled two ways. */
+export function Span({ children, ...rest }: { children: React.ReactNode } & { my?: string; mb?: string; mx?: string }) {
+  return (
+    <Box gridArea="auto / 1 / auto / -1" {...(rest as object)}>
+      {children}
+    </Box>
+  );
+}
+
+/**
+ * A named group of rows — A FRAGMENT, because the PANEL owns the columns and not the section.
+ *
+ * The second pass put one grid per section, which lines a section up with itself and leaves
+ * every section free to disagree with the next: Properties' names took one width, Slots' took
+ * another, the readout's a third, and the panel had three left edges instead of one. One grid
+ * for the whole panel is the only arrangement where "the label column" is a thing that exists.
+ * So a section contributes spanning cells — its hairline, its heading, its closing sentence —
+ * and its rows contribute pairs, all into the caller's grid.
+ *
+ * The first section states `first` and draws no hairline: the header above it already divides.
+ */
 export function Section({
   title,
   first,
@@ -213,24 +261,45 @@ export function Section({
   children: React.ReactNode;
 }) {
   return (
-    <Stack gap="3">
+    <>
       {first ? null : (
-        <Box mx="bleed">
+        <Span mx="bleed" my="2">
           <Separator />
-        </Box>
+        </Span>
       )}
-      <Stack gap="2">
+      <Span mb="1">
         <Text size="2" weight="medium">
           {title}
         </Text>
-        <Stack gap="2">{children}</Stack>
-        {note ? (
+      </Span>
+      {children}
+      {note ? (
+        <Span mb="2">
           <Text size="1" emphasis="quiet">
             {note}
           </Text>
-        ) : null}
-      </Stack>
-    </Stack>
+        </Span>
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * THE PANEL'S COLUMNS, declared once (2026-09-02).
+ *
+ * `auto minmax(0, 1fr)`: the names take exactly the width the longest one in the WHOLE panel
+ * needs and the values take the rest, so every control in every section starts and ends on the
+ * same two lines. `minmax(0, …)` rather than `1fr` because a Select's trigger has a min-content
+ * width that would otherwise push the value column past the panel and scroll it sideways.
+ *
+ * No number anywhere: the content sizes the column. A stated width would be a raw length in a
+ * system that has none for this, and it would be wrong for the next component's prop names.
+ */
+export function Panel({ children }: { children: React.ReactNode }) {
+  return (
+    <Grid columns="auto minmax(0, 1fr)" gapX="3" gapY="1" align="center">
+      {children}
+    </Grid>
   );
 }
 
@@ -275,7 +344,7 @@ function PickRow({
             if (picked) onPick(picked.value);
           }}
         >
-          <SelectTrigger />
+          <SelectTrigger style={{ flex: 1, minInlineSize: 0 }} />
           <SelectContent>
             {order.map(([v, l]) => (
               <SelectItem key={v} value={v}>
@@ -346,12 +415,12 @@ function PropControl({
         <TextField
           type="number"
           aria-label={name}
+          style={{ flex: 1, minInlineSize: 0 }}
           value={value === undefined ? "" : String(value)}
           onChange={(e) => {
             const raw = e.target.value;
             onChange(raw === "" ? undefined : Number(raw), true);
           }}
-          style={{ inlineSize: "100%" }}
         />
       </Row>
     );
@@ -499,26 +568,30 @@ export function MultiInspector({
   const anyResponsive = (name: string) => nodes.some((n) => typeof n.props[name] === "object" && n.props[name] !== null);
 
   return (
-    <Stack gap="4">
-      <Stack gap="1">
-        <Text size="2" weight="medium">
-          {nodes.length} selected
-        </Text>
-        <Text size="2" emphasis="medium">
-          {types.length === 1 ? `${types.length && types[0]}, all of them` : types.join(", ")}
-        </Text>
-      </Stack>
+    <Panel>
+      <Span mb="2">
+        <Stack gap="1">
+          <Text size="2" weight="medium">
+            {nodes.length} selected
+          </Text>
+          <Text size="2" emphasis="medium">
+            {types.length === 1 ? `${types.length && types[0]}, all of them` : types.join(", ")}
+          </Text>
+        </Stack>
+      </Span>
 
       <Section
         title="Shared properties"
         note="Text and numbers stay one at a time — writing one label onto several nodes is a deletion wearing an edit's clothes."
       >
         {offered.length === 0 ? (
-          <Text size="1" emphasis="quiet">
-            {types.length === 1
-              ? "Nothing these share is a closed choice — this one is all identity."
-              : "These types share no knob that means the same thing on all of them. Select fewer kinds, or edit them one at a time."}
-          </Text>
+          <Span>
+            <Text size="1" emphasis="quiet">
+              {types.length === 1
+                ? "Nothing these share is a closed choice — this one is all identity."
+                : "These types share no knob that means the same thing on all of them. Select fewer kinds, or edit them one at a time."}
+            </Text>
+          </Span>
         ) : (
           offered.map(([name, schema]) => {
             const first = nodes[0]!.props[name];
@@ -581,7 +654,7 @@ export function MultiInspector({
           })
         )}
       </Section>
-    </Stack>
+    </Panel>
   );
 }
 
@@ -612,9 +685,10 @@ export function Inspector({
   const refusals = REFUSALS.get(node.type);
   const propNames = Object.keys(entry.props);
   return (
-    <Stack gap="4">
-      {/* The header, outside the three shapes: what this is, where to read about it, and what
-          it is for. Over the first hairline, which the first Section draws. */}
+    <Panel>
+      {/* The header spans both columns — it is about the panel, not about one value. What this
+          is, where to read about it, and what it is for. */}
+      <Span mb="2">
       <Stack gap="1">
         <Flex align="center" justify="space-between" gap="2">
           <Text size="2" weight="medium">
@@ -633,6 +707,7 @@ export function Inspector({
           {entry.blurb}
         </Text>
       </Stack>
+      </Span>
 
       {entry.children === "text" ? (
         <Section title="Content">
@@ -733,14 +808,16 @@ export function Inspector({
 
       {refusals?.length ? (
         <Section title="Not here, on purpose">
-          <Stack gap="4">
-            {refusals.map((r) => (
-              <Refusal key={r.name} name={r.name} why={r.why} />
-            ))}
-          </Stack>
+          <Span>
+            <Stack gap="4">
+              {refusals.map((r) => (
+                <Refusal key={r.name} name={r.name} why={r.why} />
+              ))}
+            </Stack>
+          </Span>
         </Section>
       ) : null}
-    </Stack>
+    </Panel>
   );
 }
 
@@ -790,6 +867,7 @@ export function ThemePanel({
 }) {
   const axes = Object.keys(theme) as (keyof DocTheme)[];
   return (
+    <Panel>
     <Section
       title="Document"
       first
@@ -806,5 +884,6 @@ export function ThemePanel({
         />
       ))}
     </Section>
+    </Panel>
   );
 }

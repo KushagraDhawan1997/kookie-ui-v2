@@ -1149,16 +1149,23 @@ describe("the inspector is built from its three shapes", () => {
     for (const style of seps) expect(style).toMatch(/--kui-sf-p/);
   });
 
-  /* ONE COLUMN RULE, IN ONE PLACE. Every control in the panel begins at one x because every
-     row is the same two-column grid — which is only true while there is exactly one spelling
-     of it. Falsified by a second grid template anywhere in the file, which is how a third
-     shape gets invented. */
-  it("a row is two equal columns, and the template has one home", () => {
-    expect(html, "the rows render that grid").toContain("minmax(0, 1fr) minmax(0, 1fr)");
+  /* ONE COLUMN PAIR FOR THE WHOLE PANEL, DECLARED ONCE. This is what "structure" turned out
+     to mean, and the first two passes both missed it: a grid per ROW aligns a row with itself
+     and nothing else, and a grid per SECTION lets Properties, Slots and the readout each pick
+     their own left edge. Measured after: every control in every section starts at x=1061 and
+     the value-bearing ones end at x=1264.
+
+     So the law reads the COUNT as well as the template — one grid, one spelling. A second
+     `columns=` anywhere in the file is how a section takes its columns back. */
+  it("the panel is ONE grid, and its columns have one home", () => {
+    expect(html, "the panel renders that grid").toContain("auto minmax(0, 1fr)");
+    expect(
+      (html.match(/--kui-gtc/g) ?? []).length,
+      "one grid, not one per section",
+    ).toBe(1);
     const source = readFileSync(new URL("./inspector.tsx", import.meta.url), "utf8");
-    const templates = source.match(/columns="[^"]*"/g) ?? [];
-    expect(templates, "one grid template in the file").toEqual([
-      'columns="minmax(0, 1fr) minmax(0, 1fr)"',
+    expect(source.match(/columns="[^"]*"/g) ?? [], "one grid template in the file").toEqual([
+      'columns="auto minmax(0, 1fr)"',
     ]);
   });
 

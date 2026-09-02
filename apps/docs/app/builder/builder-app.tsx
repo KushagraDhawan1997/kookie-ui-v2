@@ -94,7 +94,7 @@ import { canAccept, insertableInto, insertionTarget, placeNodes, typesThrough } 
 import { renderNode } from "./render";
 import { deriveParams, serializeBlock, serializeDocument } from "./serialize";
 import { TEMPLATES, templateDoc } from "./templates";
-import { Inspector, MultiInspector, Section, ThemePanel } from "./inspector";
+import { Inspector, MultiInspector, Panel, Section, ThemePanel } from "./inspector";
 import {
   activeDoc,
   canRedo,
@@ -2207,6 +2207,7 @@ export function BuilderApp() {
                           the seam above them is the same hairline and the heading is the same
                           heading. A run of commands is not a Row: there is no name on the
                           left, the buttons ARE the content. */}
+                      <Panel>
                       <Section title="Arrange">
                         <Flex gap="1" wrap="wrap">
                           {["moveUp", "moveDown", "duplicate", "wrapInStack", "wrapInFlex", "unwrap", "delete"].map((id) => {
@@ -2242,6 +2243,7 @@ export function BuilderApp() {
                           </Button>
                         </Flex>
                       </Section>
+                      </Panel>
                     </Stack>
                   ) : (
                     <Text size="1" emphasis="quiet">
