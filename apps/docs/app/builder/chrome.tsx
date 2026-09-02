@@ -11,6 +11,11 @@ import * as React from "react";
 
 import {
   Box,
+  Breadcrumb,
+  BreadcrumbEllipsis,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
   Button,
   Card,
   ContextMenuContent,
@@ -159,7 +164,18 @@ export function DocumentBar({
  * under the pointer, and the thing you usually want next is its parent — the path is how
  * you get there without hunting in the tree.
  */
-export function Breadcrumb({
+/** A `<button>` carrying a crumb's treatment, with the UA's button dress taken off. The face,
+    the border and the padding are all it brings that an `<a>` does not — the type already
+    arrives through `kui-type`. See the note at the call site: this belongs in the package's
+    own `.kui-breadcrumb-link`, whose type blesses the case its stylesheet does not. */
+const CODE_PLACE: React.CSSProperties = {
+  background: "none",
+  border: 0,
+  padding: 0,
+  font: "inherit",
+};
+
+export function JumpBar({
   roots,
   selection,
   onSelect,
@@ -179,6 +195,24 @@ export function Breadcrumb({
   const node = primary ? findNode(roots, primary) : null;
   const chain = primary ? [...ancestorChain(roots, primary), ...(node ? [node] : [])] : [];
 
+  /* WHICH LEVELS SURVIVE, decided here because §3 forbids the component owning it: the first
+     (the canvas everything sits on), the last two (what you picked and what holds it), and one
+     ellipsis standing for the stretch between. Under five deep nothing is dropped, so the
+     ordinary case never sees the dots. */
+  const KEEP_HEAD = 1;
+  const KEEP_TAIL = 2;
+  const dropped = chain.length > KEEP_HEAD + KEEP_TAIL + 1 ? chain.slice(KEEP_HEAD, -KEEP_TAIL) : [];
+  const shown: { node: BuilderNode; hidden?: true }[] = dropped.length
+    ? [
+        ...chain.slice(0, KEEP_HEAD).map((n) => ({ node: n })),
+        { node: dropped[0]!, hidden: true as const },
+        ...chain.slice(-KEEP_TAIL).map((n) => ({ node: n })),
+      ]
+    : chain.map((n) => ({ node: n }));
+  /* Every dropped level is one press away — the dots OPEN (§39), so truncating the path does
+     not put any of it out of reach. */
+  const hiddenItems = dropped.map((n) => ({ label: n.type, onClick: () => onSelect(n.id) }));
+
   return (
     /* A `ShellPaneHeader` since 2026-09-02, and the part is what deletes the numbers: this
        row used to state `px="4" py="1"` by hand and came out whatever height its content
@@ -192,28 +226,54 @@ export function Breadcrumb({
        building. */
     <ShellPaneHeader>
       <Flex align="center" justify="space-between" gapX="3" style={{ flex: 1, minWidth: 0 }}>
-      <Flex align="center" gap="1" wrap="wrap" style={{ minWidth: 0 }}>
+      <Flex align="center" gap="3" style={{ minWidth: 0 }}>
         {hidePath ? null : chain.length === 0 ? (
           <Text size="2" emphasis="quiet">
             Nothing selected
           </Text>
         ) : (
-          chain.map((n, i) => (
-            <React.Fragment key={n.id}>
-              {i > 0 ? (
-                <Text size="2" emphasis="quiet" aria-hidden>
-                  ›
-                </Text>
-              ) : null}
-              <Button
-                emphasis="quiet"
-                aria-current={n.id === primary ? "true" : undefined}
-                onClick={() => onSelect(n.id)}
-              >
-                {n.type}
-              </Button>
-            </React.Fragment>
-          ))
+          <Breadcrumb label="Selection path">
+            {shown.map(({ node: n, hidden }) =>
+              hidden ? (
+                /* THE APP DECIDES WHAT TO HIDE, and the component takes what is left (§3,
+                   §39 — there is no `maxItems`, deliberately). A document nests as deep as
+                   an author builds it, and this bar is ONE control row at the pane's index:
+                   an untruncated path wraps, and a wrapped path grows a header that stands
+                   level with the rail beside it. First, last two, everything between behind
+                   the dots — which are an OPENER, so every level dropped is still one press
+                   away. */
+                <BreadcrumbEllipsis
+                  key="ellipsis"
+                  label="Levels between"
+                  items={hiddenItems}
+                />
+              ) : (
+                <BreadcrumbItem key={n.id}>
+                  {n.id === primary ? (
+                    <BreadcrumbPage>{n.type}</BreadcrumbPage>
+                  ) : (
+                    /* A PLACE REACHED BY CODE, so the element is a button (§39's own words,
+                       written for the ellipsis's rows one part down): a node in this document
+                       has no URL, and an anchor with no href is not operable. `render` is the
+                       component's sanctioned way to say which element carries the treatment.
+
+                       PACKAGE GAP, wearing a local fix. `.kui-breadcrumb-link` is written for
+                       an `<a>`, so it resets none of a button's UA dress — the type is already
+                       handled by `kui-type`, and what is left is the button face, its border
+                       and its padding. The component's own type blesses this case and its
+                       stylesheet does not, so the reset belongs there; it is here until the
+                       package's budget is not being re-recorded by somebody else. */
+                    <BreadcrumbLink
+                      render={<button type="button" style={CODE_PLACE} />}
+                      onClick={() => onSelect(n.id)}
+                    >
+                      {n.type}
+                    </BreadcrumbLink>
+                  )}
+                </BreadcrumbItem>
+              ),
+            )}
+          </Breadcrumb>
         )}
         {selection.length > 1 ? (
           <Text size="2" emphasis="medium">

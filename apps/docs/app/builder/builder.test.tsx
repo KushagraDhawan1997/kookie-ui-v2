@@ -47,6 +47,7 @@ import { API } from "../(docs)/components/api.generated";
 import { renderNode } from "./render";
 import { BuilderApp, LEFT_REGIONS } from "./builder-app";
 import { Layers, LayersFilter } from "./layers";
+import { JumpBar } from "./chrome";
 import { ReviewPanel } from "./review-panel";
 import { Inspector } from "./inspector";
 import { deriveParams, serializeBlock, serializeDocument, themeDiffs, toComponentName } from "./serialize";
@@ -1443,5 +1444,91 @@ describe("the builder's empty states are the block, and they carry its taxonomy"
     }
     const app = readFileSync(new URL("./builder-app.tsx", import.meta.url), "utf8");
     expect(app, "and the block is where they come from").toContain('from "../../blocks/empty-state"');
+  });
+});
+
+/* ── The jump bar is the Breadcrumb (2026-09-02) ──────────────────────────────────────────
+   Kushagra, on the path over the canvas: *"Breadcrumb"*. It was quiet Buttons with a `›`
+   `Text` hand-placed between them — the exact spelling §39 refused when it dropped
+   `BreadcrumbSeparator`: layout wearing a part's name, an N-1 rule kept by hand, and a glyph
+   the call site picked. It also announced nothing: no landmark, no list, and `aria-current`
+   set to the string `"true"` rather than `"page"`.
+
+   What the app still owns is the TRUNCATION, because §3 forbids the component owning what it
+   shows — a document nests as deep as an author builds it, and this bar is one control row at
+   the pane's index. */
+describe("the jump bar is the Breadcrumb, and the app owns only the truncation", () => {
+  /** A chain `depth` deep, and the id of its deepest node. */
+  const deep = (depth: number) => {
+    const leaf = node("Text", {}, { text: "end" });
+    let root: BuilderNode = leaf;
+    for (let i = 0; i < depth - 1; i += 1) root = node("Stack", {}, { children: [root] });
+    return { root, leafId: leaf.id };
+  };
+  const paint = (depth: number) => {
+    const { root, leafId } = deep(depth);
+    return renderToStaticMarkup(
+      <Theme>
+        <JumpBar roots={[root]} selection={[leafId]} onSelect={() => {}} />
+      </Theme>,
+    );
+  };
+
+  it("it is the component — a landmark, a list, and the system's own chevron", () => {
+    const html = paint(3);
+    expect(html, "the landmark").toContain('aria-label="Selection path"');
+    expect(html, "the list").toContain("kui-breadcrumb-list");
+    expect(html, "and its items").toContain("kui-breadcrumb-item");
+    // The hand-placed separator, and the one thing that says it is gone.
+    expect(html, "no hand-written punctuation").not.toContain("\u203a");
+    expect(html, "the chevron is the component's").toContain("kui-breadcrumb-separator");
+  });
+
+  /* WHERE YOU ARE IS NOT A LINK, and it is announced. The old bar made every crumb a button
+     including the one you are standing on, and wrote `aria-current="true"` — which is a valid
+     token meaning "current", but not the one for a place in a path. */
+  it("the end of the path is the page, and everything before it is a way back", () => {
+    const html = paint(4);
+    expect((html.match(/aria-current="page"/g) ?? []).length, "exactly one current place").toBe(1);
+    expect(html, "and it is not a link").toContain("kui-breadcrumb-page");
+    // The last item in the list is the one carrying it.
+    const items = html.split("kui-breadcrumb-item").slice(1);
+    expect(items.at(-1), "the current place is at the END of the path").toContain('aria-current="page"');
+    expect(items.slice(0, -1).join(""), "and none of the ones before it are").not.toContain("aria-current");
+  });
+
+  /* A PLACE REACHED BY CODE IS A BUTTON. A node in this document has no URL, and an anchor
+     with no href is not operable — §39 blesses the case in the ellipsis's own item type and
+     `render` is how the treatment reaches a different element. */
+  it("a crumb is a button carrying the crumb's treatment, never a hrefless anchor", () => {
+    const html = paint(3);
+    expect(html, "the treatment is on a button").toMatch(/<button[^>]*class="[^"]*kui-breadcrumb-link/);
+    expect(html, "and there is no anchor pretending to be one").not.toMatch(
+      /<a(?![^>]*href)[^>]*kui-breadcrumb-link/,
+    );
+  });
+
+  /* THE APP DECIDES WHAT TO HIDE, and both directions are the law: a shallow path must show
+     everything, or "it truncates" is satisfied by a bar that always truncates. */
+  it("a shallow path shows every level, and a deep one keeps the first and the last two", () => {
+    const shallow = paint(4);
+    expect((shallow.match(/kui-breadcrumb-item/g) ?? []).length, "four levels, four crumbs").toBe(4);
+    expect(shallow, "and nothing is hidden").not.toContain("Levels between");
+
+    const long = paint(8);
+    expect((long.match(/kui-breadcrumb-item/g) ?? []).length, "first, last two, and the dots").toBe(3);
+    expect(long, "the stretch between is behind the dots").toContain("Levels between");
+  });
+
+  /* AND THE DOTS OPEN. `BreadcrumbEllipsis` requires its `items`, so an inert marker is not
+     expressible — but a call site can still hand it an EMPTY list, which renders a trigger
+     that opens an empty menu. The law reads the source: every level this bar drops goes into
+     the list it hands over, so truncating the path never puts a level out of reach. */
+  it("every dropped level is handed to the dots", () => {
+    const source = readFileSync(new URL("./chrome.tsx", import.meta.url), "utf8");
+    expect(source, "the dropped levels are what the ellipsis is given").toMatch(
+      /const hiddenItems = dropped\.map\(/,
+    );
+    expect(source, "and each one goes somewhere").toMatch(/label: n\.type, onClick:/);
   });
 });

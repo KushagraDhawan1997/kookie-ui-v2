@@ -8,6 +8,24 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-02 The builder's jump bar becomes the Breadcrumb — and the truncation stays the app's
+
+**What.** The path over the canvas is `Breadcrumb` (§39). The local component renamed to `JumpBar`, so the package's name is free at the call site.
+
+**Why.** Kushagra, on the bar: *"Breadcrumb"*.
+
+It was quiet Buttons with a `›` `Text` hand-placed between them — which is exactly the spelling §39 refused when it dropped `BreadcrumbSeparator`, arriving in this repo's own app: layout wearing a part's name, an N-1 rule kept by hand, and a glyph the call site picked (a text `›` drawn at whatever face the line resolved, beside a Select's chevron drawn at the system's — the 2026-08-23 two-grids defect). It also **announced nothing**: no `<nav>` landmark, no ordered list, every crumb a button including the one you were standing on, and `aria-current="true"` where a place in a path takes `"page"`.
+
+**A crumb here is a BUTTON, and §39 already blesses the case.** A node in this document has no URL, and an anchor with no `href` is not operable — `BreadcrumbEllipsisItem`'s own union names "a place reached by code rather than by a URL" as a real thing, and `render` is the component's sanctioned way to put the treatment on a different element. Measured after: the crumbs read `--color-text-muted` and the current place reads the full ink, which is the component's two ranks arriving unchanged through a `<button>`.
+
+**PACKAGE GAP, recorded rather than hidden.** `.kui-breadcrumb-link` is written for an `<a>` and resets none of a button's UA dress; the type blesses the case its stylesheet does not. The reset belongs in `breadcrumb.css` (`background`, `border`, `padding` — the type already arrives through `kui-type`), and it is at the call site as `CODE_PLACE` **only because a concurrent session is re-recording the CSS budget**, so a package byte from here would land on top of theirs. First measurement after this pass: the first spelling also wrote `color: inherit`, which beat the class and painted every crumb at full ink — caught by reading the computed colour, not the markup.
+
+**The truncation is the app's, which is §3 and is the whole reason the component has no `maxItems`.** A document nests as deep as an author builds it, and this bar is ONE control row at the pane's index — an untruncated path wraps, and a wrapped path grows a header that then stands level with nothing. So: the first level, the last two, and everything between behind the dots. Under five deep nothing is dropped, so the ordinary case never sees them. And because §39 made the ellipsis an OPENER rather than a marker, truncating puts nothing out of reach: measured on a five-deep selection, the dots open `Card` and `Stack` and picking one selects it.
+
+**Five laws, all falsified.** Restoring the hand-rolled row fails four at once (the landmark, the current place, the button, the truncation). Making every crumb a link fails the current-place law; truncating at four fails the shallow half, which is there because "it truncates" is satisfied by a bar that always truncates; dropping the `render` fails the anchor law; and handing the dots an empty list fails the source law that every dropped level goes into them.
+
+---
+
 ## 2026-09-02 The builder's four emptinesses become the block — and two of them had no rendering at all
 
 **What.** The builder's empty regions are `EmptyState`: the inspector with nothing selected, a clean review, an empty canvas in Layers, and the two filters that matched nothing (Layers and the Add palette). The palette's blocks list answers the filter too, and the region derives whether it drew anything.

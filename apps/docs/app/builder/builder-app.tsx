@@ -123,7 +123,7 @@ import { CommandPalette } from "./command-palette";
 import { liveFix, reviewDocument, type Finding } from "./review";
 import { EmptyState } from "../../blocks/empty-state";
 import { ReviewPanel } from "./review-panel";
-import { Breadcrumb, CanvasBoundary, CanvasMenu, DocumentBar, ShortcutSheet, TemplatePicker, Toast } from "./chrome";
+import { CanvasBoundary, CanvasMenu, DocumentBar, JumpBar, ShortcutSheet, TemplatePicker, Toast } from "./chrome";
 
 /** The rungs the magnifier steps through — a closed list, like everything else here. */
 const ZOOMS: number[] = [0.5, 0.67, 0.8, 1, 1.25, 1.5, 2];
@@ -1741,7 +1741,7 @@ export function BuilderApp() {
           workbench moved onto the SCROLLER with the scroll: the pane's own seal is chrome,
           the region the canvas floats in is the work. */}
       <ShellContent>
-        <Breadcrumb
+        <JumpBar
           roots={doc.roots}
           selection={preview ? [] : state.selection}
           hidePath={preview}
