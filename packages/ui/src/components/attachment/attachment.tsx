@@ -54,11 +54,22 @@ export type AttachmentProps = {
    * assistive technology, because the name is what identifies the file.
    */
   icon?: React.ReactNode;
-  /** The file's name. This is the tile's accessible name, so it is required and it is text. */
-  children: React.ReactNode;
+  /**
+   * The file's name, and the tile's accessible name. Typed `string` rather than `ReactNode`
+   * because the sentence "it is text" has to be enforced by something: the name is announced,
+   * and it is composed into the remove control's name so a list of attachments is not a column
+   * of buttons all called "Remove".
+   */
+  children: string;
   /**
    * The second line — a size, a type, a failure reason. Muted and one step down, because it
-   * describes the name rather than competing with it.
+   * describes the name rather than competing with it, and tied to the tile with
+   * `aria-describedby` so it is announced with it rather than found separately.
+   *
+   * **An `error` tile's reason belongs here.** The state paints the tile in the destructive
+   * family, and colour alone is not a message (WCAG 1.4.1) — the system cannot write the reason
+   * because it is in your language and about your file, which is §41's own sentence for the
+   * Button done state. A failed attachment with no `meta` says "this one is red".
    */
   meta?: React.ReactNode;
   /**
@@ -125,6 +136,7 @@ export function Attachment({
   ...props
 }: AttachmentProps) {
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
+  const metaId = React.useId();
   // `useLensRef` already forwards the caller's ref — merging a second time hands React a fresh
   // callback identity every render, and the detach RELEASES the lens filter, so the reattach
   // misses the cache and mints a displacement map per keystroke (Notice, Card and Shell were
@@ -137,6 +149,13 @@ export function Attachment({
       {...props}
       ref={lensRef}
       className={className ? `kui-surface kui-attachment ${className}` : "kui-surface kui-attachment"}
+      /* A NAMED REGION, because a bare `<div>` maps to `role=generic` and naming a generic is
+         prohibited — so the tile shipped with a documented accessible name it could not have
+         (audit 2026-09-02). A group can carry one, and what it carries is the file's name.
+         The second line describes it rather than being a separate stop. */
+      role="group"
+      aria-label={children}
+      {...(meta ? { "aria-describedby": metaId } : {})}
       data-size={size}
       data-state={state}
       /* THE STATE IS THE FAMILY, and the pair is always stamped (measured 2026-09-01).
@@ -169,7 +188,7 @@ export function Attachment({
             {children}
           </Text>
           {meta ? (
-            <Text size={OWNED_BODY_STEP[size]} emphasis="medium" className="kui-attachment-meta">
+            <Text id={metaId} size={OWNED_BODY_STEP[size]} emphasis="medium" className="kui-attachment-meta">
               {meta}
             </Text>
           ) : null}
@@ -179,7 +198,10 @@ export function Attachment({
             size={size}
             emphasis="quiet"
             iconOnly
-            aria-label={removeLabel}
+            /* Named with the file it removes. Every remove control in a list was called
+               "Remove", with no tie to its tile, so a screen reader's control list was a column
+               of identical buttons. `removeLabel` stays the translatable half. */
+            aria-label={`${removeLabel} ${children}`}
             onClick={onRemove}
             className="kui-attachment-remove"
           >

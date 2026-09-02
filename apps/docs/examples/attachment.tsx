@@ -1,3 +1,5 @@
+"use client";
+
 import { Attachment, Stack, type TypeSize } from "@kookie-ui/react";
 
 export default function Example({ size = "3" }: { size?: TypeSize }) {

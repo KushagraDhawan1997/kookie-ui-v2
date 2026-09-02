@@ -323,9 +323,9 @@ export const API: Record<string, ApiEntry> = {
       },
       {
         "name": "children",
-        "type": "React.ReactNode",
+        "type": "string",
         "optional": false,
-        "doc": "The file's name. This is the tile's accessible name, so it is required and it is text."
+        "doc": "The file's name, and the tile's accessible name. Typed `string` rather than `ReactNode` because the sentence \"it is text\" has to be enforced by something: the name is announced, and it is composed into the remove control's name so a list of attachments is not a column of buttons all called \"Remove\"."
       },
       {
         "name": "className",
@@ -343,7 +343,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "meta",
         "type": "React.ReactNode",
         "optional": true,
-        "doc": "The second line — a size, a type, a failure reason. Muted and one step down, because it describes the name rather than competing with it."
+        "doc": "The second line — a size, a type, a failure reason. Muted and one step down, because it describes the name rather than competing with it, and tied to the tile with `aria-describedby` so it is announced with it rather than found separately. **An `error` tile's reason belongs here.** The state paints the tile in the destructive family, and colour alone is not a message (WCAG 1.4.1) — the system cannot write the reason because it is in your language and about your file, which is §41's own sentence for the Button done state. A failed attachment with no `meta` says \"this one is red\"."
       },
       {
         "name": "onRemove",
@@ -2835,10 +2835,28 @@ export const API: Record<string, ApiEntry> = {
         "doc": "The bottom pane's height in CSS pixels. It is the `width` prop's sentence turned ninety degrees."
       },
       {
+        "name": "maxHeight",
+        "type": "number",
+        "optional": true,
+        "doc": "The ceiling, in CSS pixels. Unset, the frame is the ceiling and it is announced."
+      },
+      {
+        "name": "minHeight",
+        "type": "number",
+        "optional": true,
+        "doc": "The floor, in CSS pixels. Defaults to the system's."
+      },
+      {
         "name": "onOpenChange",
         "type": "(open: boolean) => void",
         "optional": true,
         "doc": "Fires on user-driven changes only: a trigger, Escape, a press on the scrim. It never fires at mount, and never when the window crosses a size boundary, because auto is resolved in CSS and CSS calls nobody."
+      },
+      {
+        "name": "onResize",
+        "type": "(height: number) => void",
+        "optional": true,
+        "doc": "Called once when the gesture ends, with the pane's new height. The memory is yours."
       },
       {
         "name": "open",
@@ -2851,6 +2869,18 @@ export const API: Record<string, ApiEntry> = {
         "type": "ShellPresentation",
         "optional": true,
         "doc": "How this pane occupies the window while it is open. `auto` answers a question about the room, and it answers it in CSS from the window size, so first paint is right with no script and nothing for hydration to mismatch. Stating a value instead answers a question about the product, and it does more than pin the arrangement: `overlay` also makes the pane rest closed at every width, because an overlay is something you summon rather than live in, where `auto` lets a nav column rest open on a roomy window. So state a value for a pane whose behaviour is a decision, such as a drawer that must never be ambient. Leave it auto for a pane whose behaviour follows from how much window there is."
+      },
+      {
+        "name": "resizable",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Lets a person move this pane's top edge. The side panes' `resizable`, turned ninety degrees: the same separator, the same keyboard, the same floor."
+      },
+      {
+        "name": "resizeLabel",
+        "type": "string",
+        "optional": true,
+        "doc": "The handle's accessible name."
       },
       {
         "name": "size",
@@ -2943,7 +2973,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "onResize",
         "type": "(width: number) => void",
         "optional": true,
-        "doc": "Called once when the gesture ENDS, with the pane's new extent — not on every frame, because the app's job is to remember the number rather than to watch it move. **The memory is yours**, exactly as a Notice's dismissal is. During the drag the DOM leads; afterwards you are told. A pane given `width` is CONTROLLED, so a render after the gesture re-asserts that prop: store what this hands you, or the pane snaps back."
+        "doc": "Called once when the gesture ENDS, with the pane's new extent — not on every frame, because the app's job is to remember the number rather than to watch it move. **The memory is yours**, exactly as a Notice's dismissal is. During the drag the DOM leads; afterwards you are told. A pane given `width` is CONTROLLED, so a render after the gesture leaves the dragged width in place. Store what this hands you if you want it to survive a reload; change `width` when you want to move the pane yourself."
       },
       {
         "name": "open",
@@ -3177,7 +3207,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "onResize",
         "type": "(width: number) => void",
         "optional": true,
-        "doc": "Called once when the gesture ENDS, with the pane's new extent — not on every frame, because the app's job is to remember the number rather than to watch it move. **The memory is yours**, exactly as a Notice's dismissal is. During the drag the DOM leads; afterwards you are told. A pane given `width` is CONTROLLED, so a render after the gesture re-asserts that prop: store what this hands you, or the pane snaps back."
+        "doc": "Called once when the gesture ENDS, with the pane's new extent — not on every frame, because the app's job is to remember the number rather than to watch it move. **The memory is yours**, exactly as a Notice's dismissal is. During the drag the DOM leads; afterwards you are told. A pane given `width` is CONTROLLED, so a render after the gesture leaves the dragged width in place. Store what this hands you if you want it to survive a reload; change `width` when you want to move the pane yourself."
       },
       {
         "name": "open",

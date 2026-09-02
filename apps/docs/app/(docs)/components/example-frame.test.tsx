@@ -169,3 +169,21 @@ describe("the specimen frame agrees with what the example renders", () => {
     }
   });
 });
+
+describe("an example that hands a component a handler is a client component (audit 2026-09-02)", () => {
+  /* `next build` prerenders every component page, and an example that passes an event handler
+     while rendering as a Server Component fails at that prerender. It shipped for a day, hidden
+     behind the licensed-font failure that makes `docs#build` red in any fresh clone — so the
+     one thing that would have caught it was the one thing nobody could read. A habit is not a
+     mechanism; this is the mechanism. Falsified by removing the directive from any example
+     that passes a handler. */
+  it("every example passing an on* prop declares \"use client\"", () => {
+    const names = Object.keys(EXAMPLES);
+    expect(names.length, "the registry is empty — this law reads nothing").toBeGreaterThan(20);
+    const offending = names.filter((name) => {
+      const src = readExampleSource(name);
+      return /\son[A-Z][A-Za-z]+=\{/.test(src) && !src.trimStart().startsWith('"use client"');
+    });
+    expect(offending, "these examples pass a handler across the RSC boundary").toEqual([]);
+  });
+});

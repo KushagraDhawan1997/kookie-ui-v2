@@ -10,7 +10,9 @@
 import * as React from "react";
 import { describe, expect, it } from "vitest";
 
-import { APPEARANCES, DEPTHS, colorOn, computed, mounted, within } from "../../test/browser.tsx";
+import { APPEARANCES, DEPTHS, GLASS_MATERIALS, colorOn, computed, mounted, within } from "../../test/browser.tsx";
+import { Box } from "../box/box.tsx";
+import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
 import { Notice } from "../notice/notice.tsx";
 import { Attachment } from "./attachment.tsx";
@@ -34,6 +36,36 @@ describe("the system draws the state; the app owns the file (§30, §43)", () =>
       const el = mounted(<Attachment state={state}>{NAME}</Attachment>, { theme: {} });
       expect(el.getAttribute("aria-busy"), `${state} is not busy`).toBe(null);
     }
+  });
+
+  it("the tile is a NAMED region, and the name is the file", () => {
+    /* It shipped as a bare `<div>` with a prop doc calling `children` "the tile's accessible
+       name" — and a `<div>` maps to `role=generic`, for which naming is PROHIBITED, so the
+       documented name could not exist. The two disagreed and the prose was the wrong half. */
+    const el = mounted(<Attachment>{NAME}</Attachment>, { theme: {} });
+    expect(el.getAttribute("role")).toBe("group");
+    expect(el.getAttribute("aria-label")).toBe(NAME);
+  });
+
+  it("the second line is announced WITH the tile, not found separately", () => {
+    const el = mounted(
+      <Attachment state="error" meta="File is larger than 25 MB">
+        {NAME}
+      </Attachment>,
+      { theme: {} },
+    );
+    const described = el.getAttribute("aria-describedby");
+    expect(described, "an error's reason must reach AT — colour alone is not a message").toBeTruthy();
+    expect(el.querySelector(`#${CSS.escape(described!)}`)?.textContent).toBe("File is larger than 25 MB");
+    // And a tile with nothing to describe points at nothing rather than at an empty node.
+    expect(mounted(<Attachment>{NAME}</Attachment>, { theme: {} }).getAttribute("aria-describedby")).toBe(null);
+  });
+
+  it("each remove control is named for the file it removes", () => {
+    /* Every one of them was called "Remove", so a screen reader's control list for a strip of
+       attachments was a column of identical buttons with no way to tell them apart. */
+    const el = mounted(<Attachment onRemove={() => {}}>{NAME}</Attachment>, { theme: {} });
+    expect(within(el, ".kui-attachment-remove").getAttribute("aria-label")).toBe(`Remove ${NAME}`);
   });
 
   it("the bar exists only while something is happening", () => {
@@ -126,10 +158,17 @@ describe("the state is the category, so there is no second colour axis (§43, §
 });
 
 describe("an attachment does not cast (§5, §10)", () => {
+  /* GLASS IS IN THE WALK NOW (audit 2026-09-02). The stylesheet's whole (0,2,0) argument is
+     about beating the material's transmitted cast, which is declared at
+     `.kui-surface[data-material="thin"]` — and every cell here was `solid`, the one world where
+     that rule does not apply. So the rank the comment is written around was unasserted, and
+     weakening the selector to `.kui-attachment` left all fifteen laws green while a glass tile
+     cast three real layers. */
   for (const appearance of APPEARANCES) {
     for (const depth of DEPTHS) {
-      it(`${appearance}/${depth}: it throws no shadow where a Card does`, () => {
-        const el = mounted(<Attachment>{NAME}</Attachment>, { theme: { appearance, depth } });
+      for (const material of ["solid", ...GLASS_MATERIALS] as const) {
+      it(`${appearance}/${depth}/${material}: it throws no shadow where a Card does`, () => {
+        const el = mounted(<Attachment backdrop>{NAME}</Attachment>, { theme: { appearance, depth, material } });
         /* EVERY layer, not "a layer somewhere is zero". The first spelling of this law tested
            `/0px 0px 0px 0px/` against the whole string, which the POOL's own transparent first
            layer satisfies — so it passed on a tile casting two real shadows, and the agreement
@@ -137,9 +176,15 @@ describe("an attachment does not cast (§5, §10)", () => {
         const shadow = computed(el, "box-shadow");
         const layers = shadow === "none" ? [] : shadow.split(/,(?![^(]*\))/);
         for (const layer of layers) {
-          expect(layer.trim(), `a real cast survived: ${shadow}`).toMatch(/rgba?\([^)]*,\s*0\)\s*0px 0px 0px 0px/);
+          // The material's own POOL is what a glass pane HAS, not lift the app says (§10), so
+          // it is allowed through — what must not survive is a real drop.
+          if (material !== "solid" && /inset/.test(layer)) continue;
+          expect(layer.trim(), `a real cast survived: ${shadow}`).toMatch(
+            /rgba?\([^)]*,\s*0\)\s*0px 0px 0px 0px|inset/,
+          );
         }
       });
+      }
     }
   }
 
@@ -179,6 +224,88 @@ describe("the arrangement holds a name that does not fit (§43)", () => {
     expect(mounted(<Attachment>{NAME}</Attachment>, { theme: {} }).querySelector(".kui-attachment-remove")).toBe(null);
     const el = mounted(<Attachment onRemove={() => {}}>{NAME}</Attachment>, { theme: {} });
     const remove = within(el, ".kui-attachment-remove");
-    expect(remove.getAttribute("aria-label")).toBe("Remove");
+    expect(remove.getAttribute("aria-label")).toBe(`Remove ${NAME}`);
+  });
+});
+
+describe("the glass path has a reader (audit 2026-09-02)", () => {
+  /* `useMaterial`, the `data-material` stamp, `useLensRef` and `GlassScope` could ALL be
+     deleted and every law stayed green — four mechanisms with no reader, which is exactly the
+     shape this repo found in Popover a week earlier. */
+  it("a tile states its backdrop, or takes the region's, and a plain one pays nothing", () => {
+    const stated = mounted(<Attachment backdrop>{NAME}</Attachment>, { theme: { material: "regular" } });
+    expect(stated.getAttribute("data-material")).toBe("regular");
+    expect(computed(stated, "backdrop-filter")).not.toBe("none");
+
+    const ambient = mounted(
+      <Box backdrop>
+        <Attachment>{NAME}</Attachment>
+      </Box>,
+      { theme: { material: "regular" } },
+    );
+    expect(within(ambient, ".kui-attachment").getAttribute("data-material")).toBe("regular");
+
+    // Selectivity (§10): an unmarked in-flow tile resolves solid and costs nothing.
+    const plain = mounted(<Attachment>{NAME}</Attachment>, { theme: { material: "regular" } });
+    expect(plain.getAttribute("data-material")).toBe(null);
+    expect(computed(plain, "backdrop-filter")).toBe("none");
+  });
+
+  it("a glass tile scopes its subtree, so the remove control paints no second veil", () => {
+    /* THE FIXTURE IS THE LAW HERE (audit 2026-09-02, second round). The first spelling put an
+       unmarked Button inside a `backdrop` tile — which resolves solid by SELECTIVITY whether or
+       not the scope exists, so deleting `GlassScope` left it green. The scope only does
+       anything inside an ambient region, where the region would otherwise reach the button
+       too: that is the one arrangement where a correct and a broken implementation differ.
+       Notice was bitten by this exact fixture in 2026-08-21. */
+    const inRegion = mounted(
+      <Box backdrop>
+        <Attachment onRemove={() => {}}>{NAME}</Attachment>
+      </Box>,
+      { theme: { material: "regular" } },
+    );
+    const tile = within(inRegion, ".kui-attachment");
+    expect(computed(tile, "backdrop-filter"), "the tile itself is the pane").not.toBe("none");
+    expect(
+      computed(within(inRegion, ".kui-attachment-remove"), "backdrop-filter"),
+      "one glass per stack — the region must stop at the tile's edge",
+    ).toBe("none");
+  });
+});
+
+describe("size prices what its own doc says it prices (audit 2026-09-02)", () => {
+  /* The prop names five things and no law read any of them at any index. */
+  for (const size of ["1", "2", "3", "4"] as const) {
+    it(`${size}: the symbol lands on the surface icon box and the remove control stands level with a Button`, () => {
+      const el = mounted(
+        <Attachment size={size} icon={<svg viewBox="0 0 16 16" />} onRemove={() => {}}>
+          {NAME}
+        </Attachment>,
+        { theme: {} },
+      );
+      const icon = within(el, ".kui-attachment-icon");
+      // Compared as a RESOLVED length: the hook's own value is an unresolved `calc()` string,
+      // so reading the token and comparing strings measures the spelling, not the box.
+      const probe = document.createElement("div");
+      probe.style.inlineSize = "var(--kui-sf-icon)";
+      el.appendChild(probe);
+      expect(computed(icon, "inline-size")).toBe(computed(probe, "inline-size"));
+      probe.remove();
+      const bar = mounted(<Button size={size}>Level</Button>, { theme: {} });
+      expect(computed(within(el, ".kui-attachment-remove"), "block-size")).toBe(
+        computed(within(bar, ".kui-button"), "block-size"),
+      );
+    });
+  }
+
+  it("the second line is quieter than the name, and it is the muted role", () => {
+    const el = mounted(
+      <Attachment meta="2.4 MB">{NAME}</Attachment>,
+      { theme: {} },
+    );
+    const name = computed(within(el, ".kui-attachment-name"), "color");
+    const meta = computed(within(el, ".kui-attachment-meta"), "color");
+    expect(meta).not.toBe(name);
+    expect(meta).toBe(colorOn(el, "var(--color-text-muted)"));
   });
 });
