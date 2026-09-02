@@ -161,8 +161,8 @@ it can never become a raised strip.
 ## What I would do next
 
 1. **Fix RTL on Tabs and SegmentedControl.** Still the thing I would put ahead of any new
-   component: `DirectionProvider` now renders in nine files but not those two, and on the
-   segmented control the arrow keys move the *value* the wrong way. DECISIONS §26:1867 still
+   component: `DirectionProvider` now renders in seven files but not those two, and on the
+   segmented control the arrow keys move the *value* the wrong way. DECISIONS §26 still
    describes the old state ("rendered in four files") and is stale. Near-zero bytes.
 2. **Port the builder's ⌘K onto `Command`**, which is how the component gets judged.
 3. **Combobox**, then **Calendar/DatePicker** — the two real input holes. Base UI 1.7 ships

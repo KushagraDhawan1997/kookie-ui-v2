@@ -1004,7 +1004,7 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
         // against where the floating panes actually are, so the comparison IS the measurement.
         "getBoundingClientRect",
         "getComputedStyle",
-        // ── Pane resize (§27, 2026-09-01): THE FIFTH EXCEPTION, and the first that is not a
+        // ── Pane resize (§27, 2026-09-01): THE SIXTH EXCEPTION, and the first that is not a
         // measurement taken at a seam. A drag runs while a finger is moving, which no seam can
         // defer; the doctrine's purpose is that STATE styling costs no frames, and a resize is
         // not a state — the gesture IS the value, and no CSS expresses "this boundary is where

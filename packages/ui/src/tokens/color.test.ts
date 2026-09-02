@@ -1526,10 +1526,33 @@ describe("the P3 block spends no digit a display can show (§7, 2026-09-01)", ()
     expect(tooFine.slice(0, 8), `${tooFine.length} channels finer than ${p3Decimals} decimals`).toEqual([]);
   });
 
-  it("that precision cannot move an 8-bit code, which is what makes it not a visual change", () => {
-    // The rounding error is half the emitted quantum. It has to stay under half an 8-bit
-    // step or a channel could land on a different code and the claim would be false.
-    // At 3 decimals: 5e-4 against 1.96e-3. At 2 it would be 5e-3, and this fails.
-    expect(0.5 * 10 ** -p3Decimals).toBeLessThan(0.5 * (1 / 255));
+  it("that precision moves an 8-bit code by at most one, which is the true bound", () => {
+    /* THE CLAIM WAS FALSE AS WRITTEN (audit 2026-09-02). This law said the precision "cannot
+       move an 8-bit code", and it cannot: an exact value sitting just under a code's midpoint
+       can be pushed over it by any error at all, so rounding ALWAYS risks a one-code move. What
+       is actually guaranteed is the SIZE of the worst case, and that is what a bound is for.
+
+       Stated in both directions. The error is half the emitted quantum (5e-4 at three decimals),
+       which is under a whole 8-bit step (3.92e-3), so no channel can move by more than one code
+       — and it is under half a step (1.96e-3), so a value that is not already within 5e-4 of a
+       midpoint does not move at all. At two decimals the error is 5e-3, larger than a whole
+       step, and a channel could move by two: this fails there, which is the falsification. */
+    const quantum = 0.5 * 10 ** -p3Decimals;
+    const step = 1 / 255;
+    expect(quantum, "the error may not exceed one 8-bit step").toBeLessThan(step);
+    expect(quantum, "and it stays under half a step, so most channels do not move at all").toBeLessThan(step / 2);
+
+    // And the bound is checked against what the generator ACTUALLY emitted, not only against
+    // the constant: every channel in the artifact must be re-representable at this precision
+    // without exceeding it, which is what makes this more than arithmetic about itself.
+    const channels = [...generated.matchAll(/color\(display-p3([^)]*)\)/g)].flatMap((m) =>
+      m[1]!.trim().split(/\s+/).map(Number),
+    );
+    expect(channels.length).toBeGreaterThan(500);
+    for (const v of channels) {
+      expect(Math.abs(v - Number(v.toFixed(p3Decimals))), `${v} is not at the emitted precision`).toBeLessThanOrEqual(
+        1e-9,
+      );
+    }
   });
 });

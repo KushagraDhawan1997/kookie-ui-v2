@@ -90,7 +90,7 @@ function toGamut(color: Oklch, gamut: Gamut = "srgb"): Oklch {
  * of magnitude under the perceptual threshold, and it is stated as a bound rather than as
  * "no change" because a bound is the true claim and can be checked.
  *
- * Measured: -571 gzipped bytes, and it is spent at the generator rather than as a regex over
+ * Measured: -586 gzipped bytes, and it is spent at the generator rather than as a regex over
  * the built artifact, so `tokens.css` shrinks with it and the drift law still reads one home.
  * A fourth decimal buys nothing; a second (max error 5e-3) crosses the 8-bit step and would.
  */

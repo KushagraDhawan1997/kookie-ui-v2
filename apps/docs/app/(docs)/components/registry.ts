@@ -1230,7 +1230,7 @@ export const ENTRIES: Entry[] = [
     axes: [
       {
         name: "resizable",
-        values: "boolean, per pane",
+        values: "boolean, on the sidebar, the inspector and the bottom pane",
         note: "lets a person move this pane's edge. It draws a boundary the pointer can drag and the keyboard can step — a separator carrying a live value, which is the platform's own window splitter rather than a bare div listening for a press. The rail cannot take it: a rail is as wide as its items plus their air, so there is nothing free to drag. Bound the travel with minWidth and maxWidth; a floor applies either way, because a resize with no floor is a way to wreck a layout and not be able to get back. onResize hands you the new width once, when the gesture ends. What a person dragged stays where they put it; store the number if you want it to survive a reload, and change width when you want to move the pane yourself",
       },
       {
@@ -1262,7 +1262,6 @@ export const ENTRIES: Entry[] = [
       { name: "a header position axis", why: "The header is full-width by definition. A header that is not full-width is a header inside ShellContent. One geometry, and the other arrangement is a composition." },
       { name: "a thin sidebar mode", why: "A thin sidebar is a rail wearing a sidebar's name, which puts the same region in the tree twice. Rail and sidebar are independent columns here, and an app that wants them linked writes three lines." },
       { name: "a close-cascade between rail and sidebar", why: "It is not universally true. VS Code's columns are independent and Slack's rail cannot close. That makes it an app's opinion, not a frame rule with a conflict protocol." },
-      { name: "drag-to-resize (deferred, not refused)", why: "A drag is JavaScript on every pointer move, so it lands with a written exception plus minimum and maximum widths, persistence and the ARIA wiring. The room is already there: a drag writes the same custom property the width prop writes today." },
       { name: "peek", why: "Deferred until a real screen asks for it. A pane that slides half open costs a context slice, absolute overlays and per-pane CSS, and it carries very little." },
       { name: "backdrop on ShellContent", why: "The work area never gets glass. It is not a preference: a pane floats only when the content is underneath it, so the content is the one pane nothing is ever underneath — it is the bottom of the stack, with the app's flat ground behind it. Glass there blurs nothing and mints a lens map for the largest box on screen. A vibrant region inside the work area is still reachable, because a solid surface hosts glass: put a Box backdrop or a Card backdrop in it." },
       { name: "a floating or stacked presentation value", why: "A pane over the content and a pane pulled off the frame are one idea, and it is flush={false}. The pane leaves the tiling, and what it becomes is derived from whether the content is underneath it. There is no third presentation to choose." },
