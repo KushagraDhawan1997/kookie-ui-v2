@@ -8,6 +8,49 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-02 The audit round, and the one behaviour built then deleted on measurement
+
+**What.** Six commits repairing the T0 batch after an adversarial audit of it. Six defects that
+reach a person, ~34 more, and nine laws that could not fail.
+
+**The reversal worth recording.** Three prose homes said a pane given `width` is CONTROLLED, so
+a render after a drag re-asserts the prop and an unsaved width snaps back. It never did — React
+writes only the style keys whose VALUE changed between renders, and the drag's `setProperty` is
+invisible to that diff. I built the snap-back, measured it, and deleted it: re-asserting on
+every render discards a person's drag the next time the app re-renders for any unrelated reason.
+The honest contract is the one the code already had — what a person dragged stands until the app
+states a different `width` — and the prose moved instead. A law pins both directions.
+
+**A law that stated something false.** "That precision cannot move an 8-bit code" — it can. An
+exact value just under a code's midpoint is pushed over it by any error at all, so rounding
+always risks a one-code move. What is guaranteed is the SIZE of the worst case, which is what a
+bound is for; the law states it in both directions and reads what the generator emitted rather
+than being arithmetic about its own constant.
+
+**The pattern, which is the yield.** Nine laws could not fail, and in FOUR cases the first repair
+of one also could not fail. The cause was never a law asserting the wrong thing — it was a
+fixture that could not tell a correct implementation from a broken one. Command's size laws all
+ran at index 2, the one index where the pin was invisible. Attachment's cast law walked
+appearance x depth, so every cell was `solid` — the one world where the rule its specificity
+argument exists to beat does not apply. Its glass-scope law used a child that resolves solid
+whether the scope exists or not. And the resize target's law read `getBoundingClientRect`, which
+returns the layout box and cannot see a clip, so the repair's own sabotage passed.
+
+**Two of my own widened laws had holes.** Moving the transition ban to the sanctioned corpus took
+it off the scrim, the nav row and both flush stand-downs; the exemption's stated bound ("it may
+name no colour") inspected only `background`, so any other colour-bearing property walked past.
+
+**A correction to the record.** I reported the docs build as failing on the gitignored fonts
+alone. It was also failing on my own Attachment example — a Server Component passing a handler —
+which the font failure was hiding. Fixed, and a docs law now walks every example.
+
+**Left owed, named rather than fixed:** four components predating the `rowProps` promotion still
+re-spell the row identity inline (named with an expiry; the law fails on a fifth), and the DEV
+safe-area guard cannot see a drag, because its observer watches the shell root whose box does not
+change when a pane resizes.
+
+---
+
 ## 2026-09-03 Turbo was caching the dev server — 85GB of it
 
 **What.** `apps/docs/turbo.json` excludes `.next/dev` from the build task's outputs.
