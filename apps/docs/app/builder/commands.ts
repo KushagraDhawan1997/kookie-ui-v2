@@ -726,7 +726,10 @@ export const allCommands = (ctx: CommandContext): Command[] => [
 /** Fuzzy-ish match: every typed word must appear in the haystack, in any order. Deliberately
     not a scored fuzzy matcher — a palette that reorders under you is a palette you cannot
     build muscle memory for. */
-export const matches = (cmd: Command, query: string): boolean => {
+/** The words a row is matched on. A table command has them; so does a row the palette builds
+    that is not on the table (a block, a document), whose group is a word of its own. */
+export type Matchable = { title: string; group: string; keywords?: string };
+export const matches = (cmd: Matchable, query: string): boolean => {
   const q = query.trim().toLowerCase();
   if (!q) return true;
   const hay = `${cmd.title} ${cmd.group} ${cmd.keywords ?? ""}`.toLowerCase();

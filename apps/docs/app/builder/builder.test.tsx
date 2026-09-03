@@ -1553,6 +1553,19 @@ describe("the builder writes no control the package already ships", () => {
      resolved, at that face's weight, beside icons the package draws at `iconStroke` — the
      2026-08-23 two-grids defect in its plainest form. Three of them shipped: the document
      menu, a saved block's menu, and the two zoom steps. */
+  /* A PALETTE IS `Command` (§44). This file was the component's forcing case and composed one
+     by hand — Dialog, TextField, ScrollArea, Row — with its own arrow-key model, an Enter
+     handler and a scrollIntoView on the lit row, which is exactly the machine §44 says an app
+     must never write twice. What stays here is the list: what the rows are and what each does. */
+  it("the ⌘K palette is the package's Command, not a keyboard model written by hand", () => {
+    const src = code(sources.find(([f]) => f === "command-palette.tsx")![1]);
+    expect(src, "the palette composes Command's parts").toMatch(/<CommandContent\b/);
+    expect(src, "the palette hands its rows to CommandItem").toMatch(/<CommandItem\b/);
+    for (const hand of ["ArrowDown", "ArrowUp", "scrollIntoView", "<TextField", "<ScrollArea", "<Row"]) {
+      expect(src, `the palette writes its own machine: ${hand}`).not.toContain(hand);
+    }
+  });
+
   it("no character stands in for an icon", () => {
     for (const [file, src] of sources) {
       const found = [...code(src).matchAll(/>\s*([⋯…−–—×✕✓＋]|\+)\s*</g)].map((m) => m[1]);

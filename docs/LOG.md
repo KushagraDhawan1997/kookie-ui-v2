@@ -8,6 +8,24 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-03 The builder's ⌘K is `Command` — the forcing case adopts the thing it forced
+
+**What.** `apps/docs/app/builder/command-palette.tsx` composes `Command` (§44). The hand-rolled palette — Dialog + TextField + ScrollArea + Row, with its own ArrowUp/ArrowDown/Enter handling, an active index, a `scrollIntoView` on the lit row and a hand-grouped list — is gone. What stays is the app's half by §44's own sentence: what the rows are (the command table filtered through `armed`, the templates, the inserts the grammar allows at the selection, the saved blocks, the other documents), what each one runs, and the matcher.
+
+**Why now.** The 2026-09-01 handover listed it second, and said why: it is how the component gets judged. `Command` had a specimen and ten laws and no consumer with a real list — 66 rows in five groups on an empty document, with chords in the trailing slot and groups that come and go with the selection.
+
+**What the port kept, and where the line is.** The matcher is the app's (`matches`, "every word, in any order", held by its own law) and is handed through `CommandContent`'s `filter`, so the port changed nothing about what a query finds. `matches` took a `Matchable` shape in place of a whole `Command` so the rows the palette builds off the table (a block, a document) match under the same rule without a fake command around them — the old file minted one (`asQuery`) to get past the type. The close-then-run `setTimeout` survives verbatim: a command that opens another dialog must not be dismissed by this one's teardown. The hidden `DialogTitle` goes — `CommandContent` names the panel by `aria-label`, required by the type. The "Nothing matches “{query}”" sentence lost its quoted query, because the component does not hand the query to `CommandEmpty` and reading it back through a second state is the second home the port exists to delete.
+
+**No `size`.** The old palette was a size-3 Dialog holding size-2 text and rows — a box priced one way and its contents another, which is exactly the split §44 closes (the index prices everything). Left at the default, 2, on the app's own 2026-09-02 rule that a restated default is a second home; the palette is 440 wide where it was 560, judged in the browser and fine. If the eye wants it wider that is `size="3"`, and then the rows and the field move with it, which is the point.
+
+**Measured before committing, in a real page, not a static render.** The docs laws are node-side, so the palette's behaviour (a Dialog opening on a chord, Base UI's highlight, Enter reaching a row's `onClick`) has no law here that could see it; a Playwright drive through `/builder` stood in: the chord opens it, the first row is lit, `und` narrows 66 rows to four, `zzz` shows the empty sentence, Escape closes, `preview` + Enter enters preview. One docs law was added where a static law CAN see the shape: the source composes `CommandContent`/`CommandItem` and carries none of the hand-written machine, falsified against the committed file.
+
+**Found on the way, environmental.** `pnpm dev` panics under Turbopack with "Missing content when trying to generate the content hash for static asset" when any of the FIVE gitignored font files the layout names is absent — the 2026-09-01 handover said "the only remaining errors are the three gitignored licensed fonts", and there are five (`Switzer-Italic`, `NeueMontrealMono-Medium` are the other two). Not a defect in the repo; recorded so the next unattended session stubs five files, not three.
+
+**Rejected.** Keeping the hand-written keyboard model beside `Command` "for the scroll-into-view" (Base UI's list owns it); a fuzzy matcher (the refusal §44 and the old file both state); and a `size="3"` to hold the old width, which would have restated a box-only decision the component no longer makes.
+
+---
+
 ## 2026-09-03 RTL reaches the tab bar and the segmented control — the open item §26 carried for fifteen days
 
 **What.** `TabsList` and `SegmentedControl` render Base UI's `DirectionProvider` from `useAmbientDirection`, the way Slider has since 2026-08-26 and the floating family since 2026-08-09. Two mounted laws, one per component, both falsified against the committed code.

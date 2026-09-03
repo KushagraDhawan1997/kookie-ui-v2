@@ -2630,7 +2630,16 @@ dialog at the same index in both appearances, so the membership is checked rathe
 **The forcing case was in the repo, which is the only reason this got built now.** The builder's
 ⌘K (`apps/docs/app/builder/command-palette.tsx`) composed a palette by hand out of Dialog, Row,
 TextField and ScrollArea, and wrote its own keyboard model. §11 has carried a "Command item" row
-since the defaults table.
+since the defaults table. **It is on `Command` since 2026-09-03** — the port the 2026-09-01
+handover named as how the component gets judged: the hand-written arrow keys, Enter, active
+index and `scrollIntoView` are deleted, the app keeps only its rows (the table's commands, the
+templates, the inserts the grammar allows here, the blocks and the documents, grouped in the
+order they arrive) and its own matcher handed through `filter`, so "every word, in any order"
+survives the port and its law still reads the one function. Driven in a real browser before
+the commit: 66 rows in five groups, the first row lit on the first frame, typing narrows,
+Escape closes, Enter runs the lit row. A docs law pins the shape — the palette composes
+`CommandContent`/`CommandItem` and contains no arrow-key, Enter, scroll, `TextField`,
+`ScrollArea` or `Row` spelling — and fails against the hand-rolled file.
 
 **The machine is the package's, the list is the app's** — Tree's sentence (§33) one component
 over. What a palette owes, and what an app must not write twice, is the keyboard model: a row

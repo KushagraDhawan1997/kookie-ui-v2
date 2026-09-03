@@ -1,24 +1,39 @@
 "use client";
 
 /**
- * ⌘K (2026-08-20) — one field over the command table, plus the two things a builder's
- * palette must also reach: the components it can insert HERE (the grammar decides, so the
- * list is different on every selection) and the documents it can switch to.
+ * ⌘K (2026-08-20; on the package's `Command` since 2026-09-03) — one field over the command
+ * table, plus the two things a builder's palette must also reach: the components it can insert
+ * HERE (the grammar decides, so the list is different on every selection) and the documents it
+ * can switch to.
  *
- * It is deliberately not a fuzzy-scored matcher. A palette that reorders as you type is a
- * palette you cannot build muscle memory for; every typed word must appear, and the order
- * is the table's own.
+ * It was the forcing case for `Command` (§44) and composed a palette by hand until the day
+ * after the component shipped: Dialog, TextField, ScrollArea and Row with its own keyboard
+ * model — arrow keys, Enter, a `scrollIntoView` on the lit row — written here, where §44 says
+ * an app must never write it. The machine is the package's now: the roving highlight, Enter
+ * running the lit row, the field's announcement and the list's scrolling all arrive by
+ * membership, and this file keeps only what §44 says stays the app's — WHAT the rows are, what
+ * each one means, and what it does.
  *
- * The rows are `Row`s (2026-08-23). They used to be `Box`es painting `var(--neutral-a3)` for
- * the highlighted one, which is the palette redrawing the row family's lit fill by hand — and
- * it had already drifted, because that fill grew material remaps and a high-contrast arm while
- * this copy stayed one flat step. The keyboard model stays here, where it belongs: the list
- * knows what its items mean, and `highlighted` is how it tells the row it is the one driving.
+ * The matcher is still this app's, handed through `filter`. It is deliberately not a fuzzy
+ * scorer: a palette that reorders as you type is a palette you cannot build muscle memory for,
+ * so every typed word must appear and the order is the table's own — `matches` in commands.ts,
+ * held by its own law.
  */
 
 import * as React from "react";
 
-import { Box, Dialog, DialogContent, DialogTitle, Kbd, Row, ScrollArea, Stack, Text, TextField } from "@kookie-ui/react";
+import {
+  Command,
+  CommandCollection,
+  CommandContent,
+  CommandEmpty,
+  CommandGroup,
+  CommandGroupLabel,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  Kbd,
+} from "@kookie-ui/react";
 
 import {
   COMMANDS,
@@ -27,11 +42,29 @@ import {
   insertCommands,
   matches,
   templateCommands,
-  type Command,
+  type Command as TableCommand,
   type CommandContext,
 } from "./commands";
 
-type Row = { key: string; title: string; group: string; hint?: string; run: () => void };
+/** One row the palette offers. `value`/`label` is the shape Base UI reads a label from without
+    being told; `group` and `keywords` are what the matcher reads. */
+type Row = {
+  value: string;
+  label: string;
+  group: string;
+  keywords?: string;
+  hint?: string;
+  run: () => void;
+};
+type Section = { value: string; items: Row[] };
+
+/* The matcher wants every word, in any order, against the title, the group and the keywords —
+   `matches`'s own contract. It takes the row's words under the table's names, so the one
+   function serves both the table's commands and the rows built here that are not on it. */
+const filter = (item: unknown, query: string): boolean => {
+  const row = item as Row;
+  return matches({ title: row.label, group: row.group, ...(row.keywords ? { keywords: row.keywords } : {}) }, query);
+};
 
 export function CommandPalette({
   open,
@@ -42,150 +75,89 @@ export function CommandPalette({
   onOpenChange: (v: boolean) => void;
   ctx: CommandContext;
 }) {
-  const [query, setQuery] = React.useState("");
-  const [active, setActive] = React.useState(0);
-  const listRef = React.useRef<HTMLDivElement | null>(null);
-
-  React.useEffect(() => {
-    if (open) {
-      setQuery("");
-      setActive(0);
-    }
-  }, [open]);
-
-  const rows: Row[] = React.useMemo(() => {
+  /* The list of EVERYTHING the palette can offer; the panel decides what survives the query.
+     Built only while open, and memoised — `items` crosses to Base UI's matcher by identity,
+     so a fresh array per render would re-run the filter pass on every unrelated render of the
+     app that holds the palette. */
+  const sections: Section[] = React.useMemo(() => {
     if (!open) return [];
-    const asRow = (c: Command): Row => ({
-      key: c.id,
-      title: c.title,
+    const asRow = (c: TableCommand): Row => ({
+      value: c.id,
+      label: c.title,
       group: c.group,
+      ...(c.keywords ? { keywords: c.keywords } : {}),
       ...(c.chord ? { hint: chordLabel(c.chord) } : {}),
       run: () => c.run(ctx),
     });
-    const commands = COMMANDS.filter((c) => armed(c, ctx) && matches(c, query)).map(asRow);
+    const commands = COMMANDS.filter((c) => armed(c, ctx)).map(asRow);
     const templates = templateCommands()
-      .filter((c) => armed(c, ctx) && matches(c, query))
-      .map((c): Row => ({ key: c.id, title: c.title, group: "Templates", run: () => c.run(ctx) }));
-    const inserts = insertCommands(ctx)
-      .filter((c) => matches(c, query))
-      .map(asRow);
-    const asQuery = (title: string): Command => ({ id: "", title, group: "Insert", enabled: () => true, run: () => {} });
+      .filter((c) => armed(c, ctx))
+      .map((c): Row => ({ value: c.id, label: c.title, group: "Templates", run: () => c.run(ctx) }));
+    const inserts = insertCommands(ctx).map(asRow);
     /* Blocks and templates are insertion by another name, and a document switch changes what
        preview is previewing. None of them are on the command table, so `armed` cannot reach
        them and the mode has to be asked once, here, where the rows are built. */
-    const blocks: Row[] = (ctx.preview ? [] : ctx.state.blocks)
-      .map((b, i) => ({ b, i }))
-      .filter(({ b }) => matches(asQuery(`Insert block ${b.name}`), query))
-      .map(({ b, i }) => ({
-        key: `block:${i}`,
-        title: `Insert ${b.name}`,
-        group: "Blocks",
-        run: () => ctx.ui.insertBlockByIndex(i),
-      }));
+    const blocks: Row[] = (ctx.preview ? [] : ctx.state.blocks).map((b, i) => ({
+      value: `block:${i}`,
+      label: `Insert ${b.name}`,
+      group: "Blocks",
+      keywords: "block",
+      run: () => ctx.ui.insertBlockByIndex(i),
+    }));
     const documents: Row[] = (ctx.preview ? [] : ctx.state.docs)
       .filter((d) => d.id !== ctx.state.activeId)
-      .filter((d) => matches(asQuery(`Switch to ${d.name}`), query))
       .map((d) => ({
-        key: `doc:${d.id}`,
-        title: `Switch to ${d.name}`,
+        value: `doc:${d.id}`,
+        label: `Switch to ${d.name}`,
         group: "Documents",
         run: () => ctx.dispatch({ type: "docSwitch", id: d.id }),
       }));
-    return [...commands, ...templates, ...inserts, ...blocks, ...documents];
-  }, [open, query, ctx]);
+    /* Grouped in the order the rows arrive — the table's own order, then the rows built here
+       — so a section's position is the table's decision and never a sort. */
+    const bySection = new Map<string, Row[]>();
+    for (const row of [...commands, ...templates, ...inserts, ...blocks, ...documents]) {
+      const list = bySection.get(row.group) ?? [];
+      list.push(row);
+      bySection.set(row.group, list);
+    }
+    return [...bySection].map(([value, items]) => ({ value, items }));
+  }, [open, ctx]);
 
-  React.useEffect(() => {
-    setActive((a) => Math.min(a, Math.max(0, rows.length - 1)));
-  }, [rows.length]);
-
-  const run = (row: Row | undefined) => {
-    if (!row) return;
+  const run = (row: Row) => {
     onOpenChange(false);
     // After the dialog's own close work, so a command that opens another dialog is not
     // immediately dismissed by this one's teardown.
     window.setTimeout(() => row.run(), 0);
   };
 
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setActive((a) => Math.min(rows.length - 1, a + 1));
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setActive((a) => Math.max(0, a - 1));
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      run(rows[active]);
-    }
-  };
-
-  /* Keep the highlighted row in view — a keyboard list that scrolls out from under you is
-     a keyboard list nobody finishes using. */
-  React.useEffect(() => {
-    listRef.current?.querySelector('[data-active="true"]')?.scrollIntoView({ block: "nearest" });
-  }, [active]);
-
-  let lastGroup = "";
-
+  /* NO `size` (2026-09-03). It would state `2`, which IS the default — a second home for the
+     baseline, the shape this app swept on 2026-09-02. The index prices the whole palette
+     (§44): the box, the field, the rows and the captions move together. */
   return (
-    <Dialog size="3" open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <Stack gap="3">
-          <DialogTitle style={{ position: "absolute", clipPath: "inset(50%)" }}>Commands</DialogTitle>
-          {/* NO `size` (2026-09-03). It stated `2`, which IS the default — a second home for
-              the baseline, and the shape this file's own neighbour already names: a default
-              restated is a default with two homes, and the one that is not the config drifts. */}
-          <TextField
-            autoFocus
-            placeholder="Search commands and components…"
-            aria-label="Search commands"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setActive(0);
-            }}
-            onKeyDown={onKeyDown}
-          />
-          <ScrollArea style={{ maxHeight: "min(52vh, 420px)" }}>
-            <div ref={listRef}>
-              {rows.length === 0 ? (
-                <Box py="4">
-                  <Text size="2" emphasis="medium">
-                    Nothing matches “{query}”.
-                  </Text>
-                </Box>
-              ) : (
-                <Stack gap="1">
-                  {rows.map((row, i) => {
-                    const header = row.group !== lastGroup ? row.group : null;
-                    lastGroup = row.group;
-                    return (
-                      <React.Fragment key={row.key}>
-                        {header ? (
-                          <Box pt={i === 0 ? "1" : "3"} pb="1">
-                            <Text size="2" emphasis="quiet">
-                              {header}
-                            </Text>
-                          </Box>
-                        ) : null}
-                        <Row
-                          data-active={i === active}
-                          highlighted={i === active}
-                          onMouseEnter={() => setActive(i)}
-                          onClick={() => run(row)}
-                          trailing={row.hint ? <Kbd>{row.hint}</Kbd> : null}
-                        >
-                          <Text size="2">{row.title}</Text>
-                        </Row>
-                      </React.Fragment>
-                    );
-                  })}
-                </Stack>
-              )}
-            </div>
-          </ScrollArea>
-        </Stack>
-      </DialogContent>
-    </Dialog>
+    <Command items={sections} open={open} onOpenChange={(next) => onOpenChange(next)}>
+      <CommandContent aria-label="Commands" filter={filter}>
+        <CommandInput aria-label="Search commands" placeholder="Search commands and components…" />
+        <CommandList>
+          {(section: Section) => (
+            <CommandGroup key={section.value} items={section.items}>
+              <CommandGroupLabel>{section.value}</CommandGroupLabel>
+              <CommandCollection>
+                {(row: Row) => (
+                  <CommandItem
+                    key={row.value}
+                    value={row}
+                    onClick={() => run(row)}
+                    {...(row.hint ? { trailing: <Kbd>{row.hint}</Kbd> } : {})}
+                  >
+                    {row.label}
+                  </CommandItem>
+                )}
+              </CommandCollection>
+            </CommandGroup>
+          )}
+        </CommandList>
+        <CommandEmpty>Nothing matches that.</CommandEmpty>
+      </CommandContent>
+    </Command>
   );
 }
