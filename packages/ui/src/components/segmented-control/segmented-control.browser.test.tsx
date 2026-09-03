@@ -1150,3 +1150,53 @@ describe("the grip travels between segments (§8, §26)", () => {
     expect(computed(thumb, "display")).toBe("none");
   });
 });
+
+describe("the arrows follow the track — direction is React context, and the track supplies it (§26, 2026-09-03)", () => {
+  /**
+   * The worst instance of the defect §26 recorded open on 2026-08-19: Base UI's composite
+   * reads direction from `DirectionContext`, never from the DOM's `dir`, and a radio group's
+   * arrows CHOOSE as they move — so under `dir="rtl"` ArrowRight checked the segment on the
+   * LEFT. `DirectionProvider` is its only setter and nothing rendered one above the track.
+   *
+   * A MIRROR claim (Slider's law, one control over): the same gesture under both directions,
+   * asserted as geometry first — the newly chosen segment lies to the RIGHT of the one that
+   * was — and as DOM identity second. Three segments with the middle one chosen, so the two
+   * answers are two different elements in both directions.
+   */
+  const track3 = (dir: "ltr" | "rtl") =>
+    mounted(
+      <div dir={dir}>
+        <SegmentedControl defaultValue="grid" aria-label="View">
+          <SegmentedItem value="list">List</SegmentedItem>
+          <SegmentedItem value="grid">Grid</SegmentedItem>
+          <SegmentedItem value="table">Table</SegmentedItem>
+        </SegmentedControl>
+      </div>,
+      { theme: {} },
+    );
+
+  it("ArrowRight CHOOSES the segment on the RIGHT, under ltr and under rtl alike", async () => {
+    for (const dir of ["ltr", "rtl"] as const) {
+      const root = track3(dir);
+      const track = within(root, ".kui-segmented");
+      expect(computed(track, "direction"), `the fixture is not ${dir}`).toBe(dir);
+      const [list, grid, table] = segments(track) as [HTMLElement, HTMLElement, HTMLElement];
+      expect(chosen(track)).toBe(grid);
+      grid.focus();
+      expect(document.activeElement).toBe(grid);
+      await userEvent.keyboard("{ArrowRight}");
+      expect(
+        await until(() => chosen(track) !== grid),
+        `${dir}: the choice did not move`,
+      ).toBe(true);
+      const now = chosen(track);
+      expect(
+        now.getBoundingClientRect().left,
+        `${dir}: ArrowRight chose the segment on the LEFT`,
+      ).toBeGreaterThan(grid.getBoundingClientRect().left);
+      // Right of the middle is the LAST segment in ltr and the FIRST in rtl — the pre-fix
+      // track answered `table` in both.
+      expect(now).toBe(dir === "ltr" ? table : list);
+    }
+  });
+});

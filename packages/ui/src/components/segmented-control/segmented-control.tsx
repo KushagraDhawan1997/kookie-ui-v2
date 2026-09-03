@@ -1,11 +1,13 @@
 "use client";
 
+import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { Radio as BaseRadio } from "@base-ui/react/radio";
 import { RadioGroup as BaseRadioGroup } from "@base-ui/react/radio-group";
 import * as React from "react";
 
 import { useLensRef } from "../../system/refraction.tsx";
 import type { Size } from "../../system/axes.ts";
+import { useAmbientDirection } from "../../system/floating.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { useControlSize } from "../../system/control-size.ts";
 
@@ -300,43 +302,62 @@ export function SegmentedControl({
   // Our own handle on the track, composed with the caller's rather than competing with it:
   // `useLensRef` forwards exactly one ref, so the thumb's measurement has to ride through it.
   const track = React.useRef<HTMLDivElement>(null);
+  /**
+   * RTL is React context here, and nothing else on the page can supply it (2026-09-03,
+   * closing the item §26 left open on 2026-08-19 — and this was the worst instance in the
+   * package, because a radio group's arrows CHOOSE as they move).
+   *
+   * The track is Base UI's composite root, and the composite maps ArrowLeft/ArrowRight to
+   * previous/next from `DirectionContext`, never from the DOM's `dir`. Its only setter is
+   * `DirectionProvider`, which nothing rendered above this control: in an `<html dir="rtl">`
+   * document the segments laid out right-to-left while ArrowRight walked to the DOM-next
+   * segment — the one on the LEFT — and checked it. Slider's fix, verbatim: the track is an
+   * in-flow node, so its own computed direction is measured (a subtree flipped by `dir` on an
+   * ancestor is answered, not only the document), and the provider renders no DOM.
+   */
+  const dir = useAmbientDirection();
   const compose = React.useCallback(
     (node: HTMLDivElement | null) => {
       track.current = node;
+      dir.measure(node);
       if (typeof ref === "function") ref(node);
-      else if (ref) (ref as React.RefObject<HTMLDivElement | null>).current = node;
+      else if (ref)
+        (ref as React.RefObject<HTMLDivElement | null>).current = node;
     },
-    [ref],
+    // `dir.measure` is stable (memoised by the hook), so this still re-composes only when the
+    // caller's ref does.
+    [ref, dir.measure],
   );
   const lensRef = useLensRef<HTMLDivElement>(material, compose);
   useTravelingThumb(track);
   return (
-    <BaseRadioGroup
-      ref={lensRef}
-      className={
-        className
-          ? `kui-control kui-segmented ${className}`
-          : "kui-control kui-segmented"
-      }
-      data-size={size}
-      // Solid is the absence of a material, so it writes no attribute (§10).
-      data-material={material === "solid" ? undefined : material}
-      // NEUTRAL, and stamped rather than omitted (audit 2026-08-19, D5). It shipped as
-      // `accent` on the stated reason that the chosen segment's rule needed a family to
-      // resolve against — measured, that rule reads `--color-thumb`, `--color-thumb-label`
-      // and `--grip-cast`, no tone role at all, and flipping the attribute left the chosen
-      // segment byte-identical. What the stamp actually reached was the quiet rung on every
-      // segment: an unchosen one hovered accent blue, and in dark it inverted the direction
-      // of the state change entirely — a light wash going to a near-opaque navy block, on a
-      // component whose type refuses `tone` because the family has one identity.
-      //
-      // Omitting it is not the fix either: `--tone-*` exists only inside a `[data-tone]`
-      // block, so a bare segment's hover source resolves to nothing and the hover disappears
-      // — which is the sibling's own defect, measured the same day (Tabs, D3).
-      data-tone="neutral"
-      {...props}
-    >
-      {/* THE THUMB — one object gliding between homes (§26, §8). Rendered FIRST, but that is
+    <DirectionProvider direction={dir.direction}>
+      <BaseRadioGroup
+        ref={lensRef}
+        className={
+          className
+            ? `kui-control kui-segmented ${className}`
+            : "kui-control kui-segmented"
+        }
+        data-size={size}
+        // Solid is the absence of a material, so it writes no attribute (§10).
+        data-material={material === "solid" ? undefined : material}
+        // NEUTRAL, and stamped rather than omitted (audit 2026-08-19, D5). It shipped as
+        // `accent` on the stated reason that the chosen segment's rule needed a family to
+        // resolve against — measured, that rule reads `--color-thumb`, `--color-thumb-label`
+        // and `--grip-cast`, no tone role at all, and flipping the attribute left the chosen
+        // segment byte-identical. What the stamp actually reached was the quiet rung on every
+        // segment: an unchosen one hovered accent blue, and in dark it inverted the direction
+        // of the state change entirely — a light wash going to a near-opaque navy block, on a
+        // component whose type refuses `tone` because the family has one identity.
+        //
+        // Omitting it is not the fix either: `--tone-*` exists only inside a `[data-tone]`
+        // block, so a bare segment's hover source resolves to nothing and the hover disappears
+        // — which is the sibling's own defect, measured the same day (Tabs, D3).
+        data-tone="neutral"
+        {...props}
+      >
+        {/* THE THUMB — one object gliding between homes (§26, §8). Rendered FIRST, but that is
           NOT what puts it under the labels: an absolutely positioned box paints after every
           static sibling whatever the document order says, and the first spelling of this
           shipped a chosen label painted white on the white grip (measured with
@@ -352,9 +373,10 @@ export function SegmentedControl({
           fallbacks that parked it on the first seat are unreachable on a registered property.
           Not exported and not a part: it is structure, the same call TabsList makes
           about its indicator. */}
-      <span className="kui-segment-thumb" aria-hidden="true" hidden />
-      <GlassScope material={material}>{children}</GlassScope>
-    </BaseRadioGroup>
+        <span className="kui-segment-thumb" aria-hidden="true" hidden />
+        <GlassScope material={material}>{children}</GlassScope>
+      </BaseRadioGroup>
+    </DirectionProvider>
   );
 }
 

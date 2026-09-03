@@ -8,6 +8,22 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-03 RTL reaches the tab bar and the segmented control — the open item §26 carried for fifteen days
+
+**What.** `TabsList` and `SegmentedControl` render Base UI's `DirectionProvider` from `useAmbientDirection`, the way Slider has since 2026-08-26 and the floating family since 2026-08-09. Two mounted laws, one per component, both falsified against the committed code.
+
+**Why now.** It was the first item on the 2026-09-01 handover's list, ahead of any new component, and it was the worst RTL defect in the package: a segmented control's arrows CHOOSE as they move, so under `dir="rtl"` ArrowRight checked the segment on the LEFT. Measured before fixing, on the committed components: the tab that took focus sat at x=1095 against the focused tab's 1165; the segment that got chosen sat at 1098 against 1164.
+
+**Why per component and not in `Theme`.** §26 named two package-wide answers when it recorded the item — promote the floating layer's ambient direction, or render the provider in `Theme` — and the per-component answer is the one that already existed. A Theme is optional (the un-themed path is a contract the emitted stylesheet promises and a law enforces), so a Theme-level provider would leave the bare path exactly as broken; it would also answer the DOCUMENT's direction where the defect is per subtree — a right-to-left pane inside a left-to-right app is the ordinary shape (`<div dir="rtl">` on a region, which is what both new laws mount), and only the element's own computed direction answers it. The cost of the per-component answer is nine lines each and one measured `getComputedStyle` per commit, set-state-on-change, which is the price the seven existing consumers already pay.
+
+**What the laws assert, and what they do not.** MIRROR claims, Slider's shape: three elements with the middle one focused, the same ArrowRight under `ltr` and `rtl`, and the first assertion is GEOMETRY — the element that takes focus (Tabs) or the choice (SegmentedControl) lies to the RIGHT of the one that had it — with the DOM identity named second. Geometry first because the identity alone is what the defect produced under `ltr` too: `c` in both directions is the pre-fix answer, and a law reading only "landed on `c`" under `ltr` passes against it. The fixture's `dir` is on a WRAPPER while the document stays `ltr`, which pins that the measured node is the bar and not `<html>`.
+
+**Rejected.** Re-exporting `DirectionProvider` (§20's own refusal — direction is ambient, and asking every bar to be told again is the `device` prop's mistake); reading `dir` off the element as an attribute (an app that spells direction in CSS is missed, and the hook already reads the computed value); and a prop.
+
+**Stale by this entry.** §26's "rendered in four files" — corrected in place; DECISIONS' "seven files" is the count after Slider, Popover and Tooltip and before these two.
+
+---
+
 ## 2026-09-02 The audit round, and the one behaviour built then deleted on measurement
 
 **What.** Six commits repairing the T0 batch after an adversarial audit of it. Six defects that

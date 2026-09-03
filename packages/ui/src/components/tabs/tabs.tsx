@@ -1,9 +1,11 @@
 "use client";
 
+import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { Tabs as BaseTabs } from "@base-ui/react/tabs";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
+import { useAmbientDirection } from "../../system/floating.tsx";
 import { unwrapLazy } from "../../system/render.ts";
 
 export type TabsProps = Omit<
@@ -101,18 +103,38 @@ export function Tabs(props: TabsProps) {
  * a bar with no active tab.
  */
 export function TabsList({ size = "2", className, children, ...props }: TabsListProps) {
+  /**
+   * RTL is React context here, and nothing else on the page can supply it (2026-09-03,
+   * closing the item §26 left open on 2026-08-19).
+   *
+   * The bar is Base UI's composite root, and the composite maps ArrowLeft/ArrowRight to
+   * previous/next from `DirectionContext` — never from the DOM's `dir`. Its only setter is
+   * `DirectionProvider`, which seven files in this package rendered and this one did not: in an
+   * `<html dir="rtl">` document the tabs laid out right-to-left (every inset here is logical)
+   * while ArrowRight still walked to the DOM-next tab, which is the one on the LEFT. Slider's
+   * fix, verbatim: the bar is an in-flow node, so its own computed direction is measured — a
+   * subtree flipped by `dir` on an ancestor is answered, not only the document — and the
+   * provider renders no DOM, so the tree does not change.
+   *
+   * The ref is the hook's: `TabsListProps` is `ComponentPropsWithoutRef`, so there is no
+   * caller ref to merge with.
+   */
+  const dir = useAmbientDirection();
   return (
-    <BaseTabs.List
-      className={className ? `kui-tabs-list ${className}` : "kui-tabs-list"}
-      data-size={size}
-      {...props}
-    >
-      <TabsSizeContext.Provider value={size}>{children}</TabsSizeContext.Provider>
-      {/* Stamped accent, the binary controls' pattern (§11): the rule needs a family to
-          resolve --tone-solid against, and accent is what the system assigns a selected
-          thing. The tabs themselves never read it — they wear the foreground roles. */}
-      <BaseTabs.Indicator className="kui-tab-rule" data-tone="accent" renderBeforeHydration />
-    </BaseTabs.List>
+    <DirectionProvider direction={dir.direction}>
+      <BaseTabs.List
+        ref={dir.measure}
+        className={className ? `kui-tabs-list ${className}` : "kui-tabs-list"}
+        data-size={size}
+        {...props}
+      >
+        <TabsSizeContext.Provider value={size}>{children}</TabsSizeContext.Provider>
+        {/* Stamped accent, the binary controls' pattern (§11): the rule needs a family to
+            resolve --tone-solid against, and accent is what the system assigns a selected
+            thing. The tabs themselves never read it — they wear the foreground roles. */}
+        <BaseTabs.Indicator className="kui-tab-rule" data-tone="accent" renderBeforeHydration />
+      </BaseTabs.List>
+    </DirectionProvider>
   );
 }
 
@@ -129,7 +151,12 @@ export function TabsList({ size = "2", className, children, ...props }: TabsList
  * requirement and the same trap Button records: without it the anchor is announced as a
  * button and Space stops activating it.
  */
-export function TabsTab({ className, render, nativeButton, ...props }: TabsTabProps) {
+export function TabsTab({
+  className,
+  render,
+  nativeButton,
+  ...props
+}: TabsTabProps) {
   const size = React.use(TabsSizeContext);
   // An element created in a Server Component crosses the RSC boundary as a lazy node, so it is
   // unwrapped before anything reads `.type` — Button's own 2026-08-07 fix, which was dev-only
@@ -140,10 +167,13 @@ export function TabsTab({ className, render, nativeButton, ...props }: TabsTabPr
     render === undefined || typeof render === "function"
       ? render
       : (unwrapLazy(render as never) as typeof render);
-  const targetType = typeof target === "object" && target !== null ? target.type : undefined;
+  const targetType =
+    typeof target === "object" && target !== null ? target.type : undefined;
   return (
     <BaseTabs.Tab
-      className={className ? `kui-control kui-tab ${className}` : "kui-control kui-tab"}
+      className={
+        className ? `kui-control kui-tab ${className}` : "kui-control kui-tab"
+      }
       data-size={size}
       data-emphasis="quiet"
       // NEUTRAL, stamped (audit 2026-08-19, D3). Without it a tab had no hover and no press
@@ -159,7 +189,9 @@ export function TabsTab({ className, render, nativeButton, ...props }: TabsTabPr
       // package has closed four times (button.tsx, menu.tsx, dialog.tsx, alert-dialog.tsx).
       // Left to default, `<TabsTab render={<a href/>}>` emitted `type="button"` on an anchor
       // — `button` is not a MIME type — and Space stopped activating the tab (audit D9).
-      nativeButton={nativeButton ?? (targetType === undefined || targetType === "button")}
+      nativeButton={
+        nativeButton ?? (targetType === undefined || targetType === "button")
+      }
       render={target}
       {...props}
     />

@@ -877,3 +877,65 @@ describe("a tab stands off the rule it sits on (§4, §26)", () => {
     }
   });
 });
+
+describe("the arrows follow the bar — direction is React context, and the bar supplies it (§26, 2026-09-03)", () => {
+  /**
+   * Base UI's composite reads text direction from its own `DirectionContext` and never from
+   * the DOM's `dir`, and its only setter is `DirectionProvider`, which nothing rendered above
+   * a tab bar until 2026-09-03 (§26 recorded the defect open on 2026-08-19). Under `dir="rtl"`
+   * the bar laid out right-to-left while ArrowRight still walked to the DOM-NEXT tab — the one
+   * on the LEFT.
+   *
+   * A MIRROR claim, the slider's own shape: the same gesture on both directions, and what is
+   * asserted is geometry — the tab that takes focus lies to the RIGHT of the one that had it —
+   * before the DOM identity, so a fixture cannot pass by picking the tab that happens to sit
+   * where the assertion looks. Three tabs with the middle one focused, so "next" and
+   * "previous" are two different elements in both directions.
+   */
+  const bar3 = (dir: "ltr" | "rtl") =>
+    mounted(
+      <div dir={dir}>
+        <Tabs defaultValue="b">
+          <TabsList>
+            <TabsTab value="a">One</TabsTab>
+            <TabsTab value="b">Two</TabsTab>
+            <TabsTab value="c">Three</TabsTab>
+          </TabsList>
+        </Tabs>
+      </div>,
+      { theme: {} },
+    );
+
+  it("ArrowRight moves focus to the tab on the RIGHT, under ltr and under rtl alike", async () => {
+    for (const dir of ["ltr", "rtl"] as const) {
+      const root = bar3(dir);
+      const list = listOf(root);
+      expect(computed(list, "direction"), `the fixture is not ${dir}`).toBe(dir);
+      const [a, b, c] = tabsOf(root) as [HTMLElement, HTMLElement, HTMLElement];
+      b.focus();
+      expect(document.activeElement).toBe(b);
+      await userEvent.keyboard("{ArrowRight}");
+      expect(
+        await until(() => document.activeElement !== b),
+        `${dir}: focus did not move`,
+      ).toBe(true);
+      const landed = document.activeElement as HTMLElement;
+      expect(
+        landed.getBoundingClientRect().left,
+        `${dir}: ArrowRight moved focus to the tab on the LEFT`,
+      ).toBeGreaterThan(b.getBoundingClientRect().left);
+      // The geometric claim named: right of the middle is the LAST tab in ltr and the FIRST
+      // in rtl — the pre-fix bar answered `c` in both.
+      expect(landed).toBe(dir === "ltr" ? c : a);
+    }
+  });
+
+  it("...and a bar flipped by an ANCESTOR's dir is answered, not only the document's", () => {
+    // The direction is measured off the bar's own computed style, so a subtree flipped in
+    // the middle of an ltr page is right too — the fixture above IS that shape (the document
+    // stays ltr; only the wrapper says rtl), and this pins the premise the law rests on.
+    expect(computed(document.documentElement, "direction")).toBe("ltr");
+    const root = bar3("rtl");
+    expect(computed(listOf(root), "direction")).toBe("rtl");
+  });
+});
