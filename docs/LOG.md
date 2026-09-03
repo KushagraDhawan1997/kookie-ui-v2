@@ -8,6 +8,48 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-03 Turbo was caching the dev server — 85GB of it
+
+**What.** `apps/docs/turbo.json` excludes `.next/dev` from the build task's outputs.
+
+**Why.** Kushagra, after a turbo cache write failed: *"Do I have a lot of cache? Because its taking a lot of spce I think"*. Measured: `.turbo/cache` was **85GB** on a disk with 335MB free, across 459 entries whose largest were 3.4GB each.
+
+**Next's own recipe is `.next/**` minus `.next/cache`, and it was written for the webpack layout.** Turbopack puts the DEV SERVER's state in `.next/dev` — and a dev server has usually been running against the same directory when a build happens, which in this repo it always is. So every `turbo run build` swept the dev server's scratch space into its own cache entry.
+
+The arithmetic is what settles it, since no `zstd` binary was available to list the archive: `.next` measured 6.2GB, of which `.next/dev` was 5.4GB (4.6 of that Turbopack's own cache) and `.next/cache` 603MB, already excluded. The real build output — `server`, `static`, `build` — came to **155MB**, which cannot compress *up* to a 3.4GB tarball. Only the dev directory accounts for it. After the exclusion the same build's entry is **12MB**, and a second run is `FULL TURBO`, so the cache still does its job.
+
+**It is not hygiene, and the reason is what the entry would DO on a hit.** `.next/dev` is one running process's scratch space, so restoring it would hand a build's leftovers to a dev server that did not make them — a cache entry that is wrong to write is also wrong to read back.
+
+Left alone deliberately: the live `.next/dev` itself, because the dev server is running on it and Turbopack rebuilds it either way. The pnpm store (7.3GB) and `node_modules` (727MB) are ordinary.
+
+---
+
+## 2026-09-03 The builder writes no control the package already ships — and the top bar has three zones
+
+**What.** A scan of the builder's own source for controls written out by hand where the package ships the thing, and a restructure of the header. Nine repairs and eleven laws.
+
+**Why.** Kushagra, with the top bar open: *"Please scan for other things too, like not using hugeicons, not using size 2 icon button as default, or any button etc etc. Please also rethink the UX and UI, like the top bar is partociarlarly bad."*
+
+**The scan found ONE shape, six times.** Not six unrelated slips — a control written out longhand where the component exists:
+
+- **A `⋯` and a `−` and a `+` as labels** (the document menu, a saved block's menu, the two zoom steps). A typed character is drawn by whatever face the line resolved, at that face's weight, beside icons the package draws at `iconStroke` — the 2026-08-23 two-grids defect in its plainest form. `MinusIcon` joins the docs' set; the two menus become `iconOnly`.
+- **`aria-pressed` bolted onto a Button** with an emphasis the call site computes, twice (Preview, Compare tiers). That IS `Toggle` (§34) written out: a toggle's emphasis is its state, which is why the component has no emphasis prop and why the pressed state comes from the primitive. **The Preview label stopped changing with it** — it read "Editing off" when on, so the control announced two different things and neither named what pressing it does.
+- **`aria-current="true"` on the Review button**, meaning "this pane is open". `aria-current` names a location in a set; whether a pane is open is `aria-expanded`, which `ShellTrigger` has been publishing all along. Redundant and wrong at once.
+- **A count spliced into a label** — `` `Review ${n}` `` — in TWO places, the header button and the inspector's own tab. That changes the control's WIDTH every time the document does, so the whole right-hand run shifts while you are reaching for it, which is Tabs' own measured argument against a heavier active label arriving as a wider one. It is a `Badge` (§38) now, and on the tab it is where a badge most belongs: pinned to the thing it is about. **The second one was found by my own law failing on its first run**, which is the point of writing it over the source rather than over the one call site I was looking at.
+- **A hand-painted pane.** The toast stated the seal, a hairline, a corner and `box-shadow: var(--shadow-3)` — the fenced resource read directly (§13), which a law forbids in every package stylesheet and which nothing watched in an app. It is a `Card`. The canvas page made the same mistake and became a `Surface` on 2026-08-20.
+- **The toast announced TWICE** — a `Text` in the header and the `Toast` at the root, two `aria-live` regions with the same string, so a screen reader read it twice.
+- **`size="2"` restated** on the palette's field: the baseline said again, which is a default with two homes, and the one that is not the config drifts. The builder's own header comment names the shape three files away.
+
+**The top bar was two clusters pushed apart by `space-between`**, and that put the DOCUMENT at the far left beside the app's own name with everything you do to it 1,200px away at the other end, a dead gap between them, and six peer controls in one weight along the right so nothing said which you reach for. Now three zones, each about one thing: the panes at the two extremes (the convention, and they are symmetric), the identity beside the one it opens, the **document centred with its own history beside it** — undo and redo moved there because they act on this document and nothing else in the bar does — and the actions ending on the one loud thing.
+
+**A grid, and that is the mechanism rather than the styling:** `1fr auto 1fr` centres the middle against the WINDOW however wide the sides get, where a flex row centres it against whatever room the sides leave, so the name would drift every time a finding count changed.
+
+**And centring costs something, measured.** Equal side cells is what `1fr auto 1fr` means, so the window has to afford twice the WIDER side plus the middle: the right cluster is ~420px, the left ~102, the document ~204, which needs ~1,076. At 900 the right cluster overflowed its own cell and drew over the document — and the old row degraded instead, because its left cluster carried `min-width: 0` and simply squeezed the name. **So the fallback is stated rather than discovered:** three zones at `wide`, two below it, the document rejoining the identity where it lived before. `null` on the server resolves to CENTRED, the right first paint for a desktop tool and the same call the inspector's own `roomy` makes one line up. Verified at 720, 900, 1100, 1280 and 1600.
+
+**Eleven laws, every one falsified.** Seven read the SOURCE with its comments stripped, because the claim is about what the app writes rather than about one call site: no character stands in for an icon, nothing bolts `aria-pressed` onto a Button, `aria-current` is only ever `page`, the count is a Badge, no file reaches past the chrome roles or paints its own seal, a toast is announced once, and no control restates the size it would have taken anyway. Two of my own were wrong before they were right: the loud-control law counted the `<h1>`, because `loud` is the type family's own resting rung and not a focal action; and "nothing labelled follows the loud action" was satisfied by the loud action's OWN label until it read the controls after its closing tag instead.
+
+---
+
 ## 2026-09-02 The audit round, and the one behaviour built then deleted on measurement
 
 **What.** Six commits repairing the T0 batch after an adversarial audit of it. Six defects that
@@ -48,48 +90,6 @@ which the font failure was hiding. Fixed, and a docs law now walks every example
 re-spell the row identity inline (named with an expiry; the law fails on a fifth), and the DEV
 safe-area guard cannot see a drag, because its observer watches the shell root whose box does not
 change when a pane resizes.
-
----
-
-## 2026-09-03 Turbo was caching the dev server — 85GB of it
-
-**What.** `apps/docs/turbo.json` excludes `.next/dev` from the build task's outputs.
-
-**Why.** Kushagra, after a turbo cache write failed: *"Do I have a lot of cache? Because its taking a lot of spce I think"*. Measured: `.turbo/cache` was **85GB** on a disk with 335MB free, across 459 entries whose largest were 3.4GB each.
-
-**Next's own recipe is `.next/**` minus `.next/cache`, and it was written for the webpack layout.** Turbopack puts the DEV SERVER's state in `.next/dev` — and a dev server has usually been running against the same directory when a build happens, which in this repo it always is. So every `turbo run build` swept the dev server's scratch space into its own cache entry.
-
-The arithmetic is what settles it, since no `zstd` binary was available to list the archive: `.next` measured 6.2GB, of which `.next/dev` was 5.4GB (4.6 of that Turbopack's own cache) and `.next/cache` 603MB, already excluded. The real build output — `server`, `static`, `build` — came to **155MB**, which cannot compress *up* to a 3.4GB tarball. Only the dev directory accounts for it. After the exclusion the same build's entry is **12MB**, and a second run is `FULL TURBO`, so the cache still does its job.
-
-**It is not hygiene, and the reason is what the entry would DO on a hit.** `.next/dev` is one running process's scratch space, so restoring it would hand a build's leftovers to a dev server that did not make them — a cache entry that is wrong to write is also wrong to read back.
-
-Left alone deliberately: the live `.next/dev` itself, because the dev server is running on it and Turbopack rebuilds it either way. The pnpm store (7.3GB) and `node_modules` (727MB) are ordinary.
-
----
-
-## 2026-09-03 The builder writes no control the package already ships — and the top bar has three zones
-
-**What.** A scan of the builder's own source for controls written out by hand where the package ships the thing, and a restructure of the header. Nine repairs and eleven laws.
-
-**Why.** Kushagra, with the top bar open: *"Please scan for other things too, like not using hugeicons, not using size 2 icon button as default, or any button etc etc. Please also rethink the UX and UI, like the top bar is partociarlarly bad."*
-
-**The scan found ONE shape, six times.** Not six unrelated slips — a control written out longhand where the component exists:
-
-- **A `⋯` and a `−` and a `+` as labels** (the document menu, a saved block's menu, the two zoom steps). A typed character is drawn by whatever face the line resolved, at that face's weight, beside icons the package draws at `iconStroke` — the 2026-08-23 two-grids defect in its plainest form. `MinusIcon` joins the docs' set; the two menus become `iconOnly`.
-- **`aria-pressed` bolted onto a Button** with an emphasis the call site computes, twice (Preview, Compare tiers). That IS `Toggle` (§34) written out: a toggle's emphasis is its state, which is why the component has no emphasis prop and why the pressed state comes from the primitive. **The Preview label stopped changing with it** — it read "Editing off" when on, so the control announced two different things and neither named what pressing it does.
-- **`aria-current="true"` on the Review button**, meaning "this pane is open". `aria-current` names a location in a set; whether a pane is open is `aria-expanded`, which `ShellTrigger` has been publishing all along. Redundant and wrong at once.
-- **A count spliced into a label** — `` `Review ${n}` `` — in TWO places, the header button and the inspector's own tab. That changes the control's WIDTH every time the document does, so the whole right-hand run shifts while you are reaching for it, which is Tabs' own measured argument against a heavier active label arriving as a wider one. It is a `Badge` (§38) now, and on the tab it is where a badge most belongs: pinned to the thing it is about. **The second one was found by my own law failing on its first run**, which is the point of writing it over the source rather than over the one call site I was looking at.
-- **A hand-painted pane.** The toast stated the seal, a hairline, a corner and `box-shadow: var(--shadow-3)` — the fenced resource read directly (§13), which a law forbids in every package stylesheet and which nothing watched in an app. It is a `Card`. The canvas page made the same mistake and became a `Surface` on 2026-08-20.
-- **The toast announced TWICE** — a `Text` in the header and the `Toast` at the root, two `aria-live` regions with the same string, so a screen reader read it twice.
-- **`size="2"` restated** on the palette's field: the baseline said again, which is a default with two homes, and the one that is not the config drifts. The builder's own header comment names the shape three files away.
-
-**The top bar was two clusters pushed apart by `space-between`**, and that put the DOCUMENT at the far left beside the app's own name with everything you do to it 1,200px away at the other end, a dead gap between them, and six peer controls in one weight along the right so nothing said which you reach for. Now three zones, each about one thing: the panes at the two extremes (the convention, and they are symmetric), the identity beside the one it opens, the **document centred with its own history beside it** — undo and redo moved there because they act on this document and nothing else in the bar does — and the actions ending on the one loud thing.
-
-**A grid, and that is the mechanism rather than the styling:** `1fr auto 1fr` centres the middle against the WINDOW however wide the sides get, where a flex row centres it against whatever room the sides leave, so the name would drift every time a finding count changed.
-
-**And centring costs something, measured.** Equal side cells is what `1fr auto 1fr` means, so the window has to afford twice the WIDER side plus the middle: the right cluster is ~420px, the left ~102, the document ~204, which needs ~1,076. At 900 the right cluster overflowed its own cell and drew over the document — and the old row degraded instead, because its left cluster carried `min-width: 0` and simply squeezed the name. **So the fallback is stated rather than discovered:** three zones at `wide`, two below it, the document rejoining the identity where it lived before. `null` on the server resolves to CENTRED, the right first paint for a desktop tool and the same call the inspector's own `roomy` makes one line up. Verified at 720, 900, 1100, 1280 and 1600.
-
-**Eleven laws, every one falsified.** Seven read the SOURCE with its comments stripped, because the claim is about what the app writes rather than about one call site: no character stands in for an icon, nothing bolts `aria-pressed` onto a Button, `aria-current` is only ever `page`, the count is a Badge, no file reaches past the chrome roles or paints its own seal, a toast is announced once, and no control restates the size it would have taken anyway. Two of my own were wrong before they were right: the loud-control law counted the `<h1>`, because `loud` is the type family's own resting rung and not a focal action; and "nothing labelled follows the loud action" was satisfied by the loud action's OWN label until it read the controls after its closing tag instead.
 
 ---
 
