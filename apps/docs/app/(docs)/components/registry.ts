@@ -851,6 +851,60 @@ export const ENTRIES: Entry[] = [
     ],
   },
   {
+    slug: "combobox",
+    name: "Combobox",
+    family: "Surface",
+    spec: "§20, §21, §45",
+    blurb:
+      "Combobox is a field you type into over a list you pick from. Reach for it where a Select's list is too long to scan: the field filters the list, and the value is still one of the items, never free text. The field is a TextField by membership, with the same fill, edge, height and focus ring, holding a clear button while something is chosen and a chevron that opens the list for a pointer. The panel is the same anchored pane a Menu and a Select share, and its rows are the row family's. Base UI renders a hidden input, so it submits with a form.",
+    axes: [
+      { name: "size", values: "1 | 2 | 3 | 4", note: "set it on the root. The field, the hosted buttons and the option rows all take it" },
+      { name: "items", values: "your array, or an array of { value, items } groups", note: "everything the list can offer, before filtering. An item is a string or a { value, label } object — label is what the field shows, value is what the form submits. Hold the array stable: it crosses to the matcher by identity" },
+      { name: "filter", values: "a matcher", note: "left alone it is Base UI's own, which matches anywhere in the label. Pass your own to match differently, or narrow items yourself from onInputValueChange for a list that lives on a server" },
+      { name: "backdrop", values: "boolean", note: "says content passes behind the field, so the theme's glass can show. Unset, it follows the surrounding <Box backdrop> region" },
+    ],
+    refusals: [
+      {
+        name: "multiple",
+        why: "Deferred, not designed. A strip of removable chips inside a field is a geometry this system has not drawn — a chip at hosted scale, its remove button, where the caret sits among them, what the field does when they wrap. Withholding is the additive direction. Several choices today is a list of Checkboxes in a Field.",
+      },
+      {
+        name: "free text",
+        why: "The value is always one of the items. A field that accepts anything and merely suggests is a search box, which is Base UI's Autocomplete — the primitive Command wraps — and a different component with a different announcement.",
+      },
+      {
+        name: "readOnly",
+        why: "Select's refusal. A value that must submit but cannot change is a disabled field beside the hidden input the root already renders, or the value rendered as Text. Base UI would lock the choice while the field still took a caret: two audiences, two answers.",
+      },
+      {
+        name: "modal, a backdrop, an arrow",
+        why: "The page stays live behind a combobox; a list that locks the page is a Dialog. Placement is the system's: below the field, start-aligned, never narrower than the field, flipped above by itself when the room runs out.",
+      },
+      {
+        name: "a Value part",
+        why: "The input is the value. A part that stands where the value goes is what a Select's trigger needs, because a trigger holds no text of its own; a field does.",
+      },
+      {
+        name: "a Separator inside the panel",
+        why: "The panel is the listbox, and a listbox may contain only options and groups. Use a group: it divides options in the accessibility tree as well as on screen.",
+      },
+      {
+        name: "render and children on the input",
+        why: "There are two elements here — the wrapper holds the border the input cannot hold once a button sits inside it — and neither can move. TextField's own sentence.",
+      },
+    ],
+    parts: [
+      { part: "ComboboxInput", blurb: "The field. A TextField's wrapper around Base UI's input, holding the clear button while something is chosen and the chevron that opens the list. The wrapper is what the panel anchors to, so the list is never narrower than the box you see" },
+      { part: "ComboboxContent", blurb: "The floating panel: it portals, positions, re-applies the theme, and scrolls a viewport inside it rather than itself" },
+      { part: "ComboboxList", blurb: "The listbox. It takes a function rather than children, because the rows that exist are the ones that survived the query" },
+      { part: "ComboboxItem", blurb: "One option row. Its indicator stays mounted so the gutter holds, and the tick wears the accent when chosen" },
+      { part: "ComboboxGroup", blurb: "A section, carrying its own items so it can disappear when nothing in it matches" },
+      { part: "ComboboxGroupLabel", blurb: "The section's caption. Muted, not reachable, and it does nothing" },
+      { part: "ComboboxCollection", blurb: "Renders each surviving item of the group it sits in" },
+      { part: "ComboboxEmpty", blurb: "What the panel says when nothing matches. Your words, in your language" },
+    ],
+  },
+  {
     slug: "command",
     name: "Command",
     family: "Surface",

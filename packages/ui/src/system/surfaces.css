@@ -163,7 +163,7 @@
      What it OBLIGES: a clipping pane must pad at least the focus ring's reach, or a control
      resting against the inside of the padding loses the outer edge of its ring. The surface
      band clears it everywhere (the tightest cell is compact size 1 at 8px against a 4px
-     reach) and the menu's panel did not — which is why --kui-menu-pad is a max() against the
+     reach) and the menu's panel did not — which is why --kui-floating-pad is a max() against the
      ring's own tokens rather than a number, and why that floor is stated where the padding
      is chosen rather than here. Law-checked across every size × density. */
   overflow: clip;
@@ -469,6 +469,58 @@
   --kui-sf-p: var(--kui-floating-p, var(--surface-p-4));
   --kui-sf-radius: calc(var(--radius-row-4) + var(--kui-sf-p));
   --kui-sf-row-px: var(--control-px-pill-4);
+}
+
+/* ── The pane that hugs rows: its padding floor and its width floors (§22, §23, §45) ─────────
+   PROMOTED 2026-09-03 on the third member. Menu wrote these, Select copied them self-keyed
+   ("the second member self-keys, the third promotes" — LOG 2026-08-05), and menu.css's own
+   comment scheduled the move: "the third floating member that wants a width floor is the one
+   to move it". Combobox is that member. The two copies had already drifted in one place —
+   the menu's base floor (`--floating-min-w` alone, for a submenu) was absent from the select's,
+   which is right only because a select is always anchored — so the family states both.
+
+   THE PADDING FLOOR. A pane's padding is `--floating-p`, one designed number, FLOORED at the
+   focus ring's reach: whichever element scrolls (the menu's viewport, the select's popup)
+   clips descendant ink at its padding box, and a row's ring reaches width + offset past its
+   border box. At compact density --floating-p is 2px against a 4px reach, so the ring's sides
+   never painted (audit 2026-08-09). Stated as the ring's own tokens, so re-tuning the ring
+   cannot silently re-break the pane. It is published twice on purpose: `--kui-sf-p` is what the
+   pane pads by, and `--kui-floating-p` is the hook the size join above consults for the
+   concentric corner — one number, two consumers, as before.
+
+   RANK. This block is (0,2,0) and the size join above declares `--kui-sf-p` at (0,3,0) with a
+   `var(--kui-floating-p, …)` fallback — so the join wins the property and reads the hook this
+   block supplies, which is exactly the arrangement menu.css had at (0,1,0). The flight's
+   stand-down of the width floor (`min-inline-size: 0` on `[data-unfurling]`, further down this
+   file) is (0,3,0) and later, so it still wins over the (0,3,0) anchored floor by source order:
+   a panel mid-unfurl is deliberately narrower than everything. */
+.kui-surface.kui-floating-rows {
+  --kui-floating-pad: max(var(--floating-p), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
+  --kui-sf-p: var(--kui-floating-pad);
+  --kui-floating-p: var(--kui-floating-pad);
+  /* Never narrower than the designed floor (§22). */
+  min-width: var(--floating-min-w);
+}
+
+/* Never narrower than the TRIGGER that opened it either (§22) — ONLY a top-level panel wears
+   the class: a submenu's anchor is its trigger ROW, inline-size 100% of the parent panel, so
+   the same declaration compounded down the chain (audit 2026-08-09).
+
+   The entry's own anchor measurement first: the flight measures its target through this floor
+   before floating-ui has written --anchor-width, and `--kui-anchor-w` is the trigger's LAYOUT
+   box, kept for the panel's whole life rather than handed back at release (2026-08-22:
+   floating-ui keeps re-measuring the anchor as a held press travels). The inner fallback keeps
+   the declaration valid where no positioner exists (the agreement law's in-flow twin).
+
+   AND CAPPED BY THE ROOM, inside the min(): a minimum beats a maximum, so a `max-width` beside
+   this floor could never apply — measured 951px starting at x=967 in a 1280 window (audit
+   2026-08-22). The inner max() keeps the designed floor from being squeezed away when the
+   reported room is absurdly small. */
+.kui-surface.kui-floating-rows.kui-floating-anchored {
+  min-width: min(
+    max(var(--floating-min-w), var(--kui-anchor-w, var(--anchor-width, var(--floating-min-w)))),
+    max(var(--floating-min-w), var(--available-width, 100vw))
+  );
 }
 
 /* THE ONE PANE WITH TWO INSETS (§32, 2026-08-26 audit). A tooltip is one line of words priced

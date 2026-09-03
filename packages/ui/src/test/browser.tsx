@@ -48,6 +48,7 @@ import checkboxCss from "../components/checkbox/checkbox.css?raw";
 import codeCss from "../components/code/code.css?raw";
 import codeBlockCss from "../components/code-block/code-block.css?raw";
 import commandCss from "../components/command/command.css?raw";
+import comboboxCss from "../components/combobox/combobox.css?raw";
 import dialogCss from "../components/dialog/dialog.css?raw";
 import fieldCss from "../components/field/field.css?raw";
 import kbdCss from "../components/kbd/kbd.css?raw";
@@ -106,6 +107,7 @@ export function installStyles(): void {
     codeBlockCss,
     dialogCss,
     commandCss,
+    comboboxCss,
     fieldCss,
     kbdCss,
     linkCss,

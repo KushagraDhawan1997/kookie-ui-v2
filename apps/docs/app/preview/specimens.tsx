@@ -53,6 +53,15 @@ import {
   FieldLabel,
   Flex,
   Attachment,
+  Combobox,
+  ComboboxCollection,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxGroup,
+  ComboboxGroupLabel,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
   Command,
   CommandCollection,
   CommandContent,
@@ -1163,6 +1172,91 @@ const PALETTE: PaletteSection[] = [
     ],
   },
 ];
+
+type Country = { value: string; label: string };
+const COUNTRIES: Country[] = [
+  { value: "ar", label: "Argentina" },
+  { value: "au", label: "Australia" },
+  { value: "br", label: "Brazil" },
+  { value: "ca", label: "Canada" },
+  { value: "de", label: "Germany" },
+  { value: "in", label: "India" },
+  { value: "jp", label: "Japan" },
+  { value: "ke", label: "Kenya" },
+  { value: "mx", label: "Mexico" },
+  { value: "nl", label: "Netherlands" },
+  { value: "pt", label: "Portugal" },
+  { value: "za", label: "South Africa" },
+];
+const REGIONS = [
+  { value: "Americas", items: COUNTRIES.filter((c) => ["ar", "br", "ca", "mx"].includes(c.value)) },
+  { value: "Europe", items: COUNTRIES.filter((c) => ["de", "nl", "pt"].includes(c.value)) },
+  { value: "Elsewhere", items: COUNTRIES.filter((c) => ["au", "in", "jp", "ke", "za"].includes(c.value)) },
+];
+
+function ComboboxSection() {
+  return (
+    <Stack gap="6">
+      {/* The claim to judge first: beside a TextField and a Select at the same index, the three
+          read as one family — one fill, one edge, one height — and the combobox is the one
+          whose field you can type into (§45). */}
+      <Flex gap="3" align="end" wrap="wrap">
+        <TextField placeholder="A text field" aria-label="Text" />
+        <Select defaultValue="ca" items={{ ca: "Canada", de: "Germany" }}>
+          <SelectTrigger placeholder="A select" />
+          <SelectContent>
+            <SelectItem value="ca">Canada</SelectItem>
+            <SelectItem value="de">Germany</SelectItem>
+          </SelectContent>
+        </Select>
+        <Combobox items={COUNTRIES} defaultValue={COUNTRIES[3] ?? null}>
+          <ComboboxInput aria-label="Country" placeholder="Search countries" />
+          <ComboboxContent>
+            <ComboboxEmpty>No country matches.</ComboboxEmpty>
+            <ComboboxList>
+              {(country: Country) => (
+                <ComboboxItem key={country.value} value={country}>
+                  {country.label}
+                </ComboboxItem>
+              )}
+            </ComboboxList>
+          </ComboboxContent>
+        </Combobox>
+      </Flex>
+
+      {/* Grouped, and at every index: the field, the hosted buttons and the rows move together. */}
+      <Flex gap="3" align="end" wrap="wrap">
+        {(["1", "2", "3", "4"] as const).map((size) => (
+          <Combobox key={size} size={size} items={REGIONS}>
+            <ComboboxInput aria-label={`Country, size ${size}`} placeholder={`Size ${size}`} />
+            <ComboboxContent>
+              <ComboboxEmpty>No country matches.</ComboboxEmpty>
+              <ComboboxList>
+                {(region: { value: string; items: Country[] }) => (
+                  <ComboboxGroup key={region.value} items={region.items}>
+                    <ComboboxGroupLabel>{region.value}</ComboboxGroupLabel>
+                    <ComboboxCollection>
+                      {(country: Country) => (
+                        <ComboboxItem key={country.value} value={country}>
+                          {country.label}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxCollection>
+                  </ComboboxGroup>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+        ))}
+      </Flex>
+
+      <Text size="2" emphasis="medium">
+        Type to narrow the list, or press the chevron to browse it. The value is always one of
+        the items, and the clear button appears only while one is chosen.
+      </Text>
+    </Stack>
+  );
+}
 
 function CommandSection() {
   return (
@@ -2968,6 +3062,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   ported("menu"),
   ported("composer"),
   { id: "attachment", name: "Attachment", body: <AttachmentSection /> },
+  { id: "combobox", name: "Combobox", body: <ComboboxSection /> },
   { id: "command", name: "Command", body: <CommandSection /> },
   { id: "notice", name: "Notice", body: <NoticeSection /> },
   ported("select"),

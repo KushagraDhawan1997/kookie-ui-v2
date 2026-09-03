@@ -359,7 +359,7 @@ describe("it is the menu family's panel, not a second one", () => {
        docstring claiming "the panel must resolve the same ink a row inside the in-flow Theme
        does". An attribute comes back equal because it was written verbatim; nothing about what
        those axes REACH was ever read. The sabotage that survived it: append
-       `[data-pointer="coarse"] .kui-menu-popup:not(.kui-menu-anchored) { background-color: red;
+       `[data-pointer="coarse"] .kui-menu-popup:not(.kui-floating-anchored) { background-color: red;
        padding-top: 40px }` to menu.css and all fourteen laws stay green while every context
        menu on every touch device is red with 40px of padding.
 

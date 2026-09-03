@@ -882,7 +882,7 @@ function useFlight(plan: FlightPlan) {
              seed box of its own, it is because the panel was summoned rather than opened: the
              silhouette is a zero-size rect at the cursor, so the corner is `0px` (there is no
              box to have one) and the anchor-width floor is skipped, which is right twice over —
-             a point's width is zero, and a point-placed panel never wears `kui-menu-anchored`
+             a point's width is zero, and a point-placed panel never wears `kui-floating-anchored`
              in the first place. */
           const summoned = seedSize?.() ?? null;
           if (summoned) {

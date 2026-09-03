@@ -24,6 +24,7 @@ export { Button, type ButtonProps } from "./components/button/button.tsx";
 export { Card, type CardProps } from "./components/card/card.tsx";
 export { Checkbox, type CheckboxProps } from "./components/checkbox/checkbox.tsx";
 export { Code, type CodeProps } from "./components/code/code.tsx";
+export { Combobox, ComboboxInput, ComboboxContent, ComboboxList, ComboboxItem, ComboboxGroup, ComboboxGroupLabel, ComboboxCollection, ComboboxEmpty, type ComboboxProps, type ComboboxInputProps, type ComboboxContentProps, type ComboboxListProps, type ComboboxItemProps, type ComboboxGroupProps, type ComboboxGroupItems } from "./components/combobox/combobox.tsx";
 export { CodeBlock, type CodeBlockProps } from "./components/code-block/code-block.tsx";
 export { Field, FieldItem, FieldLabel, FieldDescription, FieldError, type FieldProps, type FieldItemProps, type FieldLabelProps, type FieldDescriptionProps, type FieldErrorProps } from "./components/field/field.tsx";
 export { Command, CommandTrigger, CommandContent, CommandInput, CommandList, CommandGroup, CommandGroupLabel, CommandCollection, CommandItem, CommandEmpty, type CommandProps, type CommandTriggerProps, type CommandContentProps, type CommandInputProps, type CommandListProps, type CommandGroupProps, type CommandItemProps } from "./components/command/command.tsx";

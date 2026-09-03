@@ -34,3 +34,10 @@ export const GLYPH_VIEWBOX = "0 0 16 16";
     Two strokes rather than a glyph font's single ✗, and round caps, because at 16px a mitred
     crossing thickens visibly at the centre where the two lines meet. */
 export const DISMISS_PATH = "M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5";
+
+/** The soft-apex caret pointing DOWN — "there is a list under this". A Select's trigger drew
+    it inline while it was the one consumer; Combobox's trigger is the second (2026-09-03), so
+    it lands here. It points down in both directions, because no direction mirrors "below".
+    The apex is a quadratic rather than a mitre for the tree chevron's reason (2026-08-09, the
+    glyph-stroke batch): at 1.17px painted a sharp apex reads as a nick. */
+export const CHEVRON_DOWN_PATH = "M4.5 6 L7.2 8.7 Q8 9.5 8.8 8.7 L11.5 6";

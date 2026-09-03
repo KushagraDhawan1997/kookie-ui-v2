@@ -4,19 +4,11 @@
    padding, the width floor, and the two row variants that stand interactivity down. */
 
 .kui-menu-popup {
-  /* One designed padding (§22) — the panel does not answer the size index, its rows do —
-     FLOORED at the focus ring's own reach (§8, audit 2026-08-09). `overflow-y: auto` below
-     makes this panel a scroll container, which clips descendant ink at the PADDING box in
-     both axes, and the ring a row paints reaches `width + offset` outside its border box. At
-     compact density --floating-p is 2px against a 4px reach, so the ring's vertical sides never
-     painted on any row and the first and last rows also lost their outer band; default sat
-     at exactly 0px of slack, which is a coincidence rather than a clearance. The floor moves
-     only the compact cell (2 -> 4) and buys default a real one. Stated as the ring's own
-     tokens, not as a number, so re-tuning the ring cannot silently re-break the panel. */
-  --kui-menu-pad: max(var(--floating-p), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
-  --kui-sf-p: var(--kui-menu-pad);
-  /* Never narrower than the designed floor (§22). */
-  min-width: var(--floating-min-w);
+  /* The padding floor (`max(--floating-p, ring reach)`), the `--kui-sf-p` re-point, the
+     concentric `--kui-floating-p` hook and the designed width floor all moved to
+     surfaces.css's anchored-pane block on 2026-09-03 — the promotion this file's own comment
+     scheduled for "the third floating member that wants a width floor", which is Combobox.
+     Every argument travelled with the declarations; what stays here is the menu's own. */
   /* Long menus scroll INSIDE the panel — and since 2026-08-17 the scroller is the
      ScrollArea viewport, not the popup: the panel keeps its glass, corner and cast, the
      list inside it moves, and the overlay thumb replaces the browser gutter that used to
@@ -53,44 +45,12 @@
   max-block-size: calc(var(--available-height, 100vh) - 2 * var(--border-width));
 }
 
-/* The panel's corner is CONCENTRIC — its rows' corner plus this padding (§6, Kushagra
-   2026-08-09: "menu item radius + padding = container radius"; two fixed corners broke on
-   sight first, the overlay band and then surface-1). The DERIVATION lives in the floating
-   family's own size join (surfaces.css) — per-size spellings belong to the shared layer,
-   the switch join's rule — and what the menu supplies is its half of the arithmetic: the
-   pane's padding, through the hook that join consults before the surface band's picks. */
-.kui-menu-popup {
-  --kui-floating-p: var(--kui-menu-pad);
-}
-
-/* Never narrower than the TRIGGER that opened it either (§22) — the size-match argument
-   applied to geometry, and the reason it is scoped to the anchored panel rather than stated
-   above: only a top-level popup's anchor is a trigger. A submenu's anchor is its trigger
-   ROW, which is inline-size: 100% of the panel it sits in, so the same declaration read
-   "never narrower than the panel you came from" and compounded down the chain — measured
-   446.59 -> 437 -> 427 across three levels, a panel holding one character 427px wide (audit
-   2026-08-09). --anchor-width is the positioner's own measurement; the inner fallback keeps
-   the declaration valid where no positioner exists (the agreement law's in-flow twin). */
-.kui-menu-popup.kui-menu-anchored {
-  /* The entry's own anchor measurement first — same sentence as the select floor: the flight
-     measures its target through this floor before floating-ui has written --anchor-width.
-
-     AND CAPPED BY THE ROOM (2026-08-22 audit). In CSS a minimum beats a maximum, so this floor
-     beside the `max-width: var(--available-width)` two rules up meant the bound the popup's own
-     comment calls "the hard stop" could never apply. select.css carries the repair for exactly
-     this defect, with its own measurement written above it, and the 2026-08-09 audit landed it
-     in one sibling only. Measured here with `<MenuContent side="right">` on a 900px trigger:
-     painted 951px starting at x=967 in a 1280 window — 638px off screen, with a horizontal page
-     scrollbar and the items unreachable. The inner max() keeps the designed floor from being
-     squeezed away when the reported room is absurdly small.
-
-     The sentence now exists in two files, which is where it should promote to the shared layer:
-     the third floating member that wants a width floor is the one to move it. */
-  min-width: min(
-    max(var(--floating-min-w), var(--kui-anchor-w, var(--anchor-width, var(--floating-min-w)))),
-    max(var(--floating-min-w), var(--available-width, 100vw))
-  );
-}
+/* The concentric hook and the anchor-width floor are the family's (surfaces.css, the
+   anchored-pane block, since 2026-09-03). The floor's history is worth keeping here in one
+   sentence: it is scoped to a TOP-LEVEL panel because a submenu's anchor is its trigger row,
+   inline-size 100% of the parent panel, so the same floor compounded 446.59 -> 437 -> 427
+   across three levels (audit 2026-08-09); and it is capped by the room INSIDE the min(),
+   because a minimum beats a maximum (audit 2026-08-22). */
 
 /* A separator inside a menu is the ordinary Separator (the part is refused — it would rename
    existing vocabulary), and all this rule supplies is the RHYTHM: the same distance above and
@@ -120,7 +80,7 @@
    matching. Same anatomy, one element deeper. */
 .kui-floating-body > .kui-separator,
 .kui-floating-body > [role="group"] > .kui-separator {
-  margin-block: var(--kui-menu-pad);
+  margin-block: var(--kui-floating-pad);
   /* And it spans the LABELS, not the rows (2026-08-31, Kushagra: "I need it to extend to
      where text labels start and end"). The 2026-08-09 reversal moved it in once, from the
      panel's edge to the rows' extent, on the argument that a line divides what it is as wide

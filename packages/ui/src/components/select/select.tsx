@@ -30,6 +30,7 @@ import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
 import { useControlSize } from "../../system/control-size.ts";
 import { glyphStroke } from "../../tokens/config.ts";
+import { CHEVRON_DOWN_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
 
 const SelectSizeContext = React.createContext<Size>("2");
 
@@ -214,9 +215,9 @@ export function SelectTrigger({
         {...(placeholder !== undefined ? { placeholder } : {})}
       />
       <span className="kui-field-slot" data-slot={"trailing" satisfies SlotName}>
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+        <svg viewBox={GLYPH_VIEWBOX} fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
           <path
-            d="M4.5 6 L7.2 8.7 Q8 9.5 8.8 8.7 L11.5 6"
+            d={CHEVRON_DOWN_PATH}
             stroke="currentColor"
             strokeWidth={glyphStroke}
             strokeLinecap="round"
@@ -261,7 +262,9 @@ export type SelectContentProps = Omit<
 /** The panel's surface identity — the menu popup's constants, self-keyed (§23). data-size
     is stamped for the concentric corner (the floating size join reads it). */
 function popupProps(size: Size, material: SurfaceMaterial, className?: string) {
-  const identity = "kui-surface kui-floating kui-floating-rows kui-select-popup";
+  // `kui-floating-anchored` carries the anchor-width floor — the family's since 2026-09-03,
+  // promoted on its third member (Combobox); a select is ALWAYS anchored (§23).
+  const identity = "kui-surface kui-floating kui-floating-rows kui-floating-anchored kui-select-popup";
   return {
     "data-size": size,
     "data-tone": "neutral",

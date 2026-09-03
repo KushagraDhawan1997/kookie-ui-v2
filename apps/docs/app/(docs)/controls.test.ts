@@ -284,7 +284,14 @@ describe("a controllable page renders the same arrangement as a static one", () 
       );
       if (!bare) expect(alone, `${slug}: is wrapped in paper while rooting some of its own`).toBe(0);
     }
-  });
+    /* A STATED TIMEOUT, from a measurement (2026-09-03). This law server-renders every
+       controllable example's whole page twice; alone it takes ~0.9s, and under `pnpm run ci` —
+       where turbo runs it beside the package's browser suite — it measured 5.3s the day the
+       Combobox example joined the list, past vitest's 5s default. A law that fails on machine
+       load is a wrong instrument (the 2026-08-20 rule), and the work here grows one page per
+       component, so the bound is stated as the work it does rather than left to a default
+       written for a unit test. */
+  }, 30_000);
 
   it("at least one controllable example roots its own paper", () => {
     // Vacuity: with none, the law above only ever exercises the wrapping arm and the branch that

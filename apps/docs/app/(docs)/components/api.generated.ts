@@ -943,6 +943,246 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "ComboboxContent": {
+    "element": "div",
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "`ComboboxEmpty` and `ComboboxList`, in that order."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Your classes, appended rather than replacing the component's own. They land on the popup, not on the positioner around it."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": "Inline styles, merged last. They land on the popup."
+      }
+    ]
+  },
+  "ComboboxGroup": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": false,
+        "doc": "A `ComboboxGroupLabel` and a `ComboboxCollection`."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "items",
+        "type": "readonly Value[]",
+        "optional": false,
+        "doc": "This group's own items, so the filter can narrow a section and hide it when it empties."
+      }
+    ]
+  },
+  "ComboboxInput": {
+    "element": "input",
+    "props": [
+      {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Says content passes behind this field, so the theme's material can show. Unset, it follows the surrounding `<Box backdrop>` region."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Your classes, appended rather than replacing the component's own. They land on the WRAPPER, which is the visible control; `ref` reaches the input."
+      },
+      {
+        "name": "clearLabel",
+        "type": "string",
+        "optional": true,
+        "doc": "The name of the button that empties the field, shown only while a value is chosen. The system cannot write it in your language, so it defaults in English and takes yours."
+      },
+      {
+        "name": "leading",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "Before the value: an icon, a unit. Passive — the slot decides where it sits and mutes it."
+      },
+      {
+        "name": "openLabel",
+        "type": "string",
+        "optional": true,
+        "doc": "The name of the chevron that opens the list. Same rule as `clearLabel`."
+      },
+      {
+        "name": "placeholder",
+        "type": "string",
+        "optional": true,
+        "doc": "Shown in the muted ink while nothing is chosen and nothing is typed."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": "Inline styles, merged last. They land on the wrapper."
+      }
+    ]
+  },
+  "ComboboxItem": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "What the row reads as. The field shows the item's `label` (or `itemToStringLabel`), never these words."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "disabled",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Turns the option off. It stays in the list and stays announced, because a choice that is unavailable right now is information."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "value",
+        "type": "Value",
+        "optional": false,
+        "doc": "The item this row names — the same object or string that sits in `items`."
+      }
+    ]
+  },
+  "ComboboxList": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "(item: Value) => React.ReactNode",
+        "optional": false,
+        "doc": "Called for each item — or, for a grouped `items`, each group — that survives the filter."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "Combobox": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The field and the content: a `<ComboboxInput>` and a `<ComboboxContent>`."
+      },
+      {
+        "name": "defaultOpen",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Uncontrolled starting state for the panel. Mutually exclusive with `open`."
+      },
+      {
+        "name": "defaultValue",
+        "type": "Value | null",
+        "optional": true,
+        "doc": "Uncontrolled starting value. Mutually exclusive with `value`."
+      },
+      {
+        "name": "disabled",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Turns the whole control off: the field stops taking keystrokes, the panel cannot open and the hidden input stops submitting."
+      },
+      {
+        "name": "filter",
+        "type": "(item: Value, query: string) => boolean",
+        "optional": true,
+        "doc": "Base UI's matcher, if the app wants a different one. Left alone, it is Base UI's own."
+      },
+      {
+        "name": "items",
+        "type": "readonly Value[] | readonly ComboboxGroupItems<Value>[]",
+        "optional": false,
+        "doc": "Everything the list can offer, before filtering — a flat array, or an array of `{ value, items }` groups. Only the rows that match the typed query render, which is why `ComboboxList` takes a function rather than children. An item is a string, or an object. An object of the shape `{ value, label }` needs no help: `label` is what the field shows and `value` is what a form submits. Any other shape states its words through `itemToStringLabel`. **Hold this array stable.** It crosses to the matcher by identity, so an inline literal re-runs the whole filter pass on every unrelated render of whatever holds the combobox."
+      },
+      {
+        "name": "itemToStringLabel",
+        "type": "(item: Value) => string",
+        "optional": true,
+        "doc": "The words an item shows in the field, for item shapes other than `{ value, label }` or a string. Base UI reads `label` from that shape without being told."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "optional": true,
+        "doc": "Identifies the field when a form is submitted (Base UI renders the hidden input)."
+      },
+      {
+        "name": "onInputValueChange",
+        "type": "(value: string) => void",
+        "optional": true,
+        "doc": "Fires with the field's text as it is typed. A list fetched from a server narrows on this; a list already in memory never needs it, because filtering is Base UI's."
+      },
+      {
+        "name": "onOpenChange",
+        "type": "(open: boolean) => void",
+        "optional": true,
+        "doc": "Fires when the panel opens or closes. Not when the value changes: that is `onValueChange`."
+      },
+      {
+        "name": "onValueChange",
+        "type": "(value: Value | null) => void",
+        "optional": true,
+        "doc": "Fires when the chosen item changes — on a pick, and on a clear, where it carries `null`. It never fires on an open, a close or a keystroke: what is TYPED is `onInputValueChange`."
+      },
+      {
+        "name": "open",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Controlled open state of the panel, paired with `onOpenChange`. Independent of the value, because opening chooses nothing."
+      },
+      {
+        "name": "required",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Marks the field required for form validation; it lands on the hidden input, so the platform does the enforcing."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "optional": true,
+        "doc": "The same index the field wears. The rows, the glyphs and the type all take it."
+      },
+      {
+        "name": "value",
+        "type": "Value | null",
+        "optional": true,
+        "doc": "Controlled value, paired with `onValueChange`. `null` is \"nothing chosen\"."
+      }
+    ]
+  },
   "CommandContent": {
     "element": null,
     "props": [

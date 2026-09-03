@@ -1,0 +1,46 @@
+/* Combobox (§21, §45). The field is TextField's wrapper worn by membership (.kui-field — seal,
+   edge, ring, material, states, slot geometry), the panel is the anchored pane the menu and
+   the select share (surfaces.css — padding floor, concentric corner, anchor-width floor,
+   promoted on this member), and the rows are the row family's. What is left here is exactly
+   the combobox's own facts: a scrolling viewport's height bound, a reserved gutter, a caption
+   that reads rather than acts, and the empty sentence's inset. */
+
+/* The panel: the menu's own two facts, self-keyed, because they are about the ELEMENT that
+   scrolls and a select's panel scrolls a different one. The popup keeps the positioner's
+   bounds as the hard stop and clips (the base surface rule since 2026-08-20); the viewport
+   re-derives the height bound minus the popup's own border, so the two agree by arithmetic.
+   The fallback keeps the calc valid where no positioner exists (the agreement law's in-flow
+   twin): the viewport, not a raw px sentinel. */
+.kui-combobox-popup {
+  max-height: var(--available-height, none);
+  max-width: var(--available-width, none);
+  /* Base UI keeps focus in the INPUT while the panel is open; the rows carry the highlight. */
+  outline: none;
+}
+.kui-combobox-popup .kui-scroll-viewport {
+  max-block-size: calc(var(--available-height, 100vh) - 2 * var(--border-width));
+}
+
+/* The reserved gutter (§21): the indicator stays mounted so chosen and unchosen rows align —
+   visibility keeps the box. Base UI stamps data-selected only when true, so absence is the
+   unchosen state; safe to key on, because the indicator is the only leading slot a combobox
+   row has. Select's rule verbatim (the second member self-keys). */
+.kui-combobox-item > [data-slot="leading"]:not([data-selected]) {
+  visibility: hidden;
+}
+
+/* A group label reads, it does not act — the row skeleton gives it the type step and the
+   rows' inset; this stands the control-ness down. */
+.kui-combobox-group-label {
+  pointer-events: none;
+  color: var(--color-text-muted);
+}
+
+/* The empty sentence sits on the vertical a bare-edged row's label starts on — the inset the
+   floating-rows join publishes for exactly this (`--kui-sf-row-px`, 2026-08-31) — and breathes
+   one layout-space pick above and below, Command's own spelling. */
+.kui-combobox-empty {
+  display: block;
+  padding-inline: var(--kui-sf-row-px);
+  padding-block: var(--layout-space-2);
+}

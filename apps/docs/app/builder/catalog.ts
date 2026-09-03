@@ -1315,6 +1315,42 @@ export const EXCLUDED: { name: string; why: string }[] = [
     why: "Command's exclusion, inherited: the empty sentence is shown by the filter when nothing matches, and there is no filter outside a palette.",
   },
   {
+    name: "Combobox",
+    why: "A combobox's list is a data array the field filters as you type — items, a matcher and a value that is one of them — and an array is not a value class the builder has (Command's own wall; ScrollArea's stated height is the other). A Select, which the builder does place, holds the same choice over a list short enough to write as rows. Its parts are excluded with it, because none of them means anything outside the field that filters them.",
+  },
+  {
+    name: "ComboboxInput",
+    why: "Combobox's exclusion, inherited: the field reads the root's items and value through context, so outside one it is a TextField with a chevron that opens nothing — and TextField the builder does offer.",
+  },
+  {
+    name: "ComboboxContent",
+    why: "Combobox's exclusion, inherited: the panel only exists under a field to filter for, and a panel with no root would render nothing at all.",
+  },
+  {
+    name: "ComboboxList",
+    why: "Combobox's exclusion, inherited: the list takes a render function over the items array, which is the value class the builder has no way to express.",
+  },
+  {
+    name: "ComboboxItem",
+    why: "Combobox's exclusion, inherited: a row here is driven by Base UI's highlight and selection inside the listbox; placed anywhere else it is a Row, which the builder does offer.",
+  },
+  {
+    name: "ComboboxGroup",
+    why: "Combobox's exclusion, inherited: a section carries its own slice of the items array, and that array is the thing the builder has no value class for.",
+  },
+  {
+    name: "ComboboxGroupLabel",
+    why: "Combobox's exclusion, inherited: a section's caption means nothing outside the section, and sections only exist inside the list.",
+  },
+  {
+    name: "ComboboxCollection",
+    why: "Combobox's exclusion, inherited: it renders each surviving item of the group around it, so it is meaningless without both the group and the filter.",
+  },
+  {
+    name: "ComboboxEmpty",
+    why: "Combobox's exclusion, inherited: the empty sentence is shown by the filter when nothing matches, and there is no filter outside the field.",
+  },
+  {
     name: "ContextMenu",
     why: "A context menu is opened by right-clicking a region, and on this canvas right-click already belongs to the editor: it selects what is under the pointer and opens the editor's own menu. A ContextMenu placed here could never be opened, which makes it a control that promises something it does not have. Its trigger and content are excluded with it, because neither means anything outside the pair.",
   },

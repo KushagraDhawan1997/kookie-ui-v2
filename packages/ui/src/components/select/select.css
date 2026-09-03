@@ -133,41 +133,12 @@
 /* ── The panel: the menu popup's facts, self-keyed (§22's sentences, §23's member) ─────── */
 
 .kui-select-popup {
-  /* The panel's padding, FLOORED at the focus ring's reach — the scroll container clips
-     descendant ink at the padding box, and a row's ring reaches width + offset past its
-     border box (the menu's audit, inherited whole). */
-  --kui-select-pad: max(var(--floating-p), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
-  --kui-sf-p: var(--kui-select-pad);
-  /* The concentric corner's own half of the arithmetic (§6): the floating size join in
-     surfaces.css derives the corner from this hook plus the rows' own corner. */
-  --kui-floating-p: var(--kui-select-pad);
-  /* ALWAYS anchored — a select has no submenus, so the anchor floor lives on the panel
-     itself rather than on a variant class: never narrower than the designed floor OR the
-     trigger that opened it, so the options sit under the control that opened them rather
-     than under a panel narrower than it. (It does not put option TEXT on the value's
-     vertical, and this comment used to say it did: every option reserves the tick's gutter,
-     which is 20/24/28/36px of lead the value does not have. Corrected 2026-08-09, audit.)
-
-     Clamped by the room the positioner reports, and that clamp is stated INSIDE the min() —
-     not by the max-width below, which could never win. In CSS a minimum always beats a
-     maximum, so for any trigger wider than the room the anchor arm won and the protection
-     the comment claimed was unreachable: measured 619px against a 300px cap. The max-width
-     stays for the other half — a panel made wide by its own long rows rather than by its
-     trigger. The inner max() keeps the designed floor from being squeezed away when the
-     reported room is absurdly small. */
-  /* The anchor term consults the ENTRY's own measurement first (§22, 2026-08-10): the flight
-     needs this floor inside its measured target, and floating-ui has not written
-     --anchor-width yet on a first open — the panel flew to its content width and re-expanded
-     at release. --kui-anchor-w is the trigger's LAYOUT box, and it OUTLIVES the flight
-     (corrected 2026-08-22): a settled panel used to fall through to floating-ui's own, which
-     is still travelling with the held press — measured, --anchor-width walking 400 -> 388 ->
-     390 over ~350ms while the panel sat at 400, then a 10px snap one frame after the release.
-     The two terms are one number now, taken once, for the panel's whole life; the runner's
-     block above `useFlight` carries the measurement and the reasoning. */
-  min-width: min(
-    max(var(--floating-min-w), var(--kui-anchor-w, var(--anchor-width, var(--floating-min-w)))),
-    max(var(--floating-min-w), var(--available-width, 100vw))
-  );
+  /* The panel's padding floor, the concentric hook and the anchor-width floor all LEFT this
+     file on 2026-09-03 — promoted to surfaces.css's anchored-pane block on the family's third
+     member (Combobox), which is the promotion menu.css's own comment scheduled ("the third
+     floating member that wants a width floor is the one to move it"). What stays is exactly
+     what only a select's panel has: it scrolls ITSELF (below), while a menu's and a combobox's
+     panels scroll a viewport inside them. */
   /* Long lists scroll inside the panel; wide ones are bounded by the room the positioner
      reports rather than pushed off the viewport. */
   max-height: var(--available-height, none);
