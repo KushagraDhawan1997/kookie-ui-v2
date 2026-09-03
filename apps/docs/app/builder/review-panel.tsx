@@ -12,6 +12,8 @@ import * as React from "react";
 
 import { Box, Button, Flex, Separator, Stack, Text } from "@kookie-ui/react";
 
+import { EmptyState } from "../../blocks/empty-state";
+import { CheckIcon } from "../icons";
 import { InlineCode } from "../inline-code";
 
 import type { Finding } from "./review";
@@ -28,16 +30,17 @@ export function ReviewPanel({
   onFix: (finding: Finding) => void;
 }) {
   if (findings.length === 0) {
+    /* THE ONE EMPTY STATE HERE THAT IS AN OUTCOME RATHER THAN AN ABSENCE, which is why it is
+       the only one in the builder that carries a mark: a clean review is a RESULT, and the
+       tick says so before the sentence is read. No action, because there is nothing to do —
+       an empty state's action is what to do about the emptiness, and this emptiness is what
+       you wanted. */
     return (
-      <Stack gap="2">
-        <Text size="2" weight="medium">
-          Nothing to answer for
-        </Text>
-        <Text size="2" emphasis="medium">
-          The document holds to the house style: one focal action per screen, distances that
-          differentiate, a ladder with real jumps, every control named.
-        </Text>
-      </Stack>
+      <EmptyState
+        mark={<CheckIcon />}
+        title="Nothing to answer for"
+        description="The document holds to the house style: one focal action per screen, distances that differentiate, a ladder with real jumps, every control named."
+      />
     );
   }
 

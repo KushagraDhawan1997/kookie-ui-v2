@@ -8,6 +8,174 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-03 Turbo was caching the dev server — 85GB of it
+
+**What.** `apps/docs/turbo.json` excludes `.next/dev` from the build task's outputs.
+
+**Why.** Kushagra, after a turbo cache write failed: *"Do I have a lot of cache? Because its taking a lot of spce I think"*. Measured: `.turbo/cache` was **85GB** on a disk with 335MB free, across 459 entries whose largest were 3.4GB each.
+
+**Next's own recipe is `.next/**` minus `.next/cache`, and it was written for the webpack layout.** Turbopack puts the DEV SERVER's state in `.next/dev` — and a dev server has usually been running against the same directory when a build happens, which in this repo it always is. So every `turbo run build` swept the dev server's scratch space into its own cache entry.
+
+The arithmetic is what settles it, since no `zstd` binary was available to list the archive: `.next` measured 6.2GB, of which `.next/dev` was 5.4GB (4.6 of that Turbopack's own cache) and `.next/cache` 603MB, already excluded. The real build output — `server`, `static`, `build` — came to **155MB**, which cannot compress *up* to a 3.4GB tarball. Only the dev directory accounts for it. After the exclusion the same build's entry is **12MB**, and a second run is `FULL TURBO`, so the cache still does its job.
+
+**It is not hygiene, and the reason is what the entry would DO on a hit.** `.next/dev` is one running process's scratch space, so restoring it would hand a build's leftovers to a dev server that did not make them — a cache entry that is wrong to write is also wrong to read back.
+
+Left alone deliberately: the live `.next/dev` itself, because the dev server is running on it and Turbopack rebuilds it either way. The pnpm store (7.3GB) and `node_modules` (727MB) are ordinary.
+
+---
+
+## 2026-09-03 The builder writes no control the package already ships — and the top bar has three zones
+
+**What.** A scan of the builder's own source for controls written out by hand where the package ships the thing, and a restructure of the header. Nine repairs and eleven laws.
+
+**Why.** Kushagra, with the top bar open: *"Please scan for other things too, like not using hugeicons, not using size 2 icon button as default, or any button etc etc. Please also rethink the UX and UI, like the top bar is partociarlarly bad."*
+
+**The scan found ONE shape, six times.** Not six unrelated slips — a control written out longhand where the component exists:
+
+- **A `⋯` and a `−` and a `+` as labels** (the document menu, a saved block's menu, the two zoom steps). A typed character is drawn by whatever face the line resolved, at that face's weight, beside icons the package draws at `iconStroke` — the 2026-08-23 two-grids defect in its plainest form. `MinusIcon` joins the docs' set; the two menus become `iconOnly`.
+- **`aria-pressed` bolted onto a Button** with an emphasis the call site computes, twice (Preview, Compare tiers). That IS `Toggle` (§34) written out: a toggle's emphasis is its state, which is why the component has no emphasis prop and why the pressed state comes from the primitive. **The Preview label stopped changing with it** — it read "Editing off" when on, so the control announced two different things and neither named what pressing it does.
+- **`aria-current="true"` on the Review button**, meaning "this pane is open". `aria-current` names a location in a set; whether a pane is open is `aria-expanded`, which `ShellTrigger` has been publishing all along. Redundant and wrong at once.
+- **A count spliced into a label** — `` `Review ${n}` `` — in TWO places, the header button and the inspector's own tab. That changes the control's WIDTH every time the document does, so the whole right-hand run shifts while you are reaching for it, which is Tabs' own measured argument against a heavier active label arriving as a wider one. It is a `Badge` (§38) now, and on the tab it is where a badge most belongs: pinned to the thing it is about. **The second one was found by my own law failing on its first run**, which is the point of writing it over the source rather than over the one call site I was looking at.
+- **A hand-painted pane.** The toast stated the seal, a hairline, a corner and `box-shadow: var(--shadow-3)` — the fenced resource read directly (§13), which a law forbids in every package stylesheet and which nothing watched in an app. It is a `Card`. The canvas page made the same mistake and became a `Surface` on 2026-08-20.
+- **The toast announced TWICE** — a `Text` in the header and the `Toast` at the root, two `aria-live` regions with the same string, so a screen reader read it twice.
+- **`size="2"` restated** on the palette's field: the baseline said again, which is a default with two homes, and the one that is not the config drifts. The builder's own header comment names the shape three files away.
+
+**The top bar was two clusters pushed apart by `space-between`**, and that put the DOCUMENT at the far left beside the app's own name with everything you do to it 1,200px away at the other end, a dead gap between them, and six peer controls in one weight along the right so nothing said which you reach for. Now three zones, each about one thing: the panes at the two extremes (the convention, and they are symmetric), the identity beside the one it opens, the **document centred with its own history beside it** — undo and redo moved there because they act on this document and nothing else in the bar does — and the actions ending on the one loud thing.
+
+**A grid, and that is the mechanism rather than the styling:** `1fr auto 1fr` centres the middle against the WINDOW however wide the sides get, where a flex row centres it against whatever room the sides leave, so the name would drift every time a finding count changed.
+
+**And centring costs something, measured.** Equal side cells is what `1fr auto 1fr` means, so the window has to afford twice the WIDER side plus the middle: the right cluster is ~420px, the left ~102, the document ~204, which needs ~1,076. At 900 the right cluster overflowed its own cell and drew over the document — and the old row degraded instead, because its left cluster carried `min-width: 0` and simply squeezed the name. **So the fallback is stated rather than discovered:** three zones at `wide`, two below it, the document rejoining the identity where it lived before. `null` on the server resolves to CENTRED, the right first paint for a desktop tool and the same call the inspector's own `roomy` makes one line up. Verified at 720, 900, 1100, 1280 and 1600.
+
+**Eleven laws, every one falsified.** Seven read the SOURCE with its comments stripped, because the claim is about what the app writes rather than about one call site: no character stands in for an icon, nothing bolts `aria-pressed` onto a Button, `aria-current` is only ever `page`, the count is a Badge, no file reaches past the chrome roles or paints its own seal, a toast is announced once, and no control restates the size it would have taken anyway. Two of my own were wrong before they were right: the loud-control law counted the `<h1>`, because `loud` is the type family's own resting rung and not a focal action; and "nothing labelled follows the loud action" was satisfied by the loud action's OWN label until it read the controls after its closing tag instead.
+
+---
+
+## 2026-09-02 The builder's jump bar becomes the Breadcrumb — and the truncation stays the app's
+
+**What.** The path over the canvas is `Breadcrumb` (§39). The local component renamed to `JumpBar`, so the package's name is free at the call site.
+
+**Why.** Kushagra, on the bar: *"Breadcrumb"*.
+
+It was quiet Buttons with a `›` `Text` hand-placed between them — which is exactly the spelling §39 refused when it dropped `BreadcrumbSeparator`, arriving in this repo's own app: layout wearing a part's name, an N-1 rule kept by hand, and a glyph the call site picked (a text `›` drawn at whatever face the line resolved, beside a Select's chevron drawn at the system's — the 2026-08-23 two-grids defect). It also **announced nothing**: no `<nav>` landmark, no ordered list, every crumb a button including the one you were standing on, and `aria-current="true"` where a place in a path takes `"page"`.
+
+**A crumb here is a BUTTON, and §39 already blesses the case.** A node in this document has no URL, and an anchor with no `href` is not operable — `BreadcrumbEllipsisItem`'s own union names "a place reached by code rather than by a URL" as a real thing, and `render` is the component's sanctioned way to put the treatment on a different element. Measured after: the crumbs read `--color-text-muted` and the current place reads the full ink, which is the component's two ranks arriving unchanged through a `<button>`.
+
+**PACKAGE GAP, recorded rather than hidden.** `.kui-breadcrumb-link` is written for an `<a>` and resets none of a button's UA dress; the type blesses the case its stylesheet does not. The reset belongs in `breadcrumb.css` (`background`, `border`, `padding` — the type already arrives through `kui-type`), and it is at the call site as `CODE_PLACE` **only because a concurrent session is re-recording the CSS budget**, so a package byte from here would land on top of theirs. First measurement after this pass: the first spelling also wrote `color: inherit`, which beat the class and painted every crumb at full ink — caught by reading the computed colour, not the markup.
+
+**The truncation is the app's, which is §3 and is the whole reason the component has no `maxItems`.** A document nests as deep as an author builds it, and this bar is ONE control row at the pane's index — an untruncated path wraps, and a wrapped path grows a header that then stands level with nothing. So: the first level, the last two, and everything between behind the dots. Under five deep nothing is dropped, so the ordinary case never sees them. And because §39 made the ellipsis an OPENER rather than a marker, truncating puts nothing out of reach: measured on a five-deep selection, the dots open `Card` and `Stack` and picking one selects it.
+
+**Five laws, all falsified.** Restoring the hand-rolled row fails four at once (the landmark, the current place, the button, the truncation). Making every crumb a link fails the current-place law; truncating at four fails the shallow half, which is there because "it truncates" is satisfied by a bar that always truncates; dropping the `render` fails the anchor law; and handing the dots an empty list fails the source law that every dropped level goes into them.
+
+---
+
+## 2026-09-02 The builder's four emptinesses become the block — and two of them had no rendering at all
+
+**What.** The builder's empty regions are `EmptyState`: the inspector with nothing selected, a clean review, an empty canvas in Layers, and the two filters that matched nothing (Layers and the Add palette). The palette's blocks list answers the filter too, and the region derives whether it drew anything.
+
+**Why.** Kushagra, on the inspector with nothing selected: *"In builder shell, lets use empty state block we have now"*.
+
+Each of these was one quiet line at size 1 — the shape an empty state has before anybody has decided what one is. No rank, no arrangement, and in two of them **no words at all**: every `PaletteGroup` returns `null` when its entries are filtered out, so typing a word nothing is called rendered an *empty pane*. Nothing said the filter was the reason it was empty, and nothing offered the way out.
+
+**The block's contribution is the taxonomy, not the words.** Nothing yet, nothing matched, nothing available differ in rank and in whether there is anything to do, so the four call sites divide:
+
+- **Nothing matched** (two of them) carries the action, and the action CLEARS. That is the block's own second demo and the mistake it exists to prevent — offering "add a component" under a filter that returned nothing.
+- **Nothing yet** (an empty canvas) says what would be here and offers nothing to clear, because there is no filter to clear.
+- **A clean review** is the odd one and is the only one with a MARK. It is an outcome rather than an absence: the tick reads before the sentence does, and there is nothing to do about a state you wanted.
+- **Nothing selected** carries no action either, and the absence is the reading: everything that fills that panel happens on the canvas or in Layers, so a button here would be a button that sends you to a different pane.
+
+**The clear-filter action is quiet AND bordered.** The rank is the block's — an action that takes something away does not shout — and the border is Button's own half-step inside it (§9: quiet < quiet+bordered < medium). Judged in a real 320px panel: a bare quiet button under two lines of centred prose reads as a third line of prose.
+
+**It hugs the top rather than centring, and that is the block's documented answer.** `.kb-empty` is `block-size: 100%`, and the chain from the ScrollArea's content box down is auto-height, so the percentage resolves to auto. Measured: the viewport is 606px definite and `kui-scroll-content` is 84. The alternatives were a stated length — the thing this system has none of for a region — or `block-size: 100%` on the tab panel, which would clamp the non-empty panel inside a scroller. The block's own note names this case: *"a region with no height at all — hugging, which is the only thing it could do."*
+
+**Two things had to be true before the palette's state could be honest.** Saved blocks answer the filter now (they did not, so a filter matching only a saved block would have shown "nothing matched" over it) — and the INDEX travels with each block, because that index is the id every action on one uses: the drag payload, the export, the remove. Filtering a list you then address by position is how the wrong block gets deleted. And `paletteHits` counts what the region DRAWS, not what the catalog holds: `paletteEntries()` excludes parts, the family groups render only `PALETTE_FAMILIES`, and the contextual group is the only place a part appears at all — counting the catalog would have hidden a matching part behind a "nothing matched" that was not true. The count and the render read **one list per group** for the same reason: counting with one predicate and drawing with another is how the message comes to disagree with the pane.
+
+**Five laws, all falsified**: the filter state offers exactly one action and it clears (swapping the words for "Add a component" fails it, and so does adding a `secondary`); the empty canvas offers nothing to clear; the clean review carries the mark and no action; that tick is the ONLY mark across all four states; and no builder file writes an empty state by hand any more, read from the source of all three, because the way this is lost is not a rewrite — it is the next empty region getting one quiet line because that is what the file beside it used to do.
+
+---
+
+## 2026-09-02 One row shape, one label spelling — the panel's rag was the panel's structure
+
+**What.** The property panel has ONE row: a name in the left column, a value in the right, and a trailing control outside the value's cell. `Field` — the name-above-a-full-width-input shape — is deleted. The value cell states its own fill (`grid-auto-flow: column` over `grid-auto-columns: 1fr`), a control that cannot fill sits on the column's far line instead of its near one, and the ranks became a four-step type ladder. The app's own two sections (Arrange, Save as block) moved INSIDE whichever inspector is showing, so a pane has one grid.
+
+**Why.** Kushagra with Figma's inspector open: *"This is better, definitely better, but it needs more structure, better thought out, better spacing, please see Figma. Every row is standard, every label standard."*
+
+The previous pass built the column and left the panel ragged INSIDE it. Half the value cells held a control that filled to the column's right edge and half held a small object — a Switch, a bordered Button, a line of code — sitting at the column's start with dead space behind it, and which one you got depended on whether the call site had remembered to write `flex: 1`. So the panel had a left line and did not have a right one.
+
+**Three rules make a row standard, and each one takes a decision away from the call site.**
+
+*The label is a STRING, by type.* Not a node. A node is how a second label treatment gets in, and one already had: the readout's names were composed — the name plus the stated index in a quieter ink inside the same span — which is the one place the panel's names were not all one thing. What a row wants to say beyond its name goes on the value's side (`4 → 16px`) or in the note under it.
+
+*The value cell divides evenly among what is in it.* One control fills; two split it in half (the multi-selection's On/Off pair). The cell states that once, for every row, so no call site can decide to be ragged and the two `flex: 1` escapes that used to say it are gone.
+
+*A state sits on the column's FAR line.* A Switch's width is the mark family's, not the column's, so filling is not available to it — and the only two places it can be are the two lines the panel already has. At the end it lands on the same right-hand line every filled control ends on; at the start it would be the one row in the panel that ends nowhere. That is macOS System Settings' own answer, arrived at from the geometry rather than from the reference.
+
+**`Field` went because its argument had stopped being true.** A string took the full width on the grounds that a sentence does not fit a column — true of a paragraph, and not of what is actually typed here: a button's label, a placeholder, a heading. The column is ~200px and a field scrolls its own value. What the shape actually bought was a second label position, which is exactly what stops a panel reading as one thing.
+
+**The ranks are a ladder now, not a difference in weight.** A section heading and a row's name were both size 2, separated by weight and ink alone — a difference you have to look for, which is why the panel read flat however its rows were arranged. Four ranks, one type step apart each: the panel's title at 4, a section heading at 3, a name at 2, a sentence at 1.
+
+**Two things fell out of doing it that were defects rather than taste.** `ResponsiveControl` wrapped its rows in a `<Stack>`, and a Row contributes two CELLS — so every responsive prop rendered with its name stacked above its picker, inside column 1, at half the panel's width, while every other row in the same section sat in the column. It has been that way since the panel became a grid. And the `+` that adds a breakpoint rendered only while a tier was unstated, so stating every tier took the value's right edge with it; it is always rendered and DISABLED when there is nothing left to add — the same thing Arrange already does with a command that is not armed — and the tier rows gained the `×` that was missing, which is also the gesture that was missing: taking a breakpoint back was only reachable by picking "(unset)" from its own list.
+
+**One grid per pane, measured.** The app's Arrange and Save-as-block sections were a `<Panel>` of their own under a `<Stack gap="5">`, which gave the pane two label columns and put a third distance between two sections wherever the seam's own rhythm already says what that distance is. They are `children` of the inspector now. Measured after, on a real page: one `--kui-gtc` in the pane, every name cell 993→1069, every value cell 1081→1264, every hairline 977→1280.
+
+**The rhythm moved because the scale is not what I read it as.** `--layout-space-2` is 4px and `-3` is 8px, so `gapY="1"` was 2px between rows of 32px controls. Rows breathe at 8, columns at 12, and the section seam at 8 either side of the hairline — measured in the browser rather than counted off the prop names.
+
+**Six laws, all falsified.** The type ladder (headings back to size 2 fails it), the one name spelling (the composed readout label fails it), the label's type (widening it to `ReactNode` fails it), the value cell's two spellings and no third (deleting the fill, or standing a Switch back at the column's start, each fail it), the trailing control that never leaves, and the tier's own way out. Plus the panel-is-one-grid law from the pass before, which the app's second `<Panel>` would now break.
+
+---
+
+## 2026-09-02 The panel owns the columns — a grid per row aligns a row with itself
+
+**What.** The property panel is ONE grid, `auto minmax(0, 1fr)`, declared once. `Section` and `Row` became fragments; anything about the panel rather than about a value is a `Span` across both columns.
+
+**Why.** Kushagra on the first pass: *"Still looks the same, no structure dude"*. He was right and the reason is exact. That pass fixed the SHAPES — one row shape, one field shape, hairlines, three text ranks — and gave each row its own two-column grid. A grid per row aligns a row **with itself**: each row split its own width in half, so the names column was half the panel whatever the name said, and the controls began at one x by arithmetic rather than by being in one column. Nothing tied a row to the row above it.
+
+The second attempt moved the grid up to the SECTION, which is better and still wrong: Properties, Slots and the readout each sized their own names column, so the panel had three left edges instead of one.
+
+**One grid for the whole panel is the only arrangement where "the label column" is a thing that exists.** Measured after: every control in every section starts at x=1061 and every value-bearing one ends at x=1264, with the names column at 59.75px — the width of the longest name in the panel, decided by the content and stated nowhere.
+
+**A ROW IS A FRAGMENT, never a wrapper.** A box around the pair makes it one grid item and puts the two halves back inside their own box, which is the same mistake one level down. Same for `Section`: it contributes its hairline, its heading and its closing sentence as spanning cells, and its rows contribute pairs, all into the caller's grid.
+
+**`auto minmax(0, 1fr)`, not two equal halves.** Equal halves was the first pass's "no number in it" answer and it is worse than the ratio it avoids: names are short words and values need room, so half the panel is too much for one and too little for the other. `auto` has no number in it either AND is right — the content sizes the column. `minmax(0, …)` rather than `1fr` because a Select's trigger has a min-content width that would otherwise push the value column past the panel and scroll it sideways.
+
+**A value fills its column, an action keeps its own width.** A Select and a field hold the row's value and stretch to the column's right edge, which is what gives the panel its second vertical line; a Switch and a button are fixed-size things and sit at the column's start, where the first line already holds them.
+
+**The law reads the COUNT as well as the template** — one grid, one spelling — because both wrong answers render a correct-looking template. Falsified against each: a grid per section, and equal halves.
+
+## 2026-09-02 The property panel gets a structure: three shapes, three voices, one column rule
+
+**What.** `inspector.tsx` states a contract in its header and every row in the file is one of three things — `Section`, `Row`, `Field` — with three text ranks under it. The builder's own two panels (Arrange, Save as block) join them.
+
+**Why.** Kushagra, with Figma's inspector open beside ours: *"See how clean Figma's property panel looks? compare it to ours, we dont have a system yet"*. He is right, and the fault is legible in a screenshot: there were three different arrangements for the one thing a property panel does — a picker was a `space-between` row, a string was a label stacked over a full-width field, a boolean was a third — so **no two controls began at the same x**. The section headings were the same size and weight as the labels under them, and a hairline appeared above two sections out of five.
+
+**ROW is two EQUAL columns**, and the equality is what makes the panel read as one: every control begins at one x and ends at one x, at every row, whatever kind of control it is. It is also the only spelling available with no number in it — a stated column width would be a raw length in a system that has none for this, and `minmax(0, 1fr)` twice rather than `1fr 1fr` because a Select's trigger has a min-content width that would push its column past its half.
+
+**FIELD is the second shape and the rule for choosing is the VALUE, not the widget**: a pick from a closed list or a toggle is a WORD and fits a column; a placeholder, a label or a line of copy is a SENTENCE and does not. Two shapes with one written rule, so a third does not get invented at a call site — which is exactly how the three arrived.
+
+**The hairline bleeds**, `mx="bleed"`, the same sentence the pane's chrome row earned an hour earlier: a section boundary that stops short of the pane's edge reads as a line drawn inside the panel rather than as a division of it.
+
+**ONE VOICE PER RANK.** Inside a section exactly one thing is `weight="medium"` at full ink and it is the heading; a name is the muted ink with no weight; a sentence is quiet at size 1. Writing that down caught a real fault: the refusal names carried the heading's own identity, so "emphasis and tone" competed with "Not here, on purpose" one line above it and the section stopped reading as one thing.
+
+**Rejected.** Stretching every control to fill its column, Figma's own answer — a Switch cannot fill and would then be the one control that starts where the others end; start-aligned is the alignment that actually holds across kinds. And putting the strings in the column too, which would have given one shape for everything and made a placeholder unreadable at 136px.
+
+**The laws hold what a string can see** — the panel renders to markup and the docs app has no browser project. Every hairline resolves `--kui-sf-p` rather than a length (so a hand-written `-16px` fails as loudly as a deleted margin), the grid template has exactly ONE home in the file (a second one is how a third shape returns), and the count of heading voices equals the count of sections plus the panel's own title. Four sabotages, each caught by exactly its law.
+
+## 2026-09-02 A tree says its pick in ink, whichever front door you came in by
+
+**What.** `Tree`'s rows stamp `data-tone="accent"` like `NavTree`'s already did, and tree.css's ink pair moves from `.kui-tree-nav` to `.kui-tree` — so a SELECTED row takes `--tone-current` exactly as a CURRENT one does. +10 gzipped bytes, re-recorded.
+
+**Why.** Kushagra, with the builder's Layers open beside the docs sidebar: "why is clicked state not showing accent colored label", then "lets get parity". One machine was painting its pick two ways depending on which member you used — the nav said it in ink and in fill, the instrument in fill alone.
+
+Nothing was overridden to make that happen and nothing was overridden to undo it: the grey came from `[data-emphasis="medium"]` in the shared layer, which keys on the word and not on the component, so the old hand-rolled panel (a `Button` at `medium`) and the new one (a row at `medium`) had always resolved the same pixels. What was missing was the second half of ShellNavItem's pair, which the instrument never got.
+
+**Two things had to change together, and either alone draws nothing.** The rules key on the announced attribute, so a selected row could not read a colour it had no family for — `--tone-current` under `data-tone="neutral"` resolves grey. The unconditional accent stamp is safe for the same reason it is safe on ShellNavItem and NavTree: `undilutedTones` points an accent's washed rungs at neutral, so every fill stays grey and only the ink arrives in colour.
+
+**Both arms are stated rather than one selector covering both**, because the difference between them is the whole reason there are two components: a nav has a LOCATION (`aria-current`, at most one) and an instrument has a SELECTION (`aria-selected`, any number). And it is `[aria-selected="true"]`, never the bare attribute — `Tree` stamps the attribute on every row, false included, so the bare form paints the whole panel.
+
+**Rejected**, and it is the argument that held until he overruled it: leave the instrument grey, because Layers is `multiselectable` and a shift-range would light ten rows accent, and because accent has meant "the page you are on" everywhere else. Against it: in an editor the selected layer is the thing you are working on, and Figma and Xcode both tint it. His call.
+
+**The law reads both rows in both appearances.** Reading only the selected one passes on a stylesheet that paints the entire panel accent, which is exactly what the bare-attribute spelling does — so the resting assertion is what makes the law about the rule rather than about one row. Three sabotages: the neutral stamp, the nav-only scope, and the bare attribute. The third SURVIVED its first run, because the string it replaced appears in the comment above the rule before it appears in the rule — the sabotage never reached the code.
+
+
 ## 2026-09-01 Two size optimisations that look free, and only one of them is
 
 **What.** The P3 block emits three decimals instead of four (`p3Decimals`, tokens/color.ts): −586 gzipped bytes. Nothing else from the measurement pass shipped.
@@ -156,11 +324,21 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 **The palette became a list of rows in the same pass** (Kushagra, with the tree open beside it: "this is the same (the add thing)?"). It was quiet Buttons in a two-column grid — the shape a palette takes before the system has a row — and a button is a thing you press to DO something where every entry here is a thing you pick out of a list, which is §21's own sentence. One column, not two of the family in a grid: a row is a full-width thing, and the filter below is what replaced the scan the columns were buying. The group label is an INERT row (`render={<div/>}`), which is how it lines up with the words under it without anybody picking a number — a row's text inset is declared by the size join on each ROW's element, so a sibling cannot read it, and the menu had to publish `--kui-sf-row-px` for exactly this on a token that is the floating family's.
 
+**And the field over it states its backdrop** (his third look: "This text field needs backdrop"). The row floats and the panel scrolls behind it, and a field's fill is an ALPHA over the neutral ramp — the 2026-08-17 decision that fills composite against their LOCAL ground — which here is passing rows rather than the pane, so the words read straight through the box. A floating chrome control over moving content is §10's own case for expressing the material, and the pane hosts it: the sidebar is flush and therefore solid, and a solid surface HOSTS glass (2026-08-19). The docs shell's own floating search button says the same word for the same reason. Measured after: `backdrop-filter: url(#kui-lens-…) blur(2px) saturate(1.6)`, the veil at 48%, and the conic ring.
+
+**Its law renders under the app's own Theme, and that is the fixture's load-bearing half.** A bare render resolves the default `material: "solid"`, so the stamp would read solid whether the prop were there or not — the law would pass over a deleted `backdrop`. `layout.tsx` wraps the site in `material="regular"`, so the law renders what the app renders, and the fixture's own sabotage proves it: swapping it to `solid` fails the law. Both fields get one, because the row holds a different one per region and a single `backdrop` would leave the other reading through.
+
 **The row is what forced the palette filter.** The header holds the ONE control the picked region owns and no title — the rail's lit square already says which region this is, and a row repeating it is the 100%-chrome header the docs site deleted. That left the row empty half the time, because the palette is forty entries in five families with no way to say a name. A filter in each region is what makes the row honest in both.
 
 **The inspector's tab strip is the pane's chrome row, and the Tabs ROOT is the pane element.** Kushagra, on the first cut: "property panel has no bleed stuff, tabs are floating in the middle". Two faults with one cause — the strip sat inside the scroller under a `Box p="3"`, a second inset on top of the padding the pane has carried since 2026-08-21, so its rule stopped a whole layout step short of the pane's own content edge on both sides and read as a widget dropped in the middle; and it scrolled away with the panel it switches. Measured after: the bar spans 993→1264 against a content box of 992→1264, and its `y` is unchanged across a 400px scroll of the panel.
 
-I first recorded this as a library gap and it is not one. `TabsList` needs the `Tabs` context, and both `ShellPaneHeader` and `ShellScroll` are read with `:has(> …)`, so a `Tabs` wrapper between them and the pane kills the pane's column — which means the Tabs root has to BE the pane, and `render` is exactly the escape for that. It composes cleanly for a reason worth stating: `SidePane` MERGES the two props Base UI writes onto a render target rather than replacing them (`cx()` for the class, `useMergedRefs` for the ref), which is the 2026-08-03 `render` lesson holding on the receiving side. The law reads it structurally, because Base UI's Tabs root writes nothing on the element a law could recognise: the pane has a header, the bar is in it, and the bar comes before the scroller.
+**AND THE SEAM IS FLUSH** (his second look: "inset tabs arent flush still"). Deleting the double inset left the rule spanning the pane's CONTENT box, which is still a line drawn inside the pane rather than the pane's own seam — the boundary between a pane's chrome and its body belongs to the pane, so it runs wall to wall. The row spends the pane's padding back through `--kui-sf-p`, the bleed mechanism's own hook (§3), and NOTHING is put back: a tab's control padding is 14px against the pane's 16, so the labels land 991 against the body column's 993 — measured, not assumed, which is what made "put nothing back" a decision rather than a hope. Rule 977→1280 against a pane of 976→1280.
+
+**The top went with the sides** (his next look: "Even the top bleed. In inspector"). A band flush on three edges and inset on the fourth is not a band, it is a rule with a margin above it — so the row reaches the pane's top corner and its own `min-block-size` gives it height. Measured: the row's top now lands at 65, which is exactly the frame header's bottom seam, so the strip reads as one continuous chrome band across the app. The block-END is deliberately left alone: that edge is the gap between the seam and the panel under it, which is content spacing rather than the pane's own inset — and the law asserts both halves, so spending all four fails as loudly as spending two.
+
+**The padding could not go on the LIST, and tabs.css says so outright**: `--active-tab-left` is measured from the list's BORDER box while the travelling rule resolves its insets against the PADDING box, so inline padding there shifts every rule by its own width. It is exactly the repair a later reader reaches for when the labels look two pixels off, so a source law forbids it.
+
+I first recorded the pinning as a library gap and it is not one. `TabsList` needs the `Tabs` context, and both `ShellPaneHeader` and `ShellScroll` are read with `:has(> …)`, so a `Tabs` wrapper between them and the pane kills the pane's column — which means the Tabs root has to BE the pane, and `render` is exactly the escape for that. It composes cleanly for a reason worth stating: `SidePane` MERGES the two props Base UI writes onto a render target rather than replacing them (`cx()` for the class, `useMergedRefs` for the ref), which is the 2026-08-03 `render` lesson holding on the receiving side. The law reads it structurally, because Base UI's Tabs root writes nothing on the element a law could recognise: the pane has a header, the bar is in it, and the bar comes before the scroller.
 
 **Rejected:** deleting only the double inset and leaving the strip scrolling (it answers the words and not the fault); a segmented control in the header, which would spell "switches what is under it" with the vocabulary §26 reserves for "sets a value in place".
 

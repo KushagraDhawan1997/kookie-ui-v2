@@ -132,9 +132,11 @@ export function CommandPalette({
       <DialogContent>
         <Stack gap="3">
           <DialogTitle style={{ position: "absolute", clipPath: "inset(50%)" }}>Commands</DialogTitle>
+          {/* NO `size` (2026-09-03). It stated `2`, which IS the default — a second home for
+              the baseline, and the shape this file's own neighbour already names: a default
+              restated is a default with two homes, and the one that is not the config drifts. */}
           <TextField
             autoFocus
-            size="2"
             placeholder="Search commands and components…"
             aria-label="Search commands"
             value={query}

@@ -413,7 +413,13 @@ export function Tree({
             aria-selected={isSelected}
             {...(isSelected ? { "data-selected": "", "data-emphasis": "medium" } : { "data-emphasis": "quiet" })}
             data-size={size}
-            data-tone="neutral"
+            // ShellNavItem's stamp, and NavTree's beside it (2026-09-02, Kushagra: "lets get
+            // parity"). The family is what the SELECTED row's ink reads, and `undilutedTones`
+            // keeps every fill grey — an accent's washed rungs point at neutral — so stamping
+            // it unconditionally costs a resting row nothing and gives the selected one
+            // somewhere to read a colour from. Without it `--tone-current` resolves to grey
+            // and the rule below draws nothing.
+            data-tone="accent"
             data-hover-lit=""
             tabIndex={focusRow?.node.id === node.id ? 0 : -1}
             className="kui-control kui-row kui-tree-item"

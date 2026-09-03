@@ -35,8 +35,9 @@
 
 import * as React from "react";
 
-import { Box, Text, TextField, Button, Tree, type TreeNode } from "@kookie-ui/react";
+import { Box, TextField, Button, Tree, type TreeNode } from "@kookie-ui/react";
 
+import { EmptyState } from "../../blocks/empty-state";
 import { XIcon } from "../icons";
 import type { BuilderNode } from "./model";
 
@@ -81,6 +82,7 @@ export function Layers({
   canRowDrop,
   onRowDrop,
   visible,
+  onClearFilter,
 }: {
   roots: readonly BuilderNode[];
   selection: readonly string[];
@@ -94,6 +96,10 @@ export function Layers({
   /** The filter's answer, or null for no filter. A row outside it is not drawn — dimming it
       would leave a tree you have to read past to use. */
   visible: Set<string> | null;
+  /** The way out of a filter that matched nothing. The panel cannot clear it itself — the
+      value lives with the field in the pane's chrome row — and an empty state whose action
+      is the one thing to do is the whole point of the shape. */
+  onClearFilter: () => void;
 }) {
   /* COLLAPSE IS TRACKED, NOT EXPANSION, and the inversion is what keeps a new node visible.
      Holding the expanded set would mean every node inserted under a collapsed-by-default
@@ -217,14 +223,35 @@ export function Layers({
         if (!event.currentTarget.contains(event.relatedTarget as Node)) clear();
       }}
     >
+        {/* THE TWO EMPTINESSES ARE THE BLOCK'S OWN FIRST TWO STATES (2026-09-02) — nothing
+            created yet, and a filter that matched nothing — which is why they read
+            differently and why only the second one carries an action. Offering "start a
+            document" under a filter that returned nothing is the specific mistake
+            `EmptyState` exists to prevent, and it is what the one-line versions of these
+            were on their way to becoming. */}
         {empty ? (
-          <Text size="1" emphasis="quiet">
-            The canvas is empty.
-          </Text>
+          <EmptyState
+            title="The canvas is empty"
+            description="Place a component from Add, or start the document from a template."
+          />
         ) : rows.length === 0 ? (
-          <Text size="1" emphasis="quiet">
-            Nothing here is called that.
-          </Text>
+          <EmptyState
+            title="Nothing here is called that"
+            description="The filter reads a node's type and the words inside it. Try a shorter one."
+            /* QUIET, AND IT TAKES SOMETHING AWAY. The block's second demo is this exact
+               rule: an action under a filter that matched nothing clears the filter, and a
+               loud one offering to create something answers a question nobody asked. */
+            action={
+              /* QUIET AND BORDERED. The rank is the block's — an action that takes
+                 something away does not shout — and the border is Button's half-step
+                 within it (§9: quiet < quiet+bordered < medium), which is what makes it
+                 read as a control. Without it, a quiet button under two lines of centred
+                 prose in a 320px panel reads as a third line of prose. */
+              <Button emphasis="quiet" bordered onClick={onClearFilter}>
+                Clear the filter
+              </Button>
+            }
+          />
         ) : (
           <>
             <Tree
@@ -298,6 +325,14 @@ export function LayersFilter({
     <TextField
       aria-label="Filter layers"
       placeholder="Filter by type or words"
+      /* IT STATES ITS BACKDROP (§10, 2026-09-02, Kushagra). The row floats and the tree
+         scrolls behind it, and a field's fill is an ALPHA over the neutral ramp (2026-08-17,
+         so fills composite against their local ground) — which here is passing rows, not the
+         pane. The words showed straight through it. A floating chrome control over moving
+         content is §10's own case for expressing the material, and the pane hosts it: the
+         sidebar is flush and therefore solid, and a solid surface HOSTS glass (2026-08-19).
+         The docs shell's own floating search button says the same word for the same reason. */
+      backdrop
       ref={inputRef}
       value={value}
       onChange={(e) => onChange(e.target.value)}

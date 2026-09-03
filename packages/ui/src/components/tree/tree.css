@@ -104,17 +104,27 @@
   user-select: revert;
 }
 
-/* ── The NAV member's ink (§33) ────────────────────────────────────────────────────────────
-   ShellNavItem's pair, self-keyed on the second member (the third promotes): the row stamps
-   accent always, so the LABEL stands back down to the neutral ink — a column of blue words is
-   not a sidebar — and the CURRENT row takes the family back through --tone-current, the one
-   value its icon and label share. Keyed on the announced attribute, never a private stamp, so
-   the painted state and the announced one cannot disagree. (0,2,0) both arms; the current arm
-   wins its sibling on the attribute's extra specificity. */
-.kui-tree-nav .kui-tree-item {
+/* ── The FAMILY's ink (§33) ────────────────────────────────────────────────────────────────
+   ShellNavItem's pair, now shared by both members (2026-09-02, Kushagra: "lets get parity").
+   Both rows stamp accent always, so the LABEL stands back down to the neutral ink — a column
+   of blue words is not a sidebar and is not a layers panel either — and the ONE row that is
+   picked takes the family back through --tone-current, the value its icon and label share.
+
+   THE TWO MEMBERS NAME THE PICK DIFFERENTLY AND BOTH ARMS ARE STATED, because the difference
+   is the whole reason there are two components: a nav has a LOCATION (`aria-current` — the
+   page you are on, at most one) and an instrument has a SELECTION (`aria-selected` — any
+   number). One selector cannot spell both without claiming they are one thing.
+
+   `[aria-selected="true"]`, never the bare attribute: Tree stamps `aria-selected` on EVERY
+   row, false included, so the bare form would paint the whole panel.
+
+   Keyed on the announced attributes, never a private stamp, so the painted state and the
+   announced one cannot disagree. The picked arm is (0,3,0) against the resting (0,2,0). */
+.kui-tree .kui-tree-item {
   --kui-ct-label-color: var(--color-text);
 }
 
-.kui-tree-nav .kui-tree-item[aria-current] {
+.kui-tree .kui-tree-item[aria-current],
+.kui-tree .kui-tree-item[aria-selected="true"] {
   --kui-ct-label-color: var(--tone-current);
 }

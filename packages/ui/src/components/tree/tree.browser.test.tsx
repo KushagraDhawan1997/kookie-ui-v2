@@ -169,6 +169,36 @@ describe("selection (§33): announced by the machine, painted in the family's ow
     expect(rowsOf(tree)[1]!.getAttribute("aria-selected")).toBe("false");
   });
 
+  it("selected speaks in INK too — parity with the nav member (2026-09-02)", async () => {
+    // Kushagra, with Layers open beside the docs sidebar: "why is clicked state not showing
+    // accent colored label" — then "lets get parity". The nav member had said the picked row
+    // in accent ink since it shipped; the instrument said it in fill alone, so one machine
+    // painted its pick two ways depending on which front door you came in by.
+    //
+    // BOTH APPEARANCES, and both directions: the selected row's ink must BE --tone-current
+    // and an unselected sibling's must BE --color-text. Reading only the selected one would
+    // pass on a stylesheet that painted the whole panel accent — which is exactly what the
+    // bare `[aria-selected]` selector does, since Tree stamps the attribute on every row,
+    // false included.
+    for (const appearance of ["light", "dark"] as const) {
+      const tree = mounted(<Tree items={ITEMS} aria-label="Files" />, {
+        theme: { appearance },
+        select: ".kui-tree",
+      });
+      rowsOf(tree)[0]!.focus();
+      await userEvent.keyboard("{Enter}");
+      const selected = rowsOf(tree)[0]!;
+      const resting = rowsOf(tree)[1]!;
+      expect(computed(selected, "color"), `${appearance}: selected ink`).toBe(
+        colorOn(selected, "var(--tone-current)"),
+      );
+      expect(computed(resting, "color"), `${appearance}: resting ink`).toBe(
+        colorOn(resting, "var(--color-text)"),
+      );
+      expect(computed(selected, "color")).not.toBe(computed(resting, "color"));
+    }
+  });
+
   it("SELECTED OUTRANKS HOVERED (§10's clause, 2026-08-26) — the persistent fill is darker than the transient one", async () => {
     // Re-keyed from an agreement with `Row current`, which was true and the wrong thing to
     // want: both resolved the medium rung, but quiet's HOVER also resolved the same pixels,

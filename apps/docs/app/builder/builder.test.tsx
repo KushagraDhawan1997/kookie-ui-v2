@@ -39,13 +39,17 @@ import {
   moveNodeTo,
   node,
   removeNode,
+  TIER_KEYS,
   type BuilderDoc,
   type BuilderNode,
 } from "./model";
 import { API } from "../(docs)/components/api.generated";
 import { renderNode } from "./render";
 import { BuilderApp, LEFT_REGIONS } from "./builder-app";
-import { Layers } from "./layers";
+import { Layers, LayersFilter } from "./layers";
+import { JumpBar } from "./chrome";
+import { ReviewPanel } from "./review-panel";
+import { Inspector } from "./inspector";
 import { deriveParams, serializeBlock, serializeDocument, themeDiffs, toComponentName } from "./serialize";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
@@ -877,6 +881,7 @@ describe("Layers announces a real tree", () => {
         roots={[tree]}
         selection={[tree.children![0]!.id]}
         empty={false}
+        onClearFilter={() => {}}
         onSelect={() => {}}
         onDragBegin={() => {}}
         onDragFinish={() => {}}
@@ -955,7 +960,7 @@ describe("a pane's chrome is a pane part", () => {
       string passes whatever the code does. Caught by its own sabotage pass — floating the
       jump bar changed nothing the law could see. */
   const headerTag = (region: string): string | null =>
-    pane(region).match(/<div class="[^"]*kui-pane-header[^"]*"[^>]*>/)?.[0] ?? null;
+    pane(region).match(/<div [^>]*class="[^"]*kui-pane-header[^"]*"[^>]*>/)?.[0] ?? null;
 
   it("both panes drew a header at all — a null audits nothing", () => {
     expect(headerTag("sidebar")).not.toBeNull();
@@ -999,6 +1004,80 @@ describe("a pane's chrome is a pane part", () => {
     expect(list, "the bar is pinned above the scroller, not inside it").toBeLessThan(scroll);
     expect(inspector.indexOf("kui-pane-header")).toBeLessThan(list);
   });
+
+  /* AND THE SEAM IS FLUSH (2026-09-02, Kushagra: "inset tabs arent flush still"). The bar's
+     hairline is the boundary between the pane's chrome and its body, so a line stopping short
+     of the walls reads as drawn inside the pane rather than as the pane's own seam.
+
+     A SPELLING LAW, and it is worth saying why rather than pretending otherwise: what is true
+     here is a measurement (the rule spans 977→1280 against a pane of 976→1280) and this suite
+     renders to a string — the docs app has no browser project. What it CAN hold is the half
+     that is a decision rather than a distance: the row spends the pane's own padding back
+     through `--kui-sf-p`, never a stated length, so a hardcoded `-16px` fails it just as
+     loudly as a deleted margin. Falsified in both directions. */
+  it("the inspector's chrome row spends the pane's own padding back, not a number", () => {
+    const header = headerTag("inspector")!;
+    expect(header, "it spends the padding as a value, never a length").toMatch(
+      /margin:\s*calc\(-1\s*\*\s*var\(--kui-sf-p\)\)/,
+    );
+    // THREE EDGES, and the fourth is the point (2026-09-02, "Even the top bleed"): a band
+    // flush on the sides and inset at the top is a rule with a margin above it. The block-END
+    // stays, because that edge is the gap to the panel below rather than the pane's inset.
+    expect(header, "the block end is not spent — that gap is content spacing").toMatch(
+      /margin-block-end:\s*0/,
+    );
+  });
+
+  /* AND THE PADDING IS NEVER PUT BACK ON THE LIST. tabs.css states the constraint outright:
+     `--active-tab-left` is measured from the list's BORDER box while the travelling rule
+     resolves its insets against the PADDING box, so inline padding on the list shifts every
+     rule by its own width. It is exactly the repair a later reader reaches for when the labels
+     look two pixels off, so the source says no. */
+  /* A FLOATING CHROME CONTROL EXPRESSES THE MATERIAL (§10, 2026-09-02, Kushagra: "This text
+     field needs backdrop"). The sidebar's filter row floats and the panel scrolls behind it,
+     and a field's fill is an ALPHA over the neutral ramp (2026-08-17 — fills composite
+     against their LOCAL ground), which here is passing rows rather than the pane: the words
+     read straight through the box.
+
+     RENDERED UNDER THE APP'S OWN THEME, and that is the load-bearing half of the fixture. A
+     bare render resolves the default `material: "solid"`, so the stamp would read solid
+     whether the prop were there or not and the law would pass over a deleted `backdrop`.
+     `layout.tsx` wraps the site in `material="regular"`, so these render what the app
+     renders — demonstrated rather than asserted: swapping the fixture to `material="solid"`
+     fails the law, which is what says the environment is doing work.
+
+     BOTH FIELDS, because the row holds a different one per region and a single `backdrop`
+     would leave the other reading through. The Add region's is read off the whole app; the
+     Layers one is rendered directly, because reaching it through the app would mean a
+     test-only prop for switching regions and a production escape written for a law is worse
+     than a second fixture. Falsified by removing the prop from either. */
+  it("the Add region's floating filter states its backdrop", () => {
+    const themed = renderToStaticMarkup(
+      <Theme material="regular">
+        <BuilderApp />
+      </Theme>,
+    );
+    const sidebar = themed.slice(themed.indexOf("kui-shell-sidebar"), themed.indexOf("kui-shell-content"));
+    const header = sidebar.slice(sidebar.indexOf("kui-pane-header"), sidebar.indexOf("kui-shell-scroll"));
+    expect(header, "the header holds its field").toContain("Filter components");
+    expect(header, "and that field expresses the theme's material").toMatch(/data-material="(?!solid)/);
+  });
+
+  it("the Layers filter states its backdrop", () => {
+    const themed = renderToStaticMarkup(
+      <Theme material="regular">
+        <LayersFilter value="" onChange={() => {}} inputRef={null} />
+      </Theme>,
+    );
+    expect(themed, "the field rendered at all").toContain("Filter layers");
+    expect(themed).toMatch(/data-material="(?!solid)/);
+  });
+
+  it("nothing puts inline padding on the tab list", () => {
+    const source = readFileSync(new URL("./builder-app.tsx", import.meta.url), "utf8");
+    const list = source.slice(source.indexOf("<TabsList"), source.indexOf("</TabsList>"));
+    expect(list).not.toMatch(/padding(Inline|Left|Right)?\s*:/);
+  });
 });
 
 /* ── The palette is a list of rows ─────────────────────────────────────────────────────────
@@ -1024,5 +1103,576 @@ describe("the component palette is the row family", () => {
      a row's text inset is declared on each ROW's element, so a sibling cannot read it. */
   it("a family's label is an inert row, not a control", () => {
     expect(sidebar).toMatch(/<div[^>]*class="kui-control kui-row"[^>]*>[^<]*<span[^>]*>Layout<\/span>/);
+  });
+});
+
+
+/* ── The property panel's structure (2026-09-02) ──────────────────────────────────────────
+   Kushagra, with Figma's inspector open beside ours: "we dont have a system yet, lets try
+   and make a structure and system out of it". There were three different shapes for the one
+   thing a property panel does — a picker was a `space-between` row, a string was a label
+   stacked over a full-width field, a boolean was a third arrangement — so no two controls
+   began at the same x, the headings were the same size and weight as the labels under them,
+   and a hairline appeared above two sections out of five.
+
+   The THIRD pass is what these laws mostly hold (2026-09-02, Kushagra with Figma open:
+   "every row is standard, every label standard"). The second pass built the column and left
+   the panel ragged inside it — half the value cells held a control that filled the column and
+   half held a small object sitting at its start — and it still had two label positions, plus
+   a third treatment for the readout, whose label was a composed node.
+
+   inspector.tsx's header states the contract: PANEL, SECTION, ROW, and four text ranks.
+   These laws hold the parts of it a string can see. */
+describe("the inspector is built from its three shapes", () => {
+  const node = { id: "n1", type: "TextField", props: { placeholder: "you@company.com" } };
+  const html = renderToStaticMarkup(
+    <Theme>
+      <Inspector
+        node={node as never}
+        onProp={() => {}}
+        onText={() => {}}
+        onSlot={() => {}}
+        onSelect={() => {}}
+        measured={[
+          { label: "box", value: "748 x 44" },
+          { label: "corner", value: "22px" },
+        ]}
+      />
+    </Theme>,
+  );
+
+  it("the panel rendered its sections at all — an empty match audits nothing", () => {
+    expect(html).toContain("Properties");
+    expect(html).toContain("Not here, on purpose");
+  });
+
+  /* EVERY SEAM REACHES THE WALLS. A section boundary that stops short of the pane's edge
+     reads as a line drawn inside the panel rather than as a division of it — the same
+     sentence the pane's own chrome row earned an hour earlier. `mx="bleed"` is the system's
+     spelling for it (§3), so the law reads the resolved hook and not a length: a hand-written
+     `-16px` fails this as loudly as a deleted margin. */
+  it("every hairline in the panel bleeds to the pane's walls", () => {
+    const seps = [...html.matchAll(/<div[^>]*style="([^"]*)"[^>]*>\s*<div[^>]*role="separator"/g)].map(
+      (m) => m[1],
+    );
+    expect(seps.length, "the panel drew hairlines").toBeGreaterThanOrEqual(3);
+    for (const style of seps) expect(style).toMatch(/--kui-sf-p/);
+  });
+
+  /* ONE COLUMN PAIR FOR THE WHOLE PANEL, DECLARED ONCE. This is what "structure" turned out
+     to mean, and the first two passes both missed it: a grid per ROW aligns a row with itself
+     and nothing else, and a grid per SECTION lets Properties, Slots and the readout each pick
+     their own left edge. Measured after: every control in every section starts at x=1061 and
+     the value-bearing ones end at x=1264.
+
+     So the law reads the COUNT as well as the template — one grid, one spelling. A second
+     `columns=` anywhere in the file is how a section takes its columns back. */
+  it("the panel is ONE grid, and its columns have one home", () => {
+    expect(html, "the panel renders that grid").toContain("auto minmax(0, 1fr)");
+    expect(
+      (html.match(/--kui-gtc/g) ?? []).length,
+      "one grid, not one per section",
+    ).toBe(1);
+    const source = readFileSync(new URL("./inspector.tsx", import.meta.url), "utf8");
+    expect(source.match(/columns="[^"]*"/g) ?? [], "one grid template in the file").toEqual([
+      'columns="auto minmax(0, 1fr)"',
+    ]);
+  });
+
+  /* THREE RANKS, AND THE HEADING IS ALONE AT THE TOP OF ITS SECTION. The refusal names
+     carried the heading's own identity, so "emphasis and tone" competed with "Not here, on
+     purpose" one line above it. Counted rather than located: a section heading is the only
+     full-ink medium-weight text the panel writes, so the count of those must equal the count
+     of sections. */
+  it("only a section heading speaks in the heading's voice", () => {
+    const headings = (html.match(/data-weight="medium"/g) ?? []).length;
+    const sections = ["Content", "Properties", "Slots", "What that comes to", "Not here, on purpose"]
+      .filter((t) => html.includes(">" + t + "<")).length;
+    expect(sections, "the fixture reached several sections").toBeGreaterThanOrEqual(3);
+    // Plus ONE for the panel's own title, which is outside the sections. It is a step LARGER
+    // than a section heading (see the ladder law below) and shares its weight, because a
+    // panel title and a section title are the same kind of thing said at two scales.
+    expect(headings, "one medium-weight voice per section, plus the panel's title").toBe(sections + 1);
+  });
+
+  /* THE RANKS ARE A LADDER, one type step apart (2026-09-02). Before this pass a heading and
+     a name were both size 2, separated by weight and ink alone — a difference you have to
+     look for, which is why the panel read flat however its rows were arranged. The law reads
+     the three steps in the rendered markup and asserts each is one below the last, so
+     collapsing any two of them back onto one size fails here rather than by eye. */
+  it("the panel's title, its headings and its names are three type steps", () => {
+    const step = (text: string) => {
+      const m = html.match(new RegExp(`<span data-size="(\\d)"[^>]*>${text}</span>`));
+      return m ? Number(m[1]) : null;
+    };
+    const title = step("TextField");
+    const heading = step("Properties");
+    const name = step("placeholder");
+    expect(title, "the panel titles itself").not.toBeNull();
+    expect(heading, "a section heads itself").not.toBeNull();
+    expect(name, "a row names itself").not.toBeNull();
+    expect(title! - heading!, "a panel title is one step over a section heading").toBe(1);
+    expect(heading! - name!, "a section heading is one step over a name").toBe(1);
+  });
+
+  /* EVERY NAME IS THE SAME NAME. "Every label standard" is a claim about the SPELLING, not
+     about the arrangement, and the panel had three: a row's name beside its control, a
+     string's name stacked above it, and the readout's, which was a composed node carrying a
+     quieter half inside it. Anchored on the value cell that FOLLOWS, so this only reads text
+     that is really a row's name; the law then asserts every one of them was written the same
+     way, which a second treatment cannot survive. */
+  it("every name in the panel is written the same way", () => {
+    const names = [
+      ...html.matchAll(
+        /<div class="kui-box"(?: style="--kui-pl:[^"]*")?><span ([^>]*)class="kui-type kui-text">([^<]*)<\/span><\/div><div class="kui-box" style="--kui-d:flex;/g,
+      ),
+    ];
+    expect(names.length, "the fixture reached several rows").toBeGreaterThanOrEqual(4);
+    const spellings = new Set(names.map((m) => m[1]));
+    expect([...spellings], "one spelling for every name in the panel").toEqual([
+      'data-size="2" data-weight="regular" data-emphasis="medium" ',
+    ]);
+  });
+
+  /* EVERY VALUE CELL IS THE SAME CELL. This is the rag the third pass was called on: a value
+     that filled the column and a value that sat at its start were two different cells, and
+     which one you got depended on whether the call site had remembered to say `flex: 1`. The
+     cell states it now, once, for every row — so there are exactly TWO spellings, and the
+     second is not a width, it is the far line a Switch lands on because filling is not
+     available to it. A call site that re-states a width shows up here as a third. */
+  it("a value cell fills its column, or sits on its far line — and nothing else", () => {
+    // `grid-auto-flow:column` is what makes it a value CELL rather than the panel's own grid
+    // — which is also a `kui-box` with `--kui-d:grid` and would otherwise be counted here.
+    const cells = [...html.matchAll(/<div class="kui-box" style="(--kui-d:grid;[^"]*grid-auto-flow:column[^"]*)"/g)]
+      .map((m) => m[1]!);
+    expect(cells.length, "the fixture reached several rows").toBeGreaterThanOrEqual(4);
+    const fill = cells.filter((c) => c.includes("justify-items:stretch"));
+    const end = cells.filter((c) => c.includes("justify-items:end"));
+    expect(fill.length, "most rows fill").toBeGreaterThan(0);
+    expect(end.length, "and the fixture reached a Switch").toBeGreaterThan(0);
+    expect(fill.length + end.length, "two spellings, no third").toBe(cells.length);
+    expect(new Set(fill).size, "one fill spelling").toBe(1);
+    expect(new Set(end).size, "one end spelling").toBe(1);
+    // And no call site states a width of its own on the control inside a cell.
+    const source = readFileSync(new URL("./inspector.tsx", import.meta.url), "utf8");
+    expect(source, "no row states its own fill").not.toMatch(/flex: 1, minInlineSize: 0/);
+  });
+
+  /* THE LABEL IS A STRING, BY TYPE. The readout's composed label is how a second treatment
+     got in, and prose in a header does not stop the next one. Read from the source, because
+     the type is the enforcement and a rendered panel cannot see it. */
+  it("a row's name is typed as a string, not a node", () => {
+    const source = readFileSync(new URL("./inspector.tsx", import.meta.url), "utf8");
+    const props = source.slice(source.indexOf("export function Row({"), source.indexOf("}) {", source.indexOf("export function Row({")));
+    expect(props, "Row declares its label").toMatch(/label: string;/);
+    expect(props, "and it is not a node").not.toMatch(/label: React\.ReactNode/);
+  });
+});
+
+/* A responsive row keeps its trailing control whether or not it has anything left to add
+   (2026-09-02). The `+` used to render only while a tier was unstated, which took the value's
+   right edge with it: state every tier and that row reached a line no other row in the
+   section reached. Disabled is the honest spelling — the same thing Arrange does with a
+   command that is not armed. */
+describe("a responsive row's trailing control never leaves", () => {
+  const render = (gap: unknown) =>
+    renderToStaticMarkup(
+      <Theme>
+        <Inspector
+          node={{ id: "n1", type: "Flex", props: { gap } } as never}
+          onProp={() => {}}
+          onText={() => {}}
+          onSlot={() => {}}
+          onSelect={() => {}}
+        />
+      </Theme>,
+    );
+
+  const plus = (html: string) =>
+    [...html.matchAll(/<button[^>]*aria-label="Add a breakpoint to gap"[^>]*>/g)].map((m) => m[0]);
+
+  it("it is there with tiers left to add, and there when there are none", () => {
+    const some = plus(render("3"));
+    expect(some.length, "a plain value offers the breakpoints").toBe(1);
+    expect(some[0], "and the control is live").not.toMatch(/disabled/);
+
+    const all = Object.fromEntries(TIER_KEYS.map((t) => [t, "3"]));
+    const none = plus(render(all));
+    expect(none.length, "every tier stated, and the control is still in the row").toBe(1);
+    expect(none[0], "standing down rather than leaving").toMatch(/disabled/);
+  });
+
+  it("a stated tier can be taken back from the row itself", () => {
+    const html = render({ initial: "3", ...(TIER_KEYS[1] ? { [TIER_KEYS[1]]: "5" } : {}) });
+    expect(html, "the tier's own row offers the way out").toContain(
+      `Remove the ${TIER_KEYS[1]} breakpoint from gap`,
+    );
+  });
+});
+
+/* ── The builder's empty states are the block (2026-09-02) ────────────────────────────────
+   Kushagra, looking at the inspector with nothing selected: *"In builder shell, lets use empty
+   state block we have now"*. Four regions in this app can be empty and each said so in one
+   quiet line, which is the shape an empty state has before anybody has decided what one is —
+   no rank, no arrangement, and in two of them no words at all: a palette filter that matched
+   nothing rendered an EMPTY PANE, because every group returns null when its entries are
+   filtered out.
+
+   What the block brings is not the words, it is the taxonomy. Nothing yet, nothing matched,
+   nothing available — they differ in RANK and in whether there is anything to do, and the
+   mistake it exists to prevent is offering "create one" under a filter that returned nothing.
+   So these laws hold the split rather than the copy. */
+describe("the builder's empty states are the block, and they carry its taxonomy", () => {
+  const paint = (ui: React.ReactElement) => renderToStaticMarkup(<Theme>{ui}</Theme>);
+  const tree = node("Stack", {}, { children: [node("Button", {}, { text: "Go" })] });
+
+  /* NOTHING MATCHED CARRIES THE WAY OUT, AND IT CLEARS. The one editorial rule the block
+     states outright. Read as a real button with a real handler rather than as a string: the
+     `×` in the filter field is not this, and a state whose action is absent is the one-line
+     version this replaced. */
+  it("a filter that matched nothing offers to clear it, and offers nothing else", () => {
+    const html = paint(
+      <Layers
+        roots={[tree]}
+        selection={[]}
+        empty={false}
+        onClearFilter={() => {}}
+        onSelect={() => {}}
+        onDragBegin={() => {}}
+        onDragFinish={() => {}}
+        canRowDrop={() => true}
+        onRowDrop={() => {}}
+        // Nothing survives the filter — the state this law is about.
+        visible={new Set<string>()}
+      />,
+    );
+    expect(html, "it is the block").toContain("kb-empty");
+    expect(html, "and it says what the filter is").toContain("Nothing here is called that");
+    expect(html, "with the one thing to do").toContain("Clear the filter");
+    // ONE action. `action` and `secondary` are two slots and a filter state wants one of them.
+    expect((html.match(/kui-button/g) ?? []).length, "one action, not two").toBe(1);
+    // And it does NOT offer to create something — the mistake the block exists to prevent.
+    expect(html.toLowerCase(), "no create under a filter").not.toMatch(/\bnew\b|\badd\b|template/);
+  });
+
+  /* NOTHING YET DOES NOT. The same panel, the same component, a different emptiness — and the
+     difference is visible in the markup, which is what stops the two collapsing back into one
+     string over time. */
+  it("an empty canvas says so and offers nothing to clear", () => {
+    const html = paint(
+      <Layers
+        roots={[]}
+        selection={[]}
+        empty
+        onClearFilter={() => {}}
+        onSelect={() => {}}
+        onDragBegin={() => {}}
+        onDragFinish={() => {}}
+        canRowDrop={() => true}
+        onRowDrop={() => {}}
+        visible={null}
+      />,
+    );
+    expect(html, "it is the block").toContain("kb-empty");
+    expect(html).toContain("The canvas is empty");
+    expect(html, "there is no filter to clear").not.toContain("Clear the filter");
+  });
+
+  /* A CLEAN REVIEW IS AN OUTCOME, NOT AN ABSENCE — which is why it is the only empty state in
+     the builder that carries a mark, and why it offers nothing to do. An action here would be
+     an action about a state you wanted. */
+  it("a clean review carries the mark, and nothing to do about it", () => {
+    const html = paint(<ReviewPanel findings={[]} selection={[]} onSelect={() => {}} onFix={() => {}} />);
+    expect(html, "it is the block").toContain("kb-empty");
+    expect(html, "and the tick reads before the sentence does").toContain("kb-empty-mark");
+    expect(html).toContain("Nothing to answer for");
+    expect((html.match(/kui-button/g) ?? []).length, "nothing to do").toBe(0);
+  });
+
+  /* AND THE ONE THAT IS NOT A MARK. A mark is for a state a reader meets before they know what
+     the region is for; three of these four are regions the reader has already used, so the tick
+     above must be the only one. Counted across all three, because "only" is the claim. */
+  it("the review's tick is the only mark in the builder's empty states", () => {
+    const marks = [
+      paint(<ReviewPanel findings={[]} selection={[]} onSelect={() => {}} onFix={() => {}} />),
+      paint(
+        <Layers
+          roots={[]}
+          selection={[]}
+          empty
+          onClearFilter={() => {}}
+          onSelect={() => {}}
+          onDragBegin={() => {}}
+          onDragFinish={() => {}}
+          canRowDrop={() => true}
+          onRowDrop={() => {}}
+          visible={null}
+        />,
+      ),
+      paint(
+        <Layers
+          roots={[tree]}
+          selection={[]}
+          empty={false}
+          onClearFilter={() => {}}
+          onSelect={() => {}}
+          onDragBegin={() => {}}
+          onDragFinish={() => {}}
+          canRowDrop={() => true}
+          onRowDrop={() => {}}
+          visible={new Set<string>()}
+        />,
+      ),
+    ].map((h) => (h.match(/kb-empty-mark/g) ?? []).length);
+    expect(marks, "exactly one of the three").toEqual([1, 0, 0]);
+  });
+
+  /* NO REGION STILL WRITES ITS OWN. The cheapest way to lose this is not a rewrite, it is the
+     next empty region getting one quiet line because that is what the file next to it used to
+     do. The law reads the SOURCE of all four files: an empty state is the block, and the
+     one-liners it replaced are gone by their own words. */
+  it("no builder region hand-writes an empty state any more", () => {
+    for (const file of ["builder-app.tsx", "layers.tsx", "review-panel.tsx"]) {
+      const source = readFileSync(new URL(`./${file}`, import.meta.url), "utf8");
+      for (const gone of [
+        "Click something on the canvas, or pick it in Layers.\n",
+        "The canvas is empty.\n",
+        "Nothing here is called that.\n",
+      ]) {
+        expect(source, `${file} still writes an empty state by hand`).not.toContain(gone);
+      }
+    }
+    const app = readFileSync(new URL("./builder-app.tsx", import.meta.url), "utf8");
+    expect(app, "and the block is where they come from").toContain('from "../../blocks/empty-state"');
+  });
+});
+
+/* ── The jump bar is the Breadcrumb (2026-09-02) ──────────────────────────────────────────
+   Kushagra, on the path over the canvas: *"Breadcrumb"*. It was quiet Buttons with a `›`
+   `Text` hand-placed between them — the exact spelling §39 refused when it dropped
+   `BreadcrumbSeparator`: layout wearing a part's name, an N-1 rule kept by hand, and a glyph
+   the call site picked. It also announced nothing: no landmark, no list, and `aria-current`
+   set to the string `"true"` rather than `"page"`.
+
+   What the app still owns is the TRUNCATION, because §3 forbids the component owning what it
+   shows — a document nests as deep as an author builds it, and this bar is one control row at
+   the pane's index. */
+describe("the jump bar is the Breadcrumb, and the app owns only the truncation", () => {
+  /** A chain `depth` deep, and the id of its deepest node. */
+  const deep = (depth: number) => {
+    const leaf = node("Text", {}, { text: "end" });
+    let root: BuilderNode = leaf;
+    for (let i = 0; i < depth - 1; i += 1) root = node("Stack", {}, { children: [root] });
+    return { root, leafId: leaf.id };
+  };
+  const paint = (depth: number) => {
+    const { root, leafId } = deep(depth);
+    return renderToStaticMarkup(
+      <Theme>
+        <JumpBar roots={[root]} selection={[leafId]} onSelect={() => {}} />
+      </Theme>,
+    );
+  };
+
+  it("it is the component — a landmark, a list, and the system's own chevron", () => {
+    const html = paint(3);
+    expect(html, "the landmark").toContain('aria-label="Selection path"');
+    expect(html, "the list").toContain("kui-breadcrumb-list");
+    expect(html, "and its items").toContain("kui-breadcrumb-item");
+    // The hand-placed separator, and the one thing that says it is gone.
+    expect(html, "no hand-written punctuation").not.toContain("\u203a");
+    expect(html, "the chevron is the component's").toContain("kui-breadcrumb-separator");
+  });
+
+  /* WHERE YOU ARE IS NOT A LINK, and it is announced. The old bar made every crumb a button
+     including the one you are standing on, and wrote `aria-current="true"` — which is a valid
+     token meaning "current", but not the one for a place in a path. */
+  it("the end of the path is the page, and everything before it is a way back", () => {
+    const html = paint(4);
+    expect((html.match(/aria-current="page"/g) ?? []).length, "exactly one current place").toBe(1);
+    expect(html, "and it is not a link").toContain("kui-breadcrumb-page");
+    // The last item in the list is the one carrying it.
+    const items = html.split("kui-breadcrumb-item").slice(1);
+    expect(items.at(-1), "the current place is at the END of the path").toContain('aria-current="page"');
+    expect(items.slice(0, -1).join(""), "and none of the ones before it are").not.toContain("aria-current");
+  });
+
+  /* A PLACE REACHED BY CODE IS A BUTTON. A node in this document has no URL, and an anchor
+     with no href is not operable — §39 blesses the case in the ellipsis's own item type and
+     `render` is how the treatment reaches a different element. */
+  it("a crumb is a button carrying the crumb's treatment, never a hrefless anchor", () => {
+    const html = paint(3);
+    expect(html, "the treatment is on a button").toMatch(/<button[^>]*class="[^"]*kui-breadcrumb-link/);
+    expect(html, "and there is no anchor pretending to be one").not.toMatch(
+      /<a(?![^>]*href)[^>]*kui-breadcrumb-link/,
+    );
+  });
+
+  /* THE APP DECIDES WHAT TO HIDE, and both directions are the law: a shallow path must show
+     everything, or "it truncates" is satisfied by a bar that always truncates. */
+  it("a shallow path shows every level, and a deep one keeps the first and the last two", () => {
+    const shallow = paint(4);
+    expect((shallow.match(/kui-breadcrumb-item/g) ?? []).length, "four levels, four crumbs").toBe(4);
+    expect(shallow, "and nothing is hidden").not.toContain("Levels between");
+
+    const long = paint(8);
+    expect((long.match(/kui-breadcrumb-item/g) ?? []).length, "first, last two, and the dots").toBe(3);
+    expect(long, "the stretch between is behind the dots").toContain("Levels between");
+  });
+
+  /* AND THE DOTS OPEN. `BreadcrumbEllipsis` requires its `items`, so an inert marker is not
+     expressible — but a call site can still hand it an EMPTY list, which renders a trigger
+     that opens an empty menu. The law reads the source: every level this bar drops goes into
+     the list it hands over, so truncating the path never puts a level out of reach. */
+  it("every dropped level is handed to the dots", () => {
+    const source = readFileSync(new URL("./chrome.tsx", import.meta.url), "utf8");
+    expect(source, "the dropped levels are what the ellipsis is given").toMatch(
+      /const hiddenItems = dropped\.map\(/,
+    );
+    expect(source, "and each one goes somewhere").toMatch(/label: n\.type, onClick:/);
+  });
+});
+
+/* ── The builder speaks the system's own vocabulary (2026-09-03) ──────────────────────────
+   Kushagra, on the top bar: *"Please scan for other things too, like not using hugeicons, not
+   using size 2 icon button as default, or any button etc etc."* The scan found one shape
+   repeated: a control written out BY HAND where the package ships the thing itself. A `⋯`
+   character where an icon goes, `aria-pressed` bolted onto a Button where a Toggle exists, a
+   count baked into a label where a Badge exists, four hand-painted declarations where a Card
+   does. These laws hold each one, so the next hand-written control fails here rather than
+   being noticed in a screenshot. */
+describe("the builder writes no control the package already ships", () => {
+  const FILES = ["builder-app.tsx", "chrome.tsx", "command-palette.tsx", "inspector.tsx", "layers.tsx", "review-panel.tsx"];
+  const sources = FILES.map((f) => [f, readFileSync(new URL(`./${f}`, import.meta.url), "utf8")] as const);
+  /** The source with its comments stripped — every claim below is about CODE, and this repo's
+      own laws have twice fired on their own explaining prose. */
+  const code = (src: string) =>
+    src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
+  /* A GLYPH IS DRAWN, NOT TYPED. A `⋯` or a `−` as a label is drawn by whatever face the line
+     resolved, at that face's weight, beside icons the package draws at `iconStroke` — the
+     2026-08-23 two-grids defect in its plainest form. Three of them shipped: the document
+     menu, a saved block's menu, and the two zoom steps. */
+  it("no character stands in for an icon", () => {
+    for (const [file, src] of sources) {
+      const found = [...code(src).matchAll(/>\s*([⋯…−–—×✕✓＋]|\+)\s*</g)].map((m) => m[1]);
+      expect(found, `${file} types a glyph instead of drawing one`).toEqual([]);
+    }
+  });
+
+  /* A TOGGLE IS A TOGGLE (§34). `aria-pressed` on a Button plus an emphasis the call site
+     computes IS the component, written out longhand — and the component is where the pressed
+     state comes from the primitive rather than from a prop nobody validates. */
+  it("nothing bolts aria-pressed onto a Button", () => {
+    for (const [file, src] of sources) {
+      expect(code(src), `${file} hand-writes a toggle`).not.toMatch(/aria-pressed=/);
+    }
+  });
+
+  /* `aria-current` NAMES A LOCATION IN A SET — a page in a nav, a crumb in a path. It was on
+     the Review button meaning "this pane is open", which is `aria-expanded` and which
+     `ShellTrigger` publishes already: redundant and wrong at once. The breadcrumb is the one
+     place in this app that has a set to be current in, and it says `page`. */
+  it("aria-current is only ever a place in a path", () => {
+    for (const [file, src] of sources) {
+      for (const m of code(src).matchAll(/aria-current=\{?["']?([a-z]*)/g)) {
+        expect(m[1], `${file} says aria-current="${m[1]}"`).toBe("page");
+      }
+    }
+  });
+
+  /* A COUNT IS A BADGE (§38), not part of a label. Baked into the string it changed the
+     button's WIDTH every time the document did, so the whole right-hand run shifted while you
+     were reaching for it — Tabs' own measured argument against a heavier active label. */
+  it("the review count is pinned to the word, not spliced into it", () => {
+    const html = renderToStaticMarkup(<BuilderApp />);
+    expect(html, "the button is there").toContain("Review");
+    const app = readFileSync(new URL("./builder-app.tsx", import.meta.url), "utf8");
+    expect(code(app), "no count spliced into a label").not.toMatch(/`Review \$\{/);
+    expect(code(app), "the count is a Badge").toMatch(/<Badge[\s\S]{0,200}findings\.length/);
+  });
+
+  /* THE FENCE (§13). `--shadow-1..5` is reached through the world's chrome roles, and a law
+     walks every package stylesheet asserting no rule names one directly. An app is not the
+     package, but a hand-painted pane is the same mistake with no law over it — the toast
+     stated the seal, a hairline, a corner and `var(--shadow-3)`, which is a Card. */
+  it("no app file paints a pane by hand", () => {
+    for (const [file, src] of sources) {
+      expect(code(src), `${file} reaches past the chrome roles`).not.toMatch(/--shadow-[1-5]/);
+      expect(code(src), `${file} paints its own seal`).not.toMatch(/background:\s*"var\(--color-surface\)"/);
+    }
+  });
+
+  /* ONE HOME FOR A MESSAGE. The toast rendered TWICE — as a `Text` in the header and as the
+     `Toast` at the root — so two `aria-live` regions announced the same string, which a screen
+     reader reads twice. */
+  it("a toast is announced once", () => {
+    const app = readFileSync(new URL("./builder-app.tsx", import.meta.url), "utf8");
+    expect((code(app).match(/aria-live/g) ?? []).length, "one live region in the app frame").toBe(1);
+    expect(code(app), "and the message has one renderer").toMatch(/<Toast message=\{toast\} \/>/);
+  });
+
+  /* A DEFAULT RESTATED IS A DEFAULT WITH TWO HOMES, and the one that is not the config drifts.
+     `size="2"` on a control is the baseline said again; the builder's own header comment names
+     the shape. Type and surface sizes are real choices and stay. */
+  it("no control restates the size it would have taken anyway", () => {
+    for (const [file, src] of sources) {
+      const lines = code(src).split("\n");
+      lines.forEach((line, i) => {
+        if (!/\bsize="2"/.test(line)) return;
+        expect.soft(line.trim(), `${file}:${i + 1} restates the default size`).toMatch(
+          /Card|Surface|Dialog|Text|Heading|Code|Kbd|Badge|Chip|CodeBlock/,
+        );
+      });
+    }
+  });
+});
+
+/* ── The top bar has three zones, and each is about one thing (2026-09-03) ─────────────────
+   Kushagra: *"the top bar is partociarlarly bad"*, and it was. Two clusters pushed apart by
+   `space-between` put the DOCUMENT at the far left beside the app's own name and everything
+   you do to that document at the other end, with a dead gap between them; six peer controls
+   ran along the right in one weight, so nothing said which of them you reach for. */
+describe("the top bar is three zones", () => {
+  const html = renderToStaticMarkup(<BuilderApp />);
+  const header = html.slice(html.indexOf("kui-shell-header"), html.indexOf("kui-shell-rail"));
+
+  /* A GRID, NOT `space-between` — and that is the mechanism rather than the styling. `1fr auto
+     1fr` centres the middle against the WINDOW however wide the side clusters get; a flex row
+     centres it against whatever room the sides leave, so the document name would drift every
+     time a finding count changed. */
+  it("the document is centred against the window, not against the room the sides leave", () => {
+    expect(header, "the header is a grid").toContain("--kui-gtc:1fr auto 1fr");
+    expect(header, "and not a pushed-apart row").not.toContain("--kui-jc:space-between");
+  });
+
+  it("three cells, and the document is the middle one", () => {
+    const grid = header.slice(header.indexOf("--kui-gtc"));
+    // The document switcher is a Select, so its trigger is the one combobox in the bar.
+    const before = grid.slice(0, grid.indexOf('role="combobox"'));
+    const after = grid.slice(grid.indexOf('role="combobox"'));
+    expect(before, "the identity is before it").toContain("Builder");
+    expect(after, "and the actions are after it").toContain("Export code");
+  });
+
+  /* ONE EMPHASIS PEAK, AT THE END OF THE RUN. Everything else in the bar is quiet or a
+     toggle's own state; `Export code` is the only loud thing, and nothing louder follows it. */
+  it("exactly one loud control, and the run ends on it", () => {
+    /* CONTROLS, not text. A `Heading` renders `data-emphasis="loud"` because loud is the type
+       family's own resting rung (§15) — the ladder's top, not a focal action — so a law that
+       counted every `loud` in the header counted the wordmark. Caught by its own first run. */
+    const loud = [...header.matchAll(/data-emphasis="loud" class="kui-control/g)];
+    expect(loud.length, "one focal action in the frame's header").toBe(1);
+    /* And nothing with a LABEL follows it. Only the pane toggle does, which is the frame's
+       own edge rather than an action — read as "every control after the loud one is icon-only"
+       rather than as "no capitalised word follows", which the loud button's own label
+       satisfied on the first run. */
+    const from = header.indexOf('data-emphasis="loud" class="kui-control');
+    const after = header.slice(header.indexOf("</button>", from) + "</button>".length);
+    const trailing = [...after.matchAll(/<button [^>]*>/g)].map((m) => m[0]);
+    expect(trailing.length, "the bar does end with the frame's edge").toBeGreaterThan(0);
+    for (const tag of trailing) {
+      expect(tag, "a labelled control follows the loud one").toContain('data-icon-only="true"');
+    }
   });
 });
