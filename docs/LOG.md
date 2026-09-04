@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-04 A table scrolls natively, and now that is a decision rather than an omission
+
+**What.** `.kui-table` states `scrollbar-width: thin` and `scrollbar-color: var(--scrollbar-thumb) transparent`, so the table's own scroller wears the thumb a `ScrollArea` paints. The mechanism does not change: it is still a native `overflow-x` box. +12 gzipped bytes, baseline re-recorded 36937 → 36949.
+
+**Why.** Kushagra, on a screenshot of the props table on a component page: *"this scrollbar looks ugly, does Table not use Kookie's scrollarea?"* It does not, and until today that was an omission rather than a decision — ScrollArea shipped 2026-08-17, Table 2026-08-31 out of the docs' own hand-drawn `.kd-table` with a raw `overflow-x` on it, and nothing in the package, in DECISIONS or in the component reference recorded a refusal. What a reader saw was the platform's chrome inside a library that draws its own everywhere else.
+
+**ScrollArea was the obvious repair and it is refused, on two things read out of its own source rather than assumed.** Its viewport is `focusable = true`, so it takes a `tabIndex` unconditionally — where the browser makes a native scroller focusable EXACTLY WHEN IT OVERFLOWS. That is not incidental: it is the property the 2026-09-01 ultracode audit deliberately relied on when it gave this wrapper `role="region"` and a name, and its note says so in as many words ("no `tabIndex`: the browser makes a scroller focusable exactly when it overflows, which is the only time a tab stop here is worth having"). Swapping would put a tab stop on every table that fits its column — on this site, most of them. And ScrollArea states in its own type that it needs a bounded height through `style`; a table wrapper's height is its content's, and a horizontal-only ScrollArea is unproven in this repo. So what moves is the appearance, which is what the complaint was actually about.
+
+**The two scrollers cannot drift, because neither judges a colour.** `--scrollbar-thumb` and the standard `scrollbar-width` are the whole change, and the law is an AGREEMENT rather than a spelling: it mounts a real overflowing ScrollArea, reads the colour its thumb PAINTS, and requires a mounted table's `scrollbar-color` to resolve the same value in both appearances — so a stylesheet that respells the token, invents a colour, or draws a track fails. Three sabotage passes, each caught by exactly that law. Reading the declaration instead would have passed on any of them.
+
+**Rejected:** a `::-webkit-scrollbar` pseudo (the standard properties are the same baseline call `field-sizing` and `corner-shape` already make); and drawing a track (ScrollArea draws none, so a track here would be the one place in the library that does).
+
+---
+
 ## 2026-09-04 The command palette pads, and the reversal was one decision wearing three names
 
 **What.** `Command`'s pane pads like every other dialog; the filter line becomes a member of the field family; the hairline under it goes; `CommandEmpty` places what it is handed instead of dressing it. `dialog.css` loses a carve-out and the command size join drops from three published cells to one. Six laws, five sabotage passes.

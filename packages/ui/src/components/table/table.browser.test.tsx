@@ -10,9 +10,10 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { SIZES, computed, mounted, tokenOn } from "../../test/browser.tsx";
+import { APPEARANCES, SIZES, computed, mounted, tokenOn } from "../../test/browser.tsx";
 import { fontWeight } from "../../tokens/config.ts";
 import { Box } from "../box/box.tsx";
+import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { Separator } from "../separator/separator.tsx";
 import { Text } from "../text/text.tsx";
 import {
@@ -320,5 +321,46 @@ describe("the scroller is nameable, and unnamed it claims nothing (§36)", () =>
       parseFloat(tokenOn(el, "--focus-ring-width")) + parseFloat(tokenOn(el, "--focus-ring-offset"));
     expect(parseFloat(computed(el, "padding-top"))).toBeCloseTo(reach, 1);
     expect(parseFloat(computed(el, "padding-bottom"))).toBeCloseTo(reach, 1);
+  });
+  /**
+   * THE TWO SCROLLERS PAINT ONE THUMB (2026-09-04).
+   *
+   * A table scrolls natively — see `table.css` for the two measured reasons it is not a
+   * ScrollArea — so the library draws a scroller two ways, and the only thing that keeps that
+   * from being two appearances is that both read the same token. Asserting the declaration
+   * says `var(--scrollbar-thumb)` would pass on a stylesheet where that token resolves to
+   * anything at all, so this reads a MOUNTED ScrollArea's thumb and requires the table's
+   * scrollbar to resolve the same colour.
+   *
+   * BOTH APPEARANCES, because the palette is where a pair like this comes apart.
+   */
+  it("its native scrollbar resolves the colour a ScrollArea's thumb paints", async () => {
+    for (const appearance of APPEARANCES) {
+      const table = mounted(<Fixture size="2" />, { theme: { appearance } });
+      const area = mounted(
+        // Genuinely overflowing, and read two frames later: Base UI renders no bar in the
+        // mount commit — it measures the viewport first, which is `scroll-area`'s own
+        // `laidOut` and the reason a synchronous read here found nothing at all.
+        <ScrollArea style={{ height: "80px", width: "120px" }}>
+          <div style={{ height: "600px", width: "600px" }} />
+        </ScrollArea>,
+        { theme: { appearance } },
+      );
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const thumb = area.querySelector(".kui-scroll-thumb");
+      expect(thumb, "no ScrollArea thumb to compare against").not.toBeNull();
+
+      const painted = computed(thumb as HTMLElement, "background-color");
+      // `scrollbar-color` computes as "<thumb> <track>"; the track is transparent because a
+      // ScrollArea draws none.
+      const [thumbColour, ...track] = computed(table, "scrollbar-color").split(") ");
+      expect(`${thumbColour})`, `${appearance}: the table's thumb is not the system's`).toBe(
+        painted,
+      );
+      expect(track.join(") "), `${appearance}: the table draws a track`).toMatch(
+        /transparent|rgba\(0, 0, 0, 0\)/,
+      );
+      expect(computed(table, "scrollbar-width")).toBe("thin");
+    }
   });
 });

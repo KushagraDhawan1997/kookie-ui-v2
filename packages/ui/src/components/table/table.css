@@ -17,6 +17,30 @@
      4px ring painted above the content edge, with compact/2 and default/1 at exactly zero
      clearance. The reach is the ring's own two tokens, so this is not a second number. */
   padding-block: calc(var(--focus-ring-width) + var(--focus-ring-offset));
+
+  /* THE SCROLLER IS NATIVE AND IT WEARS THE SYSTEM'S OWN THUMB (2026-09-04, Kushagra: "this
+     scrollbar looks ugly, does Table not use Kookie's scrollarea?").
+
+     It did not, and that was an omission rather than a decision — ScrollArea shipped two weeks
+     before this component, and this wrapper came across from the docs' hand-drawn table with a
+     raw `overflow-x` on it. What a reader saw was the platform's chrome inside a system that
+     draws its own everywhere else.
+
+     THE COMPONENT STAYS NATIVE, AND NOW THAT IS A DECISION. Two things are measured rather
+     than assumed. ScrollArea's viewport is `focusable = true`, so it takes a `tabIndex` at all
+     times, where the browser makes a native scroller focusable EXACTLY WHEN IT OVERFLOWS —
+     which is the property the 2026-09-01 audit deliberately relied on when it named this
+     region, and the only time the tab stop is worth having. And ScrollArea states in its own
+     type that it needs a bounded height through `style`; a table wrapper's height is its
+     content's. So the appearance is what moves, not the mechanism.
+
+     THE VALUES ARE ScrollArea's, read from the same two tokens rather than judged again, so
+     the two scrollers in this library cannot come to disagree — a law asserts a mounted table's
+     thumb resolves the colour a mounted ScrollArea's thumb paints. `thin` is the standard
+     property, not a `::-webkit-` pseudo: the same baseline call `field-sizing` and
+     `corner-shape` already make. The track is transparent because ScrollArea draws none. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 .kui-table-el {

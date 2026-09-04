@@ -510,28 +510,26 @@
    size-bearing law ran at index 2, the one index where the pin is invisible.
 
    It lives here rather than in `command.css` for the reason the accordion's does: a component
-   sheet may not name `data-size` (the no-axis walk), so the shared layer publishes the cells
-   and the component reads one hook. `--kui-cmd-px` is the ROW's own inline padding at the same
+   sheet may not name `data-size` (the no-axis walk), so the shared layer publishes the cell and
+   the component reads one hook. `--kui-cmd-px` is the ROW's own inline padding at the same
    index, which is what makes a caption line up with the rows under it — the thing the
-   stylesheet's comment claimed and no law measured. */
+   stylesheet's comment claimed and no law measured.
+
+   IT PUBLISHES ONE CELL NOW, not three (2026-09-04). The field's height and its font left with
+   the bare line: the field is a `.kui-field` since the padding reversal, so it takes `--kui-ct-h`
+   and `--kui-ct-font` from the control join by wearing `data-size` itself, which is one home
+   rather than two agreeing ones. What is left is the only number the control join cannot answer,
+   because it is a question about a caption standing beside a row rather than about a control. */
 .kui-command[data-size="1"] {
-  --kui-cmd-h: var(--control-height-1);
-  --kui-cmd-font: var(--font-size-1);
   --kui-cmd-px: var(--control-px-pill-1);
 }
 .kui-command[data-size="2"] {
-  --kui-cmd-h: var(--control-height-2);
-  --kui-cmd-font: var(--font-size-2);
   --kui-cmd-px: var(--control-px-pill-2);
 }
 .kui-command[data-size="3"] {
-  --kui-cmd-h: var(--control-height-3);
-  --kui-cmd-font: var(--font-size-3);
   --kui-cmd-px: var(--control-px-pill-3);
 }
 .kui-command[data-size="4"] {
-  --kui-cmd-h: var(--control-height-4);
-  --kui-cmd-font: var(--font-size-4);
   --kui-cmd-px: var(--control-px-pill-4);
 }
 
