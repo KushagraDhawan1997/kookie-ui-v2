@@ -202,6 +202,48 @@ The second attempt moved the grid up to the SECTION, which is better and still w
 
 **The laws hold what a string can see** — the panel renders to markup and the docs app has no browser project. Every hairline resolves `--kui-sf-p` rather than a length (so a hand-written `-16px` fails as loudly as a deleted margin), the grid template has exactly ONE home in the file (a second one is how a third shape returns), and the count of heading voices equals the count of sections plus the panel's own title. Four sabotages, each caught by exactly its law.
 
+## 2026-09-02 The field family's lip moves onto the annulus — one glass, one place
+
+Kushagra, after the glint split: *"No, field and text area vs button"* — the difference he was reporting was between families, not between the two fields.
+
+**The material itself was never different, and that was measured first.** A field, a textarea and a button at the same thickness resolve identical numbers in both appearances: the same veil (48% regular, 30% thin, 66% thick), the same `blur(2px) saturate(1.6) brightness(1.04)`, and the same bend through the lens — 11.329 / 8.714 / 6.100, to three decimals. A card is deliberately not the same recipe (4px blur, saturate 2.07) and a button's RUNG changes its glass by design (a quiet button has no fill for the veil to make see-through; loud runs accent at 80% with saturation 2.2). Neither of those is a defect, and neither was touched.
+
+**What differed was WHERE the lip is painted.** The pane, the button, the atom and the segmented track draw the ring as a 1px annulus on `::after` at `inset: 0`, which resolves against the PADDING box — so the line has veil on both sides of it. The field family drew the same ring with `background-clip: border-area`, which paints in the border band, i.e. exactly ON the outer boundary. Measured across the left edge at 4×, in light: a button reads 219 outside, 230, **217** one pixel in, then its body at 232 — a line with flat ground either side; a textarea read 246 outside, **227** at the boundary, then its body at 243. Dark the same shape.
+
+**That flush geometry is not untried — it is the one he already rejected.** It was built for panes on 2026-08-27, screenshotted at 4× beside the shipped spelling, and turned down in one sentence: *"now I have lost that sharpness and edge work that I had."* The field family has been on it ever since, because the two families were never compared afterwards.
+
+**The reason the family could not use the annulus expired eight days ago.** A `<textarea>`, like every form control, renders no generated content, so the whole family shared the one spelling a textarea could take. TextArea grew TextField's wrapper on 2026-08-25 — glass was the forcing case — and the constraint died with it. Measured 2026-09-02: `.kui-textarea` is a `<span>` holding the `<textarea>`, its own `::before` is already painting the glint band, and `::after` is unused on both members. The platform withholds nothing.
+
+**So the family joins the annulus, and three things go with the fork.** The `@supports (background-clip: border-area)` branch itself — the annulus is plain CSS, so Safari and Firefox now get the real ring instead of the pre-lab flat hairline they were falling back to. The two private hooks `--kui-ct-glass-ring` and `--kui-ct-glass-glint`, which existed so the state arms could stand the family's light down: the lever is `--material-ring-opacity` now, one for all four families, and the INVALID arm gains it (a button is never invalid, which is exactly why that arm could stay out of it before). And `--material-*-edge` — the flat hairline, six numbers in config — **deleted**: it was already inert on the button (which pins the hook transparent below the ring rules), on the track (whose border is stood down by width, audit D2) and on the atom, so the field's fallback was its last live consumer. Measured before deleting rather than reasoned about: across every glass element on the preview, in both appearances, zero elements painted it.
+
+After: the textarea reads 246 outside, 243, **227** one pixel in, 243 — the button's own shape. **Net −137 bytes gzipped** (37191 → 37054, re-recorded), which is the evidence the change was a deletion rather than an addition.
+
+**The laws.** `text-field.test.ts` was the agreement law for the two-branch mechanism (ENGINEERING §6: a mechanism with two implementations owes a law that they agree) and its subject is gone; it is rewritten as the claim that survives — the fork is absent, the hairline token is absent, the two hooks are absent, and both members are named on the same `::after` and `::before` selector lists the button is named on. That last half has to be a node law: a browser law reads one mounted element and would pass with a whole selector list missing so long as its own member was on it. The three browser laws that branched on `CSS.supports("background-clip: border-area")` are unconditional again and now read the annulus. The disabled-band law changed what it reads — the stand-down used to make the `::before` background `none` and now makes its opacity 0 — and kept its live calibration control. Falsified twice: dropping the field family from the regular ring list fails four laws by name, and un-pinning the border to a live colour fails five.
+
+**Refused, with the reason each time.** Unifying the button's RUNG with the field's fixed fill would delete the emphasis ladder on glass, which is §10's founding "material is a fill modifier" (2026-08-04) — a quiet glass button is bare blur because quiet has no fill, and that is the axis surviving the material rather than a defect. Unifying the card's recipe with the control's would put a 4px blur on a 32px box, which the lab measured as mud and is why the control cell exists at all.
+
+---
+
+## 2026-09-02 The glint is the ring's light half — a glow may only add light
+
+Kushagra, with three screenshots: *"I need to focus on glass, dark mode is fine, but light mode looks 'dirty'. and I see these pixelated artifacts. And why do controls like text area and text field have different glass? See dark mode looks SO good, its sharp, why is light mode so blurry and dirty and ugly"*.
+
+**Measured before anything moved.** Regular glass, the top edge of a mounted control, sampled through a real page at dpr 2. In DARK the page reads 20, the lip peaks at 168 and the body settles at 29 — the lip stands **139** above the body, with a graceful ramp (117, 101, 68, 49, 38, 35, 31) down to it. In LIGHT the page reads 246, the lip peaks at **249** and the body at 243 — it stands **six**. The same recipe, twenty-three times weaker.
+
+**One palette was doing two jobs.** The RING is the edge and the GLINT is the specular, and they had shared `ringBg(mode)` since the band shipped 2026-08-24 — the generator's own comment beside the token said as much and named the exit: *"kept as its own token because the band and the lip are two consumers a future value may split again."* It came due. Light's ring carries PIGMENT by design (2026-08-24, so a glass field would stop vanishing on a white page), and the band inherited those three black arcs and feathered them across the whole bezel. Isolated by switching `--kui-glint-on` off on a live pane and re-reading all four edges: the band alone was a grey wash reaching ~4px inboard of the left, bottom and right, up to −12/255 against the pane's own body, with no line anywhere to justify it. That is the dirt. In dark every stop already lightens, so the same band reads as light lying on the rim — which is the whole of why one mode looked right.
+
+**The rule, stated once: a glow may only add light.** Any ring stop that darkens is dropped to alpha 0 in the glint, keeping its position and its own channels so the emitted value still shows which arc went quiet (not load-bearing for the paint — gradient interpolation is premultiplied by spec). Light keeps its catch and loses its three arcs; dark is byte-identical, because nothing in dark darkens. The EDGE is untouched in both modes: the crisp 1px ring still carries the pigment and is still what draws a light boundary — measured with the band off, −25 at the shade side, −28 at the trailing flank, −16 at the leading one. After: the wash is gone from three edges (left 234/236/239 → 244/244/243, bottom 238/234/228/225 → 241/241/240/240, right 239/236/229/225 → 243 flat) and the top's catch band survives one unit brighter.
+
+**Refuted on the way.** The §10 lock ("every pane resolves all five parts identically; a component may vary WHERE a part is painted, never WHAT it is") binds COMPONENTS. A per-mode value is the other axis, the one the ring palette itself has always lived on — light and dark have been two renderings of one model since the lab port. Also refused: turning the band off in light outright (it deletes the specular rather than correcting it — a lip in light does catch light, it simply catches white on white), and nudging the alphas (the 2026-08-24 entry's own lesson: the model is corrected, not the value).
+
+**The pixelation is a separate finding and the obvious cause was WRONG.** The band's mask is a raster minted at one pixel per CSS pixel and stretched, so the first hypothesis was resolution — and it does not survive: a substitute mask minted at 4× and at 6× renders the same staircase, and so does a pure CSS-gradient mask with no raster in it at all. Removing the `border-radius` from the `::before` does not help either, nor does turning the backdrop-filter off, nor the lens, nor the ring. What IS established is that the steps belong to the band: with the band off the corner is a clean thin arc, and with it on it is a stepped smudge. So in light the artifact leaves with the wash that made it visible; in dark it stays, behind a lip 23× its contrast, exactly where it has always been. Recorded open rather than guessed at, with the four negative results above so the next person does not re-run them.
+
+**TextField and TextArea are not different, and that half of the report is answered by measurement:** their top-edge profiles are byte-identical in both appearances, same recipe, same 4.5px lip. What differs is proportion — both take a 16px corner, so a 32px field is a stadium and an 82px textarea is a rounded rect, and the same haze covers 28% of the field's height against 11% of the textarea's.
+
+**The law** (`material.browser.test.tsx`) reads both halves in one experiment: no glint stop in either mode may darken, AND light's ring must still own a stop that does. A law asserting only the first passes on a package that cleaned the band by deleting the edge, which is the defect 2026-08-24 exists to prevent. Falsified twice — pointing the glint back at `ringBg` fails on light for all three thicknesses naming the darkening stop, and whitening light's ring palette fires the vacuity guard alongside the four visibility laws. +21 bytes gzipped (37170 → 37191, re-recorded): the glint no longer compresses against an identical ring.
+
+---
+
 ## 2026-09-02 A tree says its pick in ink, whichever front door you came in by
 
 **What.** `Tree`'s rows stamp `data-tone="accent"` like `NavTree`'s already did, and tree.css's ink pair moves from `.kui-tree-nav` to `.kui-tree` — so a SELECTED row takes `--tone-current` exactly as a CURRENT one does. +10 gzipped bytes, re-recorded.
@@ -7934,9 +7976,11 @@ its stops are priced — the 2026-08-24 morning's own visibility finding was a s
   `--material-ring-opacity`, the lever the ring already reads. A plain image, so **Safari and
   Firefox render the specular** — the first piece of the glass identity outside Chromium. The
   corner contour is a p-norm superellipse when the box computes `corner-shape: squircle`, so
-  the band hugs the squircle the pane actually paints (the lens keeps its judged circular
-  corner; a band of LIGHT detaching at corners is visible where a bent backdrop's corner
-  never was).
+  the band hugs the squircle the pane actually paints. (The parenthesis that stood here said
+  the lens keeps its judged circular corner, because a band of LIGHT detaching at corners is
+  visible where a bent backdrop's corner never was — **refuted by measurement 2026-09-05**, see
+  that day's entry: the two contours part by 0.134R, which is 10.4px at the overlay band and
+  reads as a second arc inside the corner. The lens takes the exponent too.)
 - **The rim-saturate stage** inside the lens filter (kube's chain, credited): the bent
   backdrop re-emitted at `glint.rimSaturate`, clipped to the glint mask, composited over.
   Invisible over a neutral page by construction — saturating grey is grey — which is the

@@ -53,7 +53,6 @@ const onPlaceholder = (el: Element, prop: string): string =>
  * nothing. The static agreement between the two branches is `text-field.test.ts`'s, where the
  * emitted sheet can be read whatever the engine does.
  */
-const BORDER_AREA = CSS.supports("background-clip: border-area");
 
 const inner = (el: Element): HTMLTextAreaElement =>
   el.querySelector<HTMLTextAreaElement>(".kui-textarea-input")!;
@@ -401,34 +400,33 @@ describe("the app's identities reach it without it knowing (§5, §10)", () => {
     void (<TextArea shadow="2" />);
   });
 
-  it("a glass textarea wears the pane's RING — the element the border-area spelling exists for", () => {
-    // The glass lock (2026-08-24): one edge, every pane. The ring's canonical spelling is an
-    // ::after, and a <textarea> — like every form control — renders no generated content
-    // (measured: the pseudo computes but never paints), which is the platform constraint
-    // that forced the background-clip: border-area spelling for the whole field family.
-    // So THIS element is the law's real subject: if the ring reads here, it reads anywhere.
-    // Agreement with a glass Button's own ring, not a token name — the resolved conic a
-    // Button's ::after paints must appear verbatim in the textarea's background stack.
+  it("a glass textarea wears the pane's RING, on the same annulus a Button wears it on", () => {
+    // The glass lock (2026-08-24): one edge, every pane — and since 2026-09-02, one PLACE.
+    // The ring's canonical spelling is an ::after, and it used to be unreachable here: a
+    // <textarea>, like every form control, renders no generated content, so the whole field
+    // family painted its ring as a background layer clipped to the border band. That stopped
+    // being true on 2026-08-25, when this component grew TextField's wrapper — the element
+    // carrying the material is a <span>, and a <span> has pseudo-elements. The band cost the
+    // lip its flat ground: the border band IS the outer boundary, so the ring had the world
+    // on one side of it, which is the geometry that was built for panes on 2026-08-27 and
+    // rejected on sight.
+    //
+    // Agreement with a glass Button's own ring, not a token name: the resolved conic a
+    // Button's ::after paints must be the conic this element's ::after paints.
     const glass = mounted(<TextArea backdrop aria-label="glass" />, { theme: { material: "thin" } });
     const glassBtn = mounted(<Button backdrop>b</Button>, { theme: { material: "thin" } });
     const ring = getComputedStyle(glassBtn, "::after").backgroundImage;
     expect(ring).toContain("conic-gradient");
-    if (BORDER_AREA) {
-      expect(computed(glass, "background-image")).toContain(ring);
-      expect(getComputedStyle(glass).backgroundClip.startsWith("border-area")).toBe(true);
-      expect(computed(glass, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
-    } else {
-      // THE FALLBACK, asserted as the rendering it actually is: the material's own flat
-      // hairline on the border, and no ring in the stack — a wash of conic across the whole
-      // box is what recipes.css refuses here, so its absence is the claim.
-      expect(computed(glass, "border-top-color")).toBe(tokenOn(glass, "--material-thin-edge"));
-      expect(computed(glass, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
-      expect(computed(glass, "background-image")).not.toContain("conic-gradient");
-    }
-    // The negative control: a SOLID textarea keeps its pigment hairline and no ring.
+    expect(getComputedStyle(glass, "::after").content, "the wrapper grew no annulus").not.toBe("none");
+    expect(getComputedStyle(glass, "::after").backgroundImage).toBe(ring);
+    // …and the border is out of the way, or the box wears two lines (§10, 2026-08-07).
+    expect(computed(glass, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
+    // No conic in the element's OWN stack: the border-area layer is gone, not merely joined.
+    expect(computed(glass, "background-image")).not.toContain("conic-gradient");
+    // The negative control: a SOLID textarea keeps its pigment hairline and no ring at all.
     const solid = mounted(<TextArea aria-label="solid" />, {});
     expect(computed(solid, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
-    expect(computed(solid, "background-image")).not.toContain("conic-gradient");
+    expect(getComputedStyle(solid, "::after").content, "a solid textarea grew an annulus").toBe("none");
   });
 
   it("material re-derives the seal as glass, with no CSS of its own (§10)", () => {

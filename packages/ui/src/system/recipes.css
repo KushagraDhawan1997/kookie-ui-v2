@@ -1491,26 +1491,19 @@
   --dress-field-edge: initial;
   --dress-mark-edge: initial;
   --kui-ct-glass-edge: initial;
-  --kui-ct-glass-ring: initial;
-  --kui-ct-glass-glint: initial;
-  /* AND THE RING THE BUTTON FAMILY PAINTS (2026-08-26 audit). The three hooks above are the
-     FIELD family's — declared only inside the `background-clip: border-area` guard, because a
-     form control renders no generated content and the field's ring has to be a background
-     layer. The button and the segmented track have an `::after`, so they read
-     `--material-<t>-ring-control` directly and the stand-downs above could never reach them:
-     measured, a dead glass button's ring was byte-identical to a live one's in both
-     appearances, while the dead field beside it correctly lost its lip.
+  /* AND THE RING EVERY GLASS CONTROL PAINTS (2026-08-26 audit). Found by measuring the two: a
+     dead glass button's ring was byte-identical to a live one's in both appearances, while
+     the dead field beside it correctly lost its lip — because the field's light went through
+     two private hooks this arm stood down and the button's `::after` read the shared ring
+     token directly.
 
-     Routing the button through `--kui-ct-glass-ring` is NOT the fix — that hook does not exist
-     outside the guard, so it would delete the ring on every engine without border-area rather
-     than only on a dead control. The lever is the one the reduced-transparency arm already
-     uses, and it is the honest one: `--material-ring-opacity` says whether this element's
-     light is lit. It carries the glint band with it (the band's opacity is
-     `calc(ring-opacity * glint-on)`), which is right — a dead control catches no light at all,
-     the same sentence `--kui-ct-light: none` states below.
-
-     The INVALID remap below deliberately does not take this line: a button is never invalid,
-     and the field family's own two hooks already stand its ring and band down there. */
+     The lever is the honest one, and since 2026-09-02 it is the ONLY one: `--material-ring-
+     opacity` says whether this element's light is lit, so it reaches every family's annulus
+     at once. It carries the glint band with it (the band's opacity is
+     `calc(ring-opacity * glint-on)`), which is right — a dead control catches no light at
+     all, the same sentence `--kui-ct-light: none` states below. The two field-family hooks
+     went with the border-area fork when the family's lip moved onto the annulus; the INVALID
+     remap below now pulls this same lever, which it could not before. */
   --material-ring-opacity: 0;
   /* And the elevated light stands down the same way (§5, 2026-08-07): a disabled control
      makes no promise, so it neither hovers above the page nor catches light. `initial`
@@ -1590,8 +1583,12 @@
   --dress-field-edge: initial;
   --dress-mark-edge: initial;
   --kui-ct-glass-edge: initial;
-  --kui-ct-glass-ring: initial;
-  --kui-ct-glass-glint: initial;
+  /* AND THE MATERIAL'S LIGHT (2026-09-02). This used to stand down two private hooks the
+     field family owned; the family reads the shared ring tokens directly since its lip moved
+     onto the annulus, so the lever is the one the disabled and reduced-transparency arms
+     already pull. It carries the glint band with it, whose opacity multiplies this. Safe to
+     state here even though it reaches every control: a button is never invalid. */
+  --material-ring-opacity: 0;
 }
 
 /* Loading blocks interaction without the disabled remap: the control still looks like itself,
@@ -1756,7 +1753,6 @@
   .kui-segmented:where([data-material="thin"]),
   .kui-field:where([data-material="thin"]),
   .kui-textarea:where([data-material="thin"]) {
-    --kui-ct-glass-edge: var(--material-thin-edge);
     /* The pane's own lighting, and the WORLD's catch under it. Two things want
        background-image on a glass button — the material's grain/bloom/sheen/edge and
        the elevated world's gradient — and the button used to be excluded from this
@@ -1773,7 +1769,6 @@
   .kui-segmented:where([data-material="regular"]),
   .kui-field:where([data-material="regular"]),
   .kui-textarea:where([data-material="regular"]) {
-    --kui-ct-glass-edge: var(--material-regular-edge);
     /* The pane's own lighting, and the WORLD's catch under it. Two things want
        background-image on a glass button — the material's grain/bloom/sheen/edge and
        the elevated world's gradient — and the button used to be excluded from this
@@ -1790,7 +1785,6 @@
   .kui-segmented:where([data-material="thick"]),
   .kui-field:where([data-material="thick"]),
   .kui-textarea:where([data-material="thick"]) {
-    --kui-ct-glass-edge: var(--material-thick-edge);
     /* The pane's own lighting, and the WORLD's catch under it. Two things want
        background-image on a glass button — the material's grain/bloom/sheen/edge and
        the elevated world's gradient — and the button used to be excluded from this
@@ -1803,52 +1797,50 @@
       var(--kui-ct-light, none);
   }
 
-  /* THE FIELD'S EDGE IS THE RING (2026-08-24, Kushagra: "the border is weird, see how card
-     does it, button does it, why dont thye" — and the lock that followed: glass is ONE
-     anatomy, no element renders it differently). The flat --material-*-edge above was the
-     pre-lab spelling: a uniform translucent hairline, a sticker outline beside the conic
-     ring every pane and button wears. The ring could not simply move here because the pane's
-     spelling is an ::after and a <textarea> — like every form control — renders no generated
-     content (measured: the pseudo computes but never paints). `background-clip: border-area`
-     paints a background layer in exactly the border band, corners and squircle included, ON
-     the element itself — so inside this guard the border goes transparent outright and the
-     ring joins the background stack above the rim. (2026-08-19 → 2026-08-26 the transparent
-     arrived through --kui-glass-hc-edge, the HC hop that traded the ring for a pigment
-     hairline; that trade is DELETED — the ring carries pigment arcs since 2026-08-24 and is
-     the boundary at every contrast, and high contrast's one glass lever is the veil.) Outside
-     the guard the flat edge stands: older engines keep today's hairline, which is the honest
-     fallback — a wash of conic across the whole field is not.
+  /* THE FIELD'S LIP SITS WHERE EVERY OTHER LIP SITS (2026-08-24, then MOVED 2026-09-02).
 
-     States outrank the material (§19): the disabled and invalid arms stand --kui-ct-glass-ring
-     down beside --kui-ct-glass-edge, so a dead or invalid glass field wears the state's
-     pigment border and no light. Reduced transparency needs no new line — its arm already
-     declares background-image: none and re-opens the ordinary border chain. */
-  @supports (background-clip: border-area) {
-    .kui-field:where([data-material="thin"]),
-    .kui-textarea:where([data-material="thin"]) {
-      --kui-ct-glass-edge: transparent;
-      --kui-ct-glass-ring: var(--material-thin-ring-control);
-      --kui-ct-glass-glint: var(--material-thin-glint-control);
-      background-image: var(--kui-ct-glass-ring, none), var(--material-thin-rim-control, none), var(--kui-ct-light, none);
-      background-clip: border-area, border-box, border-box;
-    }
-    .kui-field:where([data-material="regular"]),
-    .kui-textarea:where([data-material="regular"]) {
-      --kui-ct-glass-edge: transparent;
-      --kui-ct-glass-ring: var(--material-regular-ring-control);
-      --kui-ct-glass-glint: var(--material-regular-glint-control);
-      background-image: var(--kui-ct-glass-ring, none), var(--material-regular-rim-control, none), var(--kui-ct-light, none);
-      background-clip: border-area, border-box, border-box;
-    }
-    .kui-field:where([data-material="thick"]),
-    .kui-textarea:where([data-material="thick"]) {
-      --kui-ct-glass-edge: transparent;
-      --kui-ct-glass-ring: var(--material-thick-ring-control);
-      --kui-ct-glass-glint: var(--material-thick-glint-control);
-      background-image: var(--kui-ct-glass-ring, none), var(--material-thick-rim-control, none), var(--kui-ct-light, none);
-      background-clip: border-area, border-box, border-box;
-    }
+     2026-08-24 settled that a field's edge IS the ring (Kushagra: "the border is weird, see
+     how card does it, button does it, why dont thye"), and the lock followed: glass is ONE
+     anatomy, and a member may vary where a part is painted only where the PLATFORM forces it.
+     It was painted here with `background-clip: border-area` — a background layer in exactly
+     the border band — because the pane's spelling is an `::after` and a <textarea>, like every
+     form control, renders no generated content.
 
+     THAT FORCING DIED ON 2026-08-25, when TextArea grew TextField's wrapper, and the spelling
+     outlived it by eight days. Measured 2026-09-02: `.kui-textarea` is a <span> holding the
+     <textarea>, its own `::before` already paints the glint band, and `::after` is unused on
+     both members — so the platform withholds nothing any more.
+
+     What that cost is the thing the pane's own ring rule was written to protect. The border
+     band IS the outer boundary, so the field's lip had the world on one side of it; the
+     annulus sits at `inset: 0`, which resolves against the PADDING box, so a button's lip has
+     flat veil on both sides. Measured across the left edge at 4x, in light: a button reads
+     219 outside, then 230, then 217 one pixel in, then its body at 232 — a line. A textarea
+     read 246 outside, then 227 AT the boundary, then its body at 243. Dark the same shape.
+     That flush geometry is not new and it is not untried: it was built for panes on
+     2026-08-27, screenshotted at 4x beside the shipped spelling and rejected in one sentence
+     — "now I have lost that sharpness and edge work that I had" — and the field family has
+     been sitting on it ever since, because the two families were never compared afterwards.
+
+     So the family joins the annulus (see the ::after rules below) and this block is what is
+     left of the old one: the border stands transparent so the ring is the only line, which
+     is the doubled-edge rule (§10, 2026-08-07) and the reason the button pins its own border
+     transparent one section down. UNCONDITIONALLY now, with no @supports fork — the annulus
+     is plain CSS, so Safari and Firefox get the real ring instead of the pre-lab flat
+     hairline they were falling back to. `--material-*-edge` WAS that hairline; this was its
+     last live consumer, so the token is deleted from config and the generator in the same
+     change — measured first, across every glass element on the preview in both appearances:
+     zero elements painted it.
+
+     The two private hooks are DELETED with the fork. `--kui-ct-glass-ring` and
+     `--kui-ct-glass-glint` existed so the state arms could stand the field's light down, and
+     the light now reads `--material-<t>-ring-control` directly exactly as the button's does —
+     so the lever is `--material-ring-opacity`, the one the disabled and reduced-transparency
+     arms already pull, and the invalid arm gains it (a button is never invalid, which is why
+     that arm could stay out of it before). One lever, four families. */
+  .kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"]),
+  .kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
+    --kui-ct-glass-edge: transparent;
   }
 
   /* LOUD GLASS RUNS HOT (lab l2-btn-loud, ported 2026-08-17). At the control veil alphas a
@@ -1970,6 +1962,8 @@
    family's own identity and not a hole in this fix. */
 .kui-segmented[data-material]::after,
 .kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after,
+.kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after,
+.kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after,
 .kui-atom:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after {
   content: "";
   position: absolute;
@@ -1994,28 +1988,34 @@
 }
 .kui-segmented:where([data-material="thin"])::after,
 .kui-atom:where([data-material="thin"])::after,
+.kui-field:where([data-material="thin"])::after,
+.kui-textarea:where([data-material="thin"])::after,
 .kui-button:where([data-material="thin"])::after {
   background: var(--material-thin-ring-control);
 }
 .kui-segmented:where([data-material="regular"])::after,
 .kui-atom:where([data-material="regular"])::after,
+.kui-field:where([data-material="regular"])::after,
+.kui-textarea:where([data-material="regular"])::after,
 .kui-button:where([data-material="regular"])::after {
   background: var(--material-regular-ring-control);
 }
 .kui-segmented:where([data-material="thick"])::after,
 .kui-atom:where([data-material="thick"])::after,
+.kui-field:where([data-material="thick"])::after,
+.kui-textarea:where([data-material="thick"])::after,
 .kui-button:where([data-material="thick"])::after {
   background: var(--material-thick-ring-control);
 }
 
 /* ── The GLINT at control scale (§10, 2026-08-24) — the pane's band, on the members that can
    paint it. Mechanism and reasoning in surfaces.css: a per-box alpha mask from the lens hook,
-   coloured by the mode's ring tokens at the element, dark until the hook measures. The button
-   family and the segmented track take it on ::before (their ::after is the crisp 1px ring);
-   the FIELD family takes it on the wrapper, whose ::before is the one pseudo the family has —
-   its background rides `--kui-ct-glass-ring`, so the disabled and invalid arms that stand the
-   ring down stand the glint down in the same breath, and an engine without border-area (where
-   that hook is never declared) never paints a band over the flat-hairline fallback. The bare
+   coloured by the mode's ring tokens at the element, dark until the hook measures. EVERY glass
+   control takes it on ::before and wears the crisp 1px ring on ::after — one anatomy since
+   2026-09-02, when the field family's lip left the border band for the annulus and its two
+   private hooks were deleted with the fork that needed them; the state arms stand ring and
+   band down together through `--material-ring-opacity`, which is one lever for all four
+   families rather than one per spelling. The bare
    <textarea> exception is DELETED (2026-08-25): TextArea grew TextField's wrapper — glass was
    the forcing case the one-element spelling never saw, and its flat-band approximation was
    judged short of parity twice in one day — so the whole family now takes the real band.
@@ -2045,28 +2045,31 @@
   position: relative;
 }
 .kui-button:where([data-material="thin"])::before,
-.kui-segmented:where([data-material="thin"])::before {
+.kui-segmented:where([data-material="thin"])::before,
+.kui-field:where([data-material="thin"])::before,
+.kui-textarea:where([data-material="thin"])::before {
   background: var(--material-thin-glint-control);
 }
 .kui-button:where([data-material="regular"])::before,
-.kui-segmented:where([data-material="regular"])::before {
+.kui-segmented:where([data-material="regular"])::before,
+.kui-field:where([data-material="regular"])::before,
+.kui-textarea:where([data-material="regular"])::before {
   background: var(--material-regular-glint-control);
 }
 .kui-button:where([data-material="thick"])::before,
-.kui-segmented:where([data-material="thick"])::before {
+.kui-segmented:where([data-material="thick"])::before,
+.kui-field:where([data-material="thick"])::before,
+.kui-textarea:where([data-material="thick"])::before {
   background: var(--material-thick-glint-control);
 }
-.kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before,
-.kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before {
-  background: var(--kui-ct-glass-glint, none);
-}
+
 /* AN ON-GLASS TRACK GETS A FLAT HAIRLINE, NOT A LIP (2026-08-24, Kushagra: "on a card theres
    no visible difference still"). A segmented control inside a glass CARD is a member of
    someone else's pane, not a pane — it takes no filter and no lens, so a conic lip would
    claim a thickness it does not have and read as a second pane nested in the first. But it
    still owes a boundary, and it is the one control that cannot draw one with a border: the
    well stands the skeleton's border down BY WIDTH (audit D2), so there is no band for the
-   ordinary edge chain OR for the field family's border-area spelling. The ::after annulus
+   ordinary edge chain OR for a background layer clipped to it. The ::after annulus
    above is already the right shape and already wraps the squircle; filled with the pane's
    own designed pigment hairline it is exactly the line iOS draws around theirs. */
 .kui-segmented:where([data-material="on-glass"])::after {
@@ -2076,7 +2079,7 @@
 /* The segmented TRACK wears the same ring (2026-08-24, the glass lock): a glass track is a
    pane, and the well's "no edge" is about PIGMENT rank, not about the material's lip. It
    rides the button's ::after — a track is a div, and its border is stood down BY WIDTH
-   (audit D2), so the border-area spelling has no band to paint. Its `position: relative`
+   (audit D2), so a background layer clipped to the border band has nothing to paint in. Its `position: relative`
    comes from segmented-control.css (the thumb's containing block) and is load-bearing twice
    now. Under HC the ring dies with the panes' (--material-ring-opacity), and the track keeps
    no pigment fallback on purpose — the solid track has no edge either.
@@ -2128,8 +2131,9 @@
        preference, a glass Button's ::after conic and ::before glint both computed opacity 1
        beside a Card that correctly computed 0 — the same asymmetry §10's lock exists to
        forbid, in the one place the setting is supposed to remove light. `background-image:
-       none` above reaches the ELEMENT's layers (which is why the field's border-area ring
-       needed no line of its own); a pseudo-element's own background is untouched by it. The
+       none` above reaches the ELEMENT's layers (which is why the field's ring needed no line
+       of its own while it was one of them — it is an ::after since 2026-09-02, so it is
+       covered by the ring-opacity line below like every other family's); a pseudo-element's own background is untouched by it. The
        lever is the one surfaces.css already pulls in its own arm — one name, read by both
        pseudos — and zeroing it also re-arms refraction.tsx's skip, whose condition is
        `sealed && ringDown`: until now `ringDown` was false on every control, so a sealed

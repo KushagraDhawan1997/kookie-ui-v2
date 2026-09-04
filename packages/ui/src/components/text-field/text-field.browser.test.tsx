@@ -56,7 +56,6 @@ const onPlaceholder = (el: Element, prop: string): string =>
  * half a law and the other half a false alarm; the static agreement between the two branches
  * is `text-field.test.ts`'s, where the emitted sheet can be read whatever the engine does.
  */
-const BORDER_AREA = CSS.supports("background-clip: border-area");
 
 describe("the wrapper is the control, and it joins the size index (§4)", () => {
   it("resolves height, padding, radius and type from the shared control family", () => {
@@ -552,30 +551,23 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     // radius-flip precedent) — this arm is about a flat world's glass never floating.
     const glass = mounted(<TextField backdrop />, { theme: { depth: "flat", material: "thin" } });
     // THE EDGE IS THE RING (2026-08-24, the glass lock — Kushagra: "the border is weird,
-    // see how card does it, button does it"). This line used to assert the flat
-    // --material-thin-edge, which was the defect stated as a guarantee: a uniform pigment
-    // hairline beside the conic ring every pane and button wears. The border is transparent
-    // now and the ring paints in the band through background-clip: border-area — the one
-    // spelling a <textarea> can also take, since form controls render no ::after. Asserted
-    // as the AGREEMENT with a glass Button's own ring, not as a token name: the resolved
-    // conic string a Button's ::after paints must appear verbatim in the field's background
-    // stack, so the two cannot drift apart without this failing.
+    // see how card does it, button does it"), AND SINCE 2026-09-02 IT IS ON THE SAME ANNULUS.
+    // This line first asserted the flat --material-thin-edge, which was the defect stated as
+    // a guarantee. Then the ring arrived as a background layer clipped to the border band,
+    // because a <textarea> renders no generated content and the family shares one spelling —
+    // and that band IS the outer boundary, so the lip had the world on one side of it rather
+    // than veil on both. TextArea grew a wrapper on 2026-08-25 and the constraint died with
+    // it. Asserted as the AGREEMENT with a glass Button's own ring: the resolved conic a
+    // Button's ::after paints must be the conic this field's ::after paints.
     const glassBtn = mounted(<Button backdrop>b</Button>, { theme: { depth: "flat", material: "thin" } });
     const ring = getComputedStyle(glassBtn, "::after").backgroundImage;
     expect(ring).toContain("conic-gradient");
-    if (BORDER_AREA) {
-      expect(computed(glass, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
-      expect(computed(glass, "background-image")).toContain(ring);
-      expect(getComputedStyle(glass).backgroundClip.startsWith("border-area")).toBe(true);
-    } else {
-      // THE FALLBACK, asserted as the rendering it actually is: the material's own flat
-      // hairline on the border, and no ring anywhere in the stack — a wash of conic across
-      // the whole field is what recipes.css refuses here, so its absence is the claim.
-      expect(computed(glass, "border-top-color")).toBe(colorOn(glass, "var(--material-thin-edge)"));
-      expect(computed(glass, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
-      expect(computed(glass, "background-image")).not.toContain("conic-gradient");
-    }
-    // The rim paints on both branches — it is the material, not the edge.
+    expect(getComputedStyle(glass, "::after").content, "the wrapper grew no annulus").not.toBe("none");
+    expect(getComputedStyle(glass, "::after").backgroundImage).toBe(ring);
+    expect(computed(glass, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
+    // No conic in the element's OWN stack: the border-band layer is gone, not merely joined.
+    expect(computed(glass, "background-image")).not.toContain("conic-gradient");
+    // The rim still paints — it is the material, not the edge.
     expect(computed(glass, "background-image")).not.toBe("none");
     // Flat: glass never floats — the cast AND the pool are no-op LAYERS (the pool rides the
     // world pointers since 2026-08-17: "flat means flat", so matter stands down with light).
@@ -636,15 +628,15 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     expect(computed(high, "border-top-color"), "the pigment substitute is back").not.toBe(
       colorOn(high, "var(--tone-border)"),
     );
-    // The background-layer ring paints under HC exactly as in standard — where the engine
-    // paints one at all. On the fallback branch the same claim is about the flat edge, which
-    // the border assertions above already carry; what stays checkable in both is that HIGH
-    // adds nothing and takes nothing away.
-    if (BORDER_AREA) {
-      expect(computed(high, "background-image"), "the field's ring must stay lit").toContain(
-        "conic-gradient",
-      );
-    }
+    // The ring paints under HC exactly as in standard. It is on the ::after since 2026-09-02,
+    // so the claim moves there with it — and the element's own stack, which used to carry it,
+    // must still agree across contrasts, because the rim and the world's light live there.
+    expect(getComputedStyle(high, "::after").backgroundImage, "the field's ring must stay lit").toContain(
+      "conic-gradient",
+    );
+    expect(getComputedStyle(high, "::after").backgroundImage).toBe(
+      getComputedStyle(normal, "::after").backgroundImage,
+    );
     expect(computed(high, "background-image")).toBe(computed(normal, "background-image"));
   });
 

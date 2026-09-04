@@ -1958,8 +1958,8 @@ describe("the material ladder is monotone in every lever (§10)", () => {
         }
         for (const th of THICKNESSES) rises(material[mode][th][key]);
       }
-      // The pane's own light: the edge and the rim's SHEEN rise with thickness (thicker glass
-      // catches more), and the blur radius rises — thickness is one dimension in the filter too.
+      // The pane's own light: the rim's SHEEN rises with thickness (thicker glass catches
+      // more), and the blur radius rises — thickness is one dimension in the filter too.
       //
       // `sheen`, not `rim` (2026-08-26 audit). This walked `rim` for nine days after `rim`
       // stopped reaching any output: the 2026-08-17 ring port deleted the 1px top edge layer
@@ -1968,9 +1968,12 @@ describe("the material ladder is monotone in every lever (§10)", () => {
       // nobody could see, while the number the rim is actually made of was held by nothing —
       // a law one indirection short of the value that could be wrong, on the value's own
       // shadow. The dead row is deleted; this walks what the generator reads.
-      for (const part of ["edge", "sheen"] as const) {
-        rises(THICKNESSES.map((th) => material[mode][th][part]));
-      }
+      //
+      // `edge` left the same way on 2026-09-02 — the flat hairline was the field family's
+      // fallback for engines without `background-clip: border-area`, and the fork went when
+      // the family's lip moved onto the annulus every other glass member already wore.
+      // Measured before deleting it: zero elements painted it, in either appearance.
+      rises(THICKNESSES.map((th) => material[mode][th].sheen));
       // Fractional radii are real (2026-08-16: the judged ladder runs 2.4 / 4 / 5.6), and this
       // pattern used to be `\d+`, which does not match "2.4px" — so it returned null and the
       // law CRASHED rather than failing, which is a worse outcome than either. Decimals now.

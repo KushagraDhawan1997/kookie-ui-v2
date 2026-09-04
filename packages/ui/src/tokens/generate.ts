@@ -1043,10 +1043,66 @@ const wash = (sheen: number): string =>
  * Kushagra — the blue arc read as a coloured hairline on plain grounds; the band had refused
  * the same stops as pink haze the day before), so all three thicknesses share this build.
  */
-const ringBg = (mode: "light" | "dark"): string => {
-  const { a, b, c, d } = material.ring[mode];
-  return `conic-gradient(from 345deg, ${a}, ${b} 22%, ${c} 34%, ${d} 44%, ${d} 56%, ${c} 66%, ${b} 78%, ${a})`;
+/** The stop layout, in ONE place: four colours wrapped so the first and last meet (the conic's
+    own argument — a linear gradient's bright band terminates where the corner curves away).
+    It had two identical copies, and a third was about to be written for the glint. */
+type RingStops = { a: string; b: string; c: string; d: string };
+const conicRing = ({ a, b, c, d }: RingStops): string =>
+  `conic-gradient(from 345deg, ${a}, ${b} 22%, ${c} 34%, ${d} 44%, ${d} 56%, ${c} 66%, ${b} 78%, ${a})`;
+
+const ringBg = (mode: "light" | "dark"): string => conicRing(material.ring[mode]);
+
+/**
+ * THE GLINT IS THE RING'S LIGHT HALF (§10, 2026-09-02, Kushagra: light glass "looks dirty…
+ * blurry and ugly", dark "looks SO good, its sharp").
+ *
+ * The two had shared one palette since the band shipped (2026-08-24), and the comment beside
+ * the token said the split was a value a future may want. It came due, and the measurement is
+ * what says so. Regular glass, top edge, sampled through a mounted control: in DARK the page
+ * reads 20, the lip peaks at 168 and the body sits at 29 — the lip stands 139 above the body.
+ * In LIGHT the page reads 246, the lip peaks at 249 and the body at 243 — it stands SIX. The
+ * same recipe, twenty-three times weaker.
+ *
+ * The cause is one palette doing two jobs. The RING is the edge, and on a white page an edge
+ * has to be drawn in pigment — which is exactly what 2026-08-24 fixed, moving light's b/c/d
+ * to black so a glass field would stop vanishing. The GLINT is the specular, light lying on
+ * the bezel, and it inherited those same three stops and feathered them across the whole lip:
+ * measured with the band alone, a grey wash reaching ~4px inboard of three of the four edges,
+ * up to −12 against the body, with no line anywhere to justify it. In dark every stop is
+ * already light, so the band reads as light on a dark rim and the mode looks right.
+ *
+ * So the rule, stated once: A GLOW MAY ONLY ADD LIGHT. Any stop that darkens is dropped to
+ * alpha 0 rather than deleted — the stop stays at its own position with its own channels and
+ * simply contributes nothing, so the emitted value still shows which arc was stood down. It
+ * is NOT load-bearing for the paint: gradient interpolation is premultiplied by spec, so a
+ * transparent stop of any colour cannot drag its neighbours toward grey. Light's catch
+ * survives and its three pigment arcs go; dark is byte-identical, because nothing in dark
+ * darkens. The EDGE is untouched in both modes: the ring still carries the pigment, and the
+ * pigment is still what draws a light-mode boundary (measured, ring alone: −25 at the shade
+ * side, −28 at the trailing flank, −16 at the leading one).
+ *
+ * This is not the §10 lock's business. The lock binds COMPONENTS — every pane resolves all
+ * five parts identically, and a component may vary where a part is painted, never what it is.
+ * A per-mode value is the other axis, the one the ring palette itself has always lived on.
+ */
+const lightsOnly = (stop: string): string => {
+  const m = stop.match(/^rgb\(\s*(\d+)\s+(\d+)\s+(\d+)\s*\/\s*([\d.]+)\s*\)$/);
+  // A thrown error rather than a pass-through: an unparsed stop would ship the darkening arcs
+  // back into the band silently, which is the defect this exists to remove.
+  if (!m) throw new Error(`the ring palette changed spelling and the glint cannot read it: ${stop}`);
+  const [r, g, b] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  const lightens = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.5;
+  return lightens ? stop : `rgb(${r} ${g} ${b} / 0)`;
 };
+
+const glintStops = (stops: RingStops): RingStops => ({
+  a: lightsOnly(stops.a),
+  b: lightsOnly(stops.b),
+  c: lightsOnly(stops.c),
+  d: lightsOnly(stops.d),
+});
+
+const glintBg = (mode: "light" | "dark"): string => conicRing(glintStops(material.ring[mode]));
 
 /**
  * The CONTROL's ring (§10, ported from the lab 2026-08-24): dark controls carry roughly
@@ -1055,11 +1111,15 @@ const ringBg = (mode: "light" | "dark"): string => {
  * VERBATIM, emitted from the same source so the two cannot drift: the lab never split light,
  * and a second copy that agrees today is the copy that silently disagrees tomorrow.
  */
-const ringControlBg = (mode: "light" | "dark"): string => {
-  if (mode === "light") return ringBg(mode);
-  const { a, b, c, d } = material.ringControlDark;
-  return `conic-gradient(from 345deg, ${a}, ${b} 22%, ${c} 34%, ${d} 44%, ${d} 56%, ${c} 66%, ${b} 78%, ${a})`;
-};
+const ringControlBg = (mode: "light" | "dark"): string =>
+  mode === "light" ? ringBg(mode) : conicRing(material.ringControlDark);
+
+/** The control's glint, the same derivation one row down: light shares the pane's (so the two
+    cannot drift), dark keeps the doubled row, and in dark every stop already lightens — so
+    this is byte-identical to `ringControlBg` today and stops being so the moment a control
+    ring is given a pigment arc. */
+const glintControlBg = (mode: "light" | "dark"): string =>
+  mode === "light" ? glintBg(mode) : conicRing(glintStops(material.ringControlDark));
 
 
 function surfaceWorld(mode: "light" | "dark"): string[] {
@@ -1068,16 +1128,22 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     return [
       ...materialAlpha(name, m[name].alpha),
       decl(`material-${name}-filter`, m[name].filter),
-      // The pane's own edge and lighting (§10, 2026-08-05): a hairline of light, not pigment,
-      // and a top rim catch painted as a background layer — NOT a shadow, so depth stays the
-      // app's identity (depth="elevated") and the one-box-shadow law never learns glass
-      // exists. A flat world's glass has edge and glint, no lift.
+      // The pane's lighting (§10, 2026-08-05): a top rim catch painted as a background layer —
+      // NOT a shadow, so depth stays the app's identity (depth="elevated") and the
+      // one-box-shadow law never learns glass exists.
       //
-      // The rim's ONE number is `sheen`. There is no separate `rim` alpha in config any more
-      // (2026-08-26 audit): it priced the deleted top edge line below, and went on sitting in
-      // six rows reaching nothing while the monotonicity law walked it — deleted with its
-      // prose, and `tokens.test.ts` now walks every material leaf against this file.
-      decl(`material-${name}-edge`, `rgb(255 255 255 / ${m[name].edge})`),
+      // The FLAT EDGE IS DELETED (2026-09-02). `--material-<t>-edge` was a uniform translucent
+      // hairline, the pre-lab spelling of the material's boundary; the conic ring replaced it
+      // on 2026-08-24 and it survived as the fallback for engines without
+      // `background-clip: border-area`, which was the only way the field family could paint a
+      // ring at all. When that family's lip moved onto the same `::after` annulus every other
+      // glass member uses, the fork went and the fallback went with it — measured across every
+      // glass element on the preview, in both appearances: zero elements painted it. Six more
+      // numbers that reach no output, which is the 2026-08-26 audit's own finding about the
+      // `rim` alpha that used to sit beside them.
+      //
+      // The rim's ONE number is `sheen`, and `tokens.test.ts` walks every material leaf
+      // against this file.
       decl(`material-${name}-rim`, rim(m[name].sheen)),
       // The CONTROL's lighting is the pane's minus the wash (§10, 2026-08-16). A pane's fill
       // is a near-white veil, so a broad white bloom and sheen read as light lying ON it; a
@@ -1120,11 +1186,13 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
       decl(`material-${name}-ring`, ringBg(mode)),
       // The control's ring: light shares the pane's verbatim, dark is the lab's doubled row.
       decl(`material-${name}-ring-control`, ringControlBg(mode)),
-      // The GLINT's colour (2026-08-24): the ring palette — now identical to the ring's by
-      // construction, kept as its own token because the band and the lip are two consumers
-      // a future value may split again.
-      decl(`material-${name}-glint`, ringBg(mode)),
-      decl(`material-${name}-glint-control`, ringControlBg(mode)),
+      // The GLINT's colour (2026-08-24, SPLIT from the ring 2026-09-02): the ring palette
+      // with every darkening stop dropped — a glow may only add light. The token existed as
+      // its own name from the day the band shipped, against exactly this: "the band and the
+      // lip are two consumers a future value may split again". See `lightsOnly` for the
+      // measurement that made the split due. Dark is byte-identical; light loses the wash.
+      decl(`material-${name}-glint`, glintBg(mode)),
+      decl(`material-${name}-glint-control`, glintControlBg(mode)),
     ];
   };
   // The SOLID pane's lighting — the lab's matte recipe, NOT the rim() builder's glass one

@@ -1,15 +1,28 @@
 /**
- * The field family's EDGE has two implementations, and this is the law that they agree
- * (2026-08-26). ENGINEERING §6's own clause: a mechanism with two implementations owes a law
- * that they AGREE — and this one had neither half checked. Three browser laws asserted the
- * `background-clip: border-area` branch unconditionally, which means on an engine without the
- * feature the suite went red for a reason that is not a defect, while the branch most readers
- * actually render — the flat `--material-*-edge` hairline recipes.css calls "the honest
- * fallback" — was asserted nowhere at all.
+ * The field family's glass is ONE spelling, and this is the law that it stayed one
+ * (2026-09-02).
  *
- * A node law is the only place this can be settled: the browser executes exactly ONE branch,
- * so the engine under test decides which half of the mechanism is checkable. The emitted sheet
- * carries both.
+ * WHAT THIS FILE USED TO BE. From 2026-08-26 it held the agreement law for a two-branch
+ * mechanism: the family's edge was chosen at parse time by `@supports (background-clip:
+ * border-area)` — inside, the border went transparent and the conic ring painted in the border
+ * band; outside, a flat `--material-*-edge` hairline stood. ENGINEERING §6's clause (a
+ * mechanism with two implementations owes a law that they AGREE) had neither half checked,
+ * and a node law was the only place it could be settled, because the browser executes exactly
+ * one branch and the emitted sheet carries both.
+ *
+ * WHY IT IS THIS INSTEAD. The fork existed for one reason: a <textarea>, like every form
+ * control, renders no generated content, so the family could not paint its ring on an
+ * `::after` the way every other glass member does. That stopped being true on 2026-08-25,
+ * when TextArea grew TextField's wrapper — and the spelling outlived its reason by eight days.
+ * It cost the lip the thing the pane's own ring rule protects: the border band IS the outer
+ * boundary, so the ring had the world on one side of it instead of veil on both, which is the
+ * geometry built for panes on 2026-08-27 and rejected on sight. The family is on the annulus
+ * now, the fork is gone, and `--material-*-edge` is deleted with it.
+ *
+ * So the claim this file carries is what survives that: the family is named on every glass
+ * rule its siblings are named on, both members together, with no branch anywhere. A browser
+ * law cannot make it — it reads one mounted element and would pass with a whole selector list
+ * missing so long as the one member it mounted was on it.
  */
 import { describe, expect, it } from "vitest";
 
@@ -17,76 +30,59 @@ import { GLASS_MATERIALS } from "../../system/axes.ts";
 import { sheet } from "../../test/stylesheets.ts";
 
 const recipes = sheet("system/recipes.css");
-const GUARD = "@supports (background-clip: border-area)";
 
-/** The guard's own body, brace-matched — `indexOf("}")` would stop at the first nested rule,
-    which is the `slice(indexOf)` failure this repo replaced its ad-hoc parsers over. */
-function guardBody(css: string): string {
-  const start = css.indexOf(GUARD);
-  if (start === -1) throw new Error(`the border-area guard is gone from recipes.css`);
-  const open = css.indexOf("{", start);
-  let depth = 0;
-  for (let i = open; i < css.length; i += 1) {
-    if (css[i] === "{") depth += 1;
-    else if (css[i] === "}") {
-      depth -= 1;
-      if (depth === 0) return css.slice(open + 1, i);
+describe("the field family's glass has one spelling, and it is the family's own", () => {
+  it("the border-area fork is gone, and so is the hairline it existed to fall back to", () => {
+    // Both halves, because either one alone can be satisfied by an accident. A guard with no
+    // field rules in it would pass the first; a token nothing declares would pass the second.
+    expect(recipes, "the border-area fork is back").not.toContain("@supports (background-clip: border-area)");
+    for (const thickness of GLASS_MATERIALS) {
+      expect(recipes, `the flat ${thickness} hairline is back`).not.toContain(`--material-${thickness}-edge`);
     }
-  }
-  throw new Error("the border-area guard never closes");
-}
-
-const inside = guardBody(recipes);
-const outside = recipes.replace(inside, "");
-
-describe("the field family's edge is branched, and BOTH branches are declared", () => {
-  it("found a real guard with a real body", () => {
-    // Vacuity: every claim below is about where a declaration sits, and an empty body would
-    // satisfy the "outside" half of all of them.
-    expect(inside.length).toBeGreaterThan(200);
-    expect(GLASS_MATERIALS.length).toBe(3);
+    // And the two private hooks the fork needed: the family reads the shared ring tokens
+    // directly now, so a hook here means the state arms have two levers again.
+    for (const decl of ["--kui-ct-glass-ring:", "--kui-ct-glass-glint:"]) {
+      expect(recipes, `${decl} is back — the family has its own light again`).not.toContain(decl);
+    }
   });
 
   for (const thickness of GLASS_MATERIALS) {
-    it(`${thickness}: the FALLBACK hairline is declared outside the guard`, () => {
-      // The branch an engine without `border-area` renders. If this declaration ever moves
-      // inside the guard, every such engine draws a glass field with NO edge at all — and no
-      // browser law in this package could report it, because the browser only ever executes
-      // the branch its own engine took.
-      const fallback = `--kui-ct-glass-edge: var(--material-${thickness}-edge);`;
-      expect(outside, `the ${thickness} fallback edge is not declared outside the guard`).toContain(
-        fallback,
-      );
-      expect(inside).not.toContain(fallback);
-    });
-
-    it(`${thickness}: the RING branch is declared only inside the guard`, () => {
-      // And the other direction: the ring paints in the border band, which is the one thing
-      // `background-clip: border-area` buys. Declared outside the guard it would wash conic
-      // across the whole field on every engine that cannot clip it to the band.
-      const ring = `--kui-ct-glass-ring: var(--material-${thickness}-ring-control);`;
-      expect(inside, `the ${thickness} ring is not declared inside the guard`).toContain(ring);
-      expect(outside).not.toContain(ring);
-    });
-
-    it(`${thickness}: the two branches disagree about the border, which is what makes them two`, () => {
-      // The agreement is a SUBSTITUTION, not a coincidence: inside the guard the border is
-      // handed to the ring by going transparent, outside it the border IS the edge. Both
-      // spellings must exist, or one branch is silently the other.
-      expect(inside).toContain("--kui-ct-glass-edge: transparent;");
-      expect(inside).toContain("background-clip: border-area, border-box, border-box;");
+    it(`${thickness}: both members are on the annulus and on the band, beside the button`, () => {
+      // The rules name their members by hand, so this reads the SELECTOR LISTS. The claim is
+      // not "a field has a ring" (a browser law says that, better) — it is that the field and
+      // the textarea are on the SAME lists as the member whose geometry they are copying, so
+      // one of them cannot be forgotten the way the segmented track was left off the rim list
+      // in the 2026-08-26 audit.
+      for (const [what, rule] of [
+        ["lip", `::after`],
+        ["band", `::before`],
+      ] as const) {
+        const anchor = `.kui-button:where([data-material="${thickness}"])${rule}`;
+        const at = recipes.indexOf(anchor);
+        expect(at, `no button ${what} rule for ${thickness} — the anchor moved`).toBeGreaterThan(-1);
+        // The whole selector list this rule belongs to: back to the previous `}` and forward
+        // to the `{`. Brace-anchored rather than sliced by line, so a reformat cannot make it
+        // read a fragment (the `slice(indexOf)` failure this repo replaced its parsers over).
+        const open = recipes.indexOf("{", at);
+        const list = recipes.slice(recipes.lastIndexOf("}", at) + 1, open);
+        expect(list, `the field is not on the ${thickness} ${what} list`).toContain(
+          `.kui-field:where([data-material="${thickness}"])${rule}`,
+        );
+        expect(list, `the textarea is not on the ${thickness} ${what} list`).toContain(
+          `.kui-textarea:where([data-material="${thickness}"])${rule}`,
+        );
+      }
     });
   }
 
-  it("both members of the family take the same branch — a field and a textarea are one anatomy (§10)", () => {
-    // The glass lock: a component may vary WHERE a part is painted, never WHAT it is. The
-    // ring rules name their members by hand, so a member left off one list would render a
-    // different glass from its sibling — which is the defect the lock was written after.
-    for (const half of [inside, outside]) {
-      const fields = (half.match(/\.kui-field:where\(\[data-material=/g) ?? []).length;
-      const areas = (half.match(/\.kui-textarea:where\(\[data-material=/g) ?? []).length;
-      expect(fields, "the branch names no field rules at all").toBeGreaterThan(0);
-      expect(areas).toBe(fields);
-    }
+  it("the border stands transparent for the family, so the lip is never a second line", () => {
+    // §10, 2026-08-07: one line, never two. The annulus paints inside the border box, so a
+    // live border beside it is the doubled-edge defect — the reason the button pins its own
+    // border transparent, said once for the family that used to get it from the fork.
+    const at = recipes.indexOf(`.kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"]),`);
+    expect(at, "the family's glass block is gone").toBeGreaterThan(-1);
+    const body = recipes.slice(at, recipes.indexOf("}", at));
+    expect(body).toContain(".kui-textarea:where(");
+    expect(body).toContain("--kui-ct-glass-edge: transparent;");
   });
 });

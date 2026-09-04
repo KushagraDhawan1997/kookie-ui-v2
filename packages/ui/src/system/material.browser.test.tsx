@@ -45,19 +45,14 @@ function rgba(v: string): { r: number; g: number; b: number; a: number } {
 }
 
 /**
- * THE ENGINE'S OWN ANSWER (2026-08-26). The field family's edge has TWO implementations and
- * the cascade chooses at parse time: inside `@supports (background-clip: border-area)` the
- * border goes transparent and the pane's conic RING paints in the band, and `--kui-ct-glass-
- * glint` is declared there too, so the ::before band paints only on that branch. Outside the
- * guard the flat `--material-*-edge` hairline stands and the band is `none` by construction —
- * recipes.css says so in as many words. The parity laws below asserted the first branch
- * unconditionally, so on an engine without the feature (the pinned HeadlessChrome this suite
- * runs on is one) they went red for something that is not a defect — and worse, three of
- * their band assertions were VACUOUS there: `none === none` on both members, an opacity of 1
- * over a background that paints nothing, a mask masking nothing. Parity is the claim in both
- * branches; what differs is which rendering the two members must agree ON.
+ * THE ENGINE'S TWO ANSWERS ARE ONE ANSWER SINCE 2026-09-02. The field family's edge used to
+ * have two implementations chosen at parse time — inside `@supports (background-clip:
+ * border-area)` the ring painted in the border band, outside it a flat hairline stood — and
+ * the laws below branched with the cascade because the browser only ever executes one of
+ * them. The fork is gone: the family's lip moved onto the same `::after` annulus every other
+ * glass member already wore, which is plain CSS on every engine. So the branches below are
+ * unconditional again, and `--material-*-edge` — the flat hairline — is deleted.
  */
-const BORDER_AREA = CSS.supports("background-clip: border-area");
 
 const luma = (c: { r: number; g: number; b: number }) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
 
@@ -214,6 +209,56 @@ describe("the glint band exists, wears the mode's ring, and stands down with it 
       }
     });
 
+    /**
+     * A GLOW MAY ONLY ADD LIGHT (§10, 2026-09-02, Kushagra: light glass "looks dirty… blurry
+     * and ugly", dark "looks SO good, its sharp").
+     *
+     * The band and the lip shared one palette from the day the band shipped, and that palette
+     * had to carry PIGMENT once light's ring was corrected (2026-08-24) — so the band spread
+     * three black arcs across the whole bezel. Measured on a mounted control against the page:
+     * with the band alone, a grey wash reaching ~4px inboard of the left, bottom and right
+     * edges, up to −12/255 against the pane's own body, with no line anywhere to justify it.
+     * The lip that was supposed to be the specular measured SIX units above the body in light
+     * against 139 in dark — the same recipe, twenty-three times weaker, because a white catch
+     * on a white page is nothing and only the dark half could show.
+     *
+     * The law is the model, not the numbers: the RING is the edge and may be drawn in pigment,
+     * the GLINT is light lying on the bezel and may only ever add light. Both halves are read
+     * in one experiment, because a law asserting only the second passes on a package that
+     * deleted the pigment from the ring too — which would take the light-mode boundary with it
+     * and is the exact defect 2026-08-24 exists to prevent.
+     *
+     * Falsified 2026-09-02 by pointing `material-*-glint` back at `ringBg` in generate.ts and
+     * regenerating: fails on light for all three thicknesses, naming the darkening stop.
+     */
+    it(`${appearance}: the band only adds LIGHT — the pigment stays on the lip (2026-09-02)`, () => {
+      const card = mounted(<Card backdrop>pane</Card>, { theme: { appearance, material: "regular" } });
+      const stopsOf = (token: string) =>
+        [...imageOn(card, `var(${token})`).matchAll(/(?:rgba?|color)\([^)]*\)/g)]
+          .map((m) => rgba(m[0]))
+          // A stop at alpha 0 contributes nothing whatever its channels are, and that is how
+          // the darkening arcs are stood down — kept in place, at their own colour, so the
+          // emitted value still shows which arc went quiet.
+          .filter((c) => c.a > 0.02);
+      for (const thickness of GLASS_MATERIALS) {
+        for (const token of [`--material-${thickness}-glint`, `--material-${thickness}-glint-control`]) {
+          const stops = stopsOf(token);
+          expect(stops.length, `${token}: no live stops parsed`).toBeGreaterThan(0);
+          const darkest = Math.min(...stops.map(luma));
+          expect(darkest, `${token} carries a darkening stop — the band is staining, not lighting`).toBeGreaterThan(0.5);
+        }
+      }
+      // …and the vacuity guard, which is the other half of the model: in LIGHT the lip must
+      // still own the pigment, or this law is satisfied by a package with no boundary at all.
+      if (appearance === "light") {
+        const ring = stopsOf("--material-regular-ring");
+        expect(
+          ring.some((c) => luma(c) < 0.2),
+          "light's ring lost its shade side — the band was cleaned by deleting the edge",
+        ).toBe(true);
+      }
+    });
+
     it(`${appearance}: a solid pane has no band at all`, () => {
       const card = mounted(<Card backdrop>pane</Card>, { theme: { appearance } });
       expect(getComputedStyle(card, "::before").content, "a solid pane grew a glint").toBe("none");
@@ -320,7 +365,7 @@ describe("a glass textarea is a glass field — parity by construction (§10)", 
       const tf = mounted(<TextField aria-label="name" backdrop />, {
         theme: { appearance, material: "regular" },
       });
-      // The element stack (ring under border-area, rim, light) is the family's, verbatim.
+      // The element stack (rim, light) is the family's, verbatim.
       expect(getComputedStyle(ta).backgroundImage, "the two members' stacks disagree").toBe(
         getComputedStyle(tf).backgroundImage,
       );
@@ -329,35 +374,24 @@ describe("a glass textarea is a glass field — parity by construction (§10)", 
       expect(ta.style.getPropertyValue("--kui-glint"), "the hook never minted the band").toContain("data:image/png");
       const before = getComputedStyle(ta, "::before");
       expect(before.maskImage, "the band's mask is not the minted image").toContain("data:image/png");
-      if (BORDER_AREA) {
-        expect(getComputedStyle(ta).backgroundClip.startsWith("border-area")).toBe(true);
-        expect(getComputedStyle(ta).backgroundClip).toBe(getComputedStyle(tf).backgroundClip);
-        // The band: the ::before wears the minted mask over the glint conic, and it is lit —
-        // the same three facts the field's own band law reads.
-        expect(before.backgroundImage, "the band is not wearing the glint conic").toContain("conic-gradient");
-        expect(before.backgroundImage, "the two members' bands disagree").toBe(
-          getComputedStyle(tf, "::before").backgroundImage,
-        );
-        expect(Number(before.opacity), "the band is dark on a live glass textarea").toBeGreaterThan(0.5);
-      } else {
-        // THE FALLBACK, asserted as the rendering it actually is. `--kui-ct-glass-glint` is
-        // declared only inside the guard, so the band paints NOTHING here — recipes.css says
-        // so, and asserting `none === none` across the two members would be a fixture that
-        // cannot tell a correct implementation from a deleted one. What carries the parity on
-        // this branch is the EDGE: both members wear the material's own flat hairline, the
-        // same colour, and neither washes a conic across its box.
-        expect(computed(ta, "border-top-color"), "the fallback hairline is not the material's").toBe(
-          colorOn(ta, "var(--material-regular-edge)"),
-        );
-        expect(computed(ta, "border-top-color"), "the two members' edges disagree").toBe(
-          computed(tf, "border-top-color"),
-        );
-        expect(computed(ta, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
-        expect(getComputedStyle(ta).backgroundImage, "a conic washed the whole box").not.toContain(
-          "conic-gradient",
-        );
-        expect(before.backgroundImage, "the band paints where the hook was never declared").toBe("none");
-      }
+      // The band: the ::before wears the minted mask over the glint conic, and it is lit —
+      // the same three facts the field's own band law reads.
+      expect(before.backgroundImage, "the band is not wearing the glint conic").toContain("conic-gradient");
+      expect(before.backgroundImage, "the two members' bands disagree").toBe(
+        getComputedStyle(tf, "::before").backgroundImage,
+      );
+      expect(Number(before.opacity), "the band is dark on a live glass textarea").toBeGreaterThan(0.5);
+      // The LIP, since 2026-09-02: the annulus, not a background layer clipped to the border
+      // band. Both members must carry it and carry the same one.
+      const after = getComputedStyle(ta, "::after");
+      expect(after.content, "the textarea grew no annulus").not.toBe("none");
+      expect(after.backgroundImage, "the lip is not the ring conic").toContain("conic-gradient");
+      expect(after.backgroundImage, "the two members' lips disagree").toBe(
+        getComputedStyle(tf, "::after").backgroundImage,
+      );
+      // …and the border is out of the way, or the pane wears two lines (§10, 2026-08-07).
+      expect(computed(ta, "border-top-color"), "the flat hairline is back beside the ring").toBe("rgba(0, 0, 0, 0)");
+      expect(computed(ta, "border-top-color")).toBe(computed(tf, "border-top-color"));
       // And the box is the band's containing block: without position:relative the ::before
       // insets against some ancestor and paints the band OFF the pane — every computed style
       // above stays identical, which is why this reads the mechanism the paint depends on.
@@ -374,25 +408,22 @@ describe("a glass textarea is a glass field — parity by construction (§10)", 
       const tfDead = mounted(<TextField aria-label="name" backdrop disabled />, {
         theme: { appearance, material: "regular" },
       });
-      if (BORDER_AREA) {
-        // The state arms stand --kui-ct-glass-glint down, and the ::before's background reads
-        // through it — one stand-down, both renderings, TextField's own behaviour. The LIVE
-        // control is the calibration: without it `none` is what this branch renders anyway.
-        expect(getComputedStyle(live, "::before").backgroundImage, "the live band never lit").not.toBe("none");
-        expect(getComputedStyle(ta, "::before").backgroundImage, "a dead textarea still wears its band").toBe("none");
-      } else {
-        // On the fallback branch the band is `none` whether the state reaches it or not, so
-        // reading it proves nothing — the degenerate fixture this file was audited for. The
-        // stand-down is still observable, one property over: the disabled arm takes the
-        // material's white hairline off and puts the dead pigment border in its place, which
-        // is exactly what a dead glass FIELD wears.
-        expect(computed(ta, "border-top-color"), "the state never reached the glass edge").not.toBe(
-          computed(live, "border-top-color"),
-        );
-        expect(computed(ta, "border-top-color"), "a dead textarea and a dead field disagree").toBe(
-          computed(tfDead, "border-top-color"),
-        );
-      }
+      // The stand-down is `--material-ring-opacity` since 2026-09-02 — one lever for every
+      // family's lip and band, where the field used to own two private hooks. The LIVE
+      // control is the calibration: an assertion about a dead band is worthless unless the
+      // live one is lit.
+      expect(Number(getComputedStyle(live, "::before").opacity), "the live band never lit").toBeGreaterThan(0.5);
+      expect(Number(getComputedStyle(ta, "::before").opacity), "a dead textarea still wears its band").toBe(0);
+      expect(Number(getComputedStyle(live, "::after").opacity), "the live lip never lit").toBeGreaterThan(0.5);
+      expect(Number(getComputedStyle(ta, "::after").opacity), "a dead textarea still wears its lip").toBe(0);
+      // …and it wears the dead pigment border instead, which is exactly what a dead glass
+      // FIELD wears — the parity claim, in the state where the material is gone.
+      expect(computed(ta, "border-top-color"), "the state never reached the glass edge").not.toBe(
+        computed(live, "border-top-color"),
+      );
+      expect(computed(ta, "border-top-color"), "a dead textarea and a dead field disagree").toBe(
+        computed(tfDead, "border-top-color"),
+      );
     });
   }
 });
