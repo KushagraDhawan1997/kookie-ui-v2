@@ -44,6 +44,7 @@ type Env = {
   radius: NonNullable<ThemeProps["radius"]>;
   depth: NonNullable<ThemeProps["depth"]>;
   material: NonNullable<ThemeProps["material"]>;
+  size: NonNullable<ThemeProps["size"]>;
 };
 
 /** DERIVED from the package, never restated (2026-08-09): this panel held its own copy of
@@ -58,6 +59,7 @@ const DEFAULT_ENV: Env = {
   radius: themeDefaults.radius,
   depth: themeDefaults.depth,
   material: themeDefaults.material,
+  size: themeDefaults.size,
 };
 
 /** DERIVED, not restated (2026-08-16): this held its own copy of every axis's values, which
@@ -207,6 +209,12 @@ function EnvPanel({ env, onChange }: { env: Env; onChange: (next: Env) => void }
             options={AXES.material}
             onChange={(material) => onChange({ ...env, material })}
           />
+          <Chips
+            label="size"
+            value={env.size}
+            options={AXES.size}
+            onChange={(size) => onChange({ ...env, size })}
+          />
           <Chips label="contrast" value={contrast} options={CONTRASTS} onChange={setContrast} />
           <Separator />
           <Flex gap="1" align="center">
@@ -345,6 +353,7 @@ export function PreviewShell({ children }: { children: React.ReactNode }) {
       radius={env.radius}
       depth={env.depth}
       material={env.material}
+      size={env.size}
     >
       {/* The canvas paints a page itself so a pinned appearance is a real page, not dark
           specimens floating on a light bed. The panel lives INSIDE the canvas Theme on

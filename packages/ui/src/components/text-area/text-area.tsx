@@ -7,7 +7,7 @@ import type { Size } from "../../system/axes.ts";
 import { useMergedRefs } from "../../system/render.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { useMaterial } from "../../theme/theme.tsx";
-import { useControlSize } from "../../system/control-size.ts";
+import { useSize } from "../../system/size.ts";
 
 export type TextAreaProps = Omit<
   React.ComponentPropsWithoutRef<"textarea">,
@@ -90,7 +90,7 @@ export function TextArea({
   ...props
 }: TextAreaProps) {
   // §28 — a Field states the whole unit's index; an explicit prop here always wins.
-  const size = useControlSize(sizeProp);
+  const size = useSize(sizeProp);
   // §10 — the app's material, or on-glass inside a glass ancestor (2026-08-16).
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   // §10 — the lens on the WRAPPER, which is the pane; on-glass never filters, so it never bends.

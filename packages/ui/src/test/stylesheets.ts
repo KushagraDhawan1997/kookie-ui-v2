@@ -52,6 +52,14 @@ export function walkFiles(dir: string, ext: string, exclude: string[] = []): str
 /** Every hand-authored stylesheet the package ships. `dir` narrows the walk (e.g. "components"). */
 export const allStylesheets = (dir = "."): string[] => walkFiles(dir, ".css", GENERATED);
 
+/** Every component SOURCE the package ships, walked rather than listed, with the test files
+    left out — a law that reads its own subject's tests reads its own sabotage back (2026-09-05,
+    the size coverage law). Paired path + text, because a failure has to name the file. */
+export const componentSources = (): { path: string; src: string }[] =>
+  walkFiles("components", ".tsx")
+    .filter((p) => !p.includes(".test."))
+    .map((p) => ({ path: p, src: raw(p) }));
+
 /** The declaration body of the first rule at `selector` — and LOUD when the selector is
     missing, which is the whole point (see the header). `selector` may be a prefix of the
     full selector; the body runs from its `{` to the first `}`. */

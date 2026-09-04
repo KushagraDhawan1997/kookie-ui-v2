@@ -61,6 +61,19 @@ function washes(el: Element): { top: ReturnType<typeof rgba>; floor: ReturnType<
 }
 
 describe("a ground, not an object (§10, 2026-08-20)", () => {
+  it("rests at 2 — the index every 1-4 family rests at (2026-09-05)", () => {
+    // A default is a fact and it needs exactly one reader, or moving it is invisible. The
+    // ground rested at 3 until 2026-09-05, alone with Card and Dialog while every other
+    // component on this ladder rested at 2 (Kushagra: an index has to mean the same thing
+    // across families, or the number says nothing). Nothing in this file rides the rest —
+    // the size laws below state their index — so this is the only reader it has.
+    const el = mounted(<Surface>G</Surface>, { theme: {}, select: ".kui-surface" });
+    expect(el.getAttribute("data-size")).toBe("2");
+    // A real rung, not a value that happens to equal its neighbour's: the padding moves.
+    const three = mounted(<Surface size="3">G</Surface>, { theme: {}, select: ".kui-surface" });
+    expect(computed(el, "padding-top")).not.toBe(computed(three, "padding-top"));
+  });
+
   it("paints the ground role and the family-less hairline, in both appearances", () => {
     for (const appearance of APPEARANCES) {
       const el = mounted(<Surface>Region</Surface>, { theme: { appearance }, select: ".kui-surface" });

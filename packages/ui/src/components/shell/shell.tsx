@@ -45,9 +45,10 @@ import { useWindowClass } from "../../system/window.ts";
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { ScrollArea, type ScrollAreaProps } from "../scroll-area/scroll-area.tsx";
-import { GlassScope, useMaterial } from "../../theme/theme.tsx";
+import { GlassScope, useMaterial, themeDefaults } from "../../theme/theme.tsx";
 import { DEV } from "../../system/dev.ts";
 import { shellResize } from "../../tokens/config.ts";
+import { useSize } from "../../system/size.ts";
 
 /** The room the ceiling reserves so a dragged-open pane never carries its own handle off
     the frame. Stated here rather than read off the token, because the clamp runs during a
@@ -238,7 +239,10 @@ type PaneDressProps = {
    to say `size="1"` on the sidebar, the rail and the inspector separately, and would have
    discovered the day it added a row that a missed one was silently size 2. */
 
-const ShellSizeContext = React.createContext<Size>("2");
+/* `themeDefaults.size`, never a literal: this default is only reachable in an invalid tree
+   (a part outside its root), and nine private copies of the number 2 is nine claims about a
+   rest that the app can now move (2026-09-05). */
+const ShellSizeContext = React.createContext<Size>(themeDefaults.size);
 
 /**
  * The index this pane is priced at: its own if it stated one, otherwise the app's.
@@ -274,7 +278,8 @@ export type ShellProps = Omit<React.ComponentPropsWithoutRef<"div">, "color"> & 
  * `100dvh` box. The root paints nothing — in floating mode the gaps show the app's own page,
  * the same relationship a card has to the page anywhere else.
  */
-export function Shell({ size = "2", className, style, children, ref, ...props }: ShellProps) {
+export function Shell({ size: sizeProp, className, style, children, ref, ...props }: ShellProps) {
+  const size = useSize(sizeProp);
   const rootRef = React.useRef<HTMLDivElement | null>(null);
   const [store] = React.useState<ShellStore>(() => ({
     entries: new Map(),

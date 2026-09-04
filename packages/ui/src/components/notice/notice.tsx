@@ -10,6 +10,7 @@ import { Button } from "../button/button.tsx";
 import { Text } from "../text/text.tsx";
 import { DISMISS_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
 import { glyphStroke } from "../../tokens/config.ts";
+import { useSize } from "../../system/size.ts";
 
 export type NoticeProps = {
   /**
@@ -120,7 +121,7 @@ function dismissGlyph() {
  * One per anchor. Two stacked notices means neither is read.
  */
 export function Notice({
-  size = "2",
+  size: sizeProp,
   tone = "neutral",
   backdrop,
   icon,
@@ -133,6 +134,7 @@ export function Notice({
   ref,
   ...props
 }: NoticeProps) {
+  const size = useSize(sizeProp);
   // §10 — the material is the THEME's, expressed only where a backdrop exists (selectivity,
   // 2026-08-17). Card's wiring verbatim, because a notice is a pane like any other once
   // something scrolls behind it.

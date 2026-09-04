@@ -69,7 +69,7 @@ describe("the index reaches everything, and an explicit size still wins (§28, �
    * still win"). Read as a ladder, that answer did not hold: across four indexes the padding
    * moved four times, the text moved ONCE (`OWNED_BODY_STEP` is 14/14/16/16), and no control
    * moved at all — so three of the four steps did nothing but pad the box. A composer is a unit
-   * you size as one thing, which is what `ControlSizeContext` is for; it now supplies it, Button
+   * you size as one thing, which is what `SizeScopeContext` is for; it now supplies it, Button
    * reads it, and a stated `size` beats both.
    */
   const at = (size: "1" | "2" | "3" | "4") =>

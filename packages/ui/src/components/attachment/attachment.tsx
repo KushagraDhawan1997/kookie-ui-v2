@@ -11,6 +11,7 @@ import { Button } from "../button/button.tsx";
 import { Progress } from "../progress/progress.tsx";
 import { Text } from "../text/text.tsx";
 import { glyphStroke } from "../../tokens/config.ts";
+import { useSize } from "../../system/size.ts";
 
 /**
  * What the file is doing, set by the app and drawn by the system.
@@ -121,7 +122,7 @@ const BUSY: readonly AttachmentState[] = ["uploading", "processing"];
  * that fetched or decoded one would own the file it is not allowed to own).
  */
 export function Attachment({
-  size = "2",
+  size: sizeProp,
   state = "idle",
   progress,
   icon,
@@ -135,6 +136,7 @@ export function Attachment({
   ref,
   ...props
 }: AttachmentProps) {
+  const size = useSize(sizeProp);
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   const metaId = React.useId();
   // `useLensRef` already forwards the caller's ref — merging a second time hands React a fresh

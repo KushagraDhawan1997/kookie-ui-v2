@@ -1,5 +1,5 @@
 {
   "comment": "CSS budget (DECISIONS.md \u00a72). ceiling = the hard wall (64KB gzipped, raised from ~40KB on 2026-09-01 against a measured fraction of Radix Themes' 85,358 \u2014 the basis is in \u00a72). baseline = last accepted gzipped size; ANY increase over baseline fails CI (the regression gate) and must be intentionally re-recorded here in the same commit. Numbers live here and nowhere else.",
   "ceilingGzipBytes": 65536,
-  "baselineGzipBytes": 37113
+  "baselineGzipBytes": 36956
 }

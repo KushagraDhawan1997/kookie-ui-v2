@@ -5,6 +5,8 @@ import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
 import { unwrapLazy } from "../../system/render.ts";
+import { useSize } from "../../system/size.ts";
+import { themeDefaults } from "../../theme/theme.tsx";
 
 export type TabsProps = Omit<
   React.ComponentPropsWithoutRef<typeof BaseTabs.Root>,
@@ -26,7 +28,10 @@ export type TabsProps = Omit<
       `[data-size]` per ELEMENT, so a tab that never carries the attribute resolves no cell at
       all and its `min-height` falls back to `auto`. One provider, so a bar cannot hold two
       indices; the stamp is per element, because that is where the cascade reads it. */
-const TabsSizeContext = React.createContext<Size>("2");
+/* `themeDefaults.size`, never a literal: this default is only reachable in an invalid tree
+   (a part outside its root), and nine private copies of the number 2 is nine claims about a
+   rest that the app can now move (2026-09-05). */
+const TabsSizeContext = React.createContext<Size>(themeDefaults.size);
 
 export type TabsListProps = Omit<
   React.ComponentPropsWithoutRef<typeof BaseTabs.List>,
@@ -100,7 +105,8 @@ export function Tabs(props: TabsProps) {
  * rule is absent until React hydrates, which on a server-rendered page is a visible flash of
  * a bar with no active tab.
  */
-export function TabsList({ size = "2", className, children, ...props }: TabsListProps) {
+export function TabsList({ size: sizeProp, className, children, ...props }: TabsListProps) {
+  const size = useSize(sizeProp);
   return (
     <BaseTabs.List
       className={className ? `kui-tabs-list ${className}` : "kui-tabs-list"}

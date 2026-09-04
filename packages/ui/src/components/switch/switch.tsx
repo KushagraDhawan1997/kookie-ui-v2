@@ -4,7 +4,7 @@ import { Switch as BaseSwitch } from "@base-ui/react/switch";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
-import { useControlSize } from "../../system/control-size.ts";
+import { useSize } from "../../system/size.ts";
 
 export type SwitchProps = Omit<
   React.ComponentPropsWithoutRef<typeof BaseSwitch.Root>,
@@ -70,7 +70,7 @@ export type SwitchProps = Omit<
  */
 export function Switch({ size: sizeProp, className, ref, ...props }: SwitchProps) {
   // §28 — a Field states the whole unit's index; an explicit prop here always wins.
-  const size = useControlSize(sizeProp);
+  const size = useSize(sizeProp);
   return (
     <BaseSwitch.Root
       ref={ref}

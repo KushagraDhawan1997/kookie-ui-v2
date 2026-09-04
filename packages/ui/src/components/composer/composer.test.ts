@@ -7,7 +7,7 @@
  * the mounted laws already assert about the component — and ENGINEERING §6's rule for two
  * implementations of one mechanism is that they owe a law that they AGREE. They did not: the
  * `size` doc said the index "does NOT reach the row" while the component supplied
- * `ControlSizeContext` to that very row, so the published sentence was the exact inverse of the
+ * `SizeScopeContext` to that very row, so the published sentence was the exact inverse of the
  * shipped behaviour for three days (audit 2026-08-26). The behaviour half is mounted in
  * `composer.browser.test.tsx`; this is the sentence half.
  */
@@ -34,7 +34,7 @@ function docFor(declaration: string): string {
 
 describe("the published `size` sentence and the shipped mechanism agree (§28, §30)", () => {
   const doc = docFor("size?: Size;");
-  const suppliesTheRow = /<ControlSizeContext\.Provider/.test(source);
+  const suppliesTheRow = /<SizeScopeContext\.Provider/.test(source);
 
   it("the composer really does supply the row's index — the premise, measured from the source", () => {
     // Without this the two laws below are about a component that might not exist: if the
@@ -46,7 +46,7 @@ describe("the published `size` sentence and the shipped mechanism agree (§28, �
   it("the sentence names the mechanism it goes through, or does not claim one", () => {
     // The positive half. A doc that never mentions the context cannot be describing the reach
     // it actually has, and this is the half that survives a rewording.
-    expect(doc).toMatch(/ControlSizeContext/);
+    expect(doc).toMatch(/SizeScopeContext/);
     // And the second bound, which is the whole reason the mechanism is safe to have: an
     // explicit `size` on a control wins. A published sentence promising a reach without
     // promising the escape describes a box that overrules you.

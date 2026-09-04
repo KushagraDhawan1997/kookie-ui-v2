@@ -5,7 +5,7 @@ import { RadioGroup as BaseRadioGroup } from "@base-ui/react/radio-group";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
-import { useControlSize } from "../../system/control-size.ts";
+import { useSize } from "../../system/size.ts";
 
 export type RadioProps = Omit<
   React.ComponentPropsWithoutRef<typeof BaseRadio.Root>,
@@ -80,7 +80,7 @@ export function RadioGroup(props: RadioGroupProps) {
  */
 export function Radio({ size: sizeProp, className, ref, ...props }: RadioProps) {
   // §28 — a Field states the whole unit's index; an explicit prop here always wins.
-  const size = useControlSize(sizeProp);
+  const size = useSize(sizeProp);
   return (
     <BaseRadio.Root
       ref={ref}

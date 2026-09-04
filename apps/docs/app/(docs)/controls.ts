@@ -67,7 +67,7 @@ export const OFFERED: Record<string, readonly string[]> = {
   accordion: ["size", "multiple"],
   "alert-dialog": ["size"],
   avatar: ["size", "backdrop", "badge"],
-  "avatar-group": ["size"],
+  "avatar-group": ["size", "backdrop"],
   badge: ["size"],
   blockquote: ["size", "emphasis", "tone"],
   breadcrumb: ["size"],
@@ -118,7 +118,14 @@ const CATALOG_KEY: Record<string, string> = {
   accordion: "Accordion",
   "alert-dialog": "AlertDialog",
   avatar: "Avatar",
-  "avatar-group": "AvatarGroup",
+  // The AVATARS' schemas, on Radio's precedent one entry down (2026-09-05, Kushagra: "sure
+  // lets pass to all"). `backdrop` is not a group prop and must not become one — the group is
+  // a line of text with no words in it, not a pane — so the knob writes the material onto
+  // every face inside, and the schema that describes it is the face's. `size` is declared
+  // identically on both (the same `TypeSize` axis), so nothing about that knob changes by
+  // deriving it here; what the value lands on is still the group, which is the example's
+  // business and never this table's.
+  "avatar-group": "Avatar",
   badge: "Badge",
   blockquote: "Blockquote",
   box: "Box",

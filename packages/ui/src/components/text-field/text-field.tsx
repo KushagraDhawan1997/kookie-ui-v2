@@ -7,7 +7,7 @@ import { filled, useMergedRefs } from "../../system/render.ts";
 import type { Size, SlotName } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
-import { useControlSize } from "../../system/control-size.ts";
+import { useSize } from "../../system/size.ts";
 
 /**
  * The `type` values a text FIELD is (§4). A closed union, the way `size` is one — because
@@ -108,7 +108,7 @@ export function TextField({
   ...props
 }: TextFieldProps) {
   // §28 — a Field states the whole unit's index; an explicit prop here always wins.
-  const size = useControlSize(sizeProp);
+  const size = useSize(sizeProp);
   // §10 — the app's material (2026-08-16). The wrapper is the visible control, so it is what
   // carries the veil; the slots below sit INSIDE it, which is why they are scoped: a trailing
   // Button in a glass field is on spent backdrop and renders with alpha, not opaque.

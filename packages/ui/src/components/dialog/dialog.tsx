@@ -49,6 +49,7 @@ import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { useClipWarning } from "../../system/clip.tsx";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
+import { useSize } from "../../system/size.ts";
 
 /* ── Size context: the dialog answers `size` like Menu (Kushagra, 2026-08-10) — the index
       prices the box (width, padding, corner) AND the two parts the system owns, and nothing
@@ -112,7 +113,8 @@ export type DialogProps = {
  * A non-modal panel that leaves the page live is a different component (a Popover, or a
  * Sheet), not a flag on this one.
  */
-export function Dialog({ size = "3", open, defaultOpen, onOpenChange, children }: DialogProps) {
+export function Dialog({ size: sizeProp, open, defaultOpen, onOpenChange, children }: DialogProps) {
+  const size = useSize(sizeProp);
   const dir = useAmbientDirection();
 
   return (

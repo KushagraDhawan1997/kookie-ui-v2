@@ -5,7 +5,7 @@ import { Slider as BaseSlider } from "@base-ui/react/slider";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
-import { useControlSize } from "../../system/control-size.ts";
+import { useSize } from "../../system/size.ts";
 import { useAmbientDirection } from "../../system/floating.tsx";
 import { useMergedRefs } from "../../system/render.ts";
 
@@ -76,7 +76,7 @@ export function Slider({
   ...props
 }: SliderProps) {
   // §28 — a Field states the whole unit's index; an explicit prop here always wins.
-  const size = useControlSize(sizeProp);
+  const size = useSize(sizeProp);
   const values = props.value ?? props.defaultValue;
   const thumbs = Array.isArray(values) ? values.length : 1;
   /**

@@ -71,8 +71,8 @@ describe("code spans in reference prose", () => {
     expect(generated.filter((doc) => doc.includes("`")).length).toBeGreaterThan(50);
 
     const written = ENTRIES.flatMap((entry) => [
-      entry.blurb,
-      ...entry.axes.map((axis) => axis.note),
+      entry.abstract,
+      ...entry.overview,
       ...entry.refusals.map((refusal) => refusal.why),
       ...(entry.parts ?? []).map((part) => part.blurb),
     ]);
@@ -91,7 +91,7 @@ describe("code spans in reference prose", () => {
     const surfaces: { file: string; fields: string[]; within?: string }[] = [
       {
         file: "(docs)/components/[slug]/page.tsx",
-        fields: ["entry.blurb", "axis.note", "part.blurb", "refusal.why", "propDescription(prop)"],
+        fields: ["entry.abstract", "paragraph", "refusal.name", "refusal.why", "summary"],
       },
       { file: "(docs)/review-rules.tsx", fields: ["rule.title", "rule.why"] },
       { file: "builder/inspector.tsx", fields: ["name", "why"], within: "function Refusal(" },
@@ -102,10 +102,16 @@ describe("code spans in reference prose", () => {
       const from = within ? whole.indexOf(within) : 0;
       expect(from, `${file}: ${within} is gone`).toBeGreaterThanOrEqual(0);
       const source = within ? whole.slice(from, whole.indexOf("\n}", from) + 2) : whole;
-      // Strip the wrappers first. `text={entry.blurb}` contains `{entry.blurb}`, so a naive scan
+      // Strip the wrappers first. `text={paragraph}` contains `{paragraph}`, so a naive scan
       // for a bare render matches the correct code — the first spelling of this law failed on
       // the very file it was written to bless.
-      const bare = source.replaceAll(/<InlineCode text=\{[^}]*\}[^/]*\/>/g, "");
+      // ATTRIBUTE POSITIONS ARE STRIPPED TOO (2026-09-05). `key={paragraph}` is the correct
+      // React spelling for a mapped paragraph and is not a render of anything — the first run
+      // after the component page started mapping its overview reported it as a bare render,
+      // which is the same false positive the wrapper strip below was written for.
+      const bare = source
+        .replaceAll(/<InlineCode text=\{[^}]*\}[^/]*\/>/g, "")
+        .replaceAll(/\b[a-zA-Z-]+=\{[^}]*\}/g, "");
       for (const field of fields) {
         expect(source, `${file}: ${field} is rendered without InlineCode`).toContain(
           `<InlineCode text={${field}} />`,

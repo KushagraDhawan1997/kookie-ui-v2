@@ -8,6 +8,7 @@ import { useLensRef } from "../../system/refraction.tsx";
 import { useClipWarning } from "../../system/clip.tsx";
 import { CardScope, useInsideCard, useNestedCardWarning } from "../../system/nesting.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
+import { useSize } from "../../system/size.ts";
 
 export type CardProps = Omit<
   React.ComponentPropsWithoutRef<"div">,
@@ -59,7 +60,7 @@ export type CardProps = Omit<
  * shared surface layer like every surface, and it never lets a call site choose.
  */
 export function Card({
-  size = "3",
+  size: sizeProp,
   backdrop,
   render,
   className,
@@ -68,6 +69,7 @@ export function Card({
   ref,
   ...props
 }: CardProps) {
+  const size = useSize(sizeProp);
   // §10 — the material is the THEME's, expressed only where a backdrop exists (selectivity,
   // 2026-08-17): on-glass under a glass pane, solid on a solid pane or on the page's calm
   // ground, the theme's glass only where `backdrop` — the prop, or the ambient region —

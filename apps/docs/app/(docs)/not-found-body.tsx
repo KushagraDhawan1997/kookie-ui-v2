@@ -37,10 +37,10 @@ export function NotFoundBody() {
           404
         </PageTitle>
         <Flex gap="3">
-        <Button size="2" tone="accent" emphasis="loud" render={<Link href="/" />}>
+        <Button tone="accent" emphasis="loud" render={<Link href="/" />}>
           Back to the start
         </Button>
-        <Button size="2" emphasis="quiet" bordered render={<Link href="/matrix" />}>
+        <Button emphasis="quiet" bordered render={<Link href="/matrix" />}>
           The judging matrix
         </Button>
         </Flex>

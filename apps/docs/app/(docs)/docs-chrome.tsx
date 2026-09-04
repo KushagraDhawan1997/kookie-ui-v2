@@ -170,7 +170,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
             `position: relative` is the trigger's containing block, stated inline because the
             shell root is the nearest positioned ancestor otherwise and the trigger would
             resolve its inset over the sidebar column, not this pane. */}
-        <ShellContent style={{ position: "relative" }} flush={false}>
+        <ShellContent style={{ position: "relative" }} flush={true}>
           {/* The route back to a closed or overlaying sidebar floats in the pane's own safe
               area — `--kui-sf-p` inherits from the pane deliberately (§10, the bleed
               mechanism), so the trigger sits exactly where pinned content would start.

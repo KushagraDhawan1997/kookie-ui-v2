@@ -6,6 +6,7 @@ import { composeRender, useMergedRefs, type RenderElement } from "../../system/r
 import { useClipWarning } from "../../system/clip.tsx";
 import { BackdropContext } from "../../theme/theme.tsx";
 import type { Size } from "../../system/axes.ts";
+import { useSize } from "../../system/size.ts";
 
 export type SurfaceProps = Omit<
   React.ComponentPropsWithoutRef<"div">,
@@ -57,7 +58,8 @@ export type SurfaceProps = Omit<
  * the padding rhythm, clipping, `bleed`, and re-scoped foreground colour. Its stylesheet does
  * not exist, exactly as Card's does not.
  */
-export function Surface({ size = "3", render, className, style, children, ref, ...props }: SurfaceProps) {
+export function Surface({ size: sizeProp, render, className, style, children, ref, ...props }: SurfaceProps) {
+  const size = useSize(sizeProp);
   // A pane clips, so content wider than it is is not reachable at all (§3, 2026-08-21).
   const clipRef = useClipWarning("<Surface>");
   const setRoot = useMergedRefs(ref, clipRef);

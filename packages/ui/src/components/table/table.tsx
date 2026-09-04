@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
+import { useSize } from "../../system/size.ts";
 
 export type TableProps = Omit<React.ComponentPropsWithoutRef<"table">, "color"> & {
   /**
@@ -47,7 +48,7 @@ export type TableProps = Omit<React.ComponentPropsWithoutRef<"table">, "color"> 
  * `TableHead`, `TableCell`, `TableCaption`.
  */
 export function Table({
-  size = "2",
+  size: sizeProp,
   className,
   style,
   ref,
@@ -56,6 +57,7 @@ export function Table({
   "aria-labelledby": labelledBy,
   ...props
 }: TableProps) {
+  const size = useSize(sizeProp);
   /* THE NAME LANDS ON THE SCROLLER (2026-09-01, ultracode audit), which is ScrollArea's own
      rule one component over: "the name lands on the viewport, because the viewport is the
      element that scrolls and the element that takes focus". A scrollable box is keyboard

@@ -5,6 +5,7 @@ import * as React from "react";
 import type { Size } from "../../system/axes.ts";
 import { composeRender, slot, type RenderElement } from "../../system/render.ts";
 import { glyphStroke } from "../../tokens/config.ts";
+import { useSize } from "../../system/size.ts";
 
 /**
  * One node of the tree's data. The API is DATA-DRIVEN, not JSX composition, and that is §33's
@@ -197,7 +198,7 @@ function DisclosureTarget({
  */
 export function Tree({
   items,
-  size = "2",
+  size: sizeProp,
   defaultExpandedIds,
   expandedIds,
   onExpandedChange,
@@ -209,6 +210,7 @@ export function Tree({
   ref,
   ...props
 }: TreeProps) {
+  const size = useSize(sizeProp);
   const [expandedState, setExpandedState] = React.useState<ReadonlySet<string>>(
     () => new Set(defaultExpandedIds),
   );
@@ -485,7 +487,7 @@ export type NavTreeProps = Omit<React.ComponentPropsWithoutRef<"div">, "color" |
  */
 export function NavTree({
   items,
-  size = "2",
+  size: sizeProp,
   defaultExpandedIds,
   expandedIds,
   onExpandedChange,
@@ -495,6 +497,7 @@ export function NavTree({
   ref,
   ...props
 }: NavTreeProps) {
+  const size = useSize(sizeProp);
   const [expandedState, setExpandedState] = React.useState<ReadonlySet<string>>(
     () => new Set(defaultExpandedIds),
   );

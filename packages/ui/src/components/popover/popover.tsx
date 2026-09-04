@@ -24,14 +24,18 @@ import {
 } from "../../system/render.ts";
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { OWNED_BODY_STEP, OWNED_TITLE_STEP } from "../../system/type-steps.ts";
-import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
+import { GlassScope, useMaterial, type SurfaceMaterial, themeDefaults } from "../../theme/theme.tsx";
 import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
+import { useSize } from "../../system/size.ts";
 
 /* Size crosses the portal by CONTEXT, exactly as Dialog's does — a portalled popup renders
    outside its trigger's DOM position, so an attribute cannot reach it and React context can.
    The popup stamps the index on its own element, which is where the surface size join fires. */
-const PopoverSizeContext = React.createContext<Size>("2");
+/* `themeDefaults.size`, never a literal: this default is only reachable in an invalid tree
+   (a part outside its root), and nine private copies of the number 2 is nine claims about a
+   rest that the app can now move (2026-09-05). */
+const PopoverSizeContext = React.createContext<Size>(themeDefaults.size);
 
 export type PopoverProps = {
   /**
@@ -73,7 +77,8 @@ export type PopoverProps = {
  * which side to prefer: a panel that could be placed anywhere is a panel every call site places
  * differently.
  */
-export function Popover({ size = "2", children, ...props }: PopoverProps) {
+export function Popover({ size: sizeProp, children, ...props }: PopoverProps) {
+  const size = useSize(sizeProp);
   // THE DIRECTION CONTEXT IS NOT OPTIONAL WIRING (§20, added 2026-08-26, ultracode audit).
   // It carries two facts and this component provided NEITHER, so both took the context's
   // default: `direction` — which `PortalScope` STAMPS on the portal wrapper unconditionally,

@@ -4,8 +4,9 @@ import { Field as BaseField } from "@base-ui/react/field";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
-import { ControlSizeContext } from "../../system/control-size.ts";
+import { SizeScopeContext, useSize } from "../../system/size.ts";
 import { Text } from "../text/text.tsx";
+import { themeDefaults } from "../../theme/theme.tsx";
 
 /* CHANGES 2026-08-26: `render` is BACK in the root's type. It was omitted alongside
    `className` — the shape every other part here uses — while the JSDoc below and §28 both name
@@ -51,7 +52,10 @@ export type FieldErrorProps = Omit<
 /* The step every part of the field is set in. Read from context rather than passed, because a
    part is a sibling of the control in the caller's markup, not a child of anything that could
    pass it a prop. */
-const FieldTypeContext = React.createContext<Size>("2");
+/* `themeDefaults.size`, never a literal: this default is only reachable in an invalid tree
+   (a part outside its root), and nine private copies of the number 2 is nine claims about a
+   rest that the app can now move (2026-09-05). */
+const FieldTypeContext = React.createContext<Size>(themeDefaults.size);
 
 /**
  * A field (§28) — the unit that makes one input make sense.
@@ -99,9 +103,10 @@ const FieldTypeContext = React.createContext<Size>("2");
  * name and moves focus to the first invalid one, which is non-visual behaviour and the same
  * forcer that licenses this anatomy. It is additive and changes nothing here.
  */
-export function Field({ size = "2", className, children, ...props }: FieldProps) {
+export function Field({ size: sizeProp, className, children, ...props }: FieldProps) {
+  const size = useSize(sizeProp);
   return (
-    <ControlSizeContext.Provider value={size}>
+    <SizeScopeContext.Provider value={size}>
       <FieldTypeContext.Provider value={size}>
         <BaseField.Root
           {...props}
@@ -110,7 +115,7 @@ export function Field({ size = "2", className, children, ...props }: FieldProps)
           {children}
         </BaseField.Root>
       </FieldTypeContext.Provider>
-    </ControlSizeContext.Provider>
+    </SizeScopeContext.Provider>
   );
 }
 

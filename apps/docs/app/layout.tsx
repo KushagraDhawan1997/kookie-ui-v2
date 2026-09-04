@@ -185,7 +185,12 @@ export default function RootLayout({
             kookie"; `thin` after an hour at `regular`, judged live). Selectivity means this
             costs nothing at rest: popups pass it by construction, `backdrop`-marked controls
             take it, and every unmarked in-flow control still resolves solid. */}
-        <Theme appearance="inherit" material="regular">
+        {/* `size="3"` (2026-09-05, the day the axis shipped): the docs app states its own
+            resting index rather than writing it on every control. Nothing here is a form to
+            fill in — it is a document read at arm's length — so the frame, the nav rows and the
+            controls in the chrome all sit one step up. It reaches no prose: the type family is
+            outside this axis by design, so the chapters are unmoved. */}
+        <Theme appearance="inherit" material="regular" size="2">
           {children}
         </Theme>
         {/* Dev only: bare `o` outlines every box on the page. Null in a production build. */}

@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { composeRender, type RenderElement } from "../system/render.ts";
 import { CardScopeReset } from "../system/nesting.tsx";
-import { MATERIALS, type Material } from "../system/axes.ts";
+import { MATERIALS, SIZES, type Material, type Size } from "../system/axes.ts";
 import { DEV } from "../system/dev.ts";
 
 /**
@@ -31,6 +31,15 @@ export const themeAxes = {
   density: ["compact", "default", "comfortable"],
   radius: ["none", "small", "medium", "large", "full"],
   contrast: ["normal", "high"],
+  /** §4, §5 — the app's own resting index, added 2026-09-05. It is a RUNG, not a measurement:
+      `size="3"` means every family on this ladder rests at its third step, which is 40px of
+      button and its own padding pick on a card. It stamps NO attribute here — components stamp
+      their own `data-size`, exactly as they do for `material`, because a descendant-keyed rule
+      re-creates the inheritance defect the `@property inherits: false` guards were written for
+      four times over. The type family is deliberately outside it (Text rests at 3 on a nine-step
+      ladder; §15's composition ladder is what ranks type), and so are the inert atoms, which
+      rest at nothing and take the line they sit in. */
+  size: SIZES,
   /** §16, §17 — `auto` follows `@media (pointer: coarse)`; pinning forces the whole coarse
       world — geometry AND the handheld type band, which is also how both are judged on a
       desktop. There is no separate `device` prop: coarse means handheld (dropped 2026-08-05,
@@ -98,6 +107,22 @@ export type ThemeProps = {
    * costs nothing.
    */
   material?: Material;
+  /**
+   * The index every family on the 1-4 ladder rests at when the call site says nothing (§4).
+   * `size="3"` is an app whose buttons are 40px and whose cards pad and corner one step wider;
+   * it is a rung rather than a measurement, which is what lets one number mean the same thing
+   * to a control, a card and a dialog at once.
+   *
+   * It is a DEFAULT, not a clamp. A stated `size` on any component wins, and a `Field` or a
+   * `Composer` — the two units a person sizes as one object — win over the theme for what they
+   * contain, because they are nearer.
+   *
+   * It does not reach type. `Text`, `Heading` and `Blockquote` read a scale nine steps long
+   * rather than four, so they can share neither this rest nor this range; rank them with the
+   * composition ladder (§15) and the emphasis roles. `Code`, `Kbd`, `Badge`, `Avatar` and
+   * `Chip` rest at nothing on purpose and take the line they sit in.
+   */
+  size?: Size;
   /**
    * Which palette this scope resolves against. `inherit` is a real third value, not a no-op: it
    * writes no attribute at all, so the nearest ancestor keeps applying. That is what makes
@@ -275,7 +300,7 @@ const warnOnFramedAncestor = (node: HTMLElement) => {
 type Resolved = Required<
   Pick<
     ThemeProps,
-    "appearance" | "density" | "radius" | "contrast" | "pointer" | "depth" | "material"
+    "appearance" | "density" | "radius" | "contrast" | "pointer" | "depth" | "material" | "size"
   >
 >;
 
@@ -291,6 +316,13 @@ export const themeDefaults: Resolved = {
   density: "default",
   radius: "full",
   contrast: "normal",
+  /* THE ONE PLACE THE NUMBER 2 IS WRITTEN (2026-09-05). Every family on the 1-4 ladder resolves
+     its rest through `useSize`, which ends here — so what used to be nineteen destructuring
+     defaults plus one literal in the size hook is now a single value with a single reader per
+     component. It moved to 2 the same day for Card, Surface and Dialog, the last three resting
+     at 3: an index has to mean the same thing across families, or the number says nothing
+     (Kushagra). */
+  size: "2",
   pointer: "auto",
   /* `elevated` since 2026-08-17 (Kushagra: match the lab). The lab has no flat world —
      contact, drop, blast and the pool are what its material IS, so the resting default
@@ -459,8 +491,9 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       pointer: props.pointer ?? parent.pointer,
       depth: props.depth ?? parent.depth,
       material: props.material ?? parent.material,
+      size: props.size ?? parent.size,
     }),
-    // The seven fields, not `parent` itself: the parent ctx is a fresh object whenever ANY
+    // The eight fields, not `parent` itself: the parent ctx is a fresh object whenever ANY
     // ancestor axis moves, including ones this scope overrides — depending on the identity
     // would rebuild `resolved` (and so re-render every consumer below) on changes that
     // cannot reach it.
@@ -472,6 +505,7 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       props.pointer,
       props.depth,
       props.material,
+      props.size,
       parent.appearance,
       parent.density,
       parent.radius,
@@ -479,6 +513,7 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
       parent.pointer,
       parent.depth,
       parent.material,
+      parent.size,
     ],
   );
 

@@ -6,6 +6,7 @@ import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { Surface } from "../surface/surface.tsx";
 import { Text } from "../text/text.tsx";
 import type { Size } from "../../system/axes.ts";
+import { useSize } from "../../system/size.ts";
 
 export type CodeBlockProps = {
   /** The code. Plain text, or the spans a highlighter produced from it. */
@@ -109,7 +110,7 @@ export type CodeBlockProps = {
  */
 export function CodeBlock({
   children,
-  size = "2",
+  size: sizeProp,
   className,
   maxLines,
   topbar,
@@ -119,6 +120,7 @@ export function CodeBlock({
   style,
   ref,
 }: CodeBlockProps) {
+  const size = useSize(sizeProp);
   // `--line-height-N` is the line box of the size-N Text below — one index, two spellings.
   const lh = `var(--line-height-${size})`;
   /* The chrome's safe area, in the tokens the chrome is built from: the row's own inset, one

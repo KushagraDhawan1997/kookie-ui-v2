@@ -40,9 +40,10 @@ import { CHECK_PATH } from "../../system/glyphs.ts";
 import type { Size } from "../../system/axes.ts";
 import { rowProps } from "../../system/rows.ts";
 import { useLensRef } from "../../system/refraction.tsx";
-import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
+import { GlassScope, useMaterial, type SurfaceMaterial, themeDefaults } from "../../theme/theme.tsx";
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { glyphStroke } from "../../tokens/config.ts";
+import { useSize } from "../../system/size.ts";
 
 /* ── Designed constants (§22 — the switchInset precedent: Base UI takes numbers, so
       these cannot ride CSS tokens; one home, judged in the playground) ─────────────────── */
@@ -84,7 +85,10 @@ const panelSeam = (trigger: HTMLElement | null): number => {
       the index on its own element, because the size join keys [data-size] per element and
       the cells are inherits:false on purpose. Crosses the portal with React (§20). ─────── */
 
-const MenuSizeContext = React.createContext<Size>("2");
+/* `themeDefaults.size`, never a literal: this default is only reachable in an invalid tree
+   (a part outside its root), and nine private copies of the number 2 is nine claims about a
+   rest that the app can now move (2026-09-05). */
+const MenuSizeContext = React.createContext<Size>(themeDefaults.size);
 
 /**
  * True inside a `ContextMenu`'s tree, and read by one thing: whether a panel suppresses the
@@ -151,7 +155,8 @@ export type MenuProps = {
 };
 
 /** Renders no DOM — state and wiring only (Base UI Root, the size context, direction). */
-export function Menu({ size = "2", open, defaultOpen, onOpenChange, children }: MenuProps) {
+export function Menu({ size: sizeProp, open, defaultOpen, onOpenChange, children }: MenuProps) {
+  const size = useSize(sizeProp);
   const dir = useAmbientDirection();
 
   return (
@@ -916,12 +921,13 @@ export type ContextMenuProps = {
 
 /** Renders no DOM — state and wiring only, exactly as `Menu` does. */
 export function ContextMenu({
-  size = "2",
+  size: sizeProp,
   open,
   defaultOpen,
   onOpenChange,
   children,
 }: ContextMenuProps) {
+  const size = useSize(sizeProp);
   const dir = useAmbientDirection();
   /* THE SEED IS THE POINT (§42, §22). The panel flies out of its anchor exactly as a menu
      does — the family's recipe is untouched — and the only thing this component supplies is

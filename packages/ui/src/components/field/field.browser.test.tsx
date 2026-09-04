@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 import { APPEARANCES, colorOn, computed, mounted, within } from "../../test/browser.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
 import { Box } from "../box/box.tsx";
-import { Flex } from "../flex/flex.tsx";
+import { Card } from "../card/card.tsx";
 import { TextField } from "../text-field/text-field.tsx";
 import { Radio, RadioGroup } from "../radio/radio.tsx";
 import { Field, FieldDescription, FieldError, FieldItem, FieldLabel } from "./field.tsx";
@@ -255,24 +255,45 @@ describe("the field prices the whole unit, and an explicit prop still wins (§28
     expect(computed(el, "width")).toBe(computed(solo, "width"));
   });
 
-  it("nothing but a Field supplies it — a control outside one rests at the family's own 2", () => {
-    // The bound that makes the mechanism safe (control-size.ts): Theme does not provide it, a
-    // Box does not, a surface does not. If any of them ever did, this is what would fail.
+  it("only a UNIT supplies it — a Box and a surface between the two supply nothing", () => {
+    // The bound that makes the mechanism safe (system/size.ts). It said "Theme does not provide
+    // it" until 2026-09-05, when the app layer landed and that clause stopped being true — so
+    // what this law guards is the half that still is: a layout box and a pane are not units, and
+    // a control inside either resolves exactly what the same control resolves outside it. If a
+    // Box or a surface ever started supplying, this is what would fail.
     //
     // Both subjects are mounted in ONE tree rather than compared against `twin`, because the
     // axes here are deliberately hostile and a twin under the default theme is a different
     // cell: the first spelling read 28px against 32px and was measuring compact-versus-default,
     // not supplied-versus-unsupplied. A law's two sides must differ in the ONE thing it is about.
+    // The theme states a size the family does NOT rest at, which is what makes the fixture able
+    // to fail: with the rest itself under test, a Box that wrongly supplied 2 would be
+    // indistinguishable from a Box that supplied nothing (the degenerate-fixture rule).
+    // A BLOCK container, not a Flex: a row stretches its items to the tallest, so the Card's
+    // padding would have made the bare field beside it 90px and the law would have been
+    // measuring `align-items` (caught on the first run — 40px against 90px).
     const root = mounted(
-      <Flex>
+      <Box>
         <TextField />
-        <TextField size="2" />
-      </Flex>,
-      { theme: { appearance: "dark", density: "compact" } },
+        <Box>
+          <TextField />
+        </Box>
+        <Card>
+          <TextField />
+        </Card>
+      </Box>,
+      { theme: { appearance: "dark", density: "compact", size: "4" } },
     );
-    const [free, stated] = [...root.querySelectorAll<HTMLElement>(".kui-field")];
-    expect(free && stated).toBeTruthy();
-    expect(computed(free!, "height")).toBe(computed(stated!, "height"));
+    const [free, boxed, paned] = [...root.querySelectorAll<HTMLElement>(".kui-field")];
+    expect(free && boxed && paned).toBeTruthy();
+    expect(computed(boxed!, "height")).toBe(computed(free!, "height"));
+    expect(computed(paned!, "height")).toBe(computed(free!, "height"));
+    // And the app's value is what all three took — otherwise the three agree on the rest and
+    // this law is about nothing.
+    const twoUp = mounted(<TextField size="4" />, {
+      theme: { appearance: "dark", density: "compact" },
+    });
+    expect(computed(free!, "height")).toBe(computed(twoUp, "height"));
   });
 
   it("the label is set in the step the control's own value is set in — an identity, not a map", () => {

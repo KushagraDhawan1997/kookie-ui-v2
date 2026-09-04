@@ -4,7 +4,7 @@ import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
-import { ControlSizeContext } from "../../system/control-size.ts";
+import { SizeScopeContext, useSize } from "../../system/size.ts";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { Button } from "../button/button.tsx";
 
@@ -34,7 +34,7 @@ export type ComposerProps = Omit<
   /**
    * The index, set once for the whole unit. It prices the pane's padding and corner, the step
    * its own text is set at, AND the controls you compose into the row — a Button, a Select or
-   * a field under the text all take it through `ControlSizeContext` (§28), so a composer is
+   * a field under the text all take it through `SizeScopeContext` (§28), so a composer is
    * sized as one thing.
    *
    * An explicit `size` on a control always wins, so nothing is ever re-sized behind a number
@@ -79,7 +79,7 @@ export type ComposerProps = Omit<
  * button we cannot draw an icon for (§8 ships no icon set) is a Button.
  */
 export function Composer({
-  size = "2",
+  size: sizeProp,
   backdrop,
   onSubmit,
   onFiles,
@@ -90,6 +90,7 @@ export function Composer({
   onDrop,
   ...props
 }: ComposerProps) {
+  const size = useSize(sizeProp);
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   const lensRef = useLensRef<HTMLElement>(material, ref as React.Ref<HTMLElement>);
 
@@ -130,7 +131,7 @@ export function Composer({
 
   return (
     <GlassScope material={material}>
-      <ControlSizeContext.Provider value={size}>
+      <SizeScopeContext.Provider value={size}>
         <ComposerFilesContext.Provider value={onFiles ?? null}>
           <form
             ref={lensRef as React.Ref<HTMLFormElement>}
@@ -152,13 +153,13 @@ export function Composer({
             {children}
           </form>
         </ComposerFilesContext.Provider>
-      </ControlSizeContext.Provider>
+      </SizeScopeContext.Provider>
     </GlassScope>
   );
 }
 
 /* The private `ComposerTypeContext` that used to live here is DELETED (2026-08-23). It existed
-   for one reason, stated in its own comment: `ControlSizeContext` "would resize a Select somebody
+   for one reason, stated in its own comment: `SizeScopeContext` "would resize a Select somebody
    put in the row while the Button beside it kept its own index — three behaviours in one
    component, and nobody chose the third." That was true, and it was a fact about Button, not
    about the composer — Button now reads the context too, so the row moves as one and the
@@ -228,7 +229,7 @@ export function ComposerInput({
   ...props
 }: ComposerInputProps) {
   const onFiles = React.useContext(ComposerFilesContext);
-  const size = React.useContext(ControlSizeContext) ?? "2";
+  const size = React.useContext(SizeScopeContext) ?? "2";
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     onKeyDown?.(event);

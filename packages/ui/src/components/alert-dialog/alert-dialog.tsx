@@ -50,7 +50,8 @@ import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
 import type { Size, Tone } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
-import { GlassScope, useMaterial } from "../../theme/theme.tsx";
+import { GlassScope, useMaterial, themeDefaults } from "../../theme/theme.tsx";
+import { useSize } from "../../system/size.ts";
 
 /* ── The closed content is what lets size price the type (§15, §25) ─────────────────────────
       Dialog's size stops at the box because its content is the consumer's; an alert's title
@@ -64,7 +65,10 @@ import { GlassScope, useMaterial } from "../../theme/theme.tsx";
    title takes the same ladder now, and two copies of one type map is the drift this repo keeps
    finding. An alert and a dialog at the same index must be the same typography. */
 
-const AlertSizeContext = React.createContext<Size>("2");
+/* `themeDefaults.size`, never a literal: this default is only reachable in an invalid tree
+   (a part outside its root), and nine private copies of the number 2 is nine claims about a
+   rest that the app can now move (2026-09-05). */
+const AlertSizeContext = React.createContext<Size>(themeDefaults.size);
 
 /* ── Root ─────────────────────────────────────────────────────────────────────────────── */
 
@@ -99,7 +103,8 @@ export type AlertDialogProps = {
  * dialog wearing the wrong role. Escape still closes (a keyboard user is answering "not
  * now", which is the Cancel action by another route).
  */
-export function AlertDialog({ size = "2", open, defaultOpen, onOpenChange, children }: AlertDialogProps) {
+export function AlertDialog({ size: sizeProp, open, defaultOpen, onOpenChange, children }: AlertDialogProps) {
+  const size = useSize(sizeProp);
   const dir = useAmbientDirection();
   return (
     <AlertSizeContext.Provider value={size}>

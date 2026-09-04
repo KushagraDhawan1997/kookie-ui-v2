@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import type { Size, Tone } from "../../system/axes.ts";
+import { useSize } from "../../system/size.ts";
 import {
   composeRender,
   rootsInButton,
@@ -120,7 +121,7 @@ const pressable = (
  * because the list is the only thing that knows what its items mean.
  */
 export function Row({
-  size = "2",
+  size: sizeProp,
   tone,
   leading,
   trailing,
@@ -132,6 +133,7 @@ export function Row({
   ref,
   ...props
 }: RowProps) {
+  const size = useSize(sizeProp);
   const inert = render !== undefined && !pressable(render, props);
   const merged = {
     ...props,

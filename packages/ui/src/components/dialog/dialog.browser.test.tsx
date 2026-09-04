@@ -140,7 +140,7 @@ describe("the agreement law: portalled ≡ in-flow (§20, §24)", () => {
         <div
           ref={(n: HTMLDivElement | null) => void (panel = n)}
           className="kui-surface kui-overlay kui-dialog-popup"
-          data-size="3"
+          data-size="2"
           data-tone="neutral"
           data-emphasis="quiet"
           data-bordered="true"
@@ -224,6 +224,20 @@ describe("the scrim: the app goes back", () => {
 /* ── The box (§24) ────────────────────────────────────────────────────────────────────── */
 
 describe("the panel's box", () => {
+  it("rests at 2 — the index every 1-4 family rests at (2026-09-05)", () => {
+    // A default is a fact and it needs exactly one reader, or moving it is invisible. This
+    // panel rested at 3 until 2026-09-05, alone with Card and Surface while every other
+    // component on this ladder rested at 2 (Kushagra: an index has to mean the same thing
+    // across families, or the number says nothing). Every other law in this file states its
+    // index, which is what leaves this the one law a default change can reach.
+    const { popup } = openDialog({});
+    expect(popup.getAttribute("data-size")).toBe("2");
+    // And 2 is a real rung here: the width ladder answers it differently from 3, so this is
+    // not a law that would pass against a panel whose index priced nothing.
+    const { popup: three } = openDialog({}, { size: "3" });
+    expect(computed(popup, "max-inline-size")).not.toBe(computed(three, "max-inline-size"));
+  });
+
   it("wears the overlay corner at every size — rounder than the card of that size", () => {
     for (const size of SIZES) {
       for (const radius of ["small", "medium", "large", "full"] as const) {
@@ -464,7 +478,10 @@ describe("title and description", () => {
   });
 
   it("wears the type layer's own steps — the same Heading and Text a composition would use", () => {
-    const { popup } = openDialog({});
+    // Stated at 3 rather than defaulted: the step below is OWNED_TITLE_STEP's answer for that
+    // index, and a law reading a default it does not name is a law a default change silently
+    // re-anchors (2026-09-05, when the rest moved 3 → 2).
+    const { popup } = openDialog({}, { size: "3" });
     const labelledBy = popup.getAttribute("aria-labelledby")!;
     const describedBy = popup.getAttribute("aria-describedby")!;
     let heading: HTMLElement | null = null;
@@ -927,7 +944,7 @@ describe("what the call site can say to a dialog", () => {
     // also took away the only repair for a dialog with no title.
     render(
       <Theme>
-        <Dialog defaultOpen>
+        <Dialog defaultOpen size="3">
           {/* `data-size` is the system's own stamp, and the call site must not be able to take
               it: the props are spread BEFORE the identity, so a hostile value loses. */}
           <DialogContent aria-label="Rename" id="rename-panel" data-testid="panel" data-size="1">

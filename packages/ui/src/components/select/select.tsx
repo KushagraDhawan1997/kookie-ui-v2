@@ -27,11 +27,14 @@ import { useMergedRefs } from "../../system/render.ts";
 import type { Size, SlotName } from "../../system/axes.ts";
 import { rowProps } from "../../system/rows.ts";
 import { useLensRef } from "../../system/refraction.tsx";
-import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
-import { useControlSize } from "../../system/control-size.ts";
+import { GlassScope, useMaterial, type SurfaceMaterial, themeDefaults } from "../../theme/theme.tsx";
+import { useSize } from "../../system/size.ts";
 import { glyphStroke } from "../../tokens/config.ts";
 
-const SelectSizeContext = React.createContext<Size>("2");
+/* `themeDefaults.size`, never a literal: this default is only reachable in an invalid tree
+   (a part outside its root), and nine private copies of the number 2 is nine claims about a
+   rest that the app can now move (2026-09-05). */
+const SelectSizeContext = React.createContext<Size>(themeDefaults.size);
 
 /* ── Root ─────────────────────────────────────────────────────────────────────────────── */
 
@@ -114,7 +117,7 @@ export type SelectProps = {
 /** Renders no DOM — state and wiring only (Base UI Root, the size context, direction). */
 export function Select({ size: sizeProp, onValueChange, children, ...props }: SelectProps) {
   // §28 — a Field states the whole unit's index; an explicit prop here always wins.
-  const size = useControlSize(sizeProp);
+  const size = useSize(sizeProp);
   const dir = useAmbientDirection();
   // CHANGES 2026-08-26: `v == null` guards `String(v)`. Base UI's own value-reset (a dependent
   // select whose option set is replaced) calls back with `null`, and stringifying it reported

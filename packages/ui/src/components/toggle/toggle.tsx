@@ -5,7 +5,7 @@ import { ToggleGroup as BaseToggleGroup } from "@base-ui/react/toggle-group";
 import * as React from "react";
 
 import type { Size, Tone } from "../../system/axes.ts";
-import { useControlSize } from "../../system/control-size.ts";
+import { useSize } from "../../system/size.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { slot } from "../../system/render.ts";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
@@ -79,7 +79,7 @@ export function Toggle({
   ref,
   ...props
 }: ToggleProps) {
-  const size = useControlSize(sizeProp);
+  const size = useSize(sizeProp);
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   const lensRef = useLensRef<HTMLElement>(material, ref);
   return (

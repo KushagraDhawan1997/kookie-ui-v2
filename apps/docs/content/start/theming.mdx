@@ -1,6 +1,6 @@
-A theme is a way for your app to answer seven fundamental questions once, ensuring no screen repeats them. Everything within the theme automatically picks up these answers. All seven questions are optional, and every default is the right answer for an app that hasn’t decided yet. This deliberate design choice means that changing one question requires knowledge about your app that the library cannot possess.
+A theme is a way for your app to answer eight fundamental questions once, ensuring no screen repeats them. Everything within the theme automatically picks up these answers. All eight questions are optional, and every default is the right answer for an app that hasn’t decided yet. This deliberate design choice means that changing one question requires knowledge about your app that the library cannot possess.
 
-## The seven settings
+## The eight settings
 
 ```tsx
 <Theme
@@ -11,6 +11,7 @@ A theme is a way for your app to answer seven fundamental questions once, ensuri
   pointer="auto" // fine | coarse | auto
   depth="elevated" // flat | elevated
   material="solid" // solid | thin | regular | thick
+  size="2" // 1 | 2 | 3 | 4
 >
   {children}
 </Theme>
@@ -41,6 +42,16 @@ on a Card.
 
 **`material`** is what your app is made of. One value covers everything, because every panel
 in one app is made of the same stuff.
+
+**`size`** is the step your components rest at. Set it to `3` and every button, field, card,
+menu and dialog that does not state a size of its own moves up one step together. It is a
+default, not a limit: a `size` on any component still wins, and a `Field` or a `Composer` — the
+two things you size as one object — win for what they contain.
+
+It does not touch text. `Text` and `Heading` read a scale that is nine steps long rather than
+four, so one number cannot mean the same thing to both; rank your text with the steps in
+[Composition](/patterns/composition) instead. `Code`, `Kbd`, `Badge`, `Avatar` and `Chip` take
+the size of the line they sit in, and this setting leaves them there.
 
 ## Nest a Theme to change one region
 

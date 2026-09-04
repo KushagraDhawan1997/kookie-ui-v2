@@ -4,7 +4,7 @@ import { Button as BaseButton } from "@base-ui/react/button";
 import * as React from "react";
 
 import type { Emphasis, Size, Tone } from "../../system/axes.ts";
-import { useControlSize } from "../../system/control-size.ts";
+import { useSize } from "../../system/size.ts";
 import { CHECK_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
@@ -198,7 +198,7 @@ export function Button({
   // a button OUTSIDE the Field, and React context cannot reach one. What the exclusion did
   // reach was a button inside a composer's row, where `<Composer size="4">` left every
   // control at 2. An explicit `size` still wins, which is the mechanism's second bound.
-  const size = useControlSize(sizeProp);
+  const size = useSize(sizeProp);
   // Base UI branches its ENTIRE a11y contract on `nativeButton`, which defaults to true, and
   // we never forwarded it — so `render={<a/>}`, a composition our own laws bless, shipped
   // `type="button"` on an anchor (where `type` means the linked resource's MIME type) and, when

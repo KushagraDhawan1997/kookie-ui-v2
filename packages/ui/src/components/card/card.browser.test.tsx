@@ -184,9 +184,25 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
     void (<Card bordered={false}>B</Card>);
   });
 
-  it("pads from the surface family by the size index, default 3 = 24px (§4)", () => {
-    expect(computed(render(<Card>B</Card>), "padding-top")).toBe("24px");
+  it("pads from the surface family by the size index (§4)", () => {
+    expect(computed(render(<Card size="3">B</Card>), "padding-top")).toBe("24px");
     expect(computed(render(<Card size="1">B</Card>), "padding-top")).toBe("12px");
+  });
+
+  it("rests at 2 — the index every 1-4 family rests at (2026-09-05)", () => {
+    // The default is a FACT and it needs exactly one reader, or moving it is invisible. It
+    // was 3 until 2026-09-05, alone with Surface and Dialog while every other component on
+    // this ladder rested at 2 (Kushagra: an index has to mean the same thing across families,
+    // or the number says nothing). The card is stated by its INDEX everywhere else in this
+    // file, which is what leaves this law the only one a default change can reach.
+    expect(render(<Card>B</Card>).getAttribute("data-size")).toBe("2");
+    // And the rest is a real rung, not a value that happens to equal its neighbour's.
+    expect(computed(render(<Card>B</Card>), "padding-top")).toBe(
+      computed(render(<Card size="2">B</Card>), "padding-top"),
+    );
+    expect(computed(render(<Card>B</Card>), "padding-top")).not.toBe(
+      computed(render(<Card size="3">B</Card>), "padding-top"),
+    );
   });
 
   it("wears the corner of its size — the surface band is size-indexed (§6)", () => {
@@ -211,7 +227,7 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
     };
     const s1 = at(<Card size="1">B</Card>);
     expect(computed(s1, "border-top-left-radius")).toBe(drawn(s1, "1"));
-    const s3 = at(<Card>B</Card>);
+    const s3 = at(<Card size="3">B</Card>);
     expect(computed(s3, "border-top-left-radius")).toBe(drawn(s3, "3"));
     const s4 = at(<Card size="4">B</Card>);
     expect(computed(s4, "border-top-left-radius")).toBe(drawn(s4, "4"));
@@ -236,12 +252,12 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
       probe.remove();
       return v;
     };
-    const small = mounted(<Card>B</Card>, { theme: { radius: "small" } });
+    const small = mounted(<Card size="3">B</Card>, { theme: { radius: "small" } });
     expect(computed(small, "border-top-left-radius")).toBe(drawn(small));
-    const none = mounted(<Card>B</Card>, { theme: { radius: "none" } });
+    const none = mounted(<Card size="3">B</Card>, { theme: { radius: "none" } });
     expect(computed(none, "border-top-left-radius")).toBe("0px");
     // The nested scope really re-baked: small's corner is not the default (`full`) band's.
-    const dflt = mounted(<Card>B</Card>, { theme: {} });
+    const dflt = mounted(<Card size="3">B</Card>, { theme: {} });
     expect(computed(small, "border-top-left-radius")).not.toBe(
       computed(dflt, "border-top-left-radius"),
     );
@@ -251,9 +267,9 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
     // Density reaches the card through the layout-space layer (§3, §12; the per-family sets
     // that shipped the same morning were superseded by the layer the same day) — otherwise
     // a compact Theme adjusted every control while its cards kept default air.
-    const compact = mounted(<Card>B</Card>, { theme: { density: "compact" } });
+    const compact = mounted(<Card size="3">B</Card>, { theme: { density: "compact" } });
     expect(computed(compact, "padding-top")).toBe("16px");
-    const comfortable = mounted(<Card>B</Card>, { theme: { density: "comfortable" } });
+    const comfortable = mounted(<Card size="3">B</Card>, { theme: { density: "comfortable" } });
     expect(computed(comfortable, "padding-top")).toBe("32px");
   });
 });
@@ -1357,10 +1373,11 @@ describe("continuous curvature reaches the DEFAULT world (§6, 2026-08-17)", () 
     // Kushagra: match the lab): the band is authored as arcs and the squircle needs the
     // bigger number for the same visual weight — the default card draws the lab's 64
     // (40 × 1.613). Derived, never restated: the probe reads the same token and the same
-    // knob the rule does, so a re-priced band moves both sides of this assertion.
+    // knob the rule does, so a re-priced band moves both sides of this assertion. The band
+    // step follows the card's REST, which is 2 since 2026-09-05.
     const probe = document.createElement("div");
     el.append(probe);
-    probe.style.borderRadius = "calc(var(--radius-surface-3) * var(--kui-corner-k, 1))";
+    probe.style.borderRadius = "calc(var(--radius-surface-2) * var(--kui-corner-k, 1))";
     expect(computed(el, "border-radius")).toBe(computed(probe, "border-radius"));
     probe.remove();
   });

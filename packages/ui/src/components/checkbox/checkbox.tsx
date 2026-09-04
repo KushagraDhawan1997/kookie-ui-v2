@@ -4,7 +4,7 @@ import { Checkbox as BaseCheckbox } from "@base-ui/react/checkbox";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
-import { useControlSize } from "../../system/control-size.ts";
+import { useSize } from "../../system/size.ts";
 import { CHECK_PATH } from "../../system/glyphs.ts";
 import { glyphStroke } from "../../tokens/config.ts";
 
@@ -79,7 +79,7 @@ export type CheckboxProps = Omit<
  */
 export function Checkbox({ size: sizeProp, className, ref, ...props }: CheckboxProps) {
   // §28 — a Field states the whole unit's index; an explicit prop here always wins.
-  const size = useControlSize(sizeProp);
+  const size = useSize(sizeProp);
   return (
     <BaseCheckbox.Root
       // The honest ref type (audit 2026-08-05, D12): Base UI's root renders a <span> with the

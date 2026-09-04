@@ -5,11 +5,16 @@ import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
 import { glyphStroke } from "../../tokens/config.ts";
+import { useSize } from "../../system/size.ts";
+import { themeDefaults } from "../../theme/theme.tsx";
 
 /* The index travels from the root to its triggers by a private context — the compound's own
-   (Menu's and Select's shape: size on the root like Button), NOT `ControlSizeContext`, which is
+   (Menu's and Select's shape: size on the root like Button), NOT `SizeScopeContext`, which is
    Field's one supply and bounded to stay that way (§28). */
-const AccordionSizeContext = React.createContext<Size>("2");
+/* `themeDefaults.size`, never a literal: this default is only reachable in an invalid tree
+   (a part outside its root), and nine private copies of the number 2 is nine claims about a
+   rest that the app can now move (2026-09-05). */
+const AccordionSizeContext = React.createContext<Size>(themeDefaults.size);
 
 export type AccordionProps = Omit<
   React.ComponentPropsWithoutRef<typeof BaseAccordion.Root>,
@@ -39,7 +44,8 @@ export type AccordionProps = Omit<
  * It paints no pane. An accordion is a list of headings in whatever surface it sits in; put it
  * in a Card when it wants a boundary. The hairlines between items are the table's.
  */
-export function Accordion({ size = "2", className, ...props }: AccordionProps) {
+export function Accordion({ size: sizeProp, className, ...props }: AccordionProps) {
+  const size = useSize(sizeProp);
   return (
     <AccordionSizeContext.Provider value={size}>
       <BaseAccordion.Root
