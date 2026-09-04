@@ -75,7 +75,28 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
     // browser chrome does not leave the shell taller than the screen it is in.
     <Box style={{ blockSize: "100dvh" }}>
       <Shell>
-        <ShellSidebar aria-label="Documentation" flush={true}>
+        {/* RESIZABLE, and the bounds are this site's content speaking (§27's own reason for a
+            width prop). The floor is not the system's 160: below about 240 the longest chapter
+            titles — "The component families", "States and interaction" — wrap to two lines, and
+            a nav whose rows change height as you drag is a worse thing than a nav you cannot
+            narrow. The ceiling is a reading site's: past ~420 the column is wider than most of
+            what it indexes.
+
+            No `onResize` and no persistence. The Shell sits in this route group's layout, so a
+            dragged width survives every navigation and resets on reload — which is the honest
+            behaviour until the site has somewhere to put the number. Persisting it is not a
+            `localStorage` line: the pane would hydrate at its default and jump, so it wants the
+            pre-paint script's treatment, the same one dark mode has. */}
+        <ShellSidebar
+          aria-label="Documentation"
+          flush={true}
+          resizable
+          minWidth={240}
+          maxWidth={420}
+          /* The package default is "Resize panel", which is right for a library that does not
+             know what the pane holds. This one holds the navigation, and there is only one. */
+          resizeLabel="Resize navigation"
+        >
           {/* The unofficial header — pinned above the scroller by position alone (§27's
               pinned-stack rule; no part names exist and none are needed).
 
