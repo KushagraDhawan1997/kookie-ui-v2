@@ -10,6 +10,7 @@
  * reconstruction of what it probably does. A law that rebuilt the index its own way would be
  * asserting the correctness of the copy.
  */
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { CHAPTERS } from "./chapters";
@@ -87,4 +88,33 @@ describe("the matcher finds what the site is searched for", () => {
     expect(searchEntries(index, "a")).toEqual([]);
     expect(searchEntries(index, " ")).toEqual([]);
   });
+});
+
+/* ── No app in this repo writes a keyboard model for a palette (§44, 2026-09-04) ──────────── */
+
+describe("a palette is the package's Command, in every app that has one", () => {
+  /* THE LAW IS OVER BOTH FILES, because there were two. The builder's ⌘K and this site's search
+     were each a `Dialog` holding a `TextField` and a list of rows, each with its own `active`
+     index and its own arrow and Enter branches — the same model written twice, in one repo, in
+     the component §44 exists to stop that. The builder's went first and got a law of its own in
+     `builder.test.tsx`; this one covers the pair, so the THIRD palette fails here rather than
+     being noticed in a screenshot.
+
+     BOTH HALVES, because either alone is satisfiable by the defect: importing the component
+     while keeping a private keyboard model is what ships when someone "migrates" a palette, and
+     a file with no arrow keys in it might simply have no palette. Comments are stripped first —
+     this repo's laws have twice fired on their own explaining prose. */
+  const FILES = ["docs-search.tsx", "../builder/command-palette.tsx"];
+  const code = (src: string) =>
+    src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+
+  for (const file of FILES) {
+    it(`${file} uses Command and keeps no keyboard model of its own`, () => {
+      const body = code(readFileSync(new URL(`./${file}`, import.meta.url), "utf8"));
+      expect(body, "it does not use the package's palette").toMatch(/<CommandContent[\s>]/);
+      for (const own of ["ArrowDown", "ArrowUp", "scrollIntoView", 'key === "Enter"']) {
+        expect(body, `it still drives ${own} itself`).not.toContain(own);
+      }
+    });
+  }
 });

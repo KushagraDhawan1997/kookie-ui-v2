@@ -131,12 +131,30 @@ describe("every exported component has a reference entry", () => {
 describe("an entry that says nothing is worse than no entry", () => {
   // Coverage laws rot into box-ticking: the cheapest way to satisfy the law above is an entry
   // with an empty blurb and no refusals. These make that route fail instead.
-  it("every blurb is a real sentence, not a placeholder", () => {
+  it("every abstract is ONE real sentence, and every overview is real prose", () => {
+    // The abstract is the page's deck, the search index's first words and the builder
+    // inspector's header. One sentence is the whole register the 2026-09-05 rewrite is about,
+    // so it is held rather than encouraged: a four-sentence abstract is the old `blurb` back.
     for (const entry of ENTRIES) {
+      const abstract = entry.abstract.trimEnd();
+      // THE FLOOR IS LOW ON PURPOSE, and the one-sentence rule below is the real guard.
+      // "Text sets body copy." is twenty characters and is exactly the right abstract; a floor
+      // set where a placeholder would fail was failing the shortest true sentence in the set.
+      expect(abstract.length, `${entry.slug}: an abstract too short to say anything`).toBeGreaterThan(
+        18,
+      );
+      expect(abstract.endsWith("."), `${entry.slug}: an abstract with no full stop`).toBe(true);
       expect(
-        entry.blurb.length,
-        `${entry.slug}: a blurb too short to be saying anything`,
-      ).toBeGreaterThan(80);
+        abstract.slice(0, -1),
+        `${entry.slug}: an abstract of more than one sentence`,
+      ).not.toMatch(/[.?!]\s/);
+      expect(entry.overview.length, `${entry.slug}: no overview`).toBeGreaterThan(0);
+      for (const paragraph of entry.overview) {
+        expect(
+          paragraph.length,
+          `${entry.slug}: an overview paragraph that says nothing`,
+        ).toBeGreaterThan(40);
+      }
     }
   });
 
@@ -165,16 +183,26 @@ describe("an entry that says nothing is worse than no entry", () => {
     }
   });
 
-  it("every axis note explains what the axis resolves to HERE", () => {
-    // The registry's axis notes are the meaning half of the reference — the generated API
-    // table already carries names and types. A note that repeats the values is a row that
-    // could have been generated, which is the one thing a hand-written table must not be.
+  /**
+   * `axes` IS DELETED (2026-09-05), and this is what stands where its law did.
+   *
+   * The field held a hand-written note per axis, and the comment above the old law claimed the
+   * notes were "the meaning half — the generated table already carries names and types". They
+   * were not: measured across the registry, 109 of 135 axes were also props of the component or
+   * one of its parts, and the two texts were the same sentence twice — Button's `size` read "an
+   * index into the height scale, not a measurement" beside a generated "An index into the
+   * control family, never a measurement". One fact, two homes, and the hand-written one is the
+   * one that can go stale.
+   *
+   * What the notes carried and the table does not is the VALUE LIST: the type column prints
+   * `Size`, not `1 | 2 | 3 | 4`. That is one gap in the generator rather than 135 paragraphs,
+   * and it is recorded rather than papered over.
+   */
+  it("no entry carries an axis note any more", () => {
     for (const entry of ENTRIES) {
-      for (const axis of entry.axes) {
-        expect(axis.note.length, `${entry.slug}: axis "${axis.name}" has no note`).toBeGreaterThan(
-          20,
-        );
-      }
+      expect("axes" in entry, `${entry.slug} still states axes; the props table is their home`).toBe(
+        false,
+      );
     }
   });
 });
@@ -248,8 +276,8 @@ describe("a claim about the code is checked against the code", () => {
 
   /** Every sentence the reference publishes, as one corpus. */
   const prose = ENTRIES.flatMap((e) => [
-    e.blurb,
-    ...e.axes.map((a) => a.note),
+    e.abstract,
+    ...e.overview,
     ...e.refusals.flatMap((r) => [r.name, r.why]),
     ...(e.parts ?? []).map((part) => part.blurb),
   ]).join("\n");
@@ -296,7 +324,7 @@ describe("a claim about the code is checked against the code", () => {
     const source = pkg("components/segmented-control/segmented-control.tsx");
     expect(source).toContain("kui-segment-thumb");
     const entry = ENTRIES.find((e) => e.slug === "segmented-control")!;
-    expect(entry.blurb).toMatch(/slides/);
+    expect(entry.overview.join(" ")).toMatch(/slides/);
     for (const refusal of entry.refusals) {
       expect(
         `${refusal.name} ${refusal.why}`,
@@ -330,5 +358,100 @@ describe("every entry has a live specimen, and every specimen belongs to an entr
   it("every example", () => {
     const known = new Set(slugs);
     expect(Object.keys(EXAMPLES).filter((name) => !known.has(name))).toEqual([]);
+  });
+});
+
+/**
+ * A PAGE'S INDEX MUST INDEX WHAT IT CLAIMS TO (2026-09-04, widened 2026-09-05).
+ *
+ * A compound component renders its symbols grouped by job, and the grouping is hand-written.
+ * An index that has drifted from the thing it indexes is worse than no index: a part left out
+ * of every group renders on no page at all, and a symbol named in a group that is not a part
+ * renders a heading with an empty sentence under it. Both are silent, and both are one
+ * forgotten line away at all times.
+ *
+ * The pairing with `declaration` is held too, because the two are one decision: a component
+ * with parts has a shape to show AND a grouping to make, and one without has neither.
+ */
+describe("a compound component's topics index every symbol it has, exactly once", () => {
+  const compound = ENTRIES.filter((entry) => entry.topics);
+
+  it("the components with parts are the components with topics and a declaration", () => {
+    // The vacuity guard and the pairing at once. Every check below loops over `compound`, so a
+    // registry that lost the field would pass them all by having nothing to check.
+    expect(compound.length).toBeGreaterThan(5);
+    for (const entry of ENTRIES) {
+      const hasParts = Boolean(entry.parts?.length);
+      expect(Boolean(entry.topics), `${entry.slug}: topics and parts disagree`).toBe(hasParts);
+      expect(
+        Boolean(entry.declaration),
+        `${entry.slug}: a declaration shows a composition, so it pairs with having parts`,
+      ).toBe(hasParts);
+    }
+  });
+
+  it("every symbol named in a topic is the component or one of its parts", () => {
+    for (const entry of compound) {
+      const known = new Set([entry.name, ...(entry.parts ?? []).map((part) => part.part)]);
+      for (const topic of entry.topics!) {
+        for (const symbol of topic.symbols) {
+          expect(
+            known.has(symbol),
+            `${entry.slug}: topic names "${symbol}", which is not a symbol`,
+          ).toBe(true);
+        }
+      }
+    }
+  });
+
+  it("every part appears in exactly one topic, and so does the component itself", () => {
+    for (const entry of compound) {
+      const listed = entry.topics!.flatMap((topic) => topic.symbols);
+      const expected = [entry.name, ...(entry.parts ?? []).map((part) => part.part)];
+      expect(
+        [...listed].sort(),
+        `${entry.slug}: the topics do not cover its symbols exactly once`,
+      ).toEqual([...expected].sort());
+    }
+  });
+
+  it("a declaration shows the component it declares", () => {
+    for (const entry of compound) {
+      expect(
+        entry.declaration,
+        `${entry.slug}: a declaration that does not name the component`,
+      ).toContain(`<${entry.name}`);
+    }
+  });
+});
+
+describe("the reference page's headings carry the anchors its contents column points at", () => {
+  const source = readFileSync(join(here, "[slug]/page.tsx"), "utf8");
+
+  it("every heading it renders has an id", () => {
+    // The defect verbatim: `render={<h2 />}` beside a contents entry naming `#overview`.
+    const headings = source.match(/render=\{<h[2-6][^>]*\/>\}/g) ?? [];
+    expect(headings.length, "no headings found; this walk has gone stale").toBeGreaterThan(2);
+    for (const heading of headings) {
+      expect(heading, "a heading with no anchor for the contents column to land on").toContain(
+        "id=",
+      );
+    }
+  });
+
+  it("no section states its title as a literal", () => {
+    // A literal is a title the contents list cannot see. `SECTIONS` is the one home, and both
+    // the heading and the entry turn it into an anchor with the same `slugify`.
+    expect(source, "a section title written as a literal").not.toMatch(/<Section\s+title="/);
+    expect(source.match(/<Section\b/g)?.length ?? 0).toBe(
+      (source.match(/^\s+\w+: "/gm) ?? []).length,
+    );
+  });
+
+  it("both sides turn a title into an anchor with the same function", () => {
+    // If either side ever spells its own slug, the two can disagree silently — which is the
+    // failure that shipped. `slug.ts` states why it is a module rather than two inlined lines.
+    expect(source).toContain('import { slugify } from "../../slug"');
+    expect(source, "a heading anchor spelled by hand").not.toMatch(/id=\{[^}]*replace\(/);
   });
 });

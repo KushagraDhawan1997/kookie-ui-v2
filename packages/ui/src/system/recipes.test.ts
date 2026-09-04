@@ -17,7 +17,7 @@ import { GLASS_MATERIALS, RUNGS, SLOT_NAMES } from "./axes.ts";
 import { DEPTHS, themeAxes } from "../theme/theme.tsx";
 
 import { tones } from "../tokens/color-config.ts";
-import { allStylesheets, block, from, raw, sheet, stripped, walkFiles } from "../test/stylesheets.ts";
+import { allStylesheets, block, componentSources, from, raw, sheet, stripped, walkFiles } from "../test/stylesheets.ts";
 
 const recipes = sheet("system/recipes.css");
 const button = sheet("components/button/button.css");
@@ -244,6 +244,32 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
     }
   });
 
+
+  it("every component that takes the four-step index resolves it through useSize (§4, 2026-09-05)", () => {
+    // The coverage law the Theme axis owes, and the one a browser test cannot make: mounting
+    // proves the components it MOUNTS answer the app's index, and the defect this guards is the
+    // twenty-ninth component quietly writing `size = "2"` in its destructure and answering
+    // nothing. It reads the SOURCE for that reason.
+    //
+    // Membership is the TYPE, never a list kept by hand: a component declaring `size?: Size` is
+    // on the four-step ladder by definition, and the type family (`size?: TypeSize`, nine steps)
+    // and the inert atoms are excluded by the same fact rather than by an exemption.
+    const files = componentSources();
+    const members = files.filter(({ src }) => /\bsize\?: Size;/.test(src));
+    expect(members.length, "no component declares the four-step index — the walk is mis-keyed").toBeGreaterThanOrEqual(25);
+    for (const { path, src } of members) {
+      expect(/\buseSize\(/.test(src), `${path} takes \`size?: Size\` and never calls useSize — the app's index cannot reach it`).toBe(true);
+      // …and it must not ALSO hold a literal rest, which is the shape the widening replaced:
+      // a destructuring default beats the hook and re-anchors the component in silence.
+      expect(/\bsize = "[1-4]"/.test(src), `${path} still carries a literal size default beside useSize`).toBe(false);
+    }
+    // The other direction, and it is the one that rots: a component on the TYPE scale must not
+    // start reading the four-step index. Nine steps and four cannot share a rest (§4).
+    for (const { path, src } of files) {
+      if (!/\bsize\?: TypeSize;/.test(src)) continue;
+      expect(/\buseSize\(/.test(src), `${path} is on the type scale and reads the four-step index`).toBe(false);
+    }
+  });
   it("every axis value the table offers is one the shipped CSS implements", () => {
     // The companion to theme.browser.test.tsx's narrowed law, and the half a MOUNT cannot
     // settle: `<Theme depth="lit">` stamps `data-depth="lit"` perfectly happily, because an
@@ -264,6 +290,10 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
       pointer: "data-pointer",
       depth: "data-depth",
       material: "data-material",
+      /* `size` stamps nothing on the Theme element — components stamp their own `data-size`,
+         the element-keyed rule material follows for the same reason. What this walk asks is
+         whether the shipped CSS implements the value at all, which the size joins do. */
+      size: "data-size",
     };
     const ABSENT = new Set(["appearance:inherit", "material:solid"]);
     // CODE, NOT PROSE (audit 2026-08-26). This read `raw()` where every other law in this file
@@ -891,6 +921,80 @@ describe("material on a control: backdrop defense, three environments (§10)", (
    `test/cascade.test.ts` reads the array through its `?raw` bindings and compares position by
    position, which subsumes this law in both directions. */
 
+/* ── A SCROLL CONTAINER IS NAMED, OR IT IS A DEFECT (2026-09-04) ─────────────────────────────
+   Kushagra, on a palette that had grown one: *"Even this scrollbar, that's wrong, we don't do
+   this pattern and I am TIRED of telling it again and again. SCROLL BLEEDS."* He is right that
+   it keeps happening, and the reason it keeps happening is that nothing stopped it — the rule
+   lived in prose (§3's bleed, Menu's 2026-08-17 adoption, `dialog.css`'s ring-clearance note)
+   and in three components that had each been repaired by hand after someone noticed.
+
+   THE SYSTEM'S ANSWER IS `ScrollArea`, and the reason is not taste. A raw `overflow: auto` opens
+   a native gutter INSIDE the pane's padding: it stands between the reader and the rows it is
+   scrolling, it clips ink at the padding box (which is how a focus ring came to be sliced in a
+   sheet), and the content ends at a hard line rather than passing under the pane's own inset. A
+   `ScrollArea` that is a direct child of a pane bleeds out to the walls and re-states the padding
+   inside its viewport, so the content keeps its inset and the overlay thumb rides the edge.
+
+   SO THIS IS AN ALLOWLIST, NOT A BAN. Four raw scrollers are legitimate and each is named with
+   the reason it is not a ScrollArea; a fifth fails here until someone writes down why. That is
+   the same shape as the box-shadow count and the animation-timing opt-outs, and it is the only
+   shape that answers "why does this keep coming back": a rule nothing reads is a rule that gets
+   re-broken by the next person who has not read it.
+
+   BOTH DIRECTIONS, because an allowlist that is only checked one way rots into a list of things
+   that used to be true: an entry naming a rule no stylesheet has any more is a stale exemption,
+   and it is exactly what would hide the next one. */
+describe("a raw scroll container is named, or it is a defect (§3, 2026-09-04)", () => {
+  const ALLOWED: Record<string, string> = {
+    // The one box in a dialog the reader must be able to reach the overflow of, and it PADS
+    // itself for the ring's reach (2026-08-21, "focus is being cut"). It cannot be a ScrollArea:
+    // it is the box the entry blurs, so the flight owns its geometry.
+    ".kui-dialog-viewport": "the viewport a sheet scrolls in — Base UI's own box",
+    ".kui-dialog-popup .kui-dialog-body": "the sheet's body, which bleeds and re-pads by hand",
+    ".kui-alert-viewport": "the alert's viewport, the dialog's own arrangement",
+    // §23: a select's panel scrolls ITSELF because the item-aligned placement is a scroll offset
+    // — the panel's position IS its scrollTop, so a viewport between them would break the
+    // placement. Recorded in select.css and in surfaces.css beside the rule it excepts.
+    ".kui-select-popup": "the item-aligned placement IS a scroll offset (§23)",
+    // §36: a table scrolls SIDEWAYS in its wrapper, which is the one axis an overlay thumb would
+    // sit on top of the last column of.
+    ".kui-table": "a table's horizontal overflow (§36)",
+    // §27: the pane's own last-resort scroll. An app that wants the real thing places a
+    // `ShellScroll`, which IS a ScrollArea, and the pane then clips instead — the rule two
+    // hundred lines down. This is the fallback for a pane whose content simply overran.
+    ".kui-shell-pane": "a shell pane's fallback scroll; ShellScroll is the ScrollArea (§27)",
+  };
+
+  it("every raw scroll container in the package is one of the named ones", () => {
+    const found = new Map<string, string>();
+    for (const file of allStylesheets()) {
+      const css = sheet(file);
+      // Rule bodies, so a selector is read with the declarations it actually carries.
+      for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+        const selector = m[1]!.trim().replace(/\s+/g, " ");
+        if (!/overflow(-[xy])?\s*:\s*(auto|scroll)/.test(m[2]!)) continue;
+        // The ScrollArea's own viewport is the mechanism, not a consumer of it.
+        if (selector.includes(".kui-scroll-viewport")) continue;
+        found.set(selector, file);
+      }
+    }
+    expect(found.size, "the walk found no scroll containers at all — it is reading nothing").toBeGreaterThan(0);
+
+    const unnamed = [...found].filter(([sel]) => !Object.keys(ALLOWED).some((a) => sel.includes(a)));
+    expect(
+      unnamed.map(([sel, file]) => `${file}: ${sel}`),
+      "a raw scroll container with no reason — the system's answer is <ScrollArea>, which bleeds to the pane's walls and re-pads inside its viewport",
+    ).toEqual([]);
+  });
+
+  it("and every named one still exists", () => {
+    const all = allStylesheets().map((f) => sheet(f)).join("\n");
+    for (const [selector, why] of Object.entries(ALLOWED)) {
+      expect(all, `${selector} is exempted for "${why}" and no stylesheet writes it`).toContain(selector);
+    }
+  });
+});
+
 describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => {
   it("states are declared as selectors, so no JS runs at interaction time", () => {
     for (const state of [":hover", ":active", ":focus-visible", "[data-disabled]"]) {
@@ -929,6 +1033,14 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
       // and paints the text cursor over it, and a <span> cannot take focus, so a press in
       // that band landed nowhere. One pointer-down commitment, no per-frame work.
       "components/text-area/text-area.tsx": ["onMouseDown"],
+      // The same contract, the same reason, a THIRD time (2026-09-04): the palette's filter
+      // field joined the field family the day the pane started padding, and the debt arrives
+      // with the membership — the wrapper carries the padding and the magnifier and paints the
+      // text cursor over both, and neither a <span> nor an icon can take focus, so a press in
+      // that band landed nowhere. One pointer-down commitment, no per-frame work. The third
+      // member is what would promote this into the shared layer if it were CSS; it is a handler
+      // on an element each component creates for itself, so it stays where the element is.
+      "components/command/command.tsx": ["onMouseDown"],
       // The floating layer's seam (§20/§22): the entry runner holds the page during the
       // opening frames and observes its own transitions — mount/flight machinery, the seam
       // the doctrine names, never per-frame pointer tracking. THE FLIGHT MEASUREMENT is the

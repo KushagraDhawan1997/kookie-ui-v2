@@ -968,7 +968,13 @@ export const API: Record<string, ApiEntry> = {
         "name": "filter",
         "type": "React.ComponentPropsWithoutRef<typeof Autocomplete.Root>[\"filter\"]",
         "optional": true,
-        "doc": "Base UI's matcher, if the app wants a different one. Left alone, it is Base UI's own."
+        "doc": "Base UI's matcher, if the app wants a different one. Left alone, it is Base UI's own; pass `null` to turn filtering off entirely, which is what an app narrowing its own array wants."
+      },
+      {
+        "name": "onQueryChange",
+        "type": "(query: string) => void",
+        "optional": true,
+        "doc": "What has been typed, as it is typed. READ-ONLY: the input stays Base UI's, because the keyboard model is the thing this component exists to own. It closes a hole §44 described and did not implement (2026-09-04). That section already said \"an app that wants none hands in an already-narrowed array\" — and narrowing needs the query, which nothing handed over, so the sentence named a path no call site could take. A ranked search is the case that forces it: `filter` is a boolean predicate, so it can neither ORDER results by relevance nor cap them, and a docs search that cannot rank is a docs search. §44's refusal of fuzzy reordering is not weakened by this and is worth restating: it is about a palette of COMMANDS, where the order is the table's own and muscle memory is most of what the thing is for. A search over prose has no order of its own to keep."
       },
       {
         "name": "style",
@@ -1038,6 +1044,12 @@ export const API: Record<string, ApiEntry> = {
         "type": "React.ReactNode",
         "optional": true,
         "doc": "Before the label: an icon, an avatar."
+      },
+      {
+        "name": "render",
+        "type": "RenderElement",
+        "optional": true,
+        "doc": "Render the row into the element it really is — your framework's link component, or an `<a href>` — for a palette of PLACES rather than of verbs. A search result is a place, and a row that navigates without being a link has no middle-click, no open-in-new-tab, no URL on the status bar and nothing for a screen reader to announce as a link. Opened 2026-09-04 for the docs site's own search, which is the second consumer of the argument `MenuItem` was opened on three days earlier — `BreadcrumbEllipsis` lists places by definition, and so does a search. The row stays ONE target, which is the whole reason this is a render escape rather than an anchor nested inside the row: a link inside would be a second target inside a target, and `trailing` already refuses that."
       },
       {
         "name": "tone",
@@ -1144,7 +1156,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "size",
         "type": "Size",
         "optional": true,
-        "doc": "The index, set once for the whole unit. It prices the pane's padding and corner, the step its own text is set at, AND the controls you compose into the row — a Button, a Select or a field under the text all take it through `ControlSizeContext` (§28), so a composer is sized as one thing. An explicit `size` on a control always wins, so nothing is ever re-sized behind a number somebody typed. The reach stops at the composer's own subtree: a Button beside it keeps the family's rest."
+        "doc": "The index, set once for the whole unit. It prices the pane's padding and corner, the step its own text is set at, AND the controls you compose into the row — a Button, a Select or a field under the text all take it through `SizeScopeContext` (§28), so a composer is sized as one thing. An explicit `size` on a control always wins, so nothing is ever re-sized behind a number somebody typed. The reach stops at the composer's own subtree: a Button beside it keeps the family's rest."
       }
     ]
   },
@@ -3654,6 +3666,12 @@ export const API: Record<string, ApiEntry> = {
         "type": "RenderElement",
         "optional": true,
         "doc": "Put the theme on an element you already have, rather than adding a wrapper. Never on `<body>` or `<html>`. Portals land at `document.body`, so a theme on the body contains its own portals: the stacking order inverts silently and an app z-index covers every popup. A development build warns you if you do."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "optional": true,
+        "doc": "The index every family on the 1-4 ladder rests at when the call site says nothing (§4). `size=\"3\"` is an app whose buttons are 40px and whose cards pad and corner one step wider; it is a rung rather than a measurement, which is what lets one number mean the same thing to a control, a card and a dialog at once. It is a DEFAULT, not a clamp. A stated `size` on any component wins, and a `Field` or a `Composer` — the two units a person sizes as one object — win over the theme for what they contain, because they are nearer. It does not reach type. `Text`, `Heading` and `Blockquote` read a scale nine steps long rather than four, so they can share neither this rest nor this range; rank them with the composition ladder (§15) and the emphasis roles. `Code`, `Kbd`, `Badge`, `Avatar` and `Chip` rest at nothing on purpose and take the line they sit in."
       },
       {
         "name": "style",

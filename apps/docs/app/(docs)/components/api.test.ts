@@ -24,8 +24,10 @@ import { describe, expect, it } from "vitest";
 
 import { API } from "./api.generated";
 import { propDescription } from "./prop-description";
+import { readPackageExports } from "../../package-exports";
 import { ENTRIES } from "./registry";
-import { generatedText, propsOfSource, resolvedPropNames } from "../../../scripts/generate-api";
+import { generatedText, propsOfSource } from "../../../scripts/generate-api";
+import { propSummary } from "./prop-description";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 
@@ -133,39 +135,47 @@ describe("the generated table and the written reference agree", () => {
     expect(rendered.match(/Your classes/g)?.length).toBe(1);
   });
 
-  it("no registry axis describes a prop the types do not have", () => {
-    // The `accentColor` failure, made structural. An axis note is prose and can say anything;
-    // an axis NAME is a claim about the API, so it is checked.
+  it("no declaration places a symbol the package does not export", () => {
+    // The `accentColor` failure, made structural — re-keyed 2026-09-05 when `axes` was deleted.
+    //
+    // It read every axis NAME as a claim about the API. The claim survives the field: a
+    // `declaration` is hand-written JSX naming parts, so a renamed part leaves a page printing
+    // a composition that does not compile, and nothing else in the suite reads those names.
     //
     // Against the CHECKER's answer, not the AST's, and the difference is the whole law. The
-    // generated table shows the props the package DECLARES, which is what a reader wants; a
-    // prop can still be perfectly real and absent from it, because it arrived from an
-    // imported type (`gap` on Flex, from Box's shared prop table) or from the platform
-    // (`rows` on a textarea). Checking the displayed list would have failed on eight true
-    // sentences — a law that is wrong about the general case while looking right on the one
-    // its author had in mind, which is the shape three audits in this repo have now named.
-    //
-    // A compound's axis may live on a PART, so parts count too: `size` on Tabs is priced by
-    // TabsList, and `backdrop` on Select by SelectTrigger. Axis names that are not bare
-    // identifiers ("tone (Action)", "gap / gapX / gapY") are skipped honestly — a law that
-    // demanded they parse would be asserting a naming convention rather than a fact.
-    const resolved = resolvedPropNames();
+    // generated table shows the props the package DECLARES; a symbol can be perfectly real and
+    // absent from it. Checking the displayed list would have failed on true sentences — a law
+    // that is wrong about the general case while looking right on the one its author had in
+    // mind, which is the shape three audits in this repo have now named.
+    // AGAINST THE PACKAGE'S EXPORTS, not the props map, and the difference is a real symbol.
+    // `resolvedPropNames()` is keyed on components that export a props TYPE, and three of
+    // Command's parts declare no props at all — so the first spelling reported `CommandEmpty`,
+    // which is exported, rendered and law-covered elsewhere, as "not an export". A law that
+    // reports a real thing as missing is worse than no law.
+    const exported = new Set(
+      readPackageExports(join(here, "../../../../../packages/ui/src/index.ts")),
+    );
 
-    // Vacuity guard, and it is not theoretical: the checker needs the package's tsconfig to
-    // resolve, and a program that fails to build returns an empty map — which would make
-    // every name below "not wrong" and this the most confident empty law in the repo.
-    expect(resolved.size).toBeGreaterThanOrEqual(20);
-    expect(resolved.get("Flex")?.has("gap")).toBe(true);
+    // Vacuity guard: the index is read as text, so a reformat that broke that parser would
+    // otherwise make every name below "not wrong" and this the most confident empty law here.
+    expect(exported.size).toBeGreaterThanOrEqual(50);
+    expect(exported.has("Button")).toBe(true);
+
+    const declared = ENTRIES.filter((entry) => entry.declaration);
+    expect(declared.length, "no declaration to check; this walk has gone stale").toBeGreaterThan(5);
 
     const wrong: string[] = [];
-    for (const entry of ENTRIES) {
-      const names = new Set(resolved.get(entry.name) ?? []);
-      for (const part of entry.parts ?? []) {
-        for (const name of resolved.get(part.part) ?? []) names.add(name);
-      }
-      for (const axis of entry.axes) {
-        if (!/^[a-z][A-Za-z]*$/.test(axis.name)) continue;
-        if (!names.has(axis.name)) wrong.push(`${entry.name}.${axis.name}`);
+    for (const entry of declared) {
+      const own = new Set([entry.name, ...(entry.parts ?? []).map((part) => part.part)]);
+      for (const match of entry.declaration!.matchAll(/<([A-Z][A-Za-z0-9]*)/g)) {
+        const symbol = match[1]!;
+        // A declaration may place a component from elsewhere in the library — `<Button>` inside
+        // a trigger's `render` — so the check is that the name is REAL, and that a name from
+        // this component's own family is one it actually has.
+        if (!exported.has(symbol)) wrong.push(`${entry.slug}: <${symbol}> is not an export`);
+        else if (symbol.startsWith(entry.name) && !own.has(symbol)) {
+          wrong.push(`${entry.slug}: <${symbol}> is not one of its parts`);
+        }
       }
     }
     expect(wrong).toEqual([]);
@@ -231,5 +241,55 @@ describe("the walk reads a type operator as the operator, not as its target", ()
     // React's own lib and this walk reads the package's source; saying nothing is the honest
     // answer, and it is the one that does not overstate the API.
     expect(propsOfSource(FIXTURE, "PickedNativeProps").element).toBeNull();
+  });
+});
+
+describe("a table cell takes a prop's first sentence, not its whole JSDoc", () => {
+  /**
+   * The split's two hazards, and both are real strings in this package: a period inside a code
+   * span (`DialogProps["defaultOpen"]`, a `§30.` citation) is not a sentence end, and a full
+   * stop followed by a lower-case word is an abbreviation rather than a boundary.
+   */
+  it("splits at the first real sentence end", () => {
+    expect(propSummary("Open state. A palette is almost always controlled.")).toBe("Open state.");
+    expect(propSummary("One sentence with no end")).toBe("One sentence with no end");
+    expect(propSummary("Ends here! And then more.")).toBe("Ends here!");
+  });
+
+  /**
+   * THIS FIXTURE IS THE LAW (2026-09-04). It read `§30. the rule` first — a lower-case word
+   * after the stop, which the capital guard below already rejects — so deleting the backtick
+   * tracking entirely left this check green. A law over a general case has to be built on an
+   * input where the general case and the special case give DIFFERENT answers.
+   *
+   * NO SHIPPED DOC EXERCISES IT TODAY: a scan of all 442 finds zero code spans holding a
+   * sentence-shaped break. The guard stays because the failure is silent — a sentence cut in
+   * half mid-identifier — and it is one `§30. The rule` away.
+   */
+  it("a period inside a code span is not a sentence end", () => {
+    expect(propSummary("See `§30. The rule` for this. Then more.")).toBe(
+      "See `§30. The rule` for this.",
+    );
+    expect(propSummary('Takes `A. B` values. Then more.')).toBe("Takes `A. B` values.");
+  });
+
+  it("a full stop before a lower-case word is not a sentence end", () => {
+    expect(propSummary("Set it, e.g. a row, and it stays. Then more.")).toBe(
+      "Set it, e.g. a row, and it stays.",
+    );
+  });
+
+  it("it actually shortens the package's own worst cells", () => {
+    // The vacuity guard, and the measurement that made the change: a summary that equalled the
+    // doc everywhere would pass every check above and change nothing on the page.
+    const docs = Object.values(API).flatMap((entry) => entry.props.map((prop) => prop.doc));
+    const long = docs.filter((doc) => doc.split(/\s+/).length > 40);
+    expect(long.length, "no long JSDoc left; this split has nothing to do").toBeGreaterThan(50);
+    for (const doc of long) {
+      expect(
+        propSummary(doc).split(/\s+/).length,
+        `a long doc came through whole: "${doc.slice(0, 60)}…"`,
+      ).toBeLessThan(doc.split(/\s+/).length);
+    }
   });
 });

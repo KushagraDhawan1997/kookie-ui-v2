@@ -50,7 +50,7 @@ export function buildSearchIndex(): SearchEntry[] {
       href: `/components/${entry.slug}`,
       // The refusals are in the haystack deliberately: "no margin prop" and "why can't I set
       // a shadow" are real searches, and the answer is a refusal rather than a feature.
-      haystack: `${entry.name} ${entry.blurb} ${entry.refusals.map((r) => r.name).join(" ")}`.toLowerCase(),
+      haystack: `${entry.name} ${entry.abstract} ${entry.overview.join(" ")} ${entry.refusals.map((r) => r.name).join(" ")}`.toLowerCase(),
     });
   }
 

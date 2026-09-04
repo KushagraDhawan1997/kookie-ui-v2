@@ -143,6 +143,7 @@ import {
   SearchIcon,
   SettingsIcon,
 } from "../icons";
+import { EmptyState } from "../../blocks/empty-state";
 import { BedSurface, PHOTO_BED, bed } from "./beds";
 import { ComponentPreviewBody } from "./component-preview";
 import { Demo, SIZES, SpecTable, cap } from "./pieces";
@@ -1168,9 +1169,12 @@ function CommandSection() {
   return (
     <Stack gap="6">
       {/* The claim to judge first: this is a Dialog. The corner, the scrim, the cast and the
-          entry are the overlay family's, and the palette adds an arrangement — a field flush at
-          the top of a pane whose padding it does not want, and rows that reach both walls so a
-          highlighted row reads as a band rather than as a chip floating in a card (§44). */}
+          entry are the overlay family's, and the palette adds an arrangement — a padded pane
+          holding two objects, a bounded field and a list of bands, with an interval between
+          them rather than a hairline (§44, reversed 2026-09-04). Judge the ends of a lit row
+          against the pane's corner: that relationship is what the edge-to-edge version could
+          not get right. Then empty the field — the empty region takes whatever the app puts in
+          it, and what an app should put in it is an empty state, not a sentence in a strip. */}
       <Command items={PALETTE}>
         <CommandTrigger render={<Button emphasis="medium">Open command palette</Button>} />
         <CommandContent aria-label="Command palette">
@@ -1193,7 +1197,12 @@ function CommandSection() {
               </CommandGroup>
             )}
           </CommandList>
-          <CommandEmpty>No commands match that.</CommandEmpty>
+          <CommandEmpty>
+            <EmptyState
+              title="No commands match"
+              description="Try a shorter word, or check what you typed."
+            />
+          </CommandEmpty>
         </CommandContent>
       </Command>
 

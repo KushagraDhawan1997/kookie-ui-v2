@@ -1,50 +1,56 @@
 "use client";
 
 /**
- * Search, composed out of the package (2026-08-21).
+ * Search (2026-08-21) — the package's `Command` since 2026-09-04.
  *
- * A `Dialog` holding a `TextField` and a list of rows — which is the ordinary way to build a
- * command palette and, more usefully here, a real consumer of the floating family. The docs
- * site being made of the system is not a slogan: this is the piece that would have caught a
- * broken focus trap or a portal that did not re-theme.
+ * It was the SECOND palette assembled by hand in this repo: a `Dialog` holding a `TextField`
+ * and a list of `Row`s, with its own `active` index and its own arrow/Enter branches. The
+ * builder's ⌘K went first, and this one is the same deletion — DECISIONS §44's whole claim is
+ * that the keyboard model belongs to the package and no app should write it twice, and writing
+ * it twice is exactly what this repo was doing.
  *
- * The rows are `Row`s and not `MenuItem`s, and that is the taxonomy speaking. A menu row is a
- * member of a `Menu` — it needs that context for its roving focus and its `role="menuitem"` —
- * and a list of search results in a dialog is not a menu. §21's row family is the right shape,
- * and `Row` is the member of it that lives outside Menu and Shell.
+ * THREE THINGS ARE THIS APP'S AND STAYED. **The ranking**, which is why `filter` is `null` here
+ * rather than a matcher passed through: `searchEntries` scores an exact title over a prefix over
+ * a substring over the haystack, and caps at twelve. A boolean predicate can do neither, so the
+ * app narrows its own array and hands it in — the path §44 described and could not offer until
+ * `onQueryChange` existed. §44's refusal of fuzzy reordering is untouched and is about something
+ * else: a palette of COMMANDS keeps the table's order because muscle memory is most of what it
+ * is for, and prose has no order of its own to keep. **The rows are links**, which is what
+ * `render` on `CommandItem` was opened for the same day — a result is a place, and a row that
+ * navigates without being an anchor has no middle-click, no open-in-new-tab, no URL on the
+ * status bar and nothing announced as a link. **And ⌘K is bound here**, because which chord
+ * opens a palette is the app's decision (§44 refuses to own it) and Chrome's own ⌘K takes the
+ * address bar unless the default is prevented.
  *
- * This file used to say so and then render full-width quiet Buttons, because that member did
- * not exist yet. The three things that came back with it: the row's own box (line plus inset,
- * not the button height ladder), the family's lit fill instead of a borrowed emphasis rung, and
- * the two-cursors rule stated rather than hoped for — `highlighted` is what drives these rows,
- * so the pointer stops painting and a mouse resting over row three cannot argue with a keyboard
- * that has moved to row five.
+ * WHAT WENT, and neither is a loss. The title and the description paragraph: §44 refuses a title
+ * because the field is the affordance, and the description was definitional — it explained what
+ * the index covers to someone who had not yet typed. What it had to say is said where it is
+ * decision-relevant, in the empty state, at the moment a search has come back with nothing.
  */
 import * as React from "react";
 import Link from "next/link";
 import {
   Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
+  Command,
+  CommandContent,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList,
   Flex,
-  Stack,
-  Row,
   Text,
-  TextField,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@kookie-ui/react";
 
+import { EmptyState } from "../../blocks/empty-state";
 import { SearchIcon } from "../icons";
 import { searchEntries, type SearchEntry } from "./search";
 
 export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
-  const [active, setActive] = React.useState(0);
 
   const results = React.useMemo(() => searchEntries(index, query), [index, query]);
 
@@ -61,30 +67,12 @@ export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
     return () => document.removeEventListener("keydown", onKey);
   }, []);
 
-  // The active row resets whenever the result SET changes, not on every render: leaving it
-  // where it was means a keystroke that shortens the list can point past the end of it.
-  React.useEffect(() => setActive(0), [query]);
-
-  /**
-   * The rows are real anchors, so Enter CLICKS one rather than pushing a route.
-   *
-   * The first spelling called `useRouter().push`, which made every result a button that
-   * happens to navigate: no middle-click, no open-in-new-tab, nothing on the status bar, and
-   * nothing for a screen reader to announce as a link. That is the system's own rule — a link
-   * is a link — broken in the one component whose entire job is going somewhere. It also broke
-   * a law: `shell.test.tsx` renders this chrome with `renderToStaticMarkup`, where there is no
-   * router context, so the hook threw (found 2026-08-21 by an agent reading the suite).
-   *
-   * Both fixes are the same fix, which is usually the sign the semantics were the problem.
-   */
-  const rows = React.useRef<(HTMLAnchorElement | null)[]>([]);
-
   return (
     <>
       {/* An icon button, not a fake input (2026-08-28, Kushagra: "this isn't a real search,
           might as well use an icon button"). The full-width bar dressed a BUTTON as a text
           field — a promise this component never keeps, since typing never happens here, only
-          in the Dialog it opens — and it cost a whole row beside the wordmark for one glyph's
+          in the panel it opens — and it cost a whole row beside the wordmark for one glyph's
           worth of actual affordance. `⌘K` moves into the tooltip, the one place a shortcut
           hint belongs on a control that already states its name. */}
       <Tooltip>
@@ -107,80 +95,56 @@ export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
         <TooltipContent>Search (⌘K)</TooltipContent>
       </Tooltip>
 
-      <Dialog size="3" open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <Stack gap="4">
-            <Stack gap="2">
-              <DialogTitle>Search</DialogTitle>
-              <DialogDescription>
-                Search chapters, sections and components. The index also holds the refusals,
-                so a search for a prop the system does not have finds the page that explains it.
-              </DialogDescription>
-            </Stack>
+      {/* SIZE 3, and it is the APP's now rather than this call site's (2026-09-05): the docs
+          root states `size="3"` once, which is the width the dialog this replaced already had —
+          a result is a title plus the section it sits in, and at the 440px of size 2 that pair
+          wraps onto two lines for most of the index. The number did not change; the number of
+          places stating it did. */}
+      <Command items={results} open={open} onOpenChange={setOpen}>
+        <CommandContent
+          aria-label="Search the documentation"
+          /* The app has already narrowed AND ranked, so Base UI must not narrow again — a
+             second pass over a scored list can only lose the score. */
+          filter={null}
+          onQueryChange={setQuery}
+        >
+          <CommandInput
+            aria-label="Search query"
+            placeholder="Type to search"
+            leading={<SearchIcon />}
+          />
+          <CommandList>
+            {(entry: SearchEntry) => (
+              <CommandItem key={entry.href} value={entry} render={<Link href={entry.href} />}>
+                <Flex align="baseline" gap="3" wrap="wrap">
+                  <Text size="2" weight="medium">
+                    {entry.title}
+                  </Text>
+                  <Text size="2" emphasis="quiet">
+                    {entry.context}
+                  </Text>
+                </Flex>
+              </CommandItem>
+            )}
+          </CommandList>
+          {/* What the description used to say, said where it is decision-relevant: a reader who
+              has typed and got nothing is the one who needs to know what the index covers.
 
-            <TextField
-              autoFocus
-              size="3"
-              value={query}
-              placeholder="Type to search"
-              aria-label="Search query"
-              leading={<SearchIcon />}
-              onChange={(event) => setQuery(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "ArrowDown") {
-                  event.preventDefault();
-                  setActive((i) => Math.min(i + 1, results.length - 1));
-                } else if (event.key === "ArrowUp") {
-                  event.preventDefault();
-                  setActive((i) => Math.max(i - 1, 0));
-                } else if (event.key === "Enter") {
-                  event.preventDefault();
-                  rows.current[active]?.click();
-                }
-              }}
+              AND ONLY THEN. The index refuses a query under two characters, so an untouched
+              field has no results by construction and the panel opened saying "Nothing matches"
+              before anyone had typed anything — an answer to a question nobody asked, and the
+              first thing you saw. The gate is the app's because the minimum is: `searchEntries`
+              is what decides that one character is not a search. */}
+          {query.trim().length >= 2 ? (
+          <CommandEmpty>
+            <EmptyState
+              title="Nothing matches"
+              description="The index covers titles, section headings, component descriptions and the refusals — not the text of every paragraph."
             />
-
-            {query.trim().length >= 2 && results.length === 0 ? (
-              <Text size="2" emphasis="medium">
-                Nothing matches “{query}”. The index covers titles, section headings and
-                component descriptions. It does not cover the text of every paragraph.
-              </Text>
-            ) : null}
-
-            <Stack gap="1">
-              {results.map((entry, index) => (
-                <Row
-                  key={entry.href}
-                  size="2"
-                  highlighted={index === active}
-                  onMouseEnter={() => setActive(index)}
-                  onClick={() => {
-                    setOpen(false);
-                    setQuery("");
-                  }}
-                  render={
-                    <Link
-                      href={entry.href}
-                      ref={(node) => {
-                        rows.current[index] = node;
-                      }}
-                    />
-                  }
-                >
-                  <Flex align="baseline" gap="3" wrap="wrap">
-                    <Text size="2" weight="medium">
-                      {entry.title}
-                    </Text>
-                    <Text size="2" emphasis="quiet">
-                      {entry.context}
-                    </Text>
-                  </Flex>
-                </Row>
-              ))}
-            </Stack>
-          </Stack>
-        </DialogContent>
-      </Dialog>
+          </CommandEmpty>
+          ) : null}
+        </CommandContent>
+      </Command>
     </>
   );
 }

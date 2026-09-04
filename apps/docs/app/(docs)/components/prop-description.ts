@@ -25,3 +25,38 @@ export function propDescription(prop: ApiProp): string {
   if (!universal) return prop.doc;
   return prop.doc ? `${universal} ${prop.doc.replace(/^[^.]*\.\s*/, "")}` : universal;
 }
+
+/**
+ * A prop's FIRST SENTENCE — what a table cell says (2026-09-04, Kushagra: "the 'What it does'
+ * is too verbose isn't it").
+ *
+ * It is, and the cause is one string with two readers. A JSDoc is the editor hover, where four
+ * sentences about why an inline array re-runs the filter are exactly what a developer wants;
+ * a table is a scanning surface, where they are a wall. Measured across the package's 442
+ * documented props: 27 words median, 147 over forty, and `Button.done` at 260 words and
+ * fourteen sentences inside one cell.
+ *
+ * So the cell takes the abstract and the hover keeps the discussion — which is the same split
+ * the page already makes about itself one level up, and Apple's: a symbol list gives one line,
+ * the symbol's own page gives the rest.
+ *
+ * TWO THINGS THE SPLIT MUST NOT DO. A code span is not prose, so a period inside backticks —
+ * `DialogProps["defaultOpen"]`, a `§30.` citation — is not a sentence end; the scan tracks
+ * backticks and ignores everything between them. And a sentence ends before a CAPITAL or a
+ * backtick, so "e.g. a row" and "v1. the" do not split a sentence in half.
+ */
+export function propSummary(doc: string): string {
+  let inCode = false;
+  for (let i = 0; i < doc.length; i++) {
+    // `charAt` rather than an index: under `noUncheckedIndexedAccess` the index is
+    // `string | undefined`, and the undefined arm here would be a character that does not exist.
+    const ch = doc.charAt(i);
+    if (ch === "`") inCode = !inCode;
+    if (inCode) continue;
+    if (!".!?".includes(ch)) continue;
+    const rest = doc.slice(i + 1);
+    const match = /^\s+(?=[A-Z`])/.exec(rest);
+    if (match) return doc.slice(0, i + 1);
+  }
+  return doc;
+}
