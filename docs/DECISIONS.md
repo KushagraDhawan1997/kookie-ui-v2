@@ -2627,10 +2627,31 @@ stacking frame and the `onOpenChange` reason all arrive by membership, and this 
 no floating mechanism of its own. A mounted law reads the corner and the cast against a plain
 dialog at the same index in both appearances, so the membership is checked rather than claimed.
 
-**The forcing case was in the repo, which is the only reason this got built now.** The builder's
-⌘K (`apps/docs/app/builder/command-palette.tsx`) composed a palette by hand out of Dialog, Row,
-TextField and ScrollArea, and wrote its own keyboard model. §11 has carried a "Command item" row
-since the defaults table.
+**The forcing case was in the repo, which is the only reason this got built now** — and it
+ADOPTED the component on 2026-09-04, which is the only thing that proves the component was right.
+The builder's ⌘K (`apps/docs/app/builder/command-palette.tsx`) composed a palette by hand out of
+Dialog, Row, TextField and ScrollArea and wrote its own keyboard model: an `active` index, arrow
+branches, an Enter branch, a `scrollIntoView` to keep the highlight in view, and a reset on open.
+All of it is gone — ninety lines — and what stayed is what was always the app's: WHICH rows exist
+(`armed` is a question about the editor's state and the mode gate is a question about preview,
+neither of which is text matching), the matcher, and the deferred run that keeps a command opening
+a second dialog from being dismissed by this one's teardown. A law in `builder.test.tsx` holds both
+halves, because either alone is satisfiable by the defect: the file must use `CommandContent`, and
+it must contain no arrow-key, `scrollIntoView` or Enter branch of its own. §11 has carried a
+"Command item" row since the defaults table.
+
+**The adoption found two things the package owed and one it did not.** Two of §44's own claims had
+no law, and the builder now depends on both, so they are laws: **Enter runs the highlighted row**
+(the shipped law read `data-highlighted` on the first frame, which is a highlight nothing activates
+— one indirection short of the thing that could be wrong, again), and **a stated `filter` is handed
+the ITEMS rather than the groups** (the shipped law passed `() => false`, which proves the matcher
+is consulted and nothing about what it is consulted with — and an app's matcher is its own by
+design, so the shape it receives is part of the contract). A third reads that the field holds focus
+on open, and it is recorded as a guard on BORROWED behaviour: the focus is Base UI's dialog trap
+and there is no line here to sabotage. What the package did NOT owe is the query: the builder used
+to quote it back in its empty sentence, and reaching it now would mean controlling Base UI's input
+from outside the panel, which is the machine this component exists to keep apps out of. The
+sentence says what to do next instead.
 
 **The machine is the package's, the list is the app's** — Tree's sentence (§33) one component
 over. What a palette owes, and what an app must not write twice, is the keyboard model: a row
@@ -2641,9 +2662,28 @@ own command-palette shape (`open inline autoHighlight="always" keepHighlight`). 
 what they mean and what they do stays the app's.
 
 **Filtering is Base UI's and this package invents no matching policy.** `items` in, matching
-rows out; `filter` passes a different matcher through; an app that wants none hands in an
-already-narrowed array. What IS refused is fuzzy reordering as you type — rows keep the order
-they were written in, because muscle memory is most of what a palette is for.
+rows out; `filter` passes a different matcher through (or `null` to stand it down); an app that
+wants none hands in an already-narrowed array. What IS refused is fuzzy reordering as you type —
+rows keep the order they were written in, because muscle memory is most of what a palette is for.
+
+**That last path was described and not implemented until 2026-09-04.** Narrowing your own array
+needs the query, and nothing handed it over, so the sentence named something no call site could
+do. `onQueryChange` reports what has been typed and is READ-ONLY — the input stays Base UI's,
+because the keyboard model is the thing this component exists to own. The forcing case is the
+docs site's own search: `filter` is a boolean predicate, so it can neither ORDER results by
+relevance nor cap them, and a search over prose that cannot rank is not a search. **The
+fuzzy-reordering refusal is untouched and is about something else** — a palette of COMMANDS keeps
+the table's order because muscle memory is most of what it is for; prose has no order of its own
+to keep.
+
+**`render` on `CommandItem`, opened the same day.** A palette of PLACES has to produce real
+anchors, or every result is a button that happens to navigate: no middle-click, no
+open-in-new-tab, no URL on the status bar, nothing announced as a link. It is `MenuItem`'s own
+2026-09-01 opening, on the identical argument, at its second consumer — and the row stays ONE
+target, which is why it is a render escape rather than an anchor nested inside the row. Measured
+rather than assumed: Base UI dispatches a NATIVE click on the item for Enter, so the escape buys
+the semantics without costing the keyboard, and the law reads that click rather than the React
+handler.
 
 **A row rides the height ladder and does NOT take the menu's notch.** The row family's
 2026-08-26 posture: a standing row stands level with the Button beside it, and only a FLOATING
@@ -2659,33 +2699,175 @@ props rather than a component, because each consumer hands them to a different B
 the identity is the fact they share. Menu's and Select's 176 laws needed no edit, which is the
 promotion proving it changed nothing.
 
-**The field is not a `TextField`.** A field's identity is a bounded box with a fill, an edge and
-a focus ring, and drawing one at the top of a panel that is already the only focused thing puts
-a box inside a box — Composer's reasoning for a bare `<textarea>`, reaching the same conclusion.
-The line states the platform facts a field would have stated for it and stands at the control
-ladder's height for its index — **which it did not do for a day (audit 2026-09-02)**: its height,
-its font and the captions' inset were pinned at index 2, so three of the four sizes moved the
-panel and left its contents where they were, and every size-bearing law ran at the one index
-where the pin is invisible. A command size join in the shared layer publishes the cells now
-(`--kui-cmd-h/-font/-px`), because a component sheet may not name `data-size`. The captions were
-wrong twice over: the expression also ADDED `--kui-sf-p` to the row's inset, and the palette's
-pane pads nothing, so every caption sat a full surface inset right of the rows it named while
-the comment above it claimed they lined up.
+**~~The field is not a `TextField`~~ — and ~~the pane's padding goes~~. Both are REVERSED
+2026-09-04 (Kushagra: "no padding all around… for search, that should also look like a text
+field, again with padding around, and no separator"), and they were one decision wearing two
+names.** The palette shipped edge-to-edge — `padding: 0` on the pane, a bare line across the top
+under a hairline — so that a lit row would read as a band from wall to wall rather than as a chip
+floating in a card. That argument does not survive the panel it was made about: `--radius-overlay-2`
+is 40px, and a row is a rectangle, so the first and last bands in the list were being eaten by the
+pane's own corner. **A pane that pads is what gives a band two ends.** The rest followed from it
+rather than being separate taste calls. The field is a FIELD now — a bounded box inside a padded
+pane is an object among objects, not a box inside a box — and it joins by MEMBERSHIP, wearing
+`kui-control kui-field` the way SelectTrigger does, so the well, the dress edge, the
+focus-as-a-mode ring and the state arms all arrive from the shared layer and `command.css` states
+none of them. What it still is not is a `TextField`: that component owns an `<input>` it creates,
+and the input here has to be Base UI's, which is the same two-elements-and-neither-can-move reason
+TextField refuses `render`. The hairline goes with it — two regions separated by a real interval
+do not also need a rule drawn between them — and the interval is what the rule used to say.
+`dialog.css` LOSES the sheet exception it grew on 2026-09-02 (`margin: 0; padding: 0` on a
+palette's body, needed only because the bleed cancels a padding this pane did not have), which is
+the shape a reversal should have: the carve-out deletes rather than being maintained. The command
+size join drops to ONE cell for the same reason — the field takes `--kui-ct-h` and `--kui-ct-font`
+from the control join by wearing `data-size` itself, so only `--kui-cmd-px` is left, the caption's
+inset, which is a question about a caption standing beside a row and not one the control join can
+answer. Five laws, four sabotage passes; the wall law reads the FIELD as well as the rows, because
+`.kui-control` is `inline-flex` and a law that only forbade reaching the wall would pass a field as
+wide as its own placeholder.
+
+The audit finding that the reversal did NOT undo, kept because it is what the join exists for
+(**2026-09-02**): the field's height, its font and the captions' inset were pinned at index 2, so
+three of the four sizes moved the panel and left its contents where they were, and every
+size-bearing law ran at the one index where the pin is invisible. The captions were wrong twice
+over — the expression also ADDED `--kui-sf-p` to the row's inset, and the palette's pane padded
+nothing then, so every caption sat a full surface inset right of the rows it named while the
+comment above it claimed they lined up.
 
 **And the field is NAMED.** `aria-label` is required on `CommandInput` by the type, exactly as
 it is on `CommandContent`: the palette's one interactive control is a `role="combobox"`, and it
 shipped nameless whenever the placeholder was omitted, while the panel nobody focuses required a
 name. A placeholder is not a name — it leaves the moment anyone types.
 
-**The pane's padding goes and the token stays**, and the ranks are why that is safe rather than
-lucky. `padding` is declared at (0,1,0) on `.kui-surface`, so `.kui-surface.kui-command` beats it
-from anywhere; the `--kui-sf-p` hook is declared by the overlay size join at (0,3,0), so a rule
-at this rank cannot zero it even by mistake, and every part reads it to sit on the vertical the
-pane's own padding would have used. `command.css` is imported AFTER `dialog.css` — a palette
-specialises a dialog, so its overrides must land after the dialog's, and `test/cascade.test.ts`
-compares the two import lists position by position.
+**`command.css` is imported AFTER `dialog.css`** — a palette specialises a dialog, so its
+overrides must land after the dialog's, and `test/cascade.test.ts` compares the two import lists
+position by position. What it overrides is now almost nothing: the pane's padding, its corner, its
+cast and its material are all the dialog's untouched, and the file states an interval and a
+caption's inset.
 
-10 mounted laws. Four sabotage passes, and **three of the first five survived**, which is the
+**The list scrolls in a `ScrollArea`, and the palette shipped for a day without one
+(2026-09-04, Kushagra: "Even this scrollbar, that's wrong, we don't do this pattern and I am
+TIRED of telling it again and again. SCROLL BLEEDS").** It held a raw `overflow-y: auto`, which
+opens a native gutter INSIDE the pane's padding: the bar stands between the reader and the rows it
+is scrolling, and the content ends at a hard line a few pixels short of a 40px corner instead of
+passing under the pane's own inset. The repair is not this component's — it is §3's bleed rule from
+2026-08-20, which Menu adopted on 2026-08-17 and which this should have arrived with: a ScrollArea
+that is a direct child of a pane bleeds out to the walls and re-states the padding inside its
+viewport, so the rows keep their inset and the overlay thumb rides the edge. Measured: the scroller
+spans the pane's full inner width, the rows sit one inset in, and the list computes
+`overflow-y: visible`.
+
+**Two more cuts came out of the same look, and both are the same rule.** The scroller had no
+BLOCK-end bleed, because the surface layer decides that by asking whether it is the pane's last
+in-flow child and `Autocomplete.Root` renders a visually-hidden `<input>` after everything — one
+pixel tall, `display: block`, with no attribute that tells it apart from a caller's content. So
+the list ended at a hard line one inset short of the wall with dead pane below it. The arithmetic
+is restated in `command.css` for the one pane that has machinery in its body (`menu.css`'s own
+shape), because the alternatives are worse: marking Base UI's input is not ours to do, and "skip
+elements that render nothing" cannot be written about an element that renders a box. And the
+first row's focus ring was sliced along its top, because a scroll container clips at its PADDING
+box and the shared rule only re-states padding on the sides the scroller actually bled — this one
+has the field above it, so it had no block-start padding at all. **A clipping box must pad at least
+the ring's reach** is now on its third consumer (the menu's panel 2026-08-09, a sheet's body
+2026-08-21), stated as the ring's own tokens rather than as a number. Both are law-read off painted
+boxes, and the block-end law needed its own overflowing fixture: five rows do not overflow, so a
+short palette is legitimately shorter than its cap and the law above it would have passed on a
+list that cuts.
+
+**The content passes BEHIND the field, and the field is a PANE (2026-09-04, Kushagra: "the
+content should scroll behind, and the field has no backdrop").** The panel is ONE scrolling region
+— the scroller wraps the whole thing rather than the list — and the field is `position: sticky`
+inside it at the pane's own inset, which is also its resting position, so it never moves and what
+changes as you scroll is only what is behind it. A scroller around the list alone cannot do this:
+the field is then a lid the rows stop under, which looks like a bleed at the bottom and is not one
+at the top.
+
+**And it takes the theme's material, which required resetting the glass scope.** §10's test for
+whether a material is expressed is whether something passes behind, and this field is the only
+element in the panel that passes it. Inside the palette's own glass pane a member resolves
+`on-glass` — its solid dress at the PANE's alpha, filtering nothing — so the rows read straight
+through it while they move. `CommandContent` wraps its children in a `GlassScope` reset, which is
+the 2026-08-19 rule that **a solid surface HOSTS glass**: an explicit backdrop inside a pane
+resolves the theme's material rather than the on-glass state. The rows never ask for one, so they
+stay solid and pay nothing. Measured under `material="regular"`: the field paints the theme's
+filter and states the same `data-material` a `Card backdrop` does. **This was built, wrongly
+reverted on my own judgment when it looked transparent, and put back** — the transparency was the
+`on-glass` resolution, which is a mechanism to fix rather than a reason to delete the behaviour.
+
+**The offset and the resting position are ONE number, which is what makes the field motionless
+(2026-09-04, Kushagra: "its too low… position the search near the top like literally everything
+else").** A sticky element moves whenever those two differ, and they did: the shared surface rule
+pads a viewport that is a pane's first child, so the field rested at that inset while the offset
+pinned it at another — a second inset low, with the first row coming out level with it. The
+viewport pads nothing above for this pane, the field carries the inset as its own margin, and the
+offset reads that same margin, so resting and pinned are the same place by construction and the
+rows bleed to the pane's wall above it. The shared rule is right everywhere except a pane whose
+first child PINS, which is why the override is stated at (0,4,0) rather than hoped for.
+
+**And the scroller FADES.** Content that bleeds still has to end somewhere, and ending at the
+pane's own hard edge is the thing that reads as sliced. `ScrollArea`'s `fade` masks the CONTENT
+toward whichever edge has more behind it and lets the pane paint through, so no colour exists to be
+wrong on glass, on a ground or over a photograph, and it costs no JS.
+
+Both halves are law-read, and both laws are about the thing that is easy to fake. The material law
+reads the FILTER (an on-glass field has none) against a `Card backdrop` twin under the same theme.
+The behind law reads an OVERLAP and a hit test — a row's painted box has to reach into the field's
+box, and the point where they meet has to belong to the field — because a law that only measured
+the field's position would pass a lid.
+
+**What it earned is a law, because the anger is about repetition rather than about this palette.**
+The rule lived in prose in four places and in three components that had each been repaired by hand
+after someone noticed, and nothing in the suite read it. `recipes.test.ts` now walks every shipped
+stylesheet for a rule declaring `overflow: auto | scroll` and holds the set against a NAMED
+allowlist — six raw scrollers, each with the reason it is not a ScrollArea (a dialog's and an
+alert's viewport, a sheet's body, a select's popup where the item-aligned placement IS a scroll
+offset, a table's sideways overflow, and a shell pane's fallback). A seventh fails until someone
+writes down why, and the law is checked in BOTH directions so an entry naming a rule no stylesheet
+has any more is a stale exemption rather than cover for the next one.
+
+**And the empty region is not a caption.** It shared the group label's four pixels of breath, which
+is right for a caption bound to the rows under it and wrong for the thing standing where the whole
+list would have been (2026-09-04, Kushagra: "space above nothing matches is too les"). Its own rule
+now, at the surface rhythm, law-read as a ranking against a real caption at the same index — and
+the first two spellings of that law were caught by their own sabotage runs, one comparing against a
+row (which a caption already beats) and one comparing painted child positions (which are not
+comparable: a caption holds a `Text` span, the empty region holds a block that fills it).
+
+**And it takes no room while the list has rows (2026-09-04).** `Autocomplete.Empty` renders its
+element on every state — it is an `aria-live` region, so it must exist before the message arrives
+or the message is never announced — and the breath above was landing on every populated list as
+48px of dead pane under the last row, on every surface using the component. The padding stands down
+on `:empty` rather than `display: none`, which would take the live region out of the accessibility
+tree and the announcement with it. Law-read as the painted height, with the display asserted beside
+it so the cheap fix fails.
+
+**`CommandEmpty` PLACES and does not dress (2026-09-04, Kushagra: "no empty state block being
+used when no results found").** It put its children inside a `Text`, so the only thing that could
+go in it was a sentence: a real empty state — a mark, a title, a line of explanation, a way out —
+came back with its heading rendered as body copy at the caption's step. §44 already said the words
+are the app's, in the app's language; an empty REGION is the same claim about the arrangement, and
+a part that dresses what it is handed cannot make it. A sentence now goes in as a `Text` and a full
+empty state goes in whole — `/preview` renders the docs' own `EmptyState` block there, which is
+what the complaint was actually about. Whether that block moves out of `apps/docs/blocks/` and into
+the package is a separate question and is NOT answered here: nothing about this component forces it,
+because a slot takes whatever the app composes.
+
+19 mounted law blocks — 13 when it shipped, plus the six the 2026-09-04 reversal added, two of
+which replace laws that had been asserting the old arrangement (a pane that pads nothing, a field
+that draws no box: the defect stated as a guarantee, which is the shape this repo keeps finding).
+Five sabotage passes on the reversal, each caught by exactly the laws written for it. Three of the
+six are deliberately not redundant with each other, and the sabotage run is what says so: putting
+`padding: 0` back fails the padding law and the CORNER law and not the wall law, because the wall
+law is relative to whatever the pane's inset is and exists to catch a padded pane whose list bleeds
+back out to the edges. The sixth drives a real 390px viewport, because the deleted `dialog.css`
+carve-out lives inside the sheet media query and the browser suite's viewport is pinned wide — a
+deletion nothing in the suite could see, which is the same class of hole as a law that never runs. **The corner law is the one that reads the defect itself** — the bug was
+never "the padding was zero", it was a rectangle drawn into a box with a 40px corner, so it probes
+the last band's outer corners with `elementFromPoint` and asks the browser whether the pane still
+covers them, rather than rebuilding two tokens and a square root and agreeing with its own author.
+Its first spelling probed into the row's OWN capsule corner and came back holding the list, which
+is the fixture lesson again: the probe has to be inside the thing it is a probe about.
+
+From the day it shipped: four sabotage passes, and **three of the first five survived**, which is the
 record worth keeping: the padding law read only `padding-top`, so `padding-block: 0` satisfied
 it; the zoom-floor law could only read the cell where the floor is a no-op (the handheld band
 already raises step 3 past 16), so it was DELETED rather than kept green — a law about the
@@ -2694,9 +2876,27 @@ own comment claimed, because the overlay join outranks this file. The comment wa
 what the sabotage proved, and the law is now falsified the two ways it can actually break — the
 field ceasing to read the hook, and the hook zeroed at a rank that can win.
 
+**Both of this repo's palettes are the component now.** The builder's ⌘K went first; the docs
+site's own search followed the same day, and it was the second `Dialog` + `TextField` + rows with
+its own `active` index and its own arrow and Enter branches — the same model written twice, in one
+repo, in the component that exists to stop that. What stayed there is the ranking (hence
+`filter={null}`), the links (hence `render`), and the chord, which §44 refuses to own. What went
+is the title and the description paragraph: §44 refuses a title because the field is the
+affordance, and the description was definitional — what it had to say about the index now sits in
+the empty state, where a reader who typed and got nothing is the one who needs it. A law in
+`search.test.ts` covers BOTH files, so the third palette fails there rather than in a screenshot.
+
+**A SEPARATOR is refused, and the group is the divider (recorded 2026-09-04, asked rather than
+discovered).** Base UI ships `Autocomplete.Separator`, so this is a refusal rather than an absence:
+the list is a `listbox`, a listbox may contain only options and groups, and a separator in one is
+markup an accessibility scan reports as a violation from library code a consumer cannot fix. That
+is Select's own refusal (§23) at its second consumer, and the answer is the same — a group divides
+the list in the accessibility tree as well as on screen, and it disappears on its own when nothing
+in it matches, which a hand-placed rule cannot do.
+
 Refused: a second overlay, `modal` (Dialog's own refusal, inherited), fuzzy reordering, a title
 (the field is the affordance; `aria-label` is required by the type), a system-written empty
-sentence, a `TextField` at the top, and opening on a chord by itself — which chord opens the
+sentence, an edge-to-edge panel (reversed 2026-09-04, above), and opening on a chord by itself — which chord opens the
 palette is the app's decision and has to agree with everything else it binds. Excluded from the
 builder with its parts: a palette's list is a data array with handlers on it, which is not a
 value class the builder has, and it covers the whole app where that canvas composes in a frame.

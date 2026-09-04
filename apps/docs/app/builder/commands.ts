@@ -725,8 +725,14 @@ export const allCommands = (ctx: CommandContext): Command[] => [
 
 /** Fuzzy-ish match: every typed word must appear in the haystack, in any order. Deliberately
     not a scored fuzzy matcher — a palette that reorders under you is a palette you cannot
-    build muscle memory for. */
-export const matches = (cmd: Command, query: string): boolean => {
+    build muscle memory for.
+
+    IT TAKES THE THREE FIELDS IT READS, not a `Command` (2026-09-04). The palette hands it rows
+    that are not commands — a saved block, a document to switch to — and the old signature made
+    the call site build a fake `Command` with an empty id and a no-op `run` just to ask a
+    question about three strings. Widening the parameter deletes that; a real `Command` is still
+    assignable, which is what the existing laws pass. */
+export const matches = (cmd: { title: string; group: string; keywords?: string }, query: string): boolean => {
   const q = query.trim().toLowerCase();
   if (!q) return true;
   const hay = `${cmd.title} ${cmd.group} ${cmd.keywords ?? ""}`.toLowerCase();

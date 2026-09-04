@@ -195,18 +195,14 @@
 
      The block-start padding now scrolls with the content, which is what a sheet should do:
      the title leaves under the top edge rather than sitting in a frozen band. */
-  /* NOT A PANEL THAT PADS NOTHING (audit 2026-09-02). The bleed below is the shared spelling —
-     negative margin out to the panel's edges, the padding restated inside — and it assumes the
-     panel HAS the padding it is cancelling. A command palette's is zero by design, since it is
-     edge-to-edge, so the body bled out by a full surface inset on all four sides and overflowed
-     its own clipping panel by ~23px: the library's clip guard firing on the library. The
-     exception is stated here, beside the rule it excepts, rather than as a third viewport-keyed
-     stylesheet — which is what the narrow-boundary law refuses, correctly. */
-  .kui-dialog-popup.kui-command .kui-dialog-body {
-    margin: 0;
-    padding: 0;
-  }
-
+  /* THE PALETTE'S EXCEPTION IS GONE (2026-09-04), and it is worth saying why it existed. The
+     bleed below is the shared spelling — negative margin out to the panel's edges, the padding
+     restated inside — and it assumes the panel HAS the padding it is cancelling. A command
+     palette's was zero by design while it was edge-to-edge, so the body bled out by a full
+     surface inset on all four sides and overflowed its own clipping panel by ~23px (audit
+     2026-09-02): the library's clip guard firing on the library. The palette pads like every
+     other dialog now, so the general rule is simply true of it and the carve-out deletes rather
+     than being maintained — which is the shape a reversal should have. */
   .kui-dialog-popup .kui-dialog-body {
     /* The cap's other half. `auto` and not `clip`: this is the one box in the panel that is
        ALLOWED to be a scroll container, because it is the only one whose overflow the reader

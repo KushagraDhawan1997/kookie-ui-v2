@@ -1560,6 +1560,28 @@ describe("the builder writes no control the package already ships", () => {
     }
   });
 
+  /* A PALETTE IS A `Command` (§44, 2026-09-04). This app's ⌘K is the forcing case DECISIONS §44
+     names by path: it was assembled out of Dialog, TextField, ScrollArea and Row with its own
+     keyboard model written longhand — an `active` index, arrow-key branches, an Enter branch and
+     a `scrollIntoView` to keep the highlight in view. That is verbatim the list §44 says an app
+     must never write twice, and a copy of it drifts the way the hand-painted highlight fill in
+     the same file already had.
+
+     BOTH HALVES, because either alone is satisfiable by the defect. Importing the component
+     while keeping a private keyboard model is the shape that ships when someone "migrates" a
+     palette, and a file with no arrow keys in it might simply have no palette. The comments are
+     stripped first — this file's own prose names all four of these, and this repo's laws have
+     twice fired on their own explanation. */
+  it("the command palette is the package's Command, and keeps no keyboard model of its own", () => {
+    const src = sources.find(([f]) => f === "command-palette.tsx");
+    expect(src, "the palette source moved — this law is now about nothing").toBeDefined();
+    const body = code(src![1]);
+    expect(body, "it does not use the package's palette").toMatch(/<CommandContent[\s>]/);
+    for (const own of ["ArrowDown", "ArrowUp", "scrollIntoView", 'key === "Enter"']) {
+      expect(body, `the palette still drives ${own} itself`).not.toContain(own);
+    }
+  });
+
   /* A TOGGLE IS A TOGGLE (§34). `aria-pressed` on a Button plus an emphasis the call site
      computes IS the component, written out longhand — and the component is where the pressed
      state comes from the primitive rather than from a prop nobody validates. */
