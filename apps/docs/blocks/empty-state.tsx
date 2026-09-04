@@ -87,8 +87,18 @@ export function EmptyState({ mark, title, description, action, secondary }: Empt
      below binds it to what it introduces. `2` inside the words and `5` around them is the 4x
      that rule asks for, and the difference is what stops the three regions reading as one stack.
 
-     The steps are the house ladder's, not chosen here: a block title is `6` and body is `3`
-     (§15 rule 2). Reaching for `5` would be reaching for a step the ladder says is a decision. */
+     THE STEPS ARE A PAIR, AND THEY MOVE TOGETHER (2026-09-02, Kushagra: the title "should be a
+     bit smaller"). It shipped at the house ladder's own rungs — block title `6` over body `3`,
+     24 over 16, a ratio of 1.50 — and `5` alone would have been 20 over 16, which is **1.25** and
+     under the 1.33 §15 rule 1 asks of adjacent levels. That rule is the one that calls a small
+     ratio "not a hierarchy, a rounding error", so taking the title down obliges taking the
+     sentence down with it: `5` over `2` is 20 over 14, **1.43**, and the hierarchy survives the
+     smaller title.
+
+     `5` and `2` are both steps §15 marks as decisions rather than defaults, which is what this
+     paragraph is: the title is a decision because a region's own label should not shout at a page
+     that has already been titled, and the sentence is `2` because it is supporting text under a
+     label rather than reading matter. */
   return (
     <Stack className="kb-empty" gap="5" align="center" justify="center">
       {mark ? <div className="kb-empty-mark">{mark}</div> : null}
@@ -99,11 +109,11 @@ export function EmptyState({ mark, title, description, action, secondary }: Empt
             the document outline makes a second heading compete with the real one — and an empty
             state that appears and disappears would add and remove an outline entry as a filter
             changes. The words are still read; what they are not is structure. */}
-        <Heading size="6" render={<span />}>
+        <Heading size="5" render={<span />}>
           {title}
         </Heading>
         {description ? (
-          <Text size="3" emphasis="medium">
+          <Text size="2" emphasis="medium">
             {description}
           </Text>
         ) : null}

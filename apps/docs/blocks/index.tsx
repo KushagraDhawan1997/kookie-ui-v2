@@ -23,6 +23,7 @@ import { CodeSample } from "./code-sample";
 import { EmptyState } from "./empty-state";
 import { Footer } from "./footer";
 import { Specimen } from "./specimen";
+import { TableOfContents } from "./table-of-contents";
 import { Button, Grid, Stack, iconStroke } from "@kookie-ui/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FolderLibraryIcon, NoInternetIcon } from "@hugeicons/core-free-icons";
@@ -483,6 +484,53 @@ export const BLOCKS: readonly BlockEntry[] = [
               { label: "Terms", href: "#" },
               { label: "Status", href: "#" },
             ]}
+          />
+        ),
+      },
+    ],
+  },
+  {
+    slug: "table-of-contents",
+    title: "Table of contents",
+    blurb:
+      "The headings of the page you are reading, in the gutter, with the one you are at marked. It is Tabs turned vertical: a list of places where exactly one is current, marked by ink and a rule and never by a fill — a fill would make it a row you pick from a list, which is what the sidebar on the other side of the page already is. The rail is drawn by the entries themselves rather than by a measured indicator under them, so the lit segment is exactly the entry it marks and there is nothing to keep in sync. Sub-headings are told apart by where they start, not by a third ink. Uncontrolled it watches the page with an IntersectionObserver and marks the last heading you have passed, which is the case a plain topmost-visible-heading spelling leaves blank; hand it a `current` and it marks that instead. What it does not decide is the column — the width, the stickiness and the window where two columns stop fitting are the page's layout rather than this block's box, so they arrive on the class you pass in.",
+    files: ["table-of-contents.tsx", "table-of-contents.css"],
+    demos: [
+      {
+        /* THE ORDINARY CASE: a page of sections, one of them the one you are in. `current` is
+           stated because a figure does not scroll — the demo shows the RANK, which is the thing
+           a reader is deciding about, and the observer is what puts a real page's answer into
+           the same prop. */
+        label: "A page of sections, with the one you are at marked",
+        render: () => (
+          <TableOfContents
+            entries={[
+              { id: "toc-demo-meaning", title: "Say what you mean, not which colour", level: 2 },
+              { id: "toc-demo-families", title: "The ten families", level: 2 },
+              { id: "toc-demo-roles", title: "Components use roles, not steps", level: 2 },
+              { id: "toc-demo-tints", title: "Tints and borders are grey in every family", level: 2 },
+              { id: "toc-demo-icons", title: "Icons use their own colour", level: 2 },
+              { id: "toc-demo-text", title: "The three text colours", level: 2 },
+            ]}
+            current="toc-demo-roles"
+          />
+        ),
+      },
+      {
+        /* TWO LEVELS. The sub-heading is indented and reads at the same rank as its siblings,
+           which is the decision worth showing: the level is geometry, so a reader learns the
+           shape once and nothing else has to change colour to say it. */
+        label: "Two levels: a sub-heading is told by where it starts",
+        render: () => (
+          <TableOfContents
+            entries={[
+              { id: "toc-nested-meaning", title: "Say what you mean, not which colour", level: 2 },
+              { id: "toc-nested-families", title: "The ten families", level: 2 },
+              { id: "toc-nested-nickname", title: "success is not a nickname for green", level: 3 },
+              { id: "toc-nested-accent", title: "The accent goes grey in two more places", level: 3 },
+              { id: "toc-nested-roles", title: "Components use roles, not steps", level: 2 },
+            ]}
+            current="toc-nested-nickname"
           />
         ),
       },

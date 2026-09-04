@@ -22,6 +22,30 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-04 The table of contents is `Tabs` turned vertical, and it is a block
+
+**What.** "On this page" leaves `apps/docs/app/(docs)/[...slug]/page.tsx` and becomes `blocks/table-of-contents` — the docs' fifth block, registered with two demos, four laws and four sabotage passes. It gains the thing it never had: a current entry. `prose.css` keeps three declarations and loses two rules.
+
+**Why.** Kushagra, on a screenshot of it: *"I do not like this docs table of contents, and I dont think this is a complete component yet, and I think it should be a block."* Measured before agreeing, and the diagnosis was not taste: the list had **no current state of any kind**. Nine headings, all one colour, nothing saying which one you were at — which is most of what a table of contents is for, so what read as a grey wall was a grey wall.
+
+**It is not a `NavTree`, and that was the first answer.** The shape fits almost exactly — a nav landmark, one current item, two levels, `aria-current`, an indent derived from the icon box — and the docs sidebar three inches away already IS one. It fails on one fact: a nav tree makes a node with children a `<button aria-expanded>` rather than a link, so every heading with a sub-heading under it would stop being somewhere you can go. A table of contents has no sections to open. §33's own split says why the near-fit is not a fit — a nav has a LOCATION and a tree has disclosure, and this has location without disclosure.
+
+**What it is instead is `Tabs`, turned vertical**, and that decides the whole appearance. §26's sentence: the current item is marked by INK and a RULE, never by a louder fill. The row family's lit fill was the tempting answer and is wrong twice — a fill means a line you PICK from a list, which this is not, and the sidebar on the other side of the page already speaks that vocabulary, so the page would have had two sidebars. `Accordion` made the identical cut three days earlier ("is it a row tho?").
+
+**Every part is borrowed and nothing was designed.** The links are `Breadcrumb`'s — the tone-less roles in two ranks, an underline resting transparent, the same WCAG 1.4.1 carve-out §39 states, and `Link` refused for §39's other reason (it stamps `accent`, which re-scopes all three foreground roles onto that family's inks). The mark is `Tabs`' indicator, `--tone-glyph`, with the label in the full ink and NO heavier weight, because a semibold entry is wider than a medium one and this is the component where that would show most — the mark moves on every scroll. The rail is `Separator`'s line at `--color-border`. The indent is `Tree`'s one geometric step, so a sub-heading is told by where it starts rather than by a third ink; the old spelling faded level 3 to the quiet rung, which puts a rung below the reading floor on a line that is still a destination.
+
+**The rail is drawn by the entries, and that is the only mechanism in the file.** A single line under the list would need a second, measured element to mark a segment of it — the tab indicator's arithmetic, which §26 pays for because a tab bar's items are different widths and only a measurement knows them. Here every entry is the same width and already knows its own height, so a border on each one composes into a continuous rail whose segments ARE the entries: no measurement, no second element, nothing to keep in sync. Its price is that the entries must touch, so the air is the link's own padding and the list carries no gap — which a law holds, because restoring the gap is the first thing a reader porting the old spelling would do.
+
+**Uncontrolled, it watches the page**, and the case worth writing down is the one a plain "topmost visible heading" spelling leaves blank: through most of a long section and all of the bottom of a page, no heading is inside the band at all, so the mark disappears exactly where the reader is furthest from the top and wants it most. The fallback is the last heading they have passed, measured in the observer's own callback rather than tracked on scroll. `IntersectionObserver` rather than a scroll handler — §8's "no JS at interaction time" is the package's law and does not bind a block, but its reason does.
+
+**The block/app line is the block law's own.** A block may not decide a distance, so the column's width, its stickiness and the 64rem window where two columns stop fitting stay in `prose.css` and arrive on the class the page passes in. The class now lands on the block's own `<nav>` rather than on an `<aside>` around it: two landmarks announcing one thing.
+
+**Rejected:** the row family's lit fill (above); a `NavTree` (above); a measured indicator with its own element (the arithmetic buys nothing here); accent INK on the current label as well as the rail (`NavTree` does this, and it is right for a chapter in a list of chapters — here the rail already carries the family, and blue words in a column of grey ones would rank the entry rather than locate it); smooth scrolling on click (`scroll-behavior` is a decision about the whole document, and a reader who asked for stillness must not be given it); levels past three (`Breadcrumb`'s `maxItems` refusal, §3 — what to hand over is the caller's).
+
+**Verified in a browser at 1600px**, not only built: the observer marks "Tints and borders are grey in every family" with the page scrolled to it, the rail is continuous, and the two blues — the sidebar's current chapter and this rail's current section — read as one vocabulary rather than two.
+
+---
+
 ## 2026-09-04 The command palette pads, and the reversal was one decision wearing three names
 
 **What.** `Command`'s pane pads like every other dialog; the filter line becomes a member of the field family; the hairline under it goes; `CommandEmpty` places what it is handed instead of dressing it. `dialog.css` loses a carve-out and the command size join drops from three published cells to one. Six laws, five sabotage passes.

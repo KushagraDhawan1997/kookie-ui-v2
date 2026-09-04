@@ -260,6 +260,107 @@ describe("the empty state", () => {
   });
 });
 
+/**
+ * THE TABLE OF CONTENTS (2026-09-04) — three guarantees, and each one is a decision that a
+ * copied file could quietly undo.
+ *
+ * The FIXTURE is the two-level demo throughout, and that is deliberate: it carries five entries
+ * at two levels with exactly one of them current, so "the current one" and "the first one"
+ * cannot agree by accident, and a rule about level 3 has a level 2 beside it to differ from. A
+ * three-entry flat list would pass most of these against a broken implementation.
+ */
+describe("the table of contents marks where you are without a fill", () => {
+  const markup = async () => {
+    const block = BLOCK_BY_SLUG.get("table-of-contents")!;
+    const nested = block.demos.find((demo) => demo.label.startsWith("Two levels"));
+    expect(nested, "no two-level demo — this law now reads nothing").toBeTruthy();
+    return renderToStaticMarkup(await nested!.render());
+  };
+  const css = () => source("table-of-contents.css").replace(/\/\*[\s\S]*?\*\//g, "");
+  const rule = (selector: string) => {
+    const found = new RegExp(`${selector.replace(/[.[\]"=]/g, "\\$&")}\\s*\\{([^}]*)\\}`).exec(
+      css(),
+    );
+    expect(found, `${selector} is gone — this law now reads nothing`).toBeTruthy();
+    return found![1]!;
+  };
+
+  it("the mark is ink and a rule, and there is no fill anywhere in the file", () => {
+    /* THE DESIGN, AND THE WHOLE REASON THIS IS NOT A ROW (§26's sentence, `Accordion`'s cut).
+       A fill under the current entry would make this the row family's vocabulary — a line you
+       PICK from a list — and the sidebar on the other side of the page already speaks it, so
+       the page would have two sidebars. The cheapest way to break this is also the most
+       tempting one, which is why the assertion is over the whole stylesheet rather than over
+       the current rule alone.
+
+       Falsified by adding `background-color: var(--tone-soft)` to the `[data-current]` rule. */
+    expect(css(), "a fill here makes this a row, and it is not one").not.toMatch(
+      /background(-color)?\s*:/,
+    );
+    const current = rule('.kb-toc-item[data-current]');
+    expect(current, "the current segment takes the family's glyph role").toMatch(
+      /border-inline-start-color:\s*var\(--tone-glyph\)/,
+    );
+    expect(
+      rule('.kb-toc-item[data-current] .kb-toc-link'),
+      "and the label takes the full ink",
+    ).toMatch(/color:\s*var\(--color-text\)/);
+  });
+
+  it("the rail is continuous — the entries carry it, so nothing may separate them", () => {
+    /* The rail is drawn by the items themselves so that the lit segment is exactly the entry it
+       marks, with nothing measured and nothing to keep in sync. That only holds while the items
+       touch: a gap between them turns one rail into a column of dashes and the mark into a
+       floating tick. The old inline version DID space its entries, which is why this is the
+       first thing a reader porting it would put back.
+
+       Falsified by restoring `gap: var(--layout-space-2)` to the list. */
+    expect(rule(".kb-toc-list"), "a gap breaks the rail into dashes").not.toMatch(/gap\s*:/);
+    expect(rule(".kb-toc-item"), "so does a margin").not.toMatch(/margin/);
+    expect(rule(".kb-toc-item")).toMatch(/border-inline-start:.*var\(--color-border\)/);
+  });
+
+  it("a sub-heading is told by geometry, and takes no ink of its own", () => {
+    /* `Tree`'s indent argument: one geometric step, so every entry at one level shares a left
+       edge. Standing the ink down again would put a rung below muted on a line that is still a
+       destination, which is §11's objection to a faded link — and the inline version this
+       replaced did exactly that (level 3 rendered at `emphasis="quiet"`, the faint rung).
+
+       BOTH HALVES, and each fails alone: the level-3 rule must state an indent GREATER than the
+       level-2 one — a copy that set them equal would read as a flat list — and it must state no
+       colour. The steps are compared as picks on the layout scale rather than as strings,
+       because two different tokens is not the same claim as two different distances. */
+    const base = /padding-inline-start:\s*var\(--layout-space-(\d+)\)/.exec(rule(".kb-toc-link"));
+    const nested = /padding-inline-start:\s*var\(--layout-space-(\d+)\)/.exec(
+      rule('.kb-toc-item[data-level="3"] .kb-toc-link'),
+    );
+    expect(base?.[1], "the entry states no indent — this law now reads nothing").toBeTruthy();
+    expect(nested?.[1], "the sub-entry states no indent").toBeTruthy();
+    expect(Number(nested![1]), "a sub-heading starts further in than its parent").toBeGreaterThan(
+      Number(base![1]),
+    );
+    expect(
+      rule('.kb-toc-item[data-level="3"] .kb-toc-link'),
+      "and it is not a third ink",
+    ).not.toMatch(/(^|[^-])color:/);
+  });
+
+  it("it is one named navigation, a real list, and exactly one place is current", async () => {
+    /* Read off the RENDERED markup, because all four are claims about what a screen reader is
+       handed. `location` and not `page`: this is the current place WITHIN a page, which is what
+       ARIA defines the value for — the sidebar says `page` for the other question. Exactly one,
+       which the five-entry fixture is what makes worth asserting. */
+    const html = await markup();
+    expect(html).toMatch(/<nav\b[^>]*aria-label="[^"]+"/);
+    expect(html, "a list, so it is announced as one before it is read").toMatch(
+      /<ul[^>]*class="[^"]*kb-toc-list/,
+    );
+    expect((html.match(/<li/g) ?? []).length).toBeGreaterThan(3);
+    expect((html.match(/aria-current="location"/g) ?? []).length).toBe(1);
+    expect(html, "and never the sidebar's question").not.toMatch(/aria-current="page"/);
+  });
+});
+
 describe("a footer with no columns is a line", () => {
   /* THE ONE SHAPE THAT IS DERIVED (2026-09-02). The minimal footer — a mark, two or three
      destinations, a copyright, all on one row — is not a variant of this block, it is this block

@@ -10,19 +10,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  Box,
-  Flex,
-  Link as KookieLink,
-  Separator,
-  Stack,
-  Text,
-} from "@kookie-ui/react";
+import { Box, Button, Flex, Stack } from "@kookie-ui/react";
 
+import { ChevronLeftIcon, ChevronRightIcon } from "../../icons";
 import { ProseFlow } from "../../../mdx-components";
-import { BY_SLUG, CHAPTERS, neighbours, SECTIONS } from "../chapters";
+import { BY_SLUG, CHAPTERS, neighbours } from "../chapters";
 import { PageFrame, PageTitle } from "../page-frame";
-import { chapterToc } from "../toc";
+import { chapterToc, type TocEntry } from "../toc";
+import { TableOfContents } from "../../../blocks/table-of-contents";
 
 export function generateStaticParams() {
   return CHAPTERS.map((chapter) => ({ slug: chapter.slug.split("/") }));
@@ -42,39 +37,27 @@ export async function generateMetadata({
 /**
  * "On this page", in the gutter the reading measure leaves over.
  *
- * NOT in the Shell's inspector, which is the pane that looks like it should hold this. An
- * inspector rests closed by design — its `auto` means "closed until asked for" — and a table
- * of contents nobody opens is a table of contents nobody reads. It is also per-page state,
- * and the inspector lives in the layout.
+ * THE BLOCK IS WHERE THE ARRANGEMENT LIVES (2026-09-04, Kushagra: "I dont think this is a
+ * complete component yet, and I think it should be a block"). It was written inline here with
+ * four rules in `prose.css` beside it, and it had no current state at all — a list of headings
+ * with nothing saying which one you were at, which is most of what a table of contents is for.
+ * `blocks/table-of-contents.tsx` carries the rank, the rail and the observer, and states in
+ * full why it is not a `NavTree` and why the current item is marked the way `Tabs` marks one.
  *
- * So it is a sticky aside inside the chapter's own two-column flow, and `prose.css` drops it
- * below the width where the two columns stop fitting. Shown only where there is enough
- * structure to be worth scanning.
+ * WHAT STAYS HERE IS THE COLUMN, and the split is the block law's own line: a block may not
+ * decide a distance. How wide this gutter is and where the two-column arrangement stops fitting
+ * are measurements about this page's layout rather than about anything's box, so `prose.css`
+ * states them on `kd-toc` and hands the class over.
+ *
+ * NOT in the Shell's inspector, which is the pane that looks like it should hold this. An
+ * inspector rests closed by design — its `auto` means "closed until asked for" — and a table of
+ * contents nobody opens is a table of contents nobody reads. It is also per-page state, and the
+ * inspector lives in the layout. So it is a sticky aside inside the chapter's own two-column
+ * flow, shown only where there is enough structure to be worth scanning.
  */
-function OnThisPage({ entries }: { entries: { id: string; title: string; level: 2 | 3 }[] }) {
+function OnThisPage({ entries }: { entries: TocEntry[] }) {
   if (entries.length < 3) return null;
-  return (
-    <Box className="kd-toc" render={<aside aria-label="On this page" />}>
-      <Stack gap="3">
-        <Text size="2" emphasis="quiet">
-          On this page
-        </Text>
-        <Stack gap="2">
-          {entries.map((entry) => (
-            <Box key={entry.id} pl={entry.level === 3 ? "3" : "0"}>
-              <Text
-                size="2"
-                emphasis={entry.level === 3 ? "quiet" : "medium"}
-                render={<a href={`#${entry.id}`} className="kd-toc-link" />}
-              >
-                {entry.title}
-              </Text>
-            </Box>
-          ))}
-        </Stack>
-      </Stack>
-    </Box>
-  );
+  return <TableOfContents entries={entries} className="kd-toc" />;
 }
 
 export default async function ChapterPage({ params }: { params: Promise<{ slug: string[] }> }) {
@@ -82,7 +65,6 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
   const chapter = BY_SLUG.get(slug.join("/"));
   if (!chapter) notFound();
 
-  const section = SECTIONS.find((candidate) => candidate.id === chapter.section);
   const toc = chapterToc(chapter.source);
   const { prev, next } = neighbours(chapter.slug);
   const { Content } = chapter;
@@ -94,10 +76,18 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
        The column was 46rem and the prose inside it 40, so the title, the deck and every figure
        ran 96px past the sentences — two right edges on a page whose whole job is reading. The
        column is the measure now, and the frame is that plus the gutter the table of contents
-       sits in (40 + 2 + 14), so the pair still centres on the pane rather than the column
-       drifting left of it. `prose.css` carries why the text is what gives and not the column. */
-    <PageFrame width="56rem">
-      <Flex gap="7" align="flex-start">
+       sits in (40 + 3 + 14), so the pair still centres on the pane rather than the column
+       drifting left of it. `prose.css` carries why the text is what gives and not the column.
+
+       THE GUTTER IS 3rem SINCE 2026-09-04 (Kushagra: the horizontal space between the table of
+       contents and the page "is too less"). It was 2, which is the interval this system uses
+       BETWEEN things inside one region — and these are two columns a reader moves between, so
+       the distance has to say they are separate rather than adjacent. The frame grew by exactly
+       the same step: the three numbers are one sum, and changing the gutter without it would
+       have taken the difference out of the measure, which is the one number here that is not
+       ours to spend. */
+    <PageFrame width="57rem">
+      <Flex gap="9" align="flex-start">
         <Stack gap="8" style={{ maxWidth: "var(--kd-measure)", minWidth: 0, flex: 1 }}>
           {/* THE SECTION NAME USED TO SIT HERE, at `size 2 quiet`, and it was an eyebrow: two
               elements doing one element's job, which §15 refuses by name and this renderer
@@ -114,44 +104,57 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
             <Content />
           </ProseFlow>
 
-          {/* The footer: a rule, the way on, and the colophon. Set apart at the page's largest
-              interval because it is furniture rather than reading — and it carries the claim
-              the whole site rests on, which is that these pages re-voice a specification that
-              governs the code rather than being prose written alongside it. A law resolves
-              every citation against the real document. */}
+          {/* THE WAY ON, AND NOTHING ELSE (2026-09-03, Kushagra: "what is this Getting started ·
+              Specified in §5, §13 kinda thing at bottom of each docs, hate it, remove it… remove
+              that separator, just use one button with chevron + label").
+
+              THREE THINGS WENT. The colophon — the section name and the spec citation — was
+              furniture that told a reader nothing they could act on: the navigation already shows
+              which section this chapter is in with the current page lit inside it, and a citation
+              into a document the reader cannot open is a note to ourselves published on every
+              page of the site. **The claim it carried is still true and still checked** — a law
+              resolves every `chapter.spec` entry against the real §, and `chapters.ts` still
+              states them — so what left is the printing of it, not the guarantee.
+
+              THE `Previous` / `Next` LABELS WERE EYEBROWS, which §15 refuses by name: two
+              elements doing one element's job, a size-2 line above the thing that already says
+              what it is. The direction is what the chevron is for, and it is on the side the
+              reader is going.
+
+              AND THE SEPARATOR WENT WITH THEM. §15's rule is that a rule earns its place only
+              where DISTANCE cannot group — which was not the case here, since the footer already
+              sits at the page's largest interval. It was drawing a line across a gap that was
+              already doing the work, which is the footer block's own finding one route over.
+
+              A QUIET BUTTON RATHER THAN A LINK, and the difference is what the row is for: a link
+              is a word inside a sentence and this is a place to press at the end of a page. It is
+              a real `<a>` through `render`, so the address, the middle-click and the keyboard are
+              the platform's. */}
           <Box mt="7">
-            <Stack gap="6">
-              <Separator />
-              {(prev ?? next) ? (
-                <Flex gap="4" justify="space-between" wrap="wrap">
-                  {prev ? (
-                    <Stack gap="1">
-                      <Text size="2" emphasis="quiet">
-                        Previous
-                      </Text>
-                      <KookieLink size="3" render={<Link href={`/${prev.slug}`} />}>
-                        {prev.title}
-                      </KookieLink>
-                    </Stack>
-                  ) : (
-                    <span />
-                  )}
-                  {next ? (
-                    <Stack gap="1" style={{ textAlign: "end" }}>
-                      <Text size="2" emphasis="quiet">
-                        Next
-                      </Text>
-                      <KookieLink size="3" render={<Link href={`/${next.slug}`} />}>
-                        {next.title}
-                      </KookieLink>
-                    </Stack>
-                  ) : null}
-                </Flex>
+            <Flex gap="4" justify="space-between" align="center" wrap="wrap">
+              {prev ? (
+                <Button
+                  emphasis="quiet"
+                  leading={<ChevronLeftIcon />}
+                  render={<Link href={`/${prev.slug}`} />}
+                >
+                  {prev.title}
+                </Button>
+              ) : (
+                /* Holds the start wall: one child and `space-between` pushes it to the wrong
+                   one, which is the same fault the footer block answers the same way. */
+                <span />
+              )}
+              {next ? (
+                <Button
+                  emphasis="quiet"
+                  trailing={<ChevronRightIcon />}
+                  render={<Link href={`/${next.slug}`} />}
+                >
+                  {next.title}
+                </Button>
               ) : null}
-              <Text size="2" emphasis="quiet">
-                {section?.title} · Specified in {chapter.spec.join(", ")}.
-              </Text>
-            </Stack>
+            </Flex>
           </Box>
         </Stack>
         <OnThisPage entries={toc} />

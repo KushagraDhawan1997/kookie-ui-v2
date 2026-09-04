@@ -25,6 +25,8 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { iconStroke } from "@kookie-ui/react";
 import {
   Alert02Icon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
   BlocksIcon as HugeBlocksIcon,
   BlurIcon,
   BrowserIcon,
@@ -109,6 +111,11 @@ export const MinusIcon = glyph(MinusSignIcon);
 export const MoreIcon = glyph(MoreHorizontalIcon);
 export const ArrowUpIcon = glyph(ArrowUp02Icon);
 export const ArrowLeftIcon = glyph(ArrowLeft02Icon);
+/* The chevrons, which are a different glyph from the arrows above and mean a different thing: an
+   arrow says GO somewhere, a chevron says the next one along. The chapter footer's way on is the
+   second, which is why it does not reuse `ArrowLeftIcon`. */
+export const ChevronLeftIcon = glyph(ArrowLeft01Icon);
+export const ChevronRightIcon = glyph(ArrowRight01Icon);
 export const PaperclipIcon = glyph(Attachment01Icon);
 export const HomeIcon = glyph(Home01Icon);
 export const FolderIcon = glyph(Folder01Icon);

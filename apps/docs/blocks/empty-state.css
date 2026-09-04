@@ -42,7 +42,7 @@
 
 /* THE MARK IS ONE LINE OF THE TITLE, which is the mark family's own identity read across
    (§4: `--mark-N` IS `--line-height-N`, so a mark is exactly one line of its label and lands on
-   it by construction). The title is step 6, so the glyph is `--line-height-6` on both axes and
+   it by construction). The title is step 5, so the glyph is `--line-height-5` on both axes and
    the caller passes no size at all — the same arrangement every control slot uses, where the
    thing holding the icon sizes it.
 
@@ -51,6 +51,6 @@
    space under itself, which reads as a gap the rhythm above did not ask for. */
 .kb-empty-mark > :first-child {
   display: block;
-  inline-size: var(--line-height-6);
-  block-size: var(--line-height-6);
+  inline-size: var(--line-height-5);
+  block-size: var(--line-height-5);
 }
