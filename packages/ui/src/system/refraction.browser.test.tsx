@@ -34,6 +34,7 @@ import {
   fitLens,
   glintMap,
   lens,
+  cornerExponent,
   physicalMap,
   type LensParams,
   type LensThickness,
@@ -321,5 +322,151 @@ describe("a mask is minted only where something samples it (§10, 2026-08-26)", 
       "a glass chip minted a mask no rule can sample — a canvas pass and a PNG encode for nothing",
     ).toBe("");
     expect(chip.style.getPropertyValue("--kui-glint-on"), "the chip switched a band on that it cannot paint").toBe("");
+  });
+});
+
+/* ── the bend follows the corner the box PAINTS (§10, 2026-09-05) ────────────────────────────
+   Kushagra, on a glass command palette: *"I suddenly see a second circle inside, near corners,
+   we fixed it once, why is it back."* Half right, and the half that is wrong is the interesting
+   one — what was fixed on 2026-08-24 was the GLINT, whose mask took the superellipse; the LENS
+   was left circular on purpose, under a sentence claiming a bent backdrop's corner is not
+   visible the way a band of light is.
+
+   That sentence was never measured, and the arithmetic refutes it. On the 45° diagonal a circle
+   of radius R sits 0.293R in from the box corner and the squircle it stands in for sits 0.159R,
+   so the two contours part by 0.134R — 5-8px at the card band, where the trade was judged and
+   where the feather really does absorb it, and 10.4px at the OVERLAY band, which is a second
+   arc curving inside the corner. Confirmed by removing this one filter from a mounted palette
+   and watching the arc go.
+
+   THE LAW IS A RANKING, NOT A NUMBER, and it is read off the map the HOOK actually minted —
+   the generator taking an exponent proves nothing about the pane handing it the right one,
+   which is precisely the gap this defect lived in. Falsified by passing `2` at the call site. */
+describe("the lens bends the corner the box paints, not a circle standing in for it", () => {
+  /** The map the element's own filter samples, decoded to alpha-free displacement bytes. */
+  async function mapOf(el: HTMLElement): Promise<{ px: ImageData; w: number; h: number } | null> {
+    const id = el.style.getPropertyValue("--kui-lens").match(/#([\w-]+)/)?.[1];
+    if (!id) return null;
+    const href = document
+      .getElementById(id)
+      ?.querySelector("feImage")
+      ?.getAttribute("href");
+    if (!href?.startsWith("data:image")) return null;
+    const img = new Image();
+    img.src = href;
+    await img.decode();
+    const c = document.createElement("canvas");
+    c.width = img.width;
+    c.height = img.height;
+    const ctx = c.getContext("2d")!;
+    ctx.drawImage(img, 0, 0);
+    return { px: ctx.getImageData(0, 0, img.width, img.height), w: img.width, h: img.height };
+  }
+
+  it("the bend's peak on the diagonal sits on the squircle's contour, not the circle's", async () => {
+    /* A pane at the OVERLAY band, which is where the gap is biggest and where it was reported.
+       A Card at the card band would be the degenerate fixture: 5px of divergence is inside the
+       tolerance any reading of a feathered band needs. */
+    const root = render(
+      <Theme material="thick" appearance="dark">
+        <Card size="4" backdrop style={{ inlineSize: "560px", blockSize: "160px" }}>
+          pane
+        </Card>
+      </Theme>,
+    );
+    const el = root.querySelector<HTMLElement>(".kui-card")!;
+    await until(() => el.style.getPropertyValue("--kui-lens").includes("#"), 4000);
+    const cs = getComputedStyle(el);
+    expect(cs.getPropertyValue("corner-shape"), "the fixture does not paint a squircle").toContain(
+      "squircle",
+    );
+
+    const map = await mapOf(el);
+    expect(map, "the filter carries no image — nothing to read").not.toBeNull();
+    const { px, w, h } = map!;
+    const rect = el.getBoundingClientRect();
+    // The map is generated at a capped resolution and stretched, so distances are read in ITS
+    // pixels: the painted radius crosses the same scale the generator used.
+    const scale = Math.min(w / rect.width, h / rect.height);
+    const R = parseFloat(cs.borderTopLeftRadius) * scale;
+    expect(R, "the fixture has no corner to speak of").toBeGreaterThan(12);
+
+    // Walk the 45° diagonal out of the top-left corner and find where the bend is strongest.
+    // The red channel carries the x displacement, 128 being straight through.
+    const at = (i: number) => Math.abs((px.data[(i * w + i) * 4] ?? 128) - 128);
+    let peak = 0;
+    let peakAt = 0;
+    for (let i = 0; i < Math.min(w, h) / 2; i++) {
+      if (at(i) > peak) {
+        peak = at(i);
+        peakAt = i;
+      }
+    }
+    expect(peak, "the map bends nothing on the diagonal — the reading is vacuous").toBeGreaterThan(2);
+
+    /* The two candidate contours, expressed in the SAME UNIT the walk above counts in — the
+       step index along the diagonal, where step i is the pixel (i, i). The first spelling gave
+       both of these a √2 because it was thinking in diagonal LENGTH, and the inflation is what
+       made the law insensitive: it passed its own sabotage, because scaling both candidates
+       apart from the measurement keeps the nearer one nearer. A ranking law has to state its
+       two candidates in the measurement's units or it is comparing shapes, not places.
+
+       Corner centre sits at (R, R). The circle meets the diagonal where i = R(1 − 1/√2); the
+       superellipse |x|⁴+|y|⁴ = R⁴ meets it where i = R(1 − 2^(−1/4)). At R = 44 that is 12.9
+       against 7.0 — a real distance in a map this size, which is the point. */
+    const squircleAt = R * (1 - Math.pow(0.5, 1 / 4));
+    const circleAt = R * (1 - Math.SQRT1_2);
+    expect(
+      Math.abs(peakAt - squircleAt) < Math.abs(peakAt - circleAt),
+      `the bend peaks at ${peakAt}px on the diagonal — the squircle's lip is ${squircleAt.toFixed(1)} and a circle's ${circleAt.toFixed(1)}`,
+    ).toBe(true);
+  });
+
+  it("and the exponent is what makes the two maps differ at all", () => {
+    // The vacuity guard the ranking above needs: if the generator answered one map for both
+    // corners, every clause up there would be true of a lens that ignores the box entirely.
+    const p = lens.regular;
+    const circular = physicalMap(320, 160, 64, p, 2);
+    const squircular = physicalMap(320, 160, 64, p, 4);
+    expect(circular.url, "the generator answers one map for both corners").not.toBe(squircular.url);
+  });
+});
+
+/* ── the corner is PARSED, not keyword-matched (§10, 2026-09-05) ─────────────────────────────
+   `corner-shape` takes both a keyword and the function the keyword IS — `squircle` is
+   `superellipse(2)` — and which form `getComputedStyle` hands back is the engine's choice, not
+   this package's. Chrome 151 answers the keyword for both spellings, so the shipped
+   `.includes("squircle")` was correct HERE and silently wrong on any engine that answers the
+   functional form: the map still generates, it just describes a shape the box does not paint.
+   That is the one-way failure this reads for, and it cannot be caught by mounting a pane in the
+   one engine the suite runs. */
+describe("the corner exponent is read off any spelling of corner-shape", () => {
+  it("every spelling of the same corner answers the same exponent", () => {
+    for (const squircle of ["squircle", "superellipse(2)", "  SQUIRCLE  ", "superellipse( 2 )"]) {
+      expect(cornerExponent(squircle), `${squircle} is not read as a squircle`).toBe(4);
+    }
+    for (const circle of ["round", "superellipse(1)", "", "initial", "bevel"]) {
+      expect(cornerExponent(circle), `${circle} is not read as a circle`).toBe(2);
+    }
+  });
+
+  it("and the engine's own answer for this box agrees with the parse", () => {
+    // The half a table of strings cannot make: whatever THIS engine serialises, the parse has
+    // to land on the exponent the box actually paints with.
+    const el = document.createElement("div");
+    el.style.cssText = "corner-shape: squircle; border-radius: 40px; width: 100px; height: 100px";
+    document.body.appendChild(el);
+    const answer = getComputedStyle(el).getPropertyValue("corner-shape");
+    expect(answer, "the engine does not support corner-shape — the fixture proves nothing").not.toBe("");
+    expect(cornerExponent(answer), `this engine says "${answer}" and the parse read a circle`).toBe(4);
+    el.remove();
+  });
+
+  it("a shape the generator has no model for answers the circle it always generated", () => {
+    // `scoop` is concave and `superellipse(-1)` is its functional form; the map has no model for
+    // a corner that curves the other way, so the honest answer is the one that changes nothing.
+    for (const odd of ["scoop", "superellipse(-1)", "superellipse(nonsense)", "notch"]) {
+      expect(cornerExponent(odd), `${odd} bent the generator somewhere it cannot go`).toBe(2);
+    }
   });
 });

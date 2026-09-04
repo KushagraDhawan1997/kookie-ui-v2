@@ -8,6 +8,24 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-05 The lens bent a circle where the box paints a squircle
+
+**What.** `physicalMap` takes the box's corner exponent and the hook hands it the one it already reads off `corner-shape`. `k === 2` short-circuits to the Euclidean form, so a box that does not paint a squircle generates the byte-identical map it always did — which is why the frozen 2026-08-23 oracle law passes untouched.
+
+**Why.** Kushagra, on a glass command palette and then a menu: *"I suddenly see a second circle inside, near corners, we fixed it once, why is it back."* Half right, and the half that is wrong is the useful one. What was fixed on 2026-08-24 was the GLINT — its mask took the superellipse so the band hugs the corner the pane paints. The LENS was left circular **on purpose**, under a sentence in `refraction.tsx` claiming that a bent backdrop's corner is not visible the way a band of light is.
+
+**That sentence was never measured, and the arithmetic refutes it.** On the 45° diagonal a circle of radius R sits 0.293R in from the box corner and the squircle it stands in for sits 0.159R, so the two contours part by **0.134R** — a number that grows with the corner. At the card band that is 5–8px, which is where the trade was judged and where the feather really does absorb it. At the OVERLAY band it is **10.4px** (measured on the palette: 77.42px of painted radius), and 10px of hard edge in the wrong place is a second arc curving inside the corner.
+
+**Confirmed before it was fixed, by subtraction rather than by reading.** With the pane mounted, removing only `--kui-lens` — glint, veil, ring and rim all left alone — removed the arc; putting it back put the arc back. That is what named the lens rather than the mask.
+
+**What it cost.** The old sentence's own caveat survives and is the smaller price: a p-norm is not a true metric, so the band thins slightly on the diagonal. A few per cent of thinning against a hard edge 10px out of place is not a trade worth keeping.
+
+**The law is the finding.** Nothing caught this and nothing would have: every existing law asserted AGREEMENT (the assembled generator is byte-identical to the oracle, both paths agree, the glint takes both exponents) — all true, of a lens bending the wrong shape. The new law reads the map the HOOK actually minted, off the filter's own `feImage`, and walks the 45° diagonal for the bend's peak: the generator taking an exponent proves nothing about the pane handing it the right one, which is precisely the gap the defect lived in.
+
+**And the law was wrong before it was right — its own sabotage caught it.** The first spelling expressed both candidate contours in diagonal LENGTH while measuring in step INDEX, a √2 inflation on both sides. Scaling both candidates away from the measurement keeps the nearer one nearer, so passing `2` at the call site left it green. **A ranking law has to state its candidates in the measurement's own units, or it is comparing shapes rather than places.** Corrected, the sabotage moves the peak from 7 to 13 against a squircle lip at 7.0 and a circle's at 12.9, and the failure message names both.
+
+---
+
 ## 2026-09-05 The component reference states rather than argues, on all 52 pages
 
 **What.** Every component page is rebuilt in a reference's register: a one-sentence abstract, a declaration for the seventeen compound components, a literal overview, symbols grouped by the job they do with an anchor and a props table each, and a props cell that takes its JSDoc's first sentence. `blurb` and `axes` are DELETED from the registry rather than joined; the trial layout and the essay layout collapse into one renderer. 102 symbols now have an address; 208 refusal names are capitalised or set as code.

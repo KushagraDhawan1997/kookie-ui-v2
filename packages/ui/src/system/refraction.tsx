@@ -54,10 +54,24 @@ function sdRoundedRect(x: number, y: number, w: number, h: number, r: number): n
  * The same distance with a SUPERELLIPSE corner (2026-08-24, the glint's own need): the p-norm
  * replaces the Euclidean one in the corner region, so the contour follows the squircle the
  * pane actually renders (`corner-shape: squircle` is the classic |x|⁴ + |y|⁴ superellipse).
- * A p-norm is not a true metric — bands thin slightly on the diagonal — which the glint's own
- * feather absorbs and a displacement map would not: the LENS keeps the circular corner it was
- * judged with, and this exists because a band of LIGHT detaching from the lip at every corner
- * is visible in a way a bent backdrop's corner never was.
+ * THE LENS TAKES IT TOO SINCE 2026-09-05, and the sentence that stood here was a measurement
+ * nobody had made. It read: the lens keeps the circular corner it was judged with, because a
+ * band of LIGHT detaching from the lip is visible in a way a bent backdrop's corner never was.
+ * The second half is false, and it is false by ARITHMETIC rather than by taste — on the 45°
+ * diagonal a circle of radius R sits 0.293R in from the box corner and the squircle it is
+ * standing in for sits 0.159R, so the bend's contour parts from the paint by **0.134R** and
+ * that number grows with the corner. At the card band it is 5-8px, which is where the trade
+ * was judged and where the feather really does absorb it. At the OVERLAY band it is 10.4px
+ * (measured on a command palette: 77.42px of painted radius), which renders as a second arc
+ * curving inside the corner — reported as "a second circle inside, near corners" and confirmed
+ * by removing this filter alone and watching it go.
+ *
+ * What survives of the old sentence is its own caveat: a p-norm is not a true metric, so bands
+ * thin slightly on the diagonal. That is a real cost and it is the smaller one — a band a few
+ * per cent thinner at 45° against a hard edge in the wrong place.
+ *
+ * `k === 2` short-circuits to the Euclidean form, so a box that does not paint a squircle
+ * generates the byte-identical map it always did.
  */
 function sdSuperRect(x: number, y: number, w: number, h: number, r: number, k: number): number {
   if (k === 2) return sdRoundedRect(x, y, w, h, r);
@@ -67,6 +81,36 @@ function sdSuperRect(x: number, y: number, w: number, h: number, r: number, k: n
   const oy = Math.max(qy, 0);
   const corner = Math.pow(Math.pow(ox, k) + Math.pow(oy, k), 1 / k);
   return corner + Math.min(Math.max(qx, qy), 0) - r;
+}
+
+/**
+ * The superellipse exponent a computed `corner-shape` describes — 2 (a circle) for anything
+ * this file cannot read, which is the value that generates the map it always generated.
+ *
+ * IT IS A PARSE AND NOT A KEYWORD MATCH, and the difference is a one-way failure (2026-09-05).
+ * It shipped as `.includes("squircle") ? 4 : 2`, which is correct only while the engine
+ * serialises the keyword it was given: `corner-shape` also takes `superellipse(<number>)`, the
+ * keywords ARE that function (`squircle` is `superellipse(2)`, `round` is `superellipse(1)`),
+ * and which form comes back out of `getComputedStyle` is the engine's choice rather than this
+ * package's. Chrome 151 answers `squircle` for both spellings; an engine that answers the
+ * functional form instead would send every squircle pane down the circular branch, and the
+ * failure is SILENT — the map still generates, it just describes a shape the box does not
+ * paint, which is the arc this whole mechanism exists to prevent.
+ *
+ * The CSS curvature parameter k is the log of the exponent: |x|^(2^k) + |y|^(2^k) = 1. Clamped
+ * because a concave corner (`scoop`, negative k) is a shape this generator has no model for and
+ * a huge exponent is a rectangle — both answer "as square as we go" rather than NaN.
+ */
+export function cornerExponent(value: string): number {
+  const v = value.trim().toLowerCase();
+  if (v.includes("squircle")) return 4;
+  const fn = v.match(/superellipse\(\s*(-?[\d.]+)\s*\)/);
+  if (fn) {
+    const n = Math.pow(2, Number(fn[1]));
+    return Number.isFinite(n) ? Math.min(Math.max(n, 2), 16) : 2;
+  }
+  if (v.includes("bevel") || v.includes("notch")) return 2;
+  return 2;
 }
 
 /**
@@ -373,7 +417,7 @@ export const __genPaths = { analytic: 0, banded: 0, glintAnalytic: 0, glintBande
  * sweep exercises BOTH — a sweep that only ever took the fallback would be a law about the
  * special case wearing the general one's name.
  */
-export function physicalMap(w: number, h: number, r: number, p: LensParams): { url: string; max: number } {
+export function physicalMap(w: number, h: number, r: number, p: LensParams, k = 2): { url: string; max: number } {
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
@@ -414,12 +458,12 @@ export function physicalMap(w: number, h: number, r: number, p: LensParams): { u
     const con = new Uint8Array(cz * cz);
     for (let y = 0; y < cz; y++) {
       for (let x = 0; x < cz; x++) {
-        const inside = -sdRoundedRect(x + 0.5, y + 0.5, w, h, r);
+        const inside = -sdSuperRect(x + 0.5, y + 0.5, w, h, r, k);
         if (inside < 0 || inside > bezel) continue;
         const i = y * cz + x;
         const mag = bend(inside);
-        const gx = sdRoundedRect(x + 1.5, y + 0.5, w, h, r) - sdRoundedRect(x - 0.5, y + 0.5, w, h, r);
-        const gy = sdRoundedRect(x + 0.5, y + 1.5, w, h, r) - sdRoundedRect(x + 0.5, y - 0.5, w, h, r);
+        const gx = sdSuperRect(x + 1.5, y + 0.5, w, h, r, k) - sdSuperRect(x - 0.5, y + 0.5, w, h, r, k);
+        const gy = sdSuperRect(x + 0.5, y + 1.5, w, h, r, k) - sdSuperRect(x + 0.5, y - 0.5, w, h, r, k);
         const gl = Math.hypot(gx, gy) || 1;
         cmag[i] = mag;
         cnx[i] = gx / gl;
@@ -431,7 +475,7 @@ export function physicalMap(w: number, h: number, r: number, p: LensParams): { u
     }
     // ── the spans' per-depth values, off the real field at a representative pure pixel ──
     const px = cz + 0.5;
-    const sdRow = (yy: number): number => sdRoundedRect(px, yy + 0.5, w, h, r);
+    const sdRow = (yy: number): number => sdSuperRect(px, yy + 0.5, w, h, r, k);
     type Span = { y: number; mag: number; ny: number };
     const rows: Span[] = [];
     for (let y = 0; ; y++) {
@@ -445,7 +489,7 @@ export function physicalMap(w: number, h: number, r: number, p: LensParams): { u
       const a = Math.abs(mag);
       if (a > maxAbs) maxAbs = a;
     }
-    const sdCol = (xx: number): number => sdRoundedRect(xx + 0.5, cz + 0.5, w, h, r);
+    const sdCol = (xx: number): number => sdSuperRect(xx + 0.5, cz + 0.5, w, h, r, k);
     const cols: Span[] = [];
     for (let x = 0; ; x++) {
       const inside = -sdCol(x);
@@ -526,22 +570,22 @@ export function physicalMap(w: number, h: number, r: number, p: LensParams): { u
       mark.fill(0);
       let x = 0;
       for (; x < w; x++) {
-        const v = sdRoundedRect(x + 0.5, y + 0.5, w, h, r);
+        const v = sdSuperRect(x + 0.5, y + 0.5, w, h, r, k);
         out[x] = v;
         mark[x] = 1;
         if (-v > bezel) break;
       }
       for (let x2 = Math.max(w - 1 - x, x); x2 < w; x2++) {
-        out[x2] = sdRoundedRect(x2 + 0.5, y + 0.5, w, h, r);
+        out[x2] = sdSuperRect(x2 + 0.5, y + 0.5, w, h, r, k);
         mark[x2] = 1;
       }
     };
     const at = (row: Float64Array, mk: Uint8Array, x: number, y: number): number =>
       x < 0 || x >= w
-        ? sdRoundedRect(x + 0.5, y + 0.5, w, h, r)
+        ? sdSuperRect(x + 0.5, y + 0.5, w, h, r, k)
         : mk[x]
           ? (row[x] as number)
-          : sdRoundedRect(x + 0.5, y + 0.5, w, h, r);
+          : sdSuperRect(x + 0.5, y + 0.5, w, h, r, k);
     scan(-1, rowC[0]!, rowM[0]!);
     scan(0, rowC[1]!, rowM[1]!);
     for (let y = 0; y < h; y++) {
@@ -740,14 +784,18 @@ function acquire(
   p: LensParams,
   fit: number,
   rim: { url: string; sat: number } | null,
+  /** The box's corner exponent (2 circular, 4 squircle) — see `sdSuperRect`. It is part of the
+      key below because two panes of one size whose corners are shaped differently need two
+      maps; without it the first one minted would be handed to the second. */
+  k = 2,
 ): string | null {
-  const key = `${w}x${h}r${r}z${fit}b${p.bezel}t${p.thickness}i${p.ior}f${p.fringe}s${p.boost}q${tuningSerial}rs${rim ? rim.sat : 0}`;
+  const key = `${w}x${h}r${r}k${k}z${fit}b${p.bezel}t${p.thickness}i${p.ior}f${p.fringe}s${p.boost}q${tuningSerial}rs${rim ? rim.sat : 0}`;
   const hit = filters.get(key);
   if (hit) {
     hit.users += 1;
     return hit.id;
   }
-  const { url, max } = physicalMap(w, h, r, p);
+  const { url, max } = physicalMap(w, h, r, p, k);
   if (!url || max <= 0) return null;
 
   const id = `kui-lens-${(seq += 1)}`;
@@ -995,10 +1043,12 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
         const sealed = lensSupported() && cs.getPropertyValue("backdrop-filter") === "none";
         const ringDown = cs.getPropertyValue("--material-ring-opacity").trim() === "0";
         // The corner's exponent: `corner-shape: squircle` renders the classic |x|⁴ superellipse,
-        // and the glint's contour must follow the corner the box actually paints — a band of
-        // light detaching from the lip at every corner is what a circular mask over a squircle
-        // clip would draw. corner-shape does not animate, so this is stable through a flight.
-        const k = cs.getPropertyValue("corner-shape").includes("squircle") ? 4 : 2;
+        // and BOTH contours must follow the corner the box actually paints — the glint's band,
+        // because light detaching from the lip at every corner is what a circular mask over a
+        // squircle clip draws, and since 2026-09-05 the lens's bend, for the same reason at a
+        // bigger scale (see `sdSuperRect`). corner-shape does not animate, so this is stable
+        // through a flight.
+        const k = cornerExponent(cs.getPropertyValue("corner-shape"));
         /**
          * AND THE SAME GATE FOR THE MASK: IS THERE A LAYER TO PUT IT ON? (2026-08-26, the
          * ultracode audit — the seal repair's own sentence, reached by a second road.)
@@ -1104,7 +1154,7 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
           bezel: params.bezel * scale,
           thickness: params.thickness * scale,
         };
-        const next = acquire(w, h, r, fitted, scale, glintUrl && sat > 0 ? { url: glintUrl, sat } : null);
+        const next = acquire(w, h, r, fitted, scale, glintUrl && sat > 0 ? { url: glintUrl, sat } : null, box.k);
         if (!next) return;
         // UNCONDITIONALLY, never `s.id !== next` (2026-08-22 audit). `measure()` runs once
         // directly below and the ResizeObserver then delivers its own initial record for the
