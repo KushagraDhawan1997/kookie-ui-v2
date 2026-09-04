@@ -121,16 +121,41 @@ const cx = (...parts: (string | undefined)[]) => parts.filter(Boolean).join(" ")
     §27: a pane is a card among cards; seal, edge, material and depth all arrive from
     surfaces.css and this file's stylesheet paints nothing).
 
-    The material is SELECTIVE since 2026-08-17 (§10, merged from main 2026-08-20): a surface
-    reads the theme's glass only where a backdrop is stated. **`flush` is what states it
-    here** (2026-08-20), which closes the API question this comment used to carry open: a
-    pane pulled off the frame has something behind it and a welded one does not, so the
-    posture prop already answers the material's question and no second prop is owed. */
+    The material is SELECTIVE since 2026-08-17 (§10): a surface reads the theme's glass only
+    where a backdrop is stated. Two things state it here — the app, through `backdrop`
+    (2026-08-29), and the SHELL, for a pane that is overlaying (2026-09-05), on the rule every
+    covering panel in the package already follows. This comment said "`flush` is what states
+    it" until 2026-08-29 and the sentence is kept dead in the body below, because the reason
+    that inference failed is the reason this one holds. */
 function usePaneDress(
   flush: boolean,
   backdrop: boolean | undefined,
   forwarded?: React.Ref<HTMLElement>,
+  overlaying = false,
 ) {
+  // A DRAWER TAKES THE MATERIAL BY CONSTRUCTION, AND THE CALL SITE IS NOT ASKED (2026-09-05,
+  // Kushagra: "like dialog or menu are always glass bc theyre above"). Every covering panel in
+  // this package hardcodes `useMaterial({ backdrop: true })` — Menu, Select, Popover, Dialog,
+  // AlertDialog — because a panel over the page HAS the page behind it, which is §10's
+  // selectivity satisfied structurally rather than by a claim. An overlaying pane is that
+  // shape and it has the scrim too, which is Dialog's arrangement exactly (scrim at z 1, pane
+  // at z 2), so it resolves the theme's glass whatever the app said.
+  //
+  // This is NOT the 2026-08-29 inference returning. That one computed a default for the
+  // ORDINARY posture out of `flush`, a sibling-dependent fact JS cannot know at first paint;
+  // this is the popup rule, keyed on a fact about THIS pane, and it is not a default the app
+  // can talk out of — you cannot ask for a solid menu either. `backdrop` still governs every
+  // pane that is not overlaying, which is every pane most of the time.
+  //
+  // The one flash it costs, stated rather than hidden: `presentation="auto"` resolves against
+  // `useWindowClass()`, which is honestly null on the server, so a `defaultOpen` drawer on a
+  // narrow window paints solid for one frame and corrects. It cannot be closed from here (the
+  // window has no size until the client has it) and it is the configuration nobody builds — a
+  // drawer is summoned, and an `auto` nav column rests CLOSED at narrow by the resolution two
+  // hundred lines down. Every other route in is a press, which is post-mount by construction.
+  //
+  // Only the four togglable panes pass this. The header is never an overlay and the work area
+  // is the pane nothing is ever underneath (ShellContent carries that argument).
   // THE AUTHOR STATES THE BACKDROP; THE POSTURE NO LONGER INFERS IT (2026-08-29, Kushagra:
   // "all panels should support backdrop prop, we already have precedence for it"). This is
   // Card's line verbatim — the prop when it is stated, the ambient `<Box backdrop>` region
@@ -157,7 +182,9 @@ function usePaneDress(
   // passing a hard `false` here would be the library contradicting an enclosing
   // `<Box backdrop>` in writing. The work area is the ONE pane that does pass `false`, and
   // ShellContent carries the reason.
-  const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
+  const material = useMaterial(
+    overlaying ? { backdrop: true } : backdrop === undefined ? undefined : { backdrop },
+  );
   const stamps = {
     "data-tone": "neutral",
     "data-emphasis": "quiet",
@@ -220,6 +247,12 @@ type PaneDressProps = {
    * follows the surrounding `<Box backdrop>` region, which is what makes a flush pane
    * translucent over a window-wide wallpaper. The material itself is still the theme's: this
    * prop cannot pick one.
+   *
+   * It does not reach a pane that is OVERLAYING. A drawer sits over the page with a scrim
+   * under it, which is Dialog's arrangement, and every covering panel in this package takes
+   * the theme's material without being asked — so this prop answers for the pane in the frame
+   * and the shell answers for the drawer. You cannot ask for a solid drawer, in the same sense
+   * that you cannot ask for a solid menu.
    */
   backdrop?: boolean;
 };
@@ -794,9 +827,16 @@ function usePane(
               : windowClass !== "narrow"
           : false;
 
-  const overlayLive =
-    expanded === true &&
-    (presentation === "overlay" || (presentation === "auto" && windowClass === "narrow"));
+  // Is this pane PRESENTED as an overlay — the stylesheet's own question, asked in JS for the
+  // one thing the stylesheet cannot answer: the material (2026-09-05). Deliberately not
+  // `overlayLive`: what a pane is made of follows its placement, never whether it happens to
+  // be open, and a closed drawer costs nothing to dress (it is `display: none`, so the lens
+  // measures 0x0 and mints no map — refraction.tsx's `< 8` floor — and re-measures through
+  // its ResizeObserver the moment it is shown).
+  const overlaying =
+    presentation === "overlay" || (presentation === "auto" && windowClass === "narrow");
+
+  const overlayLive = expanded === true && overlaying;
 
   // Stable actions over a latest-values ref, so registry entries change only when the facts
   // they carry change.
@@ -858,7 +898,7 @@ function usePane(
     };
   }, [store, name, id, expanded, overlayLive, toggle, openPane, closePane]);
 
-  return { id, state, presentation, paneRef: setPaneEl };
+  return { id, state, presentation, overlaying, paneRef: setPaneEl };
 }
 
 type SidePaneProps = Omit<React.ComponentPropsWithoutRef<"nav">, "color"> &
@@ -1200,7 +1240,7 @@ function SidePane({
   // rather than replacing anything, the `render` escape's 2026-08-03 lesson.
   const ownRef = React.useRef<HTMLElement | null>(null);
   const composedRef = useMergedRefs(ref, pane.paneRef, ownRef);
-  const { material, stamps, ref: paneRef } = usePaneDress(flush, backdrop, composedRef);
+  const { material, stamps, ref: paneRef } = usePaneDress(flush, backdrop, composedRef, pane.overlaying);
   const Element = element;
   return (
     <Element
@@ -1336,7 +1376,7 @@ export function ShellBottom(props: ShellBottomProps) {
   // callback per render, which tears the lens down and rebuilds its map.
   const ownRef = React.useRef<HTMLElement | null>(null);
   const composedRef = useMergedRefs(ref, pane.paneRef, ownRef);
-  const { material, stamps, ref: paneRef } = usePaneDress(flush, backdrop, composedRef);
+  const { material, stamps, ref: paneRef } = usePaneDress(flush, backdrop, composedRef, pane.overlaying);
   return (
     <aside
       {...rest}

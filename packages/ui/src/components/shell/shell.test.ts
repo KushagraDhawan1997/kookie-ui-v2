@@ -179,7 +179,17 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     // BACK by re-pointing at that same hook. The guarantee this law exists for is that the
     // shell never paints on its own account, so the exemption is bounded by VALUE rather than
     // by selector: neither rule may name a colour, and the only values they may carry are
-    // `none` and the surface layer's own hook. A bed cannot hide inside that.
+    // `none`, `transparent` and the surface layer's own hooks. A bed cannot hide inside that.
+    //
+    // THE FILL JOINED THE PAIR ON 2026-09-05 and the bound did not move an inch. It used to be
+    // said with the custom property (`--kui-sf-fill: transparent` on flush, `initial` on the
+    // drawer), which this law never inspected because it reads declarations beginning
+    // `background` — and that spelling was the defect: `--kui-sf-fill` is the name a material
+    // declares its veil on, so standing it down deleted the veil and `initial` fell through to
+    // the opaque `--kui-sf-fill-src`, painting every glass drawer white. Both halves are
+    // properties now, so both come under this law for the first time, and the two values they
+    // may carry are the ABSENCE and surfaces.css's own chain verbatim. A literal still cannot
+    // get through, which is the only thing this arm has ever promised.
     const standDowns = [
       /\.kui-shell-pane\[data-flush\]\s*\{[^}]*\}/g,
       /\.kui-shell-pane\[data-flush\]\[data-presentation="(?:overlay|auto)"\]\s*\{[^}]*\}/g,
@@ -188,7 +198,7 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
       for (const rule of css.match(re) ?? []) {
         for (const decl of rule.match(/background[^;]*/g) ?? []) {
           expect(decl, "a stand-down may not paint").toMatch(
-            /^background-image:\s*(none|var\(--kui-sf-light\))$/,
+            /^(background-image:\s*(none|var\(--kui-sf-light\))|background-color:\s*(transparent|var\(--kui-sf-fill, var\(--kui-sf-fill-src\)\)))$/,
           );
         }
       }

@@ -471,15 +471,34 @@
 
    AND IT PAINTS NOTHING (2026-08-21, Kushagra: "flush should have no background at all, it's
    flush to page"). A flush pane is level with the page, so it is not a plane and has no fill
-   of its own — `--kui-sf-fill` is the hook surfaces.css already reads first, so the material
-   chain underneath (`--kui-sf-fill-src`) is untouched and a pane that leaves the frame gets
-   its fill back by the hook going away. Measured before the change: header, sidebar and
-   content all painted the identical seal, which is the same value a Card paints, so the fill
-   told you nothing that the hairlines were not already saying. What it means in exchange is
-   that a flush shell no longer supplies the app's background — the page does, which is the
-   app's call in this system and always was. */
+   of its own. Measured before the change: header, sidebar and content all painted the
+   identical seal, which is the same value a Card paints, so the fill told you nothing that the
+   hairlines were not already saying. What it means in exchange is that a flush shell no longer
+   supplies the app's background — the page does, which is the app's call in this system and
+   always was.
+
+   IT STANDS DOWN THE PROPERTY, NOT THE HOOK, AND THAT IS A 2026-09-05 REPAIR (Kushagra, on a
+   glass drawer: "its still white, only when I remove this bg color do I see glass"). It was
+   `--kui-sf-fill: transparent` for a fortnight, with a comment arguing that the hook was the
+   safe choice "so the material chain underneath (`--kui-sf-fill-src`) is untouched and a pane
+   that leaves the frame gets its fill back by the hook going away". The chain half was true.
+   The going-away half was not: `--kui-sf-fill` is EXACTLY the name the material declares its
+   veil on (surfaces.css, one line per rung), and the only way to hand it back is to say
+   nothing about it — while the drawer exception below said `initial`, which is not silence but
+   an instruction to fall through to `--kui-sf-fill-src`, the OPAQUE seal. So a glass drawer
+   resolved `data-material`, built its lens, ran its filter, and painted an opaque white pane
+   over the whole thing. It could not show before, because until 2026-09-05 a drawer never had
+   a material.
+
+   The property is the honest spelling for both halves: flush paints transparent, the drawer
+   restores the base rule's own chain, and the material's declaration of the hook is never
+   contested by either. It is also the arrangement `border-radius` two rules down already uses,
+   for its own version of the same reason — a hook that another layer owns cannot be borrowed
+   to say something local. Nothing else reads `--kui-sf-fill` on a pane: surfaces.css's other
+   readers are all `:where(button, a, label)` interactive arms, and a pane is a `<nav>`,
+   `<aside>`, `<header>` or `<main>`. */
 .kui-shell-pane[data-flush] {
-  --kui-sf-fill: transparent;
+  background-color: transparent;
   /* AND IT CATCHES NO LIGHT AND THROWS NO SHADOW (2026-08-21, second pass — the first one
      stood down the fill alone and Kushagra caught the rest by eye: "why does it still seem to
      have background?"). A fill is only one of the three things a plane does. Measured on a
@@ -492,8 +511,11 @@
      down as the PROPERTY and never as `--kui-sf-light`, because that hook is not registered
      `inherits: false` and setting it here would reach every card INSIDE the pane and strip
      its rim too — the var-inheritance trap this system has now been bitten by five times. The
-     fill above is safe as a hook because `--kui-sf-fill` IS registered non-inheriting; checked
-     rather than assumed. The cast stands down on the pane's own non-inheriting name, which is
+     fill above is a property for a DIFFERENT reason, and this comment argued the opposite
+     until 2026-09-05: it said the fill "is safe as a hook because `--kui-sf-fill` IS
+     registered non-inheriting", which is true and beside the point. Inheritance was never the
+     hazard there — OWNERSHIP was. `--kui-sf-fill` is the name the material declares its veil
+     on, so borrowing it to say something local deletes the veil. The cast stands down on the pane's own non-inheriting name, which is
      consulted before the world's inherited chrome, so one declaration closes both hops; the
      pool goes with it, being the seat-line a pane pools at its own bottom. `0 0 0 0
      transparent` and never `none`, because `none` is illegal inside a shadow list. */
@@ -653,7 +675,12 @@
    that "restore the surface identity" means restore what THIS component gives a pane off the
    frame, not what the shared layer would give some other box. */
 .kui-shell-pane[data-flush][data-presentation="overlay"] {
-  --kui-sf-fill: initial;
+  /* The base rule's own chain, restated (2026-09-05). It has to be the PROPERTY, because the
+     flush rule stands down the property and `--kui-sf-fill` belongs to the material — see the
+     flush rule's own note for the fortnight this was spelled `--kui-sf-fill: initial` and
+     painted every glass drawer opaque. The chain is surfaces.css's verbatim and names no
+     material, which is what keeps it legal in a component sheet. */
+  background-color: var(--kui-sf-fill, var(--kui-sf-fill-src));
   /* The hook alone, with no fallback and deliberately no material NAMED — a component sheet
      may not name one (recipes.test.ts). Every pane the surface layer dresses sets this hook
      for its own rung, so the bare `var()` resolves; where it somehow would not, an invalid
@@ -1262,7 +1289,9 @@
      shape of the 2026-08-16 half-applied width-cap repair, which reached the explicit arms
      and not this one: the path every phone takes. */
   .kui-shell-pane[data-flush][data-presentation="auto"] {
-    --kui-sf-fill: initial;
+    /* The property, for the explicit arm's reasons — a hook the material owns cannot be
+       borrowed to say something local (2026-09-05). */
+    background-color: var(--kui-sf-fill, var(--kui-sf-fill-src));
     background-image: var(--kui-sf-light);
     --kui-sf-cast: initial;
     --kui-sf-pool: initial;

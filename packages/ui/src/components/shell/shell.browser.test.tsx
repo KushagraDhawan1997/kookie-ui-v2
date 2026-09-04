@@ -3591,4 +3591,161 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
       ).toBe("regular");
     });
   });
+
+  describe("a DRAWER takes the material by construction (§10, §27, 2026-09-05)", () => {
+    // Kushagra: "like dialog or menu are always glass bc theyre above". Menu, Select, Popover,
+    // Dialog and AlertDialog all hardcode `useMaterial({ backdrop: true })`, because a panel
+    // over the page HAS the page behind it — §10's selectivity satisfied structurally rather
+    // than by a claim. An overlaying pane is that shape, with the scrim under it exactly as a
+    // dialog has (scrim z 1, pane z 2), so the shell answers for it and the app is not asked.
+    //
+    // EVERY FIXTURE HERE CARRIES A FLUSH SIDEBAR THAT STATES NOTHING, and it is not decoration:
+    // without it these pass under a theme whose glass reaches every pane unconditionally,
+    // which is the degenerate fixture this file has paid for three times. The control is the
+    // half that says the mechanism is keyed on the DRAWER.
+
+    // Falsified: with `overlaying` dropped from `usePaneDress`'s material call, the drawer
+    // reads `expected undefined to be 'regular'` and the control still passes.
+    it("an explicit overlay pane resolves the theme's glass, having stated no backdrop", () => {
+      const shell = mounted(
+        <Shell style={{ height: 400 }}>
+          <ShellRail aria-label="Sections">r</ShellRail>
+          <ShellSidebar aria-label="Primary" presentation="overlay" defaultOpen>
+            nav
+          </ShellSidebar>
+          <ShellContent>c</ShellContent>
+        </Shell>,
+        { theme: { material: "regular" }, select: ".kui-shell" },
+      );
+      expect(
+        within(shell, ".kui-shell-sidebar").dataset.material,
+        "a pane over the content stayed solid — every other covering panel glasses",
+      ).toBe("regular");
+      expect(
+        within(shell, ".kui-shell-rail").dataset.material,
+        "a pane IN THE FRAME took glass it never asked for — the control, and the whole point",
+      ).toBeUndefined();
+      // Stamped is not painted. The lens joins on the same call, so read the chain too.
+      expect(computed(within(shell, ".kui-shell-sidebar"), "backdrop-filter")).toContain("blur");
+    });
+
+    // Falsified: same deletion fails here with `expected undefined to be 'regular'`. Kept
+    // separate from the law above for the reason the drawer's DRESS laws are — the treatment
+    // is written twice, and `auto` is the path every phone takes (2026-08-06's agreement
+    // clause). This one also proves the resolution runs at all: `useWindowClass()` is null on
+    // the server by design, so a drawer that never re-resolved would read solid forever.
+    it("...and so does a phone's drawer, the resolved arm", async () => {
+      await narrow();
+      const shell = mounted(
+        <Shell style={{ height: 600 }}>
+          <ShellSidebar aria-label="Primary" defaultOpen>
+            nav
+          </ShellSidebar>
+          <ShellContent>c</ShellContent>
+        </Shell>,
+        { theme: { material: "regular" }, select: ".kui-shell" },
+      );
+      const sidebar = within(shell, ".kui-shell-sidebar");
+      expect(sidebar.dataset.presentation, "resolved by CSS, not restamped").toBe("auto");
+      await expect
+        .poll(() => sidebar.dataset.material, {
+          timeout: 1000,
+        })
+        .toBe("regular");
+      // The same pane, same props, on a roomy window: it is in the frame there and solid.
+      await page.viewport(WIDE.width, WIDE.height);
+      await expect.poll(() => sidebar.dataset.material).toBeUndefined();
+    });
+
+    // Falsified: with the material call reading `backdrop` first, this fails at
+    // `expected undefined to be 'regular'` — which is the shape a "let the app override it"
+    // spelling would ship.
+    it("and the app cannot ask for a solid drawer — Dialog's terms, taken whole", () => {
+      const shell = mounted(
+        <Shell style={{ height: 400 }}>
+          <ShellSidebar
+            aria-label="Primary"
+            presentation="overlay"
+            defaultOpen
+            backdrop={false}
+          >
+            nav
+          </ShellSidebar>
+          <ShellContent>c</ShellContent>
+        </Shell>,
+        { theme: { material: "regular" }, select: ".kui-shell" },
+      );
+      expect(
+        within(shell, ".kui-shell-sidebar").dataset.material,
+        "a stated `backdrop={false}` unmade a drawer's glass — you cannot ask for a solid menu",
+      ).toBe("regular");
+    });
+
+    // Falsified: with GlassScope removed from the pane the Card reads `regular` rather than
+    // `on-glass` — glass stacking on glass, which is what the scope exists to forbid.
+    it("and it scopes its subtree, so nothing inside stacks a second pane of glass", () => {
+      const shell = mounted(
+        <Shell style={{ height: 400 }}>
+          <ShellSidebar aria-label="Primary" presentation="overlay" defaultOpen>
+            <Card>in the drawer</Card>
+          </ShellSidebar>
+          <ShellContent>c</ShellContent>
+        </Shell>,
+        { theme: { material: "regular" }, select: ".kui-shell" },
+      );
+      expect(within(shell, ".kui-card").dataset.material).toBe("on-glass");
+    });
+
+    // ADDED 2026-09-05, and the defect is what earned it (Kushagra, on the first drawer this
+    // change made glass: "its still white, only when I remove this bg color do I see glass").
+    // Every law above reads the STAMP, the filter and the scope, and all four were green over
+    // a pane painting an opaque seal on top of all three — the 2026-08-03 lesson in a shape
+    // this file had not met: not a law one indirection short of the computed value, but four
+    // laws reading three of the four things that make glass and none of them the fill.
+    //
+    // The cause: `--kui-sf-fill` is the name a material declares its veil on, the flush rule
+    // stood that same hook down, and the drawer exception handed it back with `initial` —
+    // which is not silence but an instruction to fall through to `--kui-sf-fill-src`, the
+    // opaque seal. Both are properties now.
+    //
+    // Falsified: with `--kui-sf-fill: initial` back in the drawer exception this reads
+    // `expected "rgb(255, 255, 255)" not to be "rgb(255, 255, 255)"`, and the four laws above
+    // stay green — which is the whole reason it exists.
+    it("and the veil actually PAINTS — the drawer is not an opaque pane wearing a filter", () => {
+      const glassDrawer = mounted(
+        <Shell style={{ height: 400 }}>
+          <ShellSidebar aria-label="Primary" presentation="overlay" defaultOpen>
+            nav
+          </ShellSidebar>
+          <ShellContent>c</ShellContent>
+        </Shell>,
+        { theme: { material: "regular" }, select: ".kui-shell" },
+      );
+      // The reference is the SEAL a solid drawer paints in the same shell at the same size:
+      // a translucent veil cannot be it, and reading against a literal would only pin today's
+      // alpha rather than the guarantee.
+      const solidDrawer = mounted(
+        <Shell style={{ height: 400 }}>
+          <ShellSidebar aria-label="Primary" presentation="overlay" defaultOpen>
+            nav
+          </ShellSidebar>
+          <ShellContent>c</ShellContent>
+        </Shell>,
+        { theme: {}, select: ".kui-shell" },
+      );
+      const painted = computed(within(glassDrawer, ".kui-shell-sidebar"), "background-color");
+      expect(
+        painted,
+        "a glass drawer painted the opaque seal over its own veil",
+      ).not.toBe(computed(within(solidDrawer, ".kui-shell-sidebar"), "background-color"));
+      expect(painted, "the drawer's fill is opaque, so nothing behind it can be seen").toMatch(
+        /^(rgba|color)\(/,
+      );
+      // And the solid drawer is unmoved by the repair, which is the control: the fill it gets
+      // back is still a Card's, so the 2026-08-21 "a drawer has a surface" call stands.
+      expect(computed(within(solidDrawer, ".kui-shell-sidebar"), "background-color")).toBe(
+        computed(mounted(<Card>c</Card>, { theme: {} }), "background-color"),
+      );
+    });
+  });
 });

@@ -65,8 +65,13 @@ refuses the prop rather than defaulting it: the work area is the bottom of the s
 ever passes behind it. A vibrant region inside the work area is still yours to build — put a
 `Box backdrop` or a `Card backdrop` in it, because a solid panel hosts glass.
 
-The material is resolved in this order: the component's own prop, then the region it is in, then
-`solid`. Floating panels mark themselves, because a popup always covers something.
+A panel does not need the prop once it becomes a drawer. On a narrow window a nav column slides
+over the page with a scrim under it, which is what a dialog does, so it takes the theme's
+material on its own. `backdrop` answers for the panel while it stands in the frame.
+
+The material is resolved in this order: a panel that covers something, then the component's own
+prop, then the region it is in, then `solid`. Anything that covers marks itself, because a thing
+over the page always has the page behind it.
 
 An unmarked control sitting in ordinary page flow stays solid and costs you nothing. That is the
 performance reason for the rule: a blur filter on something with nothing behind it re-reads the
