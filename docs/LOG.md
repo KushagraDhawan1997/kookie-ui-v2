@@ -8,6 +8,85 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-07 The agent surface: what a model is handed, and what was measured before it was built
+
+**What.** Refusals that print their own escape in the compiler (`system/refused.ts`, all 140 props
+types); docs that reach the shipped `.d.ts` (Button's orphaned block, 23 bare exports, a law over
+`dist`); a dev warning for the missing stylesheet; an ESLint plugin and an agent entry shipped from
+the package; the MCP server at `packages/mcp`; the generated `AGENTS.md` and `npx @kookie-ui/react
+init`; a Claude Code skill; legal values in the props tables; `Accept: text/markdown`; WebMCP on
+the site; a consumer chapter. DECISIONS §48 holds the spec. This is the record of what was turned
+down and what changed shape on the way.
+
+**Why the first plan refused the tooling, and why that was overruled.** Twenty-two agents
+researched, designed and adversarially refuted a plan whose argument was that retrieval was not the
+bottleneck — the docs site already served everything a model needs, and the gap was the two
+channels an agent cannot skip: the `.d.ts` and the diagnostic. On measured grounds it refused an MCP
+server (a third rendering of the registry, over a 25k-token result cap MUI's server has an open bug
+against), rules files in the tarball (read by nothing — `node_modules` is excluded from every
+agent's search), and a skill (redundant by design). Kushagra: *"I'm not against mcp, not even
+against webmcp, not against rules or skill anymore."* The measurements stayed true and shaped HOW
+each was built rather than whether: the server paginates, the rules file has an install step, the
+skill carries only what a lookup cannot.
+
+**The refusal spelling was decided by running three candidates through `tsc`**, not by
+preference. `never` says nothing useful. The message-as-value spelling lets the sentence become a
+prop value and reach the DOM. The branded type prints the same sentence and no string satisfies it.
+`color` alone needed `string & Refused<…>`, because React's HTML attributes carry `color` and a bare
+brand broke 50 files' rest-spreads. The `@ts-expect-error` suite was written first, sabotaged, and
+found unable to fail at the thing that changed — deleting the `variant` refusal leaves every
+suppression used, because `variant` is not a button attribute either — so the diagnostic-text law
+replaced it as the load-bearing one. ENGINEERING §1.3's "unexpressible, not warned about" is
+amended rather than left contradicting the code.
+
+**A comment claimed a law that did not exist, and chasing it found a dead check.** `refused.ts`
+said a law bound its refused-symbol set to the registry's. The registry stores refusals as prose
+("A horizontal orientation"), so that law cannot be written, and the site's adapter had passed
+that prose through AS the prop name — its refused-prop check answered "no problems found" on code
+the system refuses. The prose-to-prop rule (`refusedPropsOf`) moved into the package beside the
+checker, the false comment was corrected to say why the binding runs the other way, and a law
+drives a real refusal through the site's tool.
+
+**Two scanners under one name, checking different rules.** The server checked refused props,
+attributes, utility classes and raw values; the site checked imports, tags and values. Unified in
+`@kookie-ui/react/agent` with the facts injected, on the shape one reviewer had already praised
+(`buildTools(env)`). The docs' laws caught the overlap during the merge: one snippet reported
+`Button.tone` twice.
+
+**The registry gained `on`** after the corpus law recorded `<ToggleGroup render>` as a false
+positive nothing could fix: the refusal is about Toggle and the group's own blurb says to render it.
+Rejected: parsing "on Cancel and Action" out of prose (a convention nobody would remember), and
+narrowing by the generated API alone (ToggleGroup inherits `render` from Base UI, so the API does
+not print it).
+
+**The shipped ESLint config linted nothing.** Enabled from a scratch consumer with the two-line
+config the README would print, it reported "File ignored because no matching configuration was
+supplied" and exited zero — no `files` glob — and then could not parse `<`. Invisible from inside
+the repo, where the root config supplies both. The law goes through the real `ESLint` engine now.
+
+**Turbo, three times.** `test` had no `build` edge, so the `dist` law could pass on a stale
+artefact; `lint` had no `^build` edge, so an interrupted build turned into `Cannot find module`
+in `tsc`; and the MCP package hashed none of the docs files its snapshot derives from, so editing
+the registry served a cache hit. The last is stated as `$TURBO_ROOT$` inputs rather than a
+`devDependency` on `docs` — tried first, and it made a full Next build a prerequisite of a stdio
+server. The glob had to widen past the `(docs)` route group because turbo's parser refuses the
+parentheses.
+
+**WebMCP went from a CDN fetch to a pinned dependency.** The polyfill was loaded from jsdelivr at
+runtime so the lockfile would not carry it; that trades a reviewed version for whatever a third
+party serves at load time, in the document. It is a dependency now, still a separate chunk, still
+behind `?webmcp=1`. Its law initialises the real polyfill in node and registers through what it
+installs, because every earlier law used a stub shaped like the draft its author remembered.
+
+**Rejected outright**, each with the reason in §48: `registry.json`, DTCG tokens, serving
+`DECISIONS.md`, `DELETED` stubs for v1 names, an LLM judge in CI, `variant?: never`, growing
+`llms.txt`. **Recorded open**: neither package is published; the efficacy eval — does any of this
+change what a model writes — has not run, and the reach arguments are the only measured half.
+
+**Pre-existing failures met on the way, none touched:** `page.browser.test.tsx` (`56px` against
+`40px`, in the untracked `page/` work), two `blocks.test.tsx` laws over files modified before the
+session, and the tabs and select timing laws that pass alone.
+
 ## 2026-09-07 The figure's chrome went to hover, and three of its own defects shipped past the laws
 
 **What.** The chrome row on every code sample and specimen is hidden at rest and fades in when a
@@ -1344,6 +1423,132 @@ Each fails against its own sabotage and only its own.
 `display: none` with an `@starting-style` entry (the exit has no clock at all); a second spring
 for the recession (one clock is the whole claim); and animating the panes individually rather
 than the root (they would come apart, which is the thing the recession is for).
+
+## 2026-09-07 The footer's ground stays, its pinned dark appearance does not
+
+Two changes to the same element a day apart, and the second one reverses the first.
+
+**A footer that wants a pane is `<Surface><Footer/></Surface>`, and the block was already right
+about that** (Kushagra: "Can we wrap our footer in Surface?"). `blocks/footer.tsx` draws no pane
+and says in its own header that what a footer sits ON is the page's business — §3's "a component
+never owns where it sits" one level up — so this took one element at the call site and nothing
+in the block. What it reverses is an argument that lived in `site-footer.tsx`: that a floor under
+a reading column reads as one more card at the end of the article. Looked at, it does not. A
+ground is a step UNDER the page rather than a card on it, so the article stops where the pane
+starts, which is the one thing 40rem of unbounded links at the end of a chapter never said.
+
+**One consequence is stated rather than defended.** `CodeBlock` is a `Surface` too, so on a
+chapter dense with samples the floor shares its fill with the last three wells above it. If that
+reads wrong the repair is the one element at the call site, not a change in the block.
+
+**Then it was pinned to the dark appearance (2026-09-06), and that came out on the 7th.** The pin was a
+`<Theme appearance="dark">` rather than a hand-painted slab, which is the right mechanism for it
+— everything inside re-resolves through the dark palette, so the region stays the system in its
+other appearance — and it is the nested case the dark-SSR machinery exists to support, since
+`layout.tsx` runs `appearance="inherit"` and the pre-paint script owns the mode. None of that is
+the problem. The problem is what it means: a floor that is dark while the page above it is light
+is a region that has stopped being the system, and the ground was already saying everything the
+pin was saying. The footer takes the page's appearance again, and the argument survives in this
+entry rather than as a prop nobody sets.
+
+## 2026-09-06 The wordmark changed face three times, and the © turned out to be a fact about the face
+
+Kushagra dropped a foundry folder in Downloads and the mark went Telma, then Pencerio, then
+Tanker, in one afternoon. Almost none of that is worth recording. Four things are.
+
+**The line-box trim is a RULE, not a number, and three faces proved it.** `.kd-wordmark` collapses
+its line box with `text-box: cap alphabetic`, which trims to the cap line and the baseline whatever
+the face's own ascent and descent are — so Telma (ascent 54, descent 17 per 56px em, a 127% line
+sitting 76% down), Pencerio and Tanker all land in the same box with nothing restated per face.
+That is what made three swaps cost one `localFont` line each. Under Tanker, measured on the
+running site at step 8, both forms trim to exactly 30px. The obligation the trim creates is the
+half worth checking every time: real descenders and swashes hang OUTSIDE the trimmed box, and HOW
+FAR is a property of the face, not a number to carry forward — Telma spent both edges hard (42.1px
+of ink over a 38.1px box, tails 14px deep at step 9) and Tanker, which is all capitals, spends
+0.4px over the cap line and 0.4 under the baseline on the short form, 1.2 and 1.2 on the long one.
+`prose.css` carries the measurements and the two call sites that owe the check.
+
+**`weight="regular"` is load-bearing and leaving it off ships a fake bold.** `Heading` rests at
+semibold, exactly one file is loaded and it is 400, and a request bolder than anything available
+is the case a browser synthesizes by stroking the outline. Measured on the face in the slot at
+the time: 3,717 ink pixels at 600 against 2,806 at 400 — a third heavier than the face the
+designer drew. It is also why `layout.tsx` loads a static rather than a variable file, which
+would hand that request a whole axis to land on.
+
+**The `©` was shrunk for one face and the rule outlived it** (Kushagra: "Why does the copyright
+symbol render differently"). PP Playground draws its mark as a circle the height of the capitals,
+so "Kookie©" read as "KookieO" beside small script lowercase, and a `.kd-wordmark-mark` span shrank
+it to 0.32em and raised it. Tanker has no lowercase and draws the mark to the caps it sits
+between, so the same rule turned it into a speck. The rule and the span are both deleted and the
+character is just a character. **The wrapper went with it rather than staying as an empty hook**:
+a class nothing styles is markup claiming something is happening when nothing is, and if a later
+face needs the mark treated again, one span plus one rule is two lines to write back.
+
+**The footer's mark stepped 9 → 8, and the front door's came out entirely.** The step is the same
+kind of fact as the shrink: 9 measured 344px of ink under PP Playground and 654 under Telma, which
+sets wider and heavier — most of the column, which is a masthead rather than a sign-off. And the
+front door had a mark above a title that says the name in the next line, which is the name twice.
+
+## 2026-09-07 The chrome's links are the places this project is being kept
+
+**What.** Discord left `SOCIALS` in the docs chrome (Kushagra), and the appearance toggle moved
+ahead of the group so the links rest at the trailing edge. The list has since lost GitHub and
+Medium the same way, and the file's own comment carries the rule: a destination that is not being
+kept is a link that sends a reader somewhere nobody is, which is worse than not offering it.
+
+**The arrangement is stated nowhere, and that is the point.** A `Toolbar` is `space-between` and
+the caller supplies what is split, so the ORDER in the file IS the arrangement — no `align` prop,
+no leading/trailing slots, which is §45's own refusal read back. What decides the order is what
+each control does: the toggle acts on the page you are reading, the links leave the site, so the
+one you reach for sits at the start and the ones that take you away rest at the far edge. The
+toggle stays outside `ToolbarGroup` for the same reason it always did — a group is a capsule
+around controls of one kind, and it is not the same kind of thing as three links.
+
+## 2026-09-07 Four repairs the push found, and a rule about type-only imports
+
+Getting a day's work from three sessions into a clean tree meant running `pnpm run ci` over all of
+it at once, which is the first time anything had. Four things were red or stale. None of them is
+big; two are shapes this repo already has names for.
+
+**A type-only import still LOADS the file it names, and that pulled package source into the docs'
+program.** `agents.test.ts` and `scripts/generate-agents.ts` reached `packages/ui/src/system/axes`
+and `system/props` by relative path — the generator deliberately, with a comment explaining that
+the type half is erased before Node runs it, which is true and is not the same claim. TypeScript
+reads the file either way, and `apps/docs` sets `allowImportingTsExtensions: false`, so every
+extension-bearing import INSIDE the package failed the docs build: seven `TS5097` errors in files
+this app never mentions. Both go through the package entry now, where the shapes arrive off
+`dist/**/*.d.ts` with none of that reach. `MATERIALS` and `SIZES` needed no exception — they are
+`componentAxes.material` and `componentAxes.size`, so the private names were a second way of
+saying what the public one already says.
+
+**A shared implementation left its own scanner behind.** `agent-tools.ts` carried `TAG` and
+`LITERAL_PROP` with nothing calling them, under a paragraph explaining why a scan beats a parse —
+which `snippet.ts` says for itself, since that is where the scanning went when the two
+implementations were collapsed. Both regexes and the paragraph are deleted. The tell was an
+eslint `no-unused-vars`, which is the cheapest detector in the repo and the only thing that saw
+it.
+
+**Two laws had gone stale against the code they guard, in opposite directions.** The blocks law
+asserting a fence's chrome floats read one class where the design now has two boxes: a NAMED
+sample is a figure, so its row hangs from `.kd-figure-chrome`, and an unnamed one is a bare well
+taking the element's own `.kui-code-block-float`. It names which one each arrangement must use
+rather than accepting either — an OR would go green on a titled sample that quietly fell back to
+the well's slot, which is the arrangement that put the name over the first line it was naming.
+And Page's type law compared against a literal `<Heading size="8">` after `PAGE_TITLE_STEP` moved
+to 9 that morning; it reads the constant now, which is what its own title ("agreements, not
+literals") had always claimed. Both falsified: swapping the two float classes fails, and
+rendering the page title at 7 fails with `expected '30px' to be '56px'`.
+
+**And a published block carried a dated, attributed comment.** `code-sample.tsx` opened a block
+with a date and a quote — exactly what the 2026-09-06 "published source is not a log" law walks
+for, which is why the law caught it. The date and the quote are gone; the argument they sat on
+top of stayed where it was.
+
+**What all four have in common is that nothing was watching the seam.** Three sessions each ran
+the checks their own work reached, and each was green. The two stale laws belong to files nobody
+in the second or third session opened; the TS5097 errors are in a package the failing app does
+not import from directly. `pnpm run ci` over the whole tree is the only thing that reads all of
+it, and it is owed before a push and not after one.
 
 ## 2026-09-07 A ground stops out-padding what it holds, because containment is symmetric
 

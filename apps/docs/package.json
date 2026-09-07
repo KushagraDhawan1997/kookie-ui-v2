@@ -4,7 +4,7 @@
   "type": "module",
   "description": "KookieUI docs. Bare Next.js as the rendering substrate; every visible pixel is @kookie-ui/react. No docs framework and no third-party UI — a design system whose docs are built on someone else's system argues against itself (decided 2026-08-05, Kushagra; LOG). Icons are the exception the package itself names: §8 ships no icon dependency because icons are ReactNode slots the APP fills, so the app fills them with Hugeicons (2026-08-10).",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 1403",
     "build": "next build",
     "start": "next start",
     "lint": "eslint app blocks examples mdx-components.tsx mdx-plugins middleware.ts next.config.ts scripts && tsc -p tsconfig.json",

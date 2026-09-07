@@ -320,3 +320,4 @@ From repo root (pnpm 10 / Node 22; turbo fans out to packages):
 - `pnpm run measure` — CSS budget gate (regression ratchet); numbers live in `packages/ui/budget.json` only. Intentional growth means re-recording `baselineGzipBytes` in the same commit.
 - `pnpm --filter @kookie-ui/react run tokens` — regenerate `src/tokens/tokens.css` from `config.ts` (also runs as part of build)
 - `pnpm --filter @kookie-ui/react run preview` — emit `packages/ui/preview/density.html`, the size × density matrix for judging the numbers by eye
+- `pnpm --filter docs run dev` — the documentation site, **always on port 1403**. The port is pinned in `apps/docs/package.json` (2026-09-07): a bare `next dev` takes 3000 and silently walks to 3001 when something else has it, so every screenshot, every `curl` in a law's fixture and every link handed to a human meant a different address depending on what else was running.

@@ -271,12 +271,14 @@
      in the top two thirds and an empty well underneath — which is exactly what he was looking
      at.
 
-     THE FACE HAS SINCE CHANGED AND THE RULE DID NOT (2026-09-06, Telma). This is what makes it
-     worth writing as a rule rather than as a number: Telma declares ascent 54 and descent 17
-     at the same em — 127%, with its baseline 76% down, so untrimmed it sits WORSE than the face
-     the trim was written for. Trimmed, both land in the same box: the long form measured 38.5px
-     under Playground and 38.1 under Telma, the masthead's short form 27.5 and 27.2, with every
-     centre unmoved. Placing the mark places the ink, whichever hand it is written in.
+     THE FACE HAS SINCE CHANGED TWICE AND THE RULE DID NOT (Telma, then Tanker). This is what
+     makes it worth writing as a rule rather than as a number. Telma declares ascent 54 and
+     descent 17 at the same em — 127%, with its baseline 76% down, so untrimmed it sits WORSE
+     than the face the trim was written for; Tanker declares 100% and 25%, baseline 80% down.
+     Trimmed, all three land in the same box: the long form measured 38.5px under Playground and
+     38.1 under Telma, the masthead's short form 27.5 and 27.2, and under Tanker both forms trim
+     to exactly 30px at step 8 (measured in the running site). Placing the mark places the ink,
+     whichever hand it is written in.
 
      `text-box` is the property for this and it is why `line-height` alone could not fix it:
      line-height sizes the box, and what was wrong is where the FACE puts its baseline inside
@@ -289,11 +291,16 @@
      face, so the short form and the long form trim to the same rule.
 
      THE INK HANGS OUTSIDE THE BOX ON BOTH EDGES, which is correct for a logotype and is a real
-     obligation on whatever sits above and below it — checked at all three call sites (masthead,
-     front door, footer), and the footer's long form is the one that spends both. Below, the
-     descender (Playground's ƒ; Telma's own tails measure 14px at step 9). Above, the swash on
-     the K, because `cap` trims to the face's DECLARED cap height and a display face draws past
-     it — 42.1px of ink over a 38.1px box on Telma.
+     obligation on whatever sits above and below it. HOW MUCH is a property of the face, so it
+     is re-checked when the face changes rather than carried forward as a number: Telma spent
+     both edges hard (42.1px of ink over a 38.1px box, tails 14px deep at step 9), and Tanker
+     barely spends either — measured at step 8, the short form is 0.4px over the cap line and
+     0.4 under the baseline, the long form 1.2 and 1.2. Above, the overhang is the swash on the
+     K, because `cap` trims to the face's DECLARED cap height and a display face draws past it;
+     below, it is whatever tails the face has, and Tanker is all capitals so it has almost none.
+     TWO call sites, not three — the masthead and the footer. The front door carried the mark
+     until 2026-09-06 and lost it, because a mark over a title that says the name in the next
+     line is the name twice.
 
      `line-height: 1` STAYS and is now the fallback rather than the mechanism. Firefox has no
      `text-box` yet, so there the declaration is ignored and the mark keeps exactly the box it

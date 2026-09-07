@@ -42,6 +42,7 @@ apps/docs/
 - One component = one folder, identical shape, no exceptions. Boring on purpose.
 - `system/` is the only place mechanisms live. A component that needs a new mechanism adds it there or doesn't add it.
 - Generated files open with a header naming the config that produced them. Editing one is structurally pointless and forbidden.
+- **`apps/docs` reaches `packages/ui` through the package entry, never by relative path into `src/`.** A type-only import is erased before Node runs, but TypeScript still LOADS the file it names, so one relative import pulls package source into the app's program — where `allowImportingTsExtensions` is false, and every extension-bearing import inside the package fails the app's build with `TS5097` in files the app never mentions (2026-09-07). Reading a package file's TEXT is fine and is what several laws do; it is the module graph that must stop at the entry. A value the app needs and the entry does not export is an export decision, not a reason to reach past it.
 
 ### 2.1 The control contract
 
@@ -87,7 +88,7 @@ One table (`system/props.ts`) drives both halves — the resolver that writes th
 - **Box is the engine:** accepts the full curated prop set including container props and responsive `display` (a flex↔grid switch is legal — CSS ignores inapplicable properties).
 - **Flex / Grid / Stack are typed sugar over Box:** preset `display`, narrowed prop types, zero additional CSS. The named components are where the library adds enforcement over raw CSS; they are not optional decoration. **Those three plus Box are the shipped set** — corrected 2026-08-26 to match DECISIONS §3, which made the same correction on 2026-08-20: `Container` and `Spacer` sat in this line as members and are PLANNED, neither exported from `index.ts` nor holding a component directory. `<Box maxWidth mx="auto">` and `gap` + `flexGrow` are what has covered their cases so far.
 - **A prop earns existence only if it adds** token resolution, responsive tiers, or constraint. Everything else is `style`. The prop layer is one declarative table (`prop → css property + optional scale`); adding a prop = adding a row.
-- **Escape hatches:** `className` and `style` forwarded everywhere; consumer `style` merges last (escapes win, visibly). Ship an ESLint rule (`no-spacing-utilities-on-controls`) as the enforcement layer for defection.
+- **Escape hatches:** `className` and `style` forwarded everywhere; consumer `style` merges last (escapes win, visibly). The enforcement layer for defection is the shipped ESLint plugin (`@kookie-ui/react/eslint-plugin`, 2026-09-07): `no-refused-attribute` (error) catches a `data-` axis written past the type, and `no-escape-abuse` (warn) catches utility-class grammar in `className` and a raw colour or length in `style` for a property a prop already owns. The rule this line once promised, `no-spacing-utilities-on-controls`, shipped as the second of those under a wider name.
 - Promotion signal: an escape-hatch property recurring across consumer codebases becomes a table row.
 
 ## 6. Testing: laws, not snapshots

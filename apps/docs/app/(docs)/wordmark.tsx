@@ -2,7 +2,8 @@ import { Heading } from "@kookie-ui/react";
 
 /**
  * The mark (2026-08-29; the word 2026-09-01; the face under it Chomsky, then PP Playground,
- * and Telma since 2026-09-06).
+ * then Telma, then Pencerio, and Tanker since 2026-09-06). `layout.tsx` is the one file that
+ * knows which face is loaded; this one knows the word, the weight and the trimmed box.
  *
  * It is a component because it is in two places — the sidebar's masthead and the front door's
  * — and three facts travel together (the face, the regular weight, the collapsed line box).
