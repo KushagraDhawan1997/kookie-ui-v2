@@ -54,6 +54,19 @@ export {
   type ComposerStatus,
 } from "./components/composer/composer.tsx";
 export { Notice, type NoticeProps } from "./components/notice/notice.tsx";
+export { Page, type PageProps } from "./components/page/page.tsx";
+export {
+  Toolbar,
+  ToolbarGroup,
+  ToolbarButton,
+  ToolbarSeparator,
+  ToolbarTitle,
+  type ToolbarProps,
+  type ToolbarGroupProps,
+  type ToolbarButtonProps,
+  type ToolbarSeparatorProps,
+  type ToolbarTitleProps,
+} from "./components/toolbar/toolbar.tsx";
 export { Popover, PopoverTrigger, PopoverContent, PopoverTitle, PopoverDescription, PopoverClose, type PopoverProps, type PopoverTriggerProps, type PopoverContentProps, type PopoverTitleProps, type PopoverDescriptionProps, type PopoverCloseProps } from "./components/popover/popover.tsx";
 export { Progress, type ProgressProps } from "./components/progress/progress.tsx";
 export { Radio, RadioGroup, type RadioProps, type RadioGroupProps } from "./components/radio/radio.tsx";

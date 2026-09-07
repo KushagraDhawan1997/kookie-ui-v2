@@ -1,0 +1,134 @@
+/* The page (§46): the screen you navigated to.
+ *
+ * Three distances and a marker. Everything about how the title and the deck READ arrives from
+ * the type layer — the component names no face, no weight and no colour — and the width is
+ * deliberately absent, because one measure is wrong for two page shapes out of three.
+ */
+
+/* THE PAGE CLEARS ITS BAND, and that is the reason this component owns a padding at all (§3's
+   outer-spacing rule is about what a component does to its NEIGHBOURS; this is a component
+   making room for the frame it is inside).
+ *
+ * `--kui-pane-inset-block-*` is the reach a floating `ShellPaneHeader`/`ShellPaneFooter`
+ * publishes on its pane (§27) — a registered, inheriting length that resolves to zero when
+ * nothing floats and when there is no shell at all. So one declaration is right in every
+ * posture, nothing is measured, and a band that grows with the app's index takes the page's
+ * clearance with it by construction.
+ *
+ * The air is on top of that: a title needs a clear band of nothing above it to be a title, and
+ * a document that ends flush with the viewport's edge cannot be scrolled to a comfortable
+ * resting position. Both judged on the documentation site before they came into the package. */
+.kui-page {
+  display: flex;
+  flex-direction: column;
+  /* The interval from the title block to whatever the page begins with. Two steps clear of the
+     title-to-deck interval below it, which is what §15 asks of proximity: a section that sat
+     one step away would read as a third line of the deck. */
+  gap: var(--layout-space-8);
+  /* THE LARGER OF THE TWO, NEVER THE SUM (2026-09-06, Kushagra: "reduce the spacing generally
+     speaking, at size 3 this is too much"). It was `reach + air`, and that double-counts: the
+     reach a floating band publishes is its ROW plus the band's own padding, and the band's
+     BOTTOM padding is already clear space under the row. Measured at size 3 — a 40px row in an
+     88px band, then 32px of air, then the scroller's own 24px re-pad, so the title started
+     144px down a 900px window for a bar 40px tall.
+     `max()` says the real rule with no new number: a page begins below the band, or below its
+     own air where there is no band, and never below both. Size 3 goes 144 → 112; a page with no
+     frame is unchanged, because the reach is zero there and the air is what is left.
+
+     LESS WHAT THE PANE HAS ALREADY PAID (2026-09-06, Kushagra: "the padding for the page is a
+     little less also"). The reach is a distance from the pane's INNER EDGE — that is where the
+     floating band's own box begins — and a page never starts there. Inside a `ShellScroll` the
+     scroller bleeds to that edge and re-pads by `--kui-sf-p`; directly in a pane, the pane's own
+     padding does the same thing by the same number. So one pane inset stands between the edge
+     the reach is measured from and the box this padding is spent in, and adding the whole reach
+     on top of it counts that inset twice. Measured on the documentation site: band 0–72, its
+     toolbar row 16–56, the page's own box starting at 16, and the title landing at 88 — sixteen
+     pixels below the band it is clearing.
+
+     Subtracting it says where the band ENDS. The fallback is what makes that safe everywhere
+     else — outside a surface there is no inset to give back, and `max()` catches the negative a
+     reach of zero produces.
+
+     AND A PAGE BEGINS AN INTERVAL BELOW THE BAND, NOT ON ITS EDGE (2026-09-06, Kushagra: "The
+     distance from top is too less, I mean distance between page title + toolbar"). Landing
+     exactly on the band's bottom edge left the band's own bottom padding as the only air
+     between a toolbar row and a page title — measured 16px at size 2 — which is the interval
+     between two rows of chrome, not between the frame and the document it is framing. The
+     third term is the correction, and it is a step this component already spends rather than a
+     new number: the title block's own interval, one rung under the `--layout-space-8` that
+     separates the title from what the page begins with, so the air above the title stays
+     smaller than the air below it and the block still reads as one thing.
+
+     THE PENDULUM IS RECORDED because both ends of it were wrong for different reasons: `reach +
+     air` counted the band's own bottom padding twice (144 at size 3, "too much"); `reach -
+     inset` counted nothing twice and left no interval at all (72, "too less"). What is added
+     here is an interval, not a second copy of the band. Measured at size 2 with a size-3
+     toolbar: band 0–72, its row 16–56, the title at 96 — 40px of air under the row. */
+  padding-block-start: max(
+    var(--kui-pane-inset-block-start) - var(--kui-sf-p, 0px) + var(--layout-space-6),
+    var(--layout-space-7)
+  );
+  /* CLEARANCE ONLY at the other end, and the asymmetry is the argument rather than an
+     oversight: the air ABOVE the title is about the title, which this component owns, and the
+     air BELOW the last block is about where the document ends, which is the frame's — a page
+     that padded it would fight whatever the frame puts after it (a footer, a way on). What is
+     still owed here is the reach of a floating `ShellPaneFooter`, for the header's reason
+     exactly, and it is zero when nothing floats — less the pane inset the box has already been
+     given, for the reason written at the other end.
+
+     THE FLOOR IS THE INSET, not a zero. A padding may not be negative and a pane with no
+     floating footer computes one, so the reach is held at the inset BEFORE the inset is taken
+     off: with nothing floating the two cancel to nothing, and with a band they subtract. Said
+     that way it is the same sentence twice rather than a literal — and a literal is what the
+     tokens-only law forbids, correctly: `max(…, 0px)` is a raw length wherever it appears. */
+  padding-block-end: calc(
+    max(var(--kui-pane-inset-block-end), var(--kui-sf-p, 0px)) - var(--kui-sf-p, 0px)
+  );
+}
+
+/* The title and its deck are one block, and the marker is positioned against it. */
+.kui-page-header {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--layout-space-6);
+}
+
+/* THE MARK AND THE TITLE ARE A LOCKUP (§15), so they sit at the closer interval and the deck
+   is the sentence under the pair — proximity's two-step rule is what stops the three reading as
+   a column of equals. A margin rather than a second gap, because the header block states ONE
+   interval and this is a departure from it on one side of one element. */
+.kui-page-mark {
+  margin-block-end: calc(var(--layout-space-4) - var(--layout-space-6));
+}
+
+/* WHERE THE TITLE STOPS BEING VISIBLE, expressed as geometry rather than as arithmetic in JS.
+ *
+ * The band floats OVER the scroller, so the line a title actually disappears behind is the top
+ * of the scroller plus the band's reach — and a marker cannot be observed against a line. So the
+ * marker moves instead of the line: it sits that distance ABOVE the end of the title block, and
+ * crosses the scroller's top edge at exactly the moment the title crosses the band's bottom edge.
+ * The observer then needs no margins, no measurement and no re-computation when the app's index
+ * or density changes — the same subtraction the CSS already knows.
+ *
+ * IT IS THE BARE REACH, and deliberately NOT the clearance above, which takes one pane inset off
+ * (2026-09-06 — the subtraction was applied here too for an hour and MEASURED wrong). The two
+ * distances look like one distance and are spent in different boxes: the padding is spent inside
+ * the scroller's re-pad, while an observer compares against its root's PADDING box — measured,
+ * `rootBounds.top` is 0 on a viewport whose own content starts at 16 — so the marker already
+ * lives in the scrollport's space, which is the space the reach is measured in. Subtracting here
+ * fired the mirror eighteen pixels late, with the title still on screen.
+ *
+ * Out of flow and zero-height, so it is invisible to layout in both axes; `aria-hidden` and no
+ * paint, so it is invisible to everything else. */
+.kui-page-marker {
+  position: absolute;
+  inset-block-end: var(--kui-pane-inset-block-start);
+  inset-inline-start: 0;
+  /* A real box, deliberately: a zero-area rect is not reliably reported as intersecting, and
+     the marker exists to be observed. It is out of flow and paints nothing, so a hairline of
+     height costs the layout nothing at all. */
+  block-size: var(--border-width);
+  inline-size: 100%;
+  pointer-events: none;
+}

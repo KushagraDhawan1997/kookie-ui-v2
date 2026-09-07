@@ -1,0 +1,178 @@
+/* The toolbar (§45): the row an app's controls live in, and the capsule that holds a few of
+ * them together.
+ *
+ * Almost everything here is placement. The controls in the row are ordinary controls, the
+ * group's box is the control skeleton on the height ladder, the group's fill is the same well a
+ * segmented control's track wears, and the title is `Text` at a step the system owns. What this
+ * file adds is the rhythm of the row and the one subtraction a hosted control needs.
+ *
+ * It states no index anywhere — the joins for both boxes live in the shared layer, where every
+ * per-size answer in this package is written.
+ */
+
+/* THE ROW. Its height is one control row at the toolbar's index, which is what makes a band
+   holding a toolbar exactly as tall as the rail beside it — the shell's own derivation, and the
+   reason the published safe area can be arithmetic rather than a measurement.
+
+   `space-between` is the split, and the caller supplies what is split: one cluster sits at the
+   start, two go to the ends, three read leading / centre / trailing. Which controls belong to
+   which cluster is what those controls MEAN, so a `Flex` groups them and this row spaces the
+   groups (§30's `ComposerRow` sentence, one component over).
+
+   `flex: 1` so a toolbar placed in a band FILLS it: `.kui-pane-header` and `.kui-shell-header`
+   are flex rows, and a single non-growing child would shrink-wrap and take the split with it.
+   Harmless anywhere else — a block container ignores it and a `display: flex` box is
+   full-width already. */
+.kui-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--kui-tb-gap);
+  min-block-size: var(--kui-tb-row);
+  min-inline-size: 0;
+  flex: 1 1 auto;
+  /* THE EMPTY ROW CATCHES NOTHING, and this is the pane band's own 2026-08-30 finding arriving
+     one level in: a floating `ShellPaneHeader` is transparent to the pointer and gives it back
+     to each child, so a toolbar spanning that band would have handed a full row of dead page
+     straight back. A toolbar paints nothing at all, so passing the pointer through the gaps
+     between its clusters is right wherever it sits — over a card as much as over a scroller.
+     The children take it back one line down, and anything nested inside them inherits that. */
+  pointer-events: none;
+}
+
+.kui-toolbar > * {
+  pointer-events: auto;
+}
+
+/* A TITLE STANDS APART FROM THE CONTROLS BESIDE IT (2026-09-06, Kushagra: "the title group
+   should have more spacing between action group").
+
+   It is at the LEADING edge, where macOS puts a document's name — centred was tried for an hour
+   and reversed (LOG). What survives the reversal is the finding underneath it: a title is a
+   different KIND of thing from the controls it sits among, so the distance around it cannot be
+   the distance between two buttons. One step up the same layer, stated by the row rather than
+   by whichever `Flex` the caller happened to group with — which is the arbitrariness this
+   component exists to end, and which centring was only one answer to.
+
+   It reaches INSIDE a cluster on purpose: a band is written `<Flex>{toggle}{back}{title}</Flex>`
+   as often as it is written flat, and the air a title needs is a fact about the row either way.
+   That is the same licence `.kui-toolbar > .kui-separator` takes one rule up — a statement about
+   how a thing sits IN a row, never about what it is. */
+.kui-toolbar .kui-toolbar-title:not(:first-child) {
+  margin-inline-start: var(--kui-tb-title-gap);
+}
+
+.kui-toolbar .kui-toolbar-title:not(:last-child) {
+  margin-inline-end: var(--kui-tb-title-gap);
+}
+
+/* A vertical toolbar is the same row with its axes swapped — no designed value of its own,
+   which is Separator's argument for taking the prop Slider refuses. The extent it states moves
+   with it: a column's row-height becomes its width. */
+.kui-toolbar[data-orientation="vertical"] {
+  flex-direction: column;
+  min-block-size: 0;
+  min-inline-size: var(--kui-tb-row);
+}
+
+/* A rule between two clusters sits at the height of the GLYPHS beside it, not of the row: a
+   hairline spanning the full band reads as a division of the frame rather than as a gap in a
+   list of tools. The extent is the icon box at the row's index, so it is a derivation and not a
+   new number — and it is stated here, keyed on the toolbar, because it is a fact about how a
+   separator sits IN a row and not about what a separator is. */
+.kui-toolbar > .kui-separator[data-orientation="vertical"] {
+  align-self: center;
+  block-size: var(--kui-tb-glyph);
+}
+
+.kui-toolbar > .kui-separator[data-orientation="horizontal"] {
+  justify-self: center;
+  inline-size: var(--kui-tb-glyph);
+}
+
+/* THE GROUP is the segmented control's track with nothing chosen in it (§26, §45): an edgeless
+   well on the height ladder that hosts its controls by §4's rule. Every line below is that
+   file's, for that file's reasons — kept as a self-keyed copy rather than shared, because the
+   second member of a family self-keys and the third promotes.
+
+   The skeleton's border is stood down by WIDTH, never by naming the painted colour: a
+   transparent border still occupies layout under `box-sizing: border-box`, so the group's box
+   would grow two pixels past its own rung and stop standing level with the Button beside it
+   (the segmented control's audit D2, in full). Naming the painted variable is the checkbox's
+   audit defect (a), and a law forbids it in this directory.
+
+   The fill is pinned across all three sources: a well answers no pointer, and a rule that
+   declared only rest would fall back to the rung's hover step the moment a pointer crossed the
+   two pixels of channel showing between two buttons. */
+.kui-toolbar-group {
+  display: inline-flex;
+  align-items: stretch;
+  padding: var(--toolbar-group-inset);
+  /* THE MATERIAL'S LIP HAS TO RESOLVE AGAINST THIS BOX (§10, 2026-09-06, Kushagra: "why does
+     the group material seem different to button? Group doesnt have that ring"). The ring and
+     the glint are absolutely positioned pseudo-elements at `inset: 0`, so the pane they belong
+     to must be the box they resolve against. The track next door states this for its thumb; the
+     group has no thumb and needs it for the same structural reason. */
+  position: relative;
+  border-width: 0;
+  gap: 0;
+  --kui-ct-fill-src: var(--dress-field-fill);
+  --kui-ct-fill-src-hover: var(--dress-field-fill);
+  --kui-ct-fill-src-active: var(--dress-field-fill);
+  /* The hosted box, declared HERE and consumed by the children (§4). Registering it as a length
+     is what makes the subtraction compute at the point of DECLARATION, against the GROUP's own
+     height — written on the child instead, `--kui-ct-h` would resolve to the child's height and
+     a group holding a control at another index would silently do nothing. */
+  --kui-ct-hosted-height: calc(var(--kui-ct-h) - 2 * var(--toolbar-group-inset));
+}
+
+/* `min-block-size`, not `height`, for the skeleton's reason: a hard height clips a 200%-resized
+   label (WCAG 1.4.4). It wins over the size join by source order, at the same weight — the
+   shared layer is imported first, and that is the whole contest.
+
+   The corner is concentric: the inner radius is the outer minus the inset between them, spelled
+   as "never subtract more corner than there is" so `radius="none"` needs no zero literal. */
+.kui-toolbar-group > .kui-control {
+  min-block-size: var(--kui-ct-hosted-height);
+  border-radius: calc(
+    max(var(--kui-ct-radius), var(--toolbar-group-inset)) - var(--toolbar-group-inset)
+  );
+}
+
+/* THE TITLE. One line, and it truncates rather than wrapping: a band is one control row tall,
+   so a title that wrapped would either grow the band — which every published safe area in the
+   shell is computed from — or spill out of it. */
+.kui-toolbar-title {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A MIRRORING title is the page's own, said again in the band, so it is silent while that
+   page's large title is still on screen and arrives when it is not. Paint only: the box is
+   there either way, because a title that took its room on arrival would shove the clusters
+   beside it sideways every time somebody scrolled.
+
+   It is the paint clock, which is §8's split read straight — a title appearing is a SIGNAL, and
+   signals ease and are short. Nothing here moves, so there is no geometry clock to pair it
+   with, and `prefers-reduced-motion` has nothing to stand down. */
+.kui-toolbar-title[data-mirror] {
+  opacity: 0;
+  transition: opacity var(--motion-duration) var(--motion-easing);
+}
+
+.kui-toolbar-title[data-mirror][data-collapsed] {
+  opacity: 1;
+}
+
+/* The stand-down, on the DECLARING selector (§8, the 2026-08-10 rule): recipes.css covers
+   `.kui-control` and `.kui-mark`, and a title is neither, so a clock declared here is a clock
+   nothing else can stop. Same selector later in the file, which settles the tie by source order
+   rather than by arithmetic. The title still ARRIVES — reduced motion asks for stillness, not
+   for information to be withheld. */
+@media (prefers-reduced-motion: reduce) {
+  .kui-toolbar-title[data-mirror] {
+    transition: none;
+  }
+}
