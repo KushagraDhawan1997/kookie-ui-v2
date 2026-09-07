@@ -8,6 +8,1867 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-07 The figure's chrome went to hover, and three of its own defects shipped past the laws
+
+**What.** The chrome row on every code sample and specimen is hidden at rest and fades in when a
+reader points at the figure. It reserves no space — the band is gone — sits at a layout step
+rather than the pane's padding, and rests at size 3. A tabbed figure's copy button moved out of
+the tab row into the same corner every other figure uses.
+
+**Why.** Iterated live with Kushagra across a dozen turns, each step judged on a screenshot. The
+shape arrived by elimination: outside the pane (the row spans the text and the pane does not, so
+the button hangs past the edge), outside in its own Surface (two stacked panes, and the chrome one
+reads as an empty box), then back inside on hover — at which point *"if its on hover, it should not
+take space"* killed the band, and *"I want them closer"* replaced the derived inset with a step.
+
+**The band's two earlier rules both assumed chrome that is always there.** It was conditional on a
+filename, then unconditional the day before this. Neither survives a row that is usually not on
+screen: a reserved band is then a permanent strip of nothing at the top of every code block, to
+clear a control almost nobody is looking at. What a raised row costs instead is an overlap while it
+is up, which the scroll-edge fade is already for.
+
+**Three defects shipped during the iteration and none of the existing laws saw any of them.**
+Each is now a law, and each law was falsified against the defect it exists for.
+
+The tab bar's copy button was **invisible at every moment, on every tabbed figure**. I gave it the
+hover class and keyed the rule to `.kui-code-block:hover` — and the tab bar sits OUTSIDE the well,
+so the rule could never match. The figure is what a reader points at, so the figure is what reveals
+its chrome; the well may reveal its own rows and must not be the only thing that can.
+
+An **empty `ToolbarGroup` drew a 4x40 sliver** in the figure's corner, which reads as a stray
+scrollbar — Kushagra found it by eye and reported it as one. The group is right to draw: §45 says a
+group that drew nothing would be a Flex wearing a part's name. What must not render is the ROW,
+when it has nothing to hold.
+
+And the **copy button was in two places** depending on how many files a figure had — the corner for
+one, the tab row for several — because the copy must hand over the file you are LOOKING AT and the
+tab bar is what holds that. `FileTabs` renders the figure's chrome itself now: it is the client
+component that knows the active file, and the figure is a server component that cannot.
+
+**Two of my own laws were degenerate and their sabotage passes caught both.** "A row with nothing
+in it does not draw" rendered a figure with NO sources — a fixture that cannot distinguish
+anything, because the row is gated on `files.length === 1` and no-files fails that whichever way
+the guard is written; the case that matters is SEVERAL files, where the figure must not draw a row
+beside the one `FileTabs` draws. And "the tab row holds no copy button" asked whether any `Toolbar`
+in the file contains one — the figure's own chrome is a Toolbar containing exactly that, so it
+matched the correct arrangement.
+
+**The inset has one home on each side and a law that they agree.** The docs state `--kd-chrome-p`
+in `code.css`, the package `--kui-cb-chrome-p` in `code-block.css`, and the law asserts they name
+the same token — because a figure holds a well, the two rows are visible together, and they
+disagreed once already at 12 against 24 for exactly the reason that each side picked a value nobody
+could compare.
+
+## 2026-09-07 The two chrome insets became one, and the law that guarded them could not have noticed
+
+**What.** A code well's top and bottom floating rows both rest at the pane's own inset. The top
+row's `--layout-space-4` is deleted; the rule moves to the shared `.kui-code-block-float`. −5
+gzipped bytes, baseline re-recorded 39221.
+
+**Why.** Kushagra: *"theres another rule where we position this toolbar out of the flow or sth, it
+has different padding, lets get rid of that too."* §40 had recorded this as an open taste call in
+as many words — two numbers judged separately, never against each other, "unifying them is a taste
+call and not a promotion's to make." The call is his to make and he made it.
+
+**What the old rule was right about, and why it lost.** A pane's inset is a READING measure — what
+a line of code needs from a wall — and chrome is not reading matter, so a row closer to the edge
+says the controls belong to the pane rather than to the text. That is a real argument. What it
+produced was 12 at the top and 16 at the bottom, two chrome insets inside one pane, and a reader
+cannot see an argument. They can only see that the top button, the bottom button and the code
+between them line up with nothing. Unified toward the DERIVED value: the pane's inset has one home
+and follows the index, where `--layout-space-4` was a step that happened to look right at one size.
+
+**And unifying them broke the gap under the row, which he caught by eye an hour later** (*"Spacing
+between toolbar and code is 0?"*). It was: the safe area the element reserves for its chrome is
+computed in JS, and that string named `--layout-space-4` — the token the row had just stopped using
+— under a comment reading *"change the row's padding or the control ladder and this follows."* It
+did not follow. The band came up short by twice the difference and the first line of code came to
+rest exactly on the controls, measured at 0px. `--kui-cb-chrome-p` is the one home for that inset
+now; both rows read it and so does the band, which is what makes the comment true.
+
+**Its law reads GEOMETRY, deliberately.** The defect was two correct expressions naming different
+things, so any law rebuilding the expected value from those same inputs would have agreed with the
+bug. This one measures the pixels between the bottom of the control and the top of the first line.
+It was wrong twice before it was right, and both are the fixture rather than the claim: without
+`band` it measured a well that correctly reserves nothing (0px at every size, and every arithmetic
+agreed with it), and with a bare `<span>` as the probe it measured a box shorter than the
+`--control-height-N` the band reserves — 26 against 16 — which is the shape that gets a law
+"corrected" into rebuilding the arithmetic it was written to avoid. A real Button, at two indexes.
+
+**The same disagreement was one level up and the same eye caught it** (*"your changes didnt affect
+specimen or code sample?"* — they did not). The figure's own chrome row padded a picked `4`, 12px,
+inside a figure whose code well padded 24. Neither side's laws could see it: the block's never
+looked at the well, the package's never looked at the block. It is `p="bleed"` now — the surface
+padding re-applied, the same expression the well's rows read — so the two follow the index together
+by construction. The law asserts the KEYWORD and not the number, because a law asserting 24 passes
+at one size and lies at every other.
+
+**The finding is the law.** It read *"the chrome sits closer to the wall than the code does"*, as an
+inequality, and its own comment explained that an inequality was correct **because the two numbers
+were separately judged**. So the law encoded the disagreement as a guarantee — and being an
+inequality, it would have passed on any two numbers in the right order, including the two rows
+drifting further apart every time either was touched. It is an equality now, read at two indexes,
+because one index cannot tell a derived inset from a literal that happens to match there. Falsified
+from both sides: give either row a step of its own and it goes red.
+
+## 2026-09-06 A chrome row is a toolbar, and three blocks were each rewriting one
+
+**What.** The figure's chrome, the code sample's chrome and the file tab bar all become
+`Toolbar`. `CopyButton` renders through `ToolbarButton`, as does the props trigger. Zero visual
+change, measured.
+
+**Why.** Kushagra, looking at a specimen's gear and copy button: *"codeblock or code sample or
+speicmen should also use toolbar, dont you think?"* All three rows were written as
+`align="center" justify="space-between" gap="3"` — the alignment, the split and the air, typed at
+a call site, which is precisely the set of facts §45 exists to state once. The site's own header
+had been converted for that reason weeks earlier; these were what was left.
+
+**And they buy different things, which the laws say separately rather than telling one story.**
+The figure's row holds two plain buttons that were two separate tab stops; a toolbar makes them
+one, with arrow keys inside it (measured after: ArrowRight from Props lands on Copy). The tab
+bar's row buys nothing of the kind, and that was **measured before it was written**: a `TabsList`
+is a roving composite already, so nested in a toolbar it keeps its own arrow keys and they never
+escape — from the last tab, ArrowRight wraps to the first tab, byte-identical to the same bar with
+no toolbar around it. Two composites, inner one wins. I had expected a conflict and there is none;
+what there is instead is a row that gains its layout and announces itself, with its keyboard
+untouched. The law says exactly that, because a law claiming a keyboard win there would be a law
+about something that does not happen.
+
+**Two things the type refused, and both were right.** `Toolbar` takes no spacing props, so the
+figure's `mt`/`mx`/`p` moved to a Box around it — §3 read straight, a component never sets its own
+outer spacing. And `code-sample.tsx` had solved the lone-control problem with
+`justify={name ? "space-between" : "end"}`, which a toolbar cannot express: it is always
+`space-between`, and it will not guess which side is empty, because which controls sit where is
+what those controls mean. So the conditional becomes `{name ?? <span />}` — the same statement, as
+a child rather than as a value. That is a trade, not a win, and it is written down as one.
+
+**And two follow-ups the same day, both reversals of things this session had just shipped.** The
+figure's trailing cluster became a `ToolbarGroup` rather than a `Flex` (*"also this should be a
+toolbar group"*): the props trigger and the copy button do the same KIND of thing — both act on
+the figure they float over — and a track is the part that says so, with the quiet rung arriving
+with it. Two separate round buttons said nothing about being related.
+
+**The band is now reserved on every fence that draws chrome** (*"We had a rule or sth where if
+there is no left side item, it doesnt take any space, lets get rid of it, lets make it consistent,
+left side or not"*), **and that reverses his own call of 2026-09-01** — the conditional exists
+because he said *"the one with no filename... the top left just looks weird"*, and the empty
+top-left is back. The argument that settles it: the old rule reasons about the pixels the chrome
+COVERS, and a safe area is not about coverage — it is the band a pane says its chrome lives in. A
+reader scanning a page of fences should not have to work out per fence whether the code begins
+under the buttons or beside them. The corner is the price and consistency is worth more. `bare`
+still reserves nothing, which is not the old condition renamed: it is the absence of the row.
+
+**Its law encoded the old rule and quoted the complaint that produced it**, which is the third
+time this week a law has had to be rewritten because it was written from the same premise as the
+code. It asserts three arms now — named, unnamed and bare — with the first two proven EQUAL rather
+than merely both present, since "both reserve something" passes on two different bands.
+
+**A law that failed on its own explanation.** "No block hand-writes a row's split" greps for
+`justify="space-between"`, and `specimen.tsx` explains the conversion by quoting the very string
+being banned — so the first run failed on the comment rather than on any code. Comments are
+stripped first now, which is the repair `stylesheets.ts` already made for two package laws, and the
+third time this shape has appeared in this repo.
+
+## 2026-09-06 The docs got a twin, and the menu everyone ships is the cheap half
+
+**What.** Every page on the site is served a second time as plain markdown at its own path with
+`.md` on the end — 80 of them, prerendered — plus `llms.txt` and `llms-full.txt` at the root, and a
+`Copy Page` control in the content pane's band with `View as Markdown`, `Open in ChatGPT` and
+`Open in Claude` behind a chevron. Package: nothing. §47 carries the spec.
+
+**Why.** Kushagra, with a Mintlify toolbar on screen: *"I see this in every docs site now… can you
+do a bit of research about it, and add them to our toolbar. Before we add, Id like to discuss
+plan."* The research is what changed the shape of the work. The pattern reads as a dropdown and is
+not one: every "Open in X" link on the web is a query parameter carrying one sentence that names a
+URL, and the model fetches it — so the menu is worth exactly what is at that URL. Next.js, Adobe's
+React Spectrum and Chakra all serve `<path>.md` and llmstxt.org names the same spelling. Without
+the twin this is a menu of links to pages of markup, which is the thing the pattern replaced. So
+the day's work is one generator and the control is a button.
+
+**The one decision inside it.** The twin puts the refusals BEFORE the props, where the page puts
+them near the end. My first framing of that was too strong — "refusals first" — and the correction
+is the rule: a refusal means nothing until you know what the component is, so it is what it is,
+what it refuses, then what it takes. The reason it moves at all is that a page and a document have
+different readers. A person scanning for a prop wants the table where their eye already is; a model
+reads from the top and fails one way, by reaching for a prop we do not have, and `variant`,
+`margin` and a shadow prop are the likeliest guesses in the room. Forty rows read first is a
+picture of the API, and the refusals then land as trivia appended to a table.
+
+**And the layout changed within the hour, which is the entry's second decision.** It shipped as the
+reference shape — `Copy Page` and a chevron in one attached pill, three rows behind it — and
+Kushagra split it: *"Copy age as separate button, and AI logos in a toolbar group, icon button, we
+dont need dropdown, everyone knows these logos by now."* Two things are right about that and the
+second is the interesting one. A disclosure that hides a fixed set of three, on a row with room for
+three, is a press spent on nothing — every peer copies Mintlify's dropdown without asking whether
+their own menu has anything in it worth hiding. And the split is a statement about kind: `Copy
+Page` acts on the page you are reading, the marks send it elsewhere, so an attached pill saying
+they are one control was wrong before it was crowded. The button now stands alone at medium and the
+three destinations are a `ToolbarGroup`, which is the part that means *a set of the same kind*. The
+tooltips arrived with the split — they had been refused as `TooltipTrigger` around a `MenuTrigger`,
+which leaves the menu unanchored, and plain links do not have that composition. Then the two swapped
+(*"Swap positons, copy page at the end"*): the button carries the only word of the four, so it takes
+the row's trailing edge where the eye stops and the marks read as one block rather than as a tail.
+
+**And that swap failed a law on correct code, which is the finding worth keeping.** The rank law
+read `markup.split("kui-toolbar-group")` and called the halves "button" and "group" — a claim about
+ORDER wearing a claim about rank, written an hour before the order changed. Two more spellings
+failed before it was right: walking back from a needle to the nearest `<button` finds nothing when
+the control wears a `render` escape and is an `<a>`, and finds a `<span>` when the needle is a
+label rather than an attribute; and matching the class with a plain `\b` after `kui-button` also
+matches inside `kui-button-swap`, the done state's two stacked glyphs, so it collected four extra
+elements and reported the rank missing on all of them. It collects each control's own opening tag
+now and keys them by what they are — the copy button being the one with no `aria-label`, which is
+what a labelled button IS. **The law's own falsification is that the swap does not move it**: the
+sabotage pass re-swaps the two clusters and all fifteen stay green.
+
+**Then the last word went too** (*"Who needs the enite label for copy page, lets just use icon
+button for it too, in a separate group as it is, but also add a copy link icon button"*), and the
+row settled at five icon controls in two tracks: three marks that send the page somewhere, two
+copies that put it on your clipboard. A label on one control out of five reads as a rank rather
+than as a name, which is the argument, and the honest cost is that the row no longer says in words
+that any of this exists — answered by `llms.txt` and the `.md` URLs, which is where the readers
+this is built for arrive anyway. The two copies differ by who the artefact is for: the page goes as
+MARKDOWN for an agent, the link as the ordinary URL for a person, so their `done` words say which
+one happened rather than both saying "Copied". `CopyPage` became `PageActions` with them — a
+component whose name describes two fifths of it is §26's `TabsTrigger` refusal in a file.
+
+**And one sabotage survived, which is the second finding of the day and the same one.** "A copy
+control says WHAT it copied" read the two `done` strings and found them different — a law about
+DATA, which passes with the render ignoring `done` entirely. Proven by deleting exactly that and
+watching sixteen laws stay green. The done word is worn only while internal state is set, reached
+by a real press and a real clipboard, so no node fixture can see it; the replacement reads the
+SOURCE and asserts both names a reader could receive derive from `done`, which is the builder's
+`liveFix` precedent — the claim lives at a call site no fixture can reach. It is the weaker
+instrument and is written down as one.
+
+**"Why no tooltip?" — and there were tooltips (2026-09-06).** The answer took a measurement and it
+was not about this row at all: **the site has never rendered a `TooltipProvider`**. Base UI accepts
+the delay only there, and the Provider's second job is to GROUP every tooltip inside it, so the
+first one waits and the rest appear as the pointer travels. With none anywhere, every tooltip on
+this site waited its full 600ms independently — measured 656ms cold and **640ms travelling to the
+very next control in the same toolbar**. Nobody moving along a row of five icons is ever still that
+long on any one of them, so nothing ever appears and the row reads as carrying no tooltips. One
+Provider at the root: 668ms cold, 42ms travelling. It had been that way for every tooltip the site
+has ever drawn — the back button, the GitHub link, these — since the first one shipped, and the
+package's own component page states the instruction that was not followed.
+
+**Its law is a source law, and that is stated rather than worked around.** Base UI's Provider
+renders no element — it is a context and a shared timer — so a rendered document holds no trace of
+it, and the grouping it buys is a difference in WHEN. My first spelling pretended otherwise: it
+looked for a marker in the output, found `-1` as it always would, and let an `|| true` carry the
+assertion, so it passed with the Provider deleted. What replaces it reads the file and proves the
+three things that were actually wrong — there is one, it is at the root, and the routes are inside
+it rather than beside it — plus a second law that the chrome states none of its own, because a
+second Provider deeper in the tree opens a second group and puts the travel delay back for
+everything on the far side of it.
+
+**And the gap between the two tracks was 4px** ("gap between tooltip groups seems a bit less"),
+which is narrower than the air inside either track, so five controls read as one long capsule with
+a seam in it. One step wider. The rule underneath is not a number: the distance between two groups
+has to exceed the distance between two members of a group, or the grouping says nothing.
+
+**A working note worth keeping.** Four sabotage runs reported "no tests" and I nearly took that as
+four passes: the shell helper grepped `^ +Tests`, and vitest wraps that line in an ANSI escape that
+precedes the spaces. A sabotage that reports nothing is indistinguishable from one that fails, and
+the failure mode is to believe the law is fine. Strip escapes before matching, and check the
+baseline through the same pipe before trusting a single result from it.
+
+**Rejected.** `Open in v0` (Kushagra: "cut v0") — it writes React from a prompt, so pointing it at
+a design system's docs invites code using our components against a package it has not installed:
+a plausible-looking wrong answer with our name on it. An attribution line in the copied markdown —
+Mintlify injects one and was publicly called out for it as prompt injection, which is the right
+name for text that is not the document arriving in an agent's context; the chapter law is an exact
+equality so a preamble cannot be added quietly. A configured site URL — this repo has none, and one
+invented here is wrong on every deploy but the one it was written for, so the origin is the
+request's host at the route and an argument everywhere else. A pathname-shape guess for "does this
+page have a twin" — every twin's path happens to have exactly two segments today, which is a second
+implementation of a question `markdown.ts` owns; the chrome is a server component, so it hands the
+control the real list. And a `SplitButton` — the attached pill is `ToolbarGroup` with two buttons in
+it, which is §45's own sentence.
+
+**Three faults, and the shape they share.** A markdown document's only readers are machines, so
+nothing on this site would ever have shown any of them. (1) The first spelling read
+`window.location.origin` inside the menu's children, under a comment asserting that a portal builds
+its contents when it opens; it does not, so the reference ran during SSR on every page. Caught by
+its law before `next build` was run, and the law that catches it renders every page in node and
+asserts nothing throws — the failure is the RENDER, not its output. (2) Every fence opened onto a
+blank line, because the sections are a list joined by blank lines and a fence is one unit. (3)
+Fifteen bare tags in registry prose — `<Box m>`, `<nav>`, `<h1/>` — which a markdown reader eats as
+raw HTML; they were already rendering as unstyled text on the HTML pages, so the fix was backticks
+at the source, and both now have laws. Found by reading the served bytes, which is the only way any
+of the three could have been found.
+
+**One law was deleted rather than tuned.** "Every `llms.txt` entry says what it is" failed on
+`Text sets body copy.` at exactly 20 characters — a perfectly good abstract that a length floor
+calls hollow. Whether a blurb is any good has an owner (the registry's and the chapter list's own
+anti-hollow laws); re-judging it here would be a second home for a rule, and a worse one. What
+replaced it asserts the mapping DELIVERS the blurb, which is this file's own question.
+
+---
+
+## 2026-09-06 Tab walked into the search results, and the ring was never the thing to remove
+
+**What.** `CommandItem` renders `tabIndex={-1}`, before the caller's spread. The focus ring is
+untouched.
+
+**Why.** Kushagra asked what had been decided about focus rings on the results. The honest answer
+was: nothing. What was decided is that the search BAR draws none — a stated refusal — and the rows
+were left to follow from it, on the reasoning that focus never leaves the bar so no row can ever be
+focused. Measured, that is false wherever a row is a link, which is what the `render` escape opened
+on 2026-09-04 and what the documentation site's own search uses: an anchor is focusable by nature,
+Base UI writes no `tabindex` on an item, and Tab from the bar landed on the first result with the
+full 2px ring on it. A palette's keyboard is one stop — caret in the bar, arrows through the list,
+Tab out — and it had two.
+
+**Why not take the ring off.** Because the ring was never the defect. It is right whenever a row
+really is focused; what was wrong is that Tab could focus one. Sabotaging it the other way — a
+`:focus-visible { outline: none }` on the row — is caught by the pane's existing ring-clearance law,
+which pads the scroller for a reach that would no longer exist. Two repairs, and only one of them
+leaves the system saying the same thing it said before.
+
+**The fixture is the law.** With ordinary rows nothing in the list is focusable, so the assertion
+holds against a component that fixed nothing; it mounts links. A second law keeps the stop that Tab
+gave up — the arrows still move the highlight — because without it the repair could have been made
+by anything that breaks the list.
+
+**And then the same question had a second answer.** Kushagra, after the tab-stop repair: *"Ring
+still appears briefly on return key press, is that correct?"* It was not. Base UI commits the
+highlighted row by clicking its element, a click on an anchor focuses it, and a keyboard activation
+makes it `:focus-visible` — so the row drew a solid ring for every frame of the dissolve. Measured
+across the exit's frames before anything moved. The ring is right and the MOMENT is wrong: on a
+panel that is leaving, where focus sits is bookkeeping. Stood down on the ending stamp alone.
+
+**The first spelling of THAT was refused by a shipped law**, and the law was right: a rule naming
+`:focus-visible` must ring with the designed tokens, so `outline: none` inside one is a focus rule
+that rings with something else. It is the same law that pushed the search bar's own refusal onto its
+resting rule. What is true here is not "not while focused" — it is that nothing in a leaving palette
+draws an outline at all, which is a claim about the exit, so it is written on a rule about the exit.
+
+**Rejected.** Removing the ring (above). Leaving it, on the argument that a focusable result is
+useful (it is a second way to reach what the arrows already reach, and it puts a listbox's options
+in the tab order, which is not what a listbox is). Pinning `tabIndex` after the caller's spread (an
+app with a real reason to make a row tabbable would have no way to say so).
+
+---
+
+## 2026-09-06 An overlay that covers the screen is not part of the row whose button opened it
+
+**What.** `useAppSize` (system/size.ts) — the caller's value, else the app's, skipping the unit
+layer. Dialog, AlertDialog and Command read it. Menu, Select, Popover and Tooltip still read
+`useSize` and still take the unit's index.
+
+**Why.** Kushagra, with DevTools open on the docs palette: *"But it shows size 4."* It did. The
+documentation site's search button sits in a `Toolbar`; a toolbar supplies its row's index one step
+above the app's; `SizeScopeContext` follows the REACT tree rather than the DOM, so the portal is no
+escape. The palette read the band's 3, then priced its rows one step above that (the entry above),
+and every row of a size-2 app landed at the top of the ladder. Two steps, stacked, neither asked
+for — and the first one was wrong on its own, before the rows moved at all.
+
+**The line is COVERAGE, not portalling.** A unit scope means *these things are one object you size
+together*. A dialog standing over the whole app is not part of the row whose button opened it; it is
+the next screen, and it answers to the app. An anchored panel is the opposite: a menu hangs off its
+trigger and belongs to it, so a band's menu is that band's menu and takes the band's index with it.
+Cutting every portal off from the scope would have fixed the report and broken that, which is why
+the third law exists — sabotaged with the over-broad repair, it is the only one that fails.
+
+**How it was found, and the gap that matters.** By reading the rendered DOM, not by a law. 2,101
+package laws were green over it, because every size law in the repo mounts its subject at the top of
+a Theme with nothing between — the one arrangement where a unit scope cannot appear. This is the
+2026-08-20 sentence about high contrast in a second home: *every law building the same DOM shape is
+one experiment, not many.*
+
+**And the new laws were degenerate on their first run.** They drove the app to this file's `AWAY`
+(4), where `BAND_STEP` ends level — so the toolbar supplied the app's own index and every clause
+compared a value with itself. Two passed for that reason. At app index 1 the band is 2 and the two
+answers really are two.
+
+**Rejected.** Re-scoping inside the portal the way `GlassScope` does (the size question has no
+per-region meaning — there is nothing to reset to but the app). Leaving it to the call site
+(`<Command size="2">` inside a toolbar is the value repeated at every call site this axis exists to
+delete). Taking the unit scope off the anchored family too (a menu belongs to its trigger).
+
+---
+
+## 2026-09-06 A palette's rows stand one step above the app, and a quarter of a pixel was never a boundary
+
+**What.** `ROW_STEP` in `command.tsx` — `{1:2, 2:3, 3:4, 4:4}` — prices the results block: the pane
+stamps it and every row wears it. `--kui-cmd-px` is deleted with it; the caption reads the
+floating-rows join's `--kui-sf-row-px`, which is the same pick published one element lower. Net −21
+gzipped bytes.
+
+**Why.** Kushagra, using the thing rather than reading it: *"I have a feeling as I use it, that the
+list of command should also use a step + 1. We're doing this mapping with Toolbar, we have a pattern
+already."* The pattern is `BAND_STEP`, and pointing at it was the right instinct for a reason worth
+writing down: a palette's rows sit on the very ladder `Theme size` prices, so the step has to be
+DERIVED or the palette and the app end up on one ladder disagreeing — at `<Theme size="4">` a flat 3
+would make the rows in the palette smaller than the rows in the app behind it. The reason for the
+step itself is `SEARCH_STEP`'s, one block over: a palette is the one object on the screen, and a
+menu-scale row under a bar set two steps above it reads as a footnote to its own query.
+
+**Not `BAND_STEP` itself.** Identical cells, different reason — that table is about a chrome band
+holding unlabelled controls at the edge of a window. The `segmentInset` / `switchInset` call: the
+second member self-keys, a third promotes.
+
+**Not the bump that was refused the day before, either.** 2026-09-05 killed the search bar wearing a
+CONTROL cell one step up, where `size="3"` became the only way to get a bar that read like a bar.
+That was the prop reaching a cell it does not name. This is the component pricing anatomy it owns
+(§25), which is what `SEARCH_STEP` already does and what nobody calls an exception.
+
+**The pane had to take the step too, and that is the part a reader would get wrong.** §22's
+concentric corner is the row's corner plus the pane's inset, read off the pane's stamped index, and
+`--kui-sf-row-px` publishes the rows' text inset from the same cell. Sabotaged — rows stepped up,
+pane left behind — the boxed-like-a-menu law and the caption-alignment law both fail. The pane's own
+inset does not move: a floating pane pads `max(--floating-p, the ring's reach)`, a clipping rule
+rather than a size.
+
+**The finding underneath it.** The one-row capsule rule (2026-09-05) excluded a pane with a group
+label above its single row, on a measurement: 33.25 of corner against a 67px box, off the capsule
+limit. Off it by A QUARTER OF A PIXEL. The step pushed that case over, and the law failed —
+correctly, and for the wrong reason to keep it: re-measured at all four indexes the captioned pane
+runs 33.25/66, 36.75/72, 40.25/76 and 40.25/76, at or past half the box in every one. So the
+exclusion was never a boundary, it was the same case reached from underneath, and a squircle there
+draws the exact lozenge the original defect was. The rule is now ONE ROW, caption or not; the guard
+that survives is a pane holding a LIST. **A margin of a quarter of a pixel is not a distinction — a
+law that passes on one is a law about its fixture.**
+
+**Rejected.** Bumping the whole palette's default index the way a Toolbar bumps (it moves the search
+bar too, which was tuned by eye the day before). Keeping `--kui-cmd-px` and picking one rung up in
+its cells (the bump would then have two homes, one of them in CSS). Widening the fixture of the
+caption law so it passes again (it would be a law about a two-row pane wearing a one-row pane's
+name).
+
+---
+
+## 2026-09-06 The docs stop arguing: nav renames, and the register the chapters move to
+
+**What.** Kushagra, on the sidebar: *"MY BIGGEST ISSUE is language. Its so so bad."* The
+diagnosis, approved before anything moved: the docs are written at a SKEPTIC, not at a builder —
+essay titles in the nav ("Why Kookie exists", "Why these rules hold"), sermon headings in the
+chapters ("Say what you mean, not which colour"), blurbs that describe the page instead of the
+subject ("This page explains…" three times), and an opening canon whose first two sentences
+defend the system against an accusation nobody made.
+
+**The nav.** Seven renames, every label now an address a reader can look something up under:
+Philosophy → Concepts, Why Kookie exists → Principles, The component families → Component
+families, Why these rules hold → Guarantees, Your first screen → Quickstart, Space and layout →
+Layout, States and interaction → States. **URLs moved with the titles** — a URL that disagrees
+with its label forever is doc-code drift at the address level — with permanent redirects for the
+six old paths, because links live in Slack threads and a moved page that 404s punishes the
+person who shared it.
+
+**The register, stated once for the remaining twenty chapters:** state the rule and its reason
+in one breath; never argue with an imagined objection; headings are things a reader can look up;
+a blurb states the subject, never the page. The approved specimen is `concepts/principles`,
+rewritten whole. What it cut on purpose: the GitHub-stars aside, and the "Why so much of the
+field works the other way" section — a sociology of other tools' incentives, which is the one
+section that existed only to win an argument. Its single durable idea (a component contains what
+it owns; a pattern coordinates what it does not) became a stated principle, "Components and
+patterns".
+
+**The laws held the line during the rewrite itself.** `prose.test.ts` already bans the internal
+vocabulary, the self-praise register and the marketing adjectives — and it caught the first new
+blurb using "ladder", the house dialect leaking into the plain-English surface while the
+plain-English pass was underway. The blurb-fragment law caught a verbless opener next. Both
+fixes are what the laws asked for.
+
+**Rejected.** Renaming titles while keeping the old URLs (label/address drift, permanent).
+Keeping "Modality" out of the renames was deliberate, not an oversight — it is the HIG's own
+page name for exactly this pattern.
+
+
+## 2026-09-06 A wrapped line continues under its own indent, and the gutter is not the hang
+
+**What.** `.kd-line` hung every continuation a fixed `4ch` from the pane's wall. It now hangs
+`2ch` past the LINE's own indentation, which the renderer writes per line as `--kd-indent`
+(`leadingColumns`, derived off the tokens beside `plainText`). The number gutter becomes its own
+`--kd-gutter`, and the three distances are summed once into `--kd-run`, which the padding, the
+first row's negative indent and the width bound all read.
+
+**Why.** Kushagra, on a code sample: *"Formatting on code is extremely broken."* Measured on
+`/components/page` before touching anything: a line indented seven columns began at x=525 and
+continued at **467** — the code's own left wall, a 58px DEDENT. So a wrapped row read as a
+shallower nesting level than the line it belongs to, which is worse than not hanging at all: the
+flush case merely fails to help, this one actively lies about structure.
+
+**Two faults, and the second is the interesting one.** The hang was absolute, and CSS cannot fix
+that — a line's leading whitespace is inside its own text, so a stylesheet can only ever hang
+from the wall. Every renderer that gets this right knows the number because it laid the text out
+itself, and here the tokenizer already holds it, so it crosses into CSS as a column count on the
+lines that have one. **And the gutter WAS the hang**: one number spent on two facts, which
+sounds economical and means a numbered fence has no hang left — the whole `4ch` goes under the
+digits, so even a flush line's continuation landed at column zero. Every fence on this site is
+numbered by default, so the hang had never worked anywhere it was supposed to.
+
+**The old law asserted the coupling as a guarantee.** *"The wrap indent and the line-number
+gutter are one number"* is the defect written down as a requirement — it would have failed on
+the fix and passed on the bug forever. Replaced rather than deleted, because what it was
+reaching for is real: the sum must not drift. The way to have that is one NAME for the sum, not
+one value for two facts.
+
+**Falsified four ways**, each caught by the assertion written for it: the gutter eating the hang
+again, a declaration restating the sum by hand, the renderer writing a constant, and the
+renderer writing the indent unconditionally. The last two are why the fixture runs flush,
+shallow, flush, deep — one indented line cannot tell a correct implementation from a constant,
+and a flush line placed first cannot tell "unindented" from "the first line".
+
+**The limit is stated rather than hidden.** Every distance here is `ch` and this project renders
+in node, so no law in `blocks.test.tsx` can read a painted column; the laws hold the structure
+and the written value, and the pixel claim was made by hand — 184 wrapped lines across four page
+kinds, numbered and unnumbered, zero dedented, zero horizontal overflow, and a diff wash still
+spanning its viewport exactly (475 to 1157 on both).
+
+**Rejected.** `text-indent: <length> hanging` (real CSS, and still absolute — it inverts which
+rows are indented, not what they are indented FROM). Quantising the indent into classes (the
+values are per line, so it is the same data wearing a worse encoding). Dropping the hang and
+letting continuations sit flush (the state this replaced, and the reason it was built).
+
+---
+
+## 2026-09-06 Published source is not a log
+
+**What.** Every file the docs site reads off disk and SHOWS — thirteen block files and the
+examples — had its comments rewritten to drop dates, quoted feedback, attributions and accounts
+of what a value used to be. A law in `blocks.test.tsx` walks the shown files and fails on an ISO
+date anywhere, or on a person's name inside a comment.
+
+**Why.** Kushagra, reading a code sample on `/components/toolbar`: *"I dont understand how
+specimens etc have comments like logs?"* Measured, and it was worse than a style complaint:
+`readExampleSource` and the blocks page hand the RAW file to the code well, so the site was
+publishing *"(2026-09-06, Kushagra: 'The toolbar specimen needs to also show size 3, no? it
+shows size 2')"* inside code a reader is meant to copy. Sixteen files carried it, and the block
+files are the ones that matter most — a block IS copied source, so its comments travel into the
+reader's own repo.
+
+**The distinction is WHEN and WHO, not depth.** These files earn long comments: a copied file
+makes no design decisions of its own, so the reasoning is what stops a consumer "fixing" it back.
+What may not travel is the history — *"it shipped as a Surface, then for an hour as a `pane`
+boolean"* is `LOG.md`'s genus, and it was already IN `LOG.md`, verbatim, quote included. That is
+the finding under the finding: this was not lost history, it was **the same fact in two homes**,
+and the published one is the copy that cannot be corrected by anyone who reads it.
+
+**Nothing was lost, checked rather than assumed.** Every reversal the rewrite removed was
+grepped against this file first — the footer's pane refusal, the specimen's one-container cut,
+the filename moving into the pane. The rest is tuning ("the row sat 25px from the wall"), which
+this file's own header says does not earn an entry. Where a measurement still teaches, it stays
+in the present tense: the number is a fact about the code, the date it was taken is not.
+
+**Why a law and not a convention.** Two new dated comments were written INTO these files while
+the rest were being cleaned out of them — the drift is the repo's normal reflex, because in
+every file that is NOT published this style is correct and encouraged. A convention that has to
+be remembered per-file is the shape this project replaces with a law. Falsified in both arms: a
+date in `examples/accordion.tsx` and a name in `blocks/specimen.tsx`, each caught by exactly its
+own assertion. The fixture is the load-bearing half — it asserts the walk found more than fifty
+genuinely published files, so a clean run means the files are clean rather than that the walk
+found nothing.
+
+**Rejected.** Stripping comments from published source at render time (it would let the drift
+continue in the files, and a reader who opens the repo still meets it). Excluding blocks and
+policing examples only (a block is the case where copied text travels furthest). Deleting the
+comments outright rather than rewriting them (the teaching is why these files are readable, and
+`highlight.ts` explaining why the pipeline is `codeToHast` is exactly what a consumer needs).
+
+---
+
+## 2026-09-06 A glass group had three of the material's five parts
+
+Kushagra, over the specimen's photograph: *"Why does the group material seem different to button?
+Group doesnt have that ring."*
+
+**It had the veil, the blur and the lens, and none of the light.** §10's contract says every pane
+resolves all five parts identically — veil, filter and lens, ring, rim, matter — and three of
+them are written as ENUMERATED selector lists (`.kui-button`, `.kui-segmented`, `.kui-field`,
+`.kui-textarea`, `.kui-atom`). `ToolbarGroup` shipped this morning wearing the track's fill and
+its own class, so it matched the veil rules through `[data-material]` and matched none of the
+light. A contract stated in prose and enforced by enumeration fails exactly this way: silently,
+for the member added last.
+
+The group joins all twelve selectors beside the track it copies, and takes `position: relative`
+— the ring and the glint are absolutely positioned at `inset: 0`, so the pane they belong to has
+to be the box they resolve against. The segmented track states the same thing for its thumb.
+
+**The law reads the parts as PAINT and then as an AGREEMENT.** First that a ring, a glint and a
+rim are actually drawn — a set of literals would have gone stale the first time the ladder moved
+and could not have caught three missing parts either — then that each one equals a mounted
+`SegmentedControl`'s character for character, which is the honest claim: the group IS that track
+with nothing chosen in it. Sabotaged by removing the group from every list; both halves fail.
+
+One of my own assertions was wrong before it was right: I read the rim as containing a gradient,
+and it is grain, bloom and sheen — a layer stack whose first entry is a data URI. The honest
+assertion is that it is there, with the agreement law carrying the rest.
+
+## 2026-09-06 A toolbar button rests where a button rests, and the specimen kept its inset
+
+Three from one message. Kushagra: *"Backdrop removes padding from toolbar too, so it sticks to
+edges, in the specimen I mean. In specimen, dont get separator after a group. And make sure we
+prefer a medium emphasis button whenever, quiet and loud are for exceptional cases."*
+
+**THE RESTING RUNG.** `ToolbarButton` defaulted to `quiet`, on the argument that a row of filled
+boxes has no focal point. That is true of a row of WORDS and was never true of the icon-only
+controls a band actually holds: with no fill, an icon in a band is a glyph floating on the
+content behind it rather than a thing to press. The override is deleted rather than re-tuned —
+`medium` is the rung every other control rests at, and a component that quietly re-ranks itself
+is the kind of exception this system spends its budget removing. A row that wants bare glyphs
+says `emphasis="quiet"` per control, which is the escape it always was. **No law read the old
+default**: it could have been deleted at any point in the component's life with the suite green,
+which is exactly what let it live as a silent special case. It is an agreement with a mounted
+Button now, with a vacuity half proving the two rungs differ at all. The site's own quiet
+buttons went with it — the chapter pager, the search trigger, the 404's second action, and the
+shell example's chrome.
+
+**AND A CONTROL IN A CAPSULE RESTS QUIET** (same session, on seeing it: *"not in the toolbar
+group, because toolbar group has a bg now"*). The group draws a fill, so a filled control inside
+it stacks two — one thing with a lighter thing inside it, which is what the first render showed.
+The group is a WELL and a control in a well is a mark ON it. Neither rung is a call site's job to
+remember: the group states where its children are through a context, the button reads it, and a
+stated `emphasis` beats both. The law reads it as an agreement against a quiet Button AND against
+the loose control in the same row, with the two asserted to differ so the pair is not one
+assertion written twice.
+
+**AND THE HEIGHT COMPENSATION HAD TO GO WITH IT** (2026-09-06, Kushagra: *"why does the height
+change when turning on backdrop"*). A repair from 2026-09-01 added two paddings back to the
+stage's floor, because a bled stage had eaten the paper's inset and stopped paying for it. Giving
+the stage its own inset back killed that premise in the same edit: the compensation and the
+padding became one distance counted twice, and the figure GREW by exactly that — 290px of paper
+without the backdrop and 322 with it, where before the first repair it had SHRUNK to 258. Two
+fixes for one symptom, in opposite directions, the second silently making the first wrong. The
+floor is the floor in both states now; the stage's padding is what the paper's used to be, so the
+two arrangements compute one number by construction. Measured 290/290, and 722/722 on the
+paneless pages that bleed the inline axis alone.
+
+**THE BLED STAGE KEEPS ITS INSET.** A specimen with a backdrop bleeds its stage so the
+photograph is the paper's whole face, and that took the paper's padding off the SUBJECT too. A
+small subject is centred and never noticed; anything that fills its line — a toolbar, a row, a
+frame — went straight to the wall. `p="bleed"` is the other half of the same keyword (§3): a
+margin's `bleed` cancels the surface's padding and a padding's re-applies it, so the photograph
+reaches the edge and the specimen sits exactly where it would have without one.
+
+**AND NO RULE AFTER A CAPSULE.** The group already draws the boundary; a hairline beside it says
+the same thing twice. `ToolbarSeparator` earns its place between loose controls or inside a
+group, which is where the page's own declaration shows one.
+
+## 2026-09-06 The Toolbar page had no configurator, and the law that guards that walked the wrong list
+
+Kushagra: *"Toolbar specimen doesnt have props dropdown / configurator?"* It did not.
+
+**Three tables have to agree for a page to have knobs** — `OFFERED` (which props are worth a
+knob), `CATALOG_KEY` (which catalog schema describes them) and `CONTROLLED` (the example as a
+client module) — and `Toolbar` was in none of them. It shipped this morning with a `size` axis
+and gained a `backdrop` an hour ago, and its page offered neither.
+
+**The law that exists for exactly this walked `CONTROLLED`.** *"Every page whose component takes
+the material offers it"* iterates the pages that ALREADY have a configurator, so a component with
+none at all is invisible to it — Toolbar was never in the population. A law narrower than the
+rule it enforces cannot fail on the case that matters, which is the third time that sentence has
+been earned today and the second time in this file. It walks the REGISTRY now, which is every
+page the site publishes, and the five pages that legitimately have no configurator are a
+`NO_CONFIGURATOR` map with a written reason each, promoted from a prose comment so a sixth
+cannot be added by silence.
+
+The example takes `backdrop` with it, so the knob turns the row's region mark on and off over the
+figure's own ground.
+
+## 2026-09-06 The row refuses a material and the group takes one, which is one rule
+
+Kushagra: *"Does the Toolbar support backdrop? I like how a toolbar group looks, it looks similar
+to a medium emphasis button, so therefore it needs to support backdrop also. The toolbar specimen
+needs to also show size 3, no? it shows size 2."*
+
+**The answer is the asymmetry, and it is not an exception.** A material makes a component's own
+FILL translucent (§10), so it is expressible exactly where there is a fill. The row has none — it
+states a rhythm and paints nothing — and the group draws a box. So `Toolbar` keeps its refusal of
+`material` and `ToolbarGroup` takes `backdrop`, wired line for line from the segmented control's track,
+which is what the group IS and which has taken the prop since materials became selective. It
+scopes its subtree, so a `ToolbarButton` inside a glass group resolves `on-glass` even when it
+states `backdrop` itself: one glass per stack, structurally, and a band whose loose controls each
+state it cannot double up inside a group.
+
+Four laws, two sabotage passes, each caught by exactly the law written for it — the material read
+as an AGREEMENT with a mounted `SegmentedControl` rather than against a value, with the row
+asserted to stamp nothing beside it, and the scope's fixture a button that ASKS for a material
+(a plain one carries none either way, which is the degenerate fixture this repo keeps finding).
+
+**Two instrument findings on the first run, both old ones reproduced by their own author.** The
+law queried `.kui-toolbar` on the mounted root — and the ROOT is the toolbar, so the query
+searched descendants and matched nothing: the 2026-08-08 `within()` finding, verbatim. And the
+agreement compared `backdrop-filter` strings whole, which can never match: the LENS is per-box, so
+each pane references its own displacement map by id. The ids are stripped and the rest must agree
+character for character.
+
+**THEN THE ROW TOOK `backdrop` TOO, and he was right that it should** (same message: *"backdrop
+of toolbar should suggest items inside it get backdrop"*). The two are different things wearing
+one name, which is what made the first answer look like a contradiction. On the GROUP it is a
+MATERIAL — the box goes translucent. On the ROW it is a REGION MARK: it says content passes
+behind these controls, paints nothing, provides `BackdropContext`, and every glass-capable
+control inside resolves the theme's material without restating the fact. That is `<Box
+backdrop>`'s own mechanism and exactly what `float` on a pane band already makes true. A
+control's own prop still wins; `backdrop={false}` marks the row plain again. Both floating bands
+on the site and every example band say it once now instead of per button.
+
+**Two shipped laws caught the change before I did.** The docs read the package's BUILD, so the
+first run measured the old dist and reported the mechanism dead — React's own warning was the
+tell (`Received true for a non-boolean attribute backdrop`), and rebuilding fixed all three
+failures at once. Then the builder's catalog law failed: *"Toolbar takes a backdrop prop and the
+catalog does not offer it — the axis has no reader."* Exactly what that law is for.
+
+**And the specimen was one step below the component's own default.** The knob's starting value is
+read off the example's default parameter, so `size = "2"` opened every reader's first look one
+step under what `<Toolbar>` actually renders — the specimen contradicting the default the same
+page documents, and a defect the band-step change introduced two hours earlier by moving the
+default out from under it.
+
+## 2026-09-06 A tooltip around a menu trigger left the menu with no anchor
+
+Kushagra, on the appearance picker shipped an hour earlier: *"Why is it opening on rtop left"* —
+and it was: the panel opened at the window's corner, half a screen from the control.
+
+**Measured, then bisected.** The composition was
+`<TooltipTrigger render={<MenuTrigger render={<ToolbarButton/>}/>}/>`. With it, the positioner
+reported `--anchor-width: 0px` and landed at (0, 4) for a trigger at (279, 844) — the menu's
+anchor never reached its own positioner through the outer trigger, so floating-ui placed it
+against nothing. Drop the Tooltip and the same menu lands at (279, 730), directly above its
+control, with `--anchor-width: 40px`.
+
+**It is not this row's parts.** A plain `Button` in place of the `ToolbarButton` fails
+identically, so the broken link is TWO FLOATING TRIGGERS ON ONE ELEMENT and not the toolbar
+registration. Inverting the nesting is not available either: `render` takes an element, and a
+`<Tooltip>` root is not one — that spelling opens no menu at all.
+
+**The site drops the tooltip here, and nothing is lost**: the `aria-label` names the control,
+and what a tooltip would have said is what the menu says the moment it opens. The GitHub link
+beside it keeps its tooltip, because a link opens nothing and has no second trigger to disagree
+with — `DocsBack` has shipped that shape since 2026-09-01.
+
+**Recorded open, not closed.** Two floating triggers composing onto one control is a legitimate
+thing to want — a tooltip on a menu button is the commonest chrome pattern there is — and it
+currently mis-anchors silently, which is the worst way for it to fail. Whether the missing merge
+is ours or Base UI's is unestablished; the reproducer is three lines and is written above.
+
+## 2026-09-06 A band that is not a Toolbar hands out the pane's index, and a comment had been lying about it
+
+Kushagra, on the sidebar's footer: *"there is no way these are size 3, and lets use icon button
+for github. Same for dark or light mode."*
+
+**He was right, and the file said otherwise.** `appearance-toggle.tsx` has carried a paragraph
+headed *"STEP 3, WITH THE FRAME'S OWN CONTROLS"* since 2026-09-05, explaining that a 32px trigger
+under a 40px button reads as an accident — and the component stated no index at all. A bare
+`ShellPaneHeader`/`Footer` hands its children the PANE's index through `ChromeSize`, so both
+footer controls rested at 2 while the masthead's `Toolbar` above them rested at 3. The doc-code
+drift rule catching its own author for the third time this week, and caught by an eye rather
+than by a law: nothing reads what a band's controls resolve to.
+
+**The fix is that a band is a `Toolbar`.** That is what states a band's index — it is the whole
+reason `BAND_STEP` lives on the component — so wrapping the footer's contents is the repair and
+the keyboard arrives with it: one tab stop for the row, arrows inside. Measured after: header
+toolbar 40, footer toolbar 40, both controls 40. The shell EXAMPLE's footer took the same wrap,
+for the same reason and because `AppearanceToggle` now renders a `ToolbarButton`, which throws
+outside a toolbar.
+
+**The appearance picker left `Select` for a radio MENU, and the Select's refusal is why.** It has
+been a Select since 2026-08-26 on the argument that picking one of three persistent choices is
+exactly what a Select is — still true, and not what changed. What changed is that this control
+has to be a MARK: it sits between an icon-only search and an icon-only repository link, and a
+pill reading "Light ⌄" in a row of glyphs is a different kind of thing. A `SelectTrigger` cannot
+be icon-only and the refusal is deliberate rather than an omission — it takes no `children`
+because THE VALUE IS THE CONTENT, so a trigger showing something else could disagree with what is
+chosen. `MenuRadioGroup` is the same question asked where the answer may be drawn: `aria-checked`
+rows, so nothing is lost to a screen reader, and the trigger wears the chosen mark, so nothing is
+lost to the eye. `closeOnClick`, because choosing is the whole visit here.
+
+**GitHub is a mark too**, with the word in a Tooltip and in the accessible name — the pair an
+icon-only control in a cluster already owes on this site.
+
+Deferred, recorded: the split "Copy Page" control with a dropdown of *open this page in …*
+destinations, which is what prompted the look at this row.
+
+## 2026-09-06 A toolbar at the bottom worked, and half of it had never been looked at
+
+Kushagra: *"Can toolbar be used at bottom?"*
+
+Yes — `ShellPaneFooter` takes a `Toolbar` exactly as the header does, the band publishes
+`--kui-pane-band-row-end`, the pane's reach follows it, and `Page`'s `padding-block-end` already
+spends it. All of that shipped with the top edge on 2026-09-06.
+
+**And no law had ever mounted it.** Eight declarations in `surfaces.css`, four of them read by
+nothing; two arms in `shell.css`, one of them read by nothing. The answer was written and
+unproven, which is this repo's own recorded shape: a mechanism with two ends and a law over one
+of them is half a law. The twin now mounts a floating footer holding a `Toolbar size="4"` in a
+pane whose shell rests at 2, and reads the published row, the reach, the band's painted height
+and the page's clearance — with the START edge asserted at zero beside it, so the two names stay
+two names. Sabotaged by deleting the four footer publications: it fails, and nothing else does.
+
+**The law was wrong before it was right, and the instrument is the finding.** It read the
+published row with `tokenOn`, which resolves through a CHILD probe — correct for the inheriting
+names it was written for, and silently wrong for a registered `inherits: false` one, where the
+child answers the property's own `initial-value`. So a pane publishing 48px read back as 0px and
+the law reported the mechanism broken. `ownColor` had documented exactly this case for colours
+since it was written; there was no length sibling, and there is now (`ownLength`). Calibrate the
+instrument against a known answer before its output is evidence — the third time that sentence
+has been earned in this repo, and the first by a length.
+
+## 2026-09-06 One band held a glass control and an opaque one, and the law could not see it
+
+Kushagra, pointing at a chapter's previous/next pager: *"These buttons should also have
+backdrop"* — then, on being shown what `float` means: *"Right if it doesnt float it doesnt need
+it, but they need to be in toolbar no?"*
+
+**The pager does not float and takes no material.** It sits in flow at the end of the reading
+column with the page behind it, so there is nothing passing behind it to defend against. §10's
+selectivity, and his own sentence for it: no point of glass unless something is behind to
+refract.
+
+**But the question found a real one.** The sidebar's floating footer holds the appearance Select,
+which has stated `backdrop` since 2026-08-30, beside a GitHub button that never did — two
+controls in one band, one glass and one opaque, on the site this system is documented with. It
+was found by a person looking at a page and not by the suite, because the law written that
+morning walks the shipped EXAMPLES: **a law narrower than the rule it enforces is a law that
+cannot fail on the case that matters.** It now renders the documentation site's own chrome
+through the root layout and reads every control in every `[data-float]` band; it failed on the
+GitHub button on its first run, which is what a law is for.
+
+**AND THE PAGER IS NOT A TOOLBAR, which is the harder half of the question.** A `Toolbar`
+announces `role="toolbar"` and makes the whole row ONE tab stop with the arrows moving inside
+it, and that is right for a band of tools acting on the thing in front of you. This is two links
+to other documents at the end of one — navigation, not tools — so the announcement would be a
+lie and the roving stop would put "next chapter" behind an arrow key. `Breadcrumb` settled the
+same question the same way and for the same reason: places are not tools. What is left is a
+`Flex`, which is §45's own answer for clustering — the toolbar's job is the BAND, and this row's
+two ends are the reading column's walls rather than a band's.
+
+## 2026-09-06 A band rests one step above the app, and the call sites had already said so
+
+Kushagra: *"Size 3 on toolbar, I think it should be size 3 by default on toolbar, not
+subscribing to theme's size."*
+
+**The evidence was already in the repo.** `Toolbar` resolved `useSize(sizeProp)` like every
+other component on the 1–4 ladder, and both bands on the documentation site wrote `size="3"`
+over it within hours of the component shipping. `system/size.ts` had the sentence for this on
+the day the Theme axis landed — *a value repeated at every call site is not a default, it is a
+tax* — written as an argument FOR the axis and true here against the component's own rest.
+
+**Why a band is a step up.** It holds icon-only, unlabelled controls at the edge of the window,
+pressed without being read; a form holds labelled ones aimed at deliberately. That is the
+relationship iOS holds between a bar button and an inline control, and it is a fact about what
+chrome IS rather than a number somebody liked.
+
+**Why it is derived and not a flat 3, which is the part he did not ask for.** A toolbar's
+controls sit on the very ladder `Theme size` prices, so a literal puts chrome and content on one
+ladder disagreeing for a reason no reader can see — and at `<Theme size="4">` a fixed 3 makes the
+frame SMALLER than the content it frames, which is the one arrangement no app wants. `BAND_STEP`
+is `{1:2, 2:3, 3:4, 4:4}`: 3 in a default app, which is what was asked for and what every
+existing call site had written, and it can never invert. It ends level at 4 because there is no
+rung above it, and standing level is the right answer when a step is unavailable. This is the
+mark family's `switch track = mark(n + 1)` and `BAND_TITLE_STEP`'s own shape.
+
+**Both spellings were sabotaged.** The old pass-through fails all four indexes; the flat literal
+`3` fails at app index 1 (a 40px band over 32px controls) and at 3 (40 against 48) and fails the
+inversion guard outright. The law that encoded the old default read ONE index — it mounted under
+`theme: { size: "3" }` and asserted the row stood level with a Button at 3 — so it is rewritten
+across all four, with a vacuity half asserting the step is real. Three more laws had the old
+default written into them as literals (`--control-height-2`, `BAND_TITLE_STEP["2"]`, an unsized
+`Button`); they derive the index from `themeDefaults` now, so the next move does not break them.
+
+**One implementation trap worth keeping**: `sizeProp ?? BAND_STEP[useSize()]` reads well and is
+a conditional hook — `??` short-circuits, so the hook is skipped on every render where a size is
+stated, and it breaks the moment a caller's size becomes undefined. Two statements.
+
+## 2026-09-06 A page began one pane inset below the band it was clearing
+
+Kushagra, on the shipped pages: *"I also want the specimen to have backdrop on the buttons,
+always use backdrop on buttons if content floats behind them, and lets add a better example for
+the page. The padding for the page is a little less also."* Three asks; the third turned out to
+be a defect rather than a nudge.
+
+**Measured before touching it.** On `/components/button` at 1280 x 720: the content pane's band
+runs 0–72, its toolbar row 16–56, the page's own box begins at 16, and the title landed at 88.
+The reach is `max(shell row, band row) + 2 × pane inset` = 72, and the page spent all of it —
+from a box that already started 16px down.
+
+**The reach is measured from the pane's INNER EDGE and the page is never there.** That is where
+the floating band's own box begins (`inset-block-start: 0` against the pane's padding box), and
+a page inside a `ShellScroll` sits inside the scroller's re-pad: the scroller bleeds to that
+edge by `−--kui-sf-p` and pads it back. A page directly in a pane is inset by the pane's own
+padding, which is the same number. So one pane inset always stands between the edge the reach
+describes and the box the padding is spent in, and spending the whole reach counts it twice.
+`max(reach − --kui-sf-p, air)` says where the band ENDS.
+
+**Then it was flush, and that was the other end of the pendulum** (same day: *"The distance from
+top is too less, I mean distance between page title + toolbar"*). Landing exactly on the band's
+bottom edge left the band's own bottom padding as the only air between a toolbar row and a page
+title — 16px at size 2, which is the interval between two rows of chrome rather than between the
+frame and the document it frames. A third term says the rule: **a page begins an INTERVAL below
+the band**, and the interval is `--layout-space-6`, a step this component already spends — one
+rung under the `--layout-space-8` between the title block and what the page begins with, so the
+air above the title stays smaller than the air below it. Measured at size 2 with a size-3
+toolbar: band 0–72, its row 16–56, the title at 96.
+
+Both rejected ends are recorded because they were wrong for different reasons: `reach + air`
+counted the band's own bottom padding twice; `reach − inset` counted nothing twice and left no
+interval at all. What is added is an interval, not a second copy of the band.
+Title 88 → 72, on the band's bottom edge, with the band's own bottom padding as the air between
+the row and the words. The `0px` fallback is what keeps it safe outside a surface, and `max()`
+catches the negative a reach of zero produces.
+
+**The correct spelling already existed one file over.** `examples/shell.tsx` has cleared its
+floating chrome with `calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p))` since the day
+it was written, with the reason in a comment above it. The component shipped without it, which
+is this repo's most repeated shape: a fact known in one place and not promoted.
+
+**The MARKER does not take the subtraction, and that was measured rather than assumed.** It was
+applied there too for an hour, on the reasoning that an `IntersectionObserver` compares against
+its root's content box. It does not — `rootBounds.top` reads 0 on a viewport whose own content
+starts at 16, so the root rectangle is the PADDING box and the marker already lives in the
+scrollport's space, which is the space the reach is measured in. With the subtraction the mirror
+fired eighteen pixels late, with the title still on screen: swept the collapse threshold in 2px
+steps and it landed at a title-block bottom of 54 against a band bottom of 72. Reverted, and the
+comment now states the measurement instead of the reasoning.
+
+**The docs' table of contents was two wrong numbers agreeing with neither.** Both its rules were
+`reach + pane inset`: the resting column landed at 104 where the title landed at 88, and the
+sticky one pinned at 88 — so the list JUMPED sixteen pixels the first time the page moved.
+Chrome measures a sticky inset from the scrollport's CONTENT box (verified: threshold 72 put the
+list at 88), so both are spent inside the re-pad and both are the same expression. Title and TOC
+now start on one line, 72, and the sticky one holds there while the page scrolls.
+
+**The law encoded the old behaviour.** It asserted `title.top >= band.bottom`, which an
+over-clearance satisfies — an inequality cannot see a distance that is merely too big. It is an
+equality now, plus the declaration read where the rule is written, and the pair fails on the old
+spelling by exactly one pane inset at every index (12 / 16 / 24 / 32).
+
+**Backdrop is a call-site rule, so it got a law over the call sites.** A control in a floating
+band has the document passing under it and the band paints nothing, so the material has to be on
+the control (§10, §45). The site's own chrome has done this since the band floated; the Page
+example did not. The law renders every shipped example under `material="regular"` and asserts
+that each `.kui-control` inside a `[data-float]` band stamps `data-material` — because `backdrop`
+is INERT in the solid world the examples otherwise render in, so a source read and a default
+render both pass against an example with none. That is the same reason the toolbar's
+`nativeButton` defect survived twenty-six laws two days ago: read what the element announces.
+
+**Deleted with it:** the shell example's `--scrollbar-fade` override, which the shell has handed
+its scroller per edge since the fade work earlier today — and which also reached the HORIZONTAL
+fade, where no band floats.
+
+The Page example is rebuilt as a real screen: a document with four sections, a leading cluster
+and three tools in the band, every one of them `backdrop`.
+
+## 2026-09-06 Two things were called a page header, and they had different owners
+
+Kushagra, with a macOS Notes toolbar beside our own docs chrome: *"Kookie UI is a design system
+and right now we have no system for a Page. In iOS, we know there's a big heading, and as you
+scroll, the title becomes part of toolbar… One way to house toolbar items. See the shell sidebar
+or the shell content in the screenshot, its all arbitrary."*
+
+**Two gaps, and separating them is the whole design.** The pinned row with the navigation
+toggle, the way back and the tools belongs to the PANE — it stays put while you move from one
+page to the next, and `ShellPaneHeader` already was it. What went in that row had no vocabulary
+at all: five bands in this repo (the docs' content pane, the docs' sidebar, the builder's
+chrome, three preview specimens) each opened with a hand-written `<Flex gap="2" align="center">`
+and two of them added an inline margin. The large title that arrives and leaves with the content
+belongs to the PAGE, and nothing in the system said so — the documentation had been writing it
+by hand since 2026-08-25.
+
+**Toolbar exists because of the keyboard, and every visual thing it states is a consequence.**
+`role="toolbar"` with a roving tab stop — one stop for the whole band, arrow keys inside it — is
+§10's anatomy criterion satisfied by something non-visual, the licence `Field` already holds.
+Base UI ships the machine, so the component supplies no behaviour: what it supplies is the row's
+height (one control row at its index, which is the identity `--kui-pane-inset-block-start` is
+derived from), the split, the gap between clusters, and the index its controls take. What it
+refuses to supply is the GROUPING — `ComposerRow`'s sentence, held rather than re-litigated.
+
+**Rejected on the way:** leading/centre/trailing PARTS (three names for what one `space-between`
+already says, and which controls sit where is what those controls mean); a group that does not
+draw (that is a `Flex` wearing a part's name — `Breadcrumb`'s separator and `ComposerRow`'s
+three-part row both died of it); a `size` on the group (the group and its contents read one
+index, which is what makes the capsule exactly as tall as the button beside it); a `gap` prop
+(the thing the component exists to end). `ToolbarInput` and `ToolbarLink` are DEFERRED, not
+refused — Base UI ships both and nothing has forced either.
+
+**`ToolbarButton` is a thin wrapper and the law proves it is load-bearing**: a plain `Button` in
+a row is a second tab stop the arrow keys never reach, measured rather than argued, because our
+Button cannot enrol itself in Base UI's composite. The cost is that it THROWS outside a toolbar,
+which is Base UI's contract and the loud kind — `docs-back.test.tsx` learned it immediately.
+
+**Page's headline is a defect it fixes.** The documentation padded a fixed 32px above every
+title while the floating band reached 64, so every title on the site started underneath the
+buttons — visible in the screenshot Kushagra sent. The clearance is now derived from the reach
+the pane already publishes (§27), so nothing is measured, the same declaration answers both
+postures, and a band that grows with the app's index takes the page's clearance with it.
+
+**The title is a prop rather than a part, and that is forced**: the same words are said twice —
+once large, once in the band — and only a value can be rendered in two places (`Select`'s
+`items`, verbatim). **The crossing is a pane-scoped store**, because the large title is inside
+the scroller and the band that repeats it is a SIBLING of that scroller, so React context cannot
+carry it. Per-PANE and not per-Shell: two panes may each hold a titled page. `ShellHeader`
+renders no scope, which keeps the full-width row out of the arrangement by construction rather
+than by a rule.
+
+**The collapse is the seventh bounded exception to "no JS at interaction time", and it is a
+NOTIFICATION rather than a measurement**: an IntersectionObserver fires twice per visit, off the
+scroll path, forces no layout, and writes one attribute directly onto the mirroring titles — no
+React state, no re-render, no lens re-mint. The line it fires at is stated in CSS, where the
+band's reach already lives, so JavaScript never computes it: the marker sits the reach ABOVE the
+title block's end, which crosses the scroller's top edge exactly when the title crosses the
+band's bottom. The pure-CSS spelling is RECORDED rather than pretended — a scroll-driven
+animation over a named timeline needs `timeline-scope` to cross to a sibling, Chromium-only
+today, which is `ScrollArea`'s own stance on its own scroll listener.
+
+**Most of Page was already judged.** `PageTitle` in `apps/docs` carried title 8, deck 4, interval
+6, each moved by eye across four days (2026-08-27 → 2026-08-29). This is `CodeBlock`'s promotion
+one route over: the values do not change, they stop being the documentation's, and the docs law
+that guarded them is inverted into a swap law — this app may no longer state the interval at all.
+
+**One thing the port could not avoid asking for**: the front door carries a wordmark above its
+title, which no other page does, so `Page` grew a `mark` slot rather than that page keeping a
+second home for the page steps. It is one prop with one consumer, and the alternative was worse.
+
+**THE TITLE WENT TO THE MIDDLE AND CAME BACK THE SAME HOUR** (Kushagra: *"Should be center, the
+title, and it should be a bit larger no? Can I control it?"*, then *"Lets move title to left
+again, but the title group should have more spacing between action group"*). Centred is not something `space-between` can do
+— it distributes free space between the clusters, so the title lands at the true middle only when
+the things either side are the same width. A band holding a title is three columns now
+(`1fr auto 1fr`, the title claiming column 2), which is what makes it centred on the BAND rather
+than on whatever it happens to sit beside. **Rejected: an absolutely positioned title**, which is
+what iOS does and what would paint the words over a cluster wide enough to reach them; a real
+track truncates against its neighbours instead of under them. **`justify-self: center` was the
+first spelling and it was wrong**: it sizes the item to its CONTENT, so a long title kept its
+natural 443px and hung out of a 104px column — stretched in the track with the words centred
+inside it is the spelling that truncates.
+
+**The step is derived, not judged, and it is not a prop.** `BAND_TITLE_STEP` is `OWNED_BODY_STEP`
+moved up one — a title names the thing you are looking at, a message merely says something — so
+the two ladders cannot drift and neither carries a number the other does not explain. 16px in a
+32px band at the resting index, which is the proportion macOS holds. The answer to "can I control
+it" is the row's `size`: a title that could be four sizes is the arbitrariness this component was
+built to delete.
+
+**A sabotage SURVIVED and earned a law.** Deleting `grid-column: 2` changed nothing, because
+every fixture wrote the title SECOND and auto-placement puts a second child in the second column
+anyway — a law about the general case built on the one input where the general case and the
+special case agree, which is the 2026-08-20 rule in its own author's hands again. The fixtures
+write it first and last now. Writing it first also caught the far-edge rule keyed on
+`:last-child`: the cluster after a leading title is in column ONE, and it was being dragged to
+that column's end, 178px from the wall of a 600px row.
+
+**WHAT THE REVERSAL KEEPS is the finding underneath it, which was never about centring.** A title
+is a different KIND of thing from the controls it sits among, so the distance around it is not the
+distance between two buttons — one step up the same layer, stated by the ROW rather than by
+whichever `Flex` the caller grouped with, which is the arbitrariness this component exists to end
+and which centring was only one answer to. The rule reaches inside a cluster on purpose: a band is
+written `<Flex>{toggle}{back}{title}</Flex>` as often as it is written flat. The three-column grid
+is DELETED rather than left behind a flag — a mechanism with no consumer is the entropy this repo
+keeps paying for.
+
+**THE FRAME'S SPACING CAME DOWN, and the fix was an operator rather than a number** (*"reduce the
+spacing generally speaking, at size 3 this is too much"*). `Page` padded `reach + air`, and that
+double-counts: a floating band's reach is its row PLUS the band's own padding, and the bottom half
+of that padding is already clear space under the row. Measured at size 3 — a 40px row inside an
+88px band, then 32px of air, then the scroller's own 24px re-pad — the title started 144px down
+the window for a bar 40px tall. `max(reach, air)` is the rule actually wanted: a page begins below
+the band, or below its own air where there is no band, never below both. 144 → 112, no value
+moved, and a page outside a frame is byte-identical. The law that held the old behaviour asserted
+`title.top >= band.bottom + air` and was rewritten to read the DECLARATION — the scroller's re-pad
+sits between the band and the title and at one index happens to equal the air exactly, which is
+the coincidence a positional assertion cannot see.
+
+**A BAND FOLLOWS THE TOOLBAR IN IT** (*"I didn't want sidebar at size 3, I want sidebar's toolbar
+at size 3, is sidebar not using toolbar?"* — it was not; the masthead row was still a hand-written
+pair, and sizing the whole pane was the wrong answer to the right question). The frame's published
+safe area is a DERIVATION rather than a measurement — one control row at the pane's index — which
+is what keeps first paint right with no script, and a `Toolbar` stating its own index broke the
+sentence underneath it: measured, an 88px band over a 64px reach, so a page cleared 24px less than
+the bar it was clearing.
+
+The band publishes its row back to the pane instead (`--kui-pane-band-row-start` / `-end`, keyed
+on the index the toolbar stamps), and the pane takes the taller of the two. Eight rules rather
+than a measurement, because the answer must be right on the server and a height is the one thing
+CSS cannot ask for; a band with no toolbar computes byte-identically to what it did before. **One
+name per END, not one for both** — a pane may carry a size-3 header over a size-2 footer, and a
+single name hands the footer the header's row. The law that catches it is deliberately lopsided
+(size 4 over size 1), which is the only shape where one name and two disagree.
+
+**AND THE PANE'S CHROME TAKES THE PANE'S INDEX** (*"why is search button in sidebar still size
+2"*). The pane always sized its own parts, but through `ShellSizeContext`, which only the shell's
+own vocabulary reads — so a Button or a `Toolbar` placed in a band resolved the app's index
+instead. The bands provide the general unit layer now (`SizeScopeContext`, §28) rather than a
+second private one. **The boundary is chrome against content, and it is narrow deliberately**: a
+band is the frame talking, a pane's SCROLLER holds a composition somebody built and keeps its own
+index. Sizing the whole pane was the obvious wider move and the sabotage pass is what prices it —
+with the scope on the pane, a Button in the page's own body jumps to the frame's index, so every
+demo on a documentation page would be re-sized by the shell around it. Both directions fail their
+own law, which is what makes the boundary a decision rather than a default.
+
+**THE SCROLLER DID NOT BLEED, AND THE FADE DID NOT REACH** (Kushagra, on the component page's own
+example: *"why do we keep fucking it up btw. The scrollbar doesnt bleed to card edges? Every
+single agent gets it wrong."*). Two separate faults with one symptom, and the first one was the
+DEMO rather than the component: measured, the shell's scroller bled to its pane exactly as it
+should — pane 394–950, viewport 394–950, bar 2px off the wall — while the shell itself sat 17px
+inside the example card's padding, so every edge a reader takes for the app's edge was the card's
+and not the frame's. A shell is a WINDOW, and a window shown inside a card fills it: `m="bleed"`
+(§3) on the demo's box, which is the escape that already exists for exactly this and which the
+examples were not using.
+
+**And the fade never covered the band it was supposed to cover.** `shell.css` has claimed since
+2026-08-29 that "the scroller's fade is what keeps the passing content legible", and the designed
+fade is 32px against a band up to 88px deep — so the lower two thirds of a floating row had
+full-strength text behind it, which is the heading and the paragraph reading straight through the
+toolbar in the screenshot. `scroll-area.css`'s two BLOCK stops take an override now
+(`--kui-sa-fade-start` / `-end`, the designed value as the fallback, the inline axis untouched
+because nothing floats over the sides) and the shell hands each edge the reach it already
+publishes. It is per EDGE for `--kui-pane-inset-block-*`'s own reason: a pane's two bands are two
+facts. **Stated honestly: it is better and it is not enough** — a linear ramp to the band's depth
+still leaves ~40% of the content visible at the row's own height. The remaining answer is the one
+iOS actually uses and the one the standing note about floating things points at, which is that
+the band takes the material; that is a design call and it is not made here.
+
+**The law for the negative half could not be written in the browser**, and the reason is worth
+keeping: an unset custom property probes as `0px`, which is exactly what a shell handing the
+scroller a fade of NOTHING would probe as, and the mask that would tell them apart serializes
+identically until Base UI's own scroll pass has written the overflow distances — a frame-timing
+read this repo does not run on CI. The guarantee is a property of the SELECTOR, so it is asserted
+there, in the node laws. The obvious negative regex then matched the scoped rules themselves,
+because the character before the scroller in `…[data-float]) > .kui-shell-scroll` is a `>`; it
+counts the declarations instead.
+
+**AND IT SHIPPED WITH THE DEFECT IT WAS BUILT TO AVOID, found in `pnpm dev` the same day.**
+`ToolbarButton` passed a flat `nativeButton={false}` to Base UI — a claim that the rendered
+element is not a native button — so Base UI applied the non-native kit and stamped `role="button"`
+on a real `<button>`, warning about it in the console. That is the 2026-08-06 Button-as-link
+finding arriving from the other side, committed by the author who cited it two paragraphs up. The
+question was already written for this repo (`rootsInButton`, system/render.ts, which follows a
+chain of `render` props to the element that will exist), and it is what the prop asks now.
+
+**All 26 laws were green over it**, which is the finding behind the finding: every one read
+geometry or the keyboard, and not one read what the control ANNOUNCES. The law that catches it
+reads `role` and the tag on a plain `ToolbarButton` and against a mounted `Button`, and it fails
+on the shipped spelling with `expected 'button' to be null`. `aria-disabled="false"` stays and is
+recorded rather than removed: it is Base UI's spelling for an item that remains focusable when
+disabled, which is the toolbar pattern the APG asks for — a roving tab stop that skipped its dead
+items would strand the keyboard on the way past them.
+
+**Two law shapes worth keeping.** The marker's offset is invisible to any fixture that scrolls
+far past the fold, where a correct implementation and a broken one give the same answer; the law
+that can see it scrolls to exactly half the band's reach, where the title is hidden behind the
+band while still inside the scroller's box. And the shell's new band rule wanted a third law
+asserting that a sidebar's own band takes none of the work area's reach — written against the
+PADDING it could never fail, because `--kui-shell-inset-*` is declared on `.kui-shell-content`
+alone; it reads the variable's scope instead, which is the half that can break.
+
+**Also on the way:** a floating band in the work area now spends the frame's published inset
+itself, deleting the inline `marginInlineStart` every consumer was writing. Padding is safe there
+for a reason that was not true before the toolbar existed — a toolbar catches no pointer and
+hands it back per child, so a padded band is not the row of dead page the 2026-08-30 finding
+names.
+
+## 2026-09-06 A drawer slides, the frame recedes under it, and the slide shipped dead
+
+Kushagra, against his own "Clip vs Physics" bench: *"Yes it can come from side, but there's more,
+and we're at an advantage because we have the Shell. The bg should scale down."* Then, on the
+built result: *"it appears like this, and there's no slide in and out."* Both halves are in this
+entry, because the second is what the first shipped with.
+
+**Which entrance a drawer is, decided before anything was written.** This package has three, and
+a drawer is none of them. §22's silhouette is honest exactly where a panel lifts off the thing
+that was pressed, and a drawer is anchored to the window's EDGE rather than to a trigger — a
+menu's recipe here would photograph a hamburger button and inflate it into a nav column. §24
+barely travels because the scrim IS the arrival and a dialog comes toward you rather than in from
+the side. So: it slides in from the edge it was parked behind. That is also the cheapest reading
+in the library — the distance is the pane's own width, a length CSS already has — which makes it
+the one entrance in the package that measures nothing and needs no runner.
+
+**The half only a Shell can do.** Every drawer library portals to the body, so the page is not
+theirs to move and the recession has to be asked of the app; the Shell owns the header, the rail,
+the content and the inspector already. The root scales to 0.925, a well appears behind it, the
+scrim covers both, and all four ride one clock. That is the point rather than a flourish: the
+world's depth becomes a property of where the drawer is, not a second animation that agrees with
+the first by hand.
+
+**A new spring, and it needed a second closed form.** `driven` is critically damped with velocity
+injected (ζ 1, ω 9, v₀ 1.5), straight off the reference's rule that presentation is damping 1 and
+bounce belongs only to motion a finger earned. The generator's sampler solved the underdamped
+case alone and divides by √(1−ζ²), which is undefined at ζ=1. The launch is bounded by
+construction rather than by taste: at critical damping the curve overshoots iff v₀ > ω, so 1.5
+against 9 cannot, and the law reads the emitted samples for it. No existing curve moved.
+
+**Four things the build forced, each measured rather than reasoned.**
+
+- **The origin is the drawer's own edge.** The frame has to recede as one object or the header
+  stays put while the content shrinks, so the transform goes on the root — and the drawer, a
+  descendant, then recedes with it and must take the exact inverse. An inverse is only exact when
+  parent and child scale about the SAME page point, which is what sent the side drawers to
+  `grid-row: 1 / -1`. The sentence they were built on ("an overlaying pane rises under the
+  header") was true while the drawer was part of the frame and stopped being true the moment it
+  was not: a drawer covers, which is what every platform's does, and the full block span is what
+  puts its centre on the frame's. Measured before any of it was written — a 600×400 frame at
+  0.925 with a counter-scaled 200×400 child returns the child to exactly 200×400 with no drift.
+- **A closed drawer is parked, not deleted.** `display: none` cannot be transitioned, so an
+  overlaying pane waits one pane-width plus the gap outside at `visibility: hidden` — the same
+  three guarantees (nothing painted, focusable or hit-testable) in a spelling that has a clock.
+- **The frame clips at rest, and stops while a drawer is live** (the second half is a same-day
+  correction, below). Parking hangs a pane outside the root; before that line a 375px window
+  reported a 690px document. `clip`, never `hidden`, on the flight rules' own argument that a
+  hidden box is a scroll container.
+- **The reference's 8px settle is dropped rather than ported.** It exists to sell a scale about
+  the top edge, and every term added to the root has to be inverted on the drawer as well.
+
+**And the corner question closed with it** (*"dont need border radius if flush was true right?…
+if we ignore flush true or not when it floats, then the look must be the same, and so it should
+have padding all around as it would look if flush was false"*): a drawer already restores the
+surface identity whole, and it now pays the frame's air too — the term the overlay width cap had
+been subtracting since the day it was written.
+
+**THEN IT SHIPPED WITH NO SLIDE, AND THE DEFECT WAS ONE CHARACTER.** The travel was published as
+a single hook holding both axes — `--kui-shell-drawer-slide: calc(-100% - var(--shell-gap)) 0` —
+and `translate()` separates its arguments with a **comma**. The substitution was therefore
+unparseable, which is invalid at computed-value time, which drops the **whole declaration**
+rather than the one argument. So a parked drawer computed `transform: none`, sat at exactly its
+landed position behind `visibility: hidden`, and appeared. The open state was correct the entire
+time, because there the hook is unset and the `0` fallback parses. Two hooks now, one per axis:
+each is a single length and the comma belongs to the sheet, so the value cannot be written wrong.
+Cost, measured against a real build: **+5 gzipped bytes**.
+
+**The reason 2,634 laws were green over it is the fixture, not the assertion.** Every drawer law
+in this file reads a LANDED pane — its dress, its cap, its span, its scrim, its material — and
+the parked pose is the state none of them touch. That is the degenerate-fixture rule in its
+plainest form: a law's input has to be a state where a correct implementation and a broken one
+give different answers, and every one of them read the one state where the two agree. Three laws
+read the parked pane now, in both presentation arms, and they read the POSITION rather than the
+transform string — `none` is only today's spelling of the fault, and a drawer that parks where it
+lands is the fault in any spelling. All three fail against the pre-fix code.
+
+**And the flight law earned the seizure rule the honest way.** Its first spelling sampled one
+`requestAnimationFrame` after the press and asserted the drawer was partway; it passed alone in
+three consecutive runs and failed inside the full parallel suite, because a loaded machine can
+put that callback past the whole 420ms. It pauses both transitions and sets their clocks to the
+same instant now. That is the 2026-08-20 rule restated: **a premise that is a window is seized or
+edge-anchored, never raced** — and the second time this repo has learned it by writing the raced
+version first.
+
+**AND THE CLIP WAS CUTTING THE THING IT WAS PROTECTING** (Kushagra, same day: *"the sidebar is
+also cut"*). `overflow` clips descendants in the element's OWN box, BEFORE the element's
+transform. While a drawer is live the frame is scaled to 0.925, so all three things that take
+its inverse — the drawer, the scrim, the well — are larger than the box doing the clipping.
+Measured on a 375×700 frame: the drawer painted 26.25→673.75 where its box is 8→692, trimmed
+18px at the head and the foot; the scrim and the well both stopped at x=347, so the trailing
+28px of the frame showed raw page under nothing at all. Every one of them lands EXACTLY on the
+frame's box once it is on screen — **the overflow was real in the frame's space and imaginary in
+the viewer's**, which is the sense in which clipping there was measuring the wrong thing.
+
+So the clip is a property of the RESTING frame. `transition-behavior: allow-discrete` makes that
+expressible with no JS: `overflow` is discrete, so a zero-duration transition whose DELAY is the
+drawer's own clock flips it back only after the last exit has finished, while the live arm
+restates the delay at zero so no arrival is ever cut. Its price is that a sibling parked drawer
+then scrolls the page — measured, a frame with all three panes reported 663×874 on a 375×700
+window and gained two scrollbars onto blank space — so a pane that is neither open nor leaving
+goes back to `display: none`, which is what it was before parking existed. `position: fixed` was
+measured first and does nothing here: a transformed ancestor is a containing block for fixed
+descendants, so the pane stays contained and goes on contributing.
+
+**AND THE WELL WAS EATING THE APP** (Kushagra, once the geometry was right: *"Normal white page
+becomes black when sidebar comes"*). The well is a pseudo-element BEHIND the panes, sized to the
+frame's whole box — and a flush pane paints nothing, because a pane level with the page is not a
+plane. So through the docs' own frame the well was not a ring around a receded app; it was the
+app, replaced by a near-black slab, with the recession invisible because there was nothing left
+to recede. Every law was green: the well's colour, its inverse, its arrival, all correct, of a
+thing painted in the wrong place.
+
+The fix is flush's own rule one level up. **The frame leaves the page the instant it starts
+receding, so for as long as it is away from it the frame is a plane and carries the seal.**
+
+**IT TOOK TWO TRIES, AND THE FIRST IS THE INTERESTING ONE.** The seal went on the root's own
+background — measured correctly on the element, and painted nowhere, because the root declares
+`isolation: isolate` and inside a stacking context a `z-index: -1` child paints ABOVE its
+parent's background. The well went on covering everything (Kushagra, on that build: *"The entire
+page is black there is no ring"*). It lives on a second pseudo-element now, at the same negative
+layer as the well, so paint ORDER settles it — `::after` paints after `::before`, always. It
+takes no transform, which is the economy of putting it there: it rides the frame's own scale and
+lands exactly on the receded frame, so nothing has to know how wide the ring is.
+`--color-surface` rather than `--color-page`, deliberately: the page is a colour this library
+has twice declined to own and an app may have painted anything back there, while the seal is a
+colour it does own and in light is the page to the byte. Considered and rejected: punching a hole
+in the well with an even-odd `clip-path` (three per-origin arms of percentage arithmetic to say
+what one declaration says), and deleting the well outright (the recession then has no cue at all
+for a flush frame, which is most frames).
+
+**And the law for it GRABS THE SCREEN AND READS A PIXEL**, because nothing weaker could have
+caught either half: a computed value cannot see paint order, and both defects were about where a
+correct declaration painted rather than about what it said. That is the 2026-08-08 calibration
+lesson taken one step further — an instrument that reads a declaration is measuring the author's
+intent, not the reader's screen. One frame is grabbed, decoded into a canvas, and divided by the
+device ratio against a known viewport width, which is the calibration; the reading is a DISTANCE
+to two resolved tokens rather than an equality, because the scrim sits over both regions and
+neither pixel is its token exactly (the ring measures 9,9,10 against the well's own 11,11,12).
+
+Its own first spelling sampled the content pane's centre — which on a narrow window is UNDER the
+drawer — so it read the drawer's white and **survived both sabotages**. The degenerate-fixture
+rule, inside the law written to catch a defect that same rule had already let through twice. It
+reads the strip of frame the drawer does not cover now, and both sabotages print `9,9,10`.
+
+**AND THE SCRIM WAS LEAVING BEFORE THE DRAWER DID** (Kushagra: *"When I dismiss it, the bg loses
+its blur instantly making it look weird"*). It was `display: none` at rest and `display: block`
+while a drawer was live, and `display` cannot be transitioned — so on dismissal the scrim's
+pigment and its defocus both vanished in a single frame while the pane still had 420ms of travel
+left. The app snapped back to full contrast and full sharpness with something still sliding
+across it, which reads as two events rather than one. Parked the way the drawer is parked and for
+the drawer's reason: `opacity` carries the fade, `visibility` takes it out of the tab order and
+out of hit-testing at both ends and flips at the far end of its own transition. Three shipped
+laws read the scrim's `display` and are re-keyed to `checkVisibility` — the same repair the
+parked drawer's own laws took two days earlier, for the same reason.
+
+**And the receded frame rounds**, because a plane set back from the page is an object. It reads
+the BARE `--radius-surface-3` rather than `var(--kui-sf-radius, …)`, which is what a pane and the
+drawer both read: that hook inherits, so a Shell composed inside a Card would take the card's
+corner — §27's own reason for pinning a pane's corner before the panes could stamp their size.
+**The squircle knob is borrowed rather than restated**: `.kui-shell::after` joins `.kui-surface`
+inside surfaces.css's `@supports` block, because 1.613 is a judged number with one home, and a
+squircle drawer touching a plain-arc frame reads as two different systems. Its law is an
+agreement with a mounted Card at that step, never a number — the multiplier sits between the
+token and the painted corner, which is the shape §27's own pane-corner law already takes.
+
+**Every option that keeps the clip was refuted by arithmetic before any of this was built.** The
+drawer's on-screen height must be the frame's, so its own box has to be that height divided by
+the recede — which exceeds the frame's box whenever `0.075 × H > 2 × gap`, i.e. always. A
+`clip-path` in the frame's space has the same coordinate problem and, measured, does not remove
+scrollable overflow at all. A non-uniform `scale(1/s, 1)` fits, and squashes the drawer's
+contents by 7.5%. The structurally clean answer — the clipping element must not be the scaling
+one — needs the overlay panes to be siblings of the receding grid, and the Shell cannot separate
+them without inspecting its children, which §27 refuses. So the clip moves in time instead of in
+space.
+
+**Three more laws, and they read the VIEWER's space by hit-testing.** That is the half none of
+the existing ones could have had: `getBoundingClientRect` reports the transformed border box and
+says nothing about clipping, so the drawer's rect was correct every single time it was measured
+while being trimmed. One law reads the drawer's own head and foot, one reads the frame's trailing
+edge for the scrim, and one reads the page's two scroll extents with all three panes present.
+Each fails against its own sabotage and only its own.
+
+**Rejected:** a runner (there is nothing to measure — the distance is `100%` of the pane);
+`display: none` with an `@starting-style` entry (the exit has no clock at all); a second spring
+for the recession (one clock is the whole claim); and animating the panes individually rather
+than the root (they would come apart, which is the thing the recession is for).
+
+## 2026-09-07 A ground stops out-padding what it holds, because containment is symmetric
+
+Kushagra, reading the numbers off the footer specimen and then off the rule: "But thats wrong. A
+surface can contain a card, sure, but the other way around is also legal."
+
+**The step was encoded on the component and the argument was about the relationship.** Surface
+shipped with a size join that read the overlay band and stepped its padding one size up, on
+Dialog's sentence: a pane that contains panes must out-round what it holds or the nesting reads
+inside-out — the mistake the builder's hand-painted canvas made, a size-2 corner around size-3
+cards. That sentence is about CONTAINING, and containing is symmetric. Written on the component
+it applied whether or not a ground held anything, and never applied to a Card holding a ground.
+
+**The second arrangement is not hypothetical — it is the other of the two shapes this component
+is documented as being**, a bed inside a card that holds something quieter. Measured before
+anything moved, a `<Card size="2">` holding a `<Surface size="2">`: card padding 16 and corner
+51.6, bed padding 24 and corner 64.5. The bed padded more than the box holding it and curved more
+than the box holding it. Live on the documentation site wherever a code well sat inside a pane,
+and invisible to a suite whose law only ever mounted the ground on the outside — the
+degenerate-fixture rule, arriving as a fixture that builds one of the two legal nestings.
+
+**Deriving it from what a pane actually holds was refused, and Kushagra refused it before I
+proposed it** ("I dont want to earn it by containing, its fragile"). `:has(> .kui-surface)` is the
+literal question and it answers only for a DIRECT child, so one wrapper hides it; worse, it makes
+a pane's own inset move when its contents change, which is a box whose geometry cannot be read off
+its own props. The step is a CALL SITE's fact: a ground meant to hold cards states a larger `size`
+than the cards in it. The size axis already expresses that, and the automatic +1 was a second
+mechanism doing the same job — the one a caller could not overrule.
+
+**So the arms are deleted whole, padding AND corner.** A ground falls through to the ordinary
+surface join: same ladder, same band, at its own index. Both properties, because the step moved
+both and a repair that collapsed only one would leave a bed rounder than the card holding it with
+the suite green.
+
+**`surfacePadding` shifted up one pick in the same change, and that is one decision rather than
+two.** Collapsing two consumers onto one ladder has to pick which set of values survives, and the
+ground's were the ones anybody had been looking at — a ground read 16/24/32 on every page while
+the raw ladder read 12/16/24. Kushagra: "I like what Surface subscribes to". So `[4,5,6,7]` →
+`[5,6,7,8]`, 16/24/32/40, and a CARD is what moves: 16 → 24 at the default index, which is also
+the answer to "spacing seems a bit less" earlier the same day. The top rung is a real 40 rather
+than the 32 the old arrangement produced — the ground saturated at 4 only because a +1 ran off the
+end of the ladder, which is an artifact and not a design.
+
+**What moved, stated rather than discovered later.** A Card, Popover, Notice, Composer, Accordion
+and Table gain a rung. A shell pane goes 16 → 24, so the app frame's chrome grows — the exact
+consequence that stopped this shift when it was proposed on its own an hour earlier, now accepted
+because it arrives with the fix rather than instead of one. A code well is unchanged in padding
+(it read 24 before through the +1 and reads 24 now through the ladder) and tightens its corner
+from 64.5 to 51.6. A Dialog gains a rung too, because the overlay join reads the same shifted
+ladder; its own +1 stays, since a dialog is never inside a card and the paradox cannot arise there.
+
+**Four laws encoded the old numbers and each is re-keyed rather than retuned**, which is the
+difference between a law about a guarantee and a law about a spelling: "out-rounds the card it
+holds" is now an AGREEMENT with a mounted Card on both properties, with a second law mounting the
+two at DIFFERENT indexes as the vacuity guard (without it the agreement is satisfied by a system
+where the size axis reaches neither component); "pads from the surface family by the size index"
+reads the family's own rung instead of two literals; and the density law asserts a RANKING, since
+the numbers it pinned were the ladder's rather than density's. **Net −31 gzipped bytes**, which is
+the evidence the repair was a deletion.
+
+## 2026-09-07 A band's reach is for the scroller under it, not for every scroller inside it
+
+Kushagra, asking how the scroll-edge fade picks its length. Answering it meant reading the
+resolved values on a real page, and the page said something the code did not.
+
+**The reach was leaking by inheritance, and it shipped the day before.** `--kui-sa-fade-start` /
+`-end` are what a floating band hands the scroller passing under it — 32px of designed fade is
+shorter than a band up to 88px deep, so a heading was reading straight through a toolbar, and the
+2026-09-06 repair hands the band's own depth over instead. A custom property inherits. Measured on
+`/start/installation`: eleven ScrollAreas, every one opted into the fade, and NINE of them were
+code wells inside the pane resolving the pane's 72px — one on an element 68px tall, where the
+reach is deeper than the whole box. The silent-inheritance trap this repo has now been bitten by
+five times, arriving for the first time between two instances of the SAME component.
+
+**Registering the hooks `inherits: false` is the usual repair and it cannot be used here.** The
+band declares them on the scroll AREA and the mask reads them on the VIEWPORT one level down, so
+the value has to inherit exactly once; killing inheritance kills the mechanism. The stand-down
+states the real rule instead — a band is above the scroller it floats over and above nothing else
+— and it lives in `scroll-area.css` rather than in `shell.css`, because the component that
+publishes a hook owns how far the hook reaches. `initial` on an unregistered custom property is
+guaranteed-invalid, so the `var()` fallback already in the mask resolves the designed length,
+which is exactly what a scroller with no band over it should have.
+
+**The law was wrong three times before it was right, and each way is one this repo has recorded.**
+It used `within()` to find the inner scroller — which returns the ROOT when the root matches, right
+for finding a PART and wrong for finding a second instance of the same component, so it compared
+the outer with itself and reported the same 72px on both sides of a working fix. It then read the
+START edge, where every stop is `min(what is hidden past this edge, the reach)` and nothing is
+hidden past the top of an unscrolled box, so both sides computed `0px` whatever the reach said —
+a law about a general case built on the one input where the case is a no-op. And it asserted the
+token was unset, which `tokenOn` answers as `0px`, indistinguishable from a reach somebody set to
+zero. It reads the painted MASK on the end edge now, with the outer half as the vacuity guard: a
+stand-down that killed the hook everywhere satisfies the inner assertion on its own.
+
+**And the fade went 32 → 48 in the same change** (Kushagra: "can we increase it a bit"). It is one
+config line, no CSS moves, +16 gzipped bytes of token text. The order matters and is the reason
+this is one entry rather than two: while the reach was leaking, every scroller in a shell pane was
+already running 72, so raising the designed number would have changed nothing on the page anybody
+was looking at. The fix is what made the number judgeable.
+
+**Not size-dependent, and the argument is short.** A `size` index prices control geometry and
+surface padding, and it deliberately does not reach the type family — so the prose in a size-4
+pane is set at the same steps as the prose in a size-1 pane. The thing that dissolves is content
+whose size the axis does not touch, and the one length that is genuinely variable here is not an
+index at all: it is the depth of the band the content passes under, which the shell already
+derives.
+
+## 2026-09-06 A component name reads as the subject, and it took a hue after all
+
+Kushagra, on the syntax theme: "Current thrme doesnt have a lot of highlight for compoennt names
+etc". Accurate, and it is the 2026-08-21 palette's own sentence coming due — that entry made
+identifiers take the FOREGROUND on the argument that "a component name and a prop name are the
+subject of a KookieUI sample". Half of that is right and the other half is what he was looking
+at: if the tag, its props, its types and its function names all read at full strength, none of
+them is the subject.
+
+**Measured before it was changed, on a real sample rather than off the theme's scope list**,
+because the two are different facts. Shiki's CSS-variables theme has twelve slots, and a JSX
+component name does NOT land on the one whose name suggests it: `<ContextMenu>` carries both
+`entity.name.tag` and `support.class.component`, the deeper scope wins, and `support` maps to
+`token-constant` — the slot numeric literals share. A prop name lands on `token-function`,
+alongside type names and function names. Both slots stood at `--color-text`, so the theme's
+whole identifier vocabulary was one value.
+
+**The RANK shipped first and was judged flat within the hour.** `token-function` stepped down to
+`--color-text-muted`, so props, types and function names recede and a tag is the only thing
+inside a tag still at full strength — §15's own mechanism, the ink ladder separating what a
+reader is looking for from what merely has to be there, and it costs zero gzipped bytes. It was
+the right half to try first because it spends no family. Looked at: "Still reads flat". Correct,
+and the reason is that recession is a comparison a reader makes only where there is something to
+compare against — with every identifier achromatic, a tag standing at full strength among
+full-strength black is not emphasis, it is just text.
+
+**So the third hue landed too, and the doctrine it contradicts was the one that needed the
+correction.** `token-constant` takes `--orange-ink`: the one categorical family left, since blue
+is the brand, green is the values and the status three belong to the diff. The palette's standing
+sentence was TWO HUES, NOT FOUR, and that number was never the guarantee — what stops a future
+brand move collapsing two roles onto one colour is that each family is spent EXACTLY ONCE and no
+two share a hue by construction, which three families satisfy exactly as two did. The sentence is
+amended rather than quietly outgrown, and the law now reads the three as DISTINCT VALUES rather
+than as three names, which is the form that would have caught the 2026-08-21 collapse.
+
+**The cost is stated and accepted**: numeric literals ride `token-constant` and take the hue with
+them. Shiki's CSS-variables theme has twelve slots and cannot separate `support.class.component`
+from `constant.numeric`, so a hue for tags ALONE means leaving `createCssVariablesTheme` for a
+theme of our own — priced, and not worth a whole theme to un-colour a number. That remains the
+road back if a sample full of numbers ever reads wrong.
+
+**The law was the missing half.** Nothing read `token-function` at all, and the shipped law
+("a syntax token resolves to a solved ink") reads keyword and string only, so the whole
+identifier vocabulary collapsing to one value was invisible to it. The new law reads BOTH halves
+— either alone passes on a theme carrying only the other — as identities AND as a relation,
+because "not equal" is satisfied by any colour anybody typed while an identity alone passes on
+the day the other name is given the same value. Three sabotage passes, each caught by the clause
+written for it: the old achromatic value, `accent` spent a second time, and `green` pointed at
+the components' own hue (`expected 2 to be 3` — the distinctness clause, which is the one that
+would have caught 2026-08-21).
+
+## 2026-09-05 A table's contents were indented, and it was two insets, not one
+
+Kushagra, on the component reference's props table: "I dont like that contents in table are 'indented'".
+
+**The one that mattered was 16px and it was the table's own outer cells.** Measured before anything moved: the paragraph above the table began at x=352, the table's box at 352, and its first column's words at 368. `--kui-tb-px` is the gutter BETWEEN two columns — each cell pays half, which is what makes the gutter even — and at the ends it was an inset the table has no claim on, since whatever holds the table has already placed it. The outer sides pay nothing now, logically, so a table in Arabic loses it on the side it starts at. The caption's own `padding-inline` went with it: added 2026-09-01 so the name would line up with the column, its agreement survives the column moving, and the repair is one declaration deleted rather than a number changed — which is the argument for writing that law as an agreement in the first place. Three shipped laws failed on the fix and each encoded the old arrangement; the size-join law now reads the inline pick on an INTERIOR cell, because the first cell is the one place the gutter cannot be read.
+
+**The second was 5.18px and it was the chip.** A `Code`'s side padding is breathing room for its GLYPHS — code.css picks the value on exactly that argument — so a cell whose whole content is a chip set its words in from the heading above them, while the third column, which opens with a text node, sat flush. The same cause made a wrapped type ragged against itself: an inline box pads only its FIRST fragment, so line one sat 5.18px right of lines two and three. `--kui-atom-inset` is published by the member that spends it, and the props table subtracts exactly that.
+
+**The hang is at the CALL SITE and that is the whole finding of the day.** I wrote it in `table.css` first, keyed on `td > .kui-atom:first-child`, and its own law caught it: `:first-child` and `:only-child` count ELEMENTS, so `press <Kbd>K</Kbd>` matches both and the cap would have been pulled into the word in front of it. The rule I wanted — "hang it when the atom is the whole cell" — is not expressible in CSS, and the page holding the table is the only thing that knows. So the package publishes the value and the docs' props table spends it, with the reasoning in `prose.css` rather than in a comment nobody would find.
+
+**And a law's exemption got its own law.** Registering `--kui-atom-inset` put the first `initial-value: 0px` into type.css, whose px scan has no exemption for the descriptor — recipes.test.ts argued that one 2026-08-26 and carried the strip privately, so type.css becoming its second consumer promoted it to `test/stylesheets.ts`. Widening the strip from the descriptor to the whole `@property` block then left 623 laws green, because no shipped registration happens to carry a second literal: the claim that "a real literal inside one still fails" was true of the mechanism and read by nothing. It is asserted now, against a forged block.
+
+## 2026-09-05 The wordmark's box is the letters, not the face's swash allowance
+
+Kushagra, on the front door's long form: *"About this typeface, it is visually offset to the top a lot, the baseline is very high."*
+
+**It was the face, and the numbers say so.** PP Playground declares ascent 45 and descent 25 per 56px em — the face claims **125% of the em** and sits its baseline **64% down** its own content area, which is what a script does to reserve depth for swash descenders. `line-height: 1` collapses the BOX and cannot touch that ratio, so the baseline landed **68% from the top** of a 56px box: a third of the mark's box was reserve, the only thing in it was the ƒ of "Interface", and the ascenders overflowed the top by 7.5px. Mass in the top two thirds and an empty well underneath.
+
+**So the fix is not a length, it is the box's edges.** `text-box: cap alphabetic` makes the box run from the cap line to the baseline — 56 → **38.5px** on the long form, 40 → **27.5px** on the masthead's short one — so placing the mark places the ink. `cap` rather than `text`: a script's ascenders are swashes of different heights on different letters, so an ascender-trimmed box would be a property of which letters the string happens to contain, where a cap line is a property of the face and trims both forms by one rule.
+
+**`line-height: 1` stays, and so does `.kd-masthead`'s row.** Firefox has no `text-box`, so there both declarations are ignored and the mark keeps exactly the box it had — today's rendering rather than a worse one, the same shape as this repo's `border-area` and `corner-shape` fallbacks. The masthead rule in particular changes ROLE rather than going away: trimmed, the mark is 27.5px against a 32px row, so the band rests at its floor and centres it with or without the rule — measured after, mark, search button and the collapse trigger next door all centre at y=32 in a 64px band, which is the 2026-09-02 guarantee to the pixel. Deleting it would fix Chromium and silently re-break Firefox.
+
+**The obligation it creates, checked at all three call sites.** A trimmed box means real descenders hang below it, which is correct for a logotype and is a claim about what sits underneath. The short form has 0.4px of ink below its baseline, so the masthead and the front door are unaffected; the footer's long form is the one with a descender and it clears "Getting started" with room to spare.
+
+**One thing this makes honest rather than fixes:** the front door's gap between the mark and the title was the layout's gap PLUS 17.5px of invisible face reserve. It is now the layout's gap alone, which is what the token was always supposed to control — and whether that gap is the right one is a taste call the trim has finally made askable.
+
+---
+
+## 2026-09-05 A code chip stops rounding at `large` — the checkbox's ceiling, one family over
+
+Kushagra: *"You know how checkbox rejects the theme's roundness, I want code, not code block, code to also reject it."*
+
+**Measured before anything moved.** `full` is the DEFAULT radius level (2026-08-09), so this is what every code chip in the library has looked like. On a mounted chip at size 3: the atom corner is `0.75em`, which against a 21.5px box is **0.516 of its own height** — past half, so the engine clamps it and the chip is a stadium. Beside it a Chip measured 0.506 and a Kbd 0.472; a Badge is a capsule by identity at 1.0.
+
+**Which is the finding.** The atom family's corner is right for the family and wrong for one member. Chip means a word with a tint and Badge is the platform's badge — both are pills BY IDENTITY — so at the resting radius the family's two near-twins were one shape, while `/philosophy/component-families` separates them by what they DO. It is the checkbox's own sentence one family over: a circular checkbox reads as a radio, a pilled code chip reads as a Chip.
+
+**A ceiling, never a pin.** `none` still squares a code chip and `small`/`medium`/`large` still move it, so §6's kill switch is untouched and this is the checkbox's cap rather than the circles' hold. It cannot RETREAT either — `full` and `large` emit one value, the surface band's own sentence (full means a corner stops getting rounder). After: 0.45em is **0.309** of the same box, which lands inside the mark family's own 0.25–0.38 band.
+
+**One home.** `--radius-code` is emitted beside `--radius-atom` from the same picks, with the ceiling stated once in `atomRadiusFamily` exactly as `markRadiusFamily` states the checkbox's (`level === "full" ? "large" : level`). Refused: a `min()` against a raw `0.45em` in the component sheet, which puts a config value in a second home and would silently cap `large` too if the picks ever moved.
+
+**A shipped law refused the first placement, and it was right to.** `type.test.ts` forbids any atom's own stylesheet from declaring `border-radius` at all — the promotion law from 2026-08-23, whose stated reason is a silent COPY: a member restating `var(--radius-atom)` looks right for exactly as long as the copy agrees, and no mounted law can catch it because a copy that agrees computes the same value. That reason does not reach an EXCEPTION, which computes a different value and which a mounted law therefore holds. So the law is narrowed to the family's own value — no member may restate `var(--radius-atom)` — rather than widened with a carve-out, and the guarantee it actually carries is unchanged. The declaration sits in `code.css`, where every other family states a member exception (radio, slider thumb and switch thumb all state their circles in their own sheets).
+
+**Its own corner law encoded the old behaviour**, one line: `expect(f).toBeGreaterThan(l)`, shipped 2026-08-08 and true of the family. Re-keyed rather than deleted — the levels still order, `none` still squares, and what is new is where the ladder stops — plus the claim a person can see (the corner as a share of the box's own height, because that is what makes a shape a stadium). **The vacuity guard is the load-bearing half and needs no number:** a law asserting only the ceiling passes on a package where the whole atom family stopped rounding, which would take Chip's and Badge's identity with it, so a Chip is mounted beside the chip and must still answer the level it is given AND out-round the member that holds. Three sabotages, each caught by exactly its own assertion: dropping the ceiling fails on the retreat, applying the ceiling to `.kui-atom` fails on the twin, and deleting the declaration fails on the retreat.
+
+**Only Code.** Kbd measures 0.472 of its box at `full` and a physical keycap is a rounded rect too — but that is a second judgment about a different member and nobody has made it, so it is recorded here rather than shipped.
+
+---
+
+## 2026-09-05 The palette has no footer, and two of the three reasons why are wrong
+
+**What.** `CommandFooter` is refused. Recorded because every palette worth copying ships one, so
+without a record this gets re-proposed.
+
+**Why.** Kushagra asked for the grounds rather than the answer, which is what made two of them
+collapse. **§10's anatomy criterion does not transfer**: Dialog refuses a footer because a dialog's
+content is the CALLER's, and a palette owns its content — the same ownership axis §25 turns on
+against §24 — so "nothing non-visual forces it" is Dialog's reason and not this one's. A system may
+print on what it owns. **The icon set is not a blocker either**: ⏎ and ↑↓ are `Kbd`, not glyphs.
+
+What survives is what could go in it. The only thing the system can honestly put there is a legend,
+and a legend is instruction rather than information: "↵ Run · ↑↓ Navigate" explains what a palette IS,
+permanently, to someone who has just opened one — the standing rule against definitional helper text.
+The chord already lives per row in `trailing`, naming the row it belongs to instead of restating the
+model. Anything richer is the product's vocabulary, which is §29's refused `status` slot again.
+
+**And it would cost the shape**, which is the part only this week's work makes visible: a pinned
+strip means the pane stops being a pane whose whole content is a list of rows, which is exactly what
+bought it `kui-floating-rows`, the menu's padding join and the concentric corner — and it makes the
+one-row capsule shipped this morning unexpressible.
+
+**Left open, deliberately without a decision:** an unopinionated `CommandFooter` on `CommandEmpty`'s
+line, placing and dressing nothing. A live result count or a scope indicator is information rather
+than instruction and has nowhere to go today. Nothing has forced it, and a slot minted before its
+forcing case is the entropy this repo keeps paying for.
+
+---
+
+## 2026-09-05 A component that publishes a value owes the change that empties it
+
+**What.** `CommandContent` reports an empty query when the palette closes. A `QueryReset` part
+inside `DialogContent`, not an effect in the component.
+
+**Why.** Kushagra, with two screenshots: *"I type letters, and search results come up. next time I
+open, results are still there."* The field was blank and the list was the previous search's. The
+panel unmounts with the dialog, so the input really is fresh — what survived was the app's own
+mirror of the query, because every keystroke was reported through `onQueryChange` and the reset
+never was. The docs site's search is the shape that breaks it: query in state, results computed from
+it, handed back as `items`.
+
+**The rule, stated because it generalises past this component:** a component that owns a value and
+publishes its changes owes the change that EMPTIES it. Anything else hands the caller a mirror of
+something the component no longer holds, and the caller cannot tell — the emptying is invisible from
+outside.
+
+**Where it lives is the whole mechanism, and the first spelling had it wrong.** An effect in
+`CommandContent` looks right and does nothing: that component is rendered by the caller inside
+`<Command>` and stays mounted for as long as the palette exists, because a dialog decides whether to
+render a PORTAL, not whether its content component runs. Measured — the popup unmounted, the rows
+stayed. The reset has to sit inside `DialogContent`, whose lifetime IS the panel's. Both spellings
+are sabotage-checked and the wrong one fails the same two laws the missing one does.
+
+---
+
+## 2026-09-05 The glass got thicker in a jump, and the fix is telling the lens where the pane is going
+
+**What.** The palette's results pane publishes the box its flight is heading to and marks itself in
+flight, so the refraction is built once, up front, for the box it will actually bend.
+`useStatedFlight` in `system/floating.tsx`.
+
+**Why.** Kushagra, after the entry shipped: *"the big issue is that after animation completes, the bg
+changes and gets thicker in a jump."* He was right and it was not the height. Measured on the pane:
+no lens at all for the first ~130ms, then four maps in a row — `#kui-lens-10`, `-12`, `-14`, `-16` —
+each generated for the previous frame's box. The glass opens as blur alone and gains its bend
+part-way down.
+
+**It is the 2026-08-22 audit's finding reached from the other side.** That audit measured 27 filters
+minted during one glass menu open and closed it by teaching the lens to read the box the RUNNER
+publishes. This pane has no runner — its seed is a CSS rule, because it sits directly under the bar
+at the bar's own width and there is nothing to photograph — so nothing announced its flight and the
+lens chased it frame by frame. The repair is not a new mechanism: it is this pane speaking the
+family's existing vocabulary, `--kui-fly-w/-h/-r` plus `data-unfurling`.
+
+**Three things in it were wrong before they were right, and each is a measurement rather than a
+precaution.** The seed has to be LIFTED to read the landed box, and which world you are in decides
+whether that matters: React runs a child's layout effects before its parent's, so the mounted-law
+harness commits the whole panel in one pass and the pane is already at full height, while a real
+open is a state change and the pane is its 8px seed — 98 and 8 from the same line. The CLOCKS have
+to be stood down for that read: lifting the height starts a transition on the very channel the
+landing watches and putting it back cancels one, so `transitioncancel` landed the flight before it
+had begun and the mark never survived a single frame. And the LAYOUT box is the one to publish, not
+the painted one — a dialog's entry steps the whole popup 3% back in z, so the first spelling
+published 303.61px for a pane that lands at 313 and the lens re-minted once on arrival, which is the
+pop this exists to remove, made smaller. That last one is the 2026-08-22 width-floor defect exactly:
+a measurement taken through a running scale.
+
+**AND THE LENS WAS ONLY HALF OF IT.** He reported the same jump again after that repair, and the
+half that was actually visible is a different mechanism: `filter` makes an element a BACKDROP ROOT,
+so every `backdrop-filter` beneath it samples the root rather than the page. §24 blurs
+`.kui-dialog-body` on the way in — a channel chosen precisely because it presumes nothing about
+content the system does not own — and it presumes one thing after all, that the content is not
+glass. Measured frame by frame with the clocks slowed: for the entire entry both panes drew their
+blur, saturation and lens on nothing, and the instant the body's filter reached `none` the page
+appeared behind them. The glass switching on at the end of the arrival is what "gets thicker in a
+jump" is. Until this week the palette had ONE pane and it WAS the popup, so the body's filter sat
+inside the glass rather than over it and the conflict could not exist; the two-block shape puts the
+panes under the body. Stood down for this component, and the law walks the chain from a pane to the
+popup rather than naming the selector that happened to break it.
+
+**The mark must come off**, or the lens believes the pane is forever in flight and never measures
+again — which it must, because the pane is a different size holding the message than holding the
+list. It lands on the height's own `transitionend`; the guard behind it is a clock, and the first
+spelling of THAT was a frame count that raced what it was guarding (two frames after mount the seed
+is still sitting there and no transition has begun, so `getAnimations()` was empty and the guard
+stripped the mark before the flight).
+
+**One sabotage survives the suite and is recorded in the law rather than papered over:** deleting the
+`transition: none` around the measurement leaves every law green, because the harness cannot
+reproduce the condition — it mounts in one pass, so the pane's height does not change when it is
+lifted, no transition starts, and none can be cancelled. The defect is real and was measured in a
+browser. Two other sabotages that survived a `defaultOpen` fixture were fixed rather than recorded:
+the fixture now opens the palette by pressing its trigger, which is the only arrangement where the
+popup is already posed when this component's effect runs.
+
+**Where it lives is the other decision.** It went in `command.tsx` first and a shipped law refused
+it — `recipes.test.ts` reports a forced layout read in a component source, which is ENGINEERING
+§1.5's fence. Moving it to `system/floating.tsx` is not a way around the law but the answer the law
+was asking for: the flight measurement has one home, this is the same read the runner does at the
+same seam, and the exception is already written for that file.
+
+---
+
+## 2026-09-05 The results pane opens out of the search bar, and the empty state is what it shows
+
+**What.** Three changes that turn out to be one. The results pane falls out of the bar and unfurls
+under it on the floating family's own clocks. The empty state renders INSIDE that pane instead of
+standing beside it as a third one. And whichever content arrives — the list or the message — arrives
+out of a blur.
+
+**Why.** Kushagra, in one message: *"Lets do opening like a menu… also noticed that when empty state
+comes, the shape is again different. When you do make the container same, and add motion using our
+principles, also add motion to how the list goes from wherever it is to empty state, preferably blur
+fade in and out that we use."*
+
+**The silhouette is honest here, which is not true of every member.** §22 says a panel flies out of
+its trigger because it lands ON the thing that was pressed, and Popover's seed had to become a
+circle two weeks ago precisely because that was false of it. It is true of this pair: the pane sits
+directly under the bar, at the bar's own width, held at its top edge. So there is no spread to fly —
+the pane is already as wide as it will be — and the whole flight is the FALL, the axis the family
+already names as the one the eye reads as direction.
+
+**No runner, and that is Tooltip's precedent rather than a shortcut.** The family's runner exists to
+photograph a trigger whose box is only known at runtime; here the seed is the bar's bottom edge,
+which is where this pane's top edge already is. Nothing to measure, so the flight is a state change
+on Base UI's own stamps over `--floating-fall` and `--floating-paint`.
+
+**Two spellings were built and measured before the shipped one.** `grid-template-rows: 0fr → 1fr` is
+the no-measurement unfurl and it fails twice: it lost the cascade to the system's own (0,3,0) rule
+making a pane holding a scroller a flex column (measured 304.5px of pane at a track reading 0.32fr),
+and even winning it could not carry the list-to-message change, because that value does not move
+when the content does. `interpolate-size` — §41's reach for the Button's travelling label — carries
+both, and where an engine lacks it the height snaps and everything else still runs.
+
+**And it forced the dialog body to stop being a flex column**, which was the day's one genuinely
+surprising measurement: `interpolate-size` does not reach a FLEX ITEM. In isolation, a block child
+interpolates 0 → auto (69.3px at 35% of its clock) and a flex item in a column snaps straight to
+200. Flex was buying only `gap` for two stacked blocks, so the interval is the pane's own top margin
+now — the same distance, and it leaves the pane an ordinary block whose height can move.
+
+**The empty state was a second box for one place.** Measured, 64.52px of corner over 24px of inset
+against the results pane's 33.25 over 4: the thing standing in for a menu-boxed pane was boxed like a
+dialog. The file's own comment had said "it IS the results pane when there are no results" since the
+day it was written and the DOM said otherwise. It renders inside the pane now, through a seat the
+pane publishes and a portal — so the call site keeps writing `<CommandEmpty>` beside `<CommandList>`
+and the part is PLACED rather than re-parented by the app, which is `ComposerRow`'s argument at a
+third consumer. The two are never both filled, so they stack in ordinary flow with no grid cell and
+no `display` switch; the mutual exclusion is Base UI's guarantee, not a rule this file writes.
+
+**The blur-fade is keyed on the pane's state, and `@starting-style` was the wrong mechanism.**
+Neither element is ever inserted — the live region exists on every frame and only gains children,
+and the list never leaves — so nothing is "starting". Built that way first and measured: the message
+arrived at full opacity with `blur(0px)`. What runs is a transition declared on both sides of a
+selector change.
+
+**Rejected, and stated because it is the obvious next ask:** animating the pane's height between the
+list and the message. A content-driven height change is `auto` to `auto` — no computed value moves,
+so no transition can fire — and the only way to do it is to measure and write a length on every
+keystroke, which is JS at interaction time (§8) in the one component where the keystroke IS the
+interaction.
+
+---
+
+## 2026-09-05 A palette is answered by running a row, so running one closes it
+
+**What.** `CommandItem` dismisses the palette when it is run, announced through `onOpenChange` as
+`"item-press"` — a reason no other overlay can produce. `Command` mirrors the open state so it has a
+handle on it; `cancel()` refuses the dismissal on both paths.
+
+**Why.** Kushagra: *"command currently doesnt go away when I click on an item, this is true for docs
+command, but the specimen one does."* The specimen closed because its example wrote
+`onClick={() => setOpen(false)}` on every row; the docs search did not, so its rows navigated and
+the panel stayed standing over the page they opened. The rule had been a line at the call site, and
+one of this repo's own two palettes is the evidence that nobody writes it. The component's JSDoc had
+promised the reason *"a row being run"* from the day it shipped and nothing produced it.
+
+**The click is the seam, and that is a measurement rather than a preference.** Base UI's
+`handleSelection` returns before it changes any state when the row resolves to an `<a>` with a
+non-hash href, on the argument that the navigation is the outcome — so a repair written on
+`Autocomplete.Root`'s `onOpenChange` closes a palette of verbs and silently misses a palette of
+places, which is the only kind the docs site has. A click is also the one gesture both routes share:
+the keyboard commits the highlighted row by clicking its element (`clickHighlightedItem`), so Enter
+arrives without a second mechanism. **The law is the fixture**: with plain rows alone the two repairs
+are indistinguishable, and the sabotage proves it — skipping the close for anchors fails exactly one
+law of the seven and nothing else.
+
+**Two of the first six laws could not fail, and both sabotage passes caught them.** The `cancel()`
+law was written against a CONTROLLED palette, where a refusal is achieved by the app simply not
+writing the state — so ignoring `cancel()` outright left it green; the bookkeeping this component
+owns exists only on the uncontrolled path, which is where the claim had to be read. And the same
+bookkeeping has two copies, one per path, so a sabotage that dropped the dialog-reason half left
+every law green until a refused Escape got its own. **The `disabled` guard was itself a dead
+mechanism**: it survived its sabotage because Base UI never fires the handler for a dead row —
+measured with a raw `element.click()` on a row whose `pointer-events` computes `auto`, which is the
+gesture a pointer-events gate would have let through. Deleted; the law stays, because the guarantee
+is now the dependency's and a bump can take it away.
+
+**Rejected:** `actionsRef.close()` on Base UI's dialog (it works, and reports `imperative-action` —
+an app cannot then tell "the user ran something" from "something called close()"), and leaving the
+close to the call site (which is what shipped, and what the docs site disproved).
+
+---
+
+## 2026-09-05 A pane hugging one row is a capsule, and a capsule is drawn round
+
+**What.** The palette's results pane takes `corner-shape: round` when it holds exactly one row and
+no caption. Everywhere else it stays the family's squircle, byte-identical to a Menu.
+
+**Why.** Kushagra: *"Actually radius is wrong only when theres one element in result."* Measured, and
+the concentric sum turned out to be working rather than failing: at `radius="full"` a row IS a
+capsule, so a pane holding one has a corner of `row/2 + p` and a height of `row + 2p` — 19 against
+38, the same number. The pane is a capsule by derivation.
+
+**What breaks is the shape, not the arithmetic.** `--kui-corner-k` inflates the declaration to 33.25
+so a squircle spends its curvature the way the judged arcs do; the engine scales that back to the 19
+the box allows and draws it as a SQUIRCLE, which at the capsule limit is flatter than the round
+capsule sitting inside it. The pane stopped nesting the one thing it held, which is the only job the
+concentric corner has. §6 already states the rule for what is a capsule at `full` — drawn round,
+never squircle — and it had only ever been said of CONTROLS, which are capsules by their own
+geometry. A pane becomes one by what it holds, and nobody had extended the sentence.
+
+**`:has()` is the whole mechanism**, because a box cannot measure its own height: the condition is
+read off the content that produces it. One row and no group label is exactly the capsule case — a
+caption adds a line, taking the pane to 67 against the same 33.25 and off the limit, where the
+squircle is correct and the stand-down must not reach. That boundary has its own law, and dropping
+the caption clause fails it alone.
+
+**Rejected:** drawing the pane round at every height (it fixes the reported case, reads rounder when
+tall, and makes the palette the one pane in the system not drawn as a squircle — put to Kushagra
+with both rendered and declined), and dropping the squircle bump for this pane (the declaration then
+lands exactly ON the limit and is still a squircle capsule — squircle cannot nest inside round
+there, at any value). The general form is recorded and not fixed: every `kui-floating-rows` pane has
+this at one row, a Menu included; CSS has no expression for it, so the palette states it where it
+was seen.
+
+---
+
+## 2026-09-05 The palette is two blocks, and the field is the one that does not move
+
+**What.** Command's popup stops being a pane. It is a transparent column holding a floating field and a results pane, anchored to the top at every width, with the field one step above the palette's own index.
+
+**Why.** Kushagra, from a phone screenshot: *"On a smaller screen, command rightfully so becomes a bottom sheet because we don't like dialogs on mobile, but it being a bottom sheet doesnt help since the content is dynamic… which if clipped to bottom, moves the part — the search field — which should be stable."* Correct, and the diagnosis generalises further than the report: `dialog.css` pins a narrow-window sheet with `margin-block-start: auto`, so the bottom edge is fixed and every height change moves the top; at every OTHER width `margin: auto` splits the delta and the field still moves, by half. A palette's height is its results, so this is every keystroke. **The one part that must not move was the part that moved most.**
+
+**The shape is the fix, not a value.** Two panes with air between them: the field cannot be moved by a result count because it is no longer in the box the result count sizes. Everything else follows — the popup stands down every fact of the surface identity it still carries (deliberately as an override: what Command wants from Dialog is all of its behaviour and none of its box, and there is no third part between them), the two children each become a pane and wear `kui-surface kui-overlay`, and `CommandContent` resets the glass scope so each resolves the theme's material rather than `on-glass`. That reset is the 2026-08-19 rule verbatim and it had to come back: deleting it measured the field filtering nothing, which is the defect this component already paid for once on 2026-09-04.
+
+**The search bar is a PANE, and the one-step bump it shipped with the same afternoon is deleted.** The first spelling read the ask as a type problem — Kushagra had said *"the search bar needs to be unique… it takes a size bigger than the theme's size… this is a focused element and so deserves a higher tier"* — and gave the field the control ladder's next cell. Wrong twice, and he named both: *"this search bar needs to be different than text field, it needs more spacing… this isn't an inline element, and it needs same material as dialog shell… so this needs its own sizing, the font size was never the issue."*
+
+**A field is written for a control sitting IN something.** Its well is the dress ramp — an alpha step meant to composite against whatever pane holds it — so standing alone over the scrim it read as a recessed grey box beside a lit white one, two materials in one palette. And its box is the control ladder, which prices a form row rather than the one object a person is looking at. **A bump is also an exception dressed as a rule**: it made `size="3"` mean something here it means nowhere else, which is precisely what a call site was reaching for `size="3"` to get.
+
+So the bar wears `kui-surface kui-overlay` at the palette's own index, the same attribute the results pane stamps — one material, law-read as an equality on fill, edge and filter. **The box is its own**, decided the same day when he looked at it: *"the search field isnt round enough and maybe padding is bit too much no?"* A pane holding a list and a pane holding one line do not want the same air, so the bar takes layout-space picks of 8/12/16/24 from the command size join against the overlay's 16/24/32/32 — under it at every index including the top one, where the overlay's ladder repeats and a table copied off the pane would have tied (it did, and the law caught it). It re-points `--kui-sf-p` rather than declaring `padding`, since that hook is what `m="bleed"` subtracts, at (0,3,0) because the overlay join declares the same name at (0,2,0) and a tie settled by bundler order is not a rule — measured before the third class went on: the bar padded exactly what the pane padded at every index. And it is a **pill**, spelled as the level's own value multiplied out so `radius="none"` squares it by arithmetic; its law asks the browser at the corner, because `getComputedStyle` returns the declaration (4000px) and the clamp happens at used-value time. Only the type keeps a map (`SEARCH_STEP`), because a bar you type into reads above the rows it filters. **The ring is refused** — one focusable thing in the panel, and the scrim, the flight and the caret are the announcement — and stated on the resting rule, because `:focus { outline: none }` is a rule that rings with something other than the designed value and the ring law reads that literally.
+
+**Then he looked at it again and named two more, both of them rules the component was not taking.** *"We also have a rule on components with full radius / pill shape, about the padding, and it seems this one isnt taking it. Also the padding in search results area seems a bit too much, this is almost like a menu isnt it."*
+
+The first is §4's `pxPill`: at `full` the corner swings inward at the text's cap line, so a capsule's content wants more inline room than the same box would square. The bar takes it now, one rung above its block inset from the same picks, inline-only — the pill bump stays horizontal, which is §4's own sentence for TextArea.
+
+The second is better than a padding tweak. A pane whose whole content is a list of rows is what `kui-floating-rows` names, and the results pane is exactly that — so it takes the menu's padding join (`max(--floating-p, the ring's reach)`, copied as the expression, since a clipping pane must clear the ring) and the concentric corner, and DROPS `kui-overlay` rather than wearing both. That last part was measured: the two joins declare `--kui-sf-p` at the same (0,3,0), the overlay's 24px won on bundler order, and the concentric corner was computed from it — a 70px arc on a pane that pads 8.
+
+**It reversed the row posture, and I let it.** §21 says a standing row rides the height ladder and only a floating panel notches; this component's own law argued the palette STANDS, because its panel is a Dialog and its list is one you browse. That premise is gone. The notch, the row capsule and the concentric corner are one set behind one selector on purpose — the panel's corner is derived from the row's — so keeping half of it is how a 15px capsule lands on a 32px box. Rows are 30 at index 2 now, read against a mounted MenuItem, and three laws that asserted a control height were rewritten rather than pinned.
+
+**One law was asking the wrong property of a family it had just joined.** "The index really moves the pair" read the results pane's PADDING — and a menu's inset is index-invariant by design, since it answers a clipping rule rather than a size. The pane's answer to the index is its concentric corner. The law reads that.
+
+**It closes, for this component only, the standing complaint that a solid theme still resolves alpha tokens under its controls.** A field's fill is the neutral alpha ramp by design; a pane's is the seal. The general case is a bigger change and stays open.
+
+**What it cost, said out loud: rows no longer scroll behind the field.** That was the same person's call on 2026-09-04 and the two-pane layout removes it by construction — there is nothing to pass behind. The fade is the results pane's own top and bottom now. The law that read the old behaviour is INVERTED rather than deleted, because a claim that quietly stops being true is how a component drifts back.
+
+**Three mistakes worth keeping, all found by measuring rather than by reading.** The flex column was declared on the POPUP, and `DialogContent` wraps its children in `.kui-dialog-body` — so the column had exactly one item and the gap landed nowhere: the field's bottom and the pane's top were the same pixel while the computed `gap` read 8px. `border-color: transparent` is not `border: 0`, and a transparent hairline still insets a content box — the field started one pixel inside the column it is supposed to span, and the empty region was two pixels of dead pane under every populated list. And my own first "nothing passes behind the field" law failed on correct code, because `getBoundingClientRect` reports a scrolled-past row's geometry whether or not anything of it is painted; it clamps to the scroller's clip box now, with a guard that some row is painted at all.
+
+**A fourth was mine and it is the old one:** I set the docs app to `size="3"` and it came back as `size="2"` with `material="thick"` — a concurrent edit to `layout.tsx` from outside this session. Not fought; recorded, because a measurement taken against a file another session is editing is a measurement of nothing in particular.
+
+**Six sabotage passes, each caught by exactly the law written for it:** centring the column again (the stability law), flattening `FOCUS_STEP` (four size laws), deleting the narrow-window block (the object-not-a-sheet law, plus shell.css's sanctioned-set law, which is what made the third viewport-keyed stylesheet a decision), and restoring the popup's fill and padding (the column law and the field-spans-the-column law). +70 bytes gzipped, re-recorded.
+
+---
+
+## 2026-09-05 The resize handle leaves the pane, and the frame's reach follows the drag
+
+**What.** Two repairs to the shell's boundary, reported one after the other by Kushagra and separate faults. The handle is the pane's SIBLING now, straddling the seam. And a drag publishes the moved extent where the frame can read it, so everything positioned to clear a floating pane clears the pane's real edge.
+
+**The handle covered the control at the pane's wall.** *"Because of resize, I cant click on search icon."* Measured before agreeing: a search button spanning x 239-271 against a handle at 243-287, `elementFromPoint` at the button's centre returning the handle — 28 of its 32 pixels unreachable. §27 had recorded the exit in writing on 2026-09-02, with its trigger: "moving the handle out of the pane entirely would buy back the 44px sliver it now overlaps… the day a pane's content reaches its edge". That day arrived in our own docs site.
+
+**Inside the pane it could not straddle, which is why it was fully inside.** A pane clips (§3), so the 2026-09-02 straddling spelling had half its target and half its painted line cut away — 22px against a rule stating 44. The repair is therefore not a wider box or a narrower one: it is the same box, one level out. As a grid item of the shell root, placed in its pane's area and pulled half its width past that area's edge, it straddles the way a splitter does and nothing clips it. `justify-self`/`align-self` do the placing with no coordinate computed, because the grid already knows where the seam is.
+
+**Rejected, each for a measured or structural reason.** Narrowing the band to the pane's padding drops below the 24px floor at the small indexes. Raising the pane's own content above the handle trades a dead search button for a dead handle along every full-width row. `overflow-clip-margin` is refused for the reason §3 already refuses it — it buys the escape by unbuying the corner. And rendering handles from the ROOT, which would need the root to learn which panes resize and with what bounds, is a registry read and therefore post-mount, against §27's stance that first paint is right with no script; a fragment keeps the handle server-rendered.
+
+**Two things dissolved rather than moved**, which is the evidence the change is at the right layer: the pane's containing-block rule is deleted, and `data-float` goes with it — that stamp existed only because the handle was the pane's last child and a ScrollArea's bleed reads `:nth-last-child(1 of :not([data-float]))`, so `resizable` had been quietly taking the scroller's block-end bleed away.
+
+**The residual, stated rather than hidden.** 22px still falls inside the pane and the surface padding is 16 at the default index, so a control flush against the padding keeps its centre and loses its outermost ~5px. Capping the inward reach at the padding clears that and pushes 28px onto the neighbour, which moves the problem.
+
+**Then the frame's published reach.** *"These floating back and sidebar collapse button should be positioned from left to the same width as sidebar, and yet resizing sidebar doesnt move them."* `--kui-shell-inset-inline-start` is built from the frame's TOKEN for that pane, and the drag wrote only `--kui-shell-w` on the pane — registered `inherits: false` for the `--kui-h` trap, and an inline style no sibling can read anyway. §27 already carried this for the `width` PROP, with the escape written beside it and a development guard that measures both and warns. A drag has no such escape, because the app is not choosing the number, so the mechanism performs its own documented escape and writes the token on the shell root.
+
+**Two writes for one value.** The pane's own name has to keep winning over a stated `width` — an inline declaration beats an inherited token, so a controlled pane would stop moving under the pointer — and a sibling cannot read that name. Both are set in one function from one `settled`. The root write inherits, so a Shell nested in a dragged frame takes the outer sidebar's width as its default: identical to what the documented escape has always done.
+
+**With both panes flush none of this is needed, and that is measured rather than argued.** The reach rules require a floating neighbour, so the published length holds at 0 through a drag while the content's own leading edge tracks the sidebar exactly, 288 → 368 on an 80px drag. In the flush regime the panes tile and the content begins where the sidebar ends, so anything at the content's edge follows for free.
+
+**The docs site was the other half of the same symptom, and the bigger number.** It stated `width={336}` against a token of 288, which is exactly the case the guard warns about — so the search and back buttons had been sitting 48px inside the sidebar they clear, before any dragging. Moved to `--shell-sidebar-w` on the `<Shell>`, which is §27's own escape, and the drag now moves that same name.
+
+**Four laws, all falsified.** A control at the pane's trailing wall owns its own centre (`expected 'kui-shell-resize' to be 'BUTTON'` against the pre-fix code); the handle is a sibling AND straddles, two halves because either alone passes against a wrong implementation; the extra root child claims its pane's area, so a resizable frame lays out identically to a plain one (falsified by deleting the `grid-area` stamps); and the drag moves the published reach (`expected 304 to be close to 384`). The last one's fixture floats the sidebar deliberately — a flush pane leaves no reach, so the same law on the default frame would assert 0 against 0 and pass against anything.
+
+**All 150 shell laws were green over the first defect, including the sixteen in the resize file.** Every one measured the handle — its width, its paint, its reachability, its drag, its clamp — and none measured what it sat on top of. **A law about an overlay is a law about two things.**
+
 ## 2026-09-05 A drawer takes the glass by construction — the shell answers, not the app
 
 **What.** A shell pane that is OVERLAYING resolves the theme's material whatever the app said. `backdrop` still answers for a pane standing in the frame; it does not reach a drawer, and `backdrop={false}` does not buy a solid one.
@@ -77,6 +1938,46 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 **The law is the finding.** Nothing caught this and nothing would have: every existing law asserted AGREEMENT (the assembled generator is byte-identical to the oracle, both paths agree, the glint takes both exponents) — all true, of a lens bending the wrong shape. The new law reads the map the HOOK actually minted, off the filter's own `feImage`, and walks the 45° diagonal for the bend's peak: the generator taking an exponent proves nothing about the pane handing it the right one, which is precisely the gap the defect lived in.
 
 **And the law was wrong before it was right — its own sabotage caught it.** The first spelling expressed both candidate contours in diagonal LENGTH while measuring in step INDEX, a √2 inflation on both sides. Scaling both candidates away from the measurement keeps the nearer one nearer, so passing `2` at the call site left it green. **A ranking law has to state its candidates in the measurement's own units, or it is comparing shapes rather than places.** Corrected, the sabotage moves the peak from 7 to 13 against a squircle lip at 7.0 and a circle's at 12.9, and the failure message names both.
+
+---
+
+## 2026-09-05 A knob sweeps an axis; a variant shows a behaviour, and has a URL
+
+**What.** A component entry can name VARIANTS — `examples/<slug>.<variant>.tsx`, each with a title, a line saying why you would look, an anchor and a place in the contents column. Accordion, Menu and Select take six between them. The playground's knobs are untouched.
+
+**Why.** Kushagra, comparing our accordion page with shadcn's: *"their page has Basic, Multiple, Disabled, Borders, Card and RTL as separately anchored examples. Yours has one example plus two toggles. The playground doesn't fix discoverability: I can't learn that RTL is handled by looking at a gear icon. Anchored variants also make the page linkable, which matters when someone drops a URL in Slack."* Both halves hold, and the second is the same argument that gave every symbol an anchor earlier the same day. **Measured before agreeing, and it was worse than discoverability: 2 of 52 examples showed a disabled state and ONE mentioned RTL** — in a package with RTL laws, ambient direction measured off a trigger, and menus that flip side. We enforce it and showed it nowhere.
+
+**The criterion is what stops this becoming a second knob panel.** A knob SWEEPS AN AXIS and a variant shows a BEHAVIOUR or a COMPOSITION. Nobody sends a colleague to size 3, so `size`, `tone` and `emphasis` stay knobs and gain nothing from being sections; RTL and disabled are states with no knob, no URL and no way to find out they exist. The two mechanisms answer different questions rather than the same question twice.
+
+**Two of shadcn's six do not translate, and saying which is the point.** "Borders" is a styling variant of their component; ours refuses a border prop outright. "Card" is a composition — and it turned out to be unshowable here rather than merely different: **measured, an "in a Card" variant renders identically to the default**, because the Example frame puts every specimen on paper unless its source already returns a Card, so both sit at card depth 1. It was written, measured, and DELETED rather than shipped as a section that teaches nothing. shadcn can ship that variant because its demos sit on a bare page.
+
+**The file name stays the identity.** `<slug>.<variant>.tsx`, registered in `examples/index.ts` like every other specimen, so `readExampleSource` needs no mapping field and `controlsFor` — keyed by slug — resolves no knobs for a variant and degrades to a plain figure with no branch. The reverse-direction law is deliberately NOT widened to "any name with a dot in it": a specimen nobody links to is a file that compiles, passes lint and is reachable from no page, which is what that law was written for. A variant counts as covered only when its entry names it.
+
+**Every claim a variant makes was verified in a browser rather than asserted.** The RTL accordion's chevron measured on the LEADING edge against the default's trailing one; the disabled item stamps three nodes; and the Card variant's card depth is what killed it.
+
+**One law survived its first sabotage and the comment now says so.** "Every named section is used" replaced a count of `<Section` occurrences — a proxy that the Examples/Example ternary breaks, since one element renders from two names. Removing the heading's use left it green off the contents column's use, which is correct behaviour and a weaker guarantee than "every name is rendered"; it fails when both readers go, and that is what it claims.
+
+**Rejected:** copying shadcn's list (two of six are not expressible here); making `multiple` a variant as well as a knob (two homes for one state); and giving the default example an `h3` of its own to balance the variants — a heading that exists only for symmetry is a label rather than a name, which is why shadcn needs the word "Basic" and we do not.
+
+---
+
+## 2026-09-05 Code wraps, and only where the code already has a space
+
+**What.** `CodeBlock` states `white-space: pre-wrap` with `overflow-wrap: normal`, and the docs' line element drops `inline-size: max-content` for a hanging indent. Measured across 55 pages and 85 wells: sideways scrolling goes from 85 wells to ZERO, 325 lines wrap, and no token is cut. +8 gzipped bytes.
+
+**Why.** Kushagra, on the accordion page: *"I do not like that the code scrolls horizontally instead of wrapping."* The component reference refused wrapping with a reason that does not survive being read — *"a wrapped line puts a break where the language has none, which changes what the code says"* — which describes a HARD wrap. A soft wrap inserts no character; the text is the same text, and the copy path derives its string from the tokens rather than from the rendered rows, so the clipboard was never in question either way. The refusal was written against a thing nobody had proposed.
+
+**`overflow-wrap: normal` is the guarantee, and it is stated rather than inherited.** `type.css` sets `overflow-wrap: break-word` and says in its own comment that the property INHERITS — so `pre-wrap` alone would have wrapped inside identifiers, string literals and paths. Pinned to `normal`, a break may only land at whitespace the author already typed. A line with no space in it — a minified bundle, a long import path — still overflows, and the ScrollArea still reaches it, so the scroller became the exception rather than dead code.
+
+**What the switch would have bought is nothing, so it stays refused.** The refusal is rewritten from "wrapping, and a switch for it" to "a switch for wrapping": one behaviour to learn beats a toggle to find, and the behaviour now covers both cases by itself.
+
+**Two mechanical findings, both measured rather than reasoned.** `inline-size: max-content` had to go, because a max-content box is sized to its longest unbroken run and therefore never wraps — it would have overruled the package's `pre-wrap` from the element. What it was buying is stated rather than quietly lost: it kept a line's wash covering the full SCROLLED width, and in the rare remaining scroll the wash now stops at the viewport. And the hanging indent was added to the BOX before it was taken out of the content: `.kd-line` is content-box, so `min-inline-size: 100%` sizes the content and the padding lands on top — every well on the site kept exactly 34px of sideways scroll after the wrap landed, which is the hang (33.6px) to the decimal. `calc(100% - var(--kd-line-hang))` puts the border box back on the pane's padding box.
+
+**The indent is one number, not two that agree.** The wrap hang and the line-number gutter were both 4ch, written separately; the digits now take `calc(var(--kd-line-hang) - 1.5ch)`, so a fence that changed its hang cannot keep its old gutter. Its law reads the SOURCE, with comments stripped — the first run fired on this file's own prose, where the paragraph explaining that `inline-size: max-content` is gone contains those very words. Two package laws learned the same thing in August.
+
+**The package law was rewritten because it encoded the old behaviour**, restating the wrong reason in its own comment. Its replacement reads BOTH cases against each other — a long line of spaced code, and a single token of the same length — because either alone passes on a wrong implementation: `pre-wrap` with `break-word` also stops the sideways scroll, and it cuts an identifier in half. Falsified by deleting `overflow-wrap: normal`.
+
+**Rejected:** a wrap toggle (see above); `overflow-wrap: break-word` or `anywhere` (it buys the last few overflowing lines by cutting identifiers, which is the only thing about wrapping that would genuinely change what the code says); and leaving continuations flush at column 0, the MDN spelling — measured on the accordion example, `</AccordionPanel>` came back under `<Accordion>` and read as a new top-level statement.
 
 ---
 
