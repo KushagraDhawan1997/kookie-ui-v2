@@ -7,7 +7,7 @@
 import { describe, expect, it } from "vitest";
 
 import { Theme } from "../../theme/theme.tsx";
-import { APPEARANCES, colorOn, computed, mounted, tokenOn as lengthOn, within } from "../../test/browser.tsx";
+import { APPEARANCES, colorOn, computed, mounted, within } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
 import { Box } from "../box/box.tsx";
@@ -280,42 +280,46 @@ describe("a ground, not an object (§10, 2026-08-20)", () => {
     }
   });
 
-  it("out-rounds the card it holds, at every size", () => {
-    // The mistake the builder's hand-painted canvas made: a size-2 corner around size-3 cards.
-    // A container must out-round its contents or the nesting reads inside-out.
+  it("is the same box as a card at the same index — padding and corner both (2026-09-07)", () => {
+    /* IT USED TO OUT-ROUND AND OUT-PAD, one step up, and the arms are deleted rather than
+       retuned. The argument was that a pane containing panes must out-round what it holds or
+       the nesting reads inside-out — true, and about CONTAINMENT, which is symmetric. Encoded
+       on the component it produced the fault it was written to prevent in the other of this
+       component's two documented shapes: a bed inside a card padded 24 against the card's 16
+       and curved 64.5 against its 51.6, live wherever a code well sat inside a pane.
+
+       So the guarantee is now an AGREEMENT, read on both properties, because the old step moved
+       both and a repair that collapsed only one would leave the corner inside-out with the suite
+       green. */
     for (const size of SIZES) {
-      const root = mounted(
-        <Surface size={size}>
-          <Card size={size} data-testid="held">Body</Card>
-        </Surface>,
-        { theme: {}, select: ".kui-ground" },
+      const ground = mounted(<Surface size={size}>x</Surface>, { theme: {}, select: ".kui-surface" });
+      const card = mounted(<Card size={size}>x</Card>, { theme: {}, select: ".kui-surface" });
+      expect(computed(ground, "padding-top"), `size ${size} padding`).toBe(
+        computed(card, "padding-top"),
       );
-      const held = within(root, "[data-testid='held']");
-      expect(
-        parseFloat(computed(root, "border-top-left-radius")),
-        `size ${size}: the container must out-round what it holds`,
-      ).toBeGreaterThan(parseFloat(computed(held, "border-top-left-radius")));
+      expect(computed(ground, "border-top-left-radius"), `size ${size} corner`).toBe(
+        computed(card, "border-top-left-radius"),
+      );
     }
   });
 
-  it("takes the container band, not the card's — the same relationship a dialog has", () => {
-    // Shared values, not a second copy of the arithmetic. The PAINTED corner is the token
-    // times --kui-corner-k (1.613 under squircle, 1 without), so the law reads the knob off
-    // the element rather than pinning either number — the first spelling compared a raw token
-    // against a painted 51.6px and failed for the wrong reason.
-    for (const size of SIZES) {
-      const ground = mounted(<Surface size={size}>x</Surface>, { theme: {}, select: ".kui-surface" });
-      const k = parseFloat(computed(ground, "--kui-corner-k") || "1");
-      const band = parseFloat(lengthOn(ground, `--radius-overlay-${size}`));
-      expect(parseFloat(computed(ground, "border-top-left-radius")), `size ${size}`).toBeCloseTo(
-        band * k,
-        1,
-      );
-      // …and the band is genuinely rounder than the card's at the same index, or "the
-      // container band" names nothing.
-      const card = mounted(<Card size={size}>x</Card>, { theme: {}, select: ".kui-surface" });
-      expect(band).toBeGreaterThan(parseFloat(lengthOn(card, `--radius-surface-${size}`)));
-    }
+  it("and a step is the CALL SITE's, which is what the deleted join took away", () => {
+    /* The vacuity guard on the law above, and the mechanism the deletion leaves in place: a
+       ground meant to hold cards states a larger `size` than the cards in it. Without this the
+       agreement law is satisfied by a system where the size axis reaches neither component. */
+    const root = mounted(
+      <Surface size="3">
+        <Card size="2" data-testid="held">Body</Card>
+      </Surface>,
+      { theme: {}, select: ".kui-ground" },
+    );
+    const held = within(root, "[data-testid='held']");
+    expect(parseFloat(computed(root, "border-top-left-radius"))).toBeGreaterThan(
+      parseFloat(computed(held, "border-top-left-radius")),
+    );
+    expect(parseFloat(computed(root, "padding-top"))).toBeGreaterThan(
+      parseFloat(computed(held, "padding-top")),
+    );
   });
 
   it("has no axis to disagree with — a stamped tone or emphasis changes nothing", () => {

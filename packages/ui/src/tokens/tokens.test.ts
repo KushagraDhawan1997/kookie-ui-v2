@@ -2177,13 +2177,19 @@ describe("the springs are physics, and the emitted curve is that physics (§8)",
   };
 
   /** The step response of a damped second-order system, written out here rather than imported
-      from the generator: a law that calls the code under test agrees with it by construction. */
-  const stepResponse = (zeta: number, omega: number, t: number): number => {
+      from the generator: a law that calls the code under test agrees with it by construction.
+
+      TWO BRANCHES since 2026-09-06, and the second is why this cannot be one expression: at
+      critical damping the damped frequency is zero and the underdamped form divides by it. The
+      launch term `v0` is written into both, so a spring's character and its starting speed stay
+      independent — with `v0 = 0` this is the step-from-rest it has always been. */
+  const stepResponse = (zeta: number, omega: number, t: number, v0 = 0): number => {
+    const decay = Math.exp(-zeta * omega * t);
+    if (zeta === 1) return 1 - decay * (1 + (omega - v0) * t);
     const damped = omega * Math.sqrt(1 - zeta * zeta);
     return (
       1 -
-      Math.exp(-zeta * omega * t) *
-        (Math.cos(damped * t) + ((zeta * omega) / damped) * Math.sin(damped * t))
+      decay * (Math.cos(damped * t) + ((zeta * omega - v0) / damped) * Math.sin(damped * t))
     );
   };
 
@@ -2193,6 +2199,7 @@ describe("the springs are physics, and the emitted curve is that physics (§8)",
     stiff: "motion-spring-stiff",
     elastic: "motion-spring-elastic",
     poised: "motion-spring-poised",
+    driven: "motion-spring-driven",
   };
 
   it("every spring in config is emitted, and nothing else claims to be a spring", () => {
@@ -2206,6 +2213,7 @@ describe("the springs are physics, and the emitted curve is that physics (§8)",
   for (const [name, token] of Object.entries(EMITTED) as [keyof typeof springs, string][]) {
     it(`${name}: the emitted curve is the ζ and ω config states`, () => {
       const { zeta, omega, steps } = springs[name];
+      const v0 = "v0" in springs[name] ? (springs[name] as { v0: number }).v0 : 0;
       const points = samplesOf(token);
       // Endpoints are STATED, not sampled: `linear()` must start at 0 and end at 1, and a
       // spring's own value at t=1 is merely close to 1.
@@ -2213,7 +2221,7 @@ describe("the springs are physics, and the emitted curve is that physics (§8)",
       expect(points[0]).toBe(0);
       expect(points.at(-1)).toBe(1);
       for (let i = 1; i < steps; i++) {
-        expect(points[i], `sample ${i} of ${name}`).toBeCloseTo(stepResponse(zeta, omega, i / steps), 2);
+        expect(points[i], `sample ${i} of ${name}`).toBeCloseTo(stepResponse(zeta, omega, i / steps, v0), 2);
       }
     });
 
@@ -2235,6 +2243,17 @@ describe("the springs are physics, and the emitted curve is that physics (§8)",
       // And the exits genuinely never overshoot at all — an exit that bounces is an object
       // that did not mean to leave.
       if (name === "stiff") expect(peak, "an exit never overshoots").toBeLessThanOrEqual(1);
+      /* AND `driven` NEVER OVERSHOOTS EITHER, which is the whole of its claim (2026-09-06):
+         a drawer opened by a press earned no velocity, so it gets no rebound. The bound is
+         not a taste number — at ζ = 1 the curve crosses its target if and only if `v0 > ω`,
+         so this reads the emitted samples for the property the config guarantees. */
+      if (name === "driven") {
+        expect(peak, "a launched spring bounced — v0 has passed omega").toBeLessThanOrEqual(1);
+        expect(crossings, "a critically damped curve cannot cross at all").toBe(0);
+        // And it LAUNCHES: from rest, ω=9 puts the first sample near 0.03; the injected
+        // velocity is what doubles it. Without this the curve could be any monotone rise.
+        expect(points[1]!, "it left from rest — the launch is missing").toBeGreaterThan(0.05);
+      }
       // Vacuity guard: a curve of all zeros would satisfy every bound above.
       expect(points.filter((v) => v > 0.5).length, `${name} actually travels`).toBeGreaterThan(4);
     });

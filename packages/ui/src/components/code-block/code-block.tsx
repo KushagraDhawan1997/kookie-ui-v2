@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
@@ -8,7 +9,7 @@ import { Text } from "../text/text.tsx";
 import type { Size } from "../../system/axes.ts";
 import { useSize } from "../../system/size.ts";
 
-export type CodeBlockProps = {
+export type CodeBlockProps = ComponentRefusals & {
   /** The code. Plain text, or the spans a highlighter produced from it. */
   children: React.ReactNode;
   /**
@@ -127,6 +128,12 @@ export function CodeBlock({
      control height, and that inset again down to the first line. No number is picked here —
      change the row's padding or the control ladder and this follows.
 
+     AND IT ACTUALLY FOLLOWS NOW. That sentence was false for a day: it named `--layout-space-4`
+     while the stylesheet had moved the rows to the pane's inset, so the band came up short by
+     twice the difference and the first line of code rested exactly on the controls — zero gap,
+     found by eye. `--kui-cb-chrome-p` is the one home for that inset; the rows read it and so
+     does this.
+
      MINUS THE INSET THE SCROLLER ALREADY GIVES. The viewport re-pads by `--kui-sf-p` after
      bleeding to the pane's walls, so stacking the whole band on top of that rests the code
      three times too far below the chrome. This is the distance still OWED, not the distance
@@ -135,7 +142,7 @@ export function CodeBlock({
      `max()` because a small enough size makes the pane's own inset the larger of the two, and
      a negative padding is not a thing — there the scroller's re-pad already clears the row
      and nothing more is owed. */
-  const clearance = `max(0px, calc(2 * var(--layout-space-4) + var(--control-height-${size}) - var(--kui-sf-p, 0px)))`;
+  const clearance = `max(0px, calc(2 * var(--kui-cb-chrome-p) + var(--control-height-${size}) - var(--kui-sf-p, 0px)))`;
 
   const body = (
     <>

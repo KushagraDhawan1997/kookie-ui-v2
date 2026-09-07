@@ -1,9 +1,10 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import { ScrollArea as BaseScrollArea } from "@base-ui/react/scroll-area";
 import * as React from "react";
 
-export type ScrollAreaProps = {
+export type ScrollAreaProps = ComponentRefusals & {
   /**
    * The content that scrolls. It lands inside the viewport, never beside the bars, because the
    * viewport, the scrollbars and the corner are assembly rather than API. A scroll region needs a

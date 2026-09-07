@@ -11,6 +11,7 @@
 /* The floating chrome's containing block. A fact about the WELL, so it lives with the rest of
    the well's geometry rather than inline. */
 .kui-code-block {
+  --kui-cb-chrome-p: var(--layout-space-4);
   position: relative;
 }
 
@@ -20,22 +21,27 @@
    the caller cannot name — in a hosted well the pane belongs to somebody else — and asking a
    call site to consume a private hook correctly is the `--kui-h` trap with extra steps.
 
-   IT SPANS THE PANE AND PADS ITSELF BY LESS THAN THE CODE DOES. The pane's inset is a READING
-   measure, the distance a line of code needs from a wall, and chrome is not reading matter.
-   So the row reaches both walls and puts a smaller number back: the controls sit closer to
-   the edge than the code, which is what says they belong to the pane rather than to the text.
+   IT SPANS THE PANE AND RESTS TIGHTER THAN THE CODE DOES — BOTH ROWS, ONE NUMBER.
+
+   Two decisions, made a day apart and both worth keeping separate. The first is that the two
+   rows agree: they rested at 12 and 16, two chrome insets in one pane, which a reader sees as
+   the top control and the bottom control lining up with neither each other nor the code. The
+   second is that the shared number is TIGHTER than the pane's own padding, because chrome is
+   not reading matter — the pane's inset is what a line of code needs from a wall, and controls
+   closer to the edge say they belong to the pane rather than to the text.
+
+   So it is a layout step and not the pane's inset, which means somebody owns it: it does not
+   follow the index the way a derived value would. That is the price of the second decision and
+   it was paid deliberately. One name, `--kui-cb-chrome-p`, read by both rows AND by the safe
+   area the element computes for the first line — which is what makes the comment beside that
+   computation true. It named `--layout-space-4` while the rows read something else for a day,
+   and the band came up short by twice the difference: the first line of code came to rest
+   exactly on the controls, zero gap, found by eye and by nothing else.
 
    `--kui-cb-host-p` is the host's inset, published by the hosted wrapper. It is absent
    everywhere else, where the fallback makes this the plain `0` a standalone pane wants.
 
-   THE TWO ROWS DO NOT REST AT THE SAME DISTANCE, and that is carried over rather than decided:
-   the top row rests at a fixed layout step and the bottom one at the PANE's own inset, which
-   at the default index are 12 and 16. Both numbers were judged where they are, one at a time,
-   and neither was judged against the other — so unifying them is a taste call and not a
-   promotion's to make. It is stated here, in one place, instead of living in two call sites
-   where nobody could see that they disagree.
-
-   The bottom row asks for the pane's inset in the one spelling that is true in both
+   Both rows ask for the pane's inset in the one spelling that is true in both
    arrangements: a hosted well has zeroed its own `--kui-sf-p` and its wrapper has published
    the HOST's, so the fallback chain reads whichever pane the row is actually resting in. An
    index-keyed spelling was written first and is wrong twice over — a component stylesheet may
@@ -44,22 +50,45 @@
   position: absolute;
   inset-inline: calc(-1 * var(--kui-cb-host-p, 0px));
 }
+.kui-code-block-float {
+  /* THE CHROME INSET HAS ONE HOME, and it is this name. Both rows read it, and so does the
+     safe area the element computes for the first line — which is what makes the comment beside
+     that computation true. It said "change the row's padding and this follows" while naming a
+     token the row no longer used, so unifying the two rows left the band short by the
+     difference and the code came to rest exactly on the controls, gap zero. */
+  padding: var(--kui-cb-chrome-p);
+}
 .kui-code-block-float[data-edge="start"] {
   inset-block-start: 0;
-  padding: var(--layout-space-4);
 }
 .kui-code-block-float[data-edge="end"] {
   inset-block-end: 0;
-  padding: var(--kui-cb-host-p, var(--kui-sf-p, 0px));
 }
 
 /* ── The code ──────────────────────────────────────────────────────────────────────────────
-   A fence sets its own measure. Code is not reading-length text, and wrapping it would put a
-   line break somewhere the language does not have one — the ScrollArea around it is what
-   makes that safe. */
+   IT WRAPS, AND ONLY WHERE THE CODE ALREADY HAS A SPACE (2026-09-05, Kushagra: "I do not like
+   that the code scrolls horizontally instead of wrapping").
+
+   It was `pre` until today, refused in the component reference with a reason that does not
+   survive being read: "a wrapped line puts a break where the language has none, which changes
+   what the code says". A SOFT wrap inserts no character. The text is the same text, and the
+   copy path derives its string from the tokens rather than from the rendered rows, so what
+   leaves on the clipboard was never affected either way. The sentence was describing a HARD
+   wrap, which nothing here proposed.
+
+   `pre-wrap` with `overflow-wrap: normal` is the whole mechanism, and the pair is the
+   guarantee: a break may land at whitespace the author already typed and NOWHERE else, so an
+   identifier, a string or a URL is never cut in half. A line with no space in it — a minified
+   bundle, a long import path — still overflows, and the ScrollArea is still what makes that
+   reachable. So the scroller did not become dead code; it became the exception rather than
+   the rule.
+
+   `overflow-wrap` is stated rather than left to its initial value, because the initial value
+   IS the guarantee here and a guarantee nobody wrote down is one the next author deletes. */
 .kui-code-block-code {
   font-family: var(--font-mono);
-  white-space: pre;
+  white-space: pre-wrap;
+  overflow-wrap: normal;
 }
 
 /* The inner `<code>` has to be TOLD to inherit, and the reason is the UA stylesheet. The

@@ -87,8 +87,8 @@
     linear-gradient(
       to bottom,
       transparent 0%,
-      black min(var(--scroll-area-overflow-y-start, 0px), var(--scrollbar-fade)),
-      black calc(100% - min(var(--scroll-area-overflow-y-end, 0px), var(--scrollbar-fade))),
+      black min(var(--scroll-area-overflow-y-start, 0px), var(--kui-sa-fade-start, var(--scrollbar-fade))),
+      black calc(100% - min(var(--scroll-area-overflow-y-end, 0px), var(--kui-sa-fade-end, var(--scrollbar-fade)))),
       transparent 100%
     );
   mask-composite: intersect;
@@ -96,6 +96,27 @@
 
 .kui-scroll-area[data-fade] > .kui-scroll-viewport:dir(rtl) {
   --kui-sa-x-dir: to left;
+}
+
+/* A NESTED SCROLLER TAKES THE DESIGNED FADE, NEVER ITS ANCESTOR'S (2026-09-07).
+
+   `--kui-sa-fade-start` / `-end` are the reach a floating band hands DOWN to the scroller that
+   passes under it, and a custom property inherits — so the shell pane's 72px reached every
+   ScrollArea inside the pane as well. Measured on the documentation site: nine code blocks, all
+   opted into the fade, all resolving a 72px reach, one of them on an element 68px tall, where
+   the reach is deeper than the whole box. The silent-inheritance trap this repo has now been
+   bitten by five times, arriving between two instances of the SAME component.
+
+   Registering the hooks `inherits: false` is the usual repair and it cannot be used here: the
+   band declares them on the scroll AREA and the mask reads them on the VIEWPORT one level down,
+   so the value has to inherit exactly once. The stand-down says the real rule instead — a band
+   is above the scroller it floats over and above nothing else — and it lives in this file
+   because the component that publishes a hook owns where the hook reaches. `initial` on an
+   unregistered custom property is guaranteed-invalid, so the `var()` fallback in the mask above
+   resolves the designed length, which is what a scroller with no band over it should have. */
+.kui-scroll-area .kui-scroll-area {
+  --kui-sa-fade-start: initial;
+  --kui-sa-fade-end: initial;
 }
 
 /* THE ONE FOCUSABLE ELEMENT THIS COMPONENT MAKES OWES A RING (§8, 2026-08-26). A standalone

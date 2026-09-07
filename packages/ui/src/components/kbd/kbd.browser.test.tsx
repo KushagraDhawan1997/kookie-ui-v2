@@ -37,14 +37,33 @@ describe("Kbd shares the chip's fill and tone facts, in its OWN family (§11, §
           computed(code, prop),
         );
       }
-      // The corner is the atom family's em (§6), so the two agree as a RATIO of their own
-      // fonts — the px differ exactly as the scales do, which is the em doing its job.
+      // The corner is the atom family's em (§6), so the cap agrees with the FAMILY as a ratio
+      // of its own font — the px differ exactly as the scales do, which is the em doing its job.
+      //
+      // The reference was `Code` until 2026-09-05, and it stopped being one: Code holds at
+      // `large` where the family pills (the checkbox's ceiling, one family over — a pilled code
+      // chip reads as a Chip), so at the DEFAULT level the two legitimately differ. Reading the
+      // family's own token instead is the stronger claim anyway: it says the cap restates
+      // nothing, where comparing against a sibling only said the two happen to agree.
       const ratio = (el: HTMLElement) =>
         parseFloat(computed(el, "border-top-left-radius")) / parseFloat(computed(el, "font-size"));
-      expect(ratio(kbd), `${appearance}: the cap's corner em drifted from the chip's`).toBeCloseTo(
-        ratio(code),
+      // INSTRUMENT NOTE: `tokenOn` resolves the token through a probe INSIDE the scope, so an
+      // `em` comes back as px against the cap's own (already scaled) font — the same
+      // denominator the cap's corner resolves against, which is what makes the two comparable.
+      // Read raw it is 10.8px against a ratio of 0.75, and the law fails on correct code.
+      const familyEm =
+        parseFloat(tokenOn(kbd, "--radius-atom")) / parseFloat(computed(kbd, "font-size"));
+      expect(familyEm, "the family's corner token is unreadable").toBeGreaterThan(0);
+      expect(ratio(kbd), `${appearance}: the cap's corner em drifted from the family's`).toBeCloseTo(
+        familyEm,
         3,
       );
+      // …and the member that holds does NOT agree at the resting level, which is what keeps
+      // this law from quietly asserting the exception away.
+      expect(
+        ratio(code),
+        `${appearance}: the chip stopped holding its corner — the ceiling is gone`,
+      ).toBeLessThan(familyEm);
     });
 
     it(`${appearance}: the cap has a hairline where the chip has none`, () => {

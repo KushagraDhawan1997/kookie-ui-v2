@@ -122,6 +122,7 @@
      not have (the mark family's lesson, reached by inheritance). Resolves at USE, so
      each atom prices the corner against its own font. Density never touches it. */
   --radius-atom: 0.75em;
+  --radius-code: 0.45em;
 
   /* the slider's track thickness (§4, §11) — raw designed px per size, ~0.25 of the fine
      mark (the palette has nothing between 4 and 8, the mark's own wall one part over).
@@ -159,6 +160,11 @@
      the third promotes, and a shared inset would owe a family name. */
   --segment-inset: calc(2px * var(--scale));
 
+  /* and the toolbar group's well (§45) — the same subtraction a third time, for controls
+     that never travel: the hosted button is the group minus this on every side. Its own
+     entry for --tab-inset's reason: three facts that agree on a number are not one fact. */
+  --toolbar-group-inset: calc(2px * var(--scale));
+
   /* and the tab rule's thickness (§26) — ONE value, no index, for Progress's reason: the
      thickness that reads as a rule is a perception floor, not a fraction of the tab above
      it. Emitted at :root alone; no axis re-prices it. */
@@ -176,6 +182,7 @@
      (geometry) rides a baked damped spring, so a state change costs a cubic-bezier and
      reads like mass. The curves are SAMPLED from the model in config, never pasted. */
   --motion-duration: 120ms;
+  --motion-drawer: 420ms;
   --motion-easing: cubic-bezier(0.22, 1, 0.36, 1);
   --motion-spring: linear(0, 0.021 2.78%, 0.076 5.56%, 0.154 8.33%, 0.247 11.11%, 0.347 13.89%, 0.449 16.67%, 0.548 19.44%, 0.641 22.22%, 0.726 25%, 0.801 27.78%, 0.866 30.56%, 0.92 33.33%, 0.964 36.11%, 0.999 38.89%, 1.026 41.67%, 1.045 44.44%, 1.058 47.22%, 1.065 50%, 1.068 52.78%, 1.067 55.56%, 1.064 58.33%, 1.059 61.11%, 1.053 63.89%, 1.047 66.67%, 1.04 69.44%, 1.033 72.22%, 1.026 75%, 1.02 77.78%, 1.015 80.56%, 1.011 83.33%, 1.007 86.11%, 1.003 88.89%, 1.001 91.67%, 0.999 94.44%, 0.997 97.22%, 1 100%);
   --motion-hover-in: 80ms;
@@ -201,6 +208,7 @@
   --motion-spring-stiff: linear(0, 0.017 4.17%, 0.062 8.33%, 0.124 12.5%, 0.197 16.67%, 0.276 20.83%, 0.356 25%, 0.434 29.17%, 0.509 33.33%, 0.578 37.5%, 0.642 41.67%, 0.699 45.83%, 0.749 50%, 0.794 54.17%, 0.833 58.33%, 0.866 62.5%, 0.894 66.67%, 0.918 70.83%, 0.937 75%, 0.953 79.17%, 0.966 83.33%, 0.977 87.5%, 0.985 91.67%, 0.991 95.83%, 1 100%);
   --motion-spring-elastic: linear(0, 0.039 2.78%, 0.135 5.56%, 0.26 8.33%, 0.396 11.11%, 0.528 13.89%, 0.649 16.67%, 0.753 19.44%, 0.838 22.22%, 0.906 25%, 0.957 27.78%, 0.993 30.56%, 1.017 33.33%, 1.031 36.11%, 1.038 38.89%, 1.04 41.67%, 1.038 44.44%, 1.034 47.22%, 1.029 50%, 1.024 52.78%, 1.019 55.56%, 1.014 58.33%, 1.01 61.11%, 1.006 63.89%, 1.004 66.67%, 1.002 69.44%, 1 72.22%, 0.999 75%, 0.999 77.78%, 0.998 80.56%, 0.998 83.33%, 0.998 86.11%, 0.999 88.89%, 0.999 91.67%, 0.999 94.44%, 0.999 97.22%, 1 100%);
   --motion-spring-poised: linear(0, 0.026 2.78%, 0.091 5.56%, 0.179 8.33%, 0.279 11.11%, 0.382 13.89%, 0.482 16.67%, 0.575 19.44%, 0.658 22.22%, 0.732 25%, 0.794 27.78%, 0.847 30.56%, 0.89 33.33%, 0.925 36.11%, 0.952 38.89%, 0.972 41.67%, 0.988 44.44%, 0.999 47.22%, 1.006 50%, 1.011 52.78%, 1.014 55.56%, 1.015 58.33%, 1.015 61.11%, 1.014 63.89%, 1.013 66.67%, 1.012 69.44%, 1.01 72.22%, 1.009 75%, 1.007 77.78%, 1.006 80.56%, 1.005 83.33%, 1.004 86.11%, 1.003 88.89%, 1.002 91.67%, 1.001 94.44%, 1.001 97.22%, 1 100%);
+  --motion-spring-driven: linear(0, 0.059 2.78%, 0.141 5.56%, 0.232 8.33%, 0.326 11.11%, 0.415 13.89%, 0.498 16.67%, 0.573 19.44%, 0.639 22.22%, 0.697 25%, 0.747 27.78%, 0.79 30.56%, 0.826 33.33%, 0.856 36.11%, 0.882 38.89%, 0.903 41.67%, 0.921 44.44%, 0.935 47.22%, 0.947 50%, 0.957 52.78%, 0.965 55.56%, 0.972 58.33%, 0.977 61.11%, 0.982 63.89%, 0.985 66.67%, 0.988 69.44%, 0.99 72.22%, 0.992 75%, 0.994 77.78%, 0.995 80.56%, 0.996 83.33%, 0.997 86.11%, 0.997 88.89%, 0.998 91.67%, 0.998 94.44%, 0.999 97.22%, 1 100%);
 
   /* the floating family's own motion (§22) — the emergence recipe's channels. Time, so
      no --scale: a panel does not unfurl slower because the interface is zoomed. */
@@ -315,10 +323,10 @@
   --layout-space-12: var(--space-12);
 
   /* surface padding (§10) — picks into layout space, so density reaches cards through one lever */
-  --surface-p-1: var(--layout-space-4);
-  --surface-p-2: var(--layout-space-5);
-  --surface-p-3: var(--layout-space-6);
-  --surface-p-4: var(--layout-space-7);
+  --surface-p-1: var(--layout-space-5);
+  --surface-p-2: var(--layout-space-6);
+  --surface-p-3: var(--layout-space-7);
+  --surface-p-4: var(--layout-space-8);
 
   /* the menu popup (§22) — padding is a layout-space pick (re-declared per density scope,
      the surface-padding trap), the width floor rides --scale alone so it lives here only. */
@@ -352,6 +360,7 @@
   --shell-inspector-w: calc(320px * var(--scale));
   --shell-bottom-h: calc(200px * var(--scale));
   --shell-gap: var(--layout-space-3);
+  --shell-drawer-scale: 0.925;
 }
 
 :root, [data-appearance="light"] {
@@ -809,8 +818,8 @@
   --code-token-keyword: var(--accent-ink);
   --code-token-string: var(--green-ink);
   --code-token-string-expression: var(--green-ink);
-  --code-token-function: var(--color-text);
-  --code-token-constant: var(--color-text);
+  --code-token-function: var(--color-text-muted);
+  --code-token-constant: var(--orange-ink);
   --code-token-parameter: var(--color-text);
   --code-token-punctuation: var(--color-text-muted);
   --code-token-link: var(--accent-ink);
@@ -900,6 +909,7 @@
      mixed from the page colour vanishes in dark, which is where dimming needs the most
      help, and it is why dark leans harder. contrast="high" and reduced transparency
      share one answer (see the high-contrast block): drop the blur, take fillHigh. */
+  --scrim-well: #0b0b0c;
   --scrim-fill: rgb(0 0 0 / 0.18);
   --scrim-fill-high: rgb(0 0 0 / 0.62);
   --scrim-filter: blur(8px) saturate(0.8);
@@ -980,7 +990,7 @@
   --scrollbar-inset: 2px;
   --scrollbar-thumb: var(--neutral-a6);
   --scrollbar-thumb-active: var(--neutral-a8);
-  --scrollbar-fade: 32px;
+  --scrollbar-fade: 48px;
   --disabled-dim: 70%;
   --disabled-fill: var(--neutral-a2);
   --disabled-fill-solid: var(--neutral-2);
@@ -1494,8 +1504,8 @@
   --code-token-keyword: var(--accent-ink);
   --code-token-string: var(--green-ink);
   --code-token-string-expression: var(--green-ink);
-  --code-token-function: var(--color-text);
-  --code-token-constant: var(--color-text);
+  --code-token-function: var(--color-text-muted);
+  --code-token-constant: var(--orange-ink);
   --code-token-parameter: var(--color-text);
   --code-token-punctuation: var(--color-text-muted);
   --code-token-link: var(--accent-ink);
@@ -1588,6 +1598,7 @@
      mixed from the page colour vanishes in dark, which is where dimming needs the most
      help, and it is why dark leans harder. contrast="high" and reduced transparency
      share one answer (see the high-contrast block): drop the blur, take fillHigh. */
+  --scrim-well: #0b0b0c;
   --scrim-fill: rgb(0 0 0 / 0.32);
   --scrim-fill-high: rgb(0 0 0 / 0.75);
   --scrim-filter: blur(8px) saturate(0.8) brightness(0.9);
@@ -1668,7 +1679,7 @@
   --scrollbar-inset: 2px;
   --scrollbar-thumb: var(--neutral-a6);
   --scrollbar-thumb-active: var(--neutral-a8);
-  --scrollbar-fade: 32px;
+  --scrollbar-fade: 48px;
   --disabled-dim: 70%;
   --disabled-fill: var(--neutral-a3);
   --disabled-fill-solid: var(--neutral-3);
@@ -2063,8 +2074,8 @@
     --code-token-keyword: var(--accent-ink);
     --code-token-string: var(--green-ink);
     --code-token-string-expression: var(--green-ink);
-    --code-token-function: var(--color-text);
-    --code-token-constant: var(--color-text);
+    --code-token-function: var(--color-text-muted);
+    --code-token-constant: var(--orange-ink);
     --code-token-parameter: var(--color-text);
     --code-token-punctuation: var(--color-text-muted);
     --code-token-link: var(--accent-ink);
@@ -2406,8 +2417,8 @@
     --code-token-keyword: var(--accent-ink);
     --code-token-string: var(--green-ink);
     --code-token-string-expression: var(--green-ink);
-    --code-token-function: var(--color-text);
-    --code-token-constant: var(--color-text);
+    --code-token-function: var(--color-text-muted);
+    --code-token-constant: var(--orange-ink);
     --code-token-parameter: var(--color-text);
     --code-token-punctuation: var(--color-text-muted);
     --code-token-link: var(--accent-ink);
@@ -2749,8 +2760,8 @@
     --code-token-keyword: var(--accent-ink);
     --code-token-string: var(--green-ink);
     --code-token-string-expression: var(--green-ink);
-    --code-token-function: var(--color-text);
-    --code-token-constant: var(--color-text);
+    --code-token-function: var(--color-text-muted);
+    --code-token-constant: var(--orange-ink);
     --code-token-parameter: var(--color-text);
     --code-token-punctuation: var(--color-text-muted);
     --code-token-link: var(--accent-ink);
@@ -2851,8 +2862,8 @@
   --code-token-keyword: var(--accent-ink);
   --code-token-string: var(--green-ink);
   --code-token-string-expression: var(--green-ink);
-  --code-token-function: var(--color-text);
-  --code-token-constant: var(--color-text);
+  --code-token-function: var(--color-text-muted);
+  --code-token-constant: var(--orange-ink);
   --code-token-parameter: var(--color-text);
   --code-token-punctuation: var(--color-text-muted);
   --code-token-link: var(--accent-ink);
@@ -2969,8 +2980,8 @@
     --code-token-keyword: var(--accent-ink);
     --code-token-string: var(--green-ink);
     --code-token-string-expression: var(--green-ink);
-    --code-token-function: var(--color-text);
-    --code-token-constant: var(--color-text);
+    --code-token-function: var(--color-text-muted);
+    --code-token-constant: var(--orange-ink);
     --code-token-parameter: var(--color-text);
     --code-token-punctuation: var(--color-text-muted);
     --code-token-link: var(--accent-ink);
@@ -3088,8 +3099,8 @@
   --code-token-keyword: var(--accent-ink);
   --code-token-string: var(--green-ink);
   --code-token-string-expression: var(--green-ink);
-  --code-token-function: var(--color-text);
-  --code-token-constant: var(--color-text);
+  --code-token-function: var(--color-text-muted);
+  --code-token-constant: var(--orange-ink);
   --code-token-parameter: var(--color-text);
   --code-token-punctuation: var(--color-text-muted);
   --code-token-link: var(--accent-ink);
@@ -3209,8 +3220,8 @@
     --code-token-keyword: var(--accent-ink);
     --code-token-string: var(--green-ink);
     --code-token-string-expression: var(--green-ink);
-    --code-token-function: var(--color-text);
-    --code-token-constant: var(--color-text);
+    --code-token-function: var(--color-text-muted);
+    --code-token-constant: var(--orange-ink);
     --code-token-parameter: var(--color-text);
     --code-token-punctuation: var(--color-text-muted);
     --code-token-link: var(--accent-ink);
@@ -3332,8 +3343,8 @@
     --code-token-keyword: var(--accent-ink);
     --code-token-string: var(--green-ink);
     --code-token-string-expression: var(--green-ink);
-    --code-token-function: var(--color-text);
-    --code-token-constant: var(--color-text);
+    --code-token-function: var(--color-text-muted);
+    --code-token-constant: var(--orange-ink);
     --code-token-parameter: var(--color-text);
     --code-token-punctuation: var(--color-text-muted);
     --code-token-link: var(--accent-ink);
@@ -3433,8 +3444,8 @@
       --code-token-keyword: var(--accent-ink);
       --code-token-string: var(--green-ink);
       --code-token-string-expression: var(--green-ink);
-      --code-token-function: var(--color-text);
-      --code-token-constant: var(--color-text);
+      --code-token-function: var(--color-text-muted);
+      --code-token-constant: var(--orange-ink);
       --code-token-parameter: var(--color-text);
       --code-token-punctuation: var(--color-text-muted);
       --code-token-link: var(--accent-ink);
@@ -3537,8 +3548,8 @@
     --code-token-keyword: var(--accent-ink);
     --code-token-string: var(--green-ink);
     --code-token-string-expression: var(--green-ink);
-    --code-token-function: var(--color-text);
-    --code-token-constant: var(--color-text);
+    --code-token-function: var(--color-text-muted);
+    --code-token-constant: var(--orange-ink);
     --code-token-parameter: var(--color-text);
     --code-token-punctuation: var(--color-text-muted);
     --code-token-link: var(--accent-ink);
@@ -3638,8 +3649,8 @@
       --code-token-keyword: var(--accent-ink);
       --code-token-string: var(--green-ink);
       --code-token-string-expression: var(--green-ink);
-      --code-token-function: var(--color-text);
-      --code-token-constant: var(--color-text);
+      --code-token-function: var(--color-text-muted);
+      --code-token-constant: var(--orange-ink);
       --code-token-parameter: var(--color-text);
       --code-token-punctuation: var(--color-text-muted);
       --code-token-link: var(--accent-ink);
@@ -3691,15 +3702,16 @@
   --layout-space-10: var(--space-10);
   --layout-space-11: var(--space-11);
   --layout-space-12: var(--space-12);
-  --surface-p-1: var(--layout-space-4);
-  --surface-p-2: var(--layout-space-5);
-  --surface-p-3: var(--layout-space-6);
-  --surface-p-4: var(--layout-space-7);
+  --surface-p-1: var(--layout-space-5);
+  --surface-p-2: var(--layout-space-6);
+  --surface-p-3: var(--layout-space-7);
+  --surface-p-4: var(--layout-space-8);
   --floating-p: var(--layout-space-2);
   --tooltip-p-block: var(--layout-space-2);
   --tooltip-p-inline: var(--layout-space-4);
   --dialog-inset: var(--layout-space-6);
   --shell-gap: var(--layout-space-3);
+  --shell-drawer-scale: 0.925;
 }
 
 [data-density="default"] {
@@ -3743,15 +3755,16 @@
   --layout-space-10: var(--space-10);
   --layout-space-11: var(--space-11);
   --layout-space-12: var(--space-12);
-  --surface-p-1: var(--layout-space-4);
-  --surface-p-2: var(--layout-space-5);
-  --surface-p-3: var(--layout-space-6);
-  --surface-p-4: var(--layout-space-7);
+  --surface-p-1: var(--layout-space-5);
+  --surface-p-2: var(--layout-space-6);
+  --surface-p-3: var(--layout-space-7);
+  --surface-p-4: var(--layout-space-8);
   --floating-p: var(--layout-space-2);
   --tooltip-p-block: var(--layout-space-2);
   --tooltip-p-inline: var(--layout-space-4);
   --dialog-inset: var(--layout-space-6);
   --shell-gap: var(--layout-space-3);
+  --shell-drawer-scale: 0.925;
 }
 
 [data-density="comfortable"] {
@@ -3795,15 +3808,16 @@
   --layout-space-10: var(--space-10);
   --layout-space-11: var(--space-11);
   --layout-space-12: var(--space-12);
-  --surface-p-1: var(--layout-space-4);
-  --surface-p-2: var(--layout-space-5);
-  --surface-p-3: var(--layout-space-6);
-  --surface-p-4: var(--layout-space-7);
+  --surface-p-1: var(--layout-space-5);
+  --surface-p-2: var(--layout-space-6);
+  --surface-p-3: var(--layout-space-7);
+  --surface-p-4: var(--layout-space-8);
   --floating-p: var(--layout-space-2);
   --tooltip-p-block: var(--layout-space-2);
   --tooltip-p-inline: var(--layout-space-4);
   --dialog-inset: var(--layout-space-6);
   --shell-gap: var(--layout-space-3);
+  --shell-drawer-scale: 0.925;
 }
 
 [data-radius="none"] {
@@ -3832,6 +3846,7 @@
   --radius-mark-3: 0px;
   --radius-mark-4: 0px;
   --radius-atom: 0px;
+  --radius-code: 0px;
 }
 
 [data-radius="small"] {
@@ -3860,6 +3875,7 @@
   --radius-mark-3: calc(3px * var(--scale));
   --radius-mark-4: calc(3px * var(--scale));
   --radius-atom: 0.2em;
+  --radius-code: 0.2em;
 }
 
 [data-radius="medium"] {
@@ -3888,6 +3904,7 @@
   --radius-mark-3: calc(6px * var(--scale));
   --radius-mark-4: calc(6px * var(--scale));
   --radius-atom: 0.35em;
+  --radius-code: 0.35em;
 }
 
 [data-radius="large"] {
@@ -3916,6 +3933,7 @@
   --radius-mark-3: calc(8px * var(--scale));
   --radius-mark-4: calc(8px * var(--scale));
   --radius-atom: 0.45em;
+  --radius-code: 0.45em;
 }
 
 [data-radius="full"] {
@@ -3944,6 +3962,7 @@
   --radius-mark-3: calc(8px * var(--scale));
   --radius-mark-4: calc(8px * var(--scale));
   --radius-atom: 0.75em;
+  --radius-code: 0.45em;
 }
 
 [data-radius="none"][data-density="compact"] {

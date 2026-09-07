@@ -185,8 +185,20 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
   });
 
   it("pads from the surface family by the size index (§4)", () => {
-    expect(computed(render(<Card size="3">B</Card>), "padding-top")).toBe("24px");
-    expect(computed(render(<Card size="1">B</Card>), "padding-top")).toBe("12px");
+    /* READ AS THE LADDER IT CLAIMS, not as two literals (2026-09-07). Both numbers moved when
+       `surfacePadding` shifted up a pick, and neither of them was the guarantee: this law says
+       the padding IS the surface family's rung at the stated index, which is the thing that
+       would still be broken if the card started picking from somewhere else. The rungs are
+       asserted to differ as well, or "by the size index" names nothing. */
+    for (const size of ["1", "3"] as const) {
+      const el = render(<Card size={size}>B</Card>);
+      expect(computed(el, "padding-top"), `size ${size}`).toBe(
+        lengthOn(el, `--surface-p-${size}`),
+      );
+    }
+    expect(computed(render(<Card size="3">B</Card>), "padding-top")).not.toBe(
+      computed(render(<Card size="1">B</Card>), "padding-top"),
+    );
   });
 
   it("rests at 2 — the index every 1-4 family rests at (2026-09-05)", () => {
@@ -267,10 +279,16 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
     // Density reaches the card through the layout-space layer (§3, §12; the per-family sets
     // that shipped the same morning were superseded by the layer the same day) — otherwise
     // a compact Theme adjusted every control while its cards kept default air.
+    /* A RANKING, not three literals (2026-09-07): the claim in this law's own title is that
+       compact loses air and comfortable gains it, and the numbers it used to pin were the
+       ladder's rather than density's — they moved when `surfacePadding` shifted and the
+       mechanism had not. */
+    const px = (el: HTMLElement) => parseFloat(computed(el, "padding-top"));
     const compact = mounted(<Card size="3">B</Card>, { theme: { density: "compact" } });
-    expect(computed(compact, "padding-top")).toBe("16px");
+    const dflt = mounted(<Card size="3">B</Card>, { theme: {} });
     const comfortable = mounted(<Card size="3">B</Card>, { theme: { density: "comfortable" } });
-    expect(computed(comfortable, "padding-top")).toBe("32px");
+    expect(px(compact)).toBeLessThan(px(dflt));
+    expect(px(comfortable)).toBeGreaterThan(px(dflt));
   });
 });
 
@@ -697,7 +715,12 @@ describe("the boundary (§3, §13)", () => {
     expect(el.tagName).toBe("ARTICLE");
     expect(el.getAttribute("aria-label")).toBe("post");
     expect(el.className).toContain("kui-surface");
-    expect(computed(el, "padding-top")).toBe("16px");
+    /* Against a plain Card at the same index rather than a literal: the subject here is that
+       the shell survives `render`, and pinning the ladder's number made this law fail the day
+       the ladder moved, for a reason that has nothing to do with it. */
+    expect(computed(el, "padding-top")).toBe(
+      computed(render(<Card>B</Card>), "padding-top"),
+    );
   });
 });
 

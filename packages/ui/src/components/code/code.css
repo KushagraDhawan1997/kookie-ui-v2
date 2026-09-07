@@ -32,8 +32,29 @@
      reader to notice, because the law's regex is not the rule, the non-negotiable is.
      The values are the chip's own and NOT `.kui-atom-box`'s: this box is padded on both axes
      because it has no stated height to be centred in. */
-  padding-inline: 0.35em;
+  --kui-atom-inset: 0.35em;
+  padding-inline: var(--kui-atom-inset);
   padding-block: 0.12em;
+  /* THE CORNER HOLDS AT `large` (2026-09-05, Kushagra: "you know how checkbox rejects the
+     theme's roundness, I want code, not code block, code to also reject it").
+
+     This is the family's ONE exception and it reads a different token rather than restating
+     the family's — `--radius-code` is emitted beside `--radius-atom` from the same picks,
+     with the ceiling stated once in the generator. Every other level is the family's verbatim
+     (`none` still squares a chip; §6's kill switch owns every corner that is dress), so the
+     exception is exactly the one this system already makes for a checkbox: a role that stops
+     reading as itself past a certain roundness. Measured at the DEFAULT level: 0.75em on a
+     22px box is 0.516 of its own height, which the engine clamps to a stadium — the shape
+     Chip and Badge have BY IDENTITY, so the family's two near-twins were one shape. 0.45em
+     is 0.309 of the same box.
+
+     The declaration sits here rather than in the type layer because it is a fact about what
+     a code chip IS, which is what this file holds; the family's own corner stays declared
+     once, in `.kui-atom`, and the law next door forbids any member RESTATING that value.
+     It wins on source order (code.css is bundled after type.css, both at (0,1,0)), which is
+     a thin guarantee — so what actually holds it is a mounted law reading the painted corner
+     at every level, with a Chip beside it as the vacuity guard. */
+  border-radius: var(--radius-code);
   /* An inline box that wraps paints its fill on the FIRST fragment only, so a chip broken
      across two lines loses its background on the second half — the one thing an inline fill
      gets wrong by default, and invisible until a narrow column produces it. */

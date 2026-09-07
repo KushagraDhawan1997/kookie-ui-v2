@@ -497,6 +497,14 @@ export const iconSize = {
  * `iconSize` above: one number, four painted weights.
  */
 export const iconGrid = 24;
+/**
+ * The stroke width for icons drawn on a 24-unit grid, which is what every icon set ships.
+ *
+ * It is public because this package ships no icon set: an app brings its own, and a chevron that
+ * does not match the glyphs beside it is the one mismatch a consumer cannot fix from outside.
+ * Pass this to your icon component and its weight will match the package's own. It does not ride
+ * the size index — a stroke lives inside the viewBox, so it already scales with the box.
+ */
 export const iconStroke = 1.75;
 
 /**
@@ -698,6 +706,22 @@ export const segmentInset = 2;
  * is dress — a 1px accent line sitting on a 1px neutral line reads as a colour change in the
  * same object rather than a mark on top of it. Judged in the playground.
  */
+/**
+ * §45 — the toolbar group's well: the gap the capsule keeps around the controls it holds.
+ *
+ * A `ToolbarGroup` is the segmented control's track with no selection in it — an edgeless well
+ * that hosts N controls — so the geometry is §4's hosted-control rule and the inset is the only
+ * designed number: the hosted box is the group minus two of these, exactly as a segment is.
+ *
+ * It is numerically `segmentInset` and `switchInset` and it is deliberately its own constant,
+ * on `tabInset`'s argument one entry down: those two are the wall of a channel a GRIP travels
+ * in, and this is the wall of a container around buttons that never move. Three facts that
+ * agree on a number today and have no reason to move together — the promotion rule ("the second
+ * member self-keys, the third promotes") is about one fact reaching a third consumer, not about
+ * three unrelated 2s.
+ */
+export const toolbarGroupInset = 2;
+
 export const tabRule = 2;
 
 /**
@@ -811,6 +835,27 @@ export const springs = {
       to if a quicker entry ever reads as flat. `omega` is unmoved: damping is the CHARACTER,
       and re-tuning frequency here would have re-timed every consumer of this curve at once. */
   elastic: { zeta: 0.715, omega: 10.835, steps: 36 },
+  /** LAUNCHED, AND IT NEVER BOUNCES (§27, 2026-09-06) — the shell's own drawer, and the first
+      curve in this vocabulary that starts with speed rather than from rest.
+
+      The rule it encodes is Kushagra's reference sheet, stated there as researched from iOS:
+      *presentation* is damping 1 with initial velocity injected, so it launches fast and
+      decelerates clean, and *bounce belongs only to momentum-driven motion* — the drag
+      release, where the finger's own speed earns it. A drawer that is opened by a press earned
+      no velocity, so it gets none of the rebound.
+
+      `zeta: 1` is CRITICAL damping, which the other five are not: the underdamped step
+      response every one of them uses divides by `ω√(1−ζ²)` and is undefined here, so the
+      generator carries the critical closed form beside it. That is the whole of the special
+      case — one branch, taken by ζ === 1 and by nothing else.
+
+      `v0` is the launch, in units of the travel per unit of NORMALISED time, so it means the
+      same thing at every duration exactly as ω does. Without it a critically damped spring
+      leaves from rest and reads sluggish for its first third, which is the failure the sheet's
+      note is about. It is bounded by ω rather than judged against it: at ζ = 1 the curve
+      overshoots if and only if `v0 > ω`, so 1.5 against 9 is zero-bounce BY CONSTRUCTION and
+      the law asserts the crossing count rather than trusting the number. */
+  driven: { zeta: 1, omega: 9, v0: 1.5, steps: 36 },
 } as const;
 
 /**
@@ -1455,9 +1500,19 @@ export const layoutSpace = {
  * §10, §12 — surface padding as picks into LAYOUT SPACE (semantic reference, never a raw
  * px). Density reaches a card exclusively through the layout-space layer — this family
  * carries no per-level sets of its own (the 2026-08-04 morning mechanism, superseded the
- * same day when the layer arrived: one lever, not two). At default: 12 / 16 / 24 / 32.
- */
-export const surfacePadding = [4, 5, 6, 7] as const;
+ * same day when the layer arrived: one lever, not two). At default: 16 / 24 / 32 / 40.
+ *
+ * SHIFTED UP ONE PICK 2026-09-07 (Kushagra: "I like what Surface subscribes to"), the same day
+ * the ground's +1 join was deleted. Those two moves are one decision: a ground used to read
+ * this ladder one step up, so 16/24/32 were the numbers actually being looked at on every
+ * ground on the site, and collapsing the two consumers onto one ladder had to pick which of the
+ * two sets of values survived. The ground's did. A Card is what moves — 16 → 24 at the default
+ * index — which is also the answer to "spacing seems a bit less" earlier the same day.
+ *
+ * The top rung is a real 40 rather than the 32 the old arrangement produced: the ground
+ * saturated at 4 only because a +1 ran off the end of the ladder, which is an artifact and not
+ * a design. */
+export const surfacePadding = [5, 6, 7, 8] as const;
 
 /**
  * §22, §23 — the FLOATING panel's interior padding, ONE pick into layout space (the
@@ -1572,6 +1627,18 @@ export const scrim = {
   // more pigment, no defocus change.
   light: { fill: "rgb(0 0 0 / 0.18)", filter: "blur(8px) saturate(0.8)", fillHigh: "rgb(0 0 0 / 0.62)" },
   dark: { fill: "rgb(0 0 0 / 0.32)", filter: "blur(8px) saturate(0.8) brightness(0.9)", fillHigh: "rgb(0 0 0 / 0.75)" },
+  /** THE WELL — the ground a receding frame goes back INTO (§27, 2026-09-06), and the scrim's
+      own idea at its limit, which is why it lives here rather than beside the surfaces.
+
+      A drawer pushes the app back twice over: the scrim dims what is still on screen, and the
+      frame itself scales away from the viewer. What that second move REVEALS has to be darker
+      than the scrimmed frame or the depth inverts — a bright ring around a dimmed page reads
+      as the frame lifting toward you. So it is the scrim's pigment with the alpha spent: the
+      same statement ("the app is behind this"), made by the surface the app is no longer
+      covering. One value for both modes, because it is the absence of the app rather than a
+      shade of it. Not `--color-page`: the page is a colour the library has twice declined to
+      own, and this is not the page — it is what is under the page. */
+  well: "#0b0b0c",
 } as const;
 
 /**
@@ -1713,6 +1780,43 @@ export const shellWidth = { sidebar: 288, inspector: 320, bottom: 200 } as const
  * because a resize with no floor is a way to destroy a layout by accident.
  */
 export const shellResize = { step: 16, min: 160 } as const;
+
+/**
+ * §27 — THE DRAWER'S ARRIVAL, and the frame's recession under it (2026-09-06, Kushagra: the
+ * background "should scale down", against his own Physics reference).
+ *
+ * A drawer is none of the three entrances this package already has. It is not a menu — a menu
+ * flies out of the thing you pressed, and a drawer is anchored to the window's edge rather
+ * than to its trigger. It is not a dialog — a dialog barely travels, because the scrim IS its
+ * arrival and it comes toward you rather than in from the side. A drawer slides in from the
+ * edge it was parked behind, which is also the cheapest reading: the distance is its own
+ * width, a length CSS already has, so this is the one entrance in the package that measures
+ * nothing and needs no runner.
+ *
+ * WHAT ONLY A SHELL CAN ADD is the second half. Every drawer library portals to the body, so
+ * the page is not theirs to move and the recession has to be asked of the app (vaul hands you
+ * a wrapper to add). The Shell already owns the header, the rail, the content and the
+ * inspector, so the frame recedes with nothing asked of anybody.
+ *
+ * `scale` is the reference's own number. The recession is tied to the SAME clock and curve as
+ * the slide rather than given one of its own — in the reference both read one progress value,
+ * so the world's depth is a property of where the drawer is rather than a second animation
+ * that happens to agree.
+ *
+ * The reference's 8px settle is DROPPED rather than ported, and it is stated here because it
+ * is the one number of theirs this file does not carry: it exists to sell a scale about the
+ * TOP edge, and here the origin is the drawer's own edge (shell.css carries why that is
+ * forced) — where every term added to the frame has to be inverted on the drawer as well. One
+ * number, one inverse. It shipped as a `lift` field with no consumer for one day; a config
+ * value nothing reads is a claim the eye pass cannot check.
+ */
+export const shellDrawer = {
+  /** How far back the frame goes. 0.925 is the reference's, judged there. */
+  scale: 0.925,
+  /** One clock for the slide, the recession and the scrim. Longer than the overlay family's
+      entry because the travel is a whole pane's width rather than a panel's own box. */
+  duration: 420,
+} as const;
 
 /**
  * §27 — the RAIL is not in the table above, and its absence is the decision (2026-08-20,
@@ -1984,8 +2088,11 @@ export const scrollbar = {
       the content itself, so the pane's own fill shows through and one number reads on the
       seal, the ground, glass and a photograph alike. It also bounds the ramp-in: the fade
       grows from nothing over the first `fade` pixels of scrolling, which is what keeps the
-      resting edge clean. Judged by eye like everything here. */
-  fade: 32,
+      resting edge clean. Judged by eye like everything here; 32 → 48 on 2026-09-07, judged
+      against the code wells on the documentation site the day the reach stopped leaking into
+      them (see the nesting stand-down in `scroll-area.css`), which is the first day the
+      designed number was what those blocks actually rendered. */
+  fade: 48,
 } as const;
 
 export const kbdRelief = {
@@ -2371,6 +2478,7 @@ export const breadcrumbGlyph = 0.75;
  * the cap floor — so the corner is EM, one designed value per radius level (Radix reaches
  * the same place as `radius-factor * 0.35em`). The raw em text substitutes at USE, so each
  * atom's corner prices against its own font by construction; density never touches it.
- * `full` pills a one-line chip (~half the cap's face).
+ * `full` pills a one-line chip (~half the cap's face) — which is what Chip and Badge ARE, and
+ * what CODE is not: see `atomRadiusFamily` in generate.ts for the one member that holds.
  */
 export const radiusAtom = { none: 0, small: 0.2, medium: 0.35, large: 0.45, full: 0.75 } as const;

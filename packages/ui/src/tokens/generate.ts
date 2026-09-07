@@ -64,6 +64,7 @@ import {
   glassInk,
   floatingDark,
   shellWidth,
+  shellDrawer,
   shellGap,
   floatingChrome,
   floatingMinWidth,
@@ -97,6 +98,7 @@ import {
   switchW,
   tabInset,
   tabRule,
+  toolbarGroupInset,
   surfaceChrome,
   surfaceColor,
   groundColor,
@@ -127,18 +129,47 @@ const zoom = (px: number) => `calc(${px}px * var(--scale))`;
  * 480ms panel and a 140ms press. The endpoints are stated rather than sampled: `linear()`
  * must start at 0 and end at 1, and a spring's own value at t=1 is merely close to 1, so
  * sampling the last point would leave a sub-pixel step at the end of every transition.
+ *
+ * TWO CLOSED FORMS, because the one above is undefined at critical damping (2026-09-06). At
+ * ζ = 1 the damped frequency `ω√(1−ζ²)` is zero and the expression divides by it; the critical
+ * system has its own solution, and the repeated root makes it a linear term rather than a
+ * sinusoid:
+ *
+ *     x(t) = 1 − e^(−ωt) · ( 1 + (ω − v₀)·t )
+ *
+ * `v₀` is the launch — the velocity the object already has at t = 0, in units of the travel
+ * per unit of normalised time. It is written for both branches (the underdamped form gains the
+ * same term) so that a spring's character and its launch are independent knobs rather than one
+ * standing in for the other; with v₀ = 0 both collapse to the step-from-rest every curve here
+ * used before this was written, which is why no emitted value moved when it landed.
  */
-const springCurve = ({ zeta, omega, steps }: { zeta: number; omega: number; steps: number }) => {
+const springAt = (zeta: number, omega: number, v0: number, t: number): number => {
+  const decay = Math.exp(-zeta * omega * t);
+  if (zeta === 1) return 1 - decay * (1 + (omega - v0) * t);
   const damped = omega * Math.sqrt(1 - zeta * zeta);
+  return (
+    1 -
+    decay * (Math.cos(damped * t) + ((zeta * omega - v0) / damped) * Math.sin(damped * t))
+  );
+};
+
+/** The sampler itself: `steps` points of the model above, as a `linear()` easing. */
+const springCurve = ({
+  zeta,
+  omega,
+  steps,
+  v0 = 0,
+}: {
+  zeta: number;
+  omega: number;
+  steps: number;
+  v0?: number;
+}) => {
   const trim = (n: number, places: number) => String(Number(n.toFixed(places)));
   const points = [`0`];
   for (let i = 1; i < steps; i++) {
     const t = i / steps;
-    const x =
-      1 -
-      Math.exp(-zeta * omega * t) *
-        (Math.cos(damped * t) + ((zeta * omega) / damped) * Math.sin(damped * t));
-    points.push(`${trim(x, 3)} ${trim((t * 100), 2)}%`);
+    points.push(`${trim(springAt(zeta, omega, v0, t), 3)} ${trim(t * 100, 2)}%`);
   }
   points.push("1 100%");
   return `linear(${points.join(", ")})`;
@@ -271,6 +302,14 @@ export function generateTokens(): string {
 
   lines.push(
     "",
+    "  /* and the toolbar group's well (§45) — the same subtraction a third time, for controls",
+    "     that never travel: the hosted button is the group minus this on every side. Its own",
+    "     entry for --tab-inset's reason: three facts that agree on a number are not one fact. */",
+  );
+  put("toolbar-group-inset", zoom(toolbarGroupInset));
+
+  lines.push(
+    "",
     "  /* and the tab rule's thickness (§26) — ONE value, no index, for Progress's reason: the",
     "     thickness that reads as a rule is a perception floor, not a fraction of the tab above",
     "     it. Emitted at :root alone; no axis re-prices it. */",
@@ -292,6 +331,11 @@ export function generateTokens(): string {
   lines.push("     (geometry) rides a baked damped spring, so a state change costs a cubic-bezier and");
   lines.push("     reads like mass. The curves are SAMPLED from the model in config, never pasted. */");
   put("motion-duration", motion.duration);
+  /* The drawer's one clock (§27): the slide, the recession, the well and the scrim all ride
+     it, so the world's depth is a property of where the drawer is rather than a second
+     animation that happens to agree. In the motion family because every duration in this
+     package is — a component that names its own is how a hand-typed 150ms gets in. */
+  put("motion-drawer", `${shellDrawer.duration}ms`);
   put("motion-easing", motion.easing);
   put("motion-spring", springCurve(springs.calm));
   put("motion-hover-in", `${controlMotion.hoverIn}ms`);
@@ -319,6 +363,7 @@ export function generateTokens(): string {
   put("motion-spring-stiff", springCurve(springs.stiff));
   put("motion-spring-elastic", springCurve(springs.elastic));
   put("motion-spring-poised", springCurve(springs.poised));
+  put("motion-spring-driven", springCurve(springs.driven));
 
   lines.push("", "  /* the floating family's own motion (§22) — the emergence recipe's channels. Time, so");
   lines.push("     no --scale: a panel does not unfurl slower because the interface is zoomed. */");
@@ -1254,6 +1299,7 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     `     mixed from the page colour vanishes in dark, which is where dimming needs the most`,
     `     help, and it is why dark leans harder. contrast="high" and reduced transparency`,
     `     share one answer (see the high-contrast block): drop the blur, take fillHigh. */`,
+    decl("scrim-well", scrim.well),
     decl("scrim-fill", scrim[mode].fill),
     decl("scrim-fill-high", scrim[mode].fillHigh),
     decl("scrim-filter", scrim[mode].filter),
@@ -1469,10 +1515,38 @@ function surfaceRadiusFamily(): string[] {
  * measured; the `full` ceiling could not see it because no theme was involved). */
 /** The atom corner (§6, §15): one designed EM per level — see config's radiusAtom. The em
  *  is emitted as raw text, so it substitutes at USE and resolves against the consuming
- *  atom's own font-size; nothing here may wrap it in a var() that would bake it early. */
+ *  atom's own font-size; nothing here may wrap it in a var() that would bake it early.
+ *
+ *  CODE HOLDS AT `large` (2026-09-05, Kushagra: "you know how checkbox rejects the theme's
+ *  roundness, I want code, not code block, code to also reject it"). `full` is the DEFAULT
+ *  level, so this is what a code chip has looked like everywhere: measured on a mounted one,
+ *  0.75em against a 22px box is 0.516 of its own height — past half, which the engine clamps,
+ *  so the chip is a stadium. Beside it a Chip measured 0.506 and a Badge is a capsule by
+ *  identity, so at the default radius the three atoms are one shape and the family's two
+ *  near-twins become indistinguishable: `Code` means literal code inside a sentence and
+ *  `Chip` means a word with a tint, and the ontology chapter separates them by what they DO
+ *  while the corner was saying they are the same thing.
+ *
+ *  It is the checkbox's ceiling verbatim, one family over, and it is the same argument: a
+ *  circular checkbox reads as a radio, a pilled code chip reads as a chip. §6's kill switch
+ *  is untouched — `none` still squares a chip, and `small`/`medium`/`large` still move it —
+ *  so this is a ceiling, never a pin, and it cannot RETREAT (full and large emit one value,
+ *  which is the surface band's own sentence: full means a corner stops getting rounder).
+ *
+ *  Measured after: 0.45em is 0.309 of the same box, which lands inside the mark family's own
+ *  0.25-0.38 band — a rounded rect, not a lozenge.
+ *
+ *  Only Code. Kbd measures 0.472 of its box at `full` and a physical keycap is a rounded rect
+ *  too, but that is a second judgment about a different member and nobody has made it. */
 function atomRadiusFamily(level: RadiusLevel): string[] {
-  const em = radiusAtom[level];
-  return [decl("radius-atom", em === 0 ? "0px" : `${em}em`)];
+  const em = (at: RadiusLevel): string => {
+    const value = radiusAtom[at];
+    return value === 0 ? "0px" : `${value}em`;
+  };
+  return [
+    decl("radius-atom", em(level)),
+    decl("radius-code", em(level === "full" ? "large" : level)),
+  ];
 }
 
 function markRadiusFamily(level: RadiusLevel): string[] {
@@ -1519,6 +1593,9 @@ function dialogFamily(): string[] {
 function shellFamily(): string[] {
   return [
     decl("shell-gap", `var(--layout-space-${shellGap})`),
+    /* The drawer's arrival (§27, 2026-09-06). Density-invariant on purpose: a recession is a
+       depth cue rather than a distance, and the travel is the pane's own width. */
+    decl("shell-drawer-scale", String(shellDrawer.scale)),
   ];
 }
 

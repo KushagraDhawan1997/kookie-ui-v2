@@ -436,15 +436,38 @@ export const thumbLabel = {
  * Inserted, deleted and changed are the three status families, so a diff reads in the same
  * three colours a status message does.
  *
- * TWO HUES, NOT FOUR. The first cut spent five families — accent, blue, green, orange and the
- * grey ladder — on a system whose whole argument is that colour is derived rather than
- * decorated, and two of the five collapsed onto one colour each the day the brand moved onto
- * blue's own recipe (`accent-ink` ≡ `blue-ink`, `success-ink` ≡ `green-ink`). Identifiers take
- * the FOREGROUND: a component name and a prop name are the subject of a sample, and the
- * subject reads at full strength rather than in a hue picked to tell it from its neighbour.
- * What stays coloured is the language's vocabulary and its values, which is the one
- * distinction a reader actually makes. This palette cannot repeat that collapse — it spends
- * `accent` once and `green` once, and everything else is the grey ladder.
+ * THREE HUES, NOT FIVE (widened from two 2026-09-06; the paragraph below carries the why).
+ * The first cut spent five families — accent, blue, green, orange and the grey ladder — on a
+ * system whose whole argument is that colour is derived rather than decorated, and two of the
+ * five collapsed onto one colour each the day the brand moved onto blue's own recipe
+ * (`accent-ink` ≡ `blue-ink`, `success-ink` ≡ `green-ink`): four assignments resolving to two
+ * colours, silently. What defends against that repeating is not the COUNT but the rule that
+ * each family is spent exactly ONCE and no two of them share a hue by construction — `accent`
+ * the language's vocabulary, `green` its values, `orange` the components a sample is about.
+ * The status three stay reserved for the diff, which is the one place they mean what §7 says
+ * they mean.
+ *
+ * THE SUBJECT IS THE COMPONENT NAME (2026-09-06, Kushagra: the theme "doesnt have a lot of
+ * highlight for compoennt names etc"). Until that day every identifier sat on `--color-text`,
+ * on the argument that a component name and a prop name are both the subject of a KookieUI
+ * sample and the subject reads at full strength. Half of that is right, and the half that is
+ * not is what he was looking at: when the tag, its props, its types and its function names all
+ * read at full strength, none of them is emphasised.
+ *
+ * Measured on a real sample rather than read off the scope list, because the two are not the
+ * same fact: a JSX component name resolves through `token-constant` — it carries
+ * `support.class.component`, and that beats the `entity.name.tag` rule a lowercase HTML tag
+ * takes — while a prop name lands on `token-function` alongside type names and function names.
+ *
+ * BOTH LEVERS ARE PULLED, AND THE FIRST ONE ALONE WAS JUDGED FLAT. Standing the supporting
+ * cast down to the muted rung is the rank half, and it shipped first precisely because it
+ * spends no family; looked at, a tag still read as ordinary black text among black text. So
+ * the components take `orange`, the one categorical family left (blue is the brand, green is
+ * the values, and the status three belong to the diff). Numeric literals ride the same slot
+ * and take the hue with them: Shiki's CSS-variables theme has twelve slots and cannot separate
+ * `support.class.component` from `constant.numeric`, so a hue for tags ALONE means leaving
+ * `createCssVariablesTheme` for a theme of our own — priced, and not worth a whole theme to
+ * un-colour a number.
  */
 export const codeTheme = {
   foreground: "var(--color-text)",
@@ -454,8 +477,12 @@ export const codeTheme = {
   "token-keyword": "var(--accent-ink)",
   "token-string": "var(--green-ink)",
   "token-string-expression": "var(--green-ink)",
-  "token-function": "var(--color-text)",
-  "token-constant": "var(--color-text)",
+  /* Prop names, type names, function names: the supporting cast, stood down one rung so the
+     component name beside them is the thing that reads (2026-09-06). */
+  "token-function": "var(--color-text-muted)",
+  /* Component names, and numeric literals riding the same slot: what a KookieUI sample is
+     ABOUT (2026-09-06). The third and last family this palette spends. */
+  "token-constant": "var(--orange-ink)",
   "token-parameter": "var(--color-text)",
   "token-punctuation": "var(--color-text-muted)",
   "token-link": "var(--accent-ink)",

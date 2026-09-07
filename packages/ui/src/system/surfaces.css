@@ -360,6 +360,16 @@
     --kui-corner-k: 1.613;
     corner-shape: squircle;
   }
+  /* THE SHELL'S RECEDED FRAME TAKES THE SAME TWO DECLARATIONS (2026-09-06, §27). It is not a
+     `.kui-surface` — it is the app frame's own plane, painted while a drawer holds the frame
+     back from the page — but it is a plane, it sits beside a drawer that IS a surface, and two
+     different corner shapes touching read as two different systems. It joins the selector here
+     rather than restating 1.613 in shell.css, because the knob is a judged number with one
+     home; the shell states only WHICH step of the band it wants. */
+  .kui-shell::after {
+    --kui-corner-k: 1.613;
+    corner-shape: squircle;
+  }
   /* The row-hugging pane runs a touch past the global compensation (2026-08-17, Kushagra, by
      eye: "just a little more radius, only in squircle"). A squircle spends its curvature
      along the edge, and on a small pane hugging tight rows the spread reads tighter still —
@@ -511,26 +521,49 @@
 
    It lives here rather than in `command.css` for the reason the accordion's does: a component
    sheet may not name `data-size` (the no-axis walk), so the shared layer publishes the cell and
-   the component reads one hook. `--kui-cmd-px` is the ROW's own inline padding at the same
-   index, which is what makes a caption line up with the rows under it — the thing the
-   stylesheet's comment claimed and no law measured.
+   the component reads one hook.
+
+   `--kui-cmd-px` IS GONE (2026-09-06). It published the ROW's own inline padding so a caption
+   could line up with the rows under it — `--control-px-pill-N`, which is byte for byte what the
+   floating-rows join already publishes to the pane as `--kui-sf-row-px`. Two homes for one
+   value, and the day the rows moved one step above the palette's index the copy declared on the
+   POPUP would have stayed behind while the rows walked off it. The caption reads the join's hook
+   now, at whatever index the pane stamps.
 
    IT PUBLISHES ONE CELL NOW, not three (2026-09-04). The field's height and its font left with
    the bare line: the field is a `.kui-field` since the padding reversal, so it takes `--kui-ct-h`
    and `--kui-ct-font` from the control join by wearing `data-size` itself, which is one home
    rather than two agreeing ones. What is left is the only number the control join cannot answer,
-   because it is a question about a caption standing beside a row rather than about a control. */
+   because it is a question about a caption standing beside a row rather than about a control.
+
+   `--kui-cmd-search-p` is the SEARCH BAR'S own inset, and it is deliberately not the results
+   pane's (2026-09-05, Kushagra: "maybe padding is bit too much no?"). Both blocks are panes at
+   one index — that is what makes one number price the pair — but a pane holding a LIST of rows
+   and a pane holding ONE LINE do not want the same air: the pane's inset is the room its rows
+   stand in, and the bar's is the room around a single line of type. The overlay pads 16/24/32/32 (a card one size up, capped at the
+   band's top) and these are 8/12/16/24 — under it at every index including the one where the
+   overlay's own ladder repeats, which is the cell a picks-table copied off the pane would miss.
+   Layout-space picks, layout-space picks so density reaches them like every other
+   distance (§3, §12), and monotone with the index like the pair they belong to. */
 .kui-command[data-size="1"] {
-  --kui-cmd-px: var(--control-px-pill-1);
+  --kui-cmd-search-p: var(--layout-space-3);
+  --kui-cmd-search-px: var(--layout-space-4);
+  --kui-cmd-search-icon: var(--icon-size-1);
 }
 .kui-command[data-size="2"] {
-  --kui-cmd-px: var(--control-px-pill-2);
+  --kui-cmd-search-p: var(--layout-space-4);
+  --kui-cmd-search-px: var(--layout-space-5);
+  --kui-cmd-search-icon: var(--icon-size-3);
 }
 .kui-command[data-size="3"] {
-  --kui-cmd-px: var(--control-px-pill-3);
+  --kui-cmd-search-p: var(--layout-space-5);
+  --kui-cmd-search-px: var(--layout-space-6);
+  --kui-cmd-search-icon: var(--icon-size-3);
 }
 .kui-command[data-size="4"] {
-  --kui-cmd-px: var(--control-px-pill-4);
+  --kui-cmd-search-p: var(--layout-space-6);
+  --kui-cmd-search-px: var(--layout-space-7);
+  --kui-cmd-search-icon: var(--icon-size-4);
 }
 
 .kui-accordion[data-size="1"] {
@@ -556,6 +589,107 @@
   --kui-ac-px-end: var(--control-px-4);
   --kui-ac-py: var(--layout-space-5);
   --kui-ac-pb: var(--layout-space-6);
+}
+
+/* ── The TOOLBAR's size join (§45, shipped 2026-09-06) ───────────────────────────────────────
+   A toolbar is not a surface either — it paints nothing at all — but its row, its gap and the
+   extent of a rule inside it are per-index facts, and a component stylesheet may not name
+   `data-size` (recipes.test.ts walks for it), so the join lives here with every other one.
+
+   THE ROW IS THE CONTROL HEIGHT, not a number of its own, and that identity is what the whole
+   frame rests on: a band holding a toolbar is exactly as tall as a Button at the same index,
+   which is what makes the shell's published safe area (`--kui-pane-inset-block-start`) derivable
+   rather than measurable.
+
+   THE GAP IS BETWEEN CLUSTERS, and it steps with the index off the layout-space layer, so a
+   compact app closes it with everything else. Inside a cluster the distance is the caller's
+   `Flex` — a toolbar states the rhythm and never the grouping (§30).
+
+   THE TITLE'S OWN AIR is one step above that gap, because a title is a different KIND of thing
+   from the controls it sits among and the distance between two buttons is not the distance
+   between a button and the name of the thing you are looking at.
+
+   THE GLYPH is the icon box at the index, and only a rule reads it: a separator between two
+   clusters stands at the height of the glyphs it divides rather than of the band it crosses. */
+/* AND THE BAND FOLLOWS ITS TOOLBAR (§27, §45, 2026-09-06, Kushagra: "I want sidebar's toolbar at
+   size 3, is sidebar not using toolbar?").
+
+   A pane's chrome row is "one control row at the pane's index", and the frame's published safe
+   area (`--kui-pane-inset-block-start`) is derived from that sentence rather than measured — which
+   is what makes first paint right with no script. A `Toolbar` that states its OWN index breaks
+   the assumption underneath it: the band grows, because the toolbar states its own row, and the
+   reach did not, so a page cleared 64px of an 88px band.
+
+   The band publishes its row back to the pane instead, keyed on the index the toolbar stamps.
+   Eight rules rather than a measurement: the answer must be right on the server, and a height is
+   the one thing CSS cannot ask for. The pane then takes the taller of the two (shell.css), so a
+   band with no toolbar, or one that states nothing, is byte-identical to what it was.
+
+   ONE NAME PER END, not one for both. A pane may carry a size-3 header over a size-2 footer, and
+   a single name would have handed the footer's reach the header's row — a pane's two bands are
+   two facts, and a variable that answers for both is a variable that is wrong for one of them.
+
+   `inherits: false` — this is a fact about THIS pane's own band, and a nested Shell must not
+   read the outer frame's. */
+@property --kui-pane-band-row-start {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --kui-pane-band-row-end {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+.kui-shell-pane:has(> .kui-pane-header > .kui-toolbar[data-size="1"]) {
+  --kui-pane-band-row-start: var(--control-height-1);
+}
+.kui-shell-pane:has(> .kui-pane-header > .kui-toolbar[data-size="2"]) {
+  --kui-pane-band-row-start: var(--control-height-2);
+}
+.kui-shell-pane:has(> .kui-pane-header > .kui-toolbar[data-size="3"]) {
+  --kui-pane-band-row-start: var(--control-height-3);
+}
+.kui-shell-pane:has(> .kui-pane-header > .kui-toolbar[data-size="4"]) {
+  --kui-pane-band-row-start: var(--control-height-4);
+}
+.kui-shell-pane:has(> .kui-pane-footer > .kui-toolbar[data-size="1"]) {
+  --kui-pane-band-row-end: var(--control-height-1);
+}
+.kui-shell-pane:has(> .kui-pane-footer > .kui-toolbar[data-size="2"]) {
+  --kui-pane-band-row-end: var(--control-height-2);
+}
+.kui-shell-pane:has(> .kui-pane-footer > .kui-toolbar[data-size="3"]) {
+  --kui-pane-band-row-end: var(--control-height-3);
+}
+.kui-shell-pane:has(> .kui-pane-footer > .kui-toolbar[data-size="4"]) {
+  --kui-pane-band-row-end: var(--control-height-4);
+}
+
+.kui-toolbar[data-size="1"] {
+  --kui-tb-row: var(--control-height-1);
+  --kui-tb-gap: var(--layout-space-2);
+  --kui-tb-title-gap: var(--layout-space-3);
+  --kui-tb-glyph: var(--icon-size-1);
+}
+.kui-toolbar[data-size="2"] {
+  --kui-tb-row: var(--control-height-2);
+  --kui-tb-gap: var(--layout-space-3);
+  --kui-tb-title-gap: var(--layout-space-4);
+  --kui-tb-glyph: var(--icon-size-2);
+}
+.kui-toolbar[data-size="3"] {
+  --kui-tb-row: var(--control-height-3);
+  --kui-tb-gap: var(--layout-space-3);
+  --kui-tb-title-gap: var(--layout-space-4);
+  --kui-tb-glyph: var(--icon-size-3);
+}
+.kui-toolbar[data-size="4"] {
+  --kui-tb-row: var(--control-height-4);
+  --kui-tb-gap: var(--layout-space-4);
+  --kui-tb-title-gap: var(--layout-space-5);
+  --kui-tb-glyph: var(--icon-size-4);
 }
 
 /* ── The TABLE's size join (§36, shipped 2026-08-31) ─────────────────────────────────────────
@@ -741,33 +875,36 @@
   --kui-sf-pool: 0 0 0 0 transparent;
 }
 
-/* Its size join reads the OVERLAY band — deliberately, and the sharing is the point (§6).
-   A pane that CONTAINS panes must out-round what it holds, or the nesting reads inside-out:
-   the builder's hand-painted canvas wore a size-2 corner around size-3 cards, which is the
-   exact mistake this arithmetic exists to prevent. Dialog established the relationship on
-   2026-08-10 (an overlay wears the corner of the card one size up, at every level) and the
-   padding followed on 2026-08-17. A ground holds cards for the same reason a dialog does,
-   so it wants the same relationship rather than a second copy of it.
+/* A GROUND HAS NO SIZE JOIN OF ITS OWN, AND THE ABSENCE IS THE DECISION (2026-09-07,
+   Kushagra: "A surface can contain a card, sure, but the other way around is also legal…
+   let the caller decide it and how to use it. Just ensure both surface and card subscribe
+   to the same step scale").
 
-   The band's NAME is now wrong and that is recorded rather than fixed here: with two
-   unrelated consumers it is no longer "the overlay band", it is the band a container of
-   panes wears. Renaming it touches generated tokens and belongs in its own change. */
-.kui-surface.kui-ground[data-size="1"] {
-  --kui-sf-radius: var(--radius-overlay-1);
-  --kui-sf-p: var(--surface-p-2);
-}
-.kui-surface.kui-ground[data-size="2"] {
-  --kui-sf-radius: var(--radius-overlay-2);
-  --kui-sf-p: var(--surface-p-3);
-}
-.kui-surface.kui-ground[data-size="3"] {
-  --kui-sf-radius: var(--radius-overlay-3);
-  --kui-sf-p: var(--surface-p-4);
-}
-.kui-surface.kui-ground[data-size="4"] {
-  --kui-sf-radius: var(--radius-overlay-4);
-  --kui-sf-p: var(--surface-p-4);
-}
+   It had one from the day it shipped: the padding and the corner both stepped ONE SIZE UP,
+   on the argument that a pane containing panes must out-round what it holds or the nesting
+   reads inside-out — the mistake the builder's hand-painted canvas made, a size-2 corner
+   around size-3 cards.
+
+   THE ARGUMENT IS ABOUT CONTAINMENT AND CONTAINMENT IS SYMMETRIC, which is what the step got
+   wrong: it was encoded on the COMPONENT rather than on the relationship, so a ground took it
+   whether or not it held anything, and a Card never took it even when it held a ground. That
+   second arrangement is not hypothetical — it is the other of the two shapes this component
+   is documented as being, a bed inside a card that holds something quieter. Measured before
+   the change, a `<Card size="2">` holding a `<Surface size="2">`: card padding 16 and corner
+   51.6, bed padding 24 and corner 64.5. The bed padded more than the box holding it and was
+   rounder than the box holding it — the exact fault the step exists to prevent, produced by
+   the step, and live on the documentation site wherever a code well sat inside a pane.
+
+   Deriving it from what a pane actually holds (`:has(> .kui-surface)`) was refused as fragile
+   — it answers only for a DIRECT child, so one wrapper hides it, and it makes a pane's inset
+   move when its contents change. The step is a CALL SITE's fact: a ground meant to hold cards
+   states a larger `size` than the cards in it, which the size axis already expresses and which
+   nothing here can overrule. One mechanism instead of two.
+
+   So the arms are deleted whole and a ground falls through to the ordinary surface join above
+   — the same padding ladder and the same corner band a Card reads, at its own index. The
+   overlay family keeps its own step: a dialog is never inside a card, so the paradox cannot
+   arise there, and its inset was judged on its own terms. */
 
 /* ── The SHELL PANE join (§27, moved here 2026-08-20) ──────────────────────────────────────
    The shell's per-index facts live in the join layer because a component sheet may not name

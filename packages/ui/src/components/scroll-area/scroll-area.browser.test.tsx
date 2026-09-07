@@ -462,3 +462,49 @@ describe("stillness reaches it too (§8)", () => {
     expect(computed(still, "transition-duration")).toBe("0s");
   });
 });
+
+describe("a nested scroller takes the designed fade, never its ancestor's (2026-09-07)", () => {
+  /* `--kui-sa-fade-*` is the reach a floating band hands DOWN to the scroller passing under it,
+     and a custom property inherits — so a shell pane's reach reached every ScrollArea inside the
+     pane too. Measured on the documentation site before the fix: nine code blocks, all opted into
+     the fade, all resolving 72px, one of them on an element 68px tall, where the reach is deeper
+     than the whole box.
+
+     The band is not mounted here on purpose. This law is about the HOOK's reach, so it drives the
+     hook directly from an outer scroller — the shape any consumer setting it produces, which makes
+     the law fail for the reason it is about rather than for the shell's. */
+  const Nested = (
+    <ScrollArea style={{ height: "200px", width: "200px" }} fade>
+      <div style={{ height: "600px" }}>
+        <ScrollArea style={{ height: "80px", width: "120px" }} fade>
+          <div style={{ height: "600px" }} />
+        </ScrollArea>
+      </div>
+    </ScrollArea>
+  );
+
+  it("the inner scroller resolves the designed length while the outer keeps what it was handed", async () => {
+    const outer = await laidOut(mounted(Nested, { theme: {} }));
+    /* THE END EDGE, not the start, and the first spelling of this law read the start and could
+       not fail: every stop is `min(what is hidden past this edge, the reach)`, and at rest
+       nothing is hidden past the TOP — so both sides computed `0px` whatever the reach said. An
+       unscrolled box hides everything past its bottom, which is the one edge where the reach is
+       observable without driving a scroll. */
+    outer.style.setProperty("--kui-sa-fade-end", "72px");
+    /* NOT `within()`: it returns the ROOT when the root itself matches, which is right for
+       finding a PART and wrong for finding a second instance of the same component — it handed
+       back the outer scroller, and the law compared it with itself. */
+    const inner = outer.querySelector<HTMLElement>(":scope .kui-scroll-area")!;
+    const designed = tokenOn(inner, "--scrollbar-fade");
+
+    /* Read off the painted MASK rather than off the token, because that is what the reader sees
+       and because `tokenOn` answers `0px` for a custom property standing at its guaranteed-invalid
+       initial — indistinguishable from a reach somebody set to zero. */
+    const mask = (el: HTMLElement) => computed(within(el, ".kui-scroll-viewport"), "mask-image");
+    expect(mask(outer)).toContain("calc(100% - 72px)");
+    expect(mask(inner)).toContain(`calc(100% - ${designed})`);
+    /* The vacuity guard: a stand-down that killed the hook everywhere satisfies the inner half
+       on its own, and the mechanism would be gone with the suite green. */
+    expect(mask(inner)).not.toContain("72px");
+  });
+});

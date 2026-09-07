@@ -11,6 +11,7 @@
 import { describe, expect, it } from "vitest";
 
 import { APPEARANCES, DEPTHS, colorOn, computed, mounted, numberOn, probeIn, tokenOn } from "../../test/browser.tsx";
+import { Chip } from "../chip/chip.tsx";
 import { Kbd } from "../kbd/kbd.tsx";
 import { Text } from "../text/text.tsx";
 import { Code } from "./code.tsx";
@@ -193,17 +194,60 @@ describe("the padding is a property of the glyphs, not of the layout (§3, §15)
     );
   });
 
-  it("the corner answers the radius AXIS — none squares it, and the levels order (§6)", () => {
+  /**
+   * THE CORNER ANSWERS THE AXIS AND STOPS AT `large` (§6, 2026-09-05, Kushagra: "you know how
+   * checkbox rejects the theme's roundness, I want code, not code block, code to also reject
+   * it").
+   *
+   * The law shipped 2026-08-08 asserting `full > large`, which was the family's behaviour and
+   * is now the defect: `full` is the DEFAULT level, so every code chip in the library was a
+   * stadium (measured, 0.75em on a 22px box is 0.516 of its own height, past half, which the
+   * engine clamps) — the shape Chip and Badge have BY IDENTITY, so the family's two near-twins
+   * were indistinguishable at the resting radius. It is re-keyed rather than deleted: the
+   * levels still order, `none` still squares, and what is new is where the ladder stops.
+   *
+   * Both halves in one experiment. A law asserting only the ceiling passes on a package where
+   * the whole atom family stopped rounding, which would take Chip's and Badge's identity with
+   * it — so a Chip is mounted beside the chip as the vacuity guard, and it must still pill.
+   */
+  it("the corner answers the radius AXIS — none squares it, the levels order, and it HOLDS at large (§6)", () => {
     const corner = (radius: "none" | "small" | "medium" | "large" | "full") =>
       parseFloat(
         computed(mounted(<Code size="3">x</Code>, { theme: { radius } }), "border-top-left-radius"),
       );
-    expect(corner("none")).toBe(0);
+    // §6's kill switch still owns this corner: it is a CEILING, never a pin.
+    expect(corner("none"), "none no longer squares a chip — the kill switch stopped reaching it").toBe(0);
     const [s, m, l, f] = [corner("small"), corner("medium"), corner("large"), corner("full")];
     expect(s).toBeGreaterThan(0);
     expect(m).toBeGreaterThan(s);
     expect(l).toBeGreaterThan(m);
-    expect(f).toBeGreaterThan(l);
+    // …and it may not RETREAT, which is the surface band's own sentence: `full` means a corner
+    // stops getting rounder, not that it goes back.
+    expect(f, "a chip's corner retreats at `full`").toBe(l);
+
+    // The claim a person can see, at the level they actually get: the chip is a rounded rect
+    // and not a lozenge. Read as a share of the box's own height, because that is what makes a
+    // shape a stadium — the engine clamps any radius past half.
+    const chip = mounted(<Code size="3">npm install</Code>, { theme: { radius: "full" } });
+    const share =
+      parseFloat(computed(chip, "border-top-left-radius")) / chip.getBoundingClientRect().height;
+    expect(share, `a code chip is a stadium at the resting radius (${share})`).toBeLessThan(0.4);
+
+    // THE VACUITY GUARD, and it is the load-bearing half: the family still pills. A Chip is
+    // the near-twin this exception exists to be told apart from, so if it stopped rounding
+    // too, the ceiling would have been applied one layer too high and nothing above would say.
+    // Stated as a RELATION rather than a threshold, which is what makes it need no number:
+    // the twin must still answer the level it is given, and at `full` it must be rounder than
+    // the chip that stops.
+    const twinAt = (radius: "large" | "full") => {
+      const el = mounted(<Chip size="3">draft</Chip>, { theme: { radius } });
+      return parseFloat(computed(el, "border-top-left-radius")) / el.getBoundingClientRect().height;
+    };
+    expect(
+      twinAt("full"),
+      "the whole atom family stopped rounding at `full` — the ceiling was applied to the family, not to Code",
+    ).toBeGreaterThan(twinAt("large"));
+    expect(twinAt("full"), "the family no longer out-rounds the member that holds").toBeGreaterThan(share);
   });
 });
 
@@ -273,5 +317,38 @@ describe("it is inert — an atom with no states (§11)", () => {
       expect(computed(el, "cursor"), `${depth}: an inert atom promises a press`).not.toBe(pressable);
       expect(computed(el, "outline-style")).toBe("none");
     }
+  });
+});
+
+
+/**
+ * THE INSET IS PUBLISHED, AND IT IS THE ONE THAT WAS SPENT (2026-09-05).
+ *
+ * A chip's side padding is glyph breathing room, which means a container that cares where a
+ * COLUMN begins has to be able to subtract exactly what the atom added — the component
+ * reference's props table hangs it so its cells' words land on their headings. Published as
+ * `--kui-atom-inset` and consumed to pad, so the number has one home; this reads the two back
+ * off a mounted atom, which is what catches the padding being changed without the publication.
+ */
+describe("the atom publishes the room it spends (§15)", () => {
+  it("a Code's published inset is its own padding, at any step", () => {
+    for (const size of ["1", "5", "9"] as const) {
+      const code = mounted(<Code size={size}>pnpm run ci</Code>, { theme: {} });
+      const published = computed(code, "--kui-atom-inset");
+      expect(parseFloat(published), `size ${size}: nothing published`).toBeGreaterThan(0);
+      expect(computed(code, "padding-left"), `size ${size}: padded with something else`).toBe(published);
+      expect(computed(code, "padding-right")).toBe(published);
+    }
+  });
+
+  it("and a Kbd publishes its own, which is a different number", () => {
+    // The value is the MEMBER's, never the family's — code.css says so where it picks it, and
+    // a law that read one member could not tell a shared constant from two decisions.
+    const code = mounted(<Code size="3">x</Code>, { theme: {} });
+    const kbd = mounted(<Kbd size="3">K</Kbd>, { theme: {} });
+    expect(parseFloat(computed(kbd, "--kui-atom-inset"))).toBeGreaterThan(
+      parseFloat(computed(code, "--kui-atom-inset")),
+    );
+    expect(computed(kbd, "padding-left")).toBe(computed(kbd, "--kui-atom-inset"));
   });
 });
