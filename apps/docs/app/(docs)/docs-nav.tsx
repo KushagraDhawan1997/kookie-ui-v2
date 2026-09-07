@@ -21,47 +21,104 @@ import { usePathname } from "next/navigation";
 import { Box, NavTree, ShellScroll, type TreeNode } from "@kookie-ui/react";
 
 import {
+  AccordionIcon,
+  AllComponentsIcon,
+  AvatarIcon,
+  BadgeIcon,
+  BlockquoteIcon,
   BlocksIcon,
   BoardIcon,
+  BoxIcon,
+  BreadcrumbIcon,
+  BuildIcon,
+  ButtonIcon,
+  CardIcon,
+  CheckboxIcon,
+  ChipIcon,
+  CodeBlockIcon,
+  CodeIcon,
   ColorIcon,
+  CommandIcon,
   CompassIcon,
+  ComposerIcon,
+  ContextMenuIcon,
   CursorIcon,
   DepthIcon,
   DeviceIcon,
-  FamiliesIcon,
+  DialogIcon,
+  FieldIcon,
+  FileIcon,
+  FlexIcon,
   FormIcon,
+  GridIcon,
+  HeadingIcon,
   IdeaIcon,
   InstallIcon,
+  KbdIcon,
   LayoutIcon,
+  LinkIcon,
   MaterialIcon,
   MegaphoneIcon,
+  MenuIcon,
   MotionIcon,
+  NavTreeIcon,
+  NoticeIcon,
+  PanelLeftIcon,
+  PaperclipIcon,
+  PopoverIcon,
+  ProgressIcon,
+  RadioGroupIcon,
+  RadioIcon,
   RadiusIcon,
-  RocketIcon,
-  RulesIcon,
+  RowIcon,
+  ScrollAreaIcon,
+  SegmentedControlIcon,
+  SelectIcon,
+  SeparatorIcon,
   SizeIcon,
+  SliderIcon,
+  SpinnerIcon,
+  StackIcon,
   StructureIcon,
+  SurfaceIcon,
+  SwitchIcon,
+  TableIcon,
+  TabsIcon,
+  TextAreaIcon,
+  TextFieldIcon,
+  TextIcon,
   ThemeIcon,
+  ToggleIcon,
+  ToolbarIcon,
+  TooltipIcon,
+  TreeIcon,
   TypeIcon,
+  UsersIcon,
+  VocabularyIcon,
+  WarnIcon,
   WindowIcon,
 } from "../icons";
 
-/* One glyph per chapter, keyed by href because the section data crosses the server boundary
-   as `{href, label}` (see the DATA IS PASSED IN note above) and a React component cannot ride
-   in it without dragging the elements the other way. A chapter with no entry here renders
-   bare — the lookup is optional by construction, so a new chapter fails nothing and simply
-   shows up iconless until it is named here. The component rows stay bare on purpose: a list
-   of like things, where a glyph per row is an invented metaphor thirty-one times. */
-const CHAPTER_ICONS: Record<string, React.ComponentType> = {
+/* ONE glyph per row, keyed by href because the section data crosses the server boundary as
+   `{href, label}` (see the DATA IS PASSED IN note above) and a React component cannot ride in
+   it without dragging the elements the other way. A row with no entry here renders bare — the
+   lookup is optional by construction, so a new chapter or component fails nothing and simply
+   shows up iconless until it is named here.
+
+   The component rows joined this table 2026-09-07 (Kushagra). They were deliberately bare
+   before, on the argument that a list of like things gets noise from per-row metaphors — and
+   the argument the other way is the one that won: a leading slot half the rows use is what
+   makes a column look ragged, and with every row carrying one the list is a legend rather than
+   a metaphor. */
+const NAV_ICONS: Record<string, React.ComponentType> = {
   "/start/installation": InstallIcon,
   "/start/theming": ThemeIcon,
-  "/start/your-first-screen": RocketIcon,
-  "/philosophy/why-kookie-exists": IdeaIcon,
-  "/philosophy/component-families": FamiliesIcon,
-  "/philosophy/why-these-rules-hold": RulesIcon,
+  "/start/quickstart": BuildIcon,
+  "/concepts/principles": IdeaIcon,
+  "/concepts/vocabulary": VocabularyIcon,
   "/foundations/color": ColorIcon,
   "/foundations/typography": TypeIcon,
-  "/foundations/space-and-layout": LayoutIcon,
+  "/foundations/layout": LayoutIcon,
   "/foundations/size": SizeIcon,
   "/foundations/radius": RadiusIcon,
   "/foundations/materials": MaterialIcon,
@@ -74,15 +131,75 @@ const CHAPTER_ICONS: Record<string, React.ComponentType> = {
   "/patterns/modality": WindowIcon,
   "/patterns/navigation": CompassIcon,
   "/patterns/feedback": MegaphoneIcon,
+
+  "/components": AllComponentsIcon,
+  "/components/accordion": AccordionIcon,
+  "/components/alert-dialog": WarnIcon,
+  "/components/attachment": PaperclipIcon,
+  "/components/avatar": AvatarIcon,
+  "/components/avatar-group": UsersIcon,
+  "/components/badge": BadgeIcon,
+  "/components/blockquote": BlockquoteIcon,
+  "/components/box": BoxIcon,
+  "/components/breadcrumb": BreadcrumbIcon,
+  "/components/button": ButtonIcon,
+  "/components/card": CardIcon,
+  "/components/checkbox": CheckboxIcon,
+  "/components/chip": ChipIcon,
+  "/components/code": CodeIcon,
+  "/components/code-block": CodeBlockIcon,
+  "/components/command": CommandIcon,
+  "/components/composer": ComposerIcon,
+  "/components/context-menu": ContextMenuIcon,
+  "/components/dialog": DialogIcon,
+  "/components/field": FieldIcon,
+  "/components/flex": FlexIcon,
+  "/components/grid": GridIcon,
+  "/components/heading": HeadingIcon,
+  "/components/kbd": KbdIcon,
+  "/components/link": LinkIcon,
+  "/components/menu": MenuIcon,
+  "/components/nav-tree": NavTreeIcon,
+  "/components/notice": NoticeIcon,
+  "/components/page": FileIcon,
+  "/components/popover": PopoverIcon,
+  "/components/progress": ProgressIcon,
+  "/components/radio": RadioIcon,
+  "/components/radio-group": RadioGroupIcon,
+  "/components/row": RowIcon,
+  "/components/scroll-area": ScrollAreaIcon,
+  "/components/segmented-control": SegmentedControlIcon,
+  "/components/select": SelectIcon,
+  "/components/separator": SeparatorIcon,
+  "/components/shell": PanelLeftIcon,
+  "/components/slider": SliderIcon,
+  "/components/spinner": SpinnerIcon,
+  "/components/stack": StackIcon,
+  "/components/surface": SurfaceIcon,
+  "/components/switch": SwitchIcon,
+  "/components/table": TableIcon,
+  "/components/tabs": TabsIcon,
+  "/components/text": TextIcon,
+  "/components/text-area": TextAreaIcon,
+  "/components/text-field": TextFieldIcon,
+  "/components/theme": ThemeIcon,
+  "/components/toggle": ToggleIcon,
+  "/components/toolbar": ToolbarIcon,
+  "/components/tooltip": TooltipIcon,
+  "/components/tree": TreeIcon,
 };
 
 export type NavLink = { href: string; label: string };
-export type NavSection = { id: string; title: string; links: readonly NavLink[] };
+export type NavSection = {
+  id: string;
+  title: string;
+  links: readonly NavLink[];
+};
 
 /** A chapter or component page as a tree leaf: the href IS the id, which is also what makes
     `currentId={pathname}` the whole current-page wiring. */
 const leaf = ({ href, label }: NavLink): TreeNode => {
-  const Icon = CHAPTER_ICONS[href];
+  const Icon = NAV_ICONS[href];
   return { id: href, label, href, ...(Icon ? { leading: <Icon /> } : {}) };
 };
 
@@ -162,23 +279,25 @@ export function DocsNav({
           insets by the pane's padding. */}
       <Box
         style={{
-          paddingBlockStart: "calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p))",
-          paddingBlockEnd: "calc(var(--kui-pane-inset-block-end) - var(--kui-sf-p))",
+          paddingBlockStart:
+            "calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p))",
+          paddingBlockEnd:
+            "calc(var(--kui-pane-inset-block-end) - var(--kui-sf-p))",
         }}
       >
-      <NavTree
-        items={items}
-        // Every section open on arrival; Components only when you are standing in it. The
-        // tree is uncontrolled past this, so a reader's open/closed choices stick while the
-        // page lives.
-        defaultExpandedIds={[
-          ...sections.map((s) => s.id),
-          "workbench",
-          ...(inComponents ? ["components"] : []),
-        ]}
-        currentId={pathname ?? null}
-        renderLink={(node) => <Link href={node.href!} />}
-      />
+        <NavTree
+          items={items}
+          // Every section open on arrival; Components only when you are standing in it. The
+          // tree is uncontrolled past this, so a reader's open/closed choices stick while the
+          // page lives.
+          defaultExpandedIds={[
+            ...sections.map((s) => s.id),
+            "workbench",
+            ...(inComponents ? ["components"] : []),
+          ]}
+          currentId={pathname ?? null}
+          renderLink={(node) => <Link href={node.href!} />}
+        />
       </Box>
     </ShellScroll>
   );

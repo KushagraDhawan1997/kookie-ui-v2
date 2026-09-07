@@ -19,10 +19,9 @@ import type { MDXComponents } from "mdx/types";
 
 import Installation from "../../content/start/installation.mdx";
 import Theming from "../../content/start/theming.mdx";
-import YourFirstScreen from "../../content/start/your-first-screen.mdx";
-import WhyKookieExists from "../../content/philosophy/why-kookie-exists.mdx";
-import ComponentFamilies from "../../content/philosophy/component-families.mdx";
-import WhyTheseRulesHold from "../../content/philosophy/why-these-rules-hold.mdx";
+import Quickstart from "../../content/start/quickstart.mdx";
+import Principles from "../../content/concepts/principles.mdx";
+import Vocabulary from "../../content/concepts/vocabulary.mdx";
 import Composition from "../../content/patterns/composition.mdx";
 import Forms from "../../content/patterns/forms.mdx";
 import Modality from "../../content/patterns/modality.mdx";
@@ -30,7 +29,7 @@ import Navigation from "../../content/patterns/navigation.mdx";
 import Feedback from "../../content/patterns/feedback.mdx";
 import Color from "../../content/foundations/color.mdx";
 import Typography from "../../content/foundations/typography.mdx";
-import SpaceAndLayout from "../../content/foundations/space-and-layout.mdx";
+import LayoutChapter from "../../content/foundations/layout.mdx";
 import SizeChapter from "../../content/foundations/size.mdx";
 import Radius from "../../content/foundations/radius.mdx";
 import Materials from "../../content/foundations/materials.mdx";
@@ -39,7 +38,7 @@ import Motion from "../../content/foundations/motion.mdx";
 import States from "../../content/foundations/states.mdx";
 import Responsiveness from "../../content/foundations/responsiveness.mdx";
 
-export type SectionId = "start" | "philosophy" | "foundations" | "patterns";
+export type SectionId = "start" | "concepts" | "foundations" | "patterns";
 
 export type Section = {
   id: SectionId;
@@ -55,10 +54,10 @@ export const SECTIONS: readonly Section[] = [
     blurb: "Install the package, set up a theme, and build your first screen.",
   },
   {
-    id: "philosophy",
-    title: "Philosophy",
+    id: "concepts",
+    title: "Concepts",
     blurb:
-      "Why this system is built the way it is, and how it decides which component you reach for.",
+      "How the system sorts components, and which of its rules are enforced rather than advised.",
   },
   {
     id: "foundations",
@@ -94,6 +93,18 @@ export type Chapter = {
       to a subfolder rather than tracing the whole project into the server bundle. */
   source: string;
   /**
+   * Example files this chapter renders with `<Example name="…" />`, named without the
+   * `examples/` prefix or the extension.
+   *
+   * Declared rather than inferred, because the MDX compiles to a component and nothing static
+   * can see which names it passes. The component reference keys its specimens by convention
+   * (`examples/<slug>.tsx`), which a chapter cannot use — a chapter is not a component — so a
+   * chapter states its own. Both directions are law-checked: a name here must exist in the
+   * registry, and a registered example must be claimed by a component, a variant, or a
+   * chapter.
+   */
+  examples?: string[];
+  /**
    * The compiled chapter.
    *
    * Typed with its `components` prop rather than as a bare `ComponentType`, because that prop
@@ -121,28 +132,34 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Theming",
     section: "start",
     blurb:
-      "A Theme sets seven values for your whole app. They control what the app is made of, how tight its spacing is, and whether its surfaces cast light.",
+      "A Theme sets eight values for your whole app. They control what the app is made of, how tight its spacing is, and whether its surfaces cast light.",
     spec: ["§5", "§12"],
     source: "start/theming.mdx",
     Content: Theming,
   },
   {
-    slug: "start/your-first-screen",
-    title: "Your first screen",
+    slug: "start/quickstart",
+    title: "Quickstart",
     section: "start",
     blurb:
-      "Build a settings panel from an empty file. Along the way you can see how much of the screen you never had to describe.",
+      "Build a publish dialog from an empty file, and see how much of the screen you never had to describe.",
     spec: ["§3", "§15"],
-    source: "start/your-first-screen.mdx",
-    Content: YourFirstScreen,
+    source: "start/quickstart.mdx",
+    examples: [
+      "quickstart.containers",
+      "quickstart.group",
+      "quickstart.actions",
+      "quickstart",
+    ],
+    Content: Quickstart,
   },
 
   {
-    slug: "philosophy/why-kookie-exists",
-    title: "Why Kookie exists",
-    section: "philosophy",
+    slug: "concepts/principles",
+    title: "Principles",
+    section: "concepts",
     blurb:
-      "This system sorts components before styling them. This page explains why this order matters and what it provides.",
+      "Components are organised by what they do, rather than by how they look. Two components can look alike and still be different things, so they are kept separate.",
     spec: [
       "THESIS §1",
       "THESIS §2",
@@ -151,28 +168,19 @@ export const CHAPTERS: readonly Chapter[] = [
       "THESIS §5",
       "THESIS §6",
     ],
-    source: "philosophy/why-kookie-exists.mdx",
-    Content: WhyKookieExists,
+    source: "concepts/principles.mdx",
+    examples: ["principles.lookalikes"],
+    Content: Principles,
   },
   {
-    slug: "philosophy/component-families",
-    title: "The component families",
-    section: "philosophy",
+    slug: "concepts/vocabulary",
+    title: "Vocabulary",
+    section: "concepts",
     blurb:
-      "Every component belongs to one of six families: grounds, surfaces, controls, marks, rows and instruments. The family decides which props a component takes.",
+      "These are the words Kookie uses for the different kinds of component, and a component's kind decides which props it takes. When a component doesn't have the prop you expected, its kind is usually the reason.",
     spec: ["THESIS §2", "THESIS §3", "§9", "§10", "§11"],
-    source: "philosophy/component-families.mdx",
-    Content: ComponentFamilies,
-  },
-  {
-    slug: "philosophy/why-these-rules-hold",
-    title: "Why these rules hold",
-    section: "philosophy",
-    blurb:
-      "Some rules here are types you cannot write incorrectly. Some are checked automatically. The rest are judgments, and this page tells you which is which.",
-    spec: ["ENGINEERING §1", "ENGINEERING §6", "THESIS §4"],
-    source: "philosophy/why-these-rules-hold.mdx",
-    Content: WhyTheseRulesHold,
+    source: "concepts/vocabulary.mdx",
+    Content: Vocabulary,
   },
 
   {
@@ -196,14 +204,14 @@ export const CHAPTERS: readonly Chapter[] = [
     Content: Typography,
   },
   {
-    slug: "foundations/space-and-layout",
-    title: "Space and layout",
+    slug: "foundations/layout",
+    title: "Layout",
     section: "foundations",
     blurb:
       "A component never sets its own outer spacing. The container sets every distance, because only the container knows how its children relate.",
     spec: ["§3", "§12"],
-    source: "foundations/space-and-layout.mdx",
-    Content: SpaceAndLayout,
+    source: "foundations/layout.mdx",
+    Content: LayoutChapter,
   },
   {
     slug: "foundations/size",
@@ -257,7 +265,7 @@ export const CHAPTERS: readonly Chapter[] = [
   },
   {
     slug: "foundations/states",
-    title: "States and interaction",
+    title: "States",
     section: "foundations",
     blurb:
       "Every control shares one set of states: hover, press, focus, disabled and invalid. CSS handles all of them, so no JavaScript runs when someone points at a control.",
@@ -301,7 +309,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Modality",
     section: "patterns",
     blurb:
-      "Decide how much to interrupt someone. This page covers the difference between a surface that holds their work and one that stops them to ask a question.",
+      "Decide how much to interrupt someone. The choices run from a menu that borrows the pointer for a moment to an alert that stops everything for one question.",
     spec: ["§24", "§25"],
     source: "patterns/modality.mdx",
     Content: Modality,
@@ -311,7 +319,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Navigation",
     section: "patterns",
     blurb:
-      "The app frame is a pattern you build, not a component you drop in. This page shows which shape it should take at each window size.",
+      "The app frame is a pattern you build rather than a component you drop in, and the shape it takes follows from the window size.",
     spec: ["§26", "§27", "§18"],
     source: "patterns/navigation.mdx",
     Content: Navigation,

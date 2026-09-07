@@ -2,20 +2,18 @@
  * One renderer over the chapter registry. Adding a chapter is adding a row and a file; no
  * page is ever written for it.
  *
- * The catch-all sits at the docs root, so it answers `/philosophy/why-kookie-exists` and
+ * The catch-all sits at the docs root, so it answers `/concepts/principles` and
  * every other `<section>/<name>` pair. `/components` and `/components/<slug>` are static
  * segments and win over it, which is Next's own specificity rule and the reason the component
  * reference can keep its own renderer.
  */
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Box, Button, Flex, Stack } from "@kookie-ui/react";
+import { Box, Page } from "@kookie-ui/react";
 
-import { ChevronLeftIcon, ChevronRightIcon } from "../../icons";
 import { ProseFlow } from "../../../mdx-components";
-import { BY_SLUG, CHAPTERS, neighbours } from "../chapters";
-import { PageFrame, PageTitle } from "../page-frame";
+import { BY_SLUG, CHAPTERS } from "../chapters";
+import { PageFrame } from "../page-frame";
 import { chapterToc, type TocEntry } from "../toc";
 import { TableOfContents } from "../../../blocks/table-of-contents";
 
@@ -57,7 +55,14 @@ export async function generateMetadata({
  */
 function OnThisPage({ entries }: { entries: TocEntry[] }) {
   if (entries.length < 3) return null;
-  return <TableOfContents entries={entries} className="kd-toc" />;
+  return (
+    /* TWO ELEMENTS, because they hold two facts: the COLUMN is placed — out of the article's
+       flow, at the pane's end, as tall as the chapter — and the nav inside it holds still while
+       the page scrolls. One element cannot do both, since sticky is in-flow positioning. */
+    <div className="kd-toc-column">
+      <TableOfContents entries={entries} className="kd-toc" />
+    </div>
+  );
 }
 
 export default async function ChapterPage({ params }: { params: Promise<{ slug: string[] }> }) {
@@ -66,7 +71,6 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
   if (!chapter) notFound();
 
   const toc = chapterToc(chapter.source);
-  const { prev, next } = neighbours(chapter.slug);
   const { Content } = chapter;
 
   return (
@@ -75,20 +79,24 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
 
        The column was 46rem and the prose inside it 40, so the title, the deck and every figure
        ran 96px past the sentences — two right edges on a page whose whole job is reading. The
-       column is the measure now, and the frame is that plus the gutter the table of contents
-       sits in (40 + 3 + 14), so the pair still centres on the pane rather than the column
-       drifting left of it. `prose.css` carries why the text is what gives and not the column.
+       frame IS the measure now, so the title, the deck, every figure and the footer under them
+       all end where the sentences end. `prose.css` carries why the text is what gives.
 
-       THE GUTTER IS 3rem SINCE 2026-09-04 (Kushagra: the horizontal space between the table of
-       contents and the page "is too less"). It was 2, which is the interval this system uses
-       BETWEEN things inside one region — and these are two columns a reader moves between, so
-       the distance has to say they are separate rather than adjacent. The frame grew by exactly
-       the same step: the three numbers are one sum, and changing the gutter without it would
-       have taken the difference out of the measure, which is the one number here that is not
-       ours to spend. */
-    <PageFrame width="57rem">
-      <Flex gap="9" align="flex-start">
-        <Stack gap="8" style={{ maxWidth: "var(--kd-measure)", minWidth: 0, flex: 1 }}>
+       THE FRAME NO LONGER CARRIES THE CONTENTS' COLUMN (2026-09-05). It was `40 + 3 + 14`, one
+       box holding both, which is why the pair drifted left of the pane's own end as the window
+       grew. The chapter reserves that same 17rem on the end side and the frame centres in what
+       is left, so this number is the reading measure and nothing else — and the reading column
+       lands where it already did at every width. `prose.css` carries the reserve, the pin and
+       the width where the arrangement stops fitting; the gutter's own reason (2026-09-04, "the
+       horizontal space between the table of contents and the page is too less") moved there
+       with it. */
+    <Box className="kd-chapter">
+      <PageFrame width="var(--kd-measure)">
+        <Page
+          title={chapter.title}
+          description={chapter.blurb}
+          style={{ minWidth: 0 }}
+        >
           {/* THE SECTION NAME USED TO SIT HERE, at `size 2 quiet`, and it was an eyebrow: two
               elements doing one element's job, which §15 refuses by name and this renderer
               was publishing on every page of the site. It said nothing the reader did not
@@ -98,67 +106,13 @@ export default async function ChapterPage({ params }: { params: Promise<{ slug: 
 
               `kd-prose` for the reading measure alone: the deck is prose and belongs on the
               same column as the prose under it, and the class is where that width is stated. */}
-          <PageTitle deck={chapter.blurb}>{chapter.title}</PageTitle>
-
           <ProseFlow>
             <Content />
           </ProseFlow>
 
-          {/* THE WAY ON, AND NOTHING ELSE (2026-09-03, Kushagra: "what is this Getting started ·
-              Specified in §5, §13 kinda thing at bottom of each docs, hate it, remove it… remove
-              that separator, just use one button with chevron + label").
-
-              THREE THINGS WENT. The colophon — the section name and the spec citation — was
-              furniture that told a reader nothing they could act on: the navigation already shows
-              which section this chapter is in with the current page lit inside it, and a citation
-              into a document the reader cannot open is a note to ourselves published on every
-              page of the site. **The claim it carried is still true and still checked** — a law
-              resolves every `chapter.spec` entry against the real §, and `chapters.ts` still
-              states them — so what left is the printing of it, not the guarantee.
-
-              THE `Previous` / `Next` LABELS WERE EYEBROWS, which §15 refuses by name: two
-              elements doing one element's job, a size-2 line above the thing that already says
-              what it is. The direction is what the chevron is for, and it is on the side the
-              reader is going.
-
-              AND THE SEPARATOR WENT WITH THEM. §15's rule is that a rule earns its place only
-              where DISTANCE cannot group — which was not the case here, since the footer already
-              sits at the page's largest interval. It was drawing a line across a gap that was
-              already doing the work, which is the footer block's own finding one route over.
-
-              A QUIET BUTTON RATHER THAN A LINK, and the difference is what the row is for: a link
-              is a word inside a sentence and this is a place to press at the end of a page. It is
-              a real `<a>` through `render`, so the address, the middle-click and the keyboard are
-              the platform's. */}
-          <Box mt="7">
-            <Flex gap="4" justify="space-between" align="center" wrap="wrap">
-              {prev ? (
-                <Button
-                  emphasis="quiet"
-                  leading={<ChevronLeftIcon />}
-                  render={<Link href={`/${prev.slug}`} />}
-                >
-                  {prev.title}
-                </Button>
-              ) : (
-                /* Holds the start wall: one child and `space-between` pushes it to the wrong
-                   one, which is the same fault the footer block answers the same way. */
-                <span />
-              )}
-              {next ? (
-                <Button
-                  emphasis="quiet"
-                  trailing={<ChevronRightIcon />}
-                  render={<Link href={`/${next.slug}`} />}
-                >
-                  {next.title}
-                </Button>
-              ) : null}
-            </Flex>
-          </Box>
-        </Stack>
-        <OnThisPage entries={toc} />
-      </Flex>
-    </PageFrame>
+        </Page>
+      </PageFrame>
+      <OnThisPage entries={toc} />
+    </Box>
   );
 }

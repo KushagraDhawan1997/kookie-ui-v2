@@ -4,8 +4,8 @@ about announcing the answer rather than painting it.
 
 ## The frame is a pattern, not a component
 
-`Shell` arranges things it does not own, which is what makes it a pattern. A component contains
-the things it owns, and if a child ever has to reach upward and configure its parent, you have
+`Shell` arranges things it doesn't own, and that makes it a pattern. A component contains
+the things it owns, and if a child ever has to reach upward and configure its parent, you've
 built a pattern as a component.
 
 Every pane owns its own `open` state, exactly as `Dialog` does. Nothing inspects the children,
@@ -24,15 +24,15 @@ finds a pane by name.
 
 ## The panes
 
-The header is full width by definition. A header that is not full width is a header inside the
-content, which is a different thing. If you want a sidebar running the full height under a
+The header is full width by definition. A header that isn't full width is a header inside
+the content, which is a different thing. If you want a sidebar running the full height under a
 header that only covers the content, write no `ShellHeader` and put a header inside
 `ShellContent` instead.
 
-The rail and the sidebar are two independent columns. The rail is the narrow icon column that
-picks a high-level area; the sidebar is the wide column showing what the rail picked. They
-coexist, and neither collapses into the other. A sidebar holds many items and a rail holds a
-few, so this frame never squashes one into the other. One column of navigation is a sidebar.
+The rail and the sidebar are two independent columns. The rail is the narrow icon column
+that picks a high-level area. The sidebar is the wide column showing what the rail picked.
+They coexist, and neither collapses into the other, because a sidebar holds many items and a
+rail holds a few. One column of navigation is a sidebar.
 Icons alone are a rail. Both together is the shape VS Code and Slack use.
 
 `ShellContent` renders `<main>` and is the one pane you must have. `ShellInspector` is the
@@ -45,19 +45,20 @@ siblings rather than special parts.
 
 ## A pane pads its own content
 
-Every pane is a surface and pads like one, based on its `size`. Do not add your own `p` or `px`
-to the first child of a pane — you would be adding a second inset to one that is already there.
+Every pane is a surface and pads like one, based on its `size`. Don't add your own `p` or
+`px` to the first child of a pane. That would add a second inset to one that's already
+there.
 
 The header's height comes from the same rule: one control row at the pane's size, inside the
-pane's padding. So at any given size, a header is exactly as tall as the rail is wide. It is a
-minimum rather than a fixed height, so something taller grows it and something shorter centres
-in it.
+pane's padding. So at any given size, a header is exactly as tall as the rail is wide. It's
+a minimum rather than a fixed height, so something taller grows it and something shorter
+centres in it.
 
 Two things still reach the pane's edges, and both are automatic:
 
-- **A `ShellScroll` reaches them on its own.** It is a scroll area, and a scroll area placed
-  directly inside a surface stretches to that surface's edges and re-pads its own contents. That
-  is what lets a highlighted nav row span its whole column.
+- **A `ShellScroll` reaches them on its own.** It's a scroll area, and a scroll area placed
+  directly inside a surface stretches to that surface's edges and re-pads its own contents. So
+  a highlighted nav row can span its whole column.
 - **Anything else says `m="bleed"`.** A picture across the top of the content pane, or a canvas
   that wants the whole box, cancels the pane's padding with the same value any surface takes.
 
@@ -73,28 +74,28 @@ Two things still reach the pane's edges, and both are automatic:
 
 A pane nobody has touched rests on `auto`, and CSS decides what auto means at the current window
 size. So the first paint is right on the server and in the browser with no script, and React
-cannot complain that the two disagree, because both produce the same attribute. The first time
+can't complain that the two disagree, because both produce the same attribute. The first time
 someone toggles a pane, that choice becomes explicit and beats any boundary.
 
 Nothing in the frame measures anything when it mounts. `useWindowClass()` returns `null` on the
-server and until the first paint rather than guessing. Use the hook for decisions after mount;
-let the stylesheet hold the resting shape of the app.
+server and until the first paint rather than guessing. Use the hook for decisions after mount,
+and let the stylesheet hold the resting shape of the app.
 
 ## Three window sizes, three shapes
 
-A window size picks the shape of the navigation, and you decide it once, at the top, against the
-window — not per container and not per component.
+A window size picks the shape of the navigation, and you decide it once, at the top, against
+the window. Never per container, and never per component.
 
-`narrow` shows one thing at a time and opens the navigation over it. `regular` and `wide` keep
-the navigation columns in the layout. The extra room at `wide` is what a second column such as
-an inspector costs you.
+`narrow` shows one thing at a time and opens the navigation over it. `regular` and `wide`
+keep the navigation columns in the layout. `wide` has the extra room a second column, such as
+an inspector, needs.
 
-There are three because there are three shapes. That is a judgment. A fourth would be a question
-about how much room there is inside a pane, and container sizes already answer that.
+Three classes exist because navigation has three shapes. A fourth would ask
+how much room a pane has, and container sizes already answer that.
 
 ## Tabs or a segmented control
 
-Both draw a row of choices and they are two different things. Ask what each does when the other
+Both draw a row of choices, and they're two different things. Ask what each does when the other
 is absent: you can switch views without setting a value, and set a value without switching a
 view. **Use `Tabs` when the thing underneath changes.**
 
@@ -110,25 +111,25 @@ form. A tab bar announces a tab list and owns the panels.
 ```
 
 Formatting buttons are neither. Italic and underline both switched on at once is a set of toggle
-buttons, which is a third thing. A radio group holds one answer, so it cannot express that.
+buttons, which is a third thing. A radio group holds one answer, so it can't express that.
 
 ## Menu or select
 
-The same test, one family over. A `Menu` is a list of actions: choosing one runs it and closes
+The same test separates these two. A `Menu` is a list of actions: choosing one runs it and closes
 the panel. A `Select` is a list of values: choosing one fills a control that submits with a form.
 A select renders a hidden input and announces itself as a combobox, and a styled menu cannot do
 that.
 
-Two things follow from it. A select positions its panel so the chosen row lands on the value it
-is replacing, which means the panel can hang both above and below the trigger. And a select
+Two things follow from it. A select positions its panel so the chosen row lands on the value
+it's replacing, which means the panel can hang both above and below the trigger. And a select
 nobody has opened needs `items` to turn its value into a label, because the labels live on
-options that have not mounted yet.
+options that haven't mounted yet.
 
 ## Say where you are
 
 Set `current` on a navigation row or a rail square. It colours the row *and* sets
-`aria-current="page"`, and both halves matter: colour alone tells nothing to anyone who cannot
-see it, while the announcement carries through a screen reader, a high-contrast setting and a
+`aria-current="page"`, and both halves matter. Colour alone tells nothing to anyone who
+can't see it. The announcement carries through a screen reader, a high-contrast setting, and a
 monochrome display.
 
 ```tsx
@@ -158,9 +159,9 @@ monochrome display.
 </Shell>
 ```
 
-The colour comes from a tone and a loudness rather than a louder step on one scale. Grey means
-your pointer is over the row; accent means this is where you are. Because they use different
-colours, the row you are on still changes under the pointer.
+The colour comes from a tone and a loudness rather than a louder step on one scale. Grey
+means your pointer is over the row. Accent means this is where you are. Because they use
+different colours, the row you're on still changes under the pointer.
 
 Rows never rank against each other, because every item in a list of places is a peer. Being the
 current one is a state the component sets, not a loudness you pick.

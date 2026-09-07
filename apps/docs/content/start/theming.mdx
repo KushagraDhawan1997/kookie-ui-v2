@@ -1,4 +1,6 @@
-A theme is a way for your app to answer eight fundamental questions once, ensuring no screen repeats them. Everything within the theme automatically picks up these answers. All eight questions are optional, and every default is the right answer for an app that hasn’t decided yet. This deliberate design choice means that changing one question requires knowledge about your app that the library cannot possess.
+A `Theme` sets eight things for your whole app: appearance, density, radius, contrast,
+pointer, depth, material, and size. Every component inside the theme picks up those settings.
+All eight are optional, and the defaults suit an app that hasn't made any decisions yet.
 
 ## The eight settings
 
@@ -17,41 +19,57 @@ A theme is a way for your app to answer eight fundamental questions once, ensuri
 </Theme>
 ```
 
-**`appearance`** is light or dark. Use `inherit` at the root. That tells the Theme not to
-choose a mode itself, and to take the one already written on `<html>` by the small script in
-[Installation](/start/installation). That script plus `inherit` is the whole of dark mode.
+### Appearance
 
-**`density`** changes how much space sits between things. It does not shrink anything. A
-compact theme uses smaller gaps from the same set of spacing values; the text stays the same
-size and the corners stay the same shape.
+`appearance` takes `light`, `dark`, or `inherit`. Use `inherit` at the root. The theme then
+reads the mode from `<html>`, where the script in the [Installation](/start/installation)
+chapter already wrote it.
 
-**`radius`** sets how round your app is. Each kind of component works out its own corner from
-that one word, so a button, a card and a menu row stay in proportion at every setting.
+### Density
 
-**`contrast`** raises contrast for people who need it. Set it to `high` yourself, or leave it
-alone: someone who has asked their operating system for more contrast gets it without you
-doing anything.
+`density` takes `compact`, `default`, or `comfortable`. It changes how much space sits between
+elements, and it doesn't shrink anything. A compact theme uses smaller gaps from the same set
+of spacing values. Text stays the same size, and corners keep their shape.
 
-**`pointer`** is whether people are using a mouse or a touch screen. `auto` follows the
-device. Setting it yourself switches everything at once, which is useful when you want to
-check phone sizing on your laptop.
+### Radius
 
-**`depth`** is whether your app has light in it. Either surfaces sit above the page and cast a
-shadow, or everything sits flat. You decide once, for the whole app. There is no shadow prop
-on a Card.
+`radius` takes `none`, `small`, `medium`, `large`, or `full`. Each kind of component works out
+its own corner from that one word, so a button, a card, and a menu row stay in proportion at
+every setting.
 
-**`material`** is what your app is made of. One value covers everything, because every panel
-in one app is made of the same stuff.
+### Contrast
 
-**`size`** is the step your components rest at. Set it to `3` and every button, field, card,
-menu and dialog that does not state a size of its own moves up one step together. It is a
-default, not a limit: a `size` on any component still wins, and a `Field` or a `Composer` — the
-two things you size as one object — win for what they contain.
+`contrast` takes `normal` or `high`. Set `high` yourself, or leave it alone. Anyone who has
+asked their operating system for more contrast gets it automatically.
 
-It does not touch text. `Text` and `Heading` read a scale that is nine steps long rather than
-four, so one number cannot mean the same thing to both; rank your text with the steps in
-[Composition](/patterns/composition) instead. `Code`, `Kbd`, `Badge`, `Avatar` and `Chip` take
-the size of the line they sit in, and this setting leaves them there.
+### Pointer
+
+`pointer` takes `fine`, `coarse`, or `auto`, and tells the theme whether people are using a
+mouse or a touch screen. `auto` follows the device. Set it yourself to check phone sizing on
+your laptop.
+
+### Depth
+
+`depth` takes `flat` or `elevated`, and decides whether surfaces cast shadows. You decide
+once for the whole app, and no component takes a shadow prop.
+
+### Material
+
+`material` takes `solid`, `thin`, `regular`, or `thick`. Material is what your app is made
+of. One value covers everything, because every panel in an app is made of the same material.
+
+### Size
+
+`size` takes `1`, `2`, `3`, or `4`, and sets the default size for controls and surfaces. Set it
+to `3` and every button, field, card, menu, and dialog that doesn't state a size of its own
+moves up one step together. It's a default rather than a limit. A `size` on any component
+still wins, and a `Field` or a `Composer` sets the size for the controls inside it, because you
+size those as one object.
+
+Size doesn't touch text. `Text` and `Heading` use a nine-step scale of their own, so one number
+can't mean the same thing to both. The [Composition](/patterns/composition) chapter covers how
+to rank your text. `Code`, `Kbd`, `Badge`, `Avatar`, and `Chip` take the size of the line they
+sit in, and this setting leaves them there.
 
 ## Nest a Theme to change one region
 
@@ -70,30 +88,26 @@ A Theme inside a Theme changes only the settings it names and inherits the rest.
 Use this when one region genuinely needs to behave differently: a dark hero on a light page, a
 tight inspector panel in a roomy app, or a glass panel sitting over a photograph.
 
-Nesting is also what keeps menus and dialogs correct. Every floating layer applies the theme
-again inside itself, so a menu opened from a dark section opens dark.
+Nesting also keeps menus and dialogs correct. Every floating layer applies the theme again
+inside itself, so a menu opened from a dark section opens dark.
 
-One thing nesting does not do is make a region measurable. If you want a component to respond
-to the width of its container rather than the window, use `<Box container>` around it.
+Nesting doesn't affect responsive behaviour. If you want a component to respond to the width
+of its container rather than the window, wrap it in `<Box container>`.
 
-## You cannot set the accent colour as a prop
+## The accent colour
 
-This is the thing people expect and do not find. There is no `accentColor` prop.
+There's no `accentColor` prop. You set your accent in the colour config as a hue and a
+saturation, and the generator calculates every shade, every role, both modes, and every
+contrast level from those two numbers. A prop could only take a hex value, and a hex value
+can't tell the generator what its hover state, its border, or its readable text colour should
+be.
 
-Your accent is set in the colour config as a hue and a saturation, and every shade, every
-role, both light and dark, and every contrast level is worked out from those two numbers. A
-prop could only take a hex value, and a hex value is exactly what that generator exists to
-avoid: one hex cannot tell you what its hover state, its border or its readable text colour
-should be.
-
-The consequence is that an app has one accent. A section with different branding inside the
-same app is not something you can express today.
+So an app has one accent. You can't give one section its own branding today.
 
 ## Reading the theme in JavaScript
 
-Most code never needs to. Components pick up the settings through CSS, which is why nothing
-runs in JavaScript when you hover or press a control. Two hooks exist for the cases CSS cannot
-reach.
+Components pick up the settings through CSS, so most code never needs to read them. Two hooks
+exist for the cases CSS can't reach.
 
 ```tsx
 import { useMaterial, useWindowClass } from "@kookie-ui/react";
@@ -115,19 +129,15 @@ function Nav() {
 ```
 
 `useWindowClass` returns `null` on the server and until the first paint, because the server
-cannot measure a window and a hook that guessed would make React complain that the server and
-the browser disagree. If you need the answer before anything paints, write it in CSS instead.
-The library exports the same boundaries as `windowClassQueries`.
+can't measure a window, and a hook that guessed would make React complain that the server and
+browser disagree. If you need the answer before anything paints, write it in CSS instead. The
+same breakpoints are exported as `windowClassQueries`.
 
-## Two defaults worth explaining
+## Why depth starts elevated and material starts solid
 
-The resting theme is light, normal density, fully rounded, normal contrast, automatic pointer,
-raised surfaces and solid material. Two of those are choices rather than obvious answers.
+**`depth` starts at `elevated`** because most apps have a light source. A flat app is a
+deliberate choice, so you state it.
 
-**`depth` starts at `elevated`** because most apps do have light in them. A flat app is the
-deliberate exception, not the neutral starting point. That is a judgment.
-
-**`material` starts at `solid`**, and solid is a material rather than the absence of one. It is
-the setting where light stops passing through. Glass needs two things to be true: your theme
-has to be made of glass, and something has to be behind the panel for it to bend. A control
-sitting in ordinary page flow stays solid and costs you nothing.
+**`material` starts at `solid`.** Solid is the setting where light stops passing through.
+Glass only appears when the theme is made of glass and something is behind the panel to bend,
+so a control in ordinary page flow stays solid.

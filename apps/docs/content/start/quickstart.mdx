@@ -1,0 +1,85 @@
+You'll build a publish dialog one piece at a time. Each piece runs beside the code that
+makes it. By the end, you'll have written no colours, no pixel values, and no breakpoints.
+
+## Choose the containers before the components
+
+The container sets the distance between its children, so the first decision is which
+container handles which spacing.
+
+<Example name="quickstart.containers" />
+
+The two Stacks use different gaps. The outer one, at 6, separates whole sections. The inner
+one, at 2, ties the heading to the sentence underneath it.
+
+Keep related elements closer together than unrelated ones. A screen that uses the same gap
+everywhere looks like one long list.
+
+Nothing in that file sets a margin. No component sets its own outer spacing, so every
+distance on the screen comes from a container you can see.
+
+## Put a checkbox beside its label
+
+<Example name="quickstart.group" />
+
+These are checkboxes rather than switches. A switch applies the moment you flip it, so a
+screen full of switches needs no Save button. A checkbox is a value you're about to submit.
+These two wait for the Publish button.
+
+No checkbox or switch takes a `label` prop. A label is text, and `Text` already handles
+every size, weight, and colour that text needs. A `label` prop on a checkbox would mean
+building a second, smaller text system inside it.
+
+`render={<label htmlFor="…" />}` swaps the element without changing the component. You keep
+the text size and colour, and the browser gets a real `<label>`, so clicking the words toggles
+the control.
+
+The outer Stack uses gap 5 rather than 4, because stacked checkboxes and switches need 12
+real pixels between them. Each one's tap target is larger than the mark you can see, and below
+12 pixels the targets overlap, so a click meant for one row can toggle the row above it.
+
+## Rank the two buttons
+
+<Example name="quickstart.actions" />
+
+Two props do two different jobs here. `emphasis` sets how much attention the button asks
+for: `quiet`, `medium`, or `loud`. `tone` sets what the button means. Keeping them separate is
+why no value like `secondary-outline-destructive` exists. That one string answers three
+questions at once, and you can't change one answer without changing the others.
+
+Nothing defaults to loud and accent. A second loud button would be a deliberate choice, so
+most screens end up with one obvious action.
+
+## Put the pieces together
+
+`Options` and `Actions` go where the comment was, inside the outer Stack. That Stack's gap of
+6 separates the three regions, so none of the pieces had to know about the ones above or below
+them.
+
+<Example name="quickstart" />
+
+## What you never had to write
+
+The finished file is about fifty lines, and none of it mentions any of the following.
+
+- **No colours.** You picked a tone and an emphasis, and the theme calculated the actual
+  colours. The result follows dark mode, responds to the high-contrast setting, and survives a
+  later change of accent.
+- **No pixel sizes.** `size` is a step. One number sets the height, the padding, the corner,
+  the icon, and the label size together.
+- **No breakpoints.** Targets get bigger on a touch screen and text gets bigger on a phone.
+  Layouts respond to the space they're given rather than the width of the window.
+- **No hover, focus, or press styles.** CSS handles every state, so nothing runs in
+  JavaScript when someone points at a control.
+- **No accessibility wiring beyond `htmlFor`.** The roles, the keyboard behaviour, and the
+  announcements come with the components.
+
+## Where to go next
+
+Read the [Vocabulary](/concepts/vocabulary) chapter next. It tells you which component to
+reach for in a given situation. After that, [Colour](/foundations/color) and
+[Layout](/foundations/layout) are the two chapters you'll use most often.
+
+The [builder](/builder) is a live editor over these same components. Every distance is a token
+step and every setting comes from a fixed list, so everything you draw can be expressed in
+code. It exports the React code a developer would have written, and it checks your screen
+against the composition rules as you work.

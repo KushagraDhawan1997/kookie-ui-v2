@@ -1,0 +1,81 @@
+Kookie organises its components by what they do, rather than by how they look. Two components
+can look almost identical and still do different jobs, and when that happens the system keeps
+them separate, each with its own name and its own props. Tabs and SegmentedControl are the
+clearest example.
+
+## Behaviour comes first
+
+A pattern is a recurring structure: a context, a problem, and the shape of the solution. A
+component is a pattern packaged for reuse. A name is the label on the package.
+
+Kookie decides in that order: the pattern first, then the component, then the name. A
+component that starts from a name and a picture gets its behaviour last, one prop at a time.
+
+## Two components that look alike
+
+Tabs and SegmentedControl both draw a row of segments, and at a glance they're hard to tell
+apart. They do different jobs, however. Tabs moves you between views, so it replaces whatever
+sits under it. SegmentedControl sets a value in place, so what sits under it stays and only its
+contents change.
+
+<Example name="principles.lookalikes" quiet />
+
+The two controls above look almost the same, and they announce themselves differently. Tabs
+announces itself to a screen reader as a tab list and gives each panel a name. SegmentedControl
+announces itself as a radio group, so a screen reader says "3 of 3 selected" and the arrow keys
+change the value. Neither component can produce the other's behaviour.
+
+To tell two look-alikes apart, ask what each one does when the other is absent. You can switch
+views without setting a value, and you can set a value without switching views. That makes them
+two operations rather than one operation with two appearances. So no `variant` prop turns one
+into the other.
+
+## Components and patterns
+
+A component contains the things it owns. A pattern coordinates things it doesn't contain. A
+button owns its label, its icon, and its padding, so it's a component. An app frame has to
+coordinate the header, the sidebar, the content, and the window width, so it's a pattern. You
+build a pattern from components. The [Navigation](/patterns/navigation) chapter shows how to build one
+for each window size.
+
+The two are easy to tell apart in practice, because a component's children never configure
+their parent. If a child has to reach upward and change its parent, like a sidebar setting the
+page's margin, you're looking at a pattern. Build it in your app rather than asking one
+component to hold it.
+
+## Measurements and judgments
+
+Not every design question is a matter of taste. Some of them have been measured.
+
+- Fitts's law, from 1954, predicts how long it takes to move a pointer to a target, from the
+  distance and the size of that target.
+- A fingertip is about 10 millimetres across, which is where every platform's 44-point
+  minimum tap target comes from.
+- The Gestalt principles, from 1923, describe how your eye groups things before you read them.
+- WCAG and APCA both measure whether text is readable against its background.
+
+Past the measured limits, a decision is a judgment: the exact corner radius, how saturated a
+glass panel should be, or which hue the accent takes.
+
+The system keeps the two apart. Where something has been measured, the system enforces it, and
+no prop can undo it. Where something is a judgment, it's written down as a single value, and
+changing it is a one-line edit. The system doesn't present judgments as measurements.
+
+## Consistency
+
+An inconsistent system doesn't show its cost right away. The first screen is fine, and so is
+the fifth. By the twentieth, the same questions have been answered a dozen times in a dozen
+places, and no screen can see what the others decided.
+
+Kookie avoids that by deciding once. Each decision lives in one place, and every screen reads
+it.
+
+## The trade
+
+A system that decides once has fewer ways out than you may be used to. There's no `variant` prop
+to reach for when a design doesn't quite fit. What you get instead are refusals, each recorded
+with a reason and an alternative, and every component's page lists its own. The one way out is
+`style`, and a `style` value is easy to see in a review.
+
+In return, the system stays consistent as your app grows, because its decisions are enforced
+rather than left to memory.

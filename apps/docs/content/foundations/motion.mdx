@@ -1,18 +1,18 @@
-Motion here covers two things: a colour changing, and something moving. Two separate clocks
-drive them. No component sets a duration, and CSS handles every transition, so nothing runs in
+Motion covers two things: a colour changing, and something moving. Two separate clocks drive
+them. No component sets a duration, and CSS handles every transition, so nothing runs in
 JavaScript while someone is pressing a control.
 
 ## Colour and movement run on separate clocks
 
-A colour or opacity change eases, and it is short. It uses `--motion-duration` and
+A colour or opacity change eases, and it's short. It uses `--motion-duration` and
 `--motion-easing`.
 
 Something that moves follows a spring. The configuration states the physics, and the generator
 samples that model and bakes the result into a CSS `linear()` curve. The finished curve costs
 the browser exactly what a `cubic-bezier` costs.
 
-Keeping the two apart matters. Put both on one clock and the colour has to wait for the
-movement, which makes the control feel late.
+If both changes share one clock, the colour waits for the movement, and the control
+responds late.
 
 ```css
 /* Wrong: one clock for everything. */
@@ -31,32 +31,33 @@ movement, which makes the control feel late.
 ## A press changes colour immediately
 
 A tap lasts about 60 milliseconds. An eased fill never reaches its colour in that time, so
-someone tapping on a phone gets no colour response at all. That was measured on real hardware;
-emulating touch on a desktop does not show it.
+someone tapping on a phone gets no colour response at all. You only see this on a real
+phone, not in desktop touch emulation.
 
-So a press sets its colour clock to zero. The fill lands on the very first frame, and the
-movement springs underneath it. That is a floor: any motion added later still has to keep the
-press immediate.
+So a press sets its colour clock to zero. The fill lands on the first frame, and the
+movement springs underneath it. Any motion added later has to keep the press immediate.
 
-Hover is deliberately lopsided. It arrives in 80 milliseconds and leaves in 220. That is a
-judgment: arriving is something the person did, and leaving is just the end of it.
+The hover state arrives in 80 milliseconds and leaves in 220. It arrives quickly because a
+hover is something the person did. It leaves slowly because moving away needs no response.
 
 ## Each kind of component moves its own distance
 
-A button sinks when pressed. It moves down *and* gets slightly smaller. Moving alone looks like
-a slide; shrinking alone looks like it is backing away. Doing both reads as a press.
+A button sinks when pressed. It moves down and gets slightly smaller at the same time. If it
+only moved down, it would look like a slide. If it only shrank, it would look like it was
+backing away.
 
 A pressable card sinks by its own smaller distances. Scale is relative, so a big card shrinking
-by a button's factor would move each edge several pixels, and that reads as the page flexing.
+by a button's factor would move each edge several pixels, and that looks like the page
+flexing.
 
-A checkbox squashes instead, because it has no depth to sink into. A text field does not move at
-all: your eye is resting inside it, and moving the box you are reading is unpleasant.
+A checkbox squashes instead, because it has no depth to sink into. A text field doesn't move
+at all. You read inside the box, so the box has to stay still.
 
-None of them sets a duration. The shared layer owns the clock and each component owns only the
-distance, which is why two controls of the same size move alike.
+None of them sets a duration. The system sets the clocks, and a component sets only its
+distances, so two controls of the same size move at the same speed.
 
-That is the entire motion API. Everything below already moves correctly, and not one line sets a
-duration, a distance or an easing.
+Nothing in the example below sets a duration, a distance, or an
+easing.
 
 ```tsx
 <Card size="3">
@@ -81,54 +82,49 @@ duration, a distance or an easing.
 The buttons sink. The switch thumb springs across its track. The slider handle follows your
 pointer.
 
-There is no duration prop, no easing prop and nothing called `animate`. Components cannot write
-a duration either: every part of every transition has to resolve to a motion token, so a
+There's no duration prop, no easing prop, and nothing called `animate`. Components can't
+write a duration either. Every part of every transition has to resolve to a motion token, so a
 hand-typed `150ms` fails the build.
 
 ## Movement overshoots once, at most
 
-Both springs pass their target at most once. A second pass is a wobble, and a wobbling control
-looks mechanical.
+Both springs pass their target at most once. A control that crosses its target twice wobbles,
+and a wobbling control looks mechanical.
 
-If you want a movement to be more noticeable, move it further. Do not loosen the spring. A
-looser curve over a short distance just reads as a bouncy effect. The physics is fixed;
-distance is the part a component owns.
+To make a movement more noticeable, move it further. Don't loosen the spring. A looser curve
+over a short distance looks like a bounce effect. The physics is fixed, and distance is the
+only part a component sets.
 
-## A focus ring cannot animate a short distance
+## A focus ring can't animate a short distance
 
 A focus ring needs about four pixels of travel to be worth animating. Chrome rounds
 `outline-offset` to whole pixels, so a ring with two pixels of room animates in three frames,
-and three frames look like a stutter rather than a movement. That is why a field's focus ring
-appears instantly. It is a measured limit, not a preference.
+and three frames look like a stutter rather than a movement. A field's ring has two pixels of
+room, so it appears instantly.
 
-## Sometimes the movement is the information
+## Spinners slow down instead of stopping
 
-A Spinner, and a Progress bar with no value, are a different category. Their movement is not a
-transition between two states — the movement is the whole message.
+A Spinner, and a Progress bar with no value, are a different category. Their movement isn't
+a transition between two states. It says that work is still happening.
 
 When someone has asked their operating system for reduced motion, both slow down, and the
-spinner slows to three seconds. Neither stops. A busy indicator that stops has lost the only
-thing it was saying.
+spinner slows to three seconds. Neither stops, because a busy indicator that stops looks
+finished.
 
 ## Reduced motion stops everything else
 
-Every other movement stops when someone asks for reduced motion. A panel is absent and
-then present. Nothing travels, and the system does not take a measurement that only existed to
-feed an animation.
-
-A half-applied suppression is worse than none: someone who asked their computer for stillness
-has to get all of it.
+Every other movement stops when someone asks for reduced motion. A panel appears in place
+instead of travelling, and the system skips the measurements that only fed animations.
 
 The stylesheet that starts a movement is the same one that switches it off, on the same
-selector. So a new animation cannot arrive without its own off switch, and no specificity fight
-can leave one part still moving.
+selector, so a new animation can't arrive without its own off switch.
 
 ## Nothing runs in JavaScript while you interact
 
-Hover, press, focus and the validity states are all stylesheet rules reading data attributes off
-the element. No handler measures anything while you are pointing at a control, and there is no
-runtime animation library.
+Hover, press, focus, and the validity states are all stylesheet rules reading data
+attributes off the element. No handler measures anything while you're pointing at a control,
+and the package ships no runtime animation library.
 
-There are three exceptions, and none of them happens while you are interacting. A floating panel
-measures where it is going once, when it opens. A tab bar re-measures its underline when the
+There are three exceptions, and none of them happens while you're interacting. A floating panel
+measures where it's going once, when it opens. A tab bar re-measures its underline when the
 selection changes. The glass effect is built when a panel mounts and when the window resizes.

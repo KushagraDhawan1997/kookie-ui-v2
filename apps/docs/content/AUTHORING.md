@@ -30,7 +30,7 @@ A verbless opener fails a test. A fragment whose verb hides in a subordinate cla
 no test can catch that one, so it is on you.
 
 **Say what the reader gets, not what the system contains.** "Seven app-level values, stated one
-time at the root" describes the implementation. "A Theme sets seven values for your whole app"
+time at the root" describes the implementation. "A Theme sets eight values for your whole app"
 tells a reader what to do with it.
 
 **Never put a date, a version or a decision history in a blurb.** A reader has not seen an
@@ -173,47 +173,88 @@ six ordinary words in an ordinary order, and "There is no colour prop and no var
 true sentence that was wrong only because of where it was printed. That half is yours, and it is
 the half worth reading this section for.
 
-## Language: Simplified Technical English
+## Language: Google's technical writing rules
 
-These pages follow ASD-STE100. Apply these rules to every sentence.
+These pages follow Google's Technical Writing courses (One and Two) and the Google developer
+documentation style guide. Edit the way the course's own LLM guidance says to: audit a draft by
+asking where it deviates from these principles, then fix the deviations — generated prose reads
+plausibly and still fails them.
 
-- **Use the active voice.** Write "the theme resolves the colour", not "the colour is
-  resolved by the theme".
-- **Write short sentences.** Use a maximum of 20 words in an instruction and 25 words in a
-  description. One idea in each sentence.
-- **Use simple words.** Use the same word for the same thing every time. Do not use a
-  different word to add variety.
+The Technical Writing One checklist:
+
+- Define new or unfamiliar terms, and use terms consistently.
+- Avoid ambiguous pronouns. If "it" or "this" could name two things, repeat the noun.
+- Prefer active voice. Name the agent: "the generator calculates every shade", not "every
+  shade is calculated".
+- Pick specific verbs over vague ones.
+- Reduce "there is" and "there are".
+- Focus each sentence on a single idea, and eliminate unneeded words — but write complete,
+  fluent phrases. Choppiness is not concision.
+- Convert some long sentences to lists. Keep list items parallel, and start numbered list
+  items with imperative verbs.
+- Establish a paragraph's central point in its first sentence, and give each paragraph one
+  topic.
+- Determine what your audience needs to learn, and fit the document to them.
+
+Tone, from the style guide: conversational and professional, second person, present tense,
+contractions where a normal writer would use them, and the serial comma.
+
+Two deviations we keep on purpose: British spelling (colour, behaviour), and "judgment" rather
+than "judgement".
+
+House rules that survive under the standard:
+
 - **Do not use metaphors.** Do not write that a value is "frozen", that a rule "bites", or
   that a system "argues". Write what the code does.
 - **Do not use filler.** Delete "simply", "just", "of course", "it turns out", "the thing
   is", and "said plainly".
-- **Do not write a preamble.** Start with the fact. Do not tell the reader what the chapter
-  will cover.
-- **Use the present tense** for what the system does now.
-- **Use articles.** Write "the control", not "control".
-- **Do not use more than three nouns together.** Break up long noun groups.
-- **Give each paragraph one topic.** Use a maximum of six sentences.
+- **Do not write a preamble, and never let a page talk about itself.** Start with the fact.
+  "Nothing else on this page changes" is the page narrating its own future; say what the
+  person will do instead: "The rest of the setup is the same."
+- **Use articles, and no more than three nouns together.** Write "the control", not
+  "control"; break up long noun groups.
 
-### Three conventions the corpus already holds
+### Conventions
 
-These are not preferences. Each was measured across every shipped chapter, and each is written
-here because it kept being re-decided by whoever was editing.
-
-- **Do not use contractions.** Write "it is", "does not" and "that is", never "it's", "doesn't"
-  or "that's". No chapter contains one, and full forms are what ASD-STE100 asks for.
+- **Use contractions where a normal writer would.** "There's no config file", "it doesn't write
+  an appearance of its own". The full form everywhere reads as a person performing formality —
+  the earlier no-contractions rule came from ASD-STE100 and is overturned (Kushagra's own edit:
+  "who writes 'There is no config file and no build plugin, because…'"). Keep the full form
+  only where the contraction lands wrong in your ear.
+- **Say "no X or Y", not "no X and no Y".** The doubled negative is the rhetorical form.
+- **A list matches its sentence's grammar.** After "takes three steps:", write "adding,
+  importing, and wrapping", not the bare imperatives "add, import, wrap".
+- **Use the ordinary precise word, not a folksy phrase.** "Calculated beforehand", not "worked
+  out ahead of time". Plain is not the same as homespun.
+- **Write complete phrases, and let the prose flow.** "All eight questions are optional, and
+  the default answers are suitable", never "All eight are optional, and the defaults are
+  right". Clipping the nouns out of a sentence is the punchy register in disguise, and a page
+  of short declaratives is choppy, which is its own mannerism. A participial transition —
+  "eliminating the need for every screen to answer them again" — is ordinary professional
+  prose and is allowed to do its work.
+- **Capitalise a heading, always.** A heading is a sentence-case phrase, never a lowercase
+  identifier: write `### Appearance`, not `### appearance`, even when the section is about a
+  prop of that name. Name the prop in the first line instead, where the backticks make it a
+  code span and not a title.
 - **Write "judgment", not "judgement".** The corpus uses the first spelling and no instance of
   the second.
-- **Do not use a serial comma.** Write "a context, a problem and the shape of the solution".
-  Every list in the chapters is punctuated this way.
 
 Product names keep their own capitalisation even at the start of a sentence. It is `shadcn/ui`,
 never `Shadcn/UI`. If the lowercase opening reads badly, rewrite the sentence rather than the
 name.
 
-## Register: four habits that keep coming back
+## The razor
 
-The rules above are about words. These four are about the shape of a sentence. They are the
-faults a reviewer finds most often, and each one has a different fix.
+Before any rule about how a sentence is written, ask whether it should exist: **does the person
+doing this task need it?** A sentence that exists to make the library look good, to restate its
+neighbour, or to savour a fact gets deleted whole, not reworded. Most bad sentences in this
+corpus were never badly written — they were unnecessary. "The file stays the same size however
+many components you use" is grammatical, true, and gone.
+
+## Register: seven habits that keep coming back
+
+The rules above are about words. These are about the shape of a sentence. They are the faults a
+reviewer finds most often, and each one has a different fix.
 
 **1. Do not put a comma tail on a heading.** The head names the thing. A tail that explains
 the head is a subtitle glued on with a comma.
@@ -249,6 +290,35 @@ to do. It is not a four-word verdict.
 - Right: `## Use a tone for its meaning`
 - Wrong: `## A ladder can refuse`
 - Right: `## Ask whether a ladder fits before you add size`
+
+**5. Explain, do not perform.** The compressed, quotable sentence is this project's house
+voice, and it does not survive contact with a reader. A docs sentence spends words to be clear,
+not saves them to be memorable. Ordinary connectives — "while", "alternatively", "however",
+"finally" — are allowed to do their ordinary work, and one idea per sentence beats three ideas
+in a triad.
+
+- Wrong: `Kookie sorts components by what they do, and styles them second. Every rule in the
+  system follows from that order: which props a component takes, which ones it refuses, and
+  which component you reach for when two look alike.`
+- Right: `Kookie organises its components by what they do, rather than by how they look. Two
+  components can look almost identical and still do different jobs. When that happens, they are
+  kept separate, each with its own name and its own props.`
+
+Every clause in the wrong version is a riddle to a first-time reader: "which ones it refuses"
+and "when two look alike" refer to things the page has not introduced yet. **Never make a claim
+before the thing it is about has been shown.** If the evidence is a section below, point at the
+example instead of asserting the thesis.
+
+**6. No kicker sentences.** A section ends when the explanation ends. The clever closing line —
+a manufactured symmetry, a callback, a verdict — is the signature of writing that performs.
+
+- Wrong: `In return, your twentieth screen takes about as long to build as your second.`
+- Right: `In return, the system stays consistent as your app grows, because its decisions are
+  enforced rather than left to memory.`
+
+**7. Name a link as what it is.** A bare chapter title cannot be the actor of a sentence:
+"Navigation shows the shapes it can take" reads as the concept of navigation doing something.
+Write "the Navigation chapter shows how to build one", the way you would say it aloud.
 
 **Vocabulary that is banned because it is invented.** Do not write that a component "prices" a
 value, "rides" a media query, "owes" a rule, or "stands down" a colour. Do not write "rung",

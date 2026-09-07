@@ -1,5 +1,5 @@
-One word on your Theme sets how round your whole app is. There are five settings and `full` is
-the default. Each kind of component works out its own corner from that word, so a button
+One word on your Theme sets how round your whole app is. The setting has five values, and
+`full` is the default. Each kind of component works out its own corner from that word, so a button
 becomes a pill while the card holding it stays a card. No component takes a corner prop.
 
 ## One word, five sets of values
@@ -12,29 +12,29 @@ Set it once, on the Theme:
 </Theme>
 ```
 
-The settings are `none`, `small`, `medium`, `large` and `full`, and `full` is what you get by
+The values are `none`, `small`, `medium`, `large`, and `full`, and `full` is what you get by
 default. Pill-shaped buttons and capsule rows are this system's normal look.
 
 Each setting is a set of hand-picked values rather than a multiplier over one number, and
-`full` is the clearest reason why. CSS caps a corner at half the shorter side of the box. So
-one very large number gives a button a perfect pill and turns a dialog into a lozenge. No single
-factor produces both results. Hand-picked values do: at `full`, buttons get a true capsule and
-cards hold at the values `large` uses.
+`full` shows why. CSS caps a corner at half the shorter side of the box, so one very large
+number gives a button a perfect pill and turns a dialog into a lozenge. No single factor
+produces both results. Hand-picked values produce both: at `full`, buttons get a true capsule,
+and cards hold at the values `large` uses.
 
-The values get further apart as they get bigger, because your eye reads roundness that way. At
-the small end 2 pixels is a visible difference; at the large end 30 and 32 pixels on a card look
-identical. That curve is a judgment.
+The values get further apart as they get bigger, because differences in roundness are harder
+to see at larger values. At the small end, 2 pixels is a visible difference. At the large end,
+30 and 32 pixels on a card look identical. That curve is a judgment.
 
-Why one word instead of a prop per component: in an app where one card is rounder than the next,
-the corner tells you nothing. Roundness only reads as a property of the product when no
-individual screen can change it.
+Why one word rather than a prop per component? In an app where one card is rounder than the
+next, the corner tells you nothing. Roundness only looks like a property of the product when
+no individual screen can change it.
 
 ## Ask for the family, not the number
 
-There are five families, each with its own set of values.
+Five families each have their own set of values.
 
 ```css
---radius-control-2   /* a size-2 button, field or select trigger */
+--radius-control-2   /* a size-2 button, field, or select trigger */
 --radius-surface-3   /* a size-3 card */
 --radius-overlay-3   /* a size-3 dialog */
 --radius-row-2       /* a size-2 menu or select row */
@@ -49,10 +49,10 @@ The families are also indexed differently. Control corners follow density, becau
 with more room inside it looks square at a fixed corner. Card and dialog corners follow only
 the size number, because density reaches a card through its padding instead.
 
-**A corner is always roughly the same fraction of the box it is drawn on.** That is why
-checkboxes and rows have their own values. A checkbox is not on the control height scale, and a
+**A corner is always roughly the same fraction of the box it's drawn on.** That's why
+checkboxes and rows have their own values. A checkbox isn't on the control height scale, and a
 row's height is its line of text plus a small inset. Give either of them another family's
-corner and you get a value calculated against a box they do not have — a circle where a square
+corner and you get a value calculated against a box they don't have: a circle where a square
 belongs, or a corner the browser refuses to draw.
 
 ## A panel's corner comes from the rows inside it
@@ -61,36 +61,35 @@ A panel that holds rows works out the row's corner from its own:
 
 **panel corner = row corner + panel padding**
 
-Two curves that share a centre nest cleanly. Two that do not either cut into each other or
+Two curves that share a centre nest cleanly. Two that don't either cut into each other or
 leave a visible gap beside every row.
 
-The system holds that relationship at every size and every setting. You never calculate it and
-there is no offset to pass.
+The system holds that relationship at every size and every setting. You never calculate it,
+and there's no offset to pass.
 
-The same idea applies one level up. A dialog takes the corner of a card one size larger, so it
-is rounder than the cards inside it. `Surface` uses the same values, because anything holding
+The same idea applies one level up. A dialog takes the corner of a card one size larger, so
+it's rounder than the cards inside it. `Surface` uses the same values, because anything holding
 panels needs to be rounder than the panels it holds.
 
-At zero the arithmetic has no answer, so `none` really means none. It does not round a square
+At zero the arithmetic has no answer, so `none` really means none. It doesn't round a square
 panel by its own padding.
 
-## Four shapes that `none` does not square
+## Four shapes that `none` doesn't square
 
-`none` squares everything, including pills. A switch with an exception is not a switch.
+`none` squares everything, including pills. Four shapes keep their curve, because in each one
+the shape carries the meaning.
 
-Four shapes survive it, and each survives because the shape is carrying the meaning.
-
-- A **radio** is a circle. A square radio reads as a checkbox.
-- The **slider handle** and the **switch thumb** are circles. A square handle reads as a bead
-  that got stuck. Every platform ships them round.
+- A **radio** is a circle. A square radio looks like a checkbox.
+- The **slider handle** and the **switch thumb** are circles. A square handle looks like a
+  bead that got stuck. Every platform ships them round.
 - The **switch track** is a capsule, because a circle only nests inside a curve. A round thumb
-  in a square channel reads as a bead in a rail, which is a slider.
+  in a square channel looks like a bead in a rail, which is a slider.
 
-The same rule runs the other way. At `full`, a checkbox stops at the corner `large` uses,
-because a circular checkbox reads as a radio. Roundness stops increasing; it never reverses.
+The rule also works in the other direction. At `full`, a checkbox stops at the corner `large`
+uses, because a circular checkbox looks like a radio. Roundness stops increasing, and it never
+reverses.
 
-There are four exceptions and no fifth. A shape that escapes `none` without a written reason is
-a bug.
+Those four are the only exceptions.
 
 ## Change the corner for a region, not for one component
 
@@ -117,9 +116,9 @@ Theme on an element your layout already has:
 </Theme>
 ```
 
-The first card, its field and its button all use the `medium` values, each from its own family.
-The nested section squares everything inside it, while the radio, the handles and the switch
-track keep their shapes.
+The first card, its field, and its button all use the `medium` values, each from its own
+family. The nested section squares everything inside it, while the radio, the handles, and the
+switch track keep their shapes.
 
-One line makes a decision about a region, and anyone reading the file can see it. A prop on
-every card gives you nine decisions on one screen and no consistent corner at all.
+One line decides for a region, and anyone reading the file can see it. A prop on every card
+would allow nine decisions on one screen.

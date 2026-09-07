@@ -1,8 +1,6 @@
-There is no elevation setting here. No component takes a shadow, and no screen picks one.
-
 `depth` is a Theme setting with two values, and it answers one question: does this app have
-light in it? Each kind of component then decides for itself whether it casts a shadow, and it
-decides once.
+light in it? No component takes a shadow prop, and no screen picks one. Each kind of component
+decides for itself whether it casts a shadow, and it decides once.
 
 ## Set depth once, at the root
 
@@ -15,37 +13,36 @@ decides once.
 `elevated` is the default, and it means the app has a light source. Cards sit above the page,
 the main action catches light, and handles lift.
 
-`flat` means there is no light. Lines and fills do all the separating instead.
+`flat` means the app has no light source. Lines and fills do all the separating instead.
 
-The reason this lives on the Theme is that people read light as a property of the room rather
-than of one object. Two cards on one screen, one raised and one not, describe two different
-rooms. So there is no `shadow` prop, no `elevation` prop and no `raised` boolean.
+This lives on the Theme because people see light as a property of the room rather than of one
+object. Two cards on one screen, one raised and one not, describe two different rooms. So
+there's no `shadow` prop, `elevation` prop, or `raised` boolean.
 
-## What casts a shadow, and what does not
+## What casts a shadow
 
 These cast: `Card` and the panels that look like one, a **loud** button, the handles on sliders
 and switches, and `Kbd`.
 
-These do not: `Surface`, text fields, text areas, medium and quiet buttons, checkboxes, progress
-bars, separators and tab bars.
+These don't: `Surface`, text fields, text areas, medium and quiet buttons, checkboxes,
+progress bars, separators, and tab bars.
 
-Shadows are spent on two things only: the thing you are meant to act on, and the thing floating
-above everything else. Three of those refusals change what you write.
+Only two things get a shadow: the thing you're meant to act on, and the thing floating above
+everything else. Three of those refusals change what you write.
 
 - **A ground casts nothing.** A `Surface` is what objects sit on, not an object itself. If you
   want something to lift, put a `Card` inside the Surface. The ground beneath it stays put.
 - **A field is carved in, not raised.** To lift a form, put the form in a Card. The fields stay
   recessed inside it.
-- **A medium button sits flat.** Rank two buttons with `emphasis`, not with depth. The loud one
-  casts a shadow and catches light; the medium one does neither, and that is what makes the
-  ranking legible.
+- **A medium button sits flat.** Rank two buttons with `emphasis`, not with depth. The loud
+  one casts a shadow and catches light, and the medium one does neither. That difference shows
+  the ranking.
 
-A ticked checkbox catches light and never casts a shadow, because it is a well that fills
-rather than a key that rises.
+A ticked checkbox catches light and never casts a shadow, because checking it fills a recess
+rather than lifting anything.
 
-**A disabled card loses its shadow**, and that is a statement rather than a dimming. A shadow
-says a thing is above the page and can be picked up. A dead card cannot be picked up, so it
-goes back down to the page.
+**A disabled card loses its shadow.** A shadow says a thing sits above the page and can be
+picked up. A disabled card can't be, so it goes back down to the page.
 
 ## Turn off the light for one region
 
@@ -76,19 +73,19 @@ line instead. Nothing inside the nested Theme casts a shadow, including a menu o
 
 ## Bigger boxes get longer shadows
 
-There are five shadow values. The first is a recess; the other four are drops.
+Five shadow values exist. The first is a recess, and the other four are drops.
 
-Each drop is built the same way at a different height: a tight contact line under the edge,
-which keeps it looking sharp rather than smudged, plus softer layers pulled inward so the depth
+Each drop is built the same way at a different height. A tight contact line under the edge
+keeps it looking sharp rather than smudged. Softer layers are pulled inward, so the depth
 falls *under* the element instead of spreading out sideways.
 
-**A smaller thing casts a smaller shadow**, or it looks swollen. A card is a bigger box than a
-menu, so cards use a longer-reaching value than floating panels do. That relationship is an
-observation; the exact values are a judgment.
+**A smaller thing casts a smaller shadow**, or it looks swollen. A card is a bigger box than
+a menu, so cards use a longer-reaching value than floating panels do. That relationship is an
+observation. The exact values are a judgment.
 
-`--shadow-1` to `--shadow-5` are public, but they are a resource rather than a setting.
-Components never name them directly; they go through the theme. If you are building something
-the package does not ship, use the visible escape:
+`--shadow-1` to `--shadow-5` are public, but they're a resource rather than a setting.
+Components never name them directly. They go through the theme. If you're building something
+the package doesn't ship, use `style`:
 
 ```tsx
 <Box style={{ boxShadow: "var(--shadow-3)" }}>Custom pane</Box>
@@ -100,25 +97,25 @@ the package does not ship, use the visible escape:
 
 A popup covers what is underneath it, so you have to be able to see its edge.
 
-In a raised app, the shadow does that. In a flat app nothing casts a shadow, menus and dialogs
-included, so a popup draws a thin line instead. One cue for one fact.
+In a raised app, the shadow does that. In a flat app nothing casts a shadow, menus and
+dialogs included, so a popup draws a thin line instead.
 
 A `Dialog` casts no shadow of its own in either case, because **the dimmed background is the
 separation**. The whole window going dark shows what the dialog covers more completely than a
-shadow could. The panel keeps the ordinary card shadow of whichever world it is in.
+shadow could. The panel keeps the ordinary card shadow of the current depth setting.
 
 ## Handles cast a shadow even in a flat app
 
-The slider handle, the switch thumb, the selected segment of a segmented control and `Kbd` cast
-a shadow everywhere, flat apps included.
+The slider handle, the switch thumb, the selected segment of a segmented control, and `Kbd`
+cast a shadow everywhere, flat apps included.
 
-This is the same idea as the four shapes that survive `radius="none"`: the appearance is
-carrying the meaning. A handle that does not sit above its track stops reading as a handle, and
-since a handle's position *is* the value it is setting, the control stops working. Every
+This is the same idea as the four shapes that survive `radius="none"`: the appearance
+carries the meaning. A handle that doesn't sit above its track stops looking like a handle,
+and a handle's position *is* the value it's setting, so the control stops working. Every
 platform ships handles with a shadow in every context.
 
 `Kbd` is the opposite case. A key presses *into* its surface, so its depth is a recess rather
 than a lift.
 
-"Always" describes the world, not the state. A disabled handle drops its shadow and dims, but it
-keeps its colour: a grey handle in a grey track removes the reading rather than quieting it.
+A disabled handle still drops its shadow and dims, but it keeps its colour. A grey handle in
+a grey track would be hard to see.

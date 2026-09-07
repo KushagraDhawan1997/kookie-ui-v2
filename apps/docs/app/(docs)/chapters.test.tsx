@@ -447,8 +447,19 @@ describe("every code fence is real code in a language we ship", () => {
  * "an excluded law owes CI whatever half of it is static" clause (ENGINEERING §6): what a
  * renderer cannot reach is asserted directly instead of skipped.
  */
+/* AND `Example` STANDS IN, for the reason its own file states: it reads a specimen off disk,
+   so it is an async server component, and a suspending element cannot be handed to a
+   synchronous renderer. The stand-in renders the name it was given.
+
+   This costs the laws below nothing, because none of them is about the specimen. They read a
+   chapter's HEADINGS, its table of contents and its prose, and what the specimen renders is
+   held by the example laws, which mount every entry in the registry for real — including this
+   one, where `example-spacing.test.tsx` caught the quickstart panel stacking two marks 8px
+   apart on the day it became a file. The two halves are covered; only the instrument is
+   split. */
 const components = useMDXComponents({
   pre: ({ children }: { children?: React.ReactNode }) => <pre>{children}</pre>,
+  Example: ({ name }: { name: string }) => <div data-example={name} />,
 });
 
 const renderChapter = (chapter: Chapter) =>

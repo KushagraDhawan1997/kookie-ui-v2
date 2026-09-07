@@ -1,11 +1,11 @@
-KookieUI needs three things: the package, one stylesheet, and a `Theme` wrapped around your
-app. There is no config file and no build plugin. Every value is worked out ahead of time and
-shipped as CSS custom properties.
+Setting up takes three steps: adding the package, importing one stylesheet, and wrapping your
+app in a `Theme`. There's no config file or build plugin because every value is calculated
+beforehand and shipped as CSS custom properties.
 
-## The package is not on npm yet
+## Add the package
 
-`@kookie-ui/react` is pre-release, so you cannot install it from npm today. Build it from the
-repository instead:
+`@kookie-ui/react` is pre-release and isn't on npm yet, so for now you build it from the
+repository:
 
 ```bash
 git clone https://github.com/KushagraDhawan1997/kookie-ui-v2
@@ -14,7 +14,7 @@ pnpm install
 pnpm run build
 ```
 
-Then depend on it from an app in the same workspace. This site does exactly that:
+Then depend on it from an app in the same workspace:
 
 ```json title="package.json"
 {
@@ -24,8 +24,8 @@ Then depend on it from an app in the same workspace. This site does exactly that
 }
 ```
 
-Once it is published, you will install it with `pnpm add @kookie-ui/react` and nothing else on
-this page will change. You need React 19 and React DOM 19.
+Once the package is on npm, you'll install it with `pnpm add @kookie-ui/react` instead.
+The rest of the setup is the same. You need React 19 and React DOM 19.
 
 ## Import the stylesheet once
 
@@ -33,12 +33,8 @@ this page will change. You need React 19 and React DOM 19.
 import "@kookie-ui/react/styles.css";
 ```
 
-Import it one time, at the root of your app. This single file contains everything: the colour
-and spacing values, the shared rules for controls, and the rules for every component. There is
-no separate stylesheet per component.
-
-The file is the same size no matter how many components you use, so adding a component
-tomorrow costs you no extra CSS.
+Import it at the root of your app. This single file contains everything: the colour and
+spacing values, the shared rules for controls, and the rules for every component.
 
 ## Wrap your app in a Theme
 
@@ -51,14 +47,13 @@ export default function App({ children }: { children: React.ReactNode }) {
 }
 ```
 
-`Theme` is where your app's eight settings live: appearance, radius, density, depth, material, size,
-contrast and pointer. Everything inside it picks up those settings automatically. See
-[Theming](/start/theming) for what each one does.
+`Theme` holds your app's eight settings: appearance, radius, density, depth, material, size,
+contrast, and pointer. Everything inside it picks up those settings automatically. The
+[Theming](/start/theming) chapter explains what each one does.
 
-## Paint the page yourself
+## Set the page background
 
-The library does not set a background colour on your page, because a Theme that painted one
-would repaint it again every time you nested another Theme inside it. Set it in your own CSS:
+The library doesn't paint your page's background. Set it in your own CSS:
 
 ```css
 body {
@@ -70,20 +65,19 @@ body {
 }
 ```
 
-Use `--color-ground` instead of `--color-page` if your page is mostly cards. It steps away from
-the page in both modes — darker in light, lighter in dark — so the cards on it have something to
-sit on.
+If your page is mostly cards, use `--color-ground` instead. It's slightly darker than the page
+in light mode and slightly lighter in dark mode, so the cards have something to sit on.
 
 ## Set dark mode before the page paints
 
-Your server cannot know whether to render light or dark. Whether someone chose a mode, and
-what their operating system prefers, are both things only their browser knows. If the server
-guesses, you get one of two problems: the page flashes the wrong colours, or React complains
-that the server and browser disagree.
+Your server can't know whether to render light or dark, because a saved preference and the
+operating system's setting both live in the browser. If the server guesses, you get one of two
+problems: the page flashes the wrong colours, or React complains that the server and browser
+disagree.
 
 The fix is a small script in your `<head>` that writes the answer onto `<html>` before
-anything paints. Then set your root `Theme` to `appearance="inherit"` so it does not write an
-appearance of its own, and one element holds the answer.
+anything paints. Then set your root `Theme` to `appearance="inherit"`, which tells it not to
+write an appearance of its own.
 
 ```html
 <script>
@@ -114,19 +108,20 @@ appearance of its own, and one element holds the answer.
 
 Two details in that script matter, and both are easy to get wrong.
 
-**Put the `try` around the read, not around everything.** Some browsers throw an error just
-for reading `localStorage`. Safari does it when someone blocks all cookies. If you wrap the
+**Put the `try` around the read, not around everything.** Some browsers throw an error when
+you read `localStorage`. Safari throws when someone blocks all cookies. If you wrap the
 whole function in one `try`, that error also skips the two `setAttribute` calls, and someone
 with a dark operating system gets a light page. Reading the media query never throws, so guard
 the read and leave the writes outside.
 
 **Write both attributes onto the same element.** The high-contrast colours only apply when
-`data-appearance` and `data-contrast` are on one element together. If your script takes over
-the appearance, it has to take over the contrast as well.
+`data-appearance` and `data-contrast` sit on one element together. If your script takes over
+the appearance, it has to take over the contrast too.
 
 ## Point the font tokens at your fonts
 
-The library ships no font files. It reads three tokens, so point them at whatever you serve:
+The library doesn't ship any font files. It reads three tokens, so point them at whatever
+fonts you serve:
 
 ```css
 :root {
@@ -136,7 +131,7 @@ The library ships no font files. It reads three tokens, so point them at whateve
 }
 ```
 
-If you set nothing, they fall back to the standard system fonts.
+If you don't set them, they fall back to the system fonts.
 
 ## Check that it worked
 
@@ -147,12 +142,13 @@ export function Smoke() {
   return (
     <Card size="3">
       <Stack gap="3">
-        <Text>This card has a corner, a fill and a border when the stylesheet loads.</Text>
-        <Button tone="accent" emphasis="loud">The only loud control on this screen</Button>
+        <Text>The card around this text has a corner, a fill, and a border.</Text>
+        <Button tone="accent" emphasis="loud">Everything is wired up</Button>
       </Stack>
     </Card>
   );
 }
 ```
 
-If the card has rounded corners and the button shows your accent colour, everything is wired up.
+If the card has rounded corners and the button shows your accent colour, the stylesheet and
+the Theme are both working.

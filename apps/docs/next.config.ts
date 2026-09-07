@@ -10,6 +10,70 @@ const nextConfig: NextConfig = {
   // stays authored; the Next docs remain in node_modules for anyone who wants them.
   agentRules: false,
   pageExtensions: ["ts", "tsx", "mdx"],
+  /* The chapter renames of 2026-09-06 moved five URLs (essay titles became addresses —
+     "why-kookie-exists" is now "principles"). Old links live in Slack threads and search
+     indexes, and a moved page that 404s punishes exactly the person who shared it. Permanent,
+     because the old names are not coming back. */
+  redirects: async () => [
+    { source: "/philosophy", destination: "/concepts", permanent: true },
+    {
+      source: "/philosophy/why-kookie-exists",
+      destination: "/concepts/principles",
+      permanent: true,
+    },
+    {
+      source: "/philosophy/component-families",
+      destination: "/concepts/vocabulary",
+      permanent: true,
+    },
+    {
+      source: "/concepts/component-families",
+      destination: "/concepts/vocabulary",
+      permanent: true,
+    },
+    {
+      source: "/philosophy/why-these-rules-hold",
+      destination: "/concepts/principles",
+      permanent: true,
+    },
+    {
+      source: "/concepts/guarantees",
+      destination: "/concepts/principles",
+      permanent: true,
+    },
+    {
+      source: "/concepts/enforcement",
+      destination: "/concepts/principles",
+      permanent: true,
+    },
+    {
+      source: "/start/your-first-screen",
+      destination: "/start/quickstart",
+      permanent: true,
+    },
+    {
+      source: "/foundations/space-and-layout",
+      destination: "/foundations/layout",
+      permanent: true,
+    },
+  ],
+  /**
+   * THE MARKDOWN TWIN'S URL (2026-09-06, §47). Every page is served a second time as plain
+   * markdown at its own path with `.md` on the end — the convention Next's own docs, Adobe's
+   * React Spectrum and Chakra all follow, and the one llmstxt.org names.
+   *
+   * A REWRITE RATHER THAN A ROUTE, because a file extension is not something the App Router
+   * can express: a path segment either is a dynamic parameter or is not, and `[...slug].md`
+   * is neither. The handler underneath is an ordinary catch-all at `/md/*`.
+   *
+   * The negative lookahead is load-bearing in one direction only — nothing under `_next`
+   * ends in `.md` today — but a build artifact routed into a markdown handler would 404 with
+   * no explanation, and this is one character of defence against a class of bug that is very
+   * hard to see.
+   */
+  async rewrites() {
+    return [{ source: "/:slug((?!_next/).*)\\.md", destination: "/md/:slug" }];
+  },
 };
 
 /**

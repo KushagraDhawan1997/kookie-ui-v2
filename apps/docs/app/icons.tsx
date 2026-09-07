@@ -25,6 +25,11 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { iconStroke } from "@kookie-ui/react";
 import {
   Alert02Icon,
+  ComputerIcon,
+  GithubIcon,
+  NewTwitterIcon,
+  Moon02Icon,
+  Sun03Icon,
   ArrowLeft01Icon,
   ArrowRight01Icon,
   BlocksIcon as HugeBlocksIcon,
@@ -36,27 +41,28 @@ import {
   Cursor01Icon,
   Download01Icon,
   File01Icon,
-  DraftingCompassIcon,
   IdeaIcon as HugeIdeaIcon,
   Layers01Icon,
   Layout01Icon,
   Megaphone01Icon,
   MotionIcon as HugeMotionIcon,
   RadiusIcon as HugeRadiusIcon,
-  Rocket01Icon,
+  ToolboxIcon,
   RulerIcon,
-  ShapesIcon,
+  BookOpen01Icon,
   SmartPhone01Icon,
   Structure01Icon,
-  SwatchIcon,
+  PreferenceHorizontalIcon,
   TextFontIcon,
   ArrowTurnBackwardIcon,
   ArrowTurnForwardIcon,
   ArrowLeft02Icon,
+  ArrowRight02Icon,
   ArrowUp02Icon,
   Attachment01Icon,
   Cancel01Icon,
   Copy01Icon,
+  Link02Icon,
   Delete02Icon,
   EyeIcon,
   FlashIcon,
@@ -81,6 +87,54 @@ import {
   StopIcon,
   Tick02Icon,
   UserMultiple02Icon,
+  BadgeIcon as HugeBadgeIcon,
+  Cards01Icon,
+  Remove01Icon,
+  CheckmarkSquare01Icon,
+  CodeIcon as HugeCodeIcon,
+  Comment01Icon,
+  CommandIcon as HugeCommandIcon,
+  CursorPointer01Icon,
+  DistributeHorizontalCenterIcon,
+  DropdownFieldTypeIcon,
+  FolderTreeIcon,
+  GridIcon as HugeGridIcon,
+  Heading01Icon,
+  HierarchySquare03Icon,
+  InformationCircleIcon,
+  KeyboardIcon,
+  LayoutThreeColumnIcon,
+  LayoutThreeRowIcon,
+  LayoutTopIcon,
+  Layout05Icon,
+  LayoutGridIcon,
+  LeftToRightListDashIcon,
+  ListViewIcon,
+  Loading03Icon,
+  Menu01Icon,
+  MenuSquareIcon,
+  Message01Icon,
+  Note03Icon,
+  Progress03Icon,
+  QuoteDownIcon,
+  RadioButtonIcon,
+  Rectangular01Icon,
+  Route02Icon,
+  ScrollVerticalIcon,
+  DistributeVerticalCenterIcon,
+  SlidersHorizontalIcon,
+  SourceCodeSquareIcon,
+  SquareIcon,
+  SquareSquareIcon,
+  StickyNote01Icon,
+  Tag01Icon,
+  TableIcon as HugeTableIcon,
+  TextAlignLeftIcon,
+  TextBoldIcon,
+  TextIcon as HugeTextIcon,
+  ToggleOnIcon,
+  TypeCursorIcon,
+  UserCircleIcon,
 } from "@hugeicons/core-free-icons";
 
 /**
@@ -101,6 +155,18 @@ const glyph = (icon: IconSvgElement) =>
   };
 
 export const SearchIcon = glyph(Search01Icon);
+/* The frame's own chrome (2026-09-06): the repository, and the three appearance choices the
+   footer's picker draws. The glyph IS the value here — an icon-only control shows which
+   appearance is chosen by which mark it wears — so these three are named for the choice
+   rather than for the drawing, like every other wrapper in this file. */
+export const GitHubIcon = glyph(GithubIcon);
+/* The social marks. `XSocialIcon` rather than `XIcon` because that name is already the CLOSE
+   glyph one export down — a dismissal and a platform are two different things wearing one
+   letter, and the call site has to be able to tell them apart. */
+export const XSocialIcon = glyph(NewTwitterIcon);
+export const SunIcon = glyph(Sun03Icon);
+export const MoonIcon = glyph(Moon02Icon);
+export const SystemIcon = glyph(ComputerIcon);
 export const PlusIcon = glyph(PlusSignIcon);
 export const XIcon = glyph(Cancel01Icon);
 export const CheckIcon = glyph(Tick02Icon);
@@ -111,9 +177,9 @@ export const MinusIcon = glyph(MinusSignIcon);
 export const MoreIcon = glyph(MoreHorizontalIcon);
 export const ArrowUpIcon = glyph(ArrowUp02Icon);
 export const ArrowLeftIcon = glyph(ArrowLeft02Icon);
+export const ArrowRightIcon = glyph(ArrowRight02Icon);
 /* The chevrons, which are a different glyph from the arrows above and mean a different thing: an
-   arrow says GO somewhere, a chevron says the next one along. The chapter footer's way on is the
-   second, which is why it does not reuse `ArrowLeftIcon`. */
+   arrow says GO somewhere, a chevron says the next one along. */
 export const ChevronLeftIcon = glyph(ArrowLeft01Icon);
 export const ChevronRightIcon = glyph(ArrowRight01Icon);
 export const PaperclipIcon = glyph(Attachment01Icon);
@@ -132,6 +198,7 @@ export const LayersIcon = glyph(LayerIcon);
 export const PanelLeftIcon = glyph(SidebarLeftIcon);
 export const PanelRightIcon = glyph(SidebarRightIcon);
 export const CopyIcon = glyph(Copy01Icon);
+export const LinkIcon = glyph(Link02Icon);
 /* The code sample's NAME button (2026-08-28). It copies a path, so its glyph names the object
    rather than the verb — the copy mark is the code button's, one pane-width away. */
 export const FileIcon = glyph(File01Icon);
@@ -147,32 +214,31 @@ export const RetryIcon = glyph(ReloadIcon);
 
 export const WarnIcon = glyph(Alert02Icon);
 
-/* The sidebar's Workbench rows (2026-08-26). Only that group carries icons: its four rows are
-   destinations of different KINDS, which is what a glyph can tell apart — the chapter and
-   component rows are lists of like things, where per-row metaphors are noise and a leading
-   slot's indent would misalign any row without one. Named for the destination's meaning. */
+/* The sidebar's Workbench rows (2026-08-26). Named for the destination's meaning. */
 export const BoardIcon = glyph(PaintBoardIcon);
 export const MatrixIcon = glyph(GridViewIcon);
 export const BlocksIcon = glyph(HugeBlocksIcon);
 
-/* The chapter rows (2026-08-26, Kushagra: the guideline chapters carry icons; the component
-   list does not — those rows are a list of like things, and a glyph per component would be an
-   invented metaphor thirty-one times). One glyph per chapter, named for the chapter's SUBJECT
-   so the nav map in docs-nav.tsx reads as a table of contents. */
+/* The chapter rows (2026-08-26). One glyph per chapter, named for the chapter's SUBJECT so the
+   nav map in docs-nav.tsx reads as a table of contents. */
 export const InstallIcon = glyph(Download01Icon);
-export const ThemeIcon = glyph(SwatchIcon);
-export const RocketIcon = glyph(Rocket01Icon);
+/* Sliders, not a paint swatch. A swatch says COLOUR, and colour is one of the eight things a
+   Theme sets — it is also its own chapter, two rows down, wearing three overlapping circles.
+   What a Theme actually is is several app-wide dials set at once, which is what this glyph
+   draws. Checked at 16px against the rest of the column: nothing else in the nav uses
+   sliders. */
+export const ThemeIcon = glyph(PreferenceHorizontalIcon);
+/* A toolbox, not a rocket. The rocket is the launch cliché, and it says "ship" where this
+   chapter says "build your first screen". The three Getting started glyphs now read as one
+   sequence — get it, set it up, build with it — and a toolbox is a closed silhouette that
+   survives 16px, where the hammer's diagonal head goes busy. */
+export const BuildIcon = glyph(ToolboxIcon);
 export const IdeaIcon = glyph(HugeIdeaIcon);
-export const FamiliesIcon = glyph(ShapesIcon);
-/* Not the scales of justice, which is what this was until 2026-08-28 (Kushagra). Those read
-   as law and as a balance between two sides, and the chapter argues the opposite: some rules
-   are types you cannot write incorrectly, some are checked automatically, and the rest are
-   judgments — evidence, not arbitration. A microscope was tried and failed the small size:
-   this glyph appears in the nav on every page at 16px, where its detail collapsed into a
-   smudge. The drafting compass is the instrument of exact construction, and its silhouette is
-   two legs and a point, which survives 16px and does not join the four circular glyphs already
-   in that column. */
-export const RulesIcon = glyph(DraftingCompassIcon);
+/* An open book, for a chapter that teaches the words the rest of the site uses. It was a set
+   of shapes while the chapter was called Component families, where different shapes stood for
+   different kinds of thing. Under the name Vocabulary that reading is gone, and a shapes glyph
+   sits next to Radius and Layout in the same nav, where it reads as geometry. */
+export const VocabularyIcon = glyph(BookOpen01Icon);
 export const ColorIcon = glyph(ColorsIcon);
 export const TypeIcon = glyph(TextFontIcon);
 export const LayoutIcon = glyph(Layout01Icon);
@@ -188,3 +254,62 @@ export const FormIcon = glyph(CheckListIcon);
 export const WindowIcon = glyph(BrowserIcon);
 export const CompassIcon = glyph(HugeCompassIcon);
 export const MegaphoneIcon = glyph(Megaphone01Icon);
+
+/* The component rows (2026-09-07, Kushagra: "Can we assign icons to each component in docs
+   sidebar?"). Every row in the sidebar now carries one, which is the point — a leading slot
+   that half the rows use is what misaligns a list, and the component group was the last group
+   without them.
+
+   Named for the COMPONENT, not for the drawing, like every wrapper above: the glyph is picked
+   for what the component is (a Switch wears a switch; a Box wears a plain square) and where no
+   drawing exists for the thing itself the pick names its most recognisable use (a Toggle wears
+   the bold button every toolbar draws it as). Two components share a drawing under two names
+   where the ideas are genuinely the same shape — that is the wrapper's job. */
+export const AllComponentsIcon = glyph(LayoutGridIcon);
+export const AccordionIcon = glyph(LayoutThreeRowIcon);
+export const AvatarIcon = glyph(UserCircleIcon);
+export const BadgeIcon = glyph(HugeBadgeIcon);
+export const BlockquoteIcon = glyph(QuoteDownIcon);
+export const BoxIcon = glyph(SquareIcon);
+export const BreadcrumbIcon = glyph(Route02Icon);
+export const ButtonIcon = glyph(CursorPointer01Icon);
+export const CardIcon = glyph(Cards01Icon);
+export const CheckboxIcon = glyph(CheckmarkSquare01Icon);
+export const ChipIcon = glyph(Tag01Icon);
+export const CodeIcon = glyph(HugeCodeIcon);
+export const CodeBlockIcon = glyph(SourceCodeSquareIcon);
+export const CommandIcon = glyph(HugeCommandIcon);
+export const ComposerIcon = glyph(Message01Icon);
+export const ContextMenuIcon = glyph(MenuSquareIcon);
+export const DialogIcon = glyph(SquareSquareIcon);
+export const FieldIcon = glyph(Note03Icon);
+export const FlexIcon = glyph(DistributeHorizontalCenterIcon);
+export const GridIcon = glyph(HugeGridIcon);
+export const HeadingIcon = glyph(Heading01Icon);
+export const KbdIcon = glyph(KeyboardIcon);
+export const MenuIcon = glyph(Menu01Icon);
+export const NavTreeIcon = glyph(FolderTreeIcon);
+export const NoticeIcon = glyph(InformationCircleIcon);
+export const PopoverIcon = glyph(StickyNote01Icon);
+export const ProgressIcon = glyph(Progress03Icon);
+export const RadioIcon = glyph(RadioButtonIcon);
+export const RadioGroupIcon = glyph(ListViewIcon);
+export const RowIcon = glyph(LeftToRightListDashIcon);
+export const ScrollAreaIcon = glyph(ScrollVerticalIcon);
+export const SegmentedControlIcon = glyph(LayoutThreeColumnIcon);
+export const SelectIcon = glyph(DropdownFieldTypeIcon);
+export const SeparatorIcon = glyph(Remove01Icon);
+export const SliderIcon = glyph(SlidersHorizontalIcon);
+export const SpinnerIcon = glyph(Loading03Icon);
+export const StackIcon = glyph(DistributeVerticalCenterIcon);
+export const SurfaceIcon = glyph(Rectangular01Icon);
+export const SwitchIcon = glyph(ToggleOnIcon);
+export const TableIcon = glyph(HugeTableIcon);
+export const TabsIcon = glyph(Layout05Icon);
+export const TextIcon = glyph(HugeTextIcon);
+export const TextAreaIcon = glyph(TextAlignLeftIcon);
+export const TextFieldIcon = glyph(TypeCursorIcon);
+export const ToggleIcon = glyph(TextBoldIcon);
+export const ToolbarIcon = glyph(LayoutTopIcon);
+export const TooltipIcon = glyph(Comment01Icon);
+export const TreeIcon = glyph(HierarchySquare03Icon);

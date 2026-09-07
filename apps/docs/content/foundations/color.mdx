@@ -1,9 +1,8 @@
-Colour carries meaning here. You name what something means, and the theme works out the value —
-against the current light or dark mode, the current contrast setting, and whatever surface it
-is sitting on.
+You name what a colour means, and the theme works out the value. The value accounts for the
+current light or dark mode, the contrast setting, and the surface it sits on.
 
-Every value in the system is generated from two numbers per colour family. You write no hex
-values and you memorise no palette.
+Every value is generated from two numbers per colour family. You write no hex values, and you
+memorise no palette.
 
 ## Say what you mean, not which colour
 
@@ -15,45 +14,44 @@ values and you memorise no palette.
 <Text tone="destructive">Payment failed</Text>
 ```
 
-A hex value never changes. It does not follow you into dark mode, it does not respond to the
-high-contrast setting, it does not survive a rebrand, and behind glass it has no relationship to
-the colour it is mixing into. Naming the meaning handles all four, because you said what you
-meant and the theme produced the value.
+A hex value never changes. It doesn't follow dark mode, it doesn't respond to the
+high-contrast setting, it doesn't survive a rebrand, and behind glass it doesn't blend with the
+panel. `tone="destructive"` handles all four, because the theme produces the value.
 
-There is no `color` prop and no `variant` prop. The way out is `style`, which is easy to spot in
-a review. If you find yourself writing `style` more than occasionally, a colour family is
-missing — add it to the configuration.
+There's no `color` or `variant` prop. The escape is `style`, and a `style` value is easy to see
+in a review. If you write `style` for colour often, a colour family is missing. Add it to the
+configuration.
 
 ## The ten families
 
-Every family is built on the same lightness scale, so step 9 of red and step 9 of blue read as
-the same step.
+Every family is built on the same lightness scale, so step 9 of red and step 9 of blue are
+equally light.
 
 | tone | what it is for |
 |---|---|
-| `neutral` | Text, hairlines, wells and anything with no meaning of its own. Most of an interface. |
+| `neutral` | Text, hairlines, wells, and anything with no meaning of its own. Most of an interface. |
 | `accent` | Your brand. Use it once per screen at full strength. |
 | `blue` `green` `orange` `amber` | Colour as data: a chart series, a project label, a category. The colour *is* the information. |
 | `destructive` | The action that removes something, and the error state. |
 | `success` `warning` `info` | Status: it worked, it needs attention, or here is some context. |
 
-Use a meaning name when the thing has a meaning. Use a category name when it only has a
-category.
+Use a meaning name when the thing has a meaning, such as an error. Use a category name when
+it only has a category, such as one series in a chart.
 
-### `success` is not a nickname for `green`
+### Success and green are separate families
 
-They render the same value today, and they are still two separate families. A name carries a
-meaning, and each meaning has to stay correctable on its own: `success` can move toward teal
-without dragging your chart's green with it. `accent` and `blue` are the same story — someone
-who rebrands to green moves `accent` and leaves `blue` alone.
+`success` and `green` render the same value today, and they're still two separate families.
+You can correct each meaning on its own. `success` can move toward teal without dragging your
+chart's green with it. `accent` and `blue` work the same way. If you rebrand to green, you move
+`accent` and leave `blue` alone.
 
-So do not write `tone="green"` when you mean success. The screen looks right today and becomes
-wrong the first time anyone re-judges either name.
+So don't write `tone="green"` when you mean success. The screen looks right today, and it
+becomes wrong the first time either family's value changes.
 
 ## Components use roles, not steps
 
-The twelve-step scale is public and you can read a step from it. Components never do. They read
-named roles instead, and that is what makes swapping a tone free.
+The twelve-step scale is public, and you can read a step from it. Components never do. They
+read named roles instead, so swapping a tone changes every value at once.
 
 ```css
 --accent-soft / -soft-hover / -soft-active      /* tints */
@@ -66,24 +64,24 @@ named roles instead, and that is what makes swapping a tone free.
 --accent-a1 … --accent-a12                      /* semi-transparent, blends over the surface */
 ```
 
-Every family emits the same set, so `--destructive-solid`, `--success-ink` and
-`--warning-border` all exist and one role name works across all ten.
+Every family emits the same set. `--destructive-solid`, `--success-ink`, and
+`--warning-border` all exist, and one role name works across all ten.
 
 ## Tints and borders are grey in every family
 
-A tinted fill spends colour to say almost nothing: at 11% opacity, most of what reaches your eye
-is the page. So tinted fills are **grey in every family**. A medium button, a hovered quiet
-button and a chip are grey whatever tone you gave them, and the family shows up in the *text*
-instead.
+A tinted fill is mostly transparent. At 11% opacity, most of what you see is the page behind
+it, so a coloured tint says very little. Tinted fills are therefore **grey in every family**. A
+medium button, a hovered quiet button, and a chip are grey whatever tone you give them, and the
+family shows up in the *text* instead.
 
-Borders follow for the same reason. A pale coloured border says little, and `bordered` on a
-button is a loudness step — quiet, then quiet with an outline, then medium — which reads exactly
-the same in grey.
+Borders follow the same rule. A pale coloured border says very little, and `bordered` on a
+button is a loudness step (quiet, then quiet with an outline, then medium) that works the same
+in grey.
 
-Checkbox and field borders are unaffected. They have their own solved grey line and never used
+Checkbox and field borders don't change. They use a grey line of their own, which was never
 the family's.
 
-Solid fills keep their colour. That is the step this rule exists to protect.
+Solid fills keep their colour.
 
 ## The accent goes grey in two more places
 
@@ -92,21 +90,21 @@ background on a panel, and the two quieter text colours. So a `destructive` Noti
 red-tinted box, and a `destructive` paragraph at medium is still a quieter red, while an
 `accent` one is grey.
 
-The reason is what an accent is. The other nine are meanings, and a pale red still reads as
-danger. The accent is the colour you chose, and diluting an identity destroys it — 11% of your
-brand is not your brand.
+The other nine families carry meanings, and a pale red still looks like danger. The accent
+is your brand colour, and an 11% tint of it no longer looks like your brand. So the accent
+stays grey where the meanings stay coloured.
 
 ## Icons use their own colour
 
 Icons read `--{tone}-glyph`: the family's hue at full saturation, at whichever lightness makes a
 small mark legible on that mode's background.
 
-It exists because neither obvious answer works. A **fill** cannot be an icon colour, because it
-is one value in both modes and no single colour is legible on both white and black. **Text
-colour** is legible everywhere but is solved for reading, and meeting that higher bar costs
-saturation — an accent icon in the text colour comes out a muted navy rather than the colour you
-picked. The glyph colour is between 1.3 and 2.2 times more saturated than the text colour in
-every family and both modes.
+Two simpler answers don't work. A **fill** can't be an icon colour, because it's one value
+in both modes, and no single colour is legible on both white and black. **Text colour** is
+legible everywhere, but it's calculated for reading, and meeting that higher bar costs
+saturation. An accent icon in the text colour comes out a muted navy rather than the colour
+you picked. The glyph colour is between 1.3 and 2.2 times more saturated than the text colour
+in every family and both modes.
 
 A grey has no saturation to protect, so its glyph colour is its text colour.
 
@@ -133,22 +131,21 @@ quiet is `--color-text-faint`. Add a `tone` and those same three move onto that 
 </Card>
 ```
 
-The heading and the first line rest loud. The retry date is real information the screen is not
-emphasising, so it is medium. The refund line is a rule nobody can act on, so it is quiet. One
-tone reaches both the small label and the button, because every family has the same roles.
+The heading and the first line rest loud. The retry date is real information the screen
+isn't emphasising, so it's medium. The refund line is a rule nobody can act on, so it's quiet.
+One tone reaches both the small label and the button, because every family has the same roles.
 
-Each level is solved against a contrast target, once per family and once per mode, so every
-family reaches the same contrast at the same level. Three things are worth knowing:
+Each level is calculated against a contrast target, once per family and once per mode, so
+every family reaches the same contrast at the same level.
 
-- **Loud is not solved.** It stays the family's own designed text colour. This is a judgment:
-  it is the colour the system uses more than any other, so a target number should not be in
-  charge of it.
-- **Medium sits exactly on the readability floor** (APCA Lc 60, a measured limit). Use it for
-  real information the screen is not emphasising: a placeholder, a timestamp, a group label.
-- **Quiet sits below that floor on purpose** (Lc 30). Use it for something the system has turned
-  off, such as an option nobody can take. It is a written exception, not an oversight.
+- **Loud isn't solved against a target.** It stays the family's own designed text colour.
+  Loud is the most-used colour in the system, so a target number doesn't control it.
+- **Medium sits exactly on the readability floor** (APCA Lc 60, a measured limit). Use it
+  for real information the screen isn't emphasising: a placeholder, a timestamp, a group label.
+- **Quiet sits below that floor on purpose** (Lc 30). Use it for something the system has
+  turned off, such as an option nobody can take.
 
-Do not set a whole paragraph in quiet. Text that matters less stays loud at a smaller size, or
+Don't set a whole paragraph in quiet. Text that matters less stays loud at a smaller size, or
 moves to medium.
 
 ## The high-contrast setting
@@ -161,15 +158,15 @@ anything.
 <Theme contrast="high">{children}</Theme>
 ```
 
-A resting border or fill is decoration. Those are judged by eye and held to no contrast floor
-normally. Under `contrast="high"` they are held to measured floors instead. Text, the focus
-ring and the error border always meet their floors, in both modes, because those three are
-signals — and a signal that only works when someone opts in is not a signal.
+A resting border or fill is decoration. Decoration is judged by eye, and normally no contrast
+floor applies to it. Under `contrast="high"` it's held to measured floors instead. Text, the
+focus ring, and the error border meet their floors at every setting, in both modes, because
+those three carry information.
 
 The setting gives each colour as much contrast as that colour can hold, rather than a fixed
 increase everywhere. A bright hue's border is already at its limit, and pushing it further turns
-yellow into olive, so a bright hue gets its extra contrast in the text instead. If one part of a
-colour does not move under this setting, that is the right answer for that part.
+yellow into olive, so a bright hue gets its extra contrast in the text instead. Some parts of
+some colours don't move under the setting, and that's deliberate.
 
 ## The three background colours
 
@@ -185,18 +182,18 @@ The library paints no page background, because a Theme that painted one would re
 time you nested another Theme. Paint it yourself and read `--color-page` for the value.
 
 `--color-ground` is the region an object sits on: a sidebar background, or an area holding
-cards. `--color-surface` is the object itself, and it is opaque. The material setting is the
-only thing that makes a surface see-through.
+cards. `--color-surface` is the object itself, and it's opaque. The material setting is the only
+thing that makes a surface see-through.
 
-The two modes stack these three differently, and it changes how you compose.
+Light mode and dark mode stack these three differently, which changes how you compose.
 
-**In light, the page and a card are the same white.** A card sitting straight on the page has no
-fill of its own to distinguish it, so what separates it is its shadow — or its hairline, in a
-flat theme. That is how light mode works on Apple's platforms too, and it is why `depth` carries
-more weight in light than you might expect. A ground is a step darker than both, so of the three
-it is the only one that separates by colour.
+**In light, the page and a card are the same white.** A card sitting straight on the page has
+no fill of its own to distinguish it. Its shadow separates it, or its hairline in a flat theme.
+Apple's platforms work the same way in light mode, and this is why `depth` matters more in
+light than in dark. A ground is a step darker than both, so it's the only one of the three that
+separates by colour.
 
 **In dark, all three differ.** The page is darkest, a ground sits above it, and a card is
-lightest. Each step is small and deliberate: the ground is a hand-picked value rather than a
-step off the palette, because the nearest palette step landed above the card and would have made
-cards look darker than the region holding them.
+lightest. Each step is small and deliberate. The ground is a hand-picked value rather than a
+step off the palette, because the nearest palette step landed above the card, which would have
+made cards look darker than the region holding them.

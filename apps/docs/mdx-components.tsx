@@ -249,7 +249,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     // head and the cell, and a chapter that needs a numeric column writes the JSX.
     table: ({ children }) => (
       <Figure>
-        <Table size="2">{children}</Table>
+        <Table size="3">{children}</Table>
       </Figure>
     ),
     thead: ({ children }) => <TableHeader>{children}</TableHeader>,
@@ -268,7 +268,19 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
      * and start being a second component library, which is exactly the drift these docs are
      * an argument against. Set-apart prose is a blockquote; the system ships one.
      */
-    Example,
+    /* WRAPPED IN A FIGURE, like a fence. `Example` renders a live specimen, which is a block
+       that is not prose by exactly the same test a code sample is — so it takes the same air
+       on both sides and the same escape from the reading measure. Unwrapped it landed on the
+       flow gap alone: measured on a chapter, 16px above and below against a fence's 32.
+
+       The margin belongs here rather than on the specimen, because a component never owns its
+       outer spacing (the non-negotiable) and this file is the caller — which is what the note
+       at the head of this file already says about every other distance in a chapter. */
+    Example: (props: React.ComponentProps<typeof Example>) => (
+      <Figure>
+        <Example {...props} />
+      </Figure>
+    ),
     ReviewRules,
 
     // Anything a chapter passes in at the call site wins over the defaults above.

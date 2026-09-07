@@ -1,0 +1,109 @@
+Kookie uses a small set of words for the kinds of thing a component can be: a ground, a card,
+a control, a mark, a row. A component's kind decides which props it takes.
+
+A `Card` takes a material, because a card is a surface, and a surface is made of something.
+A `Checkbox` doesn't, because a mark has no surface. A `Button` takes `emphasis`, because actions rank
+against each other. A `MenuItem` doesn't, because no item in a menu outranks the others.
+
+When a component doesn't take a prop you expected, find its kind. The kind is usually the
+reason, and each component page lists the props it refuses with the reason for each one.
+
+## Grounds, cards, and the page
+
+A screen has three levels: the page, grounds, and cards. You choose between the last two.
+
+The **page** is the bottom level. Kookie never paints it. A Theme that painted a background
+would paint it again every time you nested another Theme, so you paint the page yourself. The
+[Colour](/foundations/color) chapter gives you the value to use.
+
+A **ground** is a region that holds other things. `Surface` is a ground. It's barely a
+different colour from the page, and it casts no shadow, because it sits in the page rather
+than above it.
+
+A **card** is an object with a surface of its own. `Card` is opaque, so anything behind it
+stops at its edge. In a raised theme it casts a shadow.
+
+Put cards on a ground, and put the ground on the page. If you're nesting a Card inside a Card
+to get a quieter region, use a Surface instead. Neither component is a quieter version of the
+other.
+
+A Card can also become a control. `render={<button />}` makes it pressable, and rendering it
+as a radio's label makes it selectable. There's no prop for either, because the element you
+give it already says which one it is.
+
+## Controls
+
+A control is something people operate. Every control shares the same states, size steps, and
+loudness settings. Controls divide into four kinds.
+
+**Buttons** do something, and they rank against each other. `emphasis` sets how loud an action
+is compared to the ones beside it. `tone` sets what the action means. Use one loud button per
+screen.
+
+**Fields** hold what people type. Fields don't rank against each other, so `TextField` and
+`TextArea` take no `emphasis` or `tone`. A field is a recess rather than a raised object, so
+it never casts a shadow.
+
+**Marks** are small controls with no text inside them: `Checkbox`, `Radio`, the `Switch`
+track, and the `Slider` handle. A mark sits beside its label instead of containing it, so it
+doesn't use the control height. A mark is exactly as tall as one line of the text next to it.
+No mark takes a `label` prop. A label is text, and `Text` already handles every size, weight,
+and colour that text needs.
+
+**Instruments** draw a value on a track: `Slider` and `Progress`. An instrument has no surface
+or border of its own, so it takes no material and no surface styling.
+
+## Rows
+
+A row is one interactive line in a list. `Row` is the plain one, `MenuItem` is a row, and
+every line in a `NavTree` is a row.
+
+A row looks like a small button, but no option in a list is more important than its
+neighbours, so a row takes no `emphasis`. The selected row changes colour instead of getting
+louder.
+
+A row's height depends on where it sits. In a permanent column, such as a sidebar, a row is as
+tall as a `Button` of the same size. In a menu or a select, a row is shorter: one line of text
+plus a small amount of space above and below it.
+
+## Type, layout, and the frame
+
+**Type** components take their colour from the surface they sit on. `Text`, `Heading`,
+`Blockquote`, `Code`, and `Kbd` have no fill of their own, so on a type component `emphasis`
+picks a text colour rather than a background.
+
+`Link` responds to a pointer, but it's still type rather than a control. A control is a box
+with a height, padding, a corner, and a tap target. A link is a run of words inside a
+sentence. It has to stay selectable, wrap across lines, and sit on the same line as its
+paragraph. So a link takes the hover and focus states, and no box of its own.
+
+**Layout** components paint nothing. `Box` does the work, and `Flex`, `Stack`, and `Grid` are
+`Box` with a fixed display and a shorter prop list.
+
+**The frame** is `Shell`. Shell is a pattern rather than a component. It arranges the
+header, the sidebar, and the content, and it doesn't own any of them. The
+[Principles](/concepts/principles) chapter explains the difference between a component and a
+pattern.
+
+## Components that look alike
+
+These pairs look almost identical and belong to different kinds. The
+[Principles](/concepts/principles) chapter explains why Kookie keeps look-alikes separate.
+
+- **Tabs or SegmentedControl.** A tab bar changes what is below it. A segmented control sets a
+  value in place.
+- **Dialog or AlertDialog.** A dialog holds work you asked for. An alert stops you to ask one
+  question, and the system lays out its contents.
+- **Menu or Select.** A menu picks an action. A select picks a value and submits it with a
+  form.
+- **Link or Button.** A link goes somewhere, and a button does something. If pressing it
+  navigates to a new address, use a `Link`. If it runs a handler, use a `Button`. Use a quiet
+  Button when it should look like plain accent-coloured words.
+- **Card or Surface.** A `Card` is an object. A `Surface` is the thing objects sit on.
+- **Popover or Dialog.** A popover leaves the page live behind it. A dialog dims the app and
+  traps focus. Choose by whether the rest of the app should keep working, not by how much
+  content you have.
+- **Popover or Tooltip.** A popover opens on a press and holds anything. A tooltip appears
+  under a resting pointer and holds one sentence. Keyboard and touch users may never see a
+  tooltip, so it can only restate what its control already announces, and it takes a string
+  rather than nodes.

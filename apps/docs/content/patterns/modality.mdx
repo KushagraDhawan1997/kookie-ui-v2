@@ -1,5 +1,6 @@
-An interruption stops whatever someone was doing. There are five levels of it here, and the
-rule is to take the cheapest one that does the job.
+Kookie has five ways to put something in front of someone: change it inline, open a `Menu`,
+open a `Popover`, open a `Dialog`, or raise an `AlertDialog`. Each one interrupts more than
+the one before it. Take the cheapest one that does the job.
 
 ## The five levels
 
@@ -12,38 +13,38 @@ From cheapest to most expensive:
   covers a small rectangle and closes on Escape, on an outside press, or when you pick
   something. Everything underneath stays readable.
 - **A popover.** `Popover` covers a small rectangle like a menu, and holds whatever you put in
-  it: a filter form, a date picker, a short piece of detail. **The page stays live** — nothing
-  dims, focus is not trapped, and you can go on working around it. That is the whole line
-  between this and a dialog, and it is why a small form does not need one.
+  it: a filter form, a date picker, a short piece of detail. **The page stays live.** Nothing
+  dims, focus isn't trapped, and you can go on working around it. A small form belongs here,
+  not in a dialog.
 - **A dialog.** `Dialog` dims the whole app and traps focus. Use it for work that needs room
   away from the page.
 - **An alert.** `AlertDialog` covers the app the same way, and does not let anyone leave without
   answering.
 
-`Tooltip` is not on this list, and the reason is worth stating: it interrupts nothing and
-carries nothing. It restates the name a control already announces, to a pointer resting on it.
-Anything that appears only in a tooltip is information a keyboard and a touch user never get.
+`Tooltip` isn't on this list. It interrupts nothing, and it can't carry anything of its own.
+It restates the name a control already announces, to a pointer resting on it. Anything that
+appears only in a tooltip is information a keyboard or touch user never gets.
 
-`Sheet` belongs on this list and has not shipped yet. Use a `Dialog` until it does, and keep
-any stand-in you build in one file so there is one place to change on the day the real thing
+`Sheet` belongs on this list and hasn't shipped yet. Use a `Dialog` until it does, and keep
+any stand-in you build in one file, so there's one place to change when the real thing
 arrives.
 
 ## Choosing between a popover and a dialog
 
-Both cover a piece of the screen and hold content you wrote. The question is not how much
-content — it is whether the rest of the app should keep working.
+Both cover a piece of the screen and hold content you wrote. The question isn't how much
+content you have. It's whether the rest of the app should keep working.
 
 A popover leaves it working. The page is live behind it, so you can read the row it came from,
 scroll, or click elsewhere to dismiss it. Reach for it when the panel is *about* something on
 the page: filters over a list, a picker beside the field it fills, detail on the thing you
 pressed.
 
-A dialog stops the app. It dims everything and traps focus, which is right when the panel IS
-the task and the page behind it is nothing but context. Reach for it when leaving mid-way would
-lose work, or when the content needs more room than a panel beside a trigger can have.
+A dialog stops the app. It dims everything and traps focus, which is right when the panel
+*is* the task and the page behind it is nothing but context. Reach for it when leaving midway
+would lose work, or when the content needs more room than a panel beside a trigger can have.
 
-If you are wrapping a small form in a dialog because a dialog is the component you know, that
-is the popover case.
+If you're wrapping a small form in a dialog because a dialog is the component you know, that's
+the popover case.
 
 ## Choosing between a dialog and an alert
 
@@ -52,17 +53,17 @@ The two panels look nearly identical and are two different things.
 A dialog holds your work. You opened it, it contains a form or a picker or a document, and you
 can leave it the way you came in.
 
-An alert stops you with a question. It may have no trigger at all — something raised it because
-a decision has to happen before anything else can.
+An alert stops you with a question. It may have no trigger at all. Something raised it
+because a decision has to happen before anything else can.
 
 One sentence draws the line: **a panel that needs any control beyond its two buttons is a
-Dialog.** A type-to-confirm field, a checkbox, a form of any size — each of those crosses it,
-because the panel is now holding work rather than a choice.
+Dialog.** A type-to-confirm field, a checkbox, or a form of any size crosses it, because the
+panel is then holding work rather than a choice.
 
 ## An alert owns its own content
 
-An alert's contents are fixed: a title, a description, a cancel button and an action button, in
-that order, laid out by the component.
+An alert's contents are fixed: a title, a description, a cancel button, and an action
+button, in that order, laid out by the component.
 
 ```tsx
 <AlertDialog>
@@ -78,14 +79,14 @@ that order, laid out by the component.
 </AlertDialog>
 ```
 
-`size` on an alert sets everything: the box, the corner, the padding, both text sizes and both
-buttons. The system wrote all of that content, so the system may size it.
+`size` on an alert sets everything: the box, the corner, the padding, both text sizes, and
+both buttons. The system wrote all of that content, so the system sizes it.
 
 `size` on a `Dialog` sets the box and the two parts the system owns, `DialogTitle` and
-`DialogDescription`. It never touches the content you wrote, because nothing here sizes text it
-does not own.
+`DialogDescription`. It never touches the content you wrote, because nothing sizes text it
+doesn't own.
 
-Write cancel first. That order is what decides focus: cancel reads first, sits at the start,
+Write cancel first. That order decides focus: cancel reads first, sits at the start,
 flips correctly for a right-to-left language at no cost, and takes focus as the first thing you
 can tab to. Document order picks the safe answer for you.
 
@@ -95,7 +96,7 @@ The dialog panel casts no shadow of its own. Anything floating has to show what 
 dialog does that by darkening the entire window. A shadow under the panel would say the same
 thing a second time.
 
-The panel keeps the ordinary card treatment of whichever world it is in — raised in a raised
+The panel keeps the ordinary card treatment of the current depth setting: raised in a raised
 theme, flat in a flat one.
 
 The dimming is also why the panel barely moves when it opens. The change has already been
@@ -109,26 +110,25 @@ one answer: more colour and no blur.
 Both panels trap focus while open and return it where it came from when they close, so a
 keyboard never falls out of the layer and never lands nowhere afterwards.
 
-Neither takes an initial-focus prop. That is a refusal rather than a gap: what the panel
-contains decides where focus should land, which is exactly why the alert puts cancel first in
-its own tab order.
+Neither takes an initial-focus prop. What the panel contains decides where focus lands. The
+alert puts cancel first in its own tab order for the same reason.
 
 A dialog closes on Escape, on an outside press, and on any `DialogClose` you place. An alert
-closes on Escape and on its two buttons only. **An alert does not close on an outside press**,
+closes on Escape and on its two buttons only. **An alert doesn't close on an outside press**,
 because a stray click must not answer a question about deleting something.
 
 Escape stays, though. A keyboard "not now" is cancel by another route, and removing it would
 shut a keyboard user inside a panel they could only leave by committing to one of the answers.
 
-There is no built-in close cross in the corner, for the same reason `Card` has no header slot:
-that is layout rather than wiring. `DialogClose` puts a real button wherever your layout wants
+There's no built-in close cross in the corner, for the same reason `Card` has no header
+slot: it's layout rather than wiring. `DialogClose` puts a real button wherever your layout wants
 one. Someone using a screen reader on a touch device needs that button to leave a trapped panel.
 
 ## Name the consequence
 
 Write what will actually happen. "Delete project" beats "OK". "Keep it" beats "Cancel" whenever
 the safe answer has a name. The description carries the consequence and its scope in as few
-words as will hold them.
+words as possible.
 
 Put the tone on the action button, never on the panel. The alert itself stays neutral, and the
 destructive act is the one red thing in it.
@@ -138,9 +138,9 @@ anatomy holds the one-loud-action rule for you, and nobody has to remember it.
 
 ## Anything that covers must show its edge
 
-Covering something is information, so whatever covers has to show where it ends. In a raised
+Whatever covers part of the screen has to show where it ends. In a raised
 theme a menu casts a shadow. In a flat theme it draws a thin line instead, because a flat theme
 draws every boundary with a line. A dialog does it with the dimmed background.
 
-None of this is a decision you make at the call site. No component here takes a shadow. Knowing
-the rule exists is what stops you looking for one.
+None of this is a decision you make in your code. No component takes a shadow prop. Knowing
+the rule saves you looking for one.

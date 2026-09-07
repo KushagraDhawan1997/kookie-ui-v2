@@ -1,6 +1,6 @@
-Correct components make a screen consistent. They do not make it good. Every distance answers
-to a setting, every colour to a tone, and every size to a step — and you can still put nine
-components on one screen at nine different sizes.
+Correct components make a screen consistent, but they don't make it good. Every distance
+answers to a setting, every colour to a tone, and every size to a step, and you can still put
+nine components on one screen at nine different sizes.
 
 These are the rules for putting things together, rather than for using any one component. The
 [builder](/builder) checks most of them for you as you work.
@@ -36,9 +36,9 @@ never compete either, because you only ever see one at a time.
 
 ## Let space do the grouping
 
-Put related things closer together than unrelated things. Your eye groups by distance before it
-reads anything, more reliably than it groups by a border, a fill or a line — so set the spacing
-first, and you will usually find you need none of those three.
+Put related things closer together than unrelated things. People group by distance before
+they read anything, and more reliably than they group by a border, a fill, or a line. Set the
+spacing first. You usually won't need the other three.
 
 Make the gap inside a group at least two steps smaller than the gap around it. The same gap
 repeated down a screen shows no structure at all.
@@ -56,9 +56,9 @@ repeated down a screen shows no structure at all.
 </Stack>
 ```
 
-Two levels of separation can sit one step apart — a section at gap 6 holding groups at gap 5 is
-fine, because both are separating groups rather than competing. The two-step rule is about the
-inside of a group against the space around it.
+Two levels of separation can sit one step apart. A section at gap 6 holding groups at gap 5
+is fine, because both gaps separate groups. The two-step rule is about the inside of a group
+against the space around it.
 
 ## Five type sizes and one floor
 
@@ -71,15 +71,15 @@ is the only limit on it. Use five steps:
 - **Size 3** for body text.
 - **Size 2** for labels and small print.
 
-Do not use size 1 on a real screen. Twelve pixels is for genuinely marginal text. When something
-matters less, say so with the muted or faint colour at size 2 or 3.
+Don't use size 1 on a real screen. Twelve pixels is for genuinely marginal text. When
+something matters less, say so with the muted or faint colour at size 2 or 3.
 
-Move at least two steps to show a rank. A size 4 title above size 3 body text reads as an
+Move at least two steps to show a rank. A size 4 title above size 3 body text looks like an
 accident rather than a hierarchy.
 
 ## Use a tone because of what it means
 
-A tone carries a meaning. Do not pick one because the screen looks grey.
+A tone carries a meaning. Don't pick one because the screen looks grey.
 
 ```tsx
 // Wrong. Green because green is pleasant.
@@ -89,24 +89,22 @@ A tone carries a meaning. Do not pick one because the screen looks grey.
 <Text tone="success">Backup completed</Text>
 ```
 
-`success`, `warning`, `info` and `destructive` mean things. `blue`, `green`, `orange` and `amber`
-are colour used as data — a chart series, a project label, a category — where the colour itself
-is the information.
+`success`, `warning`, `info`, and `destructive` mean things. `blue`, `green`, `orange`, and
+`amber` are colour used as data: a chart series, a project label, a category.
 
-Use three tones at most on one surface. Four or more reads as a palette rather than a set of
-meanings; three reads as a legend.
+Use three tones at most on one surface. Four or more look like a palette rather than a set of
+meanings. Three look like a legend.
 
 And colour is never the whole message. Write the words too.
 
 ## Same job, same size
 
-Every control doing the same job on one surface should be the same size. A row holding a size 3
-button next to a size 2 button reads as two different kinds of control, and you are left
-working out why.
+Every control doing the same job on one surface should be the same size. A row holding a
+size 3 button next to a size 2 button looks like two different kinds of control, and you're
+left working out why.
 
-Match controls to the surface they are on, as well. A size 3 dialog holds size 3 fields and size
-3 buttons. A control two steps smaller than its container reads as a mistake rather than as
-modesty.
+Match controls to the surface they're on, as well. A size 3 dialog holds size 3 fields and
+size 3 buttons. A control two steps smaller than its container looks like a mistake.
 
 ## Write the real words
 
@@ -116,26 +114,23 @@ same shape and length.
 Placeholder text hides the problems: a heading that wraps onto three lines on a phone, a name
 longer than its column, a button label that changes the rhythm of a row.
 
-The same goes for helper text. Keep a line that changes what somebody does next. Delete a line
-that just restates the label.
+The same goes for helper text. Keep a line that changes what somebody does next. Delete a
+line that only restates the label.
 
 ## Run the reviewer
 
 Run the reviewer over a real screen before you ship it. Every rule on this page is a live check
 in the builder, each finding quotes the sentence it comes from, and each one offers a fix.
 
-All the templates that ship with the builder pass every one of these rules. That keeps the rules
-honest as well: a rule nobody could satisfy would break those templates the day it was added.
+Every template that ships with the builder passes every one of these rules, so a rule nobody
+could satisfy would break the templates the day it was added.
 
-The reviewer will not tell you whether a screen is good. It tells you whether a screen breaks a
+The reviewer won't tell you whether a screen is good. It tells you whether a screen breaks a
 rule this system has already settled.
 
 ## The full set of rules
 
-The list below comes straight out of the reviewer, so a rule added there appears on this page
-the same day, and the sentence you read here is the sentence the finding prints.
+The list below comes straight from the reviewer. A rule added there appears here the same
+day, and the sentence you read is the sentence the finding prints.
 
 <ReviewRules />
-
-> The prose above can drift out of date. This list cannot, because the argument and the check
-> are reading from one place.
