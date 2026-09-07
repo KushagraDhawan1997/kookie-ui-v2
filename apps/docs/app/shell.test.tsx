@@ -1,4 +1,4 @@
-import { readdirSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -10,6 +10,7 @@ import DocsLayout from "./(docs)/layout";
 import NotFound from "./not-found";
 import DocsNotFound from "./(docs)/not-found";
 import { appearanceScript } from "./appearance-script";
+
 
 /**
  * The app SHELL's laws (added 2026-08-08).
@@ -27,6 +28,19 @@ import { appearanceScript } from "./appearance-script";
  * isolation the whole time — it was correct in the wrong PLACE.
  */
 const app = dirname(fileURLToPath(import.meta.url));
+
+/** How many `<TooltipProvider>` the app states, across the root layout and the docs chrome. */
+const providerCount = (): number => {
+  const files = [
+    join(app, "layout.tsx"),
+    ...readdirSync(join(app, "(docs)"))
+      .filter((name) => name.endsWith(".tsx"))
+      .map((name) => join(app, "(docs)", name)),
+  ];
+  return files
+    .map((file) => readFileSync(file, "utf8").match(/<TooltipProvider\b/g)?.length ?? 0)
+    .reduce((total, count) => total + count, 0);
+};
 const html = (node: unknown) => renderToStaticMarkup(node as never);
 
 describe("the root layout is the one place appearance is decided", () => {
@@ -48,6 +62,51 @@ describe("the root layout is the one place appearance is decided", () => {
     expect(out).not.toContain('data-appearance=');
     expect(out).toContain("page");
   });
+
+  it("and inside ONE TooltipProvider, so the site's tooltips are a group", () => {
+    /**
+     * 2026-09-06, Kushagra: *"Why no tooltip?"* — and there were tooltips. What was missing was
+     * this, and it had been missing since the first one shipped.
+     *
+     * The Provider does two things. It states the delay, and it GROUPS every tooltip inside it,
+     * so the first one waits and the rest appear as the pointer travels. With none anywhere on
+     * the site, every tooltip waited its own 600ms: measured 656ms cold and **640ms travelling
+     * to the very next control in the same toolbar**, which means nobody moving along a row of
+     * icons is ever still long enough on any one of them. The row reads as carrying no tooltips
+     * at all. After: 668ms cold, 42ms travelling.
+     *
+     * A SOURCE LAW, and the reason is stated rather than worked around: Base UI's Provider
+     * renders NO element — it is a context and a shared timer — so a rendered document contains
+     * no trace of it, and the grouping it buys is a difference in WHEN, which no static markup
+     * can hold. The first spelling of this law pretended otherwise: it looked for a marker in
+     * the output, found `-1` as it always would, and let an `|| true` carry the assertion. It
+     * passed on a layout with the Provider deleted.
+     *
+     * So this reads the file, and what it can prove is the thing that was actually wrong —
+     * there is one, it is in the root layout, and the routes are INSIDE it rather than beside
+     * it. Timing is not asserted here: the delay is the package's, stated once in `tooltip.tsx`
+     * and held by its own laws.
+     */
+    const layout = readFileSync(join(app, "layout.tsx"), "utf8");
+    expect(layout, "the root layout states one").toMatch(/<TooltipProvider>/);
+    expect(layout, "and every route is inside it").toMatch(
+      /<TooltipProvider>\s*\{children\}\s*<\/TooltipProvider>/,
+    );
+    expect(providerCount(), "exactly one across the root and the chrome").toBe(1);
+  });
+
+  it("and the Provider is not restated per route or per component", () => {
+    // One home. A second Provider deeper in the tree opens a second GROUP, which puts the
+    // travel delay back for every control on the far side of it — the defect this closed,
+    // returning by a different door. `/preview` states its own deliberately, to demo the
+    // component; nothing in the site's own chrome may.
+    const chrome = readdirSync(join(app, "(docs)"))
+      .filter((name) => name.endsWith(".tsx"))
+      .map((name) => readFileSync(join(app, "(docs)", name), "utf8"));
+    for (const source of chrome) {
+      expect(source, "the chrome states no Provider of its own").not.toMatch(/<TooltipProvider\b/);
+    }
+  });
 });
 
 describe("a page-shaped route gets the page chrome — including the one Next reaches itself", () => {
@@ -67,11 +126,17 @@ describe("a page-shaped route gets the page chrome — including the one Next re
   // default — so what a route can still lose is the pane resolving an index at all: the
   // clause reads the resolved stamp; that the padding then really lands is the package's own
   // law, measured in a mounted browser.
+  //
+  // ANY index, not the default one (2026-09-06). The content pane states `3` since the band
+  // became a `Toolbar` and the two have to agree — the frame's published safe area is derived
+  // from the pane's index, so a band at another index drifts from the reach every page clears
+  // by exactly the difference. Pinning the literal made this law a claim about which size the
+  // documentation happens to use, which is not what the sentence above says it guards.
   const wearsChrome = (out: string) => ({
     nav: out.includes("<nav"),
     trigger: out.includes('aria-label="Toggle navigation"'),
     main: out.includes("<main"),
-    inset: /<main[^>]*data-size="2"/.test(out),
+    inset: /<main[^>]*data-size="[1-4]"/.test(out),
   });
 
   it("the (docs) group wears it", () => {

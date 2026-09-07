@@ -121,6 +121,124 @@ describe("the boundary is a window splitter, not a div with a mousedown (§27)",
     expect(line, "and far narrower than its target").toBeLessThan(floor / 4);
   });
 
+  /* ── The boundary lives OUTSIDE the pane (2026-09-05) ────────────────────────────────────
+     Kushagra, on the docs site's own sidebar: "because of resize, I cant click on search
+     icon". The handle was a CHILD of the pane and, because a pane clips (§3), it could not
+     straddle — so its whole 44px target lay inside, over the pane's trailing wall. Measured
+     before the fix: a search button spanning x 239-271 against a handle at 243-287, with
+     `elementFromPoint` at the button's CENTRE returning the handle. 28 of its 32 pixels.
+
+     ALL 150 SHELL LAWS WERE GREEN OVER IT, INCLUDING THE SIXTEEN IN THIS FILE, and that is
+     the finding behind the finding: every one of them measured the handle — its width, its
+     paint, its reachability, its drag, its clamp — and not one measured what the handle was
+     ON TOP OF. A law about an overlay is a law about two things. */
+
+  it("a control at the pane's trailing wall owns its own centre", () => {
+    // Falsified against the pre-fix code: `expected 'kui-shell-resize' to be 'BUTTON'`.
+    const root = mounted(
+      <Shell style={{ height: 400, width: 900 }}>
+        <ShellSidebar aria-label="Primary" resizable>
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <button type="button" aria-label="Search">
+              S
+            </button>
+          </div>
+        </ShellSidebar>
+        <ShellContent>content</ShellContent>
+      </Shell>,
+      { theme: {} },
+    );
+    const button = within(root, "button[aria-label='Search']");
+    const box = button.getBoundingClientRect();
+    const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+    expect(hit?.tagName, "the boundary covered the control at the pane's wall").toBe("BUTTON");
+  });
+
+  it("it is the pane's SIBLING, and it straddles the edge rather than sitting inside it", () => {
+    // Two halves of one fact, because either alone passes against a wrong implementation: a
+    // sibling parked entirely on the neighbour's side satisfies the first, and a straddling
+    // CHILD — which cannot exist, since the pane clips — would satisfy the second.
+    // Falsified against the pre-fix code at both `expected false to be true` (containment)
+    // and the centre being 22px inside the pane rather than on its edge.
+    const root = frame();
+    const handle = handleOf(root);
+    const pane = paneOf(root);
+    expect(pane.contains(handle), "the boundary is still inside the box that clips it").toBe(false);
+    expect(handle.parentElement, "it is not a child of the frame").toBe(root);
+
+    const hb = handle.getBoundingClientRect();
+    const pb = pane.getBoundingClientRect();
+    expect(hb.left + hb.width / 2, "the target is not centred on the seam").toBeCloseTo(pb.right, 0);
+    // And the PAINT stays exactly where the boundary is, which is the thing it represents.
+    const inset = parseFloat(getComputedStyle(handle, "::after").insetInlineEnd || "0");
+    expect(hb.right - inset, "the hairline left the edge it draws").toBeCloseTo(pb.right, 0);
+  });
+
+  it("and it claims its pane's area — a resizable frame lays out identically to a plain one", () => {
+    // The handle is a root child now, so a missing `grid-area` auto-places it, mints an
+    // implicit row and moves the whole frame. Falsified by deleting the `[data-pane]` stamps
+    // from the stylesheet: the header, sidebar and content boxes all move.
+    const boxes = (resizable: boolean) => {
+      const root = frame(resizable ? {} : { resizable: false });
+      // RELATIVE to each frame's own box: `mounted` appends, so two frames in one page sit
+      // one under the other and an absolute comparison measures the page, not the layout.
+      const origin = root.getBoundingClientRect();
+      return [".kui-shell-header", ".kui-shell-sidebar", ".kui-shell-content"].map((sel) => {
+        const r = within(root, sel).getBoundingClientRect();
+        return [
+          Math.round(r.left - origin.left),
+          Math.round(r.top - origin.top),
+          Math.round(r.width),
+          Math.round(r.height),
+        ];
+      });
+    };
+    expect(boxes(true), "adding a boundary moved the frame it is a boundary of").toEqual(
+      boxes(false),
+    );
+  });
+
+  it("the drag moves the frame's PUBLISHED REACH with the pane, not only the pane", () => {
+    /* 2026-09-05, Kushagra: "these floating back and sidebar collapse button should be
+       positioned from left to the same width as sidebar, and yet resizing sidebar doesnt move
+       them". `--kui-shell-inset-inline-start` is built from the TOKEN width, and the drag wrote
+       only the pane's own `--kui-shell-w` — which a sibling cannot read. So everything a
+       floating pane's content clears by the published number stayed where it was while the
+       boundary it clears walked away.
+
+       Falsified by deleting the root write from `write()`: the inset holds at its starting
+       value and this reads `expected 288 to be close to 368`.
+
+       The fixture FLOATS the sidebar, which is the only arrangement where the reach exists at
+       all — a flush pane leaves none, so a law written on the default frame would assert
+       0 === 0 and pass against anything. */
+    const root = mounted(
+      <Shell style={{ height: 600, width: 1000 }}>
+        <ShellSidebar aria-label="Primary" flush={false} resizable>
+          sidebar
+        </ShellSidebar>
+        <ShellContent>content</ShellContent>
+      </Shell>,
+      { theme: {} },
+    );
+    const content = within(root, ".kui-shell-content");
+    const pane = paneOf(root);
+    const reach = () => parseFloat(computed(content, "--kui-shell-inset-inline-start") || "0");
+    const before = reach();
+    expect(before, "the fixture publishes no reach, so it can prove nothing").toBeGreaterThan(0);
+
+    const width = pane.getBoundingClientRect().width;
+    const handle = handleOf(root);
+    const box = handle.getBoundingClientRect();
+    drag(handle, box.left + box.width / 2, box.left + box.width / 2 + 80);
+
+    expect(pane.getBoundingClientRect().width, "the pane did not move").toBeCloseTo(width + 80, 0);
+    expect(reach(), "the published reach stayed behind the pane it describes").toBeCloseTo(
+      before + 80,
+      0,
+    );
+  });
+
   it("it paints nothing at rest and comes forward under focus and under the drag", () => {
     /* The whole visibility story had only a node law reading source text, and this repo's
        2026-08-10 finding is exactly that asking whether a selector is PRESENT is not asking

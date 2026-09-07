@@ -38,17 +38,19 @@
  * Deferred, not refused (§27): peek, the `stacked` presentation, the mixed flush/floating
  * posture.
  */
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import { composeRender, slot, useMergedRefs, type RenderElement } from "../../system/render.ts";
 import { useWindowClass } from "../../system/window.ts";
+import { PageScope } from "../../system/page.tsx";
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { ScrollArea, type ScrollAreaProps } from "../scroll-area/scroll-area.tsx";
 import { GlassScope, useMaterial, themeDefaults } from "../../theme/theme.tsx";
 import { DEV } from "../../system/dev.ts";
 import { shellResize } from "../../tokens/config.ts";
-import { useSize } from "../../system/size.ts";
+import { SizeScopeContext, useSize } from "../../system/size.ts";
 
 /** The room the ceiling reserves so a dragged-open pane never carries its own handle off
     the frame. Stated here rather than read off the token, because the clamp runs during a
@@ -293,7 +295,7 @@ function usePaneSize(stated: Size | undefined): Size {
 
 /* ── Root ───────────────────────────────────────────────────────────────────────────────── */
 
-export type ShellProps = Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
+export type ShellProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
   /**
    * The control index this app's navigation is drawn at. Every pane inherits it, and any pane can
    * overrule it. It is not the app's type size, and it is not any pane's width: a pane's extent
@@ -584,7 +586,10 @@ export function Shell({ size: sizeProp, className, style, children, ref, ...prop
 
       for (const side of sides) {
         const panes = [...rootEl.querySelectorAll<HTMLElement>(`:scope > :is(${side.sel})`)]
-          .filter((el) => !el.hasAttribute("data-flush") && el.checkVisibility?.())
+          /* `checkVisibilityCSS` since 2026-09-06: a parked drawer is `visibility: hidden`
+             rather than `display: none`, and the default options answer TRUE for that — so
+             the guard would have measured a pane that is not on screen. */
+          .filter((el) => !el.hasAttribute("data-flush") && el.checkVisibility?.({ checkVisibilityCSS: true }))
           // An OVERLAYING pane is lifted out of the frame's flow, so it leaves no reach
           // behind it — read as the position it computes rather than as the attribute it
           // carries, because `auto` resolves to an overlay on a narrow window and the
@@ -646,7 +651,7 @@ export function Shell({ size: sizeProp, className, style, children, ref, ...prop
 
 /* ── The static panes: Header and Content ───────────────────────────────────────────────── */
 
-export type ShellHeaderProps = Omit<React.ComponentPropsWithoutRef<"header">, "color"> &
+export type ShellHeaderProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"header">, "color"> &
   PaneDressProps & {
     /**
      * The index this header is drawn at: its padding, the height of its row, and anything it holds.
@@ -691,7 +696,7 @@ export function ShellHeader({
   );
 }
 
-export type ShellContentProps = Omit<React.ComponentPropsWithoutRef<"main">, "color"> &
+export type ShellContentProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"main">, "color"> &
   // The refusal, stated in the type — see the component's own comment for why the work area is
   // the one pane that never gets glass.
   Omit<PaneDressProps, "backdrop"> & {
@@ -739,7 +744,17 @@ export function ShellContent({
       className={cx("kui-surface kui-shell-pane kui-shell-content", className)}
     >
       <GlassScope material={material}>
-        <ShellSizeContext.Provider value={size}>{children}</ShellSizeContext.Provider>
+        <ShellSizeContext.Provider value={size}>
+          {/* THE PANE IS THE PAGE'S SCOPE (§45, §46). A page's large title lives inside this
+              pane's scroller and the band that says it again is a SIBLING of that scroller, so
+              the store that carries the title between them has to sit at their common ancestor
+              — which is this. It is deliberately per-PANE and not per-Shell: two panes may each
+              hold a titled page, and one store above both would let the second overwrite the
+              first. `ShellHeader` renders none, which is what keeps the full-width row out of
+              the arrangement by construction — a `ToolbarTitle` there can find no page and so
+              always speaks for itself. */}
+          <PageScope>{children}</PageScope>
+        </ShellSizeContext.Provider>
       </GlassScope>
     </main>
   );
@@ -798,7 +813,7 @@ function usePane(
     id: string | undefined;
   },
 ) {
-  const { store } = useShellCtx(`Shell${name[0]!.toUpperCase()}${name.slice(1)}`);
+  const { store, rootRef } = useShellCtx(`Shell${name[0]!.toUpperCase()}${name.slice(1)}`);
   const windowClass = useWindowClass();
   const generatedId = React.useId();
   const id = props.id ?? generatedId;
@@ -898,7 +913,7 @@ function usePane(
     };
   }, [store, name, id, expanded, overlayLive, toggle, openPane, closePane]);
 
-  return { id, state, presentation, overlaying, paneRef: setPaneEl };
+  return { id, state, presentation, overlaying, paneRef: setPaneEl, rootRef };
 }
 
 type SidePaneProps = Omit<React.ComponentPropsWithoutRef<"nav">, "color"> &
@@ -948,6 +963,16 @@ type SidePaneProps = Omit<React.ComponentPropsWithoutRef<"nav">, "color"> &
   };
 
 
+/** The frame's own name for each resizable pane's extent — the token the reach rules read, and
+    the one §27 already names as the app's escape when it wants another width. The rail is
+    absent because it does not resize; `header` and `content` because they have no extent of
+    their own to move. */
+const paneToken: Partial<Record<ShellPaneTarget, string>> = {
+  sidebar: "--shell-sidebar-w",
+  inspector: "--shell-inspector-w",
+  bottom: "--shell-bottom-h",
+};
+
 /* ── Resize (§27, 2026-09-01): the pane's extent, moved by hand ─────────────────────────── */
 
 /**
@@ -992,9 +1017,20 @@ function useResizeHandle(opts: {
   onResize: ((extent: number) => void) | undefined;
   /** The extent the app is controlling, if it states one. */
   controlledExtent: number | undefined;
+  /** The pane's id — what `aria-controls` announces, and the fallback resolution. */
+  controls: string;
+  /** The frame, where the moved extent is published for readers outside the pane. */
+  rootRef: React.RefObject<HTMLDivElement | null> | undefined;
+  /** Which pane's extent this is, so the write names the frame's own token for it. */
+  paneName: ShellPaneTarget;
 }) {
-  const { paneRef, handleRef, axis, anchor, min, max, onResize, controlledExtent } = opts;
+  const { paneRef, handleRef, axis, anchor, min, max, onResize, controlledExtent, controls } = opts;
+  const { rootRef, paneName } = opts;
   const [dragging, setDragging] = React.useState(false);
+
+  /** The pane this handle moves, when its ref has not landed yet. */
+  const resolvePane = () =>
+    controls ? (document.getElementById(controls) as HTMLElement | null) : null;
 
   const extentOf = (pane: HTMLElement) =>
     axis === "inline" ? pane.getBoundingClientRect().width : pane.getBoundingClientRect().height;
@@ -1018,6 +1054,32 @@ function useResizeHandle(opts: {
     // `--kui-shell-h`. Writing the inline name unconditionally is why the block arm could
     // never have worked even once something rendered it.
     pane.style.setProperty(axis === "inline" ? "--kui-shell-w" : "--kui-shell-h", `${settled}px`);
+    // AND THE FRAME'S PUBLISHED REACH, WHICH IS A SECOND READER OUTSIDE THIS PANE (2026-09-05,
+    // Kushagra: "these floating back and sidebar collapse button should be positioned from
+    // left to the same width as sidebar, and yet resizing sidebar doesnt move them").
+    //
+    // `--kui-shell-inset-inline-start` is `calc(var(--shell-sidebar-w) + 2 * var(--shell-gap))`
+    // — the TOKEN, because that is the frame's own extent for a pane that takes what the frame
+    // gives it. A drag moves the pane and left the reach at 288 forever, so anything a floating
+    // pane's content clears by the published number stayed put while the boundary it clears
+    // walked away from it.
+    //
+    // §27 already carried this for the `width` PROP, with an escape written beside it: "an app
+    // that wants another width states it as `--shell-sidebar-w` on the Shell, where the pane
+    // and the content read one number", and a development guard that measures the two and
+    // warns. A DRAG HAS NO SUCH ESCAPE — the app is not the one choosing the number — so the
+    // mechanism performs its own documented escape instead of warning about itself.
+    //
+    // TWO WRITES FOR ONE NUMBER, deliberately, and it is not two homes for a decision: the
+    // pane's own name has to keep winning over a stated `width` (an inline declaration on the
+    // pane beats an inherited token, so a controlled pane would not move under the pointer),
+    // and a SIBLING cannot read that name — it is registered `inherits: false` for the `--kui-h`
+    // trap, and an inline style is unreadable from outside anyway. One value, published to the
+    // two scopes CSS requires; both are set in this one function, from the same `settled`.
+    const root = rootRef?.current;
+    if (root && paneToken[paneName]) {
+      root.style.setProperty(paneToken[paneName]!, `${settled}px`);
+    }
     // THE ANNOUNCED VALUE IS WRITTEN HERE, not rendered (audit 2026-09-02). It was computed
     // during render from `paneRef.current`, which is null on the first commit — so a focusable
     // `role="separator"` shipped with a min and NO current value, and since the gesture sets no
@@ -1039,19 +1101,22 @@ function useResizeHandle(opts: {
   // the code already had, now written down: what a person dragged stands until the app states
   // a different `width`, and a CHANGE to that prop is what puts the pane where the app says.
   React.useLayoutEffect(() => {
-    const pane = paneRef.current ?? (handleRef.current?.parentElement as HTMLElement | null);
+    const pane = paneRef.current ?? resolvePane();
     if (!pane || controlledExtent === undefined) return;
     pane.style.setProperty(axis === "inline" ? "--kui-shell-w" : "--kui-shell-h", `${controlledExtent}px`);
   }, [controlledExtent, axis, paneRef]);
 
   React.useLayoutEffect(() => {
     const handle = handleRef.current;
-    // THE PANE IS RESOLVED FROM THE HANDLE, not from the pane's own ref. React attaches refs
-    // and runs layout effects in ONE bottom-up walk, so a child's layout effect runs before
-    // its parent's ref is attached — `paneRef.current` is still null here on the first commit,
-    // which is how the seeded value went missing again after being fixed once. The handle is a
-    // direct child of the pane, so its own parent is the pane, always, at this moment.
-    const pane = paneRef.current ?? (handle?.parentElement as HTMLElement | null);
+    // THE PANE IS RESOLVED BY THE ID THIS HANDLE ANNOUNCES, not by walking the DOM. React
+    // attaches refs and runs layout effects in one bottom-up walk, so a CHILD's layout effect
+    // runs before its parent's ref is attached — `paneRef.current` was null here on the first
+    // commit, which is how the seeded value went missing after being fixed once. The fallback
+    // used to be `handle.parentElement`, true only while the handle was inside the pane; since
+    // 2026-09-05 it is the pane's SIBLING and that expression resolves the shell root, which
+    // would seed the announced value with the frame's width. `aria-controls` already carries
+    // the pane's id, so the fallback reads the thing the element itself points at.
+    const pane = paneRef.current ?? resolvePane();
     if (!pane || !handle) return;
     handle.setAttribute("aria-valuenow", String(Math.round(extentOf(pane))));
     // The ceiling too, when the app stated none — it is the frame's, and it is only knowable
@@ -1135,6 +1200,10 @@ function useResizeHandle(opts: {
     it is focusable BECAUSE it is operable, which is the one case a separator takes a tab stop. */
 function ResizeHandle(props: {
   paneRef: React.RefObject<HTMLElement | null>;
+  /** Which pane this boundary belongs to. It is a stamp rather than a lookup: the handle is
+      the pane's SIBLING since 2026-09-05, so the stylesheet places it in that pane's grid
+      area and no `:has()` walk is needed to find out whose edge it is. */
+  pane: ShellPaneTarget;
   axis: "inline" | "block";
   anchor: "start" | "end";
   min: number;
@@ -1143,8 +1212,12 @@ function ResizeHandle(props: {
   controlledExtent: number | undefined;
   label: string;
   controls: string;
+  state: PaneState;
+  presentation: ShellPresentation;
+  rootRef: React.RefObject<HTMLDivElement | null> | undefined;
 }) {
-  const { paneRef, axis, anchor, min, max, onResize, controlledExtent, label, controls } = props;
+  const { paneRef, pane, axis, anchor, min, max, onResize, controlledExtent, label, controls } = props;
+  const { state, presentation, rootRef } = props;
   const handleRef = React.useRef<HTMLDivElement | null>(null);
   const { dragging, onPointerDown, onKeyDown } = useResizeHandle({
     paneRef,
@@ -1155,6 +1228,9 @@ function ResizeHandle(props: {
     max,
     onResize,
     controlledExtent,
+    controls,
+    rootRef,
+    paneName: pane,
   });
   return (
     <div
@@ -1177,7 +1253,14 @@ function ResizeHandle(props: {
          (surfaces.css `:nth-last-child(1 of :where(:not([data-float])))`). The handle is a real
          last child, so without this stamp adding `resizable` silently took the scroller's
          block-end bleed away — the recommended pane anatomy, broken by an unrelated prop. */
-      data-float=""
+      data-pane={pane}
+      /* THE PANE'S STATE, RESTATED ON THE BOUNDARY (2026-09-05). The hide rules used to read
+         it by descent (`.kui-shell-pane[data-state="closed"] .kui-shell-resize`), which a
+         sibling cannot satisfy. The alternative was a `:has()` walk per pane per condition —
+         eight selectors to ask a question the pane has already answered in this render, so
+         the answer is carried rather than re-derived. */
+      data-state={state}
+      data-presentation={presentation}
       data-axis={axis}
       data-anchor={anchor}
       data-tone="accent"
@@ -1242,7 +1325,7 @@ function SidePane({
   const composedRef = useMergedRefs(ref, pane.paneRef, ownRef);
   const { material, stamps, ref: paneRef } = usePaneDress(flush, backdrop, composedRef, pane.overlaying);
   const Element = element;
-  return (
+  const element_ = (
     <Element
       {...rest}
       id={pane.id}
@@ -1261,28 +1344,78 @@ function SidePane({
       style={sidePaneStyle(width, style)}
     >
       <GlassScope material={material}>
-        <ShellSizeContext.Provider value={size}>{children}</ShellSizeContext.Provider>
+        <ShellSizeContext.Provider value={size}>
+          {/* THE PANE IS THE PAGE'S SCOPE (§45, §46). A page's large title lives inside this
+              pane's scroller and the band that says it again is a SIBLING of that scroller, so
+              the store that carries the title between them has to sit at their common ancestor
+              — which is this. It is deliberately per-PANE and not per-Shell: two panes may each
+              hold a titled page, and one store above both would let the second overwrite the
+              first. `ShellHeader` renders none, which is what keeps the full-width row out of
+              the arrangement by construction — a `ToolbarTitle` there can find no page and so
+              always speaks for itself. */}
+          <PageScope>{children}</PageScope>
+        </ShellSizeContext.Provider>
       </GlassScope>
-      {resizable && name !== "rail" ? (
-        <ResizeHandle
-          paneRef={ownRef}
-          axis="inline"
-          /* The sidebar opens from the start edge, so its free boundary is the END one; the
-             inspector is the mirror. RTL flips both, read off the pane rather than stamped. */
-          anchor={name === "inspector" ? "start" : "end"}
-          min={minWidth ?? shellResize.min}
-          max={maxWidth}
-          controlledExtent={width}
-          onResize={onResize}
-          label={resizeLabel}
-          controls={pane.id}
-        />
-      ) : null}
     </Element>
+  );
+  /* THE HANDLE IS THE PANE'S SIBLING, NOT ITS CHILD (2026-09-05, Kushagra: "because of
+     resize, I cant click on search icon").
+
+     It lived inside the pane until now, and §27 had recorded the exit in writing on
+     2026-09-02: "moving the handle out of the pane entirely would buy back the 44px sliver
+     it now overlaps… the day a pane's content reaches its edge". That day arrived in the
+     docs site's own sidebar, whose search button sits at the trailing wall. Measured: the
+     button spanned x 239-271, the handle 243-287, and `elementFromPoint` at the button's
+     CENTRE returned the handle — 28 of its 32 pixels were unreachable.
+
+     Inside the pane it could not straddle, because a pane CLIPS (§3) and the outward half
+     was clipped away — which is the 2026-09-02 audit's own finding, and why it was pulled
+     fully inside in the first place. So the repair is not a wider box or a narrower one: it
+     is the same box, one level out, where the seam actually is. Half the target now falls on
+     the neighbour's side and half on the pane's, which is what a splitter is.
+
+     A SIBLING RATHER THAN A ROOT-RENDERED HANDLE, and the difference is what it costs: the
+     shell root would have to learn which panes resize and with what bounds, which is a
+     registry read and therefore post-mount — §27's whole stance is that first paint is right
+     with no script. Returning a fragment keeps the handle server-rendered and keeps every
+     prop where the pane already has it, at the price of one `grid-area` stamp so the extra
+     root child cannot be auto-placed into a cell of its own.
+
+     `data-float` LEAVES with it. It existed only because the handle was the pane's last child
+     and a ScrollArea's bleed rule reads `:nth-last-child(1 of :not([data-float]))` — so adding
+     `resizable` used to take the scroller's block-end bleed away. A sibling is not a last
+     child; the workaround dissolves rather than moving. */
+  const handle =
+    resizable && name !== "rail" ? (
+      <ResizeHandle
+        paneRef={ownRef}
+        pane={name}
+        axis="inline"
+        /* The sidebar opens from the start edge, so its free boundary is the END one; the
+           inspector is the mirror. RTL flips both, read off the pane rather than stamped. */
+        anchor={name === "inspector" ? "start" : "end"}
+        min={minWidth ?? shellResize.min}
+        max={maxWidth}
+        controlledExtent={width}
+        onResize={onResize}
+        label={resizeLabel}
+        controls={pane.id}
+        state={pane.state}
+        presentation={pane.presentation}
+        rootRef={pane.rootRef}
+      />
+    ) : null;
+  return handle === null ? (
+    element_
+  ) : (
+    <>
+      {element_}
+      {handle}
+    </>
   );
 }
 
-export type ShellRailProps = Omit<
+export type ShellRailProps = ComponentRefusals & Omit<
   SidePaneProps,
   "width" | "resizable" | "minWidth" | "maxWidth" | "onResize" | "resizeLabel"
 >;
@@ -1295,14 +1428,14 @@ export function ShellRail(props: ShellRailProps) {
   return <SidePane name="rail" element="nav" props={props} />;
 }
 
-export type ShellSidebarProps = SidePaneProps;
+export type ShellSidebarProps = ComponentRefusals & SidePaneProps;
 
 /** The wide navigation column. Renders `<nav>`. */
 export function ShellSidebar(props: ShellSidebarProps) {
   return <SidePane name="sidebar" element="nav" props={props} />;
 }
 
-export type ShellInspectorProps = SidePaneProps;
+export type ShellInspectorProps = ComponentRefusals & SidePaneProps;
 
 /** The right-side detail column — rests closed until asked for (`auto` means closed here;
     pass `defaultOpen` for an inspector that starts open). Renders `<aside>`. */
@@ -1310,7 +1443,7 @@ export function ShellInspector(props: ShellInspectorProps) {
   return <SidePane name="inspector" element="aside" props={props} />;
 }
 
-export type ShellBottomProps = Omit<React.ComponentPropsWithoutRef<"aside">, "color"> &
+export type ShellBottomProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"aside">, "color"> &
   TogglePaneOwnProps &
   PaneDressProps & {
     /**
@@ -1377,7 +1510,7 @@ export function ShellBottom(props: ShellBottomProps) {
   const ownRef = React.useRef<HTMLElement | null>(null);
   const composedRef = useMergedRefs(ref, pane.paneRef, ownRef);
   const { material, stamps, ref: paneRef } = usePaneDress(flush, backdrop, composedRef, pane.overlaying);
-  return (
+  const element_ = (
     <aside
       {...rest}
       id={pane.id}
@@ -1395,23 +1528,48 @@ export function ShellBottom(props: ShellBottomProps) {
       }
     >
       <GlassScope material={material}>
-        <ShellSizeContext.Provider value={size}>{children}</ShellSizeContext.Provider>
+        <ShellSizeContext.Provider value={size}>
+          {/* THE PANE IS THE PAGE'S SCOPE (§45, §46). A page's large title lives inside this
+              pane's scroller and the band that says it again is a SIBLING of that scroller, so
+              the store that carries the title between them has to sit at their common ancestor
+              — which is this. It is deliberately per-PANE and not per-Shell: two panes may each
+              hold a titled page, and one store above both would let the second overwrite the
+              first. `ShellHeader` renders none, which is what keeps the full-width row out of
+              the arrangement by construction — a `ToolbarTitle` there can find no page and so
+              always speaks for itself. */}
+          <PageScope>{children}</PageScope>
+        </ShellSizeContext.Provider>
       </GlassScope>
-      {resizable ? (
-        <ResizeHandle
-          paneRef={ownRef}
-          axis="block"
-          /* The bottom pane opens upward, so its free boundary is the one at the top. */
-          anchor="start"
-          min={minHeight ?? shellResize.min}
-          max={maxHeight}
-          controlledExtent={height}
-          onResize={onResize}
-          label={resizeLabel}
-          controls={pane.id}
-        />
-      ) : null}
     </aside>
+  );
+  /* A SIBLING, for SidePane's reasons in full — see the note there. The bottom pane's seam is
+     horizontal, so what the move buys here is the pane's own top 44px, which is where a
+     composer's toolbar or a console's tab strip sits. */
+  const handle = resizable ? (
+    <ResizeHandle
+      paneRef={ownRef}
+      pane="bottom"
+      axis="block"
+      /* The bottom pane opens upward, so its free boundary is the one at the top. */
+      anchor="start"
+      min={minHeight ?? shellResize.min}
+      max={maxHeight}
+      controlledExtent={height}
+      onResize={onResize}
+      label={resizeLabel}
+      controls={pane.id}
+      state={pane.state}
+      presentation={pane.presentation}
+      rootRef={pane.rootRef}
+    />
+  ) : null;
+  return handle === null ? (
+    element_
+  ) : (
+    <>
+      {element_}
+      {handle}
+    </>
   );
 }
 
@@ -1433,7 +1591,7 @@ export function ShellBottom(props: ShellBottomProps) {
    of what this part deletes, and the builder was ported onto it (2026-08-20 for the panes,
    2026-09-02 for the chrome rows), so the sentence is history rather than a standing case. */
 
-export type ShellScrollProps = ScrollAreaProps;
+export type ShellScrollProps = ComponentRefusals & ScrollAreaProps;
 
 /**
  * The one region of a pane that scrolls. Put it in a pane beside anything that should stay
@@ -1463,7 +1621,36 @@ export function ShellScroll({ className, ...props }: ShellScrollProps) {
    height: a header is one control row wherever it appears, which is what keeps a pane's
    chrome level with the rail beside it. */
 
-export type ShellPaneHeaderProps = Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
+/**
+ * A PANE'S CHROME TAKES THE PANE'S INDEX (2026-09-06, Kushagra: "why is search button in sidebar
+ * still size 2").
+ *
+ * The pane already sizes its own parts — a nav row stands as tall as the rail beside it — but
+ * that ran through `ShellSizeContext`, which only the shell's own vocabulary reads. Anything
+ * ELSE placed in a band (a Button, a `Toolbar`, a search field) resolved the app's index
+ * instead, so a size-3 sidebar opened with a size-2 button in its header and the two rows in
+ * one frame disagreed.
+ *
+ * The fix is narrow ON PURPOSE, and the boundary is chrome against content. A band is the
+ * PANE's — it is the frame talking — so what sits in it follows the pane, through the general
+ * unit layer (`SizeScopeContext`, §28) rather than through a second private one. A pane's
+ * SCROLLER is the app's, and nothing here reaches into it: a page's own controls are a
+ * composition somebody built and must not be re-sized by the frame around them. Sizing the
+ * whole pane was the obvious wider move and is exactly what that would have done — every demo
+ * on a documentation page jumping to the frame's index.
+ *
+ * An explicit prop still wins, and a `Field` inside a band still beats the band for its own
+ * control: this is the unit layer's ordinary third rung, not a new rule.
+ */
+function ChromeSize({ children }: { children: React.ReactNode }) {
+  return (
+    <SizeScopeContext.Provider value={React.use(ShellSizeContext)}>
+      {children}
+    </SizeScopeContext.Provider>
+  );
+}
+
+export type ShellPaneHeaderProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
   /**
    * Lift the row out of flow, over the pane's scroller: content passes behind it, and the
    * pane publishes `--kui-pane-inset-block-start` — one control row plus the pane's padding —
@@ -1477,24 +1664,28 @@ export type ShellPaneHeaderProps = Omit<React.ComponentPropsWithoutRef<"div">, "
     or floating over it with `float`, its reach published for the pane's content to spend. */
 export function ShellPaneHeader({ className, float, ...props }: ShellPaneHeaderProps) {
   return (
-    <div
-      {...props}
-      className={cx("kui-pane-header", className)}
-      {...(float ? { "data-float": "" } : {})}
-    />
+    <ChromeSize>
+      <div
+        {...props}
+        className={cx("kui-pane-header", className)}
+        {...(float ? { "data-float": "" } : {})}
+      />
+    </ChromeSize>
   );
 }
 
-export type ShellPaneFooterProps = ShellPaneHeaderProps;
+export type ShellPaneFooterProps = ComponentRefusals & ShellPaneHeaderProps;
 
 /** The same row at the pane's other end; with `float` it publishes `--kui-pane-inset-block-end`. */
 export function ShellPaneFooter({ className, float, ...props }: ShellPaneFooterProps) {
   return (
-    <div
-      {...props}
-      className={cx("kui-pane-footer", className)}
-      {...(float ? { "data-float": "" } : {})}
-    />
+    <ChromeSize>
+      <div
+        {...props}
+        className={cx("kui-pane-footer", className)}
+        {...(float ? { "data-float": "" } : {})}
+      />
+    </ChromeSize>
   );
 }
 
@@ -1506,7 +1697,7 @@ export function ShellPaneFooter({ className, float, ...props }: ShellPaneFooterP
    kookie-block, and what the pane owes it is a box with a real height, the right region
    scrolling, and `m="bleed"` for rows that want to reach the pane's edge. */
 
-export type ShellRailItemProps = Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
+export type ShellRailItemProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
   /** The region you are in. Announced as well as painted, exactly as a nav row's is. */
   current?: boolean;
   /** Be an anchor instead. A rail is primary navigation, and a link is a link. */
@@ -1557,7 +1748,7 @@ export function ShellRailItem({
   );
 }
 
-export type ShellRailListProps = Omit<React.ComponentPropsWithoutRef<"div">, "color">;
+export type ShellRailListProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"div">, "color">;
 
 /**
  * A run of rail squares. Layout only — the rail owns the distance between its own items the
@@ -1572,7 +1763,7 @@ export function ShellRailList({ className, ...props }: ShellRailListProps) {
   return <div {...props} className={cx("kui-shell-rail-list", className)} />;
 }
 
-export type ShellNavGroupProps = Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
+export type ShellNavGroupProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
   /** The group's heading. Omit it for an unlabelled cluster. */
   label?: React.ReactNode;
 };
@@ -1605,7 +1796,7 @@ export function ShellNavGroup({ label, id, className, children, ...props }: Shel
   );
 }
 
-export type ShellNavItemProps = Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
+export type ShellNavItemProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
   /**
    * This is the page you are on. It is announced with `aria-current="page"` as well as painted,
    * because "you are here" is information and a colour alone tells nobody who cannot see it.
@@ -1694,7 +1885,7 @@ export function ShellNavItem({
   );
 }
 
-export type ShellTriggerProps = Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
+export type ShellTriggerProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
   /** Which pane this button drives. */
   target: ShellPaneTarget;
   /**

@@ -34,6 +34,7 @@ import {
 import type { Size } from "../../system/axes.ts";
 import { Button } from "../button/button.tsx";
 import { Row } from "../row/row.tsx";
+import { Toolbar, ToolbarButton } from "../toolbar/toolbar.tsx";
 import { Separator } from "../separator/separator.tsx";
 import { Box } from "../box/box.tsx";
 import { Card } from "../card/card.tsx";
@@ -44,6 +45,8 @@ import {
   SIZES,
   colorOn,
   computed,
+  inMotion,
+  numberOn,
   mounted,
   render,
   tokenOn,
@@ -92,6 +95,15 @@ function fixture(props: {
     </Shell>
   );
 }
+
+/** IS THIS PANE ON SCREEN? Not `display === "none"` any more (2026-09-06): an OVERLAYING pane
+    parks at `visibility: hidden` so that its arrival and its exit can be transitioned at all —
+    `display` cannot be — and both spellings mean the same three things: nothing painted,
+    nothing focusable, nothing hit-testable. `checkVisibility` is the browser's own answer to
+    that question, which is why it replaces the string comparison rather than gaining a second
+    arm beside it. Its default options answer TRUE for `visibility: hidden`, so the flag is the
+    whole of the call. */
+const onScreen = (el: HTMLElement) => el.checkVisibility({ checkVisibilityCSS: true });
 
 const mountShell = (props?: Parameters<typeof fixture>[0]) =>
   mounted(fixture(props), { theme: {} });
@@ -247,32 +259,32 @@ describe("auto until touched: CSS resolves the untouched pane per window class (
     const shell = mountShell();
     const sidebar = within(shell, ".kui-shell-sidebar");
     expect(sidebar.dataset.state).toBe("auto");
-    expect(computed(sidebar, "display")).not.toBe("none");
+    expect(onScreen(sidebar), "the sidebar is not on screen").toBe(true);
     await narrow();
-    expect(computed(sidebar, "display")).toBe("none");
+    expect(onScreen(sidebar), "the sidebar is still on screen").toBe(false);
     // The stamp did not move: the resolution is the stylesheet's, not a re-render's.
     expect(sidebar.dataset.state).toBe("auto");
   });
 
   it("an untouched inspector and bottom rest closed at every width — detail is asked for", async () => {
     const shell = mountShell();
-    expect(computed(within(shell, ".kui-shell-inspector"), "display")).toBe("none");
-    expect(computed(within(shell, ".kui-shell-bottom"), "display")).toBe("none");
+    expect(onScreen(within(shell, ".kui-shell-inspector")), "inspector on screen").toBe(false);
+    expect(onScreen(within(shell, ".kui-shell-bottom")), "bottom on screen").toBe(false);
     await narrow();
-    expect(computed(within(shell, ".kui-shell-inspector"), "display")).toBe("none");
+    expect(onScreen(within(shell, ".kui-shell-inspector")), "inspector on screen").toBe(false);
   });
 
   it("an untouched pane with EXPLICIT overlay presentation rests closed — an overlay is summoned, never ambient", () => {
     const shell = mountShell({ sidebar: { presentation: "overlay" } });
-    expect(computed(within(shell, ".kui-shell-sidebar"), "display")).toBe("none");
+    expect(onScreen(within(shell, ".kui-shell-sidebar")), "sidebar on screen").toBe(false);
   });
 
   it("explicit state beats auto in both directions", async () => {
     const closedAtWide = mountShell({ sidebar: { defaultOpen: false } });
-    expect(computed(within(closedAtWide, ".kui-shell-sidebar"), "display")).toBe("none");
+    expect(onScreen(within(closedAtWide, ".kui-shell-sidebar")), "closed at wide").toBe(false);
     await narrow();
     const openAtNarrow = mountShell({ sidebar: { defaultOpen: true } });
-    expect(computed(within(openAtNarrow, ".kui-shell-sidebar"), "display")).not.toBe("none");
+    expect(onScreen(within(openAtNarrow, ".kui-shell-sidebar")), "open at narrow").toBe(true);
   });
 
   it("no open/close callback fires at mount or on a window-class crossing — structurally (§27)", async () => {
@@ -348,25 +360,25 @@ describe("a pane that holds a scroller still hides (§27)", () => {
     describe(`the scroller is the pane's ${arrangement === "only" ? "only child" : "second child"}`, () => {
       it("an explicitly closed pane is gone", () => {
         const shell = frame(arrangement, { sidebar: { defaultOpen: false } });
-        expect(computed(within(shell, ".kui-shell-sidebar"), "display")).toBe("none");
+        expect(onScreen(within(shell, ".kui-shell-sidebar")), "sidebar on screen").toBe(false);
       });
 
       it("an untouched inspector and bottom rest closed", () => {
         const shell = frame(arrangement);
-        expect(computed(within(shell, ".kui-shell-inspector"), "display")).toBe("none");
-        expect(computed(within(shell, ".kui-shell-bottom"), "display")).toBe("none");
+        expect(onScreen(within(shell, ".kui-shell-inspector")), "inspector on screen").toBe(false);
+        expect(onScreen(within(shell, ".kui-shell-bottom")), "bottom on screen").toBe(false);
       });
 
       it("an untouched explicit-overlay pane rests closed", () => {
         const shell = frame(arrangement, { sidebar: { presentation: "overlay" } });
-        expect(computed(within(shell, ".kui-shell-sidebar"), "display")).toBe("none");
+        expect(onScreen(within(shell, ".kui-shell-sidebar")), "sidebar on screen").toBe(false);
       });
 
       it("an untouched sidebar rests closed on a narrow window — the phone default", async () => {
         const shell = frame(arrangement);
         expect(computed(within(shell, ".kui-shell-sidebar"), "display")).not.toBe("none");
         await narrow();
-        expect(computed(within(shell, ".kui-shell-sidebar"), "display")).toBe("none");
+        expect(onScreen(within(shell, ".kui-shell-sidebar")), "sidebar on screen").toBe(false);
       });
     });
   }
@@ -904,6 +916,376 @@ describe("a drawer is not part of the frame, whatever the app asked (§27)", () 
   });
 });
 
+/** THE SCREEN, not a computed value. Grabs one frame, decodes it, and answers "what colour is
+    this CSS pixel" — the instrument the drawer's own bugs needed, because both of them were
+    about WHERE a correct declaration painted rather than about what it said. Device-pixel
+    ratio is divided out against a known viewport width, which is also the calibration: an
+    instrument whose scale is guessed is the 2026-08-08 finding waiting to happen. */
+async function screenPixels(cssWidth: number) {
+  const shot = (await page.screenshot({ base64: true, save: false })) as unknown as string;
+  const b64 = typeof shot === "string" ? shot : (shot as { base64: string }).base64;
+  const img = new Image();
+  await new Promise((done) => {
+    img.onload = done;
+    img.src = `data:image/png;base64,${b64}`;
+  });
+  const canvas = document.createElement("canvas");
+  canvas.width = img.width;
+  canvas.height = img.height;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(img, 0, 0);
+  const ratio = img.width / cssWidth;
+  return (x: number, y: number) => {
+    const [r, g, b] = ctx.getImageData(Math.round(x * ratio), Math.round(y * ratio), 1, 1).data;
+    return [r, g, b] as [number, number, number];
+  };
+}
+
+/** A token resolved to the three channels the screen speaks in, so a pixel can be compared
+    against the system's own value rather than against a literal nobody would notice going
+    stale. */
+async function rgbOf(scope: HTMLElement, expr: string) {
+  const [r, g, b] = colorOn(scope, expr).match(/\d+/g)!.map(Number);
+  return [r, g, b] as [number, number, number];
+}
+
+describe("a parked drawer is off the frame, not merely invisible (§27, §8, 2026-09-06)", () => {
+  /**
+   * THE LAW THE MOTION WORK SHIPPED WITHOUT, and a person found the defect instead (Kushagra:
+   * "there's no slide in and out"). Every drawer law in this file reads a LANDED pane — its
+   * dress, its cap, its span, its scrim — and the parked pose is the half none of them touch,
+   * so 2,634 laws were green over a drawer that did not travel at all.
+   *
+   * The defect was one character. The slide was published as a single hook holding both axes
+   * (`calc(-100% - gap) 0`) and `translate()` separates its arguments with a comma, so the
+   * substitution was unparseable — invalid at computed-value time, which drops the WHOLE
+   * declaration rather than the one argument. A parked drawer computed `transform: none` and
+   * sat at its landed position behind `visibility: hidden`; the OPEN state was correct
+   * throughout, because there the hook is unset and the `0` fallback parses. A law reading
+   * the open pane cannot see any of that, which is why this one reads the parked one.
+   *
+   * It reads the POSITION rather than the transform string: `none` is only today's spelling
+   * of the fault, and a drawer that parks where it lands is the fault in any spelling.
+   */
+  const parkedClearOf = (shell: HTMLElement, pane: HTMLElement) => {
+    const frame = shell.getBoundingClientRect();
+    const box = pane.getBoundingClientRect();
+    return { gap: frame.left - box.right, width: box.width };
+  };
+
+  // Falsified: with the two axis hooks collapsed back into one space-separated hook, the
+  // parked drawer's right edge sits 8px INSIDE the frame instead of on or past its left edge.
+  it("an EXPLICIT overlay pane rests one pane-width outside the frame's own edge", () => {
+    const shell = mounted(
+      <Shell style={{ height: 400 }}>
+        <ShellSidebar aria-label="Primary" presentation="overlay">
+          nav
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const pane = within(shell, ".kui-shell-sidebar");
+    // The premise: it is parked rather than deleted, or there is nothing here to measure.
+    expect(computed(pane, "display"), "the drawer left the box model").not.toBe("none");
+    expect(onScreen(pane), "the drawer was not parked at all").toBe(false);
+    const { gap, width } = parkedClearOf(shell, pane);
+    expect(width, "the parked drawer has no box to travel").toBeGreaterThan(100);
+    expect(gap, "the parked drawer sits inside the frame it is supposed to fly in from").
+      toBeGreaterThanOrEqual(0);
+  });
+
+  /**
+   * AND ON THE PATH EVERY PHONE TAKES. `auto` is restated in the narrow media block, and this
+   * file has recorded a fact reaching the explicit arm and not the resolved one three separate
+   * times. Here they were both wrong, which is the only reason one law would have caught it.
+   */
+  it("a drawer on a phone parks outside too — the resolved arm, not just the explicit one", async () => {
+    await narrow();
+    const shell = mountShell();
+    const pane = within(shell, ".kui-shell-sidebar");
+    expect(pane.dataset.presentation, "resolved by CSS, not restamped").toBe("auto");
+    expect(onScreen(pane), "the drawer was not parked at all").toBe(false);
+    const { gap, width } = parkedClearOf(shell, pane);
+    expect(width, "the parked drawer has no box to travel").toBeGreaterThan(100);
+    expect(gap, "the parked drawer sits inside the frame it is supposed to fly in from").
+      toBeGreaterThanOrEqual(0);
+  });
+
+  /**
+   * AND IT ARRIVES ON THE FRAME'S OWN CLOCK. The whole point of the recession is that the
+   * drawer's travel and the frame's shrink are ONE event, so a mid-flight reading must catch
+   * both moving and neither finished — which is also the only reading that can tell a real
+   * transition from a one-frame snap. `inMotion()` because the harness stands transitions
+   * down by default (2026-08-20), and this is a claim about a clock.
+   *
+   * THE MID-FLIGHT MOMENT IS SEIZED, NEVER RACED (the 2026-08-20 rule, and this law earned it
+   * the honest way: the first spelling read one rAF after the press, passed alone in three
+   * consecutive runs and failed inside the full parallel suite, because a loaded machine can
+   * put that callback past the whole 420ms). Both transitions are paused and their clocks set
+   * to the same instant, so what the law reads does not depend on when it looked.
+   *
+   * Falsified: with the single-hook spelling restored, the drawer has no transition to seize
+   * at all — it is at its landed position from the first frame and the root is at 0.925.
+   */
+  it("the drawer travels and the frame recedes on one clock", async () => {
+    inMotion();
+    await narrow();
+    const shell = mountShell();
+    const pane = within(shell, ".kui-shell-sidebar");
+    const root = pane.closest(".kui-shell") as HTMLElement;
+    const parked = pane.getBoundingClientRect().left;
+    const moving = (el: HTMLElement) =>
+      el.getAnimations().filter((a) => (a as CSSTransition).transitionProperty === "transform");
+
+    await userEvent.click(within(shell, ".kui-shell-header button"));
+    await expect.poll(() => pane.dataset.state).toBe("open");
+    // The premise, and the thing the defect deletes: both boxes really are in flight.
+    await expect
+      .poll(() => moving(pane).length > 0 && moving(root).length > 0)
+      .toBe(true);
+
+    // Halfway, by the clock rather than by the wall.
+    for (const el of [pane, root]) {
+      for (const a of moving(el)) {
+        a.pause();
+        a.currentTime = 210;
+      }
+    }
+    await new Promise<void>((r) => requestAnimationFrame(() => r()));
+
+    const x = pane.getBoundingClientRect().left;
+    const scale = Number(/matrix\(([\d.]+)/.exec(computed(root, "transform"))?.[1]);
+    expect(x, "the drawer arrived in one frame, or never parked outside").toBeLessThan(0);
+    expect(x, "the drawer never left its park").toBeGreaterThan(parked);
+    expect(scale, "the frame never receded").toBeLessThan(1);
+    expect(scale, "the frame receded in one frame").toBeGreaterThan(0.925);
+  });
+});
+
+describe("a live drawer is not cut, and neither is the scrim over it (§27, §8, 2026-09-06)", () => {
+  /**
+   * KUSHAGRA, ON THE SHIPPED RECESSION: "the sidebar is also cut". It was, and so were the
+   * scrim and the well, all by the same line — `overflow: clip` on the frame. The reason is a
+   * coordinate space: `overflow` clips descendants in the element's OWN box, BEFORE the
+   * element's transform, and while a drawer is live the frame is scaled to 0.925, so all three
+   * things that take its inverse are larger than the box doing the clipping. Every one of them
+   * lands exactly on the frame's box once it is on screen, so the overflow was real in the
+   * frame's space and imaginary in the viewer's.
+   *
+   * These laws read the VIEWER's space, by hit-testing: `getBoundingClientRect` reports the
+   * transformed border box and says nothing about clipping, which is why no existing law could
+   * see this — the drawer's rect was right the whole time.
+   */
+  const topmostAt = (x: number, y: number) => document.elementFromPoint(x, y);
+
+  const liveNarrowShell = async () => {
+    await narrow();
+    const shell = mountShell({ sidebar: { defaultOpen: true } });
+    const pane = within(shell, ".kui-shell-sidebar");
+    await expect.poll(() => computed(pane, "position")).toBe("absolute");
+    // Settle the entry: this reads a landed frame, never a moment inside the flight.
+    await expect
+      .poll(() => (pane.closest(".kui-shell") as HTMLElement).getAnimations().length === 0)
+      .toBe(true);
+    return { shell, pane };
+  };
+
+  // Falsified: with `overflow: clip` restored on the live arm, the pane's own head and foot
+  // hit the theme instead of the pane — the 18px the frame was trimming at each end.
+  it("the drawer paints its whole box, head and foot", async () => {
+    const { pane } = await liveNarrowShell();
+    const box = pane.getBoundingClientRect();
+    const x = box.left + box.width / 2;
+    expect(topmostAt(x, box.top + 2), "the drawer's head is trimmed").toBe(pane);
+    expect(topmostAt(x, box.bottom - 2), "the drawer's foot is trimmed").toBe(pane);
+  });
+
+  /**
+   * AND THE SCRIM REACHES THE FRAME'S TRAILING EDGE. The scrim and the well take the same
+   * inverse the drawer does, so they were cut by the same line and by the same amount —
+   * measured on a 375px frame, both stopped at x=347 and the trailing 28px showed raw page
+   * under nothing at all. This is the half a person sees as a bright band beside a dimmed app,
+   * which inverts the depth the recession is for.
+   */
+  it("the scrim covers the frame's trailing edge, which is where the recession opened", async () => {
+    const { shell } = await liveNarrowShell();
+    const root = within(shell, ".kui-shell");
+    const frame = root.getBoundingClientRect();
+    const scrim = within(shell, ".kui-shell-scrim");
+    // The premise: the frame really has receded, or there is no trailing gap to cover.
+    expect(computed(root, "transform"), "the frame did not recede").not.toBe("none");
+    const y = frame.top + frame.height / 2;
+    // Just inside the frame's LAYOUT box, past where the receded frame now paints.
+    const trailing = root.offsetLeft + root.offsetWidth - 2;
+    expect(topmostAt(trailing, y), "the trailing edge is outside the scrim").toBe(scrim);
+  });
+
+  /**
+   * AND THE APP IS STILL THERE BEHIND THE DRAWER — READ OFF THE PIXELS (Kushagra, twice:
+   * "Normal white page becomes black when sidebar comes", then "The entire page is black there
+   * is no ring").
+   *
+   * The well is a pseudo-element behind the panes, sized to the frame's whole box, and a flush
+   * pane paints nothing because a pane level with the page is not a plane. So through a frame
+   * of flush panes the well was not a ring around a receded app; it WAS the app, replaced by a
+   * near-black slab. The frame carries the seal for as long as it is away from the page, which
+   * is flush's own rule one level up.
+   *
+   * THIS LAW GRABS THE SCREEN, and it is the only kind that could have caught either half. The
+   * first repair put the seal on the root's own background, which measured perfectly on the
+   * element — and painted nowhere, because the root isolates and a `z-index: -1` pseudo paints
+   * ABOVE its parent's background. A computed value cannot see paint order; a pixel can. It is
+   * the calibration lesson (2026-08-08) taken one step further: an instrument that reads a
+   * declaration is measuring the author's intent, not the reader's screen.
+   *
+   * Falsified twice: with the plane deleted the frame reads 9,9,10 — the well; with the plane
+   * moved back onto the root it reads 9,9,10 again, which is the defect this law was written
+   * a second time to catch.
+   */
+  it("a flush frame is still the app when a drawer opens — in pixels", async () => {
+    await page.viewport(375, 700);
+    const shell = mounted(
+      <Shell style={{ height: 700 }}>
+        <ShellHeader flush>
+          <ShellTrigger target="sidebar">menu</ShellTrigger>
+        </ShellHeader>
+        <ShellSidebar aria-label="Primary" flush defaultOpen>
+          nav
+        </ShellSidebar>
+        <ShellContent flush>content</ShellContent>
+      </Shell>,
+      { theme: {} },
+    );
+    const root = within(shell, ".kui-shell");
+    const content = within(shell, ".kui-shell-content");
+    // The premise, and the reason this fixture can see the defect at all: the pane paints
+    // nothing of its own, so whatever the screen shows there came from behind it.
+    expect(computed(content, "background-color"), "the pane paints its own bed").toBe(
+      "rgba(0, 0, 0, 0)",
+    );
+    expect(computed(root, "transform"), "the frame did not recede").not.toBe("none");
+    await expect.poll(() => root.getAnimations().length).toBe(0);
+
+    /* THE POINT MATTERS AS MUCH AS THE READING, and the first spelling proved it: it sampled
+       the content pane's own centre, which on a narrow window is UNDER the drawer — so it read
+       the drawer's white and survived both sabotages. The subject is the strip of frame the
+       drawer does not cover, between its trailing edge and the edge the recession pulled in
+       to; the ring is past that. (The degenerate-fixture rule, in the law written to catch a
+       defect the same rule had already let through twice.) */
+    const at = await screenPixels(375);
+    const drawer = within(shell, ".kui-shell-sidebar").getBoundingClientRect();
+    const recede = numberOn(shell, "--shell-drawer-scale");
+    const frameEdge = root.offsetLeft + root.offsetWidth * recede;
+    expect(frameEdge - drawer.right, "the drawer covers the whole frame — nothing to read").toBeGreaterThan(8);
+    const y = root.offsetTop + root.offsetHeight / 2;
+    const inside = at((drawer.right + frameEdge) / 2, y);
+    const well = at(root.offsetLeft + root.offsetWidth - 2, y);
+
+    /* READ AS A DISTANCE, because the scrim sits over both regions and neither pixel is its
+       token exactly — the ring measures 9,9,10 against the well's own 11,11,12. What the claim
+       has always been is which of the two colours the frame is showing, so that is what the
+       law asks: the pixel inside the frame must be nearer the seal than the well, and the ring
+       must be the other way round. The second half is the vacuity guard — without a ring
+       there is nothing here to be on the wrong side of. */
+    const seal = await rgbOf(shell, "var(--color-surface)");
+    const wellToken = await rgbOf(shell, "var(--scrim-well)");
+    const near = (px: number[], to: number[]) =>
+      Math.hypot(px[0]! - to[0]!, px[1]! - to[1]!, px[2]! - to[2]!);
+    expect(
+      near(well, wellToken) < near(well, seal),
+      `the recession opened no ring, so this law proves nothing (${well})`,
+    ).toBe(true);
+    expect(
+      near(inside, seal) < near(inside, wellToken),
+      `the well painted straight through the frame — the app is gone (${inside})`,
+    ).toBe(true);
+  });
+
+  /**
+   * AND THE SCRIM LEAVES WITH THE DRAWER, NOT BEFORE IT (Kushagra: "When I dismiss it, the bg
+   * loses its blur instantly making it look weird"). It was `display: none` at rest and
+   * `display: block` while a drawer was live, and `display` cannot be transitioned — so the
+   * instant a drawer was dismissed the scrim's pigment AND its defocus vanished in one frame
+   * while the pane still had its whole travel left. The app snapped back to full contrast and
+   * full sharpness with something still sliding across it, which reads as two events rather
+   * than one.
+   *
+   * The moment is SEIZED rather than raced, the 2026-08-20 rule: the exit's own clocks are
+   * paused and set to the same instant, so what this reads does not depend on when it looked.
+   *
+   * Falsified: with the `display` spelling restored, the scrim is off screen on the first
+   * frame of the exit and there is no animation to seize at all.
+   */
+  it("the scrim fades out on the drawer's clock, not in one frame", async () => {
+    inMotion();
+    await narrow();
+    const shell = mountShell({ sidebar: { defaultOpen: true } });
+    const scrim = within(shell, ".kui-shell-scrim");
+    const pane = within(shell, ".kui-shell-sidebar");
+    await expect.poll(() => onScreen(scrim)).toBe(true);
+    // The premise: it really is defocusing something, or "loses its blur" names nothing here.
+    expect(computed(scrim, "backdrop-filter"), "the scrim defocuses nothing").not.toBe("none");
+
+    pressEscape(pane);
+    await expect.poll(() => pane.dataset.state).toBe("closed");
+    const fading = () =>
+      scrim.getAnimations().filter((a) => (a as CSSTransition).transitionProperty === "opacity");
+    await expect.poll(() => fading().length > 0).toBe(true);
+    for (const a of fading()) {
+      a.pause();
+      a.currentTime = 210;
+    }
+    await new Promise<void>((r) => requestAnimationFrame(() => r()));
+
+    const half = Number(computed(scrim, "opacity"));
+    expect(half, "the scrim was gone before the drawer was").toBeGreaterThan(0);
+    expect(half, "the scrim never started leaving").toBeLessThan(1);
+    // And it is still on screen doing its job while the pane travels.
+    expect(onScreen(scrim), "the scrim left the screen mid-exit").toBe(true);
+    expect(computed(scrim, "backdrop-filter"), "the defocus went in one frame").not.toBe("none");
+  });
+
+  /**
+   * AND THE RECEDED FRAME IS AN OBJECT, SO IT HAS CORNERS (Kushagra: "when the bg scales down,
+   * it should have corner radius too"). Read as an AGREEMENT with a mounted Card at the frame's
+   * own step rather than against a number, because the squircle multiplier sits between the
+   * token and the painted corner and a literal here would be pinning the multiplier by
+   * accident — the shape §27's own pane-corner law already takes.
+   */
+  it("the frame rounds while it recedes, at the corner a card wears", async () => {
+    const { shell } = await liveNarrowShell();
+    const root = within(shell, ".kui-shell");
+    const plane = getComputedStyle(root, "::after").borderTopLeftRadius;
+    expect(plane, "the receding frame is a square slab").not.toBe("0px");
+    const card = mounted(<Card size="3">c</Card>, { theme: {}, select: ".kui-surface" });
+    expect(plane, "the frame's corner is not the system's").toBe(
+      computed(card, "border-top-left-radius"),
+    );
+  });
+
+  /**
+   * AND THE PRICE OF NOT CLIPPING IS PAID BY THE OTHER DRAWERS. Parking is affordable because
+   * the frame clips; the frame stops clipping while a drawer is live, and at that moment every
+   * OTHER parked pane is real scrollable overflow — measured on a frame with all three, a
+   * 375x700 window reported 663x874 and the page gained two scrollbars onto blank space.
+   *
+   * Falsified: with the sibling stand-down deleted, both dimensions overflow by a pane.
+   */
+  it("a sibling parked drawer does not scroll the page while another is live", async () => {
+    await narrow();
+    const shell = mountShell({ sidebar: { defaultOpen: true } });
+    const pane = within(shell, ".kui-shell-sidebar");
+    await expect.poll(() => computed(pane, "position")).toBe("absolute");
+    // The premise: this fixture really does carry the other two overlay panes.
+    expect(within(shell, ".kui-shell-inspector")).toBeTruthy();
+    expect(within(shell, ".kui-shell-bottom")).toBeTruthy();
+    const el = document.documentElement;
+    expect(el.scrollWidth, "the page scrolls sideways").toBeLessThanOrEqual(el.clientWidth);
+    expect(el.scrollHeight, "the page scrolls down").toBeLessThanOrEqual(el.clientHeight);
+  });
+});
+
 describe("the JS mirror agrees with the stylesheet, and is read (§27)", () => {
   it("an untouched explicit-overlay pane reports closed AND contains nothing, at a wide window", async () => {
     const shell = mounted(
@@ -919,11 +1301,11 @@ describe("the JS mirror agrees with the stylesheet, and is read (§27)", () => {
     const trigger = within(shell, ".kui-shell-header button");
     const sidebar = within(shell, ".kui-shell-sidebar");
     // The CSS half (what the old laws read) …
-    expect(computed(sidebar, "display")).toBe("none");
+    expect(onScreen(sidebar), "the sidebar is still on screen").toBe(false);
     // … and the JS half, which nothing read: an overlay is summoned, never ambient.
     await expect.poll(() => trigger.getAttribute("aria-expanded")).toBe("false");
     expect(within(shell, ".kui-shell-content").inert, "the shell contained itself at rest").toBe(false);
-    expect(computed(within(shell, ".kui-shell-scrim"), "display")).toBe("none");
+    expect(onScreen(within(shell, ".kui-shell-scrim")), "the scrim is up").toBe(false);
   });
 
   it("an OPEN explicit-overlay pane carries the whole obligation at a wide window", async () => {
@@ -942,7 +1324,7 @@ describe("the JS mirror agrees with the stylesheet, and is read (§27)", () => {
     const sidebar = within(shell, ".kui-shell-sidebar");
     await expect.poll(() => within(shell, ".kui-shell-content").inert).toBe(true);
     expect(computed(sidebar, "position")).toBe("absolute");
-    expect(computed(within(shell, ".kui-shell-scrim"), "display")).toBe("block");
+    expect(onScreen(within(shell, ".kui-shell-scrim")), "the scrim is down").toBe(true);
     expect(sidebar.inert).toBe(false);
     pressEscape(sidebar);
     await expect.poll(() => sidebar.dataset.state).toBe("closed");
@@ -967,11 +1349,11 @@ describe("the trigger: the one crossing (§27)", () => {
     await expect.poll(() => trigger.getAttribute("aria-expanded")).toBe("true");
     trigger.click();
     await expect.poll(() => sidebar.dataset.state).toBe("closed");
-    expect(computed(sidebar, "display")).toBe("none");
+    expect(onScreen(sidebar), "the sidebar is still on screen").toBe(false);
     await expect.poll(() => trigger.getAttribute("aria-expanded")).toBe("false");
     trigger.click();
     await expect.poll(() => sidebar.dataset.state).toBe("open");
-    expect(computed(sidebar, "display")).not.toBe("none");
+    expect(onScreen(sidebar), "the sidebar is not on screen").toBe(true);
   });
 
   it("a controlled pane reports and obeys: onOpenChange fires, the prop stays the truth", async () => {
@@ -984,7 +1366,7 @@ describe("the trigger: the one crossing (§27)", () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
     // Nobody moved the prop, so the pane did not move — controlled means controlled.
     expect(sidebar.dataset.state).toBe("open");
-    expect(computed(sidebar, "display")).not.toBe("none");
+    expect(onScreen(sidebar), "the sidebar is not on screen").toBe(true);
   });
 
   it("the render escape composes — the trigger's wiring lands on the caller's element", async () => {
@@ -1013,14 +1395,26 @@ describe("the overlay treatment: one element, dressed — and its obligations (�
     const sidebar = within(shell, ".kui-shell-sidebar");
     const scrim = within(shell, ".kui-shell-scrim");
     expect(computed(sidebar, "position")).toBe("absolute");
-    expect(computed(scrim, "display")).toBe("block");
+    expect(onScreen(scrim), "the scrim is down").toBe(true);
     // The scrim paints the designed veil, under the pane.
     expect(parseInt(computed(scrim, "z-index"), 10)).toBeLessThan(
       parseInt(computed(sidebar, "z-index"), 10),
     );
-    // Under the header, over the content: the pane's top is the header's bottom.
-    const header = within(shell, ".kui-shell-header").getBoundingClientRect();
-    expect(sidebar.getBoundingClientRect().top).toBeCloseTo(header.bottom, 0);
+    /* IT COVERS THE WHOLE FRAME, header included (2026-09-06). This read "under the header,
+       over the content: the pane's top is the header's bottom" — true while the drawer was
+       still one of the frame's grid rows, and untrue the moment the frame began receding
+       underneath it. A drawer covers, and the full span is also what makes its counter-scale
+       exact (it has to share the frame's centre on the axis it does not anchor to). Measured
+       in LAYOUT space: painted, the frame is 7.5% smaller than the drawer while a drawer is
+       live, so a page-space comparison of the two is a comparison of two different scales. */
+    expect(sidebar.offsetTop, "the drawer starts below something").toBeCloseTo(
+      parseFloat(computed(sidebar, "margin-top")),
+      0,
+    );
+    expect(
+      sidebar.offsetTop + sidebar.offsetHeight + parseFloat(computed(sidebar, "margin-bottom")),
+      "the drawer stops short of the frame's foot",
+    ).toBeCloseTo(shell.clientHeight, 0);
   });
 
   it("explicit overlay ≡ auto-at-narrow — two spellings, one treatment (the agreement law)", async () => {
@@ -1061,7 +1455,7 @@ describe("the overlay treatment: one element, dressed — and its obligations (�
     pressEscape(sidebar);
     await expect.poll(() => sidebar.dataset.state).toBe("closed");
     expect(onOpenChange).toHaveBeenCalledWith(false);
-    expect(computed(within(shell, ".kui-shell-scrim"), "display")).toBe("none");
+    expect(onScreen(within(shell, ".kui-shell-scrim")), "the scrim is up").toBe(false);
   });
 
   it("a scrim press closes every overlaying pane", async () => {
@@ -1200,11 +1594,11 @@ describe("two overlays at once — the plural the critical defect lived in (§27
     // fixture got full modal containment (every other root child inert) with no scrim drawn:
     // no click-to-dismiss, no visible modality, and on a phone no Escape key either. The bad
     // half of both mechanisms at once. Falsified by deleting the wrapped arm from the two
-    // scrim rules in shell.css, which reads `expected "none" to be "block"`.
+    // scrim rules in shell.css, which reads `expected false to be true`.
     expect(
-      computed(within(shell, ".kui-shell-scrim"), "display"),
+      onScreen(within(shell, ".kui-shell-scrim")),
       "a wrapped drawer contained the whole shell and drew no way out",
-    ).toBe("block");
+    ).toBe(true);
   });
 
   it("a NESTED shell's drawer does not raise the OUTER frame's scrim", async () => {
@@ -1236,13 +1630,13 @@ describe("two overlays at once — the plural the critical defect lived in (§27
       "absolute",
     );
     expect(
-      computed(within(inner, ".kui-shell-scrim"), "display"),
+      onScreen(within(inner, ".kui-shell-scrim")),
       "the inner frame drew no scrim for its own drawer",
-    ).toBe("block");
+    ).toBe(true);
     expect(
-      computed(outer.querySelector(":scope > .kui-shell-scrim")!, "display"),
+      onScreen(outer.querySelector(":scope > .kui-shell-scrim") as HTMLElement),
       "the outer frame raised a scrim over a drawer it does not contain",
-    ).toBe("none");
+    ).toBe(false);
   });
 
   it("a re-render while a pane overlays does NOT haul focus back into it", async () => {
@@ -1361,14 +1755,20 @@ describe("an overlay never takes the whole window (§27, audit 2026-08-16)", () 
       const shell = mountShell({ sidebar: { defaultOpen: true } });
       const sidebar = within(shell, ".kui-shell-sidebar");
       await expect.poll(() => computed(sidebar, "position")).toBe("absolute");
-      const root = shell.getBoundingClientRect();
-      const pane = sidebar.getBoundingClientRect();
+      /* THE FRAME'S OWN BOX, not its painted one (2026-09-06). The root RECEDES while a
+         drawer is live, so `getBoundingClientRect` returns a box 7.5% smaller than the room
+         the person is actually looking at, and a strip measured against it comes out short by
+         the recession rather than by anything the layout did. `offsetWidth` is the layout box,
+         which is the frame the cap is written against. */
+      const root = { width: shell.clientWidth };
+      const pane = { width: sidebar.offsetWidth, left: sidebar.offsetLeft };
       const strip = root.width - pane.width;
       const floor = parseFloat(tokenOn(shell, "--touch-target-min"));
       expect(floor).toBeGreaterThan(0);
       expect(strip, `no dismissal strip at ${width}px`).toBeGreaterThanOrEqual(floor - 0.5);
       // And the strip is really the scrim, not merely empty space.
-      const hit = document.elementFromPoint(root.right - strip / 2, root.top + root.height / 2);
+      const box = shell.getBoundingClientRect();
+      const hit = document.elementFromPoint(box.right - 4, box.top + box.height / 2);
       expect(hit?.classList.contains("kui-shell-scrim"), "the strip is not the scrim").toBe(true);
       // THE OTHER END, added 2026-08-20 after the audit. This law was written as a bound in
       // ONE direction and shipped a critical defect underneath it for four days: the cap
@@ -1377,8 +1777,12 @@ describe("an overlay never takes the whole window (§27, audit 2026-08-16)", () 
       // strip, which the assertion above welcomes. A bound with one end is half a bound.
       const designed = parseFloat(tokenOn(shell, "--shell-sidebar-w"));
       expect(designed).toBeGreaterThan(0);
+      // A DRAWER PAYS THE FRAME'S OWN AIR since 2026-09-06 — it is not in the frame while it
+      // overlays, so it sits like a pane pulled off it — and the cap has always subtracted
+      // exactly that term (`2 * --kui-shell-outer`, written before anything published it).
+      const air = 2 * parseFloat(tokenOn(shell, "--shell-gap"));
       expect(pane.width, `the drawer collapsed at ${width}px`).toBeCloseTo(
-        Math.min(designed, root.width - floor),
+        Math.min(designed, root.width - floor - air),
         0,
       );
       expect(sidebar.clientWidth, "the drawer has no content box").toBeGreaterThan(floor);
@@ -1394,8 +1798,25 @@ describe("an overlay never takes the whole window (§27, audit 2026-08-16)", () 
     expect(capped).toBeLessThan(375);
     // Capped, not collapsed — the same one-sided hole as above: `1 < 375` is true too.
     const floor = parseFloat(tokenOn(shell, "--touch-target-min"));
-    expect(capped, "the oversized drawer collapsed instead of being capped").toBeCloseTo(375 - floor, 0);
-    expect(shell.scrollWidth, "the shell scrolls sideways").toBeLessThanOrEqual(shell.clientWidth);
+    const air = 2 * parseFloat(tokenOn(shell, "--shell-gap"));
+    expect(capped, "the oversized drawer collapsed instead of being capped").toBeCloseTo(
+      375 - floor - air,
+      0,
+    );
+    /* THE DOCUMENT, not the shell's own `scrollWidth` (2026-09-06). Things deliberately hang
+       outside the frame in both states — a parked drawer at rest, the counter-scaled scrim and
+       well while one is live — and `scrollWidth` on the shell reports that whether or not
+       anything can scroll, so it stopped being an instrument for this claim. What the claim
+       has always been about is whether the PAGE gains a sideways scrollbar.
+
+       The spelling assertion that stood here (`overflow-x === "clip"`) was DELETED the same
+       day it was written: the frame stops clipping while a drawer is live, precisely so the
+       drawer is not cut, and a law pinning the spelling would have to be wrong in one of the
+       two states. The guarantee is the page, in both. */
+    expect(
+      document.documentElement.scrollWidth,
+      "the page scrolls sideways",
+    ).toBeLessThanOrEqual(document.documentElement.clientWidth);
   });
 
   it("a NON-FLUSH drawer's own margin does not eat the strip the cap just bought", async () => {
@@ -1434,17 +1855,22 @@ describe("an overlay never takes the whole window (§27, audit 2026-08-16)", () 
       parseFloat(computed(sidebar, "margin-inline-start")),
       "the drawer pays no outer spacing, so this fixture cannot show the defect",
     ).toBeGreaterThan(0);
-    const root = shell.getBoundingClientRect();
-    const pane = sidebar.getBoundingClientRect();
-    // From the drawer's OUTER edge to the frame's, which is where the finger actually goes.
-    const strip = root.right - pane.right;
+    /* LAYOUT SPACE, consistently (2026-09-06). The frame RECEDES while a drawer is live and
+       the drawer takes the exact inverse, so a rect off the root and a rect off the pane are
+       measured in two different scales — mixing them reads a strip 7.5% short of the real
+       one. `clientWidth` and `offsetLeft`/`offsetWidth` are the layout box, which is the space
+       the cap is written in and the space the person's finger is in once the recession has
+       finished. */
+    const strip = shell.clientWidth - (sidebar.offsetLeft + sidebar.offsetWidth);
     expect(strip, "the drawer's margin ate the dismissal strip").toBeGreaterThanOrEqual(floor - 0.5);
     // Capped, not collapsed — a bound with one end is half a bound (2026-08-20).
     expect(sidebar.clientWidth, "the drawer collapsed instead of being capped").toBeGreaterThan(
       floor,
     );
-    // And the strip is really the scrim, not merely empty space.
-    const hit = document.elementFromPoint(root.right - strip / 2, root.top + root.height / 2);
+    // And the strip is really the scrim, not merely empty space. Read at the frame's own
+    // painted edge, because the scrim takes the frame's inverse and covers the whole box.
+    const box = shell.getBoundingClientRect();
+    const hit = document.elementFromPoint(box.right - 4, box.top + box.height / 2);
     expect(hit?.classList.contains("kui-shell-scrim"), "the strip is not the scrim").toBe(true);
   });
 
@@ -1468,7 +1894,7 @@ describe("an overlay never takes the whole window (§27, audit 2026-08-16)", () 
     );
     const sidebar = within(shell, ".kui-shell-sidebar");
     const scrim = shell.querySelector(".kui-shell-scrim") as HTMLElement;
-    await expect.poll(() => computed(scrim, "display")).toBe("block");
+    await expect.poll(() => onScreen(scrim)).toBe(true);
     expect(Number(computed(sidebar, "z-index")), "the drawer sank into the scrim's band").toBeGreaterThan(
       Number(computed(scrim, "z-index")),
     );
@@ -3292,7 +3718,7 @@ describe("placement: at the root, and composed inside another layer (§27)", () 
     // Containment inside the shell is the shell's, and it works here exactly as at the root.
     expect(computed(sidebar, "position")).toBe("absolute");
     expect(within(shell, ".kui-shell-content").inert).toBe(true);
-    expect(computed(within(shell, ".kui-shell-scrim"), "display")).toBe("block");
+    expect(onScreen(within(shell, ".kui-shell-scrim")), "the scrim is down").toBe(true);
 
     // ONE key, ONE layer: the pane is the innermost dismissible thing, so it answers and the
     // dialog never hears it.
@@ -3747,5 +4173,237 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
         computed(mounted(<Card>c</Card>, { theme: {} }), "background-color"),
       );
     });
+  });
+});
+
+
+describe("a floating band in the work area clears the frame's safe area (§27, §45, 2026-09-06)", () => {
+  /* THE DEFECT: the content pane runs UNDER a floating sidebar, so a band pinned across its top
+     starts at the window's edge and its first control sits beneath the column next door. Every
+     consumer was closing that by hand with a margin on the band's first child. */
+  /* `flush={false}` is what makes a pane FLOAT: the content stays flush (the default), so the
+     sidebar lifts off and the work area runs underneath it. A tiled fixture is the negative
+     control, and without it every assertion here passes on a shell that floats nothing. */
+  const Frame = (props: { flush?: boolean }) => (
+    <Shell style={{ height: 400, width: 900 }}>
+      <ShellSidebar aria-label="Primary" flush={props.flush ?? false} defaultOpen>
+        nav
+      </ShellSidebar>
+      <ShellContent>
+        <ShellPaneHeader float>
+          <button data-first type="button">
+            Toggle
+          </button>
+        </ShellPaneHeader>
+        <div>body</div>
+      </ShellContent>
+    </Shell>
+  );
+
+  it("the band's first control starts clear of a FLOATING sidebar", () => {
+    const root = mounted(<Frame />, { theme: {}, select: ".kui-shell" });
+    const sidebar = within(root, ".kui-shell-sidebar").getBoundingClientRect();
+    const first = root.querySelector("[data-first]")!.getBoundingClientRect();
+    expect(sidebar.width).toBeGreaterThan(0);
+    expect(first.left).toBeGreaterThanOrEqual(sidebar.right);
+  });
+
+  it("and takes nothing extra when the panes tile — the reach is zero, so the spelling is one", () => {
+    const floating = mounted(<Frame />, { theme: {}, select: ".kui-shell" });
+    const flush = mounted(<Frame flush />, { theme: {}, select: ".kui-shell" });
+    const padOf = (root: HTMLElement) =>
+      parseFloat(computed(root.querySelector(".kui-pane-header")!, "padding-inline-start"));
+    const surfacePad = parseFloat(
+      tokenOn(flush.querySelector(".kui-shell-content")!, "--kui-sf-p"),
+    );
+    expect(padOf(flush)).toBeCloseTo(surfacePad, 1);
+    expect(padOf(floating)).toBeGreaterThan(padOf(flush));
+  });
+
+  it("the reach is the WORK AREA's — a sidebar resolves none of it, so its own band cannot move", () => {
+    /* Stated against the variable rather than against the padding, because that is where the
+       guarantee lives: `--kui-shell-inset-*` is declared on `.kui-shell-content` alone, so a
+       sidebar's band would take nothing even from a blanket rule. Reading the padding here
+       would have been a law nothing could break — the selector on the rule above is belt and
+       braces, and this is the brace that can actually fail. */
+    const root = mounted(
+      <Shell style={{ height: 400, width: 900 }}>
+        <ShellSidebar aria-label="Primary" flush={false} defaultOpen>
+          <ShellPaneHeader float>
+            <button data-nav type="button">
+              New
+            </button>
+          </ShellPaneHeader>
+          <div>rows</div>
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const reachOn = (sel: string) =>
+      parseFloat(tokenOn(root.querySelector(sel)!, "--kui-shell-inset-inline-start"));
+    expect(reachOn(".kui-shell-content")).toBeGreaterThan(0);
+    expect(reachOn(".kui-shell-sidebar")).toBe(0);
+  });
+});
+
+
+describe("a pane's chrome takes the pane's index; its content does not (§27, §28, 2026-09-06)", () => {
+  /* THE DEFECT: a size-3 sidebar opened with a size-2 button in its own header, because the
+     pane's index ran through a context only the shell's own vocabulary reads. The boundary is
+     chrome against content — a band is the frame talking, a scroller is the app's. */
+  const Frame = () => (
+    <Shell style={{ height: 400, width: 900 }}>
+      <ShellSidebar aria-label="Primary" size="3" defaultOpen>
+        <ShellPaneHeader>
+          <Button data-chrome>Search</Button>
+        </ShellPaneHeader>
+        <ShellScroll>
+          <Button data-content>In the page</Button>
+        </ShellScroll>
+      </ShellSidebar>
+      <ShellContent>c</ShellContent>
+    </Shell>
+  );
+
+  it("a control in the band stands at the PANE's index", () => {
+    const root = mounted(<Frame />, { theme: {}, select: ".kui-shell" });
+    const three = mounted(<Button size="3">Search</Button>, { theme: {} });
+    expect(
+      root.querySelector("[data-chrome]")!.getBoundingClientRect().height,
+    ).toBeCloseTo(three.getBoundingClientRect().height, 1);
+  });
+
+  it("and a control in the SCROLLER does not — a page's own controls are the app's", () => {
+    const root = mounted(<Frame />, { theme: {}, select: ".kui-shell" });
+    const two = mounted(<Button>In the page</Button>, { theme: {} });
+    expect(
+      root.querySelector("[data-content]")!.getBoundingClientRect().height,
+    ).toBeCloseTo(two.getBoundingClientRect().height, 1);
+    // The two Buttons are in ONE pane and must differ, which is the half a same-index fixture
+    // could never see.
+    expect(root.querySelector("[data-content]")!.getBoundingClientRect().height).not.toBeCloseTo(
+      root.querySelector("[data-chrome]")!.getBoundingClientRect().height,
+      1,
+    );
+  });
+
+  it("an explicit prop still wins inside a band — the unit layer's ordinary third rung", () => {
+    const root = mounted(
+      <Shell style={{ height: 400, width: 900 }}>
+        <ShellSidebar aria-label="Primary" size="3" defaultOpen>
+          <ShellPaneHeader>
+            <Button data-chrome size="1">
+              Search
+            </Button>
+          </ShellPaneHeader>
+        </ShellSidebar>
+        <ShellContent>c</ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const one = mounted(<Button size="1">Search</Button>, { theme: {} });
+    expect(
+      root.querySelector("[data-chrome]")!.getBoundingClientRect().height,
+    ).toBeCloseTo(one.getBoundingClientRect().height, 1);
+  });
+});
+
+
+describe("a band follows the TOOLBAR in it, and the reach says so (§27, §45, 2026-09-06)", () => {
+  /* THE DEFECT: the published safe area is a DERIVATION — one control row at the pane's index —
+     which is what keeps first paint right with no script, and a `Toolbar` stating its own index
+     broke the sentence underneath it. Measured before the repair: an 88px band over a 64px
+     reach, so a page cleared 24px less than the bar it was clearing. */
+  const Frame = (props: { size?: Size; footer?: boolean }) => (
+    <Shell style={{ height: 400, width: 900 }}>
+      <ShellContent>
+        <ShellPaneHeader float>
+          <Toolbar {...(props.size ? { size: props.size } : {})}>
+            <ToolbarButton>One</ToolbarButton>
+          </Toolbar>
+        </ShellPaneHeader>
+        <div>body</div>
+        {props.footer ? (
+          <ShellPaneFooter float>
+            <Toolbar size="1">
+              <ToolbarButton>Two</ToolbarButton>
+            </Toolbar>
+          </ShellPaneFooter>
+        ) : null}
+      </ShellContent>
+    </Shell>
+  );
+
+  it("the reach equals the band it is published for, at the toolbar's index", () => {
+    const root = mounted(<Frame size="4" />, { theme: {}, select: ".kui-shell" });
+    const band = root.querySelector(".kui-pane-header")!.getBoundingClientRect();
+    const reach = parseFloat(
+      tokenOn(root.querySelector(".kui-shell-content")!, "--kui-pane-inset-block-start"),
+    );
+    expect(band.height).toBeCloseTo(reach, 1);
+  });
+
+  it("a band that states nothing is unchanged — the pane's own row still answers", () => {
+    const stated = mounted(<Frame size="4" />, { theme: {}, select: ".kui-shell" });
+    const plain = mounted(<Frame />, { theme: {}, select: ".kui-shell" });
+    const reachOf = (root: HTMLElement) =>
+      parseFloat(tokenOn(root.querySelector(".kui-shell-content")!, "--kui-pane-inset-block-start"));
+    expect(reachOf(plain)).toBeLessThan(reachOf(stated));
+    expect(reachOf(plain)).toBeCloseTo(
+      plain.querySelector(".kui-pane-header")!.getBoundingClientRect().height,
+      1,
+    );
+  });
+
+  it("the two ends are two facts — a tall header does not lend its row to a short footer", () => {
+    /* One name for both would have handed the footer the header's row. The fixture is deliberately
+       LOPSIDED (a size-4 header over a size-1 footer), which is where one name and two disagree. */
+    const root = mounted(<Frame size="4" footer />, { theme: {}, select: ".kui-shell" });
+    const pane = root.querySelector(".kui-shell-content")!;
+    const start = parseFloat(tokenOn(pane, "--kui-pane-inset-block-start"));
+    const end = parseFloat(tokenOn(pane, "--kui-pane-inset-block-end"));
+    expect(start).toBeGreaterThan(end);
+    expect(end).toBeCloseTo(
+      root.querySelector(".kui-pane-footer")!.getBoundingClientRect().height,
+      1,
+    );
+  });
+});
+
+
+describe("the scroller fades across the band it passes under (§27, 2026-09-06)", () => {
+  /* The pane's own comment has claimed since 2026-08-29 that the fade is what keeps the passing
+     content legible, and it was not: 32px of designed fade against a band up to 88px deep, so
+     the lower two thirds of a floating row had full-strength text behind it. */
+  const Frame = (props: { float?: boolean }) => (
+    <Shell style={{ height: 400, width: 900 }}>
+      <ShellContent>
+        <ShellPaneHeader {...(props.float ? { float: true } : {})}>
+          <button type="button">Toggle</button>
+        </ShellPaneHeader>
+        <ShellScroll fade>
+          <div style={{ blockSize: "2000px" }}>body</div>
+        </ShellScroll>
+      </ShellContent>
+    </Shell>
+  );
+
+  it("a floating band hands its reach to the scroller", () => {
+    const root = mounted(<Frame float />, { theme: {}, select: ".kui-shell" });
+    const pane = root.querySelector(".kui-shell-content")!;
+    const scroller = root.querySelector(".kui-shell-scroll")!;
+    expect(parseFloat(tokenOn(scroller, "--kui-sa-fade-start"))).toBeCloseTo(
+      parseFloat(tokenOn(pane, "--kui-pane-inset-block-start")),
+      1,
+    );
+  });
+
+  it("and the fade it hands over is the whole band, not the designed 32", () => {
+    const root = mounted(<Frame float />, { theme: {}, select: ".kui-shell" });
+    const scroller = root.querySelector(".kui-shell-scroll")!;
+    expect(parseFloat(tokenOn(scroller, "--kui-sa-fade-start"))).toBeGreaterThan(
+      parseFloat(tokenOn(scroller, "--scrollbar-fade")),
+    );
   });
 });

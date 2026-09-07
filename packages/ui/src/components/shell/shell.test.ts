@@ -40,7 +40,16 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     // keying on the viewport is a decision that has to be made rather than one that happens;
     // and every such query is config's boundary verbatim, so `narrowMedia` stays the one home
     // for the number even where a sheet spells it as a literal (CSS cannot var() a query).
-    const sanctioned = ["components/shell/shell.css", "components/dialog/dialog.css"];
+    // THREE since 2026-09-05, and the third is a REFUSAL of the second's rule rather than a new
+    // use of the mechanism: `command.css` opens the same query to state that a palette is NOT a
+    // sheet. A dialog-as-sheet grows from a fixed bottom edge, and a palette's height is its
+    // results, so bottom-pinning moves the field on every keystroke (§44). Adding it here is the
+    // decision this law exists to force — the alternative was a silent third consumer.
+    const sanctioned = [
+      "components/shell/shell.css",
+      "components/dialog/dialog.css",
+      "components/command/command.css",
+    ];
     const keyed = allStylesheets().filter((file) => /@media[^{]*\((?:max|min)-width:/.test(sheet(file)));
     expect(keyed.sort(), "a stylesheet keys on the viewport without being sanctioned").toEqual(
       sanctioned.sort(),
@@ -73,7 +82,13 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     // here is not whether to allow them but whether the handle should draw at all; it should,
     // and the alternative (a boundary visible at rest) draws a second line beside the seam
     // hairline that already marks it.
-    const queries = (css.match(/@media[^{]+/g) ?? []).map((q) => q.replace(/\s+/g, " ").trim());
+    // The FORMS, deduplicated (2026-09-06): the drawer's own stand-down is a second
+    // `prefers-reduced-motion` block, declared beside the rules it stands down rather than
+    // bolted onto the handle's — which is §8's own doctrine after the 2026-08-10 finding, and
+    // the reason this law asks which queries exist rather than how many.
+    const queries = [
+      ...new Set((css.match(/@media[^{]+/g) ?? []).map((q) => q.replace(/\s+/g, " ").trim())),
+    ];
     expect(queries.sort()).toEqual(
       [
         `@media ${narrowMedia}`,
@@ -190,6 +205,20 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     // properties now, so both come under this law for the first time, and the two values they
     // may carry are the ABSENCE and surfaces.css's own chain verbatim. A literal still cannot
     // get through, which is the only thing this arm has ever promised.
+    /* A SIXTH IS SANCTIONED (2026-09-06): the WELL, the ground a receding frame goes back
+       into. It is a paint, and it is the first one in this sheet that is not a stand-down — so
+       it is bounded the way the handle is, by VALUE: the `::before` may name exactly one
+       colour and it is the scrim's own token, which is the same statement ("the app is behind
+       this") made by the surface the app is no longer covering. A bed cannot hide inside that,
+       because a bed would have to be a colour the scrim family does not own. */
+    const well = css.match(/\.kui-shell::before\s*\{[^}]*\}/g) ?? [];
+    expect(well.length, "the well's rule vanished — this arm reads nothing").toBe(1);
+    for (const decl of well[0]!.match(/background-color\s*:[^;]*/g) ?? []) {
+      expect(decl.trim(), "the well may not name a colour of its own").toMatch(
+        /^background-color:\s*(transparent|var\(--scrim-well\))$/,
+      );
+    }
+
     const standDowns = [
       /\.kui-shell-pane\[data-flush\]\s*\{[^}]*\}/g,
       /\.kui-shell-pane\[data-flush\]\[data-presentation="(?:overlay|auto)"\]\s*\{[^}]*\}/g,
@@ -228,8 +257,40 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
         );
       }
     }
+    /* A SEVENTH IS SANCTIONED (2026-09-06): the frame's own PLANE while it recedes. It is the
+       flush rule one level up — a box level with the page is not a plane, and the frame stops
+       being level with the page the instant it starts receding — so for the length of a
+       drawer's life the frame carries the seal and the well shows only in the ring. Without it
+       a flush frame showed the well straight through every pane and the app disappeared.
+
+       It lives on `::after` rather than on the root, and that is not a spelling: the root
+       isolates, so a `z-index: -1` pseudo paints ABOVE its parent's background. Two pseudos at
+       one negative layer settle it by order instead. Bounded by VALUE like every other paint
+       here — the plane may name exactly one colour and it is the seal — and by the SHAPE, so
+       the arm cannot quietly move back onto the root where it does not work. */
+    const planeRe = /\.kui-shell(?::has\(> \.kui-shell-pane\[data-state="open"\]\[data-presentation="(?:overlay|auto)"\]\))?::after\s*\{[^}]*\}/g;
+    const plane = css.match(planeRe) ?? [];
+    expect(plane.length, "the frame's plane vanished — this arm reads nothing").toBe(3);
+    for (const rule of plane) {
+      for (const decl of rule.match(/background-color\s*:[^;]*/g) ?? []) {
+        expect(decl.trim(), "the frame's plane may not name a colour of its own").toMatch(
+          /^background-color:\s*(transparent|var\(--color-surface\))$/,
+        );
+      }
+    }
+    const recedingRoot = css.match(/\.kui-shell:has\(> \.kui-shell-pane\[data-state="open"\]\[data-presentation="(?:overlay|auto)"\]\)\s*\{[^}]*\}/g) ?? [];
+    expect(recedingRoot.length, "the recession's own rules vanished").toBe(2);
+    for (const rule of recedingRoot) {
+      expect(rule, "the plane moved back onto the root, where the well paints over it").not.toMatch(
+        /background/,
+      );
+    }
+
     const sanctioned = css
+      .replace(planeRe, " ")
       .replace(/\.kui-shell-scrim\s*\{[^}]*\}/g, " ")
+      // The well and its one lit arm — bounded by value directly above.
+      .replace(/\.kui-shell[^{]*::before\s*\{[^}]*\}/g, " ")
       .replace(/\.kui-shell-nav-item:hover[^{]*\{[^}]*\}/g, " ")
       .replace(/\.kui-shell-resize[^{]*\{[^}]*\}/g, " ")
       .replace(standDowns[0]!, " ")
@@ -242,7 +303,37 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     // animated its scrim with the suite green. `sanctioned` is the right corpus for
     // `background`, because each of those rules is a sanctioned PAINT; it is the wrong corpus
     // for a clock, because none of them is a sanctioned clock.
-    expect(css.replace(/\.kui-shell-resize[^{]*\{[^}]*\}/g, " ")).not.toMatch(/[^-\w]transition\s*:/);
+    /* THE SHELL MOVES ONE THING SINCE 2026-09-06, and the ban becomes a BOUND rather than an
+       absence. §27 had recorded the exit in writing — "the spring entry is the recorded
+       follow-up, and a node law asserts the absence" — and the drawer is it: the pane slides,
+       the frame recedes under it, and the well and the scrim take the frame's inverse.
+
+       Bounded by VALUE, exactly as the handle's clock is, and by three separate readers rather
+       than by this list: every duration must resolve to a motion token and every geometry
+       channel to a spring (recipes.test.ts), and every clock declared here must be stood down
+       under reduced motion (the same file). What this arm keeps is the part those cannot see —
+       WHICH rules in this sheet are allowed to carry a clock at all, so a scrim that started
+       fading on its own account, or a pane that gained a hover travel, still fails here. */
+    const clocked = [
+      /\.kui-shell-resize[^{]*\{[^}]*\}/g,
+      /\.kui-shell\s*\{[^}]*\}/g,
+      /\.kui-shell[^{]*::before\s*\{[^}]*\}/g,
+      /\.kui-shell::after\s*\{[^}]*\}/g,
+      /\.kui-shell-scrim\s*\{[^}]*\}/g,
+      /\.kui-shell-pane\[data-presentation="(?:overlay|auto)"\]\s*\{[^}]*\}/g,
+      // The live arm, both spellings: it carries the frame's recession AND the clip that stops
+      // (2026-09-06) — one `transition` per element, so the two channels cannot reset each
+      // other, which is what the first spelling did.
+      /\.kui-shell:has\(> \.kui-shell-pane\[data-state="open"\]\[data-presentation="(?:overlay|auto)"\]\)\s*\{[^}]*\}/g,
+      /@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\n\s*\}\n\s*\}/g,
+    ];
+    const unclocked = clocked.reduce((acc, re) => acc.replace(re, " "), css);
+    expect(unclocked, "a rule in this sheet moves that was not licensed to").not.toMatch(
+      /[^-\w]transition\s*:/,
+    );
+    // And the licence is not a blank one: each of those rules must really be there, or this
+    // arm is a list of holes rather than a list of exemptions.
+    for (const re of clocked) expect(css.match(re)?.length ?? 0, String(re)).toBeGreaterThan(0);
   });
 });
 
@@ -300,5 +391,29 @@ describe("the shell tokens are emitted from config (§27)", () => {
     // And the fact it was replaced with is really keyed on the pane, not re-centralised.
     expect(css).toContain(".kui-shell-pane[data-flush]");
     expect(css).toContain(".kui-shell-pane:not([data-flush])");
+  });
+});
+
+
+describe("the band's fade is handed over only where a band floats (§27, 2026-09-06)", () => {
+  /* THE BROWSER CANNOT SEE THIS HALF. An unset custom property probes as `0px`, which is exactly
+     what a shell handing the scroller a fade of NOTHING would probe as, and the mask that would
+     tell them apart serializes identically until Base UI's own scroll pass has written the
+     overflow distances — a frame-timing read, which this repo does not run on CI. The guarantee
+     is a property of the SELECTOR, so it is read there. */
+  const css = sheet("components/shell/shell.css");
+
+  it("both fade rules are scoped to a floating band", () => {
+    for (const edge of ["header", "footer"] as const) {
+      const start = css.indexOf(`.kui-shell-pane:has(> .kui-pane-${edge}[data-float]) > .kui-shell-scroll`);
+      expect(start, `no fade rule keyed on a floating ${edge}`).toBeGreaterThan(-1);
+      const body = css.slice(start, css.indexOf("}", start));
+      expect(body).toContain("--kui-sa-fade-");
+    }
+    // And those are the ONLY two: a third rule handing it over unconditionally would make the
+    // designed value unreachable for every pane in the package. Counted rather than pattern-
+    // matched — the obvious negative regex matched the scoped rules themselves, because the
+    // character before the scroller in `…[data-float]) > .kui-shell-scroll` is a `>`.
+    expect(css.match(/--kui-sa-fade-/g) ?? []).toHaveLength(2);
   });
 });

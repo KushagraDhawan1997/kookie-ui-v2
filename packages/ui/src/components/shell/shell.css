@@ -119,6 +119,8 @@
 }
 
 .kui-shell {
+  /* A Shell inside a receding Shell states its own rest, so the recession cannot compound. */
+  --kui-shell-recede: 1;
   --kui-shell-inset-inline-start: initial;
   --kui-shell-inset-inline-end: initial;
   --kui-shell-inset-block-start: initial;
@@ -136,6 +138,24 @@
    the one place a zero length is not a raw literal. `inherits: false` for the same reason the
    two extents above are — a pane's margin is not its children's, and a Shell composed inside
    a pane would otherwise size its own caps from the outer pane's spacing. */
+/* The recession, the well and the drawer's counter all read ONE number, so they cannot
+   disagree about how far back the frame has gone (2026-09-06). Registered so it interpolates
+   as a NUMBER — an unregistered property animates as a token stream, which is to say it does
+   not animate at all, and the frame would jump between its two scales.
+
+   `inherits: true`, which is the opposite of what the two extents above take, and the reason
+   is that here the readers are DESCENDANTS: the well and the drawer both undo exactly what the
+   root did, and a non-inheriting name resolves to its initial value on them — measured, that
+   is a drawer riding the frame's own 0.925 into the distance while claiming to counter it.
+   The `--kui-h` trap is closed by the RESET on `.kui-shell` instead (the four `--kui-shell-inset-*`
+   lengths at the head of this file are the same shape): a Shell inside a receding Shell states
+   its own 1 nearer, so it cannot inherit the outer frame's recession. */
+@property --kui-shell-recede {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
 @property --kui-shell-outer {
   syntax: "<length>";
   inherits: false;
@@ -169,6 +189,35 @@
   block-size: 100%;
   position: relative;
   isolation: isolate;
+  /* AND IT CLIPS WHILE NOTHING IS FLYING, WHICH IS THE WHOLE OF THE RULE (2026-09-06,
+     corrected the same day). A drawer is no longer deleted when it is closed — it waits one
+     pane-width outside the frame so its arrival can be transitioned — and a parked pane on
+     the trailing or bottom edge is scrollable overflow: measured, a 375px window reported a
+     690px document. `clip` rather than `hidden` for §3's reason: a hidden box is a scroll
+     container, and this one is the app's whole frame.
+
+     THE CORRECTION IS THAT IT MUST STOP CLIPPING WHILE A DRAWER IS LIVE (Kushagra: "the
+     sidebar is also cut"), and the reason is a coordinate space. `overflow` clips descendants
+     in the element's OWN box, before the element's transform — and while a drawer is live
+     this element is scaled to 0.925, so the three things that take its inverse are all larger
+     than the box doing the clipping. Measured on a 375x700 frame: the drawer paints
+     26.25→673.75 where its box is 8→692, cut by 18px at the head and the foot; the scrim and
+     the well both stop at x=347, so the trailing 28px of the frame showed raw page. Every one
+     of those lands EXACTLY on the frame's own box once it is on screen — the overflow is real
+     in the frame's space and imaginary in the viewer's, which is the sense in which clipping
+     here was measuring the wrong thing.
+
+     So the clip is a property of the RESTING frame, and it comes back only once the last
+     drawer has finished leaving. `transition-behavior: allow-discrete` is what makes that
+     expressible without JS: `overflow` is a discrete property, so it flips at the END of a
+     zero-duration transition whose delay is the drawer's own clock. Going the other way the
+     live arm restates the delay at zero, so the clip is gone on the first frame of an entry
+     and no arrival is ever cut.
+
+     The clock itself is declared with the frame's own transform, in the drawer region below,
+     so this element has exactly one `transition` and neither half can silently reset the
+     other — which the first spelling did, the shorthand in that rule dropping this one. */
+  overflow: clip;
 }
 
 /* ── The panes ─────────────────────────────────────────────────────────────────────────────
@@ -389,6 +438,14 @@
 .kui-shell-sidebar[data-presentation="overlay"] {
   position: absolute;
   grid-column: 1 / -1;
+  /* AND EVERY ROW (2026-09-06). It spanned the middle row until the frame started receding
+     under it, which put its top at the header's bottom — a sentence that was true while the
+     drawer was part of the frame and stopped being true the moment it was not. Two things make
+     the full span right rather than convenient: a drawer COVERS, which is what every
+     platform's does, and the counter-scale that holds it still while the frame recedes is only
+     EXACT if it shares the frame's centre on the axis it does not anchor to. Spanning the block
+     axis is what makes `0 50%` one point for both. */
+  grid-row: 1 / -1;
   inset-block: 0;
   inset-inline-start: 0;
   max-inline-size: calc(100% - var(--touch-target-min) - 2 * var(--kui-shell-outer));
@@ -413,14 +470,279 @@
   z-index: 2;
 }
 
+
+/* ── THE DRAWER'S ARRIVAL, AND THE FRAME'S RECESSION UNDER IT (§27, §8, 2026-09-06) ────────
+   Kushagra, against his own Physics reference: the background "should scale down".
+
+   A DRAWER IS NONE OF THE THREE ENTRANCES THIS PACKAGE ALREADY HAS. It is not a menu — a menu
+   flies out of the thing you pressed (§22), and a drawer is anchored to the window's edge
+   rather than to its trigger. It is not a dialog — a dialog barely travels, because the scrim
+   IS its arrival and it comes toward you rather than in from the side (§24). It slides in from
+   the edge it was parked behind, which is also the cheapest reading in the package: the
+   distance is its own width, a length CSS already has, so this is the ONE entrance here that
+   measures nothing and needs no runner.
+
+   WHAT ONLY A SHELL CAN ADD is the second half. Every drawer library portals to the body, so
+   the page is not theirs to move and the recession has to be asked of the app. The Shell owns
+   the header, the rail, the content and the inspector already, so the frame recedes with
+   nothing asked of anybody.
+
+   THE ORIGIN IS THE DRAWER'S OWN EDGE, AND THAT IS FORCED RATHER THAN CHOSEN. The frame has to
+   recede as ONE object or the header stays put while the content shrinks and they come apart,
+   so the transform goes on the root — which means the drawer, a descendant, would recede with
+   it. The drawer takes the exact inverse to stay put, and an inverse is only exact when parent
+   and child scale about the SAME page point. A start-anchored drawer spans the whole block
+   axis and sits on the frame's start edge, so `0 50%` is that point for both; an end drawer
+   shares `100% 50%`, a bottom drawer `50% 100%`. Measured before any of this was written: a
+   600x400 frame at 0.925 with a counter-scaled 200x400 child returns the child to exactly
+   200 x 400, its start edge on the frame's and its centre on the frame's centre, with no
+   drift. The visible consequence is that the gap opens on three sides and not on the drawer's
+   own — which is the one side the drawer is covering.
+
+   The reference's 8px settle is DROPPED rather than ported: it exists to sell a scale about
+   the top edge, and every term added here has to be inverted on the drawer as well. One
+   number, one inverse.
+
+   NO TRANSFORM AT REST. `scale(1)` is not free — a transformed element is a containing block
+   for `position: fixed`, so declaring it always would silently re-anchor every app's fixed
+   chrome. The property exists only while a drawer is live. */
+.kui-shell:has(> :where(.kui-shell-rail, .kui-shell-sidebar)[data-state="open"][data-presentation="overlay"]) {
+  --kui-shell-recede: var(--shell-drawer-scale);
+  --kui-shell-recede-origin: 0 50%;
+}
+
+.kui-shell:has(> :where(.kui-shell-inspector)[data-state="open"][data-presentation="overlay"]) {
+  --kui-shell-recede: var(--shell-drawer-scale);
+  --kui-shell-recede-origin: 100% 50%;
+}
+
+.kui-shell:has(> :where(.kui-shell-bottom)[data-state="open"][data-presentation="overlay"]) {
+  --kui-shell-recede: var(--shell-drawer-scale);
+  --kui-shell-recede-origin: 50% 100%;
+}
+
+.kui-shell {
+  transform-origin: var(--kui-shell-recede-origin, 50% 50%);
+  /* ONE `transition` FOR THIS ELEMENT, and the second channel is the clip (see the frame rule
+     at the head of this file for why the frame stops clipping while a drawer is live). It
+     rides here rather than up there because a `transition` shorthand in either place resets
+     the other's, which is how the first spelling lost the recession's own clock. */
+  transition:
+    transform var(--motion-drawer) var(--motion-spring-driven),
+    overflow 0s var(--motion-drawer) allow-discrete;
+}
+
+.kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="overlay"]) {
+  transform: scale(var(--kui-shell-recede));
+  overflow: visible;
+  transition:
+    transform var(--motion-drawer) var(--motion-spring-driven),
+    overflow 0s allow-discrete;
+}
+
+/* THE WELL: what the receding frame goes back INTO. A pseudo-element rather than a background
+   on the root, because the root is the thing that scales and the well must not — it takes the
+   same inverse the drawer does, about the same origin, which returns it to exactly the box the
+   root had. It paints NOTHING until a drawer is live: at rest a near-black rectangle behind
+   the panes would show through every gap of the grounded posture, where the app's own page is
+   what belongs. */
+.kui-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: transparent;
+  transform-origin: inherit;
+  transform: scale(calc(1 / var(--kui-shell-recede)));
+  transition:
+    background-color var(--motion-drawer) var(--motion-easing),
+    transform var(--motion-drawer) var(--motion-spring-driven);
+}
+
+.kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="overlay"])::before {
+  background-color: var(--scrim-well);
+}
+
+/* AND THE FRAME'S OWN PLANE, WHICH IS THIS FILE'S FLUSH SENTENCE ONE LEVEL UP (2026-09-06,
+   Kushagra: "Normal white page becomes black when sidebar comes", then "its still black").
+   A flush pane paints nothing because it is level with the page (§27, 2026-08-21) — and the
+   well sits behind the panes at the size of the whole frame, so through a frame of flush panes
+   the well was simply what a person saw: the app replaced by a near-black slab the moment a
+   drawer opened, the recession invisible because nothing was left to recede.
+
+   The frame leaves the page the instant it starts receding, so for exactly as long as it is
+   away from it the frame is a PLANE and carries the seal. The well then shows only in the ring
+   the recession opened, which is all it was ever for.
+
+   IT IS A SECOND PSEUDO-ELEMENT AND NOT THE ROOT'S OWN BACKGROUND, and the first spelling
+   proved why: the root declares `isolation: isolate`, so it is a stacking context, and inside
+   one a `z-index: -1` child paints ABOVE its parent's background — behind the content and in
+   front of the bed. The seal went on the root, measured correctly on the element, and the well
+   went on painting straight over it. Two pseudo-elements at the same negative layer settle it
+   by ORDER instead, which is the one thing about them that cannot be got wrong: `::after`
+   paints after `::before`, always.
+
+   It takes NO transform, which is the whole economy of putting it here: it rides the frame's
+   own scale and therefore lands exactly on the receded frame, so nothing has to know how wide
+   the ring is.
+
+   `--color-surface` and not `--color-page`: the page is a colour the library has twice
+   declined to own and an app may have painted anything back there, while the seal is a colour
+   it does own, is what every plane in the system rests on, and in light is the page to the
+   byte. */
+.kui-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-color: transparent;
+  /* AND IT ROUNDS, because a plane set back from the page is an object and objects in this
+     system have corners (Kushagra: "when the bg scales down, it should have corner radius
+     too"). It rides the frame's own scale like the rest of this element, so the painted corner
+     is the stated one times the recession — which is what makes it read as the same object
+     moving away rather than a second one appearing.
+
+     The bare token and NOT `var(--kui-sf-radius, …)`, which is what a pane and the drawer both
+     read: that hook INHERITS, so a Shell composed inside a Card would take the card's corner
+     — §27's own reason for pinning a pane's corner before the panes could stamp their size,
+     and the frame has no `data-size` of its own to spend the way they did. */
+  border-radius: calc(var(--radius-surface-3) * var(--kui-corner-k, 1));
+  transition: background-color var(--motion-drawer) var(--motion-easing);
+}
+
+.kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="overlay"])::after {
+  background-color: var(--color-surface);
+}
+
+/* THE DRAWER ITSELF: the exact inverse of the frame's scale, and then its own slide. Written
+   as one `transform` so the ORDER is stated rather than left to the property model — the slide
+   applies first and the inverse scale wraps it, which is what makes the pair compose to a pure
+   translation in page space.
+
+   ONE HOOK PER AXIS, and the first spelling's single hook is why (2026-09-06, Kushagra:
+   "there's no slide in and out"). It held the whole pair — `calc(-100% - gap) 0` — and
+   `translate()` separates its arguments with a COMMA, so every parked drawer substituted a
+   value the function could not parse. That is invalid at computed-value time, which takes the
+   WHOLE declaration rather than the one argument: a parked drawer computed `transform: none`,
+   sat at its landed position behind `visibility: hidden`, and appeared. The open state was
+   correct throughout — the hook is unset there, so the `0` fallback parses — which is exactly
+   the shape that makes it invisible to anything reading a landed pane. Two hooks cannot be
+   written wrong: each is one length, and the comma belongs to the sheet. */
+.kui-shell-pane[data-presentation="overlay"] {
+  transform-origin: var(--kui-shell-drawer-origin);
+  transform: scale(calc(1 / var(--kui-shell-recede)))
+    translate(var(--kui-shell-drawer-x, 0), var(--kui-shell-drawer-y, 0));
+  transition:
+    transform var(--motion-drawer) var(--motion-spring-driven),
+    visibility var(--motion-drawer);
+}
+
+.kui-shell-rail[data-presentation="overlay"],
+.kui-shell-sidebar[data-presentation="overlay"] {
+  --kui-shell-drawer-origin: 0 50%;
+}
+
+.kui-shell-inspector[data-presentation="overlay"] {
+  --kui-shell-drawer-origin: 100% 50%;
+}
+
+.kui-shell-bottom[data-presentation="overlay"] {
+  --kui-shell-drawer-origin: 50% 100%;
+}
+
+/* CLOSED IS PARKED, NOT DELETED — for an OVERLAYING pane only. `display: none` cannot be
+   transitioned, so a drawer hidden that way arrives and leaves in one frame. `visibility` can:
+   it flips at the end of the exit and at the start of the entry, it takes the pane out of the
+   tab order and out of hit-testing exactly as `display` did, and an out-of-flow pane costs no
+   layout either way. Keyed above the four hides at (0,4,0), which is the same
+   out-rank-rather-than-out-order call the hides themselves record. */
+.kui-surface.kui-shell-pane[data-state="closed"][data-presentation="overlay"],
+.kui-surface.kui-shell-rail[data-state="auto"][data-presentation="overlay"],
+.kui-surface.kui-shell-sidebar[data-state="auto"][data-presentation="overlay"],
+.kui-surface.kui-shell-inspector[data-state="auto"][data-presentation="overlay"],
+.kui-surface.kui-shell-bottom[data-state="auto"][data-presentation="overlay"] {
+  display: flex;
+  visibility: hidden;
+}
+
+/* AND A DRAWER THAT IS NOT THE LIVE ONE LEAVES ENTIRELY WHILE ANOTHER IS FLYING. Parking is
+   affordable because the frame clips; the frame stops clipping while a drawer is live, and at
+   that moment every OTHER parked pane is real scrollable overflow — measured on a frame with a
+   sidebar, an inspector and a bottom pane, a 375x700 window reported 663x874 with the sidebar
+   open, and the page gained two scrollbars onto blank space. So a pane that is neither open
+   nor the one leaving goes back to `display: none`, which is what it was before parking
+   existed. `position: fixed` was measured first and does nothing here: a transformed ancestor
+   is a containing block for fixed descendants, so the pane stays contained by the frame and
+   goes on contributing.
+
+   It out-RANKS the parking rule rather than out-ordering it — (0,8,0) against (0,4,0), the
+   `:has()` argument's own weight deliberately spent (§27's 2026-08-29 note is about a guard
+   that raised a rule by accident; this one is counted).
+
+   THE ONE THING IT GETS WRONG, stated rather than hidden: swapping straight from one drawer to
+   another in a single frame gives the arriving one no starting box, so it appears rather than
+   flies. Nothing in this repo builds that trigger, and the alternative — parking the siblings
+   at zero offset instead — buys the same case a slideless entry anyway. */
+.kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="overlay"])
+  > .kui-surface.kui-shell-pane[data-presentation="overlay"]:not([data-state="open"]) {
+  display: none;
+}
+
+.kui-shell-rail[data-presentation="overlay"]:where([data-state="closed"], [data-state="auto"]),
+.kui-shell-sidebar[data-presentation="overlay"]:where([data-state="closed"], [data-state="auto"]) {
+  --kui-shell-drawer-x: calc(-100% - var(--shell-gap));
+}
+
+.kui-shell-inspector[data-presentation="overlay"]:where([data-state="closed"], [data-state="auto"]) {
+  --kui-shell-drawer-x: calc(100% + var(--shell-gap));
+}
+
+.kui-shell-bottom[data-presentation="overlay"]:where([data-state="closed"], [data-state="auto"]) {
+  --kui-shell-drawer-y: calc(100% + var(--shell-gap));
+}
+
+/* Stillness (§8): the frame does not recede, the drawer does not travel, the well does not
+   fade. Stated on the declaring selectors so the stand-down wins by rank and by order at once,
+   which is this file's doctrine since the 2026-08-10 reduced-motion finding. */
+/* Stillness for the drawer lives at the FOOT of this file, with the resize handle's, and the
+   move is the point: a stand-down stated here would sit BEFORE the narrow media block, and the
+   arms it has to beat are declared in there. Equal rank settled by the wrong order is not a
+   stand-down at all — the 2026-08-10 finding, whose law asked only whether a selector was
+   present in the guarded block and never whether it WON. */
+
 /* The scrim: root-owned, always mounted, shown exactly when a pane overlays. Under the
    panes (z 1 against their 2), over everything in flow. Dialog's scrim recipe (§24), same
    tokens, same reduced-transparency answer — more pigment, no defocus. */
+/* AND IT LEAVES ON THE DRAWER'S OWN CLOCK (2026-09-06, Kushagra: "When I dismiss it, the bg
+   loses its blur instantly making it look weird"). It was `display: none` until a drawer was
+   live and `display: block` while one was, and `display` cannot be transitioned — so the
+   instant a drawer was dismissed the scrim's pigment AND its defocus vanished in one frame
+   while the drawer itself had 420ms of travel left. The app snapped back to full contrast and
+   full sharpness with a pane still sliding over it, which reads as two different events.
+
+   Parked the way the drawer is parked, and for the drawer's reason: `opacity` carries the
+   fade, `visibility` takes it out of the tab order and out of hit-testing at both ends and
+   flips at the far end of its own transition, and neither costs a frame of layout. This is
+   also why the scrim can now be present at rest without being reachable — the thing
+   `display: none` was buying. */
 .kui-shell-scrim {
-  display: none;
+  display: block;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--motion-drawer) var(--motion-easing),
+    visibility var(--motion-drawer);
   position: absolute;
   inset: 0;
   z-index: 1;
+  /* IT TAKES THE FRAME'S INVERSE, exactly as the well does (2026-09-06). The scrim is a child
+     of the root and the root is what recedes, so left alone it would shrink with the frame and
+     leave a ring of bare well around it — a ring that dims nothing and, worse, dismisses
+     nothing, because it is a pseudo-element and cannot be pressed. Counter-scaled it covers
+     the root's whole box again: the receded frame, and the well the frame receded out of. The
+     dismissal strip is a strip of scrim at every width, which is what its own law asserts. */
+  transform-origin: inherit;
+  transform: scale(calc(1 / var(--kui-shell-recede)));
   background-color: var(--scrim-fill);
   backdrop-filter: var(--scrim-filter, none);
 }
@@ -441,7 +763,8 @@
 .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="overlay"]) > .kui-shell-scrim,
 .kui-shell:not(:has(.kui-shell)):has(> * .kui-shell-pane[data-state="open"][data-presentation="overlay"])
   > .kui-shell-scrim {
-  display: block;
+  opacity: 1;
+  visibility: visible;
 }
 
 @media (prefers-reduced-transparency: reduce) {
@@ -675,6 +998,19 @@
    that "restore the surface identity" means restore what THIS component gives a pane off the
    frame, not what the shared layer would give some other box. */
 .kui-shell-pane[data-flush][data-presentation="overlay"] {
+  /* AND IT SITS LIKE ONE TOO (2026-09-06, Kushagra: "dont need border radius if flush was
+     true right?… if we ignore flush when it floats, then the look must be the same, and so it
+     should have padding all around as it would look if flush was false").
+
+     Right, and this rule was its own sentence half-applied. It restored everything a pane off
+     the frame WEARS — fill, corner, edge, light, cast — and nothing about how one SITS, so a
+     drawer came out with a card's corner welded to the window: rounded corners against edges
+     they can never be seen against, and the two on the leading side cut off by the viewport.
+     The margin is the same one `:not([data-flush])` pays, and `--kui-shell-outer` is published
+     with it because the overlay cap subtracts exactly that (the cap has been expecting this
+     term since it was written). */
+  margin: var(--shell-gap);
+  --kui-shell-outer: var(--shell-gap);
   /* The base rule's own chain, restated (2026-09-05). It has to be the PROPERTY, because the
      flush rule stands down the property and `--kui-sf-fill` belongs to the material — see the
      flush rule's own note for the fortnight this was spelled `--kui-sf-fill: initial` and
@@ -1047,12 +1383,59 @@
   inset-block-end: 0;
 }
 
+/* A FLOATING BAND IN THE WORK AREA CLEARS THE FRAME'S OWN SAFE AREA (§27, §45, 2026-09-06).
+   The content pane runs UNDERNEATH a floating sidebar or inspector — that underlap is what
+   lets a photograph bleed behind the nav — so a band pinned across the top of that pane starts
+   at the window's edge, with its first control sitting under the column next door. Every
+   consumer of this arrangement was closing that gap by hand, with a margin on the band's first
+   child; the frame already publishes the distance, so the band spends it.
+
+   THE WORK AREA ONLY, and the selector says so: `--kui-shell-inset-*` is the reach the floating
+   panes leave for the pane they float OVER, published on the shell root so anything inside can
+   read it. Applied to every pane it would push a sidebar's own band right by the sidebar's own
+   width. Padding rather than a margin on a child, which is safe here for a reason that was not
+   true before the toolbar existed: the band catches no pointer and hands it back per child, so
+   a padded band is not the row of dead page the 2026-08-30 finding names. */
+.kui-shell-content > .kui-pane-header[data-float],
+.kui-shell-content > .kui-pane-footer[data-float] {
+  padding-inline-start: calc(var(--kui-sf-p) + var(--kui-shell-inset-inline-start));
+  padding-inline-end: calc(var(--kui-sf-p) + var(--kui-shell-inset-inline-end));
+}
+
+/* AND THE SCROLLER FADES ACROSS THE BAND IT PASSES UNDER (2026-09-06). The pane's own comment
+   has claimed since 2026-08-29 that "the scroller's fade is what keeps the passing content
+   legible", and it was not: the designed fade is 32px against a band up to 88px deep, so the
+   lower two thirds of a floating row had full-strength text behind it — a heading and a
+   paragraph reading straight through a toolbar on the documentation site.
+
+   The distance is the reach the band already publishes, spent on the one thing that needs it.
+   Scoped to a pane that HAS a floating row, per edge, so a pane with a floating header over a
+   pinned footer fades only where something floats; everything else keeps the designed value
+   through `scroll-area.css`'s own fallback. */
+.kui-shell-pane:has(> .kui-pane-header[data-float]) > .kui-shell-scroll {
+  --kui-sa-fade-start: var(--kui-pane-inset-block-start);
+}
+
+.kui-shell-pane:has(> .kui-pane-footer[data-float]) > .kui-shell-scroll {
+  --kui-sa-fade-end: var(--kui-pane-inset-block-end);
+}
+
+/* THE TALLER OF THE TWO ROWS (2026-09-06). The reach is a derivation and not a measurement —
+   that is what keeps first paint right with no script — and the derivation was "one control row
+   at the PANE's index". A `Toolbar` in the band may state its own index, in which case the band
+   really is that tall and the reach has to say so; `--kui-pane-band-row-*` is what the band
+   publishes back (surfaces.css), and it is zero when nothing states anything, so a band without
+   one computes byte-identically to what it did before. */
 .kui-shell-pane:has(> .kui-pane-header[data-float]) {
-  --kui-pane-inset-block-start: calc(var(--kui-shell-row) + 2 * var(--kui-sf-p));
+  --kui-pane-inset-block-start: calc(
+    max(var(--kui-shell-row), var(--kui-pane-band-row-start)) + 2 * var(--kui-sf-p)
+  );
 }
 
 .kui-shell-pane:has(> .kui-pane-footer[data-float]) {
-  --kui-pane-inset-block-end: calc(var(--kui-shell-row) + 2 * var(--kui-sf-p));
+  --kui-pane-inset-block-end: calc(
+    max(var(--kui-shell-row), var(--kui-pane-band-row-end)) + 2 * var(--kui-sf-p)
+  );
 }
 
 /* The floating row's containing block: ITS pane, and only a pane that has one. Not written
@@ -1280,7 +1663,7 @@
      and in this band it resolves to an overlay. So an open drawer on a phone kept a focusable,
      draggable 44px separator floating over its own scrim. Exactly the half-applied shape the
      comment below already names. */
-  .kui-shell-pane[data-presentation="auto"] .kui-shell-resize {
+  .kui-shell-resize[data-presentation="auto"] {
     display: none;
   }
 
@@ -1289,6 +1672,9 @@
      shape of the 2026-08-16 half-applied width-cap repair, which reached the explicit arms
      and not this one: the path every phone takes. */
   .kui-shell-pane[data-flush][data-presentation="auto"] {
+    /* It sits like a pulled-off pane as well as wearing one — the explicit arm's note. */
+    margin: var(--shell-gap);
+    --kui-shell-outer: var(--shell-gap);
     /* The property, for the explicit arm's reasons — a hook the material owns cannot be
        borrowed to say something local (2026-09-05). */
     background-color: var(--kui-sf-fill, var(--kui-sf-fill-src));
@@ -1301,11 +1687,107 @@
     border-width: var(--border-width);
   }
 
+  /* PARKED, NOT DELETED — the explicit arm's sentence restated for the resolved value, which
+     is the path every phone takes and the half this file has twice recorded forgetting. */
+  .kui-surface.kui-shell-pane[data-state="closed"][data-presentation="auto"],
+  .kui-surface.kui-shell-rail[data-state="auto"][data-presentation="auto"],
+  .kui-surface.kui-shell-sidebar[data-state="auto"][data-presentation="auto"],
+  .kui-surface.kui-shell-inspector[data-state="auto"][data-presentation="auto"],
+  .kui-surface.kui-shell-bottom[data-state="auto"][data-presentation="auto"] {
+    display: flex;
+    visibility: hidden;
+  }
+
+  .kui-shell-pane[data-presentation="auto"] {
+    transform-origin: var(--kui-shell-drawer-origin);
+    transform: scale(calc(1 / var(--kui-shell-recede)))
+    translate(var(--kui-shell-drawer-x, 0), var(--kui-shell-drawer-y, 0));
+    transition:
+      transform var(--motion-drawer) var(--motion-spring-driven),
+      visibility var(--motion-drawer);
+  }
+
+  .kui-shell-rail[data-presentation="auto"],
+  .kui-shell-sidebar[data-presentation="auto"] {
+    --kui-shell-drawer-origin: 0 50%;
+  }
+
+  .kui-shell-inspector[data-presentation="auto"] {
+    --kui-shell-drawer-origin: 100% 50%;
+  }
+
+  .kui-shell-bottom[data-presentation="auto"] {
+    --kui-shell-drawer-origin: 50% 100%;
+  }
+
+  /* The three combinations the base rule cannot reach, because `auto` is an overlay only in
+     this band: an auto drawer hiding an explicit one, an auto hiding an auto, and an explicit
+     hiding an auto. Written out rather than folded, because a component sheet may not use
+     `:is()` (ENGINEERING §2.1) and because the pairing is the fact. */
+  .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="auto"])
+    > .kui-surface.kui-shell-pane[data-presentation="overlay"]:not([data-state="open"]),
+  .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="auto"])
+    > .kui-surface.kui-shell-pane[data-presentation="auto"]:not([data-state="open"]),
+  .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="overlay"])
+    > .kui-surface.kui-shell-pane[data-presentation="auto"]:not([data-state="open"]) {
+    display: none;
+  }
+
+  .kui-shell-rail[data-presentation="auto"]:where([data-state="closed"], [data-state="auto"]),
+  .kui-shell-sidebar[data-presentation="auto"]:where([data-state="closed"], [data-state="auto"]) {
+    --kui-shell-drawer-x: calc(-100% - var(--shell-gap));
+  }
+
+  .kui-shell-inspector[data-presentation="auto"]:where([data-state="closed"], [data-state="auto"]) {
+    --kui-shell-drawer-x: calc(100% + var(--shell-gap));
+  }
+
+  .kui-shell-bottom[data-presentation="auto"]:where([data-state="closed"], [data-state="auto"]) {
+    --kui-shell-drawer-y: calc(100% + var(--shell-gap));
+  }
+
+  .kui-shell:has(> :where(.kui-shell-rail, .kui-shell-sidebar)[data-state="open"][data-presentation="auto"]) {
+    --kui-shell-recede: var(--shell-drawer-scale);
+    --kui-shell-recede-origin: 0 50%;
+  }
+
+  .kui-shell:has(> :where(.kui-shell-inspector)[data-state="open"][data-presentation="auto"]) {
+    --kui-shell-recede: var(--shell-drawer-scale);
+    --kui-shell-recede-origin: 100% 50%;
+  }
+
+  .kui-shell:has(> :where(.kui-shell-bottom)[data-state="open"][data-presentation="auto"]) {
+    --kui-shell-recede: var(--shell-drawer-scale);
+    --kui-shell-recede-origin: 50% 100%;
+  }
+
+  /* The frame's fill, restated for the resolved value — this block's own standing hazard, and
+     the path every phone takes. */
+  .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="auto"]) {
+    transform: scale(var(--kui-shell-recede));
+    overflow: visible;
+    transition:
+      transform var(--motion-drawer) var(--motion-spring-driven),
+      overflow 0s allow-discrete;
+  }
+
+  .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="auto"])::before {
+    background-color: var(--scrim-well);
+  }
+
+  /* The frame's plane, restated for the resolved value — this block's own standing hazard,
+     and the path every phone takes. */
+  .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="auto"])::after {
+    background-color: var(--color-surface);
+  }
+
   /* Untouched nav columns rest closed on a narrow window. The class is the hide rule's, not
      this block's — a media query adds no specificity, so this arm was losing to a rule one
-     FILE away and the phone default was the loudest casualty. */
-  .kui-surface.kui-shell-rail[data-state="auto"],
-  .kui-surface.kui-shell-sidebar[data-state="auto"] {
+     FILE away and the phone default was the loudest casualty. Superseded above for a pane
+     that OVERLAYS here (it parks rather than leaving), and kept for every other reason a pane
+     is not on screen. */
+  .kui-surface.kui-shell-rail[data-state="auto"]:not([data-presentation="auto"]),
+  .kui-surface.kui-shell-sidebar[data-state="auto"]:not([data-presentation="auto"]) {
     display: none;
   }
 
@@ -1320,6 +1802,14 @@
   .kui-shell-sidebar[data-presentation="auto"] {
     position: absolute;
     grid-column: 1 / -1;
+    /* AND EVERY ROW (2026-09-06). It spanned the middle row until the frame started receding
+       under it, which put its top at the header's bottom — a sentence that was true while the
+       drawer was part of the frame and stopped being true the moment it was not. Two things make
+       the full span right rather than convenient: a drawer COVERS, which is what every
+       platform's does, and the counter-scale that holds it still while the frame recedes is only
+       EXACT if it shares the frame's centre on the axis it does not anchor to. Spanning the block
+       axis is what makes `0 50%` one point for both. */
+    grid-row: 1 / -1;
     inset-block: 0;
     inset-inline-start: 0;
     max-inline-size: calc(100% - var(--touch-target-min) - 2 * var(--kui-shell-outer));
@@ -1399,7 +1889,8 @@
   .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="auto"]) > .kui-shell-scrim,
   .kui-shell:not(:has(.kui-shell)):has(> * .kui-shell-pane[data-state="open"][data-presentation="auto"])
     > .kui-shell-scrim {
-    display: block;
+    opacity: 1;
+    visibility: visible;
   }
 }
 
@@ -1423,12 +1914,42 @@
    the `:has()` drops this to (0,1,0), so the overlay arm still wins outright rather than
    tying. Asserting specificity arithmetic instead of measuring it is the mistake this file
    already records paying for once (audit 2026-08-20), so the drawer law reads it. */
-.kui-shell-pane:where(:has(> .kui-shell-resize)) {
-  position: relative;
+
+/* THE HANDLE IS A SIBLING OF ITS PANE, AND IT STRADDLES THE SEAM (2026-09-05, Kushagra:
+   "because of resize, I cant click on search icon").
+
+   It sat fully inside the pane from 2026-09-02, and the note below records why and what that
+   cost. The cost came due in the docs site's own sidebar: a search button at the trailing wall
+   measured 239-271 against a handle at 243-287, and `elementFromPoint` at the button's CENTRE
+   returned the handle — 28 of 32 pixels unreachable.
+
+   As the pane's SIBLING it is a grid item of the shell root, placed in the same area as the
+   pane it moves and pulled half its own width past that area's edge. Nothing clips it, so it
+   straddles the way a splitter does: half on the pane, half on the neighbour, instead of all
+   44px on one of them. `justify-self`/`align-self` put it on the correct edge with no
+   coordinate arithmetic — the grid already knows where the seam is, which is the whole reason
+   this is a grid change rather than a stylesheet one.
+
+   IT MUST CLAIM AN AREA. An extra root child with no `grid-area` is auto-placed, which mints
+   an implicit row and moves the frame. The stamp is the pane's own name, carried by the
+   element rather than found with `:has()`.
+
+   Z-INDEX 1, which is the scrim's and below an overlaying pane's 2: a handle painted over a
+   drawer's scrim would offer a boundary that is not there. The scrim is a later sibling of
+   every handle, so at equal rank it covers them, which is the behaviour wanted. */
+.kui-shell-resize[data-pane="sidebar"] {
+  grid-area: sidebar;
+}
+
+.kui-shell-resize[data-pane="inspector"] {
+  grid-area: inspector;
+}
+
+.kui-shell-resize[data-pane="bottom"] {
+  grid-area: bottom;
 }
 
 .kui-shell-resize {
-  position: absolute;
   z-index: 1;
   cursor: col-resize;
   /* No colour of its own — the tone indirection, under the accent this element stamps. The
@@ -1444,7 +1965,7 @@
 
 /* Vertical: the full height of the pane, straddling one inline edge. */
 .kui-shell-resize[data-axis="inline"] {
-  inset-block: 0;
+  align-self: stretch;
   inline-size: var(--touch-target-min);
 }
 
@@ -1461,18 +1982,21 @@
    content reaches its edge; it is a grid change, not a stylesheet one, and it is recorded in
    §27 rather than half-done here. */
 .kui-shell-resize[data-axis="inline"][data-anchor="end"] {
-  inset-inline-end: 0;
+  justify-self: end;
+  margin-inline-end: calc(-0.5 * var(--touch-target-min));
 }
 
 .kui-shell-resize[data-axis="inline"][data-anchor="start"] {
-  inset-inline-start: 0;
+  justify-self: start;
+  margin-inline-start: calc(-0.5 * var(--touch-target-min));
 }
 
-/* Horizontal: the bottom pane's top edge. */
+/* Horizontal: the bottom pane's top edge, straddled the same way. */
 .kui-shell-resize[data-axis="block"] {
-  inset-inline: 0;
+  justify-self: stretch;
+  align-self: start;
   block-size: var(--touch-target-min);
-  inset-block-start: 0;
+  margin-block-start: calc(-0.5 * var(--touch-target-min));
 }
 
 /* The line, drawn inside the target. It is the one thing this element paints, and it only
@@ -1490,19 +2014,21 @@
   inline-size: calc(2 * var(--border-width));
 }
 
-/* The line rides the pane's own edge, which is the boundary it represents — not the middle of
-   the target, which is 22px inside the pane and represents nothing. */
+/* The line rides the pane's own edge, which is the boundary it represents. Since the box
+   straddles that edge (2026-09-05) the line is inset by HALF the target rather than sitting on
+   one of the box's walls — the same pixels as before, said against the box the target now has,
+   which is what lets the law read it as an agreement with the pane's own edge. */
 .kui-shell-resize[data-axis="inline"][data-anchor="end"]::after {
-  inset-inline-end: 0;
+  inset-inline-end: calc(0.5 * var(--touch-target-min));
 }
 
 .kui-shell-resize[data-axis="inline"][data-anchor="start"]::after {
-  inset-inline-start: 0;
+  inset-inline-start: calc(0.5 * var(--touch-target-min));
 }
 
 .kui-shell-resize[data-axis="block"]::after {
   inset-inline: 0;
-  inset-block-start: 0;
+  inset-block-start: calc(0.5 * var(--touch-target-min));
   block-size: calc(2 * var(--border-width));
 }
 
@@ -1528,9 +2054,11 @@
 }
 
 /* A pane that is closed, or overlaying, has no boundary to move: its edge is the scrim's
-   business, not a layout the person is adjusting. */
-.kui-shell-pane[data-state="closed"] .kui-shell-resize,
-.kui-shell-pane[data-presentation="overlay"] .kui-shell-resize {
+   business, not a layout the person is adjusting. Read off the handle's own stamps since
+   2026-09-05 — it is the pane's sibling now, so descent cannot answer this and the pane has
+   already answered it in the same render. */
+.kui-shell-resize[data-state="closed"],
+.kui-shell-resize[data-presentation="overlay"] {
   display: none;
 }
 
@@ -1539,7 +2067,22 @@
    wins by order and not by arithmetic. The boundary still appears under the pointer and under
    focus — it has to, or a person who asked their OS for stillness cannot see what they are
    about to drag. What goes is the fade, not the information. */
+/* Stillness (§8): the frame does not recede, the drawer does not travel, the well does not
+   fade, and the boundary does not come forward. Every selector is restated verbatim from the
+   rule that declares the clock, so the stand-down ties on rank and wins on order — and it sits
+   at the foot of the file because two of those rules live inside the narrow media block above.
+   The two `:has()` arms are here for a reason a shorter list would hide: they carry the
+   frame's own transition as well as the clip's, so leaving them out leaves the recession
+   moving for a reader who asked their system for stillness. */
 @media (prefers-reduced-motion: reduce) {
+  .kui-shell,
+  .kui-shell::before,
+  .kui-shell::after,
+  .kui-shell-scrim,
+  .kui-shell-pane[data-presentation="overlay"],
+  .kui-shell-pane[data-presentation="auto"],
+  .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="overlay"]),
+  .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="auto"]),
   .kui-shell-resize::after {
     transition: none;
   }

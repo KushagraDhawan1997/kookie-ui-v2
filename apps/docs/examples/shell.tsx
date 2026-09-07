@@ -1,4 +1,3 @@
-import type * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ChartLineData01Icon,
@@ -23,7 +22,6 @@ import {
   Button,
   Chip,
   Heading,
-  iconStroke,
   Shell,
   ShellContent,
   ShellNavGroup,
@@ -35,6 +33,9 @@ import {
   ShellTrigger,
   Stack,
   Text,
+  Toolbar,
+  ToolbarButton,
+  iconStroke,
 } from "@kookie-ui/react";
 
 // Your logo and your appearance store, not the package's: KookieUI ships no mark, the same
@@ -57,11 +58,9 @@ const clearsFloatingChrome = {
   paddingBlockEnd: "calc(var(--kui-pane-inset-block-end) - var(--kui-sf-p))",
 };
 
-// And the fade is told how far the chrome reaches, so content is dissolving for the whole
-// distance it spends behind the row rather than for the scrollbar's own default 32px.
-const fadesOverFloatingChrome = {
-  "--scrollbar-fade": "var(--kui-pane-inset-block-start)",
-} as React.CSSProperties;
+// Nothing here tells the fade how far to reach. A pane with a floating row hands its own
+// scroller that edge's published reach, so content dissolves for the whole distance it
+// spends behind the chrome with nothing said at the call site.
 
 export default function Example() {
   return (
@@ -81,19 +80,13 @@ export default function Example() {
             {/* Top-aligned, not centred: the mark is a display glyph and it defines the row,
                 so centring the button would sink it below the trigger in the pane next door.
                 Aligning to the start puts both at the same offset from their pane's padding. */}
-            <Button
-              emphasis="quiet"
-              iconOnly
-              backdrop
-              aria-label="New"
-              style={{ alignSelf: "start" }}
-            >
+            <Button iconOnly backdrop aria-label="New" style={{ alignSelf: "start" }}>
               {icon(PlusSignIcon)}
             </Button>
           </ShellPaneHeader>
 
           {/* `fade` is what keeps the rows legible on their way behind the chrome. */}
-          <ShellScroll fade style={fadesOverFloatingChrome}>
+          <ShellScroll fade>
             <Box style={clearsFloatingChrome}>
               <ShellNavGroup label="Workspace">
                 <ShellNavItem current leading={icon(Home01Icon)}>
@@ -123,15 +116,22 @@ export default function Example() {
             </Box>
           </ShellScroll>
 
+          {/* A TOOLBAR, like the header above it: the band states its index and the row is one
+              tab stop with the arrows moving inside it. A bare band hands its children the
+              PANE's index instead, so two rows in one pane would rest at different sizes. */}
           <ShellPaneFooter float>
-            {/* The avatar rides a button, and that is not decoration: the footer FLOATS, so
-                nav rows pass under it, and an avatar's fallback wash is an alpha — rows read
-                straight through the disc. The button is what states `backdrop`, and an
-                account avatar is a target in every app that has one anyway. */}
-            <Button emphasis="quiet" iconOnly backdrop aria-label="Kushagra Dhawan">
-              <Avatar fallback="KD" />
-            </Button>
-            <AppearanceToggle />
+            {/* `backdrop` on the ROW: the band floats, so nav rows pass behind everything in
+                it — one fact about the space rather than a prop per control. */}
+            <Toolbar backdrop>
+              {/* The avatar rides a button, and that is not decoration: the footer FLOATS, so
+                  nav rows pass under it, and an avatar's fallback wash is an alpha — rows read
+                  straight through the disc. The button is what states `backdrop`, and an
+                  account avatar is a target in every app that has one anyway. */}
+              <ToolbarButton iconOnly aria-label="Kushagra Dhawan">
+                <Avatar fallback="KD" />
+              </ToolbarButton>
+              <AppearanceToggle />
+            </Toolbar>
           </ShellPaneFooter>
         </ShellSidebar>
 
@@ -147,12 +147,7 @@ export default function Example() {
             <ShellTrigger
               target="sidebar"
               render={
-                <Button
-                  emphasis="quiet"
-                  iconOnly
-                  backdrop
-                  aria-label="Toggle navigation"
-                />
+                <Button iconOnly backdrop aria-label="Toggle navigation" />
               }
             >
               {icon(SidebarLeftIcon)}
@@ -163,7 +158,7 @@ export default function Example() {
           </ShellPaneHeader>
 
           {/* The work area scrolls itself; the frame never does. */}
-          <ShellScroll fade style={fadesOverFloatingChrome}>
+          <ShellScroll fade>
             <Stack gap="7" style={clearsFloatingChrome}>
               <Heading size="6">Overview</Heading>
               <Stack gap="5">
