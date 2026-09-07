@@ -25,6 +25,7 @@
 @import "../components/menu/menu.css";
 @import "../components/composer/composer.css";
 @import "../components/notice/notice.css";
+@import "../components/page/page.css";
 @import "../components/scroll-area/scroll-area.css";
 @import "../components/segmented-control/segmented-control.css";
 @import "../components/select/select.css";
@@ -41,4 +42,5 @@
 @import "../components/tooltip/tooltip.css";
 @import "../components/text-area/text-area.css";
 @import "../components/toggle/toggle.css";
+@import "../components/toolbar/toolbar.css";
 @import "../components/tree/tree.css";
