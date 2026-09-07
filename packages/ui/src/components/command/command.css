@@ -1,168 +1,572 @@
 /**
  * Command (§44) — one field over everything the app can do.
  *
- * There is almost nothing here, and that is still the design: the panel is a `DialogContent`, so
- * the seal, the padding, the corner, the edge, the scrim, the material, the cast and the entry
- * motion are the overlay family's; the field is a `.kui-field`, so its well, its edge, its ring
- * and its state arms are the field family's; the rows are `.kui-row`, so their height, hover and
- * disabled arms are the row family's. What this file states is the interval between the field and
- * the list, and where a caption sits.
+ * TWO BLOCKS, NOT ONE (2026-09-05, Kushagra: "we must separate the search block from the results
+ * block… this is our stable element and its anchored towards top at every width"). The palette
+ * used to be a single padded pane holding a pinned field over a scrolling list, and the defect
+ * that ended it is a property of that shape rather than of any value in it: a palette's height IS
+ * its results, so a query returning three rows instead of twelve moves an edge — the bottom one
+ * on a phone, where the sheet is pinned there, and half the delta at every other width, where the
+ * panel is centred by two auto margins. The field sits at the top. The one part that must not
+ * move was the part that moved most.
  *
- * THE EDGE-TO-EDGE PALETTE IS REVERSED (2026-09-04, Kushagra: "we need padding all around").
- * It shipped with `padding: 0` on the pane and a bare line across the top under a hairline, on
- * the argument that a lit row should read as a band from wall to wall. Measured against what
- * actually renders, that argument does not survive its own panel: `--radius-overlay-2` is 40px,
- * so the first and last bands in the list were being eaten by the pane's own corner — a row is a
- * rectangle and the box holding it is not. A pane that pads is what gives a band two ends.
+ * So the popup stops being a pane and becomes a COLUMN: a floating field, an interval, and a pane
+ * of results under it. The field is anchored to the top at every width and nothing a result count
+ * does can reach it. What the popup still is, and the only reason it is still a `DialogContent`,
+ * is the scrim, the focus trap, the scroll lock and the entry.
  *
- * Three things went with the reversal, and each of them was a consequence of the first rather
- * than a separate taste call: the pane pads like every other dialog (so `command.css` states no
- * padding at all any more, and `dialog.css` loses the sheet exception it needed only because this
- * pane's padding was zero); the field is a FIELD, because a bounded box inside a padded pane is
- * an object among objects rather than a box inside a box; and the hairline under it goes, because
- * two regions separated by a real interval do not also need a rule drawn between them.
+ * WHAT THIS COST, STATED RATHER THAN QUIETLY DROPPED: rows no longer scroll BEHIND the field
+ * (2026-09-04, the same person's earlier call). Two panes with real air between them cannot have
+ * one pass behind the other — there is nothing to pass behind — so the fade that used to dissolve
+ * rows under the field is now the results pane's own top and bottom edge, which is what a bounded
+ * list has anyway. The field keeps its material for the reason it was given one: it floats over
+ * the app now rather than sitting on a pane, so it is a pane.
+ *
+ * What this file states is the column, the two panes' own facts, and where a caption sits. The
+ * field is a `.kui-field`, the rows are `.kui-row`, and both panes are `.kui-surface .kui-overlay`
+ * — so the well, the ring, the seal, the padding, the corner, the edge and the material are all
+ * the families' and none of them is written here.
  */
 
-/* THE FIELD IS THE FIELD FAMILY'S (§4, §11), and the only two facts left here are the two the
-   family cannot know. `inline-size: 100%` because `.kui-control` is `inline-flex` and every
-   member of it shrink-wraps its content — right for a button, wrong for a control whose content
-   is the user's, which is the gap DECISIONS records for TextField and which this component has
-   to answer for itself in the meantime. The margin is the interval to the list: the two are
-   separate objects in one pane now, and what used to be a hairline is a distance. */
-.kui-command-field {
-  /* IT PINS (2026-09-04). The panel is one scrolling region and this field is inside it, so the
-     rows pass behind it and out at the pane's own wall rather than stopping at its bottom edge.
-     The offset is the pane's OWN inset, which is also the resting position, so the field never
-     moves and what changes as you scroll is only what is behind it — a `0` here would let it rise
-     into the pane's padding on the first wheel click, which reads as the field sliding.
+/* ── The column ────────────────────────────────────────────────────────────────────────────
+   The popup paints NOTHING. It carries `kui-surface kui-overlay kui-dialog-popup` because a
+   dialog's panel is a pane and this one is not, so every one of those facts is stood down here
+   — deliberately as an override rather than by opting out of `DialogContent`, because what is
+   wanted from Dialog is all of its behaviour and none of its box, and there is no third part
+   between them to reach for.
 
-     A positioned element paints above the in-flow rows without a `z-index`, which is the same
-     reason CodeBlock writes its chrome rows after their scroller: a number here is the ladder §20
-     exists to avoid. What makes the words legible over moving content is the material, which the
-     component states. */
-  position: sticky;
-  /* THE OFFSET AND THE RESTING POSITION ARE THE SAME NUMBER, which is what makes the field
-     motionless (2026-09-04, Kushagra: "its too low… position the search near the top like
-     literally everything else"). A sticky element moves whenever those two differ, and they did:
-     the viewport's own top padding put the field at one inset and the offset pinned it at
-     another, so it sat a second inset low and the first row came out level with it. The viewport
-     pads NOTHING at the block start for this pane (below), the field carries the inset as its own
-     margin, and the offset is that same margin — so it rests where it pins and the rows bleed to
-     the pane's wall above it. */
-  margin-block-start: var(--kui-sf-p);
-  inset-block-start: var(--kui-sf-p);
-  inline-size: 100%;
-  margin-block-end: var(--layout-space-3);
+   (0,2,0): the facts being stood down are `.kui-surface`'s and `.kui-dialog-popup`'s own, both
+   (0,1,0), and a tie settled by file order is not a rule. */
+.kui-dialog-popup.kui-command {
+  background: none;
+  /* THE HOOK, NEVER THE PROPERTY. Depth is the world's (§5, §13) and a component sheet may not
+     write `box-shadow` at all — the count law reads that literally, and it is right to: the
+     shipped stand-downs all re-point the chain rather than the declaration, so `flat` and the
+     glass rows keep resolving through one site. `--kui-sf-cast` is the non-inheriting name the
+     surface layer consults first, and the pool beside it is the other half. */
+  --kui-sf-cast: 0 0 0 0 transparent;
+  --kui-sf-pool: 0 0 0 0 transparent;
+  /* The WIDTH, not just the colour: `.kui-surface` draws a real hairline, and a transparent one
+     still insets the content box by a pixel — measured, the field started one pixel inside the
+     column it is supposed to span. */
+  border: 0;
+  backdrop-filter: none;
+  padding: 0;
+  border-radius: var(--radius-0);
+  /* A pane clips (§3) and this is not a pane: the two panes inside clip themselves, and what a
+     clip here would cut is their rings and the fade at their own edges. */
+  overflow: visible;
+  /* IT IS ANCHORED TO THE TOP, AT EVERY WIDTH (2026-09-05). A dialog centres by two auto
+     margins and a narrow-window sheet pins itself to the bottom by one — and both of those
+     move the top edge when the content's height changes, which for a palette is every
+     keystroke. The free space goes ENTIRELY to the bottom, so the field starts where the
+     viewport's own gutter puts it and stays there for the panel's whole life.
+
+     THE INSET IS THE GUTTER BAND (`--layout-space-11`), not the dialog viewport's own 24px.
+     A palette pressed against the window's edge reads as chrome rather than as a thing summoned
+     into the room, and the distance being asked for here is a PAGE-scale one — how far down the
+     window an object standing alone starts — which is exactly what the band 9-12 is for and why
+     it holds its picks across densities. One number, and the one taste value in this file. */
+  margin-block-start: var(--layout-space-11);
+  margin-block-end: auto;
 }
 
-/* The list is a plain block and scrolls NOTHING (2026-09-04). It held `overflow-y: auto` and a
-   height bound, which is the raw-scroller pattern this system does not use: a native gutter opens
-   inside the pane's padding, cuts through the rows it is scrolling, and leaves the first and last
-   of them ending at a hard line a few pixels short of a 40px corner. The scroller is the
-   `ScrollArea` the component now places around this element, which bleeds to the pane's walls and
-   re-states the padding inside its viewport by the shared surface rule — Menu's own 2026-08-17
-   repair, which this component should have shipped with.
+/* THE COLUMN IS THE DIALOG'S BODY, not the popup (2026-09-05, found by dumping the tree rather
+   than by reading the JSX). `DialogContent` wraps its children in `.kui-dialog-body` — the
+   wrapper §24 mints to hold the entry's blur, and the one element between the popup and
+   everything a caller writes — so a flex column declared on the popup has exactly ONE item and
+   the gap lands nowhere. Measured: the field's bottom and the results pane's top were the same
+   pixel, on a popup whose computed `gap` read 8px. */
+.kui-command > .kui-dialog-body {
+  /* AND IT DOES NOT BLEED. The surface layer gives a pane's only child a negative margin so it
+     can reach the walls, keyed on the pane's own inset hook — and `--kui-sf-p` INHERITS by
+     design (it is the delivery mechanism for `m="bleed"`), so standing the popup's padding down
+     does not stand the hook down with it. Measured on a phone: the body sat at x=0 in a column
+     starting at x=24, a faint 24px ledge on all four sides of the palette. `dialog.css` carried
+     this exact carve-out for this exact component until 2026-09-04 and lost it when the pane
+     started padding; the pane pads nothing again, so it comes back — here, where the component
+     that needs it lives. And the PADDING with it: a bleed re-states the pane's inset inside the
+     bled element, so standing down only the margin leaves the re-pad behind — measured, the
+     field came out 24px inside a column it is supposed to span. Both halves or neither, which
+     is what the 2026-08-21 shell round already said about this pair. */
+  margin: 0;
+  padding: 0;
+  /* A BLOCK, not a flex column, and that is a motion decision (2026-09-05). Two blocks stacked is
+     what block layout is, so flex was buying only `gap` — and it was costing the results pane its
+     height channel: `interpolate-size` does not reach a FLEX ITEM. Measured in isolation, a block
+     child interpolates 0 → auto (69.3px at 35% of its clock) and a flex item in a column snaps
+     straight to 200. So the interval is stated as the pane's own top margin instead, which is the
+     same distance and leaves the pane an ordinary block whose height can move.
 
-   It states no padding either: the pane's is the palette's only inset, and a second one inside it
-   would put the rows on a vertical the field does not stand on. */
+     The SURFACE rhythm, not the list's: what it separates is two objects in a column, which is the
+     same question a card standing beside a card asks. */
+  display: block;
+}
+
+.kui-command > .kui-dialog-body > .kui-surface + .kui-surface {
+  margin-block-start: var(--layout-space-3);
+}
+
+/* AND IT IS NOT A SHEET (§18, §24 — 2026-09-05). `dialog.css` presents a narrow-window dialog
+   as a bottom sheet, which is right for a panel whose content is written before it opens and
+   wrong for one whose height IS its results: pinned to the bottom edge, a query returning three
+   rows instead of twelve moves the top by the whole delta, and the field is at the top. This is
+   the second deliberate exclusion from that arm — AlertDialog is the first, and its reason is
+   the same shape: the rule is dress for a dialog, and these two are not shaped like one.
+   Stated rather than inherited, because every fact below is one the sheet arm sets. */
+@media (max-width: 48rem) {
+  .kui-dialog-popup.kui-command {
+    margin-block-start: 0;
+    margin-block-end: auto;
+    /* The overlay's own designed maximum, back: a sheet is the window's width and a palette
+       is an object standing in it. The viewport keeps its gutter for the same reason. */
+    max-inline-size: var(--kui-overlay-w);
+    max-block-size: none;
+  }
+
+  .kui-dialog-viewport:has(> .kui-command) {
+    padding: var(--layout-space-6);
+  }
+
+  /* A phone has less window to spend, so the inset comes down a band. Still an object standing
+     in the room rather than a sheet welded to an edge. */
+  .kui-dialog-popup.kui-command {
+    margin-block-start: var(--layout-space-9);
+  }
+}
+
+/* AND THE MATERIAL'S OWN LIGHT GOES WITH IT. A glass pane's ring and glint are painted on its
+   two pseudo-elements (§10's five parts), and standing down a fill, a border and a cast does not
+   reach either — measured on a glass theme, a faint lit rectangle traced the whole column, from
+   the field's top edge to the results pane's bottom, which is the popup's box drawn by a lip on
+   a pane that is not there. `content: none` rather than an opacity or a colour, because what is
+   wrong is that the boxes EXIST: this element is not a pane, so it has no lip to catch light. */
+.kui-dialog-popup.kui-command::before,
+.kui-dialog-popup.kui-command::after {
+  content: none;
+}
+
+/* THE HIDDEN SUBMIT INPUT IS NOT A BLOCK IN THIS COLUMN. `Autocomplete.Root` renders a
+   visually-hidden `<input>` after everything (a palette submits with forms) — one pixel tall,
+   `display: block`, no attribute and no class that tells it apart from a caller's own content.
+   As a plain child it was fine; as a FLEX ITEM it is a third block, and the column's gap put
+   thirteen pixels of nothing under the results pane. Taken out of flow rather than hidden: it
+   still has to be submittable, and `display: none` would drop it from the form. Keyed by tag
+   because that is the only thing it has — the same shape as the bleed restatement this rule
+   replaced, and for the same reason. */
+.kui-command .kui-dialog-body > input {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* ── The search block ──────────────────────────────────────────────────────────────────────
+   A PANE, and almost everything about it is the surface layer's: the fill, the inset, the corner,
+   the edge, the ring, the glint and the material all arrive from `kui-surface kui-overlay` at the
+   palette's own `data-size` — the same attribute the results pane stamps, which is what makes one
+   number price both blocks identically (2026-09-05, Kushagra: "passing a size to this command
+   should affect both, the search bar and search results container in identical way").
+
+   It wore `kui-control kui-field` for a day and read wrong for two reasons that are the same
+   reason: a field is written for a control sitting IN something. Its well is the dress ramp, an
+   alpha step meant to composite against a pane, so over the scrim it was a recessed grey box
+   beside a lit white one; and its box is the control ladder, which prices a form row rather than
+   the one object a person is looking at.
+
+   What is left here is the row of the bar itself. */
+/* (0,3,0) ON PURPOSE. The overlay size join declares `--kui-sf-p` on `.kui-surface[data-size]`,
+   which is (0,2,0) — a bar keyed on one class would tie with it and be settled by which file the
+   bundler put first, which is not a rule. Measured before the third class was added: the bar
+   padded exactly what the results pane padded at every index, which is the join winning. */
+.kui-surface.kui-overlay.kui-command-search {
+  /* THE INSET IS THE BAR'S OWN, re-pointed at the pane's own hook rather than written as a
+     `padding` (2026-09-05). `--kui-sf-p` is what the surface layer reads for a pane's padding
+     AND what `m="bleed"` subtracts (§3), so re-pointing it keeps one home for "this pane's
+     inset"; declaring `padding` beside it would leave the bleed reading a number the box no
+     longer has. The picks are the command size join's, two rungs under the results pane's: both
+     blocks are panes at one index, and a pane holding a list of rows and a pane holding one line
+     of type do not want the same air. */
+  --kui-sf-p: var(--kui-cmd-search-p);
+  /* AND IT IS A PILL (2026-09-05, Kushagra: "still needs pill shape no?"). Written as the
+     LEVEL's own value multiplied out rather than as a literal, which is what makes it answer
+     `radius="none"` for free: the surface layer zeroes `--kui-sf-radius` there, and zero times
+     anything is a square. At every other level the product overshoots the box and CSS clamps it
+     to half the shorter side, which is the capsule — the same clamping §6 refused for a GROWN
+     box (a three-row textarea became a stadium) and which is right here for the opposite reason:
+     this box is one line of type by construction, so a stadium is the shape it has.
+
+     `corner-shape: round`, because a squircle spends its curvature along the edge and a box
+     whose corner already reaches the midline has no edge left to spend it on — the two fight
+     and the result reads as a lozenge rather than a capsule. */
+  border-radius: calc(var(--kui-sf-radius, 0px) * 100);
+  corner-shape: round;
+  /* THE PILL'S OWN INLINE INSET (§4's `pxPill`, 2026-08-05 — and this component was not taking
+     it, spotted by eye 2026-09-05). At `full` the corner swings inward at the text's cap line, so
+     a capsule's content needs more room on the inline axis than the same box would square: the
+     control family carries a whole second padding set for exactly this, per density and per
+     pointer world. The rule is applied on the BLOCK axis nowhere and on the inline axis here —
+     the pill bump stays horizontal-only, which is §4's own sentence for TextArea. One rung above
+     the block inset, from the same layout-space picks, so density reaches it. */
+  padding-inline: var(--kui-cmd-search-px);
+  display: flex;
+  align-items: center;
+  gap: var(--kui-sf-gap, var(--layout-space-3));
+}
+
+/* The glyph before it, on the icon ladder rung nearest the line it stands beside — the command
+   size join picks it, because a component sheet may not name `data-size`. It read `--kui-sf-icon`
+   for a day, which is the surface family's box at the PALETTE's index: right for an icon in a
+   Notice and wrong here, because this bar's type is a step or two above its pane's. */
+.kui-command-search-slot {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--kui-cmd-search-icon);
+  block-size: var(--kui-cmd-search-icon);
+  color: var(--color-text-muted);
+}
+
+.kui-command-search-slot > svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+/* THE INPUT IS A BARE LINE. The pane is the box, so everything a browser draws around a text
+   input has to go — and `font: inherit` is not enough on its own, because a UA stylesheet gives
+   `<input>` its own family, size and weight rather than inheriting them. The step comes from the
+   type layer through `kui-type` and the stamp the component writes. */
+.kui-command-input {
+  flex: 1;
+  min-inline-size: 0;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  appearance: none;
+  /* THE RING IS REFUSED, and it is stated on the resting rule rather than on a `:focus` arm
+     (§8). Two reasons, and the second is why the spelling matters. A palette opens with the
+     caret in this bar and nothing else in the panel takes focus, so there is no other control
+     to tell it apart from — the scrim, the flight and the caret are the announcement, and every
+     palette worth copying draws none. And a `:focus { outline: none }` would be a rule that
+     RINGS with something other than the designed value, which the ring law reads literally and
+     is right to; what is true here is stronger than "not while focused": this element never
+     draws an outline at all. The UA's own default is what is being removed. */
+  outline: none;
+}
+
+.kui-command-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* ── The results block ─────────────────────────────────────────────────────────────────────
+   IT IS PADDED LIKE A MENU, NOT LIKE A DIALOG (2026-09-05, Kushagra: "the padding in search
+   results area seems a bit too much, this is almost like a menu isnt it"). It is: a pane whose
+   whole content is a list of rows, which is exactly what `kui-floating-rows` names — the class
+   the 2026-08-23 Popover split carved out so "where a pane sits" and "what a pane holds" could
+   be said separately. It holds rows, so it takes that half: the concentric corner (row corner
+   plus the pane's own inset, §22) and the padding join that reads `--kui-floating-p`.
+
+   AND IT DROPS `kui-overlay` rather than wearing both. The two joins declare `--kui-sf-p` at
+   the same (0,3,0), so which one a pane wearing both takes is decided by whichever file the
+   bundler put last — measured, the overlay's 24px won and the concentric corner was computed
+   from it, giving a 70px arc on a pane that pads 8. Nothing is lost: the overlay's designed
+   maximum is the COLUMN's already, and the panel fills the column it stands in.
+
+   The value is the MENU'S OWN, expression and all: a clipping pane must pad at least the ring's
+   reach (§3), which is why this is a `max()` and not a pick. Copied as the expression rather
+   than as its result, so re-tuning the ring cannot silently re-break either panel.
+
+   What is left below is the bound, and it belongs on the element that scrolls. A maximum rather
+   than a height: a palette with four commands in it is four rows tall, which is the whole reason
+   the block above it is a separate block. */
+.kui-surface.kui-command-panel {
+  --kui-floating-p: max(var(--floating-p), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
+}
+
+.kui-command-panel .kui-scroll-area,
+.kui-command-panel .kui-scroll-viewport {
+  max-block-size: 26rem;
+}
+
+/* AND IT IS NOT THERE WHEN THERE IS NOTHING IN IT. An empty pane over the scrim is a box with
+   nothing in it. `:has()` because the question is genuinely about the children: `Autocomplete.List`
+   renders only the rows that survived the filter, so no row means no list. Not `:empty` — the list
+   still holds group wrappers.
+
+   SINCE 2026-09-05 THE EMPTY STATE COUNTS AS SOMETHING IN IT. It renders inside this pane rather
+   than beside it, so a filter that empties the list does not empty the pane: the pane is there
+   whenever it has rows OR a message, and gone only when it has neither, which is the state a
+   palette opening on a query too short to search is in. */
+.kui-surface.kui-command-panel:not(:has(.kui-command-item, .kui-command-empty:not(:empty))) {
+  display: none;
+}
+
+/* A PANE HUGGING ONE ROW IS A CAPSULE, AND A CAPSULE IS DRAWN ROUND (§6, §44 — 2026-09-05,
+   Kushagra: "radius is wrong only when theres one element in result").
+
+   The concentric sum is doing its job here, not failing at it. At `radius="full"` a row IS a
+   capsule — its corner is half its own height — so a pane holding one row has a corner of
+   `row/2 + p` and a height of `row + 2p`, and those are the same number: 19 against 38, measured.
+   The pane is a capsule by derivation.
+
+   What breaks is the SHAPE. `--kui-corner-k` inflates the declaration to 33.25 so a squircle
+   spends its curvature the way the judged arcs do, the engine scales that back to the 19 the box
+   allows, and it draws it as a SQUIRCLE — which at the capsule limit is flatter than the round
+   capsule sitting inside it. The pane stops nesting its row, which is the one thing the concentric
+   corner exists to do. §6 already states the rule for the things that are capsules at `full`: they
+   are drawn round and never take squircle. It had only ever been said of CONTROLS, because a
+   control is a capsule by its own geometry; a pane becomes one by what it holds.
+
+   `:has()` because that is the only thing CSS can ask — a box cannot measure its own height, so
+   the condition is read off the content that produces it. ONE ROW IS THE WHOLE CONDITION, caption
+   or no caption, and that widened on 2026-09-06 when the rows stood a step above the palette. The
+   rule had excluded a captioned pane on a measurement — 33.25 of corner against a 67px box, off
+   the limit by a QUARTER OF A PIXEL — and a quarter of a pixel is not a boundary, it is the same
+   case reached from underneath. Re-measured at every index with the rows one step up: 33.25/66,
+   36.75/72, 40.25/76 and 40.25/76 — the corner is at or past half the box in all four, so the
+   captioned pane is as much a capsule as the bare one and drawing it as a squircle is the same
+   lozenge the reported defect was. What still keeps the family's squircle is a pane holding a
+   LIST, which is the guard that stays. */
+.kui-surface.kui-command-panel:has(.kui-command-item):not(:has(.kui-command-item ~ .kui-command-item)) {
+  corner-shape: round;
+}
+
+/* The list inside it is a plain block and scrolls nothing: the pane places the `ScrollArea`,
+   which bleeds to the pane's walls and re-states the padding inside its viewport by the shared
+   surface rule. It states no padding either — the pane's is the only inset, and a second one
+   would put the rows on a vertical the caption does not stand on. */
 .kui-command-list {
   display: block;
 }
 
-/* The height bound moves to the element that actually scrolls, which is the menu's own spelling
-   one component over. A maximum rather than a height: a palette with four commands in it is four
-   rows tall. */
-.kui-command .kui-scroll-area,
-.kui-command .kui-scroll-viewport {
-  max-block-size: 26rem;
-}
+/* Group labels sit on the vertical the rows' TEXT sits on, so the caption above a section lines
+   up with the section. `--kui-sf-row-px` is the row's own inline padding, and nothing else: the
+   pane's inset is already outside these boxes, and adding it here is the exact defect the
+   2026-09-02 audit found (every caption a full surface inset right of the rows it named, under a
+   comment claiming they lined up).
 
-/* A CLIPPING BOX MUST PAD AT LEAST THE RING'S REACH (§3, and the third time this repo has paid
-   for it — the menu's panel 2026-08-09, a sheet's body 2026-08-21, this 2026-09-04: "Also focus
-   ring is being cut"). The viewport is a scroll container, so it clips at its PADDING box, and the
-   surface layer only re-states the padding on the block sides the scroller actually bled: this
-   scroller has the field above it, so it is not the pane's first child, so it had no block-start
-   padding at all and the first row's ring was sliced along its top.
-
-   Stated as the ring's own tokens rather than as a number, so re-tuning the ring cannot silently
-   re-break the panel. The block-END side is the pane's, restated by the bleed, and it already
-   clears the reach several times over. */
-/* THE VIEWPORT PADS NOTHING ABOVE, so the field's own margin is the only thing between the pane's
-   wall and the field — one number, stated once, read twice (the sticky offset is the other read).
-   The shared surface rule states this padding for every scroller that is a pane's first child, and
-   it is right everywhere except a pane whose first child PINS: there it is a second inset the
-   pinned element then has to agree with, and disagreeing is what put the field an inset low.
-
-   (0,4,0) on purpose — the shared rule is a `:nth-child(1 of …)` chain and a lighter selector
-   simply loses to it, which is a tie this file must win rather than hope about. The ring's own
-   clearance is gone with it: rows bleed under the field now, so the top of the scrollport is not
-   where a focused row sits, and the field's margin clears the ring several times over. */
-.kui-surface.kui-command .kui-scroll-area > .kui-scroll-viewport {
-  padding-block-start: 0;
-}
-
-/* THE BOTTOM BLEED IS RESTATED HERE, and the reason is a child this component does not own.
-   The surface layer decides a scroller's block bleed by asking whether it is the pane's last
-   in-flow child, and `Autocomplete.Root` renders a visually-hidden `<input>` after everything
-   (a palette submits with forms) — one pixel tall, `display: block`, no `hidden` attribute and
-   no class, so it is the last element child and no general selector can tell it apart from a
-   caller's own content. Measured: the scroller stopped one inset short of the wall with dead
-   pane below it, and the last row ended at a hard line in the middle of the panel.
-
-   The alternatives were worse. Marking it `data-float` is not ours to do. Teaching the shared
-   rule to skip "elements that render nothing" cannot be written — this one renders a box. And
-   moving the empty region inside the scroller changes what `CommandEmpty` is. So the arithmetic
-   is restated for the one pane that has machinery in its body, which is `menu.css`'s own shape
-   ("what survives here is the one fact that is genuinely the menu's"), and it is held by a law
-   that reads the painted result rather than these two declarations. */
-.kui-command .kui-scroll-area {
-  margin-block-end: calc(-1 * var(--kui-sf-p));
-}
-.kui-command .kui-scroll-viewport {
-  padding-block-end: var(--kui-sf-p);
-}
-
-/* Group labels and the empty region sit on the vertical the rows' TEXT sits on, so the caption
-   above a section lines up with the section. `--kui-cmd-px` is the row's own inline padding at
-   the palette's index, and nothing else: the pane's inset is already outside all three of these
-   boxes, and adding it here is the exact defect the 2026-09-02 audit found (every caption a full
-   surface inset right of the rows it named, under a comment claiming they lined up). */
-.kui-command-group-label,
-.kui-command-empty {
+   IT READS THE FLOATING JOIN'S HOOK RATHER THAN ONE OF ITS OWN (2026-09-06). `--kui-cmd-px` held
+   the identical pick — `--control-px-pill-N` — and was declared on the POPUP, at the palette's
+   index; the rows moved one step up that day and the caption would have stayed behind. This name
+   is published by the floating-rows join onto the PANE, at the index the pane stamps, which is
+   the rows' own by construction. Two homes for one value became one, and the value cannot drift
+   from the rows again because it is not stated twice. */
+.kui-command-group-label {
   display: block;
-  padding-inline: var(--kui-cmd-px);
+  padding-inline: var(--kui-sf-row-px);
   padding-block: var(--layout-space-2);
-}
-
-/* THE EMPTY REGION IS NOT A CAPTION, and sharing the caption's breath was the mistake
-   (2026-09-04, Kushagra: "space above nothing matches is too less"). A caption is bound to the
-   rows under it and wants almost no air — that is proximity doing its job. This is the whole
-   list's replacement: one object standing alone in the room the rows would have filled, with
-   nothing to be near. Twelve pixels under the field read as a caption for a section that is not
-   there.
-
-   The interval is the SURFACE rhythm rather than the list's, for the same reason: what it has to
-   separate itself from is the pane's other object, not a row. It is stated as its own rule after
-   the shared one, so the caption keeps the breath a caption wants. */
-.kui-command-empty {
-  padding-block: var(--layout-space-6);
-}
-
-/* AND IT TAKES NO ROOM WHEN IT HAS NOTHING TO SAY (2026-09-04). `Autocomplete.Empty` renders its
-   element on every state and only fills it when nothing matched — it is an `aria-live` region, so
-   it has to exist before the message arrives or the message is never announced. With a breath on
-   it that meant 48px of dead pane under the last row of every populated list, on every surface
-   that uses the component, and it read as the panel not fitting its own content.
-
-   `padding-block` stood down rather than `display: none`, because the second would take the live
-   region out of the accessibility tree and the announcement with it. The element stays, at zero
-   height, saying nothing. */
-.kui-command-empty:empty {
-  padding-block: 0;
 }
 
 /* A section after another one needs air, and the first one must not have it — the interval is
    between groups, not above the list. */
 .kui-command-group + .kui-command-group {
   margin-block-start: var(--layout-space-2);
+}
+
+/* ── Nothing matched ───────────────────────────────────────────────────────────────────────
+   CONTENT IN THE RESULTS PANE, not a pane beside it (2026-09-05, Kushagra: "when empty state comes,
+   the shape is again different… make the container same"). It wore `kui-surface kui-overlay` and
+   stood in the column where the results pane had been, so the thing that replaces a menu-boxed pane
+   was boxed like a dialog — 64.52px of corner over 24px of inset against 33.25 over 4. Two boxes
+   cannot be made to agree by keeping two tables in step; there is one box now, and this is what it
+   holds when nothing matched.
+
+   The SEAT is what makes that true without moving the part in anyone's JSX: `CommandList` publishes
+   the node and `CommandEmpty` renders into it. The two never both have content — Base UI renders
+   only the rows that survived and fills the live region only when none did — so they stack in
+   ordinary flow and the pane is the height of whichever one is speaking. */
+/* `data-float`, which is what the surface layer's bleed arms already read: the ScrollArea beside
+   this reaches the pane's walls through `:nth-child(1 of :not([data-float]))` on both ends, so an
+   unmarked sibling after it would quietly take its bottom bleed away. The old empty pane carried
+   the same marker for the same reason, one level up. */
+.kui-command-seat {
+  display: block;
+}
+
+/* Its own breath (2026-09-04, Kushagra: "space above nothing matches is too less"): a caption is
+   bound to the rows under it and wants almost no air, and this is one object standing alone in the
+   room the rows would have filled. The INLINE inset is the rows' own, so the message starts on the
+   vertical the results start on — the pane pads for rows, and a paragraph on a row's left edge is
+   the one thing this seat has to state for itself. */
+.kui-command-empty:not(:empty) {
+  display: block;
+  padding-block: var(--layout-space-6);
+  padding-inline: var(--kui-sf-row-px);
+}
+
+/* AND IT OCCUPIES NOTHING WHEN IT HAS NOTHING TO SAY. `Autocomplete.Empty` renders its element on
+   every state and only fills it when nothing matched — it is an `aria-live` region, so it has to
+   exist before the message arrives or the message is never announced. `display: none` would take it
+   out of the accessibility tree and the announcement with it, so it stays, at zero. Now that it is
+   content rather than a pane there is nothing to stand down but the box. */
+.kui-command-empty:empty {
+  display: block;
+  padding: 0;
+}
+
+/* ── The arrivals (§8, §22, §44 — 2026-09-05) ──────────────────────────────────────────────
+   THE RESULTS PANE OPENS OUT OF THE SEARCH BAR, and the bar is the trigger (Kushagra: "Can it also
+   open like a menu? Or a popover, as far as motion goes, with the search bar being the trigger?").
+
+   The palette is a Dialog, so the COLUMN keeps §24's entry whole: the scrim pushing the app back is
+   the arrival and the box only steps forward in z. What that recipe has nothing to say about is the
+   relationship between the two blocks inside it, and the relationship is a menu's — the pane sits
+   directly under the bar, at the bar's own width, held at its top edge. §22's silhouette is honest
+   exactly where a panel lands ON the thing it came out of, which is the case here in a way it was
+   not for Popover (whose seed became a circle because the panel shared no shape with its trigger).
+   The pane already IS the bar's width, so there is no spread to fly: the whole flight is the FALL,
+   which is the axis the family says the eye reads as the direction of travel anyway.
+
+   NO RUNNER AND NO MEASUREMENT. The family's runner exists to photograph a trigger whose box is
+   only known at runtime; here the seed is the bar's bottom edge, which is where this pane's top edge
+   already is, so the flight is a pure state change on Base UI's own stamps — Tooltip's 2026-08-31
+   precedent, which self-keys a pose over the family's clocks rather than asking for a second
+   mechanism.
+
+   `interpolate-size` is what makes the height expressible, and it is the same reach §41 made for the
+   Button's travelling label: a pane's height is `auto` and `auto` does not interpolate without it.
+   Where an engine does not have it the height snaps and everything else still runs, so this is
+   additive and the fallback is exactly today's behaviour. It buys the LIST-TO-MESSAGE change below
+   in the same channel, which a `grid-template-rows` unfurl could not: that value does not change
+   when the content does, so the track re-resolves and the box snaps. Built that way first and
+   measured — 304.5px of pane at a track reading 0.32fr, because the system makes a pane holding a
+   scroller a flex column at (0,3,0) and a tie settled by file order is not a rule either.
+
+   It is scoped to this pane and the scoping matters twice, which is §41's own note: the property
+   INHERITS, so declaring it wider changes how `auto` behaves for everything inside. */
+.kui-surface.kui-command-panel {
+  interpolate-size: allow-keywords;
+  height: auto;
+  transition:
+    /* the pane FALLS out of the bar and opens under it */
+    height var(--floating-fall) var(--motion-spring-elastic),
+    translate var(--floating-fall) var(--motion-spring-elastic),
+    /* the corner sits between the flight and the paint, as it does in the family */
+    border-radius var(--floating-corner) var(--motion-spring-elastic),
+    /* paint is signal, not physics: it eases, it does not spring (§8's two clocks) */
+    opacity var(--floating-paint) ease-out;
+}
+
+/* The seed. Zero tall, pulled up under the bar, transparent — the pane's own top edge, which is
+   already the bar's bottom edge, so there is nothing to place and nothing to measure. */
+.kui-dialog-popup.kui-command[data-starting-style] .kui-surface.kui-command-panel {
+  height: 0;
+  translate: 0 calc(-1 * var(--floating-echo));
+  opacity: 0;
+}
+
+/* Leaving is never the entry reversed (§8): it does not fold back into the bar, it settles and
+   dissolves with the column it stands in. */
+.kui-dialog-popup.kui-command[data-ending-style] .kui-surface.kui-command-panel {
+  opacity: 0;
+  transition: opacity var(--floating-dissolve) ease-in;
+}
+
+/* AND NOTHING RINGS ON THE WAY OUT (§8 — 2026-09-06, Kushagra: "Ring still appears briefly on
+   return key press, is that correct?" It is not).
+
+   Measured across the exit's frames: the moment Enter runs a row, `document.activeElement` is that
+   row and it draws the ring for every frame of the dissolve, because a keyboard activation makes a
+   focusable element `:focus-visible` and a row rendered as an `<a href>` is focusable by nature —
+   which is also why this is invisible with ordinary rows and why it predates the tab-stop repair
+   rather than being caused by it. Base UI commits the highlighted row by clicking its element, and
+   a click on an anchor is what puts focus there.
+
+   THE RING IS RIGHT AND THE MOMENT IS WRONG, so this stands it down by the moment. §8's ring says
+   *keyboard focus is here*; on a panel that is leaving, focus being anywhere is bookkeeping rather
+   than a state anybody needs told. It is scoped to the ending stamp for exactly that reason — a row
+   that really is focused in a standing palette still rings, and the pane still pads for the reach,
+   which is what the clearance law reads. Neither an `outline: none` on the row (it deletes a state
+   that is sometimes real, and the clearance law fails on it) nor a blur at the click (JS fighting
+   the browser for focus mid-activation, on the one gesture that is also a navigation).
+
+   AND IT IS NOT KEYED ON `:focus-visible`, which the first spelling was and a shipped law refused:
+   a rule naming that pseudo-class must ring with the designed tokens, so writing `outline: none`
+   inside one is a focus rule that rings with something else. The bar's own refusal was pushed to
+   its resting rule by the same law and for the same reason. What is true here is not "not while
+   focused" — it is that nothing in a leaving palette draws an outline at all, which is a claim
+   about the EXIT and belongs on a rule about the exit. */
+.kui-dialog-popup.kui-command[data-ending-style] .kui-command-item {
+  outline: none;
+}
+
+/* NO BLUR OVER THE PANES, AND THAT IS WHAT THE "JUMP" WAS (§10, §24 — 2026-09-05, Kushagra:
+   "after animation completes, the bg changes and gets thicker in a jump", twice).
+
+   §24 blurs `.kui-dialog-body` on the way in so the print comes into focus with the plane — the one
+   channel that presumes nothing about content the system does not own. It presumes one thing after
+   all: that the content is not GLASS. A `filter` makes an element a BACKDROP ROOT, so every
+   `backdrop-filter` beneath it stops sampling the page and samples the root instead — which is
+   nothing. Measured frame by frame: for the whole entry the two panes' blur, saturation and lens
+   drew on an empty backdrop, and the instant the body's filter reached `none` the real page
+   appeared behind them. The glass switching ON at the end of the arrival is exactly "gets thicker
+   in a jump", and it is not a timing problem — the lens was already correct by then.
+
+   Until 2026-09-05 the palette had one pane and it WAS the popup, so the body's filter sat inside
+   the glass rather than over it and the conflict could not arise. The two-block shape puts the
+   panes under the body, so the recipe has to stand down here.
+
+   Nothing is lost that this component had a use for: a dialog blurs its body because its arrival is
+   pure depth and it owns no content of its own, and this palette's blocks arrive on their own
+   clocks — the bar with the column, the pane falling out of it. A blur over both is a second
+   arrival on top of the ones already designed. */
+.kui-command > .kui-dialog-body,
+.kui-dialog-popup.kui-command[data-starting-style] > .kui-dialog-body {
+  filter: none;
+}
+
+/* ── The list becomes the message, and back (§8, §41 — 2026-09-05) ─────────────────────────
+   Kushagra: "add motion to how the list goes from wherever it is to empty state, preferably blur
+   fade in and out that we use."
+
+   The arriving content fades in OUT OF a blur and the leaving one fades out into one — the Button
+   done state's swap (§41), on the mark clock, and deliberately not the floating family's print,
+   which is licensed by MASS and there is none here.
+
+   IT IS KEYED ON THE PANE'S OWN STATE, not on `@starting-style`, and that is the whole mechanism.
+   Neither element is ever inserted: `Autocomplete.Empty` is a live region that exists on every
+   frame and only gains children when nothing matched, and the list is always in the pane. So
+   nothing is "starting" — what changes is which selector matches, and a transition declared on both
+   sides of that change is what runs. Built the other way first and measured: `@starting-style` fired
+   on neither, the message arriving at full opacity with `blur(0px)`.
+
+   The pane's HEIGHT is not animated with them, and that is a refusal rather than an omission. A
+   content-driven height change is `auto` to `auto` — no computed value moves, so no transition can
+   fire — and the only way to animate it is to measure and write a length on every keystroke, which
+   is JS at interaction time (§8's standing rule) in the one component where the keystroke IS the
+   interaction. `interpolate-size` buys the arrival, where the value really does go from `0`, and
+   cannot buy this. */
+.kui-command-empty,
+.kui-command-panel:not(:has(.kui-command-item)) .kui-command-list {
+  opacity: 0;
+  filter: blur(var(--done-blur));
+}
+
+.kui-command-empty:not(:empty),
+.kui-command-panel:has(.kui-command-item) .kui-command-list {
+  opacity: 1;
+  filter: blur(0);
+}
+
+.kui-command-empty,
+.kui-command-list {
+  transition:
+    opacity var(--motion-mark) ease-out,
+    filter var(--motion-mark) ease-out;
+}
+
+/* Suppression is total (§8). The pane is simply there, and the message is simply the message. */
+@media (prefers-reduced-motion: reduce) {
+  .kui-surface.kui-command-panel,
+  .kui-dialog-popup.kui-command[data-ending-style] .kui-surface.kui-command-panel,
+  .kui-command-empty,
+  .kui-command-list {
+    transition: none;
+  }
+  .kui-dialog-popup.kui-command[data-starting-style] .kui-surface.kui-command-panel {
+    block-size: auto;
+    translate: none;
+    opacity: 1;
+  }
 }

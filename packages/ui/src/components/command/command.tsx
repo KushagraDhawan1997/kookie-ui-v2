@@ -1,17 +1,28 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import { Autocomplete } from "@base-ui/react/autocomplete";
 import * as React from "react";
+import { createPortal } from "react-dom";
 
 import type { Size, SlotName } from "../../system/axes.ts";
 import { filled, unwrapLazy, type RenderElement } from "../../system/render.ts";
 import { rowProps } from "../../system/rows.ts";
-import { Dialog, DialogContent, DialogTrigger, type DialogProps, type DialogTriggerProps } from "../dialog/dialog.tsx";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  type DialogProps,
+  type DialogTriggerProps,
+  type OverlayOpenChangeDetails,
+  type OverlayOpenChangeReason,
+} from "../dialog/dialog.tsx";
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { useLensRef } from "../../system/refraction.tsx";
+import { useStatedFlight } from "../../system/floating.tsx";
 import { GlassScope, useMaterial, themeDefaults } from "../../theme/theme.tsx";
-import { Text } from "../text/text.tsx";
-import { useSize } from "../../system/size.ts";
+import { Text, type TypeSize } from "../text/text.tsx";
+import { useAppSize } from "../../system/size.ts";
 
 /* ── Contexts: the size, and the items the content hands to Base UI ────────────────────── */
 
@@ -21,12 +32,125 @@ import { useSize } from "../../system/size.ts";
 const CommandSizeContext = React.createContext<Size>(themeDefaults.size);
 const CommandItemsContext = React.createContext<readonly unknown[] | undefined>(undefined);
 
-export type CommandProps = {
+/**
+ * How a row closes the palette (2026-09-05, Kushagra: "command currently doesnt go away when I
+ * click on an item").
+ *
+ * It is a context rather than a prop on the row because the state lives on `Command` and the row
+ * is several parts below it, and it is the COMPONENT's job rather than the call site's: a palette
+ * is answered by running one row, so a row that runs and leaves the panel standing has not
+ * finished. It shipped needing `onClick={() => setOpen(false)}` at every call site, which is a tax
+ * the docs site's own search proved nobody pays — its rows navigate and the panel stayed open over
+ * the page they navigated to, while the example beside it closed only because it wrote the line.
+ * `Command`'s own JSDoc had promised the reason "a row being run" since the day it shipped.
+ */
+const CommandCloseContext = React.createContext<((event: Event) => void) | null>(null);
+
+/**
+ * WHERE THE EMPTY STATE GOES (2026-09-05, Kushagra: "when empty state comes, the shape is again
+ * different… make the container same").
+ *
+ * It was a THIRD pane in the column standing where the results pane had been, and two panes
+ * standing in for one thing cannot agree by construction — measured, a 64.52px corner over 24px of
+ * inset against the results pane's 33.25 over 4. There is one pane, and the empty state is what it
+ * shows when nothing matched: the file's own comment had said exactly that since the day it was
+ * written, and the DOM said otherwise.
+ *
+ * The caller still writes `<CommandEmpty>` beside `<CommandList>` — the shadcn arrangement, and the
+ * one every palette's call site is written in — so the part is PLACED rather than re-parented by
+ * the app: `CommandList` publishes the node inside its pane and `CommandEmpty` renders into it. A
+ * React portal keeps the context, which is what `Autocomplete.Empty` needs to stay Base UI's live
+ * region, and puts the element where the box it belongs to actually is.
+ */
+const CommandSlotContext = React.createContext<{
+  slot: HTMLElement | null;
+  setSlot: (node: HTMLElement | null) => void;
+} | null>(null);
+
+/**
+ * THE SEARCH BAR'S TYPE, indexed by the palette's own size (§4, §44 — 2026-09-05, Kushagra:
+ * "this search bar needs to be different than text field, it needs more spacing… this isn't an
+ * inline element… so this needs its own sizing, the font size was never the issue").
+ *
+ * It shipped for an afternoon as `size + 1` on the CONTROL ladder — the bar wore `kui-field` and
+ * borrowed a text input's cell one step up. That is the wrong mechanism twice over. A palette's
+ * search bar is not an inline control that happens to be large: it is a PANE, so its inset comes
+ * from the surface join like the results pane's and the two read as one material at one index.
+ * And a bump is an exception dressed as a rule — it makes `size="3"` mean something it does not
+ * mean anywhere else, which is exactly what a call site was reaching for `size="3"` to get.
+ *
+ * So the box is the SURFACE ladder (no map at all — `data-size` on a `.kui-surface`, the same
+ * attribute the results pane stamps) and only the type needs a table, because a bar you type into
+ * reads larger than the rows it filters. One step per index, the `OWNED_*_STEP` genus (§30's
+ * ownership rule: the component owns this text, so the index reaches it).
+ */
+const SEARCH_STEP: Record<Size, TypeSize> = { "1": "3", "2": "4", "3": "5", "4": "6" };
+
+/**
+ * THE RESULTS BLOCK STANDS ONE STEP ABOVE THE PALETTE (§4, §21, §44 — 2026-09-06, Kushagra:
+ * "I have a feeling as I use it, that the list of command should also use a step + 1. We're
+ * doing this mapping with Toolbar, we have a pattern already").
+ *
+ * The reason is the bar's own, one block over. A palette is not a list you scan while doing
+ * something else; it is the one object on the screen, opened over a dimmed app and read from a
+ * distance you did not choose. `SEARCH_STEP` already says that about the line you type into, and
+ * a menu-scale row under a bar set two steps above it read as a footnote to its own query.
+ *
+ * DERIVED, never a stated table, which is `BAND_STEP`'s whole argument in `system/size.ts`: a
+ * palette's rows are on the very ladder `Theme size` prices, so a flat literal would put the
+ * palette and the app on one ladder disagreeing for no reason a reader can see — at
+ * `<Theme size="4">` a fixed 3 makes the rows in the palette SMALLER than the rows in the app
+ * behind it. Stated against the index, the two can never invert. It ends where the ladder ends,
+ * for the same reason a band does: standing level is the right answer when there is no rung left.
+ *
+ * NOT `BAND_STEP` itself, though the four cells are identical. That table's reason is a chrome
+ * band holding unlabelled controls at the edge of the window, which is not this and which would
+ * make either component's reason unreadable from the other's name — the `segmentInset` /
+ * `switchInset` call (§26), where the second member self-keys and a third would promote.
+ *
+ * WHAT TAKES IT IS THE PANE AS WELL AS THE ROWS, and that is forced rather than chosen. §22's
+ * concentric corner is the ROW's corner plus the pane's own inset, read off the pane's stamped
+ * index, and `--kui-sf-row-px` publishes the rows' text inset to the pane from the same place —
+ * so a pane left at the palette's index would hug rows it is not shaped for and align a caption
+ * to a vertical no row stands on. The pane's INSET does not move with it: a floating pane's
+ * padding is `max(--floating-p, the ring's reach)`, which answers a clipping rule rather than a
+ * size, so what the stamp really moves is the two numbers that describe the rows.
+ */
+export const ROW_STEP: Record<Size, Size> = { "1": "2", "2": "3", "3": "4", "4": "4" };
+
+/**
+ * The two panes' shared surface wiring (§10). Each of them is a pane in its OWN right since
+ * 2026-09-05 — the popup between them paints nothing — so each resolves the theme's material,
+ * mints its own lens for its own box, and scopes its subtree so nothing inside stacks a second
+ * sheet of glass. They are SIBLINGS, not a nest, which is why two of them is not two panes deep.
+ */
+function usePane() {
+  const material = useMaterial({ backdrop: true });
+  const ref = useLensRef<HTMLDivElement>(material, undefined);
+  return { material, ref } as const;
+}
+
+/**
+ * Why the palette closed. The overlay family's own reasons plus one this component can produce
+ * and no other overlay can: a row was run.
+ */
+export type CommandOpenChangeReason = OverlayOpenChangeReason | "item-press";
+export type CommandOpenChangeDetails = Omit<OverlayOpenChangeDetails, "reason"> & {
+  reason: CommandOpenChangeReason;
+};
+
+export type CommandProps = ComponentRefusals & {
   /**
    * Sets the panel and everything the component places in it: the box, the filter field, the
    * rows and the group labels. It owns all of it, so the index reaches the type — the rule
    * AlertDialog and Composer both settled on, where a Dialog stops at the box because the
    * content is yours.
+   *
+   * The parts do not all stand at the index you state, and they are not meant to: a palette is
+   * the one object on the screen, so the line you type into is set above the rows it filters
+   * and the rows themselves stand one step above the controls in the app behind them. Both
+   * ladders are derived from this one, so nothing can invert and there is no index where the
+   * palette reads like a form.
    */
   size?: Size;
   /**
@@ -47,8 +171,10 @@ export type CommandProps = {
       what a real palette wants, because the chord that opens it lives in your key handler. */
   defaultOpen?: DialogProps["defaultOpen"];
   /** Called when it opens or closes, with the reason — an Escape, an outside press, or a row
-      being run. The second argument carries `cancel()` if you need to refuse the dismissal. */
-  onOpenChange?: DialogProps["onOpenChange"];
+      being run (`"item-press"`, the one reason no other overlay can produce). The second argument
+      carries `cancel()` if you need to refuse the dismissal, which is how a palette keeps itself
+      open for a row that does not end the interaction. */
+  onOpenChange?: (open: boolean, details: CommandOpenChangeDetails) => void;
   /** The trigger, if there is one, and the panel. */
   children: React.ReactNode;
 };
@@ -86,18 +212,63 @@ export type CommandProps = {
  * muscle memory for.
  */
 export function Command({ size: sizeProp, items, open, defaultOpen, onOpenChange, children }: CommandProps) {
-  const size = useSize(sizeProp);
+  const size = useAppSize(sizeProp);
+
+  /* THE OPEN STATE IS MIRRORED HERE (2026-09-05), and the reason is that a row has to be able to
+     close the panel: the state's only handle is this component, and every part that runs a row
+     sits below it. Controlled stays controlled — the app's value is what renders and the mirror is
+     never read — so an app that states the state is still its one home.
+
+     `cancel()` is honoured on both paths. Base UI refuses the dismissal at its own layer when the
+     app calls it, so a mirror that moved anyway would close a panel Base UI kept open — the two
+     copies of one fact disagreeing, which is the defect this shape exists to avoid. */
+  const [internalOpen, setInternalOpen] = React.useState(defaultOpen ?? false);
+  const controlled = open !== undefined;
+  const isOpen = controlled ? open : internalOpen;
+
+  const handleOpenChange = React.useCallback(
+    (next: boolean, details: OverlayOpenChangeDetails) => {
+      let refused = false;
+      const refuse = details.cancel;
+      onOpenChange?.(next, {
+        ...details,
+        cancel: () => {
+          refused = true;
+          refuse();
+        },
+      });
+      if (!refused && !controlled) setInternalOpen(next);
+    },
+    [onOpenChange, controlled],
+  );
+
+  /* Running a row is a dismissal with its own reason, so it is announced as one rather than
+     borrowed from `imperative-action` — an app that has to tell "the user ran something" from
+     "something called close()" can, and an app that wants a particular row to leave the panel
+     standing refuses this one with `cancel()`. */
+  const close = React.useCallback(
+    (event: Event) => {
+      let refused = false;
+      onOpenChange?.(false, {
+        reason: "item-press",
+        event,
+        cancel: () => {
+          refused = true;
+        },
+      });
+      if (!refused && !controlled) setInternalOpen(false);
+    },
+    [onOpenChange, controlled],
+  );
+
   return (
     <CommandSizeContext.Provider value={size}>
       <CommandItemsContext.Provider value={items}>
-        <Dialog
-          size={size}
-          {...(open !== undefined ? { open } : {})}
-          {...(defaultOpen !== undefined ? { defaultOpen } : {})}
-          {...(onOpenChange !== undefined ? { onOpenChange } : {})}
-        >
-          {children}
-        </Dialog>
+        <CommandCloseContext.Provider value={close}>
+          <Dialog size={size} open={isOpen} onOpenChange={handleOpenChange}>
+            {children}
+          </Dialog>
+        </CommandCloseContext.Provider>
       </CommandItemsContext.Provider>
     </CommandSizeContext.Provider>
   );
@@ -105,12 +276,18 @@ export function Command({ size: sizeProp, items, open, defaultOpen, onOpenChange
 
 /** The control that opens it. A palette usually opens on a chord instead, and then this is not
     rendered at all — which is why it is a separate export rather than a prop. */
-export type CommandTriggerProps = DialogTriggerProps;
+export type CommandTriggerProps = ComponentRefusals & DialogTriggerProps;
+/**
+ * The node that opens the palette. It is `DialogTrigger` under another name, because a palette
+ * is a dialog and the trigger has nothing of its own to add.
+ *
+ * Most palettes are opened by a keyboard shortcut and never render one at all.
+ */
 export function CommandTrigger(props: CommandTriggerProps) {
   return <DialogTrigger {...props} />;
 }
 
-export type CommandContentProps = {
+export type CommandContentProps = ComponentRefusals & {
   /** The palette's accessible name. It has no visible title — the field is the affordance —
       so the name is stated here and it is required by the type. */
   "aria-label": string;
@@ -140,9 +317,60 @@ export type CommandContentProps = {
 };
 
 /**
- * The panel. A `DialogContent` — so the surface, the scrim, the corner, the material and the
- * motion are the overlay family's — holding the Autocomplete root, which must live INSIDE the
- * portal: it wires the field to the list through context, and the list is rendered here.
+ * A CLOSED PALETTE HAS AN EMPTY QUERY, AND IT SAYS SO (2026-09-05, Kushagra: "I type letters, and
+ * search results come up. next time I open, results are still there").
+ *
+ * The field is a fresh one on every open — the panel unmounts with the dialog — so the bar comes
+ * back blank. What did not come back is whatever the app derived from the query, because the
+ * component reported every keystroke and never reported the reset. The docs site's own search is
+ * the shape that breaks: it holds the query in state, computes its results from it and hands them
+ * back as `items`, so the palette reopened showing the previous search's matches under an empty
+ * field — a list answering a question nobody can see.
+ *
+ * The rule it is an instance of: a component that owns a value and publishes its changes owes the
+ * change that EMPTIES it. Anything else hands the caller a mirror of something the component no
+ * longer holds.
+ *
+ * IT IS A PART, not an effect in `CommandContent`, and that is the whole mechanism. `CommandContent`
+ * is rendered by the caller inside `<Command>` and stays mounted for as long as the palette exists
+ * — a dialog decides whether to render a PORTAL, not whether its content component runs — so a
+ * cleanup there fires when the page navigates away and never when the palette closes. Measured that
+ * way first: the popup unmounted, the rows stayed. This renders inside `DialogContent`, which is
+ * the only place whose lifetime is the panel's.
+ *
+ * The handler is held in a ref so the effect runs exactly once per lifetime: an inline arrow at the
+ * call site is a new identity on every render, and in a dependency list it would fire this on all
+ * of them.
+ */
+function QueryReset({ report }: { report: ((query: string) => void) | undefined }) {
+  const held = React.useRef(report);
+  held.current = report;
+  React.useEffect(
+    () => () => {
+      held.current?.("");
+    },
+    [],
+  );
+  return null;
+}
+
+/**
+ * The column. NOT a pane since 2026-09-05 (Kushagra: "we must separate the search block from the
+ * results block, this is our stable element… this search block doesnt need a dialog container").
+ *
+ * It is still a `DialogContent`, because what a dialog carries that nothing else does is the
+ * scrim, the focus trap, the scroll lock and the entry — and none of those are the pane. What it
+ * no longer does is PAINT: `command.css` stands the surface identity down on this element and the
+ * two children each become a pane in their own right, with real air between them.
+ *
+ * **The field's stability is the whole reason.** A palette's height is its results, and the panel
+ * was pinned by a margin at one edge or centred by two — either way a query that returns three
+ * rows instead of twelve MOVED the top edge, and the field is at the top. Bottom-anchored on a
+ * phone it moved by the whole delta; centred it moved by half. With the field a separate box
+ * anchored to the top, the only thing a result count can move is the pane below it.
+ *
+ * The Autocomplete root must live INSIDE the portal: it wires the field to the list through
+ * context, and both are rendered here.
  */
 export function CommandContent({
   "aria-label": label,
@@ -153,6 +381,9 @@ export function CommandContent({
   style,
 }: CommandContentProps) {
   const items = React.use(CommandItemsContext);
+  const [slot, setSlot] = React.useState<HTMLElement | null>(null);
+  const slotValue = React.useMemo(() => ({ slot, setSlot }), [slot]);
+
   return (
     <DialogContent
       aria-label={label}
@@ -168,37 +399,24 @@ export function CommandContent({
         {...(filter !== undefined ? { filter } : {})}
         {...(onQueryChange !== undefined ? { onValueChange: onQueryChange } : {})}
       >
-        {/* ONE SCROLLING REGION, AND THE FIELD PINS INSIDE IT (2026-09-04, Kushagra: "the content
-            should scroll behind"). A scroller around the LIST alone cannot do it: the field would
-            be a box the rows stop under, and `position: sticky` needs the scrolling ancestor to be
-            the thing it pins inside. With the whole panel in one viewport the rows pass behind the
-            field and out at the pane's own rounded wall, which is what a bleed is.
-
-            THE GLASS SCOPE IS RESET HERE, and that is what makes the field a pane rather than a
-            member (§10, the 2026-08-19 rule that a solid surface HOSTS glass). Without it the
-            palette's own pane is the veil-painter, glass does not stack, and the field resolves
-            `on-glass` — which paints its solid dress at the PANE's alpha and filters nothing, so
-            the rows read straight through it while they move. That is the right answer for a
-            member sitting ON a pane and the wrong one here, because this field is the one element
-            in the panel with content passing BEHIND it, which is §10's whole test. The rows do not
-            ask for a backdrop, so they stay solid and pay nothing.
-
-            `fade` because the alternative is a cut: content that bleeds still has to end
-            somewhere, and ending at the pane's own hard edge is the thing that reads as sliced.
-            The mask dissolves the CONTENT toward whichever edge has more behind it and lets the
-            pane paint through, so there is no colour to be wrong on glass, on a ground or over a
-            photograph — and it costs no JS of this package's. */}
+        {/* THE SCOPE IS RESET HERE, and it is what makes the two panes panes (§10, the 2026-08-19
+            rule that a solid surface HOSTS glass). `DialogPopup` resolves the theme's material and
+            scopes its subtree, because a dialog's panel IS normally the pane — so without this
+            reset the field and the results pane both resolve `on-glass`, which paints the solid
+            dress at the POPUP's alpha and filters nothing. Measured that way once already
+            (2026-09-04, on the field): a translucent box that filters nothing is a box you can
+            read the moving list straight through. The popup paints nothing here, so it has no
+            veil to be a member of, and each pane below states its own. */}
+        <QueryReset {...(onQueryChange !== undefined ? { report: onQueryChange } : { report: undefined })} />
         <GlassScope material="solid">
-          <ScrollArea fade focusable={false}>
-            {children}
-          </ScrollArea>
+          <CommandSlotContext.Provider value={slotValue}>{children}</CommandSlotContext.Provider>
         </GlassScope>
       </Autocomplete.Root>
     </DialogContent>
   );
 }
 
-export type CommandInputProps = Omit<
+export type CommandInputProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof Autocomplete.Input>,
   "className" | "render" | "aria-label"
 > & {
@@ -217,45 +435,33 @@ export type CommandInputProps = Omit<
 };
 
 /**
- * The filter field — and it IS a field (§4, §11, reversed 2026-09-04, Kushagra: "that should
- * also look like a text field, again with padding around, and no separator").
+ * The search bar — a PANE, not a field (§4, §10, §11; reversed 2026-09-05).
  *
- * It shipped as a bare line under a hairline, on the argument that a bounded box at the top of a
- * panel that is already the only focused thing puts a box inside a box. That argument was made
- * about a pane with no padding, where the line and the wall were the same edge and a box would
- * have had nowhere to stand. Once the pane pads (§44), there IS somewhere to stand: the field is
- * one object and the list below it is another, and the interval between them is what the hairline
- * used to say.
+ * It has been three things. A bare line under a hairline, then a `kui-control kui-field` on the
+ * argument that a bounded box inside a padded pane is an object among objects, and now a pane of
+ * its own. What changed is the arrangement around it: it stands alone over the app with air on
+ * every side, and the field family is written for a control sitting IN something. Two consequences
+ * decided it, and both were visible on screen (Kushagra: "this isn't an inline element, and it
+ * needs same material as dialog shell"). A field's well is the dress ramp — an alpha step meant to
+ * composite against whatever pane holds it — so over the scrim it read as a recessed grey box
+ * beside a lit white one, two materials in one palette. And a field's box is the CONTROL ladder,
+ * which prices a thing you put in a form row, not the one object a person is looking at.
  *
- * It joins by MEMBERSHIP rather than by imitation, which is SelectTrigger's own move: the wrapper
- * wears `kui-control kui-field`, so the well, the dress edge, the focus-as-a-mode ring, the
- * disabled and invalid arms and the glass arms all arrive from the shared layer and this file
- * states none of them. What it is not is a `TextField` — that component owns an `<input>` it
- * creates, and the input here has to be Base UI's, which is the same two-elements-and-neither-can-
- * move reason TextField refuses `render`.
+ * As a pane it takes the surface join's inset and corner from the same `data-size` the results
+ * pane stamps, which is what makes one number price both blocks identically — the thing the
+ * one-step bump was faking. Only the type needs a table of its own (`SEARCH_STEP`).
  *
- * It stamps no `data-material`: glass does not stack (§10), so a field inside the palette's pane
- * resolves solid exactly as a TextField composed there would, and its dress reads the alpha ramp
- * so it still composites against whatever the pane is.
+ * NO FOCUS RING, and it is a refusal rather than an omission. §8's ring tells a focused control
+ * from the unfocused ones around it, and there is exactly one focusable thing here: the palette
+ * opens with the caret in this bar and nothing else in the panel takes focus. The scrim, the
+ * flight and the caret are the announcement. Every palette worth copying draws none.
  */
 export function CommandInput({ leading, className, ...props }: CommandInputProps) {
   const size = React.use(CommandSizeContext);
   const inputRef = React.useRef<HTMLInputElement>(null);
-  /* §10 — content passes behind this field, which is the whole test for whether a material is
-     expressed, and it is the only element in the panel that passes it. `CommandContent` resets the
-     glass scope above, so this resolves the THEME's material as a pane rather than `on-glass`:
-     veil, filter and lens, which is what defends the words from the rows moving under them. */
-  const material = useMaterial({ backdrop: true });
-  const lensRef = useLensRef<HTMLSpanElement>(material, undefined);
-  /* NO MATERIAL, and it was tried both ways (2026-09-04). Content genuinely passes behind this
-     field now, which is the test §10 uses for whether a material is expressed — so `backdrop` was
-     stated, and measured it renders `on-glass`: the palette's pane is the veil-painter, glass does
-     not stack, and an on-glass member paints its solid dress at the PANE's alpha. Over rows that
-     are moving, that is a field you can read the list through. One glass per stack is the rule
-     doing its job; what it costs here is that a translucent field cannot be the thing content
-     hides behind, so the field states nothing and wears its own dress. */
+  const { material, ref } = usePane();
 
-  // The field's first debt, the same one TextField pays: the box is bigger than the input, so a
+  // The pane's first debt, the same one TextField pays: the box is bigger than the input, so a
   // press on the padding or on the magnifier has to land the caret rather than do nothing. The
   // guard is a focusability list — anything the user could have meant to press keeps its own
   // press. `preventDefault` stops the browser moving focus to the wrapper first, which would blur
@@ -271,37 +477,43 @@ export function CommandInput({ leading, className, ...props }: CommandInputProps
   }, []);
 
   return (
-    <span
-      ref={lensRef}
-      className="kui-control kui-field kui-command-field"
+    <div
+      ref={ref}
+      className="kui-surface kui-overlay kui-command-search"
       data-size={size}
-      // Solid is the absence of a material, so it writes no attribute (§10).
-      data-material={material === "solid" ? undefined : material}
-      // Fixed identity, not API (the Card and TextField pattern): the tone indirection needs a
-      // family to resolve --tone-border against, and a field is always bordered.
       data-tone="neutral"
+      data-emphasis="quiet"
       data-bordered
+      // Solid is the absence of a material, so it writes no attribute (§10).
+      {...(material !== "solid" ? { "data-material": material } : {})}
       onMouseDown={focusInput}
     >
-      {filled(leading) ? (
-        <span className="kui-field-slot" data-slot={"leading" satisfies SlotName} aria-hidden>
-          <GlassScope material={material}>{leading}</GlassScope>
-        </span>
-      ) : null}
-      <Autocomplete.Input
-        ref={inputRef}
-        {...props}
-        className={
-          className
-            ? `kui-field-input kui-command-input ${className}`
-            : "kui-field-input kui-command-input"
-        }
-      />
-    </span>
+      <GlassScope material={material}>
+        {filled(leading) ? (
+          <span className="kui-command-search-slot" data-slot={"leading" satisfies SlotName} aria-hidden>
+            {leading}
+          </span>
+        ) : null}
+        {/* THE STEP IS STAMPED ON THE INPUT, not on the pane, and the two cannot share an
+            element: `data-size` on a `.kui-surface` is the four-step surface ladder and
+            `data-size` on a `.kui-type` is the nine-step type ramp. Composer settled this the
+            same way — the map keeps its single TS home and the type layer resolves the rest. */}
+        <Autocomplete.Input
+          ref={inputRef}
+          {...props}
+          data-size={SEARCH_STEP[size]}
+          className={
+            className
+              ? `kui-type kui-command-input ${className}`
+              : "kui-type kui-command-input"
+          }
+        />
+      </GlassScope>
+    </div>
   );
 }
 
-export type CommandListProps<T> = {
+export type CommandListProps<T> = ComponentRefusals & {
   /** Called for each item that survives the filter. */
   children: (item: T) => React.ReactNode;
   /** Dresses the scrolling list. */
@@ -311,14 +523,57 @@ export type CommandListProps<T> = {
 /** The list. It scrolls nothing itself — the panel is one scrolling region and `CommandContent`
     places the scroller, so the rows pass behind the field and out at the pane's own wall. */
 export function CommandList<T>({ children, className }: CommandListProps<T>) {
+  const size = React.use(CommandSizeContext);
+  const seat = React.use(CommandSlotContext);
+  const paneRef = React.useRef<HTMLDivElement | null>(null);
+  const material = useMaterial({ backdrop: true });
+  const ref = useLensRef<HTMLDivElement>(material, paneRef);
+
+  /* IT TELLS THE LENS WHERE IT IS GOING (§10, §22 — 2026-09-05, Kushagra: "the big issue is that
+     after animation completes, the bg changes and gets thicker in a jump"). That jump is the
+     refraction arriving late: the lens mints a map on mount and on resize, and this pane's height
+     is what the entry animates, so without an announcement it minted one per frame — each built
+     for the previous frame's box, none of them right until after the flight. The mechanism is the
+     family's and it lives in `system/floating.tsx` beside the runner's own measurement, because
+     the flight measurement has one home. */
+  useStatedFlight(paneRef);
   return (
-    <Autocomplete.List className={className ? `kui-command-list ${className}` : "kui-command-list"}>
-      {children as (item: unknown) => React.ReactNode}
-    </Autocomplete.List>
+    <div
+      ref={ref}
+      className={
+        className
+          ? `kui-surface kui-floating-rows kui-command-panel ${className}`
+          : "kui-surface kui-floating-rows kui-command-panel"
+      }
+      data-size={ROW_STEP[size]}
+      data-tone="neutral"
+      data-emphasis="quiet"
+      data-bordered
+      // Solid is the absence of a material, so it writes no attribute (§10).
+      {...(material !== "solid" ? { "data-material": material } : {})}
+    >
+      <GlassScope material={material}>
+        {/* `fade` because a bounded list has to END somewhere, and ending at the pane's own hard
+            edge is the thing that reads as sliced. What it no longer does is dissolve rows under
+            the FIELD: the field is a separate pane with real air between them since 2026-09-05,
+            so there is nothing to pass behind and the fade is the pane's own top and bottom. */}
+        <ScrollArea fade focusable={false}>
+          <Autocomplete.List className="kui-command-list">
+            {children as (item: unknown) => React.ReactNode}
+          </Autocomplete.List>
+        </ScrollArea>
+        {/* THE EMPTY STATE'S SEAT, in the pane rather than beside it. The two are never both
+            filled — Base UI renders only the rows that survived the filter, and fills the live
+            region only when none did — so they stack in ordinary flow and whichever has something
+            to say is the pane's height. No stacking context, no grid cell, no `display` switch:
+            the mutual exclusion is the machine's own guarantee, not a rule this file writes. */}
+        <div className="kui-command-seat" data-float="" ref={seat ? seat.setSlot : null} />
+      </GlassScope>
+    </div>
   );
 }
 
-export type CommandGroupProps = {
+export type CommandGroupProps = ComponentRefusals & {
   /** This group's own items, so the filter can narrow a section and hide it when it empties. */
   items: readonly unknown[];
   /** The section's caption and its rows. */
@@ -359,7 +614,7 @@ export function CommandCollection<T>({ children }: { children: (item: T) => Reac
   return <Autocomplete.Collection>{children as (item: unknown) => React.ReactNode}</Autocomplete.Collection>;
 }
 
-export type CommandItemProps = Omit<
+export type CommandItemProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof Autocomplete.Item>,
   "className" | "render"
 > & {
@@ -391,15 +646,59 @@ export type CommandItemProps = Omit<
  * promoted `rowProps` into the system layer. Base UI owns the highlight and the activation, so
  * the row is told what it looks like and never what it means.
  */
-export function CommandItem({ leading, trailing, tone, render, children, className, ...props }: CommandItemProps) {
+export function CommandItem({ leading, trailing, tone, render, children, className, onClick, ...props }: CommandItemProps) {
   // Unwrapped FIRST (§5, the 2026-08-07 finding): an element created in a Server Component
   // crosses the RSC boundary as a lazy node whose `type` answers wrong, silently.
   const target = render === undefined ? undefined : unwrapLazy(render);
+  const close = React.use(CommandCloseContext);
+
+  /* RUNNING A ROW CLOSES THE PALETTE, and the click is where it is read rather than Base UI's own
+     `onOpenChange` (2026-09-05). Two reasons, both measured. Base UI hands the LINK case straight
+     back — `handleSelection` returns before it changes state when the row resolves to an `<a>` with
+     a non-hash href, on the argument that the navigation is the outcome — so a palette of places,
+     which is exactly what the docs site's search is, would have been the one shape the repair
+     missed. And a click is the one gesture both routes share: a pointer press is a click, and the
+     keyboard commits the highlighted row by clicking its element (`clickHighlightedItem`), so
+     reading it here covers Enter without a second mechanism.
+
+     The caller's handler runs FIRST and its return is not consulted: running is running, and a row
+     that must leave the panel standing says so through `onOpenChange`'s `cancel()`, where the
+     refusal is announced instead of inferred.
+
+     NO `disabled` GUARD, and it is a measurement rather than an omission: one was written and
+     survived its own sabotage. Base UI does not fire this handler for a disabled item at all —
+     measured with a raw `element.click()` on a row whose `pointer-events` is `auto`, which is the
+     gesture a pointer-events gate would have let through. A guard nothing can reach is the dead
+     mechanism this repo keeps paying for, so it is gone; the law that a dead row dismisses nothing
+     stays, because that guarantee is now the dependency's and a bump can take it away. */
+  const handleClick = React.useCallback(
+    (event: Parameters<NonNullable<CommandItemProps["onClick"]>>[0]) => {
+      onClick?.(event);
+      close?.(event.nativeEvent);
+    },
+    [onClick, close],
+  );
+
   return (
     <Autocomplete.Item
       {...(target ? { render: target } : {})}
+      /* A ROW IS NOT A TAB STOP (2026-09-06, Kushagra: "the rows do ring" — measured, and nobody
+         had chosen it). A palette's keyboard is one stop: the caret is in the bar, the arrow keys
+         move the highlight, Enter runs it, Tab is how you get OUT. That is what a listbox is, and
+         it is what this component's own laws already assert — until a row renders as an `<a href>`,
+         which the `render` escape opened for a palette of PLACES on 2026-09-04. An anchor is
+         focusable by nature and Base UI writes no `tabindex` on an item, so in the one shape this
+         repo's own documentation site uses, Tab from the bar landed on the first result and drew
+         it a full ring. Measured before and after: `A.kui-command-item` against the input.
+
+         `-1` rather than removing the ring, because the two say different things. The ring is
+         right whenever a row really is focused — the skeleton's rule, and nothing here overrules
+         it. What was wrong is that Tab could focus one at all. Stated BEFORE the caller's spread,
+         so an app that has a reason to put a row in the tab order still can. */
+      tabIndex={-1}
       {...props}
-      {...rowProps(React.use(CommandSizeContext), "kui-command-item", {
+      onClick={handleClick}
+      {...rowProps(ROW_STEP[React.use(CommandSizeContext)], "kui-command-item", {
         ...(tone !== undefined ? { tone } : {}),
         ...(className !== undefined ? { className } : {}),
       })}
@@ -424,20 +723,26 @@ export function CommandItem({ leading, trailing, tone, render, children, classNa
  * empty state as whatever block the app composes, and this places both.
  */
 export function CommandEmpty({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
+  const seat = React.use(CommandSlotContext);
+
+  /* IT IS NOT A PANE ANY MORE (2026-09-05). It was a third block in the column, wearing
+     `kui-surface kui-overlay` — so the thing that stands in for the results pane was boxed like a
+     dialog while the results pane is boxed like a menu: 64.52px of corner over 24px of inset
+     against 33.25 over 4, two shapes for one place. It renders INSIDE the results pane now, which
+     makes them the same box by construction rather than by two tables agreeing.
+
+     The seat may be null for one render — a ref callback runs after the commit, and this part is
+     written after `CommandList` in every call site — which costs nothing that matters: an empty
+     state is a state the palette reaches, never the frame it opens on, and an `aria-live` region
+     announces on the change after it mounts. */
+  if (!seat?.slot) return null;
+
+  return createPortal(
     <Autocomplete.Empty
-      /* NOT IN THE FIRST/LAST QUESTION (2026-09-04). The surface layer decides a scroller's block
-         bleed by asking whether it is the pane's first or last in-flow child, and this element is
-         a DOM sibling that only ever renders when the list is empty — so while it sat there
-         unmarked the scroller was never last, never bled at the bottom, and every list ended at a
-         hard line one inset short of the wall with dead pane below it. `data-float` is the marker
-         that rule already reads (ShellPaneFooter, CodeBlock's chrome rows); this is the third
-         consumer and the first that is not absolutely positioned, which is the honest reading of
-         the attribute: it says "do not count me", not "I float". */
-      data-float=""
       className={className ? `kui-command-empty ${className}` : "kui-command-empty"}
     >
       {children}
-    </Autocomplete.Empty>
+    </Autocomplete.Empty>,
+    seat.slot,
   );
 }

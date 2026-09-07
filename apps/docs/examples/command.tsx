@@ -109,7 +109,6 @@ export default function Example({ size = "3" }: { size?: TypeSize }) {
                   <CommandItem
                     key={action.value}
                     value={action}
-                    onClick={() => setOpen(false)}
                     {...(action.glyph ? { leading: action.glyph } : {})}
                     {...(action.chord ? { trailing: <Kbd>{action.chord}</Kbd> } : {})}
                     {...(action.tone ? { tone: action.tone } : {})}

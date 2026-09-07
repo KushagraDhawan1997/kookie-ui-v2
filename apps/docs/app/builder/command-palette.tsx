@@ -154,9 +154,11 @@ export function CommandPalette({
     typeof v === "object" && v !== null && typeof (v as PaletteRow).title === "string";
 
   const run = (row: PaletteRow) => {
-    onOpenChange(false);
-    // After the dialog's own close work, so a command that opens another dialog is not
-    // immediately dismissed by this one's teardown.
+    /* The palette dismisses itself since 2026-09-05 — running a row is what a palette is for, so
+       the component announces it as `"item-press"` and this file no longer writes the close.
+       The deferral stays and is the whole reason this is not just `onClick={row.run}`: it runs
+       after the dialog's own close work, so a command that opens ANOTHER dialog is not
+       immediately dismissed by this one's teardown. */
     window.setTimeout(() => row.run(), 0);
   };
 
