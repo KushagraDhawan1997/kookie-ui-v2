@@ -1,7 +1,8 @@
 import { Heading } from "@kookie-ui/react";
 
 /**
- * The mark (2026-08-29; the word, and the face under it, 2026-09-01).
+ * The mark (2026-08-29; the word 2026-09-01; the face under it Chomsky, then PP Playground,
+ * and Telma since 2026-09-06).
  *
  * It is a component because it is in two places — the sidebar's masthead and the front door's
  * — and three facts travel together (the face, the regular weight, the collapsed line box).
@@ -9,12 +10,14 @@ import { Heading } from "@kookie-ui/react";
  * so a second hand-written copy is not a second chance to say `bold` or forget the class.
  * `prose.css` carries why each one is what it is.
  *
- * IT SAYS THE NAME NOW, NOT A LETTER (2026-09-01, Kushagra: "use playground... and write
+ * IT SAYS THE NAME, NOT A LETTER (2026-09-01, Kushagra: "use playground... and write
  * Kookie"). A single capital was the right mark for a BLACKLETTER: a drawn initial standing
  * for a name is what that kind of face has always been best at, and it is the shape the New
  * York Times masthead's own K comes from. A script is the opposite proposition — it is a face
  * for writing a name out — so keeping one letter of it would have been a monogram set in
- * handwriting, which is neither thing. The face and the word are one decision.
+ * handwriting, which is neither thing. The face and the word are one decision, and the word
+ * survived the face changing again (Telma, 2026-09-06) because Telma is a script too: the
+ * argument was about the KIND of face, not about which one.
  *
  * THE STEPS DID NOT MOVE, and a claim that they had to was written here for an hour without
  * being measured. The reasoning sounded like arithmetic — a step is a HEIGHT, so six letters at
@@ -26,11 +29,12 @@ import { Heading } from "@kookie-ui/react";
  * call sites keep stating theirs.
  *
  * `weight="regular"` IS LOAD-BEARING, and leaving it off shipped a fake bold for an hour.
- * Heading rests at semibold, this face ships exactly one weight at 400, and a request BOLDER
- * than anything in a family is the case a browser synthesizes — it strokes the outline.
- * Measured on the face this replaced: 3,717 ink pixels at 600 against 2,806 at 400, a third
+ * Heading rests at semibold; exactly one file is loaded and it is 400, and a request BOLDER
+ * than anything available is the case a browser synthesizes — it strokes the outline. Measured
+ * on the face in the slot at the time: 3,717 ink pixels at 600 against 2,806 at 400, a third
  * heavier than the face the designer drew. Stating the weight makes the request match the only
- * face there is.
+ * face there is — and it is why `layout.tsx` loads ONE static rather than Telma's variable
+ * file, which would hand that request a whole axis to land on.
  *
  * ALWAYS `aria-hidden`, and the word does not change that. It is a picture of the name rather
  * than a second copy of it: in the sidebar the anchor around it carries `aria-label="KookieUI"`
@@ -74,12 +78,18 @@ export function Wordmark({
     >
       {form === "full" ? (
         <>
-          {/* RAISED AND SMALL, the way a mark is set (2026-09-01). At full size the glyph is a
-              circle the height of the capitals and the word reads "KookieO" — measured on
-              screen, not guessed. Both values are in `em`, so the mark is a property of the
-              letters it sits beside and follows the step without a second number: `prose.css`
-              carries the rule beside the face it is set in. */}
-          Kookie<span className="kd-wordmark-mark">©</span> User Interface
+          {/* AT THE FACE'S OWN SIZE (2026-09-06). It was wrapped in a `.kd-wordmark-mark` span
+              here and shrunk to 0.32em in `prose.css` from 2026-09-01, because PP Playground
+              draws its © as a circle the height of the capitals and "Kookie©" read as "KookieO"
+              beside small script lowercase. Tanker has no lowercase and draws the mark to the
+              caps it sits between, so the shrink turned it into a speck — the rule and the span
+              both go, and the character is just a character.
+
+              The wrapper is deleted rather than kept as an empty hook: a class nothing styles
+              is markup that says something is happening when nothing is. If a later face needs
+              the mark treated again, this is the file that knows which face is loaded, and a
+              span here plus a rule there is two lines to write back. */}
+          Kookie© User Interface
         </>
       ) : (
         "Kookie"

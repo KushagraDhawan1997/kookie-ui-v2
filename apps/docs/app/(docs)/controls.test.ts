@@ -13,10 +13,24 @@ import * as React from "react";
 import { Theme } from "@kookie-ui/react";
 
 import { CONTROLLED } from "./controlled-examples";
+import { ENTRIES } from "./components/registry";
 import { OFFERED, catalogEntryFor, controlsFor, inlineControls, sentinel, slotNode, slotStates } from "./controls";
 import { Example, readExampleSource, rootsOwnPane } from "./example";
 
 const SLUGS = Object.keys(CONTROLLED);
+/** Every page the site publishes, which is the population this file's rules are ABOUT — a
+    component that offers no configurator at all is exactly the case a walk over `CONTROLLED`
+    cannot see. */
+const DOCUMENTED = ENTRIES.map((entry) => entry.slug);
+/** Pages with no configurator, each for a written reason. The nine named in `controls.ts` are
+    here as data rather than prose, so a tenth cannot be added by silence. */
+const NO_CONFIGURATOR: Record<string, string> = {
+  composer: "Not in the builder's catalog, so there is no schema to derive a knob from; its arrangement is the thing the page is about and every axis it has prices the pane it draws.",
+  tree: "Not in the builder's catalog — a tree is data-driven, and the prop that matters is the item list rather than an axis.",
+  "nav-tree": "Not in the builder's catalog, for the tree's own reason: what it takes is a list of places, not a set of axes.",
+  "scroll-area": "Not in the builder's catalog — it needs a stated raw height, which is the value class the builder refuses.",
+  shell: "Not in the builder's catalog: the canvas composes INSIDE a frame, and the Shell is the frame.",
+};
 
 /**
  * The reader's version: every control resolved, with the given ones overridden.
@@ -99,12 +113,20 @@ describe("every page whose component takes the material offers it", () => {
     expect(catalogEntryFor("button")?.props["backdrop"]).toBeDefined();
   });
 
-  for (const slug of SLUGS) {
+  /* EVERY DOCUMENTED PAGE, NOT EVERY CONTROLLABLE ONE (2026-09-06, Kushagra: "Toolbar specimen
+     doesnt have props dropdown / configurator?"). This walked `CONTROLLED`, so a component with
+     no configurator at all was invisible to it — and Toolbar shipped with a `size` axis, then a
+     `backdrop`, and no knobs for either, with this law green throughout. A law narrower than the
+     rule it enforces is a law that cannot fail on the case that matters, which is the third time
+     that sentence has been earned today. The registry is every page the site publishes, so the
+     walk is now over what is DOCUMENTED and the escape is a written reason. */
+  for (const slug of DOCUMENTED) {
     const entry = catalogEntryFor(slug);
     if (!entry?.props["backdrop"]) continue;
     it(`${slug} offers the backdrop knob`, () => {
-      if (NO_KNOB[slug]) {
-        expect(NO_KNOB[slug]!.length, `${slug}'s exception is too short to be a reason`).toBeGreaterThan(40);
+      if (NO_KNOB[slug] ?? NO_CONFIGURATOR[slug]) {
+        const reason = (NO_KNOB[slug] ?? NO_CONFIGURATOR[slug])!;
+        expect(reason.length, `${slug}'s exception is too short to be a reason`).toBeGreaterThan(40);
         return;
       }
       const names = controlsFor(slug, readExampleSource(slug)).map((c) => c.name);

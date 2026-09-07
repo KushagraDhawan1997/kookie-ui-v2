@@ -6,17 +6,14 @@
  * bound is a choice, and this is the one piece of state it takes.
  *
  * WHETHER THE BUTTON APPEARS IS DECIDED ON THE SERVER, not by measurement: the caller counts
- * its lines against the bound and only mounts this wrapper when the bound binds. v1 measured
- * `scrollHeight` in an effect with no dependency array — the toggle popped in after first
- * paint and re-ran on every render — and the whole class of defect disappears when the
- * deciding fact is the line count the renderer already holds.
+ * its lines against the bound and only mounts this wrapper when the bound binds. Measuring
+ * `scrollHeight` in an effect makes the toggle pop in after first paint; the whole class of
+ * defect disappears when the deciding fact is the line count the renderer already holds.
  *
- * THE BUTTON FLOATS BOTTOM-CENTRE OVER THE PANE, AS GLASS (Kushagra, 2026-08-26): a floating
- * control over content takes `backdrop`, so the code passes behind it legibly, and no
- * gradient — a scrollable well with a scrollbar already says "more". It goes to the element as
- * `footer` and hangs from the WELL, beside the topbar (2026-09-01) — the two chrome rows used
- * to float against two different boxes, which is a difference nothing states and which the
- * bleed turns into a visible one.
+ * THE BUTTON FLOATS BOTTOM-CENTRE OVER THE PANE, AS GLASS: a floating control over content
+ * takes `backdrop`, so the code passes behind it legibly, and no gradient — a scrollable well
+ * with a scrollbar already says "more". It goes to the element as `footer` and hangs from the
+ * WELL, beside the topbar, so both chrome rows float against the same box.
  *
  * `aria-expanded` and nothing more: the bounded well still scrolls, so no content is ever
  * hidden from anyone — the button changes how much is in view, not what exists. That is why

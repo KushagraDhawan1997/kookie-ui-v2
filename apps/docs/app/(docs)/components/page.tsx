@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Flex, Grid, Heading, Link as KookieLink, Stack, Text } from "@kookie-ui/react";
+import { Flex, Grid, Heading, Link as KookieLink, Page, Stack, Text } from "@kookie-ui/react";
 
-import { PageFrame, PageTitle } from "../page-frame";
+import { PageFrame } from "../page-frame";
 import { ENTRIES, type Entry } from "./registry";
 import { humanLabel } from "../label";
 
@@ -39,11 +39,10 @@ export const metadata = { title: "Components — KookieUI" };
 export default function ComponentsIndex() {
   return (
     <PageFrame width="48rem">
-      <Stack gap="10">
-        <PageTitle deck="Every component in the package, grouped by family. Each page tells you what the component is, which props it takes, and what it will not do and why.">
-          Components
-        </PageTitle>
-
+      <Page
+        title="Components"
+        description="Every component in the package, grouped by family. Each page tells you what the component is, which props it takes, and what it will not do and why."
+      >
         <Grid columns="repeat(auto-fit, minmax(20rem, 1fr))" gapX="7" gapY="9">
           {FAMILIES.map((family) => {
             const members = ENTRIES.filter((e) => e.family === family);
@@ -76,7 +75,7 @@ export default function ComponentsIndex() {
             );
           })}
         </Grid>
-      </Stack>
+      </Page>
     </PageFrame>
   );
 }

@@ -113,11 +113,10 @@
   outline-offset: var(--focus-ring-offset);
 }
 
-/* The stand-down, on the DECLARING selector (§8, the 2026-08-10 rule): the shared block in
-   recipes.css covers `.kui-control` and `.kui-mark`, and none of this is either — so a clock
-   declared here is a clock nothing else can stop, which is the exact shape that left a focus ring
-   landing for six days for readers who had asked their system for stillness. Same selector, later
-   in the file, so the tie goes to source order by construction. */
+/* The stand-down, on the DECLARING selector (§8): the shared block in recipes.css covers
+   `.kui-control` and `.kui-mark`, and none of this is either — so a clock declared here is a
+   clock nothing else can stop, and a reader who asked their system for stillness keeps getting
+   motion. Same selector, later in the file, so the tie goes to source order by construction. */
 @media (prefers-reduced-motion: reduce) {
   .kb-toc-link {
     transition: none;

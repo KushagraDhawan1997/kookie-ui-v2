@@ -19,8 +19,14 @@ import * as Kookie from "@kookie-ui/react";
 import { Specimen, SpecimenView } from "../../../blocks/specimen";
 
 import { BLOCK_BY_SLUG, BLOCKS } from "../../../blocks";
-import { CODE_MAX_LINES, CodeSample } from "../../../blocks/code-sample";
-import { isLang, parseMeta, plainText, tokenize } from "../../../blocks/highlight";
+import { CODE_BOUND_SLACK, CODE_MAX_LINES, CodeSample } from "../../../blocks/code-sample";
+import {
+  isLang,
+  leadingColumns,
+  parseMeta,
+  plainText,
+  tokenize,
+} from "../../../blocks/highlight";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const blocksDir = join(here, "..", "..", "..", "blocks");
@@ -683,6 +689,40 @@ describe("the bound and the numbers", () => {
     expect(roomy).not.toContain("Show all");
   });
 
+  /* WHAT THE BOUND HOLDS BACK MUST BE WORTH A PRESS (2026-09-05).
+
+     It bound at one line over, so a 25-line sample against the 24-line default drew a button
+     to hide a single line. Three arms, and each fails alone — which is the point, because the
+     tempting spellings each satisfy two of them:
+
+       - one line over the default shows WHOLE. Fails against the old `> maxLines`.
+       - well past the slack still bounds. Fails against a slack so large the bound is dead,
+         which is what "just raise CODE_MAX_LINES" would have been.
+       - an explicit SMALL bound still binds on a small overflow. Fails against an absolute
+         slack, which is the spelling this one exists to refuse: `maxLines={2}` is a deliberate
+         statement, and three hidden lines there double what is on screen.
+
+     The last arm is also why the slack is a share rather than a number, so the law reads the
+     decision and not just its value at the default. */
+  it("a trivial overflow draws no button, and a real one still does", async () => {
+    const barely = "x\n".repeat(CODE_MAX_LINES + 1);
+    expect(
+      renderToStaticMarkup(await CodeSample({ code: barely, lang: "bash" })),
+      "one line over the bound is not worth a control",
+    ).not.toContain("Show all");
+
+    const past = "x\n".repeat(CODE_MAX_LINES + CODE_BOUND_SLACK(CODE_MAX_LINES) + 1);
+    expect(
+      renderToStaticMarkup(await CodeSample({ code: past, lang: "bash" })),
+      "past the slack the bound must still bind, or it is not a bound",
+    ).toContain("Show all");
+
+    const small = renderToStaticMarkup(
+      await CodeSample({ code: "a\nb\nc\nd\ne\n", lang: "bash", maxLines: 2 }),
+    );
+    expect(small, "a stated small bound keeps its own slack").toContain("Show all 5 lines");
+  });
+
   /* THE BOUND'S OTHER HALF MOVED INTO THE PACKAGE (2026-09-01).
 
      A law lived here reading `code.css` for the flex column that makes a `max-block-size` on a
@@ -692,29 +732,44 @@ describe("the bound and the numbers", () => {
      so the bound binds wherever a scroller sits, and `scroll-area.browser.test.tsx` mounts one
      inside a plain block box and measures it. Nothing is left here to read. */
 
-  /* A BAND IS RESERVED FOR A ROW THAT REACHES TWO WALLS (2026-09-01, Kushagra: "the one with
-     no filename... the top left just looks weird").
+  /* CHROME THAT APPEARS ON HOVER RESERVES NOTHING — reversed twice in two days, and the record
+     is the point.
 
-     The clearance under the chrome row exists because a name at one wall and a copy button at
-     the other cover the whole of line 1. An unlabelled fence has only the button, and the same
-     band then reserved a pane's width of nothing to clear a control in one corner of it.
+     It was conditional on a name; then unconditional, on the argument that a safe area is about
+     the band a pane says its chrome lives in rather than about the pixels the chrome covers.
+     Both of those assumed the chrome is ALWAYS THERE. It is not: it is hidden at rest and fades
+     in when a reader points at the figure, so a reserved band is a strip of nothing at the top
+     of every code block on the site, permanently, to clear a control almost never on screen.
 
-     BOTH ARMS, and each one alone passes with the rule inverted: the named sample must reserve,
-     the unnamed must not. Read off the RENDERED `<pre>` rather than off the flag that produces
-     it — the padding is an inline style, so this is the emitted value and not a restatement of
-     the branch. Falsified by putting `topbar` back as the condition, which turns the second
-     assertion red. */
-  it("a named row reserves a band and a lone copy button reserves none", async () => {
+     What the row costs instead is an overlap while it is up, which the scroll-edge fade is for.
+     A reader who is pointing at the chrome is not reading the line under it.
+
+     BOTH ARMS: nothing is reserved, and the row still FLOATS — the second is what catches the
+     repair that deletes the chrome instead of the band.
+
+     AND THE FLOAT HAS TWO SPELLINGS, because the two arrangements are two different boxes. A
+     NAMED sample is a figure — a Surface holding the label and a hosted well — so its row hangs
+     from the figure as `.kd-figure-chrome`, this block's own. An UNNAMED one is a bare well, so
+     its row takes the element's own floating slot, `.kui-code-block-float`. The law names which
+     one each arrangement must use rather than accepting either: an OR would go green on a
+     titled sample that quietly fell back to the well's slot, which is the arrangement that put
+     the name over the first line it was naming. */
+  it("a fence reserves no band, and its chrome floats over the code", async () => {
     const padding = (markup: string) => /<pre[^>]*style="[^"]*padding-block-start:([^;"]*)/.exec(markup)?.[1]?.trim() ?? null;
 
-    const named = renderToStaticMarkup(
-      await CodeSample({ code: FIVE_LINES, lang: "bash", title: "app/page.tsx" }),
-    );
-    expect(padding(named), "a named row must clear the first line").toContain("control-height");
+    for (const props of [
+      { code: FIVE_LINES, lang: "bash", title: "app/page.tsx", floats: "kd-figure-chrome" },
+      { code: FIVE_LINES, lang: "tsx", floats: "kui-code-block-float" },
+    ]) {
+      const { floats, ...rest } = props;
+      const out = renderToStaticMarkup(await CodeSample(rest));
+      expect(padding(out), `${rest.title ?? "unnamed"}: reserves nothing`).toBe(null);
+      expect(out, `${rest.title ?? "unnamed"}: still floats its chrome`).toContain(floats);
+    }
 
-    const alone = renderToStaticMarkup(await CodeSample({ code: FIVE_LINES, lang: "tsx" }));
-    expect(alone, "the unnamed sample still floats its copy button").toContain("kui-code-block-float");
-    expect(padding(alone), "a lone copy button reserves nothing").toBe(null);
+    const bare = renderToStaticMarkup(await CodeSample({ code: FIVE_LINES, lang: "tsx", bare: true }));
+    expect(bare, "a bare fence draws no chrome at all").not.toContain("kui-code-block-float");
+    expect(bare, "a bare fence draws no figure chrome either").not.toContain("kd-figure-chrome");
   });
 
   /* BOTH CHROME ROWS FLOAT AGAINST THE SAME BOX (2026-09-01, Kushagra: "why isnt it touching?",
@@ -933,6 +988,96 @@ describe("the well is the package's, and the block owns none of it", () => {
     expect(css).toContain(".kd-line");
   });
 
+  /**
+   * A WRAP CONTINUES UNDER THE LINE'S OWN INDENT, which is three distances and not one.
+   *
+   * The shipped spelling hung every continuation a fixed 4ch from the pane's wall, and that
+   * number was also the line-number gutter — so a numbered fence spent the whole hang on its
+   * digits and every continuation landed flush at the code's own left wall. Measured on
+   * `/components/page`: a line indented seven columns began at x=525 and continued at 467, a
+   * dedent of 58px, reading as a SHALLOWER nesting level than the line it belongs to.
+   *
+   * The old law asserted that coupling as a guarantee — "the wrap indent and the line-number
+   * gutter are one number" — which is the defect written down as a requirement. It is replaced
+   * rather than deleted: what it was reaching for (the two cannot drift) is real, and the way
+   * to have it is one NAME for the sum, not one value for two facts.
+   *
+   * READ OFF THE SOURCE, and the limit is stated rather than hidden: every distance here is
+   * `ch` and this project renders in node, so no law in this file can read a painted column.
+   * What it can hold is that the three distances exist separately, that the sum has ONE home,
+   * and that the renderer writes the one value CSS cannot derive. The pixel claim was made by
+   * hand in a browser and is recorded in LOG.
+   *
+   * COMMENTS ARE STRIPPED, and the first run of the old law is why: its negative assertion
+   * fired on this file's own prose, where the paragraph explaining that `inline-size:
+   * max-content` is gone contains those very words.
+   */
+  it("the hang, the gutter and the line's own indent are three distances", () => {
+    const css = source("code.css").replace(/\/\*[\s\S]*?\*\//g, " ");
+
+    /* Three names, and the gutter's default is what makes an unnumbered fence reserve nothing
+       — a gutter that defaulted to the digit column would indent every bare fence by four
+       columns of nothing. */
+    expect(css, "the hang is gone").toMatch(/--kd-line-hang:\s*\dch/);
+    expect(css, "the line's own indent has no default to fall back on").toMatch(
+      /--kd-indent:\s*0ch/,
+    );
+    expect(css, "an unnumbered fence must reserve no gutter").toMatch(/--kd-gutter:\s*0ch/);
+
+    /* The gutter is spent ONLY under the numbered scope. Written on the line rather than the
+       block, because a custom property is substituted where it is DECLARED (§6) — set on an
+       ancestor, the line's own padding resolves the 0ch default and reserves nothing for
+       digits that paint anyway. */
+    const numbered = css.slice(css.indexOf(".kd-numbered .kd-line"));
+    expect(numbered, "the digit column is not declared on the line").toMatch(
+      /--kd-gutter:\s*\dch/,
+    );
+
+    /* ONE NAME FOR THE SUM. The box arithmetic holds only while the padding, the first row's
+       negative indent and the width bound agree to the pixel, and three hand-written sums are
+       three chances to disagree — which is the shape the old law was right to be afraid of. */
+    expect(css, "the run is not derived from its parts").toMatch(
+      /--kd-run:\s*calc\(\s*var\(--kd-gutter\)\s*\+\s*var\(--kd-indent\)\s*\+\s*var\(--kd-line-hang\)\s*\)/,
+    );
+    for (const property of ["padding-inline-start", "text-indent", "min-inline-size"]) {
+      const rule = new RegExp(`${property}:[^;]*var\\(--kd-run\\)`);
+      expect(css, `${property} restates the sum instead of reading it`).toMatch(rule);
+    }
+
+    expect(css, "a max-content line cannot wrap").not.toContain("inline-size: max-content");
+  });
+
+  /**
+   * AND THE RENDERER WRITES THE ONE VALUE CSS CANNOT DERIVE.
+   *
+   * A line's leading whitespace is inside its own text, so a stylesheet can only ever hang
+   * from the pane's wall. `leadingColumns` reads it off the tokens at build time — the same
+   * derivation `plainText` makes, for the same reason.
+   *
+   * THE FIXTURE IS THE LAW'S LOAD-BEARING HALF. One indented line cannot tell a correct
+   * implementation from one that writes a constant; a fixture of only indented lines cannot
+   * tell it from one that writes the attribute unconditionally; and a fixture whose flush
+   * line comes first cannot tell "unindented" from "the first line". So it runs flush,
+   * shallow, flush, deep, and every one of those three mistakes fails it.
+   */
+  it("a line carries its own indent, and only where it has one", async () => {
+    const code = ["const a = 1;", "  const b = 2;", "const c = 3;", "      const d = 4;"].join(
+      "\n",
+    );
+    const { lines } = await tokenize(code, "ts");
+    expect(lines.map(leadingColumns)).toEqual([0, 2, 0, 6]);
+
+    const markup = renderToStaticMarkup(
+      (await CodeSample({ code, lang: "ts", lineNumbers: true })) as never,
+    );
+    const written = [...markup.matchAll(/--kd-indent:\s*(\d+)ch/g)].map((m) => Number(m[1]));
+    expect(written, "the indents in the markup are not the indents in the code").toEqual([2, 6]);
+    /* And nothing is written for a flush line: half of these have no indent, so a renderer
+       that wrote `0ch` would put an attribute on every line in every fence on the site for a
+       value the stylesheet already states. */
+    expect(markup.match(/--kd-indent/g)).toHaveLength(2);
+  });
+
   it("the block writes no geometry the well already owns", () => {
     /* The chrome rows are the ELEMENT's children now, placed by it, and that is what lets the
        surface layer's own edge-bleed arms ignore them (`data-float`). A call site that
@@ -949,5 +1094,293 @@ describe("the well is the package's, and the block owns none of it", () => {
         "--kui-cb-host-p",
       );
     }
+  });
+});
+
+/**
+ * PUBLISHED SOURCE CARRIES NO DECISION HISTORY.
+ *
+ * Every file below is READ OFF DISK AND SHOWN — a block's files by `blocks/[slug]/page.tsx`,
+ * an example's by `readExampleSource` — so a comment in one is not a note to the next person
+ * editing this repo, it is a paragraph on the documentation site inside code a reader is meant
+ * to copy. A dated, attributed account of why a value moved is `LOG.md`'s genus and belongs
+ * there; what may stay is what teaches a reader about the code in front of them.
+ *
+ * The distinction is WHEN and WHO, not depth: "the row floats, so content passes behind it"
+ * teaches; "the row floated, then went into flow for an hour, then came back (date, name)" is
+ * a log entry that escaped. A rule and its own strongest objection is teaching too — the
+ * objection is why the rule survives — as long as it is written in the present tense about the
+ * code rather than as an account of what its author did.
+ *
+ * A law rather than a convention, because the drift is not a one-off: two of these were written
+ * INTO these files while the rest were being cleaned out of them. Anything the pattern removes
+ * that is worth keeping is worth a LOG entry, which is where it was always supposed to go.
+ */
+/**
+ * A LIVE SPECIMEN IN A CHAPTER TAKES A FIGURE'S AIR.
+ *
+ * `mdx-components.tsx` states four intervals for a chapter, and a figure's is the widest of
+ * them: a block that is not prose gets 32px on both sides where a sibling paragraph gets 16.
+ * A fence got that because the renderer wraps it; `<Example>` did not, because it went into
+ * the flow as an ordinary child — measured on `/concepts/principles`, 16px above and below
+ * against a fence's 32 on the same page.
+ *
+ * Read off the SOURCE, because this project renders in node and no law here can measure a
+ * margin. What it can hold is that both blocks reach the same wrapper, which is the fact that
+ * was wrong: one of the two was wrapped and the other was not.
+ */
+describe("a chapter's figures take one rhythm", () => {
+  const mdx = readFileSync(join(here, "..", "..", "..", "mdx-components.tsx"), "utf8");
+
+  it("a live specimen is wrapped like a fence", () => {
+    // Both must reach `Figure`, which is the one place the figure margin is stated.
+    expect(mdx, "the figure wrapper is gone").toMatch(/function Figure\(/);
+    expect(mdx, "a live specimen is not wrapped as a figure").toMatch(
+      /Example: \([^)]*\) => \(\s*<Figure>/,
+    );
+    // And the vacuity guard: `Figure` must still be what carries the margin, or the assertion
+    // above is about a wrapper that means nothing.
+    expect(mdx, "the figure wrapper states no margin").toMatch(
+      /<Box my=\{FIGURE_MARGIN\}/,
+    );
+  });
+});
+
+describe("published source is not a log", () => {
+  const examplesDir = join(here, "..", "..", "..", "examples");
+  const shown = [
+    ...new Set(BLOCKS.flatMap((block) => block.files.map((file) => join(blocksDir, file)))),
+    ...readdirSync(examplesDir)
+      .filter((file) => file.endsWith(".tsx"))
+      .map((file) => join(examplesDir, file)),
+  ];
+
+  /* The fixture is what makes this a law rather than a spellchecker: it has to name files that
+     are genuinely PUBLISHED, so a clean run means the shown files are clean and not that the
+     walk found nothing. `index.ts` is excluded by construction — a registry is never handed to
+     a reader — and the count guard is what says so out loud. */
+  it("walks the files a reader is actually shown", () => {
+    expect(shown.length).toBeGreaterThan(50);
+    expect(shown.every((file) => existsSync(file))).toBe(true);
+    expect(shown.some((file) => file.endsWith("specimen.tsx"))).toBe(true);
+    expect(shown.some((file) => file.endsWith("accordion.tsx"))).toBe(true);
+    expect(shown.some((file) => file.includes("index.ts"))).toBe(false);
+  });
+
+  it("no shown file dates a decision or attributes one to a person", () => {
+    for (const file of shown) {
+      const text = readFileSync(file, "utf8");
+      /* An ISO date is the tell that survives every rewording — a comment that has to say WHEN
+         is recording a change rather than explaining the code. */
+      expect(text, `${file} carries a dated decision; it belongs in LOG.md`).not.toMatch(
+        /\d{4}-\d{2}-\d{2}/,
+      );
+      /* And the second tell is a name. `aria-label` is the one legitimate place a person's name
+         appears in a specimen — it is the demo's content, an account holder in an app frame —
+         so the check is scoped to comment text rather than to the file. */
+      const comments = text.match(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g) ?? [];
+      for (const comment of comments) {
+        expect(comment, `${file} attributes a decision to a person`).not.toMatch(/Kushagra/);
+      }
+    }
+  });
+});
+
+/**
+ * A CHROME ROW IS A TOOLBAR, NOT A `Flex`.
+ *
+ * Three blocks drew the same row — the figure's chrome, the code sample's chrome, the file tab
+ * bar — and each one wrote `align="center" justify="space-between" gap="3"` by hand. That is
+ * the alignment, the split and the air, which is exactly the set of facts `Toolbar` exists to
+ * state once; the site's own header had already been converted for the same reason, and these
+ * were what was left.
+ *
+ * The rows differ in what they BUY, and the laws below say which is which rather than claiming
+ * one story for all three. Where a row holds two plain buttons, the toolbar is one tab stop
+ * with arrow keys inside it, and that is a keyboard fix. Where it holds a tab bar, it is not:
+ * a `TabsList` is a roving composite already, so nested it keeps its own arrow keys and they
+ * never reach the button beside it — measured, and asserted below as the thing it is rather
+ * than left as an assumption.
+ */
+describe("a chrome row is a toolbar", () => {
+  const CHROME = ["specimen.tsx", "code-sample.tsx", "file-tabs.tsx"] as const;
+
+  it("no block hand-writes a row's alignment, split and air", () => {
+    // Keyed on the SPLIT, which only a row states — a block may still group with a `Flex`, and
+    // the air inside a cluster is a cluster's business.
+    //
+    // COMMENTS ARE STRIPPED FIRST, and that is not tidiness: this law's own subject is worth
+    // naming in the code it replaced, so `specimen.tsx` explains itself by quoting the very
+    // string being banned. A law that reads its own documentation fails on the explanation
+    // rather than on the defect — the same repair `stylesheets.ts` made for two package laws.
+    const code = (file: string) =>
+      source(file).replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+    for (const file of CHROME) {
+      expect(code(file), `${file} states a row's split itself`).not.toContain(
+        'justify="space-between"',
+      );
+    }
+  });
+
+  /** A figure with a props control beside its copy button — the arrangement on every page. */
+  const chrome = async () =>
+    renderToStaticMarkup(
+      await Specimen({
+        sources: [{ name: "a.tsx", code: "const a = 1\n", lang: "tsx" }],
+        controls: <Kookie.ToolbarButton iconOnly aria-label="Props" />,
+        children: <p>live</p>,
+      }),
+    );
+
+  it("the figure's chrome announces itself, and its controls are IN it", async () => {
+    const out = await chrome();
+    expect(out, "the row announces itself").toContain('role="toolbar"');
+    const row = out.slice(out.indexOf('role="toolbar"'));
+    expect(row, "the props trigger is in it").toContain('aria-label="Props"');
+  });
+
+  it("a toolbar's controls are ONE tab stop, not one each", async () => {
+    // What the conversion actually buys here. Base UI's composite parks every item but one at
+    // `tabindex="-1"`; two plain buttons in a Flex are two stops with nothing grouping them.
+    const out = await chrome();
+    const row = out.slice(out.indexOf('role="toolbar"'));
+    expect(row.match(/tabindex="-1"/g)?.length ?? 0, "controls are parked").toBeGreaterThan(0);
+  });
+
+  it("and the tab bar's row is a toolbar for its LAYOUT, its keyboard being its own", () => {
+    /**
+     * Stated rather than assumed, because it was measured and it surprised me: a `TabsList`
+     * nested in a `Toolbar` keeps its own arrow keys, and from the last tab ArrowRight wraps to
+     * the first tab rather than moving to the button beside it — identical to the same bar with
+     * no toolbar around it. Two roving composites, and the inner one wins.
+     *
+     * So this row takes the toolbar for the three layout facts and announces itself honestly;
+     * the copy button beside the bar is reachable by Tab, which is what it was before. A law
+     * claiming a keyboard win here would be a law about something that does not happen.
+     */
+    expect(source("file-tabs.tsx"), "the row is a Toolbar").toContain("<Toolbar");
+    expect(source("file-tabs.tsx"), "and it says what it does not buy").toMatch(
+      /NOT BUY HERE IS THE KEYBOARD/,
+    );
+  });
+
+  it("and the figure's chrome rests at the same inset the code well's does", () => {
+    /* THE AGREEMENT, and the reason it exists is that nothing could see the disagreement.
+     *
+     * The figure's row padded a picked `4` — 12px — while the code well inside it padded the
+     * pane's own inset, 24. Two chrome insets on one page, one in a block and one in the
+     * package, invisible from inside either file: the block's laws never looked at the well
+     * and the package's never looked at the block.
+     *
+     * READ AS THE KEYWORD, not as a number. `p="bleed"` is the surface padding re-applied
+     * (§3), which is the same expression the well's rows read, so the two follow the index
+     * together by construction rather than by two authors picking the same value. A law
+     * asserting `24` would pass at one size and lie at every other. */
+    // ONE HOME ON EACH SIDE, AND THEY AGREE. The docs state it once in `code.css`; the package
+    // states it once in `code-block.css`. The two are visible together — a figure holds a well —
+    // and they disagreed once already at 12 against 24, because each side picked a value nobody
+    // could compare. So the law is that they name the SAME TOKEN, which is the only thing that
+    // makes them follow each other when it changes.
+    const docs = /--kd-chrome-p:\s*([^;]+);/.exec(source("code.css"))?.[1]?.trim();
+    const pkg = /--kui-cb-chrome-p:\s*([^;]+);/.exec(
+      readFileSync(
+        join(here, "..", "..", "..", "..", "..", "packages", "ui", "src", "components", "code-block", "code-block.css"),
+        "utf8",
+      ),
+    )?.[1]?.trim();
+    expect(docs, "the docs state a chrome inset").toBeTruthy();
+    expect(docs, "and it is the package's own").toBe(pkg);
+
+    // …and no block states one of its own beside it.
+    for (const file of ["specimen.tsx", "file-tabs.tsx"]) {
+      expect(source(file), `${file} pads its chrome by hand`).not.toMatch(
+        /className="kd-figure-chrome"[^>]*\bp=/,
+      );
+    }
+  });
+
+  it("every control in these rows can enrol in one", () => {
+    // `ToolbarButton` throws outside a toolbar, which is what makes the contract loud. The
+    // shared copy button is the one every chrome row places, so it is the one that must be one.
+    expect(source("copy-button.tsx")).toContain("<ToolbarButton");
+    expect(source("copy-button.tsx"), "and not a plain Button beside it").not.toMatch(
+      /<Button[\s>]/,
+    );
+  });
+});
+
+/**
+ * THE CHROME APPEARS ON HOVER, and every law here exists because a defect shipped past the
+ * ones that did not.
+ *
+ * Three things this arrangement gets wrong if nothing holds it: a row keyed on the wrong
+ * ancestor is invisible at every moment, a row with nothing in it still draws its track, and a
+ * tabbed figure's copy button ends up somewhere different from every other figure's.
+ */
+describe("the figure's chrome is hidden until a reader points at the figure", () => {
+  const css = () => source("code.css");
+
+  it("it rests hidden and the FIGURE is what reveals it", () => {
+    /* KEYED ON THE FIGURE, NEVER ON THE WELL, and this is the law for a defect that shipped:
+       the tab bar's copy button sits OUTSIDE the code block, so a `.kui-code-block:hover` rule
+       could never match it and it was invisible at every moment, on every tabbed figure. The
+       well may reveal its own rows; the figure must reveal all of them. */
+    expect(css(), "hidden at rest").toMatch(/\.kd-code-chrome\s*\{[^}]*opacity:\s*0/);
+    expect(css(), "the figure reveals it").toMatch(/\.kd-figure:hover\s+\.kd-code-chrome/);
+    expect(css(), "and the keyboard does too").toMatch(/\.kd-figure:focus-within\s+\.kd-code-chrome/);
+  });
+
+  it("and it reserves no space, so nothing moves when it appears", () => {
+    // The whole reason the band went. A row that fades in must not push the code down with it.
+    expect(css(), "the floating chrome is out of flow").toMatch(
+      /\.kd-figure-chrome\s*\{[^}]*position:\s*absolute/,
+    );
+  });
+
+  it("a row with nothing in it does not draw at all", async () => {
+    /* AN EMPTY `ToolbarGroup` STILL DRAWS ITS TRACK — that is the part's own contract (§45: a
+       group that drew nothing would be a Flex wearing a part's name) — so a figure with no
+       props control and several files rendered a 4x40 sliver in its corner, which reads as a
+       stray scrollbar. Found by eye. The row is what must not render, not the track. */
+    const out = renderToStaticMarkup(
+      await Specimen({
+        sources: [
+          { name: "a.tsx", code: "const a = 1\n", lang: "tsx" },
+          { name: "b.css", code: ".a { color: red }\n", lang: "css" },
+        ],
+        children: <p>live</p>,
+      }),
+    );
+    expect(out, "the row holds the active file's copy").toContain("kd-figure-chrome");
+    /* AND EXACTLY ONE, which is the half that can fail. The first spelling asserted that a
+       figure with NO sources draws no chrome — and that fixture cannot distinguish anything,
+       because the row is gated on `files.length === 1` and a figure with no files fails that
+       whichever way the guard is written. Its sabotage survived, which is how it was caught.
+       The case that matters is SEVERAL files: the figure must not draw a row of its own beside
+       the one `FileTabs` draws, or the corner holds two boxes and the empty one is a sliver. */
+    // ONE, not two. `FileTabs` draws the figure's chrome for a tabbed figure — it is the client
+    // component that knows the active file — so the figure must not draw a second beside it, or
+    // the corner holds two boxes and the one with nothing in it is a 4x40 sliver.
+    expect(out.match(/kd-figure-chrome/g)?.length ?? 0, "exactly one").toBe(1);
+  });
+
+  it("a tabbed figure's copy sits in the SAME corner as a single file's", () => {
+    /* It used to live in the tab row, because the copy has to hand over the file you are
+       LOOKING AT and the tab bar is what holds that. The result was one control in two places
+       depending on how many files a figure had, which is what a reader notices. `FileTabs`
+       renders the figure's chrome itself now — it is the client component that knows the
+       active file, and the figure is a server component that cannot. */
+    // SCOPED TO THE TAB ROW, which is the Toolbar holding the `TabsList`. The first spelling
+    // asked whether ANY Toolbar in the file contains a CopyButton, and the figure's own chrome
+    // is a Toolbar containing exactly that — so it matched the correct arrangement.
+    const tabRow = /<Toolbar[^>]*>\s*<TabsList[\s\S]*?<\/Toolbar>/.exec(source("file-tabs.tsx"))?.[0];
+    expect(tabRow, "the tab row is a toolbar holding the tabs").toBeTruthy();
+    expect(tabRow, "and nothing else").not.toContain("CopyButton");
+    expect(source("file-tabs.tsx"), "it is in the figure's chrome").toMatch(
+      /kd-figure-chrome[\s\S]*?<CopyButton/,
+    );
+    expect(source("specimen.tsx"), "and the figure draws its own only for one file").toMatch(
+      /files\.length === 1 \?/,
+    );
   });
 });

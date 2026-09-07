@@ -2,7 +2,7 @@
 
 /**
  * The table of contents: the headings of the page you are reading, with the one you are at
- * marked (2026-09-04).
+ * marked.
  *
  * WHY THIS IS A BLOCK AND NOT A COMPONENT. Its substance is the app's — where the headings come
  * from, which levels count, which column it sits in and at what width — and §11 has no row for
@@ -160,14 +160,12 @@ export function TableOfContents({
     /* ONE TYPE STATEMENT FOR THE WHOLE THING, which is `Breadcrumb`'s arrangement: the `<nav>`
        wears the step and everything inside inherits it, so no rule below names a size.
 
-       STEP 2, WHICH IS §15's "label and meta". It was raised to the prose's own 3 and put back
-       the same day (2026-09-04, Kushagra, both calls) — worth recording because the argument
-       for 3 is a real one and someone will make it again: these are the page's own headings
-       written out, not captions on something else. Judged at both, and at 3 they read as a
-       second column of prose competing with the one they point into; at 2 they read as what
-       they are. It also costs the entries their wrapping — the column is 14rem, and at 16px
-       seven of nine entries on `/foundations/color` broke to two lines against three of nine
-       at 14. */
+       STEP 2, WHICH IS §15's "label and meta". The argument for the prose's own 3 is a real
+       one — these are the page's own headings written out, not captions on something else —
+       and it loses on both counts. At 3 they read as a second column of prose competing with
+       the one they point into; at 2 they read as what they are. It also costs the entries
+       their wrapping: in a 14rem column, seven of nine entries on a long page break to two
+       lines at 16px against three of nine at 14. */
     <Text size="2" render={<nav aria-label={label} className={className} />}>
       <Stack gap="3">
         {/* ABOVE THE RAIL, and that is the separation — the label is not an entry, so it does not

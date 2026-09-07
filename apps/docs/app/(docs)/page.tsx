@@ -1,15 +1,7 @@
 import Link from "next/link";
-import {
-  Flex,
-  Grid,
-  Heading,
-  Link as KookieLink,
-  Stack,
-  Text,
-} from "@kookie-ui/react";
+import { Flex, Grid, Heading, Link as KookieLink, Page, Stack, Text } from "@kookie-ui/react";
 
-import { PageFrame, PageTitle } from "./page-frame";
-import { Wordmark } from "./wordmark";
+import { PageFrame } from "./page-frame";
 import { SECTIONS, chaptersIn } from "./chapters";
 import { ENTRIES } from "./components/registry";
 import { BLOCKS } from "../../blocks";
@@ -28,10 +20,9 @@ import { BLOCKS } from "../../blocks";
  *
  * WHY THE CLAIMS WENT RATHER THAN MOVING DOWN THE PAGE. Six cards, each stating a position in
  * three sentences, is a compressed second copy of a chapter that already argues the same thing
- * at length — Appearance and Colour are `foundations/color` and `philosophy/why-these-rules-
- * hold`, Responsiveness is `foundations/responsiveness`, Material and Motion are their own
- * chapters, and Correctness is the first paragraph of `philosophy/why-kookie-exists` almost
- * word for word. One home per fact is this repo's oldest rule, and the chapters are the home.
+ * at length — Appearance and Colour are `foundations/color` and `concepts/principles`,
+ * Responsiveness is `foundations/responsiveness`, Material and Motion are their own
+ * chapters, and Correctness is the opening of `concepts/principles` almost word for word. One home per fact is this repo's oldest rule, and the chapters are the home.
  * Kept at the foot of the page they would have been dead space too: a reader who has just been
  * handed the routes does not scroll past them to read a manifesto.
  *
@@ -99,26 +90,26 @@ export default function Home() {
   return (
     <PageFrame width="48rem">
       <Stack gap="10">
-        {/* THE MASTHEAD: the mark, then the title, then the deck (2026-08-29, Kushagra).
-            This is the one page that carries the mark in the reading column rather than only
-            in the chrome, and it is why the title states `8` — see `PageTitle`.
+        {/* THE MASTHEAD: the title, then the deck.
 
-            `4` (12px) between the mark and the title, against `6` (24px) from the title to
-            its deck. The two are a LOCKUP: the mark says the name in a drawn letter and the
-            title says it in words, so they are one unit and the deck is the sentence under
-            that unit. Proximity's two-step rule is what keeps the three from reading as a
-            column of equals, and it is why the interval below this block is `10` and not `8`
-            — the mark added a line above, so the block is taller and needs more clearance
-            under it than it did.
+            IT CARRIED THE MARK ABOVE THE TITLE FROM 2026-08-29 TO 2026-09-06, and it does not
+            any more (Kushagra: "remove this wordmark from main page"). The lockup argument was
+            sound as far as it went — the mark says the name in a drawn letter, the title says
+            it in words, so they are one unit — and what it never answered is whether the page
+            wants the name said twice at all. The sidebar's masthead is three inches away and
+            already carries the mark, and the footer signs the page off with the long form, so
+            the front door was the third of three.
 
-            The wrapper Stack was a `gap="8"` around ONE child before the mark existed, which
-            is a distance that could never apply to anything. */}
-        <Stack gap="4">
-          <Wordmark size="9" />
-          <PageTitle deck="A design system for React that covers the components, the rules behind them and the tools that check your screens against those rules. It gives you one way to say what something means, which is fewer choices than you may be used to and the reason screens built months apart still look like one product.">
-            Kookie User Interface
-          </PageTitle>
-        </Stack>
+            The mark stays a `Page` slot (§46) rather than being deleted with this call site:
+            an app's front door putting its own mark over its title is the ordinary case, and
+            this site is the one that happens not to want it. `Page` renders nothing when the
+            slot is not filled, so the removal is one prop and no arithmetic — the intervals
+            below are the title-to-deck `6` and the block's own `10`, both of which were
+            already about the title rather than about the mark. */}
+        <Page
+          title="Kookie User Interface"
+          description="A design system for React that covers the components, the rules behind them and the tools that check your screens against those rules. It gives you one way to say what something means, which is fewer choices than you may be used to and the reason screens built months apart still look like one product."
+        />
 
         {/* NO HEADING OVER THIS (2026-08-29, Kushagra: "Do I need 'Everything on this site'
             now?" — no). It read as a section label while the claims were the section above it;

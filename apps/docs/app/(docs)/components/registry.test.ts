@@ -28,6 +28,7 @@ import { describe, expect, it } from "vitest";
 import { readPackageExports } from "../../package-exports";
 import { ENTRIES } from "./registry";
 import { EXAMPLES } from "../../../examples";
+import { CHAPTERS } from "../chapters";
 import { humanLabel } from "../label";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
@@ -355,9 +356,112 @@ describe("every entry has a live specimen, and every specimen belongs to an entr
     expect(missing).toEqual([]);
   });
 
-  it("every example", () => {
-    const known = new Set(slugs);
+  /**
+   * VARIANTS RIDE THE SAME CONVENTION (2026-09-05): `examples/<slug>.<variant>.tsx`, declared
+   * on the entry, so the file name is still the identity and there is no mapping field.
+   *
+   * The reverse direction is the half that matters and it is deliberately NOT widened to "any
+   * name containing a dot": a specimen nobody links to is a file that compiles, passes lint,
+   * and is reachable from no page — which is exactly what this law was written for. So a
+   * variant file counts as covered only when its entry names it.
+   */
+  it("every entry's declared variants have a file", () => {
+    const missing = ENTRIES.flatMap((entry) =>
+      (entry.variants ?? [])
+        .filter((variant) => !EXAMPLES[`${entry.slug}.${variant.name}`])
+        .map((variant) => `${entry.slug}.${variant.name}`),
+    );
+    expect(missing).toEqual([]);
+    // Vacuity: the walk above is empty on a registry with no variants at all.
+    expect(ENTRIES.filter((entry) => entry.variants).length).toBeGreaterThan(0);
+  });
+
+  /**
+   * A CHAPTER MAY OWN AN EXAMPLE TOO.
+   *
+   * `Example` has been in the chapter mapping since the canon shipped, described there as the
+   * thing a chapter cannot express in markdown — and until now this law would have rejected
+   * any example a chapter added, because the only names it accepted were a component's slug
+   * and a variant's. The affordance was offered and forbidden at the same time, which nothing
+   * caught because no chapter had tried to use it.
+   *
+   * A chapter DECLARES its examples (`chapters.ts`) where a component page infers them from
+   * its slug. The reason is that a component page renders exactly one specimen, named after
+   * the thing it documents, while a chapter renders however many it needs and is named after
+   * a subject rather than a component.
+   */
+  it("every example belongs to a component, a variant, or a chapter", () => {
+    const known = new Set([
+      ...slugs,
+      ...ENTRIES.flatMap((entry) =>
+        (entry.variants ?? []).map((variant) => `${entry.slug}.${variant.name}`),
+      ),
+      ...CHAPTERS.flatMap((chapter) => chapter.examples ?? []),
+    ]);
     expect(Object.keys(EXAMPLES).filter((name) => !known.has(name))).toEqual([]);
+  });
+
+  /* And the other direction, which is the half that fails when a chapter renames its example
+     file: a declared name with no module is a chapter that throws on render. */
+  it("every example a chapter declares exists", () => {
+    const declared = CHAPTERS.flatMap((chapter) =>
+      (chapter.examples ?? []).map((name) => ({ chapter: chapter.slug, name })),
+    );
+    // The walk has to find something, or both this law and the one above audit nothing.
+    expect(declared.length).toBeGreaterThan(0);
+    expect(declared.filter(({ name }) => !EXAMPLES[name])).toEqual([]);
+  });
+
+  /**
+   * AN EXAMPLE PAINTS NOTHING OF ITS OWN (2026-09-05).
+   *
+   * This site's stance since 2026-08-05 is that every visible pixel is `@kookie-ui/react` — a
+   * design system whose docs are built on someone else's UI argues against itself — and an
+   * example rooted in a bare `<div>` is that rule broken in the one place a reader COPIES from.
+   *
+   * It is also how a real defect arrived. The RTL accordion was wrapped in a plain `<div>`, and
+   * the specimen stage is a centring flex row, so the div shrink-wrapped and the accordion's
+   * own fill-your-container rule filled a box sized by its own content: measured at 264px
+   * against 556px for its siblings, and moving. A `Box` is the system's div and does not have
+   * that shape by accident — and where the direction can sit on the component itself, no
+   * wrapper is needed at all.
+   *
+   * The walk reads the ROOT only. An example may still place a `<span>` or an `<a>` inside it —
+   * `render={<a href/>}` is the point of several of them.
+   */
+  it("no example is rooted in a bare HTML element", () => {
+    const bare: string[] = [];
+    for (const name of Object.keys(EXAMPLES)) {
+      // Read off disk rather than through `example.tsx`: that module pulls the playground,
+      // which is a client component, and a node law has no business mounting one.
+      const source = readFileSync(join(here, "../../../examples", `${name}.tsx`), "utf8");
+      const root = /return \(\s*\n\s*<(\w+)/.exec(source);
+      if (root && /^[a-z]/.test(root[1]!)) bare.push(`${name} → <${root[1]}>`);
+    }
+    expect(bare).toEqual([]);
+    // Vacuity: the regex must be finding roots at all.
+    expect(Object.keys(EXAMPLES).length).toBeGreaterThan(50);
+  });
+
+  it("a variant says why you would look at it, and is named rather than numbered", () => {
+    // The anti-stub bar the coverage laws always owe: the cheapest way to satisfy the one
+    // above is a variant whose reason says nothing, and "Example 2" is what an unlabelled
+    // departure becomes.
+    for (const entry of ENTRIES) {
+      for (const variant of entry.variants ?? []) {
+        expect(variant.name, `${entry.slug}: a variant name is a file suffix`).toMatch(
+          /^[a-z][a-z0-9-]*$/,
+        );
+        expect(
+          variant.title.length,
+          `${entry.slug}.${variant.name}: a title too short to name anything`,
+        ).toBeGreaterThan(8);
+        expect(
+          variant.why.length,
+          `${entry.slug}.${variant.name}: says nothing about why you would look`,
+        ).toBeGreaterThan(60);
+      }
+    }
   });
 });
 
@@ -415,6 +519,30 @@ describe("a compound component's topics index every symbol it has, exactly once"
     }
   });
 
+  /**
+   * A DECLARATION FITS THE WELL IT IS PRINTED IN (2026-09-05).
+   *
+   * Code wraps now, so an over-long line is legible rather than clipped — but a declaration is
+   * the first thing under the title and a wrapped one reads as a mistake there. Eight of the
+   * seventeen were over the measure on the day they were written, including the accordion's,
+   * which is what a person saw.
+   *
+   * 68 is MEASURED, not chosen: at 1440 the well's content box is 556px and its mono advance
+   * is 8.06px, so 68 characters is what fits. It is a floor on the writing rather than a claim
+   * about the layout — the number moves if the reading measure does, and this comment is where
+   * to look when it does.
+   */
+  it("every declaration line fits the well it is printed in", () => {
+    for (const entry of compound) {
+      for (const [i, line] of entry.declaration!.split("\n").entries()) {
+        expect(
+          line.length,
+          `${entry.slug}: declaration line ${i + 1} runs past the well and wraps`,
+        ).toBeLessThanOrEqual(68);
+      }
+    }
+  });
+
   it("a declaration shows the component it declares", () => {
     for (const entry of compound) {
       expect(
@@ -443,9 +571,45 @@ describe("the reference page's headings carry the anchors its contents column po
     // A literal is a title the contents list cannot see. `SECTIONS` is the one home, and both
     // the heading and the entry turn it into an anchor with the same `slugify`.
     expect(source, "a section title written as a literal").not.toMatch(/<Section\s+title="/);
-    expect(source.match(/<Section\b/g)?.length ?? 0).toBe(
-      (source.match(/^\s+\w+: "/gm) ?? []).length,
+    /* EVERY NAMED SECTION IS USED, which is the real claim. It counted `<Section` occurrences
+       against the number of names until 2026-09-05, and that is a proxy rather than the claim:
+       the Examples/Example ternary renders one element from two names, so the count went wrong
+       on a correct page the day a section learned to change its own title.
+
+       WHAT IT CATCHES, STATED HONESTLY: a name with NO reader left in the file. Its first
+       sabotage removed one of the two readers `SECTIONS.examples` has — the heading — and the
+       law stayed green off the contents column's use, which is correct behaviour and a weaker
+       guarantee than "every name is rendered". Falsified by removing both. */
+    const names = [...source.matchAll(/^\s+(\w+): "/gm)].map((m) => m[1]);
+    expect(names.length, "no section names found; this walk has gone stale").toBeGreaterThan(5);
+    for (const name of names) {
+      expect(source, `SECTIONS.${name} is named and never rendered`).toContain(
+        `SECTIONS.${name}`,
+      );
+    }
+  });
+
+  /**
+   * THE PROPS TABLE READS AT THE PAGE'S OWN STEP (2026-09-04, Kushagra: "Table should be size
+   * 3, when rest of the prose is size 3").
+   *
+   * A table's index prices the cell inset AND the type step, so the default `2` sets the one
+   * column that is real prose — what the prop does — two ramp steps under the paragraph above
+   * it. It was stated, then LOST on 2026-09-05 when the trial layout and the essay layout were
+   * collapsed into one file: the comment saying "SIZE 3, LIKE EVERY OTHER SENTENCE ON THE
+   * PAGE" survived the rewrite and the `size` attribute did not, so the page carried a claim
+   * and its own contradiction for as long as the file existed. Measured on the running site at
+   * 14px against 16px prose.
+   *
+   * A SOURCE LAW, and the limit is worth stating: the docs project runs in node, so nothing
+   * here can read a computed value the way the package's browser laws do. What it pins is that
+   * the number is stated at all — which is exactly the failure that happened.
+   */
+  it("the props table is set at the page's reading step, not the default", () => {
+    expect(source, "the props table fell back to Table's default index").toContain(
+      '<Table size="3">',
     );
+    expect(source, "a table that states no size takes the default").not.toMatch(/<Table>/);
   });
 
   it("both sides turn a title into an anchor with the same function", () => {

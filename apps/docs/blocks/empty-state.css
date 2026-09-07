@@ -3,16 +3,16 @@
    length below resolves through a `--` token, which is the condition that makes a copied file
    safe (THESIS §6 — the center stays in the dependency).
 
-   IT CENTRES, AND THIS IS THE ONE PLACE THIS SYSTEM CENTRES PROSE (2026-09-02). Everywhere else
-   a paragraph belongs to a column and centring it costs the reader a ragged left edge to find on
-   every line. There is no column here: an empty state is a single object standing in a region,
+   IT CENTRES, AND THIS IS THE ONE PLACE THIS SYSTEM CENTRES PROSE. Everywhere else a paragraph
+   belongs to a column and centring it costs the reader a ragged left edge to find on every
+   line. There is no column here: an empty state is a single object standing in a region,
    read in one glance rather than scanned, which is the case the objection to centred text was
    never about. Polaris, Atlassian and Material all centre theirs, and so does SwiftUI's
    `ContentUnavailableView`.
 
    `block-size: 100%` IS WHAT MAKES `justify="center"` MEAN ANYTHING, and it is also why there is
    no `minHeight` prop: the height stays the caller's to state, and one declaration answers every
-   way they state it. Measured, all three (2026-09-02):
+   way they state it. Measured, all three:
 
      - a region with a DEFINITE height — `height: 400px` — the block fills it and centres in it
        (400px tall, first child 123px down against 122 of exact centring);
@@ -25,11 +25,11 @@
   block-size: 100%;
   text-align: center;
 
-  /* AND IT HOLDS A MEASURE, because centred text without one is the worst of both (2026-09-02).
-     Measured before this line: the sentence ran 1152px across the figure's region, which is ~130
-     characters — over twice the comfortable maximum — and with a centred left edge the reader has
-     to hunt for the start of each line. The wider the region, the worse a centred paragraph gets,
-     which is the opposite of how every other block on this site behaves.
+  /* AND IT HOLDS A MEASURE, because centred text without one is the worst of both. Unbounded,
+     a sentence runs the width of the region — measured at 1152px here, ~130 characters, over
+     twice the comfortable maximum — and with a centred left edge the reader has to hunt for the
+     start of each line. The wider the region, the worse a centred paragraph gets, which is the
+     opposite of how every other block on this site behaves.
 
      `ch`, and the unit is the argument: a measure is a statement about TEXT rather than about a
      screen, which is the carve-out `Code`'s padding and the footer's own columns both make, and

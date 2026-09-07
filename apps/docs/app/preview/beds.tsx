@@ -15,6 +15,9 @@
  *   swirl    — saturated hues edge to edge. The saturation-ramp and ink-floor stress case.
  *   pattern  — flat illustrated shapes, high frequency. Blur and refraction are invisible
  *              over smooth gradients; this is where they show.
+ *   painting — a 19th-century oil: soft brushwork, muted ochres and greens, a low-frequency
+ *              sky over mid-frequency figures. The case with almost no chroma to lean on and
+ *              no hard edge to bend, which is where a lip has to carry the boundary alone.
  *
  * Real photographs (Unsplash, chosen by Kushagra 2026-08-19; resampled to 2400px — a 5500px
  * original is page weight, not judgment). Adding a bed here adds it to every component's
@@ -41,6 +44,7 @@ export const BEDS: readonly Bed[] = [
   { id: "swirl", name: "Vivid swirl", image: "/beds/ruliff-andrean-IfqKDhDpDPA-unsplash.jpg" },
   { id: "flow", name: "Blue flow", image: "/beds/boliviainteligente-NfEZoAaSS9s-unsplash.jpg" },
   { id: "pattern", name: "Pattern", image: "/beds/getty-images-tlgpcZ8vUiM-unsplash.png" },
+  { id: "painting", name: "Oil painting", image: "/beds/birmingham-museums-trust-adudERb6uDM-unsplash.jpg" },
 ];
 
 export const PHOTO_BED = BEDS.find((b) => b.id === "photo")!;

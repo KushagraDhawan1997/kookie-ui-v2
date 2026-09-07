@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Button, Flex, Stack } from "@kookie-ui/react";
+import { Button, Flex, Page } from "@kookie-ui/react";
 
-import { PageFrame, PageTitle } from "./page-frame";
+import { PageFrame } from "./page-frame";
 
 /**
  * What a 404 SAYS, with no chrome around it — because it is rendered under two different
@@ -27,24 +27,19 @@ export function NotFoundBody() {
        other page clears it by way of the frame's air above the title, which is the whole
        reason that air has one home. The 34rem measure moves here with it. */
     <PageFrame width="34rem">
-      <Stack gap="6">
-        {/* `PageTitle`, not a hand-written h1 and deck — the interval between a title and the
-            sentence under it has one home, and a 404 is a page like any other. Moving this
-            file into the group is what put it under that law, and the law was right. */}
-        <PageTitle
-          deck="That page does not exist. It may have been renamed while the system was being built — most things here still are."
-        >
-          404
-        </PageTitle>
+      <Page
+        title="404"
+        description="That page does not exist. It may have been renamed while the system was being built — most things here still are."
+      >
         <Flex gap="3">
         <Button tone="accent" emphasis="loud" render={<Link href="/" />}>
           Back to the start
         </Button>
-        <Button emphasis="quiet" bordered render={<Link href="/matrix" />}>
+        <Button render={<Link href="/matrix" />}>
           The judging matrix
         </Button>
         </Flex>
-      </Stack>
+      </Page>
     </PageFrame>
   );
 }

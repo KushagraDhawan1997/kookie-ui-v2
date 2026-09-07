@@ -21,7 +21,6 @@
  */
 import * as React from "react";
 import {
-  Button,
   Grid,
   Popover,
   PopoverContent,
@@ -34,6 +33,7 @@ import {
   SelectTrigger,
   Switch,
   Text,
+  ToolbarButton,
 } from "@kookie-ui/react";
 
 import { CodeSampleView } from "../../blocks/code-sample";
@@ -156,7 +156,7 @@ export function Playground({
          source and nothing else — the tab bar exists for a block that is several files, and an
          example is one by construction. */
       files={[{ lines: shown, focused, diff, copyText: plainText(shown), lang: "tsx" }]}
-      {...(glass ? { stageBackground: `url('${bed("pattern").image}') center / cover` } : {})}
+      {...(glass ? { stageBackground: `url('${bed("painting").image}') center / cover` } : {})}
       controls={
         controls.length === 0 ? null : (
           /* BEHIND A TRIGGER, BESIDE THE COPY BUTTON (2026-08-30, Kushagra: "we can probably try
@@ -178,12 +178,17 @@ export function Playground({
              move: name on the left, control on the right, one rhythm, sized to content. */
           <Popover>
             <PopoverTrigger
-              // No size: the figure's own chrome index is 2 and so is Button's default, which is
-              // what keeps this trigger level with the copy button beside it.
+              /* A `ToolbarButton` SINCE 2026-09-06: the figure's chrome row is a `Toolbar`, and
+                 a plain Button cannot enrol in its roving tab stop — an unregistered control in
+                 a toolbar is a stop the arrow keys never reach. It throws outside one, which is
+                 what makes this a contract rather than a comment.
+
+                 No size, still: the row states its index and every control in it inherits, so
+                 this trigger and the copy button beside it cannot disagree. */
               render={
-                <Button iconOnly aria-label="Props" backdrop>
+                <ToolbarButton iconOnly aria-label="Props" backdrop>
                   <SettingsIcon />
-                </Button>
+                </ToolbarButton>
               }
             />
             {/* NAMED, because the panel has no visible title: a popover announces itself as

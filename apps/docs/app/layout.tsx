@@ -3,7 +3,7 @@ import "./globals.css";
 
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Theme } from "@kookie-ui/react";
+import { Theme, TooltipProvider } from "@kookie-ui/react";
 
 import { appearanceScript } from "./appearance-script";
 import { DevOutlineGate } from "./dev-outline";
@@ -19,24 +19,24 @@ import { DevOutlineGate } from "./dev-outline";
  * documentation site that ships a licensed face for its body text pays a download on every page
  * for prose that reads no better.
  *
- * PP PLAYGROUND (2026-09-01, Kushagra), from the same Pangram Pangram starter pack the mono
- * slot already draws on. It replaces Chomsky, and the change is not a tuning: a blackletter
- * capital is a MONOGRAM — one drawn letter standing for a name — and Playground is a script,
- * which is a face for writing the name out. So the mark changed with the face; see
- * `wordmark.tsx` for what it now says and why the size moved with it.
+ * TANKER (2026-09-06, Kushagra), from Fontshare — after Pencerio and Telma, which replaced PP
+ * Playground, which replaced Chomsky. The word the mark says is unchanged; what changes is the
+ * hand it is written in.
  *
- * ITS LICENCE IS THE MONO SLOT'S, NOT CHOMSKY'S. Chomsky is OFL and could in principle have
- * been committed with its licence beside it; PPF permit commercial use and forbid
- * redistribution, so this file is covered by the blanket rule in `.gitignore` and a fresh clone
- * renders the fallback — the arrangement Switzer and Neue Montreal Mono already have, and the
- * reason that rule is stated as a file type rather than a vendor's folder name.
+ * ITS LICENCE IS SWITZER'S, NOT THE PANGRAM PACK'S. Tanker is Indian Type Foundry's (drawn by
+ * Ruosi Huang) and travels under the same Fontshare Free Font License the body face does, so
+ * `Fontshare-FFL.txt` already sitting beside it is the licence text for this file too. What does
+ * NOT change is how the file travels: the FFL forbids making it available through another
+ * repository, so this is covered by the blanket rule in `.gitignore` and may never be
+ * force-added. A fresh clone renders the fallback.
  *
- * `weight: "400"` is what the file is. There is no second weight to resolve to, so a heading
- * asking for semibold gets this face and cannot synthesize a bolder one — which is the whole
- * reason the wordmark's own rule states no weight.
+ * `weight: "400"` is what this file is, and the family ships nothing else — so the wordmark's
+ * `weight="regular"` is an exact match and a heading asking for semibold cannot make the browser
+ * synthesize a bolder one by stroking the outline. Pencerio needed that number ARGUED, because
+ * its one file declares itself at 50; this one declares 400 and the two agree.
  */
 const wordmark = localFont({
-  src: "./fonts/PPPlayground-Regular.woff2",
+  src: "./fonts/Tanker-Regular.woff2",
   variable: "--kd-font-wordmark",
   weight: "400",
   display: "swap",
@@ -190,8 +190,22 @@ export default function RootLayout({
             fill in — it is a document read at arm's length — so the frame, the nav rows and the
             controls in the chrome all sit one step up. It reaches no prose: the type family is
             outside this axis by design, so the chapters are unmoved. */}
-        <Theme appearance="inherit" material="regular" size="2">
-          {children}
+        <Theme appearance="inherit" material="thick" size="2">
+          {/* THE SITE'S TOOLTIP TIMING, ONCE (2026-09-06, Kushagra: "Why no tooltip?" — and
+              there were tooltips; what was missing is this).
+
+              The Provider does two things and the second is the one that was absent. It states
+              the delay, and it GROUPS every tooltip inside it, so the first one waits and the
+              rest appear as the pointer travels. With no Provider anywhere on this site, every
+              tooltip waited its full 600ms independently — measured 656ms cold and 640ms
+              travelling to the very next control in the same toolbar. Moving along a row of
+              five icons, nobody is ever still long enough on any one of them, so nothing
+              appears and the row reads as if it carries no tooltips at all.
+
+              It has been that way for every tooltip on the site since the first one shipped:
+              the back button, the GitHub link, the page actions. The package's own instruction
+              says to wrap an app once near the root, and this is that. */}
+          <TooltipProvider>{children}</TooltipProvider>
         </Theme>
         {/* Dev only: bare `o` outlines every box on the page. Null in a production build. */}
         <DevOutlineGate />

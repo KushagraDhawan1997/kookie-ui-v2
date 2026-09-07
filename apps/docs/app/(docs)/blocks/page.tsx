@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Link as KookieLink, Stack } from "@kookie-ui/react";
+import { Link as KookieLink, Page, Stack } from "@kookie-ui/react";
 
-import { PageFrame, PageTitle } from "../page-frame";
+import { PageFrame } from "../page-frame";
 import { BLOCKS } from "../../../blocks";
 
 export const metadata = { title: "Blocks — KookieUI" };
@@ -21,10 +21,10 @@ export const metadata = { title: "Blocks — KookieUI" };
 export default function BlocksIndex() {
   return (
     <PageFrame width="48rem">
-      <Stack gap="10">
-        <PageTitle deck="A block is a few files you copy into your app and own from then on. It arranges components you already have, and every colour and distance in it still comes from the package — so you can change how a block behaves without changing how your app looks.">
-          Blocks
-        </PageTitle>
+      <Page
+        title="Blocks"
+        description="A block is a few files you copy into your app and own from then on. It arranges components you already have, and every colour and distance in it still comes from the package — so you can change how a block behaves without changing how your app looks."
+      >
         <Stack gap="3" align="start">
           {BLOCKS.map((block) => (
             <KookieLink
@@ -36,7 +36,7 @@ export default function BlocksIndex() {
             </KookieLink>
           ))}
         </Stack>
-      </Stack>
+      </Page>
     </PageFrame>
   );
 }

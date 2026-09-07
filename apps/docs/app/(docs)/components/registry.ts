@@ -62,13 +62,34 @@ export type Entry = {
    */
   topics?: { title: string; symbols: string[] }[];
   /**
+   * Named departures from the default example, each one linkable.
+   *
+   * A KNOB SWEEPS AN AXIS; A VARIANT SHOWS A BEHAVIOUR OR A COMPOSITION (2026-09-05, Kushagra,
+   * comparing the accordion page with shadcn's: "the playground doesn't fix discoverability, I
+   * can't learn that RTL is handled by looking at a gear icon"). Both halves are the point.
+   * Nobody sends a colleague to size 3, so `size` stays a knob and gains nothing from being a
+   * section; and a state that exists only behind a gear has no URL, which is the same argument
+   * that gave every symbol an anchor earlier the same day. Measured before agreeing: 2 of 52
+   * examples showed a disabled state and ONE mentioned RTL, in a package that has RTL laws.
+   *
+   * `name` is the file's suffix — `examples/<slug>.<name>.tsx` — so the file name stays the
+   * identity and there is no mapping field to keep in step, exactly as the default example
+   * does it. A law walks both directions.
+   *
+   * WHAT DOES NOT BECOME A VARIANT: shadcn's "Borders" and "Card" are styling variants of
+   * their component. Ours refuses a border prop outright and says "put it in a Card", so the
+   * first is not expressible and the second is a COMPOSITION — worth showing, and shown as
+   * what it is rather than as a property of the accordion.
+   */
+  variants?: { name: string; title: string; why: string }[];
+  /**
    * A live specimen lives in `examples/<slug>.tsx`: one real file, rendered here and shown as
    * source. It is not a field. The file name is the slug, so there is no mapping to keep in
    * step, and a law walks both directions.
    */
 };
 
-export const ENTRIES: Entry[] = [
+const DECLARED: Entry[] = [
   {
     slug: "accordion",
     name: "Accordion",
@@ -79,9 +100,13 @@ export const ENTRIES: Entry[] = [
     declaration: `<Accordion multiple defaultValue={["shipping"]}>
   <AccordionItem value="shipping">
     <AccordionTrigger>Shipping</AccordionTrigger>
-    <AccordionPanel>Orders ship within two business days.</AccordionPanel>
+    <AccordionPanel>\u2026</AccordionPanel>
   </AccordionItem>
 </Accordion>`,
+    variants: [
+      { name: "disabled", title: "A section that cannot be opened", why: "`disabled` sits on the item, so one section closes to you while the rest of the list still opens." },
+      { name: "rtl", title: "Right to left", why: "The chevron turns and the panel's inset mirrors. Direction is read off the DOM, so the app states `dir` once and no component takes a prop for it." },
+    ],
     topics: [
       { title: "Stacking the sections", symbols: ["Accordion", "AccordionItem"] },
       { title: "Opening and closing one", symbols: ["AccordionTrigger", "AccordionPanel"] },
@@ -106,10 +131,10 @@ export const ENTRIES: Entry[] = [
         abstract: "AlertDialog asks a question with two answers.",
     overview: ["It holds a title, a description, a cancel button and an action button, and it lays those out itself. It is separate from Dialog because the two do different jobs: a dialog holds work you asked for, and an alert stops you to ask something. It uses `role=alertdialog`, it does not close when you press outside it, and its contents are fixed. The part names follow shadcn/ui's alert-dialog (MIT), with credit, and the behaviour is Base UI's AlertDialog."],
     declaration: `<AlertDialog>
-  <AlertDialogTrigger render={<Button tone="destructive">Delete\u2026</Button>} />
+  <AlertDialogTrigger render={<Button>Delete\u2026</Button>} />
   <AlertDialogContent>
     <AlertDialogTitle>Delete workspace?</AlertDialogTitle>
-    <AlertDialogDescription>Everything in it goes with it.</AlertDialogDescription>
+    <AlertDialogDescription>\n      Everything in it goes with it.\n    </AlertDialogDescription>
     <AlertDialogCancel>Keep it</AlertDialogCancel>
     <AlertDialogAction tone="destructive">Delete</AlertDialogAction>
   </AlertDialogContent>
@@ -143,7 +168,7 @@ export const ENTRIES: Entry[] = [
       },
     ],
     parts: [
-      { part: "AlertDialogTrigger", blurb: "The button that opens it, usually render={<Button/>}. An alert driven by app state needs no trigger at all" },
+      { part: "AlertDialogTrigger", blurb: "The button that opens it, usually render={`<Button/>`}. An alert driven by app state needs no trigger at all" },
       { part: "AlertDialogContent", blurb: "Portals the panel, re-applies the theme, paints the scrim, centres the panel, and arranges the parts in a two-column grid" },
       { part: "AlertDialogTitle", blurb: "The accessible name, and a real heading sized by the alert's own index. Write the question here" },
       { part: "AlertDialogDescription", blurb: "What going ahead means, in the muted ink role, wired as the panel's accessible description" },
@@ -365,7 +390,7 @@ export const ENTRIES: Entry[] = [
         abstract: "Button is the action control, and the one the shared control layer was built for.",
     overview: ["Loudness is its only ranking axis. You never set an appearance directly: the theme works it out from `tone`, `emphasis` and `bordered`, over whatever material the Theme says the app is made of."],
     refusals: [
-      { name: "`margin`", why: "A component never sets outer spacing. The distance belongs to the container. The escape is <Box m>." },
+      { name: "`margin`", why: "A component never sets outer spacing. The distance belongs to the container. The escape is `<Box m>`." },
       {
         name: "`variant`",
         why: "It fuses loudness with meaning, so it cannot express a quiet destructive action. `tone` and `emphasis` are separate props for exactly that reason.",
@@ -428,7 +453,7 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "A media or cover slot",
-        why: "A card clips what it holds, and a child says it reaches the edge with <Box mt=\"bleed\" mx=\"bleed\">. Every peer solved this with a part of its own, such as Mantine's Card.Section, MUI's CardMedia and Ant's cover. Here the picture is a child that cancels the padding, not a region the card has to know about.",
+        why: "A card clips what it holds, and a child says it reaches the edge with `<Box mt=\"bleed\" mx=\"bleed\">`. Every peer solved this with a part of its own, such as Mantine's Card.Section, MUI's CardMedia and Ant's cover. Here the picture is a child that cancels the padding, not a region the card has to know about.",
       },
       {
         name: "Header and footer slots",
@@ -491,8 +516,8 @@ export const ENTRIES: Entry[] = [
         why: "Turning code into coloured spans means shipping a grammar for every language, and the choice of tokenizer belongs to whatever builds your pages. The colours are the system's part, and it publishes them as --code- variables that any highlighter's CSS-variables mode can be pointed at.",
       },
       {
-        name: "Wrapping, and a switch for it",
-        why: "A wrapped line puts a break where the language has none, which changes what the code says. The well scrolls instead, which is also why a long line is safe here.",
+        name: "A switch for wrapping",
+        why: "It wraps, and only at a space the code already has: `overflow-wrap` is pinned to `normal`, so an identifier, a string or a path is never cut. A line with no space in it still overflows, and the well still scrolls to reach it — so there is one behaviour to learn rather than a toggle to find.",
       },
       {
         name: "A copy button, line numbers, and a collapse",
@@ -562,7 +587,7 @@ export const ENTRIES: Entry[] = [
   <DialogTrigger render={<Button>Rename project</Button>} />
   <DialogContent>
     <DialogTitle>Rename project</DialogTitle>
-    <DialogDescription>Everyone with access will see the new name.</DialogDescription>
+    <DialogDescription>\n      Everyone with access sees the new name.\n    </DialogDescription>
     <DialogClose render={<Button emphasis="loud">Save</Button>} />
   </DialogContent>
 </Dialog>`,
@@ -603,7 +628,7 @@ export const ENTRIES: Entry[] = [
       },
     ],
     parts: [
-      { part: "DialogTrigger", blurb: "The button that opens it, usually render={<Button/>}. A dialog driven by app state needs no trigger at all" },
+      { part: "DialogTrigger", blurb: "The button that opens it, usually render={`<Button/>`}. A dialog driven by app state needs no trigger at all" },
       { part: "DialogContent", blurb: "Portals the panel, re-applies the theme, paints the scrim, and centres the panel in a viewport that scrolls when the panel is taller than the window" },
       { part: "DialogTitle", blurb: "The panel's accessible name, wired by aria-labelledby. A real heading element at the card-title step" },
       { part: "DialogDescription", blurb: "The supporting line, wired by aria-describedby. Body copy in the muted ink role" },
@@ -621,7 +646,7 @@ export const ENTRIES: Entry[] = [
   <FieldLabel>Email</FieldLabel>
   <TextField type="email" />
   <FieldDescription>We use this for receipts.</FieldDescription>
-  <FieldError match={true}>That address is not complete.</FieldError>
+  <FieldError match={true}>That address is short.</FieldError>
 </Field>`,
     topics: [
       { title: "Naming one input", symbols: ["Field", "FieldLabel"] },
@@ -652,7 +677,7 @@ export const ENTRIES: Entry[] = [
     ],
     parts: [
       { part: "FieldItem", blurb: "One option inside a checkbox group or a radio group: a mark, its own name, and its own line of explanation" },
-      { part: "FieldLabel", blurb: "The field's name: a real <label> associated by id, so clicking it lands the caret. Medium weight and the plain foreground role" },
+      { part: "FieldLabel", blurb: "The field's name: a real `<label>` associated by id, so clicking it lands the caret. Medium weight and the plain foreground role" },
       { part: "FieldDescription", blurb: "What to enter. The muted ink role, wired into aria-describedby wherever it sits, so a screen reader announces it with the control from any position" },
       { part: "FieldError", blurb: "What went wrong, after it went wrong. The destructive ink, rendered only while the field is invalid, and carrying the live region that announces it" },
     ],
@@ -689,7 +714,7 @@ export const ENTRIES: Entry[] = [
     refusals: [
       {
         name: "A level prop",
-        why: "An h1 is a fact about the document, not about how the text looks. render={<h1/>} says it where a reader can see that the two decisions are separate.",
+        why: "An h1 is a fact about the document, not about how the text looks. `render={<h1/>}` says it where a reader can see that the two decisions are separate.",
       },
     ],
   },
@@ -759,6 +784,10 @@ export const ENTRIES: Entry[] = [
     </MenuSub>
   </MenuContent>
 </Menu>`,
+    variants: [
+      { name: "disabled", title: "A row you cannot press", why: "A disabled row stays in the list and stays announced — a thing you cannot do now is not the same as a thing that is not there." },
+      { name: "rtl", title: "Right to left", why: "The panel anchors from the other edge and a submenu opens to the left. A menu reads direction off its trigger, the one in-flow node it owns." },
+    ],
     topics: [
       { title: "Opening the menu", symbols: ["Menu", "MenuTrigger"] },
       { title: "Presenting the panel", symbols: ["MenuContent"] },
@@ -774,11 +803,11 @@ export const ENTRIES: Entry[] = [
       },
       {
         name: "A Shortcut part",
-        why: "A keyboard hint is the row's trailing slot holding a <Kbd>. Both already exist, and a part that renames existing vocabulary earns no row.",
+        why: "A keyboard hint is the row's trailing slot holding a `<Kbd>`. Both already exist, and a part that renames existing vocabulary earns no row.",
       },
       {
         name: "`MenuSeparator`",
-        why: "Base UI's menu separator is a re-export of the standalone one, and ours would be too. Use <Separator>. The menu's stylesheet spaces it inside the panel.",
+        why: "Base UI's menu separator is a re-export of the standalone one, and ours would be too. Use `<Separator>`. The menu's stylesheet spaces it inside the panel.",
       },
       {
         name: "An inset prop",
@@ -794,7 +823,7 @@ export const ENTRIES: Entry[] = [
       },
     ],
     parts: [
-      { part: "MenuTrigger", blurb: "The button that opens the menu, usually render={<Button/>}, so the trigger is a real Kookie Button" },
+      { part: "MenuTrigger", blurb: "The button that opens the menu, usually render={`<Button/>`}, so the trigger is a real Kookie Button" },
       { part: "MenuContent", blurb: "The floating panel: it portals, positions, re-applies the theme and takes the surface identity" },
       { part: "MenuItem", blurb: "One action row: control padding, the family's quiet colour, and lit by the keyboard highlight rather than by hover alone" },
       { part: "MenuGroup", blurb: "Groups rows so a label can name them, and wires the group's accessible name for you" },
@@ -823,6 +852,10 @@ export const ENTRIES: Entry[] = [
     </SelectGroup>
   </SelectContent>
 </Select>`,
+    variants: [
+      { name: "disabled", title: "An option you cannot pick", why: "It stays in the list, so the set a reader sees is the whole set. `disabled` on the Select itself closes the control instead." },
+      { name: "rtl", title: "Right to left", why: "The caret moves to the other end and the panel anchors from the other edge. Nothing in the markup says which way." },
+    ],
     topics: [
       { title: "Holding the choice", symbols: ["Select", "SelectTrigger"] },
       { title: "Presenting the panel", symbols: ["SelectContent"] },
@@ -882,11 +915,17 @@ export const ENTRIES: Entry[] = [
   </CommandContent>
 </Command>`,
     overview: [
-      "Command is a Dialog. The scrim, the focus trap, the scroll lock, the re-theming inside the portal and the entry motion all arrive with it, and `CommandContent` is a dialog\u2019s popup.",
+      "Command is a Dialog. The scrim, the focus trap, the scroll lock, the re-theming inside the portal and the entry motion all arrive with it.",
+      "It is drawn as two blocks, not one. The search bar floats on its own and the results sit in a panel under it, so the bar stays exactly where it is while the list grows and shrinks under your typing. It sits near the top of the window at every size, including a phone, where a panel pinned to the bottom would push the bar up and down on every keystroke.",
+      "The search bar is a panel too, not a text field. It is made of the same stuff as the results under it and takes the same padding and corner, so one size sets both. Its text is set larger than the rows it filters, the way a heading is set above body text.",
+      "Its parts do not all stand at the size you set, and that is the design. A palette is the one object on the screen, so the line you type into is set above the rows it filters and the rows themselves stand one step above the controls in the app behind them. Both steps are worked out from the number you pass, so they can never swap round and there is no size at which the palette reads like a form.",
       "What it adds is the keyboard model. One row is highlighted from the first frame, the highlight survives each keystroke, and Enter runs the row you are looking at.",
       "Pass every command to `items`. `CommandList` and `CommandCollection` take a function and call it once for each item that survives the filter, so the array you write is the list of everything and the panel decides what exists right now.",
       "Hold `items` stable. It crosses to the matcher by identity, so an inline literal re-runs the whole filter pass on every unrelated render. Put it at module scope or in a `useMemo`.",
       "Open it yourself. Which chord opens a palette is your app\u2019s decision, so `Command` takes `open` and `onOpenChange` and renders no trigger at all when you leave `CommandTrigger` out.",
+      "It is drawn as one panel in both states. The results and the \u201cnothing matches\u201d message are the same box \u2014 the message renders inside the results panel rather than beside it \u2014 so the shape never changes under you, and whichever one arrives fades in out of a blur.",
+      "The panel opens out of the search bar. It falls from the bar\u2019s bottom edge and unfurls under it, on the same clocks a menu uses, because the bar is what it comes out of.",
+      "Running a row closes it. Your row still does its own work \u2014 the palette only stops standing over it. `onOpenChange` reports `item-press` so you can tell a run from an Escape, and `cancel()` refuses it for a row that does not end the interaction.",
     ],
     topics: [
       { title: "Opening the palette", symbols: ["Command", "CommandTrigger"] },
@@ -910,6 +949,10 @@ export const ENTRIES: Entry[] = [
 
        What is left is what a reader would go looking for and not find. */
     refusals: [
+      {
+        name: "A footer",
+        why: "Every palette worth copying ships one, so this is a decision. The only thing the system can honestly put there is a legend \u2014 \u201c\u21b5 Run \u00b7 \u2191\u2193 Navigate\u201d \u2014 which explains what a palette is, permanently, to someone who has just opened one. The chord already sits on the row it belongs to, in `trailing`. Anything richer is your product\u2019s vocabulary.",
+      },
       {
         name: "`modal`",
         why: "An open palette is the interaction. For a panel that leaves the page live behind it, use a Popover.",
@@ -936,7 +979,7 @@ export const ENTRIES: Entry[] = [
       { part: "CommandGroupLabel", blurb: "The section\u2019s caption. Muted, and not reachable by the keyboard." },
       { part: "CommandCollection", blurb: "Renders each surviving item of the group it sits in." },
       { part: "CommandItem", blurb: "One command: a row standing level with a button of the same size, with a slot before and after." },
-      { part: "CommandEmpty", blurb: "What the panel shows when nothing matches. It places what you give it and dresses none of it." },
+      { part: "CommandEmpty", blurb: "What the panel shows when nothing matches. Write it beside CommandList; it renders inside the results panel, so both states are one box." },
     ],
   },
   {
@@ -1035,6 +1078,104 @@ export const ENTRIES: Entry[] = [
     ],
   },
   {
+    slug: "page",
+    name: "Page",
+    family: "Layout",
+    spec: "§15, §27, §46",
+    abstract: "Page is the screen you navigated to, and the large title that arrives with it.",
+    overview: [
+      "Two things get called a page header, and they have different owners. The pinned row with the navigation toggle, the way back and the tools belongs to the PANE: it stays put while you move from one page to the next, and it is a ShellPaneHeader holding a Toolbar. The large title that arrives and leaves with the content belongs to the page, and that is this.",
+      "It owns three things you were writing by hand. It clears the band floating over it, by reading the reach that band publishes on its pane, so nothing is measured and the same declaration is right whether the band floats or sits in flow. It states the title and its deck at the house steps, with the one interval between them. And it tells the band when its own title has scrolled away, so a ToolbarTitle up there can fade the words in.",
+      "The width is still the frame's. One measure is wrong for two page shapes out of three: a chapter is a reading column with a table of contents beside it, a reference page is prose over wide tables. Put the page in whatever box states your measure.",
+    ],
+    refusals: [
+      {
+        name: "A heading level",
+        why: "A page is the document's one h1. A heading that is not the document's subject is a Heading inside the page, at whatever step the outline needs.",
+      },
+      {
+        name: "A size",
+        why: "There is one page step in an app. A title that could be four sizes is four apps arguing on one site, and the documentation this came from shipped that prop for an hour before deleting it with the one exception that motivated it.",
+      },
+      {
+        name: "Actions beside the title",
+        why: "They go in the toolbar, where every other control in the frame already is. A row of buttons under a large title is a second toolbar with no keyboard and no place of its own.",
+      },
+      {
+        name: "A width",
+        why: "The measure is the frame's, and it differs per page. Nothing here caps a line length, so a page states its own maximum in the box it sits in.",
+      },
+      {
+        name: "Collapsing on its own outside a frame",
+        why: "The collapse needs a band pinned over a scrolling region, which is a property of a frame. In a Card there is neither, so the title draws and nothing pretends to happen.",
+      },
+    ],
+  },
+  {
+    slug: "toolbar",
+    name: "Toolbar",
+    family: "Control",
+    spec: "§45",
+    abstract: "Toolbar is the row an app's controls live in, and it answers the keyboard as one control.",
+    overview: [
+      "The whole row is one tab stop and the arrow keys move between the controls inside it, which is what every platform toolbar does and what a row of eleven separately reachable icon buttons is not. That behaviour is why this is a component rather than a Flex, and it is Base UI's Toolbar underneath.",
+      "What the row states is the rhythm: its height is one control row at its size, the gap between clusters is the system's, and the controls inside take the row's index unless they state their own. What it does not state is which controls sit at which end, because that is what those controls mean. Group them with a Flex and the row spaces the groups: one cluster starts, two split, three read leading, centre and trailing.",
+      "ToolbarGroup is the capsule for controls that belong together, and it always draws one. It is the segmented control's track with nothing chosen in it, so it stands level with the button beside it and hosts its own by the same subtraction. Clustering without a capsule is a Flex.",
+    ],
+    declaration: `<Toolbar>
+  <Flex align="center" gap="2">
+    <ToolbarButton iconOnly aria-label="Back">{back}</ToolbarButton>
+    <ToolbarTitle>Nature Walks</ToolbarTitle>
+  </Flex>
+  <ToolbarGroup>
+    <ToolbarButton>Share</ToolbarButton>
+    <ToolbarSeparator />
+    <ToolbarButton>Export</ToolbarButton>
+  </ToolbarGroup>
+</Toolbar>`,
+    topics: [
+      { title: "The row", symbols: ["Toolbar"] },
+      { title: "What goes in it", symbols: ["ToolbarButton", "ToolbarGroup", "ToolbarSeparator"] },
+      { title: "Naming it", symbols: ["ToolbarTitle"] },
+    ],
+    parts: [
+      {
+        part: "ToolbarButton",
+        blurb: "A Button registered with the row's keyboard. Our Button cannot enrol itself in the composite, so a plain one in a toolbar is a second tab stop the arrow keys never reach. Every Button prop passes through, render included, so an item that navigates is an anchor and one that opens a menu is a MenuTrigger. It rests where every other control rests, at medium: quiet and loud are for the exceptional cases, and a row of unfilled glyphs reads as marks on the content rather than as things to press.",
+      },
+      {
+        part: "ToolbarGroup",
+        blurb: "A capsule around controls that belong together — the formatting cluster in a macOS toolbar. It is a channel with no edge of its own, as tall as a Button at the same size, and the controls in it are inset from its walls — so the group stands level with the button beside it and the buttons inside stand level with both. It takes no size of its own: the group and its contents both read the row's index.",
+      },
+      {
+        part: "ToolbarSeparator",
+        blurb: "The rule between two clusters. It draws the same hairline a Separator draws anywhere else, turned across the row, and it stands at the height of the glyphs it divides rather than of the band it crosses — a line spanning the whole band reads as a division of the frame.",
+      },
+      {
+        part: "ToolbarTitle",
+        blurb: "What the row is about. Given words it says them, which is the permanent title of a row with no page under it. Given none it mirrors the Page in the same pane: silent while that page's own large title is on screen, and fading in when it scrolls away. With nothing to say it renders nothing at all, so no gap opens where a title is not.",
+      },
+    ],
+    refusals: [
+      {
+        name: "Tone, emphasis and material on the ROW",
+        why: "A toolbar is a row, not a pane. It paints nothing, so there is no fill to rank and nothing to make translucent, and the surface it sits in answers the theme. The group is the one part here that draws a box, so it is the one part that takes backdrop — a material makes a component's own fill translucent, which is only expressible where there is one.",
+      },
+      {
+        name: "Leading, centre and trailing parts",
+        why: "Which controls sit at which end is what those controls mean, and that is yours to say. The row states the alignment, the split and the gap; a Flex groups what belongs together. Three named slots would be three ways to say what one split already says.",
+      },
+      {
+        name: "A size on the group",
+        why: "The group and the controls in it both read the row's index, which is what makes the capsule exactly as tall as the button beside it. A size here would let those two disagree.",
+      },
+      {
+        name: "A gap prop",
+        why: "The distance between clusters is the system's rhythm at the row's index, and inside a cluster it is the Flex you wrote. A row where every call site picks its own spacing is the thing this component exists to end.",
+      },
+    ],
+  },
+  {
     slug: "popover",
     name: "Popover",
     family: "Surface",
@@ -1045,7 +1186,7 @@ export const ENTRIES: Entry[] = [
   <PopoverTrigger render={<Button>Rename</Button>} />
   <PopoverContent>
     <PopoverTitle>Rename project</PopoverTitle>
-    <PopoverDescription>This changes the name everywhere.</PopoverDescription>
+    <PopoverDescription>\n      This changes the name everywhere.\n    </PopoverDescription>
     <PopoverClose render={<Button emphasis="loud">Save</Button>} />
   </PopoverContent>
 </Popover>`,
@@ -1258,7 +1399,7 @@ export const ENTRIES: Entry[] = [
   </ShellRail>
   <ShellSidebar aria-label="Sections">
     <ShellPaneHeader float>
-      <ShellTrigger pane="sidebar" action="toggle" render={<Button iconOnly />} />
+      <ShellTrigger pane="sidebar" action="toggle" />
     </ShellPaneHeader>
     <ShellScroll fade>
       <ShellNavGroup label="Workspace">
@@ -1289,10 +1430,10 @@ export const ENTRIES: Entry[] = [
       { name: "A floating or stacked presentation value", why: "A pane over the content and a pane pulled off the frame are one idea, and it is flush={false}. The pane leaves the tiling, and what it becomes is derived from whether the content is underneath it. There is no third presentation to choose." },
     ],
     parts: [
-      { part: "ShellHeader", blurb: "The full-width top bar, and a real <header> landmark. A header that is not full-width belongs inside ShellContent" },
-      { part: "ShellRail", blurb: "The narrow icon column that switches sections: a <nav>, independent of the sidebar. Give each nav an aria-label when both are present" },
-      { part: "ShellSidebar", blurb: "The wide navigation column: a <nav>. Untouched, it rests open on a roomy window and closed on a narrow one, with no script deciding" },
-      { part: "ShellContent", blurb: "The work area: a real <main> that scrolls itself and takes whatever room the other panes leave" },
+      { part: "ShellHeader", blurb: "The full-width top bar, and a real `<header>` landmark. A header that is not full-width belongs inside ShellContent" },
+      { part: "ShellRail", blurb: "The narrow icon column that switches sections: a `<nav>`, independent of the sidebar. Give each nav an aria-label when both are present" },
+      { part: "ShellSidebar", blurb: "The wide navigation column: a `<nav>`. Untouched, it rests open on a roomy window and closed on a narrow one, with no script deciding" },
+      { part: "ShellContent", blurb: "The work area: a real `<main>` that scrolls itself and takes whatever room the other panes leave" },
       { part: "ShellRailItem", blurb: "One square in the rail, for a high-level region rather than a row. Icon-only, because narrow is part of what a rail means" },
       { part: "ShellRailList", blurb: "A run of rail squares. A rail usually has two: the regions at the top, and the account and settings squares pinned at the bottom" },
       { part: "ShellScroll", blurb: "The one region of a pane that scrolls. Mark it and everything else in the pane pins by being an ordinary child: the pane becomes a column, this takes the leftover room, and the pane stops scrolling itself" },
@@ -1300,8 +1441,8 @@ export const ENTRIES: Entry[] = [
       { part: "ShellPaneFooter", blurb: "The same row at the pane's other end. With `float` the pane publishes --kui-pane-inset-block-end" },
       { part: "ShellNavGroup", blurb: "A cluster of nav rows under a heading. It carries role=group and points aria-labelledby at its own label, so the heading is announced as well as seen" },
       { part: "ShellNavItem", blurb: "One row of navigation. It stands level with a Button, which a menu row does not, because a menu row lives in a panel opened for a second while this sits beside real buttons all day" },
-      { part: "ShellInspector", blurb: "The right-hand detail column: an <aside> that rests closed until it is asked for. Pass defaultOpen for one that starts open" },
-      { part: "ShellBottom", blurb: "The bottom pane for a terminal or a log: an <aside> spanning the full width below the columns, resting closed" },
+      { part: "ShellInspector", blurb: "The right-hand detail column: an `<aside>` that rests closed until it is asked for. Pass defaultOpen for one that starts open" },
+      { part: "ShellBottom", blurb: "The bottom pane for a terminal or a log: an `<aside>` spanning the full width below the columns, resting closed" },
       { part: "ShellTrigger", blurb: "The one thing that crosses the frame: a button that drives a pane by name" },
     ],
   },
@@ -1519,7 +1660,7 @@ export const ENTRIES: Entry[] = [
     overview: ["It may only repeat what the control already announces, because a tooltip has no keyboard route, no touch route and no reading order, so anything that appears only here is lost to everybody else. It is inverted: dark on a light page and light on a dark one. The part names follow shadcn/ui's tooltip (MIT), with credit, and the behaviour is Base UI's Tooltip."],
     declaration: `<TooltipProvider>
   <Tooltip>
-    <TooltipTrigger render={<Button iconOnly aria-label="Undo">{icon}</Button>} />
+    <TooltipTrigger render={<Button aria-label="Undo" />} />
     <TooltipContent>Undo</TooltipContent>
   </Tooltip>
 </TooltipProvider>`,
@@ -1638,5 +1779,23 @@ export const ENTRIES: Entry[] = [
     ],
   },
 ];
+
+/**
+ * ALPHABETICAL, BY THE NAME A READER SEES (2026-09-07, Kushagra: "can we arrange the pages to be
+ * purely alphabetically").
+ *
+ * The literal above is grouped — `Surface` beside `Button`, `Chip` beside `Badge` — which reads
+ * as an argument about which components are relatives, and that argument is the reference's own
+ * prose rather than its index. An index has one job: let a reader find a name they already have.
+ *
+ * SORTED HERE, ONCE, rather than by rewriting the literal, because the order then has a single
+ * home that cannot rot: every consumer — the sidebar, the walk through the band, the search
+ * index, the coverage laws — reads this list, and a hand-kept order is a thing 54 blocks can
+ * silently fall out of on the next component.
+ *
+ * By `name` and not `slug`: `AlertDialog` is what the page is called and `alert-dialog` is what
+ * the URL is, and a reader scanning the sidebar is reading the first.
+ */
+export const ENTRIES: Entry[] = [...DECLARED].sort((a, b) => a.name.localeCompare(b.name));
 
 export const BY_SLUG = new Map(ENTRIES.map((e) => [e.slug, e]));

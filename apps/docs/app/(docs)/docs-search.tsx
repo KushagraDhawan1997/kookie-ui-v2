@@ -38,7 +38,6 @@ import {
   CommandItem,
   CommandList,
   Flex,
-  Text,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -79,7 +78,6 @@ export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
         <TooltipTrigger
           render={
             <Button
-              emphasis="quiet"
               iconOnly
               /* It floats in the sidebar's chrome band since 2026-08-30, with rows passing
                  behind it — which is exactly what the material defends (§10), so it states
@@ -116,13 +114,16 @@ export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
           <CommandList>
             {(entry: SearchEntry) => (
               <CommandItem key={entry.href} value={entry} render={<Link href={entry.href} />}>
+                {/* NOT `Text`, AND THAT IS THE POINT (2026-09-06). Both halves were pinned at
+                    step 2, so when the palette's rows moved one step up the boxes grew and the
+                    words stayed where they were — a size-2 result sitting in a size-3 row. `Text`
+                    could not fix it either: it rests at step 3 whatever it sits in, which is
+                    right for body copy on a page and wrong for the label of a control. A row
+                    prices its own label, so these inherit it, and what tells the title from the
+                    section it sits in is weight and ink rather than size. */}
                 <Flex align="baseline" gap="3" wrap="wrap">
-                  <Text size="2" weight="medium">
-                    {entry.title}
-                  </Text>
-                  <Text size="2" emphasis="quiet">
-                    {entry.context}
-                  </Text>
+                  <span className="kd-hit-title">{entry.title}</span>
+                  <span className="kd-hit-context">{entry.context}</span>
                 </Flex>
               </CommandItem>
             )}

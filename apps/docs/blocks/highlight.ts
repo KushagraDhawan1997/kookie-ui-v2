@@ -1,6 +1,5 @@
 /**
- * Syntax highlighting, in the system's own colours (2026-08-21; LOG), with the author's
- * annotations since 2026-08-26.
+ * Syntax highlighting, in the system's own colours, with the author's annotations.
  *
  * Shiki is the Base UI relationship one layer over: TextMate grammars are decades of
  * accumulated correctness nobody should rewrite, they are behaviour rather than appearance,
@@ -9,13 +8,13 @@
  *
  * The mechanism is Shiki's CSS-variables theme: instead of baking hexes, the tokenizer emits
  * `var(--code-token-*)` and the package's `CodeBlock` resolves those names against the ten
- * tones' SOLVED ink ladder (§15, 2026-08-10). That is the load-bearing part. A stock highlight theme is a
- * second colour system living inside the first — the one place on a site made of KookieUI
+ * tones' SOLVED ink ladder (§15). That is the load-bearing part. A stock highlight theme is
+ * a second colour system living inside the first — the one place on a site made of KookieUI
  * where the pixels would not be KookieUI's — and it would also be the only text on the page
  * held to no contrast target at all.
  *
- * THE PIPELINE IS `codeToHast`, NOT `codeToTokens` (2026-08-26), and the reason is a fact
- * about Shiki: notation transformers only annotate the HAST — they never run in the token
+ * THE PIPELINE IS `codeToHast`, NOT `codeToTokens`, and the reason is a fact about Shiki:
+ * notation transformers only annotate the HAST — they never run in the token
  * pipeline. So the author's annotations (`// [!code highlight]`, `[!code ++]`, `[!code
  * focus]`, fence meta `{1,3}` and `/word/`) require walking the tree Shiki built. The walk
  * reduces it straight back to lines of tokens: nothing is trusted as markup, nothing is
@@ -23,9 +22,9 @@
  * (the tokens.test.ts parser rule): a shape this file does not recognise throws rather than
  * degrading, because a silent one-char slice is how a negative assertion goes green.
  *
- * BOLD IS DROPPED, ITALIC IS KEPT, and the asymmetry is the type system's (§15, 2026-08-09:
- * `bold` is refused package-wide, and a value left reachable is one every call site can
- * re-introduce). Italic is not a weight and stays — it is the one signal separating a comment
+ * BOLD IS DROPPED, ITALIC IS KEPT, and the asymmetry is the type system's (§15: `bold` is
+ * refused package-wide, and a value left reachable is one every call site can re-introduce).
+ * Italic is not a weight and stays — it is the one signal separating a comment
  * from the code around it that does not spend a colour.
  */
 import { createCssVariablesTheme, createHighlighter } from "shiki";
@@ -119,6 +118,27 @@ export type HighlightedCode = {
 /** The code as the reader receives it: annotations stripped, exactly what the copy button
     hands over and what a selection drags. One derivation, so the paint and the clipboard
     cannot disagree about what the code says. */
+/**
+ * How many columns of whitespace a line begins with.
+ *
+ * A wrapped row has to continue at the line's OWN indentation, and CSS cannot read that: the
+ * leading whitespace is part of the line's text, so the only thing a stylesheet can hang from
+ * is the pane's wall. Every renderer that gets this right — an editor, a terminal, a diff view
+ * — knows the number because it laid the text out itself. Here the tokenizer already holds it,
+ * so it is derived once, at build time, beside `plainText` and for the same reason: a fact
+ * about a line, read off the tokens rather than reconstructed from the markup they produce.
+ *
+ * Columns, not pixels. The well is monospaced, so a column IS a `ch`, and the number crosses
+ * into CSS as one — the same argument `code.css` makes for stating its own distances in `ch`.
+ * TABS ARE COUNTED AS ONE COLUMN and no source shipped here has any (a law walks for them),
+ * because a tab's width is a rendering choice and honouring it would mean this file agreeing
+ * with `tab-size` in two homes.
+ */
+export const leadingColumns = (line: CodeLine): number => {
+  const text = line.tokens.map((token) => token.text).join("");
+  return text.length - text.trimStart().length;
+};
+
 export const plainText = (lines: readonly CodeLine[]): string =>
   lines.map((line) => line.tokens.map((token) => token.text).join("")).join("\n");
 
@@ -129,11 +149,11 @@ export const plainText = (lines: readonly CodeLine[]): string =>
 export type FenceMeta = {
   title?: string | undefined;
   /**
-   * `undefined` when the fence did not say, which is not the same as `false` (2026-09-02). The
-   * docs number every fence by default and a bare `lineNumbers` used to be the only way to ask,
-   * so a two-state flag left nothing to say NO with — and a flag whose default flipped would
-   * have made every authored `lineNumbers` a no-op that still reads as a decision. Three states:
-   * `lineNumbers` asks, `lineNumbers=false` refuses, and silence is the consumer's own default.
+   * `undefined` when the fence did not say, which is not the same as `false`. A consumer that
+   * numbers every fence by default needs something to say NO with, and a two-state flag leaves
+   * nothing — while a flag whose default flips makes every authored `lineNumbers` a no-op that
+   * still reads as a decision. Three states: `lineNumbers` asks, `lineNumbers=false` refuses,
+   * and silence is the consumer's own default.
    */
   lineNumbers?: boolean | undefined;
   maxLines?: number | undefined;

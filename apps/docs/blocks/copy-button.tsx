@@ -10,13 +10,18 @@
  * anyway (§11 lists one; it has never shipped). It reverts on a timer, which is state, not
  * motion — nothing here reads a motion token.
  *
- * WHAT SAYS IT depends on what the button has (2026-08-30). A labelled button changes its
- * label; an icon-only one changes its GLYPH to a check, and its accessible name with it, so a
- * screen reader hears the confirmation a sighted reader sees. The check was always there — it
- * is the label that turns out to be the optional half.
+ * WHAT SAYS IT depends on what the button has. A labelled button changes its label; an
+ * icon-only one changes its GLYPH to a check, and its accessible name with it, so a screen
+ * reader hears the confirmation a sighted reader sees.
+ *
+ * A `ToolbarButton`, and that is a contract rather than a preference: every place this button
+ * lives is a chrome row over a pane, and those rows are `Toolbar`s. A plain
+ * Button cannot enrol in a toolbar's roving tab stop, so an unregistered control in one is a
+ * stop the arrow keys never reach; and `ToolbarButton` throws outside a toolbar, which makes
+ * the requirement loud rather than a comment nobody reads.
  */
 import * as React from "react";
-import { Button, type Size } from "@kookie-ui/react";
+import { ToolbarButton, type Size } from "@kookie-ui/react";
 
 import { CopyIcon } from "../app/icons";
 
@@ -35,9 +40,9 @@ export function CopyButton({
   /**
    * The resting glyph, for a button whose label already says what it copies. The code button
    * leaves it unset and gets a copy mark, because "Copy" is a verb with no object and the
-   * glyph is what names the object. The NAME button passes a file mark instead (2026-08-28,
-   * Kushagra): its label is the object, so a copy mark there would say the same thing twice
-   * and two identical marks at either end of one pane would read as two of the same control.
+   * glyph is what names the object. The NAME button passes a file mark instead: its label is
+   * the object, so a copy mark there would say the same thing twice, and two identical marks
+   * at either end of one pane would read as two of the same control.
    *
    * The CONFIRMATION is not overridable. Whatever the resting glyph, a press shows the check
    * — that is the button reporting what happened, and a component that let a call site
@@ -45,9 +50,9 @@ export function CopyButton({
    */
   icon?: React.ReactNode;
   /**
-   * Paint the glyph alone (2026-08-30, Kushagra). "Copy" beside a copy mark says one thing
-   * twice, and on a code figure the button sits in a corner where a verb earns no room —
-   * every editor, terminal and code host on the web has trained this glyph.
+   * Paint the glyph alone. "Copy" beside a copy mark says one thing twice, and on a code
+   * figure the button sits in a corner where a verb earns no room — every editor, terminal
+   * and code host on the web has trained this glyph.
    *
    * The name does not go away, it stops being PAINTED: `aria-label` carries it, and Button's
    * own type refuses an icon-only control without one, so this cannot silently ship a button
@@ -61,25 +66,26 @@ export function CopyButton({
   const timer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   React.useEffect(() => () => clearTimeout(timer.current), []);
 
-  /* THE GLYPH IS THE RESTING ONE, ALWAYS (2026-09-02). This used to be
-     `copied ? <CheckIcon/> : ...`, which swapped the element and therefore swapped it in one
-     frame — React unmounts the outgoing glyph, and an unmounted element cannot leave.
+  /* THE GLYPH IS THE RESTING ONE, ALWAYS. Writing `copied ? <CheckIcon/> : ...` would swap
+     the element and therefore swap it in one frame — React unmounts the outgoing glyph, and
+     an unmounted element cannot leave.
 
-     `done` is Button's own state now, and it draws the confirmation: it mounts the system's
-     tick beside this glyph, stacked in one cell, and CSS crosses them. The tick is the same
+     `done` is the button's own state, and it draws the confirmation: it mounts the system's tick
+     beside this glyph, stacked in one cell, and CSS crosses them. The tick is the same
      drawing a checkbox's mark is. What stays here is the STATE and its timer, which is the
      rule §29 states one component over — a control that ran its own clock would decide, for
      every app, how long "just now" lasts.
 
      One glyph expression for both arms: an icon-only button puts it in `children` (there the
      glyph IS the content), a labelled one puts it in `leading` (there it adorns a label).
-     Button's own comment states that split; this is the only place it has to be honoured. */
+     The package's own comment states that split; this is the only place it has to be honoured. */
   const glyph = icon ?? <CopyIcon />;
 
   return (
-    // Medium is Button's own default, so no emphasis is stated; `backdrop` because this
-    // button FLOATS over the code — a floating control takes the theme's material (glass).
-    <Button
+    // Medium is the rung a `ToolbarButton` takes outside a group, so no emphasis is stated;
+    // `backdrop` because this button FLOATS over the code — a floating control takes the
+    // theme's material (glass).
+    <ToolbarButton
       size={size}
       backdrop
       done={copied}
@@ -98,6 +104,6 @@ export function CopyButton({
       }}
     >
       {iconOnly ? glyph : copied ? "Copied" : label}
-    </Button>
+    </ToolbarButton>
   );
 }

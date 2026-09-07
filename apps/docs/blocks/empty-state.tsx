@@ -1,5 +1,5 @@
 /**
- * The empty state: what a region shows when it has nothing to show (2026-09-02).
+ * The empty state: what a region shows when it has nothing to show.
  *
  * WHY THIS IS A BLOCK AND NOT A COMPONENT. Its substance is entirely the app's — which words,
  * which mark, which action — and §11 has no row for it. What is left for the system to own is an
@@ -13,13 +13,12 @@
  * its mark is a node, its words are the caller's; none of that is expressible as a frozen tree.
  * The same cut kept `Specimen` out of the builder and put `Tree`'s keyboard in the package.
  *
- * WHAT APPLE DOES, checked rather than remembered (2026-09-02). The HIG has no empty-state
+ * WHAT APPLE DOES, checked rather than remembered. The HIG has no empty-state
  * COMPONENT — the same finding as the message family, where their answer is guidance in the
  * Onboarding and Writing register rather than a component page. But SwiftUI ships
  * `ContentUnavailableView` (iOS 17), and its slots are the four below, in this order: a label
- * carrying a title and a symbol, a description, and actions last. The shape here was specified
- * before that was read and did not have to move, which is the strongest evidence available that
- * it is the shape.
+ * carrying a title and a symbol, a description, and actions last — the same four, in the same
+ * order, as the arrangement below.
  *
  * THREE STATES, AND `reason` IS NOT A PROP. This is the part every system gets wrong, and it is
  * editorial rather than structural:
@@ -87,13 +86,12 @@ export function EmptyState({ mark, title, description, action, secondary }: Empt
      below binds it to what it introduces. `2` inside the words and `5` around them is the 4x
      that rule asks for, and the difference is what stops the three regions reading as one stack.
 
-     THE STEPS ARE A PAIR, AND THEY MOVE TOGETHER (2026-09-02, Kushagra: the title "should be a
-     bit smaller"). It shipped at the house ladder's own rungs — block title `6` over body `3`,
-     24 over 16, a ratio of 1.50 — and `5` alone would have been 20 over 16, which is **1.25** and
-     under the 1.33 §15 rule 1 asks of adjacent levels. That rule is the one that calls a small
-     ratio "not a hierarchy, a rounding error", so taking the title down obliges taking the
-     sentence down with it: `5` over `2` is 20 over 14, **1.43**, and the hierarchy survives the
-     smaller title.
+     THE STEPS ARE A PAIR, AND THEY MOVE TOGETHER. The house ladder's own rungs are title `6`
+     over body `3` — 24 over 16, a ratio of 1.50 — and taking the title to `5` alone would be
+     20 over 16, which is 1.25 and under the 1.33 §15 rule 1 asks of adjacent levels. That rule
+     is the one that calls a small ratio "not a hierarchy, a rounding error", so a smaller title
+     obliges a smaller sentence with it: `5` over `2` is 20 over 14, 1.43, and the hierarchy
+     survives.
 
      `5` and `2` are both steps §15 marks as decisions rather than defaults, which is what this
      paragraph is: the title is a decision because a region's own label should not shout at a page

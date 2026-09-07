@@ -110,6 +110,7 @@ export const OFFERED: Record<string, readonly string[]> = {
   // module. Restating the lists would fix the page and break the one-home rule the catalog
   // exists to keep, so this waits on `themeAxes` moving to a server-reachable home.
   toggle: ["size", "tone", "bordered", "backdrop"],
+  toolbar: ["size", "backdrop"],
 };
 
 /** The catalog's component key for a docs slug. Most are the pascal case of the slug. */
@@ -162,6 +163,7 @@ const CATALOG_KEY: Record<string, string> = {
   "text-area": "TextArea",
   "text-field": "TextField",
   toggle: "Toggle",
+  toolbar: "Toolbar",
 };
 
 /**

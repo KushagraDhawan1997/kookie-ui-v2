@@ -13,7 +13,7 @@
   margin: 0;
 }
 
-/* THE LINK IS NOT `Link`, AND THE ARGUMENT IS BREADCRUMB'S (2026-09-01, breadcrumb.css).
+/* THE LINK IS NOT `Link`, AND THE ARGUMENT IS BREADCRUMB'S (breadcrumb.css).
 
    `Link` rests on `accent` and always STAMPS it, which re-scopes all three foreground roles
    onto that family's ink trio — a column of thirty accent links is a footer shouting the whole
@@ -23,11 +23,11 @@
 
    THE RESTING COLOUR IS NOT HERE, and that is the point: it is `emphasis="medium"` on the
    `Text` in `footer.tsx`, which IS the muted ink role. Writing `color: var(--color-text-muted)`
-   in this file was the first spelling and it lost — measured, the link painted full ink,
-   because `Text` stamps `data-emphasis="loud"` and `.kui-type[data-emphasis="loud"]` outranks a
-   bare class. Winning that fight would have meant a second home for a colour the system already
-   states, so the fight is not had: the role says the rest, and this file says only what happens
-   when a pointer arrives.
+   in this file loses anyway — measured, the link paints full ink, because `Text` stamps
+   `data-emphasis="loud"` and `.kui-type[data-emphasis="loud"]` outranks a bare class. Winning
+   that fight would mean a second home for a colour the system already states, so the fight is
+   not had: the role says the rest, and this file says only what happens when a pointer
+   arrives.
 
    The underline rests TRANSPARENT rather than absent, so the metrics never move and §8's paint
    clock has a colour to carry — an appearing `text-decoration-line` is a discrete change that
@@ -56,9 +56,9 @@
    `a.kb-footer-link`, not `.kb-footer-link`, and the element is load-bearing rather than
    decorative: the rung it has to beat is `.kui-type[data-emphasis="medium"]` at (0,2,0), and a
    bare class with a pseudo-class ties it. A tie is settled by source order, which across a
-   package boundary is a bundler's decision and not a stated one — the shell's own 2026-08-20
-   finding ("settled by RANK not order"). The type selector makes it (0,2,1) and the rule wins
-   by saying something, wherever the file lands. */
+   package boundary is a bundler's decision and not a stated one — so it has to be settled by
+   RANK. The type selector makes it (0,2,1) and the rule wins by saying something, wherever
+   the file lands. */
 @media (hover: hover) {
   a.kb-footer-link:hover {
     color: var(--color-text);
@@ -76,7 +76,7 @@
   outline-offset: var(--focus-ring-offset);
 }
 
-/* The stand-down on the DECLARING selector (§8, the 2026-08-10 rule): the shared block in the
+/* The stand-down on the DECLARING selector (§8): the shared block in the
    package covers `.kui-control` and `.kui-mark`, and this is neither — so a clock declared here
    is a clock nothing else can stop. */
 @media (prefers-reduced-motion: reduce) {
@@ -86,13 +86,12 @@
 }
 
 /* ── The columns ───────────────────────────────────────────────────────────────────────────
-   MULTICOL, NOT A GRID, AND THE HOLE IS THE REASON (2026-09-01).
+   MULTICOL, NOT A GRID, AND THE HOLE IS THE REASON.
 
    A grid's row is as tall as its tallest item, so six groups of wildly different lengths — one
    with ten links, three with three — laid out in two rows put five empty rows under the short
-   columns. Measured on this site's own footer, which is what dogfooding found. No grid property
-   fixes it: `align-items: start` sizes the ITEM, not the row, and masonry is not a thing that
-   ships.
+   columns. No grid property fixes it: `align-items: start` sizes the ITEM, not the row, and
+   masonry is not a thing that ships.
 
    Column layout balances by height, which is precisely the arrangement a footer wants: every
    column starts at the top, and how many there are follows from how much room there is.

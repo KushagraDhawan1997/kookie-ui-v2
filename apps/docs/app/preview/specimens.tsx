@@ -86,6 +86,8 @@ import {
   Radio,
   RadioGroup,
   Separator,
+  SegmentedControl,
+  SegmentedItem,
   Shell,
   ShellHeader,
   ShellRail,
@@ -97,6 +99,12 @@ import {
   ShellPaneFooter,
   ShellPaneHeader,
   ShellScroll,
+  Page,
+  Toolbar,
+  ToolbarButton,
+  ToolbarGroup,
+  ToolbarSeparator,
+  ToolbarTitle,
   ShellContent,
   ShellInspector,
   ShellBottom,
@@ -137,6 +145,11 @@ import {
 import {
   ChartIcon,
   FolderIcon,
+  MoreIcon,
+  PanelLeftIcon,
+  PanelRightIcon,
+  ChevronLeftIcon,
+  CopyIcon,
   HomeIcon,
   LockIcon,
   PlusIcon,
@@ -2950,6 +2963,211 @@ function TreeSection() {
   );
 }
 
+
+/* ── Toolbar (§45) ─────────────────────────────────────────────────────────────────────────
+   Judged against the thing it was built from: a macOS toolbar is a row of clusters, some of
+   them enclosed, with the document's name at the leading edge. What the row supplies is the
+   height, the split, the gap and the index; what a cluster MEANS is the app's, so the demos
+   group with `Flex` where the controls merely sit together and with `ToolbarGroup` where they
+   should read as one object. */
+function ToolbarSection() {
+  const tools = (
+    <>
+      <Flex align="center" gap="2">
+        <ToolbarButton iconOnly aria-label="Toggle navigation">
+          <PanelLeftIcon />
+        </ToolbarButton>
+        <ToolbarButton iconOnly aria-label="Back">
+          <ChevronLeftIcon />
+        </ToolbarButton>
+        <ToolbarTitle>Nature Walks</ToolbarTitle>
+      </Flex>
+      <Flex align="center" gap="2">
+        <ToolbarGroup>
+          <ToolbarButton iconOnly aria-label="Lock">
+            <LockIcon />
+          </ToolbarButton>
+          <ToolbarButton iconOnly aria-label="Duplicate">
+            <CopyIcon />
+          </ToolbarButton>
+          <ToolbarButton iconOnly aria-label="More">
+            <MoreIcon />
+          </ToolbarButton>
+        </ToolbarGroup>
+        <ToolbarButton iconOnly aria-label="Search">
+          <SearchIcon />
+        </ToolbarButton>
+      </Flex>
+    </>
+  );
+  return (
+    <Stack gap="6">
+      {/* The ladder read as a ladder: the row, the group and the buttons in it move together,
+          because all three read one index and the group's hosted box derives from it. */}
+      <Demo label="Sizes — the row, the capsule and the controls in it move as one">
+        <Stack gap="4">
+          {SIZES.map((size) => (
+            <Card key={size} size={size}>
+              <Toolbar size={size}>{tools}</Toolbar>
+            </Card>
+          ))}
+        </Stack>
+      </Demo>
+
+      {/* The split, with nothing else in the demo: one cluster starts, two go to the ends,
+          three read leading / centre / trailing. */}
+      <Demo label="Clusters — one starts, two split, three read leading, centre, trailing">
+        <Stack gap="3">
+          <Card size="2">
+            <Toolbar>
+              <Flex align="center" gap="2">
+                <ToolbarTitle>One cluster</ToolbarTitle>
+              </Flex>
+            </Toolbar>
+          </Card>
+          <Card size="2">
+            <Toolbar>
+              <ToolbarTitle>A title and one cluster</ToolbarTitle>
+              <ToolbarButton emphasis="medium">Done</ToolbarButton>
+            </Toolbar>
+          </Card>
+          <Card size="2">
+            <Toolbar>
+              <ToolbarButton iconOnly aria-label="Back">
+                <ChevronLeftIcon />
+              </ToolbarButton>
+              <ToolbarTitle>Three clusters</ToolbarTitle>
+              <ToolbarButton emphasis="medium">Done</ToolbarButton>
+            </Toolbar>
+          </Card>
+        </Stack>
+      </Demo>
+
+      {/* The agreement made visible: a group is the segmented control's track with nothing
+          chosen in it, so the two wells and the Button beside them must read as one family and
+          stand at one height. A rule between clusters is the Separator's own hairline. */}
+      <Demo label="A group is a segmented track with nothing chosen — same well, same rung">
+        <Card size="2">
+          <Toolbar>
+            <Flex align="center" gap="3">
+              <ToolbarGroup>
+                <ToolbarButton iconOnly aria-label="Left">
+                  <PanelLeftIcon />
+                </ToolbarButton>
+                <ToolbarButton iconOnly aria-label="Right">
+                  <PanelRightIcon />
+                </ToolbarButton>
+              </ToolbarGroup>
+              <SegmentedControl defaultValue="day" aria-label="Range">
+                <SegmentedItem value="day">Day</SegmentedItem>
+                <SegmentedItem value="week">Week</SegmentedItem>
+              </SegmentedControl>
+              <ToolbarSeparator />
+              <ToolbarButton>Publish</ToolbarButton>
+            </Flex>
+          </Toolbar>
+        </Card>
+      </Demo>
+
+      {/* On glass, over a photograph: the row paints nothing of its own, so what shows through
+          is the pane's veil and the group's own well riding on top of it. */}
+      <Demo label="Over a backdrop — the row paints nothing; the pane and the capsule do">
+        <BedSurface bed={PHOTO_BED}>
+          <Card size="2" backdrop>
+            <Toolbar>{tools}</Toolbar>
+          </Card>
+        </BedSurface>
+      </Demo>
+    </Stack>
+  );
+}
+
+/* ── Page (§46) ────────────────────────────────────────────────────────────────────────────
+   The demo IS the mechanism: scroll the frame and the large title goes behind the band while
+   the band's own title arrives. Both postures are on the page, because the padding that clears
+   the band is one declaration answering each of them with no branch. */
+function PageSection() {
+  const body = (
+    <Stack gap="6">
+      {["Overview", "Behaviour", "Refusals"].map((heading) => (
+        <Stack key={heading} gap="2">
+          <Heading size="6">{heading}</Heading>
+          <Text size="3" emphasis="medium">
+            A page is the screen you navigated to. The band above it belongs to the pane and
+            stays put while you move from one page to the next; this title arrives and leaves
+            with the content, which is the whole of the distinction.
+          </Text>
+        </Stack>
+      ))}
+    </Stack>
+  );
+  return (
+    <Stack gap="6">
+      <Demo label="Scroll it — the title goes behind the floating band, and the band says it again">
+        {/* Bled to the demo card's edges: a shell is a window, and a window inset inside a
+            card's padding shows its own scrollbar and pane edges short of the box a reader
+            reads as the app's edge (§3). */}
+        <Box height="26rem" m="bleed">
+          <Shell size="3">
+            <ShellContent>
+              {/* THE ROW STATES `backdrop`, and the pinned demo below states none (§10,
+                  2026-09-06). A floating band has the document passing behind it, so the mark
+                  belongs to the row and reaches every control in it. A band in flow has nothing
+                  passing behind it and asks for nothing — selectivity, said with the two demos
+                  side by side. */}
+              <ShellPaneHeader float>
+                <Toolbar backdrop>
+                  <Flex align="center" gap="2">
+                    <ToolbarButton iconOnly aria-label="Toggle navigation">
+                      <PanelLeftIcon />
+                    </ToolbarButton>
+                    <ToolbarTitle />
+                  </Flex>
+                  <ToolbarButton iconOnly aria-label="More">
+                    <MoreIcon />
+                  </ToolbarButton>
+                </Toolbar>
+              </ShellPaneHeader>
+              <ShellScroll fade>
+                <Page
+                  title="Dialog"
+                  description="Dialog shows a panel over a dimmed app."
+                >
+                  {body}
+                </Page>
+              </ShellScroll>
+            </ShellContent>
+          </Shell>
+        </Box>
+      </Demo>
+
+      {/* Pinned: the band is in flow, publishes no reach, and the same declaration clears it by
+          the air alone. Nothing about the page changes. */}
+      <Demo label="A pinned band — the same page, no branch anywhere">
+        <Box height="22rem" m="bleed">
+          <Shell size="3">
+            <ShellContent>
+              <ShellPaneHeader>
+                <Toolbar>
+                  <ToolbarTitle />
+                  <ToolbarButton iconOnly aria-label="More">
+                    <MoreIcon />
+                  </ToolbarButton>
+                </Toolbar>
+              </ShellPaneHeader>
+              <ShellScroll>
+                <Page title="Settings" description="Everything this app lets you change.">
+                  {body}
+                </Page>
+              </ShellScroll>
+            </ShellContent>
+          </Shell>
+        </Box>
+      </Demo>
+    </Stack>
+  );
+}
+
 export const SECTIONS: { id: string; name: string; body: React.ReactNode; standalone?: string }[] = [
   // Two cross-family sections lead, out of alphabetical order on purpose: they sweep an axis
   // ACROSS components, which is the permutation no single component's table can hold, and
@@ -2979,6 +3197,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "attachment", name: "Attachment", body: <AttachmentSection /> },
   { id: "command", name: "Command", body: <CommandSection /> },
   { id: "notice", name: "Notice", body: <NoticeSection /> },
+  { id: "page", name: "Page", body: <PageSection /> },
   ported("select"),
   { id: "layout", name: "Layout — Box, Flex, Grid, Stack", body: <LayoutSection /> },
   { id: "popover", name: "Popover", body: <PopoverSection /> },
@@ -2999,6 +3218,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   ported("text-area"),
   ported("text-field"),
   { id: "toggle", name: "Toggle", body: <ToggleSection /> },
+  { id: "toolbar", name: "Toolbar", body: <ToolbarSection /> },
   { id: "tooltip", name: "Tooltip", body: <TooltipSection /> },
   { id: "tree", name: "Tree", body: <TreeSection /> },
 ];

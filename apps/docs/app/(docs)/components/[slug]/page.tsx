@@ -32,27 +32,16 @@
  */
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import {
-  Code,
-  Flex,
-  Heading,
-  Stack,
-  Text,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@kookie-ui/react";
+import { Box, Code, Flex, Heading, Page, Stack, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Text } from "@kookie-ui/react";
 
 import { CodeSample } from "../../../../blocks/code-sample";
 import { TableOfContents } from "../../../../blocks/table-of-contents";
 import { Example } from "../../example";
 import { InlineCode } from "../../../inline-code";
 import { API } from "../api.generated";
-import { PageFrame, PageTitle } from "../../page-frame";
-import { propDescription, propSummary } from "../prop-description";
+import { EVERYWHERE } from "../../markdown";
+import { PageFrame } from "../../page-frame";
+import { propDescription, propSummary, propType } from "../prop-description";
 import { BY_SLUG, ENTRIES, type Entry } from "../registry";
 import { humanLabel } from "../../label";
 import { slugify } from "../../slug";
@@ -86,6 +75,7 @@ const SECTIONS = {
   declaration: "Declaration",
   overview: "Overview",
   example: "Example",
+  examples: "Examples",
   topics: "Topics",
   props: "Props",
   refusals: "What it refuses, and why",
@@ -109,7 +99,12 @@ export function referenceToc(entry: Entry): TocEntry[] {
   return [
     ...(entry.declaration ? [at(SECTIONS.declaration, 2)] : []),
     at(SECTIONS.overview, 2),
-    at(SECTIONS.example, 2),
+    ...(entry.variants
+      ? [
+          at(SECTIONS.examples, 2),
+          ...entry.variants.map((variant) => at(variant.title, 3)),
+        ]
+      : [at(SECTIONS.example, 2)]),
     ...(entry.topics
       ? [at(SECTIONS.topics, 2), ...entry.topics.map((topic) => at(topic.title, 3))]
       : [at(SECTIONS.props, 2)]),
@@ -198,7 +193,7 @@ function Props({ name }: { name: string }) {
   }
   return (
     <Stack gap="3">
-      <Table>
+      <Table size="3">
         <TableHeader>
           <TableRow>
             <TableHead>Prop</TableHead>
@@ -209,14 +204,20 @@ function Props({ name }: { name: string }) {
         <TableBody>
           {props.map((prop) => (
             <TableRow key={prop.name}>
+              {/* HUNG, because these two cells ARE their chip (`prose.css` carries the
+                  reasoning): an atom's side padding is glyph room, so left in place it set the
+                  column's words one padding right of the heading above them. The third column
+                  opens with a text node and needs nothing. */}
               <TableCell>
-                <Code>
+                <Code className="kd-props-code">
                   {prop.name}
                   {prop.optional ? "?" : ""}
                 </Code>
               </TableCell>
               <TableCell>
-                <Code emphasis="medium">{prop.type}</Code>
+                <Code className="kd-props-code" emphasis="medium">
+                  {propType(prop)}
+                </Code>
               </TableCell>
               <TableCell>
                 <InlineCode text={propSummary(propDescription(prop))} />
@@ -282,20 +283,20 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
        That is the fault chapters fixed on 2026-09-01, where the answer was that the COLUMN is
        the measure and the leftover is a gutter.
 
-       57rem is one sum and not three numbers: the measure, the gap, and the contents column
-       (40 + 3 + 14). The props table pays for it and the bill was measured first — squeezed to
-       640 five of Command's six tables still fit and one overflows by 12px, which it scrolls,
-       and a table that needs more room scrolls at either width. */
-    <PageFrame width="57rem">
-      <Flex gap="9" align="flex-start">
-        <Stack gap="9" style={{ maxWidth: "var(--kd-measure)", minWidth: 0, flex: 1 }}>
-          {/* THROUGH `InlineCode`, like every other prose field on the page. It shipped bare for
-              one build and `/components/flex` printed "Box with `display: flex`" with the
-              backticks in it — caught by sweeping the rendered pages, not by the suite, because
-              the law that reads this file's rendered fields had lost the deck from its list when
-              the deck's own name changed. The field is back in that list. */}
-          <PageTitle deck={<InlineCode text={entry.abstract} />}>{humanLabel(entry.name)}</PageTitle>
-
+       The frame IS the measure. It was `40 + 3 + 14` — one box holding the reading column AND
+       the contents' column — until 2026-09-05, when the contents left the flow: the chapter
+       reserves that same 17rem on the end side and the frame centres in what is left, so the
+       reading column lands where it already did and only the leftover moves. The props table
+       pays the same bill it paid before and the bill was measured first — squeezed to 640 five
+       of Command's six tables still fit and one overflows by 12px, which it scrolls, and a
+       table that needs more room scrolls at either width. */
+    <Box className="kd-chapter">
+      <PageFrame width="var(--kd-measure)">
+        <Page
+          title={humanLabel(entry.name)}
+          description={<InlineCode text={entry.abstract} />}
+          style={{ minWidth: 0 }}
+        >
           {entry.declaration ? (
             <Section title={SECTIONS.declaration}>
               {await CodeSample({ code: entry.declaration, lang: "tsx" })}
@@ -312,8 +313,33 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
             </Stack>
           </Section>
 
-          <Section title={SECTIONS.example}>
-            <Example name={entry.slug} />
+          {/* THE DEFAULT SITS UNDER THE SECTION'S OWN HEADING and the variants take an `h3`
+              each, because that is what they are: the example, and named departures from it.
+              Giving the default an `h3` of its own would need a word for it — shadcn says
+              "Basic" — and a heading that exists only to balance the ones below it is a label
+              rather than a name.
+
+              The knob panel rides the DEFAULT alone. `controlsFor` is keyed by slug, so a
+              variant resolves no controls and degrades to a plain specimen without a branch —
+              which is right: a variant is a fixed state worth linking to, and a reader who
+              wants to sweep an axis has the knobs one figure up. */}
+          <Section title={entry.variants ? SECTIONS.examples : SECTIONS.example}>
+            <Stack gap="8">
+              <Example name={entry.slug} />
+              {entry.variants?.map((variant) => (
+                <Stack key={variant.name} gap="4">
+                  <Stack gap="2" className="kd-prose">
+                    <Heading size="5" render={<h3 id={slugify(variant.title)} />}>
+                      {variant.title}
+                    </Heading>
+                    <Text size="3" render={<p />}>
+                      <InlineCode text={variant.why} />
+                    </Text>
+                  </Stack>
+                  <Example name={`${entry.slug}.${variant.name}`} />
+                </Stack>
+              ))}
+            </Stack>
           </Section>
 
           {entry.topics ? (
@@ -382,27 +408,28 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
               <Text size="3" render={<p />}>
                 This component inherits the rules below. Every component in the system does.
               </Text>
+              {/* THE SENTENCES ARE `markdown.ts`'s (2026-09-07). They shipped inline here and
+                  again in the twin, verbatim, under a comment in that file claiming one home —
+                  which is this repo's most-repeated defect wearing the name of its own cure. A
+                  law now reads the rendered list against `EVERYWHERE`, and a second one fails
+                  on any of these sentences appearing as a literal anywhere else. */}
               <Text size="3" render={<ul className="kd-list" />}>
-                {[
-                  "It sets no outer spacing. The container sets the gap between siblings. Use a Box to add space.",
-                  "Its size is an index, not a measurement. The same number means different things on different ladders.",
-                  "You choose the meaning and the loudness. The theme resolves the colour.",
-                  "CSS resolves every state. No JavaScript runs on hover, press or focus.",
-                  "It forwards className and style. Your style merges last, so your value wins.",
-                ].map((line) => (
+                {EVERYWHERE.map((line) => (
                   <li key={line}>{line}</li>
                 ))}
               </Text>
             </Stack>
           </Section>
-        </Stack>
+        </Page>
+      </PageFrame>
 
-        {/* THE GUTTER'S CONTENT IS THE BLOCK, and this file states only the column — the split
-            the chapter renderer already draws, and the block law's own line: a block may not
-            decide a distance. `kd-toc` carries the width, the stickiness and the window where
-            two columns stop fitting. */}
+      {/* THE GUTTER'S CONTENT IS THE BLOCK, and this file states only the column — the split
+          the chapter renderer already draws, and the block law's own line: a block may not
+          decide a distance. `prose.css` carries the reserve, the pin, the width, the
+          stickiness and the window where two columns stop fitting. */}
+      <div className="kd-toc-column">
         <TableOfContents entries={referenceToc(entry)} className="kd-toc" />
-      </Flex>
-    </PageFrame>
+      </div>
+    </Box>
   );
 }

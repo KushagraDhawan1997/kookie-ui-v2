@@ -1,5 +1,5 @@
 /**
- * The site footer: a mark, columns of links, and the line at the bottom (2026-09-01).
+ * The site footer: a mark, columns of links, and the line at the bottom.
  *
  * WHY THIS IS A BLOCK AND NOT A COMPONENT. A footer is a POSITION — the last region of a page
  * — and §3 is that a component never owns where it sits. Its substance is entirely the app's
@@ -8,14 +8,14 @@
  * carries safely: every colour, distance and step below resolves through the package, so the
  * center stays in the dependency and this file holds only the shape.
  *
- * IT IS DATA-DRIVEN, AND THAT IS THE DECISION. v1 shipped a footer as thirteen exports —
- * `Root`, `Main`, `Bottom`, `Brand`, `BrandName`, `Tagline`, `Links`, `LinkGroup`, `Nav`,
- * `Link`, `Legal`, `Social`, `SocialLink` — of which eleven were a `Flex` or a `Text` with
- * different defaults. That is layout wearing a part's name, and this repo has refused it twice
- * by name (`ComposerRow`'s grouping, 2026-08-23; `BreadcrumbSeparator`, 2026-09-01). A column
- * of links is a LIST, and a list is a prop: `groups` says what the footer says, and the file
- * you are reading says how it looks. Nothing is expressible through thirteen wrappers that is
- * not expressible by editing this one.
+ * IT IS DATA-DRIVEN, AND THAT IS THE DECISION. The alternative is a footer as thirteen
+ * exports — `Root`, `Main`, `Bottom`, `Brand`, `BrandName`, `Tagline`, `Links`, `LinkGroup`,
+ * `Nav`, `Link`, `Legal`, `Social`, `SocialLink` — of which eleven would be a `Flex` or a
+ * `Text` with different defaults. That is layout wearing a part's name, which this system
+ * refuses (`ComposerRow`'s grouping, `BreadcrumbSeparator`). A column of links is a LIST, and
+ * a list is a prop: `groups` says what the footer says, and the file you are reading says how
+ * it looks. Nothing is expressible through thirteen wrappers that is not expressible by
+ * editing this one.
  *
  * WHAT IT ACTUALLY OWNS is the naming: each column is its own `<nav>` named by its own title
  * through `aria-labelledby`, so a screen reader announces "Support navigation" rather than
@@ -43,21 +43,17 @@
  *    API to grow — the steps are stated once, below, and if you want other steps you change
  *    them in your copy. That is the whole difference between this and the package.
  *
- * IT DRAWS NO PANE AT ALL, and that is a refusal rather than a default (2026-09-01, Kushagra:
- * "I dont think any footer block should have Surface as part of the block, that is up to the
- * user, its easy to compose").
+ * IT DRAWS NO PANE AT ALL, and that is a refusal rather than a default. What a footer sits ON
+ * is the page's business, which is §3's own sentence about a component never owning where it
+ * sits, said one level up: a footer that wants a ground is `<Surface><Footer/></Surface>`, one
+ * element at the call site rather than a prop and a branch in here. A `pane` boolean is the
+ * wrong repair for the same reason — it takes the choice into the file instead of leaving it
+ * at the call site.
  *
- * It shipped as a `Surface`, then for an hour as a `pane` boolean when the second consumer
- * wanted the other answer — and the boolean was the wrong repair. What a footer sits ON is the
- * page's business, which is §3's own sentence about a component never owning where it sits,
- * said one level up: a footer that wants a ground is `<Surface><Footer/></Surface>`, one
- * element at the call site rather than a prop and a branch in here. Every consumer keeps the
- * choice and this file keeps none of it.
- *
- * A FOOTER WITH NO COLUMNS IS A LINE, and it is DERIVED rather than asked for (2026-09-02).
- * The minimal footer — a mark, two or three destinations, a copyright, all on one row — is the
- * second composition that actually recurs in the wild, and it is not a different arrangement so
- * much as this one with nothing to stack: there are no columns, so the mark has nothing to sit
+ * A FOOTER WITH NO COLUMNS IS A LINE, and it is DERIVED rather than asked for. The minimal
+ * footer — a mark, two or three destinations, a copyright, all on one row — is the second
+ * composition that actually recurs in the wild, and it is not a different arrangement so much
+ * as this one with nothing to stack: there are no columns, so the mark has nothing to sit
  * above, and leaving it there draws a title over an empty region. So when `groups` is empty the
  * mark joins the sign-off row, and everything else about that row is unchanged — the note keeps
  * the start wall and the legal links keep the end. One `groups.length` reads it, and no call
@@ -111,11 +107,10 @@ export function Footer({ brand, groups, note, legal }: FooterProps) {
      over an empty region. */
   const line = groups.length === 0;
 
-  /* NO HAIRLINE (2026-09-01, Kushagra: "No separator needed in footer"). One shipped here,
-     between the browsing half and the legal half, and §15's rule is that a separator earns its
-     place only where DISTANCE cannot group — which is not the case here: the outer stack already
-     sets these two regions nine steps apart against the two and three inside a column, and a
-     rule drawn across a gap that is already doing the work is a line saying what the space
+  /* NO HAIRLINE between the browsing half and the legal half. §15's rule is that a separator
+     earns its place only where DISTANCE cannot group, which is not the case here: the outer
+     stack already sets these two regions far apart against the intervals inside a column, and
+     a rule drawn across a gap that is already doing the work is a line saying what the space
      said. */
   const signOff =
     note || legal?.length || (line && brand) ? (
@@ -155,15 +150,13 @@ export function Footer({ brand, groups, note, legal }: FooterProps) {
      child of the body rather than of an article, which is where a page footer sits. No `role`,
      because stating the role the element already has is the aria rule this system follows
      everywhere else. */
-  /* THE RHYTHM IS 32 / 64 / 96, AND THE SIGN-OFF IS THE ONE THAT HAD TO MOVE (2026-09-01,
-      Kushagra: "the gap between rest of the footer and this row").
-
-      Every region sat at `9` (48px) while two stacked groups inside a column sat at `7`
-      (32) — sixteen pixels apart, which is a rhythm nobody can read. With the hairline gone
-      distance is the ONLY thing separating the browsing half from the sign-off, so it has to
-      be unmistakably the largest interval in the block rather than nominally the largest.
-      Doubling each level states it: 32 inside the columns, 64 between the mark and them, 96
-      before the line that ends the page.
+  /* THE RHYTHM IS 32 / 64 / 96, AND THE SIGN-OFF CARRIES THE LARGEST INTERVAL. One step for
+      every region — 48 against the 32 two stacked groups take inside a column — is sixteen
+      pixels apart, which is a rhythm nobody can read. With no hairline, distance is the ONLY
+      thing separating the browsing half from the sign-off, so it has to be unmistakably the
+      largest interval in the block rather than nominally the largest. Doubling each level
+      states it: 32 inside the columns, 64 between the mark and them, 96 before the line that
+      ends the page.
 
       Two stacks rather than one gap, because the three intervals are not one relationship:
       the mark and the columns are both what the footer SAYS, and the sign-off is what it
@@ -193,12 +186,11 @@ export function Footer({ brand, groups, note, legal }: FooterProps) {
                 </Text>
                 <Stack gap="2" render={<ul className="kb-footer-list" />}>
                   {group.links.map((link) => (
-                    /* KEYED BY BOTH (2026-09-01). `href` alone is not a key: a footer may point
-                       two links at one place — a "Status" under Product and under Legal is the
-                       ordinary case — and the demo data on this block's own page pointed every
-                       link at "#", which React reported as duplicate children the moment there
-                       was more than one demo on the page. Two entries with the same label AND the
-                       same destination are the same link written twice, which is a data mistake
+                    /* KEYED BY BOTH. `href` alone is not a key: a footer may point two links
+                       at one place — a "Status" under Product and under Legal is the ordinary
+                       case — and placeholder data pointing every link at "#" makes React report
+                       duplicate children. Two entries with the same label AND the same
+                       destination are the same link written twice, which is a data mistake
                        rather than a case to key around. */
                     <li key={`${link.label}|${link.href}`}>
                       {/* `medium` IS the muted ink role — the resting rank stated through the

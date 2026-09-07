@@ -21,6 +21,24 @@ import AlertDialogExample from "./alert-dialog";
 import AttachmentExample from "./attachment";
 import CommandExample from "./command";
 import AccordionExample from "./accordion";
+import PageExample from "./page";
+import QuickstartExample from "./quickstart";
+import PrinciplesLookalikesExample from "./principles.lookalikes";
+import QuickstartContainersExample from "./quickstart.containers";
+import QuickstartGroupExample from "./quickstart.group";
+import QuickstartActionsExample from "./quickstart.actions";
+import ToolbarExample from "./toolbar";
+/* VARIANTS (2026-09-05, Kushagra, against shadcn's page: "I can't learn that RTL is handled by
+   looking at a gear icon"). A knob sweeps an AXIS — nobody sends a colleague to size 3 — and a
+   variant shows a behaviour or a composition, which is a thing worth linking to. The file name
+   is still the identity: `<slug>.<variant>.tsx`, so `readExampleSource` and the coverage law
+   need no mapping field, and the registry names which variants a page offers. */
+import AccordionDisabledExample from "./accordion.disabled";
+import AccordionRtlExample from "./accordion.rtl";
+import MenuDisabledExample from "./menu.disabled";
+import MenuRtlExample from "./menu.rtl";
+import SelectDisabledExample from "./select.disabled";
+import SelectRtlExample from "./select.rtl";
 import AvatarExample from "./avatar";
 import AvatarGroupExample from "./avatar-group";
 import BadgeExample from "./badge";
@@ -73,6 +91,13 @@ import ThemeExample from "./theme";
 export const EXAMPLES: Record<string, React.ComponentType> = {
   "alert-dialog": AlertDialogExample,
   "accordion": AccordionExample,
+  "page": PageExample,
+  quickstart: QuickstartExample,
+  "principles.lookalikes": PrinciplesLookalikesExample,
+  "quickstart.containers": QuickstartContainersExample,
+  "quickstart.group": QuickstartGroupExample,
+  "quickstart.actions": QuickstartActionsExample,
+  "toolbar": ToolbarExample,
   attachment: AttachmentExample,
   "avatar": AvatarExample,
   "avatar-group": AvatarGroupExample,
@@ -95,6 +120,12 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "kbd": KbdExample,
   "link": LinkExample,
   "menu": MenuExample,
+  "accordion.disabled": AccordionDisabledExample,
+  "accordion.rtl": AccordionRtlExample,
+  "menu.disabled": MenuDisabledExample,
+  "menu.rtl": MenuRtlExample,
+  "select.disabled": SelectDisabledExample,
+  "select.rtl": SelectRtlExample,
   "composer": ComposerExample,
   "notice": NoticeExample,
   "popover": PopoverExample,

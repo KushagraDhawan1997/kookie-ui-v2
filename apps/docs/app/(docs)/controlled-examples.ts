@@ -59,6 +59,7 @@ const Text = dynamic(() => import("../../examples/text"));
 const TextArea = dynamic(() => import("../../examples/text-area"));
 const TextField = dynamic(() => import("../../examples/text-field"));
 const Toggle = dynamic(() => import("../../examples/toggle"));
+const Toolbar = dynamic(() => import("../../examples/toolbar"));
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- each example declares its own props, and
    the point of this table is that they differ; the values a control produces are validated
@@ -102,4 +103,5 @@ export const CONTROLLED: Record<string, React.ComponentType<any>> = {
   "text-area": TextArea,
   "text-field": TextField,
   "toggle": Toggle,
+  "toolbar": Toolbar,
 };

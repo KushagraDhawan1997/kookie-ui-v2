@@ -616,6 +616,68 @@ export const CATALOG: Record<string, CatalogEntry> = {
     make: () => node("TabsPanel", { value: "new" }, { children: [] }),
   },
 
+  /* ── The toolbar (§45) ──────────────────────────────────────────────────────────────────
+     Placeable, unlike the Shell it usually sits in: a toolbar is CONTENT — a card's own row of
+     tools is as legitimate as a frame's band — and the one thing it needs from a frame (a page
+     to mirror) it degrades from honestly, which is the component's own design. */
+  Toolbar: {
+    family: "Control",
+    blurb: "A row of controls that announces itself: one tab stop, arrow keys inside it.",
+    props: { size: size(), orientation: { kind: "options", values: ["horizontal", "vertical"], optional: true }, backdrop: bool },
+    children: "any",
+    make: () =>
+      node("Toolbar", {}, {
+        children: [
+          node("Flex", { gap: "2", align: "center" }, {
+            children: [node("ToolbarTitle", {}, { text: "Documents" })],
+          }),
+          node("ToolbarGroup", {}, {
+            children: [
+              node("ToolbarButton", {}, { text: "Edit" }),
+              node("ToolbarButton", {}, { text: "Share" }),
+            ],
+          }),
+        ],
+      }),
+  },
+  ToolbarGroup: {
+    family: "Control",
+    blurb: "A capsule around controls that belong together. It always draws — a group that drew nothing would be a Flex.",
+    props: { disabled: bool, backdrop: bool },
+    children: { only: ["ToolbarButton", "ToolbarSeparator"] },
+    partOf: "Toolbar",
+    requiresAncestor: "Toolbar",
+    make: () => node("ToolbarGroup", {}, { children: [node("ToolbarButton", {}, { text: "Edit" })] }),
+  },
+  ToolbarButton: {
+    family: "Control",
+    blurb: "A Button registered with the row's keyboard, so the arrow keys reach it. Rests where every other control rests.",
+    props: { size: size(), tone, emphasis, bordered: bool, disabled: bool },
+    children: "text",
+    partOf: "Toolbar",
+    requiresAncestor: "Toolbar",
+    slots: ["leading", "trailing"] as const,
+    make: () => node("ToolbarButton", {}, { text: "Action" }),
+  },
+  ToolbarSeparator: {
+    family: "Control",
+    blurb: "The rule between two clusters. Stands at the height of the glyphs, not of the band.",
+    props: {},
+    children: "none",
+    partOf: "Toolbar",
+    requiresAncestor: "Toolbar",
+    make: () => node("ToolbarSeparator", {}, {}),
+  },
+  ToolbarTitle: {
+    family: "Type",
+    blurb: "What the row is about. Given no words it mirrors the Page in the same pane.",
+    props: {},
+    children: "text",
+    partOf: "Toolbar",
+    requiresAncestor: "Toolbar",
+    make: () => node("ToolbarTitle", {}, { text: "Documents" }),
+  },
+
   /* ── Type ───────────────────────────────────────────────────────────────────────────── */
   Text: {
     family: "Type",
@@ -1345,6 +1407,10 @@ export const EXCLUDED: { name: string; why: string }[] = [
   {
     name: "ComposerSend",
     why: "A part of the Composer, which the builder excludes. Its four states are read off a status the app drives, and stopping a reply is an action on a request the builder cannot express, so a placed one would be a button permanently claiming to be ready.",
+  },
+  {
+    name: "Page",
+    why: "The canvas document IS a page — what it composes is the content of one screen inside a frame — so placing a Page in it would nest a page in a page, with two h1s and two title blocks. Its two mechanisms need the frame the canvas does not have either: clearing the band it sits under, and handing its title to a ToolbarTitle in that band. Both resolve to nothing here, which would make a placed one a component quietly doing half its job.",
   },
   {
     name: "Shell",

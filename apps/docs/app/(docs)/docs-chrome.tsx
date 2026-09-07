@@ -30,28 +30,80 @@
 import Link from "next/link";
 import {
   Box,
-  Button,
   Flex,
   Shell,
   ShellContent,
-  ShellScroll,
   ShellPaneFooter,
   ShellPaneHeader,
+  ShellScroll,
   ShellSidebar,
   ShellTrigger,
+  Toolbar,
+  ToolbarButton,
+  ToolbarGroup,
+  ToolbarTitle,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "@kookie-ui/react";
 
 import { AppearanceToggle } from "../appearance-toggle";
-import { PanelLeftIcon } from "../icons";
-import { CHAPTERS, SECTIONS } from "./chapters";
-import { DocsBack } from "./docs-back";
+import { GitHubIcon, PanelLeftIcon, XSocialIcon } from "../icons";
+import { CHAPTERS, READING_ORDER, SECTIONS } from "./chapters";
+import { DocsPager } from "./docs-pager";
+import { PageActions } from "./page-actions";
 import { DocsNav, type NavSection } from "./docs-nav";
 import { DocsSearch } from "./docs-search";
+import { PAGES } from "./markdown";
 import { Wordmark } from "./wordmark";
 import { humanLabel } from "./label";
 import { buildSearchIndex } from "./search-index";
 import { ENTRIES } from "./components/registry";
 import "./prose.css";
+
+/**
+ * WHERE THIS PROJECT LIVES ELSEWHERE — one row in the sidebar's footer.
+ *
+ * A LIST rather than four hand-written blocks, for the reason every registry in this repo is
+ * one: the four differ in three values and in nothing else, so writing them out four times is
+ * three chances for one of them to drift from the others.
+ */
+/**
+ * THE REPOSITORY, IN EVERY PAGE'S OWN BAND (2026-09-07, Kushagra: "every page's toolbar should
+ * get github icon, it should not be in sidebar").
+ *
+ * It is not one of the socials, and moving it is what says so. X and Medium are places this
+ * project is TALKED ABOUT; the repository is the project — it is what a reader of any page is
+ * most likely to want next, and it is the one destination that is true of every route rather
+ * than of the site as a whole. So it rides the content pane's band, which is the row that
+ * belongs to the page you are on, and it is the only thing at that band's trailing edge on a
+ * page with no twin.
+ */
+const GITHUB = {
+  label: "GitHub",
+  name: "KookieUI on GitHub",
+  href: "https://github.com/KushagraDhawan1997/kookie-ui-v2",
+} as const;
+
+/**
+ * WHERE THIS PROJECT IS TALKED ABOUT — one row in the sidebar's footer.
+ *
+ * A LIST rather than hand-written blocks, for the reason every registry in this repo is one:
+ * they differ in three values and in nothing else, so writing them out separately is a chance
+ * for one of them to drift from the others.
+ */
+const SOCIALS = [
+  {
+    label: "X",
+    name: "KookieUI on X",
+    href: "https://x.com/kushagradhawan",
+    Mark: XSocialIcon,
+  },
+  /* Discord and Medium were both here on 2026-09-07 and both came out the same day
+     (Kushagra). The list is where this project actually lives elsewhere, so a destination that
+     is not being kept is a link that sends a reader somewhere nobody is — worse than not
+     offering it at all. The row is a list, so either comes back as one line. */
+] as const;
 
 export function DocsChrome({ children }: { children: React.ReactNode }) {
   const sections: NavSection[] = SECTIONS.map((section) => ({
@@ -74,7 +126,16 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
     // The frame takes the window; `100dvh` rather than `100vh` so a phone's collapsing
     // browser chrome does not leave the shell taller than the screen it is in.
     <Box style={{ blockSize: "100dvh" }}>
-      <Shell>
+      {/* THE SIDEBAR'S WIDTH IS STATED ON THE FRAME, NOT ON THE PANE (2026-09-05). It was
+          `width={336}` for a few hours, which is the one spelling §27 warns about: the frame
+          builds `--kui-shell-inset-inline-start` — the reach this pane's floating chrome clears
+          — from the TOKEN, and a `width` prop is an inline style on the pane that no sibling
+          can read. Measured, the guard was firing in dev: 288px published against a 336px pane,
+          so the search and back buttons sat 48px inside the sidebar they are meant to clear.
+          Stating the token here is §27's own escape, where "the pane and the content read one
+          number", and the drag now moves this same name (see the resize note in shell.tsx), so
+          the two stay one number after the reader changes it too. */}
+      <Shell style={{ "--shell-sidebar-w": "336px" } as React.CSSProperties}>
         {/* RESIZABLE, and the bounds are this site's content speaking (§27's own reason for a
             width prop). The floor is not the system's 160: below about 240 the longest chapter
             titles — "The component families", "States and interaction" — wrap to two lines, and
@@ -91,6 +152,19 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
           aria-label="Documentation"
           flush={true}
           resizable
+          /* 336 SINCE 2026-09-05 (Kushagra: "much wider"), against the package's own 288 — the
+             one number the app has to state, because §27's default is right for a library that
+             does not know what the pane holds and this pane holds a five-section index of the
+             whole site.
+
+             NOT A WRAPPING FIX, and the first spelling of this comment said it was: measured,
+             the tightest row at 288 ("The component families", at the tree's second level) had
+             46px of slack, so nothing was near the wall and no title has ever wrapped. What the
+             extra 48px buys is air — 94px after the longest indented title rather than 46 — and
+             air after the words is what lets the indent read as nesting. It is a judgment, and
+             the resize bounds are unchanged, so a reader who disagrees drags it.
+
+             STATED ON THE `<Shell>` rather than here, and the reason is above it. */
           minWidth={240}
           maxWidth={420}
           /* The package default is "Resize panel", which is right for a library that does not
@@ -148,18 +222,36 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
               and each child takes itself back: a wrapper spanning the row would swallow
               the clicks on the rows passing beneath. */}
           <ShellPaneHeader float>
-            {/* `kd-masthead` is the one placement fact: in a chrome row the mark's box is
-                the row, so it cannot grow the band and sink the search button below the
-                collapse trigger next door. prose.css carries the measurement. */}
-            <Link
-              href="/"
-              aria-label="KookieUI"
-              className="kd-masthead"
-              style={{ color: "inherit", textDecoration: "none" }}
-            >
-              <Wordmark />
-            </Link>
-            <DocsSearch index={buildSearchIndex()} />
+            {/* A TOOLBAR SINCE 2026-09-06 (§45, Kushagra: "I want sidebar's toolbar at size
+                3, is sidebar not using toolbar?" — it was not). The mark and the search are
+                this pane's chrome, so the row states their rhythm and their index, and the
+                band publishes its own row back to the pane so the frame's safe area follows
+                the toolbar's own index (§27).
+
+                NO `size="3"` HERE ANY MORE (same day). It was stated on both bands for a few
+                hours, which is what said the default was wrong: a band rests one step above
+                the app's own index now, so this row is 3 in an app resting at 2 and follows
+                the app if it ever moves. A value repeated at every call site is not a default,
+                it is a tax — the argument `Theme size` itself shipped on.
+
+                `backdrop` ON THE ROW since the same day: the band floats, so content passes
+                behind everything in it, and that is one fact about the space rather than a prop
+                each control has to repeat. The row is still not a pane — it paints nothing —
+                it just stops every button in it from restating what `float` already means. */}
+            <Toolbar backdrop>
+              {/* `kd-masthead` is the one placement fact: in a chrome row the mark's box is
+                  the row, so it cannot grow the band and sink the search button below the
+                  collapse trigger next door. prose.css carries the measurement. */}
+              <Link
+                href="/"
+                aria-label="KookieUI"
+                className="kd-masthead"
+                style={{ color: "inherit", textDecoration: "none" }}
+              >
+                <Wordmark />
+              </Link>
+              <DocsSearch index={buildSearchIndex()} />
+            </Toolbar>
           </ShellPaneHeader>
 
           {/* DocsNav renders its own ShellScroll as its root — wrapping it in another one
@@ -169,17 +261,57 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
               pane's DIRECT child for the pinned-stack and bleed machinery to see it. */}
           <DocsNav sections={sections} components={components} />
 
-          {/* The footer, floating with the header — one posture for the pane's chrome. */}
+          {/* The footer, floating with the header — one posture for the pane's chrome.
+
+              A TOOLBAR SINCE 2026-09-06 (§45, Kushagra: "there is no way these are size 3").
+              They were not: a bare band hands its children the PANE's index, so these two rested
+              at 2 while the masthead's row above them rested at 3 — and this file's own comment
+              on the appearance control had claimed step 3 since 2026-09-05, which is doc-code
+              drift a person caught by eye. A `Toolbar` is what states a band's index, so putting
+              one here is the fix and the keyboard arrives with it: one tab stop for the row.
+
+              BOTH CONTROLS ARE MARKS (same day: "lets use icon button for github. Same for dark
+              or light mode"). A row of peers at the frame's edge is icon-only everywhere else on
+              this site — the search above, the toggle and the way back in the content pane — and
+              a word between two glyphs reads as a different kind of thing. The words survive in
+              the tooltips and the accessible names. */}
           <ShellPaneFooter float>
-            <Button
-              emphasis="quiet"
-              render={
-                <a href="https://github.com/KushagraDhawan1997/kookie-ui-v2" />
-              }
-            >
-              GitHub
-            </Button>
-            <AppearanceToggle />
+            <Toolbar backdrop>
+              {/* THE TOGGLE TAKES THE START AND THE SOCIALS THE END (2026-09-07, Kushagra:
+                  "move socials to right"). A Toolbar is `space-between` and the caller supplies
+                  what is split, so the order in this file IS the arrangement — nothing here
+                  states an alignment. What sits where is a claim about what the row is for: the
+                  control that acts on the page you are reading is the one you reach for, and the
+                  links that leave the site rest at the far edge.
+
+                  Outside the group on purpose: the toggle acts on THIS page rather than leaving
+                  it, so it is not one of the same kind of thing. */}
+              <AppearanceToggle />
+              {/* A GROUP, NOT LOOSE BUTTONS (2026-09-07, Kushagra: "I need more social icons,
+                  probably in toolbar group"). These do the same KIND of thing — each one leaves
+                  the site for the same project somewhere else — and a `ToolbarGroup` is the part
+                  that says so: one track, and the quiet rung arrives with it rather than being
+                  stated per button. Separate round buttons beside one that switches the
+                  appearance would read as peers, which is exactly what they are not. */}
+              <ToolbarGroup>
+                {SOCIALS.map((social) => (
+                  <Tooltip key={social.label}>
+                    <TooltipTrigger
+                      render={
+                        <ToolbarButton
+                          iconOnly
+                          aria-label={social.name}
+                          render={<a href={social.href} />}
+                        >
+                          <social.Mark />
+                        </ToolbarButton>
+                      }
+                    />
+                    <TooltipContent>{social.label}</TooltipContent>
+                  </Tooltip>
+                ))}
+              </ToolbarGroup>
+            </Toolbar>
           </ShellPaneFooter>
         </ShellSidebar>
 
@@ -191,7 +323,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
             `position: relative` is the trigger's containing block, stated inline because the
             shell root is the nearest positioned ancestor otherwise and the trigger would
             resolve its inset over the sidebar column, not this pane. */}
-        <ShellContent style={{ position: "relative" }} flush={true}>
+        <ShellContent style={{ position: "relative" }} flush={false}>
           {/* The route back to a closed or overlaying sidebar floats in the pane's own safe
               area — `--kui-sf-p` inherits from the pane deliberately (§10, the bleed
               mechanism), so the trigger sits exactly where pinned content would start.
@@ -212,38 +344,101 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
               z-index the Box carried by hand; what stays here is only what is about this
               placement: clearing the floating sidebar by the frame's published reach. */}
           <ShellPaneHeader float>
-            {/* MARGIN, not padding (2026-08-30, Kushagra: the search button was dead): the
-                part's children take the pointer back, and padding is part of the child's
-                box — so a padded spacer was a 336px pointer-catcher lying over the floating
-                sidebar's own chrome, which this pane's band paints above. A margin clears
-                the same distance while the child's box stays the button's. */}
-            <Flex
-              gap="2"
-              align="center"
-              style={{
-                marginInlineStart: "var(--kui-shell-inset-inline-start)",
-              }}
-            >
-              <ShellTrigger
-                target="sidebar"
-                render={
-                  <Button
-                    emphasis="quiet"
-                    iconOnly
-                    /* Floating chrome over the reading column, like the search button and
-                       the appearance toggle — it states its backdrop (§10). */
-                    backdrop
-                    aria-label="Toggle navigation"
-                  >
-                    <PanelLeftIcon />
-                  </Button>
-                }
-              />
-              {/* The route back OUT of a component's page, beside the one that opens the nav
-                  (2026-09-01). It draws nothing on every other route, so this band is the
-                  toggle alone almost everywhere and the `gap` costs nothing. */}
-              <DocsBack />
-            </Flex>
+            {/* A TOOLBAR SINCE 2026-09-06 (§45), and it deletes two hand-written facts. The row
+                was a `Flex gap="2" align="center"` — a distance and an alignment said at a call
+                site, which is what the component exists to end — and it carried an inline
+                `marginInlineStart` to clear the floating sidebar, which `shell.css` now spends
+                on the band itself: the frame publishes that reach, so nothing here restates it.
+
+                What the row BUYS is the keyboard: one tab stop for the whole band, arrow keys
+                between the controls, `role="toolbar"` announced. Every control in it is a
+                `ToolbarButton` for that reason — a plain Button cannot enrol itself in the
+                composite, and an unregistered control in a toolbar is a tab stop the arrows
+                never reach.
+
+                Its index is the band step and its `backdrop` covers the row — neither is a
+                number or a prop written per control here. See the sidebar's row above. */}
+            <Toolbar backdrop>
+              <Flex gap="2" align="center">
+                <ShellTrigger
+                  target="sidebar"
+                  render={
+                    <ToolbarButton iconOnly aria-label="Toggle navigation">
+                      <PanelLeftIcon />
+                    </ToolbarButton>
+                  }
+                />
+                {/* THE PAGE'S OWN TITLE, SAID AGAIN (§46). No words of its own: it mirrors the
+                    `Page` in this pane, silent while that page's large title is on screen and
+                    arriving when it has scrolled up behind this band. At the leading edge, where
+                    macOS puts a document's name — the row states the air around it, so nothing
+                    here spaces it away from the buttons before it (§45). */}
+                <ToolbarTitle />
+              </Flex>
+              {/* AND THE WAY OUT OF THE PAGE, at the trailing edge (2026-09-06, §47). The band
+                  is `space-between`, so a second child needs no alignment stated and no
+                  spacer: the row already says where two clusters sit.
+
+                  The list is computed HERE because this is a server component and the twin's
+                  module reads files off disk. The control decides nothing about which pages
+                  have one — it is handed the answer, so there is no second implementation of
+                  a question `markdown.ts` already answers. */}
+              {/* THE TRAILING CLUSTER: what you can do with this page, then where the project
+                  lives. `PageActions` draws nothing on a route with no twin, so on the front
+                  door this is the repository alone — which is what stops that page's band from
+                  being a toggle at one wall and nothing at the other.
+
+                  The gap is the one `PageActions` states between its own two tracks, for the
+                  same reason: the air between two groups has to be wider than the air inside
+                  one, or the grouping says nothing. */}
+              <Flex align="center" gap="3">
+                {/* The walk comes first, because moving through the docs is the commonest thing
+                    to want and it is the only cluster here whose two seats carry words. */}
+                <DocsPager
+                  stops={[
+                    ...READING_ORDER.map((chapter) => ({
+                      path: `/${chapter.slug}`,
+                      title: chapter.title,
+                    })),
+                    /* THE COMPONENT REFERENCE IS PART OF THE WALK (2026-09-07, Kushagra:
+                       "component pages dont have this next and back?"). It was not, because the
+                       chapters' own `READING_ORDER` was the only order this file had — which is
+                       a fact about where the list came from and never an argument that a
+                       component page has nowhere to go next. The reference has its own declared
+                       order, so appending it makes one walk of the site: the last chapter leads
+                       into the first component, which is where a reader who has finished the
+                       canon actually goes. */
+                    ...ENTRIES.map((entry) => ({
+                      path: `/components/${entry.slug}`,
+                      title: entry.name,
+                    })),
+                  ]}
+                />
+                <PageActions paths={PAGES.map((page) => page.path)} />
+                <ToolbarGroup>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <ToolbarButton
+                          iconOnly
+                          aria-label={GITHUB.name}
+                          render={
+                            <a
+                              href={GITHUB.href}
+                              target="_blank"
+                              rel="noreferrer"
+                            />
+                          }
+                        >
+                          <GitHubIcon />
+                        </ToolbarButton>
+                      }
+                    />
+                    <TooltipContent>{GITHUB.label}</TooltipContent>
+                  </Tooltip>
+                </ToolbarGroup>
+              </Flex>
+            </Toolbar>
           </ShellPaneHeader>
           <ShellScroll className="kd-scroll" fade>
             {/* AND THE READING COLUMN CLEARS THE SIDEBAR. The pane runs under the floating

@@ -1,35 +1,22 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Stack, Text } from "@kookie-ui/react";
+import { Page, Stack, Text } from "@kookie-ui/react";
 
 import { Specimen } from "../../../../blocks/specimen";
 import { BLOCK_BY_SLUG, BLOCKS } from "../../../../blocks";
 import { isLang } from "../../../../blocks/highlight";
-import { PageFrame, PageTitle } from "../../page-frame";
+import { PageFrame } from "../../page-frame";
+import { blockLang, readBlockSource } from "../source";
 
 /**
  * One block's page: what it is, the block running live, then every file a consumer copies —
  * shown by the code-sample block itself, so the first block documents itself with itself.
  *
  * The sources are read off disk, never restated (the example frame's own rule: one file
- * cannot disagree with itself). Scoped to the blocks subfolder deliberately — Turbopack
- * traces the whole project into the server bundle when it cannot statically bound a
- * filesystem read (the constraint `example.tsx` and `toc.ts` both document).
+ * cannot disagree with itself). The reader lives in `../source` since 2026-09-06, when the
+ * markdown twin became its second consumer — it carries the subfolder scoping this page used
+ * to state, and the reason for it.
  */
-const BLOCKS_ROOT = path.join(process.cwd(), "blocks");
-
-const readBlockFile = (name: string): string =>
-  readFileSync(path.join(BLOCKS_ROOT, name), "utf8");
-
-/** A file's fence language, from its extension. The registry law holds every listed file to
-    an extension this map answers, so an unlisted kind fails the suite rather than this page. */
-const langOf = (name: string): string => {
-  const ext = name.slice(name.lastIndexOf(".") + 1);
-  return ext === "css" ? "css" : ext === "ts" ? "ts" : "tsx";
-};
-
 export function generateStaticParams() {
   return BLOCKS.map((block) => ({ slug: block.slug }));
 }
@@ -57,14 +44,7 @@ export default async function BlockPage({
 
   return (
     <PageFrame width="48rem">
-      <Stack gap="9">
-        {/* THE DECK WAS `size 3 medium` HERE and `size 5` loud on every other page of the
-            site (2026-08-27) — the same role in two spellings, which is the similarity rule
-            broken on the one page nobody compared against its siblings. The 2026-08-25 call
-            was that a deck rests LOUD and one step up; this page was written after it and
-            missed it. `PageTitle` is what makes the spelling unrepeatable. */}
-        <PageTitle deck={block.blurb}>{block.title}</PageTitle>
-
+      <Page title={block.title} description={block.blurb}>
         {/* EVERY DEMO IS A SPECIMEN, AND THE FIGURE CARRIES THE FILES (2026-09-01, Kushagra:
             "each footer should be presented in a specimen component… and each footer will have
             specimen, and actually every block, even code block and specimen, which is it,
@@ -101,9 +81,9 @@ export default async function BlockPage({
                   {...(demo.pane === undefined ? {} : { pane: demo.pane })}
                   {...(demo.fill === undefined ? {} : { fill: demo.fill })}
                   sources={block.files.map((file) => {
-                    const lang = langOf(file);
+                    const lang = blockLang(file);
                     if (!isLang(lang)) notFound();
-                    return { name: file, code: readBlockFile(file), lang };
+                    return { name: file, code: readBlockSource(file), lang };
                   })}
                 >
                   {await demo.render()}
@@ -120,7 +100,7 @@ export default async function BlockPage({
           The tabs above are the files. Copy them into your app — the paths are this
           site&apos;s, so put them wherever your code lives and fix the imports between them.
         </Text>
-      </Stack>
+      </Page>
     </PageFrame>
   );
 }

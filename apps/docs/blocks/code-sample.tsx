@@ -4,22 +4,21 @@
  * MDX fence and every example's source renders through this file, so the block ships with a
  * real consumer rather than a demo.
  *
- * WHAT A BLOCK IS HERE (2026-08-26, reconciled against THESIS §6): copied source, not
- * published code — and copy-paste is only safe when the copied file makes no design decisions
- * of its own. shadcn's copy-paste is centerless *by construction* because the decisions travel
+ * WHAT A BLOCK IS HERE (THESIS §6): copied source, not published code — and copy-paste is
+ * only safe when the copied file makes no design decisions of its own. shadcn's copy-paste is centerless *by construction* because the decisions travel
  * in the copy; here every colour, distance and step resolves through the package, so the
  * center stays in the dependency and the copy carries only arrangement and behaviour.
  * Behaviour is allowed (the copy button's state, the expand control); invented values are not.
  *
- * THE FIVE JOBS (the 2026-08-26 spec): show (the element), name (the header's label or
- * title), take (the copy button), point (the author's annotations — line and word highlight,
- * focus, diff, error marks), and bound (`maxLines`, scroll-not-clip, expand as convenience).
+ * THE FIVE JOBS: show (the element), name (the header's label or title), take (the copy
+ * button), point (the author's annotations — line and word highlight, focus, diff, error
+ * marks), and bound (`maxLines`, scroll-not-clip, expand as convenience).
  * Everything else the ecosystem ships is another component wearing this one's name (code
  * groups are Tabs; preview is the Example frame) or decoration (window chrome, icons).
  *
- * THE CHROME'S SETTLED SHAPE (2026-08-26, Kushagra, after three passes): the NAME sits
- * outside, a sibling row aligned to the code with the pane's own inset token
- * (`--surface-p-N`); the ACTIONS float over the pane — copy top-right, expand bottom-centre — as
+ * THE CHROME'S SHAPE: the NAME sits outside, a sibling row aligned to the code with the
+ * pane's own inset token (`--surface-p-N`); the ACTIONS float over the pane — copy top-right,
+ * expand bottom-centre — as
  * GLASS (`backdrop`, the theme's material: the docs Theme runs `material="regular"`), at
  * Button's own medium default, because a floating control over content is exactly what the
  * material defends. No gradient — a scrollable well with a scrollbar already says "more".
@@ -36,22 +35,30 @@
  * reader nothing but the markup it produces. The client components are the copy button and,
  * only when the bound binds, the expand control.
  */
-/* THE STYLESHEET IS IMPORTED BY THE FILE THAT EMITS ITS CLASSES (2026-09-01). It used to be
-   imported at the top of the local `code-block.tsx`, and when that stub was deleted for the
-   package's own element nothing pulled `code.css` in any more — so `.kd-line` stopped being a
-   block, every line of every fence on the site ran together onto one line, and the whole suite
-   stayed green. The classes below are this file's, so the import is this file's; a law in
-   `blocks.test.tsx` now pairs the two. */
+/* THE STYLESHEET IS IMPORTED BY THE FILE THAT EMITS ITS CLASSES. Import it anywhere else and
+   deleting that file stops pulling `code.css` in — `.kd-line` stops being a block, every line
+   of every fence runs together onto one line, and a type checker sees nothing wrong. The
+   classes below are this file's, so the import is this file's; a law in `blocks.test.tsx`
+   pairs the two. */
 import "./code.css";
 
 import * as React from "react";
-import { Chip, CodeBlock, Flex, type Size } from "@kookie-ui/react";
+import {
+  Box,
+  Code,
+  CodeBlock,
+  type Size,
+  Stack,
+  Surface,
+  Toolbar,
+  ToolbarGroup,
+} from "@kookie-ui/react";
 
-import { FileIcon } from "../app/icons";
 import { CopyButton } from "./copy-button";
 import { Expandable } from "./expandable";
 import {
   isLang,
+  leadingColumns,
   plainText,
   tokenize,
   type CodeLine,
@@ -73,14 +80,12 @@ const LANG_LABEL: Record<Lang, string> = {
 };
 
 /**
- * How many lines a well shows before it bounds itself (2026-08-31, Kushagra: "large code
- * blocks should automatically get the show-x-more-lines across docs").
+ * How many lines a well shows before it bounds itself.
  *
  * It is a DEFAULT rather than a per-call-site prop because the fault it fixes is the one
  * nobody remembers to fix: a fence or an example runs long, the page becomes a mile of
- * scrolling code, and the author who wrote it never sees the page it landed on. The blocks
- * route was the one place that had judged a number and stated it by hand — a bound is not a
- * property of that route, so the number moves here and that call site drops it.
+ * scrolling code, and the author who wrote it never sees the page it landed on. A bound is
+ * not a property of any one route, so the number lives here and no call site states it.
  *
  * NOT SILENT: bounded means SCROLLABLE, and the expand control names what it is holding back
  * ("Show all N lines"), so nothing is hidden without saying how much.
@@ -89,6 +94,24 @@ const LANG_LABEL: Record<Lang, string> = {
  * rare and the reason should be visible at the call site.
  */
 export const CODE_MAX_LINES = 24;
+
+/**
+ * How much a bound has to be holding back before it is worth a control.
+ *
+ * Binding at ONE line over puts a button on the page, a scroll region under it and a press
+ * between the reader and one line of code. The chrome cost is fixed and the saving is not, so
+ * below some overflow the bound spends more than it buys — and what it spends is not pixels,
+ * it is a press.
+ *
+ * A SHARE OF THE BOUND, not a second stated number, and the share is what makes it right at
+ * both ends. An absolute slack would override an explicit small bound: a call site asking for
+ * `maxLines={2}` has said something deliberate, and hiding three lines there DOUBLES what is
+ * on screen — worth pressing for — while hiding three against 24 is noise. One third: six at
+ * the default, so 25 to 32 lines show whole and 33 bounds to 24.
+ *
+ * `Infinity` stays unbounded by arithmetic rather than by a branch: no count exceeds it.
+ */
+export const CODE_BOUND_SLACK = (maxLines: number) => Math.ceil(maxLines / 3);
 
 export type CodeSampleProps = {
   code: string;
@@ -125,8 +148,26 @@ function Line({ line, marker }: { line: CodeLine; marker: boolean }) {
   if (line.remove) classes.push("kd-line-remove");
   if (line.focus) classes.push("kd-line-focus");
   if (line.level) classes.push(`kd-line-${line.level}`);
+
+  /* THE LINE'S OWN INDENT, handed to the stylesheet as a column count.
+
+     This is the one thing about a wrap that CSS cannot work out for itself: a continuation
+     belongs under the line it continues, and where that line STARTS is inside its own text.
+     A stylesheet can only hang from the pane's wall, which puts every continuation at column
+     zero — reading as a shallower nesting level than the line it belongs to, which is worse
+     than not hanging at all.
+
+     Written only where there is one, so an unindented line grows no attribute and the
+     stylesheet's own default answers for it. */
+  const indent = leadingColumns(line);
+
   return (
-    <span className={classes.join(" ")}>
+    <span
+      className={classes.join(" ")}
+      {...(indent
+        ? { style: { "--kd-indent": `${indent}ch` } as React.CSSProperties }
+        : {})}
+    >
       {marker ? (
         // A real span rather than a pseudo — the ::before slot belongs to the line-number
         // counter. Hidden from AT and from selection; the copy path never sees it because
@@ -153,11 +194,11 @@ function Line({ line, marker }: { line: CodeLine; marker: boolean }) {
 
 /**
  * Tokenize, then render. The split exists because tokenizing is SERVER work and rendering is
- * not (2026-08-30): a docs page with live controls rewrites one token's text when a control
- * moves, and it cannot call Shiki to do it — so the view below takes lines that are already
+ * not: a docs page with live controls rewrites one token's text when a control moves, and it
+ * cannot call Shiki to do it — so the view below takes lines that are already
  * tokenized and is an ordinary synchronous component that a client component may render.
  *
- * One renderer, not two. The alternative was a second component painting `.kd-line` markup for
+ * One renderer, not two. The alternative is a second component painting `.kd-line` markup for
  * the live case, which is the shape this repo's own rule forbids: a mechanism with two
  * implementations owes a law that they agree, and the cheaper answer is to have one.
  */
@@ -208,18 +249,19 @@ export function CodeSampleView({
     <Line key={index} line={line} marker={diff} />
   ));
 
-  // The bound binds only when the code exceeds it — decided here, from the line count the
-  // renderer already holds, never by measuring the DOM (v1's defect class).
-  const bounded = lines.length > maxLines;
+  // The bound binds only when the code exceeds it BY ENOUGH TO BE WORTH A PRESS — decided
+  // here, from the line count the renderer already holds, never by measuring the DOM (v1's
+  // defect class). Under the slack the well simply shows everything: the alternative, bounding
+  // without the button, would hide lines while saying nothing, which is the one thing the
+  // bound's own sentence forbids.
+  const bounded = lines.length > maxLines + CODE_BOUND_SLACK(maxLines);
 
-  // The copy button FLOATS top-right over the pane, as glass (Kushagra, 2026-08-26): a
-  // floating control over content takes `backdrop`. It hangs from a positioned wrapper
-  // OUTSIDE the pane (inside, it broke the scroller's bleed — see the element), offset by
-  // the same inset token the pane pads with, so it rests exactly one inset off the corner.
-  /* The NAME FLOATS OVER THE PANE (2026-08-28, Kushagra: "I dont like how the filename
-     appears… so that it can stay floating above content behind"). It sat outside until now, a
-     sibling row indented to the code — his own 2026-08-26 call, reversed here. What it is now
-     is the mirror of the copy button: same corner, same inset, opposite side, same material.
+  // The copy button FLOATS top-right over the pane, as glass: a floating control over content
+  // takes `backdrop`. It hangs from a positioned wrapper OUTSIDE the pane (inside, it breaks
+  // the scroller's bleed — see the element), offset by the same inset token the pane pads with,
+  // so it rests exactly one inset off the corner.
+  /* The NAME FLOATS OVER THE PANE TOO, as the mirror of the copy button: same corner, same
+     inset, opposite side, same material.
 
      A PATH IS COPIABLE AND A LANGUAGE IS NOT, so the two are not one component. `examples/
      dialog.tsx` is a thing you want in your clipboard — it is how you find the file — so it is
@@ -229,14 +271,13 @@ export function CodeSampleView({
      system's own rule rather than an inconsistency to tidy away.
 
      The chip keeps `backdrop` and the button takes it by construction, so both resolve the
-     theme's material — and since 2026-08-28 the atom family paints the same ring and rim the
-     button does, which is what makes the two read as one kind of chrome. */
-  /* A LANGUAGE IS LABELLED ONLY WHERE THE LABEL CHANGES WHAT YOU DO (2026-08-30, Kushagra:
-     "isn't it obvious? This is a react app, it will always be tsx").
+     theme's material — and the atom family paints the same ring and rim the button does,
+     which is what makes the two read as one kind of chrome. */
+  /* A LANGUAGE IS LABELLED ONLY WHERE THE LABEL CHANGES WHAT YOU DO.
 
      Every fence on this site that is not a shell command is source you paste into a file, and
-     `TSX` on a React library's docs is a label that is always true — it says nothing, and it
-     was saying it 63 times. `Terminal` is the one that survives: it tells a reader the lines go
+     `TSX` on a React library's docs is a label that is always true — it says nothing, on every
+     fence. `Terminal` is the one that survives: it tells a reader the lines go
      in a shell rather than in their editor, which is the only thing here a reader could get
      wrong. CSS, JSON and HTML are unlabelled for the same reason as TSX — a stylesheet looks
      like a stylesheet, and knowing which file it belongs in is a question the prose around it
@@ -244,62 +285,76 @@ export function CodeSampleView({
 
      Keyed on `bash` rather than on a list, so adding a language does not silently add a label:
      a new one has to argue its way in here. */
-  const name = title ? (
-    <CopyButton code={title} label={title} size={size} icon={<FileIcon />} />
-  ) : lang === "bash" ? (
-    <Chip size={size} backdrop>
-      {LANG_LABEL[lang]}
-    </Chip>
-  ) : null;
+  const name = title ?? (lang === "bash" ? LANG_LABEL[lang] : null);
 
-  /* ONE ROW, FLOATING OVER THE CODE (2026-08-28, Kushagra: "the content doesnt float behind
-     buttons now? It needs to float, else whats the point of glass").
-     
-     It was moved into FLOW for an hour and that was the wrong repair. The row overlapped the
-     first line, I read the overlap as the defect and deleted the float — but a translucent
-     control exists to be legible with content passing behind it, so a glass row with nothing
-     behind it is decoration wearing a material's name. What was actually wrong was that the
-     first line had nowhere to rest, and the answer to that is an inset, not flow: this is the
-     platform pattern, where a scroll view holds a top contentInset and its content passes
-     under a translucent toolbar. The band is a safe area, not an apology.
+  /* ONE ROW, FLOATING OVER THE CODE.
 
-     IT SPANS THE PANE AND PADS ITSELF (his call, kept from the in-flow cut). The pane's inset
-     is a READING measure — the distance a line of code needs from a wall — and chrome is not
-     reading matter, so `inset-inline` reaches both walls and `p` puts a smaller number back.
+     Moving it into FLOW is the wrong repair for the overlap it causes: a translucent control
+     exists to be legible with content passing behind it, so a glass row with nothing behind it
+     is decoration wearing a material's name. What is actually wrong is that the first line has
+     nowhere to rest, and the answer to that is an inset, not flow — the platform pattern, where
+     a scroll view holds a top contentInset and its content passes under a translucent toolbar.
+     The band is a safe area, not an apology.
+
+     IT SPANS THE PANE AND PADS ITSELF. The pane's inset is a READING measure — the distance
+     a line of code needs from a wall — and chrome is not reading matter, so `inset-inline`
+     reaches both walls and `p` puts a smaller number back.
      The buttons sit closer to the edge than the code does, which is what says they belong to
      the pane rather than to the text.
 
-     THIS WAS BRIEFLY UNDONE AND PUT BACK (2026-08-29): the specimen figure's hosted sample had
-     chrome sitting FURTHER from the wall than its code, and I read that as the two arrangements
-     disagreeing and aligned both to the code. Wrong repair — one of them was right. A hosted
-     sample's own box IS the code column, so `inset-inline: 0` starts at the host's inset and
-     any padding adds to it; the fix is for the chrome to REACH the host's wall, which is the
-     line below, not for the standalone to give up the relationship.
+     A HOSTED SAMPLE IS THE OTHER CASE and does not disagree with it. Its own box IS the code
+     column, so `inset-inline: 0` starts at the host's inset and any padding adds to it; the
+     chrome REACHES the host's wall, which is the line below. Aligning both arrangements to the
+     code is the wrong repair — one of them is already right.
 
-     `z-index` is deliberately absent, and the row is rendered AFTER the scroller instead —
-     see code-block.tsx. An earlier note here claimed paint order handled it because the row
-     is positioned and the code is not; that was wrong, since `.kui-scroll-area` is positioned
-     too, so the two settled it on DOM order and the code won. Order is the whole fix: a
-     z-index would be the number ladder §20 exists to avoid. */
-  /* AND A ROW WITH NO NAME RESERVES NOTHING (2026-08-31, Kushagra: "the one with no filename...
-     the top left just looks weird").
+     `z-index` is deliberately absent, and the row is rendered AFTER the scroller instead.
+     Paint order alone does not settle it — `.kui-scroll-area` is positioned too, so the two
+     settle on DOM order — and order is the whole fix: a z-index would be the number ladder
+     §20 exists to avoid. */
+  /* AND THE BAND IS ALWAYS RESERVED, name or no name.
 
-     The band under this row is a safe area for chrome that reaches BOTH walls: a name at one
-     and the copy button at the other cover the whole of line 1, so line 1 needs somewhere else
-     to be. An unlabelled fence has only the button, and reserving a pane's width of clearance
-     for a control that occupies one corner of it is what put a hand's width of nothing in the
-     top-left. The rule is now stated where the row is built — the well takes `band` and this
-     file decides it — so the two cases differ in exactly the fact that differs between them.
+     It was conditional: with a name at one wall and the copy button at the other the row covers
+     the whole of line 1, so line 1 needed somewhere else to be — and with only the button, the
+     argument ran, reserving a pane's width of clearance for a control in one corner puts a
+     hand's width of nothing in the top-left.
 
-     `space-between` with ONE child pushes it to the START, so the justification flips too: the
-     row means "name at one wall, action at the other", and with no name there is only the
-     action, which takes the end. */
+     That argument is about the pixels the chrome COVERS, and a safe area is not about coverage.
+     It is the band the pane says its chrome lives in, and a reader scanning a page of fences
+     should not have to work out per fence whether the code begins under the buttons or beside
+     them. The conditional bought a little of the top-left back and paid for it with two
+     different code blocks on one page, which is the more expensive thing by a distance.
+
+     So one rule: a fence that draws chrome reserves the band for it. `bare` still reserves
+     nothing, because a bare fence draws no chrome at all — that is not the same fact wearing a
+     condition, it is the absence of the row.
+
+     `space-between` with ONE child pushes it to the START, so the empty wall has to be stated:
+     the row means "name at one wall, action at the other", and with no name there is only the
+     action, which takes the end.
+
+A TOOLBAR, NOT A `Flex`. The row was stating the alignment, the split and the air itself —
+     the three facts a Toolbar says once — and it earns the keyboard too whenever there is a
+     name, because a path here is a `CopyButton` and not a label, so this row is usually TWO
+     controls that were two separate tab stops.
+
+     The justification conditional went with it, and that is the trade rather than a win: a
+     toolbar is always `space-between`, so the empty wall is an empty child instead of a
+     different value. It is honest in the same way the old spelling was — both say "there is
+     nothing on that side" — and the toolbar cannot guess which side that is, because which
+     controls sit where is what those controls mean. */
   const topbar = (
-    <Flex align="center" justify={name ? "space-between" : "end"} gap="3">
-      {name}
-      <CopyButton code={copyText} size={size} iconOnly />
-    </Flex>
+    <Toolbar size="3" className="kd-code-chrome">
+      <span />
+      <CopyButton code={copyText} size="3" iconOnly />
+    </Toolbar>
   );
+
+  const named = name !== null;
+  /* HOSTED AND BARE WHEN THE FIGURE DRAWS THE BOX. A well inside a ground is the same ground
+     twice with a hairline between saying nothing, and the row over it would be a second copy
+     button under the one the figure already floats. */
+  const wellHosted = hosted || named;
+  const wellBare = bare || named;
 
   const well = (
     <>
@@ -308,9 +363,8 @@ export function CodeSampleView({
           size={size}
           maxLines={maxLines}
           lineCount={lines.length}
-          topbar={bare ? undefined : topbar}
-          {...(!bare && name ? { band: true } : {})}
-          {...(hosted ? { hosted } : {})}
+          topbar={wellBare ? undefined : topbar}
+          {...(wellHosted ? { hosted: true } : {})}
           className={className}
         >
           {content}
@@ -318,9 +372,8 @@ export function CodeSampleView({
       ) : (
         <CodeBlock
           size={size}
-          {...(bare ? {} : { topbar })}
-          {...(!bare && name ? { band: true } : {})}
-          {...(hosted ? { hosted } : {})}
+          {...(wellBare ? {} : { topbar })}
+          {...(wellHosted ? { hosted: true } : {})}
           {...(className ? { className } : {})}
         >
           {content}
@@ -329,9 +382,47 @@ export function CodeSampleView({
     </>
   );
 
-  /* One element now. The figure used to be a Stack of a header row and the pane, which is
-     what the wrapping Stack existed for; with the name inside the pane there is nothing left
-     to stack, and `bare` stops being a different SHAPE — it is the same well with the label
-     suppressed. */
-  return well;
+  /* THE NAME IS A `Code`, IN FLOW, INSIDE THE PANE.
+
+     A file's name is not a control and not a state: it is a literal, in the same face as the
+     code under it, said once at the top of the thing it names. `Code` is the atom for exactly
+     that — mono, sized off the line it sits in, no box of its own to disagree with the row's.
+
+     WHAT IT IS NOT, and each was tried: a `Chip`, which is an atom priced for a sentence and
+     lands at neither a chrome row's height nor its step; a `CopyButton`, which makes a name
+     pressable; a TAB, which announces a list of places when there is one; and anything in the
+     TOOLBAR, which is where controls live — the name is not one, and putting it there was what
+     made it float over the first line it was naming.
+
+     IT SITS IN THE PANE WITH THE CODE, which is what the figure already does one file over
+     (`file-tabs.tsx`): the label names the code, so it belongs in the box the code is in. So a
+     named sample takes the figure's arrangement — a Surface holding the label and a HOSTED
+     well — rather than a caption stacked above a pane that draws itself. One pane either way.
+
+     The copy button floats from the FIGURE, for the reason it does with several files: a hosted
+     well has no pane of its own to float over, so the chrome hangs off the box that does. */
+  if (name === null) return well;
+
+  return (
+    <Surface size={size} className="kd-figure">
+      <Box className="kd-figure-chrome">
+        <Toolbar size="3">
+          <span />
+          <ToolbarGroup backdrop>
+            <CopyButton code={copyText} size="3" iconOnly />
+          </ToolbarGroup>
+        </Toolbar>
+      </Box>
+      {/* Close to what it names (§15): the label and its code are one group, so the interval
+          is the tight one rather than the step that separates parts of a figure. */}
+      <Stack gap="3">
+        {/* THE ATOM HUGS ITS WORD. A `Stack` is a flex column, so it stretches what it holds —
+            and an atom with a fill stretched to the pane's width is a band, not a label. */}
+        <Box>
+          <Code size={size}>{name}</Code>
+        </Box>
+        {well}
+      </Stack>
+    </Surface>
+  );
 }

@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { Card } from "@kookie-ui/react";
+import {  } from "@kookie-ui/react";
 
 import { Specimen } from "../../blocks/specimen";
 import { tokenize } from "../../blocks/highlight";
@@ -95,11 +95,17 @@ export async function Example({ name, quiet }: ExampleProps) {
      survives on the blocks pages, where it is the one label that changes what you DO with the
      code — that goes in a shell, not in a file.
 
-     `quiet` still means "the source is already on this page", and with the code inside the
-     figure there is no figure left to draw — so the specimen falls back to plain paper rather
-     than an empty ground. */
+     `quiet` means the source is already on this page — a chapter that walks through the code
+     below, or a component page that has shown it once. It is still a FIGURE: the same ground,
+     the same paper, the same centred stage, with the code half absent. Rendering the bare
+     subject instead put a left-aligned card loose in the prose with no ground under it, which
+     reads as a stray component rather than as the thing the page is about. */
   if (quiet) {
-    return rootsOwnPane(source) ? specimen : <Card size="4">{specimen}</Card>;
+    return (
+      <Specimen sources={[]} pane={!rootsOwnPane(source)}>
+        {specimen}
+      </Specimen>
+    );
   }
 
   /* UNLESS THE EXAMPLE BRINGS ITS OWN PANE (2026-08-21). Four examples root a Card and one a
