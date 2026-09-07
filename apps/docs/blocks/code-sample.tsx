@@ -343,7 +343,7 @@ A TOOLBAR, NOT A `Flex`. The row was stating the alignment, the split and the ai
      nothing on that side" — and the toolbar cannot guess which side that is, because which
      controls sit where is what those controls mean. */
   const topbar = (
-    <Toolbar size="3" className="kd-code-chrome">
+    <Toolbar size="3">
       <span />
       <CopyButton code={copyText} size="3" iconOnly />
     </Toolbar>

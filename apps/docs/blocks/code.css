@@ -163,41 +163,29 @@
  * other. They disagreed once already — 12 against 24 — because each side picked a value nobody
  * could compare, and a law now holds these to the package's own choice.
  *
- * IT APPEARS ON HOVER, so it reserves no space: the code starts at the pane's top edge and the
- * row floats over it when a reader points at the figure. Keyed on the FIGURE rather than on the
- * well, because the tab bar's copy button sits outside the well and a well-keyed rule can never
- * reach it — which is exactly what shipped for one iteration, invisible at every moment.
+ * IT FLOATS, so the code starts at the pane's top edge and the row sits over the band the well
+ * reserves for it. It was revealed on hover for one iteration — see the rule below for why that
+ * went — and while it was, it had to be keyed on the FIGURE rather than on the well: the tab
+ * bar's copy button sits outside the well, so a well-keyed rule could never reach it.
  */
 .kd-figure {
   --kd-chrome-p: var(--layout-space-4);
   position: relative;
 }
 
-.kd-code-chrome {
-  opacity: 0;
-  transition: opacity var(--duration-2, 120ms) var(--ease-out, ease);
-}
-.kui-code-block:hover .kd-code-chrome,
-.kui-code-block:focus-within .kd-code-chrome,
-/* The tab bar's copy sits OUTSIDE the well, so the well's hover can never reach it — it was
-   invisible at every moment. The figure is what a reader is pointing at. */
-.kd-figure:hover .kd-code-chrome,
-.kd-figure:focus-within .kd-code-chrome {
-  opacity: 1;
-}
+/* THE CHROME IS ALWAYS DRAWN, and it was revealed on hover for one iteration.
 
-/* ITERATING: the figure's chrome floats over its top-end corner and appears on hover. */
+   Two things are wrong with revealing it, once you read a page rather than one figure: a
+   control that appears when the pointer arrives cannot be seen from anywhere else on the page,
+   so a reader has to suspect it before they can find it — and the band the well reserves is
+   held whether or not anything is drawn in it, so hiding the one thing in that band buys
+   nothing back.
+
+   It stays legible over the code because it is GLASS, which is the arrangement §10 exists for:
+   a floating control over content that passes behind it. */
 .kd-figure-chrome {
   padding: var(--kd-chrome-p);
   position: absolute;
   inset-block-start: 0;
   inset-inline: 0;
-  opacity: 0;
-  transition: opacity var(--duration-2, 120ms) var(--ease-out, ease);
 }
-.kd-figure:hover .kd-figure-chrome,
-.kd-figure:focus-within .kd-figure-chrome {
-  opacity: 1;
-}
-
-

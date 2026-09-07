@@ -1310,28 +1310,35 @@ describe("a chrome row is a toolbar", () => {
 });
 
 /**
- * THE CHROME APPEARS ON HOVER, and every law here exists because a defect shipped past the
+ * THE CHROME IS ALWAYS DRAWN, and every law here exists because a defect shipped past the
  * ones that did not.
  *
- * Three things this arrangement gets wrong if nothing holds it: a row keyed on the wrong
- * ancestor is invisible at every moment, a row with nothing in it still draws its track, and a
- * tabbed figure's copy button ends up somewhere different from every other figure's.
+ * Three things this arrangement gets wrong if nothing holds it: the row goes back to being
+ * revealed on a pointer, a row with nothing in it still draws its track, and a tabbed figure's
+ * copy button ends up somewhere different from every other figure's.
  */
-describe("the figure's chrome is hidden until a reader points at the figure", () => {
+describe("the figure's chrome floats over the code and is always there", () => {
   const css = () => source("code.css");
 
-  it("it rests hidden and the FIGURE is what reveals it", () => {
-    /* KEYED ON THE FIGURE, NEVER ON THE WELL, and this is the law for a defect that shipped:
-       the tab bar's copy button sits OUTSIDE the code block, so a `.kui-code-block:hover` rule
-       could never match it and it was invisible at every moment, on every tabbed figure. The
-       well may reveal its own rows; the figure must reveal all of them. */
-    expect(css(), "hidden at rest").toMatch(/\.kd-code-chrome\s*\{[^}]*opacity:\s*0/);
-    expect(css(), "the figure reveals it").toMatch(/\.kd-figure:hover\s+\.kd-code-chrome/);
-    expect(css(), "and the keyboard does too").toMatch(/\.kd-figure:focus-within\s+\.kd-code-chrome/);
+  it("nothing hides it, and nothing waits for a pointer", () => {
+    /* IT WAS REVEALED ON HOVER for one iteration (2026-09-07) and the reveal is what went, not
+       the float. A control a reader cannot see from anywhere else on the page has to be
+       suspected before it can be found — and the band the well reserves is held whether or not
+       anything is drawn in it, so hiding the one thing in that band bought nothing back.
+
+       Read as an ABSENCE, over the whole stylesheet rather than one rule, because the reveal
+       had two homes when it shipped — a well-keyed pair and a figure-keyed pair — and a law
+       naming one selector would go green while the other came back. */
+    expect(css(), "nothing in the chrome rests transparent").not.toMatch(
+      /\.kd-(?:code|figure)-chrome[^{]*\{[^}]*opacity:\s*0/,
+    );
+    expect(css(), "and no pointer reveals it").not.toMatch(/:hover\s+\.kd-\w+-chrome/);
+    expect(css(), "nor the keyboard").not.toMatch(/:focus-within\s+\.kd-\w+-chrome/);
   });
 
-  it("and it reserves no space, so nothing moves when it appears", () => {
-    // The whole reason the band went. A row that fades in must not push the code down with it.
+  it("and it reserves no space of its own, because the well already reserves the band", () => {
+    // A row in flow would push the code down by its own height on top of the band the well
+    // already holds for it — the same distance counted twice.
     expect(css(), "the floating chrome is out of flow").toMatch(
       /\.kd-figure-chrome\s*\{[^}]*position:\s*absolute/,
     );
