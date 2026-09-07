@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import { composeRender, filled, type RenderElement } from "../../system/render.ts";
@@ -8,7 +9,7 @@ import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import type { TypeSize, Weight } from "../text/text.tsx";
 
-export type ChipProps = Omit<
+export type ChipProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"span">,
   "color" | "style" | "className"
 > & {

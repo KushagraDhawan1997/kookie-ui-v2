@@ -15,6 +15,7 @@
  * `inset` (the reserved gutter is geometry's job — checkable items keep their indicator
  * mounted so the gutter holds), collision knobs, `modal`/`openOnHover`.
  */
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 import { ContextMenu as BaseContextMenu } from "@base-ui/react/context-menu";
 import { Menu as BaseMenu } from "@base-ui/react/menu";
@@ -132,7 +133,7 @@ const SummonedContext = React.createContext(false);
 
 /* ── Root ─────────────────────────────────────────────────────────────────────────────── */
 
-export type MenuProps = {
+export type MenuProps = ComponentRefusals & {
   /** The same index the trigger wears. The rows, the glyphs and the type all take it. */
   size?: Size;
   /**
@@ -191,7 +192,7 @@ export function Menu({ size: sizeProp, open, defaultOpen, onOpenChange, children
  * intrinsic element. A component with no escape is opaque and takes Base UI's own default —
  * the `nativeButton` prop is the escape for the case inspection cannot see.
  */
-export type MenuTriggerProps = Omit<
+export type MenuTriggerProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"button">,
   // The platform's own props pass through and only what this system owns is taken away —
   // SelectTrigger's shape, and for its reason (2026-08-26 audit, the last hand-listed trigger
@@ -236,6 +237,14 @@ export type MenuTriggerProps = Omit<
   ref?: React.Ref<HTMLButtonElement>;
 };
 
+/**
+ * The node a menu hangs from, and the only part of a menu that stands in ordinary flow.
+ *
+ * It is where the ambient text direction is read (§20), because it is the one element the menu
+ * owns that is still in the document the reader is looking at. Pass an element to `render` to
+ * make something else the trigger — `render={<Button/>}` is the ordinary case — and the
+ * accessible contract follows what that element actually is rather than what it looks like.
+ */
 export function MenuTrigger({ render, nativeButton, ref, ...props }: MenuTriggerProps) {
   // The trigger is the one node a menu owns that stands in ordinary flow, so it is where the
   // ambient direction is read (§20). Both refs get the node — the caller's is not spent.
@@ -269,7 +278,7 @@ export function MenuTrigger({ render, nativeButton, ref, ...props }: MenuTrigger
       Positioner (designed defaults) → Popup, which is a SURFACE wearing Card's exact
       identity (stamped, not chosen) plus the floating paint. ──────────────────────────── */
 
-export type MenuContentProps = {
+export type MenuContentProps = ComponentRefusals & {
   /** Which edge of the trigger the menu opens from. */
   side?: "top" | "bottom" | "left" | "right";
   /** Which edge it aligns to along that side. */
@@ -327,6 +336,14 @@ function popupProps(
   } as const;
 }
 
+/**
+ * Everything a menu needs to appear over the page, so no call site assembles it.
+ *
+ * One part wraps four: the portal, the bare `<Theme>` §20 requires, the positioner, and the
+ * popup. Placement is the system's — `side`, `align` and `sideOffset` have designed defaults
+ * and a call site rarely states any of them. There are no collision knobs: where a panel goes
+ * when it runs out of room is a system decision, not a per-menu one.
+ */
 export function MenuContent({
   side = "bottom",
   align = "start",
@@ -429,7 +446,7 @@ function MenuPopup({
       quiet by STAMP (emphasis is refused — a menu is a list of peers), neutral unless the
       one meaning with its own ink is asked for. ────────────────────────────────────────── */
 
-export type MenuItemProps = {
+export type MenuItemProps = ComponentRefusals & {
   /**
    * The one meaning a row may carry. It is not a palette: the list stays this narrow on purpose,
    * and widening it is a decision rather than a default.
@@ -480,6 +497,14 @@ export type MenuItemProps = {
   ref?: React.Ref<HTMLDivElement>;
 };
 
+/**
+ * A row that does something. The words in it are the verb.
+ *
+ * Plain text keeps Base UI's typeahead working, so reach for `leading` and `trailing` rather
+ * than composing markup into the label. `tone="destructive"` is how a dangerous row says so;
+ * there is no emphasis here, because a menu ranks its rows by order and wording rather than by
+ * loudness.
+ */
 export function MenuItem({ tone, leading, trailing, render, children, className, ...props }: MenuItemProps) {
   // Unwrapped FIRST (§5, the 2026-08-07 finding): an element created in a Server Component
   // crosses the RSC boundary as a lazy node whose `type` answers wrong, silently.
@@ -518,7 +543,7 @@ export function MenuItem({ tone, leading, trailing, render, children, className,
  */
 const MenuInGroupContext = React.createContext(false);
 
-export type MenuGroupProps = {
+export type MenuGroupProps = ComponentRefusals & {
   /**
    * The rows the group holds, and at most one `MenuLabel` naming them. Putting the label inside
    * the group is what earns the association: Base UI points the group's `aria-labelledby` at it,
@@ -539,7 +564,7 @@ export function MenuGroup(props: MenuGroupProps) {
   );
 }
 
-export type MenuLabelProps = {
+export type MenuLabelProps = ComponentRefusals & {
   /**
    * The heading's words: what the rows beneath it have in common. Nothing here is pressable. A
    * label that names an action is a `MenuItem` written in the wrong part.
@@ -588,7 +613,7 @@ function dotGlyph() {
   );
 }
 
-export type MenuCheckboxItemProps = {
+export type MenuCheckboxItemProps = ComponentRefusals & {
   /**
    * Controlled ticked state, paired with `onCheckedChange`. Ticked shows as the accent colour on
    * the indicator and nothing else, because rows are peers: a chosen row is marked rather than
@@ -620,6 +645,13 @@ export type MenuCheckboxItemProps = {
   ref?: React.Ref<HTMLDivElement>;
 };
 
+/**
+ * A row that is either ticked or not, and stays open when pressed.
+ *
+ * Its indicator is mounted whether or not it is checked, which is what holds the gutter open so
+ * a list of mixed rows keeps one left edge. That is also why there is no `inset` prop — the
+ * reserved space is geometry's job rather than a flag each call site remembers.
+ */
 export function MenuCheckboxItem({ trailing, children, className, ...props }: MenuCheckboxItemProps) {
   return (
     <BaseMenu.CheckboxItem
@@ -635,7 +667,7 @@ export function MenuCheckboxItem({ trailing, children, className, ...props }: Me
   );
 }
 
-export type MenuRadioGroupProps = {
+export type MenuRadioGroupProps = ComponentRefusals & {
   /**
    * Controlled chosen value, paired with `onValueChange`. The group holds the choice and the rows
    * only report it, which is why exclusivity needs no bookkeeping at the call site.
@@ -661,6 +693,13 @@ export type MenuRadioGroupProps = {
   ref?: React.Ref<HTMLDivElement>;
 };
 
+/**
+ * One choice among several, inside a menu.
+ *
+ * It is a real group, so a `MenuLabel` placed inside it names the group rather than falling
+ * back to a loose heading — the label part and the grouping are wired together by Base UI, and
+ * this component only marks the context so the label knows which it is.
+ */
 export function MenuRadioGroup(props: MenuRadioGroupProps) {
   // A radio group is a group: Base UI wires its label the same way, so a MenuLabel inside
   // one takes the part, not the fallback.
@@ -671,7 +710,7 @@ export function MenuRadioGroup(props: MenuRadioGroupProps) {
   );
 }
 
-export type MenuRadioItemProps = {
+export type MenuRadioItemProps = ComponentRefusals & {
   /**
    * What this row answers with. The group compares it against its own value to decide which row is
    * marked, so it has to be unique inside the group. Two rows sharing a value are one choice drawn
@@ -703,6 +742,12 @@ export type MenuRadioItemProps = {
   ref?: React.Ref<HTMLDivElement>;
 };
 
+/**
+ * One option in a `MenuRadioGroup`, marked when its `value` is the group's.
+ *
+ * The value has to be unique inside the group: two rows sharing one are a single choice drawn
+ * twice, and the menu will mark both.
+ */
 export function MenuRadioItem({ trailing, children, className, ...props }: MenuRadioItemProps) {
   return (
     <BaseMenu.RadioItem
@@ -725,7 +770,7 @@ const MenuSubTriggerContext = React.createContext<React.RefObject<HTMLElement | 
   null,
 );
 
-export type MenuSubProps = {
+export type MenuSubProps = ComponentRefusals & {
   /**
    * Controlled open state of this submenu, paired with `onOpenChange`. It is independent of the
    * menu the row sits in: a submenu opens and closes on its own row, and closing it leaves the
@@ -744,6 +789,13 @@ export type MenuSubProps = {
   children?: React.ReactNode;
 };
 
+/**
+ * A nested menu, anchored to the row that opens it rather than to the menu's own trigger.
+ *
+ * That anchoring is the whole reason this part exists: a submenu hangs from its row, so its
+ * width floor and its entry are measured from that row's box. Direction is inherited from the
+ * root — a subtree cannot change which way the text runs.
+ */
 export function MenuSub({ open, defaultOpen, onOpenChange, children }: MenuSubProps) {
   const triggerRef = React.useRef<HTMLElement | null>(null);
   /* The submenu's anchor is its trigger ROW, not the root trigger (§22's own width-compounding
@@ -781,7 +833,7 @@ export function MenuSub({ open, defaultOpen, onOpenChange, children }: MenuSubPr
   );
 }
 
-export type MenuSubTriggerProps = {
+export type MenuSubTriggerProps = ComponentRefusals & {
   /** Turns the row off, so the child menu cannot be opened. */
   disabled?: boolean;
   /** Typeahead text when children aren't plain text. */
@@ -853,7 +905,7 @@ export function MenuSubTrigger({
   );
 }
 
-export type MenuSubContentProps = {
+export type MenuSubContentProps = ComponentRefusals & {
   /**
    * The child panel's rows, written exactly as a top-level panel's are, including a further
    * `MenuSub`, which nests with no depth limit. What differs is the geometry, and that belongs to
@@ -906,7 +958,7 @@ export function MenuSubContent({ children, className, style, ref }: MenuSubConte
    `MenuCheckboxItem`, `MenuRadioGroup`, `MenuRadioItem` and `MenuSub`, and they work because
    they are the same components, not because anything was wired to make them. */
 
-export type ContextMenuProps = {
+export type ContextMenuProps = ComponentRefusals & {
   /** The same index a Menu wears. The rows, the glyphs and the type all take it. */
   size?: Size;
   /** Controlled open state, paired with `onOpenChange`. Rare: opening is the gesture's job. */
@@ -964,7 +1016,7 @@ export function ContextMenu({
   );
 }
 
-export type ContextMenuTriggerProps = Omit<
+export type ContextMenuTriggerProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"div">,
   "color" | "className" | "style"
 > & {
@@ -1013,7 +1065,7 @@ export function ContextMenuTrigger({ render, ref, ...props }: ContextMenuTrigger
   );
 }
 
-export type ContextMenuContentProps = {
+export type ContextMenuContentProps = ComponentRefusals & {
   /** The rows. `MenuItem` and its siblings — a context menu holds menu items. */
   children?: React.ReactNode;
   className?: string;

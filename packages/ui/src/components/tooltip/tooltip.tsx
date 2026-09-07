@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import { Tooltip as BaseTooltip } from "@base-ui/react/tooltip";
@@ -30,7 +31,7 @@ import { Text } from "../text/text.tsx";
 const DELAY = 600;
 const CLOSE_DELAY = 0;
 
-export type TooltipProviderProps = React.ComponentPropsWithoutRef<typeof BaseTooltip.Provider>;
+export type TooltipProviderProps = ComponentRefusals & React.ComponentPropsWithoutRef<typeof BaseTooltip.Provider>;
 
 /**
  * Where the system's timing lives, and it belongs once near the root of an app.
@@ -48,7 +49,7 @@ export function TooltipProvider(props: TooltipProviderProps) {
   return <BaseTooltip.Provider delay={DELAY} closeDelay={CLOSE_DELAY} {...props} />;
 }
 
-export type TooltipProps = {
+export type TooltipProps = ComponentRefusals & {
   /** Controlled open state. */
   open?: boolean;
   /** Uncontrolled starting state. */
@@ -116,7 +117,7 @@ export function Tooltip({ children, ...props }: TooltipProps) {
  * genuinely needs different timing, is a second `TooltipProvider` — which is the right shape
  * anyway, a delay being a property of a REGION rather than of one label.
  */
-export type TooltipTriggerProps = Omit<
+export type TooltipTriggerProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseTooltip.Trigger>,
   "delay" | "closeDelay"
 > & {
@@ -137,7 +138,7 @@ export function TooltipTrigger({ ref, ...props }: TooltipTriggerProps) {
   return <BaseTooltip.Trigger {...props} ref={setTrigger} />;
 }
 
-export type TooltipContentProps = Omit<
+export type TooltipContentProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"div">,
   "color" | "style" | "className"
 > & {
@@ -166,6 +167,13 @@ export type TooltipContentProps = Omit<
   ref?: React.Ref<HTMLDivElement>;
 };
 
+/**
+ * The chip, with its portal, theme and positioner assembled.
+ *
+ * Its children are a string, and the type says so. An inverted panel cannot re-tint a subtree —
+ * a component that stamps a tone re-declares the ink roles on its own element, so a `Kbd` placed
+ * in here would disappear. A tooltip may only repeat what its control already says.
+ */
 export function TooltipContent({
   side = "top",
   align = "center",

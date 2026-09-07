@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import { composeRender, useMergedRefs, type RenderElement } from "../../system/render.ts";
@@ -8,7 +9,7 @@ import { BackdropContext } from "../../theme/theme.tsx";
 import type { Size } from "../../system/axes.ts";
 import { useSize } from "../../system/size.ts";
 
-export type SurfaceProps = Omit<
+export type SurfaceProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"div">,
   "color" | "style" | "className"
 > & {

@@ -24,6 +24,7 @@
  * (designed defaults), `initialFocus`/`finalFocus`, and AlertDialog (a different role, and a
  * decision, not a variant).
  */
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
@@ -49,7 +50,7 @@ import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { useClipWarning } from "../../system/clip.tsx";
 import { GlassScope, useMaterial, type SurfaceMaterial } from "../../theme/theme.tsx";
-import { useSize } from "../../system/size.ts";
+import { useAppSize } from "../../system/size.ts";
 
 /* ── Size context: the dialog answers `size` like Menu (Kushagra, 2026-08-10) — the index
       prices the box (width, padding, corner) AND the two parts the system owns, and nothing
@@ -74,7 +75,7 @@ const DialogSizeContext = React.createContext<Size>("3");
    this package does too. */
 export type { OverlayOpenChangeReason, OverlayOpenChangeDetails } from "../../system/floating.tsx";
 
-export type DialogProps = {
+export type DialogProps = ComponentRefusals & {
   /**
    * Sets the panel's maximum width, its padding, its corner — and the two parts the system
    * owns, `DialogTitle` and `DialogDescription`, which take the same step map an alert's
@@ -114,7 +115,7 @@ export type DialogProps = {
  * Sheet), not a flag on this one.
  */
 export function Dialog({ size: sizeProp, open, defaultOpen, onOpenChange, children }: DialogProps) {
-  const size = useSize(sizeProp);
+  const size = useAppSize(sizeProp);
   const dir = useAmbientDirection();
 
   return (
@@ -167,8 +168,15 @@ type ButtonPartProps = Omit<
   ref?: React.Ref<HTMLButtonElement>;
 };
 
-export type DialogTriggerProps = ButtonPartProps;
+export type DialogTriggerProps = ComponentRefusals & ButtonPartProps;
 
+/**
+ * The node that opens a dialog, when the dialog has one.
+ *
+ * It is optional in a way a menu's trigger is not: `<Dialog open={…}>` driven by app state has
+ * no trigger at all, which is why the text direction falls back to the document rather than to
+ * this element. Pass an element to `render` to make an existing control the opener.
+ */
 export function DialogTrigger({ render, nativeButton, ref, ...props }: DialogTriggerProps) {
   // The trigger is the one node a dialog MAY own in ordinary flow, so it is where the ambient
   // direction is read (§20). It is optional here in a way it never was for Menu or Select —
@@ -190,7 +198,7 @@ export function DialogTrigger({ render, nativeButton, ref, ...props }: DialogTri
   );
 }
 
-export type DialogCloseProps = ButtonPartProps;
+export type DialogCloseProps = ComponentRefusals & ButtonPartProps;
 
 /**
  * The dismissing button, placed by the CALL SITE.
@@ -232,7 +240,7 @@ export function DialogClose({ render, nativeButton, ref, ...props }: DialogClose
  * `color` is omitted for the same reason every surface in this package omits it (the HTML
  * presentational attribute, not the CSS property).
  */
-export type DialogContentProps = Omit<
+export type DialogContentProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"div">,
   "color" | "style" | "className"
 > & {
@@ -355,7 +363,7 @@ function DialogPopup({
 
 /* ── Title and Description: the one anatomy something non-visual forces (§10) ──────────── */
 
-export type DialogTitleProps = Omit<
+export type DialogTitleProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"h2">,
   "color" | "style" | "className"
 > & {
@@ -401,7 +409,7 @@ export function DialogTitle({ children, ...props }: DialogTitleProps) {
   );
 }
 
-export type DialogDescriptionProps = Omit<
+export type DialogDescriptionProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"p">,
   "color" | "style" | "className"
 > & {

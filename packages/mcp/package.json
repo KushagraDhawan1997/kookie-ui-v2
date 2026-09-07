@@ -1,0 +1,58 @@
+{
+  "name": "@kookie-ui/mcp",
+  "version": "0.0.0",
+  "description": "An MCP server for KookieUI. It answers what a component is, what it refuses, which tokens exist, and whether a piece of code breaks the system's rules.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KushagraDhawan1997/kookie-ui-v2.git",
+    "directory": "packages/mcp"
+  },
+  "homepage": "https://github.com/KushagraDhawan1997/kookie-ui-v2#readme",
+  "bugs": {
+    "url": "https://github.com/KushagraDhawan1997/kookie-ui-v2/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "design-system",
+    "kookie-ui"
+  ],
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "kookie-mcp": "./dist/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "node --disable-warning=ExperimentalWarning --experimental-strip-types scripts/build-data.ts && tsdown",
+    "test": "vitest run",
+    "lint": "eslint src scripts && tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.0.0",
+    "zod": "^4.2.0"
+  },
+  "devDependencies": {
+    "@kookie-ui/react": "workspace:*",
+    "@types/node": "^26.1.2",
+    "esbuild": "^0.28.1",
+    "eslint": "^9.30.0",
+    "tsdown": "^0.22.0",
+    "typescript": "^5.8.0",
+    "vitest": "^4.1.0"
+  }
+}

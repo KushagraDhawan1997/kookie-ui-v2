@@ -1,12 +1,13 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import { composeRender, type RenderElement } from "../../system/render.ts";
 import type { Tone } from "../../system/axes.ts";
 import type { TypeSize, Weight } from "../text/text.tsx";
 
-export type LinkProps = Omit<
+export type LinkProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"a">,
   "color" | "style" | "className"
 > & {

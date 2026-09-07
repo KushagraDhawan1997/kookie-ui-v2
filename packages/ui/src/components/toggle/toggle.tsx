@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import { Toggle as BaseToggle } from "@base-ui/react/toggle";
 import { ToggleGroup as BaseToggleGroup } from "@base-ui/react/toggle-group";
 import * as React from "react";
@@ -50,7 +51,7 @@ type ToggleBase = Omit<
   ref?: React.Ref<HTMLButtonElement>;
 };
 
-export type ToggleProps = ToggleBase & (IconOnly | { iconOnly?: false | undefined });
+export type ToggleProps = ComponentRefusals & ToggleBase & (IconOnly | { iconOnly?: false | undefined });
 
 /**
  * A button that stays pressed (§11, §34). Bold in a formatting bar, "show hidden files" in a
@@ -110,7 +111,7 @@ export function Toggle({
   );
 }
 
-export type ToggleGroupProps = Omit<
+export type ToggleGroupProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseToggleGroup>,
   // `multiple` is pinned on, not offered: a group where pressing one releases the rest is a
   // radio group announcing itself as something else, and §26 already decided that one —

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
@@ -27,7 +28,7 @@ function isBusy(form: HTMLFormElement): boolean {
   return BUSY_STATUSES.includes(send?.getAttribute("data-status") ?? "");
 }
 
-export type ComposerProps = Omit<
+export type ComposerProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"form">,
   "color" | "onSubmit"
 > & {
@@ -187,7 +188,7 @@ type ComposerInputBase = Omit<
  */
 type ComposerInputName = { "aria-label": string } | { "aria-labelledby": string };
 
-export type ComposerInputProps = ComposerInputBase & ComposerInputName;
+export type ComposerInputProps = ComponentRefusals & ComposerInputBase & ComposerInputName;
 
 /**
  * The text a person types (§30). A BARE `<textarea>`, deliberately not our `TextArea`: that
@@ -291,7 +292,7 @@ export function ComposerInput({
   );
 }
 
-export type ComposerRowProps = Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
+export type ComposerRowProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
   ref?: React.Ref<HTMLDivElement>;
 };
 
@@ -315,7 +316,7 @@ export function ComposerRow({ className, ref, ...props }: ComposerRowProps) {
   );
 }
 
-export type ComposerSendProps = Omit<
+export type ComposerSendProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof Button>,
   "iconOnly" | "type" | "children" | "aria-label" | "loading"
 > & {

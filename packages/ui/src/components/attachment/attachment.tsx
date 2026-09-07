@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
@@ -28,7 +29,7 @@ import { useSize } from "../../system/size.ts";
  */
 export type AttachmentState = "idle" | "uploading" | "processing" | "error";
 
-export type AttachmentProps = {
+export type AttachmentProps = ComponentRefusals & {
   /**
    * Prices the tile: padding, corner, the symbol's box, the remove button and the file's own
    * name. It owns all of that, so the index reaches the words — the composer's rule (§30,

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 import { Slider as BaseSlider } from "@base-ui/react/slider";
 import * as React from "react";
@@ -9,7 +10,7 @@ import { useSize } from "../../system/size.ts";
 import { useAmbientDirection } from "../../system/floating.tsx";
 import { useMergedRefs } from "../../system/render.ts";
 
-export type SliderProps = Omit<
+export type SliderProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseSlider.Root>,
   // The anatomy is the component's, not the call site's: a slider is five elements (root,
   // control, track, fill, thumb) wired by Base UI, and none of them can move — TextField's

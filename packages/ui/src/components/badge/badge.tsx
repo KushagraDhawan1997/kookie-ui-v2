@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import type { Tone } from "../../system/axes.ts";
@@ -30,7 +31,7 @@ type BadgeBase = Omit<React.ComponentPropsWithoutRef<"span">, "color" | "childre
 type Bare = { children?: undefined; "aria-label": string };
 type Counted = { children: React.ReactNode; "aria-label"?: string };
 
-export type BadgeProps = BadgeBase & (Bare | Counted);
+export type BadgeProps = ComponentRefusals & BadgeBase & (Bare | Counted);
 
 /**
  * The platform's badge (§11, §38): a count or a dot that waits on a thing until you look —

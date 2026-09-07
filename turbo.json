@@ -22,10 +22,52 @@
     // where a full `pnpm run test` reported 43 docs tests passing while the two new exports
     // had no section at all. The edge folds the package's own test hash into the docs', and
     // it is the honest direction too: the docs' laws are downstream of the package.
+    // `build` joins `^test` because a law now reads the BUILT artifact: dts-docs.test.ts asserts
+    // every public export carries its doc into `dist/**/*.d.ts`, which is the file a coding
+    // agent resolves out of node_modules and the one surface that needs no network to reach.
+    // Read against a stale or absent `dist` that law measures a package nobody is shipping —
+    // the `measure` task already carries this edge for the same reason.
     "test": {
-      "dependsOn": ["^test"]
+      "dependsOn": ["^test", "build"]
     },
-    "lint": {},
+    // `@kookie-ui/mcp` derives its snapshot from files in `apps/docs` and `packages/ui`, so
+    // its hash has to include them even though it depends on neither package's OUTPUT. Without
+    // this, turbo hashed the package alone and editing the component registry served a cache
+    // hit — measured with `--dry=json`, which reported zero files from `apps/docs` in the
+    // task's hash, and the drift law then did not run. This is the 2026-08-08 `docs:test`
+    // finding in a third home.
+    //
+    // It is stated as INPUTS rather than as a dependency on `docs`, deliberately: a
+    // `devDependency` on the app gives turbo the edge but also makes a full Next.js build a
+    // prerequisite of building a small stdio server, which is a minute of work to hash a few
+    // source files. Inputs buy the hash without buying the build.
+    "@kookie-ui/mcp#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/apps/docs/app/**/*.ts",
+        "$TURBO_ROOT$/apps/docs/app/**/*.tsx",
+        "$TURBO_ROOT$/packages/ui/src/**/*.ts"
+      ]
+    },
+    "@kookie-ui/mcp#test": {
+      "dependsOn": ["^test", "build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/apps/docs/app/**/*.ts",
+        "$TURBO_ROOT$/apps/docs/app/**/*.tsx",
+        "$TURBO_ROOT$/packages/ui/src/**/*.ts"
+      ]
+    },
+    // `lint` runs `tsc`, and `tsc` resolves a workspace dependency through its BUILT types —
+    // `@kookie-ui/mcp` reads `@kookie-ui/react/agent`, which exists only in `dist`. With no
+    // edge the task could run first and report `TS2307: Cannot find module`, which reads like
+    // a broken import rather than a missing build; it only ever passed because a previous
+    // build had left `dist` behind, and an interrupted one made it fail out of nowhere.
+    "lint": {
+      "dependsOn": ["^build"]
+    },
     "measure": {
       "dependsOn": ["build"]
     }

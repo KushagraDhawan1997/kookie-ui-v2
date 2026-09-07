@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import { composeRender, type RenderElement } from "../../system/render.ts";
@@ -38,7 +39,7 @@ export type TypeSize = Exclude<Extract<keyof [unknown, ...typeof fontSize], `${n
  */
 export type Weight = keyof typeof fontWeight;
 
-export type TextProps = Omit<
+export type TextProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"span">,
   "color" | "style" | "className"
 > & {

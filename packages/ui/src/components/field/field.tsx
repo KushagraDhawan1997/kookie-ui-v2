@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import { Field as BaseField } from "@base-ui/react/field";
 import * as React from "react";
 
@@ -15,7 +16,7 @@ import { themeDefaults } from "../../theme/theme.tsx";
    so the refusal it justifies rested on something nobody could write. The parts keep the
    omission: a `FieldLabel` must stay a `<label>` and a `FieldError` must stay the announced
    node, and those are the wiring the anatomy exists for. */
-export type FieldProps = Omit<
+export type FieldProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseField.Root>,
   "className"
 > & {
@@ -29,22 +30,22 @@ export type FieldProps = Omit<
   className?: string;
 };
 
-export type FieldItemProps = Omit<
+export type FieldItemProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseField.Item>,
   "className" | "render"
 > & { className?: string };
 
-export type FieldLabelProps = Omit<
+export type FieldLabelProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseField.Label>,
   "className" | "render"
 > & { className?: string };
 
-export type FieldDescriptionProps = Omit<
+export type FieldDescriptionProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseField.Description>,
   "className" | "render"
 > & { className?: string };
 
-export type FieldErrorProps = Omit<
+export type FieldErrorProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseField.Error>,
   "className" | "render"
 > & { className?: string };

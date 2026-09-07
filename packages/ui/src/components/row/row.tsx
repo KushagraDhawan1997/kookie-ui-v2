@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import type { Size, Tone } from "../../system/axes.ts";
@@ -12,7 +13,7 @@ import {
   type RenderElement,
 } from "../../system/render.ts";
 
-export type RowProps = Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
+export type RowProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
   /**
    * The row's box: a standing row rides the control height ladder, so it stands level with a
    * `Button` of the same index (§21). The text line plus one designed inset — the shorter box

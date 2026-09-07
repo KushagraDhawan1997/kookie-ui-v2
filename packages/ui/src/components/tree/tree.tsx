@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
@@ -43,7 +44,7 @@ export type TreeNode = {
   leading?: React.ReactNode;
 };
 
-export type TreeProps = Omit<
+export type TreeProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"div">,
   "color" | "children" | "onSelect"
 > & {
@@ -443,7 +444,7 @@ export function Tree({
   );
 }
 
-export type NavTreeProps = Omit<React.ComponentPropsWithoutRef<"div">, "color" | "children"> & {
+export type NavTreeProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"div">, "color" | "children"> & {
   /** The hierarchy, as data. Leaves carry `href`; sections carry `children`. See `TreeNode`. */
   items: readonly TreeNode[];
   /** The rows' index — the row family's own `size`, stamped per row. Rests at 2. */

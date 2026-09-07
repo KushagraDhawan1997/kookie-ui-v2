@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import { composeRender, type RenderElement } from "../../system/render.ts";
@@ -8,7 +9,7 @@ import { Menu, MenuContent, MenuItem, MenuTrigger } from "../menu/menu.tsx";
 import { glyphStroke } from "../../tokens/config.ts";
 import type { TypeSize } from "../text/text.tsx";
 
-export type BreadcrumbProps = Omit<
+export type BreadcrumbProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"nav">,
   "color" | "style" | "className"
 > & {
@@ -78,7 +79,7 @@ export function Breadcrumb({
   );
 }
 
-export type BreadcrumbItemProps = Omit<
+export type BreadcrumbItemProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"li">,
   "color" | "style" | "className"
 > & {
@@ -134,7 +135,7 @@ export function BreadcrumbItem({ className, style, children, ref, ...props }: Br
   );
 }
 
-export type BreadcrumbLinkProps = Omit<
+export type BreadcrumbLinkProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"a">,
   "color" | "style" | "className"
 > & {
@@ -185,7 +186,7 @@ export function BreadcrumbLink({
   return <a {...(merged as React.ComponentPropsWithRef<"a">)}>{children}</a>;
 }
 
-export type BreadcrumbPageProps = Omit<
+export type BreadcrumbPageProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"span">,
   "color" | "style" | "className"
 > & {
@@ -254,7 +255,7 @@ export type BreadcrumbEllipsisItem = { label: string } & (
     }
 );
 
-export type BreadcrumbEllipsisProps = {
+export type BreadcrumbEllipsisProps = ComponentRefusals & {
   /**
    * The levels you dropped, in path order. REQUIRED, and that is the design: three dots say
    * "there is more here", so an ellipsis that opens nothing is a control promising something

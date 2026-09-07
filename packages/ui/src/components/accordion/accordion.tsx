@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import { Accordion as BaseAccordion } from "@base-ui/react/accordion";
 import * as React from "react";
 
@@ -16,7 +17,7 @@ import { themeDefaults } from "../../theme/theme.tsx";
    rest that the app can now move (2026-09-05). */
 const AccordionSizeContext = React.createContext<Size>(themeDefaults.size);
 
-export type AccordionProps = Omit<
+export type AccordionProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseAccordion.Root>,
   "orientation" | "loopFocus" | "className" | "style" | "render"
 > & {
@@ -57,7 +58,7 @@ export function Accordion({ size: sizeProp, className, ...props }: AccordionProp
   );
 }
 
-export type AccordionItemProps = Omit<
+export type AccordionItemProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseAccordion.Item>,
   "className" | "style" | "render"
 > & {
@@ -76,7 +77,7 @@ export function AccordionItem({ className, ...props }: AccordionItemProps) {
   );
 }
 
-export type AccordionTriggerProps = Omit<
+export type AccordionTriggerProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseAccordion.Trigger>,
   "className" | "style" | "render" | "nativeButton"
 > & {
@@ -140,7 +141,7 @@ export function AccordionTrigger({ headingLevel = 3, className, children, ...pro
   );
 }
 
-export type AccordionPanelProps = Omit<
+export type AccordionPanelProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseAccordion.Panel>,
   "className" | "style" | "render"
 > & {

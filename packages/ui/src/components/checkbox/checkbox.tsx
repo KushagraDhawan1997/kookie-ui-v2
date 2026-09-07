@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import { Checkbox as BaseCheckbox } from "@base-ui/react/checkbox";
 import * as React from "react";
 
@@ -8,7 +9,7 @@ import { useSize } from "../../system/size.ts";
 import { CHECK_PATH } from "../../system/glyphs.ts";
 import { glyphStroke } from "../../tokens/config.ts";
 
-export type CheckboxProps = Omit<
+export type CheckboxProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseCheckbox.Root>,
   // The glyph is the component's, not the call site's — a checkbox with arbitrary children is
   // a checkbox that can be made to mean anything. The LABEL is not children either: it is a

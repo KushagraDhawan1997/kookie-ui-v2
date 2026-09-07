@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import { Button as BaseButton } from "@base-ui/react/button";
 import * as React from "react";
 
@@ -123,20 +124,8 @@ export type IconOnly =
   | { iconOnly: true; "aria-label": string }
   | { iconOnly: true; "aria-labelledby": string };
 
-export type ButtonProps = ButtonBase & (IconOnly | { iconOnly?: false | undefined });
+export type ButtonProps = ComponentRefusals & ButtonBase & (IconOnly | { iconOnly?: false | undefined });
 
-/**
- * The action control. Base UI supplies the semantics: a real `<button>`, the keyboard
- * behaviour and the disabled state. Every visible decision is this system's, resolved through
- * tokens. `tone` picks a meaning, `emphasis` picks a loudness, `size` sets five scales at one
- * index, and the stylesheet does the rest with no JavaScript at interaction time.
- *
- * There is no margin prop. Outer spacing belongs to the layout that owns the relationship, so
- * write `<Box m="4"><Button/></Box>`.
- *
- * It defaults to `medium` and `neutral`, so nothing is loud and accent by accident and a
- * screen has one focal point unless somebody asks for a second.
- */
 /**
  * The done state's two glyphs, stacked in one cell.
  *
@@ -172,6 +161,18 @@ function DoneSwap({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * The action control. Base UI supplies the semantics: a real `<button>`, the keyboard
+ * behaviour and the disabled state. Every visible decision is this system's, resolved through
+ * tokens. `tone` picks a meaning, `emphasis` picks a loudness, `size` sets five scales at one
+ * index, and the stylesheet does the rest with no JavaScript at interaction time.
+ *
+ * There is no margin prop. Outer spacing belongs to the layout that owns the relationship, so
+ * write `<Box m="4"><Button/></Box>`.
+ *
+ * It defaults to `medium` and `neutral`, so nothing is loud and accent by accident and a
+ * screen has one focal point unless somebody asks for a second.
+ */
 export function Button({
   size: sizeProp,
   tone = "neutral",

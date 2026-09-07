@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import { Input as BaseInput } from "@base-ui/react/input";
 import * as React from "react";
 
@@ -23,7 +24,7 @@ import { useSize } from "../../system/size.ts";
  */
 export type TextFieldType = "text" | "email" | "password" | "search" | "tel" | "url" | "number";
 
-export type TextFieldProps = Omit<
+export type TextFieldProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"input">,
   // `size` is ours — the index (§4). The native attribute is a character-count width hack that
   // predates CSS and would collide with it.

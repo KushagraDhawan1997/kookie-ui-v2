@@ -28,7 +28,8 @@
     "*.css"
   ],
   "files": [
-    "dist"
+    "dist",
+    "agents"
   ],
   "exports": {
     ".": {
@@ -36,8 +37,18 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
+    "./agent": {
+      "types": "./dist/agent/index.d.ts",
+      "import": "./dist/agent/index.js",
+      "default": "./dist/agent/index.js"
+    },
     "./styles.css": "./dist/styles.css",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./eslint-plugin": {
+      "types": "./dist/lint/index.d.ts",
+      "import": "./dist/lint/index.js",
+      "default": "./dist/lint/index.js"
+    }
   },
   "publishConfig": {
     "access": "public",
@@ -85,5 +96,8 @@
   ],
   "dependencies": {
     "@base-ui/react": "^1.7.0"
+  },
+  "bin": {
+    "kookie-ui": "./agents/install.mjs"
   }
 }

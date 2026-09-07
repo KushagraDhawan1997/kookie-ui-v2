@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import { Avatar as BaseAvatar } from "@base-ui/react/avatar";
 import * as React from "react";
 
@@ -8,7 +9,7 @@ import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { glyphStroke } from "../../tokens/config.ts";
 import type { TypeSize } from "../text/text.tsx";
 
-export type AvatarProps = Omit<React.ComponentPropsWithoutRef<"span">, "color"> & {
+export type AvatarProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"span">, "color"> & {
   /**
    * A step on the type ramp, 1–9, and OPTIONAL with no default: unset, an avatar is exactly
    * one line of the text beside it, so the one next to a name in a list is list-sized and the
@@ -129,7 +130,7 @@ export function Avatar({
   );
 }
 
-export type AvatarGroupProps = Omit<React.ComponentPropsWithoutRef<"span">, "color"> & {
+export type AvatarGroupProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"span">, "color"> & {
   /**
    * One step for every avatar in the group. The group is a line of text with no words in
    * it, and each unset avatar takes that line — so the size is said once, here, and an

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import { composeRender, useMergedRefs, type RenderElement } from "../../system/render.ts";
@@ -10,7 +11,7 @@ import { CardScope, useInsideCard, useNestedCardWarning } from "../../system/nes
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { useSize } from "../../system/size.ts";
 
-export type CardProps = Omit<
+export type CardProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"div">,
   "color" | "style" | "className"
 > & {

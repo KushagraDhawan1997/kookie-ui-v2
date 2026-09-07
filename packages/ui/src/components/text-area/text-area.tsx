@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import { Input as BaseInput } from "@base-ui/react/input";
 import * as React from "react";
 
@@ -9,7 +10,7 @@ import { useLensRef } from "../../system/refraction.tsx";
 import { useMaterial } from "../../theme/theme.tsx";
 import { useSize } from "../../system/size.ts";
 
-export type TextAreaProps = Omit<
+export type TextAreaProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"textarea">,
   // `children` is not the API even though a <textarea> can technically hold text: React's own
   // contract for form elements is `defaultValue`/`value`, and accepting both spellings for one

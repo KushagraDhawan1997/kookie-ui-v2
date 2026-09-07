@@ -1,9 +1,10 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import { Separator as BaseSeparator } from "@base-ui/react/separator";
 import * as React from "react";
 
-export type SeparatorProps = Omit<
+export type SeparatorProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseSeparator>,
   // `children` — a separator separates; it has no content. The labelled divider ("— or —")
   // is a composition, not a prop: a Flex row of two separators and a Text.

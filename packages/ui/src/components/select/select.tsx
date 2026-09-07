@@ -12,6 +12,7 @@
  * folded INTO the trigger (`placeholder` prop) — a part whose only job is to stand where the
  * value goes earns a prop, not an element.
  */
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 import { Select as BaseSelect } from "@base-ui/react/select";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
@@ -38,7 +39,7 @@ const SelectSizeContext = React.createContext<Size>(themeDefaults.size);
 
 /* ── Root ─────────────────────────────────────────────────────────────────────────────── */
 
-export type SelectProps = {
+export type SelectProps = ComponentRefusals & {
   /** The same index the trigger wears. The rows, the glyphs and the type all take it. */
   size?: Size;
   /**
@@ -144,7 +145,7 @@ export function Select({ size: sizeProp, onValueChange, children, ...props }: Se
 
 /* ── Trigger: a field that is pressed, not entered (§23) ──────────────────────────────── */
 
-export type SelectTriggerProps = Omit<
+export type SelectTriggerProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"button">,
   // The TextField shape (§4): the platform's own props pass through, and only what this
   // system owns is taken away. Hand-listing them instead — which is how this shipped — closed
@@ -242,7 +243,7 @@ export function SelectTrigger({
  * The victim is specific: the panel is a bare `role="listbox"` with no accessible name, and
  * `aria-label` was the obvious repair, accepted and discarded.
  */
-export type SelectContentProps = Omit<
+export type SelectContentProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"div">,
   "color" | "className" | "style"
 > & {
@@ -343,6 +344,13 @@ function SelectPopup({
   );
 }
 
+/**
+ * The listbox, with its portal, theme and positioner already assembled.
+ *
+ * It takes no placement props at all, and that is deliberate: a select's panel is placed by what
+ * is inside it — the chosen row lands on the value it replaces — so `side` and `align` are not
+ * questions a call site gets to answer.
+ */
 export function SelectContent({ children, className, style, ref, ...rest }: SelectContentProps) {
   return (
     <BaseSelect.Portal>
@@ -359,7 +367,7 @@ export function SelectContent({ children, className, style, ref, ...rest }: Sele
 
 /* ── Rows ─────────────────────────────────────────────────────────────────────────────── */
 
-export type SelectItemProps = {
+export type SelectItemProps = ComponentRefusals & {
   /** The value this option names: what the form submits and what the trigger displays. */
   value: string;
   /**
@@ -413,7 +421,7 @@ export function SelectItem({ children, className, ...props }: SelectItemProps) {
  */
 const SelectInGroupContext = React.createContext(false);
 
-export type SelectGroupProps = {
+export type SelectGroupProps = ComponentRefusals & {
   /**
    * The `SelectItem` rows this group holds, and at most one `SelectLabel` naming them. Putting the
    * label inside the group is what earns the association: Base UI points the group's
@@ -435,7 +443,7 @@ export function SelectGroup(props: SelectGroupProps) {
   );
 }
 
-export type SelectLabelProps = {
+export type SelectLabelProps = ComponentRefusals & {
   /**
    * The heading's words: the name of the group below it, never an option. Nothing here is
    * choosable, and a label that reads like a choice is the one way this part misleads.

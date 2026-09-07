@@ -25,6 +25,7 @@
  * The width is the component's alone: a designed fixed width per index (`--alert-w-N`
  * through the shared overlay join), no prop, and the two actions split it 50/50.
  */
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 import { AlertDialog as BaseAlertDialog } from "@base-ui/react/alert-dialog";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
@@ -51,7 +52,7 @@ import { Text } from "../text/text.tsx";
 import type { Size, Tone } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial, themeDefaults } from "../../theme/theme.tsx";
-import { useSize } from "../../system/size.ts";
+import { useAppSize } from "../../system/size.ts";
 
 /* ── The closed content is what lets size price the type (§15, §25) ─────────────────────────
       Dialog's size stops at the box because its content is the consumer's; an alert's title
@@ -72,7 +73,7 @@ const AlertSizeContext = React.createContext<Size>(themeDefaults.size);
 
 /* ── Root ─────────────────────────────────────────────────────────────────────────────── */
 
-export type AlertDialogProps = {
+export type AlertDialogProps = ComponentRefusals & {
   /**
    * Sets the whole alert: the box, the corner, the padding, the title and description type steps,
    * and the two buttons. It may reach the type where Dialog's size cannot, because the content
@@ -104,7 +105,7 @@ export type AlertDialogProps = {
  * now", which is the Cancel action by another route).
  */
 export function AlertDialog({ size: sizeProp, open, defaultOpen, onOpenChange, children }: AlertDialogProps) {
-  const size = useSize(sizeProp);
+  const size = useAppSize(sizeProp);
   const dir = useAmbientDirection();
   return (
     <AlertSizeContext.Provider value={size}>
@@ -127,7 +128,7 @@ export function AlertDialog({ size: sizeProp, open, defaultOpen, onOpenChange, c
 
 /** Menu's own check, on its third consumer (§5): does the render target bottom out in a real
     `<button>`? A component with its own `render` escape is transparent — follow it. */
-export type AlertDialogTriggerProps = Omit<
+export type AlertDialogTriggerProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"button">,
   "color" | "style" | "className"
 > & {
@@ -153,6 +154,12 @@ export type AlertDialogTriggerProps = Omit<
   ref?: React.Ref<HTMLButtonElement>;
 };
 
+/**
+ * The node that opens an alert, when the alert has one.
+ *
+ * An alert raised by app state — a failed save, a session about to expire — has no trigger, so
+ * like `DialogTrigger` this part is optional and the direction falls back to the document.
+ */
 export function AlertDialogTrigger({ render, nativeButton, ref, ...props }: AlertDialogTriggerProps) {
   // The one node an alert MAY own in ordinary flow — where ambient direction is read (§20);
   // an alert opened by app state has no trigger, and the hook falls back to the document.
@@ -172,7 +179,7 @@ export function AlertDialogTrigger({ render, nativeButton, ref, ...props }: Aler
 
 /* ── Content: the fold, and the layout the component owns (§25) ───────────────────────── */
 
-export type AlertDialogContentProps = Omit<
+export type AlertDialogContentProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"div">,
   "color" | "style" | "className"
 > & {
@@ -273,7 +280,7 @@ function AlertPopup({
 
 /* ── Title and Description: the same forcing as Dialog's, plus the index (§10, §15) ────── */
 
-export type AlertDialogTitleProps = Omit<
+export type AlertDialogTitleProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"h2">,
   "color" | "style" | "className"
 > & {
@@ -299,7 +306,7 @@ export function AlertDialogTitle({ children, ...props }: AlertDialogTitleProps) 
   );
 }
 
-export type AlertDialogDescriptionProps = Omit<
+export type AlertDialogDescriptionProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"p">,
   "color" | "style" | "className"
 > & {
@@ -326,7 +333,7 @@ export function AlertDialogDescription({ children, ...props }: AlertDialogDescri
 
 /* ── The two actions: real Buttons the component prices and places (§11, §25) ──────────── */
 
-export type AlertDialogCancelProps = Omit<
+export type AlertDialogCancelProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"button">,
   "color" | "style" | "className"
 > & {
@@ -379,7 +386,7 @@ export function AlertDialogCancel({ children, ...props }: AlertDialogCancelProps
   );
 }
 
-export type AlertDialogActionProps = Omit<
+export type AlertDialogActionProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"button">,
   "color" | "style" | "className"
 > & {

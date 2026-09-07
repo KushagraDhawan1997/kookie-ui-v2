@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import type { Size, Tone } from "../../system/axes.ts";
@@ -12,7 +13,7 @@ import { DISMISS_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
 import { glyphStroke } from "../../tokens/config.ts";
 import { useSize } from "../../system/size.ts";
 
-export type NoticeProps = {
+export type NoticeProps = ComponentRefusals & {
   /**
    * Sets the box: the padding, the corner and the dismiss button the component places. It does
    * not set the words, because a notice holds your text and text sets its own step. It rests at

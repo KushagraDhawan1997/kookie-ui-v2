@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import { Popover as BasePopover } from "@base-ui/react/popover";
@@ -37,7 +38,7 @@ import { useSize } from "../../system/size.ts";
    rest that the app can now move (2026-09-05). */
 const PopoverSizeContext = React.createContext<Size>(themeDefaults.size);
 
-export type PopoverProps = {
+export type PopoverProps = ComponentRefusals & {
   /**
    * The panel's box: its padding and its corner. NOT the type inside it — the content is yours,
    * so its steps are yours to state. That line is Dialog's and it holds here for the same
@@ -116,7 +117,7 @@ export function Popover({ size: sizeProp, children, ...props }: PopoverProps) {
  * relabels itself by open state) is reachable by reading Base UI's own `data-popup-open`
  * attribute in CSS, which is where this system puts state anyway.
  */
-export type PopoverTriggerProps = Omit<
+export type PopoverTriggerProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BasePopover.Trigger>,
   "render"
 > & {
@@ -163,7 +164,7 @@ export function PopoverTrigger({ render, nativeButton, ref, ...props }: PopoverT
   );
 }
 
-export type PopoverContentProps = Omit<
+export type PopoverContentProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"div">,
   "color" | "style" | "className"
 > & {
@@ -186,6 +187,13 @@ export type PopoverContentProps = Omit<
   ref?: React.Ref<HTMLDivElement>;
 };
 
+/**
+ * The panel, and everything needed to put it over the page: portal, theme, positioner, popup.
+ *
+ * It centres on its trigger by default, where a menu starts at the trigger's edge — a popover
+ * holds content of its own rather than a list hanging off a control. Placement is the system's;
+ * the defaults are designed and a call site rarely states any of them.
+ */
 export function PopoverContent({
   side = "bottom",
   align = "center",
@@ -302,7 +310,7 @@ function PopoverPopup({
   );
 }
 
-export type PopoverTitleProps = Omit<
+export type PopoverTitleProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"h2">,
   "color" | "style" | "className"
 > & {
@@ -328,7 +336,7 @@ export function PopoverTitle({ children, ...props }: PopoverTitleProps) {
   );
 }
 
-export type PopoverDescriptionProps = Omit<
+export type PopoverDescriptionProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"p">,
   "color" | "style" | "className"
 > & {
@@ -342,6 +350,12 @@ export type PopoverDescriptionProps = Omit<
   ref?: React.Ref<HTMLParagraphElement>;
 };
 
+/**
+ * The supporting line under a popover's title, at the step and the ink the system owns for it.
+ *
+ * It is a real description in the accessibility tree, not just smaller text: Base UI wires it to
+ * the panel, so a screen reader announces it with the title.
+ */
 export function PopoverDescription({ children, ...props }: PopoverDescriptionProps) {
   const size = React.use(PopoverSizeContext);
   return (
@@ -352,7 +366,7 @@ export function PopoverDescription({ children, ...props }: PopoverDescriptionPro
 }
 
 /** `render` is an ELEMENT here for the reason it is on the trigger — see PopoverTriggerProps. */
-export type PopoverCloseProps = Omit<
+export type PopoverCloseProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BasePopover.Close>,
   "render"
 > & {

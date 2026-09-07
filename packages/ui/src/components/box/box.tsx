@@ -1,5 +1,6 @@
 "use client";
 
+import type { RadixReflexRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import { composeRender, type RenderElement } from "../../system/render.ts";
@@ -8,7 +9,7 @@ import { BackdropContext } from "../../theme/theme.tsx";
 import { DEV } from "../../system/dev.ts";
 
 
-export type BoxProps = BoxStyleProps &
+export type BoxProps = RadixReflexRefusals & BoxStyleProps &
   Omit<React.ComponentPropsWithoutRef<"div">, keyof BoxStyleProps> & {
     /** Render into an element you already have, instead of adding a wrapper. */
     render?: RenderElement;

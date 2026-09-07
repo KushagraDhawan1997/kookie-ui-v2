@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import { Radio as BaseRadio } from "@base-ui/react/radio";
 import { RadioGroup as BaseRadioGroup } from "@base-ui/react/radio-group";
 import * as React from "react";
@@ -7,7 +8,7 @@ import * as React from "react";
 import type { Size } from "../../system/axes.ts";
 import { useSize } from "../../system/size.ts";
 
-export type RadioProps = Omit<
+export type RadioProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseRadio.Root>,
   // The same closed edges Checkbox drew, inherited rather than re-argued (§4, §11; LOG
   // 2026-08-06 records each refusal travelling to Radio by name):
@@ -45,7 +46,7 @@ export type RadioProps = Omit<
   ref?: React.Ref<HTMLSpanElement>;
 };
 
-export type RadioGroupProps = Omit<
+export type RadioGroupProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseRadioGroup>,
   // Refused with Radio's own: a read-only GROUP is the same platform absence one level up.
   "readOnly"

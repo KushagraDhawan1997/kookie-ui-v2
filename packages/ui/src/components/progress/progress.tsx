@@ -1,9 +1,10 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import { Progress as BaseProgress } from "@base-ui/react/progress";
 import * as React from "react";
 
-export type ProgressProps = Omit<
+export type ProgressProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseProgress.Root>,
   // The anatomy is the component's, not the call site's — TextField's sentence with two
   // elements instead of three. The root must stay the `role="progressbar"` box (it is what

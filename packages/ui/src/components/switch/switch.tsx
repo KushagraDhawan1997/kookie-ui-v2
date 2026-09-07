@@ -1,12 +1,13 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import { Switch as BaseSwitch } from "@base-ui/react/switch";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
 import { useSize } from "../../system/size.ts";
 
-export type SwitchProps = Omit<
+export type SwitchProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseSwitch.Root>,
   // The same closed edges Checkbox drew and Radio inherited (§4, §11; LOG 2026-08-06) —
   // each refusal named in DECISIONS as travelling to Switch:

@@ -1,3 +1,4 @@
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 /**
@@ -8,7 +9,7 @@ import * as React from "react";
  * and draws nothing at all. The spokes fill with `currentColor`, so the way to colour a
  * spinner is to colour the text around it (ENGINEERING §1.3: the refusals are the type).
  */
-export type SpinnerProps = Omit<React.ComponentPropsWithoutRef<"span">, "children" | "color"> & {
+export type SpinnerProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"span">, "children" | "color"> & {
   ref?: React.Ref<HTMLSpanElement>;
 };
 

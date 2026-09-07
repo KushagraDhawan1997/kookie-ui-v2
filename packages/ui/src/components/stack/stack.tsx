@@ -1,5 +1,6 @@
 "use client";
 
+import type { RadixReflexRefusals } from "../../system/refused.ts";
 import { Box, type BoxProps } from "../box/box.tsx";
 
 /**
@@ -7,7 +8,7 @@ import { Box, type BoxProps } from "../box/box.tsx";
  * with a different name, `wrap` has no meaning in a single column, and the axis-split gaps
  * (`gapX`/`gapY`) collapse to `gap` when there is only one axis (§3).
  */
-export type StackProps = Omit<
+export type StackProps = RadixReflexRefusals & Omit<
   BoxProps,
   "display" | "direction" | "wrap" | "gapX" | "gapY" | "columns" | "rows" | "areas" | "flow"
 >;
