@@ -60,3 +60,22 @@ export function propSummary(doc: string): string {
   }
   return doc;
 }
+
+/**
+ * What a prop's TYPE cell says.
+ *
+ * The legal values where the package can name them all, and the alias where it cannot
+ * (2026-09-07). `size?: Size` used to render as the word `Size` — 38 times across the
+ * reference, `Tone` 13 more — so the one machine-readable document this system publishes
+ * never stated a single legal value, in a system whose whole claim is that its unions are
+ * closed. A reader had to leave the page to learn that there are four sizes.
+ *
+ * ONE HOME for both readers, next to the description's, because the page's table and the
+ * markdown twin's table are the same table twice and the twin exists to be identical.
+ *
+ * The alias survives wherever `values` is absent, which is every type that is not a finite
+ * union of string literals: `RenderElement`, `React.ReactNode`, `Responsive<Size>`. Naming
+ * `boolean` as `"true" | "false"` would be a worse sentence than the word `boolean`.
+ */
+export const propType = (prop: ApiProp): string =>
+  prop.values ? prop.values.map((value) => `"${value}"`).join(" | ") : prop.type;

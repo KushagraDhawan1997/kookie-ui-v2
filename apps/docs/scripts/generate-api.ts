@@ -35,7 +35,7 @@ const packageRoot = path.join(packageDir, "src");
 const indexPath = path.join(packageRoot, "index.ts");
 const outPath = path.join(here, "../app/(docs)/components/api.generated.ts");
 
-export type ApiProp = { name: string; type: string; optional: boolean; doc: string };
+export type ApiProp = { name: string; type: string; values?: string[]; optional: boolean; doc: string };
 type ApiEntry = { element: string | null; props: ApiProp[] };
 
 /**
@@ -54,10 +54,7 @@ type ApiEntry = { element: string | null; props: ApiProp[] };
  * are read out of one place.
  */
 export function resolvedPropNames(): Map<string, Set<string>> {
-  const config = ts.readConfigFile(path.join(packageDir, "tsconfig.json"), ts.sys.readFile);
-  const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, packageDir);
-  const program = ts.createProgram([indexPath], parsed.options);
-  const checker = program.getTypeChecker();
+  const { program, checker } = packageProgram();
 
   const resolved = new Map<string, Set<string>>();
   for (const [typeName, file] of propsTypeLocations()) {
@@ -75,6 +72,25 @@ export function resolvedPropNames(): Map<string, Set<string>> {
     resolved.set(typeName.replace(/Props$/, ""), new Set(names));
   }
   return resolved;
+}
+
+/**
+ * The package, compiled once.
+ *
+ * Two readers need the CHECKER rather than the AST — `resolvedPropNames()` for the inherited
+ * names, and the walk below for a prop's legal values — and each was building its own program
+ * over the same 63 entry points. Caching it is not a speed decision: two programs are two
+ * answers, and the day they disagreed the disagreement would be invisible.
+ */
+let compiled: { program: ts.Program; checker: ts.TypeChecker } | undefined;
+function packageProgram(): { program: ts.Program; checker: ts.TypeChecker } {
+  if (!compiled) {
+    const config = ts.readConfigFile(path.join(packageDir, "tsconfig.json"), ts.sys.readFile);
+    const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, packageDir);
+    const program = ts.createProgram([indexPath], parsed.options);
+    compiled = { program, checker: program.getTypeChecker() };
+  }
+  return compiled;
 }
 
 const sourceFile = (file: string) =>
@@ -130,6 +146,125 @@ function literalNames(node: ts.TypeNode): string[] {
   return [];
 }
 
+/**
+ * A union of string literals, IN THE ORDER IT WAS WRITTEN.
+ *
+ * The checker knows every member and nothing about their order: union constituents are sorted
+ * by internal type id, which is the order the literals were first created anywhere in the
+ * program, so `Emphasis` came back as `medium | loud | quiet` because `medium` is a default
+ * somebody wrote earlier. Every axis in this system is a LADDER — solid, thin, regular, thick
+ * — and a reference page that prints its rungs shuffled is worse than one that printed the
+ * alias, because the shuffled one looks like information.
+ *
+ * So the ORDER is read off the syntax, following aliases the way `collect` already does. Three
+ * shapes carry it: an inline union, an `as const` array behind `(typeof X)[number]` (the
+ * checker hands that back as a tuple, and a tuple is ordered), and `keyof typeof X`, where a
+ * symbol table is in declaration order. Anything else — `TypeSize` is an `Exclude` over a
+ * spread tuple — falls back to the checker's own list, which is why this returns the SET's
+ * order rather than nothing.
+ */
+function orderedLiterals(
+  node: ts.TypeNode,
+  checker: ts.TypeChecker,
+  depth = 0,
+): string[] | undefined {
+  if (depth > 6) return undefined;
+
+  if (ts.isParenthesizedTypeNode(node)) return orderedLiterals(node.type, checker, depth + 1);
+
+  if (ts.isLiteralTypeNode(node) && ts.isStringLiteral(node.literal)) return [node.literal.text];
+
+  if (ts.isUnionTypeNode(node)) {
+    const out: string[] = [];
+    for (const member of node.types) {
+      const part = orderedLiterals(member, checker, depth + 1);
+      if (!part) return undefined;
+      out.push(...part);
+    }
+    return out;
+  }
+
+  // `(typeof SIZES)[number]` and `(typeof themeAxes.radius)[number]`.
+  if (ts.isIndexedAccessTypeNode(node)) {
+    const object = checker.getTypeAtLocation(node.objectType);
+    const objectFlags = (object as ts.ObjectType).objectFlags ?? 0;
+    if (!(objectFlags & ts.ObjectFlags.Reference)) return undefined;
+    const elements = checker.getTypeArguments(object as ts.TypeReference);
+    if (!elements.length) return undefined;
+    const out: string[] = [];
+    for (const element of elements) {
+      if (!element.isStringLiteral()) return undefined;
+      out.push(element.value);
+    }
+    return out;
+  }
+
+  // `keyof typeof tones` — the properties of an object literal come back in the order the
+  // file writes them, which for a tone table is the order the palette was designed in.
+  if (ts.isTypeOperatorNode(node) && node.operator === ts.SyntaxKind.KeyOfKeyword) {
+    const target = checker.getTypeAtLocation(node.type);
+    const names = target.getProperties().map((symbol) => symbol.getName());
+    return names.length ? names : undefined;
+  }
+
+  if (ts.isTypeReferenceNode(node)) {
+    let symbol = checker.getSymbolAtLocation(node.typeName);
+    // An imported alias (`Tone` is re-exported from the tone table) resolves to the import
+    // itself; the declaration this walk needs is the one it points at.
+    if (symbol && symbol.flags & ts.SymbolFlags.Alias) symbol = checker.getAliasedSymbol(symbol);
+    const declaration = symbol?.declarations?.find(ts.isTypeAliasDeclaration);
+    if (declaration) return orderedLiterals(declaration.type, checker, depth + 1);
+  }
+
+  return undefined;
+}
+
+/**
+ * A prop's LEGAL VALUES, where the checker can name them all.
+ *
+ * The rendered type used to be the AST's own text, which for `size?: Size` is the word `Size`
+ * and nothing else — so the one machine-readable document this system publishes named an
+ * opaque alias 38 times and never stated a single value, in a system whose whole claim is that
+ * its unions are closed. The alias is a fact about how the package is WRITTEN; a reader needs
+ * the fact about what it ACCEPTS.
+ *
+ * The checker is what makes it possible, and only the checker: `Size` is declared as
+ * `(typeof SIZES)[number]`, so the values live in an array in `system/axes.ts` and there is no
+ * union to read off the syntax at all. Nothing is authored here — the emitted list IS the
+ * package's own, resolved.
+ *
+ * MEMBERSHIP IS THE CHECKER'S AND ORDER IS THE SYNTAX'S, and the two are checked against each
+ * other rather than trusted: if the ordered walk and the resolved union disagree about WHICH
+ * values exist, the walk has gone stale against a type shape it does not know, and the
+ * checker's answer ships. A shuffled ladder is a blemish; a wrong list is a lie.
+ *
+ * `undefined` for everything that is not a finite union of string literals, which is what
+ * keeps `boolean`, `string`, `Responsive<Size>` and every handler out: a partial list would be
+ * worse than the alias it replaced, because a reader would believe it.
+ */
+function legalValues(
+  node: ts.TypeNode | undefined,
+  checker: ts.TypeChecker | undefined,
+): string[] | undefined {
+  if (!node || !checker) return undefined;
+  const type = checker.getTypeAtLocation(node);
+  const members = type.isUnion() ? type.types : [type];
+  const resolved: string[] = [];
+  for (const member of members) {
+    if (!member.isStringLiteral()) return undefined;
+    resolved.push(member.value);
+  }
+  if (!resolved.length) return undefined;
+
+  const ordered = orderedLiterals(node, checker);
+  const agrees =
+    ordered !== undefined &&
+    ordered.length === resolved.length &&
+    new Set(ordered).size === ordered.length &&
+    ordered.every((value) => resolved.includes(value));
+  return agrees ? ordered : resolved;
+}
+
 /** Collapse whitespace in a rendered type so a multi-line union reads as one cell. */
 const typeText = (node: ts.TypeNode | undefined): string =>
   node ? node.getText().replace(/\s*\n\s*/g, " ").replace(/\s{2,}/g, " ") : "unknown";
@@ -146,16 +281,17 @@ function collect(
   file: ts.SourceFile,
   out: { props: ApiProp[]; element: string | null },
   depth = 0,
+  checker?: ts.TypeChecker,
 ): void {
   if (depth > 4) return;
 
   if (ts.isIntersectionTypeNode(node)) {
-    for (const member of node.types) collect(member, file, out, depth + 1);
+    for (const member of node.types) collect(member, file, out, depth + 1, checker);
     return;
   }
 
   if (ts.isParenthesizedTypeNode(node)) {
-    collect(node.type, file, out, depth + 1);
+    collect(node.type, file, out, depth + 1, checker);
     return;
   }
 
@@ -169,9 +305,13 @@ function collect(
           : member.name.getText();
       // `ref` is React plumbing on every component and says nothing about the design.
       if (name === "ref") continue;
+      const values = legalValues(member.type, checker);
       out.props.push({
         name,
         type: typeText(member.type),
+        // Absent rather than empty where the checker cannot name every value, so a reader of
+        // the artifact can tell "these are all of them" from "we did not ask".
+        ...(values ? { values } : {}),
         optional: Boolean(member.questionToken),
         doc: docOf(member),
       });
@@ -206,7 +346,7 @@ function collect(
       if (!target) return;
       const before = out.props.length;
       const elementBefore = out.element;
-      collect(target, file, out, depth + 1);
+      collect(target, file, out, depth + 1, checker);
       if (keys) {
         const named = new Set(literalNames(keys));
         const keep = (prop: ApiProp) =>
@@ -233,7 +373,7 @@ function collect(
       (statement): statement is ts.TypeAliasDeclaration =>
         ts.isTypeAliasDeclaration(statement) && statement.name.text === name,
     );
-    if (alias) collect(alias.type, file, out, depth + 1);
+    if (alias) collect(alias.type, file, out, depth + 1, checker);
   }
 }
 
@@ -264,18 +404,21 @@ export function propsOfSource(
 
 function extract(): Record<string, ApiEntry> {
   const api: Record<string, ApiEntry> = {};
-  const files = new Map<string, ts.SourceFile>();
+  // THE PROGRAM'S OWN SOURCE FILES, not freshly parsed ones. A node has to be bound to the
+  // checker for `legalValues` to resolve `Size` to its four strings; a standalone
+  // `createSourceFile` produces the same syntax and an `any` for every type in it.
+  const { program, checker } = packageProgram();
 
   for (const [typeName, file] of [...propsTypeLocations()].sort(([a], [b]) => a.localeCompare(b))) {
-    if (!files.has(file)) files.set(file, sourceFile(file));
-    const parsed = files.get(file)!;
+    const parsed = program.getSourceFile(file);
+    if (!parsed) continue;
     const alias = parsed.statements.find(
       (statement): statement is ts.TypeAliasDeclaration =>
         ts.isTypeAliasDeclaration(statement) && statement.name.text === typeName,
     );
     if (!alias) continue;
     const out: { props: ApiProp[]; element: string | null } = { props: [], element: null };
-    collect(alias.type, parsed, out);
+    collect(alias.type, parsed, out, 0, checker);
     // The component name, not the props type's: that is what a reader imports and what the
     // registry keys on.
     api[typeName.replace(/Props$/, "")] = {
@@ -297,7 +440,7 @@ const banner = `/**
  * Only the props the package DECLARES are here. Every component also takes its native
  * element's props; \`element\` names which one.
  */
-export type ApiProp = { name: string; type: string; optional: boolean; doc: string };
+export type ApiProp = { name: string; type: string; values?: string[]; optional: boolean; doc: string };
 export type ApiEntry = { element: string | null; props: ApiProp[] };
 
 export const API: Record<string, ApiEntry> = `;

@@ -17,22 +17,32 @@
  */
 import { readFileSync } from "node:fs";
 
-/** Uppercase VALUE exports — components, not hooks or types. */
-export function parsePackageExports(source: string): string[] {
+/**
+ * Every VALUE export, in the order the index declares them — components, hooks and the axis
+ * tables alike. Types are excluded deliberately: a `type Foo` entry would otherwise be
+ * stripped of its keyword by the `as` split below and pulled into the set.
+ *
+ * The uppercase filter that the two coverage laws want lives one function down rather than
+ * here, so the parser itself stays the only thing that knows how the index is written. The
+ * agents rules file needs the whole list, because "these are the only importable symbols" is
+ * false the moment `useMaterial` and `componentAxes` are left out of it.
+ */
+export function parseValueExports(source: string): string[] {
   const names: string[] = [];
   for (const m of source.matchAll(/^export \{([^}]*)\}/gms)) {
     for (const entry of m[1]!.split(",")) {
       const raw = entry.trim();
-      // Types are excluded deliberately: a `type Foo` entry would otherwise be stripped of its
-      // keyword by the `as` split below and pulled into the coverage set.
       if (!raw || raw.startsWith("type ")) continue;
       // `Foo as Bar` exports the second name, which is the one a consumer imports.
-      const name = raw.split(/\s+as\s+/).pop()!.trim();
-      if (/^[A-Z]/.test(name)) names.push(name);
+      names.push(raw.split(/\s+as\s+/).pop()!.trim());
     }
   }
   return names;
 }
+
+/** Uppercase VALUE exports — components, not hooks or types. */
+export const parsePackageExports = (source: string): string[] =>
+  parseValueExports(source).filter((name) => /^[A-Z]/.test(name));
 
 export const readPackageExports = (indexPath: string): string[] =>
   parsePackageExports(readFileSync(indexPath, "utf8"));

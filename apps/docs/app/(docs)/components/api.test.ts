@@ -22,6 +22,16 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
+// THE PACKAGE'S BUILD, which is a seam worth naming. The artifact under test is generated
+// from `packages/ui/src`, so the axis this law reads ought to come from there too — and
+// cannot: `apps/docs/tsconfig.json` sets `allowImportingTsExtensions: false` (Next's own
+// requirement), and every module in the package imports its neighbours with an explicit `.ts`,
+// so a source import typechecks nowhere. What closes the gap is turbo: `apps/docs`'s `test`
+// task depends on `^build`, so `dist` is rebuilt from that same source before this runs. A
+// bare `npx vitest` against a stale `dist` is reading yesterday's axis, which is true of every
+// law in this app that imports the package.
+import { componentAxes, themeAxes } from "@kookie-ui/react";
+
 import { API } from "./api.generated";
 import { propDescription } from "./prop-description";
 import { readPackageExports } from "../../package-exports";
@@ -291,5 +301,118 @@ describe("a table cell takes a prop's first sentence, not its whole JSDoc", () =
         `a long doc came through whole: "${doc.slice(0, 60)}…"`,
       ).toBeLessThan(doc.split(/\s+/).length);
     }
+  });
+});
+
+describe("the generated tables state the legal values, not the alias that hides them", () => {
+  /**
+   * The reference printed `Size` 38 times, `Tone` 13, `TypeSize` 11 (2026-09-07). Every one of
+   * those is a closed union — the system's central claim — and the one machine-readable
+   * document this site publishes named none of their values. `values` is the repair, and this
+   * is the law that says the values it names are the package's own.
+   *
+   * KEYED ON THE RESOLVED ALIAS NAME, which is the only key that is about the right thing. Not
+   * the PROP name: `size` is `Size` on a Button and `TypeSize` on a Text, so a law keyed there
+   * would have to know which is which and would be wrong for one of them. And not the VALUES,
+   * which is circular — a list matches itself.
+   *
+   * ONE DIRECTION ONLY, deliberately. `RadiusLevel`, `ShellPresentation`, `TextFieldType` and
+   * `AttachmentState` are finite unions and are not axes; a law demanding that every resolved
+   * union BE an axis would false-red on all four, and the cheapest way to quiet it would be an
+   * authored allowlist, which is a second home for the axis vocabulary. So the claim is: every
+   * axis the package publishes reaches these tables intact.
+   */
+
+  /** The alias each axis is published as. The VALUES are never written here — only the pairing
+      between an axis and the type name it wears, which is the one fact the artifact cannot
+      state about itself. `null` means the axis reaches no generated table at all, and the
+      arm below checks that the reason still holds. */
+  const PUBLISHED_AS: Record<string, string | null> = {
+    size: "Size",
+    tone: "Tone",
+    emphasis: "Emphasis",
+    material: "Material",
+    weight: "Weight",
+    typeSize: "TypeSize",
+    appearance: "Appearance",
+    density: "Density",
+    radius: "RadiusLevel",
+    contrast: "Contrast",
+    pointer: "Pointer",
+    depth: "Depth",
+    // Box's spacing props arrive from `BoxStyleProps`, an imported type the generator
+    // deliberately does not expand (its banner says why), so no prop in any table is typed by
+    // them and there is no alias to check. The arm below is what keeps that sentence true.
+    space: null,
+    marginSpace: null,
+    paddingSpace: null,
+  };
+
+  /** Every alias the artifact resolved, and what it resolved to. */
+  const byAlias = (): Map<string, string[]> => {
+    const found = new Map<string, string[]>();
+    for (const entry of Object.values(API)) {
+      for (const prop of entry.props) {
+        if (!prop.values) continue;
+        const already = found.get(prop.type);
+        // One name, one answer. Two components typing `size` as `Size` and getting different
+        // lists would mean the generator resolved one of them against something else, and a
+        // law that took the first would report the other as correct.
+        if (already) expect(already, `${prop.type} resolved two ways`).toEqual(prop.values);
+        found.set(prop.type, prop.values);
+      }
+    }
+    return found;
+  };
+
+  it("something resolved at all", () => {
+    // Vacuity. `values` is emitted only where the checker can name every member, so a
+    // regression that stopped resolving anything would leave every assertion below asking
+    // about aliases that are simply absent — and `toBeDefined` is the one that would catch it.
+    const aliases = byAlias();
+    expect(aliases.size).toBeGreaterThan(15);
+    expect(aliases.get("Size")).toBeDefined();
+  });
+
+  it("every axis the package publishes has a home in this table", () => {
+    // Totality against the axis vocabulary, so a NEW axis fails here rather than shipping
+    // undocumented. `componentAxes` and `themeAxes` overlap on `size` and `material` and agree
+    // on both; a disagreement would fail the value law below rather than being hidden here.
+    const axes = [...Object.keys(componentAxes), ...Object.keys(themeAxes)];
+    expect(axes.length).toBeGreaterThan(10);
+    expect(axes.filter((axis) => !(axis in PUBLISHED_AS))).toEqual([]);
+    // And no stale entry: an axis deleted from the package must be deleted here too.
+    expect(Object.keys(PUBLISHED_AS).filter((name) => !axes.includes(name))).toEqual([]);
+  });
+
+  it("each published axis resolves to its own values, in its own order", () => {
+    // ORDER IS PART OF IT. Every one of these is a ladder — solid, thin, regular, thick — and
+    // the checker sorts a union by internal type id, which put `Emphasis` at
+    // `medium | loud | quiet` before the generator learned to read the order off the syntax.
+    // A shuffled ladder on a reference page looks like information.
+    const aliases = byAlias();
+    const wrong: string[] = [];
+    for (const [axis, values] of Object.entries({ ...componentAxes, ...themeAxes })) {
+      const alias = PUBLISHED_AS[axis];
+      if (!alias) continue;
+      const resolved = aliases.get(alias);
+      if (!resolved) {
+        wrong.push(`${axis}: nothing in the tables resolves \`${alias}\``);
+        continue;
+      }
+      if (JSON.stringify(resolved) !== JSON.stringify([...values])) {
+        wrong.push(`${axis}: \`${alias}\` is ${JSON.stringify(resolved)}, the axis is ${JSON.stringify(values)}`);
+      }
+    }
+    expect(wrong).toEqual([]);
+  });
+
+  it("the three axes with no alias have no alias because Box's style props are not extracted", () => {
+    // The `null` rows above are a claim about the generator, not a shrug. `p`, `m` and `gap`
+    // arrive from `BoxStyleProps`, which the walk does not follow, so they appear in no table
+    // and the space scales have nothing to be checked against. The day that changes, this
+    // fails and the rows get their alias.
+    const declared = new Set(API.Box!.props.map((prop) => prop.name));
+    expect([...declared].filter((name) => ["p", "m", "gap", "px", "py"].includes(name))).toEqual([]);
   });
 });

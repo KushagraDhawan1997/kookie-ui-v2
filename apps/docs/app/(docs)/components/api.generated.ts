@@ -7,7 +7,7 @@
  * Only the props the package DECLARES are here. Every component also takes its native
  * element's props; `element` names which one.
  */
-export type ApiProp = { name: string; type: string; optional: boolean; doc: string };
+export type ApiProp = { name: string; type: string; values?: string[]; optional: boolean; doc: string };
 export type ApiEntry = { element: string | null; props: ApiProp[] };
 
 export const API: Record<string, ApiEntry> = {
@@ -57,6 +57,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "An index into the control family, 1–4. It sets the trigger rows — height, inset, type step, the chevron's box — and the panel's inset with them, so the panel's words start under the trigger's label. Defaults to `2`."
       },
@@ -127,6 +133,18 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "tone",
         "type": "Tone",
+        "values": [
+          "neutral",
+          "accent",
+          "destructive",
+          "blue",
+          "green",
+          "orange",
+          "amber",
+          "success",
+          "warning",
+          "info"
+        ],
         "optional": true,
         "doc": "The one meaning an action may carry beyond going ahead. Use `destructive` for the deletes this component mostly exists for. Neutral otherwise."
       }
@@ -243,6 +261,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "Sets the whole alert: the box, the corner, the padding, the title and description type steps, and the two buttons. It may reach the type where Dialog's size cannot, because the content here is the system's own."
       }
@@ -366,12 +390,24 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "Prices the tile: padding, corner, the symbol's box, the remove button and the file's own name. It owns all of that, so the index reaches the words — the composer's rule (§30, 2026-08-23): a component that owns its content sizes it, one that hosts yours does not."
       },
       {
         "name": "state",
         "type": "AttachmentState",
+        "values": [
+          "idle",
+          "uploading",
+          "processing",
+          "error"
+        ],
         "optional": true,
         "doc": "What is happening to this file. **The system draws the state; the app owns the file** (§30). Nothing here starts a timer, holds a `File`, or mints an object URL — v1 did the last of those and revoked the URL one commit after handing it to `onSubmit`, so the preview of the message you just sent was already broken."
       },
@@ -389,6 +425,17 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "TypeSize",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9"
+        ],
         "optional": true,
         "doc": "One step for every avatar in the group. The group is a line of text with no words in it, and each unset avatar takes that line — so the size is said once, here, and an avatar that states its own still wins."
       }
@@ -424,6 +471,17 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "TypeSize",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9"
+        ],
         "optional": true,
         "doc": "A step on the type ramp, 1–9, and OPTIONAL with no default: unset, an avatar is exactly one line of the text beside it, so the one next to a name in a list is list-sized and the one in a profile header is header-sized with nothing said twice. Set it when the avatar stands alone."
       },
@@ -441,12 +499,35 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "TypeSize",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9"
+        ],
         "optional": true,
         "doc": "A step on the type ramp, 1–9, and OPTIONAL with no default: unset, a badge is a share of the line it sits in — the tab label, the row, the avatar it is pinned to — so it is never priced twice. Set it only when it stands alone."
       },
       {
         "name": "tone",
         "type": "Tone",
+        "values": [
+          "neutral",
+          "accent",
+          "destructive",
+          "blue",
+          "green",
+          "orange",
+          "amber",
+          "success",
+          "warning",
+          "info"
+        ],
         "optional": true,
         "doc": "What the badge means, in the system's own vocabulary: `accent` (the default) for \"something is here\", `destructive` for \"something needs you\", `warning`, `success`, `info` or any family. It is the same closed set every tone-carrying component reads, so an app maps its own words onto it — \"alert\" is `destructive` — and the system never learns them."
       }
@@ -464,6 +545,11 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "emphasis",
         "type": "Emphasis",
+        "values": [
+          "loud",
+          "medium",
+          "quiet"
+        ],
         "optional": true,
         "doc": "Picks an ink colour. It rests loud, as all type does, because a quote is something somebody reads and quiet sits below the reading contrast floor."
       },
@@ -476,6 +562,17 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "TypeSize",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9"
+        ],
         "optional": true,
         "doc": "A step on the shared ramp. It defaults to 3 like `Text`, and unlike `Code`, because a quote is a block and sets its own step rather than taking the line it sits in."
       },
@@ -488,12 +585,29 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "tone",
         "type": "Tone",
+        "values": [
+          "neutral",
+          "accent",
+          "destructive",
+          "blue",
+          "green",
+          "orange",
+          "amber",
+          "success",
+          "warning",
+          "info"
+        ],
         "optional": true,
         "doc": "Moves the ink onto that family. It does not tint the rule: a destructive quote is red words beside a neutral rule."
       },
       {
         "name": "weight",
         "type": "Weight",
+        "values": [
+          "regular",
+          "medium",
+          "semibold"
+        ],
         "optional": true,
         "doc": "Token names, never numbers, and semibold is the heaviest. It rests at regular, like `Text`, because a quote is copy. The rule and the indent set it apart, and a heavier weight would make it a heading in quotation marks."
       }
@@ -626,6 +740,17 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "TypeSize",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9"
+        ],
         "optional": true,
         "doc": "A step on the shared ramp, and it reaches every crumb by inheritance — a bar of mixed steps is not a thing anyone means, which is Tabs' own sentence one family over. Defaults to 2, §15's label-and-meta rung: a breadcrumb tells you where you are, and where you are is not the thing you came to read."
       },
@@ -667,6 +792,11 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "emphasis",
         "type": "Emphasis",
+        "values": [
+          "loud",
+          "medium",
+          "quiet"
+        ],
         "optional": true,
         "doc": "How loud this action is against the actions beside it. It is the only ranking axis in the system, and there is no `variant`: one prop cannot mean colour and prominence at once. On a button it picks a fill. Loud is the tone's solid colour, medium is a soft wash, and quiet has no fill at all. Read a row of actions in the order the fills state. Defaults to `medium`, so a screen earns its one loud button by asking for it."
       },
@@ -703,6 +833,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "An index into the control family, never a measurement. One number sets five things at once: the height, the side padding, the corner, the icon box and the label's type step. Every control at the same index stands level with every other, and re-pricing a step is one config line rather than a sweep of call sites. Density and the pointer setting change what the index resolves to. They never change what it means. Defaults to `2`."
       },
@@ -715,6 +851,18 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "tone",
         "type": "Tone",
+        "values": [
+          "neutral",
+          "accent",
+          "destructive",
+          "blue",
+          "green",
+          "orange",
+          "amber",
+          "success",
+          "warning",
+          "info"
+        ],
         "optional": true,
         "doc": "What the action means, not what colour it is. `destructive` says what the press does, and the theme decides the colour, which is what lets a palette move without a call site being edited. Defaults to `neutral`, so nothing is accent by accident."
       },
@@ -750,6 +898,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "Sets the padding and the corner. A card has no height of its own to set."
       },
@@ -773,6 +927,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "An index into the mark ladder, which every control that is its own mark shares. It leaves the height ladder, because that is the geometry of a box that contains a label and this one sits beside one. It keeps the index, so a checkbox, a radio and a switch at the same number read as the same size of thing. The ladder is the line box, so the mark is exactly one line of the label beside it and lines up with no offset. Defaults to 2."
       }
@@ -802,6 +962,11 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "emphasis",
         "type": "Emphasis",
+        "values": [
+          "loud",
+          "medium",
+          "quiet"
+        ],
         "optional": true,
         "doc": "Picks an ink colour, the same three the surrounding copy uses. It moves the letters, not the fill — a chip that faded its box would be reading one axis two ways."
       },
@@ -814,6 +979,17 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "TypeSize",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9"
+        ],
         "optional": true,
         "doc": "A step on the shared ramp. Optional with no default, for the same reason `Code` and `Kbd` are: a chip takes the size of the line it sits beside, so a chip next to a card title is bigger than one in a table row without either call site repeating the index. Set it only when the chip stands alone."
       },
@@ -826,12 +1002,29 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "tone",
         "type": "Tone",
+        "values": [
+          "neutral",
+          "accent",
+          "destructive",
+          "blue",
+          "green",
+          "orange",
+          "amber",
+          "success",
+          "warning",
+          "info"
+        ],
         "optional": true,
         "doc": "The family, and this is the axis a chip exists for. `success` for a finished job, `destructive` for a failed one, `warning` for one that needs attention, `info` for one that is merely running. It moves the INK, and the chip stays grey. That reversed on 2026-08-23 (Kushagra, from the tone x emphasis board: *\"why do these buttons continue to have a light filter?\"*): no family paints a faded wash any more, so a chip's box is one neutral whatever category it carries and the category arrives in the letters. Measured, a `destructive` chip is byte-identical to a `neutral` one and only the word is red. `Notice` deliberately did NOT follow, and that is the line the change was drawn along: a chip's chip reads `--tone-soft` and a Notice's box reads `--tone-a3`, so a tone-forward SURFACE keeps its tint while a chip loses one. Defaults to `neutral`."
       },
       {
         "name": "weight",
         "type": "Weight",
+        "values": [
+          "regular",
+          "medium",
+          "semibold"
+        ],
         "optional": true,
         "doc": "Token names, never numbers, and semibold is the heaviest. Unset with no default, as `size` is: the fill and the pill are what mark a chip out, never the weight."
       }
@@ -879,6 +1072,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "One index for the whole element: the pane's padding and corner, the mono step, and the arithmetic the bound and the chrome's safe area are built from. SIZE PRICES EVERYTHING here for the reason §24/§25/§30 already state: a component that owns its pane AND its text prices both. `Dialog` stops at the box because its content is the caller's; a code well's content is code, and code is the one thing this element knows it is holding."
       },
@@ -908,6 +1107,11 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "emphasis",
         "type": "Emphasis",
+        "values": [
+          "loud",
+          "medium",
+          "quiet"
+        ],
         "optional": true,
         "doc": "Picks an ink colour, the same three the surrounding copy uses. It rests loud, because a faded literal is harder to read and gains nothing."
       },
@@ -920,6 +1124,17 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "TypeSize",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9"
+        ],
         "optional": true,
         "doc": "A step on the shared ramp. It is optional with no default, which is the one thing this component does differently from `Text`: a word inside a sentence has no size of its own. Unset, it takes the font size, line height and letter spacing of the line it sits in, so `<Text size=\"2\">the <Code>value</Code></Text>` matches without the call site repeating the index. Set it only when the chip stands alone."
       },
@@ -932,12 +1147,29 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "tone",
         "type": "Tone",
+        "values": [
+          "neutral",
+          "accent",
+          "destructive",
+          "blue",
+          "green",
+          "orange",
+          "amber",
+          "success",
+          "warning",
+          "info"
+        ],
         "optional": true,
         "doc": "Moves both the ink and the chip's own fill onto that family, because a word with a fill behind it has two things to tint. Defaults to `neutral`."
       },
       {
         "name": "weight",
         "type": "Weight",
+        "values": [
+          "regular",
+          "medium",
+          "semibold"
+        ],
         "optional": true,
         "doc": "Token names, never numbers, and semibold is the heaviest. Unset with no default, for the same reason `size` is: a literal quoted inside a sentence keeps that sentence's weight, and the mono font is already what sets it apart."
       }
@@ -1054,6 +1286,9 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "tone",
         "type": "\"destructive\"",
+        "values": [
+          "destructive"
+        ],
         "optional": true,
         "doc": "The one meaning a row may carry. Not a palette — the list stays this narrow on purpose."
       },
@@ -1105,9 +1340,9 @@ export const API: Record<string, ApiEntry> = {
       },
       {
         "name": "onOpenChange",
-        "type": "DialogProps[\"onOpenChange\"]",
+        "type": "(open: boolean, details: CommandOpenChangeDetails) => void",
         "optional": true,
-        "doc": "Called when it opens or closes, with the reason — an Escape, an outside press, or a row being run. The second argument carries `cancel()` if you need to refuse the dismissal."
+        "doc": "Called when it opens or closes, with the reason — an Escape, an outside press, or a row being run (`\"item-press\"`, the one reason no other overlay can produce). The second argument carries `cancel()` if you need to refuse the dismissal, which is how a palette keeps itself open for a row that does not end the interaction."
       },
       {
         "name": "open",
@@ -1118,8 +1353,14 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
-        "doc": "Sets the panel and everything the component places in it: the box, the filter field, the rows and the group labels. It owns all of it, so the index reaches the type — the rule AlertDialog and Composer both settled on, where a Dialog stops at the box because the content is yours."
+        "doc": "Sets the panel and everything the component places in it: the box, the filter field, the rows and the group labels. It owns all of it, so the index reaches the type — the rule AlertDialog and Composer both settled on, where a Dialog stops at the box because the content is yours. The parts do not all stand at the index you state, and they are not meant to: a palette is the one object on the screen, so the line you type into is set above the rows it filters and the rows themselves stand one step above the controls in the app behind them. Both ladders are derived from this one, so nothing can invert and there is no index where the palette reads like a form."
       }
     ]
   },
@@ -1155,6 +1396,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The index, set once for the whole unit. It prices the pane's padding and corner, the step its own text is set at, AND the controls you compose into the row — a Button, a Select or a field under the text all take it through `SizeScopeContext` (§28), so a composer is sized as one thing. An explicit `size` on a control always wins, so nothing is ever re-sized behind a number somebody typed. The reach stops at the composer's own subtree: a Button beside it keeps the family's rest."
       }
@@ -1188,6 +1435,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "status",
         "type": "ComposerStatus",
+        "values": [
+          "ready",
+          "submitted",
+          "streaming",
+          "error"
+        ],
         "optional": true,
         "doc": "What the request is doing. Defaults to `ready`."
       }
@@ -1246,6 +1499,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The same index a Menu wears. The rows, the glyphs and the type all take it."
       }
@@ -1391,6 +1650,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "Sets the panel's maximum width, its padding, its corner — and the two parts the system owns, `DialogTitle` and `DialogDescription`, which take the same step map an alert's title and description take, so the two components agree at every index. It never touches type the call site wrote: a `<Text>` or a `<Heading>` you place keeps its own step."
       }
@@ -1510,6 +1775,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The control index, set once for the whole unit: the label, the description, the error and the control inside it. It reaches the control through React context, and an explicit `size` on the control always wins, so a control is never re-sized behind a number somebody typed."
       }
@@ -1521,6 +1792,10 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "display",
         "type": "\"flex\" | \"inline-flex\"",
+        "values": [
+          "flex",
+          "inline-flex"
+        ],
         "optional": true,
         "doc": "Flex participates in text flow as `inline-flex`; the tier-switching `display` lives on Box."
       }
@@ -1532,6 +1807,10 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "display",
         "type": "\"grid\" | \"inline-grid\"",
+        "values": [
+          "grid",
+          "inline-grid"
+        ],
         "optional": true,
         "doc": "Grid participates in text flow as `inline-grid`; the tier-switching `display` lives on Box."
       }
@@ -1549,6 +1828,11 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "emphasis",
         "type": "Emphasis",
+        "values": [
+          "loud",
+          "medium",
+          "quiet"
+        ],
         "optional": true,
         "doc": "Picks an ink colour, the same three `Text` uses. Use it for a muted section label."
       },
@@ -1561,6 +1845,17 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "TypeSize",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9"
+        ],
         "optional": true,
         "doc": "A step on the same ramp `Text` reads. One type system, not two, so the index means the same thing on both. It sets the type and nothing else: the document outline level is `render`'s job, which is what lets a sidebar's `h2` sit at 4 while the hero's sits at 8. Defaults to 6, the card-title step."
       },
@@ -1573,12 +1868,29 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "tone",
         "type": "Tone",
+        "values": [
+          "neutral",
+          "accent",
+          "destructive",
+          "blue",
+          "green",
+          "orange",
+          "amber",
+          "success",
+          "warning",
+          "info"
+        ],
         "optional": true,
         "doc": "A meaning for the ink, never a colour name. The theme resolves the colour."
       },
       {
         "name": "weight",
         "type": "Weight",
+        "values": [
+          "regular",
+          "medium",
+          "semibold"
+        ],
         "optional": true,
         "doc": "Token names, never numbers. It rests at semibold, which is also the heaviest weight in the system, because `bold` is refused. A heading gets its weight from the step it stands on and the ink colour it wears, never from a heavier face."
       }
@@ -1596,6 +1908,11 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "emphasis",
         "type": "Emphasis",
+        "values": [
+          "loud",
+          "medium",
+          "quiet"
+        ],
         "optional": true,
         "doc": "Picks an ink colour, as it does on all type. It changes the letters, not the cap."
       },
@@ -1608,6 +1925,17 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "TypeSize",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9"
+        ],
         "optional": true,
         "doc": "A step on the shared ramp. Optional with no default, for the same reason `Code` is: a key cap inside a sentence takes that sentence's step."
       },
@@ -1620,12 +1948,29 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "tone",
         "type": "Tone",
+        "values": [
+          "neutral",
+          "accent",
+          "destructive",
+          "blue",
+          "green",
+          "orange",
+          "amber",
+          "success",
+          "warning",
+          "info"
+        ],
         "optional": true,
         "doc": "Moves the ink and the fill onto that family. The edge is a grey relief line and does not follow the tone. Defaults to `neutral`."
       },
       {
         "name": "weight",
         "type": "Weight",
+        "values": [
+          "regular",
+          "medium",
+          "semibold"
+        ],
         "optional": true,
         "doc": "Token names, never numbers, and semibold is the heaviest. Unset with no default, as `size` is. The box, the edge and the shadow are what say \"key\". The weight never was."
       }
@@ -1649,6 +1994,17 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "TypeSize",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9"
+        ],
         "optional": true,
         "doc": "A step on the shared ramp. Optional with no default, which is `Code`'s rule: a word inside a sentence has no size of its own. Unset, a link takes the font size, line height and letter spacing of the sentence it sits in, so a link inside `<Text size=\"2\">` matches without the call site repeating the index. Set it only when the link stands alone."
       },
@@ -1661,12 +2017,29 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "tone",
         "type": "Tone",
+        "values": [
+          "neutral",
+          "accent",
+          "destructive",
+          "blue",
+          "green",
+          "orange",
+          "amber",
+          "success",
+          "warning",
+          "info"
+        ],
         "optional": true,
         "doc": "A meaning, never a colour name. It moves the ink onto that family, so a destructive link is red words with a red underline. It defaults to `accent`, which is one of four places in the system where a component does not rest neutral. A link is the one run of text whose job is to be found inside a paragraph. The exception is about which family it picks, not about loudness, so the rule that a screen has one focal action is untouched."
       },
       {
         "name": "weight",
         "type": "Weight",
+        "values": [
+          "regular",
+          "medium",
+          "semibold"
+        ],
         "optional": true,
         "doc": "Token names, never numbers, and semibold is the heaviest. Unset with no default, for the same reason `size` is: a link inside a sentence keeps that sentence's weight, and the colour and the underline already set it apart."
       }
@@ -1743,6 +2116,11 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "align",
         "type": "\"start\" | \"center\" | \"end\"",
+        "values": [
+          "start",
+          "center",
+          "end"
+        ],
         "optional": true,
         "doc": "Which edge it aligns to along that side."
       },
@@ -1761,6 +2139,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "side",
         "type": "\"top\" | \"bottom\" | \"left\" | \"right\"",
+        "values": [
+          "top",
+          "bottom",
+          "left",
+          "right"
+        ],
         "optional": true,
         "doc": "Which edge of the trigger the menu opens from."
       },
@@ -1861,6 +2245,9 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "tone",
         "type": "\"destructive\"",
+        "values": [
+          "destructive"
+        ],
         "optional": true,
         "doc": "The one meaning a row may carry. It is not a palette: the list stays this narrow on purpose, and widening it is a decision rather than a default."
       },
@@ -1925,6 +2312,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The same index the trigger wears. The rows, the glyphs and the type all take it."
       }
@@ -2206,6 +2599,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The rows' index — the row family's own `size`, stamped per row. Rests at 2."
       }
@@ -2259,6 +2658,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "Sets the box: the padding, the corner and the dismiss button the component places. It does not set the words, because a notice holds your text and text sets its own step. It rests at 2 rather than a card's 3, because a notice is a strip across the top of something rather than an object in its own right."
       },
@@ -2271,8 +2676,43 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "tone",
         "type": "Tone",
+        "values": [
+          "neutral",
+          "accent",
+          "destructive",
+          "blue",
+          "green",
+          "orange",
+          "amber",
+          "success",
+          "warning",
+          "info"
+        ],
         "optional": true,
         "doc": "The category, never the volume. It rests neutral, and a warning can be grey: a notice is a condition stated plainly, not an alarm. Reach for `warning`, `destructive`, `success` or `info` when the family says something the sentence does not already say."
+      }
+    ]
+  },
+  "Page": {
+    "element": "div",
+    "props": [
+      {
+        "name": "description",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The sentence under the title, set well above the body — the most important sentence on the page. Optional: a screen whose title says everything needs no deck."
+      },
+      {
+        "name": "mark",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "Something above the title, in the reading column — an app's own mark on its front door. It is a LOCKUP with the title (§15): the mark says the name in a drawn letter and the title says it in words, so they sit at the closer interval and the deck is the sentence under the pair. Almost no page has one; a page that does has exactly one."
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "optional": false,
+        "doc": "What this screen is. It is a string rather than a child element for one reason: the same words are said twice — once large, once in the band after they have scrolled away — and only a value can be rendered in two places. (Select's `items` exists for the same reason.)"
       }
     ]
   },
@@ -2293,6 +2733,11 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "align",
         "type": "\"start\" | \"center\" | \"end\"",
+        "values": [
+          "start",
+          "center",
+          "end"
+        ],
         "optional": true,
         "doc": "How it lines up along that side."
       },
@@ -2311,6 +2756,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "side",
         "type": "\"top\" | \"right\" | \"bottom\" | \"left\"",
+        "values": [
+          "top",
+          "right",
+          "bottom",
+          "left"
+        ],
         "optional": true,
         "doc": "Which side of the trigger to prefer. The panel flips itself when that side has no room."
       },
@@ -2381,6 +2832,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The panel's box: its padding and its corner. NOT the type inside it — the content is yours, so its steps are yours to state. That line is Dialog's and it holds here for the same reason: a surface never sizes the words it is holding. What the index does reach is `PopoverTitle` and `PopoverDescription`, because those two exist only because the accessibility wiring forces them, and type the system owns is type the system may size."
       }
@@ -2453,6 +2910,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The mark ladder, and the same index a checkbox uses. The mark is one line of the label beside it, and the circle's diameter is that square's, so a radio and the checkbox above it in a form are the same size of thing. The painted box leaves the control height ladder. The target does not: it stays the size of a control at that index. Defaults to 2."
       }
@@ -2500,6 +2963,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The row's box: a standing row rides the control height ladder, so it stands level with a `Button` of the same index (§21). The text line plus one designed inset — the shorter box — is the FLOATING row's, i.e. a row inside a menu or a select panel. It rests at 2, like every other control in the library."
       },
@@ -2512,6 +2981,18 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "tone",
         "type": "Tone",
+        "values": [
+          "neutral",
+          "accent",
+          "destructive",
+          "blue",
+          "green",
+          "orange",
+          "amber",
+          "success",
+          "warning",
+          "info"
+        ],
         "optional": true,
         "doc": "The one meaning a row carries beyond being itself. A `destructive` row is the delete in a list of verbs. It is a narrow vocabulary on purpose: a list of peers where three rows wear three families is a list that has stopped being a list."
       },
@@ -2588,6 +3069,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The control height ladder, set on the track, because the track is the control: a segmented control stands level with a Button of the same size in the toolbar beside it. Each segment derives its own box from that channel, which is the track minus a fixed inset, and states no index of its own, so the two boxes cannot disagree. It sits on the root, never on a segment: a bar of mixed sizes is not a thing anyone means."
       }
@@ -2774,6 +3261,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The same index the trigger wears. The rows, the glyphs and the type all take it."
       },
@@ -2885,6 +3378,11 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "presentation",
         "type": "ShellPresentation",
+        "values": [
+          "auto",
+          "fixed",
+          "overlay"
+        ],
         "optional": true,
         "doc": "How this pane occupies the window while it is open. `auto` answers a question about the room, and it answers it in CSS from the window size, so first paint is right with no script and nothing for hydration to mismatch. Stating a value instead answers a question about the product, and it does more than pin the arrangement: `overlay` also makes the pane rest closed at every width, because an overlay is something you summon rather than live in, where `auto` lets a nav column rest open on a roomy window. So state a value for a pane whose behaviour is a decision, such as a drawer that must never be ambient. Leave it auto for a pane whose behaviour follows from how much window there is."
       },
@@ -2903,6 +3401,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The index this pane is drawn at: its padding, and anything it holds. It defaults to the app's."
       }
@@ -2920,6 +3424,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The index this pane is drawn at: its padding, and anything it holds. It defaults to the app's."
       }
@@ -2943,6 +3453,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The index this header is drawn at: its padding, the height of its row, and anything it holds. It defaults to the app's, like every pane."
       }
@@ -3002,6 +3518,11 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "presentation",
         "type": "ShellPresentation",
+        "values": [
+          "auto",
+          "fixed",
+          "overlay"
+        ],
         "optional": true,
         "doc": "How this pane occupies the window while it is open. `auto` answers a question about the room, and it answers it in CSS from the window size, so first paint is right with no script and nothing for hydration to mismatch. Stating a value instead answers a question about the product, and it does more than pin the arrangement: `overlay` also makes the pane rest closed at every width, because an overlay is something you summon rather than live in, where `auto` lets a nav column rest open on a roomy window. So state a value for a pane whose behaviour is a decision, such as a drawer that must never be ambient. Leave it auto for a pane whose behaviour follows from how much window there is."
       },
@@ -3020,6 +3541,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The control index this pane's own navigation is drawn at: its rows and its squares. It is not the pane's width. A pane's extent is a statement about your content and has no ladder, which is why `width` is a raw number and this is an index."
       },
@@ -3099,6 +3626,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The control index this app's navigation is drawn at. Every pane inherits it, and any pane can overrule it. It is not the app's type size, and it is not any pane's width: a pane's extent is a statement about your content and has no ladder, which is why `width` is a raw number and this is an index."
       }
@@ -3132,47 +3665,17 @@ export const API: Record<string, ApiEntry> = {
     "props": []
   },
   "ShellRail": {
-    "element": "nav",
+    "element": null,
     "props": [
-      {
-        "name": "backdrop",
-        "type": "boolean",
-        "optional": true,
-        "doc": "Says whether something passes behind this pane: a canvas, a map, a photograph, the work area itself when this pane floats over it. A pane in an ordinary frame sits on the app's ground, where glass blurs a flat colour and still costs a full backdrop read on every paint — and a pane is the largest box in the library, so it is the most expensive place to pay for nothing. By default it renders solid whatever the theme's material is. Unset, it follows the surrounding `<Box backdrop>` region, which is what makes a flush pane translucent over a window-wide wallpaper. The material itself is still the theme's: this prop cannot pick one. It does not reach a pane that is OVERLAYING. A drawer sits over the page with a scrim under it, which is Dialog's arrangement, and every covering panel in this package takes the theme's material without being asked — so this prop answers for the pane in the frame and the shell answers for the drawer. You cannot ask for a solid drawer, in the same sense that you cannot ask for a solid menu."
-      },
-      {
-        "name": "defaultOpen",
-        "type": "boolean",
-        "optional": true,
-        "doc": "The starting state when the pane is uncontrolled. Omit both this and `open` and the pane is auto: the stylesheet decides its resting state from the window size, and the first toggle makes the choice explicit."
-      },
-      {
-        "name": "flush",
-        "type": "boolean",
-        "optional": true,
-        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card. It also decides the seams. A flush pane draws one hairline on its inner edge, and that edge needs something on the other side of it: pull the content off the frame and every seam facing it goes, because the card's own gap and edge already draw that boundary. A rail beside a flush sidebar keeps its seam — both of those are still in the frame. It says nothing about the material. A pane over a canvas states `backdrop`, whatever its posture — the two questions are independent and were briefly wired together (LOG 2026-08-29)."
-      },
-      {
-        "name": "onOpenChange",
-        "type": "(open: boolean) => void",
-        "optional": true,
-        "doc": "Fires on user-driven changes only: a trigger, Escape, a press on the scrim. It never fires at mount, and never when the window crosses a size boundary, because auto is resolved in CSS and CSS calls nobody."
-      },
-      {
-        "name": "open",
-        "type": "boolean",
-        "optional": true,
-        "doc": "Controlled open state, in the same pattern Dialog uses. Passing it conditionally is supported. `{...(preview ? { open: false } : {})}` pins the pane closed while the flag is on, and hands control straight back when it goes. The uncontrolled state is kept untouched throughout rather than overwritten, so the pane returns to exactly the state the user last left it in."
-      },
-      {
-        "name": "presentation",
-        "type": "ShellPresentation",
-        "optional": true,
-        "doc": "How this pane occupies the window while it is open. `auto` answers a question about the room, and it answers it in CSS from the window size, so first paint is right with no script and nothing for hydration to mismatch. Stating a value instead answers a question about the product, and it does more than pin the arrangement: `overlay` also makes the pane rest closed at every width, because an overlay is something you summon rather than live in, where `auto` lets a nav column rest open on a roomy window. So state a value for a pane whose behaviour is a decision, such as a drawer that must never be ambient. Leave it auto for a pane whose behaviour follows from how much window there is."
-      },
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The control index this pane's own navigation is drawn at: its rows and its squares. It is not the pane's width. A pane's extent is a statement about your content and has no ladder, which is why `width` is a raw number and this is an index."
       }
@@ -3236,6 +3739,11 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "presentation",
         "type": "ShellPresentation",
+        "values": [
+          "auto",
+          "fixed",
+          "overlay"
+        ],
         "optional": true,
         "doc": "How this pane occupies the window while it is open. `auto` answers a question about the room, and it answers it in CSS from the window size, so first paint is right with no script and nothing for hydration to mismatch. Stating a value instead answers a question about the product, and it does more than pin the arrangement: `overlay` also makes the pane rest closed at every width, because an overlay is something you summon rather than live in, where `auto` lets a nav column rest open on a roomy window. So state a value for a pane whose behaviour is a decision, such as a drawer that must never be ambient. Leave it auto for a pane whose behaviour follows from how much window there is."
       },
@@ -3254,6 +3762,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The control index this pane's own navigation is drawn at: its rows and its squares. It is not the pane's width. A pane's extent is a statement about your content and has no ladder, which is why `width` is a raw number and this is an index."
       },
@@ -3271,6 +3785,11 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "action",
         "type": "\"toggle\" | \"open\" | \"close\"",
+        "values": [
+          "toggle",
+          "open",
+          "close"
+        ],
         "optional": true,
         "doc": "What the press does to `target`. `toggle` is the disclosure button every shell has, and it is the default. The one-way values are for a press that already means something else and must not undo itself. A rail square that re-points the sidebar has to show the sidebar, so it is `open`: as a toggle, pressing a second region would close the panel it had just filled, and picking a region the sidebar is not showing would do nothing visible at all. A dismiss button inside an overlaying pane is `close` for the mirror reason."
       },
@@ -3283,6 +3802,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "target",
         "type": "ShellPaneTarget",
+        "values": [
+          "rail",
+          "sidebar",
+          "inspector",
+          "bottom"
+        ],
         "optional": false,
         "doc": "Which pane this button drives."
       }
@@ -3306,6 +3831,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The control height ladder, taken on the root, because the root is the control: the whole strip is pressable, so a slider is exactly as tall a target as the Button beside it. The same index then sizes the parts through the families they belong to, with the thumb on the mark ladder. Defaults to 2."
       }
@@ -3337,6 +3868,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "Sets the padding and the corner, one step larger than a card at the same index, because a container needs a larger corner than the things inside it."
       },
@@ -3360,6 +3897,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The mark ladder, one step up. The track is the checkbox's mark at the next index, which is the relationship every peer system arrives at by hand, so a switch reads one weight class above the checkbox at the same number while both stay in one family. The width follows the same index. Defaults to 2."
       }
@@ -3379,6 +3922,11 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "align",
         "type": "\"start\" | \"center\" | \"end\"",
+        "values": [
+          "start",
+          "center",
+          "end"
+        ],
         "optional": true,
         "doc": "Where the cell's content sits on the inline axis. Numbers end-align so their digits line up; words start-align. Defaults to `start`. Set it on the head and the cells of a column together, or the column reads as two."
       }
@@ -3394,6 +3942,11 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "align",
         "type": "\"start\" | \"center\" | \"end\"",
+        "values": [
+          "start",
+          "center",
+          "end"
+        ],
         "optional": true,
         "doc": "Where the cell's content sits on the inline axis. Numbers end-align so their digits line up; words start-align. Defaults to `start`. Set it on the head and the cells of a column together, or the column reads as two."
       }
@@ -3423,6 +3976,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "An index into the control family, 1–4, and it sets two things at once: the cell inset, picked from the layout-space palette so it tightens with density, and the type step the cells read at. Defaults to `2` — the step tables are set at almost everywhere, because a table is dense by nature."
       },
@@ -3450,6 +4009,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The control height ladder, set on the list and not on the tabs. It is SegmentedControl's decision one component over, and the thing a reader gets wrong exactly once: the bar carries the index, and each tab derives its box from that bar and states no index of its own. A mixed-size bar is therefore not expressible, which is right, and asking every tab to repeat the number is an invitation to disagree. It sits here rather than on `Tabs` because the list is the part that has a box. The root owns no layout at all."
       }
@@ -3499,6 +4064,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The control index, minus the one part a growing box cannot take. The padding, the corner, the type and the border all come from it. The height does not, because the content decides that through `rows`. The block padding IS the side padding — one inset on all four sides — so a `rows={1}` textarea sits TALLER than a TextField at the same index; the control height survives as a floor, never a ceiling."
       },
@@ -3534,6 +4105,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The control index, the same ladder Button uses: the height, the side padding, the corner, the value's type step and the slot geometry all come from one number, so a field and the button that submits it stand level. It replaces the platform's own `size` attribute rather than joining it, because that one counts characters, predates CSS, and would collide. The wrapper wears it, because the wrapper is the control."
       },
@@ -3552,6 +4129,15 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "type",
         "type": "TextFieldType",
+        "values": [
+          "text",
+          "email",
+          "password",
+          "search",
+          "tel",
+          "url",
+          "number"
+        ],
         "optional": true,
         "doc": "Narrowed from the platform's open list. See TextFieldType."
       }
@@ -3569,6 +4155,11 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "emphasis",
         "type": "Emphasis",
+        "values": [
+          "loud",
+          "medium",
+          "quiet"
+        ],
         "optional": true,
         "doc": "On text, this picks an ink colour: loud is `--color-text`, medium is muted, quiet is faint. It rests loud, because full contrast is the correct resting state for reading. Quiet sits below the reading contrast floor on purpose, so never use it for a full line of text."
       },
@@ -3581,6 +4172,17 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "TypeSize",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9"
+        ],
         "optional": true,
         "doc": "A step on the type ramp. One index sets three things together: font size, line height and letter spacing, so a step can never change the size without the leading that makes it readable. There are nine steps here, against the four a control has, because reading covers a wider range. Defaults to 3, the body step."
       },
@@ -3593,12 +4195,29 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "tone",
         "type": "Tone",
+        "values": [
+          "neutral",
+          "accent",
+          "destructive",
+          "blue",
+          "green",
+          "orange",
+          "amber",
+          "success",
+          "warning",
+          "info"
+        ],
         "optional": true,
         "doc": "A meaning, never a colour name. The theme resolves the colour. Setting a tone moves the three emphasis levels onto that family's own inks. Unset, the text reads whatever ink colour its surface set."
       },
       {
         "name": "weight",
         "type": "Weight",
+        "values": [
+          "regular",
+          "medium",
+          "semibold"
+        ],
         "optional": true,
         "doc": "The weight, named rather than numbered, because a token is the system's to re-point and a `600` is not. There are three, and semibold is the heaviest: `bold` is refused across the system, since a 700 face is another way to say \"important\" competing with the size ramp and the ink colours. Defaults to regular."
       }
@@ -3610,6 +4229,11 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "appearance",
         "type": "Appearance",
+        "values": [
+          "inherit",
+          "light",
+          "dark"
+        ],
         "optional": true,
         "doc": "Which palette this scope resolves against. `inherit` is a real third value, not a no-op: it writes no attribute at all, so the nearest ancestor keeps applying. That is what makes server rendering work in dark mode. A small script in the document head owns the attribute on `<html>`, the root Theme inherits it, and there is one source of truth with no flash and nothing for hydration to mismatch. Set it to pin a section against the document: a light panel inside a dark app is `appearance=\"light\"` here."
       },
@@ -3628,36 +4252,67 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "contrast",
         "type": "Contrast",
+        "values": [
+          "normal",
+          "high"
+        ],
         "optional": true,
         "doc": "An accessibility setting, not a design knob. At rest a border or a fill is decoration, judged by eye and held to no floor. `high` is where the contrast floors bind: it re-solves the tone bands, the control and field edges and the track, and it leans on the glass rather than unmaking it. Left unset the Theme writes no attribute, which is what lets `@media (prefers-contrast: more)` reach the scope. Asking for `normal` is an explicit opt-out of that platform signal. **It has to sit on the same element as an `appearance`, and this scope's cannot be `inherit`.** The high-contrast palette is selected by the two together, so a Theme that resolves `inherit` and asks for `high` re-solves nothing. On the dark-SSR shape the appearance lives on `<html>`, so put `data-contrast` there too — which is what the pre-paint script does. A development build warns when the two come apart."
       },
       {
         "name": "density",
         "type": "Density",
+        "values": [
+          "compact",
+          "default",
+          "comfortable"
+        ],
         "optional": true,
         "doc": "How much room the app gives its controls. It re-picks the layout-space steps every distance reads, and it restates each control height and padding directly. It reaches neither type, the icon box, nor a mark, because those are content and would otherwise answer the same question twice. Choose it once for the app. A denser toolbar is a nested Theme on an element you already have, never a prop on each control."
       },
       {
         "name": "depth",
         "type": "Depth",
+        "values": [
+          "flat",
+          "elevated"
+        ],
         "optional": true,
         "doc": "Whether light exists in this app: whether surfaces sit up off the page and raised controls catch it. Depth is an app identity and never a per-card choice, so no call site picks a shadow. This is the one thing that reads the shadow palette. `flat` writes no-op layers rather than deleting the rules."
       },
       {
         "name": "material",
         "type": "Material",
+        "values": [
+          "solid",
+          "thin",
+          "regular",
+          "thick"
+        ],
         "optional": true,
         "doc": "What the app is made of. One value covers the whole scope, so a dialog and a menu under one theme are the same glass. There is no per-component thickness and no ceiling to hit at `thick`. What makes a dialog read heavier than a menu is not its material. It is coverage and the scrim. The same glass over 900 pixels of application hides far more than the same glass over a 170-pixel menu, and a dialog also pushes the page back behind a scrim it already owns. `solid` is the default, and it is a material rather than the absence of one: it is the level where light stops passing through. That is also why this is not a boolean. A `glass` flag would still need a thickness beside it, which is two props for one fact. Where the glass shows is decided by placement. Mark a region with `<Box backdrop>`, or pass `backdrop` on a single component. An unmarked control in ordinary flow renders solid and costs nothing."
       },
       {
         "name": "pointer",
         "type": "Pointer",
+        "values": [
+          "fine",
+          "coarse",
+          "auto"
+        ],
         "optional": true,
         "doc": "What is touching the screen. `auto` follows `@media (pointer: coarse)`. Pinning it forces the whole coarse world, not only the touch targets: the wider control cells, the mark ladder and the handheld type band all move together. That is what a phone needs, and it is also how those cells get judged on a desktop. There is no `device` prop, because coarse means handheld."
       },
       {
         "name": "radius",
         "type": "RadiusLevel",
+        "values": [
+          "none",
+          "small",
+          "medium",
+          "large",
+          "full"
+        ],
         "optional": true,
         "doc": "The corner, chosen once for the app. Each level is a set of hand-picked values rather than a multiplier, restated per family, so `none` squares every corner that is decoration while the four that carry a role hold their shape: a radio, the slider grip, the switch thumb, and the track a round thumb nests in. `full` states the capsule for each cell, which is half the control's own height, rather than asking CSS to clamp a huge number against the rendered box."
       },
@@ -3670,6 +4325,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The index every family on the 1-4 ladder rests at when the call site says nothing (§4). `size=\"3\"` is an app whose buttons are 40px and whose cards pad and corner one step wider; it is a rung rather than a measurement, which is what lets one number mean the same thing to a control, a card and a dialog at once. It is a DEFAULT, not a clamp. A stated `size` on any component wins, and a `Field` or a `Composer` — the two units a person sizes as one object — win over the theme for what they contain, because they are nearer. It does not reach type. `Text`, `Heading` and `Blockquote` read a scale nine steps long rather than four, so they can share neither this rest nor this range; rank them with the composition ladder (§15) and the emphasis roles. `Code`, `Kbd`, `Badge`, `Avatar` and `Chip` rest at nothing on purpose and take the line they sit in."
       },
@@ -3687,6 +4348,10 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "orientation",
         "type": "\"horizontal\" | \"vertical\"",
+        "values": [
+          "horizontal",
+          "vertical"
+        ],
         "optional": true,
         "doc": "The axis the arrow keys walk. The group draws nothing, so the layout is the caller's Flex or Stack; this only tells the keyboard which way the toggles run. Defaults to `horizontal`."
       }
@@ -3740,6 +4405,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "An index into the control family, never a measurement — Button's own prop, because a toggle IS a button that holds its state. Defaults to `2`, or to the index of the Field it sits in."
       },
@@ -3752,6 +4423,18 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "tone",
         "type": "Tone",
+        "values": [
+          "neutral",
+          "accent",
+          "destructive",
+          "blue",
+          "green",
+          "orange",
+          "amber",
+          "success",
+          "warning",
+          "info"
+        ],
         "optional": true,
         "doc": "What the state means, not what colour it is. Defaults to `neutral`: a pressed toggle rests on the soft wash of its own family, so a toolbar of neutral toggles reads as one set and a `destructive` toggle says what being on does."
       },
@@ -3769,12 +4452,104 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "ToolbarButton": {
+    "element": null,
+    "props": []
+  },
+  "ToolbarGroup": {
+    "element": "div",
+    "props": [
+      {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Says content passes behind this group, so it shows the theme's material instead of resolving solid. A `<Box backdrop>` region answers it for a whole band; this is the one-off escape. THE ROW REFUSES THIS AND THE GROUP TAKES IT, which is one rule rather than two (§10, 2026-09-06, Kushagra: \"I like how a toolbar group looks, it looks similar to a medium emphasis button, so therefore it needs to support backdrop also\"). A material makes a component's own FILL translucent, so it is only expressible on something that has one: the toolbar is a row and paints nothing, and this is the one part in it that draws a box. It is the segmented control's track with nothing chosen in it, and that component has taken the prop since materials became selective."
+      },
+      {
+        "name": "disabled",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Turns every control in the group off at once."
+      }
+    ]
+  },
+  "Toolbar": {
+    "element": "div",
+    "props": [
+      {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Marks the row as a region where content passes BEHIND its controls, so every glass-capable one inside resolves the theme's material instead of solid. Said once for the row rather than on every button (2026-09-06, Kushagra: \"backdrop of toolbar should suggest items inside it get backdrop\"). IT DOES NOT MAKE THE ROW GLASS, and the two are different things rather than a compromise. A material makes a component's own FILL translucent and this component has no fill — which is why `material` stays refused. `backdrop` says something TRUE ABOUT THE SPACE the row occupies, which is exactly what `<Box backdrop>` says and exactly what `float` on a `ShellPaneHeader` makes true. The row still paints nothing; it just stops every control in it from having to repeat the same fact. A control's own prop still wins, and `backdrop={false}` marks the row plain again inside a region that is not. Layout is untouched: this is a React context, not a style."
+      },
+      {
+        "name": "orientation",
+        "type": "\"horizontal\" | \"vertical\"",
+        "values": [
+          "horizontal",
+          "vertical"
+        ],
+        "optional": true,
+        "doc": "The axis the arrow keys walk, and the axis the row lays out on. `vertical` is a real toolbar — an edge strip of tools — and it costs no designed value: the same tokens with the axes swapped, which is Separator's own argument for taking the prop Slider refuses."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "optional": true,
+        "doc": "The index every control in the row takes unless it states its own. Defaults to ONE STEP ABOVE the app's own rest — `3` in a default app — because a band holds icon-only controls at the edge of the window and a form holds labelled ones. `BAND_STEP` (system/size.ts) carries the derivation and the reason it is a derivation rather than a literal."
+      }
+    ]
+  },
+  "ToolbarSeparator": {
+    "element": null,
+    "props": []
+  },
+  "ToolbarTitle": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The words. Omit them to mirror the `Page` in this pane."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "optional": true,
+        "doc": "So a caller can point `aria-labelledby` at the row's own title."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
   "TooltipContent": {
     "element": "div",
     "props": [
       {
         "name": "align",
         "type": "\"start\" | \"center\" | \"end\"",
+        "values": [
+          "start",
+          "center",
+          "end"
+        ],
         "optional": true,
         "doc": "How it lines up along that side."
       },
@@ -3793,6 +4568,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "side",
         "type": "\"top\" | \"right\" | \"bottom\" | \"left\"",
+        "values": [
+          "top",
+          "right",
+          "bottom",
+          "left"
+        ],
         "optional": true,
         "doc": "Which side of the trigger to prefer. It flips itself when that side has no room."
       },
@@ -3901,6 +4682,12 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "size",
         "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
         "optional": true,
         "doc": "The rows' index — the row family's own `size`, stamped per row. Rests at 2."
       }

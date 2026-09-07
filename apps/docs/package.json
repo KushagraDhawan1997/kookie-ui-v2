@@ -7,10 +7,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint app blocks examples mdx-components.tsx mdx-plugins next.config.ts scripts && tsc -p tsconfig.json",
+    "lint": "eslint app blocks examples mdx-components.tsx mdx-plugins middleware.ts next.config.ts scripts && tsc -p tsconfig.json",
     "test": "vitest run",
     "api": "node --disable-warning=ExperimentalWarning --experimental-strip-types scripts/generate-api.ts",
-    "api:check": "node --disable-warning=ExperimentalWarning --experimental-strip-types scripts/generate-api.ts --check"
+    "api:check": "node --disable-warning=ExperimentalWarning --experimental-strip-types scripts/generate-api.ts --check",
+    "agents": "node --disable-warning=ExperimentalWarning --experimental-strip-types scripts/generate-agents.ts",
+    "agents:check": "node --disable-warning=ExperimentalWarning --experimental-strip-types scripts/generate-agents.ts --check"
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.2.3",
