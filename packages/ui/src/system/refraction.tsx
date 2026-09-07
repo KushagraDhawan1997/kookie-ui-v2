@@ -200,6 +200,14 @@ function watchSeal(): void {
     for (const cb of remeasures) cb();
   });
 }
+/**
+ * Retune the glass lens at runtime and re-mint every mounted map. A development seam for judging
+ * the material by eye, never an API.
+ *
+ * The dunder name is the fence: it is exported so the material bench at `/preview` can drive the
+ * dials live, and nothing in the package or in a consumer's app may call it. Pass `null` to put
+ * the judged configuration back.
+ */
 export function __retuneLens(next: Partial<LensTuning> | null): void {
   tuning = next;
   tuningSerial += 1;

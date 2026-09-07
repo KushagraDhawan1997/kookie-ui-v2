@@ -55,6 +55,7 @@ import linkCss from "../components/link/link.css?raw";
 import menuCss from "../components/menu/menu.css?raw";
 import composerCss from "../components/composer/composer.css?raw";
 import noticeCss from "../components/notice/notice.css?raw";
+import pageCss from "../components/page/page.css?raw";
 import popoverCss from "../components/popover/popover.css?raw";
 import selectCss from "../components/select/select.css?raw";
 import progressCss from "../components/progress/progress.css?raw";
@@ -70,6 +71,7 @@ import tableCss from "../components/table/table.css?raw";
 import tabsCss from "../components/tabs/tabs.css?raw";
 import textAreaCss from "../components/text-area/text-area.css?raw";
 import toggleCss from "../components/toggle/toggle.css?raw";
+import toolbarCss from "../components/toolbar/toolbar.css?raw";
 import tooltipCss from "../components/tooltip/tooltip.css?raw";
 import textFieldCss from "../components/text-field/text-field.css?raw";
 import treeCss from "../components/tree/tree.css?raw";
@@ -112,6 +114,7 @@ export function installStyles(): void {
     menuCss,
     composerCss,
     noticeCss,
+    pageCss,
     scrollAreaCss,
     segmentedControlCss,
     selectCss,
@@ -128,6 +131,7 @@ export function installStyles(): void {
     tooltipCss,
     textAreaCss,
     toggleCss,
+    toolbarCss,
     treeCss,
   ].join("\n");
   document.head.append(sheet);
@@ -664,6 +668,16 @@ export const colorOn = (scope: Element, expr: string): string =>
     raw value is read off the element itself, then resolved through a child probe. */
 export const ownColor = (el: Element, name: string): string =>
   probeIn(el, (probe) => (probe.style.color = computed(el, name)), (s) => s.color);
+
+/** A LENGTH-valued custom property declared ON the element — `ownColor`'s sibling, and the
+    instrument `tokenOn` cannot be for a registered `inherits: false` name (2026-09-06).
+    `tokenOn` resolves through a CHILD probe, which is right for the inheriting names it was
+    written for and silently answers the property's `initial-value` for a non-inheriting one —
+    a healthy `--kui-pane-band-row-end` of 48px read back as 0px, and the law that found it
+    failed as if the mechanism were broken. Read off the element itself; a registered `<length>`
+    computes to a length, so there is nothing to resolve through a probe. */
+export const ownLength = (el: Element, name: string): number =>
+  parseFloat(computed(el, name));
 
 /** The axes a control law walks. SIZES comes from the vocabulary; densities derive from the
     config (the audit lesson: a restated literal keeps a hole invisible); the worlds are the

@@ -1,5 +1,6 @@
 "use client";
 
+import type { RadixReflexRefusals, ThemeRefusals } from "../system/refused.ts";
 import * as React from "react";
 
 import { composeRender, type RenderElement } from "../system/render.ts";
@@ -88,7 +89,7 @@ export type Depth = (typeof themeAxes.depth)[number];
     and a law asserts the two are the same array rather than two lists that agree. */
 export const DEPTHS = themeAxes.depth;
 
-export type ThemeProps = {
+export type ThemeProps = ThemeRefusals & RadixReflexRefusals & {
   /**
    * What the app is made of. One value covers the whole scope, so a dialog and a menu under one
    * theme are the same glass. There is no per-component thickness and no ceiling to hit at
@@ -213,6 +214,41 @@ const warnOnBodyMount = (node: HTMLElement | null) => {
   }
   warnOnFramedAncestor(node);
   warnOnSplitContrast(node);
+  warnOnMissingStylesheet(node);
+};
+
+/**
+ * THE ONE FAILURE THAT DRAWS NOTHING (2026-09-07).
+ *
+ * Every other mistake in this package produces something: a wrong colour, a wrong size, a
+ * compile error. Forgetting `import "@kookie-ui/react/styles.css"` produces an unstyled page
+ * with no diagnostic anywhere — the markup is right, the props are right, the components
+ * mount, and the result is unrecognisable. It is the cheapest mistake to make and the one
+ * with the least evidence attached, and until now nothing in the package said a word about it.
+ *
+ * IT READS A TOKEN, NOT A STYLESHEET. There is no reliable way to ask a document whether a
+ * particular file was loaded — a bundler may inline it, a framework may split it, and walking
+ * `document.styleSheets` for a name is a guess about someone else's build. What is true in
+ * every one of those cases is that the tokens resolve, so the question worth asking is the one
+ * with the same answer as "did the CSS arrive": read a designed value off the theme's own
+ * element and see whether anything comes back. `--control-height-2` is the sentinel because it
+ * is unmistakably ours and it is declared at `:root`, so it is present the moment the entry
+ * stylesheet is.
+ *
+ * ON THE THEME'S ELEMENT, deliberately, rather than on `documentElement`: the read then works
+ * under a shadow root and inside a portal, where a `:root` lookup answers for a document the
+ * component may not be in.
+ */
+const warnOnMissingStylesheet = (node: HTMLElement) => {
+  // Only the outermost Theme. A nested one resolves the same tokens by inheritance, so every
+  // nested Theme would repeat one page's warning once per subtree.
+  if (!node.matches?.(".kui-theme:not(.kui-theme *)")) return;
+  if (getComputedStyle(node).getPropertyValue("--control-height-2").trim()) return;
+  console.warn(
+    "[kookie-ui] The stylesheet is missing: no Kookie tokens resolve on this <Theme>, so " +
+      "every component will render unstyled. Add `import \"@kookie-ui/react/styles.css\";` " +
+      "once, at your app's entry point.",
+  );
 };
 
 /**
@@ -342,6 +378,14 @@ type Ctx = Resolved & { contrastSet: boolean; rooted: boolean };
 
 const ThemeContext = React.createContext<Ctx>({ ...themeDefaults, contrastSet: false, rooted: false });
 
+/**
+ * The resolved theme at this point in the tree: every axis, already answered.
+ *
+ * It returns what the nearest `<Theme>` decided, with the defaults filled in — so `appearance`
+ * is `light` or `dark` here and never `inherit`. Read it when a component has to branch on an
+ * axis in JavaScript; almost nothing does, because the axes are stamped as attributes and CSS
+ * resolves them without a render.
+ */
 export const useTheme = (): Resolved => React.use(ThemeContext);
 
 /**

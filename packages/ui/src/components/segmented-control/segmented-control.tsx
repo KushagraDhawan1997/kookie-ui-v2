@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import { Radio as BaseRadio } from "@base-ui/react/radio";
 import { RadioGroup as BaseRadioGroup } from "@base-ui/react/radio-group";
 import * as React from "react";
@@ -9,7 +10,7 @@ import type { Size } from "../../system/axes.ts";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { useSize } from "../../system/size.ts";
 
-export type SegmentedControlProps = Omit<
+export type SegmentedControlProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseRadioGroup>,
   // Refused with Radio's own (LOG 2026-08-06): the platform has no read-only selection
   // control, and a segmented control is a selection control wearing a different box.
@@ -34,7 +35,7 @@ export type SegmentedControlProps = Omit<
   ref?: React.Ref<HTMLDivElement>;
 };
 
-export type SegmentedItemProps = Omit<
+export type SegmentedItemProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseRadio.Root>,
   // `tone` and `emphasis` are refused for the binary controls' reason (§11): the family has
   // ONE tone as an identity, and a segment that is louder than its neighbours is not a

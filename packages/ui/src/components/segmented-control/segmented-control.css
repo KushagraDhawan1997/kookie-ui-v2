@@ -120,6 +120,22 @@
   position: relative;
   --kui-ct-label-color: var(--color-text-muted);
   min-height: calc(var(--kui-ct-h) - 2 * var(--segment-inset));
+  /* A SEGMENT'S LABEL DOES NOT WRAP, and that is what keeps the height invariant reachable
+     (2026-09-07). `flex: 1 1 0` with the automatic minimum at min-content means a squeezed
+     track binds on the longest WORD, so a two-word label breaks onto a second line and the
+     `min-height` above — deliberately a floor, for a 200%-resized label — lets the whole track
+     grow with it. Measured in a 200px room: 200 x 66 against the Button's 32, more than double
+     the rung this component exists to stand level with.
+
+     So the automatic minimum is moved to the whole label: a segment can never be narrower than
+     its text, and a track with no room to say what it says OVERFLOWS rather than growing a
+     second line of segments. That is the honest failure — a control that has outgrown its
+     column is visible, where a silently doubled track reads as a design.
+
+     `white-space`, not a `min-inline-size: max-content` on the track: the intrinsic width of a
+     flex container whose items are all `flex-basis: 0` is exactly the thing that collapsed
+     here, so the keyword would resolve to the size being defended against. */
+  white-space: nowrap;
   /* The concentric corner (§6, §22's own rule one family over): the inner radius is the
      outer minus the inset between them, which is what keeps two curves parallel instead of
      merely both round.

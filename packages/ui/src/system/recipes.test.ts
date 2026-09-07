@@ -17,7 +17,7 @@ import { GLASS_MATERIALS, RUNGS, SLOT_NAMES } from "./axes.ts";
 import { DEPTHS, themeAxes } from "../theme/theme.tsx";
 
 import { tones } from "../tokens/color-config.ts";
-import { allStylesheets, block, componentSources, from, raw, sheet, stripped, walkFiles } from "../test/stylesheets.ts";
+import { allStylesheets, block, componentSources, from, raw, sheet, stripped, walkFiles, withoutObligatoryDescriptors } from "../test/stylesheets.ts";
 
 const recipes = sheet("system/recipes.css");
 const button = sheet("components/button/button.css");
@@ -258,7 +258,16 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
     const members = files.filter(({ src }) => /\bsize\?: Size;/.test(src));
     expect(members.length, "no component declares the four-step index — the walk is mis-keyed").toBeGreaterThanOrEqual(25);
     for (const { path, src } of members) {
-      expect(/\buseSize\(/.test(src), `${path} takes \`size?: Size\` and never calls useSize — the app's index cannot reach it`).toBe(true);
+      /* EITHER RESOLVER, because there are two and they answer the same question (2026-09-06).
+         `useSize` reads the caller, then the unit, then the app; `useAppSize` skips the unit and
+         is what an overlay covering the screen takes, so a Dialog is no longer re-sized by the
+         Toolbar whose button opened it. What this law is about is unchanged — the APP's index
+         must be able to reach every member — and a component that resolves through neither is
+         still the twenty-ninth one writing a literal in its destructure. */
+      expect(
+        /\buseSize\(|\buseAppSize\(/.test(src),
+        `${path} takes \`size?: Size\` and calls neither useSize nor useAppSize — the app's index cannot reach it`,
+      ).toBe(true);
       // …and it must not ALSO hold a literal rest, which is the shape the widening replaced:
       // a destructuring default beats the hook and re-anchors the component in silence.
       expect(/\bsize = "[1-4]"/.test(src), `${path} still carries a literal size default beside useSize`).toBe(false);
@@ -267,7 +276,10 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
     // start reading the four-step index. Nine steps and four cannot share a rest (§4).
     for (const { path, src } of files) {
       if (!/\bsize\?: TypeSize;/.test(src)) continue;
-      expect(/\buseSize\(/.test(src), `${path} is on the type scale and reads the four-step index`).toBe(false);
+      expect(
+        /\buseSize\(|\buseAppSize\(/.test(src),
+        `${path} is on the type scale and reads the four-step index`,
+      ).toBe(false);
     }
   });
   it("every axis value the table offers is one the shipped CSS implements", () => {
@@ -1108,6 +1120,25 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
       // own shape: it compares the published `--kui-shell-inset-*` against where the floating
       // panes actually are, on the layout frame and on resize, never on hover, press, focus or
       // scroll. It writes no style and it is stripped from the build.
+      /*
+       * ── THE PAGE'S COLLAPSE (§46, 2026-09-06): THE SEVENTH EXCEPTION, and it is a
+       * NOTIFICATION rather than a measurement.
+       *
+       * The large title's marker crosses the top of the scroller twice per visit to a page —
+       * once going up, once coming back — and an IntersectionObserver is the browser telling
+       * us when, off the scroll path and on its own schedule. Nothing here reads a layout
+       * (`entry.rootBounds` and `boundingClientRect` are the browser's own numbers, handed to
+       * the callback; the file forces no reflow), nothing runs per frame, and the callback
+       * writes ONE attribute directly onto the mirroring titles — no React state, so no
+       * re-render, no lens re-mint, nothing reconciled. The line it fires at is stated in CSS,
+       * where the band's own reach already lives, so JavaScript never computes it.
+       *
+       * The pure-CSS spelling is recorded rather than pretended: a scroll-driven animation over
+       * a named timeline says this without any JavaScript, and it needs `timeline-scope` to
+       * cross from the scroller to a sibling band — Chromium-only at the time of writing. This
+       * is `ScrollArea`'s own stance on its own scroll listener, one component over.
+       */
+      "components/page/page.tsx": ["new IntersectionObserver"],
       "components/shell/shell.tsx": [
         'addEventListener("keydown',
         "new ResizeObserver",
@@ -1454,7 +1485,14 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     // `text-decoration-color` joined 2026-08-21 with Link, and it is the same category as
     // `border-color` one property over: a colour, on a line the component already draws.
     // It was absent only because nothing in the package had ever moved an underline.
-    const PAINT = new Set(["background-color", "border-color", "color", "opacity", "fill", "stroke", "box-shadow", "filter", "text-decoration-color"]);
+    // `visibility` joined 2026-09-06 with the shell's drawer, and it is neither of the two —
+    // which is why it needs stating rather than defaulting to the geometry arm. It is a
+    // DISCRETE property: it does not interpolate, it flips once, at the start of an entry and
+    // at the end of an exit. A spring on it is meaningless (there is nothing to overshoot) and
+    // an easing on it means only "flip at the far end", which is exactly the job — it is what
+    // keeps a closing drawer on screen for the length of its own exit. Grouped with paint
+    // because paint is where the timing-function is a signal rather than a physics.
+    const PAINT = new Set(["background-color", "border-color", "color", "opacity", "fill", "stroke", "box-shadow", "filter", "text-decoration-color", "visibility"]);
     for (const file of allStylesheets()) {
       for (const declaration of [...sheet(file).matchAll(/[^-\w]transition\s*:([^;]+);/g)]) {
         const body = declaration[1]!;
@@ -1468,7 +1506,7 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
             expect(channel, `${file}: ${property} is a signal, it must not spring`).not.toContain("--motion-spring");
           } else {
             expect(channel, `${file}: ${property} moves a box, it must spring`).toMatch(
-              /var\(--motion-spring(-stiff|-lively|-elastic|-poised)?\)/,
+              /var\(--motion-spring(-driven|-stiff|-lively|-elastic|-poised)?\)/,
             );
           }
         }
@@ -1849,12 +1887,7 @@ describe("tokens only: no raw length literals in a hand-authored stylesheet (non
   const PRELUDES = /@[\w-]+[^;{}]*\{/g;
   const RAW_PX = /(?<![-\w#.])\d+(\.\d+)?px\b/g;
   const declarations = (file: string): string =>
-    sheet(file)
-      // `initial-value` is a REQUIRED descriptor of an @property registration, not a design
-      // value: a registered <length> must declare the value it computes to when the cascade
-      // gives it nothing, and that is 0px by definition. Exempting the descriptor rather than
-      // the whole @property block, so a real literal inside one still fails.
-      .replace(/^\s*initial-value:[^;]*;/gm, "")
+    withoutObligatoryDescriptors(sheet(file))
       // …and a `var()` FALLBACK of zero is the same descriptor by another spelling (2026-08-29).
       // The exemption above says a registered <length> "must declare the value it computes to
       // when the cascade gives it nothing, and that is 0px by definition"; a name the RUNNER
@@ -1868,6 +1901,18 @@ describe("tokens only: no raw length literals in a hand-authored stylesheet (non
       // cannot be a `var()`. Removing the prelude and keeping the body is what lets the
       // declaration scan below be strict.
       .replace(PRELUDES, "{");
+
+  it("the descriptor exemption is a DESCRIPTOR, not the registration", () => {
+    // What keeps this an exemption rather than a hole, asserted rather than claimed
+    // (2026-09-05: widening the strip to the whole `@property` block left 623 laws green,
+    // because no shipped registration happens to carry a second literal — so the guarantee had
+    // no reader). The subject is a forged block, since the defect this forbids is one nobody
+    // has written yet.
+    const forged = '@property --kd-x {\n  syntax: "<length>";\n  inherits: false;\n  initial-value: 0px;\n  fallback: 6px;\n}';
+    const scanned = withoutObligatoryDescriptors(forged);
+    expect(scanned, "the obligatory descriptor is what is exempt").not.toMatch(/initial-value/);
+    expect(scanned.match(RAW_PX), "and a real literal beside it still fails").toEqual(["6px"]);
+  });
 
   /**
    * EMPTY, and it stays empty (2026-08-26). The two live violations the old lookbehind was

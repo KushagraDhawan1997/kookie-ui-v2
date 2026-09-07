@@ -25,6 +25,15 @@ import { Heading } from "../components/heading/heading.tsx";
 import { Badge } from "../components/badge/badge.tsx";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "../components/menu/menu.tsx";
 import { Dialog, DialogContent, DialogTitle } from "../components/dialog/dialog.tsx";
+import { Toolbar } from "../components/toolbar/toolbar.tsx";
+import {
+  Command,
+  CommandContent,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../components/command/command.tsx";
+import { BAND_STEP } from "./size.ts";
 
 /** The one index the theme is driven to below. 4 is chosen because nothing rests there. */
 const AWAY = "4" as const;
@@ -160,6 +169,136 @@ describe("the app's own index reaches every family on the 1-4 ladder (§4, 2026-
     expect(computed(dialog({ size: AWAY }), "max-inline-size")).not.toBe(
       computed(dialog({}), "max-inline-size"),
     );
+  });
+});
+
+describe("an overlay that covers the screen answers to the APP, not the unit that opened it (2026-09-06)", () => {
+  /* Found in the rendered DOM rather than by a law (Kushagra: "But it shows size 4"). The
+     documentation site puts its search button in a `Toolbar`; a toolbar supplies its row's index
+     one step above the app's; `SizeScopeContext` follows the REACT tree, not the DOM — so the
+     palette opened from that button read the band's 3 and priced its rows a step above that,
+     landing every row of a size-2 app at the top of the ladder.
+
+     The FIXTURE is the whole law: an overlay rendered inside a real unit provider, with the app
+     at a different index, so "the unit was skipped" and "the app was read" are two different
+     answers rather than one. A `Toolbar` is the provider used because it is the one that
+     produced the defect, and it is driven from the app's own rest so the band's value is a
+     STEP rather than a literal — read against a twin outside the unit, never against a number.
+
+     THE APP IS DRIVEN TO 1 AND NOT TO THIS FILE'S `AWAY`, and that is the fixture's load-bearing
+     half: `BAND_STEP` ends level at 4, so at the top of the ladder the band and the app ARE the
+     same index and every clause below compares a value with itself. Written with `AWAY` first,
+     two of these passed for exactly that reason — the degenerate fixture caught by its own first
+     run. At 1 the band is 2, and the two answers really are two. */
+  const APP = "1" as const;
+  const OUTSIDE = { theme: { size: APP } } as const;
+
+  it("a Dialog inside a Toolbar is the app's size, not the band's", () => {
+    const inUnit = mounted(
+      <Toolbar>
+        <Dialog defaultOpen>
+          <DialogContent>
+            <DialogTitle>t</DialogTitle>
+          </DialogContent>
+        </Dialog>
+      </Toolbar>,
+      OUTSIDE,
+    );
+    void inUnit;
+    const inside = [...document.querySelectorAll<HTMLElement>(".kui-dialog-popup")].pop()!;
+    const width = computed(inside, "max-inline-size");
+
+    mounted(
+      <Dialog defaultOpen>
+        <DialogContent>
+          <DialogTitle>t</DialogTitle>
+        </DialogContent>
+      </Dialog>,
+      OUTSIDE,
+    );
+    const alone = [...document.querySelectorAll<HTMLElement>(".kui-dialog-popup")].pop()!;
+    expect(width, "the toolbar re-sized a dialog standing over the whole app").toBe(
+      computed(alone, "max-inline-size"),
+    );
+
+    /* THE VACUITY HALF, and without it the law passes on a Dialog that answers no index at all:
+       the band really does supply a different one, so a dialog that HAD read it would differ. */
+    mounted(
+      <Dialog defaultOpen size={BAND_STEP[APP]}>
+        <DialogContent>
+          <DialogTitle>t</DialogTitle>
+        </DialogContent>
+      </Dialog>,
+      OUTSIDE,
+    );
+    const banded = [...document.querySelectorAll<HTMLElement>(".kui-dialog-popup")].pop()!;
+    expect(
+      computed(banded, "max-inline-size"),
+      "the band's index is the app's here, so this law cannot tell them apart",
+    ).not.toBe(width);
+  });
+
+  it("a Command inside a Toolbar prices its rows off the app, so two steps never stack", () => {
+    /* The reported shape end to end: the palette steps its rows up by one (§44), and the only
+       question this law asks is what that one step is measured FROM. */
+    mounted(
+      <Toolbar>
+        <Command items={["a", "b"]} defaultOpen>
+          <CommandContent aria-label="p">
+            <CommandInput aria-label="q" />
+            <CommandList>{(i: string) => <CommandItem key={i} value={i}>{i}</CommandItem>}</CommandList>
+          </CommandContent>
+        </Command>
+      </Toolbar>,
+      OUTSIDE,
+    );
+    const inside = [...document.querySelectorAll<HTMLElement>(".kui-command-item")].pop()!;
+    mounted(
+      <Command items={["a", "b"]} defaultOpen>
+        <CommandContent aria-label="p">
+          <CommandInput aria-label="q" />
+          <CommandList>{(i: string) => <CommandItem key={i} value={i}>{i}</CommandItem>}</CommandList>
+        </CommandContent>
+      </Command>,
+      OUTSIDE,
+    );
+    const alone = [...document.querySelectorAll<HTMLElement>(".kui-command-item")].pop()!;
+    expect(
+      inside.getAttribute("data-size"),
+      "the band's index reached the palette and the row step landed on top of it",
+    ).toBe(alone.getAttribute("data-size"));
+  });
+
+  it("but an ANCHORED panel keeps the unit's index — it belongs to the control that opened it", () => {
+    /* The other side of the line, and the reason this is not "portals ignore units": a menu hangs
+       off its trigger, so a band's menu is that band's menu. Without this clause the repair could
+       have been made by cutting every portal off from the scope, which is a different rule. */
+    mounted(
+      <Toolbar>
+        <Menu defaultOpen>
+          <MenuTrigger>open</MenuTrigger>
+          <MenuContent>
+            <MenuItem>Row</MenuItem>
+          </MenuContent>
+        </Menu>
+      </Toolbar>,
+      OUTSIDE,
+    );
+    const inside = [...document.querySelectorAll<HTMLElement>(".kui-menu-item")].pop()!;
+    mounted(
+      <Menu defaultOpen>
+        <MenuTrigger>open</MenuTrigger>
+        <MenuContent>
+          <MenuItem>Row</MenuItem>
+        </MenuContent>
+      </Menu>,
+      OUTSIDE,
+    );
+    const alone = [...document.querySelectorAll<HTMLElement>(".kui-menu-item")].pop()!;
+    expect(
+      computed(inside, "height"),
+      "an anchored panel stopped taking the index of the row it was opened from",
+    ).not.toBe(computed(alone, "height"));
   });
 });
 

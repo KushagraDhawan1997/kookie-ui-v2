@@ -56,9 +56,10 @@ export const SizeScopeContext = React.createContext<Size | null>(null);
  * Resolve a component's index: what the caller said, else what the unit said, else the app's.
  *
  * Read by every component on the 1-4 ladder — the control family, and the compounds beside it
- * (Card, Surface, Dialog, AlertDialog, Menu, Popover, Command, Tabs, Table, Tree, Row,
- * Accordion, Notice, Composer, Field, Shell, Breadcrumb, Attachment, CodeBlock). NOT by Text,
- * Heading or Blockquote, and not by the inert atoms.
+ * (Card, Surface, Menu, Popover, Tabs, Table, Tree, Row, Accordion, Notice, Composer, Field,
+ * Shell, Breadcrumb, Attachment, CodeBlock). NOT by Text, Heading or Blockquote, and not by the
+ * inert atoms. NOT by Dialog, AlertDialog or Command either, since 2026-09-06: an overlay that
+ * covers the screen skips the unit layer and reads `useAppSize` below.
  *
  * A hosted control — one in a TextField's slot — is unaffected by any of this:
  * `--kui-ct-hosted-height` is a registered length declared on the SLOT, so CSS sizes it from
@@ -69,3 +70,57 @@ export function useSize(explicit?: Size): Size {
   const theme = useTheme();
   return explicit ?? scoped ?? theme.size;
 }
+
+/**
+ * The index an OVERLAY THAT COVERS THE SCREEN rests at: what the caller said, else what the APP
+ * said — and never what the unit it was opened from said (§24, §25, §44, 2026-09-06).
+ *
+ * Found by looking at the rendered DOM (Kushagra: *"But it shows size 4"*). This repo's own
+ * documentation site puts its search button in a `Toolbar`, a toolbar supplies its row's index
+ * one step above the app's, and `SizeScopeContext` follows the REACT tree rather than the DOM —
+ * so the palette opened from that button read 3, then priced its rows a step above that, and
+ * every row in a size-2 app rendered at the top of the ladder. Two steps, stacked, neither of
+ * them asked for.
+ *
+ * The toolbar was right about its own buttons and wrong about this. A unit scope means *these
+ * things are one object you size together*, and a dialog standing over the whole app is not part
+ * of the row whose button opened it — it is the next screen. So the scope is skipped, which is
+ * `GlassScope`'s own sentence at the portal (2026-08-16): what crosses into an overlay is what
+ * the APP said, never what the thing behind it happened to be doing.
+ *
+ * **ANCHORED panels are deliberately not here.** A menu, a select's list, a popover and a tooltip
+ * hang off the control that opened them and belong to it, so a menu opened from a band's button
+ * is that button's menu and takes the band's index with it. The line is coverage: this is for the
+ * members that cover the screen and answer to nothing behind them.
+ *
+ * An explicit prop still wins, exactly as it does everywhere else.
+ */
+export function useAppSize(explicit?: Size): Size {
+  const theme = useTheme();
+  return explicit ?? theme.size;
+}
+
+/**
+ * The index a CHROME BAND rests at, given the index the app rests at (§45, 2026-09-06).
+ *
+ * A toolbar rested at the app's own index until now, and both bands in this repo's own
+ * documentation site immediately wrote `size="3"` over it — "a value repeated at every call
+ * site is not a default, it is a tax", which is this file's own sentence about the Theme axis
+ * one paragraph up, arriving against the thing it argued for. Kushagra: *"I think it should be
+ * size 3 by default on toolbar, not subscribing to theme's size."*
+ *
+ * ONE STEP ABOVE, rather than a flat 3, and the difference only shows in an app that is not at
+ * the rest. The reason for the step is real: a band holds ICON-ONLY, unlabelled controls at the
+ * edge of the window, pressed without being read, where a form's controls are labelled and
+ * aimed at deliberately — the relationship iOS holds between a bar button and an inline one. The
+ * reason it is DERIVED rather than stated is that a toolbar's controls are on the very ladder
+ * `Theme size` prices, so a flat literal puts chrome and content on one ladder disagreeing for
+ * no reason a reader can see: at `<Theme size="4">` a fixed 3 makes the frame SMALLER than the
+ * content it frames, which is the one arrangement no app wants. Derived, the two can never
+ * invert. This is the mark family's `switch track = mark(n + 1)` and `BAND_TITLE_STEP`'s own
+ * shape — a ladder stated against another ladder so neither can drift.
+ *
+ * It ends where the ladder ends: at 4 the band and the app stand level, because there is no
+ * rung above it and standing level is the right answer when a step is unavailable.
+ */
+export const BAND_STEP: Record<Size, Size> = { "1": "2", "2": "3", "3": "4", "4": "4" };

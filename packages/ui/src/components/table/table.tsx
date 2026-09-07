@@ -1,11 +1,12 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
 import { useSize } from "../../system/size.ts";
 
-export type TableProps = Omit<React.ComponentPropsWithoutRef<"table">, "color"> & {
+export type TableProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"table">, "color"> & {
   /**
    * An index into the control family, 1–4, and it sets two things at once: the cell inset,
    * picked from the layout-space palette so it tightens with density, and the type step the
@@ -88,7 +89,7 @@ export function Table({
   );
 }
 
-export type TableHeaderProps = React.ComponentPropsWithoutRef<"thead"> & {
+export type TableHeaderProps = ComponentRefusals & React.ComponentPropsWithoutRef<"thead"> & {
   ref?: React.Ref<HTMLTableSectionElement>;
 };
 /** The `<thead>`. Its cells are `TableHead`s, set in the muted ink at medium weight. */
@@ -96,7 +97,7 @@ export function TableHeader(props: TableHeaderProps) {
   return <thead {...props} />;
 }
 
-export type TableBodyProps = React.ComponentPropsWithoutRef<"tbody"> & {
+export type TableBodyProps = ComponentRefusals & React.ComponentPropsWithoutRef<"tbody"> & {
   ref?: React.Ref<HTMLTableSectionElement>;
 };
 /** The `<tbody>`. Its last row draws no hairline under itself — the table's edge is the end. */
@@ -104,7 +105,7 @@ export function TableBody(props: TableBodyProps) {
   return <tbody {...props} />;
 }
 
-export type TableRowProps = React.ComponentPropsWithoutRef<"tr"> & {
+export type TableRowProps = ComponentRefusals & React.ComponentPropsWithoutRef<"tr"> & {
   ref?: React.Ref<HTMLTableRowElement>;
 };
 /** A `<tr>`. Inert: no hover, no selection, no press (§36 — the interactive row is a different
@@ -122,21 +123,21 @@ type CellAlign = {
   align?: "start" | "center" | "end";
 };
 
-export type TableHeadProps = Omit<React.ComponentPropsWithoutRef<"th">, "align" | "color"> &
+export type TableHeadProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"th">, "align" | "color"> &
   CellAlign & { ref?: React.Ref<HTMLTableCellElement> };
 /** A `<th>` in the header row, with `scope="col"` unless you say otherwise. */
 export function TableHead({ align, scope = "col", ...props }: TableHeadProps) {
   return <th scope={scope} data-align={align} {...props} />;
 }
 
-export type TableCellProps = Omit<React.ComponentPropsWithoutRef<"td">, "align" | "color"> &
+export type TableCellProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"td">, "align" | "color"> &
   CellAlign & { ref?: React.Ref<HTMLTableCellElement> };
 /** A `<td>`. */
 export function TableCell({ align, ...props }: TableCellProps) {
   return <td data-align={align} {...props} />;
 }
 
-export type TableCaptionProps = React.ComponentPropsWithoutRef<"caption"> & {
+export type TableCaptionProps = ComponentRefusals & React.ComponentPropsWithoutRef<"caption"> & {
   ref?: React.Ref<HTMLTableCaptionElement>;
 };
 /** The `<caption>`: what this table is, for everyone, and the table's accessible name. Drawn

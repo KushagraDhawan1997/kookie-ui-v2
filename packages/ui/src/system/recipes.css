@@ -1751,6 +1751,7 @@
   .kui-button:where([data-material="thin"]),
   .kui-atom:where([data-material="thin"]),
   .kui-segmented:where([data-material="thin"]),
+  .kui-toolbar-group:where([data-material="thin"]),
   .kui-field:where([data-material="thin"]),
   .kui-textarea:where([data-material="thin"]) {
     /* The pane's own lighting, and the WORLD's catch under it. Two things want
@@ -1767,6 +1768,7 @@
   .kui-button:where([data-material="regular"]),
   .kui-atom:where([data-material="regular"]),
   .kui-segmented:where([data-material="regular"]),
+  .kui-toolbar-group:where([data-material="regular"]),
   .kui-field:where([data-material="regular"]),
   .kui-textarea:where([data-material="regular"]) {
     /* The pane's own lighting, and the WORLD's catch under it. Two things want
@@ -1783,6 +1785,7 @@
   .kui-button:where([data-material="thick"]),
   .kui-atom:where([data-material="thick"]),
   .kui-segmented:where([data-material="thick"]),
+  .kui-toolbar-group:where([data-material="thick"]),
   .kui-field:where([data-material="thick"]),
   .kui-textarea:where([data-material="thick"]) {
     /* The pane's own lighting, and the WORLD's catch under it. Two things want
@@ -1961,6 +1964,7 @@
    turns out to need separation from what is behind it, that is a judgment about the atom
    family's own identity and not a hole in this fix. */
 .kui-segmented[data-material]::after,
+.kui-toolbar-group[data-material]::after,
 .kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after,
 .kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after,
 .kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after,
@@ -1987,6 +1991,7 @@
   opacity: var(--material-ring-opacity, 1);
 }
 .kui-segmented:where([data-material="thin"])::after,
+.kui-toolbar-group:where([data-material="thin"])::after,
 .kui-atom:where([data-material="thin"])::after,
 .kui-field:where([data-material="thin"])::after,
 .kui-textarea:where([data-material="thin"])::after,
@@ -1994,6 +1999,7 @@
   background: var(--material-thin-ring-control);
 }
 .kui-segmented:where([data-material="regular"])::after,
+.kui-toolbar-group:where([data-material="regular"])::after,
 .kui-atom:where([data-material="regular"])::after,
 .kui-field:where([data-material="regular"])::after,
 .kui-textarea:where([data-material="regular"])::after,
@@ -2001,6 +2007,7 @@
   background: var(--material-regular-ring-control);
 }
 .kui-segmented:where([data-material="thick"])::after,
+.kui-toolbar-group:where([data-material="thick"])::after,
 .kui-atom:where([data-material="thick"])::after,
 .kui-field:where([data-material="thick"])::after,
 .kui-textarea:where([data-material="thick"])::after,
@@ -2023,6 +2030,7 @@
    construction. */
 .kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before,
 .kui-segmented:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before,
+.kui-toolbar-group:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before,
 .kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before,
 .kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before {
   content: "";
@@ -2046,18 +2054,21 @@
 }
 .kui-button:where([data-material="thin"])::before,
 .kui-segmented:where([data-material="thin"])::before,
+.kui-toolbar-group:where([data-material="thin"])::before,
 .kui-field:where([data-material="thin"])::before,
 .kui-textarea:where([data-material="thin"])::before {
   background: var(--material-thin-glint-control);
 }
 .kui-button:where([data-material="regular"])::before,
 .kui-segmented:where([data-material="regular"])::before,
+.kui-toolbar-group:where([data-material="regular"])::before,
 .kui-field:where([data-material="regular"])::before,
 .kui-textarea:where([data-material="regular"])::before {
   background: var(--material-regular-glint-control);
 }
 .kui-button:where([data-material="thick"])::before,
 .kui-segmented:where([data-material="thick"])::before,
+.kui-toolbar-group:where([data-material="thick"])::before,
 .kui-field:where([data-material="thick"])::before,
 .kui-textarea:where([data-material="thick"])::before {
   background: var(--material-thick-glint-control);
@@ -2072,6 +2083,7 @@
    ordinary edge chain OR for a background layer clipped to it. The ::after annulus
    above is already the right shape and already wraps the squircle; filled with the pane's
    own designed pigment hairline it is exactly the line iOS draws around theirs. */
+.kui-toolbar-group:where([data-material="on-glass"])::after,
 .kui-segmented:where([data-material="on-glass"])::after {
   background: var(--material-glass-border);
 }

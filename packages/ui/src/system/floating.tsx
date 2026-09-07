@@ -1834,6 +1834,94 @@ export function overlayOpenChange(
 
 
 /**
+ * A FLIGHT FOR A PANE THAT HAS NO POSITIONER (§10, §22 — 2026-09-05).
+ *
+ * The runner above photographs a trigger and poses a panel onto it. Some panes fly without ever
+ * needing that: the command palette's results pane sits directly under its search bar at the bar's
+ * own width, so its seed is a CSS rule and there is nothing to measure for the pose. What it still
+ * owes is the other half of the family's contract — telling the LENS where it is going.
+ *
+ * `refraction.tsx` mints a pane's displacement map on mount and on resize, and a flight resizes a
+ * pane on every frame. Left unannounced, a flying pane mints a map per frame, each one built for
+ * the previous frame's box, and the one that finally matches lands after the flight — which reads
+ * as the glass suddenly getting thicker (Kushagra, 2026-09-05: measured on the palette, no lens at
+ * all for ~130ms and then four maps in a row). The family's answer is `--kui-fly-w/-h/-r` plus
+ * `data-unfurling`, and this publishes exactly those, so the map is built once, up front, for the
+ * box the pane will actually have.
+ *
+ * It lives here rather than in the component because the flight measurement has one home — this is
+ * the same read the runner does, at the same seam, and ENGINEERING §1.5's exception is written for
+ * this file. It is not JS at interaction time: it runs when the pane mounts, never on hover, press,
+ * focus, scroll or a keystroke.
+ */
+export function useStatedFlight(ref: React.RefObject<HTMLElement | null>): void {
+  React.useLayoutEffect(() => {
+    const node = ref.current;
+    if (!node) return undefined;
+
+    /* THE SEED IS LIFTED TO READ THE LANDED BOX, and the clocks are stood down for the read. Both
+       are measurements rather than caution. React runs a child's layout effects before its
+       parent's, so in a suite that mounts the whole panel in one pass the pane is already standing
+       at its full height, and in a real app — where an open is a state change — the popup is
+       stamped before this runs and the pane is its seed: 98px one way and 8px the other, from the
+       same line. And leaving the clocks running was a real defect: lifting the height starts a
+       transition on the channel the landing below watches, restoring it cancels one, and the
+       `transitioncancel` landed the flight before it had begun. */
+    const seeded = node.style.height;
+    const clocks = node.style.transition;
+    node.style.transition = "none";
+    node.style.height = "auto";
+    /* THE LAYOUT BOX, NOT THE PAINTED ONE. `getBoundingClientRect()` reports the box after every
+       transform above it, and a dialog's entry steps the whole popup back in z — so the first
+       spelling published 303.61px for a pane landing at 313 and the lens re-minted once on
+       arrival, which is the pop this exists to remove, made smaller. The width-floor defect of
+       2026-08-22 is the same mistake: a measurement taken through a running scale. */
+    const width = node.offsetWidth;
+    const height = node.offsetHeight;
+    const radius = getComputedStyle(node).borderTopLeftRadius;
+    node.style.height = seeded;
+    node.getBoundingClientRect();
+    node.style.transition = clocks;
+    if (width < 8 || height < 8) return undefined;
+
+    node.style.setProperty("--kui-fly-w", `${width}px`);
+    node.style.setProperty("--kui-fly-h", `${height}px`);
+    node.style.setProperty("--kui-fly-r", radius);
+    node.setAttribute("data-unfurling", "");
+
+    const land = () => {
+      node.removeAttribute("data-unfurling");
+      node.style.removeProperty("--kui-fly-w");
+      node.style.removeProperty("--kui-fly-h");
+      node.style.removeProperty("--kui-fly-r");
+    };
+    const onEnd = (event: TransitionEvent) => {
+      if (event.target !== node || event.propertyName !== "height") return;
+      land();
+    };
+    node.addEventListener("transitionend", onEnd);
+    node.addEventListener("transitioncancel", onEnd);
+
+    /* AND IT MUST COME OFF EVEN IF NOTHING EVER FLEW. A mark left on makes the lens believe the
+       pane is forever in flight, so it would never measure again — which it must, since a pane's
+       content can change its box. Reduced motion reaches this, and so does any mount that is not
+       an open. A CLOCK, and the first spelling was a frame count that raced the thing it guarded:
+       two frames after mount the seed is still sitting there and the transition has not begun, so
+       `getAnimations()` was empty and the guard stripped the mark before the flight it was written
+       for. The fall's own length plus slack cannot race it; `transitionend` lands it first in every
+       ordinary open. */
+    const fall = parseFloat(getComputedStyle(node).transitionDuration) * 1000 || 0;
+    const guard = window.setTimeout(land, fall + 200);
+
+    return () => {
+      window.clearTimeout(guard);
+      node.removeEventListener("transitionend", onEnd);
+      node.removeEventListener("transitioncancel", onEnd);
+    };
+  }, [ref]);
+}
+
+/**
  * A panel with no name is announced as its role and nothing else (measured 2026-08-21:
  * `role="dialog"` with `aria-labelledby` null and `aria-label` null, and `role="alertdialog"`
  * the same). Base UI wires the name when a Title mounts, and until that day there was no

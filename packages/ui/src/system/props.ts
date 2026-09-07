@@ -26,6 +26,12 @@
  */
 export const tiers = { sm: "30rem", md: "48rem", lg: "64rem" } as const;
 export type Tier = keyof typeof tiers;
+/**
+ * The container tier names, in resolution order, for anything that walks them.
+ *
+ * Tiers are container-keyed, not viewport-keyed: they answer how much room a component has, and
+ * they are deliberately not pinned to the window classes even where a number currently agrees.
+ */
 export const tierNames = Object.keys(tiers) as Tier[];
 
 /** Which token family a prop resolves through, if any. `null` means a raw CSS value. */

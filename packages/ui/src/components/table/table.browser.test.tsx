@@ -78,18 +78,21 @@ describe("a table is the semantic element in a scroller (§36)", () => {
        measured, x=196 under a first column starting at 222, which reads as a stray line of
        prose under the figure rather than as its name.
 
-       AN AGREEMENT, not a number: the caption and the cell read the SAME published token, and a
-       law that pinned a length would pass while the two drifted apart. Read as painted left
-       edges rather than as declarations, since that is the thing that was wrong. Falsified by
-       deleting the `padding-inline`, which puts the caption back at the table's own edge. */
+       THE AGREEMENT SURVIVED A REVERSAL OF WHAT IT AGREES ON (2026-09-05): the outer cells stopped
+       paying an inset, so the column now starts at the table's own edge and the caption follows it
+       there. What this law claims is unchanged — the two line up — which is why it is written as
+       an AGREEMENT rather than as a number, and why the repair was one declaration deleted.
+       Read as painted left edges, since that is the thing that was wrong. */
     const el = mounted(<Fixture caption />, { theme: {} });
     const table = el.querySelector("table")!;
     const caption = table.querySelector("caption")!;
     const cell = table.querySelector("tbody td")!;
     const textStart = (node: Element) =>
       node.getBoundingClientRect().left + parseFloat(computed(node, "padding-left"));
-    expect(parseFloat(computed(cell, "padding-left")), "no cell inset to line up with").toBeGreaterThan(0);
     expect(textStart(caption)).toBeCloseTo(textStart(cell), 1);
+    // And both of them are the table's own edge — the half that would otherwise let a caption
+    // and a first column agree on some third inset nobody asked for.
+    expect(textStart(cell)).toBeCloseTo(table.getBoundingClientRect().left, 1);
   });
 
   it("a wide table scrolls inside its own box — the room around it never widens", () => {
@@ -129,7 +132,19 @@ describe("the size join publishes the inset and the step (§4, §36)", () => {
       const td = el.querySelector<HTMLElement>("td")!;
       const th = el.querySelector<HTMLElement>("th")!;
       expect(computed(td, "padding-top")).toBe(tokenOn(el, `--layout-space-${PY[size]}`));
-      expect(computed(td, "padding-left")).toBe(tokenOn(el, `--layout-space-${PX[size]}`));
+      // THE INLINE PICK IS READ ON AN INTERIOR CELL (2026-09-05). `--kui-tb-px` is the GUTTER,
+      // paid half by each of the two cells that share it; at the table's ends there is no
+      // gutter, so the outer sides pay nothing and the first cell is the one place the pick
+      // cannot be read. Both facts are asserted, because dropping the second would let the
+      // padding vanish everywhere with this law still green.
+      const inner = el.querySelectorAll<HTMLElement>("tbody td")[1]!;
+      expect(computed(inner, "padding-left")).toBe(tokenOn(el, `--layout-space-${PX[size]}`));
+      expect(computed(inner, "padding-right")).toBe(tokenOn(el, `--layout-space-${PX[size]}`));
+      expect(computed(td, "padding-left"), "the table's outer edge pays no inset").toBe("0px");
+      expect(
+        computed(el.querySelectorAll<HTMLElement>("tbody td")[2]!, "padding-right"),
+        "nor its other end",
+      ).toBe("0px");
       expect(computed(th, "padding-top")).toBe(computed(td, "padding-top"));
       expect(parseFloat(computed(td, "padding-top"))).toBeGreaterThan(0);
       expect(computed(td, "font-size")).toBe(computed(text, "font-size"));
@@ -148,7 +163,14 @@ describe("the size join publishes the inset and the step (§4, §36)", () => {
     const loose = mounted(<Fixture size="3" />, { theme: { density: "comfortable" } });
     const tight = mounted(<Fixture size="3" />, { theme: { density: "compact" } });
     const pad = (el: HTMLElement, side: "top" | "left") =>
-      parseFloat(computed(el.querySelector("td")!, `padding-${side}`));
+      // The INTERIOR cell for the inline axis: the outer edge pays nothing at any density
+      // (2026-09-05), so reading the first cell would compare zero against zero.
+      parseFloat(
+        computed(
+          side === "left" ? el.querySelectorAll<HTMLElement>("tbody td")[1]! : el.querySelector("td")!,
+          `padding-${side}`,
+        ),
+      );
     expect(pad(tight, "top"), "the block inset tightens").toBeLessThan(pad(loose, "top"));
     expect(pad(tight, "left"), "and so does the inline one").toBeLessThan(pad(loose, "left"));
   });

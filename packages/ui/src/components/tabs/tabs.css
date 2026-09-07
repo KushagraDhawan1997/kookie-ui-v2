@@ -65,6 +65,17 @@
      skeleton's own reason — a hard height clips a 200%-resized label (WCAG 1.4.4) — and the
      bar's `align-items: stretch` is what actually sizes it, this being the floor underneath. */
   min-block-size: calc(var(--kui-ct-h) - 2 * var(--tab-inset));
+  /* A TAB'S LABEL DOES NOT WRAP, for the reason the floor above is a floor (2026-09-07). A
+     squeezed bar binds each tab on its longest WORD, so a two-word tab takes a second line and
+     the whole bar grows with it — measured in a 200px room, 200 x 47 where the bar's rung is
+     32, with the rule underneath then drawn against a two-line box.
+
+     A bar that cannot fit its tabs overflows its container, which is what a bar of tabs does
+     everywhere: it is a line of places, and a line that has run out of room is a scroll, never
+     a paragraph. Self-keyed rather than promoted to the skeleton, on the second-member rule:
+     the segmented control states the same fact for the same reason one file over, and a
+     Button's label wrapping in a narrow column is not obviously wrong. */
+  white-space: nowrap;
 }
 
 /* The one you are on. `data-active` is Base UI's spelling for the selected tab.

@@ -11,7 +11,7 @@ import { describe, expect, it } from "vitest";
 
 import { tones } from "../tokens/color-config.ts";
 import { fontSize, fontWeight } from "../tokens/config.ts";
-import { sheet } from "../test/stylesheets.ts";
+import { sheet, withoutObligatoryDescriptors } from "../test/stylesheets.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const stripped = sheet("system/type.css");
@@ -103,7 +103,10 @@ describe("type never takes density or pointer, and only tokens carry values (§1
   });
 
   it("no raw px, no numeric weight, no colour literal — every value is a token", () => {
-    expect(stripped).not.toMatch(/\dpx/);
+    // The `@property` registrations' obligatory `initial-value` is exempt and nothing else is
+    // — see `withoutObligatoryDescriptors`. `type.css` registered its first length on
+    // 2026-09-05 (`--kui-atom-inset`), which is when this law first met the descriptor.
+    expect(withoutObligatoryDescriptors(stripped)).not.toMatch(/\dpx/);
     expect(stripped).not.toMatch(/font-weight:\s*\d/);
     expect(stripped).not.toContain("#");
   });
@@ -143,10 +146,17 @@ describe("the inert atoms have ONE identity, and the third member is what moved 
   it("and no atom's own stylesheet declares any of it a second time", () => {
     for (const atom of ATOMS) {
       const own = sheet(`components/${atom}/${atom}.css`);
-      for (const property of ["background-color", "border-radius"]) {
-        expect(own, `${atom}.css re-declares ${property} — the promotion has a second author`)
-          .not.toMatch(new RegExp(`${property}\\s*:`));
-      }
+      expect(own, `${atom}.css re-declares background-color — the promotion has a second author`)
+        .not.toMatch(/background-color\s*:/);
+      // The CORNER is narrowed to the family's own VALUE (2026-09-05), because Code holds at
+      // `large` where the family pills — the checkbox's ceiling, one family over. What this
+      // law is for is a silent COPY: a member restating `var(--radius-atom)` looks right for
+      // exactly as long as the copy agrees, and no mounted law can catch it, because a copy
+      // that agrees computes the same value. An exception reading a DIFFERENT token is the
+      // opposite of that — it computes a different value, so a mounted law holds it, and
+      // code.browser.test.tsx does at every level with a Chip as the vacuity guard.
+      expect(own, `${atom}.css restates the family's own corner — the promotion has a second author`)
+        .not.toContain("var(--radius-atom)");
       // The font-size arm is the subtler one: a member re-stating `calc(1em * ...)` would be
       // re-implementing the inherited-size arm rather than reading it.
       expect(own, `${atom}.css re-declares the inherited-size arm`).not.toContain("font-size:");

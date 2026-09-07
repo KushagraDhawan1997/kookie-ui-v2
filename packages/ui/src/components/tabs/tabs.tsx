@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentRefusals } from "../../system/refused.ts";
 import { Tabs as BaseTabs } from "@base-ui/react/tabs";
 import * as React from "react";
 
@@ -8,7 +9,7 @@ import { unwrapLazy } from "../../system/render.ts";
 import { useSize } from "../../system/size.ts";
 import { themeDefaults } from "../../theme/theme.tsx";
 
-export type TabsProps = Omit<
+export type TabsProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseTabs.Root>,
   // `orientation` is REFUSED rather than passed through (2026-08-26, audit) — Slider's own
   // sentence one component over, and here it was passing through by omission rather than by
@@ -33,7 +34,7 @@ export type TabsProps = Omit<
    rest that the app can now move (2026-09-05). */
 const TabsSizeContext = React.createContext<Size>(themeDefaults.size);
 
-export type TabsListProps = Omit<
+export type TabsListProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseTabs.List>,
   "className"
 > & {
@@ -53,7 +54,7 @@ export type TabsListProps = Omit<
   className?: string;
 };
 
-export type TabsTabProps = Omit<
+export type TabsTabProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseTabs.Tab>,
   // `tone` and `emphasis` are refused for TextField's reason (§11): a bar where one tab is
   // louder than the next names nothing — the ACTIVE one is already the loud one, and that is
@@ -65,7 +66,7 @@ export type TabsTabProps = Omit<
   className?: string;
 };
 
-export type TabsPanelProps = Omit<
+export type TabsPanelProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseTabs.Panel>,
   "className"
 > & {

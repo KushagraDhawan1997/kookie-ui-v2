@@ -63,6 +63,21 @@ export const componentSources = (): { path: string; src: string }[] =>
 /** The declaration body of the first rule at `selector` — and LOUD when the selector is
     missing, which is the whole point (see the header). `selector` may be a prefix of the
     full selector; the body runs from its `{` to the first `}`. */
+/**
+ * A stylesheet with the OBLIGATORY descriptors removed, for the laws that scan for raw values.
+ *
+ * `initial-value` is a REQUIRED descriptor of an `@property` registration and not a design
+ * value: a registered `<length>` must state what it computes to when the cascade gives it
+ * nothing, and that is `0px` by definition. `recipes.test.ts` argued this and carried the strip
+ * privately; `type.css` registered its first length on 2026-09-05 and its own px law failed on
+ * exactly that descriptor, which is the second consumer that promotes a mechanism here.
+ *
+ * The DESCRIPTOR is removed and never the block, so a real literal inside an `@property`
+ * registration still fails — which is the half that keeps this an exemption rather than a hole.
+ */
+export const withoutObligatoryDescriptors = (css: string): string =>
+  css.replace(/^\s*initial-value:[^;]*;/gm, "");
+
 export function block(css: string, selector: string): string {
   const start = css.indexOf(selector);
   if (start === -1) throw new Error(`block(): selector not found: ${selector}`);

@@ -237,6 +237,22 @@
   border-radius: var(--radius-atom);
   font-size: calc(1em * var(--kui-ty-scale));
 }
+/* THE ATOM'S GLYPH INSET, PUBLISHED (2026-09-05, Kushagra: the table's contents read
+   "indented"). A chip's side padding is breathing room for the GLYPHS — code.css says so where
+   it picks the value — which means it is not layout space, and a chip that STARTS a table cell
+   was pushing its words right of the column's own heading: measured 5.18px on the API table,
+   with the third column's prose flush because it opens with a text node. The value is the
+   member's own and stays there; publishing it lets a container that cares about where a column
+   begins subtract exactly what the member added, rather than restating a number it does not
+   own. Registered, so it computes to a length ON the member and cannot inherit into one that
+   pads differently — an Avatar wears `.kui-atom` and has no inset at all, which the initial
+   value states rather than leaves to a fallback. */
+@property --kui-atom-inset {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 @property --kui-atom-fill {
   syntax: "*";
   inherits: false;
@@ -276,6 +292,7 @@
   vertical-align: top;
   white-space: nowrap;
   min-inline-size: 1.6em;
-  padding-inline: 0.5em;
+  --kui-atom-inset: 0.5em;
+  padding-inline: var(--kui-atom-inset);
   padding-block: 0;
 }

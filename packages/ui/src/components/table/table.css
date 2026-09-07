@@ -78,6 +78,25 @@
   border-block-end: none;
 }
 
+/* THE TABLE'S OUTER EDGE IS THE COLUMN'S, NOT A CELL'S (2026-09-05, Kushagra: the contents of
+   a table read "indented").
+
+   `--kui-tb-px` does two jobs and only one of them is the table's own. BETWEEN two columns it
+   is the gutter, and each cell paying half is what makes that gutter even. At the ENDS it is an
+   inset the table has no claim on: whatever holds the table has already placed it — a page's
+   measure, a Card's padding — so a first column padding itself put every word 16px right of the
+   paragraph above it (measured on the component reference: prose at x=352, first column at
+   368), and the caption was then padded to match the wrong number.
+
+   The outer sides pay nothing; the interior gutter is untouched. Logical, so a table in Arabic
+   loses it on the side it actually starts at. */
+.kui-table-el tr > :first-child {
+  padding-inline-start: 0;
+}
+.kui-table-el tr > :last-child {
+  padding-inline-end: 0;
+}
+
 /* Alignment is per cell, stated on the head and the cells of a column together. */
 .kui-table-el [data-align="center"] {
   text-align: center;
@@ -94,11 +113,13 @@
    caption at x=196 under a first column starting at 222. A caption is the table's name and a
    name that does not line up with the thing it names reads as a stray line of prose under the
    figure. The SAME token the cells read, so the two cannot drift and no second number exists to
-   keep in step. */
+   keep in step — and since 2026-09-05 that number is ZERO on this side: a column starts at the
+   table's own edge now, so a caption stating an inset would be the very misalignment this
+   paragraph was written to remove, in the other direction. The declaration is deleted rather
+   than set to nothing, because there is no inset here to state. */
 .kui-table-el caption {
   caption-side: bottom;
   padding-block: var(--kui-tb-py);
-  padding-inline: var(--kui-tb-px);
   color: var(--color-text-muted);
   text-align: start;
 }
