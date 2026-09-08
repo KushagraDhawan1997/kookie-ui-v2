@@ -23,35 +23,40 @@ const nextConfig: NextConfig = {
      indexes, and a moved page that 404s punishes exactly the person who shared it. Permanent,
      because the old names are not coming back. */
   redirects: async () => [
-    { source: "/philosophy", destination: "/concepts", permanent: true },
+    /* Concepts merged into Getting started 2026-09-09, which moved two live URLs. Everything
+       below that used to land in `/concepts` was repointed at the same time rather than left to
+       chain through these two — a redirect to a redirect is a round trip nobody needs. */
+    { source: "/concepts/principles", destination: "/start/principles", permanent: true },
+    { source: "/concepts/vocabulary", destination: "/start/vocabulary", permanent: true },
+    { source: "/philosophy", destination: "/start/principles", permanent: true },
     {
       source: "/philosophy/why-kookie-exists",
-      destination: "/concepts/principles",
+      destination: "/start/principles",
       permanent: true,
     },
     {
       source: "/philosophy/component-families",
-      destination: "/concepts/vocabulary",
+      destination: "/start/vocabulary",
       permanent: true,
     },
     {
       source: "/concepts/component-families",
-      destination: "/concepts/vocabulary",
+      destination: "/start/vocabulary",
       permanent: true,
     },
     {
       source: "/philosophy/why-these-rules-hold",
-      destination: "/concepts/principles",
+      destination: "/start/principles",
       permanent: true,
     },
     {
       source: "/concepts/guarantees",
-      destination: "/concepts/principles",
+      destination: "/start/principles",
       permanent: true,
     },
     {
       source: "/concepts/enforcement",
-      destination: "/concepts/principles",
+      destination: "/start/principles",
       permanent: true,
     },
     {

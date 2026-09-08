@@ -1150,6 +1150,7 @@ const DECLARED: Entry[] = [
       { title: "The row", symbols: ["Toolbar"] },
       { title: "What goes in it", symbols: ["ToolbarButton", "ToolbarGroup", "ToolbarSeparator"] },
       { title: "Naming it", symbols: ["ToolbarTitle"] },
+      { title: "When the row runs out of room", symbols: ["ToolbarOverflow"] },
     ],
     parts: [
       {
@@ -1159,6 +1160,11 @@ const DECLARED: Entry[] = [
       {
         part: "ToolbarGroup",
         blurb: "A capsule around controls that belong together — the formatting cluster in a macOS toolbar. It is a channel with no edge of its own, as tall as a Button at the same size, and the controls in it are inset from its walls — so the group stands level with the button beside it and the buttons inside stand level with both. It takes no size of its own: the group and its contents both read the row's index.",
+      },
+      {
+        part: "ToolbarOverflow",
+        blurb:
+          "A cluster that collapses into a menu. It measures its controls against the room the row has left, and draws whatever does not fit inside a ⋯ menu instead. It measures rather than reading a breakpoint, because a row's contents are not the same on every screen of an app: the width at which a row is too full is a different width on each one, so there is no single number to state. A control that does not fit is not replaced by something else. It is the same control, asked where it is, and it answers with useToolbarOverflow. The macOS toolbar works the same way, for the same reason.",
       },
       {
         part: "ToolbarSeparator",
@@ -1428,7 +1434,10 @@ const DECLARED: Entry[] = [
     topics: [
       { title: "The frame", symbols: ["Shell"] },
       { title: "The panes", symbols: ["ShellHeader", "ShellSidebar", "ShellContent", "ShellInspector", "ShellBottom"] },
-      { title: "The rail that switches regions", symbols: ["ShellRail", "ShellRailList", "ShellRailItem"] },
+      {
+        title: "The rail that switches regions, and the tab bar it becomes",
+        symbols: ["ShellRail", "ShellRailList", "ShellRailItem", "ShellTabBar"],
+      },
       { title: "Inside a pane", symbols: ["ShellScroll", "ShellPaneHeader", "ShellPaneFooter"] },
       { title: "Navigating", symbols: ["ShellNavGroup", "ShellNavItem"] },
       { title: "Opening and closing a pane", symbols: ["ShellTrigger"] },
@@ -1440,6 +1449,14 @@ const DECLARED: Entry[] = [
       { name: "A close-cascade between rail and sidebar", why: "It is not universally true. VS Code's columns are independent and Slack's rail cannot close. That makes it an app's opinion, not a frame rule with a conflict protocol." },
       { name: "`peek`", why: "Deferred until a real screen asks for it. A pane that slides half open costs a context slice, absolute overlays and per-pane CSS, and it carries very little." },
       { name: "`backdrop` on `ShellContent`", why: "The work area never gets glass. It is not a preference: a pane floats only when the content is underneath it, so the content is the one pane nothing is ever underneath — it is the bottom of the stack, with the app's flat ground behind it. Glass there blurs nothing and mints a lens map for the largest box on screen. A vibrant region inside the work area is still reachable, because a solid surface hosts glass: put a Box backdrop or a Card backdrop in it." },
+      {
+        name: "A tab bar derived from the sidebar",
+        why: "The caller declares what a phone gets. A sidebar holds as many places as an index needs and a bar holds three to five, so deriving one from the other would either invent a rule about which entries are primary or ship a bar it cannot draw. ShellTabBar takes the list you state; a rail becomes a bar on its own, because a rail's items already are the top level.",
+      },
+      {
+        name: "A tab bar that changes what the sidebar shows",
+        why: "A bar item is a place, and its type says so: it takes an href or a link through render, and no onClick. The bar is the coarse level and the sidebar the fine one, and the two do not need to know about each other — which is why the sidebar never changes shape on a phone. A rail is the other case, and a rail item is a button that has always been free to drive a pane.",
+      },
       { name: "A floating or stacked presentation value", why: "A pane over the content and a pane pulled off the frame are one idea, and it is flush={false}. The pane leaves the tiling, and what it becomes is derived from whether the content is underneath it. There is no third presentation to choose." },
     ],
     parts: [
@@ -1456,6 +1473,11 @@ const DECLARED: Entry[] = [
       { part: "ShellNavItem", blurb: "One row of navigation. It stands level with a Button, which a menu row does not, because a menu row lives in a panel opened for a second while this sits beside real buttons all day" },
       { part: "ShellInspector", blurb: "The right-hand detail column: an `<aside>` that rests closed until it is asked for. Pass defaultOpen for one that starts open" },
       { part: "ShellBottom", blurb: "The bottom pane for a terminal or a log: an `<aside>` spanning the full width below the columns, resting closed" },
+      {
+        part: "ShellTabBar",
+        blurb:
+          "The tab bar for an app with no rail: three to five places across the bottom of a narrow window, and nothing at all on a wide one, where the sidebar carries the navigation. It is a ShellRail that only ever appears as a bar, so it holds a ShellRailList of ShellRailItems, and one item placed after the list stands apart from the tabs — which is where a search belongs. It is optional. A Shell is responsive without one, and its sidebar opens as a drawer at every width",
+      },
       { part: "ShellTrigger", blurb: "The one thing that crosses the frame: a button that drives a pane by name" },
     ],
   },

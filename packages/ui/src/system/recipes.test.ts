@@ -666,7 +666,13 @@ describe("the icon box is a mechanism, declared once (§4, ENGINEERING §4)", ()
     expect(recipes).toContain("[data-slot] > svg");
     for (const p of allStylesheets("components")) {
       const name = p.split("/").pop()!;
-      if (name === "spinner.css" || name === "tree.css") continue;
+      // …and shell.css since 2026-09-09, for the same reason as those two and with the same
+      // bound: the tab bar's seat is a control ONE INDEX UP (§27 — the row and the icon both
+      // step, the switch's `mark(n + 1)` one family over), so it CONSUMES another rung of this
+      // ladder rather than inventing a size. It has to be said in this sheet and nowhere else,
+      // because it is true only while the pane is a bar, and the narrow boundary is law-closed
+      // to two stylesheets — putting the step in the shared layer would open a third.
+      if (name === "spinner.css" || name === "tree.css" || name === "shell.css") continue;
       expect(sheet(p), `${name} restates the icon box`).not.toContain("--kui-ct-icon");
     }
   });
@@ -1113,6 +1119,14 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
        * is not yet in the DOM, and a cache that kept that 0 re-commits the exact defect the
        * seam law upstairs exists to catch. An honest exception beats a stale number.
        */
+      // ── The toolbar's overflow (§45, 2026-09-08): the row measures its children against the
+      // room it has left and draws whatever does not fit inside a `⋯` menu instead. It MEASURES
+      // rather than taking a breakpoint because a band's contents are not the same on every
+      // screen of an app, so the width at which a row is too full is a different width per
+      // route and nothing a call site can state is true twice. Bounded at the seam the lens
+      // already uses — mount and resize, never at interaction time — and a child's natural
+      // width does not move with the window, so it is read once and cached.
+      "components/toolbar/toolbar.tsx": ["getComputedStyle", "new ResizeObserver"],
       "components/menu/menu.tsx": ["getComputedStyle"],
       // The shell's overlay Escape, moved off `document` so a Dialog inside a pane does not
       // dismiss the pane under it (audit 2026-08-16). A keydown is not interaction-time paint.
@@ -1140,6 +1154,14 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
        */
       "components/page/page.tsx": ["new IntersectionObserver"],
       "components/shell/shell.tsx": [
+        // ── The tab bar's thumb (§27, 2026-09-09): the segmented control's `useTravelingThumb`,
+        // self-keyed as its second member, and its exception with it. Seats are equal only
+        // while the row sizes itself, so index arithmetic answers the wrong question (that
+        // component's own 2026-08-23 measurement); the current seat is watched through
+        // `aria-current` because a route change is the only announcement a bar gets. Bounded
+        // the same way: mount and resize and selection, never a pointer, and the writes are
+        // two custom properties on one out-of-flow element, so no React state and no re-render.
+        "new MutationObserver",
         'addEventListener("keydown',
         "new ResizeObserver",
         "requestAnimationFrame",
@@ -1506,7 +1528,7 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
             expect(channel, `${file}: ${property} is a signal, it must not spring`).not.toContain("--motion-spring");
           } else {
             expect(channel, `${file}: ${property} moves a box, it must spring`).toMatch(
-              /var\(--motion-spring(-driven|-stiff|-lively|-elastic|-poised)?\)/,
+              /var\(--motion-spring(-driven|-carried|-stiff|-lively|-elastic|-poised)?\)/,
             );
           }
         }

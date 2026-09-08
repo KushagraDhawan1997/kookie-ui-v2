@@ -82,6 +82,7 @@ export {
   Shell,
   ShellHeader,
   ShellRail,
+  ShellTabBar,
   ShellSidebar,
   ShellContent,
   ShellInspector,

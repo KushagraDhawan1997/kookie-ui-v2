@@ -50,13 +50,14 @@ import {
 
 import { AppearanceToggle } from "../appearance-toggle";
 import { ThemePanel } from "../theme-panel";
-import { GitHubIcon, PanelLeftIcon, XSocialIcon } from "../icons";
+import { PanelLeftIcon, XSocialIcon } from "../icons";
 import { RepoLink } from "./repo-link";
 import { CHAPTERS, READING_ORDER, SECTIONS } from "./chapters";
 import { DocsPager } from "./docs-pager";
 import { PageActions } from "./page-actions";
 import { DocsNav, type NavSection } from "./docs-nav";
 import { DocsSearch } from "./docs-search";
+import { DocsTabBar } from "./docs-tab-bar";
 import { PAGES } from "./markdown";
 import { Wordmark } from "./wordmark";
 import { humanLabel } from "./label";
@@ -322,6 +323,9 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
             </Toolbar>
           </ShellPaneFooter>
         </ShellSidebar>
+
+        {/* Tabs on a phone, nothing on a wide window (2026-09-09) — see docs-tab-bar.tsx. */}
+        <DocsTabBar />
 
         {/* The shell rests at its default 2 (2026-08-26, Kushagra — it went to 3 for a day and
             came back; the pane states nothing and follows). The padding used to be a `p="6"`

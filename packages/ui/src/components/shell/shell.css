@@ -121,6 +121,12 @@
 .kui-shell {
   /* A Shell inside a receding Shell states its own rest, so the recession cannot compound. */
   --kui-shell-recede: 1;
+  --kui-shell-push-x: initial;
+  /* The width a side pane is WEARING, published here by the drag and the `width` prop so the
+     push can read it (the pane's own `--kui-shell-w` is registered not to inherit, on purpose).
+     `initial` is guaranteed-invalid, so a nested Shell falls through to the token. */
+  --kui-shell-sidebar-w: initial;
+  --kui-shell-inspector-w: initial;
   --kui-shell-inset-inline-start: initial;
   --kui-shell-inset-inline-end: initial;
   --kui-shell-inset-block-start: initial;
@@ -150,6 +156,19 @@
    The `--kui-h` trap is closed by the RESET on `.kui-shell` instead (the four `--kui-shell-inset-*`
    lengths at the head of this file are the same shape): a Shell inside a receding Shell states
    its own 1 nearer, so it cannot inherit the outer frame's recession. */
+/* The frame's push: a length the ROOT states and its children read, so it inherits (2026-09-09).
+   Registered for the reason every length here is — the reset below can then say `initial` and
+   mean 0px, which is what keeps the sheet free of a raw literal. */
+@property --kui-shell-push-x {
+  /* `<length-percentage>`, and the percentage is the whole reason: the push is capped against
+     the window (`calc(100% - var(--touch-target-min))`), and a `<length>` registration makes
+     that invalid at computed-value time — which does not fail loudly, it falls back to the
+     initial 0px, so the frame simply did not move while every declaration read correctly. */
+  syntax: "<length-percentage>";
+  inherits: true;
+  initial-value: 0px;
+}
+
 @property --kui-shell-recede {
   syntax: "<number>";
   inherits: true;
@@ -258,6 +277,10 @@
      rather than on the header and the rail: the content pane reads it too, to price a
      floating neighbour's reach. */
   --kui-shell-row: var(--control-height-2);
+  /* ONE STEP UP (2026-09-09): the tab bar's seat is the row of the next index — the switch's
+     `mark(n + 1)`, one component over — and the per-index arms in the join carry it beside the
+     row. Size 4 has no step above it and stays at 4. */
+  --kui-shell-row-up: var(--control-height-3);
   /* The pane-chrome reach resets here, for the floating ShellPaneHeader/Footer below: a
      nested pane must not take the outer pane's reach (the shell root's own reset, one level
      down). The containing block is NOT stated here — see the float block below. */
@@ -506,14 +529,27 @@
    NO TRANSFORM AT REST. `scale(1)` is not free — a transformed element is a containing block
    for `position: fixed`, so declaring it always would silently re-anchor every app's fixed
    chrome. The property exists only while a drawer is live. */
-.kui-shell:has(> :where(.kui-shell-rail, .kui-shell-sidebar)[data-state="open"][data-presentation="overlay"]) {
-  --kui-shell-recede: var(--shell-drawer-scale);
-  --kui-shell-recede-origin: 0 50%;
+/* A SIDE PANE PUSHES THE FRAME; ONLY A SHEET FROM BELOW RECEDES (2026-09-08, Kushagra:
+   "Treating a left drawer like an iOS sheet which comes from below is different. Just because
+   they're all sheets doesn't mean they're treated the same… The content is pushed to right,
+   so sidebar always stays compliant with how desktop works"). The whole frame slides by the
+   pane's width and the pane rides in with it as one object — Discord's and Claude's answer —
+   so the sidebar on a phone is the desktop sidebar revealed, not a second surface covering the
+   page. Flush pushes by the width and seams against the content; not flush pushes by the
+   width plus its gap on both sides and floats in it, exactly what it does on a wide window.
+   Capped so a strip of scrim always remains to dismiss on, the pane's own cap in the same
+   terms. The recession stays 1, so every inverse below is a no-op here. */
+.kui-shell:has(> :where(.kui-shell-rail, .kui-shell-sidebar)[data-flush][data-state="open"][data-presentation="overlay"]) {
+  --kui-shell-push-x: min(var(--kui-shell-sidebar-w, var(--shell-sidebar-w)), calc(100% - var(--touch-target-min)));
 }
-
-.kui-shell:has(> :where(.kui-shell-inspector)[data-state="open"][data-presentation="overlay"]) {
-  --kui-shell-recede: var(--shell-drawer-scale);
-  --kui-shell-recede-origin: 100% 50%;
+.kui-shell:has(> :where(.kui-shell-rail, .kui-shell-sidebar):not([data-flush])[data-state="open"][data-presentation="overlay"]) {
+  --kui-shell-push-x: min(calc(var(--kui-shell-sidebar-w, var(--shell-sidebar-w)) + 2 * var(--shell-gap)), calc(100% - var(--touch-target-min)));
+}
+.kui-shell:has(> .kui-shell-inspector[data-flush][data-state="open"][data-presentation="overlay"]) {
+  --kui-shell-push-x: calc(-1 * min(var(--kui-shell-inspector-w, var(--shell-inspector-w)), calc(100% - var(--touch-target-min))));
+}
+.kui-shell:has(> .kui-shell-inspector:not([data-flush])[data-state="open"][data-presentation="overlay"]) {
+  --kui-shell-push-x: calc(-1 * min(calc(var(--kui-shell-inspector-w, var(--shell-inspector-w)) + 2 * var(--shell-gap)), calc(100% - var(--touch-target-min))));
 }
 
 .kui-shell:has(> :where(.kui-shell-bottom)[data-state="open"][data-presentation="overlay"]) {
@@ -528,16 +564,37 @@
      rides here rather than up there because a `transition` shorthand in either place resets
      the other's, which is how the first spelling lost the recession's own clock. */
   transition:
-    transform var(--motion-drawer) var(--motion-spring-driven),
+    transform var(--motion-drawer) var(--motion-spring-carried),
     overflow 0s var(--motion-drawer) allow-discrete;
 }
 
-.kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="overlay"]) {
+.kui-shell:has(> .kui-shell-bottom[data-state="open"][data-presentation="overlay"]) {
   transform: scale(var(--kui-shell-recede));
   overflow: visible;
   transition:
-    transform var(--motion-drawer) var(--motion-spring-driven),
+    transform var(--motion-drawer) var(--motion-spring-carried),
     overflow 0s allow-discrete;
+}
+
+/* THE FRAME'S CHILDREN CARRY THE PUSH, NOT THE ROOT (2026-09-08, Kushagra: "when sidebar opens
+   the page is very wide so I can actually scroll"). A transform on the root does not move it
+   in layout, but the transformed box still counts as scrollable overflow, so the document
+   grew a horizontal scroll range the width of the drawer. Pushing every child inside a root
+   that keeps its clip moves the same pixels and overflows nothing — the pushed frame is cut at
+   the window's edge, which is what Discord shows too. The side panes are excluded: the open
+   one slides itself the same distance on the same spring (below), and a parked one is off the
+   frame either way. `translate` rather than `transform`, so it composes with whatever a child
+   already declares. */
+.kui-shell:has(> :where(.kui-shell-rail, .kui-shell-sidebar, .kui-shell-inspector)[data-state="open"][data-presentation="overlay"])
+  > :not(.kui-shell-rail[data-presentation="auto"]):not(.kui-shell-rail[data-presentation="overlay"]):not(.kui-shell-sidebar):not(.kui-shell-inspector) {
+  translate: var(--kui-shell-push-x) 0;
+}
+/* Zero weight on purpose: three `:not()`s put the bare selector at (0,4,0), which REPLACED the
+   scrim's own transition list (its opacity stopped fading — measured 1 at 120ms) and would have
+   taken the bottom sheet's slide the same way. A child that states its own list keeps it and
+   adds this channel there (the scrim does); the rest take it from here. */
+:where(.kui-shell > :not(.kui-shell-rail[data-presentation="auto"]):not(.kui-shell-rail[data-presentation="overlay"]):not(.kui-shell-sidebar):not(.kui-shell-inspector)) {
+  transition: translate var(--motion-drawer) var(--motion-spring-carried);
 }
 
 /* THE WELL: what the receding frame goes back INTO. A pseudo-element rather than a background
@@ -556,10 +613,12 @@
   transform: scale(calc(1 / var(--kui-shell-recede)));
   transition:
     background-color var(--motion-drawer) var(--motion-easing),
-    transform var(--motion-drawer) var(--motion-spring-driven);
+    transform var(--motion-drawer) var(--motion-spring-carried);
 }
 
-.kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="overlay"])::before {
+/* The well and the plate are the SHEET's (2026-09-08): a pushed frame is the same frame moved,
+   so it changes neither colour nor corner. */
+.kui-shell:has(> .kui-shell-bottom[data-state="open"][data-presentation="overlay"])::before {
   background-color: var(--scrim-well);
 }
 
@@ -606,12 +665,15 @@
      read: that hook INHERITS, so a Shell composed inside a Card would take the card's corner
      — §27's own reason for pinning a pane's corner before the panes could stamp their size,
      and the frame has no `data-size` of its own to spend the way they did. */
-  border-radius: calc(var(--radius-surface-3) * var(--kui-corner-k, 1));
-  transition: background-color var(--motion-drawer) var(--motion-easing);
+  border-radius: 0;
+  transition:
+    background-color var(--motion-drawer) var(--motion-easing),
+    border-radius var(--motion-drawer) var(--motion-spring-carried);
 }
 
-.kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="overlay"])::after {
+.kui-shell:has(> .kui-shell-bottom[data-state="open"][data-presentation="overlay"])::after {
   background-color: var(--color-surface);
+  border-radius: calc(var(--radius-surface-3) * var(--kui-corner-k, 1));
 }
 
 /* THE DRAWER ITSELF: the exact inverse of the frame's scale, and then its own slide. Written
@@ -633,7 +695,7 @@
   transform: scale(calc(1 / var(--kui-shell-recede)))
     translate(var(--kui-shell-drawer-x, 0), var(--kui-shell-drawer-y, 0));
   transition:
-    transform var(--motion-drawer) var(--motion-spring-driven),
+    transform var(--motion-drawer) var(--motion-spring-carried),
     visibility var(--motion-drawer);
 }
 
@@ -688,13 +750,26 @@
   display: none;
 }
 
+/* PARKED EXACTLY ONE PUSH AWAY (2026-09-08): the drawer's own slide and the frame's push are
+   two clocks on one curve, so the two distances have to be equal or daylight opens between
+   drawer and content mid-flight (measured 2px at 120ms with the old one-gap park). Flush
+   parks one width out and the push is one width; not flush parks a width and two gaps out —
+   its margin is the first gap — and the push is a width and two gaps. Both sit wholly outside
+   the frame, which the root's clip hides. */
 .kui-shell-rail[data-presentation="overlay"]:where([data-state="closed"], [data-state="auto"]),
 .kui-shell-sidebar[data-presentation="overlay"]:where([data-state="closed"], [data-state="auto"]) {
-  --kui-shell-drawer-x: calc(-100% - var(--shell-gap));
+  --kui-shell-drawer-x: calc(-100% - 2 * var(--shell-gap));
+}
+.kui-shell-rail[data-flush][data-presentation="overlay"]:where([data-state="closed"], [data-state="auto"]),
+.kui-shell-sidebar[data-flush][data-presentation="overlay"]:where([data-state="closed"], [data-state="auto"]) {
+  --kui-shell-drawer-x: -100%;
 }
 
 .kui-shell-inspector[data-presentation="overlay"]:where([data-state="closed"], [data-state="auto"]) {
-  --kui-shell-drawer-x: calc(100% + var(--shell-gap));
+  --kui-shell-drawer-x: calc(100% + 2 * var(--shell-gap));
+}
+.kui-shell-inspector[data-flush][data-presentation="overlay"]:where([data-state="closed"], [data-state="auto"]) {
+  --kui-shell-drawer-x: 100%;
 }
 
 .kui-shell-bottom[data-presentation="overlay"]:where([data-state="closed"], [data-state="auto"]) {
@@ -731,6 +806,7 @@
   visibility: hidden;
   transition:
     opacity var(--motion-drawer) var(--motion-easing),
+    translate var(--motion-drawer) var(--motion-spring-carried),
     visibility var(--motion-drawer);
   position: absolute;
   inset: 0;
@@ -744,7 +820,11 @@
   transform-origin: inherit;
   transform: scale(calc(1 / var(--kui-shell-recede)));
   background-color: var(--scrim-fill);
-  backdrop-filter: var(--scrim-filter, none);
+  /* THE DIM ALONE, NEVER THE BLUR (2026-09-08, Kushagra: "We have a blur scrim and a scale
+     down, both, which looks odd"). A dim says the page is set aside; blur says it is behind a
+     material, which is what a glass pane says about the strip it covers and not what a scrim
+     says about a screen. */
+  backdrop-filter: none;
 }
 
 /* THE SCRIM FOLLOWS CONTAINMENT, NOT PARENTAGE (2026-08-26 audit). The direct-child arm is
@@ -1004,26 +1084,28 @@
    A NON-FLUSH DRAWER IS UNCHANGED: it keeps the margin and the corner the rule below gives
    every pane the app pulled off the frame, which is now what the two values actually mean
    here rather than a distinction the drawer erased. */
-.kui-shell-pane[data-flush][data-presentation="overlay"] {
-  /* The base rule's own chain, restated (2026-09-05). It has to be the PROPERTY, because the
-     flush rule stands down the property and `--kui-sf-fill` belongs to the material — see the
-     flush rule's own note for the fortnight this was spelled `--kui-sf-fill: initial` and
-     painted every glass drawer opaque. The chain is surfaces.css's verbatim and names no
-     material, which is what keeps it legal in a component sheet. */
+/* A FLUSH SHEET FROM BELOW STILL COVERS, SO IT STILL PAINTS (2026-09-09). The flush stand-down
+   is right for a pane level with the page and wrong for one over it, which is what the whole
+   2026-08-21 exception was about — and the 2026-09-09 push narrowed that exception to the pane
+   it is true of rather than deleting it: a SIDE pane is the desktop pane revealed and paints
+   exactly what the desktop pane paints, a sheet is over the content and would otherwise be a
+   see-through slab sliding across an article. Nothing about how it SITS comes back, which is
+   Kushagra's own call from 2026-09-08 ("it should be rather flush"): no margin, no corner, no
+   fourth edge — the scrim and the recession are what separate it.
+
+   The PROPERTY, not the hook: `--kui-sf-fill` is the name a material declares its veil on and
+   the flush rule stands that same hook down, so handing it back as `initial` is not silence but
+   an instruction to fall through to the opaque seal (2026-09-05, and four laws were green over
+   it because they read the stamp, the filter and the scope rather than the fill). */
+.kui-shell-bottom[data-flush][data-presentation="overlay"] {
   background-color: var(--kui-sf-fill, var(--kui-sf-fill-src));
-  /* The hook alone, with no fallback and deliberately no material NAMED — a component sheet
-     may not name one (recipes.test.ts). Every pane the surface layer dresses sets this hook
-     for its own rung, so the bare `var()` resolves; where it somehow would not, an invalid
-     `background-image` computes to `none`, which is the flush answer and a safe way to be
-     wrong. The law does not take this on trust: it reads the drawer's light against a pane
-     the app pulled off the frame. */
   background-image: var(--kui-sf-light);
-  /* A drawer is a plane above the page, so the world's depth comes back. With no corner and
-     three edges against the window it is only ever seen on the trailing side, which is the
-     side a drawer is separated from the app on. */
   --kui-sf-cast: initial;
   --kui-sf-pool: initial;
 }
+
+/* DELETED 2026-09-08: the flush drawer restated fill, light and cast here. Under the push it
+   is the desktop flush sidebar revealed, and paints exactly what that paints. */
 
 /* NOT FLUSH: nothing to state. The pane keeps the full surface identity it already has —
    four borders, the surface corner, the world's depth — because a pane pulled off the frame
@@ -1555,6 +1637,39 @@
 /* The rail is a column of squares, and it owns the distance between them for the same reason
    the group owns the distance between its rows: this is INNER spacing, not the outer kind a
    component may never have. */
+/* THE LABEL IS THE BAR'S (2026-09-09): a rail square names itself to AT and shows an icon; the
+   same item in the tab bar shows the word under the icon. One element, shown by posture. */
+.kui-shell-rail-label {
+  display: none;
+}
+
+/* A BAR-ONLY RAIL IS NOTHING ON A WIDE WINDOW (2026-09-09): the sidebar carries the navigation
+   there. Its grid column is `auto` and the grid has no gap, so an absent rail costs no width. */
+.kui-shell-rail[data-bar="only"] {
+  display: none;
+}
+
+/* THE BAR'S THUMB (2026-09-09, Kushagra: "the motion of the thumb going back and forth should
+   copy segmented control, it should move with same physics"). One element the rail always
+   renders and only the bar shows, placed by measurement onto the current seat — the segmented
+   control's own mechanism (`useTravelingThumb`), self-keyed here as its second member: two
+   registered insets, the edge facing the destination on the shorter clock, both on the calm
+   spring, and the bar's padding as the wall the overshoot squashes against. The current seat
+   gives its fill up to it, exactly as the chosen segment did. */
+@property --kui-bar-left {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --kui-bar-right {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+.kui-shell-rail-thumb {
+  display: none;
+}
+
 .kui-shell-rail-list {
   display: flex;
   flex-direction: column;
@@ -1659,14 +1774,169 @@
      resolved value, the way every overlay fact in this block is. Dropping it here is the
      shape of the 2026-08-16 half-applied width-cap repair, which reached the explicit arms
      and not this one: the path every phone takes. */
-  .kui-shell-pane[data-flush][data-presentation="auto"] {
-    /* The property, for the explicit arm's reasons — a hook the material owns cannot be
-       borrowed to say something local (2026-09-05). Nothing about how it SITS is restated,
-       because a flush drawer stays flush (2026-09-08, the explicit arm's note). */
+  /* A flush sheet still paints — the explicit arm's note, restated for the resolved value,
+     which is the path every phone takes and the half this file has recorded forgetting. */
+  .kui-shell-bottom[data-flush][data-presentation="auto"] {
     background-color: var(--kui-sf-fill, var(--kui-sf-fill-src));
     background-image: var(--kui-sf-light);
     --kui-sf-cast: initial;
     --kui-sf-pool: initial;
+  }
+
+/* DELETED 2026-09-08: the flush drawer restated fill, light and cast here. Under the push it
+   is the desktop flush sidebar revealed, and paints exactly what that paints. */
+
+  /* THE TAB BAR (§27, 2026-09-09, Kushagra: "iOS also uses tabbar… rail becomes bar on its
+     own… caller declares a list suitable for tabbar"). A rail stamped `bar` leaves the grid and
+     floats across the bottom of the window, its list a row, each item icon over label, on the
+     pane's own non-flush dress and whatever material the app stated. It is under the scrim
+     (z 0 against its 1), so an open drawer dims it and pushes it with the content. It publishes
+     its reach the way the bottom pane does, so the work area scrolls under it and anything the
+     app puts at the bottom of the work area sits above it. Safe area: the bar floats above the
+     home indicator by whichever is larger, the gap or the inset. */
+  .kui-shell-rail[data-presentation="bar"] {
+    display: flex;
+    visibility: visible;
+    position: absolute;
+    grid-column: 1 / -1;
+    grid-row: 1 / -1;
+    inset-inline: var(--shell-gap);
+    inset-block-start: auto;
+    inset-block-end: max(var(--shell-gap), env(safe-area-inset-bottom));
+    inline-size: auto;
+    block-size: auto;
+    box-sizing: border-box;
+    /* Above the content pane, which is positioned once it holds a floating band and painted
+       over the bar at equal rank by DOM order (measured: the pane's edge crossing the bar).
+       Still under the scrim (later sibling, same rank) and the drawer (2). */
+    z-index: 1;
+    /* A CAPSULE, the segmented control's own silhouette: half the bar's height, stated — and
+       ROUND, because a squircle at half-height is a rounded slab, not a pill (measured, and
+       seen: "its not pill shaped"). */
+    border-radius: calc((var(--kui-shell-row-up) + 2 * var(--layout-space-2) + 2 * var(--border-width)) / 2);
+    corner-shape: round;
+    /* A BAR NEVER SCROLLS. The pane's `overflow: auto` made it one (Kushagra: "I can even move
+       the bar freely… inside that shell bar"): the rail item's press expander reaches one pane
+       padding past each side — right for the rail, 20px of overflow each way here — and the
+       pane obligingly grew a scrollbar for it. Clip, and the expander stays inside its seat. */
+    overflow: clip;
+    flex-direction: row;
+    align-items: stretch;
+    gap: var(--layout-space-1);
+    margin: 0;
+    /* A bar is one control row with a hairline of air, not a pane with a pane's padding: the
+       pane's own inset made it 112px tall. */
+    padding: var(--layout-space-2);
+  }
+  /* THE LIST IS TRANSPARENT TO THE ROW (2026-09-09, Kushagra: "each item should take same
+     space"): with the list as one flex item and the seat as another, the two split the bar in
+     half. `display: contents` makes every item a child of the row, so five seats are five
+     equal shares and the seat is one of them. */
+  .kui-shell-rail[data-presentation="bar"] .kui-shell-rail-list {
+    display: contents;
+  }
+  .kui-shell-rail[data-presentation="bar"] .kui-shell-rail-item {
+    flex: 1 1 0;
+    /* `min-inline-size: 0`, or each seat is as wide as its own label's min-content and the row
+       is shared by word length (measured 33/81/56/84 before, 64 each after). */
+    min-inline-size: 0;
+    inline-size: auto;
+    block-size: var(--kui-shell-row);
+    flex-direction: column;
+    gap: 0;
+  }
+  .kui-shell-rail[data-presentation="bar"] .kui-shell-rail-item::after {
+    inset: 0;
+  }
+  .kui-shell-rail[data-presentation="bar"] .kui-shell-rail-label {
+    display: block;
+    /* The seat's full width with its own air, so the ellipsis has somewhere to happen: a
+       `max-inline-size` on a centred column child never binds, the word simply overflowed. */
+    inline-size: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    /* iOS sets a tab's caption at 10pt; the ramp's floor is 12. A share of the smallest step
+       for now — a config number at ship (`tabBarLabel`), the badge's own mechanism. 0.75 rather
+       than 0.85 since 2026-09-09 ("label can be smaller"), which is also what lets the words
+       fit their share on a 390px window rather than ellipsing on every second tab. */
+    font-size: calc(var(--font-size-1) * 0.75);
+    line-height: var(--line-height-1);
+  }
+  /* THE DETACHED SEAT (iOS 26's search pill): the one item after the list is a square the
+     row's own height, icon only, and never shares the row with the tabs. */
+  .kui-shell-rail[data-presentation="bar"] > .kui-shell-rail-item {
+    flex: 1 1 0;
+    min-inline-size: 0;
+    inline-size: auto;
+  }
+  /* The seat is the row ONE STEP UP with its own inline air; the current one paints nothing,
+     the thumb under it is the paint. */
+  .kui-shell-rail[data-presentation="bar"] .kui-shell-rail-item {
+    block-size: var(--kui-shell-row-up);
+    /* One step of air each side, not two: at `space-3` the seat's padding plus the label's own
+       left ~56px for a word needing ~60 on a 390px window, so every second tab ellipsed for
+       want of 4px. The thumb overextends past the share anyway, so the current word is never
+       the one that is tight. */
+    padding-inline: var(--layout-space-2);
+    /* The icon one step up too (Kushagra: "the icons are too small"): a tab's glyph is the
+       seat's whole face, not a control's leading slot. */
+    --kui-ct-icon: var(--icon-size-4);
+  }
+  /* NOTHING ABOUT A SEAT CHANGES WHEN IT BECOMES CURRENT (2026-09-09, Kushagra: "I dont want
+     layout shift like removal of ellipsis when thumb comes on it"). A seat is its share of the
+     row at rest and current alike; what OVEREXTENDS is the thumb, which is out of flow and can
+     therefore be wider than a share without moving anything. */
+  .kui-shell-rail[data-presentation="bar"] .kui-shell-rail-item[aria-current] {
+    --kui-ct-fill-src: transparent;
+    --kui-ct-fill-src-hover: transparent;
+    --kui-ct-fill-src-active: transparent;
+  }
+  .kui-shell-rail[data-presentation="bar"] > .kui-shell-rail-thumb {
+    display: block;
+    position: absolute;
+    inset-block: var(--layout-space-2);
+    left: max(var(--kui-bar-left), var(--layout-space-2));
+    right: max(var(--kui-bar-right), var(--layout-space-2));
+    border-radius: calc(var(--kui-shell-row-up) / 2);
+    background-color: var(--tone-soft);
+  }
+  .kui-shell-rail[data-presentation="bar"] > .kui-shell-rail-thumb[hidden] {
+    display: none;
+  }
+  .kui-shell-rail[data-presentation="bar"] > .kui-shell-rail-thumb[data-activation-direction="right"] {
+    transition:
+      --kui-bar-right var(--motion-travel-lead) var(--motion-spring),
+      --kui-bar-left var(--motion-travel-trail) var(--motion-spring);
+  }
+  .kui-shell-rail[data-presentation="bar"] > .kui-shell-rail-thumb[data-activation-direction="left"] {
+    transition:
+      --kui-bar-left var(--motion-travel-lead) var(--motion-spring),
+      --kui-bar-right var(--motion-travel-trail) var(--motion-spring);
+  }
+  /* Its stillness is at the foot of this file with every other clock's, because that is where
+     the law reads them and a second block is a second home. */
+  /* The bar's reach, published on the CONTENT pane the way every other band's is (the header's
+     and the bottom pane's insets above), because that is where `--kui-shell-row` lives — a
+     first spelling put it on the root, where the row is empty and the whole length fell to its
+     0px initial. The bar's own padding, its hairline, the gap above it and whichever is larger
+     below, the gap or the safe area. */
+  .kui-shell:has(> .kui-shell-rail[data-presentation="bar"]) > .kui-shell-content {
+    --kui-shell-inset-block-end: calc(
+      var(--kui-shell-row-up) + 2 * var(--layout-space-2) + 2 * var(--border-width) + var(--shell-gap)
+        + max(var(--shell-gap), env(safe-area-inset-bottom))
+    );
+  }
+  /* AND THE WORK AREA SCROLLS UNDER IT: the scroller fades at the bar's reach and its viewport
+     pads by it, so the last line of a page clears the bar. Direct-child chain only, so a
+     scroller composed deeper keeps its own edges. */
+  .kui-shell:has(> .kui-shell-rail[data-presentation="bar"]) > .kui-shell-content > .kui-shell-scroll {
+    --kui-sa-fade-end: var(--kui-shell-inset-block-end);
+  }
+  .kui-shell:has(> .kui-shell-rail[data-presentation="bar"]) > .kui-shell-content > .kui-shell-scroll > .kui-scroll-viewport {
+    padding-block-end: calc(var(--kui-sf-p) + var(--kui-shell-inset-block-end));
   }
 
   /* PARKED, NOT DELETED — the explicit arm's sentence restated for the resolved value, which
@@ -1685,7 +1955,7 @@
     transform: scale(calc(1 / var(--kui-shell-recede)))
     translate(var(--kui-shell-drawer-x, 0), var(--kui-shell-drawer-y, 0));
     transition:
-      transform var(--motion-drawer) var(--motion-spring-driven),
+      transform var(--motion-drawer) var(--motion-spring-carried),
       visibility var(--motion-drawer);
   }
 
@@ -1715,27 +1985,44 @@
     display: none;
   }
 
+  /* PARKED EXACTLY ONE PUSH AWAY (2026-09-08): the drawer's own slide and the frame's push are
+     two clocks on one curve, so the two distances have to be equal or daylight opens between
+     drawer and content mid-flight (measured 2px at 120ms with the old one-gap park). Flush
+     parks one width out and the push is one width; not flush parks a width and two gaps out —
+     its margin is the first gap — and the push is a width and two gaps. Both sit wholly outside
+     the frame, which the root's clip hides. */
   .kui-shell-rail[data-presentation="auto"]:where([data-state="closed"], [data-state="auto"]),
   .kui-shell-sidebar[data-presentation="auto"]:where([data-state="closed"], [data-state="auto"]) {
-    --kui-shell-drawer-x: calc(-100% - var(--shell-gap));
+    --kui-shell-drawer-x: calc(-100% - 2 * var(--shell-gap));
+  }
+  .kui-shell-rail[data-flush][data-presentation="auto"]:where([data-state="closed"], [data-state="auto"]),
+  .kui-shell-sidebar[data-flush][data-presentation="auto"]:where([data-state="closed"], [data-state="auto"]) {
+    --kui-shell-drawer-x: -100%;
   }
 
   .kui-shell-inspector[data-presentation="auto"]:where([data-state="closed"], [data-state="auto"]) {
-    --kui-shell-drawer-x: calc(100% + var(--shell-gap));
+    --kui-shell-drawer-x: calc(100% + 2 * var(--shell-gap));
+  }
+  .kui-shell-inspector[data-flush][data-presentation="auto"]:where([data-state="closed"], [data-state="auto"]) {
+    --kui-shell-drawer-x: 100%;
   }
 
   .kui-shell-bottom[data-presentation="auto"]:where([data-state="closed"], [data-state="auto"]) {
     --kui-shell-drawer-y: calc(100% + var(--shell-gap));
   }
 
-  .kui-shell:has(> :where(.kui-shell-rail, .kui-shell-sidebar)[data-state="open"][data-presentation="auto"]) {
-    --kui-shell-recede: var(--shell-drawer-scale);
-    --kui-shell-recede-origin: 0 50%;
+  /* The push, restated for the resolved value — the explicit arm's note. */
+  .kui-shell:has(> :where(.kui-shell-rail, .kui-shell-sidebar)[data-flush][data-state="open"][data-presentation="auto"]) {
+    --kui-shell-push-x: min(var(--kui-shell-sidebar-w, var(--shell-sidebar-w)), calc(100% - var(--touch-target-min)));
   }
-
-  .kui-shell:has(> :where(.kui-shell-inspector)[data-state="open"][data-presentation="auto"]) {
-    --kui-shell-recede: var(--shell-drawer-scale);
-    --kui-shell-recede-origin: 100% 50%;
+  .kui-shell:has(> :where(.kui-shell-rail, .kui-shell-sidebar):not([data-flush])[data-state="open"][data-presentation="auto"]) {
+    --kui-shell-push-x: min(calc(var(--kui-shell-sidebar-w, var(--shell-sidebar-w)) + 2 * var(--shell-gap)), calc(100% - var(--touch-target-min)));
+  }
+  .kui-shell:has(> .kui-shell-inspector[data-flush][data-state="open"][data-presentation="auto"]) {
+    --kui-shell-push-x: calc(-1 * min(var(--kui-shell-inspector-w, var(--shell-inspector-w)), calc(100% - var(--touch-target-min))));
+  }
+  .kui-shell:has(> .kui-shell-inspector:not([data-flush])[data-state="open"][data-presentation="auto"]) {
+    --kui-shell-push-x: calc(-1 * min(calc(var(--kui-shell-inspector-w, var(--shell-inspector-w)) + 2 * var(--shell-gap)), calc(100% - var(--touch-target-min))));
   }
 
   .kui-shell:has(> :where(.kui-shell-bottom)[data-state="open"][data-presentation="auto"]) {
@@ -1745,22 +2032,29 @@
 
   /* The frame's fill, restated for the resolved value — this block's own standing hazard, and
      the path every phone takes. */
-  .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="auto"]) {
+  .kui-shell:has(> .kui-shell-bottom[data-state="open"][data-presentation="auto"]) {
     transform: scale(var(--kui-shell-recede));
     overflow: visible;
     transition:
-      transform var(--motion-drawer) var(--motion-spring-driven),
+      transform var(--motion-drawer) var(--motion-spring-carried),
       overflow 0s allow-discrete;
   }
 
-  .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="auto"])::before {
+  /* The children carry the push, restated for the resolved value. */
+  .kui-shell:has(> :where(.kui-shell-rail, .kui-shell-sidebar, .kui-shell-inspector)[data-state="open"][data-presentation="auto"])
+    > :not(.kui-shell-rail[data-presentation="auto"]):not(.kui-shell-rail[data-presentation="overlay"]):not(.kui-shell-sidebar):not(.kui-shell-inspector) {
+    translate: var(--kui-shell-push-x) 0;
+  }
+
+  .kui-shell:has(> .kui-shell-bottom[data-state="open"][data-presentation="auto"])::before {
     background-color: var(--scrim-well);
   }
 
   /* The frame's plane, restated for the resolved value — this block's own standing hazard,
      and the path every phone takes. */
-  .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="auto"])::after {
+  .kui-shell:has(> .kui-shell-bottom[data-state="open"][data-presentation="auto"])::after {
     background-color: var(--color-surface);
+    border-radius: calc(var(--radius-surface-3) * var(--kui-corner-k, 1));
   }
 
   /* Untouched nav columns rest closed on a narrow window. The class is the hide rule's, not
@@ -1768,8 +2062,8 @@
      FILE away and the phone default was the loudest casualty. Superseded above for a pane
      that OVERLAYS here (it parks rather than leaving), and kept for every other reason a pane
      is not on screen. */
-  .kui-surface.kui-shell-rail[data-state="auto"]:not([data-presentation="auto"]),
-  .kui-surface.kui-shell-sidebar[data-state="auto"]:not([data-presentation="auto"]) {
+  .kui-surface.kui-shell-rail[data-state="auto"]:not([data-presentation="auto"]):not([data-presentation="bar"]),
+  .kui-surface.kui-shell-sidebar[data-state="auto"]:not([data-presentation="auto"]):not([data-presentation="bar"]) {
     display: none;
   }
 
@@ -2063,8 +2357,14 @@
   .kui-shell-scrim,
   .kui-shell-pane[data-presentation="overlay"],
   .kui-shell-pane[data-presentation="auto"],
-  .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="overlay"]),
-  .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="auto"]),
+  .kui-shell:has(> .kui-shell-bottom[data-state="open"][data-presentation="overlay"]),
+  .kui-shell:has(> .kui-shell-bottom[data-state="open"][data-presentation="auto"]),
+  /* The push (2026-09-09): the frame's children carry it, so they carry its stand-down. */
+  :where(.kui-shell > :not(.kui-shell-rail[data-presentation="auto"]):not(.kui-shell-rail[data-presentation="overlay"]):not(.kui-shell-sidebar):not(.kui-shell-inspector)),
+  /* And the tab bar's thumb, the segmented control's own stand-down one component over —
+     BOTH direction arms, because those are the rules that carry the clock. */
+  .kui-shell-rail[data-presentation="bar"] > .kui-shell-rail-thumb[data-activation-direction="right"],
+  .kui-shell-rail[data-presentation="bar"] > .kui-shell-rail-thumb[data-activation-direction="left"],
   .kui-shell-resize::after {
     transition: none;
   }

@@ -404,3 +404,32 @@
 .kd-hit-context {
   color: var(--color-text-faint);
 }
+
+/* ── The component index's family lists ─────────────────────────────────────────────────────
+   TWO COLUMNS ON A NARROW WINDOW (2026-09-09, Kushagra: "on mobile we can easily do two cols
+   also on this page"). A family's list is one column by design — reading order goes down, not
+   across, and Control at fifteen rows standing taller than Surface beside it is the trade the
+   page states. That argument holds while a family sits in a ~20rem cell next to its siblings.
+   On a phone there are no siblings: the grid collapses to one column, so a list of short names
+   runs the full measure with most of the line empty and fifteen of them is a long scroll.
+
+   A WINDOW QUERY, NOT A CONTAINER TIER, and the distinction is §18's own. Measured, the cell is
+   368px on a 1200px desktop and 342px on a 390px phone — nearly the same width — so no query
+   about the cell's own room can tell the two apart. What differs is which interface shape the
+   page is showing, which is exactly what a window class answers and what a container tier
+   deliberately does not.
+
+   The boundary is the package's `narrow` class verbatim (`windowClassQueries.narrow`, 48rem),
+   restated here because CSS cannot import it. At the tightest window this covers, the cell is
+   340px and each of the two columns is 154px — checked against the longest name in the list. */
+.kd-family-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--layout-space-3);
+}
+
+@media (min-width: 48rem) {
+  .kd-family-list {
+    grid-template-columns: 1fr;
+  }
+}

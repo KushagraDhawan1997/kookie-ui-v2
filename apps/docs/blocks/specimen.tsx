@@ -221,8 +221,8 @@ export function SpecimenView({
      the backdrop reaches the edge it HAS, which is what stops one page's figure being a photo
      edge to edge and the next one's a band floating in a margin.
 
-     BUT THE PADDING IS ALL FOUR SIDES IN BOTH ARMS (2026-09-08, Kushagra: "no padding at size 3
-     or 4"). The no-paper arm re-padded only the axis it bled, so its block axis had no inset at
+     BUT THE PADDING IS ALL FOUR SIDES IN BOTH ARMS. The no-paper arm re-padded only the axis
+     it bled, so its block axis had no inset at
      all — a subject shorter than the floor was centred and never noticed, and a composer at
      size 3 grew past the floor and stood flush against the photograph's top and bottom edge.
      Which margins bleed depends on the walls; the inset the subject keeps does not. */

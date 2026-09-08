@@ -1122,7 +1122,7 @@ describe("the well is the package's, and the block owns none of it", () => {
  * `mdx-components.tsx` states four intervals for a chapter, and a figure's is the widest of
  * them: a block that is not prose gets 32px on both sides where a sibling paragraph gets 16.
  * A fence got that because the renderer wraps it; `<Example>` did not, because it went into
- * the flow as an ordinary child — measured on `/concepts/principles`, 16px above and below
+ * the flow as an ordinary child — measured on `/start/principles`, 16px above and below
  * against a fence's 32 on the same page.
  *
  * Read off the SOURCE, because this project renders in node and no law here can measure a

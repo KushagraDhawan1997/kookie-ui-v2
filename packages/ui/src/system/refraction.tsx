@@ -943,8 +943,21 @@ export function lensSupported(): boolean {
   // takes the whole declaration with it — the usual two-declaration CSS fallback cannot
   // protect a var(), so that case would cost the blur too. Verify on a real Safari before
   // trusting it there; if it fails, the fix is to narrow this test, not to change the seam.
+  //
+  // VERIFIED ON SAFARI 26, AND IT FAILS EXACTLY THAT WAY (2026-09-08, Kushagra from an iPhone:
+  // "Glass is inconsistent on mobile safari"). WebKit parses `url()` in backdrop-filter — both
+  // supports() calls return true — and then paints NOTHING for the whole chain, blur included:
+  // measured on the docs band, a glass button with a lens showed the text under it crisp, and
+  // stripping the inline `--kui-lens` alone brought the blur back. So the test is narrowed the
+  // way the paragraph above prescribes. `navigator.vendor` is the one string every WebKit
+  // browser carries (iOS Chrome and Firefox included, since they are WebKit there) and no Blink
+  // or Gecko one does; it is frozen, not removed. The glint does not read this gate and keeps
+  // painting, which is the half of the identity WebKit has always had.
+  const webkit = typeof navigator !== "undefined" && navigator.vendor === "Apple Computer, Inc.";
   supported =
-    CSS.supports("backdrop-filter", "blur(1px)") && CSS.supports("backdrop-filter", "url(#a) blur(1px)");
+    !webkit &&
+    CSS.supports("backdrop-filter", "blur(1px)") &&
+    CSS.supports("backdrop-filter", "url(#a) blur(1px)");
   return supported;
 }
 

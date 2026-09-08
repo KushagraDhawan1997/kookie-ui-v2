@@ -985,14 +985,17 @@
    floating header or rail prices that reach for the inset it publishes. */
 .kui-shell-pane[data-size="1"] {
   --kui-shell-row: var(--control-height-1);
+  --kui-shell-row-up: var(--control-height-2);
 }
 
 .kui-shell-pane[data-size="3"] {
   --kui-shell-row: var(--control-height-3);
+  --kui-shell-row-up: var(--control-height-4);
 }
 
 .kui-shell-pane[data-size="4"] {
   --kui-shell-row: var(--control-height-4);
+  --kui-shell-row-up: var(--control-height-4);
 }
 
 /* THE TILE (§43) — a surface smaller than a card, at the panel inset (2026-09-08).
@@ -1977,6 +1980,19 @@
    on-glass included — never the thickness list, which means "this element IS a pane": a
    segmented control inside a glass Card is on-glass, and keyed on thicknesses it matched
    nothing and fell back to the solid white thumb on a pane of light (2026-08-24, round 3). */
+/* AND THE TAB BAR'S THUMB IS THE SAME GRIP (2026-09-09, Kushagra: "why is selected thing not
+   see through like it is on menu?"). It rested on `--tone-soft`, which a glass pane re-points
+   to its opaque twin for every descendant (the 2026-08-24 finding), so the bar's own veil had
+   nothing to mix it back down and the tab painted solid on a translucent bar. §10 clause 5: a
+   control paints its states in the pane's currency. */
+/* (0,4,0) DELIBERATELY: the bar's own thumb rule in shell.css is (0,3,0) and so was the first
+   spelling of this one — a tie settled by which file the bundle loads last, and shell.css loads
+   last, so the opaque rest won and the tab still painted solid on glass. The presentation is in
+   the selector because it is also the truth: this thumb exists only in the bar. */
+.kui-shell-rail[data-material][data-presentation="bar"] > .kui-shell-rail-thumb {
+  background-color: var(--material-grip-fill);
+}
+
 .kui-segmented[data-material] .kui-segment-thumb {
   --kui-ct-fill-src: var(--material-grip-fill);
   --kui-ct-fill-src-hover: var(--material-grip-fill);

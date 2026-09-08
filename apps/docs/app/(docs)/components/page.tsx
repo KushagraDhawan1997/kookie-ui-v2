@@ -60,7 +60,11 @@ export default function ComponentsIndex() {
                     {members.length}
                   </Text>
                 </Flex>
-                <Stack gap="3" align="start">
+                {/* The list's own column count answers the WINDOW, not this cell — `prose.css`
+                    carries the measurement and the reason. `align="start"` went with the
+                    Stack: a grid cell does not stretch a link the way a flex column does, and
+                    the underline is the tell. */}
+                <div className="kd-family-list">
                   {members.map((entry) => (
                     <KookieLink
                       key={entry.slug}
@@ -70,7 +74,7 @@ export default function ComponentsIndex() {
                       {humanLabel(entry.name)}
                     </KookieLink>
                   ))}
-                </Stack>
+                </div>
               </Stack>
             );
           })}

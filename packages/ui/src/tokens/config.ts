@@ -856,6 +856,15 @@ export const springs = {
       overshoots if and only if `v0 > ω`, so 1.5 against 9 is zero-bounce BY CONSTRUCTION and
       the law asserts the crossing count rather than trusting the number. */
   driven: { zeta: 1, omega: 9, v0: 1.5, steps: 36 },
+  /** CARRIED, FROM REST (§27, 2026-09-08, Kushagra: "The opening animation is extremely bad, it
+      just jumps to a middle state, and theres no animation on scrim, or dimming, even when
+      going back"). The side drawer pushes the whole frame, and `driven`'s launch — 76% of the
+      travel inside the first 120ms, measured — reads as a snap to the middle and then a creep
+      when the travel is a screen's width rather than a 7% recession. This is the same critical
+      damping with NO injected velocity, so the frame starts from rest, gathers, and settles:
+      UIKit's own presentation spring (damping 1, response ~0.5s), which is what a sheet and a
+      pushed frame both use there. Zero-bounce by construction, as `driven` is. */
+  carried: { zeta: 1, omega: 7.5, v0: 0, steps: 36 },
 } as const;
 
 /**
@@ -1830,7 +1839,7 @@ export const shellDrawer = {
   scale: 0.925,
   /** One clock for the slide, the recession and the scrim. Longer than the overlay family's
       entry because the travel is a whole pane's width rather than a panel's own box. */
-  duration: 420,
+  duration: 500,
 } as const;
 
 /**

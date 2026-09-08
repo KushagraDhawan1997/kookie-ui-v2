@@ -2201,6 +2201,7 @@ describe("the springs are physics, and the emitted curve is that physics (§8)",
     elastic: "motion-spring-elastic",
     poised: "motion-spring-poised",
     driven: "motion-spring-driven",
+    carried: "motion-spring-carried",
   };
 
   it("every spring in config is emitted, and nothing else claims to be a spring", () => {

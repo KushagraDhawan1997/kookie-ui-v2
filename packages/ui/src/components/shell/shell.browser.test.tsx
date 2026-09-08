@@ -29,6 +29,7 @@ import {
   ShellRailList,
   ShellScroll,
   ShellSidebar,
+  ShellTabBar,
   ShellTrigger,
 } from "./shell.tsx";
 import type { Size } from "../../system/axes.ts";
@@ -476,7 +477,7 @@ describe("a pane pads like any other surface (§27)", () => {
         <ShellSidebar aria-label="Primary">s</ShellSidebar>
         <ShellContent>c</ShellContent>
         <ShellInspector defaultOpen>i</ShellInspector>
-        <ShellBottom defaultOpen>b</ShellBottom>
+        <ShellBottom presentation="overlay" defaultOpen>b</ShellBottom>
       </Shell>,
       { theme: {}, select: ".kui-shell" },
     );
@@ -850,57 +851,72 @@ describe("a flush seam is a hairline, and exactly one pane owns each (§7, §27)
   });
 });
 
-describe("a drawer is not part of the frame, whatever the app asked (§27)", () => {
-  const offFrame = (size: Size) =>
+describe("a side drawer PUSHES the frame; it does not cover it (§27, 2026-09-09)", () => {
+  /**
+   * THE REVERSAL, AND WHY IT NEEDED NEW LAWS RATHER THAN EDITED ONES (Kushagra: "Treating a
+   * left drawer like an iOS sheet which comes from below is different… The content is pushed to
+   * right, so sidebar always stays compliant with how desktop works").
+   *
+   * What stood here read the drawer's dress against a pane the app had pulled OFF the frame,
+   * because a covering pane took the surface identity back — its fill, its corner, its four
+   * edges. Under the push there is no covering pane: the frame slides aside and the drawer that
+   * comes into view is the DESKTOP pane, so the agreement to hold is against the same pane at a
+   * wide window. That is a different claim about a different thing, and rewriting the old law's
+   * expectations in place would have left its name and its comment arguing for the reverse.
+   *
+   * Both arms are walked because the treatment is written twice — the explicit
+   * `presentation="overlay"` at any width, and `auto` resolved by the narrow media block, which
+   * is the path every phone takes and the half this file has twice recorded forgetting.
+   */
+  const dress = (el: HTMLElement) => ({
+    corner: computed(el, "border-top-left-radius"),
+    edgeStart: computed(el, "border-left-width"),
+    edgeEnd: computed(el, "border-right-width"),
+    edgeColor: computed(el, "border-right-color"),
+    painted: computed(el, "background-color"),
+    light: computed(el, "background-image"),
+    casts:
+      computed(el, "box-shadow") !== "none" &&
+      !/^rgba\(0, 0, 0, 0\) 0px 0px 0px 0px$/.test(computed(el, "box-shadow")),
+  });
+
+  const wide = (flush: boolean, size: Size = "2") =>
     mounted(
       <Shell size={size} style={{ height: 400 }}>
-        <ShellSidebar aria-label="Primary" flush={false} defaultOpen>
+        <ShellSidebar aria-label="Primary" flush={flush} defaultOpen>
           nav
         </ShellSidebar>
-        <ShellContent>c</ShellContent>
+        <ShellContent flush={flush}>c</ShellContent>
       </Shell>,
       { theme: {}, select: ".kui-shell" },
     );
 
-  /**
-   * EVERYTHING A PLANE DOES, not just its fill (widened 2026-08-21, second pass). The first
-   * spelling read the fill, the corner and the edge — and a flush pane went on catching light
-   * and casting a shadow with all three laws green, which is what a person actually saw. The
-   * cast is read as a boolean rather than a value because the drawer sits over a scrim and
-   * only has to HAVE one; the light is read whole, because it is the restated expression.
-   */
-  const dress = (el: HTMLElement) => ({
-    corner: computed(el, "border-top-left-radius"),
-    edge: computed(el, "border-left-width"),
-    painted: computed(el, "background-color"),
-    edgeColor: computed(el, "border-left-color"),
-    light: computed(el, "background-image"),
-    casts: computed(el, "box-shadow") !== "none" && !/^rgba\(0, 0, 0, 0\) 0px 0px 0px 0px$/.test(computed(el, "box-shadow")),
-  });
+  // Falsified: with the deleted restore arms put back — the fill, the light, the corner and the
+  // four edges a covering pane used to take — the flush half fails on `corner` (40px against
+  // 0) and on `edgeStart` (1px against 0), which is the card-welded-to-the-window a person saw.
+  for (const flush of [true, false] as const) {
+    it(`an EXPLICIT overlay ${flush ? "flush" : "floating"} drawer is the wide-window pane, at every size`, () => {
+      for (const size of SIZES) {
+        const shell = mounted(
+          <Shell size={size} style={{ height: 400 }}>
+            <ShellSidebar aria-label="Primary" flush={flush} presentation="overlay" defaultOpen>
+              nav
+            </ShellSidebar>
+            <ShellContent flush={flush}>c</ShellContent>
+          </Shell>,
+          { theme: {}, select: ".kui-shell" },
+        );
+        expect(dress(within(shell, ".kui-shell-sidebar")), `size ${size}`).toEqual(
+          dress(within(wide(flush, size), ".kui-shell-sidebar")),
+        );
+        shell.remove();
+      }
+    });
+  }
 
-  // Falsified: with the restore dropped from the explicit arms, corner reads 0px and the
-  // pane paints rgba(0, 0, 0, 0) — a see-through, square drawer over the content.
-  it("an EXPLICIT overlay pane wears the surface, at a roomy window and at every size", () => {
-    for (const size of ["1", "2", "3", "4"] as const) {
-      const shell = mounted(
-        <Shell size={size} style={{ height: 400 }}>
-          <ShellSidebar aria-label="Primary" presentation="overlay" defaultOpen>
-            nav
-          </ShellSidebar>
-          <ShellContent>c</ShellContent>
-        </Shell>,
-        { theme: {}, select: ".kui-shell" },
-      );
-      expect(shell.querySelector(".kui-shell-sidebar")!.hasAttribute("data-flush"), size).toBe(true);
-      expect(dress(within(shell, ".kui-shell-sidebar")), `size ${size}`).toEqual(
-        dress(within(offFrame(size), ".kui-shell-sidebar")),
-      );
-    }
-  });
-
-  // Falsified: with the restore dropped from the narrow media block ONLY, this fails and the
-  // law above still passes — which is the half-applied shape the agreement rule exists for.
-  it("a drawer on a phone wears it too — the resolved arm, not just the explicit one", async () => {
+  // Falsified: with the restore arms put back in the narrow block ONLY, this fails and the law
+  // above still passes — the half-applied shape the agreement rule exists for.
+  it("a drawer on a phone is the same pane too — the resolved arm, not just the explicit one", async () => {
     await narrow();
     const shell = mountShell();
     await userEvent.click(within(shell, ".kui-shell-header button"));
@@ -908,11 +924,184 @@ describe("a drawer is not part of the frame, whatever the app asked (§27)", () 
     await expect.poll(() => sidebar.dataset.state).toBe("open");
     expect(sidebar.dataset.presentation, "resolved by CSS, not restamped").toBe("auto");
     expect(sidebar.hasAttribute("data-flush"), "the app's statement is untouched").toBe(true);
+    expect(dress(sidebar)).toEqual(dress(within(wide(true), ".kui-shell-sidebar")));
+  });
 
-    const off = within(offFrame("2"), ".kui-shell-sidebar");
-    expect(dress(sidebar)).toEqual(dress(off));
-    // And the thing a person actually meets: you cannot read the page through the menu.
-    expect(computed(sidebar, "background-color")).not.toBe("rgba(0, 0, 0, 0)");
+  /**
+   * THE PUSH ITSELF, read as the one thing that makes it a push rather than a cover: the
+   * drawer's trailing edge and the content's leading edge are the SAME line. Two distances
+   * ride one clock — the frame's translate and the pane's own — so if either is wrong by a
+   * pixel the seam opens, and a seam that opens mid-flight is exactly what the first spelling
+   * of the park distance did (measured 2px at 120ms, with the landed state correct, which is
+   * the shape no landed-state law can see).
+   *
+   * Falsified: parking a flush pane at `calc(-100% - var(--shell-gap))` — the pre-push value,
+   * which is one gap further out than the push carries — fails at
+   * `expected 328 to be close to 336`.
+   */
+  for (const flush of [true, false] as const) {
+    it(`the ${flush ? "flush" : "floating"} drawer lands against the content it pushed`, async () => {
+      /* THE TWIN IS MEASURED AT A WIDE WINDOW, WHICH IS THE WHOLE OF THE COMPARISON — and the
+         first spelling mounted it AFTER `narrow()`, where its own sidebar resolves to a closed
+         drawer and the "wide" seam is a parked pane's distance from the content. It passed, and
+         it passed through a sabotage that shortened the push by two gaps: the degenerate-fixture
+         rule, in the law written to hold the push to the desktop's own geometry. */
+      const expected = (() => {
+        const twin = wide(flush);
+        const gap =
+          within(twin, ".kui-shell-content").getBoundingClientRect().left -
+          within(twin, ".kui-shell-sidebar").getBoundingClientRect().right;
+        twin.remove();
+        return Math.round(gap);
+      })();
+      await narrow();
+      const shell = mountShell({ flush });
+      await userEvent.click(within(shell, ".kui-shell-header button"));
+      const sidebar = within(shell, ".kui-shell-sidebar");
+      await expect.poll(() => sidebar.dataset.state).toBe("open");
+      await expect
+        .poll(() => Math.round(sidebar.getBoundingClientRect().right))
+        .toBeGreaterThan(0);
+      /* READ AS AN AGREEMENT WITH THE WIDE WINDOW, not as arithmetic (2026-09-09). The claim
+         is that the drawer lands where the desktop pane sits relative to the content — which is
+         the whole of "the sidebar on a phone is the desktop sidebar revealed" — and the
+         distance between the two boxes is a different number per posture (a flush pane seams,
+         a floating one leaves its margin on both sides). Rebuilding that number here would be
+         re-deriving the stylesheet's own arithmetic from its own inputs, which is the shape
+         this repo's audits keep naming; measuring the same two boxes at a wide window is a
+         second, independent source for it. */
+      const seam = () =>
+        Math.round(
+          within(shell, ".kui-shell-content").getBoundingClientRect().left -
+            sidebar.getBoundingClientRect().right,
+        );
+      if (flush) {
+        // The exact agreement, which is what "the desktop sidebar revealed" means: a flush pane
+        // seams ON the content at both widths, so the number is the same number.
+        await expect.poll(seam).toBeCloseTo(expected, 0);
+      } else {
+        /* A BOUND FOR THE FLOATING POSTURE, and the reason is a real difference rather than a
+           weaker law: §27's all-cards regime splits one share of air between two IN-FLOW panes
+           (half on the frame's padding, half on each margin), while a drawer is out of flow and
+           carries its own whole margin — so the two windows legitimately differ, measured 16
+           against 8. What must hold either way is that the pushed page neither laps the drawer
+           nor opens a void: at least a hairline of air, and at most two shares of it. */
+        const gap = parseFloat(tokenOn(shell, "--shell-gap"));
+        await expect.poll(seam).toBeGreaterThan(0);
+        expect(seam(), "the page opened a void beside the drawer").toBeLessThanOrEqual(2 * gap);
+      }
+    });
+  }
+
+  /**
+   * AND THE PUSHED FRAME OVERFLOWS NOTHING (Kushagra: "when sidebar opens the page is very wide
+   * so I can actually scroll"). A transform does not move a box in layout, but a transformed box
+   * still counts as scrollable overflow, so pushing the ROOT gave the document a horizontal
+   * scroll range the width of the drawer. The children carry the push inside a root that keeps
+   * its clip, which moves the same pixels and overflows nothing.
+   *
+   * Falsified: moving the translate back onto `.kui-shell:has(…)` fails at
+   * `expected 711 to be 375` on the document and leaves the frame scrollable.
+   */
+  it("the push overflows neither the document nor the frame", async () => {
+    await narrow();
+    const shell = mountShell();
+    await userEvent.click(within(shell, ".kui-shell-header button"));
+    await expect.poll(() => within(shell, ".kui-shell-sidebar").dataset.state).toBe("open");
+    await expect
+      .poll(() => Math.round(within(shell, ".kui-shell-sidebar").getBoundingClientRect().right))
+      .toBeGreaterThan(0);
+    expect(document.documentElement.scrollWidth, "the document grew a scroll range").toBe(
+      document.documentElement.clientWidth,
+    );
+    /* AND THE MECHANISM THAT MAKES IT TRUE, since the frame's own `scrollWidth` is not an
+       instrument for this (the 2026-09-06 note one law over): things deliberately hang outside
+       the frame in both states, and `scrollWidth` reports that whether or not anything can
+       scroll. `clip` is what makes the overflow unreachable, and it is what a side pane must
+       not stand down — only the sheet's recession does. */
+    expect(computed(shell, "overflow-x"), "the pushed frame stopped clipping").toBe("clip");
+  });
+
+  /**
+   * NOTHING ABOUT THE FRAME RECEDES FOR A SIDE PANE, and the bottom sheet is the negative
+   * control that keeps this from being a law about nothing: a sheet from below is a different
+   * gesture and keeps the recession, the well and the plate. Read on the root's own transform,
+   * because that is where the recession is declared.
+   *
+   * Falsified: keying the recession on `.kui-shell-pane` again — its pre-push spelling — fails
+   * the side half at `expected 'matrix(0.925, 0, 0, 0.925, 0, 0)' to be 'none'`.
+   */
+  it("a side pane leaves the frame at its own size; a sheet from below recedes it", async () => {
+    await narrow();
+    const side = mountShell();
+    await userEvent.click(within(side, ".kui-shell-header button"));
+    await expect.poll(() => within(side, ".kui-shell-sidebar").dataset.state).toBe("open");
+    await expect.poll(() => computed(side, "transform")).toBe("none");
+    side.remove();
+
+    const sheet = mountShell({ bottom: { defaultOpen: true } });
+    await expect.poll(() => within(sheet, ".kui-shell-bottom").dataset.state).toBe("open");
+    await expect.poll(() => computed(sheet, "transform")).not.toBe("none");
+  });
+
+  /**
+   * THE SCRIM DIMS; IT DOES NOT DEFOCUS (Kushagra: "We have a blur scrim and a scale down,
+   * both, which looks odd"). A dim says the page is set aside; a blur says it is behind a
+   * material, which is what the glass DRAWER says about the strip it covers and not what a
+   * scrim says about a whole screen — and frosting everything made the drawer's own material
+   * invisible. Read at both contrasts, because the reduced-transparency arm answers this
+   * setting with more pigment and no defocus, and it must not be the only arm that does.
+   *
+   * Falsified: restoring `backdrop-filter: var(--scrim-filter, none)` fails at
+   * `expected 'blur(8px) saturate(0.8)' to be 'none'`.
+   */
+  it("the scrim carries pigment and no defocus", async () => {
+    await narrow();
+    const shell = mountShell();
+    await userEvent.click(within(shell, ".kui-shell-header button"));
+    await expect.poll(() => within(shell, ".kui-shell-sidebar").dataset.state).toBe("open");
+    const scrim = within(shell, ".kui-shell-scrim");
+    expect(computed(scrim, "backdrop-filter"), "the scrim defocused the page").toBe("none");
+    expect(computed(scrim, "background-color"), "and it must still dim").not.toBe(
+      "rgba(0, 0, 0, 0)",
+    );
+    await expect.poll(() => computed(scrim, "opacity")).toBe("1");
+  });
+
+  /**
+   * A SIDE PANE STATES ITS OWN MATERIAL; THE POSTURE NO LONGER INFERS ONE (§10, 2026-09-09).
+   * The covering-panel rule — every popup in this package hardcodes a backdrop because a panel
+   * over the page HAS the page behind it — was applied to a drawer while a drawer covered. Under
+   * the push it does not cover: the page beside it is the page a wide-window sidebar has beside
+   * it, so `backdrop` (or an ambient region) is the only thing that may say glass. The bottom
+   * sheet is the negative control, and it still infers.
+   *
+   * Falsified: passing the posture back into `usePaneDress` fails at
+   * `expected 'regular' to be undefined` on the unmarked drawer.
+   */
+  it("an unmarked drawer is solid under a glass theme; one that asked is not; a sheet still infers", async () => {
+    await narrow();
+    const plain = mounted(fixture(), { theme: { material: "regular" } });
+    await userEvent.click(within(plain, ".kui-shell-header button"));
+    await expect.poll(() => within(plain, ".kui-shell-sidebar").dataset.state).toBe("open");
+    expect(
+      within(plain, ".kui-shell-sidebar").dataset.material,
+      "the posture volunteered a material",
+    ).toBeUndefined();
+    expect(
+      within(plain, ".kui-shell-bottom").dataset.material,
+      "a sheet over the content is the covering-panel case, and keeps it",
+    ).toBe("regular");
+    plain.remove();
+
+    const asked = mounted(fixture({ sidebar: { backdrop: true } }), {
+      theme: { material: "regular" },
+    });
+    await userEvent.click(within(asked, ".kui-shell-header button"));
+    await expect.poll(() => within(asked, ".kui-shell-sidebar").dataset.state).toBe("open");
+    expect(within(asked, ".kui-shell-sidebar").dataset.material, "the app asked and got nothing").toBe(
+      "regular",
+    );
   });
 });
 
@@ -1026,40 +1215,53 @@ describe("a parked drawer is off the frame, not merely invisible (§27, §8, 202
    * to the same instant, so what the law reads does not depend on when it looked.
    *
    * Falsified: with the single-hook spelling restored, the drawer has no transition to seize
-   * at all — it is at its landed position from the first frame and the root is at 0.925.
+   * at all — it is at its landed position from the first frame.
+   *
+   * REWRITTEN 2026-09-09, and what it reads changed with the gesture: a side pane pushes rather
+   * than covering, so the second half of the event is the frame's CHILDREN travelling, not its
+   * scale. The claim is unchanged and is the reason the law exists — the two distances are one
+   * event, and mid-flight both are moving and neither is finished. A seam that opens mid-flight
+   * is what a landed-state law cannot see, and it is the defect the park distance shipped with
+   * (measured 2px at 120ms, correct at rest).
    */
-  it("the drawer travels and the frame recedes on one clock", async () => {
+  it("the drawer and the page it pushed travel on one clock, in lockstep", async () => {
     inMotion();
     await narrow();
     const shell = mountShell();
     const pane = within(shell, ".kui-shell-sidebar");
-    const root = pane.closest(".kui-shell") as HTMLElement;
+    const content = within(shell, ".kui-shell-content");
     const parked = pane.getBoundingClientRect().left;
-    const moving = (el: HTMLElement) =>
-      el.getAnimations().filter((a) => (a as CSSTransition).transitionProperty === "transform");
+    const moving = (el: HTMLElement, property: string) =>
+      el.getAnimations().filter((a) => (a as CSSTransition).transitionProperty === property);
 
     await userEvent.click(within(shell, ".kui-shell-header button"));
     await expect.poll(() => pane.dataset.state).toBe("open");
-    // The premise, and the thing the defect deletes: both boxes really are in flight.
+    // The premise, and the thing a defect here deletes: both boxes really are in flight.
     await expect
-      .poll(() => moving(pane).length > 0 && moving(root).length > 0)
+      .poll(() => moving(pane, "transform").length > 0 && moving(content, "translate").length > 0)
       .toBe(true);
 
     // Halfway, by the clock rather than by the wall.
-    for (const el of [pane, root]) {
-      for (const a of moving(el)) {
+    for (const [el, property] of [
+      [pane, "transform"],
+      [content, "translate"],
+    ] as const) {
+      for (const a of moving(el, property)) {
         a.pause();
-        a.currentTime = 210;
+        a.currentTime = 250;
       }
     }
     await new Promise<void>((r) => requestAnimationFrame(() => r()));
 
-    const x = pane.getBoundingClientRect().left;
-    const scale = Number(/matrix\(([\d.]+)/.exec(computed(root, "transform"))?.[1]);
-    expect(x, "the drawer arrived in one frame, or never parked outside").toBeLessThan(0);
-    expect(x, "the drawer never left its park").toBeGreaterThan(parked);
-    expect(scale, "the frame never receded").toBeLessThan(1);
-    expect(scale, "the frame receded in one frame").toBeGreaterThan(0.925);
+    const edge = pane.getBoundingClientRect().right;
+    const page = content.getBoundingClientRect().left;
+    expect(edge, "the drawer arrived in one frame, or never parked outside").toBeLessThan(
+      pane.offsetWidth,
+    );
+    expect(pane.getBoundingClientRect().left, "the drawer never left its park").toBeGreaterThan(parked);
+    expect(page, "the page never moved").toBeGreaterThan(0);
+    // The whole of it: mid-flight the seam is still a seam.
+    expect(page, "daylight opened between the drawer and the page").toBeCloseTo(edge, 0);
   });
 });
 
@@ -1078,6 +1280,20 @@ describe("a live drawer is not cut, and neither is the scrim over it (§27, §8,
    * see this — the drawer's rect was right the whole time.
    */
   const topmostAt = (x: number, y: number) => document.elementFromPoint(x, y);
+
+  /** THE SHEET, which is what recedes since 2026-09-09 (§27): a side pane pushes the frame and
+      a sheet from below pushes it BACK, so every law about the recession, the well and the
+      frame's plane reads the bottom pane. */
+  const liveSheet = async () => {
+    await narrow();
+    const shell = mountShell({ bottom: { defaultOpen: true } });
+    const pane = within(shell, ".kui-shell-bottom");
+    await expect.poll(() => computed(pane, "position")).toBe("absolute");
+    await expect
+      .poll(() => (pane.closest(".kui-shell") as HTMLElement).getAnimations().length === 0)
+      .toBe(true);
+    return { shell, pane };
+  };
 
   const liveNarrowShell = async () => {
     await narrow();
@@ -1109,7 +1325,7 @@ describe("a live drawer is not cut, and neither is the scrim over it (§27, §8,
    * which inverts the depth the recession is for.
    */
   it("the scrim covers the frame's trailing edge, which is where the recession opened", async () => {
-    const { shell } = await liveNarrowShell();
+    const { shell } = await liveSheet();
     const root = within(shell, ".kui-shell");
     const frame = root.getBoundingClientRect();
     const scrim = within(shell, ".kui-shell-scrim");
@@ -1143,19 +1359,20 @@ describe("a live drawer is not cut, and neither is the scrim over it (§27, §8,
    * moved back onto the root it reads 9,9,10 again, which is the defect this law was written
    * a second time to catch.
    */
-  it("a flush frame is still the app when a drawer opens — in pixels", async () => {
+  it("a flush frame is still the app when a SHEET opens — in pixels", async () => {
+    /* RE-KEYED 2026-09-09: the recession belongs to the sheet from below, so the strip of well
+       this law reads opens on the sides rather than past a drawer's trailing edge. Everything
+       else about it is unchanged, including the reason it exists — the frame's plane is painted
+       by a pseudo-element at a negative layer, and the well is painted by another one at the
+       same layer, so an ordering mistake shows as the app disappearing into the well and as
+       nothing at all in any computed value. */
     await page.viewport(375, 700);
     const shell = mounted(
       <Shell style={{ height: 700 }}>
-        <ShellHeader flush>
-          <ShellTrigger target="sidebar">menu</ShellTrigger>
-        </ShellHeader>
-        <ShellSidebar aria-label="Primary" flush defaultOpen>
-          nav
-        </ShellSidebar>
-        <ShellContent flush>content</ShellContent>
+        <ShellContent>content</ShellContent>
+        <ShellBottom presentation="overlay" defaultOpen>sheet</ShellBottom>
       </Shell>,
-      { theme: {} },
+      { theme: {}, select: ".kui-shell" },
     );
     const root = within(shell, ".kui-shell");
     const content = within(shell, ".kui-shell-content");
@@ -1167,27 +1384,26 @@ describe("a live drawer is not cut, and neither is the scrim over it (§27, §8,
     expect(computed(root, "transform"), "the frame did not recede").not.toBe("none");
     await expect.poll(() => root.getAnimations().length).toBe(0);
 
-    /* THE POINT MATTERS AS MUCH AS THE READING, and the first spelling proved it: it sampled
-       the content pane's own centre, which on a narrow window is UNDER the drawer — so it read
-       the drawer's white and survived both sabotages. The subject is the strip of frame the
-       drawer does not cover, between its trailing edge and the edge the recession pulled in
-       to; the ring is past that. (The degenerate-fixture rule, in the law written to catch a
-       defect the same rule had already let through twice.) */
+    /* THE POINT MATTERS AS MUCH AS THE READING. The subject is the strip of frame the sheet
+       does not cover: the recession pulls the frame's leading edge in, so the ring is between
+       the root's own wall and where the frame now stops, and the frame itself is just inside
+       that. (The degenerate-fixture rule: sampling the middle of the window would read the
+       frame in both a correct and a broken build.) */
     const at = await screenPixels(375);
-    const drawer = within(shell, ".kui-shell-sidebar").getBoundingClientRect();
     const recede = numberOn(shell, "--shell-drawer-scale");
-    const frameEdge = root.offsetLeft + root.offsetWidth * recede;
-    expect(frameEdge - drawer.right, "the drawer covers the whole frame — nothing to read").toBeGreaterThan(8);
-    const y = root.offsetTop + root.offsetHeight / 2;
-    const inside = at((drawer.right + frameEdge) / 2, y);
-    const well = at(root.offsetLeft + root.offsetWidth - 2, y);
+    // The recession's origin for a sheet is `50% 100%`, so the frame loses half the shrink at
+    // each side; the ring is that half, and the reading sits inside it and just past it.
+    const inset = (root.offsetWidth * (1 - recede)) / 2;
+    expect(inset, "the recession opened no ring on the sides").toBeGreaterThan(8);
+    const y = root.offsetTop + root.offsetHeight / 4;
+    const well = at(root.offsetLeft + 2, y);
+    const inside = at(root.offsetLeft + inset + 8, y);
 
     /* READ AS A DISTANCE, because the scrim sits over both regions and neither pixel is its
-       token exactly — the ring measures 9,9,10 against the well's own 11,11,12. What the claim
-       has always been is which of the two colours the frame is showing, so that is what the
-       law asks: the pixel inside the frame must be nearer the seal than the well, and the ring
-       must be the other way round. The second half is the vacuity guard — without a ring
-       there is nothing here to be on the wrong side of. */
+       token exactly. What the claim has always been is which of the two colours the frame is
+       showing, so that is what the law asks: the pixel inside the frame must be nearer the seal
+       than the well, and the ring the other way round. The second half is the vacuity guard —
+       without a ring there is nothing here to be on the wrong side of. */
     const seal = await rgbOf(shell, "var(--color-surface)");
     const wellToken = await rgbOf(shell, "var(--scrim-well)");
     const near = (px: number[], to: number[]) =>
@@ -1225,7 +1441,9 @@ describe("a live drawer is not cut, and neither is the scrim over it (§27, §8,
     const pane = within(shell, ".kui-shell-sidebar");
     await expect.poll(() => onScreen(scrim)).toBe(true);
     // The premise: it really is defocusing something, or "loses its blur" names nothing here.
-    expect(computed(scrim, "backdrop-filter"), "the scrim defocuses nothing").not.toBe("none");
+    // Its PIGMENT, since 2026-09-09: the scrim dims and does not blur, so what has to be there
+    // before the exit can be read is the fill (its own law states the absence of the defocus).
+    expect(computed(scrim, "background-color"), "the scrim dims nothing").not.toBe("rgba(0, 0, 0, 0)");
 
     pressEscape(pane);
     await expect.poll(() => pane.dataset.state).toBe("closed");
@@ -1243,7 +1461,7 @@ describe("a live drawer is not cut, and neither is the scrim over it (§27, §8,
     expect(half, "the scrim never started leaving").toBeLessThan(1);
     // And it is still on screen doing its job while the pane travels.
     expect(onScreen(scrim), "the scrim left the screen mid-exit").toBe(true);
-    expect(computed(scrim, "backdrop-filter"), "the defocus went in one frame").not.toBe("none");
+    expect(computed(scrim, "background-color"), "the dim went in one frame").not.toBe("rgba(0, 0, 0, 0)");
   });
 
   /**
@@ -1254,7 +1472,7 @@ describe("a live drawer is not cut, and neither is the scrim over it (§27, §8,
    * accident — the shape §27's own pane-corner law already takes.
    */
   it("the frame rounds while it recedes, at the corner a card wears", async () => {
-    const { shell } = await liveNarrowShell();
+    const { shell } = await liveSheet();
     const root = within(shell, ".kui-shell");
     const plane = getComputedStyle(root, "::after").borderTopLeftRadius;
     expect(plane, "the receding frame is a square slab").not.toBe("0px");
@@ -1777,10 +1995,11 @@ describe("an overlay never takes the whole window (§27, audit 2026-08-16)", () 
       // strip, which the assertion above welcomes. A bound with one end is half a bound.
       const designed = parseFloat(tokenOn(shell, "--shell-sidebar-w"));
       expect(designed).toBeGreaterThan(0);
-      // A DRAWER PAYS THE FRAME'S OWN AIR since 2026-09-06 — it is not in the frame while it
-      // overlays, so it sits like a pane pulled off it — and the cap has always subtracted
-      // exactly that term (`2 * --kui-shell-outer`, written before anything published it).
-      const air = 2 * parseFloat(tokenOn(shell, "--shell-gap"));
+      // THE TERM THE CAP SUBTRACTS, read rather than assumed (2026-09-09). A flush drawer pays
+      // no air since it stays flush under the push, and a floating one pays its margin on both
+      // sides; `--kui-shell-outer` is what publishes the difference, so reading it is what keeps
+      // this law true of both postures instead of true of whichever one it was written against.
+      const air = 2 * parseFloat(tokenOn(sidebar, "--kui-shell-outer"));
       expect(pane.width, `the drawer collapsed at ${width}px`).toBeCloseTo(
         Math.min(designed, root.width - floor - air),
         0,
@@ -1798,7 +2017,7 @@ describe("an overlay never takes the whole window (§27, audit 2026-08-16)", () 
     expect(capped).toBeLessThan(375);
     // Capped, not collapsed — the same one-sided hole as above: `1 < 375` is true too.
     const floor = parseFloat(tokenOn(shell, "--touch-target-min"));
-    const air = 2 * parseFloat(tokenOn(shell, "--shell-gap"));
+    const air = 2 * parseFloat(tokenOn(sidebar, "--kui-shell-outer"));
     expect(capped, "the oversized drawer collapsed instead of being capped").toBeCloseTo(
       375 - floor - air,
       0,
@@ -2055,7 +2274,7 @@ describe("a seam needs something on the other side of it (§27, 2026-08-29)", ()
         <ShellSidebar aria-label="Primary">s</ShellSidebar>
         {content}
         <ShellInspector defaultOpen>i</ShellInspector>
-        <ShellBottom defaultOpen>b</ShellBottom>
+        <ShellBottom presentation="overlay" defaultOpen>b</ShellBottom>
       </Shell>,
       { theme: {}, select: ".kui-shell" },
     );
@@ -2179,9 +2398,13 @@ describe("a seam needs something on the other side of it (§27, 2026-08-29)", ()
     // drawer sliding over a grounded content. Falsify by removing the `:where()`, not by
     // removing a `:not([data-presentation="overlay"])` guard: the first spelling had one and
     // it was decoration, which this law's own sabotage pass is what proved.
+    // NON-FLUSH SINCE 2026-09-09, and the fixture is the law: a FLUSH drawer stays flush under
+    // the push and legitimately draws one seam, so asking it for four borders would be asking
+    // for the behaviour this repo reversed. A pane the app pulled off the frame is the one that
+    // has four, which is also the pane the specificity hazard is about.
     const shell = mounted(
       <Shell style={{ height: 600, width: 1280 }}>
-        <ShellSidebar aria-label="Primary" presentation="overlay" defaultOpen>
+        <ShellSidebar aria-label="Primary" flush={false} presentation="overlay" defaultOpen>
           s
         </ShellSidebar>
         <ShellContent flush={false}>c</ShellContent>
@@ -4018,7 +4241,15 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
     });
   });
 
-  describe("a DRAWER takes the material by construction (§10, §27, 2026-09-05)", () => {
+  /* RE-KEYED TO THE BOTTOM PANE 2026-09-09 (§27). Every claim in this block is the
+     covering-panel rule — a panel over the page HAS the page behind it, so it resolves the
+     theme's glass whatever the call site said — and a SIDE pane stopped being that shape the
+     day it started pushing the frame instead of covering it. A sheet from below still covers,
+     so the block reads the sheet; the side pane's opposite guarantee (it states its own
+     material, and an unmarked one is solid) is a law of its own in the push block above.
+     Nothing about the mechanism moved: `usePaneDress` still hands the posture to the bottom
+     pane and no longer hands it to the three side panes. */
+  describe("a SHEET takes the material by construction (§10, §27, 2026-09-05, re-keyed 2026-09-09)", () => {
     // Kushagra: "like dialog or menu are always glass bc theyre above". Menu, Select, Popover,
     // Dialog and AlertDialog all hardcode `useMaterial({ backdrop: true })`, because a panel
     // over the page HAS the page behind it — §10's selectivity satisfied structurally rather
@@ -4032,19 +4263,19 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
 
     // Falsified: with `overlaying` dropped from `usePaneDress`'s material call, the drawer
     // reads `expected undefined to be 'regular'` and the control still passes.
-    it("an explicit overlay pane resolves the theme's glass, having stated no backdrop", () => {
+    it("an explicit overlay sheet resolves the theme's glass, having stated no backdrop", () => {
       const shell = mounted(
         <Shell style={{ height: 400 }}>
           <ShellRail aria-label="Sections">r</ShellRail>
-          <ShellSidebar aria-label="Primary" presentation="overlay" defaultOpen>
+          <ShellBottom presentation="overlay" defaultOpen>
             nav
-          </ShellSidebar>
+          </ShellBottom>
           <ShellContent>c</ShellContent>
         </Shell>,
         { theme: { material: "regular" }, select: ".kui-shell" },
       );
       expect(
-        within(shell, ".kui-shell-sidebar").dataset.material,
+        within(shell, ".kui-shell-bottom").dataset.material,
         "a pane over the content stayed solid — every other covering panel glasses",
       ).toBe("regular");
       expect(
@@ -4052,7 +4283,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
         "a pane IN THE FRAME took glass it never asked for — the control, and the whole point",
       ).toBeUndefined();
       // Stamped is not painted. The lens joins on the same call, so read the chain too.
-      expect(computed(within(shell, ".kui-shell-sidebar"), "backdrop-filter")).toContain("blur");
+      expect(computed(within(shell, ".kui-shell-bottom"), "backdrop-filter")).toContain("blur");
     });
 
     // Falsified: same deletion fails here with `expected undefined to be 'regular'`. Kept
@@ -4060,49 +4291,44 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
     // is written twice, and `auto` is the path every phone takes (2026-08-06's agreement
     // clause). This one also proves the resolution runs at all: `useWindowClass()` is null on
     // the server by design, so a drawer that never re-resolved would read solid forever.
-    it("...and so does a phone's drawer, the resolved arm", async () => {
+    it("...and so does a phone's sheet, the resolved arm", async () => {
       await narrow();
       const shell = mounted(
         <Shell style={{ height: 600 }}>
-          <ShellSidebar aria-label="Primary" defaultOpen>
+          <ShellBottom defaultOpen>
             nav
-          </ShellSidebar>
+          </ShellBottom>
           <ShellContent>c</ShellContent>
         </Shell>,
         { theme: { material: "regular" }, select: ".kui-shell" },
       );
-      const sidebar = within(shell, ".kui-shell-sidebar");
-      expect(sidebar.dataset.presentation, "resolved by CSS, not restamped").toBe("auto");
+      const sheet = within(shell, ".kui-shell-bottom");
+      expect(sheet.dataset.presentation, "resolved by CSS, not restamped").toBe("auto");
       await expect
-        .poll(() => sidebar.dataset.material, {
+        .poll(() => sheet.dataset.material, {
           timeout: 1000,
         })
         .toBe("regular");
       // The same pane, same props, on a roomy window: it is in the frame there and solid.
       await page.viewport(WIDE.width, WIDE.height);
-      await expect.poll(() => sidebar.dataset.material).toBeUndefined();
+      await expect.poll(() => sheet.dataset.material).toBeUndefined();
     });
 
     // Falsified: with the material call reading `backdrop` first, this fails at
     // `expected undefined to be 'regular'` — which is the shape a "let the app override it"
     // spelling would ship.
-    it("and the app cannot ask for a solid drawer — Dialog's terms, taken whole", () => {
+    it("and the app cannot ask for a solid sheet — Dialog's terms, taken whole", () => {
       const shell = mounted(
         <Shell style={{ height: 400 }}>
-          <ShellSidebar
-            aria-label="Primary"
-            presentation="overlay"
-            defaultOpen
-            backdrop={false}
-          >
+          <ShellBottom presentation="overlay" defaultOpen backdrop={false}>
             nav
-          </ShellSidebar>
+          </ShellBottom>
           <ShellContent>c</ShellContent>
         </Shell>,
         { theme: { material: "regular" }, select: ".kui-shell" },
       );
       expect(
-        within(shell, ".kui-shell-sidebar").dataset.material,
+        within(shell, ".kui-shell-bottom").dataset.material,
         "a stated `backdrop={false}` unmade a drawer's glass — you cannot ask for a solid menu",
       ).toBe("regular");
     });
@@ -4112,9 +4338,9 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
     it("and it scopes its subtree, so nothing inside stacks a second pane of glass", () => {
       const shell = mounted(
         <Shell style={{ height: 400 }}>
-          <ShellSidebar aria-label="Primary" presentation="overlay" defaultOpen>
+          <ShellBottom presentation="overlay" defaultOpen>
             <Card>in the drawer</Card>
-          </ShellSidebar>
+          </ShellBottom>
           <ShellContent>c</ShellContent>
         </Shell>,
         { theme: { material: "regular" }, select: ".kui-shell" },
@@ -4137,12 +4363,12 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
     // Falsified: with `--kui-sf-fill: initial` back in the drawer exception this reads
     // `expected "rgb(255, 255, 255)" not to be "rgb(255, 255, 255)"`, and the four laws above
     // stay green — which is the whole reason it exists.
-    it("and the veil actually PAINTS — the drawer is not an opaque pane wearing a filter", () => {
+    it("and the veil actually PAINTS — the sheet is not an opaque pane wearing a filter", () => {
       const glassDrawer = mounted(
         <Shell style={{ height: 400 }}>
-          <ShellSidebar aria-label="Primary" presentation="overlay" defaultOpen>
+          <ShellBottom presentation="overlay" defaultOpen>
             nav
-          </ShellSidebar>
+          </ShellBottom>
           <ShellContent>c</ShellContent>
         </Shell>,
         { theme: { material: "regular" }, select: ".kui-shell" },
@@ -4152,24 +4378,24 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
       // alpha rather than the guarantee.
       const solidDrawer = mounted(
         <Shell style={{ height: 400 }}>
-          <ShellSidebar aria-label="Primary" presentation="overlay" defaultOpen>
+          <ShellBottom presentation="overlay" defaultOpen>
             nav
-          </ShellSidebar>
+          </ShellBottom>
           <ShellContent>c</ShellContent>
         </Shell>,
         { theme: {}, select: ".kui-shell" },
       );
-      const painted = computed(within(glassDrawer, ".kui-shell-sidebar"), "background-color");
+      const painted = computed(within(glassDrawer, ".kui-shell-bottom"), "background-color");
       expect(
         painted,
         "a glass drawer painted the opaque seal over its own veil",
-      ).not.toBe(computed(within(solidDrawer, ".kui-shell-sidebar"), "background-color"));
+      ).not.toBe(computed(within(solidDrawer, ".kui-shell-bottom"), "background-color"));
       expect(painted, "the drawer's fill is opaque, so nothing behind it can be seen").toMatch(
         /^(rgba|color)\(/,
       );
       // And the solid drawer is unmoved by the repair, which is the control: the fill it gets
       // back is still a Card's, so the 2026-08-21 "a drawer has a surface" call stands.
-      expect(computed(within(solidDrawer, ".kui-shell-sidebar"), "background-color")).toBe(
+      expect(computed(within(solidDrawer, ".kui-shell-bottom"), "background-color")).toBe(
         computed(mounted(<Card>c</Card>, { theme: {} }), "background-color"),
       );
     });
@@ -4405,5 +4631,388 @@ describe("the scroller fades across the band it passes under (§27, 2026-09-06)"
     expect(parseFloat(tokenOn(scroller, "--kui-sa-fade-start"))).toBeGreaterThan(
       parseFloat(tokenOn(scroller, "--scrollbar-fade")),
     );
+  });
+});
+
+/**
+ * THE TAB BAR (§27, 2026-09-09, Kushagra: "iOS also uses tabbar… rail becomes bar on its own…
+ * if it has sidebar only, sidebar becomes tab, caller declares a list suitable for tabbar").
+ *
+ * A rail meets a narrow window as a floating bar across the bottom, its own items carried
+ * across; `ShellTabBar` is the bar-only posture, for an app with no rail that wants tabs. The
+ * sidebar is untouched by all of it — it is the push drawer at every width, which is what makes
+ * the bar the COARSE level and the drawer the fine one rather than two answers to one question.
+ */
+describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
+  const bars = (props?: { only?: boolean; backdrop?: boolean }) =>
+    mounted(
+      <Shell style={{ height: 600 }}>
+        <ShellHeader>
+          <ShellTrigger target="sidebar" data-testid="trigger">
+            menu
+          </ShellTrigger>
+        </ShellHeader>
+        {props?.only ? (
+          <ShellTabBar aria-label="Sections" flush={false} {...(props?.backdrop ? { backdrop: true } : {})}>
+            <ShellRailList>
+              <ShellRailItem label="One" current render={<a href="#one" />}>
+                <svg viewBox="0 0 16 16" />
+              </ShellRailItem>
+              <ShellRailItem label="Two" render={<a href="#two" />}>
+                <svg viewBox="0 0 16 16" />
+              </ShellRailItem>
+              <ShellRailItem label="Responsiveness" render={<a href="#three" />}>
+                <svg viewBox="0 0 16 16" />
+              </ShellRailItem>
+            </ShellRailList>
+            <ShellRailItem label="Search">
+              <svg viewBox="0 0 16 16" />
+            </ShellRailItem>
+          </ShellTabBar>
+        ) : (
+          <ShellRail aria-label="Sections" flush={false}>
+            <ShellRailList>
+              <ShellRailItem label="One" current>
+                <svg viewBox="0 0 16 16" />
+              </ShellRailItem>
+              <ShellRailItem label="Two">
+                <svg viewBox="0 0 16 16" />
+              </ShellRailItem>
+            </ShellRailList>
+          </ShellRail>
+        )}
+        <ShellSidebar aria-label="Primary">sidebar</ShellSidebar>
+        <ShellContent>
+          <ShellScroll>content</ShellScroll>
+        </ShellContent>
+      </Shell>,
+      { theme: props?.backdrop ? { material: "regular" } : {}, select: ".kui-shell" },
+    );
+
+  /**
+   * THE TWO POSTURES DIFFER ONLY ON A WIDE WINDOW, which is the whole of the API: `auto` is a
+   * rail there, `bar` is nothing there, and both are the bar on a phone. Read as the pane's own
+   * box, because "is this a rail or a bar" is a question about where it sits and how wide it is,
+   * and a token or an attribute would answer neither.
+   *
+   * Falsified: dropping `.kui-shell-rail[data-bar="only"] { display: none }` fails the wide half
+   * at `expected 64 to be 0` — a rail nobody asked for, holding tab labels sideways.
+   */
+  it("bar-only renders nothing on a wide window; a rail renders a rail", () => {
+    const only = bars({ only: true });
+    expect(
+      within(only, ".kui-shell-rail").getBoundingClientRect().width,
+      "a bar-only rail took room on a wide window",
+    ).toBe(0);
+    only.remove();
+
+    const rail = bars();
+    const box = within(rail, ".kui-shell-rail").getBoundingClientRect();
+    expect(box.width, "the rail vanished on a wide window").toBeGreaterThan(0);
+    expect(box.height, "a rail is a column, not a row").toBeGreaterThan(box.width);
+  });
+
+  /**
+   * ON A PHONE IT IS A BAR: across the bottom, inside the window, above the safe area, and out
+   * of the frame's flow. Both postures, because `auto` and `bar` are one bar and the day they
+   * diverge is the day this file records forgetting the resolved arm again.
+   *
+   * Falsified: deleting `position: absolute` from the bar arm fails at
+   * `expected 'static' to be 'absolute'`, with the bar back in the rail's grid column.
+   */
+  for (const only of [true, false] as const) {
+    it(`on a phone the ${only ? "bar-only" : "auto"} rail is a row across the bottom`, async () => {
+      await narrow();
+      const shell = bars({ only });
+      const bar = within(shell, ".kui-shell-rail");
+      expect(computed(bar, "position")).toBe("absolute");
+      const box = bar.getBoundingClientRect();
+      const frame = shell.getBoundingClientRect();
+      expect(box.width, "a bar is a row, not a column").toBeGreaterThan(box.height);
+      expect(box.width, "the bar reached past the window").toBeLessThanOrEqual(frame.width);
+      expect(box.left, "the bar is inset from the leading wall").toBeGreaterThan(frame.left);
+      expect(frame.bottom - box.bottom, "the bar sits above the window's floor").toBeGreaterThan(0);
+      expect(box.bottom, "the bar is not at the top").toBeGreaterThan(frame.top + frame.height / 2);
+    });
+  }
+
+  /**
+   * EVERY SEAT TAKES THE SAME SPACE, the detached search seat included (Kushagra: "each item
+   * should take same space"). The list is `display: contents` in this posture for exactly this
+   * reason: with the list as one flex item and the seat as another, the two split the bar in
+   * half and the tabs shared what was left.
+   *
+   * Falsified: giving the list back `flex: 1 1 0` fails at
+   * `expected [ 62, 62, 62, 187 ] to have every seat within 1px of the first`.
+   */
+  it("every seat takes the same space, the search seat included", async () => {
+    await narrow();
+    const shell = bars({ only: true });
+    const widths = [...shell.querySelectorAll<HTMLElement>(".kui-shell-rail-item")].map(
+      (seat) => seat.getBoundingClientRect().width,
+    );
+    expect(widths.length, "the seats are not where this law thinks").toBe(4);
+    for (const w of widths) expect(w, `seats: ${widths.map(Math.round).join("/")}`).toBeCloseTo(widths[0]!, 0);
+  });
+
+  /**
+   * A BAR NEVER SCROLLS (Kushagra: "I can even move the bar freely in any direction inside that
+   * shell bar"). The pane's own `overflow: auto` made it one: the rail item's press expander
+   * reaches one pane padding past each side, which is right for a rail and 40px of overflow
+   * here, and the pane obligingly grew a scroll range for it.
+   *
+   * TWO HALVES, AND THE SABOTAGE PASS IS WHY. Restoring `overflow: auto` alone changes nothing
+   * measurable, because the repair came in two parts and the other part — the expander scoped
+   * back inside its seat — also removes the overflow; so the outcome is guaranteed twice and the
+   * measured half cannot see the pane's own `auto` reaching a bar again. The mechanism is read
+   * as well: a bar is the one pane in the family that must not be a scroll container, and its
+   * base rule says `auto` because a nav column has to scroll.
+   *
+   * Falsified: `overflow: auto` fails the first half; putting the expander's `inset: 0` back to
+   * the rail's `inset-inline: calc(-1 * var(--kui-sf-p))` fails the second at
+   * `expected 414 to be 374`.
+   */
+  it("a bar is not a scroll container, and has no scroll range", async () => {
+    await narrow();
+    const shell = bars({ only: true });
+    const bar = within(shell, ".kui-shell-rail");
+    expect(computed(bar, "overflow-x"), "the bar can scroll sideways").toBe("clip");
+    expect(computed(bar, "overflow-y"), "the bar can scroll").toBe("clip");
+    expect(bar.scrollWidth, "something inside the bar overflows it sideways").toBe(bar.clientWidth);
+    expect(bar.scrollHeight, "something inside the bar overflows it").toBe(bar.clientHeight);
+  });
+
+  /**
+   * ONE THUMB WIDTH, WHEREVER IT LANDS (Kushagra: "thumb should always take the same width, but
+   * it can take a larger width than a simple grid calc will allow"). It is measured from the
+   * WIDEST label in the bar rather than the current one, so it does not resize as it flies; and
+   * being out of flow it may be wider than a seat's share, which is what lets the seats stay
+   * equal and the words keep their ellipsis unchanged.
+   *
+   * The fixture's labels differ in length on purpose: with equal words this law could not tell a
+   * per-current measurement from a per-bar one, which is the degenerate-fixture rule.
+   *
+   * Falsified: measuring the CURRENT label instead fails at `expected 39.1 to be close to 55.9`.
+   */
+  it("the thumb is one width on every tab, and it may be wider than a seat", async () => {
+    /* AT 320px, WHICH IS THE WIDTH THE OVEREXTENSION EXISTS FOR — and the calibration this law
+       needs. The thumb is `max(seat, widest word + air)`, so on a roomier window the seat floor
+       dominates and a per-current measurement and a per-bar one give the same answer: the
+       sabotage that swapped them passed at 375px. The share has to be narrower than the longest
+       word for the two to be distinguishable at all. */
+    await page.viewport(320, 700);
+    const shell = bars({ only: true });
+    const thumb = within(shell, ".kui-shell-rail-thumb");
+    const seats = [...shell.querySelectorAll<HTMLElement>(".kui-shell-rail-item")];
+    await expect.poll(() => thumb.hidden).toBe(false);
+    /* AN INTERIOR SEAT FOR THE CENTRE, because at an END seat the bar's padding is a WALL the
+       overextension squashes against (the segmented control's own rule, one component over), so
+       the centre legitimately moves inward there — measured 2px on the first seat. Both claims
+       are real; asserting them on one seat would make each the other's excuse. */
+    seats[0]!.removeAttribute("aria-current");
+    seats[1]!.setAttribute("aria-current", "page");
+    await expect.poll(() => seats[1]!.getAttribute("aria-current")).toBe("page");
+    const first = thumb.getBoundingClientRect();
+    expect(first.width, "the thumb is not on the current seat").toBeGreaterThan(0);
+    const seat = seats[1]!.getBoundingClientRect();
+    expect((first.left + first.right) / 2, "the thumb is off its seat's centre").toBeCloseTo(
+      (seat.left + seat.right) / 2,
+      0,
+    );
+
+    /* THE WIDTH IS THE WIDEST WORD'S, AND THE CURRENT SEAT'S IS THE SHORTEST — which is what
+       makes the two measurements distinguishable at all. The first spelling moved the choice
+       from "One" to "Two" and asserted the width held: two three-letter words, so a per-current
+       measurement and a per-bar one give the same answer and the sabotage that swapped them
+       changed nothing (the degenerate-fixture rule, caught by its own falsification run). */
+    /* THE TEXT'S OWN WIDTH, through a Range — `scrollWidth` reports the BOX whenever the word
+       fits it, so on a bar whose labels all fit it answers the same number for every seat and
+       this law's calibration below could not fail. */
+    const words = [...shell.querySelectorAll<HTMLElement>(".kui-shell-rail-label")].map((label) => {
+      const range = document.createRange();
+      range.selectNodeContents(label);
+      return range.getBoundingClientRect().width;
+    });
+    const widest = Math.max(...words);
+    expect(widest, "every label is the same width, so this law cannot tell the two apart").
+      toBeGreaterThan(Math.min(...words) + 4);
+    expect(first.width, "the thumb is too narrow to host the bar's longest word").
+      toBeGreaterThanOrEqual(widest);
+
+    // And it does not resize when the choice moves to the seat that owns that longest word.
+    const longest = seats[words.indexOf(widest)]!;
+    seats[1]!.removeAttribute("aria-current");
+    longest.setAttribute("aria-current", "page");
+    await expect
+      .poll(() => Math.round(thumb.getBoundingClientRect().left))
+      .not.toBe(Math.round(first.left));
+    expect(thumb.getBoundingClientRect().width, "the thumb resized as it flew").toBeCloseTo(
+      first.width,
+      1,
+    );
+  });
+
+  /**
+   * THE BAR'S PADDING IS A WALL (§26's own rule, one component over): an overextending thumb on
+   * an end seat spends the overhang as a squash against the wall rather than escaping the bar,
+   * so it never paints outside the pane it belongs to.
+   *
+   * Falsified: dropping the `max(…, var(--layout-space-2))` floor from either inset fails at
+   * `expected -6 to be greater than or equal to 4` — the thumb hanging past the capsule's end.
+   */
+  it("an overextending thumb squashes against the bar's wall rather than escaping it", async () => {
+    await page.viewport(320, 700);
+    const shell = bars({ only: true });
+    const thumb = within(shell, ".kui-shell-rail-thumb");
+    const bar = within(shell, ".kui-shell-rail");
+    await expect.poll(() => thumb.hidden).toBe(false);
+    const seats = [...shell.querySelectorAll<HTMLElement>(".kui-shell-rail-item")];
+    const pad = parseFloat(computed(bar, "padding-left"));
+    for (const index of [0, seats.length - 1]) {
+      for (const seat of seats) seat.removeAttribute("aria-current");
+      seats[index]!.setAttribute("aria-current", "page");
+      await expect.poll(() => seats[index]!.getAttribute("aria-current")).toBe("page");
+      const box = thumb.getBoundingClientRect();
+      const frame = bar.getBoundingClientRect();
+      expect(box.left - frame.left, `seat ${index} escaped the leading wall`).toBeGreaterThanOrEqual(
+        pad - 0.5,
+      );
+      expect(frame.right - box.right, `seat ${index} escaped the trailing wall`).toBeGreaterThanOrEqual(
+        pad - 0.5,
+      );
+    }
+  });
+
+  /**
+   * AND NOTHING ABOUT A SEAT CHANGES WHEN IT BECOMES CURRENT (Kushagra: "I dont want layout
+   * shift like removal of ellipsis when thumb comes on it"). Read as the seat's box AND its
+   * label's clipping, because the shift that shipped was the label losing its ellipsis: a
+   * `max-content` current label is the same width in layout terms and a different thing on
+   * screen, so a box-only law could not see it.
+   *
+   * Falsified: restoring `inline-size: max-content; overflow: visible` on the current label
+   * fails at `expected false to be true` — the word stops being clipped the moment it is chosen.
+   */
+  it("becoming current changes neither a seat's box nor its label's clipping", async () => {
+    await narrow();
+    const shell = bars({ only: true });
+    const seats = [...shell.querySelectorAll<HTMLElement>(".kui-shell-rail-item")];
+    const read = (seat: HTMLElement) => {
+      const label = seat.querySelector<HTMLElement>(".kui-shell-rail-label")!;
+      return {
+        width: Math.round(seat.getBoundingClientRect().width),
+        clipped: label.scrollWidth > label.clientWidth + 0.5,
+        labelWidth: Math.round(label.getBoundingClientRect().width),
+      };
+    };
+    const before = read(seats[1]!);
+    seats[0]!.removeAttribute("aria-current");
+    seats[1]!.setAttribute("aria-current", "page");
+    await expect.poll(() => seats[1]!.getAttribute("aria-current")).toBe("page");
+    expect(read(seats[1]!)).toEqual(before);
+  });
+
+  /**
+   * THE THUMB PAINTS IN THE PANE'S CURRENCY (§10 clause 5, Kushagra: "why is selected thing not
+   * see through like it is on menu?"). It rested on `--tone-soft`, which a glass pane re-points
+   * to its opaque twin for every descendant — the 2026-08-24 finding — so the bar's own veil had
+   * nothing to mix it back down and the chosen tab painted solid on a translucent bar. Read as
+   * an ALPHA rather than a token name, because that is the half a name cannot see.
+   *
+   * Falsified: dropping the shared layer's glass arm fails at `expected 1 to be less than 1`.
+   */
+  it("on glass the thumb is see-through, and on a solid bar it still paints", async () => {
+    await narrow();
+    const glass = bars({ only: true, backdrop: true });
+    /* CALIBRATED, because the obvious instrument is wrong here and this repo has the scar twice
+       (2026-08-08 and 2026-08-24): a bare `[\d.]+` sweep over `color(display-p3 0.94 0.94 0.95)`
+       takes the *3 in display-p3* as a channel, reports four numbers, and calls a fully opaque
+       fill 0.947 transparent. Written by its own author for a third time here, and caught by
+       this law's falsification run rather than by reading it. */
+    const alpha = (value: string) => {
+      const slashed = /\/\s*([\d.]+%?)\s*\)/.exec(value);
+      if (slashed) {
+        const raw = slashed[1]!;
+        return raw.endsWith("%") ? parseFloat(raw) / 100 : Number(raw);
+      }
+      const rgba = /^rgba?\(([^)]*)\)/.exec(value);
+      if (rgba) {
+        const parts = rgba[1]!.split(/[,\s/]+/).filter(Boolean);
+        return parts.length > 3 ? Number(parts[3]) : 1;
+      }
+      // A `color()` with no slash states no alpha, which means opaque.
+      return 1;
+    };
+    expect(alpha("color(display-p3 0.944 0.945 0.947)"), "the reader miscounts a colour space").toBe(1);
+    expect(alpha("rgba(0, 0, 0, 0.1)"), "the reader cannot read an alpha it is given").toBe(0.1);
+    expect(alpha("color(display-p3 1 1 1 / 0.26)"), "the reader cannot read a slashed alpha").toBe(0.26);
+    expect(within(glass, ".kui-shell-rail").dataset.material, "the bar is not glass here").toBe(
+      "regular",
+    );
+    expect(
+      alpha(computed(within(glass, ".kui-shell-rail-thumb"), "background-color")),
+      "an opaque grip on a glass bar",
+    ).toBeLessThan(1);
+    glass.remove();
+
+    const solid = bars({ only: true });
+    expect(
+      computed(within(solid, ".kui-shell-rail-thumb"), "background-color"),
+      "a solid bar's grip paints nothing",
+    ).not.toBe("rgba(0, 0, 0, 0)");
+  });
+
+  /**
+   * THE BAR PUBLISHES ITS REACH, so the work area scrolls under it and anything the app puts at
+   * the bottom of the work area sits above it. Published on the CONTENT pane rather than the
+   * root, and that is not a spelling: `--kui-shell-row` lives on the panes, so the first
+   * spelling — on the root, where the row is empty — computed the whole length to its 0px
+   * initial with every other law green.
+   *
+   * Falsified: moving the declaration back to `.kui-shell:has(…)` fails at
+   * `expected 0 to be greater than 40`.
+   */
+  it("the bar publishes its reach, and the work area's scroller spends it", async () => {
+    await narrow();
+    const shell = bars({ only: true });
+    const content = within(shell, ".kui-shell-content");
+    // Through the width probe: `numberOn` resolves a token through `opacity`, which clamps a
+    // length to 1 — a reading that looks like a number and is not one.
+    const reach = parseFloat(tokenOn(content, "--kui-shell-inset-block-end"));
+    const bar = within(shell, ".kui-shell-rail").getBoundingClientRect();
+    expect(reach, "the bar published nothing").toBeGreaterThan(40);
+    expect(reach, "the reach must clear the bar it is derived from").toBeGreaterThanOrEqual(
+      bar.height,
+    );
+    const viewport = within(shell, ".kui-scroll-viewport");
+    expect(
+      parseFloat(computed(viewport, "padding-bottom")),
+      "the last line of a page would sit under the bar",
+    ).toBeGreaterThanOrEqual(reach);
+  });
+
+  /**
+   * AND THE BAR RIDES THE PUSH. It is a pane, so it would sit still while the frame slid out
+   * from under it unless it were one of the children the push moves — which is why the push's
+   * exclusion names the two DRAWER postures rather than the rail as such.
+   *
+   * Falsified: excluding `.kui-shell-rail` outright from the push fails at
+   * `expected 0 to be close to 296` — a bar left behind under a pushed page.
+   */
+  it("an open drawer pushes the bar with the content", async () => {
+    await narrow();
+    const shell = bars({ only: true });
+    const bar = within(shell, ".kui-shell-rail");
+    const before = bar.getBoundingClientRect().left;
+    await userEvent.click(within(shell, ".kui-shell-header button"));
+    await expect.poll(() => within(shell, ".kui-shell-sidebar").dataset.state).toBe("open");
+    const content = within(shell, ".kui-shell-content");
+    await expect
+      .poll(() => Math.round(content.getBoundingClientRect().left))
+      .toBeGreaterThan(10);
+    expect(
+      bar.getBoundingClientRect().left - before,
+      "the bar did not travel with the page",
+    ).toBeCloseTo(content.getBoundingClientRect().left, 0);
   });
 });

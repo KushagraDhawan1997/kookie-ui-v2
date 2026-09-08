@@ -3536,7 +3536,8 @@ export const API: Record<string, ApiEntry> = {
         "values": [
           "auto",
           "fixed",
-          "overlay"
+          "overlay",
+          "bar"
         ],
         "optional": true,
         "doc": "How this pane occupies the window while it is open. `auto` answers a question about the room, and it answers it in CSS from the window size, so first paint is right with no script and nothing for hydration to mismatch. Stating a value instead answers a question about the product, and it does more than pin the arrangement: `overlay` also makes the pane rest closed at every width, because an overlay is something you summon rather than live in, where `auto` lets a nav column rest open on a roomy window. So state a value for a pane whose behaviour is a decision, such as a drawer that must never be ambient. Leave it auto for a pane whose behaviour follows from how much window there is."
@@ -3676,7 +3677,8 @@ export const API: Record<string, ApiEntry> = {
         "values": [
           "auto",
           "fixed",
-          "overlay"
+          "overlay",
+          "bar"
         ],
         "optional": true,
         "doc": "How this pane occupies the window while it is open. `auto` answers a question about the room, and it answers it in CSS from the window size, so first paint is right with no script and nothing for hydration to mismatch. Stating a value instead answers a question about the product, and it does more than pin the arrangement: `overlay` also makes the pane rest closed at every width, because an overlay is something you summon rather than live in, where `auto` lets a nav column rest open on a roomy window. So state a value for a pane whose behaviour is a decision, such as a drawer that must never be ambient. Leave it auto for a pane whose behaviour follows from how much window there is."
@@ -3798,14 +3800,20 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "aria-label",
         "type": "string",
-        "optional": false,
-        "doc": "Required, because the item is icon-only, and an icon with no name is a button nobody can read. If the rail ever grows labels they go under the icon and stay a setting on the pane: one word under one icon and not the next is how a column of icons stops lining up."
+        "optional": true,
+        "doc": "The item's name, for an item that predates `label`. State `label` instead: it names the item to a screen reader in the rail and shows the word under the icon in the tab bar."
       },
       {
         "name": "current",
         "type": "boolean",
         "optional": true,
         "doc": "The region you are in. Announced as well as painted, exactly as a nav row's is."
+      },
+      {
+        "name": "label",
+        "type": "string",
+        "optional": true,
+        "doc": "Required, because the item is icon-only, and an icon with no name is a button nobody can read. If the rail ever grows labels they go under the icon and stay a setting on the pane: one word under one icon and not the next is how a column of icons stops lining up. The item's name. The rail SPEAKS it (an icon-only square names itself to AT); the tab bar SHOWS it under the icon (2026-09-09)."
       },
       {
         "name": "render",
@@ -3854,14 +3862,15 @@ export const API: Record<string, ApiEntry> = {
       },
       {
         "name": "presentation",
-        "type": "ShellPresentation",
+        "type": "ShellRailPresentation",
         "values": [
           "auto",
-          "fixed",
+          "bar",
+          "rail",
           "overlay"
         ],
         "optional": true,
-        "doc": "How this pane occupies the window while it is open. `auto` answers a question about the room, and it answers it in CSS from the window size, so first paint is right with no script and nothing for hydration to mismatch. Stating a value instead answers a question about the product, and it does more than pin the arrangement: `overlay` also makes the pane rest closed at every width, because an overlay is something you summon rather than live in, where `auto` lets a nav column rest open on a roomy window. So state a value for a pane whose behaviour is a decision, such as a drawer that must never be ambient. Leave it auto for a pane whose behaviour follows from how much window there is."
+        "doc": "How the rail meets a narrow window. `auto` (the default) is a rail on a wide window and a tab bar across the bottom on a narrow one, carrying the rail's own items across. `bar` is the tab bar only, and nothing on a wide window. `rail` is never a bar, for a tool rail with more items than a bar can hold. `overlay` is always a drawer."
       },
       {
         "name": "size",
@@ -3981,7 +3990,8 @@ export const API: Record<string, ApiEntry> = {
         "values": [
           "auto",
           "fixed",
-          "overlay"
+          "overlay",
+          "bar"
         ],
         "optional": true,
         "doc": "How this pane occupies the window while it is open. `auto` answers a question about the room, and it answers it in CSS from the window size, so first paint is right with no script and nothing for hydration to mismatch. Stating a value instead answers a question about the product, and it does more than pin the arrangement: `overlay` also makes the pane rest closed at every width, because an overlay is something you summon rather than live in, where `auto` lets a nav column rest open on a roomy window. So state a value for a pane whose behaviour is a decision, such as a drawer that must never be ambient. Leave it auto for a pane whose behaviour follows from how much window there is."
@@ -4872,6 +4882,23 @@ export const API: Record<string, ApiEntry> = {
         "type": "boolean",
         "optional": true,
         "doc": "Turns every control in the group off at once."
+      }
+    ]
+  },
+  "ToolbarOverflow": {
+    "element": "div",
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The controls in the cluster, in order. Whatever does not fit the room the row has left is drawn inside the `⋯` menu instead — the same element, asked where it is."
+      },
+      {
+        "name": "label",
+        "type": "string",
+        "optional": true,
+        "doc": "The accessible name of the button that opens what did not fit. It is icon-only, so this is the only name it has."
       }
     ]
   },

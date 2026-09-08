@@ -2,7 +2,7 @@
  * One renderer over the chapter registry. Adding a chapter is adding a row and a file; no
  * page is ever written for it.
  *
- * The catch-all sits at the docs root, so it answers `/concepts/principles` and
+ * The catch-all sits at the docs root, so it answers `/start/principles` and
  * every other `<section>/<name>` pair. `/components` and `/components/<slug>` are static
  * segments and win over it, which is Next's own specificity rule and the reason the component
  * reference can keep its own renderer.

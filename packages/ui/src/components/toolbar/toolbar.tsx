@@ -289,7 +289,9 @@ export type ToolbarOverflowProps = ComponentRefusals &
      * the only name it has.
      */
     label?: string;
-    children?: React.ReactNode;
+    /** The controls in the cluster, in order. Whatever does not fit the room the row has left is
+      drawn inside the `⋯` menu instead — the same element, asked where it is. */
+  children?: React.ReactNode;
     ref?: React.Ref<HTMLDivElement>;
   };
 
@@ -414,8 +416,10 @@ export function ToolbarOverflow({
       {...props}
     >
       {items.slice(0, shown).map((item, i) => (
-        // eslint-disable-next-line react/no-array-index-key -- the seat IS the index: it is a
-        // position in the row, not an identity, and it must stay put when a child draws nothing.
+        // THE SEAT IS THE INDEX, not an identity: it is a position in the row, and it must stay
+        // put when the child inside it draws nothing. (No disable comment, because this config
+        // ships no `react/no-array-index-key` rule to disable — an unknown rule name is itself
+        // a lint error, which is how the comment came to fail the build it was meant to quiet.)
         <div key={i} className="kui-toolbar-overflow-seat">
           {item}
         </div>

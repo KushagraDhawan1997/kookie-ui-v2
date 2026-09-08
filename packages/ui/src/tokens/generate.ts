@@ -364,6 +364,7 @@ export function generateTokens(): string {
   put("motion-spring-elastic", springCurve(springs.elastic));
   put("motion-spring-poised", springCurve(springs.poised));
   put("motion-spring-driven", springCurve(springs.driven));
+  put("motion-spring-carried", springCurve(springs.carried));
 
   lines.push("", "  /* the floating family's own motion (§22) — the emergence recipe's channels. Time, so");
   lines.push("     no --scale: a panel does not unfurl slower because the interface is zoomed. */");

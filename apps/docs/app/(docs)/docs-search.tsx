@@ -62,8 +62,15 @@ export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
         setOpen((value) => !value);
       }
     };
+    // The tab bar's search seat (2026-09-09): a second opener in another component, so it
+    // asks by event rather than by lifting the state.
+    const onAsk = () => setOpen(true);
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    document.addEventListener("kd:search", onAsk);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("kd:search", onAsk);
+    };
   }, []);
 
   return (

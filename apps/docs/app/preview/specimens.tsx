@@ -94,6 +94,7 @@ import {
   ShellSidebar,
   ShellRailItem,
   ShellRailList,
+  ShellTabBar,
   ShellNavItem,
   ShellNavGroup,
   ShellPaneFooter,
@@ -103,6 +104,7 @@ import {
   Toolbar,
   ToolbarButton,
   ToolbarGroup,
+  ToolbarOverflow,
   ToolbarSeparator,
   ToolbarTitle,
   ShellContent,
@@ -2131,6 +2133,45 @@ function ShellSection() {
         </Box>
       </Demo>
 
+      {/* THE TAB BAR (§27, 2026-09-09). Shown at every width on purpose, which is the one thing
+          this specimen cannot do honestly: a bar renders only on a narrow window, so the frame
+          below is a phone-width box rather than a page-width one. Judge it by narrowing the
+          real window instead — the docs' own bar is the specimen, and it is at the foot of
+          every page on a phone. */}
+      <Demo label="A tab bar — the top level of an app with no rail, on a narrow window">
+        <Box width="24rem" height="22rem">
+          <Shell size="2">
+            <ShellHeader>
+              <Text size="2" weight="medium">
+                Kookie Studio
+              </Text>
+            </ShellHeader>
+            <ShellTabBar aria-label="Sections" flush={false}>
+              <ShellRailList>
+                <ShellRailItem label="Home" current>
+                  H
+                </ShellRailItem>
+                <ShellRailItem label="Projects">P</ShellRailItem>
+                <ShellRailItem label="Reports">R</ShellRailItem>
+              </ShellRailList>
+              <ShellRailItem label="Search">S</ShellRailItem>
+            </ShellTabBar>
+            <ShellContent>
+              <ShellScroll fade>
+                <Stack gap="2">
+                  <Heading size="6">Home</Heading>
+                  <Text size="2" emphasis="medium">
+                    The bar floats over the work area and publishes its reach, so the page
+                    scrolls under it and the last line of a page still clears it. The chosen
+                    tab is a grip that travels on the segmented control's own physics.
+                  </Text>
+                </Stack>
+              </ShellScroll>
+            </ShellContent>
+          </Shell>
+        </Box>
+      </Demo>
+
       {/* ALL CARDS: every pane non-flush. Nothing is behind anything, so nothing floats —
           the frame pays half the gap and each pane pays half, which is the one regime where
           that construction is exact. Restored 2026-08-20: the commit that special-cased this
@@ -3010,6 +3051,35 @@ function ToolbarSection() {
             <Card key={size} size={size}>
               <Toolbar size={size}>{tools}</Toolbar>
             </Card>
+          ))}
+        </Stack>
+      </Demo>
+
+      {/* WHEN THE ROW RUNS OUT OF ROOM (§45): the same cluster in two boxes, and the narrow one
+          is the whole demonstration — what does not fit is drawn in the `⋯` menu instead, as
+          the same element asked where it is. Judged side by side, because the collapse is a
+          RELATION between the controls and the room, and one box can only show one end of it. */}
+      <Demo label="Overflow — the cluster that does not fit is drawn in a menu instead">
+        <Stack gap="3">
+          {["36rem", "17rem"].map((width) => (
+            <Box key={width} width={width}>
+              <Card size="2">
+                <Toolbar>
+                  <ToolbarTitle>Nature Walks</ToolbarTitle>
+                  <ToolbarOverflow label="More">
+                    <ToolbarButton iconOnly aria-label="Lock">
+                      <LockIcon />
+                    </ToolbarButton>
+                    <ToolbarButton iconOnly aria-label="Copy">
+                      <CopyIcon />
+                    </ToolbarButton>
+                    <ToolbarButton iconOnly aria-label="Search">
+                      <SearchIcon />
+                    </ToolbarButton>
+                  </ToolbarOverflow>
+                </Toolbar>
+              </Card>
+            </Box>
           ))}
         </Stack>
       </Demo>

@@ -113,10 +113,26 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     const arms = css
       .split("}")
       .filter((rule) =>
-        /\.kui-shell-(rail|sidebar|inspector|bottom)(?![\w-])[^{]*\{[^{]*position:\s*absolute/.test(rule),
+        /\.kui-shell-(rail|sidebar|inspector|bottom)(?![\w-])[^{>]*\{[^{]*position:\s*absolute/.test(rule),
       );
-    expect(arms.length, "the overlay arms are not where this law thinks").toBe(6);
-    for (const arm of arms) {
+    // `[^{>]` rather than `[^{]` since 2026-09-09: a child combinator after the pane means the
+    // rule is about something INSIDE it, and the tab bar's thumb is absolutely positioned in
+    // exactly that shape. The lookahead already held the set to the four panes against
+    // `-item::after`; this holds it against `> .kui-shell-rail-thumb`, which is the same
+    // mistake one combinator over.
+    //
+    // SEVEN ARMS SINCE 2026-09-09, and the seventh is exempt from the cap BY DESIGN (§27): a
+    // tab bar spans the window's width on purpose, and it is not a thing you dismiss, so there
+    // is no strip of scrim it has to leave. Partitioned rather than counted around, so the
+    // exemption is one named arm and a drawer added tomorrow still cannot ship uncapped.
+    expect(arms.length, "the overlay arms are not where this law thinks").toBe(7);
+    const bar = arms.filter((arm) => arm.includes('[data-presentation="bar"]'));
+    expect(bar.length, "the tab bar's arm is not where this law thinks").toBe(1);
+    expect(
+      /max-(inline|block)-size/.test(bar[0]!),
+      "the tab bar took a viewport cap — it spans the window, and capping it would inset one edge only",
+    ).toBe(false);
+    for (const arm of arms.filter((a) => !a.includes('[data-presentation="bar"]'))) {
       expect(
         /max-(inline|block)-size:\s*calc\(100% - var\(--touch-target-min\) - 2 \* var\(--kui-shell-outer\)\)/.test(
           arm,
@@ -145,9 +161,12 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     const arms = css
       .split("}")
       .filter((rule) =>
-        /\.kui-shell-(rail|sidebar|inspector|bottom)(?![\w-])[^{]*\{[^{]*position:\s*absolute/.test(rule),
+        /\.kui-shell-(rail|sidebar|inspector|bottom)(?![\w-])[^{>]*\{[^{]*position:\s*absolute/.test(rule),
       );
-    expect(arms.length, "the overlay arms are not where this law thinks").toBe(6);
+    // Seven since 2026-09-09 — the tab bar leaves flow too, and it spans for the same reason
+    // every other arm does: an out-of-flow grid item does not size its own `auto` track, so a
+    // bar that claimed only the rail's column would be as wide as a rail.
+    expect(arms.length, "the overlay arms are not where this law thinks").toBe(7);
     for (const arm of arms) {
       const axis = /\.kui-shell-bottom(?![\w-])/.test(arm) ? "row" : "column";
       expect(
@@ -221,7 +240,10 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
 
     const standDowns = [
       /\.kui-shell-pane\[data-flush\]\s*\{[^}]*\}/g,
-      /\.kui-shell-pane\[data-flush\]\[data-presentation="(?:overlay|auto)"\]\s*\{[^}]*\}/g,
+      // The SHEET's, since 2026-09-09: the flush stand-down is right for a pane level with the
+      // page and wrong for one over it, and the exception narrowed to the pane it is true of
+      // when the side panes started pushing the frame instead of covering it.
+      /\.kui-shell-bottom\[data-flush\]\[data-presentation="(?:overlay|auto)"\]\s*\{[^}]*\}/g,
     ];
     for (const re of standDowns) {
       for (const rule of css.match(re) ?? []) {
@@ -268,7 +290,7 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
        one negative layer settle it by order instead. Bounded by VALUE like every other paint
        here — the plane may name exactly one colour and it is the seal — and by the SHAPE, so
        the arm cannot quietly move back onto the root where it does not work. */
-    const planeRe = /\.kui-shell(?::has\(> \.kui-shell-pane\[data-state="open"\]\[data-presentation="(?:overlay|auto)"\]\))?::after\s*\{[^}]*\}/g;
+    const planeRe = /\.kui-shell(?::has\(> \.kui-shell-bottom\[data-state="open"\]\[data-presentation="(?:overlay|auto)"\]\))?::after\s*\{[^}]*\}/g;
     const plane = css.match(planeRe) ?? [];
     expect(plane.length, "the frame's plane vanished — this arm reads nothing").toBe(3);
     for (const rule of plane) {
@@ -278,7 +300,7 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
         );
       }
     }
-    const recedingRoot = css.match(/\.kui-shell:has\(> \.kui-shell-pane\[data-state="open"\]\[data-presentation="(?:overlay|auto)"\]\)\s*\{[^}]*\}/g) ?? [];
+    const recedingRoot = css.match(/\.kui-shell:has\(> \.kui-shell-bottom\[data-state="open"\]\[data-presentation="(?:overlay|auto)"\]\)\s*\{[^}]*\}/g) ?? [];
     expect(recedingRoot.length, "the recession's own rules vanished").toBe(2);
     for (const rule of recedingRoot) {
       expect(rule, "the plane moved back onto the root, where the well paints over it").not.toMatch(
@@ -293,6 +315,17 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
       .replace(/\.kui-shell[^{]*::before\s*\{[^}]*\}/g, " ")
       .replace(/\.kui-shell-nav-item:hover[^{]*\{[^}]*\}/g, " ")
       .replace(/\.kui-shell-resize[^{]*\{[^}]*\}/g, " ")
+      // The tab bar's thumb (2026-09-09), bounded by value the way the well and the plane are:
+      // it may name the neutral soft rung and nothing else. Its glass currency is the shared
+      // layer's, beside the segmented control's, and surfaces.test.ts reads it there.
+      .replace(/\.kui-shell-rail\[data-presentation="bar"\] > \.kui-shell-rail-thumb\s*\{[^}]*\}/g, (rule) => {
+        for (const decl of rule.match(/background[^;]*/g) ?? []) {
+          expect(decl.trim(), "the bar's thumb may not name a colour of its own").toBe(
+            "background-color: var(--tone-soft)",
+          );
+        }
+        return " ";
+      })
       .replace(standDowns[0]!, " ")
       .replace(standDowns[1]!, " ");
     expect(sanctioned).not.toMatch(/background/);
@@ -324,7 +357,14 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
       // The live arm, both spellings: it carries the frame's recession AND the clip that stops
       // (2026-09-06) — one `transition` per element, so the two channels cannot reset each
       // other, which is what the first spelling did.
-      /\.kui-shell:has\(> \.kui-shell-pane\[data-state="open"\]\[data-presentation="(?:overlay|auto)"\]\)\s*\{[^}]*\}/g,
+      /\.kui-shell:has\(> \.kui-shell-bottom\[data-state="open"\]\[data-presentation="(?:overlay|auto)"\]\)\s*\{[^}]*\}/g,
+      // THE PUSH (2026-09-09): a side pane slides the whole frame rather than covering it, so
+      // the frame's children carry the travel — the pane itself is excluded, since the open one
+      // slides the same distance on the same clock and a parked one is off the frame either way.
+      /:where\(\.kui-shell > :not\(\.kui-shell-rail\[data-presentation="auto"\]\)[^{]*\)\s*\{[^}]*\}/g,
+      // And the tab bar's thumb, both direction arms — the travelling grip, self-keyed from the
+      // segmented control, whose lead and trail clocks are the asymmetry.
+      /\.kui-shell-rail\[data-presentation="bar"\] > \.kui-shell-rail-thumb\[data-activation-direction="(?:right|left)"\]\s*\{[^}]*\}/g,
       /@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\n\s*\}\n\s*\}/g,
     ];
     const unclocked = clocked.reduce((acc, re) => acc.replace(re, " "), css);
@@ -414,6 +454,15 @@ describe("the band's fade is handed over only where a band floats (§27, 2026-09
     // designed value unreachable for every pane in the package. Counted rather than pattern-
     // matched — the obvious negative regex matched the scoped rules themselves, because the
     // character before the scroller in `…[data-float]) > .kui-shell-scroll` is a `>`.
-    expect(css.match(/--kui-sa-fade-/g) ?? []).toHaveLength(2);
+    // THREE SINCE 2026-09-09, and the third is the tab bar's: the work area scrolls under a
+    // floating bar exactly as it scrolls under a floating band, so it takes the bar's published
+    // reach as its fade. Scoped like the other two — to a shell that HAS a bar, and to the
+    // content pane's own direct scroller — which is what the count is here to keep true.
+    expect(css.match(/--kui-sa-fade-/g) ?? []).toHaveLength(3);
+    const bar = css.indexOf(
+      '.kui-shell:has(> .kui-shell-rail[data-presentation="bar"]) > .kui-shell-content > .kui-shell-scroll',
+    );
+    expect(bar, "no fade rule keyed on a tab bar").toBeGreaterThan(-1);
+    expect(css.slice(bar, css.indexOf("}", bar))).toContain("--kui-sa-fade-end");
   });
 });

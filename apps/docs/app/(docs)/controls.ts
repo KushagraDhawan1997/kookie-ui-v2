@@ -374,24 +374,38 @@ export function inlineControls(source: string, controls: readonly Control[], slo
 function dropUnusedImports(source: string): string {
   const lines = source.split("\n");
   const importEnd = lines.findIndex((line, i) => i > 0 && line.trim() === "" && lines.slice(0, i).some((l) => l.startsWith("import")));
-  const body = lines.slice(importEnd < 0 ? 0 : importEnd).join("\n");
+  const cut = importEnd < 0 ? 0 : importEnd;
+  const head = lines.slice(0, cut).join("\n");
+  const body = lines.slice(cut).join("\n");
+  const used = (specifier: string) => {
+    const identifier = specifier.replace(/^type\s+/, "").split(/\s+as\s+/).pop()!.trim();
+    return new RegExp(`\\b${identifier}\\b`).test(body);
+  };
 
-  return lines
-    .map((line, i) => {
-      if (importEnd >= 0 && i >= importEnd) return line;
-      const named = /^import\s+(type\s+)?\{([^}]*)\}\s+from\s+(.*)$/.exec(line);
-      if (!named) return line;
-      const kept = named[2]!
+  /* OVER THE IMPORT BLOCK, NOT LINE BY LINE (2026-09-09). The first spelling matched
+     `^import … { … } from …$` on one line, so a MULTI-LINE named import — which is every import
+     in this app that pulls more than three names — went untouched, and the one orphan this
+     transform is most likely to produce was the one shape it could not see: measured on
+     `attachment.message`, `type Size` survived the parameter list it annotated. The rewrite
+     keeps each block's own formatting, because the shown source is source a reader copies. */
+  const rewritten = head.replace(
+    /^import\s+(type\s+)?\{([\s\S]*?)\}\s+from\s+(.*)$/gm,
+    (whole, typeOnly: string | undefined, inside: string, from: string) => {
+      const parts = inside
         .split(",")
         .map((part) => part.trim())
-        .filter(Boolean)
-        .filter((part) => {
-          const identifier = part.replace(/^type\s+/, "").split(/\s+as\s+/).pop()!.trim();
-          return new RegExp(`\\b${identifier}\\b`).test(body);
-        });
-      if (kept.length === 0) return null;
-      return `import ${named[1] ?? ""}{ ${kept.join(", ")} } from ${named[3]}`;
-    })
-    .filter((line): line is string => line !== null)
-    .join("\n");
+        .filter(Boolean);
+      const kept = parts.filter(used);
+      if (kept.length === parts.length) return whole;
+      if (kept.length === 0) return "";
+      // One line stays one line; a block stays a block, at the block's own indent.
+      if (!inside.includes("\n")) return `import ${typeOnly ?? ""}{ ${kept.join(", ")} } from ${from}`;
+      const indent = /\n(\s*)\S/.exec(inside)?.[1] ?? "  ";
+      return `import ${typeOnly ?? ""}{\n${kept.map((part) => `${indent}${part},`).join("\n")}\n} from ${from}`;
+    },
+  );
+
+  return [rewritten.split("\n").filter((line, i, all) => line !== "" || i === 0 || all[i - 1] !== "").join("\n"), body]
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n");
 }

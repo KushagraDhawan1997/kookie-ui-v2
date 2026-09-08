@@ -64,7 +64,7 @@ export type ShellPaneTarget = "rail" | "sidebar" | "inspector" | "bottom";
 /** How a pane presents when open: in flow (`fixed`), floating over content behind a scrim
     (`overlay`), or the system's resolution (`auto`: fixed on roomy windows, overlay on
     narrow ones — resolved in CSS through §18's boundary, so first paint needs no script). */
-export type ShellPresentation = "auto" | "fixed" | "overlay";
+export type ShellPresentation = "auto" | "fixed" | "overlay" | "bar";
 
 type PaneEntry = {
   id: string;
@@ -1054,6 +1054,7 @@ function useResizeHandle(opts: {
     // `--kui-shell-h`. Writing the inline name unconditionally is why the block arm could
     // never have worked even once something rendered it.
     pane.style.setProperty(axis === "inline" ? "--kui-shell-w" : "--kui-shell-h", `${settled}px`);
+    publishExtent(pane, axis, settled);
     // AND THE FRAME'S PUBLISHED REACH, WHICH IS A SECOND READER OUTSIDE THIS PANE (2026-09-05,
     // Kushagra: "these floating back and sidebar collapse button should be positioned from
     // left to the same width as sidebar, and yet resizing sidebar doesnt move them").
@@ -1104,6 +1105,7 @@ function useResizeHandle(opts: {
     const pane = paneRef.current ?? resolvePane();
     if (!pane || controlledExtent === undefined) return;
     pane.style.setProperty(axis === "inline" ? "--kui-shell-w" : "--kui-shell-h", `${controlledExtent}px`);
+    publishExtent(pane, axis, controlledExtent);
   }, [controlledExtent, axis, paneRef]);
 
   React.useLayoutEffect(() => {
@@ -1271,6 +1273,17 @@ function ResizeHandle(props: {
   );
 }
 
+/** THE ROOT LEARNS WHAT A SIDE PANE IS WEARING (2026-09-08). On a wide window a pane's width
+    is a grid column and nothing needs the number; on a phone the frame is pushed by it, and a
+    push is a length read on the ROOT, which cannot see the pane's own `--kui-shell-w` (registered
+    not to inherit, the `--kui-h` trap). So every writer of that width — the drag, the controlled
+    extent, the `width` prop — also publishes it one level up under the pane's own name. */
+function publishExtent(pane: HTMLElement, axis: "inline" | "block", px: number) {
+  if (axis !== "inline") return;
+  const name = pane.classList.contains("kui-shell-inspector") ? "inspector" : "sidebar";
+  pane.closest<HTMLElement>(".kui-shell")?.style.setProperty(`--kui-shell-${name}-w`, `${px}px`);
+}
+
 function sidePaneStyle(width: number | undefined, style: React.CSSProperties | undefined) {
   if (width === undefined) return style;
   return { "--kui-shell-w": `${width}px`, ...style } as VarStyle;
@@ -1323,7 +1336,20 @@ function SidePane({
   // rather than replacing anything, the `render` escape's 2026-08-03 lesson.
   const ownRef = React.useRef<HTMLElement | null>(null);
   const composedRef = useMergedRefs(ref, pane.paneRef, ownRef);
-  const { material, stamps, ref: paneRef } = usePaneDress(flush, backdrop, composedRef, pane.overlaying);
+  // A SIDE PANE PUSHES, IT DOES NOT COVER (2026-09-08, Kushagra: "the content is pushed to
+  // right, so sidebar always stays compliant with how desktop works"). Under the push the
+  // frame slides aside and the pane is the desktop pane revealed, with the page behind it
+  // exactly as on a wide window — so the covering-panel rule in `usePaneDress` does not
+  // apply, and only `backdrop` (or an ambient region) states its material. The bottom pane is
+  // still a sheet over the content and keeps passing its posture.
+  const { material, stamps, ref: paneRef } = usePaneDress(flush, backdrop, composedRef, false);
+  // The `width` prop's own publication (see `publishExtent`); a drag or a controlled change
+  // overwrites it, which is the same order the pane's own inline width already resolves in.
+  React.useLayoutEffect(() => {
+    const el = ownRef.current;
+    if (!el || width === undefined) return;
+    publishExtent(el, "inline", width);
+  }, [width]);
   const Element = element;
   const element_ = (
     <Element
@@ -1415,17 +1441,147 @@ function SidePane({
   );
 }
 
+/** How a rail meets a narrow window (§27, 2026-09-09). `auto` (the default): a rail on a wide
+    window, a floating tab bar across the bottom on a narrow one — the rail's own items, carried
+    across. `bar`: the tab bar only, nothing on a wide window (`ShellTabBar` is this by name).
+    `rail`: never a bar — a rail on a wide window and a drawer on a narrow one, for a tool rail
+    with more items than a bar can hold. `overlay`: always a drawer. */
+export type ShellRailPresentation = "auto" | "bar" | "rail" | "overlay";
+
 export type ShellRailProps = ComponentRefusals & Omit<
   SidePaneProps,
-  "width" | "resizable" | "minWidth" | "maxWidth" | "onResize" | "resizeLabel"
->;
+  "width" | "resizable" | "minWidth" | "maxWidth" | "onResize" | "resizeLabel" | "presentation"
+> & {
+  /** How the rail meets a narrow window. `auto` (the default) is a rail on a wide window and a
+      tab bar across the bottom on a narrow one, carrying the rail's own items across. `bar` is
+      the tab bar only, and nothing on a wide window. `rail` is never a bar, for a tool rail with
+      more items than a bar can hold. `overlay` is always a drawer. */
+  presentation?: ShellRailPresentation;
+};
 
 /** The narrow icon column — the one that switches sections. Independent of the sidebar:
     nothing excludes anything, because nothing overlaps (§27 deleted v1's thin mode, the
     exclusivity rule and the close-cascade in one renaming). Renders `<nav>`; when two nav
     landmarks are present, give each an `aria-label`. */
-export function ShellRail(props: ShellRailProps) {
-  return <SidePane name="rail" element="nav" props={props} />;
+/** THE BAR'S THUMB, placed by measurement (2026-09-09) — the segmented control's
+    `useTravelingThumb`, self-keyed as its second member: it watches `aria-current` instead of
+    `data-checked`, writes `--kui-bar-*`, and its seats are wherever the items sit (the list is
+    `display: contents` in the bar). The same visual-scale division, for the same reason: a bar
+    inside anything that scales as it opens would be measured mid-entry. */
+function useBarThumb(rail: React.RefObject<HTMLElement | null>) {
+  const previousLeft = React.useRef<number | null>(null);
+  React.useLayoutEffect(() => {
+    const el = rail.current;
+    if (!el) return;
+    const thumb = el.querySelector<HTMLElement>(":scope > .kui-shell-rail-thumb");
+    if (!thumb) return;
+    const visualScale = (box: DOMRect, edges: CSSStyleDeclaration) => {
+      const layout =
+        edges.boxSizing === "border-box"
+          ? parseFloat(edges.width)
+          : parseFloat(edges.width) +
+            parseFloat(edges.paddingLeft) +
+            parseFloat(edges.paddingRight) +
+            parseFloat(edges.borderLeftWidth) +
+            parseFloat(edges.borderRightWidth);
+      return layout > 0 ? box.width / layout : 1;
+    };
+    const place = (flying: boolean) => {
+      const chosen = el.querySelector<HTMLElement>(".kui-shell-rail-item[aria-current]");
+      if (!chosen) {
+        thumb.hidden = true;
+        previousLeft.current = null;
+        return;
+      }
+      const box = el.getBoundingClientRect();
+      const seat = chosen.getBoundingClientRect();
+      const edges = getComputedStyle(el);
+      const scale = visualScale(box, edges);
+      // ONE WIDTH, AND IT MAY OVEREXTEND (2026-09-09, Kushagra: "thumb should always take the
+      // same width, but it can take a larger width than a simple grid calc will allow"). The
+      // width is read from the WIDEST label in the bar, not from the current one, so the thumb
+      // is the same size wherever it lands — a thumb that resized as it flew would be a second
+      // motion nobody asked for. Being out of flow it can be wider than a seat's share without
+      // moving anything, which is the whole reason the seats can stay equal; the walls in CSS
+      // keep it inside the bar's padding at the two ends. `scrollWidth` is the untruncated
+      // word, so an ellipsed label still contributes its real width.
+      const seatStyle = getComputedStyle(chosen);
+      const air = parseFloat(seatStyle.paddingLeft) + parseFloat(seatStyle.paddingRight);
+      let widest = 0;
+      for (const word of el.querySelectorAll<HTMLElement>(".kui-shell-rail-label")) {
+        widest = Math.max(widest, word.scrollWidth + air);
+      }
+      const width = Math.max(seat.width, widest);
+      const centre = (seat.left + seat.right) / 2;
+      const left = (centre - width / 2 - box.left) / scale - parseFloat(edges.borderLeftWidth);
+      const right = (box.right - (centre + width / 2)) / scale - parseFloat(edges.borderRightWidth);
+      const from = previousLeft.current;
+      thumb.hidden = false;
+      thumb.dataset.activationDirection =
+        !flying || from === null || from === left ? "none" : left > from ? "right" : "left";
+      thumb.style.setProperty("--kui-bar-left", `${left}px`);
+      thumb.style.setProperty("--kui-bar-right", `${right}px`);
+      previousLeft.current = left;
+    };
+    place(false);
+    const selection = new MutationObserver(() => place(true));
+    selection.observe(el, { subtree: true, attributes: true, attributeFilter: ["aria-current"] });
+    const size = new ResizeObserver(() => place(false));
+    size.observe(el);
+    const watched = new WeakSet<Element>();
+    const watchSeats = () => {
+      for (const seat of el.querySelectorAll<HTMLElement>(".kui-shell-rail-item")) {
+        if (watched.has(seat)) continue;
+        watched.add(seat);
+        size.observe(seat);
+      }
+    };
+    watchSeats();
+    const seats = new MutationObserver(watchSeats);
+    seats.observe(el, { childList: true, subtree: true });
+    return () => {
+      selection.disconnect();
+      size.disconnect();
+      seats.disconnect();
+    };
+  }, [rail]);
+}
+
+/** The thin navigation column of squares, and the app's TOP level: on a narrow window it meets
+    the viewport as a floating tab bar across the bottom, carrying its own items across (§27,
+    2026-09-09). `presentation` says which of the three postures it takes; `ShellTabBar` is the
+    bar-only one under a name a caller will look for. Renders `<nav>`; when two nav landmarks
+    are present, give each an `aria-label`. */
+export function ShellRail({ presentation = "auto", ...props }: ShellRailProps) {
+  const railRef = React.useRef<HTMLElement | null>(null);
+  useBarThumb(railRef);
+  const ref = useMergedRefs(props.ref, railRef);
+  // THE RAIL BECOMES THE BAR ON ITS OWN (2026-09-09, Kushagra: "rail becomes bar on its own…
+  // if it has sidebar only, sidebar becomes tab, caller declares a list suitable for tabbar").
+  // The pane is stamped `bar` for both postures that end in a bar, and `data-bar` says whether
+  // a wide window shows a rail (`auto`) or nothing (`only`); `rail` is the pre-2026-09-09
+  // behaviour, which the stylesheet still spells as `auto`. Resolved by the same media query
+  // as the drawer, so first paint is right with no script.
+  const mapped: ShellPresentation = presentation === "rail" ? "auto" : presentation === "overlay" ? "overlay" : "bar";
+  const bar = presentation === "auto" ? "auto" : presentation === "bar" ? "only" : undefined;
+  const stamps = (bar ? { "data-bar": bar } : {}) as Record<string, string>;
+  const children = (
+    <>
+      <span className="kui-shell-rail-thumb" aria-hidden="true" hidden />
+      {props.children}
+    </>
+  );
+  return <SidePane name="rail" element="nav" props={{ ...props, ...stamps, ref, children, presentation: mapped } as SidePaneProps} />;
+}
+
+export type ShellTabBarProps = Omit<ShellRailProps, "presentation">;
+
+/** The tab bar for a Shell that has no rail: three to five places across the bottom of a
+    narrow window, and nothing on a wide one — the sidebar carries the navigation there. A
+    `ShellRailList` holds the tabs; one `ShellRailItem` after it is the detached seat (search).
+    Optional: a Shell without one is still responsive, its sidebar is reachable as a drawer. */
+export function ShellTabBar(props: ShellTabBarProps) {
+  return <ShellRail {...props} presentation="bar" />;
 }
 
 export type ShellSidebarProps = ComponentRefusals & SidePaneProps;
@@ -1707,7 +1863,13 @@ export type ShellRailItemProps = ComponentRefusals & Omit<React.ComponentPropsWi
    * If the rail ever grows labels they go under the icon and stay a setting on the pane: one word
    * under one icon and not the next is how a column of icons stops lining up.
    */
-  "aria-label": string;
+  /** The item's name. The rail SPEAKS it (an icon-only square names itself to AT); the tab
+      bar SHOWS it under the icon (2026-09-09). */
+  label?: string;
+  /** The item's name, for an item that predates `label`. State `label` instead: it names the
+      item to a screen reader in the rail and shows the word under the icon in the tab bar.
+      @deprecated since 2026-09-09 — use `label`. */
+  "aria-label"?: string;
   ref?: React.Ref<HTMLElement>;
 };
 
@@ -1727,12 +1889,20 @@ export function ShellRailItem({
   render,
   className,
   children,
+  label,
   ref,
   ...props
 }: ShellRailItemProps) {
   const size = React.use(ShellSizeContext);
+  const content = label === undefined ? children : (
+    <>
+      {children}
+      <span className="kui-shell-rail-label" aria-hidden>{label}</span>
+    </>
+  );
   const merged = {
     ...props,
+    "aria-label": label ?? props["aria-label"],
     "data-size": size,
     ...(current
       ? { "aria-current": "page" as const, "data-tone": "accent", "data-emphasis": "medium" }
@@ -1740,10 +1910,10 @@ export function ShellRailItem({
     className: cx("kui-control kui-shell-rail-item", className),
     ref,
   };
-  if (render) return composeRender(render, merged as never, children);
+  if (render) return composeRender(render, merged as never, content);
   return (
     <button {...(merged as React.ComponentPropsWithoutRef<"button">)} type="button">
-      {children}
+      {content}
     </button>
   );
 }

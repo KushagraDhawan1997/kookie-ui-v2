@@ -37,9 +37,9 @@ import { DocsTheme } from "./theme-store";
  * its one file declares itself at 50; this one declares 400 and the two agree.
  */
 const wordmark = localFont({
-  src: "./fonts/Tanker-Regular.woff2",
+  src: "./fonts/Boska-Medium.woff2",
   variable: "--kd-font-wordmark",
-  weight: "400",
+  weight: "500",
   display: "swap",
   fallback: ["ui-sans-serif", "system-ui", "-apple-system", "sans-serif"],
 });

@@ -21,8 +21,8 @@ import Installation from "../../content/start/installation.mdx";
 import Theming from "../../content/start/theming.mdx";
 import Quickstart from "../../content/start/quickstart.mdx";
 import Agents from "../../content/start/agents.mdx";
-import Principles from "../../content/concepts/principles.mdx";
-import Vocabulary from "../../content/concepts/vocabulary.mdx";
+import Principles from "../../content/start/principles.mdx";
+import Vocabulary from "../../content/start/vocabulary.mdx";
 import Composition from "../../content/patterns/composition.mdx";
 import Forms from "../../content/patterns/forms.mdx";
 import Modality from "../../content/patterns/modality.mdx";
@@ -39,7 +39,7 @@ import Motion from "../../content/foundations/motion.mdx";
 import States from "../../content/foundations/states.mdx";
 import Responsiveness from "../../content/foundations/responsiveness.mdx";
 
-export type SectionId = "start" | "concepts" | "foundations" | "patterns";
+export type SectionId = "start" | "foundations" | "patterns";
 
 export type Section = {
   id: SectionId;
@@ -50,15 +50,16 @@ export type Section = {
 
 export const SECTIONS: readonly Section[] = [
   {
+    /* CONCEPTS MERGED IN HERE 2026-09-09 (Kushagra: "merge getting started and concepts, lead
+       with principles + vocab before installation"). The two sections were four rows and two
+       rows, and the split asked a reader to decide whether they wanted ideas or instructions
+       before they had either. Reading them in one run is the order that works: what the system
+       believes, the words it uses, then the install — so you meet `emphasis` and `tone` as
+       ideas rather than as props that appeared in a snippet. */
     id: "start",
     title: "Getting started",
-    blurb: "Install the package, set up a theme, and build your first screen.",
-  },
-  {
-    id: "concepts",
-    title: "Concepts",
     blurb:
-      "How the system sorts components, and which of its rules are enforced rather than advised.",
+      "What the system believes and the words it uses, then how to install it, theme it, and build your first screen.",
   },
   {
     id: "foundations",
@@ -118,6 +119,36 @@ export type Chapter = {
 };
 
 export const CHAPTERS: readonly Chapter[] = [
+  /* THE IDEAS COME FIRST. Order in this array IS the order in the navigation and in
+     `READING_ORDER`, so this is the whole of the decision. */
+  {
+    slug: "start/principles",
+    title: "Principles",
+    section: "start",
+    blurb:
+      "Components are organised by what they do, rather than by how they look. Two components can look alike and still be different things, so they are kept separate.",
+    spec: [
+      "THESIS §1",
+      "THESIS §2",
+      "THESIS §3",
+      "THESIS §4",
+      "THESIS §5",
+      "THESIS §6",
+    ],
+    source: "start/principles.mdx",
+    examples: ["principles.lookalikes"],
+    Content: Principles,
+  },
+  {
+    slug: "start/vocabulary",
+    title: "Vocabulary",
+    section: "start",
+    blurb:
+      "These are the words Kookie uses for the different kinds of component, and a component's kind decides which props it takes. When a component doesn't have the prop you expected, its kind is usually the reason.",
+    spec: ["THESIS §2", "THESIS §3", "§9", "§10", "§11"],
+    source: "start/vocabulary.mdx",
+    Content: Vocabulary,
+  },
   {
     slug: "start/installation",
     title: "Installation",
@@ -163,35 +194,6 @@ export const CHAPTERS: readonly Chapter[] = [
     spec: ["§47", "§48"],
     source: "start/agents.mdx",
     Content: Agents,
-  },
-
-  {
-    slug: "concepts/principles",
-    title: "Principles",
-    section: "concepts",
-    blurb:
-      "Components are organised by what they do, rather than by how they look. Two components can look alike and still be different things, so they are kept separate.",
-    spec: [
-      "THESIS §1",
-      "THESIS §2",
-      "THESIS §3",
-      "THESIS §4",
-      "THESIS §5",
-      "THESIS §6",
-    ],
-    source: "concepts/principles.mdx",
-    examples: ["principles.lookalikes"],
-    Content: Principles,
-  },
-  {
-    slug: "concepts/vocabulary",
-    title: "Vocabulary",
-    section: "concepts",
-    blurb:
-      "These are the words Kookie uses for the different kinds of component, and a component's kind decides which props it takes. When a component doesn't have the prop you expected, its kind is usually the reason.",
-    spec: ["THESIS §2", "THESIS §3", "§9", "§10", "§11"],
-    source: "concepts/vocabulary.mdx",
-    Content: Vocabulary,
   },
 
   {

@@ -20,9 +20,9 @@ import { BLOCKS } from "../../blocks";
  *
  * WHY THE CLAIMS WENT RATHER THAN MOVING DOWN THE PAGE. Six cards, each stating a position in
  * three sentences, is a compressed second copy of a chapter that already argues the same thing
- * at length — Appearance and Colour are `foundations/color` and `concepts/principles`,
+ * at length — Appearance and Colour are `foundations/color` and `start/principles`,
  * Responsiveness is `foundations/responsiveness`, Material and Motion are their own
- * chapters, and Correctness is the opening of `concepts/principles` almost word for word. One home per fact is this repo's oldest rule, and the chapters are the home.
+ * chapters, and Correctness is the opening of `start/principles` almost word for word. One home per fact is this repo's oldest rule, and the chapters are the home.
  * Kept at the foot of the page they would have been dead space too: a reader who has just been
  * handed the routes does not scroll past them to read a manifesto.
  *

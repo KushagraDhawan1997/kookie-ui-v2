@@ -21,6 +21,14 @@ const BLOCKS_ROOT = path.join(process.cwd(), "blocks");
 export const readBlockSource = (name: string): string =>
   readFileSync(path.join(BLOCKS_ROOT, name), "utf8");
 
+/** A block's USAGE example — the call site, not the block. It lives outside `blocks/` because
+    every file in that directory is something a consumer copies, and this is the opposite: it is
+    what they write once they have. Same subfolder scoping, same reason. */
+const USAGE_ROOT = path.join(process.cwd(), "examples", "blocks");
+
+export const readBlockUsageSource = (slug: string): string =>
+  readFileSync(path.join(USAGE_ROOT, `${slug}.tsx`), "utf8");
+
 /** A file's fence language, from its extension. The registry law holds every listed file to
     an extension this map answers, so an unlisted kind fails the suite rather than a caller. */
 export const blockLang = (name: string): string => {

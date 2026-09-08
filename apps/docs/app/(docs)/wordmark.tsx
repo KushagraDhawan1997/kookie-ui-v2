@@ -29,7 +29,7 @@ import { Heading } from "@kookie-ui/react";
  * that arithmetic suggested (Kushagra: "way too small"). `size` still names the step, so both
  * call sites keep stating theirs.
  *
- * `weight="regular"` IS LOAD-BEARING, and leaving it off shipped a fake bold for an hour.
+ * `weight="medium"` IS LOAD-BEARING, and leaving it off shipped a fake bold for an hour.
  * Heading rests at semibold; exactly one file is loaded and it is 400, and a request BOLDER
  * than anything available is the case a browser synthesizes — it strokes the outline. Measured
  * on the face in the slot at the time: 3,717 ink pixels at 600 against 2,806 at 400, a third
@@ -73,7 +73,7 @@ export function Wordmark({
   return (
     <Heading
       size={size}
-      weight="regular"
+      weight="medium"
       className="kd-wordmark"
       render={<span aria-hidden="true" />}
     >

@@ -8,6 +8,191 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-09 A side drawer pushes the frame; only a sheet from below recedes it
+
+Kushagra, on the mobile sidebar: *"Treating a left drawer like an iOS sheet which comes from below
+is different. Just because they're all sheets doesn't mean they're treated the same. Presently
+sidebar comes over content, content scales down. I think Claude and Discord have already solved
+it. The content is pushed to right, so sidebar always stays compliant with how desktop works.
+Flush means, well, flush, and flush false floats it, but the shell content is still pushed, only
+media survives to be behind, and it gets material back."*
+
+**The 2026-09-06 entrance treated four panes as one gesture, and that is the whole of the
+mistake.** Its clock and its spring are right. Its premise — a pane that overlays is not in the
+frame, so it takes the surface identity back — is right for a sheet arriving from below and wrong
+for a sidebar, because a sidebar is the SAME COLUMN a wide window has. The honest reading on a
+phone is not to cover the page with it but to move the page aside and reveal it. Everything the
+morning's own commit had argued about flushness then dissolves: a flush drawer is flush and a
+floating one floats, exactly as each is on a wide window, because it IS that pane. The four
+restore arms it took two reversals to tune are deleted rather than re-tuned, and the sheet keeps
+the one that was ever about covering (a sheet paints, or it is a see-through slab sliding across
+an article).
+
+**Three mechanisms, each measured rather than reasoned.**
+
+- **The frame's CHILDREN carry the push, never the root.** A transform does not move a box in
+  layout, but a transformed box still counts as scrollable overflow — so pushing the root gave
+  the document a horizontal scroll range the width of the drawer (*"when sidebar opens the page
+  is very wide so I can actually scroll"*). Pushing every child inside a root that keeps its clip
+  moves the same pixels and overflows nothing.
+- **A pane parks exactly one push away.** The drawer's own travel and the frame's are two clocks
+  on one curve, so the distances must be equal or daylight opens between them mid-flight:
+  measured 2px at 120ms with the landed state correct, which is the shape no landed-state law can
+  see and the reason the one-clock law was rewritten to read the seam rather than the scale.
+- **The push reads the width the pane is WEARING**, published on the root by every writer of it.
+  On a wide window a pane's width is a grid column and nobody needs the number; here it is a
+  length the root resolves, and the root cannot see the pane's own `--kui-shell-w` — registered
+  not to inherit, on purpose, since the `--kui-h` trap.
+
+**Registered `<length-percentage>`, and the `<length>` spelling is a finding worth keeping.** The
+push is capped against the window, so its value contains `100%`; a `<length>` registration makes
+that invalid at computed-value time, which does not fail loudly — it falls back to the initial
+0px. The frame simply did not move, while every declaration read correctly and the property
+resolved to a plausible number. It worked before registration because an unregistered custom
+property is textual substitution and a percentage is fine inside `translate`. **The reason it was
+registered at all was to keep a raw `0px` out of the sheet**, which is a real law; the lesson is
+that satisfying one law can silently break the thing the declaration was for, and only a law that
+reads the RESULT catches it. This one did, in its first run.
+
+**The scrim dims and does not defocus** (*"We have a blur scrim and a scale down, both, which
+looks odd"*). A dim says the page is set aside. A blur says it is behind a material — which is
+what the glass drawer says about the strip it covers, and not what a scrim says about a whole
+screen. Frosting everything also made the drawer's own material invisible, which is the same
+mistake §10 records for high contrast: an accommodation that deletes the thing it is defending.
+
+**A side pane's material stopped being inferred with it.** The covering-panel rule — every popup
+in this package hardcodes a backdrop, because a panel over the page HAS the page behind it — was
+true of a drawer while a drawer covered. Under the push the page beside it is the page a
+wide-window sidebar has beside it, so `backdrop` or an ambient region is the only thing that may
+say glass. The bottom pane still infers, and the material laws moved to it rather than being
+edited in place: they are the covering-panel rule, and a side pane stopped being that shape.
+
+**The spring is new, and the old one was the visible defect** (*"The opening animation is
+extremely bad, it just jumps to a middle state, and theres no animation on scrim, or dimming,
+even when going back"*). Measured on the simulator, every frame painted: `driven` injects launch
+velocity and puts 76% of the travel inside the first 120ms, which reads as a snap and then a
+creep once the travel is a screen's width rather than a 7% recession. `carried` is the same
+critical damping with NO launch, on a 500ms clock — UIKit's own presentation spring, and
+zero-bounce by construction rather than by taste. Paint still eases and geometry still springs
+(§8), so the dim rides `--motion-easing` at the same duration; the earlier version of that
+channel was on a spring and the two-clocks law is what said so.
+
+**Rejected:** keeping the cover and tuning it (two reversals in one day had already shown the
+argument was about the wrong thing); a `push` prop (the posture is derived from what the pane IS,
+and §27 refuses a prop for a question the layout can answer); and pushing the root with
+`overflow: hidden` to hide the overflow (a hidden box is a scroll container, which is the select
+flight's own recorded hazard).
+
+**Two of my own new laws were caught by their falsification runs, both in shapes this file
+already names.** The seam law mounted its wide-window twin AFTER narrowing the viewport, where
+that twin's own sidebar is a closed drawer — so the "wide" seam was a parked pane's distance and
+the law passed through a sabotage that shortened the push by two gaps. And the floating half of
+it wanted an agreement the system does not make: §27's all-cards regime splits one share of air
+between two IN-FLOW panes, while a drawer carries its own whole margin, so the two windows
+legitimately differ (16 against 8) and what holds is a bound rather than an equality.
+
+---
+
+## 2026-09-09 A rail meets a narrow window as a tab bar
+
+Kushagra: *"I don't like the sidebar on mobile, I think that's the core issue. iOS also uses
+tabbar. We will need to give an opt in sidebar but by default we need a way to convert a sidebar
+to a tabbar at bottom as part of system design."* Then, after the mapping was argued out: *"rail
+becomes bar on its own… if it has sidebar only, sidebar becomes tab, caller declares a list
+suitable for tabbar, if it has both, rail becomes bar."*
+
+**§18 has said since it shipped that a window class picks the navigation SHAPE, and the system
+never finished the sentence.** It is finished now, and the mapping is the one iPadOS 18 and
+Material 3 both arrive at: an app's TOP level is the bar. Where that top level lives on a wide
+window is the app's own shape — a rail's squares where there is a rail, the sidebar's declared
+roots where there is not — so `ShellRail` takes a `presentation` and `ShellTabBar` is the
+bar-only posture under a name a caller will look for. An app with no rail is looking for tabs and
+will never search for a rail.
+
+**The sidebar does not change shape at any width**, and holding that is what makes the whole
+thing simple. The bar is the coarse level and the drawer is the fine one, and they do not need to
+know about each other. It is also why a bar item is a PLACE in the type — an href, or a link
+through `render`, and no `onClick` — while a rail item stays the button it has always been, free
+to drive a pane. The three-to-five cap lives on the bar because a bar cannot draw more; a rail
+that never becomes one says `presentation="rail"` and keeps its eight tools.
+
+**Nothing is derived and nothing is counted.** A bar built from the sidebar's tree would have to
+invent a rule about which entries are primary, and a count is a silent branch — the shape this
+repo refuses under its own "a prop whose default is computed from another prop" rule. So the
+caller states the list, which is also what makes the docs' own bar four sections and a search
+seat rather than a truncation of a five-section index.
+
+**What the build forced.** The bar leaves the grid and floats across the bottom inside the
+window, above the safe area, under the scrim, and it PUBLISHES its reach on the content pane the
+way every other band's is published — the first spelling put it on the root, where
+`--kui-shell-row` is empty, so the whole length fell to its 0px initial with every other law
+green. Its seat is the control row one index up (`--kui-shell-row-up`, beside the row in the size
+join — the switch's `mark(n + 1)` one family over), the icon steps with it, and the capsule is
+half that row STATED rather than a squircle, which at half-height reads as a rounded slab rather
+than a pill.
+
+**The chosen tab is the segmented control's travelling grip, self-keyed as its second member**
+(§26): measured insets, the edge facing the destination on the shorter clock, the calm spring,
+and the bar's padding as the wall an overshoot squashes against. **Its width is ONE width, read
+from the widest label in the bar rather than the current one**, so it does not resize as it flies;
+out of flow, it may be wider than a seat's share, which is what lets the seats stay equal and the
+words keep their ellipsis unchanged whether a tab is chosen or not (*"I dont want layout shift
+like removal of ellipsis when thumb comes on it"*). It paints in the pane's own currency — §10
+clause 5 — and it was solid for a day because `--tone-soft` is re-pointed to its opaque twin for
+every descendant of a pane, which is the 2026-08-24 finding arriving in a fifth place.
+
+**The icon step is an exemption from a shipped law, and it is written where the law is.** The
+icon box is declared once, in the shared layer, and two components already consume another rung
+of that ladder rather than restating it. The bar is a third: it needs the step only while the
+pane IS a bar, which only the sheet that owns the viewport boundary can say — and the narrow
+boundary is law-closed to two stylesheets, so putting the step in the shared layer would open a
+third. The exemption consumes a rung; it invents no size.
+
+**Rejected:** a bar derived from the sidebar; a bar item that changes what the sidebar shows (a
+tab tap that only swaps a hidden drawer's contents is a dead tap, which is why Discord's and
+Slack's rails are not their tab bars); `More` overflow and a scrolling bar, both of which are the
+platforms' own abandoned answers; and a `ShellBar` name, because the header and the toolbar are
+bars too.
+
+**Three of my own new laws were caught by their falsification runs.** The constant-width law moved
+the choice between two three-letter words, so a per-current measurement and a per-bar one give
+the same answer; then, once the labels differed, the seat FLOOR still dominated at 375px and hid
+the same sabotage, so it reads at 320 where the overextension is real. Its centre assertion was
+wrong at an end seat, where the wall legitimately moves the thumb inward — two real claims, and
+asserting them on one seat made each the other's excuse. And the alpha reader took the *3 in
+display-p3* as a channel and called an opaque fill 0.947 transparent: this repo's own recorded
+calibration defect, committed a third time by the author who documented it, and caught by the
+sabotage rather than by reading.
+
+---
+
+## 2026-09-08 WebKit parses `url()` in a backdrop filter and paints nothing
+
+Kushagra, from an iPhone: *"Glass is inconsistent on mobile safari. You can see the sidebar
+button has blur but the other two dont. The entire sidebar has it, but the icon buttons at bottom
+dont."*
+
+`refraction.tsx` has carried this as a stated open question since the lens shipped: *"WebKit is
+the open question and it is stated rather than guessed: it may parse this and paint nothing, and
+because the seam is a var() substitution, an invalid computed value takes the whole declaration
+with it — so that case would cost the blur too. Verify on a real Safari before trusting it
+there."* **It fails exactly that way.** Measured on Safari 26 over WebDriver: both `CSS.supports`
+calls return true, and a pane with a lens paints no blur at all — the text under a glass button
+in the docs band was crisp, and stripping the inline `--kui-lens` alone brought the blur back.
+
+So the gate is narrowed the way that paragraph prescribed rather than the seam being changed.
+`navigator.vendor` is the one string every WebKit browser carries — iOS Chrome and iOS Firefox
+included, since they are WebKit there — and no Blink or Gecko one does; it is frozen rather than
+removed. The glint does not read this gate and keeps painting, which is the half of the glass
+identity those engines have always had.
+
+**The two things that were NOT wrong, so nobody chases them again:** the drawer's own bottom
+buttons resolve `on-glass` and paint no filter in every browser, which is one glass per stack
+working; and the SVG filter host is a 0×0 hidden element, so it is not the blob that appears when
+a menu opens.
+
+---
+
 ## 2026-09-07 The agent surface, audited: the rules were shared and the facts were not
 
 **What.** Nine lenses over §47 and §48, every finding put to two adversarial verifiers that default to refuting. 39 raised, 35 survived, and the thirty-five dedupe to one sentence: sharing an implementation does not make two callers agree, because each injects what it can see and one of them was injecting half. This is the record of what that cost, what moved, and the three things that were measured and left alone.
