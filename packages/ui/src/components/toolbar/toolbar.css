@@ -110,7 +110,14 @@
 .kui-toolbar-overflow-seat {
   display: flex;
   align-items: center;
-  min-inline-size: 0;
+  /* A SEAT NEVER SHRINKS, because its width is the measurement (2026-09-08, Kushagra: the row
+     collapsed, "but then after a while it got back to this"). With `min-inline-size: 0` the
+     seats squeezed to fit whenever the row was over-full, so what the effect cached as a
+     child's "natural width" was its squeezed one — an underestimate whose sum is always
+     exactly the row, so `total > available` could never be true again. Measured: a route
+     change re-showed every seat at 31/151/31 in a 229px root and stayed there. Overflowing
+     for the one layout pass before the collapse is the honest state, and it is never painted. */
+  flex: none;
 }
 
 .kui-toolbar-overflow-seat:empty {
