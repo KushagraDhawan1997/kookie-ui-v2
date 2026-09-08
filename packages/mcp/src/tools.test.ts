@@ -8,6 +8,9 @@
  * had: the token miss message named fifteen families by hand, one of which headed no token and
  * fifty-one of which were missing.
  */
+import { readFileSync } from "node:fs";
+
+import { TOOL_NAMES, WEB_TOOL_PREFIX } from "@kookie-ui/react/agent";
 import { describe, expect, it } from "vitest";
 
 import { data } from "./data.ts";
@@ -53,6 +56,35 @@ describe("the family filter reaches every family there is", () => {
     // behind — what it catches is the filter itself failing to reach one.
     for (const family of new Set(data().components.map((row) => row.family))) {
       expect(listComponents({ family }), family).toContain(`## ${family}`);
+    }
+  });
+});
+
+/**
+ * THE FOUR NAMES COME FROM THE PACKAGE (2026-09-07, the audit).
+ *
+ * The mirror of the block at the foot of `apps/docs/app/(docs)/agent-tools.test.ts`. Both the
+ * consumer chapter and DECISIONS §48 said the browser offers "the same four tools" as this
+ * server, and all four differed — two by a prefix that is deliberate, two by their stem, which
+ * was two files naming one thing twice. The stems have one home now; this asserts the server
+ * registers that home verbatim, with no prefix of its own.
+ */
+describe("the registered tool names are the package's", () => {
+  const source = readFileSync(new URL("./index.ts", import.meta.url), "utf8");
+
+  it("registers by the shared table and never by a literal", () => {
+    for (const key of Object.keys(TOOL_NAMES)) {
+      expect(source, `${key} is not registered from the table`).toContain(`TOOL_NAMES.${key}`);
+    }
+    // A literal beside the table would be the drift returning under a passing law.
+    for (const name of Object.values(TOOL_NAMES)) {
+      expect(source, `${name} is written out`).not.toContain(`registerTool(\n    "${name}"`);
+    }
+  });
+
+  it("adds no prefix — that is the page's, and only the page's", () => {
+    for (const name of Object.values(TOOL_NAMES)) {
+      expect(name.startsWith(WEB_TOOL_PREFIX)).toBe(false);
     }
   });
 });

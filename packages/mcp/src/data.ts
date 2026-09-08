@@ -6,6 +6,7 @@
  * question asked, rather than at import: a stdio server that dies while parsing 700 KB has no
  * channel to say why, and a client sees a process that exited.
  */
+import { refusalReaches } from "@kookie-ui/react/agent";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,7 +19,8 @@ import { fileURLToPath } from "node:url";
 export type ApiProp = { name: string; type: string; optional: boolean; doc: string };
 export type ApiEntry = { element: string | null; props: ApiProp[] };
 export type ComponentRow = { name: string; slug: string; family: string; abstract: string; symbols: string[] };
-export type Refusal = { prop: string; why: string };
+/** `on`, when present, names the only parts a registry refusal applies to (§48). */
+export type Refusal = { prop: string; why: string; on?: readonly string[] };
 export type TokenRow = { name: string; value: string; scopes?: string[] };
 
 export type Data = {
@@ -119,6 +121,8 @@ export function refusalsFor(symbol: string): Refusal[] {
     const declared = new Set((snapshot.api[symbol]?.props ?? []).map((row) => row.name));
     for (const row of snapshot.componentRefusals[entry.name] ?? []) {
       if (symbol !== entry.name && declared.has(row.prop)) continue;
+      // A refusal the registry scoped to named parts reaches only those parts.
+      if (!refusalReaches(row, symbol)) continue;
       take(row);
     }
   }

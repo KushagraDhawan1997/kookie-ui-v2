@@ -20,6 +20,11 @@ const snapshot = (): SnippetData => ({
   isKookie,
   refusalsFor,
   legalValues,
+  // A space row closes its INDEXES and passes everything else through as raw CSS, which
+  // `resolve.ts` states as the visible way out of the scale. Without this the checker read the
+  // list as a closed set and reported `gap="16px"` and `inset="0"` — both documented — as hard
+  // errors, on this repo's own laws among other things (2026-09-07, the audit).
+  scaleIndexed: (_symbol, prop) => data().layoutProps[prop]?.scale === "space",
   refusedAttributes: data().refusedAttributes,
   refusedAttributeMessage: data().refusedAttributeMessage,
 });

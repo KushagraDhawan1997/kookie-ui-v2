@@ -10,6 +10,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { CONFORMANCE_CASES } from "@kookie-ui/react/agent";
 import { describe, expect, it } from "vitest";
 
 import { checkUsage } from "./check.ts";
@@ -205,14 +206,12 @@ describe("the detectors have one home", () => {
 describe("it stays silent on the system's own examples", () => {
   const dir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../apps/docs/examples");
 
-  /** file → the findings it still raises wrongly, and why the checker cannot yet tell. */
-  const KNOWN_WRONG = [
-    // `ToggleGroup` declares only `orientation` in the generated API, so the guard that clears
-    // `<AlertDialogTrigger render>` — the part declares the prop, therefore it takes it —
-    // cannot reach this one. The registry refuses `render` on Toggle and its part blurb says
-    // of ToggleGroup "it draws nothing, so make it the layout with render", which is what the
-    // example writes. Nothing in the snapshot can tell those two apart today.
-    "toggle.tsx | refused-prop:ToggleGroup.render",
+  const KNOWN_WRONG: string[] = [
+    // EMPTY, AND THAT IS THE MEASUREMENT. The one residual this ledger carried was
+    // `<ToggleGroup render>`: the registry refuses `render` on Toggle, the group's own blurb
+    // says to `render` it as the layout, and nothing in the snapshot could tell the two apart.
+    // The registry can now scope a refusal to named parts (`on`), so that refusal reaches
+    // Toggle alone and the example is clean. A finding appearing here again is a real one.
   ];
 
   it("raises nothing on them but the findings recorded as wrong", () => {
@@ -227,4 +226,28 @@ describe("it stays silent on the system's own examples", () => {
     }
     expect(raised.sort()).toEqual([...KNOWN_WRONG].sort());
   });
+});
+
+/**
+ * THE CONFORMANCE SUITE, run against this surface's binding (2026-09-07, the audit).
+ *
+ * The mirror of the block at the foot of `apps/docs/app/(docs)/agent-tools.test.ts`. Sharing
+ * the RULES did not make the two "check this snippet" tools agree, because each injects its
+ * own FACTS and the site's were half-empty — it read the documentation registry alone where
+ * this reads the registry AND `system/refused.ts`, so one snippet got five findings here and
+ * none there, with every law on both sides green because each asked its own side.
+ *
+ * The expectation ships from the package as data because a call cannot be shared: this entry
+ * starts a stdio process on import and that one runs in a browser. A case failing on one side
+ * and passing on the other is the divergence returning.
+ */
+describe("the conformance suite the package ships", () => {
+  for (const item of CONFORMANCE_CASES) {
+    it(item.why, () => {
+      const got = checkUsage(item.code)
+        .findings.map((finding) => (finding.prop ? `${finding.tag}.${finding.prop}` : finding.tag))
+        .sort();
+      expect(got).toEqual([...item.findings].sort());
+    });
+  }
 });

@@ -18,15 +18,17 @@
  * twin: a chapter's compiled component is read only by `chapterMarkdown`, and a stylesheet is
  * imported for a side effect that only exists in a browser.
  *
- * HOW IT REACHES INTO THE PACKAGE. Three homes, three ways, each the cheapest that is exact:
- * `componentAxes` and `themeAxes` are public exports and are imported; `boxProps` is internal
- * and is bundled from source; and `refused.ts` states its messages as string LITERAL TYPES,
- * which exist only for the compiler, so it is parsed. `tokens.css` is itself generated from
- * `config.ts` and says so in its header, so reading it is reading the generator's own output
- * rather than re-deriving what the generator already decided.
+ * HOW IT REACHES INTO THE PACKAGE. Everything it needs is now a public export of
+ * `@kookie-ui/react` or `@kookie-ui/react/agent` and is imported: the axes, the layout scales,
+ * the refusal sentences and the rule for who takes them. It was three ways for a day, the third
+ * being a regex over `system/refused.ts` — whose messages were string literal TYPES with no
+ * value to import — and that spelling is what left the documentation site, which runs in a
+ * browser and can parse nothing, with none of those facts at all. `tokens.css` is itself
+ * generated from `config.ts` and says so in its header, so reading it is reading the
+ * generator's own output rather than re-deriving what the generator already decided.
  */
 import { build } from "esbuild";
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -63,7 +65,6 @@ async function loadSources(): Promise<{
   ENTRIES: { name: string; slug: string; family: string; abstract: string; parts?: { part: string }[]; refusals: { name: string; why: string }[] }[];
   API: Record<string, ApiEntry>;
   markdownFor: (p: string) => string | null;
-  boxProps: Record<string, { scale: string | null }>;
   REFUSED_ATTRIBUTES: ReadonlySet<string>;
   noRefusedAttribute: { meta?: { messages?: Record<string, string> } };
 }> {
@@ -75,7 +76,6 @@ async function loadSources(): Promise<{
         export { ENTRIES } from ${JSON.stringify(path.join(DOCS, "components/registry.ts"))};
         export { API } from ${JSON.stringify(path.join(DOCS, "components/api.generated.ts"))};
         export { markdownFor } from ${JSON.stringify(path.join(DOCS, "markdown.ts"))};
-        export { boxProps } from ${JSON.stringify(path.join(UI, "system/props.ts"))};
         export { REFUSED_ATTRIBUTES, noRefusedAttribute } from ${JSON.stringify(path.join(UI, "lint/no-refused-attribute.ts"))};
       `,
       resolveDir: DOCS,
@@ -117,81 +117,21 @@ async function loadSources(): Promise<{
   }
 }
 
-/**
- * The refusal sets, parsed out of `refused.ts`.
- *
- * Parsed rather than imported because the sentences are STRING LITERAL TYPES: they exist for
- * the compiler's diagnostic display and there is no value to import at runtime. That is the
- * mechanism the file itself explains, so reading its source is reading the only copy there is.
- */
-export function parseRefusals(source: string): Record<string, Refusal[]> {
-  const sets: Record<string, Refusal[]> = {};
-  for (const [, name, body] of source.matchAll(/export type (\w+Refusals) = \{([\s\S]*?)\n\};/g)) {
-    const rows: Refusal[] = [];
-    for (const [, prop, message] of body!.matchAll(/^\s{2}(\w+)\?:[^;]*?Refused<"((?:[^"\\]|\\.)*)">/gm)) {
-      rows.push({ prop: prop!, why: message!.replace(/\\(["\\])/g, "$1") });
-    }
-    sets[name!] = rows;
-  }
-  // The alias, expanded. `refused.ts` states it as `A & B` rather than as a list, and a reader
-  // of a tool result should get the props rather than the algebra.
-  const merged = [...(sets["RadixReflexRefusals"] ?? []), ...(sets["SpacingRefusals"] ?? [])];
-  if (merged.length) sets["ComponentRefusals"] = merged;
-  return sets;
-}
+/* THE REFUSAL SETS ARE IMPORTED, NOT PARSED (2026-09-07, the audit). They were scraped out of
+   `system/refused.ts` with two regexes, because the sentences existed only as string literal
+   TYPES and there was no value to read. That worked here and could never work on the
+   documentation site, which runs in a browser: it had the facts nowhere, so its `check_snippet`
+   answered "No problems found" to a snippet this server reported five findings on. The
+   sentences are `as const` values now and the rule saying which symbol takes which set is
+   `system/refusal-sets.ts`, so both surfaces read one home and the scrape is gone. */
 
-/**
- * Which refusal sets each exported symbol takes.
- *
- * A component states this itself, in the one line where its props type opens: `export type
- * ButtonProps = ComponentRefusals & …`. Nothing else in the repo knows it, and a list here
- * would go stale the first time a component changed its mind.
- */
-export function parseSymbolRefusals(sources: { file: string; text: string }[]): Record<string, string[]> {
-  const out: Record<string, string[]> = {};
-  for (const { text } of sources) {
-    for (const [, symbol, head] of text.matchAll(/export type (\w+)Props(?:<[^=>]*>)?\s*=\s*([^{;]*)/g)) {
-      const sets = [...head!.matchAll(/\b(\w+Refusals)\b/g)].map(([, name]) => name!);
-      if (sets.length) out[symbol!] = [...new Set(sets)];
-    }
-  }
-  return out;
-}
 
-/** Every `.tsx` under a directory tree. */
-function sourcesUnder(dir: string): { file: string; text: string }[] {
-  const out: { file: string; text: string }[] = [];
-  for (const item of readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, item.name);
-    if (item.isDirectory()) out.push(...sourcesUnder(full));
-    else if (item.name.endsWith(".tsx") && !item.name.includes(".test.")) {
-      out.push({ file: path.relative(ROOT, full), text: readFileSync(full, "utf8") });
-    }
-  }
-  return out;
-}
+/* `refusedPropsOf` moved to `@kookie-ui/react/agent` on 2026-09-07: the documentation site
+   needs the same rule at runtime, and a second copy there was dead on arrival. Re-exported so
+   this module's own callers and its laws are unchanged. */
+import { REFUSAL_SETS, layoutScales, refusalSetsFor, refusedPropsOf } from "@kookie-ui/react/agent";
 
-/**
- * The props a registry entry refuses, on top of the universal sets.
- *
- * A refusal is written for a person, so its name is a phrase — "A horizontal orientation",
- * "`tone` and `emphasis`". Only backticked identifiers are taken, because those are the ones
- * the registry has itself spelled as code; a refusal naming no prop yields nothing and is left
- * to `get_component`, where a reader meets the whole sentence. The refusal's own words travel
- * with the prop, so nothing here restates a reason.
- */
-export function refusedPropsOf(refusals: { name: string; why: string }[]): Refusal[] {
-  const out: Refusal[] = [];
-  for (const refusal of refusals) {
-    for (const [, code] of refusal.name.matchAll(/`([^`]+)`/g)) {
-      // A prop, not a component or an element: lower camel, no spaces.
-      if (!/^[a-z][A-Za-z0-9]*$/.test(code!)) continue;
-      if (out.some((row) => row.prop === code)) continue;
-      out.push({ prop: code!, why: `${refusal.name} — ${refusal.why}` });
-    }
-  }
-  return out;
-}
+export { refusedPropsOf };
 
 /**
  * Every custom property the generator emitted, with the value it takes at `:root` and the
@@ -206,19 +146,75 @@ export function parseTokens(css: string): TokenRow[] {
   const rootValue = new Map<string, string>();
   const anyValue = new Map<string, string>();
   const scopes = new Map<string, Set<string>>();
-  // The generator emits no nested rules, so a block is a selector and everything to its
-  // closing brace. Comments go first, because they carry braces.
-  const flat = css.replace(/\/\*[\s\S]*?\*\//g, "");
-  for (const [, selector, body] of flat.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    const scope = selector!.trim().replace(/\s+/g, " ");
-    for (const [, rawName, rawValue] of body!.matchAll(/(--[A-Za-z0-9-]+)\s*:\s*([^;]+);/g)) {
+
+  // A BRACE STACK, NOT A FLAT REGEX (2026-09-07, the audit). The first spelling matched
+  // `selector { body }` with a pattern that could contain no braces, which silently dropped
+  // every at-rule wrapper: a `:root` nested inside `@supports (color: color(display-p3 0 0 0))`
+  // was recorded as plain `:root` and CLAIMED the root slot, while the real base declaration
+  // sits under the comma selector `:root, [data-appearance="light"]`, which `scope === ":root"`
+  // never matched. Measured: 195 of 844 tokens printed a value that is not the `:root` value,
+  // under a caption saying it is.
+  const source = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  /** The selectors and at-rule preludes we are currently inside, outermost first. */
+  const stack: string[] = [];
+  let cursor = 0;
+  let head = 0;
+  const tidy = (text: string): string => text.trim().replace(/\s+/g, " ");
+
+  while (cursor < source.length) {
+    const char = source[cursor];
+    if (char === "{") {
+      stack.push(tidy(source.slice(head, cursor)));
+      cursor += 1;
+      head = cursor;
+      continue;
+    }
+    if (char === "}") {
+      readDeclarations(source.slice(head, cursor), stack);
+      stack.pop();
+      cursor += 1;
+      head = cursor;
+      continue;
+    }
+    if (char === ";") {
+      // An at-statement (`@import`, `@charset`) or a declaration already consumed by the
+      // enclosing block's flush. Either way the prelude for the NEXT block starts after it.
+      if (stack.length === 0) head = cursor + 1;
+      cursor += 1;
+      continue;
+    }
+    cursor += 1;
+  }
+
+  /**
+   * The declarations of one block, filed under every scope it really applies in.
+   *
+   * A comma selector is several scopes — `:root, [data-appearance="light"]` declares at the
+   * root AND in the light scope — and a block inside an at-rule is CONDITIONAL: its `:root` is
+   * not the root, so the condition travels into the scope name rather than being dropped.
+   */
+  function readDeclarations(body: string, ancestors: string[]): void {
+    const own = ancestors[ancestors.length - 1];
+    if (own === undefined) return;
+    const conditions = ancestors.slice(0, -1).filter((entry) => entry.startsWith("@"));
+    const written: string[] = [];
+    for (const part of own.split(",")) {
+      const selector = tidy(part);
+      if (!selector) continue;
+      written.push(conditions.length ? `${conditions.join(" ")} { ${selector} }` : selector);
+    }
+    if (written.length === 0) return;
+    for (const [, rawName, rawValue] of body.matchAll(/(--[A-Za-z0-9-]+)\s*:\s*([^;{}]+);/g)) {
       const name = rawName!;
       const text = rawValue!.trim();
-      if (scope === ":root" && !rootValue.has(name)) rootValue.set(name, text);
+      for (const scope of written) {
+        if (scope === ":root" && !rootValue.has(name)) rootValue.set(name, text);
+        (scopes.get(name) ?? scopes.set(name, new Set()).get(name)!).add(scope);
+      }
       if (!anyValue.has(name)) anyValue.set(name, text);
-      (scopes.get(name) ?? scopes.set(name, new Set()).get(name)!).add(scope);
     }
   }
+
   return [...anyValue].map(([name, fallback]) => {
     const others = [...(scopes.get(name) ?? [])].filter((scope) => scope !== ":root");
     const value = rootValue.get(name) ?? fallback;
@@ -227,7 +223,7 @@ export function parseTokens(css: string): TokenRow[] {
 }
 
 export async function buildData(): Promise<Data> {
-  const { ENTRIES, API, markdownFor, boxProps, REFUSED_ATTRIBUTES, noRefusedAttribute } = await loadSources();
+  const { ENTRIES, API, markdownFor, REFUSED_ATTRIBUTES, noRefusedAttribute } = await loadSources();
   // The sentence the eslint rule reports, taken whole. `check_usage` refuses the same thing
   // the rule refuses, so writing a second explanation of it here would be two answers to one
   // question — which is what the scanner's own header promises it never does.
@@ -283,14 +279,19 @@ export async function buildData(): Promise<Data> {
     // than recomputed, so the two cannot answer differently.
     refusedAttributes: [...REFUSED_ATTRIBUTES].sort(),
     refusedAttributeMessage,
-    refusalSets: parseRefusals(readFileSync(path.join(ROOT, SOURCES.refusals), "utf8")),
-    symbolRefusals: parseSymbolRefusals([
-      ...sourcesUnder(path.join(UI, "components")),
-      ...sourcesUnder(path.join(UI, "theme")),
-    ]),
+    refusalSets: Object.fromEntries(
+      Object.entries(REFUSAL_SETS).map(([name, rows]) => [name, rows.map((row) => ({ ...row }))]),
+    ),
+    // Every symbol the registry knows, answered by the package's own rule.
+    symbolRefusals: Object.fromEntries(
+      [...new Set(ENTRIES.flatMap((entry) => [entry.name, ...(entry.parts ?? []).map((part) => part.part)]))].map((symbol) => [
+        symbol,
+        refusalSetsFor(symbol),
+      ]),
+    ),
     componentRefusals,
     layoutProps: Object.fromEntries(
-      Object.entries(boxProps).map(([name, def]) => [name, { scale: def.scale }]),
+      Object.entries(layoutScales).map(([name, scale]) => [name, { scale }]),
     ),
     tokens: parseTokens(readFileSync(path.join(ROOT, SOURCES.tokens), "utf8")),
   };

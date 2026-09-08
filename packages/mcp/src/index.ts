@@ -23,6 +23,10 @@
  * ships no icon set on purpose), no preview URL, and one tool that reads the caller's own code
  * back to them.
  */
+/* The four names have one home in the package, so the browser surface and this one cannot
+   drift apart under a sentence claiming they are "the same four tools" (§48, the 2026-09-07
+   audit). The prefix a page adds is stated there too. */
+import { TOOL_NAMES } from "@kookie-ui/react/agent";
 import { McpServer } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import * as z from "zod/v4";
@@ -40,7 +44,7 @@ export function createServer(): McpServer {
   );
 
   server.registerTool(
-    "list_components",
+    TOOL_NAMES.list,
     {
       title: "List KookieUI components",
       description:
@@ -60,7 +64,7 @@ export function createServer(): McpServer {
   );
 
   server.registerTool(
-    "get_component",
+    TOOL_NAMES.get,
     {
       title: "Read one KookieUI component",
       description:
@@ -80,7 +84,7 @@ export function createServer(): McpServer {
   );
 
   server.registerTool(
-    "check_usage",
+    TOOL_NAMES.check,
     {
       title: "Check code against KookieUI's rules",
       description:
@@ -97,7 +101,7 @@ export function createServer(): McpServer {
   );
 
   server.registerTool(
-    "get_tokens",
+    TOOL_NAMES.tokens,
     {
       title: "Look up KookieUI tokens",
       description:
