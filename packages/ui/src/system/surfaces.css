@@ -482,19 +482,27 @@
   --kui-sf-p: var(--kui-panel-p);
 }
 .kui-surface.kui-floating[data-size="1"],
-.kui-surface.kui-floating-rows[data-size="1"] {
+.kui-surface.kui-floating-rows[data-size="1"],
+.kui-surface.kui-attachment[data-size="1"],
+.kui-surface.kui-composer[data-size="1"] {
   --kui-panel-p: max(var(--panel-p-1), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
 }
 .kui-surface.kui-floating[data-size="2"],
-.kui-surface.kui-floating-rows[data-size="2"] {
+.kui-surface.kui-floating-rows[data-size="2"],
+.kui-surface.kui-attachment[data-size="2"],
+.kui-surface.kui-composer[data-size="2"] {
   --kui-panel-p: max(var(--panel-p-2), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
 }
 .kui-surface.kui-floating[data-size="3"],
-.kui-surface.kui-floating-rows[data-size="3"] {
+.kui-surface.kui-floating-rows[data-size="3"],
+.kui-surface.kui-attachment[data-size="3"],
+.kui-surface.kui-composer[data-size="3"] {
   --kui-panel-p: max(var(--panel-p-3), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
 }
 .kui-surface.kui-floating[data-size="4"],
-.kui-surface.kui-floating-rows[data-size="4"] {
+.kui-surface.kui-floating-rows[data-size="4"],
+.kui-surface.kui-attachment[data-size="4"],
+.kui-surface.kui-composer[data-size="4"] {
   --kui-panel-p: max(var(--panel-p-4), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
 }
 
@@ -987,11 +995,68 @@
   --kui-shell-row: var(--control-height-4);
 }
 
+/* THE TILE (§43) — a surface smaller than a card, at the panel inset (2026-09-08).
+   An attachment is a pane inside a pane: it holds an icon, two lines and a hosted control, so
+   it is a surface, but it is not a card — the card band padded one line of text like a
+   document (24px at the resting index) and the tile read as bare words with a ✕ beside them.
+   It takes the PANEL inset, the popover's own (8 / 12 / 16 / 24), and a corner concentric
+   with the control it hosts, the rows join's arithmetic one family over.
+
+   AND IT TAKES THE LINE. A tile refuses the cast (attachment.css, the plane criterion), and
+   in this system light is the edge — so a pane with no light and a live-transparent edge has
+   NO boundary of any kind on the seal, which is exactly what the flat world found (audit
+   2026-08-18) and answers the same way: `initial` stands the role down so var(--tone-border)
+   resolves at the element, where the tone lives, so an error tile's edge is destructive too. */
+.kui-surface.kui-attachment {
+  --kui-sf-p: var(--kui-panel-p);
+  --surface-edge: initial;
+}
+
+/* THE COMPOSER IS ON THE PANEL INSET TOO (2026-09-08, Kushagra, reading the tiles inside it at
+   size 3: "composer should also use the intermediate scale we are using for command + popover").
+   A composer is a pane holding controls — the command palette's shape, not a document's — and the
+   card band padded one line of text and a row of buttons like a card. Its text-to-row gap reads
+   `--kui-sf-p` (composer.css), so the rhythm inside moves with the inset by construction. */
+.kui-surface.kui-composer {
+  --kui-sf-p: var(--kui-panel-p);
+}
+/* And its corner is CONCENTRIC with the controls it holds — the tile join's arithmetic, one pane
+   up. The card band's corner (40 at size 3) around a 16px inset put every button and tile inside
+   the curve, which read as a pane with no padding at all (2026-09-08, Kushagra: "no padding at
+   size 3 or 4"). Control corner + inset means the row's buttons and the strip's tiles sit
+   parallel to the pane's own edge at every radius level. */
+.kui-surface.kui-composer[data-size="1"] {
+  --kui-sf-radius: calc(var(--radius-control-1) + var(--kui-sf-p));
+}
+.kui-surface.kui-composer[data-size="2"] {
+  --kui-sf-radius: calc(var(--radius-control-2) + var(--kui-sf-p));
+}
+.kui-surface.kui-composer[data-size="3"] {
+  --kui-sf-radius: calc(var(--radius-control-3) + var(--kui-sf-p));
+}
+.kui-surface.kui-composer[data-size="4"] {
+  --kui-sf-radius: calc(var(--radius-control-4) + var(--kui-sf-p));
+}
+.kui-surface.kui-attachment[data-size="1"] {
+  --kui-sf-radius: calc(var(--radius-control-1) + var(--kui-sf-p));
+}
+.kui-surface.kui-attachment[data-size="2"] {
+  --kui-sf-radius: calc(var(--radius-control-2) + var(--kui-sf-p));
+}
+.kui-surface.kui-attachment[data-size="3"] {
+  --kui-sf-radius: calc(var(--radius-control-3) + var(--kui-sf-p));
+}
+.kui-surface.kui-attachment[data-size="4"] {
+  --kui-sf-radius: calc(var(--radius-control-4) + var(--kui-sf-p));
+}
+
 /* Concentric arithmetic is undefined at zero: at `none` the control corner is already 0,
    and "0 + padding" would round a square pane by exactly its padding — a bug wearing the
    formula. None means none. Same (0,3,0) as the arms above — source order is the win,
    which is why this sits after them (the hover stand-down's own mechanism, law-pinned). */
-[data-radius="none"] .kui-surface.kui-floating {
+[data-radius="none"] .kui-surface.kui-floating,
+[data-radius="none"] .kui-surface.kui-attachment,
+[data-radius="none"] .kui-surface.kui-composer {
   --kui-sf-radius: var(--radius-0);
 }
 

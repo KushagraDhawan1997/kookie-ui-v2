@@ -4,12 +4,11 @@ import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
-import { DISMISS_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
+import { DISMISS_PATH, FILE_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { OWNED_BODY_STEP } from "../../system/type-steps.ts";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { Button } from "../button/button.tsx";
-import { Progress } from "../progress/progress.tsx";
 import { Text } from "../text/text.tsx";
 import { glyphStroke } from "../../tokens/config.ts";
 import { useSize } from "../../system/size.ts";
@@ -173,6 +172,9 @@ export function Attachment({
          call site can reach neither. */
       data-tone={state === "error" ? "destructive" : "neutral"}
       data-emphasis={state === "error" ? "medium" : "quiet"}
+      /* A bordered pane: the tile has no cast, so the line is its whole boundary (surfaces.css,
+         the tile join). */
+      data-bordered
       data-material={material === "solid" ? undefined : material}
       /* A busy tile announces itself busy. `aria-busy` is the platform's word for exactly this
          and needs no live region: the app's own reader hears the state change when the prop
@@ -180,23 +182,62 @@ export function Attachment({
       aria-busy={busy || undefined}
       style={style}
     >
-      <div className="kui-attachment-row">
-        {icon ? (
-          <span className="kui-attachment-icon" aria-hidden>
-            {icon}
-          </span>
-        ) : null}
-        <span className="kui-attachment-body">
-          <Text size={OWNED_BODY_STEP[size]} className="kui-attachment-name">
-            {children}
-          </Text>
-          {meta ? (
-            <Text id={metaId} size={OWNED_BODY_STEP[size]} emphasis="medium" className="kui-attachment-meta">
-              {meta}
-            </Text>
-          ) : null}
+      {/* THE FACE (2026-09-08). The file's picture: its thumbnail if the app has one, its
+          symbol if not, and the system's own file glyph if neither. A square as tall as the
+          two lines beside it, so it is the file's face the way an Avatar is a person's — and
+          the state is drawn ON it, because the state belongs to the file too: a filling ring
+          while a fraction is known, the Spinner while nothing is counted, and the tile's tint
+          on error. The tile's box is byte-identical across all four states. */}
+      {/* The face and the slot WEAR THE TEXT'S STEP (`kui-type` + the same data-size the two lines
+          take), so their square is two of that step's lines by arithmetic — never by stretching
+          to the row. Stretching was measured cyclic: an aspect-ratio box has no height while
+          the row's width is being worked out, so it counted for half its size and the NAME paid
+          the difference, truncating "brief.pdf" to "b" in a strip that had room. */}
+      <span className="kui-type kui-attachment-face" data-size={OWNED_BODY_STEP[size]} aria-hidden data-busy={busy || undefined}>
+        <span className="kui-attachment-picture">
+          {icon ?? (
+            <svg viewBox={GLYPH_VIEWBOX} fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d={FILE_PATH} stroke="currentColor" strokeWidth={glyphStroke} strokeLinejoin="round" />
+            </svg>
+          )}
         </span>
-        {onRemove ? (
+        {/* THE RING IS THE FACE'S OWN EDGE. One rect the size of the face, its corner the
+            face's corner, drawn with the progress bar's thickness and the outer half clipped
+            away by the face — so the bar wraps the container rather than floating inside it.
+            `pathLength` normalises the outline to 100: a known fraction is a dash of that
+            length, an unknown one is a short dash that sweeps the edge (Progress's own
+            indeterminate, motion that IS the content). */}
+        {busy ? (
+          <svg
+            className="kui-attachment-ring"
+            data-tone="accent"
+            data-sweep={state === "uploading" && progress !== undefined ? undefined : true}
+          >
+            <rect className="kui-attachment-ring-track" width="100%" height="100%" pathLength={100} />
+            <rect
+              className="kui-attachment-ring-fill"
+              width="100%"
+              height="100%"
+              pathLength={100}
+              {...(state === "uploading" && progress !== undefined
+                ? { strokeDasharray: 100, strokeDashoffset: 100 - Math.max(0, Math.min(1, progress)) * 100 }
+                : {})}
+            />
+          </svg>
+        ) : null}
+      </span>
+      <span className="kui-attachment-body">
+        <Text size={OWNED_BODY_STEP[size]} className="kui-attachment-name">
+          {children}
+        </Text>
+        {meta ? (
+          <Text id={metaId} size={OWNED_BODY_STEP[size]} emphasis="medium" className="kui-attachment-meta">
+            {meta}
+          </Text>
+        ) : null}
+      </span>
+      {onRemove ? (
+        <span className="kui-attachment-slot" data-slot="trailing">
           <Button
             size={size}
             emphasis="quiet"
@@ -212,25 +253,7 @@ export function Attachment({
               <path d={DISMISS_PATH} stroke="currentColor" strokeWidth={glyphStroke} strokeLinecap="round" />
             </svg>
           </Button>
-        ) : null}
-      </div>
-      {/* One bar, two meanings, and the difference is whether anyone is counting. `uploading`
-          with a fraction fills; `uploading` without one and `processing` sweep, which is
-          Progress's own indeterminate — motion that IS the content, so §8's zeroed-transition
-          law is untouched and reduced motion slows it rather than stopping it. */}
-      {busy ? (
-        <Progress
-          className="kui-attachment-progress"
-          value={state === "uploading" && progress !== undefined ? progress : null}
-          max={1}
-          /* Hidden from AT, and the tile's `aria-busy` is why: the bar RESTATES what the tile
-             already announces, which is Tooltip's rule one component over. A fraction says
-             more than "busy" — and the words for it are the app's, not ours, so an app that
-             wants 40% announced writes "40%" into `meta`, in its own language, where it is
-             read as part of the tile's own text. The alternative was a system-invented English
-             label on a bar nobody can act on. */
-          aria-hidden
-        />
+        </span>
       ) : null}
     </div>
   );
