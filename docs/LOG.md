@@ -8,6 +8,58 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-08 The toolbar collapses what does not fit, and it measures to know
+
+**What.** `ToolbarOverflow` (§45): wrap the cluster a narrow window may lose, and the row measures what fits, hides the rest, and offers it behind one `⋯` menu at its end.
+
+**Why.** Kushagra, from a phone: *"The toolbar needs to be responsive or at least act like an adaptive command bar so that the items that overflow can come in our menu or something."* The screenshot showed eight controls in a 390px band running off the screen, the last sliced in half at the window's edge with no route to any of it. The trailing cluster was a `Flex` — the right container for a cluster, the wrong one for a cluster that has to fit.
+
+**Why measurement and not a breakpoint.** A band's contents are not the same on every screen of an app: this site's own walk draws nothing outside the reading order, its page actions draw nothing on a route with no twin. So the width at which a row is too full is a different width per ROUTE, and nothing a call site can write is true twice. macOS measures for this reason; iOS does not measure and designs its narrow bar by hand, which is right for a bar with four fixed items and not for this one. What the caller still chooses is WHICH controls may collapse, by wrapping them — the division the row already holds against the grouping.
+
+**Rejected: moving the overflowing child into the menu.** Re-parenting a node unmounts it, so a copy button would forget it had just said "Copied". The row renders what fits and the menu renders the rest, so a control only unmounts when a RESIZE crosses the threshold, never when the menu opens. Rendering everything twice was rejected in turn: two instances of one control is two pieces of state.
+
+**Rejected: transforming children into menu rows.** The toolbar sees opaque children — a `Tooltip` wrapping a control, an app component rendering a whole cluster — and cannot inspect them. So nothing is transformed: the same element is asked WHERE IT IS, and `ToolbarButton` draws a `MenuItem` whose words are the `aria-label` it already carried, `ToolbarGroup` draws a `MenuGroup`, and an app's own cluster answers `useToolbarOverflow()`. Nothing is written twice.
+
+**Two things were wrong before they were right, both found by a law.** A seat may not SHRINK: flex items shrink by default, so in a row too narrow every control was squashed and then reported the squashed width — three 80px controls in a 200px row each came back 61.33px, summing to exactly the room available, so the arithmetic concluded everything fit and the row silently drew its controls narrower than they are. And the anti-feedback property is carried by `flex-grow` with `min-inline-size: 0`, **not** by `flex-basis: 0` as the first comment claimed: measured, `flex: 1 1 auto` behaves identically in every law. The over-claim was corrected in both homes rather than left standing.
+
+**The seat, and the fixture that proves it.** Each child sits in its own box, because a cluster in a band is very often conditional and reading `children[i]` directly caches the next child's width under this one's name. The law needed a component that RETURNS null rather than a literal `null` — `React.Children.toArray` strips literal nulls, so the obvious fixture tests a row of two children agreeing with itself. Its own first run said so.
+
+**One law was thrown away for being unfalsifiable**, and the deletion is recorded where it stood: "decided before the first paint" cannot tell `useLayoutEffect` from `useEffect`, because the harness drives React through `flushSync`. Its two useful halves are asserted by laws whose sabotage passes do fail.
+
+**The measurement is the eighth entry in the interaction-time ledger**, with its three bounds law-asserted: mount and resize only, one cached read per child, and a box sized from the row's leftover so nothing it writes feeds back into what it measures.
+
+---
+
+## 2026-09-08 CI had been red for eleven commits, and the comment explaining why was the bug
+
+**What.** `turbo.json`'s `lint` task gains `build` beside `^build`.
+
+**Why.** Every run on `main` since 2026-09-04 failed at `@kookie-ui/react#lint`, before a single test executed: `Cannot find module '.../packages/ui/dist/lint/index.js'`. The root `eslint.config.js` loads the package's own built lint plugin by path, and its comment stated the premise — *"`lint` depends on `^build`, so `dist` is there"*. `^build` builds a package's DEPENDENCIES; it says nothing about the package itself, and `@kookie-ui/react` has none that build, so for that package the list expanded to nothing. `turbo run lint --dry=json --filter=@kookie-ui/react` reported `dependencies: []`. On a clean checkout `dist` never exists when lint runs, so it failed every time; it passed locally only because a previous build had left `dist` behind — which is the exact failure mode the `lint` task's own comment in `turbo.json` describes for `tsc`, written one line above the setting that had the bug.
+
+**What it cost, beyond the red X.** Lint had not actually run in CI for eleven commits, so nothing it catches was being caught. The first run after the fix immediately found a dead ESLint directive disabling a rule this repo does not configure.
+
+**Not applied when it was found.** It blocks every branch rather than any one change, so it was reported on the PR with the measurement and the patch, and landed on its own rather than widening a toolbar PR.
+
+---
+
+## 2026-09-08 The shown-source transform could not see a multi-line import
+
+**What.** `dropUnusedImports` (apps/docs `controls.ts`) matches the import block whole instead of line by line.
+
+**Why.** Inlining a control's value drops the example's parameter list, which orphans the type it annotated — the transform already knew this and removed such imports. But its regex was anchored `^import … from …$`, and the ecosystem's own formatting breaks any list past a handful of names across lines, so the ONE example with a long import was the one it never reached: `attachment.message` shipped an orphaned `import type { Size }` for as long as its law had been failing. **That is the single-line-anchored regex finding in its third home in this repo**, after the package index and the component reference. The list's shape is preserved on the way out, so removing one name does not reflow the reader's file.
+
+**Found because CI was fixed.** This law had been failing on `main`; nobody saw it, because the run died at lint first.
+
+---
+
+## 2026-09-08 A published block may not date a decision, and one did
+
+**What.** The stage-padding argument in `apps/docs/blocks/specimen.tsx` keeps its reasoning and loses its citation; the decision is recorded here instead.
+
+**Why.** A block is COPIED SOURCE, and a law asserts no shown file dates a decision or attributes one to a person — that is this file's job. The decision itself stands: **the stage pads all four sides in both arms** (Kushagra: *"no padding at size 3 or 4"*). The no-paper arm re-padded only the axis it bled, so its block axis had no inset at all — a subject shorter than the floor was centred and never noticed, and a composer at size 3 or 4 grew past the floor and stood flush against the photograph's top and bottom edge. Which margins bleed depends on the walls; the inset the subject keeps does not.
+
+---
+
 ## 2026-09-07 The agent surface, audited: the rules were shared and the facts were not
 
 **What.** Nine lenses over §47 and §48, every finding put to two adversarial verifiers that default to refuting. 39 raised, 35 survived, and the thirty-five dedupe to one sentence: sharing an implementation does not make two callers agree, because each injects what it can see and one of them was injecting half. This is the record of what that cost, what moved, and the three things that were measured and left alone.
