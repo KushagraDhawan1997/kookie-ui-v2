@@ -579,7 +579,7 @@ function Composer() {
     the row family, the field family and the mark family all sit in the same frame. */
 function Workspace() {
   const members = [
-    ["mira", "Mira Chen", "mira@kookie.dev", "Owner"],
+    ["shruti", "Shruti Bhatia", "shruti@kookie.dev", "Owner"],
     ["sol", "Sol Whitaker", "sol@kookie.dev", "Admin"],
     ["ada", "Ada Rowe", "ada@kookie.dev", "Member"],
     ["kit", "Kit Nakamura", "kit@kookie.dev", "Member"],

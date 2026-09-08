@@ -13,7 +13,7 @@ export default function Example({ size = "3" }: { size?: TypeSize }) {
         Alerts <Badge tone="destructive">128</Badge>
       </Text>
       <Avatar size="7" fallback="KD" badge={<Badge>3</Badge>} />
-      <Avatar size="7" fallback="MC" badge={<Badge aria-label="Online" />} />
+      <Avatar size="7" fallback="SB" badge={<Badge aria-label="Online" />} />
     </Flex>
   );
 }

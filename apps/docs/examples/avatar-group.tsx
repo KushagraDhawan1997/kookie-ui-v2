@@ -9,7 +9,7 @@ export default function Example({
 }) {
   return (
     <AvatarGroup size={size}>
-      <Avatar src="/backdrop.jpg" alt="Mira Chen" fallback="MC" backdrop={backdrop} />
+      <Avatar src="/backdrop.jpg" alt="Shruti Bhatia" fallback="SB" backdrop={backdrop} />
       <Avatar fallback="KD" backdrop={backdrop} />
       <Avatar fallback="AR" backdrop={backdrop} />
       <Avatar fallback="+3" backdrop={backdrop} />

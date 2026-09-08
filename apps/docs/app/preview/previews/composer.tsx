@@ -470,11 +470,11 @@ function InUse() {
           <Surface size="3" render={<Stack gap="4" />}>
             <Stack gap="2">
               <Heading size="5" render={<h3 />}>Refund not received</Heading>
-              <Text size="3" emphasis="medium">Opened four hours ago by Priya Raman.</Text>
+              <Text size="3" emphasis="medium">Opened four hours ago by Shruti Bhatia.</Text>
             </Stack>
             <Separator />
             <Composer>
-              <ComposerInput aria-label="Reply to Priya" placeholder="Reply to Priya…" />
+              <ComposerInput aria-label="Reply to Shruti" placeholder="Reply to Shruti…" />
               <ComposerRow>
                 <Select defaultValue="none" items={{ none: "No template", refund: "Refund status" }}>
                   <SelectTrigger placeholder="Template" aria-label="Template" />

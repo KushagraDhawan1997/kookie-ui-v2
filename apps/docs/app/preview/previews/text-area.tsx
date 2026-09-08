@@ -220,7 +220,7 @@ function States() {
               key="5"
               size={size}
               rows={2}
-              defaultValue="Signed off by Priya on Tuesday."
+              defaultValue="Signed off by Shruti on Tuesday."
               readOnly
               aria-label={`Read only, size ${size}`}
             />,

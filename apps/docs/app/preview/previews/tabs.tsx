@@ -57,7 +57,7 @@ const glassMaterials = () => themeAxes.material.filter((m) => m !== "solid");
     be the demo declining to show that. */
 const WORKSPACE: readonly (readonly [string, string, string])[] = [
   ["overview", "Overview", "Nine services across two environments, all healthy."],
-  ["activity", "Activity", "Priya merged the audit findings an hour ago. Dan opened two issues."],
+  ["activity", "Activity", "Shruti merged the audit findings an hour ago. Dan opened two issues."],
   ["members", "Members", "Four people, two of them admins. Three seats left on this plan."],
   ["integrations", "Integrations", "GitHub and Linear are connected. Slack was disconnected on Tuesday."],
   ["notifications", "Notifications", "Email goes to every admin when a deploy fails or a check goes red."],
@@ -268,7 +268,7 @@ function States() {
                 <Text size="3">Nine services deployed, all healthy. Last release was Tuesday.</Text>
               </TabsPanel>
               <TabsPanel value="activity">
-                <Text size="3">Priya merged the audit findings. Dan opened two issues.</Text>
+                <Text size="3">Shruti merged the audit findings. Dan opened two issues.</Text>
               </TabsPanel>
             </Box>
           </Tabs>
@@ -382,7 +382,7 @@ function Nesting() {
                   <Text size="3">All nine services healthy. Last release Tuesday at 14:20.</Text>
                 </TabsPanel>
                 <TabsPanel value="activity">
-                  <Text size="3">Priya merged the audit findings an hour ago.</Text>
+                  <Text size="3">Shruti merged the audit findings an hour ago.</Text>
                 </TabsPanel>
                 <TabsPanel value="members">
                   <Text size="3">Four people, two of them admins.</Text>
@@ -411,7 +411,7 @@ function Nesting() {
             <Stack>
               {(
                 [
-                  ["Priya Raman", "Admin"],
+                  ["Shruti Bhatia", "Admin"],
                   ["Dan Whitfield", "Member"],
                   ["Sofia Marchetti", "Member"],
                 ] as const
@@ -687,7 +687,7 @@ function InUse() {
                   <Stack gap="3">
                     <Text size="2">Deploy 4a91c2 failed on staging.</Text>
                     <Separator />
-                    <Text size="2">Priya requested a review on the audit branch.</Text>
+                    <Text size="2">Shruti requested a review on the audit branch.</Text>
                   </Stack>
                 </TabsPanel>
                 <TabsPanel value="mentions">

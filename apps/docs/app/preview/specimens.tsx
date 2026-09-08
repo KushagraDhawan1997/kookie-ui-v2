@@ -405,7 +405,7 @@ function AvatarSection() {
         rows={(["2", "3", "5", "7", "9"] as const).map((size) => ({
           label: `size ${size}`,
           cells: [
-            <Avatar key="1" size={size} src="/backdrop.jpg" alt="" fallback="MC" />,
+            <Avatar key="1" size={size} src="/backdrop.jpg" alt="" fallback="SB" />,
             <Avatar key="2" size={size} fallback="KD" />,
             <Avatar key="3" size={size} fallback="AR" badge={<Badge>3</Badge>} />,
             <Avatar key="4" size={size} />,
@@ -418,7 +418,7 @@ function AvatarSection() {
       <Demo label="A group — overlapped, ringed in the surface colour, the rest is an Avatar">
         <Flex gap="4" align="center" wrap="wrap">
           <AvatarGroup size="5">
-            <Avatar src="/backdrop.jpg" alt="" fallback="MC" />
+            <Avatar src="/backdrop.jpg" alt="" fallback="SB" />
             <Avatar fallback="KD" />
             <Avatar fallback="AR" />
             <Avatar fallback="+3" />
@@ -426,7 +426,7 @@ function AvatarSection() {
           <Card size="2">
             <AvatarGroup size="4">
               <Avatar fallback="KD" />
-              <Avatar fallback="MC" />
+              <Avatar fallback="SB" />
               <Avatar fallback="AR" />
             </AvatarGroup>
           </Card>
@@ -442,8 +442,8 @@ function AvatarSection() {
             <Button iconOnly emphasis="quiet" aria-label="Kushagra Dhawan">
               <Avatar fallback="KD" />
             </Button>
-            <Button iconOnly emphasis="quiet" size="3" aria-label="Mira Chen">
-              <Avatar src="/backdrop.jpg" alt="" fallback="MC" />
+            <Button iconOnly emphasis="quiet" size="3" aria-label="Shruti Bhatia">
+              <Avatar src="/backdrop.jpg" alt="" fallback="SB" />
             </Button>
             <Avatar size="6" fallback="AR" backdrop />
             <Avatar size="6" fallback="KD" badge={<Badge>3</Badge>} backdrop />
@@ -458,7 +458,7 @@ function AvatarSection() {
           <Card size="2">
             <Stack gap="2">
               {[
-                ["MC", "Mira Chen", "Owner"],
+                ["SB", "Shruti Bhatia", "Owner"],
                 ["KD", "Kushagra Dhawan", "Editor"],
                 ["AR", "Ana Ruiz", "Viewer"],
               ].map(([initials, name, role]) => (
@@ -500,7 +500,7 @@ function BadgeSection() {
       <Demo label="Pinned to an Avatar — the host owns the corner">
         <Flex gap="5" align="center">
           <Avatar size="5" fallback="KD" badge={<Badge>3</Badge>} />
-          <Avatar size="7" fallback="MC" badge={<Badge aria-label="Online" />} />
+          <Avatar size="7" fallback="SB" badge={<Badge aria-label="Online" />} />
           <Avatar size="9" src="/backdrop.jpg" alt="" fallback="AR" badge={<Badge tone="destructive">12</Badge>} />
           <Card size="2">
             <Avatar size="6" fallback="KD" badge={<Badge>2</Badge>} />
@@ -1788,7 +1788,7 @@ function FieldSection() {
             <Stack gap="5">
               <Field>
                 <FieldLabel>Email</FieldLabel>
-                <TextField type="email" placeholder="mira@kookie.dev" />
+                <TextField type="email" placeholder="shruti@kookie.dev" />
                 <FieldDescription>We use this for receipts.</FieldDescription>
               </Field>
               <Field>
@@ -1874,8 +1874,8 @@ function SeparatorSection() {
         <Card size="3">
           <Stack gap="4">
             <Stack gap="1">
-              <Text size="2" weight="medium">Mira Chen</Text>
-              <Text size="2" emphasis="medium">mira@kookie.dev</Text>
+              <Text size="2" weight="medium">Shruti Bhatia</Text>
+              <Text size="2" emphasis="medium">shruti@kookie.dev</Text>
             </Stack>
             <Separator />
             <Flex gap="4" align="center">
