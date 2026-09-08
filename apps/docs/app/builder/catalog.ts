@@ -650,6 +650,27 @@ export const CATALOG: Record<string, CatalogEntry> = {
     requiresAncestor: "Toolbar",
     make: () => node("ToolbarGroup", {}, { children: [node("ToolbarButton", {}, { text: "Edit" })] }),
   },
+  ToolbarOverflow: {
+    family: "Control",
+    blurb: "A cluster that collapses into a menu when the row runs out of room. It measures, so nothing here states a width.",
+    /* PLACEABLE, and the reason is that it asks the canvas for nothing it refuses. Every other
+       "responsive" thing wants a raw length — the wall ScrollArea's stated height runs into —
+       and this one wants none: how much room there is is measured, and WHICH controls may
+       collapse is said by wrapping them, which is composition and exactly what this canvas is
+       for. `label` is the accessible name of the button that opens what did not fit; it is the
+       only name that control has, so it is a knob rather than a default nobody can reach. */
+    props: { label: { kind: "text", note: "The accessible name of the button that opens what did not fit. It is icon-only, so this is the only name it has." } },
+    children: { only: ["ToolbarButton", "ToolbarGroup", "ToolbarSeparator"] },
+    partOf: "Toolbar",
+    requiresAncestor: "Toolbar",
+    make: () =>
+      node("ToolbarOverflow", {}, {
+        children: [
+          node("ToolbarGroup", {}, { children: [node("ToolbarButton", {}, { text: "Edit" })] }),
+          node("ToolbarButton", {}, { text: "Share" }),
+        ],
+      }),
+  },
   ToolbarButton: {
     family: "Control",
     blurb: "A Button registered with the row's keyboard, so the arrow keys reach it. Rests where every other control rests.",

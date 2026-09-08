@@ -103,6 +103,7 @@ import {
   Toolbar,
   ToolbarButton,
   ToolbarGroup,
+  ToolbarOverflow,
   ToolbarSeparator,
   ToolbarTitle,
   ShellContent,
@@ -149,6 +150,7 @@ import {
   PanelLeftIcon,
   PanelRightIcon,
   ChevronLeftIcon,
+  ChevronRightIcon,
   CopyIcon,
   HomeIcon,
   LockIcon,
@@ -3067,6 +3069,51 @@ function ToolbarSection() {
             </Flex>
           </Toolbar>
         </Card>
+      </Demo>
+
+      {/* THE OVERFLOW, judged the only way it can be: the same row three times, in three widths,
+          with nothing different about it but the room. The point to look for is that the
+          collapse runs from the END — the app puts what it can lose last — and that a control
+          which leaves the row is still reachable rather than merely gone. Open the ⋯ and the
+          controls are there as rows, wearing the names they already carried in the band. */}
+      <Demo label="The overflow — one row, three widths, and what does not fit is in the menu">
+        <Stack gap="4">
+          {[560, 340, 220].map((width) => (
+            <Box key={width} style={{ inlineSize: `${width}px`, maxInlineSize: "100%" }}>
+              <Card size="2">
+                <Toolbar>
+                  <Flex align="center" gap="2">
+                    <ToolbarButton iconOnly aria-label="Toggle navigation">
+                      <PanelLeftIcon />
+                    </ToolbarButton>
+                    <ToolbarTitle>Nature Walks</ToolbarTitle>
+                  </Flex>
+                  <ToolbarOverflow>
+                    <ToolbarGroup>
+                      <ToolbarButton iconOnly aria-label="Previous">
+                        <ChevronLeftIcon />
+                      </ToolbarButton>
+                      <ToolbarButton iconOnly aria-label="Next">
+                        <ChevronRightIcon />
+                      </ToolbarButton>
+                    </ToolbarGroup>
+                    <ToolbarGroup>
+                      <ToolbarButton iconOnly aria-label="Duplicate">
+                        <CopyIcon />
+                      </ToolbarButton>
+                      <ToolbarButton iconOnly aria-label="Lock">
+                        <LockIcon />
+                      </ToolbarButton>
+                    </ToolbarGroup>
+                    <ToolbarButton iconOnly aria-label="Search">
+                      <SearchIcon />
+                    </ToolbarButton>
+                  </ToolbarOverflow>
+                </Toolbar>
+              </Card>
+            </Box>
+          ))}
+        </Stack>
       </Demo>
 
       {/* On glass, over a photograph: the row paints nothing of its own, so what shows through

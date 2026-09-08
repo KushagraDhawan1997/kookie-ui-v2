@@ -4875,6 +4875,23 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "ToolbarOverflow": {
+    "element": "div",
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The controls this row is allowed to lose. Each one must be a SINGLE element in the row, because one element is what can be measured; what it renders inside the menu is free, so a cluster that is one `Flex` of two groups here is welcome to be two `MenuGroup`s there. They collapse from the end, so put what you can spare last."
+      },
+      {
+        "name": "label",
+        "type": "string",
+        "optional": true,
+        "doc": "The accessible name of the button that opens what did not fit. It is icon-only, so this is the only name it has."
+      }
+    ]
+  },
   "Toolbar": {
     "element": "div",
     "props": [

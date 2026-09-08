@@ -1134,6 +1134,7 @@ const DECLARED: Entry[] = [
       "The whole row is one tab stop and the arrow keys move between the controls inside it, which is what every platform toolbar does and what a row of eleven separately reachable icon buttons is not. That behaviour is why this is a component rather than a Flex, and it is Base UI's Toolbar underneath.",
       "What the row states is the rhythm: its height is one control row at its size, the gap between clusters is the system's, and the controls inside take the row's index unless they state their own. What it does not state is which controls sit at which end, because that is what those controls mean. Group them with a Flex and the row spaces the groups: one cluster starts, two split, three read leading, centre and trailing.",
       "ToolbarGroup is the capsule for controls that belong together, and it always draws one. It is the segmented control's track with nothing chosen in it, so it stands level with the button beside it and hosts its own by the same subtraction. Clustering without a capsule is a Flex.",
+      "ToolbarOverflow is the cluster that collapses. Wrap the controls a narrow window is allowed to lose, and it measures what fits and puts the rest in a menu at the end of the row. It measures rather than taking a breakpoint because a band's contents change from screen to screen — a page with nothing to export draws no export cluster — so the width at which a row is too full is a different width on every route. What does not fit is not converted into something else: the same control draws itself as a menu row, taking its words from the accessible name it already had.",
     ],
     declaration: `<Toolbar>
   <Flex align="center" gap="2">
@@ -1149,6 +1150,7 @@ const DECLARED: Entry[] = [
     topics: [
       { title: "The row", symbols: ["Toolbar"] },
       { title: "What goes in it", symbols: ["ToolbarButton", "ToolbarGroup", "ToolbarSeparator"] },
+      { title: "When it does not fit", symbols: ["ToolbarOverflow"] },
       { title: "Naming it", symbols: ["ToolbarTitle"] },
     ],
     parts: [
@@ -1165,6 +1167,10 @@ const DECLARED: Entry[] = [
         blurb: "The rule between two clusters. It draws the same hairline a Separator draws anywhere else, turned across the row, and it stands at the height of the glyphs it divides rather than of the band it crosses — a line spanning the whole band reads as a division of the frame.",
       },
       {
+        part: "ToolbarOverflow",
+        blurb: "A cluster that collapses into a menu when the row runs out of room. It measures itself on mount and on resize — never while you are pointing at anything — and hides what does not fit, offering it behind one button at the end of the row. Its children keep their own identity there: a ToolbarButton draws itself as a menu row whose words are its accessible name, and a ToolbarGroup draws itself as a menu group. Each child must be one element in the row, because one element is what can be measured; what it renders in the menu is free, and your own cluster can ask useToolbarOverflow which room it is in.",
+      },
+      {
         part: "ToolbarTitle",
         blurb: "What the row is about. Given words it says them, which is the permanent title of a row with no page under it. Given none it mirrors the Page in the same pane: silent while that page's own large title is on screen, and fading in when it scrolls away. With nothing to say it renders nothing at all, so no gap opens where a title is not.",
       },
@@ -1173,6 +1179,10 @@ const DECLARED: Entry[] = [
       {
         name: "Tone, emphasis and material on the ROW",
         why: "A toolbar is a row, not a pane. It paints nothing, so there is no fill to rank and nothing to make translucent, and the surface it sits in answers the theme. The group is the one part here that draws a box, so it is the one part that takes backdrop — a material makes a component's own fill translucent, which is only expressible where there is one.",
+      },
+      {
+        name: "A breakpoint on the overflow",
+        why: "How full a band is depends on what the current screen put in it, so no width you can write is true on two routes. The component measures instead, which is the same reason macOS's toolbar measures and iOS designs its narrow bar by hand. What you choose is WHICH controls are allowed to collapse, by wrapping them — that is what they mean, and it stays yours.",
       },
       {
         name: "Leading, centre and trailing parts",
