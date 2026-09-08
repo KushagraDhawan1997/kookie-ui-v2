@@ -12,6 +12,7 @@ import { BAND_STEP, SizeScopeContext, useSize } from "../../system/size.ts";
 import { BAND_TITLE_STEP } from "../../system/type-steps.ts";
 import { usePageMirror, usePageScope, usePageTitle } from "../../system/page.tsx";
 import { Button, type ButtonProps } from "../button/button.tsx";
+import { Menu, MenuContent, MenuGroup, MenuItem, MenuTrigger } from "../menu/menu.tsx";
 import { Separator } from "../separator/separator.tsx";
 import { Text } from "../text/text.tsx";
 
@@ -26,6 +27,29 @@ import { Text } from "../text/text.tsx";
  * children are and the button reads it. A stated `emphasis` still wins in both places.
  */
 const InToolbarGroup = React.createContext(false);
+
+/**
+ * Is this control being drawn into the overflow MENU rather than into the row? (§45, 2026-09-08.)
+ *
+ * A control that does not fit is not redrawn as something else — it is the SAME element, asked
+ * where it is. `ToolbarButton` answers by rendering a `MenuItem`, `ToolbarGroup` by rendering a
+ * `MenuGroup`, and an app's own cluster answers through `useToolbarOverflow()`. That is the same
+ * shape `InToolbarGroup` above already has: a part reads where it sits and dresses itself, so a
+ * call site never states the same fact twice.
+ */
+const InOverflow = React.createContext(false);
+
+/**
+ * True while this subtree is being drawn into a `ToolbarOverflow`'s menu instead of into the row.
+ *
+ * The package's own parts answer it themselves — a `ToolbarButton` becomes a menu row and a
+ * `ToolbarGroup` becomes a menu group with nothing to write. Reach for this in an app's own
+ * cluster, which the toolbar cannot see inside: a `Flex` of two groups is a sensible row and a
+ * nonsense menu, so the component that renders it is the one that knows what it should be there.
+ */
+export function useToolbarOverflow(): boolean {
+  return React.use(InOverflow);
+}
 
 /**
  * Toolbar (§45) — the row where an app's controls live.
@@ -185,6 +209,21 @@ export function ToolbarGroup({ className, backdrop, ref, children, ...props }: T
   // band whose loose controls each state `backdrop` does not double up inside a group.
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   const lensRef = useLensRef<HTMLDivElement>(material, ref);
+  const overflow = React.use(InOverflow);
+
+  /* IN THE MENU IT IS A GROUP, which is the same fact in the other room: a capsule says these
+     controls belong together, and so does a menu group. Everything the capsule IS — the well,
+     the height ladder, the hosted inset, the glass — is how that fact is drawn in a ROW, and
+     none of it means anything in a list of rows. The children are unchanged and answer for
+     themselves one line down. */
+  if (overflow) {
+    return (
+      <MenuGroup {...(className === undefined ? {} : { className })}>
+        {children}
+      </MenuGroup>
+    );
+  }
+
   return (
     <BaseToolbar.Group
       ref={lensRef}
@@ -202,6 +241,207 @@ export function ToolbarGroup({ className, backdrop, ref, children, ...props }: T
         <InToolbarGroup.Provider value>{children}</InToolbarGroup.Provider>
       </GlassScope>
     </BaseToolbar.Group>
+  );
+}
+
+/* ── The overflow (§45, 2026-09-08) ───────────────────────────────────────────────────────── */
+
+/**
+ * A cluster that COLLAPSES INTO A MENU when the row runs out of room (§45).
+ *
+ * WHY IT MEASURES RATHER THAN TAKING A BREAKPOINT. A band's contents are not the same on every
+ * screen of an app — a page with no twin draws no export cluster, a first page has no "previous"
+ * — so a width at which "this row is too full" is a different width per route. Nothing a call
+ * site can state is true twice. What IS always true is whether the controls fit, and only the
+ * browser knows that, which is why this is one of the few places in the package that reads a
+ * pixel. macOS's toolbar is the same mechanism and the same reason; iOS designs the narrow bar
+ * by hand instead, which is the answer for a bar with four fixed items and not for this one.
+ *
+ * WHERE THE MEASUREMENT SITS. On mount and on resize — the seam the glass lens already uses —
+ * never on hover, press or scroll. A child's natural width does not move with the window, so it
+ * is read ONCE while that child is in the row and cached; every later decision is arithmetic
+ * over the cache. The row's own width cannot move when a child is hidden either, because this
+ * box takes the space left over (`flex-basis: 0`) rather than the space its contents want — a
+ * content-sized box would shrink as it hid things, freeing room, showing them again, and
+ * hiding them once more, forever.
+ *
+ * WHAT HAPPENS TO A CONTROL THAT DOES NOT FIT. It is not converted into something else: it is
+ * the same element, rendered in the menu, where `ToolbarButton` draws itself as a `MenuItem`
+ * and takes its words from the `aria-label` it was always carrying. So nothing is written
+ * twice, and an app's own cluster answers `useToolbarOverflow()` for itself.
+ *
+ * EACH CHILD SITS IN A SEAT, and the seat is what gets measured. A child that renders nothing is
+ * the ordinary case here rather than an edge — the walk draws nothing outside the reading order,
+ * the page actions draw nothing on a route with no twin — so measuring `children[i]` directly
+ * would read the NEXT child's width under this one's name and quietly mis-collapse the row. The
+ * seat is one box per child whether or not the child drew anything, which makes the index exact;
+ * an empty one is `display: none`, so it costs neither width nor a gap. What a child renders in
+ * the MENU is free — one `Flex` of two groups in the row is welcome to be two `MenuGroup`s
+ * there, because nothing measures that copy.
+ *
+ * The controls collapse from the END, which is the platform's order and the useful one: the
+ * things nearest the edge of the window are the ones an app puts last.
+ */
+export type ToolbarOverflowProps = ComponentRefusals &
+  Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
+    /**
+     * The accessible name of the button that opens what did not fit. It is icon-only, so this is
+     * the only name it has.
+     */
+    label?: string;
+    children?: React.ReactNode;
+    ref?: React.Ref<HTMLDivElement>;
+  };
+
+/**
+ * A cluster that collapses into a `⋯` menu when the row runs out of room.
+ *
+ * It measures — on mount and on resize, never at interaction time — because how full a band is
+ * depends on what the current screen put in it, which no breakpoint can state. Controls that do
+ * not fit render inside the menu instead, where a `ToolbarButton` draws itself as a menu row.
+ */
+export function ToolbarOverflow({
+  label = "More",
+  className,
+  children,
+  ref,
+  ...props
+}: ToolbarOverflowProps) {
+  const items = React.Children.toArray(children);
+  const count = items.length;
+
+  const rootRef = React.useRef<HTMLDivElement | null>(null);
+  /* One natural width per child, measured while that child was in the row. Hiding a child
+     erases the very number that decides whether to bring it back, so the cache is the whole
+     mechanism rather than an optimisation. */
+  const widths = React.useRef<number[]>([]);
+  const triggerWidth = React.useRef(0);
+  const [shown, setShown] = React.useState(count);
+  /* Bumped by the resize observer. State rather than a direct call so the measurement stays in
+     one place — the layout effect below — instead of existing twice. */
+  const [tick, setTick] = React.useState(0);
+
+  /* A different set of children is a different set of widths. Measured lengths keyed by index
+     would otherwise survive a navigation that changed what the band holds. */
+  const previousCount = React.useRef(count);
+  if (previousCount.current !== count) {
+    previousCount.current = count;
+    widths.current = [];
+  }
+
+  React.useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    /* The row's children, in order, are the visible SEATS followed by the trigger — one seat per
+       child, drawn or not, so position identifies a child exactly and nothing has to carry a
+       marker for the measurement to find. */
+    const kids = Array.from(root.children) as HTMLElement[];
+    const visible = Math.min(shown, count);
+    for (let i = 0; i < visible; i++) {
+      const el = kids[i];
+      if (el) widths.current[i] = el.offsetWidth;
+    }
+    const trigger = kids[visible];
+    if (trigger) triggerWidth.current = trigger.offsetWidth;
+
+    const gap = Number.parseFloat(getComputedStyle(root).columnGap) || 0;
+    const available = root.clientWidth;
+
+    let total = 0;
+    let counted = 0;
+    for (let i = 0; i < count; i++) {
+      const width = widths.current[i];
+      /* A child nobody has ever seen in the row has no width, and guessing one would be a
+         decision made out of nothing. It cannot happen after the first pass, where everything
+         starts visible. */
+      if (width === undefined) return;
+      /* A seat that drew nothing is out of the flex layout entirely, so it spends no gap either.
+         Counting one for it would reserve room for a control that does not exist. */
+      if (width === 0) continue;
+      total += width + (counted > 0 ? gap : 0);
+      counted += 1;
+    }
+
+    let next = count;
+    if (total > available) {
+      /* The trigger only exists once something is hidden, so the first pass into this branch has
+         no measurement of it. The row's own height is the estimate — an icon-only control is
+         about as wide as the row is tall — and the pass that follows this state change corrects
+         it exactly, before paint. Nothing oscillates: whether the trigger exists at all is
+         decided by `total`, which is arithmetic over widths that never move. */
+      const budget = available - (triggerWidth.current || root.clientHeight) - gap;
+      let used = 0;
+      let drawn = 0;
+      next = 0;
+      for (let i = 0; i < count; i++) {
+        const own = widths.current[i]!;
+        /* An empty seat is always "shown": it costs nothing and hiding it would put a child that
+           draws nothing into the menu, where it would draw nothing either. */
+        if (own > 0) {
+          const width = own + (drawn > 0 ? gap : 0);
+          if (used + width > budget) break;
+          used += width;
+          drawn += 1;
+        }
+        next += 1;
+      }
+    }
+    if (next !== shown) setShown(next);
+  }, [shown, count, tick]);
+
+  React.useEffect(() => {
+    const root = rootRef.current;
+    if (!root || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => setTick((n) => n + 1));
+    observer.observe(root);
+    return () => observer.disconnect();
+  }, []);
+
+  const attach = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      rootRef.current = node;
+      if (typeof ref === "function") ref(node);
+      else if (ref) (ref as React.RefObject<HTMLDivElement | null>).current = node;
+    },
+    [ref],
+  );
+
+  return (
+    <div
+      ref={attach}
+      className={className ? `kui-toolbar-overflow ${className}` : "kui-toolbar-overflow"}
+      {...props}
+    >
+      {items.slice(0, shown).map((item, i) => (
+        // eslint-disable-next-line react/no-array-index-key -- the seat IS the index: it is a
+        // position in the row, not an identity, and it must stay put when a child draws nothing.
+        <div key={i} className="kui-toolbar-overflow-seat">
+          {item}
+        </div>
+      ))}
+      {shown < count ? (
+        <Menu>
+          <MenuTrigger
+            render={
+              <ToolbarButton iconOnly aria-label={label}>
+                {/* Self-keyed, the way `BreadcrumbEllipsis` draws its own: the second member of a
+                    shape states it and the third promotes it. Filled dots, so there is no stroke
+                    for the icon grid to price. */}
+                <svg viewBox="0 0 16 16" aria-hidden xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="3.25" cy="8" r="1.25" fill="currentColor" />
+                  <circle cx="8" cy="8" r="1.25" fill="currentColor" />
+                  <circle cx="12.75" cy="8" r="1.25" fill="currentColor" />
+                </svg>
+              </ToolbarButton>
+            }
+          />
+          <MenuContent align="end">
+            <InOverflow.Provider value>{items.slice(shown)}</InOverflow.Provider>
+          </MenuContent>
+        </Menu>
+      ) : null}
+    </div>
   );
 }
 
@@ -249,7 +489,41 @@ export function ToolbarButton(props: ToolbarButtonProps) {
   const render = (props as { render?: RenderElement }).render;
   // Quiet inside a capsule, the system's rung outside one — and a stated value beats both.
   const hosted = React.use(InToolbarGroup);
+  // Both contexts are read before either branch: a hook that runs on one path and not the other
+  // is the oldest way to break a component.
+  const overflow = React.use(InOverflow);
   const emphasis = props.emphasis ?? (hosted ? ("quiet" as const) : undefined);
+
+  /* IN THE MENU IT IS A ROW, and it already carries everything a row needs. An icon-only control
+     in a band says its name in `aria-label` because there is nowhere else to put it — which is
+     exactly the words a menu row wants — and its children are the artwork, which is exactly what
+     `leading` holds. So nothing is written twice and nothing is converted: the same element
+     answers where it is.
+
+     What does NOT come across is every prop that prices a BOX. `iconOnly`, `emphasis`,
+     `bordered` and `loading` are the button's rungs and geometry, and a row has none of them; a
+     menu ranks by order and wording (menu.tsx says so on `MenuItem`). `tone` crosses only where
+     both vocabularies agree, which is `destructive` — the one meaning a row may carry. */
+  if (overflow) {
+    const { children, disabled, onClick, className, style, tone } = props as ButtonProps & {
+      onClick?: React.MouseEventHandler<HTMLElement>;
+    };
+    const words = (props as { "aria-label"?: string })["aria-label"];
+    return (
+      <MenuItem
+        leading={children}
+        {...(render === undefined ? {} : { render })}
+        {...(disabled === undefined ? {} : { disabled })}
+        {...(onClick === undefined ? {} : { onClick })}
+        {...(className === undefined ? {} : { className })}
+        {...(style === undefined ? {} : { style })}
+        {...(tone === "destructive" ? { tone } : {})}
+      >
+        {words}
+      </MenuItem>
+    );
+  }
+
   return (
     <BaseToolbar.Button
       // WHAT THE RENDERED ELEMENT ACTUALLY IS, asked rather than assumed (2026-09-06, found in
