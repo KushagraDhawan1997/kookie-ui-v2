@@ -69,11 +69,17 @@
 /* THE OVERFLOW (§45, 2026-09-08): the cluster that collapses into a menu when the row runs out
    of room.
 
-   `flex-basis: 0` IS THE MECHANISM, not a tidy default. This box takes the space LEFT OVER
-   rather than the space its contents want, so hiding a control cannot change how wide it is. A
-   content-sized box would shrink as it hid things, free room, show them again and hide them once
-   more — the measurement chasing its own effect, forever. With a zero basis the width is a fact
-   about the row and the arithmetic over it terminates.
+   THE WIDTH MUST BE THE ROW'S LEFTOVER, never the contents' own, or the measurement chases its
+   own effect: a box that hugged its contents would shrink as it hid things, free room, show them
+   again and hide them once more, forever. `flex-grow: 1` with `min-inline-size: 0` is what
+   carries that — the first makes it fill whatever the row has left, the second lets it be
+   narrower than the seats inside it so the leftover is a real number rather than a floor.
+   Sabotaging either one fails five laws.
+
+   The basis is written `0` because it states the intent — take the leftover, not your content —
+   but it is NOT load-bearing here and the comment that first claimed it was has been corrected:
+   measured, `flex: 1 1 auto` behaves identically in every law, because `flex-grow` already
+   settles the question the basis would otherwise decide.
 
    `flex-end` because the controls that collapse are the ones at the edge of the window: an app
    puts what it can lose last, and the platform collapses from that end.
@@ -110,7 +116,15 @@
 .kui-toolbar-overflow-seat {
   display: flex;
   align-items: center;
-  min-inline-size: 0;
+  /* AND IT NEVER SHRINKS, which is the difference between measuring a width and inventing one
+     (2026-09-08). A flex item shrinks by default, so in a row too narrow to hold its contents
+     every seat was squashed to fit and then REPORTED the squashed width — measured, three 80px
+     controls in a 200px row each came back 61.33px, which sums to exactly the room available.
+     The arithmetic concluded everything fit, nothing collapsed, and the controls were quietly
+     drawn narrower than they are. The measurement's whole subject is the width a child WANTS,
+     so the seat has to hold that width and let the row overflow; the overflow is what the pass
+     immediately after it removes, before the frame is painted. */
+  flex: 0 0 auto;
 }
 
 .kui-toolbar-overflow-seat:empty {

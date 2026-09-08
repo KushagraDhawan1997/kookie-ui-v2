@@ -289,6 +289,12 @@ export type ToolbarOverflowProps = ComponentRefusals &
      * the only name it has.
      */
     label?: string;
+    /**
+     * The controls this row is allowed to lose. Each one must be a SINGLE element in the row,
+     * because one element is what can be measured; what it renders inside the menu is free, so a
+     * cluster that is one `Flex` of two groups here is welcome to be two `MenuGroup`s there.
+     * They collapse from the end, so put what you can spare last.
+     */
     children?: React.ReactNode;
     ref?: React.Ref<HTMLDivElement>;
   };
@@ -414,8 +420,10 @@ export function ToolbarOverflow({
       {...props}
     >
       {items.slice(0, shown).map((item, i) => (
-        // eslint-disable-next-line react/no-array-index-key -- the seat IS the index: it is a
-        // position in the row, not an identity, and it must stay put when a child draws nothing.
+        // The index IS the key here, which is the one case where it is the right one: a seat is
+        // a POSITION in the row rather than an identity, and it has to stay put precisely when a
+        // child draws nothing. Keying by the child would remount every later seat the moment a
+        // conditional cluster appeared, which is the thing the seat exists to prevent.
         <div key={i} className="kui-toolbar-overflow-seat">
           {item}
         </div>

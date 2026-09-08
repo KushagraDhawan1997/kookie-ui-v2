@@ -13,7 +13,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { APPEARANCES, SIZES, computed, mounted, tokenOn } from "../../test/browser.tsx";
+import { APPEARANCES, SIZES, computed, mounted, tokenOn, until, within } from "../../test/browser.tsx";
 import type { Size } from "../../system/axes.ts";
 import { Box } from "../box/box.tsx";
 import { Flex } from "../flex/flex.tsx";
@@ -24,7 +24,7 @@ import { SegmentedControl, SegmentedItem } from "../segmented-control/segmented-
 import { Separator } from "../separator/separator.tsx";
 import { Text } from "../text/text.tsx";
 import { BAND_TITLE_STEP, OWNED_BODY_STEP } from "../../system/type-steps.ts";
-import { Toolbar, ToolbarButton, ToolbarGroup, ToolbarSeparator, ToolbarTitle } from "./toolbar.tsx";
+import { Toolbar, ToolbarButton, ToolbarGroup, ToolbarOverflow, ToolbarSeparator, ToolbarTitle } from "./toolbar.tsx";
 
 /* THE INDEX A DEFAULT APP'S BAND RESTS AT, derived rather than written as `3` (2026-09-06).
    Three laws below compared an unsized toolbar against `--control-height-2` and against
@@ -742,5 +742,260 @@ describe("what the row refuses (§45)", () => {
     // @ts-expect-error — the group and its buttons both read the ROW's index.
     void (<ToolbarGroup size="3" />);
     expect(true).toBe(true);
+  });
+});
+
+/* ── The overflow (§45, 2026-09-08) ──────────────────────────────────────────────────────────
+   A fixture of FIXED-WIDTH seats, so a law states a width rather than discovering one. Real
+   toolbar children are icon-only controls whose width comes from the ladder; pinning it here
+   is what lets a law say "at 260 exactly two fit" and mean it. */
+const SEAT = 80;
+const seats = ["alpha", "beta", "gamma"];
+const Seat = ({ label }: { label: string }) => (
+  <ToolbarButton
+    iconOnly
+    aria-label={label}
+    style={{ inlineSize: `${SEAT}px`, minInlineSize: `${SEAT}px` }}
+  >
+    <svg viewBox="0 0 16 16" aria-hidden>
+      <circle cx="8" cy="8" r="4" fill="currentColor" />
+    </svg>
+  </ToolbarButton>
+);
+
+/** The row inside a box of a stated width — the only way to vary "how much room is there"
+    while the suite's viewport stays pinned. */
+const Band = ({ width, children }: { width: number; children?: React.ReactNode }) => (
+  <Box style={{ inlineSize: `${width}px` }}>
+    <Toolbar>
+      <ToolbarOverflow>
+        {children ?? seats.map((label) => <Seat key={label} label={label} />)}
+      </ToolbarOverflow>
+    </Toolbar>
+  </Box>
+);
+
+/* A CLUSTER THAT DRAWS NOTHING, and it has to be a COMPONENT rather than a literal `null`
+   (2026-09-08, caught by this law's first run). `React.Children.toArray` STRIPS literal nulls,
+   so a `{null}` child never reaches the seats at all and the fixture would be testing a row of
+   two children that agrees with itself. The real case is a component that returns null — the
+   docs' walk outside the reading order, its page actions on a route with no twin — which is an
+   element at the seat's level and empty only once it has rendered. The two inputs give
+   different answers, which is what makes this the one worth mounting. */
+const Absent = () => null;
+
+const overflowIn = (root: Element): HTMLElement => within(root, ".kui-toolbar-overflow");
+const seatsIn = (root: Element): HTMLElement[] => [
+  ...overflowIn(root).querySelectorAll<HTMLElement>(":scope > .kui-toolbar-overflow-seat"),
+];
+const triggerIn = (root: Element): HTMLElement | null =>
+  overflowIn(root).querySelector<HTMLElement>('[aria-label="More"]');
+/** A seat that is actually IN the row: rendered, and not the `:empty` stand-down. */
+const drawn = (root: Element): HTMLElement[] =>
+  seatsIn(root).filter((seat) => seat.getBoundingClientRect().width > 0);
+
+describe("the overflow measures, because no breakpoint can answer this (§45)", () => {
+  it("what fits stands in the row; what does not is in the menu instead", () => {
+    const wide = mounted(<Band width={900} />, { theme: {} });
+    expect(drawn(wide)).toHaveLength(seats.length);
+    expect(triggerIn(wide), "everything fits, so there is nothing to open").toBeNull();
+
+    const narrow = mounted(<Band width={200} />, { theme: {} });
+    expect(drawn(narrow).length).toBeLessThan(seats.length);
+    expect(triggerIn(narrow), "something was hidden, so there is a way to reach it").not.toBeNull();
+  });
+
+  it("and NOTHING runs off the end of the row — the defect this was built for", () => {
+    // The screenshot that started it: eight controls in a 390px band, the last sliced in half at
+    // the window's edge with no route to it. Read as paint, not as a count: every seat still in
+    // the row ends inside the box, at every width, including the ones where a control was cut.
+    for (const width of [900, 520, 360, 260, 200, 140]) {
+      const root = mounted(<Band width={width} />, { theme: {} });
+      const box = overflowIn(root).getBoundingClientRect();
+      for (const seat of drawn(root)) {
+        expect(
+          Math.round(seat.getBoundingClientRect().right),
+          `a seat runs past the row at ${width}px`,
+        ).toBeLessThanOrEqual(Math.round(box.right) + 1);
+      }
+    }
+  });
+
+  it("the room it measures is the row's LEFTOVER, so hiding a control cannot change it", () => {
+    // The anti-feedback property, and `flex-grow` is what carries it (toolbar.css). A box that
+    // hugged its contents would shrink as it hid things, free room, show them again and hide
+    // them once more — the measurement chasing its own effect. Read where the two spellings give
+    // DIFFERENT answers: a row with a leading cluster, collapsed, where a content-hugging box
+    // would sit narrow and a leftover-taking one still reaches the row's end.
+    //
+    // The first spelling of this law mounted the same width twice and compared the two, which
+    // is a tautology, and its sabotage pass said so.
+    const root = mounted(
+      <Box style={{ inlineSize: "260px" }}>
+        <Toolbar>
+          <Flex className="lead">
+            <ToolbarButton style={{ inlineSize: "60px", minInlineSize: "60px" }}>L</ToolbarButton>
+          </Flex>
+          <ToolbarOverflow>
+            {seats.map((label) => <Seat key={label} label={label} />)}
+          </ToolbarOverflow>
+        </Toolbar>
+      </Box>,
+      { theme: {} },
+    );
+    expect(drawn(root).length, "the fixture must actually be collapsed").toBeLessThan(seats.length);
+    const row = within(root, ".kui-toolbar").getBoundingClientRect();
+    const box = overflowIn(root).getBoundingClientRect();
+    const lead = within(root, ".lead").getBoundingClientRect();
+    const gap = Number.parseFloat(computed(within(root, ".kui-toolbar"), "column-gap"));
+    expect(
+      Math.round(box.width),
+      "it takes what the row has left, not what its contents want",
+    ).toBe(Math.round(row.width - lead.width - gap));
+    expect(Math.round(box.right)).toBe(Math.round(row.right));
+  });
+
+  it("gives the pointer back over its empty middle — it now spans a row that floats over the page", () => {
+    // `.kui-toolbar > *` takes the pointer, and this child spans every pixel the row does not
+    // use, so a floating band would hand back a full row of dead page. The row's own rule, one
+    // level in.
+    const root = mounted(<Band width={900} />, { theme: {} });
+    const box = overflowIn(root).getBoundingClientRect();
+    const hit = document.elementFromPoint(box.left + 4, box.top + box.height / 2);
+    expect(hit).not.toBe(overflowIn(root));
+    expect(computed(overflowIn(root), "pointer-events")).toBe("none");
+    for (const seat of drawn(root)) expect(computed(seat, "pointer-events")).toBe("auto");
+  });
+});
+
+describe("a seat holds the index, so a cluster that draws nothing cannot shift the row (§45)", () => {
+  it("a child rendering null keeps its place, and the widths stay on their own children", () => {
+    // THE FIXTURE IS THE LAW. A band's clusters are conditional in real use — a walk with
+    // nowhere to go next, a page with nothing to export — so the FIRST child rendering nothing
+    // is the ordinary case, and it is the one input where reading `children[i]` directly and
+    // reading the seat give different answers: without seats the second child's width is cached
+    // under the first child's name and every later decision is made from the wrong number.
+    const root = mounted(
+      <Band width={900}>
+        <Absent />
+        <Seat label="beta" />
+        <Seat label="gamma" />
+      </Band>,
+      { theme: {} },
+    );
+    const all = seatsIn(root);
+    expect(all, "one seat per child, drawn or not — that is what holds the index").toHaveLength(3);
+    expect(computed(all[0]!, "display"), "an empty seat leaves the layout entirely").toBe("none");
+    expect(all[0]!.getBoundingClientRect().width).toBe(0);
+    expect(all[1]!.querySelector('[aria-label="beta"]')).not.toBeNull();
+    expect(all[2]!.querySelector('[aria-label="gamma"]')).not.toBeNull();
+  });
+
+  it("and an empty seat spends no gap either — it costs nothing at all", () => {
+    // `display: none` rather than a zero width, because a zero-width flex item still takes a gap
+    // on each side of itself. Read as the distance between the two seats that DID draw: it must
+    // be one gap, not two.
+    const root = mounted(
+      <Band width={900}>
+        <Absent />
+        <Seat label="beta" />
+        <Seat label="gamma" />
+      </Band>,
+      { theme: {} },
+    );
+    const [beta, gamma] = drawn(root);
+    const gap = Number.parseFloat(computed(overflowIn(root), "column-gap"));
+    expect(gap).toBeGreaterThan(0);
+    expect(
+      Math.round(gamma!.getBoundingClientRect().left - beta!.getBoundingClientRect().right),
+      "the empty seat is not spending a gap of its own",
+    ).toBe(Math.round(gap));
+  });
+});
+
+describe("the measurement is bounded, and the bounds are what make it legal (§45)", () => {
+  it("collapses and RESTORES on resize — which is the cached width proving it exists", () => {
+    // The cache is the whole mechanism, not an optimisation: a hidden child has no measurable
+    // width, so restoring it can only be decided from the number read while it was in the row.
+    // A run with no cache cannot come back — it has nothing to come back from — so "widen it
+    // again and everything returns" is the one observable that distinguishes the two.
+    const root = mounted(<Band width={900} />, { theme: {} });
+    const box = root as HTMLElement;
+    expect(drawn(root)).toHaveLength(seats.length);
+
+    box.style.inlineSize = "200px";
+    return until(() => drawn(root).length < seats.length).then(async (collapsed) => {
+      expect(collapsed, "a resize is what the observer is for").toBe(true);
+      expect(triggerIn(root)).not.toBeNull();
+
+      box.style.inlineSize = "900px";
+      const restored = await until(() => drawn(root).length === seats.length);
+      expect(restored, "a width read once, while the child was in the row, is what brings it back").toBe(true);
+      expect(triggerIn(root), "nothing is hidden, so nothing offers to open it").toBeNull();
+    });
+  });
+
+  /* THROWN AWAY, AND THE REASON IS RECORDED (2026-09-08). There was a law here asserting that
+     the collapse is decided BEFORE the first paint — `useLayoutEffect` rather than `useEffect`,
+     so no frame is ever drawn with the row overflowing. It could not fail: swapping the hook for
+     `useEffect` left all 59 green, because `mounted()` drives React through `flushSync` and the
+     passive effect has run by the time any assertion reads the DOM. A law that cannot tell the
+     two hooks apart is not a law about which hook is used, and its two useful halves — that the
+     row collapses, and that nothing overflows — are already asserted above by laws whose
+     sabotage passes do fail. The hook still matters in a real browser; this harness simply
+     cannot see it, which is worth saying once rather than leaving a green test implying it can. */
+});
+
+describe("in the menu a control is the same element, asked where it is (§45)", () => {
+  /** Open what did not fit, the way a pointer does. */
+  const openOverflow = async (root: Element) => {
+    const trigger = triggerIn(root);
+    expect(trigger, "nothing collapsed, so this fixture proves nothing").not.toBeNull();
+    trigger!.click();
+    await until(() => document.querySelector(".kui-menu-popup") !== null);
+    const popup = document.querySelector<HTMLElement>(".kui-menu-popup");
+    expect(popup, "the menu never opened").not.toBeNull();
+    return popup!;
+  };
+
+  it("a ToolbarButton is a ROW whose words are the aria-label it was already carrying", async () => {
+    // Nothing is written twice, and nothing is converted. An icon-only control in a band says
+    // its name in `aria-label` because there is nowhere else to put it — which is exactly the
+    // words a menu row wants — and its children are the artwork, which is exactly what `leading`
+    // holds. Read as the rendered row: the label is the text, and the glyph is in the slot.
+    const root = mounted(<Band width={140} />, { theme: {} });
+    const popup = await openOverflow(root);
+    const rows = [...popup.querySelectorAll<HTMLElement>(".kui-menu-item")];
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      expect(seats, `a row says something no control in this band says`).toContain(row.textContent?.trim());
+      expect(row.querySelector('[data-slot="leading"] svg'), "the control's own artwork").not.toBeNull();
+    }
+    // Every seat is in exactly one of the two places, and never in both.
+    const inRow = drawn(root).map((s) => s.querySelector("[aria-label]")!.getAttribute("aria-label"));
+    const inMenu = rows.map((r) => r.textContent?.trim());
+    expect([...inRow, ...inMenu].sort()).toEqual([...seats].sort());
+  });
+
+  it("a ToolbarGroup is a menu GROUP, not a capsule — the capsule is how a ROW says it", async () => {
+    // The fact is the same in both rooms: these controls belong together. Everything the capsule
+    // IS — the well, the height ladder, the hosted inset — is how that fact is drawn in a row,
+    // and none of it means anything in a list of rows.
+    const root = mounted(
+      <Band width={140}>
+        <Seat label="alpha" />
+        <ToolbarGroup>
+          <Seat label="beta" />
+          <Seat label="gamma" />
+        </ToolbarGroup>
+      </Band>,
+      { theme: {} },
+    );
+    const popup = await openOverflow(root);
+    const group = popup.querySelector<HTMLElement>('[role="group"]');
+    expect(group, "the group came across as a group").not.toBeNull();
+    expect(group!.classList.contains("kui-toolbar-group"), "and left the capsule in the row").toBe(false);
+    expect(computed(group!, "background-color"), "a menu group paints nothing of its own").toBe("rgba(0, 0, 0, 0)");
+    expect(group!.querySelectorAll(".kui-menu-item")).toHaveLength(2);
   });
 });

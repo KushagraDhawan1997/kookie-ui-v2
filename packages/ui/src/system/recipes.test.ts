@@ -1139,6 +1139,35 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
        * is `ScrollArea`'s own stance on its own scroll listener, one component over.
        */
       "components/page/page.tsx": ["new IntersectionObserver"],
+      /* ── The toolbar's overflow (§45, 2026-09-08): THE EIGHTH EXCEPTION, and the one whose
+       * subject is how much room there is rather than where a pointer is.
+       *
+       * A band collapses what does not fit into a `⋯` menu, and only the browser knows what
+       * fits. A breakpoint cannot stand in for the measurement, and the reason is specific
+       * rather than general: a band's contents differ per ROUTE — the docs' walk draws nothing
+       * outside the reading order, its page actions draw nothing on a route with no twin — so
+       * the width at which a row is too full is a different width on every screen, and nothing
+       * a call site can state is true twice. macOS's toolbar measures for the same reason; iOS
+       * designs the narrow bar by hand, which is the answer for a bar with four fixed items.
+       *
+       * The bounds are what make it legal, and each is asserted in toolbar.browser.test.tsx:
+       *
+       *   - It runs on MOUNT and on RESIZE, the seam the lens already sits on. Never on hover,
+       *     press, focus or scroll — a `:hover` over this row costs exactly what it costs on a
+       *     row with no overflow, which is nothing.
+       *   - A child's natural width is read ONCE, while that child is in the row, and cached.
+       *     A resize is arithmetic over the cache, not a re-measure, so the observer's callback
+       *     does no layout work proportional to how fast the window is dragged.
+       *   - Nothing it writes can feed back into what it measures. The box takes the space LEFT
+       *     OVER rather than the space its contents want (`flex-grow: 1` with
+       *     `min-inline-size: 0` — measured, and the basis is NOT what carries it), so hiding a
+       *     control cannot change the width the decision was made from, which is what stops the
+       *     observer from re-entering itself.
+       *
+       * `getComputedStyle` reads the row's own `column-gap` — the gap is a token, so the
+       * arithmetic cannot hardcode it; it is the same read `menu.tsx` is exempted for one file
+       * over, and for the same reason. */
+      "components/toolbar/toolbar.tsx": ["new ResizeObserver", "getComputedStyle"],
       "components/shell/shell.tsx": [
         'addEventListener("keydown',
         "new ResizeObserver",
