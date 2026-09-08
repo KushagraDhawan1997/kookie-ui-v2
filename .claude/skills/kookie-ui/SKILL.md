@@ -68,13 +68,15 @@ Every page of the KookieUI docs site is served a second time as plain markdown a
 with `.md` on the end. That twin carries the abstract, the generated prop table, working
 examples and the reason behind every refusal. Fetch it rather than guessing.
 
-- `<docs-site>/components/<name>.md` — one component. The slug is the export name in kebab-case,
-  so `SegmentedControl` is `/components/segmented-control.md`.
+- `<docs-site>/components/<name>.md` — one component. A part is documented on its parent's page,
+  so the slug is the ROOT component's export name in kebab-case: `SegmentedControl` is
+  `/components/segmented-control.md`, and `MenuItem` is on `/components/menu.md`.
 - `<docs-site>/llms.txt` — the index of every page.
 - `<docs-site>/llms-full.txt` — the whole site in one fetch.
 
 There is no site origin written anywhere in this repo, deliberately. Use the host you are
-already on — `http://localhost:3000` when `pnpm --filter docs dev` is running.
+already on — `http://localhost:1403` when `pnpm --filter docs dev` is running, which is the port
+that script pins.
 
 If a KookieUI MCP server is configured in this session, ask it instead: it answers what a
 component is, what it refuses, and which tokens exist, without a fetch. If no such tool is

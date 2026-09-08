@@ -1,0 +1,152 @@
+An AI coding agent learns this library the same way you do, from the types and from these
+pages, and it gets the same things wrong for the same reason: most libraries it has read have a
+`variant` prop, a `color` prop and a margin prop on every component, and this one has none of
+them. Everything on this page exists so an agent finds that out from the package and the site,
+rather than from you correcting its output.
+
+You need none of it to build with the library. Each surface is optional, and each one is
+derived from the same source the reference pages are built from, so nothing here can disagree
+with `/components`.
+
+## Start with the compiler
+
+The first thing an agent has that you cannot skip is the type checker. If it writes a prop the
+library refuses, the error names the prop and says what to write instead. For a `variant`
+prop the message reads: *KookieUI has no variant. Use `tone` for what a thing means and
+`emphasis` for how loud it is.*
+
+Each refused prop carries its own sentence, so a margin prop on a button points at `Box` and a
+`color` prop points at `tone`. An agent that runs `tsc` as it works — most do — repairs from
+that message directly, and you see the corrected code rather than the mistake.
+
+The shipped type declarations also carry the documentation. Every exported component has its
+description in the `.d.ts` file your editor and your agent read out of `node_modules`, so the
+one-line answer to "what is this" needs no network.
+
+## Lint what the compiler cannot see
+
+Three mistakes compile cleanly. A `data-tone` attribute goes through, because TypeScript does
+not check hyphenated attribute names. A utility class or a raw pixel value in `style` is
+well-typed by definition. And a prop inside a spread is never checked at all, because
+TypeScript checks a written attribute and not a spread. The package ships an ESLint plugin for
+those three.
+
+The plugin brings no parser, because no plugin can. Put it after your TypeScript parser entry:
+
+```js title="eslint.config.mjs"
+import tseslint from "typescript-eslint";
+import kookie from "@kookie-ui/react/eslint-plugin";
+
+export default [
+  { files: ["**/*.tsx"], languageOptions: { parser: tseslint.parser } },
+  ...kookie.configs.recommended,
+];
+```
+
+A JavaScript project needs no parser entry: the plugin sets the JSX flag itself for `.js`,
+`.jsx`, `.mjs` and `.cjs`.
+
+`no-refused-attribute` is an error: a `data-` attribute that names one of the theme's axes
+re-creates a prop the type refused. `no-refused-prop` is an error too, and it covers the one
+refusal the type cannot state — React's own attributes declare `color`, so the props type has
+to keep letting it through — plus any refused prop arriving inside a spread. `no-escape-abuse`
+is a warning: a class that looks like a utility (`p-4`, `gap-3`, `min-w-[20rem]`) or a raw
+length in `style` for a property that already has a prop. Both messages say which prop to use,
+or, where the component refuses that prop too, what to write instead.
+
+A single-word class is left alone: `flex` and `grid` are as likely to be your own class names
+as a utility framework's. Your own class names and `style` values for properties with no prop
+are never reported either, because `style` is the documented way to reach CSS this library has
+no word for.
+
+## Give the agent the rules
+
+Agents read an instructions file at the root of your repository, such as `AGENTS.md`,
+`CLAUDE.md` or `.cursor/rules`. The package can write its section of that file for you:
+
+```bash
+npx @kookie-ui/react init
+```
+
+By default it prints what it would change and writes nothing. Run it again with the write
+flag to apply that plan:
+
+```bash
+npx @kookie-ui/react init --write
+```
+ It adds one delimited block holding the export list, every axis with its
+values, and the refusals, and a second run replaces the block rather than adding another. The
+block is generated from the package, so it is exactly as current as the version you installed.
+
+If you use Claude Code, the same facts are available as a skill named `kookie-ui` in this
+repository, which loads when an agent starts writing UI.
+
+## Let the agent look things up
+
+Every page on this site has a plain-text twin. Add `.md` to any path, or send the request with
+`Accept: text/markdown`, and you get the page as markdown with the component's refusals, its
+props and every legal value, and its examples. `/llms.txt` lists every page with a one-line
+description, and `/llms-full.txt` is the whole site in one file. An agent that can fetch a URL
+needs nothing else.
+
+An agent that speaks the Model Context Protocol can use the server instead:
+
+```json title=".mcp.json"
+{
+  "mcpServers": {
+    "kookie-ui": {
+      "command": "npx",
+      "args": ["-y", "@kookie-ui/mcp"]
+    }
+  }
+}
+```
+
+It offers four tools. `list_components` returns the names and one-line descriptions, grouped
+the way this site groups them. `get_component` returns one component's page. `get_tokens`
+searches the design tokens by name and returns their values. And `check_usage` takes a piece of
+JSX and reports every refused prop, refused attribute, utility class and raw value in it, with
+the sentence that says what to write instead. The last one is the tool worth having: it answers
+"is this inside the system" before the code reaches your repository.
+
+The same four tools are available inside the browser on any page of this site. Add
+`?webmcp=1` to the URL and the page registers them with the WebMCP API, so a browser agent that
+supports the proposal can call them while it reads. Without that flag the page loads nothing
+extra. They carry a `kookie_` prefix there — `kookie_check_usage` and so on — because a page
+registers into a namespace it shares with every other script on the document. Nothing else
+about them differs.
+
+## What an agent still has to know
+
+The tools tell an agent what exists and what is refused. They do not tell it what a good screen
+looks like. The [Composition](/patterns/composition) chapter holds those rules, and it is the
+checklist to review an agent's output against. `check_usage` takes a pasted snippet; the
+builder at `/builder` runs the same composition rules live, on a document you build or open
+there rather than on pasted JSX.
+
+A screen built from correct components can still be wrong: two loud buttons, one spacing value
+for every kind of gap, a heading at the wrong step. Those are the mistakes you'll see most
+often once the refused props stop appearing, and they are the reason this site is a guideline
+and not only a reference.
+
+```tsx
+import { Box, Button, Card, Flex, Heading, Text } from "@kookie-ui/react";
+
+export function Invite() {
+  return (
+    <Card size="3">
+      <Flex direction="column" gap="5">
+        <Heading size="6">Invite your team</Heading>
+        <Text emphasis="medium">Everyone you add can see this project.</Text>
+        <Flex gap="3" justify="end">
+          <Button emphasis="quiet">Not now</Button>
+          <Button tone="accent" emphasis="loud">Send invites</Button>
+        </Flex>
+      </Flex>
+    </Card>
+  );
+}
+```
+
+That is what the corrected output should look like: one loud action, the theme deciding every
+colour, and the distances set by the layout rather than by the components inside it.

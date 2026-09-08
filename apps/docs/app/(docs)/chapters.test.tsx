@@ -354,7 +354,11 @@ describe("the public tokens the chapters name are real", () => {
   it("every one resolves", () => {
     const unknown: string[] = [];
     for (const chapter of CHAPTERS) {
-      const source = sourceOf(chapter);
+      // A shell fence is the one place `--word` is not a token: `npx … init --write` is a
+      // flag, and a law that read it as a custom property would fail the agents chapter for
+      // documenting its own command. Only `bash` fences are stripped — a token written in a
+      // `css` or `tsx` fence is exactly the claim this law exists to check.
+      const source = sourceOf(chapter).replace(/```bash[\s\S]*?```/g, "");
       for (const match of source.matchAll(/--[a-z][a-z0-9-]*/g)) {
         const name = match[0];
         // Placeholders the prose uses to mean "any family" / "any rung". They are explained

@@ -20,6 +20,7 @@ import type { MDXComponents } from "mdx/types";
 import Installation from "../../content/start/installation.mdx";
 import Theming from "../../content/start/theming.mdx";
 import Quickstart from "../../content/start/quickstart.mdx";
+import Agents from "../../content/start/agents.mdx";
 import Principles from "../../content/concepts/principles.mdx";
 import Vocabulary from "../../content/concepts/vocabulary.mdx";
 import Composition from "../../content/patterns/composition.mdx";
@@ -152,6 +153,16 @@ export const CHAPTERS: readonly Chapter[] = [
       "quickstart",
     ],
     Content: Quickstart,
+  },
+  {
+    slug: "start/agents",
+    title: "Building with an AI agent",
+    section: "start",
+    blurb:
+      "An AI agent writes this library well once it knows what the library refuses. Turn on the compiler messages, the lint rules, the rules file and the MCP server, and review what it produces against the composition rules.",
+    spec: ["§47", "§48"],
+    source: "start/agents.mdx",
+    Content: Agents,
   },
 
   {

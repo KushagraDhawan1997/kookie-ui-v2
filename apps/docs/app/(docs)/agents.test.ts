@@ -179,11 +179,75 @@ describe("every list in the rules file is the system's own", () => {
   });
 
   it("the lookup shape it tells an agent to use is the shape the site serves", () => {
-    // The file tells a reader to append `.md` to a component path and says the slug is the
-    // export name in kebab-case. That sentence is only safe while it is true of every entry.
+    /*
+     * OVER EVERY NAME THE FILE PRINTS, not over the entries (2026-09-07, the audit).
+     *
+     * The first spelling filtered ENTRIES for `kebab(name) !== slug` and could not fail: every
+     * root's slug was authored as its own kebab, so the answer was empty by construction. What
+     * the sentence was wrong about was the other 89 names — the compound PARTS, which the same
+     * file lists as components and which have no page of their own. Measured:
+     * `/components/menu-item.md` is a 404 whose body is the two words "Not found", for
+     * `MenuItem`, `ToolbarButton`, `SelectItem`, `FieldLabel`, `DialogTitle` and 84 more.
+     *
+     * So the law reads the names the artifact really carries and asserts each resolves to a
+     * slug the site serves — the same resolution the MCP server's `resolveComponent` does. Its
+     * fixture is now the population the sentence is about.
+     */
     const kebab = (name: string) => name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-    const wrong = ENTRIES.filter((entry) => kebab(entry.name) !== entry.slug).map((e) => e.name);
-    expect(wrong).toEqual([]);
+    const slugs = new Set(ENTRIES.map((entry) => entry.slug));
+    const rootOf = new Map<string, string>();
+    for (const entry of ENTRIES) {
+      rootOf.set(entry.name, entry.slug);
+      for (const part of entry.parts ?? []) rootOf.set(part.part, entry.slug);
+    }
+
+    const names = facts().components;
+    expect(names.length, "no names to check; this law is reading air").toBeGreaterThan(100);
+    // The parts are in there — without them the population is the roots again, which is the
+    // fixture that could not fail.
+    expect(names).toContain("MenuItem");
+
+    const unreachable = names.filter((name) => {
+      const slug = rootOf.get(name);
+      // Either the name IS a slug, or the file's own sentence has to send a reader to the
+      // parent's page. Both are checked, because a name resolving to nothing is the defect.
+      return !slug || !slugs.has(slug);
+    });
+    expect(unreachable).toEqual([]);
+
+    // And the sentence the file prints has to be the one that is true. A file stating the
+    // ROOT rule while a part kebabs to its own page would pass the walk above and still send a
+    // reader to a 404.
+    expect(artifact()).toContain("A PART IS DOCUMENTED ON ITS PARENT'S PAGE");
+    for (const entry of ENTRIES) expect(kebab(entry.name)).toBe(entry.slug);
+  });
+
+  it("names the port the dev script really pins", () => {
+    /*
+     * The skill sent an agent to `http://localhost:3000` and the docs dev server has been
+     * pinned to 1403 since the day a walking port broke every screenshot and every fixture
+     * URL. Something else answers on 3000 often enough that the failure is not even a
+     * connection error — it is another app's HTML (2026-09-07, the audit).
+     *
+     * Read out of the dev script rather than restated, so the port keeps one home.
+     */
+    const dev = JSON.parse(
+      readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
+    ).scripts.dev as string;
+    const pinned = /--?p(?:ort)?[= ](\d+)/.exec(dev);
+    expect(pinned, `no port pinned in the dev script: ${dev}`).not.toBeNull();
+    const port = pinned![1];
+
+    for (const [what, text] of [
+      ["the rules file", artifact()],
+      ["the skill", skill()],
+    ] as const) {
+      for (const [, written] of text.matchAll(/localhost:(\d+)/g)) {
+        expect(written, `${what} points at localhost:${written}`).toBe(port);
+      }
+    }
+    // Vacuity guard: one of the two really does print a localhost URL.
+    expect(`${artifact()}${skill()}`).toContain("localhost:");
   });
 
   it("invents no site origin", () => {
