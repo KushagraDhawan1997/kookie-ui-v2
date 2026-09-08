@@ -41,6 +41,7 @@ import {
   Toolbar,
   ToolbarButton,
   ToolbarGroup,
+  ToolbarOverflow,
   ToolbarTitle,
   Tooltip,
   TooltipContent,
@@ -50,6 +51,7 @@ import {
 import { AppearanceToggle } from "../appearance-toggle";
 import { ThemePanel } from "../theme-panel";
 import { GitHubIcon, PanelLeftIcon, XSocialIcon } from "../icons";
+import { RepoLink } from "./repo-link";
 import { CHAPTERS, READING_ORDER, SECTIONS } from "./chapters";
 import { DocsPager } from "./docs-pager";
 import { PageActions } from "./page-actions";
@@ -397,7 +399,19 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
                   The gap is the one `PageActions` states between its own two tracks, for the
                   same reason: the air between two groups has to be wider than the air inside
                   one, or the grouping says nothing. */}
-              <Flex align="center" gap="3">
+              {/* AND IT COLLAPSES WHEN THE ROW RUNS OUT (§45, 2026-09-08). It was a `Flex`,
+                  which is the right container for a cluster and the wrong one for a cluster
+                  that has to fit: on a phone this band held eight controls and simply ran off
+                  the screen, with the last of them sliced in half and no route to any of it.
+                  `ToolbarOverflow` measures instead of guessing, which is what this row needs
+                  and a breakpoint could not give it — the walk draws nothing outside the reading
+                  order and the page actions draw nothing on a route with no twin, so how full
+                  this band is depends on the page, not on the window.
+
+                  The gap it states is the row's own, which is what the `Flex` here resolved to
+                  anyway. Collapsing runs from the END, so the repository goes first, then what
+                  you can do with the page, and the walk is the last thing to leave the row. */}
+              <ToolbarOverflow label="More actions">
                 {/* The walk comes first, because moving through the docs is the commonest thing
                     to want and it is the only cluster here whose two seats carry words. */}
                 <DocsPager
@@ -421,29 +435,8 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
                   ]}
                 />
                 <PageActions paths={PAGES.map((page) => page.path)} />
-                <ToolbarGroup>
-                  <Tooltip>
-                    <TooltipTrigger
-                      render={
-                        <ToolbarButton
-                          iconOnly
-                          aria-label={GITHUB.name}
-                          render={
-                            <a
-                              href={GITHUB.href}
-                              target="_blank"
-                              rel="noreferrer"
-                            />
-                          }
-                        >
-                          <GitHubIcon />
-                        </ToolbarButton>
-                      }
-                    />
-                    <TooltipContent>{GITHUB.label}</TooltipContent>
-                  </Tooltip>
-                </ToolbarGroup>
-              </Flex>
+                <RepoLink label={GITHUB.label} name={GITHUB.name} href={GITHUB.href} />
+              </ToolbarOverflow>
             </Toolbar>
           </ShellPaneHeader>
           <ShellScroll className="kd-scroll" fade>
