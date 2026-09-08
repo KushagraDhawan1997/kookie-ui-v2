@@ -22,10 +22,40 @@ import { describe, expect, it } from "vitest";
 
 const dist = path.resolve("dist");
 
-/** Every value this package exports by name. Types are excluded — a `type` re-export carries
-    its doc from the declaration, which is a different file and a different question. */
+/**
+ * Every value this package exports by name, FROM EVERY ENTRY POINT (2026-09-07, the audit).
+ *
+ * Types are excluded — a `type` re-export carries its doc from the declaration, which is a
+ * different file and a different question.
+ *
+ * THE ENTRY POINTS COME FROM THE EXPORTS MAP, not from `src/index.ts`. This read the main entry
+ * alone, so `./agent` and `./eslint-plugin` — two subpaths a consumer really installs and a
+ * coding agent really resolves — were outside the law entirely, and three of their exports
+ * shipped with no doc at all. A law narrower than the rule it enforces is a law that cannot
+ * fail at the thing that is wrong, which is this repo's most-recorded shape.
+ */
+function entryPoints(): string[] {
+  const manifest = JSON.parse(fs.readFileSync(path.resolve("package.json"), "utf8")) as {
+    exports: Record<string, { types?: string } | string>;
+  };
+  const out: string[] = [];
+  for (const target of Object.values(manifest.exports)) {
+    const types = typeof target === "string" ? undefined : target.types;
+    if (!types || !types.endsWith(".d.ts")) continue;
+    // `dist/agent/index.d.ts` is built from `src/agent/index.ts`, which is the file that says
+    // what the entry exports. Reading the source keeps this law's subject the authored list.
+    const source = types.replace(/^\.\/dist\//, "src/").replace(/\.d\.ts$/, ".ts");
+    if (fs.existsSync(path.resolve(source))) out.push(source);
+  }
+  return out;
+}
+
 function exportedValues(): string[] {
-  const source = fs.readFileSync(path.resolve("src/index.ts"), "utf8");
+  const entries = entryPoints();
+  if (entries.length < 3) {
+    throw new Error(`the exports map named ${entries.length} entry points; expected the three the package publishes`);
+  }
+  const source = entries.map((file) => fs.readFileSync(path.resolve(file), "utf8")).join("\n");
   const names = new Set<string>();
   for (const block of source.matchAll(/export\s*\{([^}]*)\}/g)) {
     for (const part of (block[1] ?? "").split(",")) {
@@ -34,7 +64,13 @@ function exportedValues(): string[] {
       names.add((spec.split(" as ").pop() ?? "").trim());
     }
   }
+  // The subpath entries also declare values directly (`export const NAMESPACE = "kookie"`),
+  // which the block form above cannot see.
+  for (const [, name] of source.matchAll(/^export (?:const|function|class) (\w+)/gm)) {
+    names.add(name!);
+  }
   names.delete("");
+  names.delete("default");
   return [...names];
 }
 

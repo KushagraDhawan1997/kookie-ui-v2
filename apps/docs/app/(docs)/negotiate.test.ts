@@ -121,9 +121,16 @@ describe("the matcher covers the pages and nothing else", () => {
   });
 
   it("routes that have no twin are not matched", () => {
-    // `Vary: Accept` and a `Link` to a `.md` that 404s are both claims, and a route with no
-    // twin cannot make either of them. The index pages are the ones a prefix match would
-    // swallow if the matcher stopped counting segments.
+    // The index pages are the ones a prefix match would swallow if the matcher stopped counting
+    // segments, and none of them has a twin.
+    //
+    // THE CLAIM IS ABOUT SHAPE, NOT ABOUT EXISTENCE, and an earlier comment here overstated it
+    // (2026-09-07, the audit). The matcher is a path pattern Next reads statically; it cannot
+    // ask whether a page exists. So `/patterns/does-not-exist` IS matched, gets a `Link` to a
+    // twin that also 404s, and that is correct behaviour rather than a hole — a 404 advertising
+    // an alternate 404 costs a client one request and tells it nothing false. Narrowing it would
+    // mean the middleware importing `PAGES`, which reaches the filesystem and every chapter's
+    // compiled MDX, for no gain.
     for (const path of ["/", "/components", "/blocks", "/builder", "/preview", "/llms.txt"]) {
       expect(matches(path), `${path} is matched`).toBe(false);
     }
@@ -231,7 +238,7 @@ describe("a negotiated request lands on the twin's own bytes", () => {
     expect(link).not.toMatch(/https?:/);
   });
 
-  it("both headers are sent whichever way the negotiation goes", () => {
+  it("both headers are set whichever way the negotiation goes", () => {
     // `Vary` is the half a cache needs and the half that is easy to send on one branch only:
     // one URL now has two representations, and a proxy that cached the markdown would serve it
     // to the next person with a browser.
@@ -240,5 +247,51 @@ describe("a negotiated request lands on the twin's own bytes", () => {
       expect(response.headers.get("Vary"), accept).toBe("Accept");
       expect(response.headers.get("Link"), accept).toBe(alternateLink("/components/button"));
     }
+  });
+
+  /**
+   * AND WHAT REACHES THE WIRE, which is a different question (2026-09-07, the audit).
+   *
+   * The law above reads `middleware()`'s RETURN VALUE, so it can only ever say what this file
+   * intended. Measured against a running server, `Vary: Accept` does not survive on the HTML
+   * branch: Next's App Router writes its own `Vary: rsc, next-router-state-tree, …` over the
+   * response after both the middleware and `next.config.ts`'s `headers()` have run — proven
+   * with a probe header that did reach the wire while its `Vary` sibling did not.
+   *
+   * So the claim is narrowed to the one that is true, and pinned in BOTH directions: the
+   * negotiated response carries `Vary`, the HTML one carries the `Link`, and the dangerous
+   * cache direction — a person served markdown — is the one that is closed. If Next ever stops
+   * overwriting, the second assertion fails and this comment gets deleted, which is the right
+   * way round.
+   *
+   * It runs only where a server is already up, because the alternative is this suite starting
+   * Next. The URL is the port `apps/docs/package.json` pins, read from there rather than
+   * written here.
+   */
+  it("carries on the wire what it can, and the twin carries `Vary`", async () => {
+    const dev = JSON.parse(
+      readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
+    ).scripts.dev as string;
+    const port = (/--?p(?:ort)?[= ](\d+)/.exec(dev) ?? [])[1];
+    expect(port, `no port pinned in the dev script: ${dev}`).toBeDefined();
+    const url = `http://localhost:${port}/components/button`;
+
+    const reachable = await fetch(url, { method: "HEAD" }).catch(() => null);
+    if (!reachable) {
+      // Not a silent skip: a suite that cannot reach the server says so, and the assertions
+      // below are the ones a human runs `pnpm --filter docs dev` to check.
+      expect(process.env["CI"], "no dev server on the pinned port, and this is CI").toBeFalsy();
+      return;
+    }
+
+    const html = await fetch(url, { headers: { accept: "text/html" } });
+    expect(html.headers.get("content-type")).toContain("text/html");
+    expect(html.headers.get("link")).toContain('rel="alternate"');
+    // The measured limitation, asserted so it cannot be quietly worse OR quietly better.
+    expect(html.headers.get("vary")).not.toContain("Accept,");
+
+    const twin = await fetch(url, { headers: { accept: "text/markdown" } });
+    expect(twin.headers.get("content-type")).toBe("text/markdown; charset=utf-8");
+    expect(twin.headers.get("vary")?.toLowerCase()).toContain("accept");
   });
 });

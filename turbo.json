@@ -27,8 +27,19 @@
     // agent resolves out of node_modules and the one surface that needs no network to reach.
     // Read against a stale or absent `dist` that law measures a package nobody is shipping —
     // the `measure` task already carries this edge for the same reason.
+    // The corpus inputs are here for the same reason (2026-09-07, the audit). The package's own
+    // negative law — "the rules must be silent on code this repo ships" — reads
+    // `apps/docs/examples` and `apps/docs/blocks`, which is a law reading across a package
+    // boundary with no hash edge across the same boundary: an example could be edited into a
+    // shape the ESLint plugin reports and the law would serve a cache hit. Same finding, fourth
+    // home.
     "test": {
-      "dependsOn": ["^test", "build"]
+      "dependsOn": ["^test", "build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/apps/docs/examples/**/*.tsx",
+        "$TURBO_ROOT$/apps/docs/blocks/**/*.tsx"
+      ]
     },
     // `@kookie-ui/mcp` derives its snapshot from files in `apps/docs` and `packages/ui`, so
     // its hash has to include them even though it depends on neither package's OUTPUT. Without
@@ -48,6 +59,12 @@
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/apps/docs/app/**/*.ts",
         "$TURBO_ROOT$/apps/docs/app/**/*.tsx",
+        // The twin EMBEDS each example verbatim (`markdown.ts` reads `apps/docs/examples`), and
+        // the corpus law reads the same directory plus `blocks`. Neither was hashed, so editing
+        // an example shipped a stale reference AND skipped the law that would have caught it
+        // (2026-09-07, the audit).
+        "$TURBO_ROOT$/apps/docs/examples/**/*.tsx",
+        "$TURBO_ROOT$/apps/docs/blocks/**/*.tsx",
         "$TURBO_ROOT$/packages/ui/src/**/*.ts"
       ]
     },
@@ -57,6 +74,12 @@
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/apps/docs/app/**/*.ts",
         "$TURBO_ROOT$/apps/docs/app/**/*.tsx",
+        // The twin EMBEDS each example verbatim (`markdown.ts` reads `apps/docs/examples`), and
+        // the corpus law reads the same directory plus `blocks`. Neither was hashed, so editing
+        // an example shipped a stale reference AND skipped the law that would have caught it
+        // (2026-09-07, the audit).
+        "$TURBO_ROOT$/apps/docs/examples/**/*.tsx",
+        "$TURBO_ROOT$/apps/docs/blocks/**/*.tsx",
         "$TURBO_ROOT$/packages/ui/src/**/*.ts"
       ]
     },

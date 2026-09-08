@@ -9,6 +9,14 @@ const nextConfig: NextConfig = {
   // 2026-08-06 audit: a dev run wrote one and the next session picked it up.) The tree
   // stays authored; the Next docs remain in node_modules for anyone who wants them.
   agentRules: false,
+  /* THE DEV SERVER SERVES A PHONE ON THE LAN (2026-09-08, Kushagra: "unable to use this on
+     mobile, js doesn't load"). Since Next 16 the dev server answers `/_next/*` with 403 for any
+     browser origin it was not told about — measured from an emulated phone at
+     http://192.168.68.100:1403: the HTML arrives, every chunk is refused, nothing hydrates, and
+     the page reads as a site whose JavaScript never loaded. Private-network ranges and mDNS
+     names cover a phone on the same Wi-Fi whatever address it gets. Dev only; production has no
+     such guard. */
+  allowedDevOrigins: ["192.168.*.*", "10.*.*.*", "172.*.*.*", "*.local"],
   pageExtensions: ["ts", "tsx", "mdx"],
   /* The chapter renames of 2026-09-06 moved five URLs (essay titles became addresses —
      "why-kookie-exists" is now "principles"). Old links live in Slack threads and search
@@ -74,6 +82,7 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [{ source: "/:slug((?!_next/).*)\\.md", destination: "/md/:slug" }];
   },
+
 };
 
 /**

@@ -10,11 +10,26 @@ import { alternateLink, markdownRoute, prefersMarkdown } from "./app/(docs)/nego
  * question gets answered: a rewrite onto the twin's existing route, so there is one body and
  * one `markdownFor()` rather than a second renderer that agrees.
  *
- * TWO HEADERS ON EVERY PAGE, negotiated or not. `Vary: Accept` because the same URL now has two
- * representations and a cache that does not know that will hand a person a markdown file. And a
- * `Link` naming the alternate, so a client that would rather fetch the twin directly can find
- * it without being told the convention — which is the same job `llms.txt` does for the site as
- * a whole, one page at a time.
+ * TWO HEADERS, AND ONLY ONE OF THEM SURVIVES ON THE HTML BRANCH (2026-09-07, the audit).
+ *
+ * Both are set here. The `Link` naming the alternate reaches the wire on every page, so a
+ * client that would rather fetch the twin directly can find it without being told the
+ * convention — the same job `llms.txt` does for the site as a whole, one page at a time.
+ *
+ * `Vary: Accept` reaches the wire on the NEGOTIATED branch and not on the other one. Next's App
+ * Router writes its own `Vary: rsc, next-router-state-tree, …, Accept-Encoding` over whatever a
+ * response carries, and it does so after both this file and `next.config.ts`'s `headers()` have
+ * had their turn — measured with `curl -I` against a restarted dev server, with a probe header
+ * proving `headers()` ran and its `Vary` still lost. There is no third place to set it short of
+ * a custom server.
+ *
+ * WHAT THAT COSTS, stated rather than glossed: a shared cache can store the HTML for this URL
+ * without knowing the response varies, and later hand that HTML to a client that asked for
+ * markdown. It cannot do the reverse — the markdown response DOES carry `Vary: Accept` — so the
+ * failure is an agent receiving a page it can still read, and the `Link` header on it names the
+ * twin. The dangerous direction, a person receiving a markdown file, is the one that is closed.
+ * `negotiate.test.ts` reads both branches off a real response rather than off this function's
+ * return value, which is what makes the claim above checkable instead of hopeful.
  *
  * THE MATCHER IS AUTHORED, and it has to be: Next statically analyses this object at build
  * time, so a list derived from `PAGES` would be read as no list at all. It cannot import
