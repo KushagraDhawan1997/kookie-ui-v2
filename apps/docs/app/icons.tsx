@@ -24,6 +24,7 @@
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { iconStroke } from "@kookie-ui/react";
 import {
+  AiProgrammingIcon,
   Alert02Icon,
   ComputerIcon,
   GithubIcon,
@@ -233,6 +234,11 @@ export const ThemeIcon = glyph(PreferenceHorizontalIcon);
    sequence — get it, set it up, build with it — and a toolbox is a closed silhouette that
    survives 16px, where the hammer's diagonal head goes busy. */
 export const BuildIcon = glyph(ToolboxIcon);
+/* Code with a spark on it, for the chapter about handing this library to an AI agent. Not a
+   robot: a robot is the AI cliché the way a rocket is the shipping cliché, and it draws a
+   machine where the chapter is about what gets WRITTEN. This glyph names the subject — code,
+   produced with help — and it keeps the Getting started column reading as one sequence. */
+export const AgentIcon = glyph(AiProgrammingIcon);
 export const IdeaIcon = glyph(HugeIdeaIcon);
 /* An open book, for a chapter that teaches the words the rest of the site uses. It was a set
    of shapes while the chapter was called Component families, where different shapes stood for

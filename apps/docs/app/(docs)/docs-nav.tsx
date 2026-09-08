@@ -22,6 +22,7 @@ import { Box, NavTree, ShellScroll, type TreeNode } from "@kookie-ui/react";
 
 import {
   AccordionIcon,
+  AgentIcon,
   AllComponentsIcon,
   AvatarIcon,
   BadgeIcon,
@@ -114,6 +115,7 @@ const NAV_ICONS: Record<string, React.ComponentType> = {
   "/start/installation": InstallIcon,
   "/start/theming": ThemeIcon,
   "/start/quickstart": BuildIcon,
+  "/start/agents": AgentIcon,
   "/concepts/principles": IdeaIcon,
   "/concepts/vocabulary": VocabularyIcon,
   "/foundations/color": ColorIcon,
