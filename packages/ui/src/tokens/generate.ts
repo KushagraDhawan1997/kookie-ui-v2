@@ -1390,7 +1390,7 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     decl("scrollbar-fade", `${scrollbar.fade}px`),
     // The dead dim for non-tone roles (2026-08-17): one factor, see config.
     decl("disabled-dim", `${disabledDim}%`),
-    decl("disabled-fill", `var(--neutral-a${disabledSteps[mode].fill})`),
+    decl("disabled-fill", `var(--neutral-${disabledSteps[mode].fill})`), // opaque since 2026-09-08 (solid = solid)
     decl("disabled-fill-solid", `var(--neutral-${disabledSteps[mode].fill})`),
     decl("disabled-border", `var(--neutral-a${disabledSteps[mode].border})`),
     // The dead INK (2026-08-22). recipes.css had written this step by hand in five places, and
@@ -1459,7 +1459,9 @@ function dressWorld(mode: "light" | "dark"): string[] {
       // alpha ramp states the same rendered value ON the seal (that is its solve) and
       // composites relative to the local ground everywhere else — the tone-soft move, one
       // layer down.
-      out.push(decl(`dress-${family}-${slot}`, `var(--neutral-a${step})`));
+      // FILLS ARE OPAQUE SINCE 2026-09-08 (solid = solid — see color.ts's soft ladder); the edges
+      // stay on the alpha ramp, a hairline being a line and not a box.
+      out.push(decl(`dress-${family}-${slot}`, slot.includes("edge") ? `var(--neutral-a${step})` : `var(--neutral-${step})`));
       // The alpha dress's opaque twin (2026-08-19), same step said opaquely — the glass
       // scopes re-point to it so the veil's percentage stays the veil (audit 2026-08-18).
       if (!slot.includes("edge")) out.push(decl(`dress-${family}-${slot}-solid`, `var(--neutral-${step})`));

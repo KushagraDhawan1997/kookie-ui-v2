@@ -1085,7 +1085,9 @@
 }
 
 .kui-surface[data-emphasis="medium"] {
-  --kui-sf-fill-src: var(--tone-a3);
+  /* The opaque twin since 2026-09-08 (solid = solid): a tone-forward pane over content sealed
+     nothing while its source was an alpha. */
+  --kui-sf-fill-src: var(--tone-a3-solid);
   --color-text: var(--tone-text);
 }
 

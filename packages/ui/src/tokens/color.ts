@@ -840,9 +840,17 @@ export function colorDeclarations(
       // fact about compression at black, not a taste asymmetry — the focus ring's own
       // per-mode precedent. The ramp is sRGB in both gamut blocks on purpose (its own note
       // above), so these resolve the sRGB solve everywhere.
-      decl(`${tone}-soft`, `var(--${tone}-a${mode === "dark" ? 4 : 3})`),
-      decl(`${tone}-soft-hover`, `var(--${tone}-a${mode === "dark" ? 5 : 4})`),
-      decl(`${tone}-soft-active`, `var(--${tone}-a${mode === "dark" ? 6 : 5})`),
+      /* OPAQUE SINCE 2026-09-08 (Kushagra: "solid = solid. If I have a button with content
+         underneath, in a solid theme, it looks ugly"). The 2026-08-17 alpha move was measured
+         on a control sitting on a PANE and never on one sitting on content: a medium button
+         over a photograph showed the photograph through its fill, which is a wash, and
+         content passing behind a control is exactly what `backdrop` exists to say. A control
+         is an object; an object is opaque unless it is glass. The `-solid` twins below are now
+         identical to these and the glass re-point is an identity — kept for one iteration,
+         deleted at ship. */
+      decl(`${tone}-soft`, `var(--${tone}-${mode === "dark" ? 4 : 3})`),
+      decl(`${tone}-soft-hover`, `var(--${tone}-${mode === "dark" ? 5 : 4})`),
+      decl(`${tone}-soft-active`, `var(--${tone}-${mode === "dark" ? 6 : 5})`),
       // The trio's OPAQUE twins (2026-08-19), for the one bed where an alpha source is a
       // defect: GLASS. The material veil is color-mix(source alpha%, transparent) and that
       // formula assumes an opaque source — the percentage IS the veil. An alpha source
@@ -982,7 +990,7 @@ export function colorDeclarations(
   // the off switches in the dark settings card, measured invisible. The a-step renders
   // identically on the seal and lifts relative to any local ground. HC keeps its opaque
   // step below: conformance wants the designed contrast, not adaptation.
-  out.push(decl("color-track", `var(--neutral-a${trackWellStep[mode]})`));
+  out.push(decl("color-track", `var(--neutral-${trackWellStep[mode]})`)); // opaque since 2026-09-08 (solid = solid)
 
   // The thumb's fill (§11, 2026-08-07) — the family's third role: a grip must be the most
   // findable object on the rail, so dark goes near-white (iOS's own posture) where light
