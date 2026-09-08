@@ -972,14 +972,25 @@
   border-inline-end-width: 0;
 }
 
-/* THE ONE EXCEPTION, AND IT IS NOT THE APP'S TO STATE (2026-08-21, Kushagra: "when it becomes
-   a drawer, it stops being flush… a drawer has a surface, so it gets surface"). `flush` is a
-   statement about the FRAME, and a pane sitting over the content is not in the frame while it
-   does so — so it takes the surface identity back: its fill, its corner, its four edges.
-   Measured before this, on a phone with the app having said nothing at all: corner 0px and
-   border 0px, against 40px and 1px on a pane the app had pulled off the frame itself. A
-   square, borderless slab sliding over an article, and after the fill left the frame it would
-   have been a see-through one.
+/* A FLUSH PANE STAYS FLUSH WHEN IT BECOMES A DRAWER (2026-09-08, Kushagra: "it doesnt make
+   sense to have drawer on mobile floating in the sense that it should have padding on all
+   sides… presently it anyway ignores flush or non flush, and it always mounts as if not
+   flush but it should be rather flush").
+
+   THIS REVERSES 2026-08-21 AND 2026-09-06, and the sentence that was wrong is the one both
+   of those were built on: "a pane sitting over the content is not in the frame while it does
+   so, so it takes the surface identity back". A drawer is not in the LAYOUT, which is what
+   the position rules above answer — it is still the app's frame, which is what `flush`
+   states, and every platform draws its drawer edge to edge for exactly that reason. The
+   older rule gave a flush app a card sliding over its article; the newer one gave every
+   drawer the same margin whatever the app had said, which is what made `flush` inert here.
+
+   SO WHAT SURVIVES IS ONLY WHAT MAKES A COVERING PANE VISIBLE. A flush pane paints no fill,
+   catches no light and throws no shadow, because it is level with the page — and a drawer is
+   over the page, so all three come back. Nothing about how it SITS comes back: no margin, no
+   corner and no fourth edge, so it reaches all three window edges and keeps the one seam its
+   posture already draws (the trailing hairline three rules up), which is the only boundary a
+   full-height drawer has.
 
    Keyed at (0,3,0) rather than placed after the flush block, because "flush AND overlaying"
    is the exception's real shape and specificity states it where source order only implies it
@@ -987,30 +998,13 @@
    the flush block below them, so the drawer stayed square (caught by the law, not by reading).
 
    Resolved in CSS and not in JS on purpose: the JS knows a pane is overlaying only after
-   mount, so a server-rendered `defaultOpen` drawer would paint square for a frame and then
+   mount, so a server-rendered `defaultOpen` drawer would paint flat for a frame and then
    correct — and first paint being right with no script is the whole of §27.
 
-   The corner is the base rule's own token, one hop up this file, because THAT is what a pane
-   off the frame wears here: the shell pins every pane to `--radius-surface-3` rather than
-   riding the surface size join, so a drawer at size 1 must match a pulled-off pane at size 1
-   and not what a Card of that size would wear. A first spelling restated surfaces.css's join
-   expression instead and came out 38.712px against 40 — the law caught it, and the lesson is
-   that "restore the surface identity" means restore what THIS component gives a pane off the
-   frame, not what the shared layer would give some other box. */
+   A NON-FLUSH DRAWER IS UNCHANGED: it keeps the margin and the corner the rule below gives
+   every pane the app pulled off the frame, which is now what the two values actually mean
+   here rather than a distinction the drawer erased. */
 .kui-shell-pane[data-flush][data-presentation="overlay"] {
-  /* AND IT SITS LIKE ONE TOO (2026-09-06, Kushagra: "dont need border radius if flush was
-     true right?… if we ignore flush when it floats, then the look must be the same, and so it
-     should have padding all around as it would look if flush was false").
-
-     Right, and this rule was its own sentence half-applied. It restored everything a pane off
-     the frame WEARS — fill, corner, edge, light, cast — and nothing about how one SITS, so a
-     drawer came out with a card's corner welded to the window: rounded corners against edges
-     they can never be seen against, and the two on the leading side cut off by the viewport.
-     The margin is the same one `:not([data-flush])` pays, and `--kui-shell-outer` is published
-     with it because the overlay cap subtracts exactly that (the cap has been expecting this
-     term since it was written). */
-  margin: var(--shell-gap);
-  --kui-shell-outer: var(--shell-gap);
   /* The base rule's own chain, restated (2026-09-05). It has to be the PROPERTY, because the
      flush rule stands down the property and `--kui-sf-fill` belongs to the material — see the
      flush rule's own note for the fortnight this was spelled `--kui-sf-fill: initial` and
@@ -1024,17 +1018,11 @@
      wrong. The law does not take this on trust: it reads the drawer's light against a pane
      the app pulled off the frame. */
   background-image: var(--kui-sf-light);
+  /* A drawer is a plane above the page, so the world's depth comes back. With no corner and
+     three edges against the window it is only ever seen on the trailing side, which is the
+     side a drawer is separated from the app on. */
   --kui-sf-cast: initial;
   --kui-sf-pool: initial;
-  border-color: var(--surface-edge, var(--tone-border));
-  /* The shared layer's own expression, multiplier included — a corner has to be restored as
-     a PROPERTY here (the flush rule zeroed the property, and `initial` on a property is 0),
-     and the hook cannot be re-pointed instead because a `.kui-shell-pane[data-flush]` arm and
-     the size join's `.kui-surface[data-size]` arm are both (0,2,0) and would be settled by
-     which file loaded first. Its agreement with a pane the app pulled off the frame is what
-     the law reads, so a drift in either direction fails rather than one of them being right. */
-  border-radius: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1));
-  border-width: var(--border-width);
 }
 
 /* NOT FLUSH: nothing to state. The pane keeps the full surface identity it already has —
@@ -1672,19 +1660,13 @@
      shape of the 2026-08-16 half-applied width-cap repair, which reached the explicit arms
      and not this one: the path every phone takes. */
   .kui-shell-pane[data-flush][data-presentation="auto"] {
-    /* It sits like a pulled-off pane as well as wearing one — the explicit arm's note. */
-    margin: var(--shell-gap);
-    --kui-shell-outer: var(--shell-gap);
     /* The property, for the explicit arm's reasons — a hook the material owns cannot be
-       borrowed to say something local (2026-09-05). */
+       borrowed to say something local (2026-09-05). Nothing about how it SITS is restated,
+       because a flush drawer stays flush (2026-09-08, the explicit arm's note). */
     background-color: var(--kui-sf-fill, var(--kui-sf-fill-src));
     background-image: var(--kui-sf-light);
     --kui-sf-cast: initial;
     --kui-sf-pool: initial;
-    border-color: var(--surface-edge, var(--tone-border));
-    /* The shared layer's expression, as in the explicit arm above and for its reasons. */
-    border-radius: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1));
-    border-width: var(--border-width);
   }
 
   /* PARKED, NOT DELETED — the explicit arm's sentence restated for the resolved value, which
