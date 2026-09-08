@@ -66,6 +66,57 @@
   margin-inline-end: var(--kui-tb-title-gap);
 }
 
+/* THE OVERFLOW (§45, 2026-09-08): the cluster that collapses into a menu when the row runs out
+   of room.
+
+   `flex-basis: 0` IS THE MECHANISM, not a tidy default. This box takes the space LEFT OVER
+   rather than the space its contents want, so hiding a control cannot change how wide it is. A
+   content-sized box would shrink as it hid things, free room, show them again and hide them once
+   more — the measurement chasing its own effect, forever. With a zero basis the width is a fact
+   about the row and the arithmetic over it terminates.
+
+   `flex-end` because the controls that collapse are the ones at the edge of the window: an app
+   puts what it can lose last, and the platform collapses from that end.
+
+   The gap is the row's own, so a cluster that used to be a `Flex` between the same two groups
+   keeps the rhythm it had. Nothing new is priced here.
+
+   AND IT GIVES THE POINTER BACK, which is the row's own rule one level in and the reason it is
+   restated rather than inherited: `.kui-toolbar > *` takes the pointer, and this child now spans
+   every pixel the row does not use. A floating band would have handed a full row of dead page
+   back to nobody. The children take it again one line down. */
+.kui-toolbar-overflow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--kui-tb-gap);
+  flex: 1 1 0%;
+  min-inline-size: 0;
+  pointer-events: none;
+}
+
+.kui-toolbar-overflow > * {
+  pointer-events: auto;
+}
+
+/* ONE SEAT PER CHILD, drawn or not. A cluster in a band is very often conditional — a walk with
+   nowhere to go next, a page with nothing to export — and a child that renders nothing would
+   otherwise shift every measurement after it onto the wrong control. The seat holds the index.
+
+   It adds no box of its own: a flex item holding one flex item lays out as that item did, which
+   is what keeps this an index fix rather than a layout change. An EMPTY one leaves the layout
+   altogether, so it spends neither width nor one of the row's gaps — `display: none` rather than
+   a zero width, because a zero-width flex item still takes a gap on each side of itself. */
+.kui-toolbar-overflow-seat {
+  display: flex;
+  align-items: center;
+  min-inline-size: 0;
+}
+
+.kui-toolbar-overflow-seat:empty {
+  display: none;
+}
+
 /* A vertical toolbar is the same row with its axes swapped — no designed value of its own,
    which is Separator's argument for taking the prop Slider refuses. The extent it states moves
    with it: a column's row-height becomes its width. */
