@@ -35,6 +35,9 @@ import ToolbarExample from "./toolbar";
    need no mapping field, and the registry names which variants a page offers. */
 import AccordionDisabledExample from "./accordion.disabled";
 import AccordionRtlExample from "./accordion.rtl";
+import AttachmentComposerExample from "./attachment.composer";
+import AttachmentMessageExample from "./attachment.message";
+import AttachmentFormExample from "./attachment.form";
 import MenuDisabledExample from "./menu.disabled";
 import MenuRtlExample from "./menu.rtl";
 import SelectDisabledExample from "./select.disabled";
@@ -122,6 +125,9 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "menu": MenuExample,
   "accordion.disabled": AccordionDisabledExample,
   "accordion.rtl": AccordionRtlExample,
+  "attachment.composer": AttachmentComposerExample,
+  "attachment.message": AttachmentMessageExample,
+  "attachment.form": AttachmentFormExample,
   "menu.disabled": MenuDisabledExample,
   "menu.rtl": MenuRtlExample,
   "select.disabled": SelectDisabledExample,

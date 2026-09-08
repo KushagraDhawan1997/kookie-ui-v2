@@ -23,6 +23,10 @@ import dynamic from "next/dynamic";
 
 const Accordion = dynamic(() => import("../../examples/accordion"));
 const AlertDialog = dynamic(() => import("../../examples/alert-dialog"));
+const Attachment = dynamic(() => import("../../examples/attachment"));
+const AttachmentComposer = dynamic(() => import("../../examples/attachment.composer"));
+const AttachmentMessage = dynamic(() => import("../../examples/attachment.message"));
+const AttachmentForm = dynamic(() => import("../../examples/attachment.form"));
 const Avatar = dynamic(() => import("../../examples/avatar"));
 const AvatarGroup = dynamic(() => import("../../examples/avatar-group"));
 const Badge = dynamic(() => import("../../examples/badge"));
@@ -34,6 +38,7 @@ const Card = dynamic(() => import("../../examples/card"));
 const Checkbox = dynamic(() => import("../../examples/checkbox"));
 const Chip = dynamic(() => import("../../examples/chip"));
 const Code = dynamic(() => import("../../examples/code"));
+const Composer = dynamic(() => import("../../examples/composer"));
 const Dialog = dynamic(() => import("../../examples/dialog"));
 const Field = dynamic(() => import("../../examples/field"));
 const Flex = dynamic(() => import("../../examples/flex"));
@@ -67,6 +72,10 @@ const Toolbar = dynamic(() => import("../../examples/toolbar"));
 export const CONTROLLED: Record<string, React.ComponentType<any>> = {
   "accordion": Accordion,
   "alert-dialog": AlertDialog,
+  "attachment": Attachment,
+  "attachment.composer": AttachmentComposer,
+  "attachment.message": AttachmentMessage,
+  "attachment.form": AttachmentForm,
   "avatar": Avatar,
   "avatar-group": AvatarGroup,
   "badge": Badge,
@@ -78,6 +87,7 @@ export const CONTROLLED: Record<string, React.ComponentType<any>> = {
   "checkbox": Checkbox,
   "chip": Chip,
   "code": Code,
+  "composer": Composer,
   "dialog": Dialog,
   "field": Field,
   "flex": Flex,

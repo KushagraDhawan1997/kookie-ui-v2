@@ -18,6 +18,7 @@ import {
   Flex,
   iconStroke,
   type ComposerStatus,
+  type Size,
 } from "@kookie-ui/react";
 
 // The package ships no icon set, so the glyphs are yours. `iconStroke` is the weight the
@@ -27,12 +28,14 @@ const icon = (glyph: typeof ArrowUp02Icon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />
 );
 
-export default function Example() {
+export default function Example({ size = "2", backdrop = false }: { size?: Size; backdrop?: boolean }) {
   const [status, setStatus] = React.useState<ComposerStatus>("ready");
   const [value, setValue] = React.useState("");
 
   return (
     <Composer
+      size={size}
+      backdrop={backdrop}
       onSubmit={() => {
         // The app decides what sending means. The composer only says a person asked for it.
         setStatus("streaming");

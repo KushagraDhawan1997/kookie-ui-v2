@@ -1,23 +1,36 @@
 "use client";
 
-import { Attachment, Stack, type TypeSize } from "@kookie-ui/react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { File01Icon } from "@hugeicons/core-free-icons";
+import {
+  Attachment,
+  iconStroke,
+  type AttachmentState,
+  type Size,
+} from "@kookie-ui/react";
 
-export default function Example({ size = "3" }: { size?: TypeSize }) {
-  void size;
+// The state is yours to set from what your upload already knows. `progress` is read only
+// while uploading; the other states ignore it, so it can stay written.
+export default function Example({
+  size = "2",
+  state = "idle",
+  backdrop = false,
+}: {
+  size?: Size;
+  state?: AttachmentState;
+  backdrop?: boolean;
+}) {
   return (
-    <Stack gap="3" maxWidth="22rem">
-      <Attachment meta="2.4 MB" onRemove={() => {}}>
-        quarterly-report.pdf
-      </Attachment>
-      <Attachment state="uploading" progress={0.62} meta="62% of 18 MB">
-        product-walkthrough.mp4
-      </Attachment>
-      <Attachment state="processing" meta="Extracting text">
-        contract-signed.pdf
-      </Attachment>
-      <Attachment state="error" meta="File is larger than 25 MB" onRemove={() => {}}>
-        dataset-export.csv
-      </Attachment>
-    </Stack>
+    <Attachment
+      size={size}
+      state={state}
+      backdrop={backdrop}
+      progress={0.62}
+      icon={<HugeiconsIcon icon={File01Icon} strokeWidth={iconStroke} />}
+      meta="2.4 MB"
+      onRemove={() => {}}
+    >
+      quarterly-report.pdf
+    </Attachment>
   );
 }

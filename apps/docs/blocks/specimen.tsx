@@ -30,6 +30,17 @@
 import * as React from "react";
 import { Box, Card, Flex, Stack, Surface, Toolbar, ToolbarGroup, type Size } from "@kookie-ui/react";
 
+/**
+ * The index the figure's chrome row rests at, and the one home for it.
+ *
+ * A `Toolbar` prices every control in it, so the copy button, the props trigger and everything
+ * inside the panel that trigger opens all resolve from this one number. It is EXPORTED because
+ * one consumer needs it as a value rather than by inheritance: the props panel lays its rows out
+ * on a grid, and a grid track is a length, so that file has to name the step the controls in it
+ * will land on. It named `2` while this said `3` for a day — see `playground.tsx`.
+ */
+export const FIGURE_CHROME_SIZE = "3" as const;
+
 import { CodeSampleView } from "./code-sample";
 import { CopyButton } from "./copy-button";
 import { FileTabs, type TabbedFile } from "./file-tabs";
@@ -208,7 +219,13 @@ export function SpecimenView({
      chrome row above it and the source below, so only its inline axis faces a wall: bleeding the
      block axis would run the photograph under the buttons and up against the code. Either way
      the backdrop reaches the edge it HAS, which is what stops one page's figure being a photo
-     edge to edge and the next one's a band floating in a margin. */
+     edge to edge and the next one's a band floating in a margin.
+
+     BUT THE PADDING IS ALL FOUR SIDES IN BOTH ARMS (2026-09-08, Kushagra: "no padding at size 3
+     or 4"). The no-paper arm re-padded only the axis it bled, so its block axis had no inset at
+     all — a subject shorter than the floor was centred and never noticed, and a composer at
+     size 3 grew past the floor and stood flush against the photograph's top and bottom edge.
+     Which margins bleed depends on the walls; the inset the subject keeps does not. */
   const bleed = Boolean(stageBackground);
   /* AND THE FIGURE KEEPS ITS HEIGHT, which is the reason this is a plain value and not an
      expression. A floor that compensated for the bleed's missing padding was correct while the
@@ -236,7 +253,7 @@ export function SpecimenView({
       {...(bleed
         ? pane
           ? { m: "bleed" as const, p: "bleed" as const }
-          : { mx: "bleed" as const, px: "bleed" as const }
+          : { mx: "bleed" as const, p: "bleed" as const }
         : {})}
       style={{ minBlockSize: floor, ...(stageBackground ? { background: stageBackground } : {}) }}
     >
@@ -319,7 +336,7 @@ export function SpecimenView({
               index. */}
           {chrome && files.length === 1 ? (
           <Box className="kd-figure-chrome">
-            <Toolbar size="3">
+            <Toolbar size={FIGURE_CHROME_SIZE}>
               {/* The end wall holds the row on its own: one child and `space-between` pushes it
                   to the wrong one. A toolbar has no idea of sides — which controls sit where is
                   what those controls mean, so it will not guess — and this span is how a caller
@@ -337,7 +354,7 @@ export function SpecimenView({
                     holds that state. A button up here would copy whichever file the server
                     happened to put first, which is the kind of wrong that looks right. */}
                 {files.length === 1 ? (
-                  <CopyButton code={files[0]!.copyText} size="3" iconOnly />
+                  <CopyButton code={files[0]!.copyText} size={FIGURE_CHROME_SIZE} iconOnly />
                 ) : null}
               </ToolbarGroup>
             </Toolbar>

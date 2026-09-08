@@ -66,6 +66,13 @@ export type ControlValues = Record<string, string | boolean>;
 export const OFFERED: Record<string, readonly string[]> = {
   accordion: ["size", "multiple"],
   "alert-dialog": ["size"],
+  attachment: ["size", "state", "backdrop"],
+  // A VARIANT offers knobs too (2026-09-08, Kushagra: "each example should have a prop
+  // configurator"). Keyed by the variant's full name, so a scene offers only the axes its
+  // own signature declares — `size` here reaches the composer AND every tile.
+  "attachment.composer": ["size", "backdrop"],
+  "attachment.message": ["size", "backdrop"],
+  "attachment.form": ["size", "backdrop"],
   avatar: ["size", "backdrop", "badge"],
   "avatar-group": ["size", "backdrop"],
   badge: ["size"],
@@ -77,6 +84,7 @@ export const OFFERED: Record<string, readonly string[]> = {
   checkbox: ["size"],
   chip: ["size", "weight", "emphasis", "backdrop"],
   code: ["weight", "tone"],
+  composer: ["size", "backdrop"],
   dialog: ["size"],
   field: ["size"],
   flex: ["gap", "direction", "align", "justify"],
@@ -118,6 +126,10 @@ const CATALOG_KEY: Record<string, string> = {
   breadcrumb: "Breadcrumb",
   accordion: "Accordion",
   "alert-dialog": "AlertDialog",
+  attachment: "Attachment",
+  "attachment.composer": "Attachment",
+  "attachment.message": "Attachment",
+  "attachment.form": "Attachment",
   avatar: "Avatar",
   // The AVATARS' schemas, on Radio's precedent one entry down (2026-09-05, Kushagra: "sure
   // lets pass to all"). `backdrop` is not a group prop and must not become one — the group is
@@ -135,6 +147,7 @@ const CATALOG_KEY: Record<string, string> = {
   checkbox: "Checkbox",
   chip: "Chip",
   code: "Code",
+  composer: "Composer",
   dialog: "Dialog",
   field: "Field",
   flex: "Flex",
@@ -180,14 +193,27 @@ const CATALOG_KEY: Record<string, string> = {
  * Exported for the laws, which need to ask what a page COULD offer — `controlsFor` only answers
  * what it DOES. One lookup rather than a second copy of the mapping.
  */
+/**
+ * Schemas for the pages whose component the BUILDER EXCLUDES (2026-09-08, Kushagra: "composer
+ * needs prop configurator too"). The catalog is the one home for a placeable component's props,
+ * and a composer is deliberately not placeable — its whole point is a handler the builder cannot
+ * export — so it has no catalog entry to derive from. What it does have is axes: `size` is the
+ * same axis every control declares, stated here in the catalog's own schema shape so the knob
+ * mechanism does not grow a second branch. Only the knob-worthy props are listed, on purpose.
+ */
+const OUTSIDE_CATALOG: Record<string, { props: Record<string, { kind: string; axis?: string; values?: readonly string[] }> }> = {
+  Composer: { props: { size: { kind: "axis", axis: "size" }, backdrop: { kind: "boolean" } } },
+};
+
 export const catalogEntryFor = (slug: string) =>
-  CATALOG[CATALOG_KEY[slug] as keyof typeof CATALOG] as { props: Record<string, unknown> } | undefined;
+  (CATALOG[CATALOG_KEY[slug] as keyof typeof CATALOG] as { props: Record<string, unknown> } | undefined) ??
+  OUTSIDE_CATALOG[CATALOG_KEY[slug] ?? ""];
 
 export function controlsFor(slug: string, source: string): Control[] {
   const offered = OFFERED[slug];
   const key = CATALOG_KEY[slug];
   if (!offered || !key) return [];
-  const entry = CATALOG[key as keyof typeof CATALOG];
+  const entry = CATALOG[key as keyof typeof CATALOG] ?? OUTSIDE_CATALOG[key];
   if (!entry) return [];
 
   const out: Control[] = [];

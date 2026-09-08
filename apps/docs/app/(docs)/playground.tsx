@@ -38,7 +38,12 @@ import {
 
 import { CodeSampleView } from "../../blocks/code-sample";
 import { CopyButton } from "../../blocks/copy-button";
-import { SpecimenView } from "../../blocks/specimen";
+import { FIGURE_CHROME_SIZE, SpecimenView } from "../../blocks/specimen";
+
+/** The props panel's index: a small form, one step under the figure's chrome (2026-09-08,
+    Kushagra: "even though the trigger is size 3, why is the popover size 3 also"). The panel,
+    every control in it and the row track all read this one constant. */
+const PANEL_SIZE = "2" as const;
 import { plainText, type CodeLine, type HighlightedCode } from "../../blocks/highlight";
 import { bed } from "../preview/beds";
 import { SettingsIcon } from "../icons";
@@ -176,7 +181,14 @@ export function Playground({
 
              The property list itself is unchanged and its alignment is the reason it survived the
              move: name on the left, control on the right, one rhythm, sized to content. */
-          <Popover>
+          /* SIZE 2, STATED — on the panel AND on every control in it (2026-09-08, Kushagra: "even
+             though the trigger is size 3, why is the popover size 3 also… not just panel, items
+             inside it too"). The chrome row is a size-3 Toolbar and its size scope reaches
+             everything rendered inside it in the React tree — this popover and its contents
+             included, though it portals out of the row. The panel is a small form, not chrome.
+             Open question for the package: whether a portalled pane should reset the size scope
+             to the theme's, the way it resets the material scope. */
+          <Popover size={PANEL_SIZE}>
             <PopoverTrigger
               /* A `ToolbarButton` SINCE 2026-09-06: the figure's chrome row is a `Toolbar`, and
                  a plain Button cannot enrol in its roving tab stop — an unregistered control in
@@ -207,10 +219,22 @@ export function Playground({
                   switch, always — floating in the middle of a column the select had set.
 
                   `gridAutoRows` states the row, so the list has one rhythm whatever is in it,
-                  and `justifyItems: end` puts every control on the wall. The height is the
-                  control ladder's own step at this figure's index, which the file already
-                  states above: the chrome is 2, so the rows are the 2. `align="center"` then
+                  and `justifyItems: end` puts every control on the wall. `align="center"` then
                   centres a short control in the row rather than stretching it.
+
+                  THE ROW'S HEIGHT COMES FROM `PANEL_SIZE`, AND WRITING THE INDEX TWICE IS WHAT
+                  BROKE IT. It read `var(--control-height-2)` under a comment saying "the chrome
+                  is 2, so the rows are the 2" — a literal restating a fact the panel never
+                  stated, since `PopoverContent` takes the ambient index. The day the app took a
+                  resting `size` the chrome went to 3, every control in here went to 40px, and
+                  the row track stayed 32: each control overflowed its own row by exactly the
+                  8px of `gapY`, so the rows touched and the gap looked deleted. Measured on
+                  `/components/button`: panel `data-size="3"`, segmented and select 40px tall in
+                  a 32px track, the grid 232px for six rows (6 x 32 + 5 x 8).
+
+                  The panel states the index and the track reads the same constant, so the two
+                  cannot disagree again. A literal here is not a shortcut for a token — it is a
+                  second home for the figure's index.
 
                   A SWITCH, NOT A CHECKBOX, and it was worth asking. A checkbox is a value in a
                   form you submit; a switch is a setting that takes effect at once. Every knob
@@ -221,7 +245,10 @@ export function Playground({
                 gapX="4"
                 gapY="3"
                 align="center"
-                style={{ gridAutoRows: "var(--control-height-2)", justifyItems: "end" }}
+                style={{
+                  gridAutoRows: `var(--control-height-${PANEL_SIZE})`,
+                  justifyItems: "end",
+                }}
               >
                 {controls.map((control) => (
                   <React.Fragment key={control.name}>
@@ -237,7 +264,7 @@ export function Playground({
                         exactly this, so the text names them rather than pointing at nothing. */}
                     {control.kind === "boolean" || control.kind === "slot" ? (
                       <Text
-                        size="2"
+                        size={PANEL_SIZE}
                         emphasis="medium"
                         render={<label htmlFor={`ctl-${control.name}`} />}
                         style={{ justifySelf: "start" }}
@@ -246,7 +273,7 @@ export function Playground({
                       </Text>
                     ) : (
                       <Text
-                        size="2"
+                        size={PANEL_SIZE}
                         emphasis="medium"
                         id={`ctl-label-${control.name}`}
                         style={{ justifySelf: "start" }}
@@ -256,12 +283,14 @@ export function Playground({
                     )}
                     {control.kind === "boolean" || control.kind === "slot" ? (
                       <Switch
+                        size={PANEL_SIZE}
                         id={`ctl-${control.name}`}
                         checked={values[control.name] === true}
                         onCheckedChange={(next) => setValues((v) => ({ ...v, [control.name]: next }))}
                       />
                     ) : laidOut(control.values) ? (
                       <SegmentedControl
+                        size={PANEL_SIZE}
                         aria-labelledby={`ctl-label-${control.name}`}
                         value={String(values[control.name])}
                         onValueChange={(next) => setValues((v) => ({ ...v, [control.name]: String(next) }))}
@@ -274,6 +303,7 @@ export function Playground({
                       </SegmentedControl>
                     ) : (
                       <Select
+                        size={PANEL_SIZE}
                         value={String(values[control.name])}
                         onValueChange={(next) => setValues((v) => ({ ...v, [control.name]: String(next) }))}
                         items={Object.fromEntries(control.values.map((v) => [v, v]))}
