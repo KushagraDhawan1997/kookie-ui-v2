@@ -16,7 +16,9 @@ import { readFileSync, readdirSync } from "node:fs";
 import { basename, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { SPACING_REFUSALS } from "../system/refused.ts";
 import { Linter, RuleTester } from "eslint";
+import type { Linter as LinterTypes } from "eslint";
 import tseslint from "typescript-eslint";
 import { describe, expect, it } from "vitest";
 
@@ -42,7 +44,7 @@ const tester = new RuleTester({ languageOptions });
 
 /** Every fixture imports the package, because a rule that fired without one would fire on
     a consumer's own components — which is the line both rules are drawn on. */
-const withImport = (jsx: string) => `import { Card, Stack } from "@kookie-ui/react";\nconst x = ${jsx};\n`;
+const withImport = (jsx: string) => `import { Box, Button, Card, Stack } from "@kookie-ui/react";\nconst x = ${jsx};\n`;
 
 describe("no-refused-attribute — the hole TSX leaves open (§9, §12)", () => {
   it("the attribute set IS the axis union, not a copy that agrees today", () => {
@@ -132,26 +134,56 @@ describe("no-escape-abuse — an escape used to leave the system (ENGINEERING §
           code: withImport(`<Stack className="md:gap-2 min-w-[20rem]" />`),
           errors: [{ messageId: "utility" }, { messageId: "utility" }],
         },
+        /*
+         * WHICH SENTENCE, DEPENDS ON WHETHER THE ELEMENT TAKES THE PROP (2026-09-07, the audit).
+         *
+         * `propFor` reads the Box prop table, and only the four layouts take those props — so
+         * "pass `p`" on a Card named a prop a Card does not have, and "pass `m`" on a Button
+         * named one `refused.ts` refuses on it. A report whose repair does not compile is worse
+         * than no report. All three arms are fixtured, because the old law had only the wrong
+         * one and passed.
+         */
         {
-          code: withImport(`<Card style={{ padding: "8px" }} />`),
+          // A LAYOUT really does take the prop, so the original sentence is the right one.
+          code: withImport(`<Box style={{ padding: "8px" }} />`),
           errors: [
             {
               messageId: "ownedLength",
+              data: { property: "padding", value: "8px", element: "Box", prop: "p" },
+            },
+          ],
+        },
+        {
+          // Not a layout: inner spacing is priced by `size`, and the component has no `p`.
+          code: withImport(`<Card style={{ padding: "8px" }} />`),
+          errors: [
+            {
+              messageId: "ownedLengthInner",
               data: { property: "padding", value: "8px", element: "Card", prop: "p" },
             },
           ],
         },
         {
+          // A margin on a control: the escape is the refusal's own sentence, from one home.
+          code: withImport(`<Button style={{ margin: "8px" }} />`),
+          errors: [
+            {
+              messageId: "ownedLengthRefused",
+              data: { property: "margin", value: "8px", element: "Button", prop: "m", why: SPACING_REFUSALS.m },
+            },
+          ],
+        },
+        {
           // A physical side is the logical one at a call site, so `pt` is still the answer.
-          code: withImport(`<Card style={{ paddingTop: 12, gap: "4px" }} />`),
+          code: withImport(`<Box style={{ paddingTop: 12, gap: "4px" }} />`),
           errors: [
             {
               messageId: "ownedLength",
-              data: { property: "padding-top", value: "12", element: "Card", prop: "pt" },
+              data: { property: "padding-top", value: "12", element: "Box", prop: "pt" },
             },
             {
               messageId: "ownedLength",
-              data: { property: "gap", value: "4px", element: "Card", prop: "gap" },
+              data: { property: "gap", value: "4px", element: "Box", prop: "gap" },
             },
           ],
         },
@@ -347,17 +379,26 @@ describe("the recommended config, as a consumer gets it", () => {
   // outside of base path" for anything else, which arrives as a lint result with a null rule
   // and would read exactly like a clean file. The instrument had that bug before the plugin
   // was cleared of it.
-  const run = async (name: string, code: string) => {
+  const run = async (name: string, code: string, extra: LinterTypes.Config[] = []) => {
     const filePath = path.join(process.cwd(), name);
     const { ESLint } = await import("eslint");
-    const engine = new ESLint({ overrideConfigFile: true, overrideConfig: recommended });
+    const engine = new ESLint({
+      overrideConfigFile: true,
+      overrideConfig: [...extra, ...recommended],
+    });
     const [result] = await engine.lintText(code, { filePath });
     return result?.messages ?? [];
   };
 
-  it("matches a .tsx file and parses the JSX in it", async () => {
+  /** What a TypeScript consumer's own config supplies, and what the chapter's snippet shows. */
+  const withTsParser = async (): Promise<LinterTypes.Config[]> => {
+    const tseslint = await import("typescript-eslint");
+    return [{ files: ["**/*.tsx", "**/*.ts"], languageOptions: { parser: tseslint.parser } }];
+  };
+
+  it("matches a .jsx file and parses the JSX in it, with no help", async () => {
     const messages = await run(
-      "a.tsx",
+      "a.jsx",
       // The import is load-bearing: both rules only speak about symbols this package exports,
       // so a fixture without one measures a rule that correctly declined to fire.
       'import { Button } from "@kookie-ui/react";\nexport const A = <Button data-tone="destructive" />;\n',
@@ -366,10 +407,59 @@ describe("the recommended config, as a consumer gets it", () => {
     expect(messages.map((m) => m.ruleId)).toContain("kookie/no-refused-attribute");
   });
 
+  it("matches a .js file too, which is what CRA and Next's pages router write JSX in", async () => {
+    const messages = await run(
+      "a.js",
+      'import { Button } from "@kookie-ui/react";\nexport const A = <Button color="red" />;\n',
+    );
+    expect(messages.map((m) => m.ruleId)).toContain("kookie/no-refused-prop");
+  });
+
+  /*
+   * REAL TYPESCRIPT SYNTAX, WHICH IS THE FIXTURE THIS LAW DID NOT HAVE (2026-09-07, the audit).
+   *
+   * It ran `.tsx` files containing pure JSX, which espree parses perfectly well — so the law
+   * could not tell a config that reads TypeScript from one that does not, and the shipped
+   * config could not read TypeScript at all: with the install the documentation printed, every
+   * `.tsx` file in a real consumer reported `Parsing error: Unexpected token` and none of the
+   * plugin's findings. A type annotation is one character of fixture and the whole difference.
+   */
+  const TYPESCRIPT =
+    'import { Button } from "@kookie-ui/react";\n' +
+    "type Props = { title: string };\n" +
+    'export const A = ({ title }: Props) => <Button data-tone="destructive">{title}</Button>;\n';
+
+  it("reads TypeScript when the consumer's parser is configured", async () => {
+    const messages = await run("c.tsx", TYPESCRIPT, await withTsParser());
+    expect(messages.map((m) => m.message).join("\n")).not.toContain("Parsing error");
+    expect(messages.map((m) => m.ruleId)).toContain("kookie/no-refused-attribute");
+  });
+
+  it("brings no parser of its own, and that is stated rather than hoped", async () => {
+    // With no parser entry, espree meets TypeScript and fails loudly. That is the honest
+    // outcome — a plugin cannot ship a parser — and it is why the chapter prints the
+    // `typescript-eslint` entry beside this config instead of `recommended` alone.
+    const messages = await run("d.tsx", TYPESCRIPT);
+    expect(messages.map((m) => m.message).join("\n")).toContain("Parsing error");
+  });
+
+  it("composes with the parser entry in either order", async () => {
+    const parser = await withTsParser();
+    const { ESLint } = await import("eslint");
+    for (const order of [[...parser, ...recommended], [...recommended, ...parser]]) {
+      const engine = new ESLint({ overrideConfigFile: true, overrideConfig: order });
+      const [result] = await engine.lintText(TYPESCRIPT, {
+        filePath: path.join(process.cwd(), "e.tsx"),
+      });
+      expect(result?.messages.map((m) => m.ruleId)).toContain("kookie/no-refused-attribute");
+    }
+  });
+
   it("says nothing about code that uses the escapes correctly", async () => {
     const messages = await run(
       "b.tsx",
       'import { Card } from "@kookie-ui/react";\nexport const B = <Card className="dashboard-header" style={{ height: "160px" }} />;\n',
+      await withTsParser(),
     );
     expect(messages).toEqual([]);
   });

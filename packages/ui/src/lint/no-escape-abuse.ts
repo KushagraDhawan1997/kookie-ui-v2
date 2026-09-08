@@ -22,6 +22,8 @@
 
 import type { Rule } from "eslint";
 
+import { LAYOUT_SYMBOLS, typeRefusalsFor } from "../system/refusal-sets.ts";
+
 import { isOwnedProperty, kebab, normalizeProperty, propFor } from "./owned-properties.ts";
 import { isRawColor, isRawLength } from "./raw-values.ts";
 import { createTracker, isKookieElement, recordImport, type SymbolTracker } from "./kookie-symbols.ts";
@@ -91,6 +93,15 @@ export const noEscapeAbuse: Rule.RuleModule = {
         "`{{property}}: {{value}}` writes a colour out on `<{{element}}>`. Appearance is resolved output: choose it with the `tone` and `emphasis` props, or reach a token through `style` as `var(--color-…)`.",
       ownedLength:
         "`{{property}}: {{value}}` is a raw length on `<{{element}}>` for a property the `{{prop}}` prop owns. Pass `{{prop}}` with a space index; `style` is for the CSS this system has no prop for.",
+      // The SAME defect the message above would otherwise commit, one element over: `propFor`
+      // reads the Box prop table, and only the four layouts take those props — so telling a
+      // Button to "pass `m`" named a prop `refused.ts` refuses on it, which is a report whose
+      // repair does not compile (2026-09-07, the audit). The escape is the refusal's own
+      // sentence, taken from the one home that states it.
+      ownedLengthRefused:
+        "`{{property}}: {{value}}` is a raw length on `<{{element}}>`, and `{{prop}}` is not a prop it takes. {{why}}",
+      ownedLengthInner:
+        "`{{property}}: {{value}}` is a raw length on `<{{element}}>`. Inner spacing is the system's: it is priced per `size` and re-picked per `density`, so a component takes no `{{prop}}`. Wrap the content in a `<Box {{prop}}=\"…\">` if the distance is yours to choose.",
     },
   },
   create(context) {
@@ -148,10 +159,26 @@ export const noEscapeAbuse: Rule.RuleModule = {
             if (!isOwnedProperty(key) || !isRawLength(value)) continue;
             const prop = propFor(property);
             if (!prop) continue;
+            // Which sentence is the right one depends on whether this element takes the prop
+            // the property maps to. The layouts do; everything else refuses the margin row by
+            // type and simply has no layout props at all.
+            const symbol = elementName.split(".").pop() ?? elementName;
+            const refused = typeRefusalsFor(symbol).find((row) => row.prop === prop);
+            const messageId = LAYOUT_SYMBOLS.includes(symbol)
+              ? "ownedLength"
+              : refused
+                ? "ownedLengthRefused"
+                : "ownedLengthInner";
             context.report({
               node: literal as never,
-              messageId: "ownedLength",
-              data: { property: kebab(key), value: String(value), element: elementName, prop },
+              messageId,
+              data: {
+                property: kebab(key),
+                value: String(value),
+                element: elementName,
+                prop,
+                why: refused?.why ?? "",
+              },
             });
           }
         }
