@@ -107,6 +107,13 @@ describe("every page that offers controls can drive one", () => {
 describe("every page whose component takes the material offers it", () => {
   const NO_KNOB: Record<string, string> = {
     box: "A Box's backdrop marks a region for the panes inside it and paints nothing of its own, so the knob would move no pixels on a page whose specimen is the box itself.",
+    // The three presets ARE Box with a display, so the sentence above is theirs verbatim. They
+    // arrived here on 2026-09-07 when the API generator learned to follow a props type aliased
+    // across files: `backdrop` had always been on their type through `BoxProps` and had never
+    // reached the table, so this law had never been asked about them.
+    flex: "A Flex is a Box with a display, so its backdrop marks a region for the panes inside it and paints nothing of its own. The knob would move no pixels.",
+    stack: "A Stack is a Box with a display, so its backdrop marks a region for the panes inside it and paints nothing of its own. The knob would move no pixels.",
+    grid: "A Grid is a Box with a display, so its backdrop marks a region for the panes inside it and paints nothing of its own. The knob would move no pixels.",
   };
 
   it("the catalog was reached — an empty walk audits nothing", () => {

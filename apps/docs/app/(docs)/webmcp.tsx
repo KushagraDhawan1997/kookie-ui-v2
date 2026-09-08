@@ -23,31 +23,15 @@ import type { Host } from "./webmcp-register";
  */
 
 /**
- * The reference polyfill, and why it is a URL rather than an import.
+ * The reference polyfill is a dependency, pinned, and still loaded only on request.
  *
  * `@mcp-b/webmcp-polyfill` is the community runtime for this proposal — it installs
- * `document.modelContext` with the older `navigator.modelContext` beside it — and it is not a
- * dependency of this app. Adding one would put a third-party runtime in the lockfile of a
- * documentation site that refuses third-party UI, for a capability that is off by default; so
- * it is fetched, from its published ESM build, only when a reader has asked for it in the URL.
- *
- * IF IT BECOMES A DEPENDENCY this constant is deleted and the import below becomes a bare
- * specifier. Nothing else in this file changes.
- */
-const POLYFILL = "https://cdn.jsdelivr.net/npm/@mcp-b/webmcp-polyfill/+esm";
-
-/**
- * IT DOES NOT INSTALL ITSELF, and the first spelling here assumed it did.
- *
- * Importing the module and stopping was measured: the request came back 200 and
- * `document.modelContext` was still `undefined`, so the opt-in loaded a runtime and then
- * registered nothing. Its package declares `sideEffects` for the IIFE build ONLY — the ESM
- * entry is side-effect free on purpose and hands over `initializeWebMCPPolyfill` instead.
- *
- * The call is guarded rather than named directly because this is somebody else's package on a
- * proposal that is still moving: a build that goes back to installing on import satisfies the
- * first arm, and one that renames the initializer fails the way an absent polyfill already
- * fails — silently, with the notice never appearing.
+ * `document.modelContext` with the older `navigator.modelContext` beside it. It was first
+ * fetched from a CDN at runtime so the lockfile would not carry it; that traded a pinned
+ * version this repo reviews for whatever a third party serves at the moment a reader loads
+ * the page, which is the wrong trade for code that runs in the document. It is a real
+ * dependency now, and the dynamic import below keeps it a separate chunk that is fetched only
+ * when a reader has asked for it in the URL. A reader who has not pays nothing.
  */
 type Polyfill = { initializeWebMCPPolyfill?: () => void; cleanupWebMCPPolyfill?: () => void };
 
@@ -78,9 +62,7 @@ export function WebMcp() {
       if (!native.modelContext && !(navigator as { modelContext?: unknown }).modelContext) {
         if (!optedIn) return;
         try {
-          const module_: Polyfill = await import(
-            /* @vite-ignore */ /* webpackIgnore: true */ POLYFILL
-          );
+          const module_: Polyfill = await import("@mcp-b/webmcp-polyfill");
           module_.initializeWebMCPPolyfill?.();
           cleanup = module_.cleanupWebMCPPolyfill ?? null;
         } catch {
@@ -157,7 +139,17 @@ export function WebMcp() {
  * all: the stylesheet in the document IS the emitted `tokens.css`, so the list cannot drift
  * from what the build generated and no snapshot of it exists to go stale. Cross-origin sheets
  * throw on `cssRules` and are skipped — the package's own is same-origin.
+ *
+ * BUT THE PAGE HAS MORE SHEETS THAN THE PACKAGE (2026-09-07, the audit). Measured, the walk
+ * returned 987 names against the 841 the package emits: the extra 147 are the control layer's
+ * private `--kui-ct-*` / `--kui-sf-*` stems, which this system's OWN laws forbid a component
+ * from so much as mentioning; this documentation app's `--kd-*` variables; and Lightning CSS's
+ * `--lightningcss-*`. A tool offering those as tokens is offering an agent a name it must not
+ * write, which is worse than offering none — so the walk keeps the public prefixes and drops
+ * the private stem, in that order. A name is public when the generator emitted it.
  */
+/** The stems this system publishes, and the one it keeps to itself. */
+const PRIVATE_STEM = /^--kui-/;
 function tokenNames(): string[] {
   const names = new Set<string>();
   const walk = (rules: CSSRuleList) => {
@@ -184,7 +176,13 @@ function tokenNames(): string[] {
   }
   // NOT SORTED HERE. `matchTokens` decides what a reader should see first, and sorting on both
   // sides made its ranking unreachable — the law that guards it could not fail.
-  return [...names];
+  //
+  // `--kd-*` is this app's own and `--lightningcss-*` is the bundler's; neither is a token this
+  // system ships. `--kui-*` is the private stem: real, load-bearing, and forbidden to a call
+  // site, so a tool must not offer it as an answer.
+  return [...names].filter(
+    (name) => !PRIVATE_STEM.test(name) && !name.startsWith("--kd-") && !name.startsWith("--lightningcss-"),
+  );
 }
 
 /**

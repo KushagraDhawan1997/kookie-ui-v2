@@ -38,7 +38,15 @@ export type Entry = {
   /** The discussion, in short literal paragraphs. What the abstract cannot hold. */
   overview: string[];
   /** What it refuses, and why. The system's argument. */
-  refusals: { name: string; why: string }[];
+  /**
+   * What it refuses, and why. The system's argument.
+   *
+   * `on` narrows a refusal to the named parts. A refusal is written about the component and,
+   * left open, reaches every part of it — which is right for `tone` on an accordion and wrong
+   * for `render` on a toggle, where the button refuses it and the group is the layout you are
+   * told to `render`. The checker reads this field; the page prints the sentence either way.
+   */
+  refusals: { name: string; why: string; on?: string[] }[];
   /** Parts of a compound component, explained here rather than on stub pages of their own.
       The coverage law accepts either home, and holds part blurbs to a floor. */
   parts?: { part: string; blurb: string }[];
@@ -183,6 +191,11 @@ const DECLARED: Entry[] = [
     spec: "§43",
         abstract: "Attachment is one file and what is happening to it.",
     overview: ["It is not part of the composer, because a file about to be sent and a file already sent are the same tile, so the tile cannot belong to the thing that sends. The system draws the state and the app owns the file: every value is a prop you set from state you already have, and the component never sees a File, never starts a timer, and never mints a URL it would have to revoke."],
+    variants: [
+      { name: "composer", title: "In a composer, before sending", why: "The strip sits above the text, inside the composer, and every tile has a remove. The list is yours: removing one filters your own array." },
+      { name: "message", title: "In a message, after sending", why: "The same tile with nothing to remove. A file about to be sent and a file already sent are one component, which is why it is not part of the composer." },
+      { name: "form", title: "Under a field, one per line", why: "A field that takes files lists what it has so far. The failed one says why in meta, because the colour alone is not a message." },
+    ],
     refusals: [
       {
         name: "A done state",
@@ -1516,6 +1529,10 @@ const DECLARED: Entry[] = [
       },
       {
         name: "`nativeButton` and `render`",
+        // SCOPED TO THE SEGMENT (2026-09-07, the audit). The sentence is about a segment, and
+        // an unscoped refusal reaches the root — where `render` is real and `tsc` accepts it,
+        // so the two channels gave opposite verdicts on `<SegmentedControl render={<Stack/>}>`.
+        on: ["SegmentedItem"],
         why: "Set nativeButton on a segment and Space stops selecting it, which is the bug the checkbox closed on this same primitive.",
       },
       { name: "`readOnly`", why: "The same as Radio: HTML has no read-only selection control, so there is no appearance to inherit." },
@@ -1645,7 +1662,7 @@ const DECLARED: Entry[] = [
       { name: "`emphasis`", why: "The pressed state IS the emphasis. Off is quiet and on is medium, and if you could pick a loudness, a toggle that is off could look louder than one that is on." },
       { name: "`loading`", why: "A toggle does not wait for anything. It flips. A control that starts a job and waits for it is a Button, and a switch that persists is a Switch." },
       { name: "A single-select group", why: "ToggleGroup is always multiple. Pick one of several is a radio group, and this library spells that SegmentedControl, which announces itself as one and moves the value with the arrow keys." },
-      { name: "`render`", why: "The primitive's pressed state drives the element's attributes, and the emphasis is stamped from that state. Swapping the element would leave the stamp behind. A toggle is a button." },
+      { name: "`render`", on: ["Toggle"], why: "The primitive's pressed state drives the element's attributes, and the emphasis is stamped from that state. Swapping the element would leave the stamp behind. A toggle is a button." },
     ],
     parts: [
       { part: "ToggleGroup", blurb: "The shared state for a set of toggles: one value array, roving arrow keys, a group announcement. It draws nothing, so make it the layout with render" },

@@ -13,6 +13,7 @@
 import { readFileSync } from "node:fs";
 
 import { componentAxes } from "@kookie-ui/react";
+import { CONFORMANCE_CASES, TOOL_NAMES, WEB_TOOL_PREFIX, webToolName } from "@kookie-ui/react/agent";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -22,6 +23,7 @@ import {
   entryFor,
   listComponents,
   matchTokens,
+  snippetNotes,
   type ToolEnv,
 } from "./agent-tools";
 import { ENTRIES } from "./components/registry";
@@ -62,14 +64,14 @@ const call = (name: string, input: Record<string, unknown>) => {
 
 describe("the catalogue", () => {
   it("lists every component the registry holds", async () => {
-    const out = await call("kookie_list_components", {});
+    const out = await call(webToolName("list"), {});
     expect(out).toContain(`${ENTRIES.length} of ${ENTRIES.length} components.`);
     for (const entry of ENTRIES) expect(out).toContain(`${entry.name} — ${entry.family}`);
   });
 
   it("filters by family, and the families come from the entries", async () => {
     expect(FAMILIES).toContain("Control");
-    const out = await call("kookie_list_components", { family: "Control" });
+    const out = await call(webToolName("list"), { family: "Control" });
     const controls = ENTRIES.filter((e) => e.family === "Control");
     expect(out).toContain(`${controls.length} of ${ENTRIES.length}`);
     // A component from another family must not appear. Surface is the family Card is in, and
@@ -88,7 +90,7 @@ describe("the catalogue", () => {
      name. A word no component matches is the input where filtering and not filtering give
      different answers, which is what the fixture has to be built on. */
   it("excludes what a query does not match, rather than listing everything", async () => {
-    const out = await call("kookie_list_components", { query: "zzqxnothing" });
+    const out = await call(webToolName("list"), { query: "zzqxnothing" });
     expect(out).toContain("No component matches");
     expect(out).not.toContain("/components/");
   });
@@ -103,7 +105,7 @@ describe("the catalogue", () => {
       ),
     );
     expect(withRefusal, "no entry refuses a shadow without naming one").toBeDefined();
-    const out = await call("kookie_list_components", { query: "shadow" });
+    const out = await call(webToolName("list"), { query: "shadow" });
     expect(out).toContain(withRefusal!.name);
     // And it narrowed to get there: an unfiltered list contains that name too.
     expect(out).not.toContain(`${ENTRIES.length} of ${ENTRIES.length} components.`);
@@ -114,7 +116,7 @@ describe("one component", () => {
   it("resolves either name a reader has, and serves the page's own twin", async () => {
     expect(entryFor("Button")?.slug).toBe("button");
     expect(entryFor("button")?.name).toBe("Button");
-    expect(await call("kookie_get_component", { name: "Button" })).toBe("# Button\n\nthe twin\n");
+    expect(await call(webToolName("get"), { name: "Button" })).toBe("# Button\n\nthe twin\n");
   });
 
   /* THE FALLBACK IS POORER AND SAYS SO. It is reached by asking for a component whose twin
@@ -122,7 +124,7 @@ describe("one component", () => {
      fixture rather than by a flag. */
   it("falls back to the registry when the twin cannot be fetched", async () => {
     const entry = ENTRIES.find((e) => e.slug !== "button" && API[e.name]?.props.length)!;
-    const out = await call("kookie_get_component", { name: entry.name });
+    const out = await call(webToolName("get"), { name: entry.name });
     expect(out).toContain("could not be fetched");
     expect(out).toContain(entry.abstract);
     for (const refusal of entry.refusals) expect(out).toContain(refusal.name);
@@ -130,7 +132,7 @@ describe("one component", () => {
   });
 
   it("says so rather than throwing when the name is not a component", async () => {
-    const out = await call("kookie_get_component", { name: "Frobnicator" });
+    const out = await call(webToolName("get"), { name: "Frobnicator" });
     expect(out).toContain("No component called");
   });
 });
@@ -173,29 +175,30 @@ describe("checking a snippet", () => {
     expect(found.map((p) => p.symbol)).toEqual(["Button.tone"]);
   });
 
-  /* AN UNKNOWN TAG IS REPORTED ONCE, and the message says it may be the caller's own — this
-     file cannot tell a typo from a local component, and a check that guessed would be the
-     fault rather than the feature. */
-  it("reports an unknown tag once and hedges", () => {
-    expect(only(checkSnippet(`<Widget/><Widget/><Widget/>`)).message).toContain(
-      "If it is your own, ignore this",
-    );
+  /* AN UNKNOWN TAG IS SAID ONCE, AS A NOTE. It was a numbered problem beside real defects
+     until the audit: this file cannot tell a typo from a local component, and a hedged entry
+     in a list of defects reads as a defect. The server has always printed it as a trailing
+     note, and now so does this. Both halves are asserted, because a note that says nothing and
+     a note that repeats itself are different failures. */
+  it("names an unknown tag once, and not as a problem", () => {
+    expect(checkSnippet(`<Widget/><Widget/><Widget/>`)).toEqual([]);
+    const notes = snippetNotes(`<Widget/><Widget/><Widget/>`);
+    expect(notes.join(" ")).toContain("Widget");
+    expect(notes.join(" ").match(/Widget/g)).toHaveLength(1);
   });
 
-  /* A TAG THE SNIPPET IMPORTS FROM SOMEWHERE ELSE IS NOT A FINDING. Over this site's own 65
+  /* A TAG THE SNIPPET IMPORTS FROM SOMEWHERE ELSE IS NOT SAID AT ALL. Over this site's own 65
      example files the tag check raised 18 problems and every one was an icon or a local block,
      so the answer an agent read was noise it had to discard entirely. Both halves are asserted:
-     silence with the import, and the SAME tag still reported without one — without the second,
+     silence with the import, and the SAME tag still named without one — without the second,
      deleting the tag check whole would pass. */
-  it("does not report a tag the snippet imports from another module", () => {
-    expect(
-      checkSnippet(
-        `import { HugeiconsIcon } from "@hugeicons/react";
+  it("does not name a tag the snippet imports from another module", () => {
+    const imported = `import { HugeiconsIcon } from "@hugeicons/react";
          import { Button } from "@kookie-ui/react";
-         <Button leading={<HugeiconsIcon/>}>Save</Button>`,
-      ),
-    ).toEqual([]);
-    expect(checkSnippet(`<HugeiconsIcon/>`).map((p) => p.symbol)).toEqual(["HugeiconsIcon"]);
+         <Button leading={<HugeiconsIcon/>}>Save</Button>`;
+    expect(checkSnippet(imported)).toEqual([]);
+    expect(snippetNotes(imported)).toEqual([]);
+    expect(snippetNotes(`<HugeiconsIcon/>`).join(" ")).toContain("HugeiconsIcon");
   });
 
   it("leaves lowercase elements and non-axis props alone", () => {
@@ -220,13 +223,13 @@ describe("tokens", () => {
   });
 
   it("reads the live value, and says so when a token resolves to nothing", async () => {
-    const out = await call("kookie_lookup_token", { query: "space-3" });
+    const out = await call(webToolName("tokens"), { query: "space-3" });
     expect(out).toContain("--space-3: 8px");
     expect(out).toContain("--layout-space-3: (resolves to nothing in this scope)");
   });
 
   it("says nothing matches rather than returning an empty list", async () => {
-    expect(await call("kookie_lookup_token", { query: "nope" })).toContain("No token matches");
+    expect(await call(webToolName("tokens"), { query: "nope" })).toContain("No token matches");
   });
 });
 
@@ -284,7 +287,7 @@ describe("registering", () => {
     const doc = fake();
     await registerTools({ document: { modelContext: doc.container } }, tools);
     const wired = doc.seen as { name: string; execute: (i: unknown) => Promise<unknown> }[];
-    const list = wired.find((t) => t.name === "kookie_list_components")!;
+    const list = wired.find((t) => t.name === webToolName("list"))!;
     /* THE SHAPE IS WRITTEN OUT, not rebuilt with `asToolResult`. Stated the other way this law
        could not fail: both sides went through the same helper, so replacing it with the
        identity function changed the expectation as well and 22 laws stayed green over a wire
@@ -301,7 +304,7 @@ describe("registering", () => {
         document: {
           modelContext: {
             registerTool: (tool: { name: string }) => {
-              if (tool.name === "kookie_check_snippet") throw new Error("refused");
+              if (tool.name === webToolName("check")) throw new Error("refused");
               kept.push(tool);
             },
           },
@@ -319,7 +322,7 @@ describe("registering", () => {
   it("offers only read-only tools, each with a schema and a prefix", () => {
     for (const tool of tools) {
       expect(tool.annotations.readOnlyHint).toBe(true);
-      expect(tool.name.startsWith("kookie_")).toBe(true);
+      expect(tool.name.startsWith(WEB_TOOL_PREFIX)).toBe(true);
       expect(tool.inputSchema.type).toBe("object");
       expect(tool.description.length).toBeGreaterThan(40);
     }
@@ -353,5 +356,171 @@ describe("the snippet checker has one home", () => {
     for (const sign of ["function scanElements", "matchUtility(", "isRawLength(", "isRawColor("]) {
       expect(source, sign).not.toContain(sign);
     }
+  });
+});
+
+/**
+ * THE REGISTRY'S OWN REFUSALS REACH THE CHECKER (2026-09-07).
+ *
+ * Written because this check shipped DEAD for an afternoon and looked fine. The registry
+ * states a refusal as a sentence — "`tone` and `emphasis`" — and the adapter passed that whole
+ * sentence through as the prop name, so every lookup compared an attribute against prose and
+ * missed. Nothing failed: the tool answered "no problems found" on code the system refuses,
+ * which is the worst answer it can give.
+ *
+ * So the law drives a real refusal end to end rather than asserting the wiring. The fixture is
+ * a component whose refusal names its props in backticks, because that is the only shape the
+ * prose-to-prop rule can read — and if the registry ever stops spelling them as code, this
+ * goes red rather than going quiet.
+ */
+describe("a registry refusal reaches the snippet checker", () => {
+  it("reports a prop the registry refuses, in the registry's own words", () => {
+    const found = checkSnippet(`<Accordion tone="destructive" />`);
+    const tone = found.find((problem) => problem.symbol === "Accordion.tone");
+    expect(tone, `nothing reported for Accordion.tone; got ${JSON.stringify(found)}`).toBeDefined();
+    // The sentence is the registry's, carried verbatim — this file writes no reason of its own.
+    expect(tone?.message).toContain("no meaning of its own to colour");
+  });
+});
+
+/**
+ * THE CONFORMANCE SUITE, WHICH IS THE LAW THE ONE-HOME CLAIM ACTUALLY OWED (2026-09-07, the
+ * audit).
+ *
+ * The law above reads the source and proves the RULES are shared. It cannot see the facts, and
+ * the facts were half-empty here for a day: `LIVE.refusalsFor` read the documentation registry
+ * alone while the server merged the registry AND `system/refused.ts`, so this surface answered
+ * "No problems found" to `<Button asChild m="4" as="a" highContrast />` and the server answered
+ * with five findings. Every law on this side asked this side what it thought, so 508 of them
+ * were green over it.
+ *
+ * `CONFORMANCE_CASES` ships from the package as data for exactly that reason — the server's
+ * entry starts a stdio process on import and this one runs in a browser, so the two cannot
+ * share a call, only an expectation. `packages/mcp/src/check.test.ts` runs the same cases
+ * against its own binding. A case failing here and passing there is the two surfaces diverging
+ * again, and it is now the loudest thing in the suite rather than the quietest.
+ */
+describe("the conformance suite the package ships", () => {
+  for (const item of CONFORMANCE_CASES) {
+    it(item.why, () => {
+      const got = checkSnippet(item.code)
+        .map((problem) => problem.symbol)
+        .sort();
+      expect(got).toEqual([...item.findings].sort());
+    });
+  }
+
+  it("is not vacuous: some case expects a finding and some expects none", () => {
+    expect(CONFORMANCE_CASES.some((item) => item.findings.length > 0)).toBe(true);
+    expect(CONFORMANCE_CASES.some((item) => item.findings.length === 0)).toBe(true);
+  });
+});
+
+/**
+ * WHAT THE SCAN COULD NOT SEE IS A NOTE, NOT A PROBLEM (2026-09-07, the audit).
+ *
+ * A snippet's own `<Icon>` was reported in the numbered problem list beside real defects, and a
+ * name imported from this package but not exported by it was reported TWICE — once as an
+ * unexported symbol and once again as a foreign tag, the second message telling a reader to
+ * ignore the first. The server has always printed both as trailing notes.
+ */
+describe("foreign tags and spreads are notes", () => {
+  it("says nothing about a tag the snippet imported from somewhere else", () => {
+    const code = `import { Star } from "./icons";\n<Button leading={<Star />}>Go</Button>`;
+    expect(checkSnippet(code)).toEqual([]);
+    expect(snippetNotes(code)).toEqual([]);
+  });
+
+  it("names an unknown tag once, as a note", () => {
+    const notes = snippetNotes(`<Sparkle />`);
+    expect(notes.join(" ")).toContain("Sparkle");
+    expect(checkSnippet(`<Sparkle />`)).toEqual([]);
+  });
+
+  it("says a name imported from this package but not exported ONCE, as a problem", () => {
+    const code = `import { Toast } from "@kookie-ui/react";\n<Toast />`;
+    const problems = checkSnippet(code).map((problem) => problem.symbol);
+    expect(problems).toEqual(["Toast"]);
+    // Not repeated as a foreign tag, which is what the second message used to do.
+    expect(snippetNotes(code).join(" ")).not.toContain("Toast");
+  });
+
+  it("counts a spread on a component, and not every spread in the file", () => {
+    // A props destructure and an object spread. Neither hides a JSX attribute.
+    const plain = `const { a, ...rest } = props;\nconst merged = { ...rest, b: 1 };\n<Button>Go</Button>`;
+    expect(snippetNotes(plain)).toEqual([]);
+    expect(snippetNotes(`<Button {...rest}>Go</Button>`).join(" ")).toContain("1 spread");
+  });
+});
+
+/**
+ * THE FOUR TOOLS ARE THE SAME FOUR TOOLS (2026-09-07, the audit).
+ *
+ * `agents.mdx` and DECISIONS §48 both say the browser offers "the same four tools" as the stdio
+ * server. All four differed: two by a prefix, which is real — a page registers into a namespace
+ * shared with every other script on the document — and two by their STEM, `check_snippet`
+ * against `check_usage` and `lookup_token` against `get_tokens`, which was nothing but two
+ * files naming the same thing twice. An agent that had read the documentation asked for a tool
+ * that did not exist.
+ *
+ * The stems have one home in the package now, and this asserts the registered names are that
+ * home plus the stated prefix. The server's own suite asserts the unprefixed half.
+ */
+describe("the browser tools are the package's four names, prefixed", () => {
+  const env: ToolEnv = {
+    fetchText: async () => "",
+    tokenNames: () => [],
+    resolveToken: () => "",
+  };
+
+  it("registers exactly the four, each with the prefix", () => {
+    const names = buildTools(env).map((tool) => tool.name);
+    expect(names.sort()).toEqual(
+      Object.keys(TOOL_NAMES)
+        .map((key) => webToolName(key as keyof typeof TOOL_NAMES))
+        .sort(),
+    );
+    for (const name of names) expect(name.startsWith(WEB_TOOL_PREFIX)).toBe(true);
+  });
+
+  it("and the prefix is the only difference", () => {
+    const stems = buildTools(env)
+      .map((tool) => tool.name.slice(WEB_TOOL_PREFIX.length))
+      .sort();
+    expect(stems).toEqual(Object.values(TOOL_NAMES).sort());
+  });
+});
+
+/**
+ * A PART RESOLVES TO ITS PARENT'S PAGE (2026-09-07, the audit).
+ *
+ * `ENTRY_BY_KEY` was built from entry names and slugs only, so 89 of the 143 exported symbols
+ * dead-ended — including every symbol this file's OWN checker can name in a finding. It would
+ * report `<MenuItem variant="solid">` and its sibling tool would then answer that no component
+ * called MenuItem exists. The server's `resolveComponent` has always resolved both kinds.
+ *
+ * The fixture is the parts, because the roots resolved before the fix and after it: a law over
+ * `ENTRIES` alone is a law about the half that already worked.
+ */
+describe("looking up a part", () => {
+  const parts = ENTRIES.flatMap((entry) =>
+    (entry.parts ?? []).map((part) => [part.part, entry.name] as const),
+  );
+
+  it("there are parts to look up", () => {
+    expect(parts.length).toBeGreaterThan(60);
+    expect(parts.some(([part]) => part === "MenuItem")).toBe(true);
+  });
+
+  it("every part resolves to the entry that documents it", () => {
+    const dead = parts.filter(([part, root]) => entryFor(part)?.name !== root);
+    expect(dead.map(([part]) => part)).toEqual([]);
+  });
+
+  it("and the checker and the lookup agree about what exists", () => {
+    // The pair that was contradictory: a finding naming a symbol the sibling tool denied.
+    const found = checkSnippet(`<MenuItem variant="solid" />`);
+    expect(found.map((problem) => problem.symbol)).toEqual(["MenuItem.variant"]);
+    expect(entryFor("MenuItem")?.name).toBe("Menu");
   });
 });

@@ -149,7 +149,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
   Stack: {
     family: "Layout",
     blurb: "A column of things with one stated gap.",
-    props: { gap: space, align: { kind: "options", values: ALIGN, optional: true, responsive: true }, justify: { kind: "options", values: JUSTIFY, optional: true, responsive: true }, p: paddingSpace, ...layoutChildProps },
+    props: { gap: space, align: { kind: "options", values: ALIGN, optional: true, responsive: true }, justify: { kind: "options", values: JUSTIFY, optional: true, responsive: true }, p: paddingSpace, backdrop: bool, ...layoutChildProps },
     children: "any",
     make: () => node("Stack", { gap: "3" }, { children: [] }),
   },
@@ -163,6 +163,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
       justify: { kind: "options", values: JUSTIFY, optional: true, responsive: true },
       wrap: { kind: "options", values: ["wrap", "nowrap"], optional: true, responsive: true },
       p: paddingSpace,
+      backdrop: bool,
       ...layoutChildProps,
     },
     children: "any",
@@ -171,7 +172,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
   Grid: {
     family: "Layout",
     blurb: "Equal columns with token gaps.",
-    props: { columns: { kind: "options", values: COLUMN_VALUES, labels: COLUMN_LABELS, optional: true, responsive: true }, gap: space, p: paddingSpace, ...layoutChildProps },
+    props: { columns: { kind: "options", values: COLUMN_VALUES, labels: COLUMN_LABELS, optional: true, responsive: true }, gap: space, p: paddingSpace, backdrop: bool, ...layoutChildProps },
     children: "any",
     make: () => node("Grid", { columns: gridColumns(2), gap: "3" }, { children: [] }),
   },
@@ -652,7 +653,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
   ToolbarButton: {
     family: "Control",
     blurb: "A Button registered with the row's keyboard, so the arrow keys reach it. Rests where every other control rests.",
-    props: { size: size(), tone, emphasis, bordered: bool, disabled: bool },
+    props: { size: size(), tone, emphasis, bordered: bool, disabled: bool, backdrop: bool },
     children: "text",
     partOf: "Toolbar",
     requiresAncestor: "Toolbar",
@@ -769,7 +770,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
       node("AvatarGroup", { size: "5" }, {
         children: [
           node("Avatar", { fallback: "KD" }),
-          node("Avatar", { fallback: "MC" }),
+          node("Avatar", { fallback: "SB" }),
           node("Avatar", { fallback: "+3" }),
         ],
       }),
