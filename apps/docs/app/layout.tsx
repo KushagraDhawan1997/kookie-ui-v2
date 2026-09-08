@@ -3,10 +3,11 @@ import "./globals.css";
 
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { Theme, TooltipProvider } from "@kookie-ui/react";
+import { TooltipProvider } from "@kookie-ui/react";
 
 import { appearanceScript } from "./appearance-script";
 import { DevOutlineGate } from "./dev-outline";
+import { DocsTheme } from "./theme-store";
 
 /**
  * The wordmark's face.
@@ -190,7 +191,10 @@ export default function RootLayout({
             fill in — it is a document read at arm's length — so the frame, the nav rows and the
             controls in the chrome all sit one step up. It reaches no prose: the type family is
             outside this axis by design, so the chapters are unmoved. */}
-        <Theme appearance="inherit" material="thick" size="2">
+        {/* THE AXES COME FROM A STORE SINCE 2026-09-08 (theme-store.tsx): the sidebar's Theme
+            panel writes them and this root reads them. Its resting values are what was written
+            here — `material="regular"`, `size="2"`. */}
+        <DocsTheme>
           {/* THE SITE'S TOOLTIP TIMING, ONCE (2026-09-06, Kushagra: "Why no tooltip?" — and
               there were tooltips; what was missing is this).
 
@@ -206,7 +210,7 @@ export default function RootLayout({
               the back button, the GitHub link, the page actions. The package's own instruction
               says to wrap an app once near the root, and this is that. */}
           <TooltipProvider>{children}</TooltipProvider>
-        </Theme>
+        </DocsTheme>
         {/* Dev only: bare `o` outlines every box on the page. Null in a production build. */}
         <DevOutlineGate />
       </body>

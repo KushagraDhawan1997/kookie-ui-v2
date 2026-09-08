@@ -48,6 +48,7 @@ import {
 } from "@kookie-ui/react";
 
 import { AppearanceToggle } from "../appearance-toggle";
+import { ThemePanel } from "../theme-panel";
 import { GitHubIcon, PanelLeftIcon, XSocialIcon } from "../icons";
 import { CHAPTERS, READING_ORDER, SECTIONS } from "./chapters";
 import { DocsPager } from "./docs-pager";
@@ -286,7 +287,12 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
 
                   Outside the group on purpose: the toggle acts on THIS page rather than leaving
                   it, so it is not one of the same kind of thing. */}
-              <AppearanceToggle />
+              <Flex gap="2">
+                <AppearanceToggle />
+                {/* THE THEME PANEL BESIDE IT (2026-09-08): both act on the page you are reading,
+                    so they cluster at the start; the panel holds every axis the toggle does not. */}
+                <ThemePanel />
+              </Flex>
               {/* A GROUP, NOT LOOSE BUTTONS (2026-09-07, Kushagra: "I need more social icons,
                   probably in toolbar group"). These do the same KIND of thing — each one leaves
                   the site for the same project somewhere else — and a `ToolbarGroup` is the part
@@ -323,7 +329,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
             `position: relative` is the trigger's containing block, stated inline because the
             shell root is the nearest positioned ancestor otherwise and the trigger would
             resolve its inset over the sidebar column, not this pane. */}
-        <ShellContent style={{ position: "relative" }} flush={false}>
+        <ShellContent style={{ position: "relative" }} flush={true}>
           {/* The route back to a closed or overlaying sidebar floats in the pane's own safe
               area — `--kui-sf-p` inherits from the pane deliberately (§10, the bleed
               mechanism), so the trigger sits exactly where pinned content would start.
