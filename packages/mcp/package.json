@@ -38,9 +38,10 @@
     "provenance": true
   },
   "scripts": {
-    "build": "node --disable-warning=ExperimentalWarning --experimental-strip-types scripts/build-data.ts && tsdown",
+    "build": "node --disable-warning=ExperimentalWarning --experimental-strip-types scripts/build-data.ts && tsdown && pnpm run pack:check",
     "test": "vitest run",
-    "lint": "eslint src scripts && tsc -p tsconfig.json"
+    "lint": "eslint src scripts && tsc -p tsconfig.json",
+    "pack:check": "publint"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0",
@@ -51,6 +52,7 @@
     "@types/node": "^26.1.2",
     "esbuild": "^0.28.1",
     "eslint": "^9.30.0",
+    "publint": "^0.3.23",
     "tsdown": "^0.22.0",
     "typescript": "^5.8.0",
     "vitest": "^4.1.0"

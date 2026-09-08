@@ -1,3 +1,9 @@
+> **Superseded the same day.** This is the research plan as it stood before Kushagra overruled
+> its refusals of the MCP server, WebMCP, the rules file and the skill. Everything below section 4
+> was then built, and DECISIONS §48 with the LOG entry of 2026-09-07 are the record of what
+> shipped and what changed shape on the way. Read this for the research and the arguments; read
+> §48 for what is true.
+
 # Making KookieUI v2 the design system a model gets right
 
 ## 1. Where this already stands
