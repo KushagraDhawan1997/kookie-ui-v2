@@ -374,14 +374,24 @@ export function inlineControls(source: string, controls: readonly Control[], slo
 function dropUnusedImports(source: string): string {
   const lines = source.split("\n");
   const importEnd = lines.findIndex((line, i) => i > 0 && line.trim() === "" && lines.slice(0, i).some((l) => l.startsWith("import")));
-  const body = lines.slice(importEnd < 0 ? 0 : importEnd).join("\n");
+  const cut = importEnd < 0 ? 0 : importEnd;
+  const head = lines.slice(0, cut).join("\n");
+  const body = lines.slice(cut).join("\n");
 
-  return lines
-    .map((line, i) => {
-      if (importEnd >= 0 && i >= importEnd) return line;
-      const named = /^import\s+(type\s+)?\{([^}]*)\}\s+from\s+(.*)$/.exec(line);
-      if (!named) return line;
-      const kept = named[2]!
+  /* THE IMPORT BLOCK IS MATCHED WHOLE, not line by line (2026-09-08). The first spelling
+     anchored on `^import … from …$`, which cannot see a specifier list that spans lines — and
+     the ecosystem's own formatting breaks every list past a handful of names, so the ONE example
+     with a long import was the one this never reached: `attachment.message` shipped an orphaned
+     `type Size` for as long as the law had been failing. That is the single-line-anchored regex
+     finding in its third home in this repo, after the package index and the component reference.
+
+     `[\s\S]*?` rather than `[^}]*` for the same reason, and the shape is preserved on the way
+     out: a list that was written across lines comes back across lines, so removing one name from
+     an import does not reflow the reader's file. */
+  const rewritten = head.replace(
+    /import\s+(type\s+)?\{([\s\S]*?)\}\s+from\s+([^\n]*)/g,
+    (whole, typeOnly: string | undefined, names: string, from: string) => {
+      const kept = names
         .split(",")
         .map((part) => part.trim())
         .filter(Boolean)
@@ -389,9 +399,16 @@ function dropUnusedImports(source: string): string {
           const identifier = part.replace(/^type\s+/, "").split(/\s+as\s+/).pop()!.trim();
           return new RegExp(`\\b${identifier}\\b`).test(body);
         });
-      if (kept.length === 0) return null;
-      return `import ${named[1] ?? ""}{ ${kept.join(", ")} } from ${named[3]}`;
-    })
-    .filter((line): line is string => line !== null)
-    .join("\n");
+      if (kept.length === 0) return "";
+      const multiline = names.includes("\n");
+      const list = multiline ? `\n  ${kept.join(",\n  ")},\n` : ` ${kept.join(", ")} `;
+      return `import ${typeOnly ?? ""}{${list}} from ${from}`;
+    },
+  );
+
+  /* An import that lost every specifier leaves an empty line behind it; dropping those keeps the
+     shown file byte-identical to one a person would have written. */
+  return [...rewritten.split("\n").filter((line, i, all) => line.trim() !== "" || (i > 0 && all[i - 1]!.trim() !== "")), body]
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n");
 }
