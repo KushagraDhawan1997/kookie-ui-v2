@@ -186,7 +186,18 @@ type ComposerInputBase = Omit<
  * screen reader announces "edit text, blank" and nothing else, which is the same defect
  * `iconOnly` refuses, in the same shape. Here it does not compile.
  */
-type ComposerInputName = { "aria-label": string } | { "aria-labelledby": string };
+type ComposerInputName =
+  | {
+      /** What this box is for, in your own words. REQUIRED: a composer's text is a bare
+          `<textarea>` that registers with no `Field`, so nothing else can name it and a
+          placeholder is not a name. */
+      "aria-label": string;
+    }
+  | {
+      /** The id of the element that already names this box. The alternative to `aria-label`,
+          and one of the two is required. */
+      "aria-labelledby": string;
+    };
 
 export type ComposerInputProps = ComponentRefusals & ComposerInputBase & ComposerInputName;
 

@@ -64,7 +64,7 @@ export const API: Record<string, ApiEntry> = {
           "4"
         ],
         "optional": true,
-        "doc": "An index into the control family, 1–4. It sets the trigger rows — height, inset, type step, the chevron's box — and the panel's inset with them, so the panel's words start under the trigger's label. Defaults to `2`."
+        "doc": "An index into the control family, 1–4. It sets the trigger rows — height, inset, type step, the chevron's box — and the panel's inset with them, so the panel's words start under the trigger's label. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise."
       },
       {
         "name": "style",
@@ -497,6 +497,18 @@ export const API: Record<string, ApiEntry> = {
     "element": "span",
     "props": [
       {
+        "name": "aria-label",
+        "type": "string",
+        "optional": false,
+        "doc": "What the dot means, in your own words. Required with no content: colour alone says nothing to a screen reader, and this is the sentence a sighted reader infers."
+      },
+      {
+        "name": "children",
+        "type": "undefined",
+        "optional": true,
+        "doc": "Nothing inside. A bare badge is the DOT, which is why the name below is required."
+      },
+      {
         "name": "size",
         "type": "TypeSize",
         "values": [
@@ -766,6 +778,18 @@ export const API: Record<string, ApiEntry> = {
     "element": "button",
     "props": [
       {
+        "name": "aria-label",
+        "type": "string",
+        "optional": true,
+        "doc": "The button's name, in your own words. Required when `iconOnly` is set, because the system cannot write what this particular button does."
+      },
+      {
+        "name": "aria-labelledby",
+        "type": "string",
+        "optional": true,
+        "doc": "The id of the element that already names this button, when one is on the page. The alternative to `aria-label`, and one of the two is required with `iconOnly`."
+      },
+      {
         "name": "backdrop",
         "type": "boolean",
         "optional": true,
@@ -807,6 +831,12 @@ export const API: Record<string, ApiEntry> = {
         "doc": "Keep focus on the button when it becomes disabled part-way through an interaction."
       },
       {
+        "name": "iconOnly",
+        "type": "true",
+        "optional": false,
+        "doc": "Squares the box and drops the label. The glyph goes in `children`, and an accessible name becomes REQUIRED — `aria-label` or `aria-labelledby` — because a control with no visible text announces as \"button\" and nothing else."
+      },
+      {
         "name": "leading",
         "type": "React.ReactNode",
         "optional": true,
@@ -840,7 +870,7 @@ export const API: Record<string, ApiEntry> = {
           "4"
         ],
         "optional": true,
-        "doc": "An index into the control family, never a measurement. One number sets five things at once: the height, the side padding, the corner, the icon box and the label's type step. Every control at the same index stands level with every other, and re-pricing a step is one config line rather than a sweep of call sites. Density and the pointer setting change what the index resolves to. They never change what it means. Defaults to `2`."
+        "doc": "An index into the control family, never a measurement. One number sets five things at once: the height, the side padding, the corner, the icon box and the label's type step. Every control at the same index stands level with every other, and re-pricing a step is one config line rather than a sweep of call sites. Density and the pointer setting change what the index resolves to. They never change what it means. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise."
       },
       {
         "name": "style",
@@ -934,7 +964,7 @@ export const API: Record<string, ApiEntry> = {
           "4"
         ],
         "optional": true,
-        "doc": "An index into the mark ladder, which every control that is its own mark shares. It leaves the height ladder, because that is the geometry of a box that contains a label and this one sits beside one. It keeps the index, so a checkbox, a radio and a switch at the same number read as the same size of thing. The ladder is the line box, so the mark is exactly one line of the label beside it and lines up with no offset. Defaults to 2."
+        "doc": "An index into the mark ladder, which every control that is its own mark shares. It leaves the height ladder, because that is the geometry of a box that contains a label and this one sits beside one. It keeps the index, so a checkbox, a radio and a switch at the same number read as the same size of thing. The ladder is the line box, so the mark is exactly one line of the label beside it and lines up with no offset. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise."
       }
     ]
   },
@@ -1175,6 +1205,17 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "CommandCollection": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "(item: T) => React.ReactNode",
+        "optional": false,
+        "doc": "Called once per surviving item. Required: a collection with nothing to render is a group."
+      }
+    ]
+  },
   "CommandContent": {
     "element": null,
     "props": [
@@ -1211,6 +1252,40 @@ export const API: Record<string, ApiEntry> = {
       {
         "name": "style",
         "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "CommandEmpty": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": false,
+        "doc": "What to show when the query matches nothing. Rendered into the list's own pane."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "CommandGroupLabel": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": false,
+        "doc": "The section's name. Words, not a control: nothing here is reachable."
+      },
+      {
+        "name": "className",
+        "type": "string",
         "optional": true,
         "doc": ""
       }
@@ -1365,12 +1440,56 @@ export const API: Record<string, ApiEntry> = {
     ]
   },
   "CommandTrigger": {
-    "element": null,
-    "props": []
+    "element": "button",
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The button's words. They land on the `render` target when there is one, so `<DialogClose render={<Button/>}>Cancel</DialogClose>` is a single button carrying a single label, not a Button nested inside a second one."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "nativeButton",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Whether the rendered element really is a `<button>`. It is inferred from `render`."
+      },
+      {
+        "name": "render",
+        "type": "RenderElement",
+        "optional": true,
+        "doc": "Usually a Kookie Button: `<DialogTrigger render={<Button/>}>Delete…</DialogTrigger>`."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
   },
   "ComposerInput": {
     "element": "textarea",
-    "props": []
+    "props": [
+      {
+        "name": "aria-label",
+        "type": "string",
+        "optional": true,
+        "doc": "What this box is for, in your own words. REQUIRED: a composer's text is a bare `<textarea>` that registers with no `Field`, so nothing else can name it and a placeholder is not a name."
+      },
+      {
+        "name": "aria-labelledby",
+        "type": "string",
+        "optional": true,
+        "doc": "The id of the element that already names this box. The alternative to `aria-label`, and one of the two is required."
+      }
+    ]
   },
   "Composer": {
     "element": "form",
@@ -1787,8 +1906,20 @@ export const API: Record<string, ApiEntry> = {
     ]
   },
   "Flex": {
-    "element": null,
+    "element": "div",
     "props": [
+      {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Marks a region where content passes behind the components inside it, such as a toolbar over a canvas or a panel over a hero image. Every glass-capable component within it (buttons, fields, cards, selects) then resolves the theme's material instead of solid. Say it once for the region rather than on every control. `backdrop={false}` marks a sub-region as plain again. Layout is untouched: this is a React context, not a style."
+      },
+      {
+        "name": "container",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Make this Box measurable. Responsive values such as `{ initial, sm, md, lg }` on anything inside it then resolve against this Box's width instead of against the nearest measurable ancestor, which is the Theme root when there is nothing nearer. CSS imposes a trade here: a measurable box can never size itself around its contents, so its width has to come from outside. Put `container` on things the layout already sizes, such as a sidebar with a width, a main column that grows, or a grid cell. Or state `width`, `flexGrow` or `flexBasis` yourself. A container Box left to shrink-wrap, for example as a plain flex-row item, renders zero pixels wide, and a development build warns you when that happens."
+      },
       {
         "name": "display",
         "type": "\"flex\" | \"inline-flex\"",
@@ -1798,12 +1929,30 @@ export const API: Record<string, ApiEntry> = {
         ],
         "optional": true,
         "doc": "Flex participates in text flow as `inline-flex`; the tier-switching `display` lives on Box."
+      },
+      {
+        "name": "render",
+        "type": "RenderElement",
+        "optional": true,
+        "doc": "Render into an element you already have, instead of adding a wrapper."
       }
     ]
   },
   "Grid": {
-    "element": null,
+    "element": "div",
     "props": [
+      {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Marks a region where content passes behind the components inside it, such as a toolbar over a canvas or a panel over a hero image. Every glass-capable component within it (buttons, fields, cards, selects) then resolves the theme's material instead of solid. Say it once for the region rather than on every control. `backdrop={false}` marks a sub-region as plain again. Layout is untouched: this is a React context, not a style."
+      },
+      {
+        "name": "container",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Make this Box measurable. Responsive values such as `{ initial, sm, md, lg }` on anything inside it then resolve against this Box's width instead of against the nearest measurable ancestor, which is the Theme root when there is nothing nearer. CSS imposes a trade here: a measurable box can never size itself around its contents, so its width has to come from outside. Put `container` on things the layout already sizes, such as a sidebar with a width, a main column that grows, or a grid cell. Or state `width`, `flexGrow` or `flexBasis` yourself. A container Box left to shrink-wrap, for example as a plain flex-row item, renders zero pixels wide, and a development build warns you when that happens."
+      },
       {
         "name": "display",
         "type": "\"grid\" | \"inline-grid\"",
@@ -1813,6 +1962,12 @@ export const API: Record<string, ApiEntry> = {
         ],
         "optional": true,
         "doc": "Grid participates in text flow as `inline-grid`; the tier-switching `display` lives on Box."
+      },
+      {
+        "name": "render",
+        "type": "RenderElement",
+        "optional": true,
+        "doc": "Render into an element you already have, instead of adding a wrapper."
       }
     ]
   },
@@ -2917,7 +3072,7 @@ export const API: Record<string, ApiEntry> = {
           "4"
         ],
         "optional": true,
-        "doc": "The mark ladder, and the same index a checkbox uses. The mark is one line of the label beside it, and the circle's diameter is that square's, so a radio and the checkbox above it in a form are the same size of thing. The painted box leaves the control height ladder. The target does not: it stays the size of a control at that index. Defaults to 2."
+        "doc": "The mark ladder, and the same index a checkbox uses. The mark is one line of the label beside it, and the circle's diameter is that square's, so a radio and the checkbox above it in a form are the same size of thing. The painted box leaves the control height ladder. The target does not: it stays the size of a control at that index. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise."
       }
     ]
   },
@@ -3665,8 +3820,49 @@ export const API: Record<string, ApiEntry> = {
     "props": []
   },
   "ShellRail": {
-    "element": null,
+    "element": "nav",
     "props": [
+      {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Says whether something passes behind this pane: a canvas, a map, a photograph, the work area itself when this pane floats over it. A pane in an ordinary frame sits on the app's ground, where glass blurs a flat colour and still costs a full backdrop read on every paint — and a pane is the largest box in the library, so it is the most expensive place to pay for nothing. By default it renders solid whatever the theme's material is. Unset, it follows the surrounding `<Box backdrop>` region, which is what makes a flush pane translucent over a window-wide wallpaper. The material itself is still the theme's: this prop cannot pick one. It does not reach a pane that is OVERLAYING. A drawer sits over the page with a scrim under it, which is Dialog's arrangement, and every covering panel in this package takes the theme's material without being asked — so this prop answers for the pane in the frame and the shell answers for the drawer. You cannot ask for a solid drawer, in the same sense that you cannot ask for a solid menu."
+      },
+      {
+        "name": "defaultOpen",
+        "type": "boolean",
+        "optional": true,
+        "doc": "The starting state when the pane is uncontrolled. Omit both this and `open` and the pane is auto: the stylesheet decides its resting state from the window size, and the first toggle makes the choice explicit."
+      },
+      {
+        "name": "flush",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next is derived rather than chosen: a pane floats if the content is underneath it, and the content is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its own surface resting on the app's ground. One boolean reaches all four arrangements, and it cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded content card. It also decides the seams. A flush pane draws one hairline on its inner edge, and that edge needs something on the other side of it: pull the content off the frame and every seam facing it goes, because the card's own gap and edge already draw that boundary. A rail beside a flush sidebar keeps its seam — both of those are still in the frame. It says nothing about the material. A pane over a canvas states `backdrop`, whatever its posture — the two questions are independent and were briefly wired together (LOG 2026-08-29)."
+      },
+      {
+        "name": "onOpenChange",
+        "type": "(open: boolean) => void",
+        "optional": true,
+        "doc": "Fires on user-driven changes only: a trigger, Escape, a press on the scrim. It never fires at mount, and never when the window crosses a size boundary, because auto is resolved in CSS and CSS calls nobody."
+      },
+      {
+        "name": "open",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Controlled open state, in the same pattern Dialog uses. Passing it conditionally is supported. `{...(preview ? { open: false } : {})}` pins the pane closed while the flag is on, and hands control straight back when it goes. The uncontrolled state is kept untouched throughout rather than overwritten, so the pane returns to exactly the state the user last left it in."
+      },
+      {
+        "name": "presentation",
+        "type": "ShellPresentation",
+        "values": [
+          "auto",
+          "fixed",
+          "overlay"
+        ],
+        "optional": true,
+        "doc": "How this pane occupies the window while it is open. `auto` answers a question about the room, and it answers it in CSS from the window size, so first paint is right with no script and nothing for hydration to mismatch. Stating a value instead answers a question about the product, and it does more than pin the arrangement: `overlay` also makes the pane rest closed at every width, because an overlay is something you summon rather than live in, where `auto` lets a nav column rest open on a roomy window. So state a value for a pane whose behaviour is a decision, such as a drawer that must never be ambient. Leave it auto for a pane whose behaviour follows from how much window there is."
+      },
       {
         "name": "size",
         "type": "Size",
@@ -3683,7 +3879,50 @@ export const API: Record<string, ApiEntry> = {
   },
   "ShellScroll": {
     "element": null,
-    "props": []
+    "props": [
+      {
+        "name": "aria-label",
+        "type": "string",
+        "optional": true,
+        "doc": "Names the scroll region. A focusable ScrollArea is a real tab stop, and a tab stop with no name is announced as nothing — so this is the one thing a standalone scroll region cannot do without. Given a name, the viewport announces as a `region` landmark; given none, it stays structural and the surrounding content has to carry the meaning. It is a DECLARED prop rather than a hyphenated attribute riding a rest spread, because TypeScript exempts hyphenated JSX attribute names from excess-property checking: written on a closed props object with no rest, `aria-label` compiled, rendered, and reached the DOM nowhere at all (2026-08-26)."
+      },
+      {
+        "name": "aria-labelledby",
+        "type": "string",
+        "optional": true,
+        "doc": "Names the region from an element that already carries the words — the heading above it, usually. Same rules as `aria-label`, and the two are mutually exclusive in ARIA."
+      },
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The content that scrolls. It lands inside the viewport, never beside the bars, because the viewport, the scrollbars and the corner are assembly rather than API. A scroll region needs a bounded height to be a scroll region: state one here through `style`, or let a Shell pane or a menu's panel bound it."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Dresses the root. Outer spacing is the caller's Box, never this (the non-negotiable)."
+      },
+      {
+        "name": "fade",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Fades content toward any edge that has more behind it (2026-08-29, opt-in). A MASK on the viewport, so the content dissolves and whatever the pane paints — seal, ground, a glass veil, a photograph — shows through; no colour is picked and none can be wrong. Each edge fades only while content is actually hidden on that side, ramping in over the first `--scrollbar-fade` pixels of scrolling, and it costs no JS of this package's: Base UI already publishes the per-edge overflow distances as CSS variables in the same pass that sizes the thumb, and the mask is pure CSS over them."
+      },
+      {
+        "name": "focusable",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Whether the viewport is a keyboard tab stop. It defaults to true, because a standalone scroll region has to be reachable in order to scroll by keyboard. Pass false from a component that already owns keyboard scrolling, such as Menu: ARIA drops `role=\"presentation\"` from any focusable element, so a focusable viewport inside a menu would appear as a nameless node between the menu and its items, and would add a stray tab stop."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": "Inline styles, merged last. They land on the root, not on the viewport that scrolls."
+      }
+    ]
   },
   "ShellSidebar": {
     "element": "nav",
@@ -3838,7 +4077,7 @@ export const API: Record<string, ApiEntry> = {
           "4"
         ],
         "optional": true,
-        "doc": "The control height ladder, taken on the root, because the root is the control: the whole strip is pressable, so a slider is exactly as tall a target as the Button beside it. The same index then sizes the parts through the families they belong to, with the thumb on the mark ladder. Defaults to 2."
+        "doc": "The control height ladder, taken on the root, because the root is the control: the whole strip is pressable, so a slider is exactly as tall a target as the Button beside it. The same index then sizes the parts through the families they belong to, with the thumb on the mark ladder. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise."
       }
     ]
   },
@@ -3847,8 +4086,27 @@ export const API: Record<string, ApiEntry> = {
     "props": []
   },
   "Stack": {
-    "element": null,
-    "props": []
+    "element": "div",
+    "props": [
+      {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Marks a region where content passes behind the components inside it, such as a toolbar over a canvas or a panel over a hero image. Every glass-capable component within it (buttons, fields, cards, selects) then resolves the theme's material instead of solid. Say it once for the region rather than on every control. `backdrop={false}` marks a sub-region as plain again. Layout is untouched: this is a React context, not a style."
+      },
+      {
+        "name": "container",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Make this Box measurable. Responsive values such as `{ initial, sm, md, lg }` on anything inside it then resolve against this Box's width instead of against the nearest measurable ancestor, which is the Theme root when there is nothing nearer. CSS imposes a trade here: a measurable box can never size itself around its contents, so its width has to come from outside. Put `container` on things the layout already sizes, such as a sidebar with a width, a main column that grows, or a grid cell. Or state `width`, `flexGrow` or `flexBasis` yourself. A container Box left to shrink-wrap, for example as a plain flex-row item, renders zero pixels wide, and a development build warns you when that happens."
+      },
+      {
+        "name": "render",
+        "type": "RenderElement",
+        "optional": true,
+        "doc": "Render into an element you already have, instead of adding a wrapper."
+      }
+    ]
   },
   "Surface": {
     "element": "div",
@@ -3904,7 +4162,7 @@ export const API: Record<string, ApiEntry> = {
           "4"
         ],
         "optional": true,
-        "doc": "The mark ladder, one step up. The track is the checkbox's mark at the next index, which is the relationship every peer system arrives at by hand, so a switch reads one weight class above the checkbox at the same number while both stay in one family. The width follows the same index. Defaults to 2."
+        "doc": "The mark ladder, one step up. The track is the checkbox's mark at the next index, which is the relationship every peer system arrives at by hand, so a switch reads one weight class above the checkbox at the same number while both stay in one family. The width follows the same index. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise."
       }
     ]
   },
@@ -3983,7 +4241,7 @@ export const API: Record<string, ApiEntry> = {
           "4"
         ],
         "optional": true,
-        "doc": "An index into the control family, 1–4, and it sets two things at once: the cell inset, picked from the layout-space palette so it tightens with density, and the type step the cells read at. Defaults to `2` — the step tables are set at almost everywhere, because a table is dense by nature."
+        "doc": "An index into the control family, 1–4, and it sets two things at once: the cell inset, picked from the layout-space palette so it tightens with density, and the type step the cells read at. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise, and `2` is the step tables are set at almost everywhere, because a table is dense by nature."
       },
       {
         "name": "style",
@@ -4361,6 +4619,18 @@ export const API: Record<string, ApiEntry> = {
     "element": "button",
     "props": [
       {
+        "name": "aria-label",
+        "type": "string",
+        "optional": true,
+        "doc": "The button's name, in your own words. Required when `iconOnly` is set, because the system cannot write what this particular button does."
+      },
+      {
+        "name": "aria-labelledby",
+        "type": "string",
+        "optional": true,
+        "doc": "The id of the element that already names this button, when one is on the page. The alternative to `aria-label`, and one of the two is required with `iconOnly`."
+      },
+      {
         "name": "backdrop",
         "type": "boolean",
         "optional": true,
@@ -4383,6 +4653,12 @@ export const API: Record<string, ApiEntry> = {
         "type": "boolean",
         "optional": true,
         "doc": "Whether the toggle starts on. The uncontrolled counterpart of `pressed`."
+      },
+      {
+        "name": "iconOnly",
+        "type": "true",
+        "optional": false,
+        "doc": "Squares the box and drops the label. The glyph goes in `children`, and an accessible name becomes REQUIRED — `aria-label` or `aria-labelledby` — because a control with no visible text announces as \"button\" and nothing else."
       },
       {
         "name": "leading",
@@ -4412,7 +4688,7 @@ export const API: Record<string, ApiEntry> = {
           "4"
         ],
         "optional": true,
-        "doc": "An index into the control family, never a measurement — Button's own prop, because a toggle IS a button that holds its state. Defaults to `2`, or to the index of the Field it sits in."
+        "doc": "An index into the control family, never a measurement — Button's own prop, because a toggle IS a button that holds its state. Rests at the app's index — the `size` on the nearest `Theme` — or at the index of the Field it sits in."
       },
       {
         "name": "style",
@@ -4453,8 +4729,134 @@ export const API: Record<string, ApiEntry> = {
     ]
   },
   "ToolbarButton": {
-    "element": null,
-    "props": []
+    "element": "button",
+    "props": [
+      {
+        "name": "aria-label",
+        "type": "string",
+        "optional": true,
+        "doc": "The button's name, in your own words. Required when `iconOnly` is set, because the system cannot write what this particular button does."
+      },
+      {
+        "name": "aria-labelledby",
+        "type": "string",
+        "optional": true,
+        "doc": "The id of the element that already names this button, when one is on the page. The alternative to `aria-label`, and one of the two is required with `iconOnly`."
+      },
+      {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Says that content passes behind this button, so the theme's material can show. Unset, it follows the surrounding `<Box backdrop>` region. It cannot pick a material. It only says there is something behind this to bend."
+      },
+      {
+        "name": "bordered",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Adds a hairline. It is separate from loudness: quiet with a border is the old outline button, and it reads half a step above quiet."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "done",
+        "type": "boolean",
+        "optional": true,
+        "doc": "The action finished, and the button says so where the eyes already are: its glyph becomes a tick. THIS IS WHAT THE TOAST REFUSAL OWED (§29). A copy button is the one case where an operation genuinely has no visible result, and the answer is the control reporting its own outcome in place — not a window that appears somewhere else, too late to act on, and disappears. THE STATE IS YOURS AND THE DRAWING IS THE SYSTEM'S, which is §29's own rule for `onDismiss` one component over: a control that ran its own timer would forget on reload and would decide, for every app, how long \"just now\" lasts. You hold the boolean and clear it; the button draws the tick and moves it. IT DOES NOT BLOCK THE PRESS, and that is the difference from `loading`. Loading blocks because the action is still running; done means it finished, and pressing copy a second time is an ordinary thing to want. A button that goes dead for two seconds after succeeding is worse than either state. SAY THE WORD TOO. The tick is a drawing, and a drawing is silent: assistive technology announces a name, not a glyph. On a labelled button change the label (`Copy` → `Copied`); on an `iconOnly` one change `aria-label`. The system cannot write those words — they are in your language, not its. Passing it at all — even `false` — mounts the tick beside the glyph so the two can cross. A button with no done state renders exactly as it always has."
+      },
+      {
+        "name": "emphasis",
+        "type": "Emphasis",
+        "values": [
+          "loud",
+          "medium",
+          "quiet"
+        ],
+        "optional": true,
+        "doc": "How loud this action is against the actions beside it. It is the only ranking axis in the system, and there is no `variant`: one prop cannot mean colour and prominence at once. On a button it picks a fill. Loud is the tone's solid colour, medium is a soft wash, and quiet has no fill at all. Read a row of actions in the order the fills state. Defaults to `medium`, so a screen earns its one loud button by asking for it."
+      },
+      {
+        "name": "focusableWhenDisabled",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Keep focus on the button when it becomes disabled part-way through an interaction."
+      },
+      {
+        "name": "iconOnly",
+        "type": "true",
+        "optional": false,
+        "doc": "Squares the box and drops the label. The glyph goes in `children`, and an accessible name becomes REQUIRED — `aria-label` or `aria-labelledby` — because a control with no visible text announces as \"button\" and nothing else."
+      },
+      {
+        "name": "leading",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The slot before the label, usually an icon. While `loading` is true the Spinner takes this slot, in the same box, so nothing shifts."
+      },
+      {
+        "name": "loading",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Blocks the press and shows a Spinner. The label never goes away. On an `iconOnly` button the Spinner takes the glyph's place rather than sitting beside it, because there the glyph IS the label."
+      },
+      {
+        "name": "nativeButton",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Whether the rendered element really is a `<button>`. It is inferred from `render`, and you almost never need to pass it. It exists because Base UI decides its whole accessibility contract from this value, and getting it wrong fails silently."
+      },
+      {
+        "name": "render",
+        "type": "RenderElement",
+        "optional": true,
+        "doc": "Render into an element you already have, such as a link or a `<summary>`. The appearance and the behaviour stay this component's, and only the tag changes. Base UI decides its accessibility contract from what the result is, which is inferred from what you pass here. See `nativeButton` for the case that cannot be inspected."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "optional": true,
+        "doc": "An index into the control family, never a measurement. One number sets five things at once: the height, the side padding, the corner, the icon box and the label's type step. Every control at the same index stands level with every other, and re-pricing a step is one config line rather than a sweep of call sites. Density and the pointer setting change what the index resolves to. They never change what it means. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "tone",
+        "type": "Tone",
+        "values": [
+          "neutral",
+          "accent",
+          "destructive",
+          "blue",
+          "green",
+          "orange",
+          "amber",
+          "success",
+          "warning",
+          "info"
+        ],
+        "optional": true,
+        "doc": "What the action means, not what colour it is. `destructive` says what the press does, and the theme decides the colour, which is what lets a palette move without a call site being edited. Defaults to `neutral`, so nothing is accent by accident."
+      },
+      {
+        "name": "trailing",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The slot after the label: a chevron, a count, or a whole control. The Spinner never replaces it."
+      }
+    ]
   },
   "ToolbarGroup": {
     "element": "div",

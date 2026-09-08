@@ -28,8 +28,19 @@ type BadgeBase = Omit<React.ComponentPropsWithoutRef<"span">, "color" | "childre
  * reader infers from the marker, the accessible name states. With content — a count, a short
  * word — the content is the name and no label is required.
  */
-type Bare = { children?: undefined; "aria-label": string };
-type Counted = { children: React.ReactNode; "aria-label"?: string };
+type Bare = {
+  /** Nothing inside. A bare badge is the DOT, which is why the name below is required. */
+  children?: undefined;
+  /** What the dot means, in your own words. Required with no content: colour alone says
+      nothing to a screen reader, and this is the sentence a sighted reader infers. */
+  "aria-label": string;
+};
+type Counted = {
+  /** A count or a short word. The content IS the name, so a label becomes optional. */
+  children: React.ReactNode;
+  /** An override, where the content alone reads wrong out loud — `3` announced as "3 unread". */
+  "aria-label"?: string;
+};
 
 export type BadgeProps = ComponentRefusals & BadgeBase & (Bare | Counted);
 

@@ -20,6 +20,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { typeRefusalsFor } from "@kookie-ui/react/agent";
 import { describe, expect, it } from "vitest";
 
 // THE PACKAGE'S BUILD, which is a seam worth naming. The artifact under test is generated
@@ -36,7 +37,7 @@ import { API } from "./api.generated";
 import { propDescription } from "./prop-description";
 import { readPackageExports } from "../../package-exports";
 import { ENTRIES } from "./registry";
-import { generatedText, propsOfSource } from "../../../scripts/generate-api";
+import { generatedText, nativePropNames, propsOfSource, resolvedPropNames } from "../../../scripts/generate-api";
 import { propSummary } from "./prop-description";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
@@ -414,5 +415,110 @@ describe("the generated tables state the legal values, not the alias that hides 
     // fails and the rows get their alias.
     const declared = new Set(API.Box!.props.map((prop) => prop.name));
     expect([...declared].filter((name) => ["p", "m", "gap", "px", "py"].includes(name))).toEqual([]);
+  });
+});
+
+/**
+ * THE TABLE IS NOT A SUBSET OF THE TYPE (2026-09-07, the audit).
+ *
+ * The law this generator had never had, and `api.test.ts` said so out loud in a comment
+ * one screen up: "the agreement law asks whether the registry's axis names are IN the
+ * checker's resolved set, never whether the generated table is a SUBSET of it". It was, four
+ * times over, and the drift law could not see it because a drift law compares the artifact
+ * against what this same generator writes — a walk that drops a prop drops it on both sides.
+ *
+ * What it dropped was every prop declared inside a UNION ARM. Four exported props types are
+ * written `Base & (A | B)`, which is how this system spells a guarantee the compiler enforces:
+ * `iconOnly: true` REQUIRES an accessible name. `Button.iconOnly` and `Toggle.iconOnly` were
+ * in no document anywhere, `Badge`'s naming requirement was missing, and `ComposerInput` — the
+ * whole of whose declared surface is that union — printed "It declares no props of its own"
+ * under a type that requires `aria-label`. Two more entries were empty because a props type
+ * aliased from ANOTHER FILE resolved to nothing.
+ *
+ * SO THE LAW READS THE CHECKER, which is the only reader that cannot make the walk's mistake:
+ * it resolves the props type the way `tsc` does and answers with every property, inherited
+ * ones included. Those are subtracted — a table documents what a component declares, and
+ * saying "and every prop of a `<button>`" once is the whole point of the `element` field — and
+ * so are the refusals, which are the props the type states in order to reject them.
+ */
+describe("every prop the type declares reaches the table", () => {
+  it("names nothing the walk dropped", () => {
+    const resolved = resolvedPropNames();
+    expect(resolved.size, "the checker resolved nothing; this law is reading air").toBeGreaterThan(50);
+
+    // The platform's surface, resolved per element and subtracted. Asked rather than guessed:
+    // an earlier spelling inferred it from what sibling components printed, which reported
+    // 1,171 React props as dropped and would have gone blind on any prop two siblings share.
+    const native = new Map<string, Set<string>>();
+    const nativeFor = (element: string | null): Set<string> => {
+      if (!element) return new Set();
+      if (!native.has(element)) native.set(element, nativePropNames(element));
+      return native.get(element)!;
+    };
+    expect(nativeFor("button").has("formAction"), "the native walk resolved nothing").toBe(true);
+
+    // ONLY WHERE THE ELEMENT IS KNOWN, and the limit is stated rather than hidden. An entry
+    // whose props extend a Base UI component's rather than a native element's records no
+    // `element`, so there is nothing to subtract and every inherited React prop would read as
+    // dropped. The guard below is what keeps that from quietly becoming "this law checks four
+    // components": the four types the walk really did drop are all in the checked set, and the
+    // set has to stay large.
+    // The four layouts are out for a stated reason of their own: their props are the SHARED
+    // table (`system/props.ts`), which the reference renders once rather than repeating on
+    // four pages — the same reason `api.generated.ts` carries no rows for them, and a fact the
+    // legal-values law one screen up already leans on.
+    const SHARED_TABLE = new Set(["Box", "Flex", "Stack", "Grid"]);
+    const checkable = [...resolved].filter(
+      ([component]) => API[component]?.element && !SHARED_TABLE.has(component),
+    );
+    expect(checkable.length).toBeGreaterThan(30);
+    for (const name of ["Button", "Toggle", "Badge", "ComposerInput", "ToolbarButton"]) {
+      expect(
+        checkable.some(([component]) => component === name),
+        `${name} is outside this law's reach, which is where the defect it exists for lived`,
+      ).toBe(true);
+    }
+
+    const missing: string[] = [];
+    for (const [component, names] of checkable) {
+      const entry = API[component]!;
+      const printed = new Set(entry.props.map((prop) => prop.name));
+      // A refusal is a key the type states in order to REJECT it, which is the opposite of a
+      // prop the table documents.
+      const refused = new Set(typeRefusalsFor(component).map((row) => row.prop));
+      const platform = nativeFor(entry.element);
+      for (const name of names) {
+        if (printed.has(name) || refused.has(name) || platform.has(name)) continue;
+        // `ref` and `key` are React's own, on every element, and no entry prints them.
+        if (name === "ref" || name === "key") continue;
+        missing.push(`${component}.${name}`);
+      }
+    }
+    expect(missing).toEqual([]);
+  }, 240_000);
+
+  it("the union arms are really in there, by name", () => {
+    // The four types the walk used to drop whole, asserted as values rather than as a rule, so
+    // this fails on the exact defect even if the general law above is ever weakened.
+    expect(API["Button"]?.props.map((prop) => prop.name)).toContain("iconOnly");
+    expect(API["Toggle"]?.props.map((prop) => prop.name)).toContain("iconOnly");
+    expect(API["Badge"]?.props.map((prop) => prop.name)).toContain("aria-label");
+    expect(API["ComposerInput"]?.props.map((prop) => prop.name)).toContain("aria-label");
+  });
+
+  it("a props type aliased from another file resolves", () => {
+    // `ToolbarButtonProps = ComponentRefusals & ButtonProps`, declared in button.tsx.
+    expect(API["ToolbarButton"]?.props.map((prop) => prop.name)).toContain("loading");
+    expect(API["CommandTrigger"]?.props.length).toBeGreaterThan(0);
+  });
+
+  it("and a refusal mixin is not read as a prop list", () => {
+    // Following an alias across files reaches `ComponentRefusals` too. The tables document
+    // what a component TAKES; printing `variant` there is the reference asserting the opposite
+    // of the design.
+    const leaking = Object.entries(API).filter(([, entry]) =>
+      entry.props.some((prop) => ["variant", "asChild", "m", "mt", "highContrast"].includes(prop.name)),
+    );
+    expect(leaking.map(([name]) => name)).toEqual([]);
   });
 });

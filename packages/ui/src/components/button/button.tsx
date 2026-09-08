@@ -22,7 +22,7 @@ type ButtonBase = Omit<
    * once: the height, the side padding, the corner, the icon box and the label's type step.
    * Every control at the same index stands level with every other, and re-pricing a step is
    * one config line rather than a sweep of call sites. Density and the pointer setting change
-   * what the index resolves to. They never change what it means. Defaults to `2`.
+   * what the index resolves to. They never change what it means. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise.
    */
   size?: Size;
   /**
@@ -121,8 +121,24 @@ type ButtonBase = Omit<
  * types are the refusals, enforced.
  */
 export type IconOnly =
-  | { iconOnly: true; "aria-label": string }
-  | { iconOnly: true; "aria-labelledby": string };
+  | {
+      /** Squares the box and drops the label. The glyph goes in `children`, and an accessible
+          name becomes REQUIRED — `aria-label` or `aria-labelledby` — because a control with no
+          visible text announces as "button" and nothing else. */
+      iconOnly: true;
+      /** The button's name, in your own words. Required when `iconOnly` is set, because the
+          system cannot write what this particular button does. */
+      "aria-label": string;
+    }
+  | {
+      /** Squares the box and drops the label. The glyph goes in `children`, and an accessible
+          name becomes REQUIRED — `aria-label` or `aria-labelledby` — because a control with no
+          visible text announces as "button" and nothing else. */
+      iconOnly: true;
+      /** The id of the element that already names this button, when one is on the page. The
+          alternative to `aria-label`, and one of the two is required with `iconOnly`. */
+      "aria-labelledby": string;
+    };
 
 export type ButtonProps = ComponentRefusals & ButtonBase & (IconOnly | { iconOnly?: false | undefined });
 

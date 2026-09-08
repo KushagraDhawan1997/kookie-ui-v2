@@ -75,6 +75,51 @@ export function resolvedPropNames(): Map<string, Set<string>> {
 }
 
 /**
+ * Every prop the PLATFORM gives an element of this kind, resolved the way `tsc` resolves it.
+ *
+ * The honest half of "this table is not a subset of the type" (2026-09-07, the audit). A props
+ * type resolves to hundreds of names and almost all of them are React's: a component that
+ * extends `ComponentPropsWithoutRef<"button">` really does take `formAction` and
+ * `onPointerEnter`, and the entry says so once with `element` rather than printing four hundred
+ * rows. So a law comparing the checker's answer against the table has to subtract these, and it
+ * has to subtract them by ASKING rather than by guessing — the first spelling inferred the
+ * native surface from what sibling components printed, which is a heuristic that goes wrong in
+ * both directions and reported 1,171 platform props as dropped.
+ */
+export function nativePropNames(element: string): Set<string> {
+  const { program, checker } = packageProgram();
+  const file = ts.createSourceFile(
+    "native.ts",
+    `import type * as React from "react";\nexport type Native = React.ComponentPropsWithoutRef<${JSON.stringify(element)}>;`,
+    ts.ScriptTarget.Latest,
+    true,
+  );
+  // Resolved inside the package's own program, so React's types are the ones the package
+  // itself compiles against rather than whatever another install would supply.
+  void program;
+  const host = ts.createCompilerHost({});
+  const original = host.getSourceFile.bind(host);
+  host.getSourceFile = (name, ...rest) => (name === "native.ts" ? file : original(name, ...rest));
+  const config = ts.readConfigFile(path.join(packageDir, "tsconfig.json"), ts.sys.readFile);
+  const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, packageDir);
+  const small = ts.createProgram(["native.ts"], parsed.options, host);
+  const smallChecker = small.getTypeChecker();
+  const parsedFile = small.getSourceFile("native.ts");
+  const alias = parsedFile?.statements.find(
+    (statement): statement is ts.TypeAliasDeclaration =>
+      ts.isTypeAliasDeclaration(statement) && statement.name.text === "Native",
+  );
+  if (!alias) return new Set();
+  void checker;
+  return new Set(
+    smallChecker
+      .getTypeAtLocation(alias.name)
+      .getProperties()
+      .map((symbol) => symbol.getName()),
+  );
+}
+
+/**
  * The package, compiled once.
  *
  * Two readers need the CHECKER rather than the AST — `resolvedPropNames()` for the inherited
@@ -283,7 +328,11 @@ function collect(
   depth = 0,
   checker?: ts.TypeChecker,
 ): void {
-  if (depth > 4) return;
+  // Depth-capped against a cycle in aliases. EIGHT, not four: following an alias across files
+  // costs real levels — `ToolbarButtonProps` is `ComponentRefusals & ButtonProps`, and
+  // `ButtonProps` is itself an intersection holding another alias — so the old cap ran out
+  // three levels short and the entry came back empty (2026-09-07, the audit).
+  if (depth > 8) return;
 
   if (ts.isIntersectionTypeNode(node)) {
     for (const member of node.types) collect(member, file, out, depth + 1, checker);
@@ -292,6 +341,45 @@ function collect(
 
   if (ts.isParenthesizedTypeNode(node)) {
     collect(node.type, file, out, depth + 1, checker);
+    return;
+  }
+
+  /**
+   * A UNION ARM IS STILL A DECLARATION (2026-09-07, the audit).
+   *
+   * Four exported props types are written `Base & (A | B)`, which is how this system spells a
+   * guarantee the compiler enforces: `iconOnly: true` REQUIRES an accessible name. There was no
+   * union arm here, so the parenthesis was unwrapped, the union matched nothing and the walk
+   * returned having added none of it. `Button.iconOnly` and `Toggle.iconOnly` were in no table
+   * anywhere, `Badge`'s bare-dot naming requirement was missing, and `ComposerInputProps` —
+   * whose entire declared surface IS that union — produced an entry with zero props, under
+   * which the page then printed "It declares no props of its own" while the type requires
+   * `aria-label`. DECISIONS §48 names that guarantee as the reason the refusal codemod
+   * intersects rather than `Omit`s: it survived in the types and was missing from every
+   * document derived from them.
+   *
+   * Every arm is walked and the results merge. A prop that is not in every arm is CONDITIONAL,
+   * which is a real difference from an optional one — `iconOnly` is required in its arm — so it
+   * is marked optional here and its own doc comment carries the condition, which is where a
+   * discriminated union states it in prose anyway.
+   */
+  if (ts.isUnionTypeNode(node)) {
+    const seen = new Set(out.props.map((prop) => prop.name));
+    const arms = node.types.map((arm) => {
+      const armOut = { props: [] as ApiProp[], element: null as string | null };
+      collect(arm, file, armOut, depth + 1, checker);
+      return armOut;
+    });
+    const everywhere = (name: string): boolean =>
+      arms.every((arm) => arm.props.some((prop) => prop.name === name));
+    for (const arm of arms) {
+      for (const prop of arm.props) {
+        if (seen.has(prop.name)) continue;
+        seen.add(prop.name);
+        out.props.push(everywhere(prop.name) ? prop : { ...prop, optional: true });
+      }
+      out.element ??= arm.element;
+    }
     return;
   }
 
@@ -321,6 +409,14 @@ function collect(
 
   if (ts.isTypeReferenceNode(node)) {
     const name = node.typeName.getText();
+
+    // A REFUSAL MIXIN IS NOT A PROP LIST. `system/refused.ts` states what a component does NOT
+    // take, and every props type in the package intersects one — so following it would print
+    // `variant` and the whole margin row as declared props on all 143 tables, which is the
+    // reference asserting the exact opposite of the design. It resolved to nothing by accident
+    // until now (the mixin is a mapped type and the walk has no mapped-type arm); said out
+    // loud, it stays right when that accident stops holding.
+    if (/Refusals$/.test(name)) return;
 
     // `Omit<SidePaneProps, "width">` and the bare form.
     //
@@ -367,13 +463,28 @@ function collect(
       return;
     }
 
-    // A local alias in the same file — follow it, so a reader never has to know that
-    // `SidePaneProps` was assembled from two internal pieces.
-    const alias = file.statements.find(
+    // An alias — followed, so a reader never has to know that `SidePaneProps` was assembled
+    // from two internal pieces. THE SAME FILE FIRST, then wherever the checker says the symbol
+    // was declared: `ToolbarButtonProps = ComponentRefusals & ButtonProps` and
+    // `CommandTriggerProps = ComponentRefusals & DialogTriggerProps` both name a type declared
+    // in another file, and a same-file-only lookup silently found nothing and collected
+    // nothing — so both entries shipped empty and the page asserted "It declares no props of
+    // its own" about a part that takes every prop a Button does (2026-09-07, the audit).
+    const local = file.statements.find(
       (statement): statement is ts.TypeAliasDeclaration =>
         ts.isTypeAliasDeclaration(statement) && statement.name.text === name,
     );
-    if (alias) collect(alias.type, file, out, depth + 1, checker);
+    if (local) {
+      collect(local.type, file, out, depth + 1, checker);
+      return;
+    }
+    const symbol = checker?.getSymbolAtLocation(node.typeName);
+    const target = symbol?.flags && symbol.flags & ts.SymbolFlags.Alias ? checker?.getAliasedSymbol(symbol) : symbol;
+    for (const declaration of target?.declarations ?? []) {
+      if (!ts.isTypeAliasDeclaration(declaration)) continue;
+      collect(declaration.type, declaration.getSourceFile(), out, depth + 1, checker);
+      return;
+    }
   }
 }
 
