@@ -24,7 +24,7 @@ export type AccordionProps = ComponentRefusals & Omit<
   /**
    * An index into the control family, 1–4. It sets the trigger rows — height, inset, type
    * step, the chevron's box — and the panel's inset with them, so the panel's words start
-   * under the trigger's label. Defaults to `2`.
+   * under the trigger's label. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise.
    */
   size?: Size;
   className?: string;

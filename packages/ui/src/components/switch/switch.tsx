@@ -37,7 +37,7 @@ export type SwitchProps = ComponentRefusals & Omit<
    * The mark ladder, one step up. The track is the checkbox's mark at the next index, which is
    * the relationship every peer system arrives at by hand, so a switch reads one weight class
    * above the checkbox at the same number while both stay in one family. The width follows the
-   * same index. Defaults to 2.
+   * same index. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise.
    */
   size?: Size;
   /** Dresses the mark. Outer spacing is the caller's Box, never this (the non-negotiable). */

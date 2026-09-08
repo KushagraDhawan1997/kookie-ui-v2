@@ -10,7 +10,7 @@ export type TableProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef
   /**
    * An index into the control family, 1–4, and it sets two things at once: the cell inset,
    * picked from the layout-space palette so it tightens with density, and the type step the
-   * cells read at. Defaults to `2` — the step tables are set at almost everywhere, because a
+   * cells read at. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise, and `2` is the step tables are set at almost everywhere, because a
    * table is dense by nature.
    */
   size?: Size;

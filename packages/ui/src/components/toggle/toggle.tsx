@@ -18,7 +18,7 @@ type ToggleBase = Omit<
 > & {
   /**
    * An index into the control family, never a measurement — Button's own prop, because a
-   * toggle IS a button that holds its state. Defaults to `2`, or to the index of the Field it
+   * toggle IS a button that holds its state. Rests at the app's index — the `size` on the nearest `Theme` — or at the index of the Field it
    * sits in.
    */
   size?: Size;

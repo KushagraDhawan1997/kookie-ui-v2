@@ -37,7 +37,7 @@ export type RadioProps = ComponentRefusals & Omit<
    * The mark ladder, and the same index a checkbox uses. The mark is one line of the label
    * beside it, and the circle's diameter is that square's, so a radio and the checkbox above it
    * in a form are the same size of thing. The painted box leaves the control height ladder. The
-   * target does not: it stays the size of a control at that index. Defaults to 2.
+   * target does not: it stays the size of a control at that index. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise.
    */
   size?: Size;
   /** Dresses the mark. Outer spacing is the caller's Box, never this (the non-negotiable). */

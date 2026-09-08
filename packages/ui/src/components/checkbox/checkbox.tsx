@@ -48,7 +48,7 @@ export type CheckboxProps = ComponentRefusals & Omit<
    * the height ladder, because that is the geometry of a box that contains a label and this one
    * sits beside one. It keeps the index, so a checkbox, a radio and a switch at the same number
    * read as the same size of thing. The ladder is the line box, so the mark is exactly one line
-   * of the label beside it and lines up with no offset. Defaults to 2.
+   * of the label beside it and lines up with no offset. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise.
    */
   size?: Size;
   /** Dresses the mark. Outer spacing is the caller's Box, never this (the non-negotiable). */
