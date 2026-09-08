@@ -185,7 +185,7 @@
      longer has. The picks are the command size join's, two rungs under the results pane's: both
      blocks are panes at one index, and a pane holding a list of rows and a pane holding one line
      of type do not want the same air. */
-  --kui-sf-p: var(--kui-cmd-search-p);
+  --kui-sf-p: var(--kui-cmd-p);
   /* AND IT IS A PILL (2026-09-05, Kushagra: "still needs pill shape no?"). Written as the
      LEVEL's own value multiplied out rather than as a literal, which is what makes it answer
      `radius="none"` for free: the surface layer zeroes `--kui-sf-radius` there, and zero times
@@ -273,15 +273,21 @@
    from it, giving a 70px arc on a pane that pads 8. Nothing is lost: the overlay's designed
    maximum is the COLUMN's already, and the panel fills the column it stands in.
 
-   The value is the MENU'S OWN, expression and all: a clipping pane must pad at least the ring's
-   reach (§3), which is why this is a `max()` and not a pick. Copied as the expression rather
-   than as its result, so re-tuning the ring cannot silently re-break either panel.
+   IT IS NOT THE MENU'S 4px ANY MORE (2026-09-07, Kushagra: "command uses menu spacing… command
+   seems to need more"). It takes the PANEL band, the scale that arrived for surfaces smaller than
+   a card, which is also what the bar above it takes — so one number really does price both blocks
+   identically, the thing the 2026-09-05 split asked for and could not have while the two panes sat
+   on two different ladders. `--kui-cmd-p` rather than the join's own `--kui-panel-p`, and that is
+   the whole reason the `--kui-floating-p` hook still exists: this pane stamps its ROWS' index, one
+   step above the palette's since 2026-09-06, so reading the band off its own `data-size` would pad
+   it at a rung nobody asked for. The hook lets the popup — which stamps the palette's index —
+   answer for it. The ring-clearance floor rides inside the band and is no longer spelled here.
 
    What is left below is the bound, and it belongs on the element that scrolls. A maximum rather
    than a height: a palette with four commands in it is four rows tall, which is the whole reason
    the block above it is a separate block. */
 .kui-surface.kui-command-panel {
-  --kui-floating-p: max(var(--floating-p), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
+  --kui-floating-p: var(--kui-cmd-p);
 }
 
 .kui-command-panel .kui-scroll-area,

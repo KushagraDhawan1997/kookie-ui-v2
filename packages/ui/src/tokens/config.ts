@@ -1515,15 +1515,30 @@ export const layoutSpace = {
 export const surfacePadding = [5, 6, 7, 8] as const;
 
 /**
- * §22, §23 — the FLOATING panel's interior padding, ONE pick into layout space (the
- * surfacePadding sentence at panel scale: density reaches it through the layer, no set of
- * its own). Renamed from menuPadding on the second consumer (Select, 2026-08-09): the fact
- * was never the menu's — every floating panel breathes by it, and a select popup consuming
- * a menu-named token would be the two-homes drift wearing a component's name. One value
- * and not a size-indexed family: the panel's rows answer the size axis, its breathing room
- * does not. Index 2 = 4px at default density.
+ * §10, §22, §23 — the PANEL band: the interior padding of a surface SMALLER than a card, as
+ * picks into layout space (the `surfacePadding` sentence at panel scale — density reaches every
+ * floating pane through one lever, no set of its own). At default: 8 / 12 / 16 / 24.
+ *
+ * IT REPLACES `floatingPadding`, one flat pick, on 2026-09-07 (Kushagra: "we need a spacing
+ * scale for surfaces that are smaller than cards — popover uses card, command uses menu, command
+ * seems to need more and popover seems to need less"). Measured, the library had exactly two
+ * answers and nothing between them: a card's 16/24/32/40 and a flat 4. So a popover — a small
+ * panel holding one thought — was padded like a document, and a palette standing alone over a
+ * dimmed app was padded like a menu item's neighbour.
+ *
+ * THE VALUES ARE NOT NEW, and that is the argument for them: they are the command palette's own
+ * search bar, designed and judged by eye on 2026-09-05 when that bar became a pane and needed an
+ * inset that was neither a card's nor a menu's. A band that already exists at one call site is a
+ * band, and promoting it is cheaper than inventing a second set of numbers that would have to be
+ * judged against it.
+ *
+ * INDEXED, which reverses `floatingPadding`'s own sentence — "one value and not a size-indexed
+ * family: the panel's rows answer the size axis, its breathing room does not". That held while
+ * every consumer was a pane hugging rows, where the row's inset does the breathing. It stopped
+ * holding the day a popover joined the family: a popover holds CONTENT, its rows are nobody's,
+ * and a pane whose whole interior is the caller's has nothing else to answer the index with.
  */
-export const floatingPadding = 2;
+export const panelPadding = [3, 4, 5, 6] as const;
 
 /**
  * §22, §23 — the floating panel's minimum width, raw px through --scale (the switchW
@@ -1545,7 +1560,7 @@ export const floatingMinWidth = 112;
  * equally off the top and bottom and visibly farther from the end. So block is tighter than
  * inline, which is what every platform's tooltip does.
  *
- * Picks rather than raw lengths, like `floatingPadding`: density reaches a tooltip through the
+ * Picks rather than raw lengths, like `panelPadding`: density reaches a tooltip through the
  * layer, so a compact app gets a compact tooltip with nothing designed twice. Index 2 = 4px and
  * index 4 = 12px at default density, which puts a step-2 label in a 28px chip — the proportion
  * shadcn reaches with px-3 py-1.5 at a smaller step.
@@ -1744,7 +1759,7 @@ export const alertWidth = [280, 320, 360, 400] as const;
 
 /**
  * §24 — the gutter between the dialog and the window edge, ONE pick into layout space (the
- * floatingPadding sentence at overlay scale). It is what keeps a dialog off the edge on a
+ * panelPadding sentence at overlay scale). It is what keeps a dialog off the edge on a
  * phone, so it answers density through the layer like every other distance. Index 6 = 24px
  * at default density.
  */

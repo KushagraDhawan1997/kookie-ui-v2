@@ -163,7 +163,7 @@
      What it OBLIGES: a clipping pane must pad at least the focus ring's reach, or a control
      resting against the inside of the padding loses the outer edge of its ring. The surface
      band clears it everywhere (the tightest cell is compact size 1 at 8px against a 4px
-     reach) and the menu's panel did not — which is why --kui-menu-pad is a max() against the
+     reach) and the menu's panel did not — which is why --kui-panel-p is a max() against the
      ring's own tokens rather than a number, and why that floor is stated where the padding
      is chosen rather than here. Law-checked across every size × density. */
   overflow: clip;
@@ -460,23 +460,61 @@
    corner-corrected one at `full`: what it names is where a bare-edged row's label starts, the
    same anchor the group label takes (§21). A slotted row's text starts one correction further in
    by design; that is the reserved-gutter fact, not a second alignment. */
+/* ── The PANEL band (§10, §22, §23 — 2026-09-07) ────────────────────────────────────────────
+   A floating pane is a surface SMALLER than a card, and until now the library had no inset that
+   said so: a popover fell through to the card band and padded a small panel like a document
+   (24px at the resting index), while every pane hugging rows took one flat 4. Kushagra: "we need
+   a spacing scale for surfaces that are smaller than cards… command seems to need more, and
+   popover seems to need less." The values are the command palette's own search bar, judged by
+   eye two days earlier and promoted rather than re-invented — 8 / 12 / 16 / 24 at the resting
+   density, between the two answers that already existed.
+
+   `--kui-panel-p` CARRIES THE RING CLEARANCE, so the rule "a clipping pane must pad at least the
+   ring's reach" is stated once here instead of in three component sheets that each spelled the
+   same `max()` (menu, select, command). Every one of these panes clips, and the smallest rung at
+   compact density lands exactly ON the reach, so the floor is live rather than decorative.
+
+   TWO LAYERS, settled by RANK and never by file order. This rule sets the pane's inset for a
+   floating pane that holds CONTENT — a popover; the rows join below is one step more specific and
+   re-points it for a pane that hugs rows, which is also where a component's own hook is consulted.
+   A menu wears both classes, and takes the rows join because it is the more specific claim. */
+.kui-surface.kui-floating {
+  --kui-sf-p: var(--kui-panel-p);
+}
+.kui-surface.kui-floating[data-size="1"],
 .kui-surface.kui-floating-rows[data-size="1"] {
-  --kui-sf-p: var(--kui-floating-p, var(--surface-p-1));
+  --kui-panel-p: max(var(--panel-p-1), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
+}
+.kui-surface.kui-floating[data-size="2"],
+.kui-surface.kui-floating-rows[data-size="2"] {
+  --kui-panel-p: max(var(--panel-p-2), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
+}
+.kui-surface.kui-floating[data-size="3"],
+.kui-surface.kui-floating-rows[data-size="3"] {
+  --kui-panel-p: max(var(--panel-p-3), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
+}
+.kui-surface.kui-floating[data-size="4"],
+.kui-surface.kui-floating-rows[data-size="4"] {
+  --kui-panel-p: max(var(--panel-p-4), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
+}
+
+.kui-surface.kui-floating-rows[data-size="1"] {
+  --kui-sf-p: var(--kui-floating-p, var(--kui-panel-p));
   --kui-sf-radius: calc(var(--radius-row-1) + var(--kui-sf-p));
   --kui-sf-row-px: var(--control-px-pill-1);
 }
 .kui-surface.kui-floating-rows[data-size="2"] {
-  --kui-sf-p: var(--kui-floating-p, var(--surface-p-2));
+  --kui-sf-p: var(--kui-floating-p, var(--kui-panel-p));
   --kui-sf-radius: calc(var(--radius-row-2) + var(--kui-sf-p));
   --kui-sf-row-px: var(--control-px-pill-2);
 }
 .kui-surface.kui-floating-rows[data-size="3"] {
-  --kui-sf-p: var(--kui-floating-p, var(--surface-p-3));
+  --kui-sf-p: var(--kui-floating-p, var(--kui-panel-p));
   --kui-sf-radius: calc(var(--radius-row-3) + var(--kui-sf-p));
   --kui-sf-row-px: var(--control-px-pill-3);
 }
 .kui-surface.kui-floating-rows[data-size="4"] {
-  --kui-sf-p: var(--kui-floating-p, var(--surface-p-4));
+  --kui-sf-p: var(--kui-floating-p, var(--kui-panel-p));
   --kui-sf-radius: calc(var(--radius-row-4) + var(--kui-sf-p));
   --kui-sf-row-px: var(--control-px-pill-4);
 }
@@ -536,32 +574,39 @@
    rather than two agreeing ones. What is left is the only number the control join cannot answer,
    because it is a question about a caption standing beside a row rather than about a control.
 
-   `--kui-cmd-search-p` is the SEARCH BAR'S own inset, and it is deliberately not the results
-   pane's (2026-09-05, Kushagra: "maybe padding is bit too much no?"). Both blocks are panes at
-   one index — that is what makes one number price the pair — but a pane holding a LIST of rows
-   and a pane holding ONE LINE do not want the same air: the pane's inset is the room its rows
-   stand in, and the bar's is the room around a single line of type. The overlay pads 16/24/32/32 (a card one size up, capped at the
-   band's top) and these are 8/12/16/24 — under it at every index including the one where the
-   overlay's own ladder repeats, which is the cell a picks-table copied off the pane would miss.
-   Layout-space picks, layout-space picks so density reaches them like every other
-   distance (§3, §12), and monotone with the index like the pair they belong to. */
+   `--kui-cmd-p` IS THE PANEL BAND, and it used to be this join's own picks (2026-09-07). It was
+   written for the search bar on 2026-09-05, when that bar became a pane and wanted an inset that
+   was neither a card's nor a menu's — and those four picks turned out to be the band the whole
+   library was missing, so they were promoted to `--panel-p-N` and this reads them. Nothing about
+   the bar moved; what changed is how many components can say the same thing.
+
+   IT PRICES BOTH BLOCKS, which is the original ask (2026-09-05, Kushagra: "passing a size to this
+   command should affect both, the search bar and search results container in identical way") and
+   which the results pane could not honour while it wore the menu's flat 4. It is published HERE,
+   on the popup, and the popup stamps the PALETTE's index — where the results pane stamps its rows'
+   index, one step up since 2026-09-06. Reading the band off the pane's own `data-size` would give
+   it a rung the palette never asked for, so the pane consults the `--kui-floating-p` hook and this
+   is what it consults it with. That is the hook's last consumer and its whole reason to exist.
+
+   The BAR's inline inset stays a rung above the block one (§4's `pxPill`): at `full` the corner
+   swings inward at the cap line, so a capsule's content needs more room on the inline axis. */
 .kui-command[data-size="1"] {
-  --kui-cmd-search-p: var(--layout-space-3);
+  --kui-cmd-p: var(--panel-p-1);
   --kui-cmd-search-px: var(--layout-space-4);
   --kui-cmd-search-icon: var(--icon-size-1);
 }
 .kui-command[data-size="2"] {
-  --kui-cmd-search-p: var(--layout-space-4);
+  --kui-cmd-p: var(--panel-p-2);
   --kui-cmd-search-px: var(--layout-space-5);
   --kui-cmd-search-icon: var(--icon-size-3);
 }
 .kui-command[data-size="3"] {
-  --kui-cmd-search-p: var(--layout-space-5);
+  --kui-cmd-p: var(--panel-p-3);
   --kui-cmd-search-px: var(--layout-space-6);
   --kui-cmd-search-icon: var(--icon-size-3);
 }
 .kui-command[data-size="4"] {
-  --kui-cmd-search-p: var(--layout-space-6);
+  --kui-cmd-p: var(--panel-p-4);
   --kui-cmd-search-px: var(--layout-space-7);
   --kui-cmd-search-icon: var(--icon-size-4);
 }

@@ -32,7 +32,7 @@ import {
   radiusSurface,
   space,
   surfacePadding,
-  floatingPadding,
+  panelPadding,
   floatingMinWidth,
   alertWidth,
   overlayWidth,
@@ -622,7 +622,8 @@ describe("layout space: the density-aware layer over the untouched palette (§3,
     // px through --scale (no palette rung at popup scale — the switchW argument), declared
     // once: nothing in it varies by density.
     for (const level of ["default", "compact", "comfortable"] as const) {
-      expect(declaration("floating-p", level)).toBe(`var(--layout-space-${floatingPadding})`);
+      for (const [i, step] of panelPadding.entries())
+        expect(declaration(`panel-p-${i + 1}`, level)).toBe(`var(--layout-space-${step})`);
     }
     expect(declaration("floating-min-w")).toBe(`calc(${floatingMinWidth}px * var(--scale))`);
     for (const level of ["compact", "comfortable"] as const) {

@@ -10,7 +10,7 @@
 .kui-table {
   overflow-x: auto;
   inline-size: 100%;
-  /* A CLIPPING BOX PADS AT LEAST THE RING'S REACH (DECISIONS §3, `--kui-menu-pad`'s own
+  /* A CLIPPING BOX PADS AT LEAST THE RING'S REACH (DECISIONS §3, `--kui-panel-p`'s own
      sentence, 2026-09-01). Declaring one overflow axis promotes the other to `auto`, so this
      box clips the BLOCK axis too — and the block axis cannot be scrolled to bring anything
      back. Measured at compact/size 1: a focused `<Link>` in a header cell had 2.00px of its

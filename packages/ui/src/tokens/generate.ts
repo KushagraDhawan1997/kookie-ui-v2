@@ -76,7 +76,7 @@ import {
   overlayEcho,
   floatingSeed,
   floatingEcho,
-  floatingPadding,
+  panelPadding,
   tooltipPadding,
   tooltipMaxWidth,
   tooltipMotion,
@@ -1569,11 +1569,12 @@ function surfacePaddingFamily(): string[] {
   );
 }
 
-/** The floating panel's padding (§22, §23): one pick into layout space — a var() bakes where
-    it is declared, so this re-emits in every density scope exactly like surface padding does. */
+/** The panel band (§10, §22, §23): picks into layout space for a surface smaller than a card —
+    a var() bakes where it is declared, so this re-emits in every density scope exactly like
+    surface padding does. */
 function floatingPanelFamily(): string[] {
   return [
-    decl("floating-p", `var(--layout-space-${floatingPadding})`),
+    ...panelPadding.map((step, i) => decl(`panel-p-${i + 1}`, `var(--layout-space-${step})`)),
     // The tooltip's pair rides along, for the same substitution reason: a var() bakes where it
     // is declared, so both re-emit in every density scope.
     decl("tooltip-p-block", `var(--layout-space-${tooltipPadding.block})`),

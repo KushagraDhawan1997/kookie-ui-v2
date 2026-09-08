@@ -330,7 +330,10 @@
 
   /* the menu popup (§22) — padding is a layout-space pick (re-declared per density scope,
      the surface-padding trap), the width floor rides --scale alone so it lives here only. */
-  --floating-p: var(--layout-space-2);
+  --panel-p-1: var(--layout-space-3);
+  --panel-p-2: var(--layout-space-4);
+  --panel-p-3: var(--layout-space-5);
+  --panel-p-4: var(--layout-space-6);
   --tooltip-p-block: var(--layout-space-2);
   --tooltip-p-inline: var(--layout-space-4);
   --floating-min-w: calc(112px * var(--scale));
@@ -3706,7 +3709,10 @@
   --surface-p-2: var(--layout-space-6);
   --surface-p-3: var(--layout-space-7);
   --surface-p-4: var(--layout-space-8);
-  --floating-p: var(--layout-space-2);
+  --panel-p-1: var(--layout-space-3);
+  --panel-p-2: var(--layout-space-4);
+  --panel-p-3: var(--layout-space-5);
+  --panel-p-4: var(--layout-space-6);
   --tooltip-p-block: var(--layout-space-2);
   --tooltip-p-inline: var(--layout-space-4);
   --dialog-inset: var(--layout-space-6);
@@ -3759,7 +3765,10 @@
   --surface-p-2: var(--layout-space-6);
   --surface-p-3: var(--layout-space-7);
   --surface-p-4: var(--layout-space-8);
-  --floating-p: var(--layout-space-2);
+  --panel-p-1: var(--layout-space-3);
+  --panel-p-2: var(--layout-space-4);
+  --panel-p-3: var(--layout-space-5);
+  --panel-p-4: var(--layout-space-6);
   --tooltip-p-block: var(--layout-space-2);
   --tooltip-p-inline: var(--layout-space-4);
   --dialog-inset: var(--layout-space-6);
@@ -3812,7 +3821,10 @@
   --surface-p-2: var(--layout-space-6);
   --surface-p-3: var(--layout-space-7);
   --surface-p-4: var(--layout-space-8);
-  --floating-p: var(--layout-space-2);
+  --panel-p-1: var(--layout-space-3);
+  --panel-p-2: var(--layout-space-4);
+  --panel-p-3: var(--layout-space-5);
+  --panel-p-4: var(--layout-space-6);
   --tooltip-p-block: var(--layout-space-2);
   --tooltip-p-inline: var(--layout-space-4);
   --dialog-inset: var(--layout-space-6);

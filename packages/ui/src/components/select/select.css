@@ -133,14 +133,12 @@
 /* ── The panel: the menu popup's facts, self-keyed (§22's sentences, §23's member) ─────── */
 
 .kui-select-popup {
-  /* The panel's padding, FLOORED at the focus ring's reach — the scroll container clips
-     descendant ink at the padding box, and a row's ring reaches width + offset past its
-     border box (the menu's audit, inherited whole). */
-  --kui-select-pad: max(var(--floating-p), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
-  --kui-sf-p: var(--kui-select-pad);
-  /* The concentric corner's own half of the arithmetic (§6): the floating size join in
-     surfaces.css derives the corner from this hook plus the rows' own corner. */
-  --kui-floating-p: var(--kui-select-pad);
+  /* THE PANEL BAND (§10, §23 — 2026-09-07): the menu's own move one component over, and this
+     pane now declares nothing about its inset at all. It spelled two things here — a padding
+     floored at the focus ring's reach, because the scroll container clips descendant ink at the
+     padding box, and the concentric corner's own half of the arithmetic. Both are the shared
+     join's: `--kui-panel-p` carries the band AND the clearance, and the join reads it for the
+     corner as its own fallback. */
   /* ALWAYS anchored — a select has no submenus, so the anchor floor lives on the panel
      itself rather than on a variant class: never narrower than the designed floor OR the
      trigger that opened it, so the options sit under the control that opened them rather

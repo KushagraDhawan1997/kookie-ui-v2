@@ -4,17 +4,19 @@
    padding, the width floor, and the two row variants that stand interactivity down. */
 
 .kui-menu-popup {
-  /* One designed padding (§22) — the panel does not answer the size index, its rows do —
-     FLOORED at the focus ring's own reach (§8, audit 2026-08-09). `overflow-y: auto` below
-     makes this panel a scroll container, which clips descendant ink at the PADDING box in
-     both axes, and the ring a row paints reaches `width + offset` outside its border box. At
-     compact density --floating-p is 2px against a 4px reach, so the ring's vertical sides never
-     painted on any row and the first and last rows also lost their outer band; default sat
-     at exactly 0px of slack, which is a coincidence rather than a clearance. The floor moves
-     only the compact cell (2 -> 4) and buys default a real one. Stated as the ring's own
-     tokens, not as a number, so re-tuning the ring cannot silently re-break the panel. */
-  --kui-menu-pad: max(var(--floating-p), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
-  --kui-sf-p: var(--kui-menu-pad);
+  /* THE PANEL BAND (§10, §22 — 2026-09-07), and this panel ANSWERS THE SIZE INDEX now. It read
+     one flat pick until the band existed, with the reason stated beside it: the panel does not
+     answer the size index, its rows do. That held while every consumer of the value was a pane
+     hugging rows; it stopped when a popover joined the family holding content, and once the band
+     is indexed a menu standing beside a size-4 palette cannot be the one pane that ignores it.
+     Rows still do the close work — this is the air around them.
+
+     The ring-clearance floor moved with it. `overflow-y: auto` makes this panel a scroll
+     container, which clips descendant ink at the PADDING box in both axes, and the ring a row
+     paints reaches `width + offset` outside its border box; the floor is now inside
+     `--kui-panel-p` in the shared join, stated once for the three sheets that each spelled the
+     same `max()`. Nothing is re-declared here at all now: the rows join reads `--kui-panel-p`
+     as its own fallback, so a menu that supplies no hook already pads by the band. */
   /* Never narrower than the designed floor (§22). */
   min-width: var(--floating-min-w);
   /* Long menus scroll INSIDE the panel — and since 2026-08-17 the scroller is the
@@ -56,12 +58,10 @@
 /* The panel's corner is CONCENTRIC — its rows' corner plus this padding (§6, Kushagra
    2026-08-09: "menu item radius + padding = container radius"; two fixed corners broke on
    sight first, the overlay band and then surface-1). The DERIVATION lives in the floating
-   family's own size join (surfaces.css) — per-size spellings belong to the shared layer,
-   the switch join's rule — and what the menu supplies is its half of the arithmetic: the
-   pane's padding, through the hook that join consults before the surface band's picks. */
-.kui-menu-popup {
-  --kui-floating-p: var(--kui-menu-pad);
-}
+   family's own size join (surfaces.css), and since 2026-09-07 so does the padding it sums:
+   the menu supplied its half through the `--kui-floating-p` hook while that half was a value
+   only this sheet knew, and the band made it the shared layer's. The hook survives for the one
+   pane whose padding index is not the index it stamps — the command palette's results pane. */
 
 /* Never narrower than the TRIGGER that opened it either (§22) — the size-match argument
    applied to geometry, and the reason it is scoped to the anchored panel rather than stated
@@ -120,7 +120,7 @@
    matching. Same anatomy, one element deeper. */
 .kui-floating-body > .kui-separator,
 .kui-floating-body > [role="group"] > .kui-separator {
-  margin-block: var(--kui-menu-pad);
+  margin-block: var(--kui-panel-p);
   /* And it spans the LABELS, not the rows (2026-08-31, Kushagra: "I need it to extend to
      where text labels start and end"). The 2026-08-09 reversal moved it in once, from the
      panel's edge to the rows' extent, on the argument that a line divides what it is as wide
