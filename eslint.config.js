@@ -1,5 +1,9 @@
 // The BUILT plugin, by path: the root has no dependency on the workspace package and
-// should not grow one to lint itself. `lint` depends on `^build`, so `dist` is there.
+// should not grow one to lint itself. `lint` depends on `^build` AND `build`, so `dist` is
+// there — and for eleven commits it was not, because this sentence said `^build` alone and
+// believed it (2026-09-08). `^build` builds a package's DEPENDENCIES, and `@kookie-ui/react`
+// has none that build, so the list expanded to nothing and this import died on every clean
+// checkout. See `turbo.json`'s `lint` task for the measurement.
 import kookie from "./packages/ui/dist/lint/index.js";
 import tseslint from "typescript-eslint";
 
