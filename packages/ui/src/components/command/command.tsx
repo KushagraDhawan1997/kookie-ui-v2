@@ -595,8 +595,22 @@ export function CommandGroup({ items, children, className }: CommandGroupProps) 
   );
 }
 
+/* The three parts below declare EXPORTED props types rather than inline object literals, and
+   that is what lets `ComponentRefusals` reach them (2026-09-07, the audit). Written inline they
+   were the only exported components in the package intersecting nothing: `<CommandGroupLabel
+   variant="solid" m="4">` got a diagnostic naming no escape, both agent surfaces answered
+   "nothing refused", and `api.generated.ts` had no entry at all, so the reference told a reader
+   the part declares no props while `CommandCollection`'s children is a required render
+   function. `refusal-sets.test.ts` walks the built declarations so a fourth cannot appear. */
+
+export type CommandGroupLabelProps = ComponentRefusals & {
+  /** The section's name. Words, not a control: nothing here is reachable. */
+  children: React.ReactNode;
+  className?: string;
+};
+
 /** The section's name. A caption, not a row: it is not reachable and it does nothing. */
-export function CommandGroupLabel({ children, className }: { children: React.ReactNode; className?: string }) {
+export function CommandGroupLabel({ children, className }: CommandGroupLabelProps) {
   const size = React.use(CommandSizeContext);
   return (
     <Autocomplete.GroupLabel
@@ -609,8 +623,13 @@ export function CommandGroupLabel({ children, className }: { children: React.Rea
   );
 }
 
+export type CommandCollectionProps<T> = ComponentRefusals & {
+  /** Called once per surviving item. Required: a collection with nothing to render is a group. */
+  children: (item: T) => React.ReactNode;
+};
+
 /** Renders each surviving item of the group it sits in. */
-export function CommandCollection<T>({ children }: { children: (item: T) => React.ReactNode }) {
+export function CommandCollection<T>({ children }: CommandCollectionProps<T>) {
   return <Autocomplete.Collection>{children as (item: unknown) => React.ReactNode}</Autocomplete.Collection>;
 }
 
@@ -722,7 +741,15 @@ export function CommandItem({ leading, trailing, tone, render, children, classNa
  * dresses what it is handed cannot make it. So a sentence is now passed as a `Text` and a full
  * empty state as whatever block the app composes, and this places both.
  */
-export function CommandEmpty({ children, className }: { children: React.ReactNode; className?: string }) {
+export type CommandEmptyProps = ComponentRefusals & {
+  /** What to show when the query matches nothing. Rendered into the list's own pane. */
+  children: React.ReactNode;
+  className?: string;
+};
+
+/** What the list shows when the query matches nothing. Placed beside `CommandList`, rendered
+    inside it — see the file header for why the two are apart. */
+export function CommandEmpty({ children, className }: CommandEmptyProps) {
   const seat = React.use(CommandSlotContext);
 
   /* IT IS NOT A PANE ANY MORE (2026-09-05). It was a third block in the column, wearing

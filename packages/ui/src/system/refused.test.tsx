@@ -19,11 +19,13 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import * as React from "react";
 import ts from "typescript";
 import { expect, it, describe } from "vitest";
 
 import { marginPropNames } from "./props.ts";
-import { raw } from "../test/stylesheets.ts";
+import { PLATFORM_OWNED_REFUSALS, SPACING_REFUSALS } from "./refused.ts";
+import { REFUSAL_SETS, typeRefusalsFor } from "./refusal-sets.ts";
 import { Button } from "../components/button/button.tsx";
 import { Card } from "../components/card/card.tsx";
 import { Text } from "../components/text/text.tsx";
@@ -79,6 +81,41 @@ const stillLegal = [
   <Theme radius="full" size="3" density="compact" contrast="high" />,
 ];
 
+/**
+ * AND A WRAPPER STILL COMPILES, which is the half this guard did not have (2026-09-07, the
+ * audit).
+ *
+ * Every fixture above writes attributes DIRECTLY, and a JSX attribute is excess-property
+ * checked while a spread of a typed variable is not — so the whole block was blind to the
+ * direction that actually broke. `color` shipped as `string & Refused<…>` for a day, and the
+ * canonical React wrapper stopped compiling on all 143 components with a five-level "not
+ * assignable" wall naming a prop the author never wrote. `tsc` is the enforcement here: if this
+ * function stops type-checking, `pnpm run lint` fails and this comment is the reason.
+ *
+ * `className` AND `style` ARE OMITTED FROM THE SOURCE TYPE, and that is a separate, real, and
+ * unfixed thing rather than a convenience. This repo compiles with
+ * `exactOptionalPropertyTypes`, under which `className?: string` rejects `string | undefined`
+ * — so a consumer who also sets that flag cannot forward those two keys into any component
+ * here. Declaring `| undefined` on both, on 143 props types, is the repair; it is a change to
+ * every public signature in the package and is not being made inside an audit fix. Recorded in
+ * LOG 2026-09-07. What this fixture isolates is the `color` regression, which broke the same
+ * wrapper under EVERY tsconfig.
+ */
+export function SaveButton({
+  pending,
+  ...rest
+}: Omit<React.ComponentPropsWithoutRef<"button">, "className" | "style"> & { pending?: boolean }) {
+  return (
+    <Button loading={pending ?? false} {...rest}>
+      Save
+    </Button>
+  );
+}
+
+export function Panel(props: Omit<React.ComponentPropsWithoutRef<"div">, "className" | "style">) {
+  return <Card {...props} />;
+}
+
 describe("the refusals", () => {
   it("mounted nothing and proved nothing at runtime — tsc is the enforcement", () => {
     expect(refused.length + stillLegal.length).toBeGreaterThan(0);
@@ -93,12 +130,39 @@ describe("the refusals", () => {
    * backticks by `content/AUTHORING.md`'s own rules. A message with none is a wall.
    */
   it("each one says what to write instead", () => {
-    const source = raw("system/refused.ts");
-    const messages = [...source.matchAll(/Refused<"((?:[^"\\]|\\.)*)">/g)].map((m) => m[1] ?? "");
+    // READ OFF THE TABLES, which are values now (2026-09-07). They were string literal TYPES,
+    // and reading them meant a regex over this file's source — the same regex the MCP server
+    // ran at build time, and the reason the documentation site had these facts nowhere at all.
+    const messages = Object.values(REFUSAL_SETS).flatMap((rows) => rows.map((row) => row.why));
     expect(messages.length).toBeGreaterThan(10);
     for (const message of messages) {
       const escapes = message.match(/`[^`]+`/g) ?? [];
       expect(escapes.length, `no escape offered by: ${message}`).toBeGreaterThan(0);
+    }
+  });
+
+  /**
+   * `color` IS REFUSED, AND NOT BY THE TYPE (2026-09-07, the audit).
+   *
+   * React's own `HTMLAttributes` declares `color?: string`, so any unsatisfiable declaration of
+   * it — brand, `never`, anything — stops an ordinary wrapper compiling: a consumer forwarding
+   * `React.ComponentPropsWithoutRef<"button">` into a Button has a `color` in that rest object.
+   * Measured on all 143 components before this moved. So the sentence lives in
+   * `PLATFORM_OWNED_REFUSALS` and the ESLint plugin prints it.
+   *
+   * BOTH HALVES ARE PINNED, because either alone is the defect: the sentence still exists and
+   * still names `tone`, and no props type declares the key.
+   */
+  it("refuses `color` out of the type, and says so somewhere a consumer will read", () => {
+    expect(PLATFORM_OWNED_REFUSALS.color).toContain("`tone`");
+    // Reachable through the same door both agent surfaces use.
+    expect(typeRefusalsFor("Button").map((row) => row.prop)).toContain("color");
+    // And absent from the props mixins, which is what keeps the wrapper compiling.
+    for (const set of ["RadixReflexRefusals", "SpacingRefusals", "ComponentRefusals"]) {
+      expect(
+        (REFUSAL_SETS[set] ?? []).map((row) => row.prop),
+        `${set} declares \`color\`, which breaks every inbound native-props spread`,
+      ).not.toContain("color");
     }
   });
 
@@ -111,10 +175,7 @@ describe("the refusals", () => {
    * silently works on a Button.
    */
   it("refuses exactly the margin row `props.ts` declares", () => {
-    const source = raw("system/refused.ts");
-    const block = source.slice(source.indexOf("export type SpacingRefusals"));
-    const keys = [...block.slice(0, block.indexOf("};")).matchAll(/^\s{2}(\w+)\?:/gm)].map((m) => m[1] ?? "");
-    expect(keys.sort()).toEqual([...marginPropNames].sort());
+    expect(Object.keys(SPACING_REFUSALS).sort()).toEqual([...marginPropNames].sort());
   });
 
   /**

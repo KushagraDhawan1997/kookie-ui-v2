@@ -38,6 +38,20 @@ export type SnippetData = {
   refusalsFor: (symbol: string) => ReadonlyArray<{ prop: string; why: string }>;
   /** The closed set a prop admits, or undefined where the prop is not a closed union. */
   legalValues: (symbol: string, prop: string) => string[] | undefined;
+  /**
+   * Does this prop resolve an INDEX through a scale, and pass anything else through as raw CSS?
+   *
+   * The space rows do, deliberately and on the record: `resolve.ts` says "the raw palette is
+   * reachable via `gap=\"16px\"` or style, where opting out of the system is at least visible",
+   * and `props.ts` documents `<Box position="absolute" inset="0">` as the ordinary spelling. A
+   * closed list read as a closed set turned both of those into hard errors — reported on this
+   * repo's own laws and on a block the site ships (2026-09-07, the audit). So the list closes
+   * the INDEXES and nothing else: a bare number outside it is a dead index and still reports,
+   * and a length, a keyword or a zero is the escape and is left alone.
+   *
+   * Optional, because a caller that cannot tell simply gets the stricter reading.
+   */
+  scaleIndexed?: (symbol: string, prop: string) => boolean;
   /** The `data-` axis names TSX waves through undeclared. */
   refusedAttributes: readonly string[];
   /** The one sentence about those, with `{{attribute}}` and `{{axis}}` to fill in. */
@@ -55,7 +69,7 @@ export type Finding = {
 };
 
 type Attribute = { name: string; value: string | undefined; expression: boolean; line: number };
-type Element = { tag: string; line: number; attributes: Attribute[] };
+type Element = { tag: string; line: number; attributes: Attribute[]; spreads: number };
 
 /**
  * The opening tags in a source, with their attributes.
@@ -67,14 +81,22 @@ type Element = { tag: string; line: number; attributes: Attribute[] };
  */
 export function scanElements(source: string): Element[] {
   const out: Element[] = [];
-  const lineAt = (index: number): number => 1 + countNewlines(source, index);
+  const lineAt = lineFinder(source);
 
   for (let i = 0; i < source.length; i += 1) {
     if (source[i] !== "<") continue;
+    // A TYPE ARGUMENT IS NOT A TAG (2026-09-07, the audit). `useState<Item>([])` and
+    // `Map<string, Row>` both put a capitalised name straight after a `<`, and reading them as
+    // elements reported `Item` and `Row` as components this system does not export — on
+    // ordinary TypeScript, which is what a model writing against this library writes. A tag's
+    // `<` never follows an identifier character: it follows whitespace, a brace, a paren, a
+    // comma, another tag's `>`, or the start of the source.
+    if (i > 0 && /[A-Za-z0-9_$]/.test(source[i - 1]!)) continue;
     const match = /^<([A-Z][A-Za-z0-9]*(?:\.[A-Za-z0-9]+)*)/.exec(source.slice(i));
     if (!match) continue;
     const tag = match[1]!;
     const attributes: Attribute[] = [];
+    let spreads = 0;
     let cursor = i + match[0].length;
 
     // Attributes, until the `>` that closes this tag at brace depth zero.
@@ -84,8 +106,13 @@ export function scanElements(source: string): Element[] {
       if (here === undefined || here === ">") break;
       if (here === "/" && source[cursor + 1] === ">") break;
       if (here === "{") {
-        // A spread, or a comment. Skipped, and the reason is stated in the tool's own result:
-        // a spread hides everything it carries.
+        // A spread, or a comment. Skipped, and a spread is COUNTED here rather than by a sweep
+        // over the whole source: the sweep matched every object spread in the file — a
+        // `{...rest}` in a props destructure, a `{...a, ...b}` in a plain object — so an
+        // ordinary snippet was told props had been hidden from checking when none had
+        // (2026-09-07, the audit). At this point we are inside an opening tag, which is the
+        // only place a spread hides an attribute.
+        if (/^\{\s*\.\.\./.test(source.slice(cursor))) spreads += 1;
         cursor = skipBraces(source, cursor);
         continue;
       }
@@ -128,17 +155,34 @@ export function scanElements(source: string): Element[] {
         cursor += 1;
       }
     }
-    out.push({ tag, line: lineAt(i), attributes });
+    out.push({ tag, line: lineAt(i), attributes, spreads });
     i = cursor;
   }
   return out;
 }
 
-const countNewlines = (text: string, upTo: number): number => {
-  let n = 0;
-  for (let i = 0; i < upTo; i += 1) if (text[i] === "\n") n += 1;
-  return n;
-};
+/**
+ * Line numbers, in one pass over the source rather than one pass per attribute.
+ *
+ * The first spelling counted newlines from the start of the file for every name it read, which
+ * is quadratic: measured, a snippet of a few hundred lines was fine and a large paste made the
+ * stdio server unresponsive to every other call while it counted (2026-09-07, the audit). The
+ * offsets are found once and searched.
+ */
+function lineFinder(source: string): (index: number) => number {
+  const starts: number[] = [0];
+  for (let i = 0; i < source.length; i += 1) if (source[i] === "\n") starts.push(i + 1);
+  return (index) => {
+    let low = 0;
+    let high = starts.length - 1;
+    while (low < high) {
+      const mid = (low + high + 1) >> 1;
+      if (starts[mid]! <= index) low = mid;
+      else high = mid - 1;
+    }
+    return low + 1;
+  };
+}
 
 /** Past whitespace and both comment forms. */
 function skipTrivia(source: string, at: number): number {
@@ -223,6 +267,13 @@ export type CheckResult = {
   spread: number;
 };
 
+/**
+ * Read a piece of JSX and say what this system refuses in it.
+ *
+ * The facts come from the caller, so one implementation answers for both agent surfaces. It
+ * scans opening tags and literal values: a clean result means nothing visible here breaks a
+ * rule, never that the code compiles.
+ */
 export function checkUsage(source: string, data: SnippetData): CheckResult {
   const findings: Finding[] = [];
   const foreign = new Set<string>();
@@ -233,6 +284,7 @@ export function checkUsage(source: string, data: SnippetData): CheckResult {
       foreign.add(element.tag);
       continue;
     }
+    spread += element.spreads;
     const refused = new Map(data.refusalsFor(element.tag).map((row) => [row.prop, row]));
 
     for (const attribute of element.attributes) {
@@ -320,7 +372,15 @@ export function checkUsage(source: string, data: SnippetData): CheckResult {
       // this scanner cannot see, and guessing at one would report the caller's variable name.
       if (attribute.value === undefined || attribute.expression) continue;
       const legal = data.legalValues(element.tag, attribute.name);
-      if (legal && !legal.includes(attribute.value)) {
+      // A scale-indexed prop's list closes its indexes, never its values: see `scaleIndexed`.
+      // A bare number is an index and is checked against the list; everything else is the
+      // documented raw-CSS escape and is not this checker's business.
+      // An index is 1 upward: the scales start at 1 and `0` is a length, which is why
+      // `<Box position="absolute" inset="0">` is the spelling `props.ts` documents.
+      const isIndex = /^[1-9][0-9]*$/.test(attribute.value);
+      const escapes =
+        legal !== undefined && !isIndex && (data.scaleIndexed?.(element.tag, attribute.name) ?? false);
+      if (legal && !legal.includes(attribute.value) && !escapes) {
         findings.push({
           rule: "illegal-value",
           severity: "error",
@@ -334,9 +394,6 @@ export function checkUsage(source: string, data: SnippetData): CheckResult {
       }
     }
   }
-
-  // Spreads, counted over the whole source: an opening tag carrying one hides every prop in it.
-  spread = [...source.matchAll(/\{\s*\.\.\./g)].length;
 
   return { findings, foreign: [...foreign].sort(), spread };
 }

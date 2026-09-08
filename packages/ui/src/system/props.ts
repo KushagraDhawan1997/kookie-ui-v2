@@ -184,8 +184,9 @@ export const isMarginProp = (def: PropDef): boolean =>
  * The padding rows take the SAME keyword since 2026-08-29, resolving the same hook with the
  * sign flipped: `bleed` on a margin cancels the enclosing surface's padding, `bleed` on a
  * padding re-applies it. One word because it is one mechanism seen from its two halves —
- * `<Tabs mx="bleed">` runs a tab bar to the pane's edges, and the panel inside says
- * `px="bleed"` to put the pane's own inset back under its content. ScrollArea has done
+ * `<Box mx="bleed">` around a tab bar runs the bar to the pane's edges, and the panel inside
+ * says `px="bleed"` to put the pane's own inset back under its content. The keyword lives on
+ * the four layouts only — a control takes no margin row, so `<Tabs mx>` is not a spelling. ScrollArea has done
  * exactly this pair internally since §10 (bleed to the surface's edge, re-pad the viewport);
  * this is that mechanism handed to call sites. The sentence that kept it out — "padding
  * rejects a negative length" — was true of the negative calc and silent about the positive
@@ -197,3 +198,17 @@ export const paddingPropNames: PaddingPropName[] = ["p", "px", "py", "pt", "pr",
 /** A padding prop's `bleed` resolves to the same hook, positive (see `resolveValue`). */
 export const isPaddingProp = (def: PropDef): boolean =>
   def.css.every((property) => property.startsWith("padding"));
+
+/**
+ * Every layout prop and the scale it resolves through, or `null` where it takes raw CSS.
+ *
+ * Derived from `boxProps` rather than listed, and exported through `@kookie-ui/react/agent`
+ * because both agent surfaces ask the same two questions of it: which props the shared layout
+ * table carries (the generated API does not repeat them on each component), and which of those
+ * close an index list while staying open to raw CSS. Before it existed the stdio server read
+ * this file from disk at build time and the browser could not read it at all, so the two tools
+ * gave different verdicts on `gap` (2026-09-07, the audit).
+ */
+export const layoutScales: Readonly<Record<string, string | null>> = Object.fromEntries(
+  Object.entries(boxProps).map(([name, def]) => [name, def.scale]),
+);
