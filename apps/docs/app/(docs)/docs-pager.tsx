@@ -38,6 +38,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
+  useToolbarOverflow,
 } from "@kookie-ui/react";
 import Link from "next/link";
 
@@ -48,6 +49,11 @@ export type PagerStop = { path: string; title: string };
 
 export function DocsPager({ stops }: { stops: readonly PagerStop[] }) {
   const pathname = usePathname();
+  /* IN THE MENU A TOOLTIP SAYS NOTHING NEW. Here it carries the whole title where the button
+     only draws an arrow, so it is the one thing on this control that is not repetition — but a
+     menu row prints those same words, and a floating layer over a panel is a composition the
+     family has no answer for. The `aria-label` the button already carries becomes the row. */
+  const overflow = useToolbarOverflow();
   const index = stops.findIndex((stop) => stop.path === pathname);
   // A ROUTE OUTSIDE THE WALK DRAWS NOTHING — a component page, the front door, the workbench.
   // Same shape as the page actions beside it: handed the answer, never guessing from the path.
@@ -57,40 +63,25 @@ export function DocsPager({ stops }: { stops: readonly PagerStop[] }) {
   const next = stops[index + 1];
   if (!prev && !next) return null;
 
+  const seat = (stop: PagerStop, words: string, Glyph: typeof ArrowLeftIcon) => {
+    const control = (
+      <ToolbarButton iconOnly aria-label={words} render={<Link href={stop.path} />}>
+        <Glyph />
+      </ToolbarButton>
+    );
+    if (overflow) return control;
+    return (
+      <Tooltip>
+        <TooltipTrigger render={control} />
+        <TooltipContent>{stop.title}</TooltipContent>
+      </Tooltip>
+    );
+  };
+
   return (
     <ToolbarGroup>
-      {prev ? (
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <ToolbarButton
-                iconOnly
-                aria-label={`Previous: ${prev.title}`}
-                render={<Link href={prev.path} />}
-              >
-                <ArrowLeftIcon />
-              </ToolbarButton>
-            }
-          />
-          <TooltipContent>{prev.title}</TooltipContent>
-        </Tooltip>
-      ) : null}
-      {next ? (
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <ToolbarButton
-                iconOnly
-                aria-label={`Next: ${next.title}`}
-                render={<Link href={next.path} />}
-              >
-                <ArrowRightIcon />
-              </ToolbarButton>
-            }
-          />
-          <TooltipContent>{next.title}</TooltipContent>
-        </Tooltip>
-      ) : null}
+      {prev ? seat(prev, `Previous: ${prev.title}`, ArrowLeftIcon) : null}
+      {next ? seat(next, `Next: ${next.title}`, ArrowRightIcon) : null}
     </ToolbarGroup>
   );
 }

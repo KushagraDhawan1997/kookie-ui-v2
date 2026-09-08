@@ -9,6 +9,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
+  useToolbarOverflow,
 } from "@kookie-ui/react";
 
 import { CopyIcon, LinkIcon } from "../icons";
@@ -205,6 +206,91 @@ export function PageActions({ paths }: { paths: string[] }) {
     }
   };
 
+  /* IN THE OVERFLOW MENU THESE ARE ROWS, and three things about a ROW stop being true there.
+     The `Flex` goes, because a menu stacks and two tracks side by side inside a panel is a
+     layout nobody asked for — the two `ToolbarGroup`s draw themselves as menu groups and keep
+     the split that Flex was drawing. The TOOLTIPS go, because a tooltip may only say what its
+     control already says (§32) and a menu row says it in words; a floating layer opening over a
+     panel is also the one composition the family has no answer for. What stays is every control
+     and everything it does — the same elements, asked where they are. */
+  const overflow = useToolbarOverflow();
+
+  const destinations = (
+    <ToolbarGroup>
+      {DESTINATIONS.map(({ label, Mark, href }) => {
+        const control = (
+          <ToolbarButton
+            iconOnly
+            aria-label={label}
+            render={
+              <a
+                // ABSOLUTE: the origin is the one thing a static build cannot know and the
+                // browser always does. It arrives from the effect above, never from a constant
+                // — this repo has no site URL anywhere, and one invented here would be wrong on
+                // every deploy but the one it was written for.
+                href={href(`${origin}${markdownPath}`)}
+                target="_blank"
+                rel="noreferrer"
+              />
+            }
+          >
+            <Mark />
+          </ToolbarButton>
+        );
+        return overflow ? (
+          React.cloneElement(control, { key: label })
+        ) : (
+          <Tooltip key={label}>
+            <TooltipTrigger render={control} />
+            <TooltipContent>{label}</TooltipContent>
+          </Tooltip>
+        );
+      })}
+    </ToolbarGroup>
+  );
+
+  /* THE DONE STATE IS THE CONFIRMATION (§41), and this is the case it was built for: §29
+     refused the toast on the argument that a copy confirmation belongs on the button that
+     copied, and recorded the state it owed.
+
+     THE NAME CHANGES WITH THE GLYPH, which `done` states as a requirement rather than a
+     suggestion: a tick is a drawing and assistive technology announces a name. On a labelled
+     button that means the label; on an icon-only one it means `aria-label`, which is the whole
+     of what these controls say — and in the menu it is the row's words. */
+  const copies = (
+    <ToolbarGroup>
+      {COPIES.map(({ id, label, done, Glyph }) => {
+        const control = (
+          <ToolbarButton
+            iconOnly
+            done={copied === id}
+            aria-label={copied === id ? done : label}
+            onClick={() => void copy(id)}
+          >
+            <Glyph />
+          </ToolbarButton>
+        );
+        return overflow ? (
+          React.cloneElement(control, { key: id })
+        ) : (
+          <Tooltip key={id}>
+            <TooltipTrigger render={control} />
+            <TooltipContent>{copied === id ? done : label}</TooltipContent>
+          </Tooltip>
+        );
+      })}
+    </ToolbarGroup>
+  );
+
+  if (overflow) {
+    return (
+      <>
+        {destinations}
+        {copies}
+      </>
+    );
+  }
+
   return (
     /* THE ROW STATES THE AIR AROUND ITS CLUSTERS and a `Flex` groups (§45), so this says only
        that these two things belong together — no alignment, no distance invented here.
@@ -218,61 +304,8 @@ export function PageActions({ paths }: { paths: string[] }) {
        long capsule that happens to have a seam in it. The gap between two groups has to be
        wider than the gap between two members of a group, or the grouping says nothing. */
     <Flex align="center" gap="3">
-      <ToolbarGroup>
-        {DESTINATIONS.map(({ label, Mark, href }) => (
-          <Tooltip key={label}>
-            <TooltipTrigger
-              render={
-                <ToolbarButton
-                  iconOnly
-                  aria-label={label}
-                  render={
-                    <a
-                      // ABSOLUTE: the origin is the one thing a static build cannot know and
-                      // the browser always does. It arrives from the effect above, never from
-                      // a constant — this repo has no site URL anywhere, and one invented here
-                      // would be wrong on every deploy but the one it was written for.
-                      href={href(`${origin}${markdownPath}`)}
-                      target="_blank"
-                      rel="noreferrer"
-                    />
-                  }
-                >
-                  <Mark />
-                </ToolbarButton>
-              }
-            />
-            <TooltipContent>{label}</TooltipContent>
-          </Tooltip>
-        ))}
-      </ToolbarGroup>
-      {/* THE DONE STATE IS THE CONFIRMATION (§41), and this is the case it was built for: §29
-          refused the toast on the argument that a copy confirmation belongs on the button that
-          copied, and recorded the state it owed.
-
-          THE NAME CHANGES WITH THE GLYPH, which `done` states as a requirement rather than a
-          suggestion: a tick is a drawing and assistive technology announces a name. On a
-          labelled button that means the label; on an icon-only one it means `aria-label`, which
-          is the whole of what these controls say. */}
-      <ToolbarGroup>
-        {COPIES.map(({ id, label, done, Glyph }) => (
-          <Tooltip key={id}>
-            <TooltipTrigger
-              render={
-                <ToolbarButton
-                  iconOnly
-                  done={copied === id}
-                  aria-label={copied === id ? done : label}
-                  onClick={() => void copy(id)}
-                >
-                  <Glyph />
-                </ToolbarButton>
-              }
-            />
-            <TooltipContent>{copied === id ? done : label}</TooltipContent>
-          </Tooltip>
-        ))}
-      </ToolbarGroup>
+      {destinations}
+      {copies}
     </Flex>
   );
 }
