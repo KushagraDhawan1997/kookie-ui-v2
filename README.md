@@ -47,7 +47,7 @@ cd apps/docs && pnpm run dev
 
 Build the package first. The documentation app imports the built output.
 
-## Building with an AI agent
+## AI agents
 
 The library is built so that a coding agent learns it from the package rather than from you.
 
@@ -64,7 +64,7 @@ The library is built so that a coding agent learns it from the package rather th
   every refused prop, attribute, utility class and raw value in a piece of JSX.
 - Every docs page is served as markdown at its path plus `.md`, and `/llms.txt` lists them all.
 
-The [Building with an AI agent](apps/docs/content/start/agents.mdx) chapter explains each one.
+The [AI agents](apps/docs/content/start/agents.mdx) chapter explains each one.
 
 ## Repository layout
 

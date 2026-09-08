@@ -156,7 +156,7 @@ export const CHAPTERS: readonly Chapter[] = [
   },
   {
     slug: "start/agents",
-    title: "Building with an AI agent",
+    title: "AI agents",
     section: "start",
     blurb:
       "An AI agent writes this library well once it knows what the library refuses. Turn on the compiler messages, the lint rules, the rules file and the MCP server, and review what it produces against the composition rules.",
