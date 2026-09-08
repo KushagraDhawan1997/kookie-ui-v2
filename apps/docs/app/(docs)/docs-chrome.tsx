@@ -50,7 +50,7 @@ import {
 
 import { AppearanceToggle } from "../appearance-toggle";
 import { ThemePanel } from "../theme-panel";
-import { GitHubIcon, PanelLeftIcon, XSocialIcon } from "../icons";
+import { PanelLeftIcon, XSocialIcon } from "../icons";
 import { RepoLink } from "./repo-link";
 import { CHAPTERS, READING_ORDER, SECTIONS } from "./chapters";
 import { DocsPager } from "./docs-pager";

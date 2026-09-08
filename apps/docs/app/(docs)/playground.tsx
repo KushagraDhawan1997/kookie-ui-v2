@@ -38,7 +38,7 @@ import {
 
 import { CodeSampleView } from "../../blocks/code-sample";
 import { CopyButton } from "../../blocks/copy-button";
-import { FIGURE_CHROME_SIZE, SpecimenView } from "../../blocks/specimen";
+import { SpecimenView } from "../../blocks/specimen";
 
 /** The props panel's index: a small form, one step under the figure's chrome (2026-09-08,
     Kushagra: "even though the trigger is size 3, why is the popover size 3 also"). The panel,
