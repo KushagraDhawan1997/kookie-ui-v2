@@ -500,6 +500,25 @@ export function CommandInput({ leading, className, ...props }: CommandInputProps
             same way — the map keeps its single TS home and the type layer resolves the rest. */}
         <Autocomplete.Input
           ref={inputRef}
+          /* THE CARET IS THE DESIGN, AND ON iOS IT HAS TO BE CLAIMED IN THE GESTURE
+             (2026-09-10, Kushagra: "Why does clicking on search NOT focus the command? The
+             keyboard doesnt pop"). The comment above already states that the palette "opens
+             with the caret in this bar", and it did — Base UI's focus manager focuses the first
+             tabbable thing in the popup, which is this input, so DOM focus landed correctly
+             (measured in Chromium: `document.activeElement` is `.kui-command-input`). What did
+             not land is the KEYBOARD: iOS raises it only for a `.focus()` called synchronously
+             inside the user gesture, and that manager runs in an effect, by which point the tap
+             is over.
+
+             React's `autoFocus` is not the DOM attribute — React calls `.focus()` itself during
+             the commit phase, and a click is a DISCRETE event, which React flushes
+             synchronously. So the mount and the focus both happen inside the tap's own task and
+             the keyboard comes up. Before the caller's spread, so an app that wants a palette
+             that opens cold can still say `autoFocus={false}`.
+
+             It is not a second focus fighting the first: the manager aims at this same element,
+             and moving focus from an input to itself does not dismiss the keyboard. */
+          autoFocus
           {...props}
           data-size={SEARCH_STEP[size]}
           className={
