@@ -605,14 +605,22 @@ describe("the panel is the floating family's — corner, cast, padding, floor", 
     it(`${density}: the panel's padding is floored at the focus ring's reach`, async () => {
       const { popup } = openSelect({ density });
       await settled();
-      const floatingP = parseFloat(tokenOn(popup, "--floating-p"));
+      /* READ AGAINST THE PANEL BAND, not the flat token it replaced (2026-09-08). This read
+         `--floating-p`, which the panel band superseded with `--panel-p-1..4` — so the designed
+         half of the `max()` came back unparseable and the law compared the real padding against
+         the ring alone. The floor is the same mechanism; what it is a floor UNDER moved. */
+      const index = popup.getAttribute("data-size") ?? "2";
+      const designed = parseFloat(tokenOn(popup, `--panel-p-${index}`));
+      expect(designed, "the panel band's token is unreadable, so this law measures nothing").toBeGreaterThan(0);
       const ring =
         parseFloat(tokenOn(popup, "--focus-ring-width")) +
         parseFloat(tokenOn(popup, "--focus-ring-offset"));
       const pad = parseFloat(computed(popup, "padding-top"));
-      expect(pad).toBeCloseTo(Math.max(floatingP, ring), 1);
+      expect(pad).toBeCloseTo(Math.max(designed, ring), 1);
       // And the reason the floor exists, stated as the thing that must be true: the ring a row
-      // paints has to fit inside the scroll container's padding box.
+      // paints has to fit inside the scroll container's padding box. This is the half that still
+      // bites — the panel band's designed values clear the ring at every density today, so the
+      // `max()` is currently a no-op and only this line would catch a band re-priced under it.
       expect(pad, "the ring fits inside the clip").toBeGreaterThanOrEqual(ring);
     });
   }

@@ -13,7 +13,7 @@ import * as React from "react";
 import { afterEach, describe, expect, it } from "vitest";
 import { page, userEvent } from "vitest/browser";
 
-import { APPEARANCES, asksForStillness, catchDissolve, computed, inMotion, render, settleAll, until, within } from "../../test/browser.tsx";
+import { APPEARANCES, asksForStillness, catchDissolve, computed, inMotion, probeIn, render, settleAll, tokenOn, until, within } from "../../test/browser.tsx";
 import { VIEWPORT } from "../../test/viewport.ts";
 import { Theme } from "../../theme/theme.tsx";
 import { Dialog, DialogContent, DialogTitle } from "../dialog/dialog.tsx";
@@ -179,9 +179,40 @@ describe("a palette IS a Dialog, so every overlay guarantee arrives by membershi
       const menus = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
       const menu = menus[menus.length - 1]!;
       const results = panel()!;
-      expect(computed(results, "border-radius")).toBe(computed(menu, "border-radius"));
-      expect(computed(results, "padding-left")).toBe(computed(menu, "padding-left"));
-      // The vacuity guard: a menu that padded nothing would make both clauses trivial.
+
+      /* THE ROW SHAPE IS THE MENU'S; THE INSET IS THE PALETTE'S, and they are two claims
+         (2026-09-08). This asserted both against one Menu at the rows' index, which stopped
+         being true on 2026-09-07 when the pane took `--kui-cmd-p`: it stamps its ROWS' index —
+         a step above the palette's — but pads at the PALETTE's, because reading the band off its
+         own `data-size` would inset it at a rung nobody asked for (command.css states this at
+         length). So a menu of the same rows pads 16 where this pane pads 12, and an equality
+         between them fails on correct code with `expected '50.75px' to be '57.75px'`.
+
+         What survives, and what is asserted here, is the thing the 2026-09-05 reversal was
+         about: the pane is boxed like a LIST rather than like a document — a concentric corner
+         derived from the rows it holds, not the overlay's flat 24/64. Read as that derivation,
+         with the menu kept as the negative half so "boxed like a list" cannot quietly become
+         "boxed like nothing". */
+      const rowRadius = `--radius-row-${ROW_STEP["2"]}`;
+      const drawn = probeIn(
+        results,
+        (el) => {
+          el.style.borderRadius = `calc((var(${rowRadius}) + var(--kui-sf-p)) * var(--kui-corner-k, 1))`;
+        },
+        (cs) => cs.borderTopLeftRadius,
+      );
+      expect(
+        computed(results, "border-top-left-radius"),
+        "the results pane left the concentric corner its rows give it",
+      ).toBe(drawn);
+
+      // The inset is the panel band at the PALETTE's index, which is the whole reason the
+      // `--kui-floating-p` hook still exists.
+      expect(computed(results, "padding-left")).toBe(tokenOn(results, "--panel-p-2"));
+      // And the two indices really do differ, or the sentence above says nothing.
+      expect(tokenOn(results, "--panel-p-2")).not.toBe(tokenOn(results, `--panel-p-${ROW_STEP["2"]}`));
+      // The vacuity guard: a pane that padded nothing would make every clause trivial.
+      expect(parseFloat(computed(results, "padding-left"))).toBeGreaterThan(0);
       expect(parseFloat(computed(menu, "padding-left"))).toBeGreaterThan(0);
     });
   }

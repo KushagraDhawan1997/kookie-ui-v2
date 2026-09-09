@@ -197,10 +197,31 @@ describe("the ring lands where landing reads as motion, and nowhere else (§8)",
 
     expect(series[0]!, "it must begin outside its resting offset").toBeCloseTo(rest + land, 1);
     expect(series.at(-1)!, "and settle exactly on it").toBeCloseTo(rest, 1);
-    // Whole pixels, every one of them — the fact that bounds how short a ring's travel can be.
-    // Read across the whole arrival rather than at the frames that happened to land, so a
-    // single interpolated station anywhere in it fails here.
-    for (const value of seen) expect(value, `${seen.join(",")}`).toBe(Math.round(value));
+    /* AT LEAST ONE RENDERED STATION PER PIXEL IT CROSSES — the design constraint, where this
+       used to assert the engine's ROUNDING MODE (2026-09-08).
+    
+       It read `every station is a whole pixel`, because Chrome resolved `outline-offset` to
+       whole CSS pixels and that is what made a 4px landing render as five steps and a 2px one
+       as three — the measurement the field's refusal rests on. But whole pixels were never the
+       thing that mattered; they were how THAT engine happened to deliver it. Measured on
+       Chromium 141 the same arrival renders 96 distinct sub-pixel stations, so the law failed
+       with a comma-separated wall of perfectly healthy values, and the paragraph above had
+       already predicted it: "if this ever reports fewer steps than the pixels it crosses, the
+       engine started interpolating and the refusal below is worth reopening."
+    
+       What must be true on ANY engine is that the arrival is drawn at enough distinct stations
+       to read as movement rather than as a jump — at least one per pixel of travel. A quantising
+       engine delivers exactly `land + 1`; an interpolating one delivers more, and the field's
+       refusal is merely conservative there rather than wrong. What still fails is the case the
+       whole law exists for: an arrival rendered at FEWER stations than the pixels it crosses.
+    
+       An interpolating engine makes the 2026-08-10 refusal worth REOPENING — a field's 2px of
+       room may now read as motion rather than as steps — and that is a taste call, on a real
+       screen, not something a law decides. Recorded in LOG rather than acted on here. */
+    expect(
+      seen.length,
+      `the arrival is drawn at fewer stations than the pixels it crosses: ${seen.join(",")}`,
+    ).toBeGreaterThanOrEqual(land + 1);
     // It genuinely moves through values rather than snapping between the two ends. A claim
     // about the ENGINE now, not about how many frames the host could spare.
     expect(seen.length, `the ring did not travel at all: ${seen.join(",")}`).toBeGreaterThan(2);

@@ -668,11 +668,22 @@ describe("rows ride the existing control cells in all 24 cells (§21)", () => {
       expect(computed(row, "border-top-left-radius"), label).toBe(
         tokenOn(popup, `--radius-row-${cell.size}`),
       );
-      // Full width: the row spans the panel's content box exactly.
+      /* Full width: the row spans the panel's content box exactly.
+
+         MEASURED IN ONE CURRENCY (2026-09-08). This subtracted the padding from `clientWidth`,
+         which is an INTEGER, and compared it against a rect width, which is not — so the two
+         sides could disagree by up to a pixel for no reason but rounding. It survived while the
+         numbers happened to land whole and failed the day the panel band moved the inset:
+         `fine/default/3: expected 81.5 to be close to 82`, a difference of exactly the
+         tolerance, with nothing wrong on screen. Both sides are fractional now and come from
+         the same source. */
       const box = padBox(popup);
+      const boxRect = box.getBoundingClientRect();
+      const inset = (side: "left" | "right") =>
+        parseFloat(computed(box, `padding-${side}`)) + parseFloat(computed(box, `border-${side}-width`));
       expect(row.getBoundingClientRect().width, label).toBeCloseTo(
-        box.clientWidth - parseFloat(computed(box, "padding-left")) * 2,
-        0,
+        boxRect.width - inset("left") - inset("right"),
+        1,
       );
     });
   });
@@ -853,9 +864,13 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
 
   it("padding and min-width are the menu's own designed tokens", () => {
     const { popup, pad } = openMenu({});
-    // The padding is the panel's fact and the viewport is where it is SPENT (2026-08-17) —
-    // the token is still the menu's own, read on the element that now applies it.
-    expect(computed(pad, "padding-top")).toBe(tokenOn(popup, "--floating-p"));
+    /* The padding is the panel's fact and the viewport is where it is SPENT (2026-08-17) — read
+       on the element that applies it, against THE PANEL BAND (2026-09-08). This named
+       `--floating-p`, the flat token the band replaced with `--panel-p-1..4`, so it compared a
+       real inset against an unset property and failed with `expected '12px' to be '0px'`. The
+       menu's inset is the band's now; the token that carries it is what moved. */
+    const index = popup.getAttribute("data-size") ?? "2";
+    expect(computed(pad, "padding-top")).toBe(tokenOn(popup, `--panel-p-${index}`));
     expect(popup.getBoundingClientRect().width).toBeGreaterThanOrEqual(
       parseFloat(tokenOn(popup, "--floating-min-w")),
     );

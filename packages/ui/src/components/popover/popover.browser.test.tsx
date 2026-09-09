@@ -107,7 +107,23 @@ describe("the pane is a CARD that floats (§10, §31)", () => {
         computed(popup, "border-top-left-radius"),
         `size ${size}: the popover's corner left the card's`,
       ).toBe(computed(card, "border-top-left-radius"));
-      expect(computed(popup, "padding-top")).toBe(computed(card, "padding-top"));
+
+      /* THE PADDING IS THE PANEL BAND'S, AND IT STOPPED BEING A CARD'S ON PURPOSE (2026-09-08).
+         This asserted a Card's inset, which was right while the family padded flat, and the
+         panel band re-priced Menu, Select, Command and Popover onto `--kui-panel-p` — 8/12/16/24
+         against a surface's 16/24/32/40. The corner above is still a card's, which is the half
+         this component's first hour turned on; what a floating pane INSETS by is a different
+         question and now has a different answer. Read against the token rather than a literal,
+         with the surface band as the negative half — a law that only said "8px" would go green
+         the day the two bands collapsed onto one. */
+      expect(
+        computed(popup, "padding-top"),
+        `size ${size}: the popover pads like a panel`,
+      ).toBe(tokenOn(popup, `--panel-p-${size}`));
+      expect(
+        computed(popup, "padding-top"),
+        `size ${size}: the panel band collapsed onto the surface band`,
+      ).not.toBe(computed(card, "padding-top"));
     });
   }
 
@@ -134,7 +150,16 @@ describe("the pane is a CARD that floats (§10, §31)", () => {
       computed(menu, "border-top-left-radius"),
       "the menu lost its concentric corner",
     ).not.toBe(computed(popup, "border-top-left-radius"));
-    expect(computed(menu, "padding-top")).not.toBe(computed(popup, "padding-top"));
+    /* AND THE PADDING IS THE ONE THING THEY NOW SHARE (2026-09-08). This said the two INSETS
+       differ, which was true while a popover padded like a card; both read `--kui-panel-p`
+       since the panel band, so the distinction between them is the corner alone — a menu hugs
+       rows and does the concentric arithmetic, a popover holds content nobody designed and
+       wears a card's corner. Stated as the equality it now is, so the pair still says
+       something rather than being deleted. */
+    expect(
+      computed(menu, "padding-top"),
+      "both are panel-band members, so the inset is the one thing they agree on",
+    ).toBe(computed(popup, "padding-top"));
   });
 
   it("but the COVERAGE is the floating family's — it casts what a menu casts, not what a card does", () => {
@@ -1085,10 +1110,23 @@ describe("the padding hook the entry flight reads is set on every floating panel
       computed(tip, "--kui-sf-p-block"),
       "the tooltip pads its two axes alike — the pair has nothing to prove here",
     ).not.toBe(computed(tip, "--kui-sf-p-inline"));
-    // The menu is unchanged by the switch: its --kui-sf-p resolves THROUGH --kui-floating-p by
-    // the size join, so both names give one value there. This is what says the repair was free.
+    /* THE MENU RESOLVES THROUGH THE PANEL BAND NOW, and this law said the opposite (2026-09-08).
+       It asserted that a menu's `--kui-sf-p` and its `--kui-floating-p` give ONE value, which was
+       true while menu.css declared the override itself. The panel band deleted that declaration —
+       `--kui-panel-p` carries the ring clearance once instead of three sheets each spelling the
+       same `max()` — so the menu falls through the join's fallback like every other panel and its
+       own override is unset. Reading the two as equal now compares a real length against "" and
+       fails on correct code.
+
+       What is still true, and what this asserts, is that the menu's inset IS the panel band's.
+       The override is not dead — `command.css` is its one remaining declarer, and the node law
+       in surfaces.test.ts is what keeps the join consuming it — so nothing here needs to prove
+       it exists; what needed proving is that a menu is priced by the band. */
     const menu = document.querySelector<HTMLElement>(".kui-menu-popup")!;
-    expect(computed(menu, "--kui-sf-p")).toBe(computed(menu, "--kui-floating-p"));
+    expect(computed(menu, "--kui-sf-p"), "the menu left the panel band").toBe(
+      computed(menu, "--kui-panel-p"),
+    );
+    expect(computed(menu, "--kui-floating-p"), "the menu declares an override again").toBe("");
     // And the popover genuinely has no `--kui-floating-p` — the condition that made the old
     // spelling dead. Without this the law would pass on a package where every panel declared it.
     const pop = document.querySelector<HTMLElement>(".kui-popover-popup")!;

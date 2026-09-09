@@ -9,7 +9,7 @@
 import type { CSSProperties, ReactElement } from "react";
 import { describe, expect, it } from "vitest";
 
-import { computed, mounted, within } from "../../test/browser.tsx";
+import { computed, mounted, probeIn, within } from "../../test/browser.tsx";
 import { Box } from "../box/box.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
@@ -37,7 +37,18 @@ describe("it is a form, and a surface (§30)", () => {
     expect(composer.tagName).toBe("FORM");
   });
 
-  it("it wears the surface identity, so the corner is a Card's at the same index", () => {
+  it("it wears the surface identity, and its corner is CONCENTRIC with the controls it holds", () => {
+    /* THIS ASSERTED A CARD'S CORNER AND THE ANSWER CHANGED ON PURPOSE (2026-09-08, Kushagra:
+       "composer should also use the intermediate scale we are using for command + popover", and
+       then "no padding at size 3 or 4"). A composer is a pane holding CONTROLS — the command
+       palette's shape, not a document's — so it moved onto the panel inset, and a card's corner
+       (40 at size 3) around a 16px inset put every button and tile inside the curve, which reads
+       as a pane with no padding at all.
+
+       So the corner is the control radius plus the pane's own inset, which is the arithmetic
+       that makes the row's buttons sit parallel to the pane's edge at every radius level. Stated
+       as that derivation rather than as a number, with a Card as the negative half — without it,
+       "the composer agrees with itself" would pass on a day the two bands collapsed. */
     const el = mounted(
       <Box>
         <Composer size="3">
@@ -50,9 +61,24 @@ describe("it is a form, and a surface (§30)", () => {
     const composer = within(el, ".kui-composer");
     const card = within(el, ".kui-card");
     expect(composer.classList.contains("kui-surface")).toBe(true);
-    // The claim is the BAND, not a literal: a pinned number agrees with a Card at exactly one
-    // index and would pass for the wrong reason (the shell's own 2026-08-21 lesson).
-    expect(computed(composer, "border-radius")).toBe(computed(card, "border-radius"));
+
+    /* Read through a PROBE that computes the same expression the rule does, which is the idiom
+       every corner law in this package uses: the squircle multiplier sits between an authored
+       radius and the painted one, so arithmetic in JS is a claim about the engine rather than
+       about the band. */
+    const drawn = probeIn(
+      composer,
+      (el) => {
+        el.style.borderRadius =
+          "calc((var(--radius-control-3) + var(--kui-sf-p)) * var(--kui-corner-k, 1))";
+      },
+      (cs) => cs.borderTopLeftRadius,
+    );
+    expect(computed(composer, "border-top-left-radius")).toBe(drawn);
+    expect(
+      computed(composer, "border-radius"),
+      "the composer is back on the card band — the concentric arithmetic is gone",
+    ).not.toBe(computed(card, "border-radius"));
   });
 });
 

@@ -8,6 +8,28 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-09 The panel band's laws, paid — and what a browser suite was actually telling us
+
+**What.** Twenty-five red tests, all of them law files, none of them component code.
+
+**Why they were red.** Twenty-one were the panel band (`90bffcb`, `92ceb53`) landing with its own commit saying *"Iteration: laws, doc amendments and the budget follow at ship."* They were owed, not broken — the laws pinned the flat `--floating-p` the band replaced with `--panel-p-1..4`, the card corner the composer left on purpose, and the progress BAR the attachment replaced with a ring on the file's face. Three more were node laws pinning a spelling rather than a guarantee. One was the engine.
+
+**The claim I got wrong first, and the check that settled it.** I reported the browser failures as environmental — this container runs Chromium 141 against a suite pinned to a newer build, which the repo already records as an accepted red. That was a guess dressed as a diagnosis. Running the same six suites at `af6d783`, the commit immediately before the panel band, returned **362 passed**: the failures arrived with a change, not with a browser. The rule that earns: *"it reproduces on the base"* is only evidence when the base is the right commit — `main` carried the change, so comparing against `main` proved nothing, and the honest base for "did this change break it" is the commit before that change.
+
+**Every fix is a law, and that is the finding.** No component moved. Each red law was read against what the panel band's own commits and stylesheet comments say they intended — Kushagra quoted in both — and re-keyed to assert the new guarantee rather than the old number. Where a law could be made stronger on the way it was: the popover now reads the band token with the surface band as its negative half, the composer's corner is read through a CSS probe computing the same concentric expression the rule does, and the attachment's ring is read as its PAINTED outline (`pathLength` normalised to 100, so 0.4 is a dash offset of 60) rather than through an `aria-valuenow` the rewrite deleted.
+
+**One law was a rounding artefact rather than a stale value.** The menu's full-width row law subtracted padding from an integer `clientWidth` and compared it against a fractional rect, so the two sides could disagree by up to a pixel for no reason but rounding. It failed at exactly the tolerance — `expected 81.5 to be close to 82` — with nothing wrong on screen. Both sides come from one currency now.
+
+**And `blockDeclaring` is new**, because `block()` takes the FIRST block matching a selector and the panel band gave `.kui-surface.kui-floating` a second one above the paint. A law about one rule among several with one selector now says which by what it DECLARES, and throws unless that is exactly one.
+
+**The engine one is real and it reopens a design question.** The ring-landing law asserted that every station of the arrival is a whole pixel, because Chrome resolves `outline-offset` that way and that is what makes a field's 2px of travel three values and a stutter. On Chromium 141 the same arrival renders 96 sub-pixel stations. The law had predicted this — *"if this ever reports fewer steps than the pixels it crosses, the engine started interpolating and the refusal below is worth reopening"* — so it now states the design constraint it was always standing in for: at least one rendered station per pixel crossed, which a quantising engine meets exactly and an interpolating one exceeds. §8 is amended. **The field's instant ring stands until it is re-judged on a real screen**; what changed is that the refusal is conservative rather than forced.
+
+**Eight sabotage passes**, each caught by the law written for it — and one survived on its first run because I sabotaged the panel band at size 3 while the fixture renders at size 2, which is the wrong-cell mistake this repo keeps recording.
+
+2,797 package laws green.
+
+---
+
 ## 2026-09-08 The toolbar collapses what does not fit, and it measures to know
 
 **What.** `ToolbarOverflow` (§45): wrap the cluster a narrow window may lose, and the row measures what fits, hides the rest, and offers it behind one `⋯` menu at its end.
