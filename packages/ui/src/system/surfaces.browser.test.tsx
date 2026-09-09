@@ -295,15 +295,24 @@ describe("the dead fill is a VEIL on glass, never a veil of a veil (§10, 2026-0
     }
   });
 
-  it("and the twin STOPS AT THE PANE — an unmarked member inside it keeps the alpha step", () => {
-    // The regression the first spelling of the fix shipped, caught by measurement before it
-    // left the working tree. Written against `--disabled-fill` (the control layer's own shape)
-    // the re-point INHERITED, and a member that stamps no material has no veil to mix an
-    // opaque source back down with: a disabled Checkbox inside a glass Card painted the twin
-    // raw. The re-point names `--kui-sf-fill-src` instead, which is the pane's own.
+  it("and the twin STOPS AT THE PANE — an unmarked member inside it keeps the ramp step", () => {
+    /* REBASED 2026-09-09, and the fixture is the whole edit. The mechanism is unchanged and is
+       still the reason the re-point is scoped to `[data-material]`: a pane converts the alpha
+       ramp to its opaque twins for ITSELF, because the material veil is
+       `color-mix(source alpha%, transparent)` and an alpha source multiplies through it — but a
+       member inside the pane has no veil of its own, so an opaque value handed down would arrive
+       raw.
+
+       What moved is the ROLE this law read. It used the disabled FILL, and that fill left the
+       alpha ramp on 2026-09-08 ("solid means solid": a control is an object, and content passing
+       behind one is what `backdrop` says) — so `--disabled-fill` and `--disabled-fill-solid`
+       became the same value and the law's own calibration ("the value that must NOT have arrived
+       is a real, different one") could no longer be true. A law whose two sides are equal by
+       construction cannot fail, so it reads a role that IS still on the ramp: the dress EDGE,
+       which is the half of the fill-first flip that was never about a control's body. */
     const glass = mounted(
       <Card backdrop>
-        <Checkbox disabled />
+        <Checkbox />
       </Card>,
       { theme: { appearance: "light", material: "regular" } },
     );
@@ -313,40 +322,49 @@ describe("the dead fill is a VEIL on glass, never a veil of a veil (§10, 2026-0
     expect(mark.getAttribute("data-material"), "the mark stamps a material — wrong fixture").toBeNull();
     const solid = mounted(
       <Card>
-        <Checkbox disabled />
+        <Checkbox />
       </Card>,
       { theme: { appearance: "light" } },
     );
+    const solidMark = within(solid, ".kui-checkbox");
     expect(
-      computed(mark, "background-color"),
+      computed(mark, "border-top-color"),
       "the pane's opaque twin leaked into a member that has no veil",
-    ).toBe(computed(within(solid, ".kui-checkbox"), "background-color"));
-    // The calibration: the value that must NOT have arrived is a real, different one.
-    expect(computed(mark, "background-color")).not.toBe(
-      colorOn(mark, "var(--disabled-fill-solid)"),
+    ).toBe(computed(solidMark, "border-top-color"));
+    // The calibration: the value that must NOT have arrived is a real, different one, and the
+    // ramp is where that is still true.
+    expect(alphaOf(computed(solidMark, "border-top-color")), "the dress edge left the ramp too").
+      toBeLessThan(1);
+    expect(computed(mark, "border-top-color")).not.toBe(
+      colorOn(mark, "var(--dress-mark-edge-solid, var(--neutral-3))"),
     );
   });
 
-  it("and a SOLID dead pane keeps the alpha step — the twin is glass's, not the system's", () => {
-    // The non-regression arm, and it is the reason the re-point is scoped to `[data-material]`:
-    // the 2026-08-17 ramp move made the dead fill an alpha precisely so it composites against
-    // its own local ground. Re-pointing it everywhere would be the cheap way to pass the laws
-    // above and would flatten a dead card sitting on a Ground.
+  it("and the dead fill is an OPAQUE step on both, which is what a control being an object means", () => {
+    /* REVERSED 2026-09-08 ("solid means solid"), and stated rather than deleted. This arm read
+       "a solid dead pane keeps the alpha step", on the 2026-08-17 argument that an alpha
+       composites against whatever bed it sits on so a dead control still reads on a Ground. The
+       measurement that ended it was the other direction: a medium button over a photograph
+       showed the photograph through its fill. A control is an OBJECT, and content passing behind
+       one is what `backdrop` says — so the dead fill is an opaque step in both places, and what
+       has to hold instead is that it still RECEDES from the pane it sits on. */
     const dead = mounted(<Card render={<button disabled />}>Body</Card>, {
       theme: { appearance: "light", depth: "elevated" },
     });
     expect(dead.getAttribute("data-material"), "the fixture must NOT be glass").toBeNull();
     expect(
       alphaOf(computed(dead, "background-color")),
-      "the dead step went opaque off glass — it can no longer sit on a Ground",
-    ).toBeLessThan(1);
-    // Stated against the TWIN and not against `--disabled-fill`: a global re-point moves that
-    // name, so a law comparing the fill to it would move with the defect and pass. The twin is
-    // the thing that must not have arrived here.
+      "the dead fill went back to the alpha ramp",
+    ).toBe(1);
+    // The recession, which is what the alpha was there to guarantee: a dead pane must not be
+    // the seal it sits on, or there is nothing to see.
     expect(
       computed(dead, "background-color"),
-      "a solid pane took glass's opaque twin",
-    ).not.toBe(colorOn(dead, "var(--disabled-fill-solid)"));
+      "a dead pane IS the seal — the recession is gone",
+    ).not.toBe(colorOn(dead, "var(--color-surface)"));
+    // And the twin is an identity now rather than a second value, which is what makes the arm
+    // above readable at all: on glass the same name would arrive unchanged.
+    expect(computed(dead, "background-color")).toBe(colorOn(dead, "var(--disabled-fill-solid)"));
   });
 });
 

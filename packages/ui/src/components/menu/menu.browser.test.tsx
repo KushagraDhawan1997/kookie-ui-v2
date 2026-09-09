@@ -854,8 +854,11 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
   it("padding and min-width are the menu's own designed tokens", () => {
     const { popup, pad } = openMenu({});
     // The padding is the panel's fact and the viewport is where it is SPENT (2026-08-17) —
-    // the token is still the menu's own, read on the element that now applies it.
-    expect(computed(pad, "padding-top")).toBe(tokenOn(popup, "--floating-p"));
+    // read on the element that now applies it. The NAME moved 2026-09-07: `--floating-p` was one
+    // flat value for every floating pane, and the panel band replaced it with a ladder the whole
+    // family reads through `--kui-panel-p`. A law still reading the retired name asserts nothing,
+    // because an unset token resolves to zero through the width probe and 0 is not 12.
+    expect(computed(pad, "padding-top")).toBe(tokenOn(popup, "--kui-panel-p"));
     expect(popup.getBoundingClientRect().width).toBeGreaterThanOrEqual(
       parseFloat(tokenOn(popup, "--floating-min-w")),
     );

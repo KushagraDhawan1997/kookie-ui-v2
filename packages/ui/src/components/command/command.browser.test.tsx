@@ -13,7 +13,7 @@ import * as React from "react";
 import { afterEach, describe, expect, it } from "vitest";
 import { page, userEvent } from "vitest/browser";
 
-import { APPEARANCES, asksForStillness, catchDissolve, computed, inMotion, render, settleAll, until, within } from "../../test/browser.tsx";
+import { APPEARANCES, asksForStillness, catchDissolve, computed, inMotion, render, settleAll, tokenOn, until, within } from "../../test/browser.tsx";
 import { VIEWPORT } from "../../test/viewport.ts";
 import { Theme } from "../../theme/theme.tsx";
 import { Dialog, DialogContent, DialogTitle } from "../dialog/dialog.tsx";
@@ -179,10 +179,37 @@ describe("a palette IS a Dialog, so every overlay guarantee arrives by membershi
       const menus = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
       const menu = menus[menus.length - 1]!;
       const results = panel()!;
-      expect(computed(results, "border-radius")).toBe(computed(menu, "border-radius"));
-      expect(computed(results, "padding-left")).toBe(computed(menu, "padding-left"));
-      // The vacuity guard: a menu that padded nothing would make both clauses trivial.
+      /* THE ARITHMETIC, NOT THE NUMBER (2026-09-07). The panel band gave the floating family its
+         own inset ladder, and Command is the ONE pane that still overrides it: it stamps its rows
+         one index under the pane's, so `--kui-cmd-p` is the hook's surviving consumer. Its
+         padding therefore differs from a plain menu's on purpose, and so does the corner that
+         derives from it — which made the old equality a statement of the old behaviour.
+         
+         What has to stay true is the RULE: a pane that hugs rows takes its rows' corner plus its
+         own inset. Read on both panes and reduced to the row corner they must share, so the law
+         holds whatever either inset is. The squircle multiplier is divided back out, because it
+         scales the sum and not the terms. */
+      /* THE PROPERTY ITSELF, because both probes lie about this one number. `tokenOn` resolves a
+         token through `width`, which rejects a unitless value and answers 0px — the harness's
+         own documented trap. `numberOn` resolves it through `opacity`, which CLAMPS to 1, and
+         the squircle factor is 1.75: read that way it came back as exactly 1 and the arithmetic
+         below was out by precisely the factor, twice, in two different ways. A custom property's
+         own computed value is the one reading that cannot be clamped or rejected. */
+      const k = parseFloat(computed(menu, "--kui-corner-k"));
+      expect(k, "the squircle factor did not resolve").toBeGreaterThan(0);
+      const rowCorner = (pane: HTMLElement) =>
+        parseFloat(computed(pane, "border-top-left-radius")) / k - parseFloat(computed(pane, "padding-left"));
+      // Each pane reduces to the corner of the rows it hugs, which is the rule stated directly
+      // and read against the token itself rather than against the other pane alone.
+      const row = parseFloat(tokenOn(menu, `--radius-row-${ROW_STEP["2"]}`));
+      expect(row, "the row corner token did not resolve").toBeGreaterThan(0);
+      expect(rowCorner(menu), "a menu stopped hugging its rows").toBeCloseTo(row, 1);
+      expect(rowCorner(results), "the palette's list is not boxed like a menu of its rows").
+        toBeCloseTo(row, 1);
+      // The vacuity guard: a pane that padded nothing, or a corner of zero, makes it trivial.
       expect(parseFloat(computed(menu, "padding-left"))).toBeGreaterThan(0);
+      expect(parseFloat(computed(results, "padding-left"))).toBeGreaterThan(0);
+      expect(rowCorner(menu), "a row corner of zero proves nothing").toBeGreaterThan(0);
     });
   }
 

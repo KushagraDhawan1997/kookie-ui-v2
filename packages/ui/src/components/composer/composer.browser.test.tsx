@@ -9,7 +9,7 @@
 import type { CSSProperties, ReactElement } from "react";
 import { describe, expect, it } from "vitest";
 
-import { computed, mounted, within } from "../../test/browser.tsx";
+import { computed, mounted, tokenOn, within } from "../../test/browser.tsx";
 import { Box } from "../box/box.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
@@ -37,7 +37,7 @@ describe("it is a form, and a surface (§30)", () => {
     expect(composer.tagName).toBe("FORM");
   });
 
-  it("it wears the surface identity, so the corner is a Card's at the same index", () => {
+  it("it wears the surface identity, and its corner is concentric with the controls it holds", () => {
     const el = mounted(
       <Box>
         <Composer size="3">
@@ -50,9 +50,32 @@ describe("it is a form, and a surface (§30)", () => {
     const composer = within(el, ".kui-composer");
     const card = within(el, ".kui-card");
     expect(composer.classList.contains("kui-surface")).toBe(true);
-    // The claim is the BAND, not a literal: a pinned number agrees with a Card at exactly one
-    // index and would pass for the wrong reason (the shell's own 2026-08-21 lesson).
-    expect(computed(composer, "border-radius")).toBe(computed(card, "border-radius"));
+    /* THE CORNER IS CONCENTRIC WITH THE CONTROLS IT HOLDS, not a card's band (2026-09-08,
+       Kushagra, reading the tiles inside it at size 3: "composer should also use the intermediate
+       scale we are using for command + popover"). The composer moved onto the PANEL inset with
+       the attachment tiles it holds, and its corner has always derived from that inset — control
+       corner plus the pane's own padding — so it moved with it. Reading it against a Card was
+       right while the two shared one inset and is a statement of the old behaviour now.
+
+       The rule is read directly, and against the tokens rather than a literal: a pinned number
+       agrees at exactly one index and would pass for the wrong reason (the shell's own 2026-08-21
+       lesson). The multiplier comes off the property itself, because the width probe rejects a
+       unitless value and the opacity probe clamps it to 1. */
+    const k = parseFloat(computed(composer, "--kui-corner-k"));
+    expect(k, "the squircle factor did not resolve").toBeGreaterThan(0);
+    const control = parseFloat(tokenOn(composer, "--radius-control-3"));
+    const pad = parseFloat(computed(composer, "padding-top"));
+    expect(control, "the control corner token did not resolve").toBeGreaterThan(0);
+    expect(
+      parseFloat(computed(composer, "border-top-left-radius")),
+      "the composer's corner is no longer concentric with the controls it holds",
+    ).toBeCloseTo((control + pad) * k, 1);
+    // And it is NOT the card band any more, which is the half that would otherwise pass on a day
+    // the composer quietly fell back to a document's inset.
+    expect(
+      computed(composer, "border-radius"),
+      "the composer is padded like a document again",
+    ).not.toBe(computed(card, "border-radius"));
   });
 });
 

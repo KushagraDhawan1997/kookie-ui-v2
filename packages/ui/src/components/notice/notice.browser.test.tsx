@@ -55,17 +55,25 @@ describe("it is a condition stated in place: it takes space and never floats (§
 
 describe("tone is the category, not the volume (§29, §11)", () => {
   for (const appearance of APPEARANCES) {
-    it(`${appearance}: it rests NEUTRAL — the fill is neutral's a3, not a warning colour`, () => {
+    it(`${appearance}: it rests NEUTRAL — the fill is neutral's soft rung, not a warning colour`, () => {
+      /* THE OPAQUE TWIN OF THE RAMP STEP (2026-09-08, "solid means solid"). The surface's
+         tone-forward rung reads `--tone-a3-solid` since a tone-forward pane over content was
+         measured sealing nothing while its source was an alpha. The step is the same step; what
+         changed is that it is stated opaquely, which is exactly what the twin's name says. Read
+         through the twin rather than through `--tone-soft`, because a notice paints the SURFACE
+         layer's medium rung and the control layer's soft rung re-bases per mode — the two
+         coincide in light and differ in dark, which is where the tidier-looking name would have
+         made this law wrong in one appearance only. */
       const el = mounted(<Notice>Approaching weekly usage limit</Notice>, { theme: { appearance } });
       expect(el.getAttribute("data-tone")).toBe("neutral");
-      expect(computed(el, "background-color")).toBe(colorOn(el, "var(--neutral-a3)"));
+      expect(computed(el, "background-color")).toBe(colorOn(el, "var(--neutral-a3-solid)"));
     });
 
     it(`${appearance}: a chosen family reaches the fill AND the words`, () => {
       const el = mounted(<Notice tone="destructive">Payment failed</Notice>, {
         theme: { appearance },
       });
-      expect(computed(el, "background-color")).toBe(colorOn(el, "var(--destructive-a3)"));
+      expect(computed(el, "background-color")).toBe(colorOn(el, "var(--destructive-a3-solid)"));
       // Both halves, because "the box went red and the words stayed grey" is the half-fix that
       // ships: the tone-forward rung re-scopes the foreground context for its children too.
       const body = within(el, ".kui-notice-body");

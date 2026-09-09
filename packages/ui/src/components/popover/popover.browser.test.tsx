@@ -92,7 +92,7 @@ function surfaceFacts(el: HTMLElement) {
 
 describe("the pane is a CARD that floats (§10, §31)", () => {
   for (const size of SIZES) {
-    it(`size ${size}: the corner and the padding are the card's, not the row-hugging panel's`, () => {
+    it(`size ${size}: the corner is the card's, and the padding is the PANEL band's`, () => {
       // THE MEASUREMENT THIS COMPONENT'S FIRST HOUR TURNED ON. The concentric corner (§6, §22)
       // is a pane's corner derived from the corner of the ROWS inside it — row corner plus the
       // panel's own padding — and it was keyed on `.kui-floating`, which says where a pane sits
@@ -101,13 +101,28 @@ describe("the pane is a CARD that floats (§10, §31)", () => {
       // 42 / 54.25 / 71.75 / 89.25px against a Card's 38.7 / 51.6 / 64.5 / 77.4, rounder than a
       // card at every index. The arm is keyed on `kui-floating-rows` now, and this is the
       // equality that says so.
+      /* THE PADDING LEFT THE CARD BAND 2026-09-07, and the corner did not (Kushagra: "we need a
+         spacing scale for surfaces that are smaller than cards… command seems to need more, and
+         popover seems to need less"). A floating pane is a surface SMALLER than a card, so it
+         has its own inset — 8/12/16/24 at the resting density, the command palette's own search
+         bar promoted rather than re-invented. What is still a card's is the CORNER, which is the
+         claim this law was minted for: a popover holds content the system did not design, so
+         there are no rows and no concentric term to add. The two halves are read against
+         different sources on purpose, because they now come from different bands. */
       const { popup } = openPopover({}, size);
       const card = mounted(<Card size={size}>x</Card>, { theme: {} });
       expect(
         computed(popup, "border-top-left-radius"),
         `size ${size}: the popover's corner left the card's`,
       ).toBe(computed(card, "border-top-left-radius"));
-      expect(computed(popup, "padding-top")).toBe(computed(card, "padding-top"));
+      expect(
+        computed(popup, "padding-top"),
+        `size ${size}: the popover left the panel band`,
+      ).toBe(tokenOn(popup, "--kui-panel-p"));
+      expect(
+        computed(popup, "padding-top"),
+        `size ${size}: the panel band collapsed onto the card's`,
+      ).not.toBe(computed(card, "padding-top"));
     });
   }
 
@@ -115,6 +130,11 @@ describe("the pane is a CARD that floats (§10, §31)", () => {
     // Without this, "the popover agrees with a card" would also pass on a day when a card, a
     // menu and a popover had all quietly collapsed onto one corner. A menu hugs rows and must
     // keep its concentric arithmetic.
+    //
+    // THE PADDING IS NOW SHARED, DELIBERATELY (2026-09-07): both panes are on the panel band,
+    // which is the whole point of minting one — a menu and a popover are the same KIND of
+    // surface, and only what they hold differs. So the padding half of this control becomes an
+    // equality, and the corner half carries the whole negative claim.
     const { popup } = openPopover({}, "2");
     const host = render(
       <Theme>
@@ -134,7 +154,10 @@ describe("the pane is a CARD that floats (§10, §31)", () => {
       computed(menu, "border-top-left-radius"),
       "the menu lost its concentric corner",
     ).not.toBe(computed(popup, "border-top-left-radius"));
-    expect(computed(menu, "padding-top")).not.toBe(computed(popup, "padding-top"));
+    expect(
+      computed(menu, "padding-top"),
+      "the menu and the popover left the one panel band they were put on",
+    ).toBe(computed(popup, "padding-top"));
   });
 
   it("but the COVERAGE is the floating family's — it casts what a menu casts, not what a card does", () => {
@@ -1085,10 +1108,16 @@ describe("the padding hook the entry flight reads is set on every floating panel
       computed(tip, "--kui-sf-p-block"),
       "the tooltip pads its two axes alike — the pair has nothing to prove here",
     ).not.toBe(computed(tip, "--kui-sf-p-inline"));
-    // The menu is unchanged by the switch: its --kui-sf-p resolves THROUGH --kui-floating-p by
-    // the size join, so both names give one value there. This is what says the repair was free.
+    /* THE MENU RESOLVES THROUGH THE BAND SINCE 2026-09-07, and the override survives for the one
+       pane that needs it. The rows join reads `var(--kui-floating-p, var(--kui-panel-p))`, so a
+       menu — which declares no override — gets the band, and Command, which stamps its rows one
+       index under the pane's, is the pane that still supplies its own. Asserting the menu
+       DECLARES the hook would now be asserting the old behaviour. */
     const menu = document.querySelector<HTMLElement>(".kui-menu-popup")!;
-    expect(computed(menu, "--kui-sf-p")).toBe(computed(menu, "--kui-floating-p"));
+    expect(computed(menu, "--kui-sf-p"), "the menu's padding is unset").not.toBe("");
+    expect(computed(menu, "--kui-sf-p"), "the menu left the panel band").toBe(
+      computed(menu, "--kui-panel-p"),
+    );
     // And the popover genuinely has no `--kui-floating-p` — the condition that made the old
     // spelling dead. Without this the law would pass on a package where every panel declared it.
     const pop = document.querySelector<HTMLElement>(".kui-popover-popup")!;

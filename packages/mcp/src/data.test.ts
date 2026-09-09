@@ -133,12 +133,16 @@ describe("the closed unions", () => {
       "RenderElement",
       // Closed unions in the package that this server does not close, because `typeAxis` only
       // reaches axes and these are per-component vocabularies. `check_usage` therefore says
-      // nothing about a wrong value on these five props; recorded rather than left to be
+      // nothing about a wrong value on these six props; recorded rather than left to be
       // discovered from a tool result that stayed silent.
       "AttachmentState",
       "ComposerStatus",
       "ShellPaneTarget",
       "ShellPresentation",
+      // The rail's own four postures (§27, 2026-09-09) — `auto`, `bar`, `rail`, `overlay`.
+      // A pane's presentation and a rail's are different vocabularies for the same reason the
+      // rest of this list exists: they are per-component, not axes.
+      "ShellRailPresentation",
       "TextFieldType",
     ];
     const named = new Set<string>();

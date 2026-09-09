@@ -605,7 +605,11 @@ describe("the panel is the floating family's — corner, cast, padding, floor", 
     it(`${density}: the panel's padding is floored at the focus ring's reach`, async () => {
       const { popup } = openSelect({ density });
       await settled();
-      const floatingP = parseFloat(tokenOn(popup, "--floating-p"));
+      // THE BAND, NOT THE RETIRED FLAT VALUE (2026-09-07). `--floating-p` was one number for
+      // every floating pane; the panel band replaced it with a per-index ladder carried by
+      // `--kui-panel-p`, which is also where the ring clearance now lives — so this reads the
+      // band's DESIGNED rung and the max() below re-derives the floor from it, as before.
+      const floatingP = parseFloat(tokenOn(popup, `--panel-p-2`));
       const ring =
         parseFloat(tokenOn(popup, "--focus-ring-width")) +
         parseFloat(tokenOn(popup, "--focus-ring-offset"));

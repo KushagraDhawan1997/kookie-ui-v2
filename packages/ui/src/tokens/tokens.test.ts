@@ -1592,14 +1592,17 @@ describe("the look axis is DELETED; the dress and the surface edge survive it (�
 
   it("the dress is unconditional: emitted in every base scope, consumed by the sheets", () => {
     // The field and mark dress emitted UNCONDITIONALLY in every base scope (the un-themed
-    // document and both appearances), fills on the alpha ramp with their opaque glass twins
-    // beside them, edges as the alpha the fill-first flip chose.
+    // document and both appearances). FILLS ARE OPAQUE STEPS since 2026-09-08 ("solid means
+    // solid": a control is an object, and a medium fill on the alpha ramp showed a photograph
+    // through it), with their glass twins beside them — identities now, and kept because the
+    // mechanism still serves the alpha ramp. EDGES STAY ON THE ALPHA RAMP, which is the half
+    // of the fill-first flip that was never about a control's body.
     for (const scope of [":root", '[data-appearance="light"]', '[data-appearance="dark"]']) {
       const body = block(scope);
       for (const family of ["field", "mark"] as const) {
         for (const slot of ["fill", "fill-hover", "fill-active"] as const) {
           expect(body, `${scope}: dress-${family}-${slot}`).toMatch(
-            new RegExp(`--dress-${family}-${slot}: var\\(--neutral-a\\d+\\);`),
+            new RegExp(`--dress-${family}-${slot}: var\\(--neutral-\\d+\\);`),
           );
           expect(body, `${scope}: dress-${family}-${slot}-solid`).toMatch(
             new RegExp(`--dress-${family}-${slot}-solid: var\\(--neutral-\\d+\\);`),
@@ -1735,12 +1738,13 @@ describe("the look axis is DELETED; the dress and the surface edge survive it (�
   it.each(["light", "dark"] as const)(
     "%s: the dress darkens by the hierarchy — field, then mark past it",
     (mode) => {
-      // Each family is on the alpha ramp, and that is asserted first — the hierarchy below
+      // Each family is on the OPAQUE ladder, and that is asserted first — the hierarchy below
       // is a comparison of indices, and comparing an opaque step to a ramp step as though
       // both were "4" is how this law would keep passing through a silent move of one
-      // family onto the other's ladder.
+      // family onto the other's ladder. (Which ladder it is flipped 2026-09-08; that the two
+      // families share ONE is the part this arm has always been for.)
       for (const family of ["field", "mark"]) {
-        expect(dressStep(mode, family, "fill").ramp, `${family} changed ladders`).toBe(true);
+        expect(dressStep(mode, family, "fill").ramp, `${family} changed ladders`).toBe(false);
       }
       expect(dressStep(mode, "field", "fill").index).toBeLessThanOrEqual(
         dressStep(mode, "mark", "fill").index,
@@ -1760,20 +1764,32 @@ describe("the look axis is DELETED; the dress and the surface edge survive it (�
   it.each(["light", "dark"] as const)(
     "%s: a dressed mark never lands ON the thing it sits against",
     (mode) => {
-      // The general rule this block once guarded for three families: a dressed fill must
-      // differ from the fill of whatever it is painted on top of. Since the move to the ramp
-      // (2026-08-17) that is guaranteed by construction — an alpha over a bed is never the
-      // bed — so what is worth asserting is the construction itself, plus the one value that
-      // would break it: a ramp step of a0, or an alpha solved to nothing, is the way
-      // "composites over its bed" turns back into "is its bed", and it is the only way left.
+      /* The general rule this block once guarded for three families: a dressed fill must differ
+         from the fill of whatever it is painted on top of. From 2026-08-17 to 2026-09-08 that
+         was guaranteed by CONSTRUCTION — an alpha over a bed is never the bed — and the law
+         asserted the construction rather than the difference. The fills went opaque on
+         2026-09-08 ("solid means solid"), so the construction is gone and the DIFFERENCE has to
+         be read again: an opaque step is only unequal to its bed if the two indices differ.
+         The mark's bed is the pane it sits on, which is the seal at the surface's own step. */
+      const scope = mode === "light" ? ":root" : '[data-appearance="dark"]';
       const mark = dressStep(mode, "mark", "fill");
-      expect(mark.ramp, "the mark left the ramp — compare it to its bed by hand again").toBe(true);
-      expect(mark.index, "a mark dressed at ramp step 0 IS whatever it sits on").toBeGreaterThan(0);
-      const rampAlpha = block(mode === "light" ? ":root" : '[data-appearance="dark"]').match(
-        new RegExp(`--neutral-a${mark.index}:[^;]*?([\\d.]+)%`),
+      expect(mark.ramp, "the mark is on the alpha ramp; the fills are opaque steps").toBe(false);
+      expect(mark.index, "a mark dressed at step 0 has no colour at all").toBeGreaterThan(0);
+      // The step it names must resolve to a real colour, which is the "solved to nothing" half
+      // the ramp version of this law was reading.
+      expect(
+        block(scope).match(new RegExp(`--neutral-${mark.index}: `)),
+        `--neutral-${mark.index} is not emitted in ${mode}`,
+      ).toBeTruthy();
+      // And the difference itself: a mark sits on a field's dress in a form and on the seal
+      // everywhere else, so it must equal neither.
+      expect(mark.index, "a dressed mark IS the field it sits beside").not.toBe(
+        dressStep(mode, "field", "fill").index,
       );
-      expect(rampAlpha, `--neutral-a${mark.index} is not a solved alpha in ${mode}`).toBeTruthy();
-      expect(Number(rampAlpha![1]), "the mark's dress composites to nothing").toBeGreaterThan(0);
+      const seal = block(scope).match(/--color-surface: var\(--neutral-(\d+)\);/)?.[1];
+      if (seal) {
+        expect(mark.index, "a dressed mark IS the pane it sits on").not.toBe(Number(seal));
+      }
     },
   );
 
@@ -1844,12 +1860,15 @@ describe("the look axis is DELETED; the dress and the surface edge survive it (�
     for (const mode of ["light", "dark"] as const) {
       const scope = mode === "light" ? ":root" : '[data-appearance="dark"]';
       const body = block(scope);
-      expect(body).toContain(`--disabled-fill: var(--neutral-a${disabledSteps[mode].fill});`);
+      // The FILL is an opaque step since 2026-09-08 and the BORDER is still on the alpha ramp,
+      // which is the same split the dress carries: a dead control is still an object, and a
+      // dead boundary is still a boundary.
+      expect(body).toContain(`--disabled-fill: var(--neutral-${disabledSteps[mode].fill});`);
       expect(body).toContain(`--disabled-fill-solid: var(--neutral-${disabledSteps[mode].fill});`);
       expect(body).toContain(`--disabled-border: var(--neutral-a${disabledSteps[mode].border});`);
-      const liveSoft = body.match(/--neutral-soft: var\(--neutral-a(\d+)\);/)?.[1];
-      expect(liveSoft, `${mode}: the neutral soft rest is on the ramp`).toBeTruthy();
-      expect(disabledSteps[mode].fill, `${mode}: dead fill must sit under live a${liveSoft}`).toBeLessThan(
+      const liveSoft = body.match(/--neutral-soft: var\(--neutral-(\d+)\);/)?.[1];
+      expect(liveSoft, `${mode}: the neutral soft rest is an opaque step`).toBeTruthy();
+      expect(disabledSteps[mode].fill, `${mode}: dead fill must sit under live ${liveSoft}`).toBeLessThan(
         Number(liveSoft),
       );
       expect(disabledSteps[mode].border, `${mode}: dead border must not out-contrast the live edge`).toBeLessThanOrEqual(

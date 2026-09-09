@@ -870,16 +870,28 @@ describe("the soft ladder is §8's +1/+2 rule, in the emitted declarations (§7,
       const base = softBase[mode as keyof typeof softBase];
       for (const tone of TONES) {
         const at = (role: string) => declared.find((l) => l.trimStart().startsWith(`--${tone}-${role}:`));
-        // `-a`, asserted explicitly: an opaque `var(--tone-3)` here satisfies every +1/+2
-        // arithmetic below and is exactly the thing this move was made to stop shipping.
-        expect(at("soft"), `${mode}/${tone}`).toContain(`var(--${tone}-a${base})`);
-        expect(at("soft-hover"), `${mode}/${tone}`).toContain(`var(--${tone}-a${base + 1})`);
-        expect(at("soft-active"), `${mode}/${tone}`).toContain(`var(--${tone}-a${base + 2})`);
-        // The OPAQUE twins ride beside the trio (2026-08-19): the same rung said opaquely,
-        // for the glass scopes — the material veil is color-mix(source alpha%, transparent)
-        // and an alpha source multiplies through it (a glass field's 62% veil measured 4.1%,
-        // audit 2026-08-18). Same indices, no `a`: by the recomposition law they are the
-        // trio's own colours on the seal.
+        // OPAQUE, asserted explicitly (2026-09-08, "solid means solid"): the 2026-08-17 alpha
+        // move was measured on a control sitting on a PANE and never on one sitting on content,
+        // and a medium button over a photograph showed the photograph through its fill. A
+        // control is an object; content passing behind one is what `backdrop` says. So the ramp
+        // is asserted the other way round now — an alpha `var(--tone-a3)` here satisfies every
+        // +1/+2 comparison below and is the thing this move was made to stop shipping.
+        expect(at("soft"), `${mode}/${tone}`).toContain(`var(--${tone}-${base})`);
+        expect(at("soft-hover"), `${mode}/${tone}`).toContain(`var(--${tone}-${base + 1})`);
+        expect(at("soft-active"), `${mode}/${tone}`).toContain(`var(--${tone}-${base + 2})`);
+        for (const role of ["soft", "soft-hover", "soft-active"]) {
+          expect(at(role), `${mode}/${tone}/${role} is on the alpha ramp`).not.toContain(
+            `var(--${tone}-a`,
+          );
+        }
+        // THE TWINS ARE NOW IDENTITIES, and they stay (2026-09-08). They exist because the
+        // material veil is `color-mix(source alpha%, transparent)` and an ALPHA source
+        // multiplies through it — a glass field's 62% veil measured 4.1% (audit 2026-08-18) —
+        // so with the trio opaque there is nothing left for them to convert here. The
+        // mechanism survives because the alpha ramp did: `--tone-a3-solid` is a real
+        // conversion that surfaces.css still re-points, and `--tone-soft-solid` has its own
+        // readers (the atom fill, the disabled stand-down). An identity with consumers is not
+        // dead code; it is one name still meaning what it always meant.
         expect(at("soft-solid"), `${mode}/${tone}`).toContain(`var(--${tone}-${base})`);
         expect(at("soft-hover-solid"), `${mode}/${tone}`).toContain(`var(--${tone}-${base + 1})`);
         expect(at("soft-active-solid"), `${mode}/${tone}`).toContain(`var(--${tone}-${base + 2})`);
@@ -894,7 +906,7 @@ describe("the soft ladder is §8's +1/+2 rule, in the emitted declarations (§7,
     const walk = (mode: "light" | "dark") => {
       const declared = declarationsFor(mode);
       const step = (role: string) =>
-        Number(/-a(\d+)\)/.exec(declared.find((l) => l.trimStart().startsWith(`--accent-${role}:`))!)![1]);
+        Number(/-(\d+)\)/.exec(declared.find((l) => l.trimStart().startsWith(`--accent-${role}:`))!)![1]);
       return [step("soft"), step("soft-hover"), step("soft-active")];
     };
     const [light, dark] = [walk("light"), walk("dark")];

@@ -154,11 +154,21 @@ describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§
     // the same characters, so a bare indexOf of the selector finds the join's first arm
     // and this law would measure the wrong rule's position — the substring trap the loud
     // parser exists for.
-    const paint = surfaces.indexOf("\n.kui-surface.kui-floating {");
-    expect(paint).toBeGreaterThan(-1);
+    // ANCHORED ON THE DECLARATION, not on the rule's opening (2026-09-09). The comment above
+    // records this trap once and it sprang a second time: THREE rules in this sheet now open
+    // with exactly `.kui-surface.kui-floating {` — the padding re-point, this cast site, and
+    // the flight's seed — and the panel band put the padding one FIRST, so a bare indexOf
+    // measured the position of a rule that carries no cast at all. What identifies this rule is
+    // the thing it declares, so that is what locates it.
+    const paint = surfaces.indexOf("--kui-sf-cast: var(--kui-floating-chrome");
+    expect(paint, "the floating cast site is not in this sheet").toBeGreaterThan(-1);
+    expect(
+      surfaces.slice(0, paint).lastIndexOf(".kui-surface.kui-floating {"),
+      "the cast site is no longer the floating pane's own rule",
+    ).toBeGreaterThan(-1);
     expect(paint).toBeGreaterThan(surfaces.indexOf("prefers-reduced-transparency"));
     expect(paint).toBeGreaterThan(surfaces.lastIndexOf('[data-material="thick"]'));
-    const body = block(surfaces, "\n.kui-surface.kui-floating {");
+    const body = surfaces.slice(paint, surfaces.indexOf("}", paint));
     // A re-point of --kui-sf-cast, never a second box-shadow — the count itself lives in the
     // package-wide law in recipes.test.ts and is deliberately not restated here (this comment
     // said "six" until 2026-08-26, three days after the segmented grip made it seven). The
@@ -864,9 +874,27 @@ describe("the flight pins a panel's body at padding every panel HAS (§22)", () 
     // The guard against over-correcting: `--kui-floating-p` is not dead, it is a menu's way of
     // saying its padding is not a card's. Deleting it would silently give every menu a card's
     // inset. This is the law that fails if somebody reads the one above too broadly.
+    // THE FALLBACK MOVED, THE HOOK DID NOT (2026-09-09). The panel band gave these panes their
+    // own designed inset — `--panel-p-N`, carried through `--kui-panel-p` with the ring
+    // clearance folded in — so the join no longer falls back to a CARD's pick. What this law is
+    // about is unchanged and is why it exists: the hook is still consulted first, so a pane
+    // whose padding is its own (Command stamps its rows' index, one under the pane's) can still
+    // say so, and deleting it would silently give every such pane the band's inset.
     const join = raw("system/surfaces.css");
-    expect(join).toContain("var(--kui-floating-p, var(--surface-p-1))");
-    expect(join).toContain("var(--kui-floating-p, var(--surface-p-4))");
+    expect(join).toContain("var(--kui-floating-p, var(--kui-panel-p))");
+    // Both ends of the ladder, so a per-size arm cannot quietly stop consulting it.
+    for (const size of ["1", "4"]) {
+      // The `{`-terminated opening, because this selector appears twice per size — once in the
+      // list that sets `--kui-panel-p` for the whole family, and once as the rows join's own
+      // rule. Anchoring on the bare selector finds the list, whose body carries no hook: the
+      // substring trap this file's other law records, on its third appearance today.
+      const arm = join.indexOf(`.kui-surface.kui-floating-rows[data-size="${size}"] {`);
+      expect(arm, `the rows join has no size ${size} arm`).toBeGreaterThan(-1);
+      expect(
+        join.slice(arm, join.indexOf("}", arm)),
+        `size ${size} stopped consulting the component's own padding`,
+      ).toContain("var(--kui-floating-p, var(--kui-panel-p))");
+    }
   });
 });
 

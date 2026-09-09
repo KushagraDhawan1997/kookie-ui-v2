@@ -4,7 +4,18 @@ import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
-import { DISMISS_PATH, FILE_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
+import { DISMISS_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
+
+/** A file with a folded corner — the Attachment's generic face when the app supplies no
+    thumbnail or symbol (§43). Avatar's fallback rule one family over: the system draws a
+    stand-in so a file is never a blank square.
+
+    It lives
+    HERE and not in `system/glyphs.ts` because that file's rule is that a drawing shared by two
+    components has one home, and this one has a single consumer: a path with one reader in a
+    shared module is a claim about sharing that nothing is making. It moves there the day a
+    second component draws it. */
+const FILE_PATH = "M4.5 1.5h4.5l3.5 3.5v9.5h-8zM9 1.5v3.5h3.5";
 import { useLensRef } from "../../system/refraction.tsx";
 import { OWNED_BODY_STEP } from "../../system/type-steps.ts";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";

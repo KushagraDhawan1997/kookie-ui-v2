@@ -68,24 +68,32 @@ describe("the system draws the state; the app owns the file (§30, §43)", () =>
     expect(within(el, ".kui-attachment-remove").getAttribute("aria-label")).toBe(`Remove ${NAME}`);
   });
 
-  it("the bar exists only while something is happening", () => {
-    // A resting tile that still drew a channel would be reporting a task nobody started.
-    expect(mounted(<Attachment>{NAME}</Attachment>, { theme: {} }).querySelector(".kui-attachment-progress")).toBe(null);
+  it("the ring exists only while something is happening", () => {
+    /* A resting tile that still drew a channel would be reporting a task nobody started.
+       THE CHANNEL IS A RING ON THE FACE since 2026-09-08, not a bar under the words: the tile is
+       then the same height in every state, which is what stops a list of files reflowing as each
+       one finishes. What this law asserts is unchanged — the drawing exists exactly while
+       something is happening — and only the element it looks for moved. */
+    expect(mounted(<Attachment>{NAME}</Attachment>, { theme: {} }).querySelector(".kui-attachment-ring")).toBe(null);
     expect(
-      mounted(<Attachment state="error">{NAME}</Attachment>, { theme: {} }).querySelector(".kui-attachment-progress"),
+      mounted(<Attachment state="error">{NAME}</Attachment>, { theme: {} }).querySelector(".kui-attachment-ring"),
     ).toBe(null);
     for (const state of ["uploading", "processing"] as const) {
       const el = mounted(<Attachment state={state}>{NAME}</Attachment>, { theme: {} });
-      expect(el.querySelector(".kui-attachment-progress"), `${state} draws a bar`).not.toBe(null);
+      expect(el.querySelector(".kui-attachment-ring"), `${state} draws a ring`).not.toBe(null);
     }
   });
 
-  it("`progress` fills the bar while uploading, and `processing` never reads it", () => {
-    /* This is what makes `uploading` and `processing` two states rather than one busy flag:
-       one can be counted and the other cannot. The law reads the PAINTED fill, not the prop —
-       an indeterminate bar and a 0% bar are the same number and a different drawing, so the
-       determinate arm is read through `aria-valuenow`, which Base UI omits entirely when the
-       value is null. Falsified by passing `progress` through in both arms. */
+  it("`progress` fills the ring while uploading, and `processing` never reads it", () => {
+    /* This is what makes `uploading` and `processing` two states rather than one busy flag: one
+       can be counted and the other cannot. The law reads the DRAWING, not the prop — an
+       indeterminate ring and a 0% ring are the same number and a different drawing.
+
+       READ ON THE RING since 2026-09-08 (the channel moved from a bar under the words to a ring
+       on the face, so the tile is the same height in every state). Its determinate arm is a dash
+       of the fraction's own length against a `pathLength` of 100, and its indeterminate arm is a
+       short dash that sweeps — stamped `data-sweep`, which is the attribute the stylesheet keys
+       its animation on. Falsified by passing `progress` through in both arms. */
     const filling = within(
       mounted(
         <Attachment state="uploading" progress={0.4}>
@@ -93,9 +101,16 @@ describe("the system draws the state; the app owns the file (§30, §43)", () =>
         </Attachment>,
         { theme: {} },
       ),
-      ".kui-attachment-progress",
+      ".kui-attachment-ring",
     );
-    expect(filling.getAttribute("aria-valuenow")).toBe("0.4");
+    // The dash is the fraction: `pathLength` normalises the outline to 100, so the offset is
+    // the part NOT yet done — 60 for 40%. Read on the fill rather than on the ring, because the
+    // track draws the whole outline in both arms and could not tell them apart.
+    expect(
+      filling.querySelector<SVGElement>(".kui-attachment-ring-fill")!.getAttribute("stroke-dashoffset"),
+      "the ring does not carry the fraction it was given",
+    ).toBe("60");
+    expect(filling.getAttribute("data-sweep"), "a counted upload swept instead").toBe(null);
 
     const sweeping = within(
       mounted(
@@ -104,17 +119,31 @@ describe("the system draws the state; the app owns the file (§30, §43)", () =>
         </Attachment>,
         { theme: {} },
       ),
-      ".kui-attachment-progress",
+      ".kui-attachment-ring",
     );
-    expect(sweeping.getAttribute("aria-valuenow"), "processing reports no fraction").toBe(null);
+    expect(
+      sweeping.querySelector<SVGElement>(".kui-attachment-ring-fill")!.getAttribute("stroke-dashoffset"),
+      "processing read a fraction it must not have",
+    ).toBe(null);
+    expect(sweeping.getAttribute("data-sweep"), "processing does not sweep").toBe("true");
   });
 
-  it("the bar restates what the tile announces, so it is hidden from AT", () => {
+  it("the ring restates what the tile announces, so it is hidden from AT", () => {
     const bar = within(
       mounted(<Attachment state="uploading">{NAME}</Attachment>, { theme: {} }),
-      ".kui-attachment-progress",
+      ".kui-attachment-ring",
     );
-    expect(bar.getAttribute("aria-hidden")).toBe("true");
+    /* BY CONTAINMENT since 2026-09-08, which is why this reads an ancestor rather than the
+       element. The channel moved onto the face, and the face is already `aria-hidden` — it wears
+       the thumbnail or a glyph, both of which restate the file the tile has just named in words.
+       So the ring inherits the silence rather than declaring its own, and asserting the attribute
+       ON the ring would be asserting a second spelling of a guarantee that already holds.
+       Falsified by removing `aria-hidden` from the face: the ring is then announced as a bare
+       graphic in the middle of the tile's own sentence. */
+    expect(
+      bar.closest('[aria-hidden="true"]'),
+      "the ring is announced — it restates what the tile already says in words",
+    ).not.toBe(null);
   });
 });
 
@@ -145,7 +174,10 @@ describe("the state is the category, so there is no second colour axis (§43, §
          nothing, and reported both tiles transparent and therefore equal. The component was
          painting the destructive a3 the whole time. Read the property with `computed`, and
          assert against a resolved token so a silent fallback to nothing fails too. */
-      expect(computed(failed, "background-color")).toBe(colorOn(failed, "var(--destructive-a3)"));
+      /* THE OPAQUE TWIN OF THE SAME STEP (2026-09-08, "solid means solid"): the surface's
+         tone-forward rung reads `--tone-a3-solid`, because a tone-forward pane over content was
+         measured sealing nothing while its source was an alpha. Same step, stated opaquely. */
+      expect(computed(failed, "background-color")).toBe(colorOn(failed, "var(--destructive-a3-solid)"));
       expect(computed(failed, "background-color")).not.toBe(computed(resting, "background-color"));
 
       /* And the resting fill is stated as an AGREEMENT rather than as a token name, because
@@ -283,13 +315,24 @@ describe("size prices what its own doc says it prices (audit 2026-09-02)", () =>
         </Attachment>,
         { theme: {} },
       );
-      const icon = within(el, ".kui-attachment-icon");
-      // Compared as a RESOLVED length: the hook's own value is an unresolved `calc()` string,
-      // so reading the token and comparing strings measures the spelling, not the box.
+      /* THE SYMBOL BECAME A FACE 2026-09-08 — a square TWO LINES TALL wearing the thumbnail, the
+         app's symbol or the package's own file glyph, with the upload ring on its edge. So it is
+         no longer the surface icon box, and reading that hook here would assert the size of a
+         thing this component stopped having. What replaces it is the face's own rule, which is
+         also why the tile is the same height in every state: a square, and its side is two lines
+         of the type the tile owns.
+
+         Compared as RESOLVED lengths, because the hook's own value is an unresolved `calc()`
+         string and comparing strings measures the spelling rather than the box. */
+      const face = within(el, ".kui-attachment-face");
+      const box = face.getBoundingClientRect();
+      expect(box.width, `size ${size}: the face is not square`).toBeCloseTo(box.height, 1);
       const probe = document.createElement("div");
-      probe.style.inlineSize = "var(--kui-sf-icon)";
-      el.appendChild(probe);
-      expect(computed(icon, "inline-size")).toBe(computed(probe, "inline-size"));
+      probe.style.blockSize = "calc(2 * var(--kui-ty-line))";
+      face.appendChild(probe);
+      expect(computed(face, "block-size"), `size ${size}: the face is not two lines tall`).toBe(
+        computed(probe, "block-size"),
+      );
       probe.remove();
       const bar = mounted(<Button size={size}>Level</Button>, { theme: {} });
       expect(computed(within(el, ".kui-attachment-remove"), "block-size")).toBe(
