@@ -1436,7 +1436,7 @@ const DECLARED: Entry[] = [
       { title: "The panes", symbols: ["ShellHeader", "ShellSidebar", "ShellContent", "ShellInspector", "ShellBottom"] },
       {
         title: "The rail that switches regions, and the tab bar it becomes",
-        symbols: ["ShellRail", "ShellRailList", "ShellRailItem", "ShellTabBar"],
+        symbols: ["ShellRail", "ShellRailList", "ShellRailItem", "ShellRailAction", "ShellTabBar"],
       },
       { title: "Inside a pane", symbols: ["ShellScroll", "ShellPaneHeader", "ShellPaneFooter"] },
       { title: "Navigating", symbols: ["ShellNavGroup", "ShellNavItem"] },
@@ -1448,6 +1448,7 @@ const DECLARED: Entry[] = [
       { name: "A thin sidebar mode", why: "A thin sidebar is a rail wearing a sidebar's name, which puts the same region in the tree twice. Rail and sidebar are independent columns here, and an app that wants them linked writes three lines." },
       { name: "A close-cascade between rail and sidebar", why: "It is not universally true. VS Code's columns are independent and Slack's rail cannot close. That makes it an app's opinion, not a frame rule with a conflict protocol." },
       { name: "`peek`", why: "Deferred until a real screen asks for it. A pane that slides half open costs a context slice, absolute overlays and per-pane CSS, and it carries very little." },
+      { name: "A `ShellRailItem` with a prop for the detached seat", why: "A rail item is a PLACE: it carries current and aria-current, and an action never can, so the prop would refuse half its own type on one branch. The tab bar's search shipped as one for a day and read as a fifth place. ShellRailAction is the part, and it also cannot be a caller's icon-only Button, because its box has to equal the pill's beside it \u2014 the seat's row plus the pill's own air, which an app cannot derive." },
       { name: "`backdrop` on `ShellContent`", why: "The work area never gets glass. It is not a preference: a pane floats only when the content is underneath it, so the content is the one pane nothing is ever underneath — it is the bottom of the stack, with the app's flat ground behind it. Glass there blurs nothing and mints a lens map for the largest box on screen. A vibrant region inside the work area is still reachable, because a solid surface hosts glass: put a Box backdrop or a Card backdrop in it." },
       {
         name: "A tab bar derived from the sidebar",
@@ -1465,7 +1466,8 @@ const DECLARED: Entry[] = [
       { part: "ShellSidebar", blurb: "The wide navigation column: a `<nav>`. Untouched, it rests open on a roomy window and closed on a narrow one, with no script deciding" },
       { part: "ShellContent", blurb: "The work area: a real `<main>` that scrolls itself and takes whatever room the other panes leave" },
       { part: "ShellRailItem", blurb: "One square in the rail, for a high-level region rather than a row. Icon-only, because narrow is part of what a rail means" },
-      { part: "ShellRailList", blurb: "A run of rail squares. A rail usually has two: the regions at the top, and the account and settings squares pinned at the bottom" },
+      { part: "ShellRailList", blurb: "A run of rail squares. A rail usually has two: the regions at the top, and the account and settings squares pinned at the bottom. On a narrow window, where the rail is a tab bar, this run is the pill the places sit in" },
+      { part: "ShellRailAction", blurb: "A control in the tab bar that is not a place \u2014 a search, or anything else that opens rather than goes somewhere. It sits outside the pill of tabs as its own pane, a circle at the default radius, because a trigger that looks like a tab promises a destination it does not have" },
       { part: "ShellScroll", blurb: "The one region of a pane that scrolls. Mark it and everything else in the pane pins by being an ordinary child: the pane becomes a column, this takes the leftover room, and the pane stops scrolling itself" },
       { part: "ShellPaneHeader", blurb: "A pane's own header row: one control row at the pane's index, so the chrome stands level with the rail and the app header beside it" },
       { part: "ShellPaneFooter", blurb: "The same row at the pane's other end. With `float` the pane publishes --kui-pane-inset-block-end" },
@@ -1476,7 +1478,7 @@ const DECLARED: Entry[] = [
       {
         part: "ShellTabBar",
         blurb:
-          "The tab bar for an app with no rail: three to five places across the bottom of a narrow window, and nothing at all on a wide one, where the sidebar carries the navigation. It is a ShellRail that only ever appears as a bar, so it holds a ShellRailList of ShellRailItems, and one item placed after the list stands apart from the tabs — which is where a search belongs. It is optional. A Shell is responsive without one, and its sidebar opens as a drawer at every width",
+          "The tab bar for an app with no rail: three to five places across the bottom of a narrow window, and nothing at all on a wide one, where the sidebar carries the navigation. It is a ShellRail that only ever appears as a bar, and it is a ROW OF PANES rather than one: the ShellRailList is the pill the places sit in, and a ShellRailAction beside it is its own box. It is optional. A Shell is responsive without one, and its sidebar opens as a drawer at every width",
       },
       { part: "ShellTrigger", blurb: "The one thing that crosses the frame: a button that drives a pane by name" },
     ],

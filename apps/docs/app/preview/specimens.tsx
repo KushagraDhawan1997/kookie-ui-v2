@@ -93,6 +93,7 @@ import {
   ShellRail,
   ShellSidebar,
   ShellRailItem,
+  ShellRailAction,
   ShellRailList,
   ShellTabBar,
   ShellNavItem,
@@ -2133,7 +2134,9 @@ function ShellSection() {
         </Box>
       </Demo>
 
-      {/* THE TAB BAR (§27, 2026-09-09). Shown at every width on purpose, which is the one thing
+      {/* THE TAB BAR (§27, 2026-09-09), a ROW OF PANES since 2026-09-09: `ShellRailList` is the
+          pill of places and a `ShellRailAction` beside it is its own box, because a trigger that
+          looks like a tab promises a destination it does not have. Shown at every width on purpose, which is the one thing
           this specimen cannot do honestly: a bar renders only on a narrow window, so the frame
           below is a phone-width box rather than a page-width one. Judge it by narrowing the
           real window instead — the docs' own bar is the specimen, and it is at the foot of
@@ -2154,7 +2157,9 @@ function ShellSection() {
                 <ShellRailItem label="Projects">P</ShellRailItem>
                 <ShellRailItem label="Reports">R</ShellRailItem>
               </ShellRailList>
-              <ShellRailItem label="Search">S</ShellRailItem>
+              {/* THE DETACHED ACTION (2026-09-09): a trigger, not a place, so it sits outside
+                  the pill of tabs as its own square pane — a circle at the default radius. */}
+              <ShellRailAction label="Search">S</ShellRailAction>
             </ShellTabBar>
             <ShellContent>
               <ShellScroll fade>

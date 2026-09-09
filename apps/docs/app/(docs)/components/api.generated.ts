@@ -3794,6 +3794,23 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "ShellRailAction": {
+    "element": "button",
+    "props": [
+      {
+        "name": "label",
+        "type": "string",
+        "optional": false,
+        "doc": "The button's name — spoken to AT and shown under the glyph, exactly as a tab's is."
+      },
+      {
+        "name": "render",
+        "type": "RenderElement",
+        "optional": true,
+        "doc": "Be an anchor instead, for an action that is really a destination."
+      }
+    ]
+  },
   "ShellRailItem": {
     "element": "button",
     "props": [

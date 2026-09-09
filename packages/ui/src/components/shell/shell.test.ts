@@ -113,13 +113,16 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     const arms = css
       .split("}")
       .filter((rule) =>
-        /\.kui-shell-(rail|sidebar|inspector|bottom)(?![\w-])[^{>]*\{[^{]*position:\s*absolute/.test(rule),
+        /\.kui-shell-(rail|sidebar|inspector|bottom)(?![\w-])(?:(?!\{|\.kui-shell-)[^{])*\{[^{]*position:\s*absolute/.test(rule),
       );
-    // `[^{>]` rather than `[^{]` since 2026-09-09: a child combinator after the pane means the
-    // rule is about something INSIDE it, and the tab bar's thumb is absolutely positioned in
-    // exactly that shape. The lookahead already held the set to the four panes against
-    // `-item::after`; this holds it against `> .kui-shell-rail-thumb`, which is the same
-    // mistake one combinator over.
+    // THE PANE HAS TO BE THE SUBJECT, and keying on the COMBINATOR is what kept failing
+    // (2026-09-10, the third time this guard has been defeated by a new anatomy). It was
+    // `[^{]*`, which ate `-item::after` — a §16 target expander, not a pane. Then `[^{>]*`,
+    // which held against `> .kui-shell-rail-thumb`. Then the thumb's rule became a DESCENDANT
+    // when the bar grew its two panes, and a space is not `>`, so an eighth arm walked in and
+    // the law failed on its own calibration again. What is actually true of every arm this law
+    // is about is that the pane is the LAST `.kui-shell-` class in the selector: anything
+    // further in is a PART, and a part may be positioned without owing a viewport cap.
     //
     // SEVEN ARMS SINCE 2026-09-09, and the seventh is exempt from the cap BY DESIGN (§27): a
     // tab bar spans the window's width on purpose, and it is not a thing you dismiss, so there
@@ -161,7 +164,7 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     const arms = css
       .split("}")
       .filter((rule) =>
-        /\.kui-shell-(rail|sidebar|inspector|bottom)(?![\w-])[^{>]*\{[^{]*position:\s*absolute/.test(rule),
+        /\.kui-shell-(rail|sidebar|inspector|bottom)(?![\w-])(?:(?!\{|\.kui-shell-)[^{])*\{[^{]*position:\s*absolute/.test(rule),
       );
     // Seven since 2026-09-09 — the tab bar leaves flow too, and it spans for the same reason
     // every other arm does: an out-of-flow grid item does not size its own `auto` track, so a
@@ -318,7 +321,13 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
       // The tab bar's thumb (2026-09-09), bounded by value the way the well and the plane are:
       // it may name the neutral soft rung and nothing else. Its glass currency is the shared
       // layer's, beside the segmented control's, and surfaces.test.ts reads it there.
-      .replace(/\.kui-shell-rail\[data-presentation="bar"\] > \.kui-shell-rail-thumb\s*\{[^}]*\}/g, (rule) => {
+      //
+      // A DESCENDANT, NOT A CHILD, since 2026-09-10 — the grip moved inside the pill when the
+      // bar became a row of panes, and this strip's `>` stopped matching, so the rule it exists
+      // to bound fell through to the sheet-wide `background` ban and failed the law rather than
+      // being read by it. The same slip as the overlay-arm reader above, in one commit: a
+      // selector that names a combinator is a claim about the anatomy, and the anatomy moved.
+      .replace(/\.kui-shell-rail\[data-presentation="bar"\] \.kui-shell-rail-thumb\s*\{[^}]*\}/g, (rule) => {
         for (const decl of rule.match(/background[^;]*/g) ?? []) {
           expect(decl.trim(), "the bar's thumb may not name a colour of its own").toBe(
             "background-color: var(--tone-soft)",
@@ -364,7 +373,10 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
       /:where\(\.kui-shell > :not\(\.kui-shell-rail\[data-presentation="auto"\]\)[^{]*\)\s*\{[^}]*\}/g,
       // And the tab bar's thumb, both direction arms — the travelling grip, self-keyed from the
       // segmented control, whose lead and trail clocks are the asymmetry.
-      /\.kui-shell-rail\[data-presentation="bar"\] > \.kui-shell-rail-thumb\[data-activation-direction="(?:right|left)"\]\s*\{[^}]*\}/g,
+      // A DESCENDANT since 2026-09-10, the third reader in this file with the same slip: the
+      // grip lives inside the pill now, so a `>` here left its two clocks unlicensed and the
+      // sheet-wide motion ban failed on the rule it was written to permit.
+      /\.kui-shell-rail\[data-presentation="bar"\] \.kui-shell-rail-thumb\[data-activation-direction="(?:right|left)"\]\s*\{[^}]*\}/g,
       /@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\n\s*\}\n\s*\}/g,
     ];
     const unclocked = clocked.reduce((acc, re) => acc.replace(re, " "), css);

@@ -986,16 +986,22 @@
 .kui-shell-pane[data-size="1"] {
   --kui-shell-row: var(--control-height-1);
   --kui-shell-row-up: var(--control-height-2);
+  --kui-shell-row-up-radius: var(--radius-control-2);
+  --kui-shell-row-up-curve: calc(var(--control-px-pill-2) - var(--control-px-2));
 }
 
 .kui-shell-pane[data-size="3"] {
   --kui-shell-row: var(--control-height-3);
   --kui-shell-row-up: var(--control-height-4);
+  --kui-shell-row-up-radius: var(--radius-control-4);
+  --kui-shell-row-up-curve: calc(var(--control-px-pill-4) - var(--control-px-4));
 }
 
 .kui-shell-pane[data-size="4"] {
   --kui-shell-row: var(--control-height-4);
   --kui-shell-row-up: var(--control-height-4);
+  --kui-shell-row-up-radius: var(--radius-control-4);
+  --kui-shell-row-up-curve: calc(var(--control-px-pill-4) - var(--control-px-4));
 }
 
 /* THE TILE (§43) — a surface smaller than a card, at the panel inset (2026-09-08).
@@ -1988,8 +1994,14 @@
 /* (0,4,0) DELIBERATELY: the bar's own thumb rule in shell.css is (0,3,0) and so was the first
    spelling of this one — a tie settled by which file the bundle loads last, and shell.css loads
    last, so the opaque rest won and the tab still painted solid on glass. The presentation is in
-   the selector because it is also the truth: this thumb exists only in the bar. */
-.kui-shell-rail[data-material][data-presentation="bar"] > .kui-shell-rail-thumb {
+   the selector because it is also the truth: this thumb exists only in the bar.
+
+   KEYED ON THE PILL, not the rail (2026-09-09). The bar became a row of panes, so the element
+   carrying `data-material` is `.kui-shell-rail-list` — the pill the grip travels in — and the
+   rail element wears no material at all. Read against the rail this matched nothing and the
+   grip fell back to a `--tone-soft` that resolves to nothing outside a stamped tone: measured
+   `rgba(0, 0, 0, 0)`, a chosen tab with no grip under it. */
+.kui-shell-rail[data-presentation="bar"] .kui-shell-rail-list[data-material] > .kui-shell-rail-thumb {
   background-color: var(--material-grip-fill);
 }
 

@@ -1470,8 +1470,12 @@ export const EXCLUDED: { name: string; why: string }[] = [
     why: "A part of the Shell's rail: one square in the column that switches which region of the app you are in. Regions are the app frame's business, and the frame is what this canvas composes inside rather than something it places.",
   },
   {
+    name: "ShellRailAction",
+    why: "A part of the Shell's tab bar: the detached control beside the run of places, for a trigger that opens something rather than going somewhere. It throws outside a bar, and a bar is the app frame's narrow posture — which is what this canvas composes inside rather than something it places.",
+  },
+  {
     name: "ShellRailList",
-    why: "A part of the Shell's rail — the run its squares stack in. It has no meaning outside a rail, and the rail has none outside the app frame this canvas sits inside.",
+    why: "A part of the Shell's rail — the run its squares stack in, and the pill of places once that rail is a tab bar. It has no meaning outside a rail, and the rail has none outside the app frame this canvas sits inside.",
   },
   {
     name: "ShellNavGroup",

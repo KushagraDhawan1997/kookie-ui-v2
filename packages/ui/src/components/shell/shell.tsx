@@ -47,7 +47,7 @@ import { PageScope } from "../../system/page.tsx";
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { ScrollArea, type ScrollAreaProps } from "../scroll-area/scroll-area.tsx";
-import { GlassScope, useMaterial, themeDefaults } from "../../theme/theme.tsx";
+import { GlassScope, useMaterial, themeDefaults, type SurfaceMaterial } from "../../theme/theme.tsx";
 import { DEV } from "../../system/dev.ts";
 import { shellResize } from "../../tokens/config.ts";
 import { SizeScopeContext, useSize } from "../../system/size.ts";
@@ -1290,14 +1290,38 @@ function sidePaneStyle(width: number | undefined, style: React.CSSProperties | u
 }
 
 /** One implementation for the three side panes — rail, sidebar, inspector. */
+/* A bare pane opens no material scope: it has no face of its own, so there is no backdrop to
+   spend and no region to reset — the two panes inside it each resolve the glass themselves,
+   including through an ambient `<Box backdrop>` that a `GlassScope` would have closed. */
+function MaybeGlassScope({
+  material,
+  children,
+}: {
+  material: SurfaceMaterial | undefined;
+  children: React.ReactNode;
+}) {
+  if (material === undefined) return children;
+  return <GlassScope material={material}>{children}</GlassScope>;
+}
+
 function SidePane({
   name,
   element,
   props,
+  /* A BARE PANE IS A ROW OF PANES (see `ShellBarContext`). It keeps every structural thing a
+     pane is — the grid area, the state and presentation stamps, the index, the page scope —
+     and gives up the three things a SURFACE is: the class the dress hangs on, the material
+     stamp, and the scope that would resolve its children solid. There is nothing to stand
+     down, which is the whole reason it is spelled this way: not wearing `.kui-surface` is one
+     decision where standing its fill, light, cast, border, filter and ring back down would
+     have been six rules each arguing with surfaces.css. The lens goes with them — a map built
+     per resize for an element with no filter to put it in. */
+  bare,
 }: {
   name: ShellPaneTarget;
   element: "nav" | "aside";
   props: SidePaneProps;
+  bare?: boolean;
 }) {
   const {
     open,
@@ -1355,9 +1379,9 @@ function SidePane({
     <Element
       {...rest}
       id={pane.id}
-      ref={paneRef}
-      className={cx("kui-surface kui-shell-pane", `kui-shell-${name}`, className)}
-      {...stamps}
+      ref={bare ? composedRef : paneRef}
+      className={cx(bare ? "kui-shell-pane" : "kui-surface kui-shell-pane", `kui-shell-${name}`, className)}
+      {...(bare ? {} : stamps)}
       // The pane wears the index as well as providing it: its own geometry reads it (the
       // rail derives its whole extent from `--control-height-N` at this index), and a
       // context alone reaches only React.
@@ -1369,7 +1393,7 @@ function SidePane({
       tabIndex={-1}
       style={sidePaneStyle(width, style)}
     >
-      <GlassScope material={material}>
+      <MaybeGlassScope material={bare ? undefined : material}>
         <ShellSizeContext.Provider value={size}>
           {/* THE PANE IS THE PAGE'S SCOPE (§45, §46). A page's large title lives inside this
               pane's scroller and the band that says it again is a SIBLING of that scroller, so
@@ -1381,7 +1405,7 @@ function SidePane({
               always speaks for itself. */}
           <PageScope>{children}</PageScope>
         </ShellSizeContext.Provider>
-      </GlassScope>
+      </MaybeGlassScope>
     </Element>
   );
   /* THE HANDLE IS THE PANE'S SIBLING, NOT ITS CHILD (2026-09-05, Kushagra: "because of
@@ -1448,6 +1472,34 @@ function SidePane({
     with more items than a bar can hold. `overlay`: always a drawer. */
 export type ShellRailPresentation = "auto" | "bar" | "rail" | "overlay";
 
+/* THE BAR IS A ROW OF PANES, NOT A PANE (§27, 2026-09-09, Kushagra: "the search in this case
+   is a button trigger so it needs to be 'out' and a separate one which means its an
+   anatomical change to tabbars composition no?" — iOS 26's Music app, a mini-player pill with
+   a detached search circle beside it).
+
+   It was one pane holding five equal seats, so a search TRIGGER read as a fifth place. What
+   it is instead: the rail element is a bare row, `ShellRailList` is the pill of places, and a
+   `ShellRailAction` beside it is its own pane at the pill's own box. That DELETES the
+   `display: contents` on the list, which only ever existed because the list and the search
+   seat were siblings splitting one box in half — the seats are the list's own flex children
+   now, equal shares by construction.
+
+   This context is what the two parts read to know they are the panes rather than layout, and
+   it carries the `backdrop` the rail was asked for: the rail element no longer wears
+   `.kui-surface`, so it can neither paint the glass nor scope its subtree solid, and each of
+   the two panes resolves the material for itself. Two panes, two backdrops — which is what
+   the reference shows, and what §10's selectivity says anyway (each of them has the page
+   passing behind it).
+
+   SCOPED TO THE BAR-ONLY POSTURE, and the boundary is structural rather than a shortcut.
+   `presentation="bar"` is a bar at narrow and DISPLAY:NONE at wide, so JS knows what the
+   element is and the dress can move to a child once and for all. `presentation="auto"` is a
+   RAIL on a wide window, where the element IS the pane and the list is not — and which of
+   the two dresses cannot be decided in JS, because the posture is resolved by a media query
+   so that first paint needs no script (§27). So an `auto` rail keeps the single-pane bar it
+   has, and a detached action there is an ordinary square. */
+const ShellBarContext = React.createContext<{ backdrop: boolean | undefined } | null>(null);
+
 export type ShellRailProps = ComponentRefusals & Omit<
   SidePaneProps,
   "width" | "resizable" | "minWidth" | "maxWidth" | "onResize" | "resizeLabel" | "presentation"
@@ -1473,7 +1525,13 @@ function useBarThumb(rail: React.RefObject<HTMLElement | null>) {
   React.useLayoutEffect(() => {
     const el = rail.current;
     if (!el) return;
-    const thumb = el.querySelector<HTMLElement>(":scope > .kui-shell-rail-thumb");
+    // THE PILL, NOT THE BAR (2026-09-09). The rail element is a bare row of panes now, so
+    // every box this measurement is about — the containing block the thumb's insets resolve
+    // against, the wall its overshoot squashes into, the seats it lands on — belongs to the
+    // LIST. Falls back to the rail for the postures where the list is layout and the rail is
+    // still the pill (`presentation="auto"` at narrow; see `ShellBarContext`).
+    const pill = el.querySelector<HTMLElement>(".kui-shell-rail-list") ?? el;
+    const thumb = pill.querySelector<HTMLElement>(":scope > .kui-shell-rail-thumb");
     if (!thumb) return;
     const visualScale = (box: DOMRect, edges: CSSStyleDeclaration) => {
       const layout =
@@ -1487,15 +1545,15 @@ function useBarThumb(rail: React.RefObject<HTMLElement | null>) {
       return layout > 0 ? box.width / layout : 1;
     };
     const place = (flying: boolean) => {
-      const chosen = el.querySelector<HTMLElement>(".kui-shell-rail-item[aria-current]");
+      const chosen = pill.querySelector<HTMLElement>(".kui-shell-rail-item[aria-current]");
       if (!chosen) {
         thumb.hidden = true;
         previousLeft.current = null;
         return;
       }
-      const box = el.getBoundingClientRect();
+      const box = pill.getBoundingClientRect();
       const seat = chosen.getBoundingClientRect();
-      const edges = getComputedStyle(el);
+      const edges = getComputedStyle(pill);
       const scale = visualScale(box, edges);
       // ONE WIDTH, AND IT MAY OVEREXTEND (2026-09-09, Kushagra: "thumb should always take the
       // same width, but it can take a larger width than a simple grid calc will allow"). The
@@ -1505,10 +1563,24 @@ function useBarThumb(rail: React.RefObject<HTMLElement | null>) {
       // moving anything, which is the whole reason the seats can stay equal; the walls in CSS
       // keep it inside the bar's padding at the two ends. `scrollWidth` is the untruncated
       // word, so an ellipsed label still contributes its real width.
+      // THE AIR IS THE SEAT'S OWN PADDING PLUS THE CURVE (2026-09-09, Kushagra: "each selected
+      // tab bar item should have some padding because its rounded… when rounded padding should
+      // increase we know that and have precedent with buttons etc"). §4 pads a control wider at
+      // `full` because its corner swings inward at the label's cap line, and here the thing
+      // with the corner is the THUMB: the seat paints nothing, so spending the correction on the
+      // seat's padding only ellipses the words (measured — every label on a 390px window).
+      // `--kui-shell-row-up-curve` is the pill correction's DELTA rather than the whole pill
+      // padding, for the reason its registration in shell.css states: this label is a fraction
+      // of the smallest step, so the whole padding priced the air for a word three times its
+      // size and the thumb reached into both neighbours' words. Zero below `full`, where the
+      // thumb is exactly its seat.
       const seatStyle = getComputedStyle(chosen);
-      const air = parseFloat(seatStyle.paddingLeft) + parseFloat(seatStyle.paddingRight);
+      const air =
+        parseFloat(seatStyle.paddingLeft) +
+        parseFloat(seatStyle.paddingRight) +
+        2 * (parseFloat(seatStyle.getPropertyValue("--kui-shell-row-up-curve")) || 0);
       let widest = 0;
-      for (const word of el.querySelectorAll<HTMLElement>(".kui-shell-rail-label")) {
+      for (const word of pill.querySelectorAll<HTMLElement>(".kui-shell-rail-label")) {
         widest = Math.max(widest, word.scrollWidth + air);
       }
       const width = Math.max(seat.width, widest);
@@ -1528,6 +1600,10 @@ function useBarThumb(rail: React.RefObject<HTMLElement | null>) {
     selection.observe(el, { subtree: true, attributes: true, attributeFilter: ["aria-current"] });
     const size = new ResizeObserver(() => place(false));
     size.observe(el);
+    // AND THE PILL, because the bar's own box is pinned to the window (`inset-inline`) while
+    // the pill's is what the seats share: a detached action changing width moves every seat
+    // and the bar never resizes, so the grip would sit on a share that no longer exists.
+    if (pill !== el) size.observe(pill);
     const watched = new WeakSet<Element>();
     const watchSeats = () => {
       for (const seat of el.querySelectorAll<HTMLElement>(".kui-shell-rail-item")) {
@@ -1565,13 +1641,25 @@ export function ShellRail({ presentation = "auto", ...props }: ShellRailProps) {
   const mapped: ShellPresentation = presentation === "rail" ? "auto" : presentation === "overlay" ? "overlay" : "bar";
   const bar = presentation === "auto" ? "auto" : presentation === "bar" ? "only" : undefined;
   const stamps = (bar ? { "data-bar": bar } : {}) as Record<string, string>;
-  const children = (
-    <>
-      <span className="kui-shell-rail-thumb" aria-hidden="true" hidden />
-      {props.children}
-    </>
+  // THE THUMB BELONGS TO THE LIST IT TRAVELS IN (2026-09-09). It was a direct child of the
+  // rail while the rail was the pill; the pill is `ShellRailList` now, and the thumb's insets
+  // resolve against its containing block, so the box it is placed against and the box it
+  // resolves against have to be the same one — the segmented control's own sentence. So the
+  // list renders it and this no longer does.
+  const barOnly = presentation === "bar";
+  const children = barOnly ? (
+    <ShellBarContext.Provider value={{ backdrop: props.backdrop }}>{props.children}</ShellBarContext.Provider>
+  ) : (
+    props.children
   );
-  return <SidePane name="rail" element="nav" props={{ ...props, ...stamps, ref, children, presentation: mapped } as SidePaneProps} />;
+  return (
+    <SidePane
+      name="rail"
+      element="nav"
+      bare={barOnly}
+      props={{ ...props, ...stamps, ref, children, presentation: mapped } as SidePaneProps}
+    />
+  );
 }
 
 export type ShellTabBarProps = Omit<ShellRailProps, "presentation">;
@@ -1929,8 +2017,109 @@ export type ShellRailListProps = ComponentRefusals & Omit<React.ComponentPropsWi
  * plain actions that open menus and are never "current", so nothing here makes membership
  * mean selection.
  */
-export function ShellRailList({ className, ...props }: ShellRailListProps) {
-  return <div {...props} className={cx("kui-shell-rail-list", className)} />;
+export function ShellRailList({ className, children, ...props }: ShellRailListProps) {
+  // IN A BAR-ONLY RAIL THE LIST IS THE PILL (see `ShellBarContext`). Outside one it is layout
+  // and nothing else, which is what it has always been. The hooks run either way — a
+  // conditional hook is not a thing — and only the stamps and the scope are conditional.
+  const bar = React.use(ShellBarContext);
+  const material = useMaterial(bar?.backdrop ? { backdrop: true } : undefined);
+  const lens = useLensRef<HTMLDivElement>(bar ? material : "solid", null);
+  if (!bar) return <div {...props} className={cx("kui-shell-rail-list", className)}>{children}</div>;
+  return (
+    <div
+      {...props}
+      ref={lens}
+      className={cx("kui-surface kui-shell-rail-list", className)}
+      // THE PANE'S OWN THREE STAMPS, and forgetting them is what the dress moving cost
+      // (2026-09-09, Kushagra: "The bar and action have different material it seems… And in
+      // solid mode they stop showing any boundary?"). `.kui-surface` and `data-material` moved
+      // here from the rail and these did not, so the surface layer had nothing to answer:
+      // `[data-emphasis="quiet"]` is what declares the SEAL (`--kui-sf-fill-src`) and
+      // `[data-bordered]` is what points the border at the edge role. Measured: the pill's fill
+      // source was the empty string and it painted `rgba(0, 0, 0, 0)` — no veil at all, so it
+      // was blur and rim alone — while the action, being a `.kui-control`, had picked up quiet
+      // from its own family and did paint one. Two panes of the same material rendering
+      // differently, which is exactly what he saw.
+      data-tone="neutral"
+      data-emphasis="quiet"
+      data-bordered
+      // Solid is the ABSENCE of a material, so it writes no attribute (§10) — `usePaneDress`'s
+      // own line. Stamped unconditionally it read `data-material="solid"`, which every
+      // `[data-material]` rule matches, so a solid bar took the glass grip fill.
+      {...(material !== "solid" ? { "data-material": material } : {})}
+    >
+      <GlassScope material={material}>
+        {/* NEUTRAL, STATED (2026-09-09). The grip's fill is `--tone-soft`, and that role is
+            declared only inside a `[data-tone]` scope — so an unstamped thumb resolved it to
+            nothing and painted `rgba(0, 0, 0, 0)`. It went unseen because the only bar in front
+            of us is glass, where surfaces.css re-points the fill to the material's own grip
+            ink; on a solid bar the chosen tab had no grip under it at all. Neutral rather than
+            the item's `accent`: what the grip says is WHICH seat, and the accent is already
+            spent on the label. */}
+        <span className="kui-shell-rail-thumb" aria-hidden="true" hidden data-tone="neutral" />
+        {children}
+      </GlassScope>
+    </div>
+  );
+}
+
+export type ShellRailActionProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
+  /** The button's name — spoken to AT and shown under the glyph, exactly as a tab's is. */
+  label: string;
+  /** Be an anchor instead, for an action that is really a destination. */
+  render?: RenderElement;
+  ref?: React.Ref<HTMLElement>;
+};
+
+/**
+ * A control in the tab bar that is not a PLACE (§27, 2026-09-09) — search, or whatever else
+ * an app puts a trigger there for. It sits outside the pill of tabs as its own pane, which is
+ * the whole reason it exists: inside the pill it was a fifth equal seat, and a trigger that
+ * looks like a tab promises a destination it does not have (the builder's own dead-control
+ * finding, in a component).
+ *
+ * NOT `ShellRailItem` with a prop, and not a `<Button iconOnly backdrop>` at the call site.
+ * A rail item is a place: it carries `current` and `aria-current`, and an action never can, so
+ * the prop would refuse half its own type on one branch — §26's `TabsTrigger` refusal, which
+ * was about a name that lies. And a caller's Button cannot derive the box: this has to stand
+ * exactly as tall as the pill beside it, which is the seat's row plus the pill's own air.
+ *
+ * It carries its LABEL (Kushagra's call, against the reference, which draws a bare circle):
+ * with a caption it lines up with the tabs' icon-over-word column and simply does not live in
+ * the pill. Outside a bar-only rail it is an ordinary rail square — see `ShellBarContext` for
+ * why the posture bounds it.
+ */
+export function ShellRailAction({ className, children, label, render, ref, ...props }: ShellRailActionProps) {
+  const size = React.use(ShellSizeContext);
+  const bar = React.use(ShellBarContext);
+  const material = useMaterial(bar?.backdrop ? { backdrop: true } : undefined);
+  const lens = useLensRef<HTMLElement>(bar ? material : "solid", ref);
+  const merged = {
+    ...props,
+    "aria-label": label,
+    "data-size": size,
+    "data-emphasis": "quiet",
+    // The pane's dress, when it IS one — the pill's own three, with quiet already stated above
+    // because this is a control as well as a surface. See `ShellRailList` for what their
+    // absence measured.
+    ...(bar ? { "data-tone": "neutral", "data-bordered": true } : {}),
+    ...(bar && material !== "solid" ? { "data-material": material } : {}),
+    className: cx(bar ? "kui-surface" : undefined, "kui-control kui-shell-rail-item kui-shell-rail-action", className),
+    ref: bar ? lens : ref,
+  };
+  const content = (
+    <>
+      {children}
+      <span className="kui-shell-rail-label" aria-hidden>{label}</span>
+    </>
+  );
+  const inner = bar ? <GlassScope material={material}>{content}</GlassScope> : content;
+  if (render) return composeRender(render, merged as never, inner);
+  return (
+    <button {...(merged as React.ComponentPropsWithoutRef<"button">)} type="button">
+      {inner}
+    </button>
+  );
 }
 
 export type ShellNavGroupProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {

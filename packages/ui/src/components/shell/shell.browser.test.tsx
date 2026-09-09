@@ -25,6 +25,7 @@ import {
   ShellPaneFooter,
   ShellPaneHeader,
   ShellRail,
+  ShellRailAction,
   ShellRailItem,
   ShellRailList,
   ShellScroll,
@@ -4658,16 +4659,26 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
               <ShellRailItem label="One" current render={<a href="#one" />}>
                 <svg viewBox="0 0 16 16" />
               </ShellRailItem>
-              <ShellRailItem label="Two" render={<a href="#two" />}>
-                <svg viewBox="0 0 16 16" />
-              </ShellRailItem>
+              {/* THE LONGEST WORD SITS INSIDE, and it has to (2026-09-10). The grip may
+                  overextend past a seat's share, and at an END seat the pill's padding is a WALL
+                  it squashes against — so with the longest label last, "the width holds wherever
+                  it lands" and "the wall is real" contradict each other and each becomes the
+                  other's excuse. Measured: the grip asked for 88.02 on the end seat and painted
+                  80.34, and the law read that as the FLIGHT resizing it. Four tabs, so there are
+                  two interior seats to fly between. */}
               <ShellRailItem label="Responsiveness" render={<a href="#three" />}>
                 <svg viewBox="0 0 16 16" />
               </ShellRailItem>
+              <ShellRailItem label="Two" render={<a href="#two" />}>
+                <svg viewBox="0 0 16 16" />
+              </ShellRailItem>
+              <ShellRailItem label="Four" render={<a href="#four" />}>
+                <svg viewBox="0 0 16 16" />
+              </ShellRailItem>
             </ShellRailList>
-            <ShellRailItem label="Search">
+            <ShellRailAction label="Search">
               <svg viewBox="0 0 16 16" />
-            </ShellRailItem>
+            </ShellRailAction>
           </ShellTabBar>
         ) : (
           <ShellRail aria-label="Sections" flush={false}>
@@ -4737,22 +4748,218 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
   }
 
   /**
-   * EVERY SEAT TAKES THE SAME SPACE, the detached search seat included (Kushagra: "each item
-   * should take same space"). The list is `display: contents` in this posture for exactly this
-   * reason: with the list as one flex item and the seat as another, the two split the bar in
-   * half and the tabs shared what was left.
+   * EVERY SEAT TAKES THE SAME SPACE, and the ACTION IS NOT ONE (§27, 2026-09-09, Kushagra:
+   * "each item should take same space", then "the search in this case is a button trigger so it
+   * needs to be 'out' and a separate one which means its an anatomical change to tabbars
+   * composition no?").
    *
-   * Falsified: giving the list back `flex: 1 1 0` fails at
-   * `expected [ 62, 62, 62, 187 ] to have every seat within 1px of the first`.
+   * The bar is a row of two panes now: `ShellRailList` is the pill of places and a
+   * `ShellRailAction` beside it is its own box. That DELETED the list's `display: contents`,
+   * which existed only because the list and the search seat were siblings splitting one box in
+   * half — the seats are the list's own flex children, so equal shares are what a flex row does
+   * and nothing has to make the list disappear to get them.
+   *
+   * BOTH HALVES, because either alone is satisfied by the wrong arrangement: equal seats hold
+   * when the action is a fifth equal seat (what shipped, and what read as a fifth place), and
+   * "the action is outside the pill" holds with the tabs sharing the row by word length.
+   *
+   * READ AS BOXES, and the sabotage pass is why. The first spelling counted DOM children and
+   * claimed `display: contents` would fail it at `expected 5 to be 4` — which is wrong twice
+   * over: `querySelectorAll` counts children whatever `display` says, and with the list as
+   * contents the seats become the ROW's flex children, so they are still equal to each other.
+   * Restoring it left this law green (it broke three others). What it cannot survive is being
+   * asked for the pill's BOX: a `display: contents` element generates none, so it neither holds
+   * its own seats nor stands beside the action.
+   *
+   * Falsified: `display: contents` on the pill fails at `expected 0 to be greater than 0` —
+   * the pill with no box at all.
    */
-  it("every seat takes the same space, the search seat included", async () => {
+  it("every seat in the pill takes the same space, and the action is outside it", async () => {
     await narrow();
     const shell = bars({ only: true });
-    const widths = [...shell.querySelectorAll<HTMLElement>(".kui-shell-rail-item")].map(
-      (seat) => seat.getBoundingClientRect().width,
-    );
-    expect(widths.length, "the seats are not where this law thinks").toBe(4);
+    const pill = within(shell, ".kui-shell-rail-list");
+    const seats = [...pill.querySelectorAll<HTMLElement>(".kui-shell-rail-item")];
+    expect(seats.length, "the seats are not where this law thinks").toBe(4);
+    const widths = seats.map((seat) => seat.getBoundingClientRect().width);
     for (const w of widths) expect(w, `seats: ${widths.map(Math.round).join("/")}`).toBeCloseTo(widths[0]!, 0);
+
+    /* THE PILL HAS A BOX AND ITS SEATS ARE INSIDE IT — the half that sees `display: contents`
+       coming back, since an element with no box cannot contain anything. */
+    const pillBox = pill.getBoundingClientRect();
+    expect(pillBox.width, "the pill generates no box, so it holds nothing").toBeGreaterThan(0);
+    for (const seat of seats) {
+      const box = seat.getBoundingClientRect();
+      expect(box.left, "a seat sits outside the pill").toBeGreaterThanOrEqual(pillBox.left - 0.5);
+      expect(box.right, "a seat sits outside the pill").toBeLessThanOrEqual(pillBox.right + 0.5);
+    }
+
+    const action = within(shell, ".kui-shell-rail-action");
+    expect(pill.contains(action), "the action is a seat in the pill").toBe(false);
+    expect(action.parentElement, "the action is not the bar's own child").toBe(
+      within(shell, ".kui-shell-rail"),
+    );
+    const box = action.getBoundingClientRect();
+    expect(pillBox.right, "the pill and the action overlap").toBeLessThanOrEqual(box.left + 0.5);
+  });
+
+  /**
+   * THE BAR IS A ROW OF PANES, AND THE BAR ITSELF IS NOT ONE (§27, 2026-09-09). The dress moved
+   * off the rail element and onto the two boxes inside it: the pill and the action each wear
+   * `.kui-surface` and resolve their own material, and the rail wears neither, so it can neither
+   * paint the glass nor scope its subtree solid.
+   *
+   * READ AS PAINT, not as a class list. The two panes must AGREE — that is the half a person
+   * sees (Kushagra: "The bar and action have different material it seems") — and the agreement
+   * is what caught the dress moving by halves: `.kui-surface` and `data-material` came across
+   * and `data-tone`/`data-emphasis`/`data-bordered` did not, so the pill's own fill source was
+   * the empty string and it painted `rgba(0, 0, 0, 0)` while the action, being a `.kui-control`
+   * too, had picked quiet up from its own family and painted a veil.
+   *
+   * Falsified: dropping `data-emphasis="quiet"` from `ShellRailList` fails at
+   * `expected 'rgba(0, 0, 0, 0)' to be 'color(srgb 1 1 1 / 0.49)'`.
+   */
+  it("the pill and the action are the panes, they agree, and the bar paints nothing", async () => {
+    await narrow();
+    const shell = bars({ only: true, backdrop: true });
+    const bar = within(shell, ".kui-shell-rail");
+    const pill = within(shell, ".kui-shell-rail-list");
+    const action = within(shell, ".kui-shell-rail-action");
+
+    expect(bar.classList.contains("kui-surface"), "the bar is still a surface").toBe(false);
+    expect(bar.dataset.material, "the bar still stamps a material").toBe(undefined);
+    expect(computed(bar, "background-color"), "the bar paints a fill").toBe("rgba(0, 0, 0, 0)");
+    expect(computed(bar, "backdrop-filter"), "the bar still filters its backdrop").toBe("none");
+
+    for (const pane of [pill, action]) {
+      expect(pane.classList.contains("kui-surface"), "a pane of the bar is not a surface").toBe(true);
+      expect(pane.dataset.material, "a pane of the bar is not glass").toBe("regular");
+    }
+    expect(
+      computed(pill, "background-color"),
+      "the two panes of one bar paint different fills",
+    ).toBe(computed(action, "background-color"));
+    expect(computed(pill, "background-color"), "a pane of the bar paints no veil at all").not.toBe(
+      "rgba(0, 0, 0, 0)",
+    );
+  });
+
+  /**
+   * NEITHER PANE CASTS, AND EACH TAKES THE LINE INSTEAD (§5, §10, 2026-09-09, Kushagra: "The
+   * tabbar doesnt need elevation btw. Its not a card", then "And is elevation on bar back?" once
+   * the bar became a row of panes — and it was, on the pill).
+   *
+   * The plane criterion: elevation dresses boxes that establish a plane of their own, which is
+   * why fields left the elevated world, why a ground stands its cast down and why a Notice does.
+   * And in this system light IS the edge, so a pane that refuses the cast owes the hairline — the
+   * attachment tile's own sentence, and the flat world's before it.
+   *
+   * The POOL survives on purpose: on glass it is the seat-line the material HAS, not lift the
+   * app SAYS, and both of these are `backdrop` panes.
+   *
+   * ON BOTH PANES, which is the half that would have gone missing again: the stand-down was
+   * written on the rail, and when the rail stopped being a surface the guarantee moved silently
+   * to two elements that never had it.
+   *
+   * Falsified: deleting the `--kui-sf-cast` line fails at
+   * `expected 'rgba(0, 0, 0, 0.08) 0px 1px 2px 0px, …' to be '0 0 0 0 transparent'`; deleting
+   * `--surface-edge: initial` fails the solid half at `expected 'rgba(0, 0, 0, 0)' not to be it`.
+   */
+  it("neither pane of the bar casts, and on a solid bar each draws a hairline", async () => {
+    await narrow();
+    const glass = bars({ only: true, backdrop: true });
+    for (const sel of [".kui-shell-rail-list", ".kui-shell-rail-action"]) {
+      const layers = computed(within(glass, sel), "box-shadow").split(/,(?![^(]*\))/);
+      const cast = layers.filter((layer) => !layer.includes("inset"));
+      for (const layer of cast)
+        expect(layer.replace(/\s+/g, " ").trim(), `${sel} casts a shadow`).toMatch(
+          /(rgba?\(0, 0, 0, 0\)|transparent)/,
+        );
+    }
+    glass.remove();
+
+    /* THE LINE, on a bar with no material — where light is not the edge and the cast is gone, so
+       the hairline is the only boundary left. Compared against a mounted Card at the same index,
+       which is the value the system already gives a region's boundary. */
+    const solid = bars({ only: true });
+    const card = within(solid, ".kui-shell-content");
+    for (const sel of [".kui-shell-rail-list", ".kui-shell-rail-action"]) {
+      const pane = within(solid, sel);
+      expect(parseFloat(computed(pane, "border-top-width")), `${sel} has no hairline`).toBeGreaterThan(0);
+      expect(computed(pane, "border-top-color"), `${sel} draws an invisible boundary`).toBe(
+        computed(card, "border-top-color"),
+      );
+    }
+  });
+
+  /**
+   * A SINGLE ACTION IS A PERFECT CIRCLE (2026-09-09, Kushagra: "Single action should be a perfect
+   * circle"). Its width was its content's, which made a squat capsule beside a taller pill — two
+   * capsules of different proportion reading as one notched shape. `aspect-ratio` rather than a
+   * stated width, because the HEIGHT is the derived thing (the seat's row plus the pill's air), so
+   * stating the width would be that arithmetic written twice.
+   *
+   * AND THE CORNER ANSWERS THE THEME (Kushagra: the bar "doesnt respond to themes roundness").
+   * Both corners were half the box, hardcoded — a capsule at every radius level, `none` included.
+   *
+   * Falsified: dropping `aspect-ratio` fails at `expected 50 to be close to 60`; pinning the
+   * corner back to `calc(var(--kui-shell-row-up) / 2)` fails the `medium` half at
+   * `expected 26 to be less than 20`.
+   */
+  it("the action is a square, and both corners answer the radius level", async () => {
+    await narrow();
+    for (const [level, capsule] of [["full", true], ["medium", false]] as const) {
+      const shell = mounted(
+        <Shell style={{ height: 600 }}>
+          <ShellTabBar aria-label="Sections" flush={false}>
+            <ShellRailList>
+              <ShellRailItem label="One" current>
+                <svg viewBox="0 0 16 16" />
+              </ShellRailItem>
+              <ShellRailItem label="Two">
+                <svg viewBox="0 0 16 16" />
+              </ShellRailItem>
+            </ShellRailList>
+            <ShellRailAction label="Search">
+              <svg viewBox="0 0 16 16" />
+            </ShellRailAction>
+          </ShellTabBar>
+          <ShellContent>content</ShellContent>
+        </Shell>,
+        { theme: { radius: level }, select: ".kui-shell" },
+      );
+      const action = within(shell, ".kui-shell-rail-action").getBoundingClientRect();
+      expect(action.width, `the action is not square at radius="${level}"`).toBeCloseTo(action.height, 0);
+
+      const pill = within(shell, ".kui-shell-rail-list");
+      const corner = parseFloat(computed(pill, "border-top-left-radius"));
+      const thumb = parseFloat(computed(within(shell, ".kui-shell-rail-thumb"), "border-top-left-radius"));
+      if (capsule) {
+        /* THE GRIP is the capsule, and the pill is one HAIRLINE under one — which is the
+           concentric relation being honest rather than a miss. The pill's corner is the grip's
+           plus the air between them, and the pill's own border sits outside both, so half its
+           border box is a border-width more than the curve it draws (measured 24 against 25).
+           Asserting the pill was a true capsule would have pinned a number the derivation does
+           not produce; the grip has no border and is the one that can be read this way. */
+        const grip = within(shell, ".kui-shell-rail-thumb").getBoundingClientRect();
+        expect(thumb, "the grip is not a capsule at full").toBeCloseTo(grip.height / 2, 0);
+        expect(
+          pill.getBoundingClientRect().height / 2 - corner,
+          "the pill's corner is off its capsule by more than its own hairline",
+        ).toBeCloseTo(parseFloat(computed(pill, "border-top-width")), 0);
+      } else {
+        expect(corner, `the pill ignored radius="${level}"`).toBeLessThan(
+          pill.getBoundingClientRect().height / 2 - 4,
+        );
+        expect(thumb, `the thumb ignored radius="${level}"`).toBeLessThan(corner);
+      }
+      /* CONCENTRIC: the pill's corner is the seat's plus the air between them, so the two curves
+         stay parallel instead of merely both being round. */
+      expect(corner - thumb, "the pill and its grip are not concentric").toBeCloseTo(
+        parseFloat(computed(pill, "padding-left")),
+        0,
+      );
+      shell.remove();
+    }
   });
 
   /**
@@ -4772,14 +4979,25 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
    * the rail's `inset-inline: calc(-1 * var(--kui-sf-p))` fails the second at
    * `expected 414 to be 374`.
    */
-  it("a bar is not a scroll container, and has no scroll range", async () => {
+  it("nothing in the bar is a scroll container, and nothing has a scroll range", async () => {
     await narrow();
     const shell = bars({ only: true });
     const bar = within(shell, ".kui-shell-rail");
-    expect(computed(bar, "overflow-x"), "the bar can scroll sideways").toBe("clip");
-    expect(computed(bar, "overflow-y"), "the bar can scroll").toBe("clip");
-    expect(bar.scrollWidth, "something inside the bar overflows it sideways").toBe(bar.clientWidth);
-    expect(bar.scrollHeight, "something inside the bar overflows it").toBe(bar.clientHeight);
+    /* THE ROW IS `visible` SINCE 2026-09-09, and that is the repair rather than a regression: a
+       clip on the row is a clip at its SQUARE border box, which would square the pill's own
+       corners and shave both panes' rings. The clip moved to the two panes, where the box being
+       clipped is the box that is round. */
+    expect(computed(bar, "overflow-x"), "the row clips its own panes' corners").toBe("visible");
+    for (const sel of [".kui-shell-rail-list", ".kui-shell-rail-action"]) {
+      expect(computed(within(shell, sel), "overflow-x"), `${sel} can scroll sideways`).toBe("clip");
+      expect(computed(within(shell, sel), "overflow-y"), `${sel} can scroll`).toBe("clip");
+    }
+    /* AND THE OUTCOME, on every box in the bar: the guarantee is that a bar never scrolls, and
+       which element carries the clip is a spelling that has already moved once. */
+    for (const el of [bar, within(shell, ".kui-shell-rail-list"), within(shell, ".kui-shell-rail-action")]) {
+      expect(el.scrollWidth, `${el.className} overflows sideways`).toBe(el.clientWidth);
+      expect(el.scrollHeight, `${el.className} overflows`).toBe(el.clientHeight);
+    }
   });
 
   /**
@@ -4802,19 +5020,34 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
        word for the two to be distinguishable at all. */
     await page.viewport(320, 700);
     const shell = bars({ only: true });
+    /* THE HARNESS'S VIEWPORT CHANGE IS NOT SYNCHRONOUS WITH LAYOUT (2026-09-10), and this law
+       read a width from before the reflow. It reported "the thumb resized as it flew" at
+       `expected 80.34 to be close to 88.02` — and 88.02 is exactly the grip's width at the
+       harness's own default width, so the first reading was the OLD viewport's and the second
+       the settled one. The mechanism was never wrong: in a real browser the grip goes 88 → 69
+       within 50ms of a resize, with no mutation to prompt it.
+       So the layout is waited for by its own width rather than by a timer, and only then is
+       anything measured. Every claim below is about the FLIGHT, which cannot be read against a
+       box that is still catching up. */
+    await expect.poll(() => Math.round(shell.getBoundingClientRect().width)).toBeLessThanOrEqual(320);
     const thumb = within(shell, ".kui-shell-rail-thumb");
-    const seats = [...shell.querySelectorAll<HTMLElement>(".kui-shell-rail-item")];
+    /* THE PILL'S OWN SEATS (2026-09-09). The detached action is a `.kui-shell-rail-item` too —
+       it wears the seat's column so its glyph and caption land on the tabs' own lines — so a
+       bar-wide query would hand this law a box that is not a tab and a label the grip is never
+       measured from. */
+    const pill = within(shell, ".kui-shell-rail-list");
+    const seats = [...pill.querySelectorAll<HTMLElement>(".kui-shell-rail-item")];
     await expect.poll(() => thumb.hidden).toBe(false);
     /* AN INTERIOR SEAT FOR THE CENTRE, because at an END seat the bar's padding is a WALL the
        overextension squashes against (the segmented control's own rule, one component over), so
        the centre legitimately moves inward there — measured 2px on the first seat. Both claims
        are real; asserting them on one seat would make each the other's excuse. */
     seats[0]!.removeAttribute("aria-current");
-    seats[1]!.setAttribute("aria-current", "page");
-    await expect.poll(() => seats[1]!.getAttribute("aria-current")).toBe("page");
+    seats[2]!.setAttribute("aria-current", "page");
+    await expect.poll(() => seats[2]!.getAttribute("aria-current")).toBe("page");
     const first = thumb.getBoundingClientRect();
     expect(first.width, "the thumb is not on the current seat").toBeGreaterThan(0);
-    const seat = seats[1]!.getBoundingClientRect();
+    const seat = seats[2]!.getBoundingClientRect();
     expect((first.left + first.right) / 2, "the thumb is off its seat's centre").toBeCloseTo(
       (seat.left + seat.right) / 2,
       0,
@@ -4828,7 +5061,7 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
     /* THE TEXT'S OWN WIDTH, through a Range — `scrollWidth` reports the BOX whenever the word
        fits it, so on a bar whose labels all fit it answers the same number for every seat and
        this law's calibration below could not fail. */
-    const words = [...shell.querySelectorAll<HTMLElement>(".kui-shell-rail-label")].map((label) => {
+    const words = [...pill.querySelectorAll<HTMLElement>(".kui-shell-rail-label")].map((label) => {
       const range = document.createRange();
       range.selectNodeContents(label);
       return range.getBoundingClientRect().width;
@@ -4839,9 +5072,13 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
     expect(first.width, "the thumb is too narrow to host the bar's longest word").
       toBeGreaterThanOrEqual(widest);
 
-    // And it does not resize when the choice moves to the seat that owns that longest word.
+    /* AND IT DOES NOT RESIZE WHEN THE CHOICE MOVES TO THE SEAT THAT OWNS THAT LONGEST WORD —
+       flown between two INTERIOR seats, because the wall legitimately squashes an overextending
+       grip at either end (the fixture's own note above). */
     const longest = seats[words.indexOf(widest)]!;
-    seats[1]!.removeAttribute("aria-current");
+    for (const end of [seats[0], seats[seats.length - 1]])
+      expect(longest, "the longest word is at an end seat, where the wall clamps the grip").not.toBe(end);
+    seats[2]!.removeAttribute("aria-current");
     longest.setAttribute("aria-current", "page");
     await expect
       .poll(() => Math.round(thumb.getBoundingClientRect().left))
@@ -4863,10 +5100,16 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
   it("an overextending thumb squashes against the bar's wall rather than escaping it", async () => {
     await page.viewport(320, 700);
     const shell = bars({ only: true });
+    // The same wait the width law needs, and for the same reason: an inset read before the
+    // reflow is an inset from the previous viewport.
+    await expect.poll(() => Math.round(shell.getBoundingClientRect().width)).toBeLessThanOrEqual(320);
     const thumb = within(shell, ".kui-shell-rail-thumb");
-    const bar = within(shell, ".kui-shell-rail");
+    /* THE PILL IS THE CHANNEL (2026-09-09): the grip's insets resolve against its padding box,
+       so the wall its overshoot squashes into is the pill's air and not the row's, which has
+       none. Read off the pill for the same reason the placement is. */
+    const bar = within(shell, ".kui-shell-rail-list");
     await expect.poll(() => thumb.hidden).toBe(false);
-    const seats = [...shell.querySelectorAll<HTMLElement>(".kui-shell-rail-item")];
+    const seats = [...bar.querySelectorAll<HTMLElement>(".kui-shell-rail-item")];
     const pad = parseFloat(computed(bar, "padding-left"));
     for (const index of [0, seats.length - 1]) {
       for (const seat of seats) seat.removeAttribute("aria-current");
@@ -4946,20 +5189,34 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
     expect(alpha("color(display-p3 0.944 0.945 0.947)"), "the reader miscounts a colour space").toBe(1);
     expect(alpha("rgba(0, 0, 0, 0.1)"), "the reader cannot read an alpha it is given").toBe(0.1);
     expect(alpha("color(display-p3 1 1 1 / 0.26)"), "the reader cannot read a slashed alpha").toBe(0.26);
-    expect(within(glass, ".kui-shell-rail").dataset.material, "the bar is not glass here").toBe(
-      "regular",
-    );
+    expect(
+      within(glass, ".kui-shell-rail-list").dataset.material,
+      "the pill is not glass here",
+    ).toBe("regular");
     expect(
       alpha(computed(within(glass, ".kui-shell-rail-thumb"), "background-color")),
       "an opaque grip on a glass bar",
     ).toBeLessThan(1);
     glass.remove();
 
+    /* AND ON A SOLID BAR IT PAINTS AT ALL (2026-09-09, Kushagra: "in solid, the selected thumb
+       should not be transparent"). It painted `rgba(0, 0, 0, 0)` — not see-through, ABSENT: the
+       grip's fill is `--tone-soft`, a role declared only inside a `[data-tone]` scope, and
+       nothing stamped one, so it resolved to nothing. Invisible for as long as the only bar in
+       front of us was glass, where the shared layer re-points the fill to the material's grip
+       ink and the missing base never shows.
+       Read as the ROLE resolving on the thumb as well as the paint landing, because the paint
+       alone was satisfied by the glass arm and the role alone says nothing about what is drawn.
+       An opaque twin was tried first and is a no-op — `--tone-soft` IS the opaque step since
+       "solid means solid" — so the guarantee here is the stamp, not a second token. */
     const solid = bars({ only: true });
-    expect(
-      computed(within(solid, ".kui-shell-rail-thumb"), "background-color"),
-      "a solid bar's grip paints nothing",
-    ).not.toBe("rgba(0, 0, 0, 0)");
+    const grip = within(solid, ".kui-shell-rail-thumb");
+    expect(grip.dataset.tone, "the grip states no tone, so its fill resolves to nothing").toBe(
+      "neutral",
+    );
+    const fill = computed(grip, "background-color");
+    expect(fill, "a solid bar's grip paints nothing").not.toBe("rgba(0, 0, 0, 0)");
+    expect(alpha(fill), "a solid bar's grip is see-through").toBe(1);
   });
 
   /**

@@ -10658,3 +10658,110 @@ is a real distance) was already there; the second (the row's padding is too) is 
 the law fail on the pre-fix stylesheet at all — without it, "the labels" and "the rows" are
 the same answer and the law is about neither. Falsified at `expected 14 to be less than or
 equal to 0.5`. +148 bytes gzipped: four join declarations and one `margin-inline`.
+
+## 2026-09-09/10 — the tab bar became a row of panes, and its corners learned the theme
+
+Six things, in the order he saw them, because each one was found by looking at the previous.
+
+**The corners were hardcoded.** The bar and its grip were both half their own box, so
+`radius="none"` drew a capsule. They read the control band at the seat's shifted index now
+(`--kui-shell-row-up-radius`, beside the row and the curve in the shell pane join) and they are
+CONCENTRIC: the grip's corner plus the air between them. At `full` the grip is a true capsule
+and the pill lands one hairline under one, because the pill's own border sits outside both —
+which is the derivation being honest, and a law that asserted the pill was a true capsule would
+have pinned a number the arithmetic does not produce.
+
+**The pill correction belongs to the GRIP, not the seat.** §4 pads a control wider at `full`
+because its corner swings inward at the label's cap line. Spending the whole pill padding on the
+seat took every label on a 390px window to an ellipsis — "Fou…", "Patt…", "Co…" — for no gain,
+because the seat paints nothing and the grip is out of flow and can be wider than a share. And
+the whole padding is the wrong magnitude anyway: it prices air for a control-sized label, and a
+tab caption is a fraction of the smallest step, so it bought 16px of overhang for a 9px word
+("pattern one for example overlap ots neighbours labels"). The grip's measured width takes the
+DELTA — `pill − plain`, zero below `full`, where the thumb is exactly its seat. 80px against a
+71.6px seat, 4.2px of overhang, inside the slack the neighbours' centred words already leave.
+`--kui-shell-row-up-curve` is registered `<length>` because the measurement reads it in JS and
+an unregistered custom property computes to its token stream: it arrived as `calc(21px * 1)`,
+which `parseFloat` reads as NaN.
+
+**The bar was casting a Card's row** ("The tabbar doesnt need elevation btw. Its not a card") —
+the plane criterion for the fifth time, after fields, the ground and Notice. The pool survives:
+on glass that is the seat-line the material HAS, not lift the app SAYS.
+
+**Then the anatomy.** He asked whether the search trigger needing to be "out" was an anatomical
+change, and it was — a DELETION. The rail element is a bare row, `ShellRailList` is the pill, and
+`ShellRailAction` beside it is its own pane; `display: contents` on the list went with it,
+having existed only because the list and the search seat were siblings splitting one box in
+half. The part is not a prop on `ShellRailItem` (a rail item is a place, and an action can never
+carry `aria-current`, so the prop would refuse half its own type on one branch) and not a
+caller's `<Button iconOnly backdrop>` (its box has to equal the pill's, which an app cannot
+derive). It keeps its label, against the reference's bare circle, and it is a SQUARE — a perfect
+circle at the default radius, `aspect-ratio` rather than a stated width because the height is
+the derived thing. Scoped to `presentation="bar"`, where JS knows the element is a bar or
+nothing; `auto` is a rail on a wide window and which of the two dresses cannot be decided in JS,
+because the posture is a media query so first paint needs no script.
+
+**The rail stopped wearing `.kui-surface` rather than standing its dress down.** One decision
+against six rules arguing with the surface layer — fill, light, cast, border, filter, ring — and
+the lens goes with them, a map built per resize for an element with no filter to put it in.
+
+**And it cost three findings, all one mistake: a guarantee written against an element does not
+follow the role when the role moves.** The dress moved by halves, so the pill's fill source was
+the empty string and it painted `rgba(0, 0, 0, 0)` while the action, being a `.kui-control` too,
+had picked quiet up from its own family — two panes of one bar rendering differently, which is
+what he reported. The cast stand-down was on the rail, so the pill went back to casting the full
+Card row one commit after it was removed ("And is elevation on bar back?"), and with the cast
+gone each pane owes the hairline, because light IS the edge here (the attachment tile's sentence,
+and the flat world's before it). The grip's `--tone-soft` is declared only inside a `[data-tone]`
+scope and resolved to NOTHING on a solid bar — invisible for as long as the only bar in front of
+us was glass, where the shared layer re-points the fill to the material's grip ink. An opaque
+twin was written for that and is a no-op: `--tone-soft` has been the opaque step since "solid
+means solid" the same week, and the twin resolves identically for the only family this grip has.
+The repair is the stamp.
+
+**The inset, both ways.** He noticed the bar's edge landed exactly on the work area's, and asked
+whether a bar that moves with the content under the push therefore belongs to it — measured, it
+does move by the content pane's own `translate`, both landing at x=338. Placing it against that
+pane's PADDING was built and reverted the same hour: it lined the bar up with the title, the body
+text and the band's toolbar (33 against 33, from 8), and it cost 48px, which cut two of four
+labels. What survives is the diagnosis rather than the fix — the bar is frame chrome floating
+OVER the work area, so what it owes is not to LAND on that pane's edge, and it sits one layout
+step further off the frame than a pane does. The ellipsis at the wider inset is the app's words
+to answer.
+
+**Two instrument findings and one wrong report, all worth keeping.** A law read the grip's width
+before the harness's viewport change had reflowed and called it "the thumb resized as it flew" —
+88.02 is exactly the grip at the default width — so the layout is waited for by its own width
+now, and the mechanism was never wrong (in a real browser the grip goes 88 → 69 within 50ms of a
+resize, with nothing prompting it). Then the same law's fixture put the longest word at an END
+seat, where the wall legitimately squashes an overextending grip, so "the width holds wherever it
+lands" and "the wall is real" contradicted each other and each became the other's excuse — four
+tabs now, with the long word inside. And a probe that walked `document.styleSheets` reported that
+NO rule set `display` on an element, because CSS nesting gives every `CSSStyleRule` an empty
+`cssRules` and the walk recursed into all of them: an instrument must be calibrated against a
+known answer before its output is evidence, for the fourth recorded time.
+
+**One law's stated falsification was wrong and the sabotage pass is what said so.** "The action
+is outside the pill" counted DOM children and claimed `display: contents` would fail it — which
+`querySelectorAll` cannot see, and with the list as contents the seats become the ROW's flex
+children and are still equal to each other. Restoring it left that law green while breaking three
+others. It reads the pill's BOX now: an element with `display: contents` generates none, so it
+neither holds its own seats nor stands beside the action.
+
+**The command palette's keyboard, found on the way** ("Why does clicking on search NOT focus the
+command? The keyboard doesnt pop"). DOM focus was landing correctly — Base UI's focus manager
+takes the first tabbable thing in the popup, and Chromium confirms `document.activeElement` is
+the input — but iOS raises the keyboard only for a `.focus()` called synchronously inside the
+user gesture, and that manager runs in an effect. React's `autoFocus` is not the DOM attribute:
+React calls `.focus()` itself during commit, and a click is a DISCRETE event React flushes
+synchronously, so the mount and the focus both land inside the tap. Not a regression from this
+work — the sidebar's search button and ⌘K take the identical path. It cannot be law-tested here
+either: the Chromium suite reads DOM focus, which was already correct, so the nearest honest
+reader is a source law and that is a spelling law.
+
+**Also asked and answered without building anything.** Why iOS Safari's URL bar never collapses
+on the docs site: the document never scrolls — `documentElement` and `body` both measure a scroll
+range of zero, and the only scrollers are `ScrollArea` viewports two levels in. That is what an
+app shell IS, and getting the browser chrome back means a document-scrolling posture where the
+pinned panes are `position: fixed` against a viewport whose height changes as the bar animates —
+a second frame architecture, not a flag. Recorded, not built.
