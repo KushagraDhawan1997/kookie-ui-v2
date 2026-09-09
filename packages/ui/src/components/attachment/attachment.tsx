@@ -4,7 +4,20 @@ import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 import type { Size } from "../../system/axes.ts";
-import { DISMISS_PATH, FILE_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
+import { DISMISS_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
+
+/**
+ * A file with a folded corner — this component's generic face when the app supplies no
+ * thumbnail or symbol (§43). Avatar's fallback rule one family over: the system draws a
+ * stand-in so a file is never a blank square.
+ *
+ * SELF-KEYED, because it has ONE consumer (2026-09-08). `system/glyphs.ts` is where a drawing
+ * moves once a SECOND component needs it — a path in two files is one drawing with two homes —
+ * and this one shipped straight into that module with nothing else drawing it, which its own
+ * law caught. Drawn on the same 16 viewBox at `glyphStroke` as everything there, so promoting it
+ * the day a second component wants a file is a move and not a redraw.
+ */
+const FILE_PATH = "M4.5 1.5h4.5l3.5 3.5v9.5h-8zM9 1.5v3.5h3.5";
 import { useLensRef } from "../../system/refraction.tsx";
 import { OWNED_BODY_STEP } from "../../system/type-steps.ts";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";

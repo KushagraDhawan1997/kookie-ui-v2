@@ -13,7 +13,7 @@ import { describe, expect, it } from "vitest";
 import { GLASS_MATERIALS, RUNGS } from "./axes.ts";
 
 import { tones } from "../tokens/color-config.ts";
-import { allStylesheets, block, from, raw, sheet, stripped } from "../test/stylesheets.ts";
+import { allStylesheets, block, blockDeclaring, from, raw, sheet, stripped } from "../test/stylesheets.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const surfaces = sheet("system/surfaces.css");
@@ -154,11 +154,15 @@ describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§
     // the same characters, so a bare indexOf of the selector finds the join's first arm
     // and this law would measure the wrong rule's position — the substring trap the loud
     // parser exists for.
-    const paint = surfaces.indexOf("\n.kui-surface.kui-floating {");
-    expect(paint).toBeGreaterThan(-1);
+    // NAMED BY WHAT IT DECLARES, not by being the first rule with this selector (2026-09-08).
+    // The paragraph above warned about the substring trap and believed anchoring on the exact
+    // rule opening had closed it; the panel band then gave the SAME selector a padding rule
+    // higher up the file, so this measured that rule's position instead and failed with
+    // `expected 3340 to be greater than 26161` — a law about the wrong rule, wearing the right
+    // rule's name. `blockDeclaring` is loud when the answer is not exactly one block.
+    const { body, at: paint } = blockDeclaring(surfaces, "\n.kui-surface.kui-floating {", "--kui-sf-cast");
     expect(paint).toBeGreaterThan(surfaces.indexOf("prefers-reduced-transparency"));
     expect(paint).toBeGreaterThan(surfaces.lastIndexOf('[data-material="thick"]'));
-    const body = block(surfaces, "\n.kui-surface.kui-floating {");
     // A re-point of --kui-sf-cast, never a second box-shadow — the count itself lives in the
     // package-wide law in recipes.test.ts and is deliberately not restated here (this comment
     // said "six" until 2026-08-26, three days after the segmented grip made it seven). The
@@ -864,9 +868,19 @@ describe("the flight pins a panel's body at padding every panel HAS (§22)", () 
     // The guard against over-correcting: `--kui-floating-p` is not dead, it is a menu's way of
     // saying its padding is not a card's. Deleting it would silently give every menu a card's
     // inset. This is the law that fails if somebody reads the one above too broadly.
+    // THE GUARANTEE, NOT THE FALLBACK'S NAME (2026-09-08). This pinned
+    // `var(--kui-floating-p, var(--surface-p-1))` character for character, so the panel band
+    // re-pointing the fallback to `--kui-panel-p` failed a law whose own subject — that the
+    // join still CONSUMES the override — was untouched. Pinning a spelling rather than a
+    // guarantee is a shape this repo has already paid for once, in `block()`'s selector lists.
+    // What must be true is that every size arm of the floating join reads the hook WITH a
+    // fallback, so a menu keeps its own inset and a pane that states none still gets one.
     const join = raw("system/surfaces.css");
-    expect(join).toContain("var(--kui-floating-p, var(--surface-p-1))");
-    expect(join).toContain("var(--kui-floating-p, var(--surface-p-4))");
+    const arms = [...join.matchAll(/--kui-sf-p:\s*var\(--kui-floating-p,\s*([^)]+\)?)\s*\)/g)];
+    expect(arms.length, "the floating join consumes the override in every size arm").toBeGreaterThanOrEqual(4);
+    for (const [, fallback] of arms) {
+      expect(fallback!.trim(), "the override has a fallback, so a pane that states none is still padded").not.toBe("");
+    }
   });
 });
 

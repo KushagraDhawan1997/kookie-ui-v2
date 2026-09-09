@@ -86,6 +86,41 @@ export function block(css: string, selector: string): string {
   return css.slice(open + 1, close);
 }
 
+/**
+ * The ONE block for `selector` that declares `declaration`, and loud when that is not one.
+ *
+ * `block()` takes the first occurrence, which is right while a selector appears once and a trap
+ * the moment it does not — 2026-09-08: the panel band gave `.kui-surface.kui-floating` a padding
+ * rule ABOVE the cast rule, so a law about where the paint sits started measuring the position of
+ * a rule that had nothing to do with it and failed with `expected 3340 to be greater than 26161`.
+ * The law's own comment had warned about exactly this shape and believed it had solved it by
+ * anchoring on the exact rule opening, which stopped being unique.
+ *
+ * So a law about ONE rule among several with one selector says which one by what it DECLARES,
+ * and throws if the answer is not exactly one — a silent zero or a silent pick is how the
+ * substring trap gets in. Returns the block body and the index the rule opens at, because a law
+ * about ORDER needs the second.
+ */
+export function blockDeclaring(
+  css: string,
+  selector: string,
+  declaration: string,
+): { body: string; at: number } {
+  const hits: { body: string; at: number }[] = [];
+  for (let i = css.indexOf(selector); i !== -1; i = css.indexOf(selector, i + 1)) {
+    const open = css.indexOf("{", i);
+    const close = css.indexOf("}", open);
+    const body = css.slice(open + 1, close);
+    if (body.includes(declaration)) hits.push({ body, at: i });
+  }
+  if (hits.length !== 1) {
+    throw new Error(
+      `blockDeclaring(): ${hits.length} blocks match ${selector} declaring ${declaration} — expected exactly one`,
+    );
+  }
+  return hits[0]!;
+}
+
 /** The sheet from `marker` onward — for laws scoped to everything after an @media or
     @supports gate. Loud on a missing marker, for the same reason block() is. */
 export function from(css: string, marker: string): string {

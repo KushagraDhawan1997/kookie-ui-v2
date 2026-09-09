@@ -35,9 +35,3 @@ export const GLYPH_VIEWBOX = "0 0 16 16";
     crossing thickens visibly at the centre where the two lines meet. */
 export const DISMISS_PATH = "M4.5 4.5 11.5 11.5M11.5 4.5 4.5 11.5";
 
-/**
- * A file with a folded corner — the Attachment's generic face when the app supplies no
- * thumbnail or symbol (§43). Avatar's fallback rule one family over: the system draws a
- * stand-in so a file is never a blank square.
- */
-export const FILE_PATH = "M4.5 1.5h4.5l3.5 3.5v9.5h-8zM9 1.5v3.5h3.5";
