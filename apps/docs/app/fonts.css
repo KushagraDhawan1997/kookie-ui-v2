@@ -1,0 +1,83 @@
+/**
+ * The site's three faces, declared so a MISSING FILE DEGRADES INSTEAD OF FAILING THE BUILD
+ * (2026-09-10, Kushagra: "lets use a fallback system font if not available for now").
+ *
+ * WHY THIS IS CSS AND NOT `next/font/local`. The licensed faces are gitignored — the Fontshare
+ * FFL forbids making the files available through a repository or a publicly accessible server,
+ * and this repo is both — so a fresh clone and every CI runner has the paths and none of the
+ * files. `next/font/local` resolves its `src` at COMPILE time, so an absent file is a hard
+ * build error (`Font file not found: Can't resolve './fonts/Switzer.woff2'`), which is what
+ * `docs#build` had been dying of since the fonts were ignored on 2026-09-01. It went unseen
+ * because CI was failing earlier, at lint, for the whole of that window.
+ *
+ * `layout.tsx` had already claimed the behaviour this file finally provides — "a fresh clone
+ * renders the fallback" — so the intent is unchanged; what changes is that it is now true.
+ *
+ * A `url()` under `public/` is NOT part of the module graph: the file is served statically, so
+ * a missing one is a 404 at request time and the browser moves to the next family in the stack.
+ * That is the whole mechanism. The stacks themselves already existed in `globals.css`
+ * (`--font-body: var(--kd-font-body), ui-sans-serif, system-ui, …`), so nothing about what a
+ * fallback IS is decided here.
+ *
+ * WHAT IT COSTS, stated rather than hidden: `next/font` also emitted a preload link and a
+ * metric-matched fallback that narrows the reflow when the real face arrives. Both are gone.
+ * `font-display: swap` keeps the text readable throughout, which is the property that matters
+ * for a documentation site; the rest is worth revisiting if the faces ever travel with the
+ * repo (see `public/fonts/README.md`).
+ */
+
+/* THE WORDMARK. One word, one place — the masthead. A single static face, no italic and no
+   second weight, so a heading asking for semibold cannot make the browser synthesize one. */
+@font-face {
+  font-family: "Boska";
+  src: url("/fonts/Boska-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* THE READING FACE, and the heading face too: §15 points both slots at one family and lets the
+   ladder do the separating. A variable file across its whole axis, so the ladder asks for any
+   weight in range and gets it rather than a synthesized one. */
+@font-face {
+  font-family: "Switzer";
+  src: url("/fonts/Switzer.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Switzer";
+  src: url("/fonts/Switzer-Italic.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* THE MONO FACE. Two static cuts rather than a variable one — regular for code, medium for the
+   one place a fence sets a token bolder. */
+@font-face {
+  font-family: "Neue Montreal Mono";
+  src: url("/fonts/NeueMontrealMono.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Neue Montreal Mono";
+  src: url("/fonts/NeueMontrealMono-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* The three names, published where the classes used to publish them. `globals.css` and
+   `prose.css` read these exactly as they did before, each with the system stack behind it, so
+   a face that never loads costs one 404 and nothing else. */
+:root {
+  --kd-font-wordmark: "Boska";
+  --kd-font-body: "Switzer";
+  --kd-font-mono: "Neue Montreal Mono";
+}

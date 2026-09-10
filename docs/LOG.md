@@ -8,6 +8,26 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-10 The docs site had never been buildable in CI, and two more checks could never pass
+
+**What.** The three faces move to `public/fonts/` and are declared as plain `@font-face` rules; the content-negotiation law skips instead of failing when nothing is listening.
+
+**Why.** Fixing the turbo lint edge let CI reach stages it had never reached, and each one was broken in its own way. This is the record of what was behind the first door.
+
+**The fonts.** `next/font/local` resolves its `src` at COMPILE time, so an absent file is a hard build error. The faces are gitignored — correctly: the Fontshare FFL forbids making the software available "through another font website, font library, marketplace, **repository** … or **publicly accessible servers**", and this repo is public — so `docs#build` had been impossible since the ignore rule landed on 2026-09-01, in the same commit that first loaded a local font. Nine days invisible behind a lint failure.
+
+**`layout.tsx` had already claimed the behaviour that was missing** — *"A fresh clone renders the fallback"* — and the CSS had always carried the stacks (`--font-body: var(--kd-font-body), ui-sans-serif, system-ui, …`). Only the build stood in the way. A `url()` under `public/` is not in the module graph, so a missing file is a 404 at request time and the browser moves to the next family. Verified both ways: with no font files the build succeeds and the site renders fully on the system stack; with them present nothing 404s.
+
+**What it costs, recorded rather than buried:** `next/font` also emitted a preload link and a metric-matched fallback that narrows the reflow when the real face arrives. Both are gone. `font-display: swap` keeps text readable throughout. Worth revisiting only if the faces ever travel with the repo, which the licence forbids.
+
+**Rejected: committing the fonts.** It was the obvious unblock and it is a licence breach. Section 02 is quoted above; the licence text was sitting unread in the same directory as the files it governs.
+
+**And a law that could never pass in CI.** The wire check for content negotiation asserted `CI` was falsy when no server answered on the pinned port — written as "not a silent skip", read as a demand that CI provide a server. CI never has, and the law's own comment rules out the suite starting Next. Measured both ways: `CI=1` with no server fails, `CI=1` with a server passes. **A check that can only ever be red is worse than one that says it did not run** — it hides everything behind it, which is not hypothetical, because that is exactly how `docs#build` stayed broken for nine days. It reports a skip now. Keeping it running in CI is one `next start` against the build the gate already produces; that puts a server in the test job for one assertion, and was not taken without asking.
+
+**The verification lesson, and it is mine.** I reported "10 of 10 green" before pushing the lint fix to main, from a container where I had generated stand-in font files to make things run. That local green said nothing about CI, which has no fonts and no server. The gate is now run the way CI runs it — `CI=1`, fonts moved out, no server up — and only then reported.
+
+---
+
 ## 2026-09-10 Three repairs that survived a collision, and the check that found the other five
 
 **What.** The turbo `lint` edge, the menu's full-width row law, and the ring-landing law's engine premise.

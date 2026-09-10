@@ -1,8 +1,8 @@
 import "@kookie-ui/react/styles.css";
+import "./fonts.css";
 import "./globals.css";
 
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 import { TooltipProvider } from "@kookie-ui/react";
 
 import { appearanceScript } from "./appearance-script";
@@ -36,13 +36,6 @@ import { DocsTheme } from "./theme-store";
  * synthesize a bolder one by stroking the outline. Pencerio needed that number ARGUED, because
  * its one file declares itself at 50; this one declares 400 and the two agree.
  */
-const wordmark = localFont({
-  src: "./fonts/Boska-Medium.woff2",
-  variable: "--kd-font-wordmark",
-  weight: "500",
-  display: "swap",
-  fallback: ["ui-sans-serif", "system-ui", "-apple-system", "sans-serif"],
-});
 
 /**
  * The reading face for the whole site (2026-08-29, Kushagra — Switzer, after General Sans,
@@ -81,19 +74,6 @@ const wordmark = localFont({
  * weights wrong to fix its own choice of face. The face is the variable here, which is why
  * General Sans was replaced rather than bolded.
  */
-const body = localFont({
-  src: [
-    { path: "./fonts/Switzer.woff2", weight: "100 900", style: "normal" },
-    {
-      path: "./fonts/Switzer-Italic.woff2",
-      weight: "100 900",
-      style: "italic",
-    },
-  ],
-  variable: "--kd-font-body",
-  display: "swap",
-  fallback: ["ui-sans-serif", "system-ui", "-apple-system", "sans-serif"],
-});
 
 /**
  * The mono face (2026-08-29, Kushagra — PP Neue Montreal Mono, from the Pangram Pangram
@@ -128,25 +108,6 @@ const body = localFont({
  * A chosen face has its own x-height, so the constant may want re-judging now that the face is
  * known — that is a package config line and a taste call, not something this file may take.
  */
-const mono = localFont({
-  src: [
-    { path: "./fonts/NeueMontrealMono.woff2", weight: "400", style: "normal" },
-    {
-      path: "./fonts/NeueMontrealMono-Medium.woff2",
-      weight: "500",
-      style: "normal",
-    },
-  ],
-  variable: "--kd-font-mono",
-  display: "swap",
-  fallback: [
-    "ui-monospace",
-    "SFMono-Regular",
-    "Menlo",
-    "Consolas",
-    "monospace",
-  ],
-});
 
 export const metadata: Metadata = {
   title: "KookieUI",
@@ -171,13 +132,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    // The wordmark's class only publishes `--kd-font-wordmark`; it sets no font-family here,
-    // so nothing inherits the face and one rule in prose.css decides where it lands.
-    <html
-      lang="en"
-      className={`${wordmark.variable} ${body.variable} ${mono.variable}`}
-      suppressHydrationWarning
-    >
+    // The three faces publish their names from `:root` (fonts.css) rather than from classes
+    // here, so nothing inherits a family and one rule in prose.css still decides where the
+    // wordmark lands.
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: appearanceScript }} />
       </head>
