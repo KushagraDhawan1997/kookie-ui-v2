@@ -313,7 +313,12 @@ describe("a controllable page renders the same arrangement as a static one", () 
       );
       if (!bare) expect(alone, `${slug}: is wrapped in paper while rooting some of its own`).toBe(0);
     }
-  });
+    // ONE `it` that server-renders every controlled example TWICE — bare, then through the real
+    // `Example` — plus a disk read each. It runs in under a second here and timed out at the
+    // default 5s on the CI runner, beside a neighbour holding both cores for 63 seconds. The
+    // assertion is untouched; only the budget is, and it matches the four other whole-corpus
+    // laws in this suite.
+  }, 60_000);
 
   it("at least one controllable example roots its own paper", () => {
     // Vacuity: with none, the law above only ever exercises the wrapping arm and the branch that

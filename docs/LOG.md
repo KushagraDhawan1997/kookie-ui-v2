@@ -8,6 +8,20 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-10 The last door was five seconds wide
+
+**What.** The whole-corpus arrangement law in `controls.test.ts` takes the budget four of its neighbours already carry, and the dead `next/font/local` alias goes with the stub behind it.
+
+**Why.** With the lint edge, the fonts and the wire check repaired, CI reached every stage for the first time in weeks — and stopped on a test timeout. That one failure then cancelled the two heaviest tasks mid-flight: `docs#build` during its TypeScript step, and the package's browser project partway through the select laws. Neither had failed; both were killed. Read off the summary alone it looked like three tasks broken, and it was one.
+
+**It is a budget, not a defect.** The law server-renders every controlled example twice — bare, then through the real `Example` — with a disk read each. 874ms here; past 5,000ms on a two-core runner beside a neighbour that held both cores for 63 seconds. The assertion is untouched, and `60_000` is what the four other whole-corpus laws in this suite already state.
+
+**Rejected: splitting it per slug.** Thirty-eight `it`s do the same work with more scaffolding, and the vacuity guard that sits beside this law is a claim about the walk — that some example in the corpus roots its own paper — so the walk is the shape the pair is written in. Nothing was wrong except the budget.
+
+**And the `next/font/local` alias is dead.** It existed because `layout.tsx` called `localFont()`, a build-time transform whose published function throws by design — which is what killed the shell laws where they render the real root layout. The faces are declared in `app/fonts.css` and served from `public/` now, so there is no build-time call left for a stub to stand in for. Deleted rather than kept, because a stub with no subject is something a later law reaches for and gets a wrong answer from.
+
+---
+
 ## 2026-09-10 The docs site had never been buildable in CI, and two more checks could never pass
 
 **What.** The three faces move to `public/fonts/` and are declared as plain `@font-face` rules; the content-negotiation law skips instead of failing when nothing is listening.

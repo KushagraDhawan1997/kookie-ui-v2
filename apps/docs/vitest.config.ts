@@ -30,14 +30,11 @@ export default defineConfig({
   // ships — and the divergence would be silent in exactly the direction that matters, since
   // a chapter's table would render here and not there.
   plugins: [mdx({ remarkPlugins: [remarkGfm, remarkFenceMeta] })],
-  // `next/font/*` is a BUILD-TIME transform, not a runtime module — the published entry
-  // throws on purpose, so the shell laws (which render the real root layout) died the moment
-  // the layout loaded a face. See the stub for what it deliberately
-  // cannot prove. Only the `local` entry is aliased: both faces on this site are self-hosted,
-  // so `next/font/google` is imported nowhere.
-  resolve: {
-    alias: { "next/font/local": "./test/next-font.ts" },
-  },
+  // NO `next/font` ALIAS, since 2026-09-10. One was needed while `layout.tsx` called
+  // `localFont()`: that entry is a build-time transform whose published function throws, so
+  // the shell laws — which render the real root layout — died on it. The faces are declared in
+  // `app/fonts.css` now and loaded from `public/`, which takes them out of the module graph
+  // entirely, so there is no build-time call left for a stub to stand in for.
   test: {
     name: "docs",
     // .tsx as well: a law that renders a layout is JSX, and the app's only laws until
