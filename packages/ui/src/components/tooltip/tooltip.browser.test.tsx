@@ -774,11 +774,29 @@ describe("the entry is a LIFT, not a silhouette (§32, 2026-08-31)", () => {
     // And the flight RELEASES on that clock: the runner reads the longest declared clock off
     // the element, so left on the family's list a chip landed at 300 sat posed past the 510
     // spread. Bounded well under that and well over the tooltip's own.
+    /* AND THE FLIGHT RELEASES ON THAT CLOCK — read where the runner reads it, never timed
+       (2026-09-10). `floating.tsx` sets its release deadline from the longest `duration +
+       delay` on the un-posed popup, so that maximum IS the release, and this asserts it
+       directly. It used to run a stopwatch across the release and require under `form + 200`,
+       which is a 210ms wall-clock discrimination between the tooltip's 300 and the family's
+       510 — measured on CI at 580.8ms against a 500 bound, with the declared maximum correct
+       the whole time: a `setTimeout(release, 350)` firing late on a starved runner, timed by a
+       law that could not tell that from the defect. */
     const form = parseFloat(computed(popup, "--tooltip-form"));
-    const t0 = performance.now();
-    if (!(await until(() => !popup.hasAttribute("data-unfurling"), form * 3)))
-      throw new Error("the flight never released");
-    expect(performance.now() - t0, "released on the family's long clock, not the tooltip's").toBeLessThan(form + 200);
+    const delays = computed(popup, "transition-delay").split(",");
+    const spans = computed(popup, "transition-duration")
+      .split(",")
+      .map((d, i) => (parseFloat(d) + parseFloat(delays[i % delays.length] ?? "0")) * 1000);
+    expect(
+      Math.max(...spans),
+      `the release deadline is ${Math.max(...spans)}ms, not the tooltip's ${form}ms`,
+    ).toBe(form);
+    // Calibration: the family's own spread is longer, so `=== form` is a real discrimination
+    // and not a bound every clock in the building would satisfy.
+    expect(
+      parseFloat(computed(popup, "--floating-spread")),
+      "calibration: the family's clock is no longer than the tooltip's, so this tells nothing apart",
+    ).toBeGreaterThan(form);
   });
 
   it("the exit returns to the seed, not the family's 2% settle", async () => {
