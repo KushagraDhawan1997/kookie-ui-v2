@@ -8,6 +8,22 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-10 Three repairs that survived a collision, and the check that found the other five
+
+**What.** The turbo `lint` edge, the menu's full-width row law, and the ring-landing law's engine premise.
+
+**Why this entry is short.** A branch had been carrying a larger pass — the panel band's owed laws, the overflow seat's shrink bug, a glyph with one consumer — and every one of those was fixed independently on `main` in the same hours, by a different session, with the same diagnosis and in two cases the same sentence. Nothing was lost by dropping them; what is worth recording is how the overlap was found and what it left.
+
+**The check.** Rather than merge sixteen conflicted files and choose between two parallel rewrites of the same laws, each item was tested against `main` on its own: is this still red, and if not, how did they close it? Two of the four I believed unique had already been solved with a DIFFERENT SPELLING — `dropUnusedImports` now reads the import block whole, and the floating-paint law anchors on the declaration rather than the rule opening. My greps had looked for my own spellings (`matchAll`, `blockDeclaring`) and answered "absent" for both. **A proxy for a fix is not a test for the fix**: the only honest question is whether the tree is still red.
+
+**The turbo edge is the one that matters.** `eslint.config.js` loads the package's own built plugin by path, and `lint` depended on `^build` — a package's DEPENDENCIES, which `@kookie-ui/react` has none of that build, so the list expanded to nothing (`turbo run lint --dry=json` reports `dependencies: []`). On a clean checkout `dist` never exists when lint runs, so CI died at module resolution before a single test and had done for eleven commits. It passed locally only because a previous build had left `dist` behind — the exact failure the `lint` task's own comment describes for `tsc`, written one line above the setting that had the bug.
+
+**The menu law was a rounding artefact, not a stale value.** It subtracted padding from an integer `clientWidth` and compared that against a fractional rect, so the two sides could disagree by up to a pixel for no reason but rounding. It failed at exactly the tolerance — `expected 81.5 to be close to 82` — with nothing wrong on screen. Both sides come from one currency now.
+
+**And the ring law was asserting an engine, not a design.** It required every station of the arrival to be a whole pixel, because Chrome resolves `outline-offset` that way and that is what makes a field's 2px three values and a stutter — the measurement §8's instant-ring refusal rests on. On Chromium 141 the same arrival renders 96 sub-pixel stations. The law had predicted this outcome in as many words, so it now states the constraint it was standing in for: at least one rendered station per pixel crossed, which a quantising engine meets exactly and an interpolating one exceeds. §8 is amended. **The refusal stands until it is re-judged on a screen** — whether 2px reads as motion is taste, not a law — but it is conservative now rather than forced.
+
+---
+
 ## 2026-09-09 A side drawer pushes the frame; only a sheet from below recedes it
 
 Kushagra, on the mobile sidebar: *"Treating a left drawer like an iOS sheet which comes from below
