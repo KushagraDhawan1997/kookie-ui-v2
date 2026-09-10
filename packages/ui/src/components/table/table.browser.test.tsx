@@ -10,7 +10,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { APPEARANCES, SIZES, computed, mounted, tokenOn } from "../../test/browser.tsx";
+import { APPEARANCES, SIZES, computed, mounted, tokenOn, until } from "../../test/browser.tsx";
 import { fontWeight } from "../../tokens/config.ts";
 import { Box } from "../box/box.tsx";
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
@@ -360,15 +360,20 @@ describe("the scroller is nameable, and unnamed it claims nothing (§36)", () =>
     for (const appearance of APPEARANCES) {
       const table = mounted(<Fixture size="2" />, { theme: { appearance } });
       const area = mounted(
-        // Genuinely overflowing, and read two frames later: Base UI renders no bar in the
-        // mount commit — it measures the viewport first, which is `scroll-area`'s own
-        // `laidOut` and the reason a synchronous read here found nothing at all.
+        // Genuinely overflowing: Base UI renders no bar in the mount commit — it measures the
+        // viewport first, which is `scroll-area`'s own `laidOut` and the reason a synchronous
+        // read here found nothing at all.
         <ScrollArea style={{ height: "80px", width: "120px" }}>
           <div style={{ height: "600px", width: "600px" }} />
         </ScrollArea>,
         { theme: { appearance } },
       );
-      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      // THE THUMB'S OWN ARRIVAL, never a frame count. This waited two frames, which is a claim
+      // about the machine: measured under `KUI_STALL=8`, two frames are not enough and the law
+      // failed with nothing to compare against. `until` polls the same frames and stops on the
+      // thing it is waiting for, so a fast runner is no slower and a starved one still gets
+      // there — and the guard below is untouched, so a thumb that never renders still fails.
+      await until(() => area.querySelector(".kui-scroll-thumb") !== null);
       const thumb = area.querySelector(".kui-scroll-thumb");
       expect(thumb, "no ScrollArea thumb to compare against").not.toBeNull();
 

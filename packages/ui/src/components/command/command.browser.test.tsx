@@ -13,7 +13,7 @@ import * as React from "react";
 import { afterEach, describe, expect, it } from "vitest";
 import { page, userEvent } from "vitest/browser";
 
-import { APPEARANCES, asksForStillness, catchDissolve, computed, inMotion, render, settleAll, tokenOn, until, within } from "../../test/browser.tsx";
+import { APPEARANCES, asksForStillness, catchDissolve, computed, inMotion, render, settle, settleAll, tokenOn, until, within } from "../../test/browser.tsx";
 import { VIEWPORT } from "../../test/viewport.ts";
 import { Theme } from "../../theme/theme.tsx";
 import { Dialog, DialogContent, DialogTitle } from "../dialog/dialog.tsx";
@@ -2028,12 +2028,20 @@ describe("the pane tells the LENS where it is going (§10, §22 — 2026-09-05)"
        scaled box: the first spelling published 303.61px for a pane that lands at 313, and the lens
        re-minted once on arrival — the pop this mechanism exists to remove, made smaller. The
        family's own width-floor defect (2026-08-22) is this mistake one component over. */
-    const { pane } = await openedByPress();
+    const { popup, pane } = await openedByPress();
     const published = parseFloat(pane.style.getPropertyValue("--kui-fly-h"));
     expect(published, "nothing was published, so this law is the first one again").toBeGreaterThan(0);
-    // Read against where it LANDS, which is the only box the published one is a claim about — the
-    // pane's own height while it is still flying is neither.
-    await until(() => !pane.hasAttribute("data-unfurling"));
+    /* Read against where it LANDS, which is the only box the published one is a claim about — the
+       pane's own height while it is still flying is neither. LANDED BY `settle`, never by waiting
+       out the mark: `data-unfurling` comes off on `transitionend` OR on a guard timer 200ms past
+       the fall, and the guard is there precisely for the mounts where nothing flew, so its firing
+       says nothing about the height having arrived. On a starved runner it fires first and the
+       law read a mid-flight box — 174 against a landing of 196 (CI 2026-09-10), and 26 under
+       `KUI_STALL=20`, which is a seed. The claim is not about the flight's path anyway: what it
+       compares is a LAYOUT height against a layout height, which is what catches the defect it
+       was written for, since `getBoundingClientRect()` would carry the popup's 3% scale and
+       `offsetHeight` does not. */
+    settle(popup);
     const landed = pane.offsetHeight;
     expect(landed, "it never opened, so the comparison below is two seeds").toBeGreaterThan(100);
     expect(published, "the box was measured through the popup's own 3% pose").toBe(landed);

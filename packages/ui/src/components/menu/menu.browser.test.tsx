@@ -3710,7 +3710,38 @@ describe("the panel unfurls out of a seed (§22)", () => {
       await until(() => document.querySelectorAll(".kui-menu-popup").length > 0);
       const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop();
       if (!popup) throw new Error("the popup never opened");
-      return { popup, positioner: popup.parentElement!, trigger };
+      const positioner = popup.parentElement!;
+
+      /* THE PIN IS CAUGHT, NOT LOOKED FOR (2026-09-10). The runner writes the positioner's
+         inline height at departure and STRIPS it at release, so it is a WINDOW — and the law
+         below read it after `departed()`, whose three `requestAnimationFrame`s are a frame
+         count rather than a signal. Measured in a full-suite run: those three frames spanned
+         the whole flight and the law failed on its own premise, `expected false to be true`,
+         with the pin already gone. Its paragraph claimed determinism on the grounds that "an
+         inline style holds for the whole ~500ms flight", which is true of 500ms of WALL time
+         and says nothing about how many statements a starved runner fits inside it.
+
+         Armed here, before any law can look: the first value written is held, and no
+         scheduling can take it back. Recorded immediately too, because the pin may already be
+         on — `aim()` runs in a microtask after mount and `until` polls frames, so whether the
+         observer ever fires is itself a race, and only one of the two arms needs to win. */
+      const caught: { height: string; fit: string; room: string }[] = [];
+      const record = () => {
+        if (caught.length > 0 || !Number.isFinite(parseFloat(positioner.style.height))) return;
+        caught.push({
+          height: positioner.style.height,
+          fit: positioner.style.getPropertyValue("--kui-pin-fit"),
+          room: getComputedStyle(positioner).getPropertyValue("--available-height"),
+        });
+      };
+      const pinWatch = new MutationObserver(record);
+      pinWatch.observe(positioner, { attributes: true, attributeFilter: ["style"] });
+      record();
+      const pinned = () => {
+        pinWatch.disconnect();
+        return caught[0];
+      };
+      return { popup, positioner, trigger, pinned };
     }
 
     it("the pin the flight anchors to is the CLAMPED box, never the 100vh-capped natural (§22, 2026-08-25)", async () => {
@@ -3721,11 +3752,13 @@ describe("the panel unfurls out of a seed (§22)", () => {
        * ~500ms flight. Falsified: delete `fitPin` in floating.tsx and the pin reads the
        * unclamped ~1300px against a room under 700.
        */
-      const { popup, positioner } = await openConstrainedUp();
+      const { popup, positioner, pinned } = await openConstrainedUp();
       await departed(popup);
       expect(positioner.getAttribute("data-side"), "the premise: it opened upward").toBe("top");
-      const pin = parseFloat(positioner.style.height);
-      const room = parseFloat(getComputedStyle(positioner).getPropertyValue("--available-height"));
+      const held = pinned();
+      expect(held, "the premise: the flight pinned the positioner").toBeTruthy();
+      const pin = parseFloat(held!.height);
+      const room = parseFloat(held!.room);
       expect(Number.isFinite(pin), "the premise: the flight pinned the positioner").toBe(true);
       expect(Number.isFinite(room), "the premise: the room is a real length by departure").toBe(true);
       // Calibration: the list genuinely does not fit — a fitting list makes every spelling
@@ -3738,7 +3771,7 @@ describe("the panel unfurls out of a seed (§22)", () => {
       ).toBeGreaterThan(pin + 100);
       expect(pin, `the pin (${Math.round(pin)}) must be the clamped room (${Math.round(room)})`).toBeLessThanOrEqual(room + 1);
       // And the correction's own observable, which is what the departure gate reads.
-      expect(positioner.style.getPropertyValue("--kui-pin-fit"), "the marker the gate keys on").toBeTruthy();
+      expect(held!.fit, "the marker the gate keys on").toBeTruthy();
     });
 
     it("the box does not move on the frame the flight releases — read in the strip's own microtask (§22, 2026-08-25)", async () => {
