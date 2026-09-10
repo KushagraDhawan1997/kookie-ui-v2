@@ -8,17 +8,27 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
-## 2026-09-10 The last door was five seconds wide
+## 2026-09-10 The runner's clock was an input to three verdicts
 
-**What.** The whole-corpus arrangement law in `controls.test.ts` takes the budget four of its neighbours already carry, and the dead `next/font/local` alias goes with the stub behind it.
+**What.** Three repairs, one per shape: a per-law budget in the docs suite, a project-wide hang-guard budget for the package's node laws, and one browser law's setup made deterministic. Plus the dead `next/font/local` alias and the stub behind it.
 
-**Why.** With the lint edge, the fonts and the wire check repaired, CI reached every stage for the first time in weeks — and stopped on a test timeout. That one failure then cancelled the two heaviest tasks mid-flight: `docs#build` during its TypeScript step, and the package's browser project partway through the select laws. Neither had failed; both were killed. Read off the summary alone it looked like three tasks broken, and it was one.
+**Why.** With the lint edge, the fonts and the wire check repaired, CI reached every stage for the first time in weeks — and then failed twice on the MACHINE rather than on the code. Both summaries named more broken tasks than there were: turbo cancels what is in flight, so one timeout reported `docs#build` (killed during its TypeScript step) and the package's browser project (killed partway through the select laws) as not-successful when neither had failed. Read off the summary alone it looked like three tasks broken, and it was one. Twice.
 
-**It is a budget, not a defect.** The law server-renders every controlled example twice — bare, then through the real `Example` — with a disk read each. 874ms here; past 5,000ms on a two-core runner beside a neighbour that held both cores for 63 seconds. The assertion is untouched, and `60_000` is what the four other whole-corpus laws in this suite already state.
+**A budget is not a tolerance, where the subject is a walk.** The docs law server-renders every controlled example twice — bare, then through the real `Example` — with a disk read each: 874ms here, past 5,000ms on a two-core runner beside a neighbour that held both cores for 63 seconds. `resolve.test.ts`'s preview law is the same shape at 713ms. Neither assertion is about a duration, so neither timeout was reporting anything about the code.
 
-**Rejected: splitting it per slug.** Thirty-eight `it`s do the same work with more scaffolding, and the vacuity guard that sits beside this law is a claim about the walk — that some example in the corpus roots its own paper — so the walk is the shape the pair is written in. Nothing was wrong except the budget.
+**The two got different fixes, and the difference is the point.** The docs law takes `60_000` at the call site, which is what the four other whole-corpus laws in that suite already state. The package's whole NODE project takes `testTimeout: 30_000` instead, because every law in it is a pure walk over a fixed corpus — it terminates or it loops forever — so a timeout there can only ever catch a loop, and vitest's 5s default was quietly making the runner's load part of the verdict. A second law in that project already sits at 2.6s (the type refusals, building diagnostics per prop) and would have been the next red.
+
+**Rejected: the same raise for the BROWSER project.** There a timeout is frequently the finding — "the panel never opened" is what several laws exist to say — so the tight default stays and each raced law is repaired where it stands.
+
+**Rejected: splitting the docs law per slug.** Thirty-eight `it`s do the same work with more scaffolding, and the vacuity guard beside it is a claim about the WALK — that some example in the corpus roots its own paper — so the walk is the shape the pair is written in.
+
+**The third was not a budget at all.** `a KEYBOARD dismissal dissolves, exactly like a pointer's` failed on its own premise: "this law's own panel never opened". Its CLAIM is deterministic — two exit clocks compared through a MutationObserver armed before the gesture, which is exactly what the frames ledger asks for — and its SETUP was raced: it queried for the open popup one microtask after the press, and `flushFlight()` turns the runner's microtask without saying anything about React having committed the mount. It waits on the panel's own signal now. **The tell that this is right rather than convenient: it was the only `press` in that file with nothing awaited after it** — every other site already waits on `seam`, `posed`, or an `until`. Marking it `watchesFrames` would have taken a static claim out of CI to fix a setup bug, which is the ledger's own warning about the marker being this repo's favourite way of not failing.
+
+**Found beside it.** A `WATCHES FRAMES` comment describing a submenu's aimed-seed transient sat above the keyboard-dismissal law, which carries no marker at all, while the law it describes carried none. Moved. A comment claiming a law is excluded when it is not is worse than no comment: it answers the reader's question wrongly.
 
 **And the `next/font/local` alias is dead.** It existed because `layout.tsx` called `localFont()`, a build-time transform whose published function throws by design — which is what killed the shell laws where they render the real root layout. The faces are declared in `app/fonts.css` and served from `public/` now, so there is no build-time call left for a stub to stand in for. Deleted rather than kept, because a stub with no subject is something a later law reaches for and gets a wrong answer from.
+
+**A correction, and it is the useful part.** The first of these three was written up as "the last door". It was not, and the next run disproved it in four minutes. Nothing here could be known in advance: each repair is what makes the next stage RUN, and a stage nothing has run is a stage with no evidence either way. The claim to avoid is not "this is fixed" but "this is the last one".
 
 ---
 

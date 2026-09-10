@@ -22,6 +22,15 @@ export default defineConfig({
           include: ["src/**/*.test.{ts,tsx}"],
           exclude: ["src/**/*.browser.test.tsx"],
           environment: "node",
+          // A HANG-GUARD, not a claim about speed (2026-09-10). Every law in this project is a
+          // pure walk over a fixed corpus — it terminates or it loops forever — so what a
+          // timeout can catch here is a loop, and vitest's 5s default was instead making the
+          // machine's load part of the verdict. Three of these laws do real work (the type
+          // refusals build diagnostics per prop, 2.6s; the preview law generates the whole
+          // density page, 0.8s) and a two-core CI runner is several times slower than a
+          // developer's, so `resolve.test.ts` went red on CI with nothing wrong in it. A
+          // genuine loop still fails, later and just as loudly.
+          testTimeout: 30_000,
         },
       },
       {

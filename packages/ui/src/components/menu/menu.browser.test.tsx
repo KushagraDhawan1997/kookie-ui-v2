@@ -2067,9 +2067,6 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(computed(popup, "pointer-events"), "the flight must hit-test").toBe("auto");
   });
 
-  // WATCHES FRAMES: it hunts for the last AIMED SEED frame — a pose that holds about two
-  // frames — by polling, so a stalled runner misses the window and reports a submenu that
-  // never posed. Local only (test/browser.tsx carries the criterion).
   it("a KEYBOARD dismissal dissolves, exactly like a pointer's (§8, §22)", async () => {
     /**
      * Measured 2026-08-22: pressing Escape removed a menu in ONE FRAME — opacity 1 to 0, gone
@@ -2112,9 +2109,19 @@ describe("the panel unfurls out of a seed (§22)", () => {
       // The OPEN one, never "the first" or "the last" (this file's own instrument scar, twice):
       // a previous law's panel can still be mid-dissolve, and document order says nothing about
       // which panel is this law's.
-      const popup = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].find((el) =>
-        el.hasAttribute("data-open"),
-      )!;
+      const opened = () =>
+        [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].find((el) =>
+          el.hasAttribute("data-open"),
+        );
+      // WAITED FOR, never assumed. `flushFlight` turns the runner's own microtask and says
+      // nothing about React having committed the popup; on a loaded runner the press resolved
+      // before the mount and this law failed on its own premise, with no panel to find (CI
+      // 2026-09-10). That is the SETUP being raced, not the claim — nothing below is a
+      // duration, the exit clocks are read through an observer armed before the gesture. The
+      // guard survives the wait rather than being replaced by it: a menu that genuinely never
+      // opens still fails here, three seconds later, on this sentence.
+      await until(() => opened() !== undefined);
+      const popup = opened()!;
       expect(popup, "this law's own panel never opened").toBeTruthy();
       // LANDED FIRST, and this is not tidiness: the pose carries its own `transition: none`
       // (surfaces.css, the seed block), so a panel dismissed while it is still flying reports
@@ -2522,6 +2529,9 @@ describe("the panel unfurls out of a seed (§22)", () => {
     expect(sub.getBoundingClientRect().right, "and it lands on the seam").toBeCloseTo(seam.left, 0);
   });
 
+  // WATCHES FRAMES: it hunts for the last AIMED SEED frame — a pose that holds about two
+  // frames — by polling, so a stalled runner misses the window and reports a submenu that
+  // never posed. Local only (test/browser.tsx carries the criterion).
   watchesFrames("a panel that lands BESIDE its trigger grows out of the SEAM, not out of the row (§22)", async () => {
     /**
      * The silhouette's one exception, and it is decided by the placement rather than by the
