@@ -2741,6 +2741,16 @@ describe("the panel unfurls out of a seed (§22)", () => {
      * Read while the panel is FLYING, which is the whole claim — a law that read the settled
      * panel would pass on the defect, since the settled panel always had its lens.
      */
+    /* SEIZED, because the premise is a WINDOW (2026-09-10). This law must read the panel while
+       it is airborne — its own paragraph says so — and it reached that state through
+       `departed()`, three `requestAnimationFrame`s, which is a frame count and not an edge. On
+       CI the whole flight fitted inside them and the law failed on its own calibration:
+       `the panel is not flying — nothing under test`. `seizeFlight` catches the depart edge
+       with an observer armed before the mount and PAUSES every clock under the panel, so the
+       window is held open rather than raced for. The seizure's stated limit does not bind
+       here: it cannot step floating-ui's placement loop, and nothing below reads the panel's
+       PLACE — only whether it wears a lens and which box that lens was built from. */
+    const seized = seizeFlight();
     const { popup } = await openUnsettled(
       { material: "regular" },
       <Box backdrop>
@@ -2748,7 +2758,7 @@ describe("the panel unfurls out of a seed (§22)", () => {
         <MenuItem>Beta</MenuItem>
       </Box>,
     );
-    await departed(popup);
+    const flight = await seized;
 
     // CALIBRATION, both halves. Without the first this law is about a panel that is not
     // flying; without the second it is about a panel with no glass, where an absent lens is
@@ -2781,6 +2791,9 @@ describe("the panel unfurls out of a seed (§22)", () => {
       probe.src = href;
     });
     expect(decoded, `the map is ${decoded}px tall for a panel landing at ${target}px`).toBeCloseTo(target, -1);
+    // Landed by its own clocks, so the runner's release timer — armed at depart and
+    // deliberately untouched by the seizure — strips the flight over a panel already at rest.
+    flight.land();
   });
 
   for (const dir of ["ltr", "rtl"] as const) {
