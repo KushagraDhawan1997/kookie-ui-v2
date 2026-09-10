@@ -668,11 +668,22 @@ describe("rows ride the existing control cells in all 24 cells (§21)", () => {
       expect(computed(row, "border-top-left-radius"), label).toBe(
         tokenOn(popup, `--radius-row-${cell.size}`),
       );
-      // Full width: the row spans the panel's content box exactly.
+      /* Full width: the row spans the panel's content box exactly.
+
+         MEASURED IN ONE CURRENCY (2026-09-10). This subtracted the padding from `clientWidth`,
+         which is an INTEGER, and compared it against a rect width, which is not — so the two
+         sides could disagree by up to a pixel for no reason but rounding. It survived while the
+         numbers happened to land whole and failed the day the panel band moved the inset:
+         `fine/default/3: expected 81.5 to be close to 82`, a difference of exactly the
+         tolerance, with nothing wrong on screen. Both sides are fractional now and come from
+         the same source. */
       const box = padBox(popup);
+      const boxRect = box.getBoundingClientRect();
+      const inset = (side: "left" | "right") =>
+        parseFloat(computed(box, `padding-${side}`)) + parseFloat(computed(box, `border-${side}-width`));
       expect(row.getBoundingClientRect().width, label).toBeCloseTo(
-        box.clientWidth - parseFloat(computed(box, "padding-left")) * 2,
-        0,
+        boxRect.width - inset("left") - inset("right"),
+        1,
       );
     });
   });
