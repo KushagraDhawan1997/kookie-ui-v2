@@ -88,8 +88,20 @@
     // edge the task could run first and report `TS2307: Cannot find module`, which reads like
     // a broken import rather than a missing build; it only ever passed because a previous
     // build had left `dist` behind, and an interrupted one made it fail out of nowhere.
+    //
+    // `build` JOINS `^build`, and the difference between them is the whole bug (2026-09-08).
+    // `^build` builds a package's DEPENDENCIES; it says nothing about the package itself, and
+    // `@kookie-ui/react` has no workspace dependency that builds — so for that package the
+    // list expanded to NOTHING. `turbo run lint --dry=json --filter=@kookie-ui/react` reported
+    // `dependencies: []`, and the root `eslint.config.js` loads this package's own built lint
+    // plugin by path, so on a checkout with no `dist` every lint run died at module
+    // resolution before reading one line of source. CI had been red on `main` for eleven
+    // commits; it passed locally only because a previous build had left `dist` behind — which
+    // is the exact failure mode the paragraph above describes for `tsc`, written one line
+    // above the setting that had the bug. The shape is `test`'s (`["^test", "build"]`) and
+    // `measure`'s (`["build"]`), and it adds no cycle because `build` never depends on `lint`.
     "lint": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build", "build"]
     },
     "measure": {
       "dependsOn": ["build"]
