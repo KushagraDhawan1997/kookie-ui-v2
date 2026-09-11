@@ -725,18 +725,43 @@ describe("the pane's own lighting is three layers, and the ring is the edge (§1
 describe("continuous curvature (§6, ported 2026-08-16)", () => {
   const css = raw("system/surfaces.css");
 
-  it("the shape and its compensation live or die together, inside one @supports block", () => {
-    // The rule that makes this safe to ship: an engine without `corner-shape` must be
-    // untouched, and it is — the property and the multiplier are declared in the same guarded
-    // block, so there is no arrangement in which a browser gets the number without the shape.
-    // That is the failure the lab guards with a fallback ratio; here it is structural.
+  it("the SHAPE stays inside its guard, and the compensation has one value on each side of it", () => {
+    // RE-KEYED 2026-09-11, and the law it replaces stated the OLD design rather than a
+    // guarantee. It read "the property and the multiplier live or die together", which was the
+    // right sentence while the compensation was one-sided: the band was authored as the arc
+    // value and the guard multiplied it, so a knob outside the guard could only be a mistake.
+    //
+    // That made 1.613 a claim — that a squircle of 1.613R reads like an arc of R — and the
+    // claim was never derived. Measured on the diagonal, an arc of radius R bites 0.2929R in
+    // from the box corner and a squircle bites 0.1591R, so the arc branch was running 14%
+    // deeper than the shape it stands in for at every band step. It is a real conversion with a
+    // value on each side, and the compensation now says so.
+    //
+    // What is still structural is the SHAPE: `corner-shape` outside the guard is the lozenge
+    // bug, and that half is unchanged. What the knob owes instead is that each branch states
+    // exactly one value — a second arc value or a second squircle value is two systems.
     const guard = from(css, "@supports (corner-shape: squircle)");
     expect(guard).toContain("corner-shape: squircle");
-    expect(guard).toContain("--kui-corner-k:");
-    // And nowhere else: a squircle declared outside the guard is the lozenge bug.
     const outside = css.replace(guard, "");
     expect(outside, "corner-shape escapes its @supports guard").not.toContain("corner-shape: squircle");
-    expect(outside, "the corner multiplier escapes its @supports guard").not.toContain("--kui-corner-k:");
+
+    // One value per family per branch, and the two branches must actually differ — a knob that
+    // agrees across the guard is the one-sided compensation wearing two declarations.
+    const knob = (block: string, selector: string): string => {
+      const rule = from(block, selector);
+      const m = rule.match(/--kui-corner-k:\s*([\d.]+)/);
+      if (!m) throw new Error(`no --kui-corner-k under ${selector}`);
+      return m[1];
+    };
+    for (const family of [".kui-surface {", ".kui-surface.kui-floating-rows {"]) {
+      const arc = Number(knob(outside, family));
+      const squircle = Number(knob(guard, family));
+      expect(arc, `${family} arc knob is not a compensation`).toBeGreaterThan(0);
+      expect(squircle, `${family} squircle knob is not a compensation`).toBeGreaterThan(arc);
+    }
+    // And the shell's receded frame reads the same hook, so it needs the same pair or it stops
+    // matching the drawer beside it — the reason it joined the guard in the first place.
+    expect(outside, "the shell frame lost its arc knob").toContain(".kui-shell::after");
   });
 
   it("no radius level switches the shape off — the default world was dark for a day", () => {

@@ -892,7 +892,20 @@ describe("material on a control: backdrop defense, three environments (§10)", (
       // every engine that cannot render an SVG filter in a backdrop-filter, so the chain the
       // stylesheet declares is what those get. Both halves asserted — the empty fallback is
       // what makes the lens additive, and a lens spelled without it could subtract glass.
-      expect(body).toContain(`backdrop-filter: var(--kui-lens, ) var(--material-${m}-control-filter)`);
+      //
+      // THROUGH A HOOK SINCE 2026-09-11, and the indirection is load-bearing rather than
+      // cosmetic. The lens-less engines take a different filter row (`-frost`), and the rule
+      // that selects it is a descendant selector, so it outweighs these blocks. Written as a
+      // second `backdrop-filter` declaration it also outweighed the reduced-transparency,
+      // print and forced-colors arm that says `backdrop-filter: none` — measured: a sealed
+      // pane kept a live blur. Declaring only the HOOK leaves the seal the single writer of
+      // the property, which is the whole reason the value arrives this way.
+      //
+      // So the law asserts the guarantee in two halves: the rung's own filter is what this
+      // block names, and the property reads the lens seam plus that hook — never a rung's
+      // filter directly, which would put the seal back in a fight it has to win.
+      expect(body).toContain(`--kui-ct-glass-filter: var(--material-${m}-control-filter)`);
+      expect(body).toContain("backdrop-filter: var(--kui-lens, ) var(--kui-ct-glass-filter)");
     }
     for (const env of [
       recipes.slice(0, recipes.indexOf("@supports")),
