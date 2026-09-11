@@ -8,6 +8,155 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-11 The glass had a part missing on every engine but one, and the lens was bending the wrong numbers
+
+**What.** A deep audit of the material system aimed at mobile and Safari (Kushagra: *"I think we still
+have issues with glass and materials, especially on mobile and safari… the border radius for browsers
+that do not support squircle is too much. We're missing out on those finer touches. I also don't know
+if performance is as good as it can be"*), then nine repairs and one taste call out of the four the
+audit put to him. Everything below was measured before it was changed and falsified after.
+
+**The audit's shape, and why it found this much.** Ten lenses over the material system, each with its
+own adversarial verifier. The recurring form is one this repo keeps meeting: **a mechanism written
+correctly for the engine its author was looking at.** Every part of the glass has an `@supports` story,
+a `data-` story or a media story, and each was written on the day that part shipped, against the
+browser the author had open — so the parts disagree about what an engine without a lens, without
+`corner-shape`, or without `backdrop-filter` is supposed to get. Nothing was wrong in Chromium, which
+is why 2,800 laws were green over all of it.
+
+**THE LENS HAD BEEN DECODING ITS MAP IN THE WRONG COLOUR SPACE SINCE THE DAY IT SHIPPED.** An
+`feDisplacementMap` reads its map as numbers, so the map must be interpreted in the space it was
+authored in — the generator writes sRGB bytes with 128 meaning "no bend". `refraction.tsx` asked for
+that and the attribute never landed: `el()` applies attributes with `setAttribute`, and SVG attribute
+names are not the camelCase IDL spellings React accepts, so `colorInterpolationFilters` wrote an
+attribute the parser ignores and the filter ran at the SVG default, `linearRGB`. Measured on the built
+filter: `linearrgb` before, `srgb` after. 128 read as linear is 0.216, not 0.5, so `scale * (C - 0.5)`
+gave every pixel of the pane a CONSTANT displacement (~2.4px on regular) plus a permanent ~1.4px
+red/blue separation across the body — which is §10's "the body stays true; only the bezel lenses"
+being false everywhere it was written. One misspelled attribute, invisible to every law, because every
+law read the geometry the generator computes rather than the space the browser reads it in.
+
+**THE GLINT LOST ITS BAND ON ANY LARGE PANE, AND THE CAP THAT DID IT IS CORRECT FOR THE BEND.** The
+displacement map is generated at a 320px cap and stretched, which is sound for a low-frequency field.
+The glint's mask is not one: it is a band a few pixels wide lying on the bezel, so the same cap
+squeezes a 3px feature to under a pixel and stretches it back out, and the light goes out. Measured at
+the top-edge midpoint, alpha 18/255 on a full-window pane and 37 on a toolbar; 107 and 123 after. The
+floor is stated as the thing that must survive (`GLINT_BAND_PX = 3` of real band), with an AREA cap so
+a very large pane is still bounded and the ordinary lens scale as the lower bound so the glint is never
+coarser than the bend it rides. **The first measurement of this was WRONG in the flattering direction**
+— I read the map's global maximum, which the corners dominate, and reported a 20% falloff to Kushagra
+when the real number was 89%. Corrected publicly with an edge-midpoint table. An instrument that
+answers from the wrong pixel is not a weaker instrument, it is a different claim.
+
+**AN ENGINE WITH NO LENS GETS A DIFFERENT MATERIAL, NOT THE SAME ONE WITH A PART MISSING.** WebKit was
+excluded on 2026-09-08, and what that left behind is the judged near-clear ladder with nothing
+re-stating the backdrop: 2.4px of blur defending a label alone, a quarter of the ~12px floor §10
+retired on the strength of the lens. The frost row is the answer the lab already had — same veil, same
+saturation, same ring, rim and matter, blur at 8/16/24 on panes and 4/8/13.7 on controls (the control
+row derived at the pane row's own ratio, never judged twice). That is one material rendered two ways,
+which is exactly what the lock permits: a member may vary WHERE a part is painted, and here an ENGINE
+varies how ONE part is priced while every other part stays byte-identical.
+
+**The fork is a HOOK, and the first spelling proved why.** Written as a `backdrop-filter` declaration
+it outranked the seal arm, so a pane under `prefers-reduced-transparency` kept a live blur — measured,
+and later reproduced by a sabotage that put the property back. It declares `--kui-sf-glass-filter` /
+`--kui-ct-glass-filter` only; the property is declared once, in one place, and every existing arm keeps
+its authority.
+
+**And the DEFAULT is the defended row, which is the half that matters.** `stampLens()` writes
+`data-lens="on"` on `<html>` when the gate passes, and frost is what an unstamped document takes — a
+server render, a page with JS off, an engine nobody has stamped. **Rejected: stamping the negative**
+(`data-lens="off"`), which reads more natural and fails open: every one of those three cases would ship
+undefended glass. **Rejected: a per-element decision** — the hook already knows, so it is tempting, and
+a nested scope could then disagree with the engine it is running on. One write, once per document, from
+a gate that is already memoised.
+
+**THE LIP IS LINEAR, AND THE FIRST SPELLING OF THE FIX WAS THE DEFECT WEARING A DIFFERENT ANGLE.** A
+conic gradient sweeps by ANGLE around the box's centre, so the share of its sweep spent on an edge
+depends on that edge's LENGTH: on a wide pane the top edge crossed most of the first arc while each
+short side sat inside one stop — measured, 68% of variation from one end of the top edge to the other,
+which is the lip reading as a blob rather than a line. I built **165deg** first, to keep the conic's
+leftward bias, and measured **69%** — no better, and the square got worse (57% against the conic's 38%).
+A linear gradient is only even along an edge it is PERPENDICULAR to, so tilting it re-introduces exactly
+the defect it was meant to remove. At **180deg** the top lip measures 10% across the same pane, and the
+square is 31% — better than the conic, not solved, because one gradient cannot be perpendicular to four
+edges, and that trade is stated rather than hidden. `lipModel` keeps both emitters in config, one line
+either way, because the conic is what dark's lip was judged on.
+
+**THE SQUIRCLE COMPENSATION HAD ONE VALUE WHERE IT NEEDED TWO, AND THE SENTENCE DEFENDING THAT WAS THE
+DEFECT STATED AS A DESIGN.** §6 read "the property and the multiplier live and die together inside the
+one `@supports` block; an engine without `corner-shape` is untouched by construction" — and "untouched"
+means the arc engines take the raw band, which is authored for the SHAPE. A squircle reads tighter than
+its number, so the same number drawn as an arc reads correspondingly rounder: measured at the default
+`full` on a size-3 card, 64.5px of squircle against 40px of arc. On any pane 80px or shorter BOTH clamp
+to half the height, which takes the bite from 14% to 84% — worst on exactly the small panes (a toolbar,
+a one-row menu, a chip of chrome) where a too-round corner is most visible, which is Kushagra's own
+worked example. The knob is declared once on each side of the guard now: 0.876 arc / 1.613 squircle,
+floating rows 0.950 / 1.75. The law pinning them "together" is re-keyed to what is true — the SHAPE
+stays inside its guard, the compensation has a value on both sides of it.
+
+**A GLASS CONTROL HAD TWO EDGES.** The lip became the whole boundary on 2026-08-24, which ended the
+doubled-edge defects on the panes; the control layer kept its `border-width`, so a 1px band of veil went
+on painting OUTSIDE the lit lip — on a glass button, a glass field and the segmented track, in both
+appearances. Stood down by WIDTH on the shared thickness-invariant rule, which is the segmented track's
+own D2 spelling generalised. **The seal arm restates `border-width` alone, and a shipped law caught the
+first spelling restating a colour with it** — naming a family's colour in the shared layer breaks §7's
+tone indirection. That is the second time this week a law refused a repair and produced the better one.
+
+**FLOATING PANES WERE 49% SEE-THROUGH WITH NO BLUR WHEREVER `backdrop-filter` IS UNAVAILABLE.** Their
+three fill rules sit outside the `@supports` guard, because a popup's veil is trimmed toward its own
+ground and the trim was written as an unconditional re-point. Not a degraded material: an unreadable
+one, and on a menu. The trim moved inside the guard with the opaque seal declared in front of it, which
+is the ordinary two-declaration CSS fallback doing the job it exists for.
+
+**REDUCE TRANSPARENCY DID NOT REACH `on-glass`, AND PRINT AND FORCED COLORS SEALED NOTHING.** The arms
+named the three thicknesses — the list that means *this element IS a pane* — so a control sitting on
+someone else's glass kept a translucent veil under the setting that exists to remove it. (Item 5 of the
+contract records the same list/meaning confusion at fill scale; this is it in the stand-down.) The arm
+is `(prefers-reduced-transparency: reduce), print, (forced-colors: active)` now — one condition, three
+triggers, so a fourth cannot land on only some of them. A pane on paper and a pane under a forced
+palette both have no backdrop worth defending and, unsealed, both lose their boundary entirely.
+
+**AND OS INCREASE CONTRAST NEVER REACHED THE LIT ROW.** The 2026-08-09 audit put a keyboard highlight on
+the SIGNAL side of the contrast split and gave it a solid fill under `contrast="high"` — written against
+the prop's `[data-contrast="high"]` scopes alone. So a person who asked their OS for more contrast and
+never touched the app's switch kept the 1.16:1 row that fix exists to remove, which is that entry's own
+sentence turned inside out: a signal that works only under an opt-in setting is not a signal, and this
+is precisely the person who did not opt in. `prefers-contrast: more` is a twin on the same rules now.
+
+**Rejected: coalescing the lens's resize work into a rAF.** Built, then measured: `ResizeObserver`
+already dispatches once per frame — 40 frames, 40 callbacks, 40 records — so the coalescer was pure
+addition, and a queued callback is an interaction-time handler the shipped `recipes` law refuses on
+sight. Reverted with the refusal written into the module, because the next reader will have the same
+idea. **My own performance number here was wrong first too**: I measured the lens by calling
+`physicalMap` at the element's full box, which bypasses the 320px cap, and reported 14.7ms for a shell
+pane against a real capped cost of ~1.7ms. Corrected publicly.
+
+**Three of the four taste calls were left alone, on Kushagra's word** (*"1. is ok, 2, is ok, 3 should be
+ok also, lets fix 4, the edge highlight one"*). They are recorded because they were measured, not
+because they are open: light glass has no body over the app's own page (`--color-page` and
+`--color-surface` are both `#ffffff` in light, so all four materials render identical pixels there —
+dark is fine at 7/8/9); thin glass sits at 3:1 against its backdrop; and a light control's specular is
+weaker than a dark one's. The fourth is the linear lip above.
+
+**Instrument findings, all of them mine.** `grep -c` on a minified one-line stylesheet counts LINES, so
+one match read as one block and I concluded the pane layer never seals — it seals in seven places.
+Canvas `fillStyle` parsing of `color(srgb …)` produced nonsense contrast figures, the 2026-08-08
+calibration lesson in its third home; sampling real screenshot pixels replaced it. And a pre-existing
+vacuous law surfaced while re-keying: `text-field.browser.test.tsx` asserted the invalid and disabled
+ring stand-down by reading the ELEMENT's `background-image`, but the ring moved to `::after` on
+2026-09-02, so the law's subject had been empty for nine days and could not fail. The behaviour is
+correct (ring opacity 1 live, 0 invalid, 0 disabled); the law now reads the lever that actually moves.
+
+**Sixteen laws changed spelling and none changed claim.** `conic-gradient` was pinned as a literal in
+six files; the positives read `gradient(` now and each negative was re-keyed individually, because a
+glass element legitimately paints a rim and a rim is gradients — `.not.toContain(ring)` against the
+resolved value is the claim, never `.not.toContain("gradient(")` except where a solid control was
+measured painting none. Six sabotages, each caught by exactly the law written for it, including the one
+that puts the `backdrop-filter` declaration back into the frost fork and reproduces the shipped bug.
+
+---
+
 ## 2026-09-10 The runner's clock was an input to the verdict, seven times over
 
 **What.** Four repairs across three consecutive red CI runs, plus the dead `next/font/local` alias and the stub behind it. Each failure was about WHEN something was looked at, and each needed a different fix.
