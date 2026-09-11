@@ -750,7 +750,7 @@ describe("continuous curvature (§6, ported 2026-08-16)", () => {
     const knob = (block: string, selector: string): string => {
       const rule = from(block, selector);
       const m = rule.match(/--kui-corner-k:\s*([\d.]+)/);
-      if (!m) throw new Error(`no --kui-corner-k under ${selector}`);
+      if (!m?.[1]) throw new Error(`no --kui-corner-k under ${selector}`);
       return m[1];
     };
     for (const family of [".kui-surface {", ".kui-surface.kui-floating-rows {"]) {
