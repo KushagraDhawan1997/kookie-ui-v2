@@ -1096,7 +1096,55 @@ type RingStops = { a: string; b: string; c: string; d: string };
 const conicRing = ({ a, b, c, d }: RingStops): string =>
   `conic-gradient(from 345deg, ${a}, ${b} 22%, ${c} 34%, ${d} 44%, ${d} 56%, ${c} 66%, ${b} 78%, ${a})`;
 
-const ringBg = (mode: "light" | "dark"): string => conicRing(material.ring[mode]);
+/**
+ * THE SAME LIGHT, PARAMETERISED BY THE EDGE INSTEAD OF THE ANGLE (§10, 2026-09-11, Kushagra:
+ * the edge highlight).
+ *
+ * A conic gradient is measured as an ANGLE FROM THE BOX'S CENTRE, and what a lit edge owes is a
+ * function of its own NORMAL. On a square the two coincide, which is where the recipe was
+ * judged. On anything else they come apart, and they come apart in proportion to the aspect
+ * ratio: from the centre of a 760x64 toolbar the two short ends subtend about six degrees
+ * between them while the long edges take the rest, so the whole sweep — catch, flanks, shade
+ * and back — is spent along the top and bottom and the catch lands as a BLOB at one end.
+ * Rendered at three aspect ratios the same material reads as three different objects: a square
+ * card lit from the upper left, a toolbar with a bright spot on its right end, and a rail lit
+ * at the top and again at the bottom.
+ *
+ * A linear gradient is measured along a DIRECTION, so it is constant perpendicular to that
+ * direction — which is the property a distant light has and the conic does not. The top edge of
+ * a wide pane is then lit evenly along its length, the bottom is shaded evenly along its
+ * length, and the two short ends carry the transition. That is Apple's own read: the specular
+ * holds along an edge and turns at the corners.
+ *
+ * The stops are NOT the conic's numbers reused. A conic wraps, so it must return to `a` at 100%
+ * and its shade sits in the middle; a linear does not wrap, so the same light is monotone —
+ * catch, flanks, shade, and it stays shaded.
+ *
+ * 180deg, AND THE ANGLE IS THE WHOLE MECHANISM — 165deg was built first, to keep the conic's
+ * slight leftward bias, and measured no better than the thing it replaced. A linear gradient is
+ * constant PERPENDICULAR to its direction, so only a vertical one is constant along a
+ * horizontal edge; tilt it 15 degrees and the top edge varies across its own length again.
+ * Measured on a 540x56 pane in dark, sampling the top lip's peak luminance at nine points
+ * across the width: the conic spreads 68% and spikes mid-edge (the blob), 165deg spread 69% —
+ * the same unevenness rotated into a ramp — and 180deg spreads 10%. On a 150x150 square, where
+ * the conic was judged and where angle and normal nearly agree, 180deg is 31% against the
+ * conic's 38%, so the case the recipe was tuned on does not regress either.
+ *
+ * A vertical light is also the honest physical read: the top edge's normal points at the light
+ * and is fully lit, the bottom's points away and is fully shaded, and the two sides sit at the
+ * midpoint and ramp between them — which is what a distant source overhead does, and what the
+ * conic can only approximate on a box whose width and height happen to match.
+ */
+const linearRing = ({ a, b, c, d }: RingStops): string =>
+  `linear-gradient(180deg, ${a}, ${b} 18%, ${c} 35%, ${d} 70%, ${d})`;
+
+/** Which model the lip is drawn with. `conic` is the shipped one and what every current value
+    was judged against; `linear` is the edge-normal read above. One line, and it moves the ring,
+    the glint and both control rows together — they are one light model or they are two. */
+const lip = (stops: RingStops): string =>
+  material.lipModel === "linear" ? linearRing(stops) : conicRing(stops);
+
+const ringBg = (mode: "light" | "dark"): string => lip(material.ring[mode]);
 
 /**
  * THE GLINT IS THE RING'S LIGHT HALF (§10, 2026-09-02, Kushagra: light glass "looks dirty…
@@ -1148,7 +1196,7 @@ const glintStops = (stops: RingStops): RingStops => ({
   d: lightsOnly(stops.d),
 });
 
-const glintBg = (mode: "light" | "dark"): string => conicRing(glintStops(material.ring[mode]));
+const glintBg = (mode: "light" | "dark"): string => lip(glintStops(material.ring[mode]));
 
 /**
  * The CONTROL's ring (§10, ported from the lab 2026-08-24): dark controls carry roughly
@@ -1158,14 +1206,14 @@ const glintBg = (mode: "light" | "dark"): string => conicRing(glintStops(materia
  * and a second copy that agrees today is the copy that silently disagrees tomorrow.
  */
 const ringControlBg = (mode: "light" | "dark"): string =>
-  mode === "light" ? ringBg(mode) : conicRing(material.ringControlDark);
+  mode === "light" ? ringBg(mode) : lip(material.ringControlDark);
 
 /** The control's glint, the same derivation one row down: light shares the pane's (so the two
     cannot drift), dark keeps the doubled row, and in dark every stop already lightens — so
     this is byte-identical to `ringControlBg` today and stops being so the moment a control
     ring is given a pigment arc. */
 const glintControlBg = (mode: "light" | "dark"): string =>
-  mode === "light" ? glintBg(mode) : conicRing(glintStops(material.ringControlDark));
+  mode === "light" ? glintBg(mode) : lip(glintStops(material.ringControlDark));
 
 
 function surfaceWorld(mode: "light" | "dark"): string[] {
@@ -1174,6 +1222,20 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     return [
       ...materialAlpha(name, m[name].alpha),
       decl(`material-${name}-filter`, m[name].filter),
+      // THE LENS-LESS ROW (2026-09-11). The near-clear ladder above is licensed by the lens —
+      // "blur HIDES a backdrop, a lens RE-STATES it" — and the lens is Chromium-only and gated
+      // off on WebKit outright since 2026-09-08. So every Safari, every iOS browser (they are
+      // all WebKit) and every Firefox has been running a ladder deliberately weakened for a
+      // mechanism it does not have. The material lab already answered this for exactly this
+      // engine tier and the port left it behind: "where refraction cannot bend light at the
+      // bezel, frost carries the material alone — the documented blur/alpha trade, run in the
+      // one direction left to us."
+      //
+      // Blur is the only lever that moves: saturation and brightness stay the judged values, so
+      // one thing changes rather than a second material appearing. The surface layer selects
+      // between the two rows per ELEMENT (see `[data-lens]` there) rather than at :root, which
+      // is what keeps a nested appearance Theme from re-declaring the row nearer and winning.
+      decl(`material-${name}-filter-frost`, m[name].frost),
       // The pane's lighting (§10, 2026-08-05): a top rim catch painted as a background layer —
       // NOT a shadow, so depth stays the app's identity (depth="elevated") and the
       // one-box-shadow law never learns glass exists.
@@ -1206,6 +1268,7 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
       // lab's answer to "hover mode looks weird".
       decl(`material-${name}-control-alpha`, `${m[name].control.alpha}%`),
       decl(`material-${name}-control-filter`, m[name].control.filter),
+      decl(`material-${name}-control-filter-frost`, m[name].control.frost),
       decl(`material-${name}-control-filter-hover`, m[name].control.filterHover),
       // LOUD runs its own filter (lab, rendered 2026-08-17: saturate 220% brightness 1.1
       // against the cell's 140-180%): a committed pigment wants the backdrop glowing

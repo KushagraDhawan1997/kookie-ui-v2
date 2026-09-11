@@ -1330,14 +1330,14 @@ export const material = {
      step — the veil holds and only brightness moves (lab 2026-08-14, "hover mode looks
      weird": the quiet-hover was laying an opaque pastel over the pane). */
   light: {
-    thin: { alpha: [34, 42, 50], alphaHigh: [72, 77, 82], filter: "blur(2.4px) saturate(172.5%) brightness(1.03)", sheen: 13.6, control: { alpha: 30, filter: "blur(1.2px) saturate(140%) brightness(1.02)", filterHover: "blur(1.2px) saturate(140%) brightness(1.09)", filterLoud: "blur(1.2px) saturate(220%) brightness(1.1)" } },
-    regular: { alpha: [49, 57, 65], alphaHigh: [80, 84, 88], filter: "blur(4px) saturate(207%) brightness(1.05)", sheen: 20.4, control: { alpha: 48, filter: "blur(2px) saturate(160%) brightness(1.04)", filterHover: "blur(2px) saturate(160%) brightness(1.09)", filterLoud: "blur(2px) saturate(220%) brightness(1.1)" } },
-    thick: { alpha: [65, 69, 72], alphaHigh: [86, 89, 92], filter: "blur(5.6px) saturate(241.5%) brightness(1.06)", sheen: 25.5, control: { alpha: 66, filter: "blur(3.2px) saturate(180%) brightness(1.05)", filterHover: "blur(3.2px) saturate(180%) brightness(1.09)", filterLoud: "blur(3.2px) saturate(220%) brightness(1.1)" } },
+    thin: { alpha: [34, 42, 50], alphaHigh: [72, 77, 82], filter: "blur(2.4px) saturate(172.5%) brightness(1.03)", frost: "blur(8px) saturate(172.5%) brightness(1.03)", sheen: 13.6, control: { alpha: 30, filter: "blur(1.2px) saturate(140%) brightness(1.02)", frost: "blur(4px) saturate(140%) brightness(1.02)", filterHover: "blur(1.2px) saturate(140%) brightness(1.09)", filterLoud: "blur(1.2px) saturate(220%) brightness(1.1)" } },
+    regular: { alpha: [49, 57, 65], alphaHigh: [80, 84, 88], filter: "blur(4px) saturate(207%) brightness(1.05)", frost: "blur(16px) saturate(207%) brightness(1.05)", sheen: 20.4, control: { alpha: 48, filter: "blur(2px) saturate(160%) brightness(1.04)", frost: "blur(8px) saturate(160%) brightness(1.04)", filterHover: "blur(2px) saturate(160%) brightness(1.09)", filterLoud: "blur(2px) saturate(220%) brightness(1.1)" } },
+    thick: { alpha: [65, 69, 72], alphaHigh: [86, 89, 92], filter: "blur(5.6px) saturate(241.5%) brightness(1.06)", frost: "blur(24px) saturate(241.5%) brightness(1.06)", sheen: 25.5, control: { alpha: 66, filter: "blur(3.2px) saturate(180%) brightness(1.05)", frost: "blur(13.7px) saturate(180%) brightness(1.05)", filterHover: "blur(3.2px) saturate(180%) brightness(1.09)", filterLoud: "blur(3.2px) saturate(220%) brightness(1.1)" } },
   },
   dark: {
-    thin: { alpha: [52, 60, 68], alphaHigh: [76, 80, 84], filter: "blur(2.4px) saturate(175.5%) brightness(0.92)", sheen: 2.75, control: { alpha: 48, filter: "blur(1.2px) saturate(162.5%) brightness(0.95)", filterHover: "blur(1.2px) saturate(162.5%) brightness(1.02)", filterLoud: "blur(1.2px) saturate(180%) brightness(1)" } },
-    regular: { alpha: [67, 74, 81], alphaHigh: [84, 87, 90], filter: "blur(4px) saturate(195%) brightness(0.9)", sheen: 3.85, control: { alpha: 60, filter: "blur(2px) saturate(175%) brightness(0.94)", filterHover: "blur(2px) saturate(175%) brightness(1.02)", filterLoud: "blur(2px) saturate(180%) brightness(1)" } },
-    thick: { alpha: [80, 82, 84], alphaHigh: [90, 92, 94], filter: "blur(5.6px) saturate(208%) brightness(0.88)", sheen: 4.95, control: { alpha: 74, filter: "blur(3.2px) saturate(187.5%) brightness(0.92)", filterHover: "blur(3.2px) saturate(187.5%) brightness(1.02)", filterLoud: "blur(3.2px) saturate(180%) brightness(1)" } },
+    thin: { alpha: [52, 60, 68], alphaHigh: [76, 80, 84], filter: "blur(2.4px) saturate(175.5%) brightness(0.92)", frost: "blur(8px) saturate(175.5%) brightness(0.92)", sheen: 2.75, control: { alpha: 48, filter: "blur(1.2px) saturate(162.5%) brightness(0.95)", frost: "blur(4px) saturate(162.5%) brightness(0.95)", filterHover: "blur(1.2px) saturate(162.5%) brightness(1.02)", filterLoud: "blur(1.2px) saturate(180%) brightness(1)" } },
+    regular: { alpha: [67, 74, 81], alphaHigh: [84, 87, 90], filter: "blur(4px) saturate(195%) brightness(0.9)", frost: "blur(16px) saturate(195%) brightness(0.9)", sheen: 3.85, control: { alpha: 60, filter: "blur(2px) saturate(175%) brightness(0.94)", frost: "blur(8px) saturate(175%) brightness(0.94)", filterHover: "blur(2px) saturate(175%) brightness(1.02)", filterLoud: "blur(2px) saturate(180%) brightness(1)" } },
+    thick: { alpha: [80, 82, 84], alphaHigh: [90, 92, 94], filter: "blur(5.6px) saturate(208%) brightness(0.88)", frost: "blur(24px) saturate(208%) brightness(0.88)", sheen: 4.95, control: { alpha: 74, filter: "blur(3.2px) saturate(187.5%) brightness(0.92)", frost: "blur(13.7px) saturate(187.5%) brightness(0.92)", filterHover: "blur(3.2px) saturate(187.5%) brightness(1.02)", filterLoud: "blur(3.2px) saturate(180%) brightness(1)" } },
   },
   /** How much of the app's shadow a pane lets survive (§10's transmission seam): glass
       passes light, so its cast is the surface row FADED — thin passes most, thick least.
@@ -1357,6 +1357,13 @@ export const material = {
      meet, so there is no seam). The angle is the light model's fixed 165°; the pointer-
      tracked version stays in the lab (JS at interaction time, and a second light model).
      a = facing the light, b = flanks, c = shade side, d = warm collect. */
+  /* HOW THE LIP IS LIT (2026-09-11, Kushagra: the edge highlight). `conic` measures the light
+     as an angle from the box's CENTRE; `linear` measures it along a DIRECTION, so it is
+     constant perpendicular to that direction and a wide pane's top edge is lit evenly along
+     its length instead of collecting the catch into a blob at one end. See `linearRing` in
+     generate.ts for the geometry and for why the two stop lists are not interchangeable.
+     One line; it moves the ring, the glint and both control rows together. */
+  lipModel: "linear" as "conic" | "linear",
   ring: {
     /* LIGHT'S SHADE SIDE IS DARK (2026-08-24, Kushagra: a glass segmented control, field and
        card all vanish on a light ground — "if they didnt have that hairline, they would blend
