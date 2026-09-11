@@ -703,6 +703,26 @@
   --kui-ct-label-color: var(--tone-contrast);
 }
 
+/* AND THE SAME THING WHEN THE OS ASKS (2026-09-11 audit). Every rule above is keyed on the
+   PROP, and the platform signal has no twin here — so a person who turns on Increase Contrast
+   in their OS got every token-level conformance move (the tone bands, the solved edges, the
+   track, the veil, all of which the generator emits under BOTH `[data-contrast="high"]` and
+   `@media (prefers-contrast: more)`) and did NOT get the one that makes a highlighted row
+   legible. Measured when the prop path was fixed on 2026-08-09: the lit fill sits at 1.16:1
+   light and 1.08:1 dark against the panel. The user this rule exists for — keyboard
+   navigation, low vision — is exactly the user arriving through the media query.
+
+   The guard is `:root:not([data-contrast="normal"])`, which is the generator's own lead
+   selector for these blocks, so the media path gets the prop path's behaviour rather than a
+   second, differently-shaped one. */
+@media (prefers-contrast: more) {
+  :root:not([data-contrast="normal"]) .kui-row[data-highlighted]:not([data-disabled]),
+  :root:not([data-contrast="normal"]) .kui-row[data-popup-open]:not([data-disabled]) {
+    background-color: var(--tone-solid);
+    --kui-ct-label-color: var(--tone-contrast);
+  }
+}
+
 /* And the TICK follows the fill too (2026-08-10, Kushagra's eye on the playground: an accent
    tick on a solid row "looks weird"). It is the same half-fix one element over — the rule
    above moved the fill and the label and left the third thing standing on it, which is the
@@ -742,6 +762,15 @@
   .kui-row:where([data-highlighted], [data-popup-open]):not([data-disabled])
   > [data-slot] {
   color: var(--tone-contrast);
+}
+
+/* The slots follow through the platform signal too — see the twin above for why. */
+@media (prefers-contrast: more) {
+  :root:not([data-contrast="normal"])
+    .kui-row:where([data-highlighted], [data-popup-open]):not([data-disabled])
+    > [data-slot] {
+    color: var(--tone-contrast);
+  }
 }
 
 /* ── The size index: one join, eight families (§4) ───────────────────────────────────────── */
@@ -1640,7 +1669,8 @@
     --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-thin-control-alpha), transparent);
     --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-thin-control-alpha), transparent);
     --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-thin-control-alpha), transparent);
-    backdrop-filter: var(--kui-lens, ) var(--material-thin-control-filter);
+    --kui-ct-glass-filter: var(--material-thin-control-filter);
+    backdrop-filter: var(--kui-lens, ) var(--kui-ct-glass-filter);
     /* A glass control TRANSMITS (§10's seam, extended to controls 2026-08-07): its cast is
        the control row faded per thickness, handed by the elevated scope — none in flat,
        none inside a pane (one lift). Declared as the GLASS value, not the cast itself: only
@@ -1659,6 +1689,19 @@
      varied per thickness, so per-block copies would be three homes for one fact. */
   .kui-control:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
     --kui-ct-pool-glass: var(--kui-control-pool, none);
+    /* AND THE BAND GOES, the way a pane's does (2026-09-11 audit). §10's lock says a member
+       may vary WHERE a part is painted and never WHAT it is, and the ring is the glass's one
+       edge — but `.kui-control` keeps the skeleton's `border: var(--border-width) solid
+       var(--kui-border-color, transparent)` while `.kui-surface` zeroes it per thickness
+       (surfaces.css). The colour is transparent either way, so the band is not a line; it is a
+       strip of the VEIL, because the fill paints to the border box and the annulus sits at
+       `inset: 0`, which resolves against the PADDING box. Measured on a glass TextField at 4x:
+       a 1px halo, then the lit lip one pixel in, then the body — two concentric edges, against
+       a glass Card's one. Worst on WebKit, where the lip is the whole edge treatment.
+
+       Thickness-invariant, so it lives in this rule rather than in the three blocks above —
+       the pool's own sentence, one fact one home. */
+    border-width: 0;
   }
   /* GLASS TAKES THE OPAQUE TWINS (2026-08-19). The veil is color-mix(source alpha%,
      transparent), and that formula assumes an opaque source — the percentage IS the veil.
@@ -1686,7 +1729,8 @@
     --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-regular-control-alpha), transparent);
     --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-regular-control-alpha), transparent);
     --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-regular-control-alpha), transparent);
-    backdrop-filter: var(--kui-lens, ) var(--material-regular-control-filter);
+    --kui-ct-glass-filter: var(--material-regular-control-filter);
+    backdrop-filter: var(--kui-lens, ) var(--kui-ct-glass-filter);
     /* A glass control TRANSMITS (§10's seam, extended to controls 2026-08-07): its cast is
        the control row faded per thickness, handed by the elevated scope — none in flat,
        none inside a pane (one lift). Declared as the GLASS value, not the cast itself: only
@@ -1700,7 +1744,8 @@
     --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-thick-control-alpha), transparent);
     --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-thick-control-alpha), transparent);
     --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-thick-control-alpha), transparent);
-    backdrop-filter: var(--kui-lens, ) var(--material-thick-control-filter);
+    --kui-ct-glass-filter: var(--material-thick-control-filter);
+    backdrop-filter: var(--kui-lens, ) var(--kui-ct-glass-filter);
     /* A glass control TRANSMITS (§10's seam, extended to controls 2026-08-07): its cast is
        the control row faded per thickness, handed by the elevated scope — none in flat,
        none inside a pane (one lift). Declared as the GLASS value, not the cast itself: only
@@ -2125,10 +2170,22 @@
   --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) 70%, transparent);
 }
 
-@media (prefers-reduced-transparency: reduce) {
+/* Three conditions, one answer — see the surface arm in surfaces.css for why print and
+   forced-colors want exactly the sealed pane this arm already describes. */
+@media (prefers-reduced-transparency: reduce), print, (forced-colors: active) {
+  /* ON-GLASS IS IN THE LIST (2026-09-11 audit). Every arm of this preference keyed on the
+     three THICKNESSES, which is the list that means "this element IS a pane" — so a control
+     or card sitting ON a glass pane, which is the most common glass value in the system, was
+     reached by none of them. The pane sealed and everything on it stayed see-through: the
+     setting visibly doing half its job, which reads worse than doing none because the pane and
+     its contents then disagree. Same shape as the 2026-08-24 defect, where the glass rules
+     keyed on the thickness list when they meant "any glass state". `on-glass` carries no
+     filter of its own (one glass per stack), so what this reaches for it is the FILL — which
+     is exactly the part that was still translucent. */
   .kui-control[data-material="thin"],
   .kui-control[data-material="regular"],
-  .kui-control[data-material="thick"] {
+  .kui-control[data-material="thick"],
+  .kui-control[data-material="on-glass"] {
     --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-opaque-alpha), transparent);
     --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-opaque-alpha), transparent);
     --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-opaque-alpha), transparent);
@@ -2154,6 +2211,17 @@
     --kui-ct-cast-glass: initial;
     /* And the pool with it — a sealed pane has no glass matter to settle (2026-08-17). */
     --kui-ct-pool-glass: initial;
+    /* AND THE BAND COMES BACK (2026-09-11), because glass now takes it away. The @supports
+       block zeroes `border-width` so the lip is the control's ONE edge; with the ring stood
+       down two lines up, a sealed control that kept `border-width: 0` would have no boundary
+       of any kind.
+
+       Only the WIDTH is restated. The colour is already right: `--kui-ct-glass-edge: initial`
+       above hands the border chain back to the dress edge, which is the same sentence that arm
+       has carried since it was written ("the field takes its ordinary border back"). Naming a
+       colour here would also break §7's tone indirection, and the law that walks these blocks
+       for exactly that caught the first spelling of this line. */
+    border-width: var(--border-width);
   }
 }
 
@@ -2173,22 +2241,53 @@
 @supports (backdrop-filter: blur(1px)) {
   .kui-atom[data-material="thin"] {
     --kui-atom-fill: color-mix(in srgb, var(--kui-atom-fill-src) var(--material-thin-control-alpha), transparent);
-    backdrop-filter: var(--kui-lens, ) var(--material-thin-control-filter);
+    --kui-ct-glass-filter: var(--material-thin-control-filter);
+    backdrop-filter: var(--kui-lens, ) var(--kui-ct-glass-filter);
   }
   .kui-atom[data-material="regular"] {
     --kui-atom-fill: color-mix(in srgb, var(--kui-atom-fill-src) var(--material-regular-control-alpha), transparent);
-    backdrop-filter: var(--kui-lens, ) var(--material-regular-control-filter);
+    --kui-ct-glass-filter: var(--material-regular-control-filter);
+    backdrop-filter: var(--kui-lens, ) var(--kui-ct-glass-filter);
   }
   .kui-atom[data-material="thick"] {
     --kui-atom-fill: color-mix(in srgb, var(--kui-atom-fill-src) var(--material-thick-control-alpha), transparent);
-    backdrop-filter: var(--kui-lens, ) var(--material-thick-control-filter);
+    --kui-ct-glass-filter: var(--material-thick-control-filter);
+    backdrop-filter: var(--kui-lens, ) var(--kui-ct-glass-filter);
+  }
+
+  /* And the control row takes the same fork — see surfaces.css for why the default is frost
+     and why both sides are element-keyed. `:where()` on the family pair so the ancestor guard
+     carries the weight: (0,2,1) against the base blocks' (0,2,0), which is the whole margin
+     this needs. */
+  :root:not([data-lens="on"]) :where(.kui-control, .kui-atom)[data-material="thin"] {
+    --kui-ct-glass-filter: var(--material-thin-control-filter-frost);
+  }
+  :root:not([data-lens="on"]) :where(.kui-control, .kui-atom)[data-material="regular"] {
+    --kui-ct-glass-filter: var(--material-regular-control-filter-frost);
+  }
+  :root:not([data-lens="on"]) :where(.kui-control, .kui-atom)[data-material="thick"] {
+    --kui-ct-glass-filter: var(--material-thick-control-filter-frost);
   }
 }
-@media (prefers-reduced-transparency: reduce) {
+/* Three conditions, one answer — see the surface arm in surfaces.css for why print and
+   forced-colors want exactly the sealed pane this arm already describes. */
+@media (prefers-reduced-transparency: reduce), print, (forced-colors: active) {
   .kui-atom[data-material="thin"],
   .kui-atom[data-material="regular"],
-  .kui-atom[data-material="thick"] {
+  .kui-atom[data-material="thick"],
+  .kui-atom[data-material="on-glass"] {
     --kui-atom-fill: color-mix(in srgb, var(--kui-atom-fill-src) var(--material-opaque-alpha), transparent);
     backdrop-filter: none;
+    /* AND THE LIGHT WITH IT (2026-09-11 audit) — the 2026-08-26 defect, reproduced one family
+       over. This arm sealed the fill and killed the filter and then left the material's own
+       light painting: a Chip or Avatar under the preference stayed a 95% box still wearing a
+       live conic lip and the grain/bloom/sheen gradient, beside a Button and a Card that
+       correctly went matte. The atom joined the ring and rim paint lists on 2026-08-28 and
+       never joined the stand-downs, which is the class-list spelling doing what it did the
+       first time. Two declarations, the same two the control arm above carries — and zeroing
+       the ring hook also re-arms refraction.tsx's skip, whose condition is `sealed && ringDown`,
+       so a sealed atom stops minting a glint map nothing can sample. */
+    --material-ring-opacity: 0;
+    background-image: none;
   }
 }

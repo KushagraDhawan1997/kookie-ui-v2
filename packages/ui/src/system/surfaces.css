@@ -131,9 +131,11 @@
   background-origin: border-box;
   border: var(--border-width) solid var(--kui-border-color, transparent);
   /* The fallback is the default size's corner, for a surface that carries no size index.
-     --kui-corner-k is 1 everywhere except under the squircle block below, which is where
-     the whole compensation lives — see it for why a squircle corner needs a bigger number
-     to read as the same corner. */
+     --kui-corner-k is the shape compensation and it has TWO sides since 2026-09-11: the arc
+     branch takes 0.876 and the squircle branch 1.613, both declared together below — see
+     them for why one authored band needs a different number in each shape, and for the
+     measurement that says the ratio between them is what was wrong. The `1` here is the
+     un-themed document's fallback and nothing else. */
   border-radius: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1));
   padding: var(--kui-sf-p);
   /* The pane's inset, per AXIS — the pair the entry flight's body pin reads (see it for the
@@ -347,6 +349,43 @@
    own "full holds at large's values" sentence), and the things that ARE capsules at full are
    controls, which never take squircle in the first place. The capsule protection is the
    control layer's roundness, not a radius-level switch in this one. */
+/* THE ARC BRANCH GETS THE SAME KNOB (2026-09-11, Kushagra: "the border radius for browsers
+   that do not support squircle is too much").
+
+   Until now the compensation was ONE-SIDED: the band was authored as the arc value and the
+   @supports block multiplied it by 1.613 for engines with the shape. That makes 1.613 a claim
+   about equivalence — that a squircle of 1.613R reads like an arc of R — and the claim is not
+   derived from anything. It is the lab's own 0.62 inverted, and the lab was converting a
+   DIFFERENT band. Measured against the two criteria a corner can be equal by, on the diagonal:
+   an arc of radius R sits 0.2929R in from the box corner and a squircle sits 0.1591R, so equal
+   BITE wants arc = 0.543 x squircle; equal removed AREA (0.2146R^2 against 0.0730R^2) wants
+   arc = 0.583 x squircle. Against the shipped 1.613 those are 0.876 and 0.941. 1.613 implies
+   1.000, which is neither — the arc branch is 14% deeper than the shape it stands in for at
+   every band step, which is the report.
+
+   It is worse than 14% on short panes, and that is the half no ratio can fix: `border-radius`
+   clamps to half the shorter side, so once BOTH branches clamp the compensation is gone and
+   what is left is the raw shape difference. Measured on a size-3 card: 14% deeper at 130px
+   tall, 47% at 100px, 84% at 80px and below — tooltips, one-line notices, small popovers,
+   compact cards, toolbars. The knob below fixes the unclamped range honestly; the clamped
+   range needs the capsule rule, which is a separate decision.
+
+   0.876 is the BITE match, which is the criterion the complaint is about (how far the corner
+   eats in). 0.941 is the area match and is the one line to change if the result reads too
+   square. Chromium is byte-identical either way: the @supports block overrides this by source
+   order at the same (0,1,0), exactly as the two knobs already relate. */
+.kui-surface {
+  --kui-corner-k: 0.876;
+}
+.kui-shell::after {
+  --kui-corner-k: 0.876;
+}
+/* And the row-hugging pane keeps its own relationship: 1.75 / 1.841 = 0.950, the same bite
+   match applied to the bump, so panel and rows stay in the proportion they were judged in. */
+.kui-surface.kui-floating-rows {
+  --kui-corner-k: 0.950;
+}
+
 @supports (corner-shape: squircle) {
   .kui-surface {
     /* THE KNOB, on since 2026-08-17 (Kushagra: match the lab). 1.613 is the lab's own 0.62
@@ -1644,7 +1683,8 @@
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-thin-alpha), transparent);
     --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-thin-alpha-hover), transparent);
     --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-thin-alpha-active), transparent);
-    backdrop-filter: var(--kui-lens, ) var(--material-thin-filter);
+    --kui-sf-glass-filter: var(--material-thin-filter);
+    backdrop-filter: var(--kui-lens, ) var(--kui-sf-glass-filter);
     /* The pane's own edge and lighting (§10, 2026-08-05): the tone border on glass read as a
        sticker — pigment on a pane of light. The edge is the material's, a translucent
        hairline; the rim is its top light catch, taken from the WORLD so an elevated app
@@ -1706,7 +1746,8 @@
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-regular-alpha), transparent);
     --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-regular-alpha-hover), transparent);
     --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-regular-alpha-active), transparent);
-    backdrop-filter: var(--kui-lens, ) var(--material-regular-filter);
+    --kui-sf-glass-filter: var(--material-regular-filter);
+    backdrop-filter: var(--kui-lens, ) var(--kui-sf-glass-filter);
     /* Edge, rim and transmitted cast — see the thin block (§10). */
     /* The edge is the RING (lab port 2026-08-17): a 1px conic light painted by the ::after
        rule below, not a pigment hairline — the border stands down so the ring is the only
@@ -1745,7 +1786,8 @@
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-thick-alpha), transparent);
     --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-thick-alpha-hover), transparent);
     --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-thick-alpha-active), transparent);
-    backdrop-filter: var(--kui-lens, ) var(--material-thick-filter);
+    --kui-sf-glass-filter: var(--material-thick-filter);
+    backdrop-filter: var(--kui-lens, ) var(--kui-sf-glass-filter);
     /* Edge, rim and transmitted cast — see the thin block (§10). */
     /* The edge is the RING (lab port 2026-08-17): a 1px conic light painted by the ::after
        rule below, not a pigment hairline — the border stands down so the ring is the only
@@ -1779,6 +1821,34 @@
     border-width: 0;
     --kui-sf-pool: var(--kui-surface-pool, 0 0 0 0 transparent);
     --kui-sf-cast: var(--kui-surface-chrome-thick, none);
+  }
+
+  /* WHICH ROW A PANE TAKES, and the default is the DEFENDED one (2026-09-11).
+
+     The near-clear ladder is licensed by the lens, and the lens is Chromium-only — gated off on
+     WebKit outright since 2026-09-08, because WebKit parses `url()` in a backdrop filter and
+     then paints nothing for the whole chain. So the engines that cannot have it are the ones
+     that were running the ladder built for it: on an iPhone a `thick` pane blurs its backdrop
+     by 5.6px and nothing re-states what it fails to hide.
+
+     THE DEFAULT IS FROST and Chromium opts OUT of it, rather than the other way round. That is
+     the direction that puts the flash where a change already happens: the lens itself arrives
+     at hydration, so on Chromium the switch to the clear row rides the same frame as the bend
+     it licenses. Inverted, WebKit — which has no other change at hydration — would blur, settle,
+     and re-blur for no reason a person could see a cause for. It also means a server render, a
+     no-JS page and any engine this file has not heard of all get the row that defends.
+
+     Element-keyed on both sides. Re-pointing `--material-<t>-filter` at `:root` would lose to
+     any `<Theme appearance>` in between, which re-declares the same name nearer the element —
+     the 2026-08-20 high-contrast defect, exactly. */
+  :root:not([data-lens="on"]) .kui-surface[data-material="thin"] {
+    --kui-sf-glass-filter: var(--material-thin-filter-frost);
+  }
+  :root:not([data-lens="on"]) .kui-surface[data-material="regular"] {
+    --kui-sf-glass-filter: var(--material-regular-filter-frost);
+  }
+  :root:not([data-lens="on"]) .kui-surface[data-material="thick"] {
+    --kui-sf-glass-filter: var(--material-thick-filter-frost);
   }
 }
 
@@ -1949,6 +2019,16 @@
 [data-contrast="high"] .kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-row[data-popup-open]:not([data-disabled]) {
   background-color: var(--tone-solid);
 }
+
+/* And through the platform signal, for the reason recipes.css's own twin states: on glass the
+   lit row is the one signal a person navigating by keyboard has, and it was reachable only by
+   an app that set the prop. */
+@media (prefers-contrast: more) {
+  :root:not([data-contrast="normal"]) .kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-row[data-highlighted]:not([data-disabled]),
+  :root:not([data-contrast="normal"]) .kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-row[data-popup-open]:not([data-disabled]) {
+    background-color: var(--tone-solid);
+  }
+}
 /* The keycap is a small filled box, so it takes the treatment too: relief IN the pane, not a
    sticker on it — fill, edge and ink all alpha, and no cast. */
 .kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-kbd {
@@ -2071,10 +2151,26 @@
   --kui-sf-light: var(--material-solid-rim, none);
 }
 
-@media (prefers-reduced-transparency: reduce) {
+/* THREE CONDITIONS, ONE ANSWER (print and forced-colors joined 2026-09-11).
+   A sealed pane is what all three want, and the declarations below were already exactly it.
+
+   PRINT: the material zeroes `border-width` and carries its edge as a background layer, and
+   backgrounds do not print by default — so every card, dialog and panel vanished and a printed
+   screen was text in a column with no structure. Restoring the band is what puts the boxes
+   back; the fill sealing is what stops a translucent veil printing as nothing.
+
+   FORCED-COLORS: same cause, and it is why 2026-08-07's "premature" call no longer holds. That
+   decision was made when a pane's edge was `border-color`, which forced-colors overrides to a
+   system colour and therefore keeps. The lab port traded that for a ring painted as a
+   background image, which forced-colors does not touch — so a pane became an unbounded Canvas
+   rectangle wearing faint rogue-coloured light. Giving the border back hands the boundary to
+   the one property the mode actually paints, and `background-image: none` takes the rogue
+   light away. */
+@media (prefers-reduced-transparency: reduce), print, (forced-colors: active) {
   .kui-surface[data-material="thin"],
   .kui-surface[data-material="regular"],
-  .kui-surface[data-material="thick"] {
+  .kui-surface[data-material="thick"],
+  .kui-surface[data-material="on-glass"] {
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-opaque-alpha), transparent);
     --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-opaque-alpha), transparent);
     --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-opaque-alpha), transparent);
@@ -2120,14 +2216,34 @@
    the same): the veil lifts toward white. The token is mode-emitted — light's floating
    veil is the in-flow veil verbatim — so these rules stay mode-blind, and their (0,3,0)
    beats the thickness blocks' (0,2,0) by weight rather than by order. */
-.kui-surface.kui-floating[data-material="thin"] {
-  --kui-sf-fill: var(--material-thin-fill-floating);
-}
-.kui-surface.kui-floating[data-material="regular"] {
-  --kui-sf-fill: var(--material-regular-fill-floating);
-}
+/* THE SEAL FIRST, THE VEIL UNDER @supports (2026-09-11 audit) — and the order is the whole
+   fix. These three rules stood outside any feature query at (0,3,0), so on an engine without
+   unprefixed `backdrop-filter` they beat the (0,2,0) base block that correctly falls back to
+   `--material-opaque-alpha`, and a floating pane kept its translucent veil with nothing to
+   defocus behind it. Measured on the committed artifact with the @supports groups removed: a
+   Card sealed to 95% and a Menu stayed at 49% with `backdrop-filter: none` — page text reading
+   straight through every Menu, Select, Popover, Tooltip, ContextMenu and Command palette. Not
+   a fidelity gap; an unusable menu, on Safari and iOS 17 and below (`backdrop-filter` is
+   prefixed-only there through 17.6/17.7 and this package's browserslist starts at 18.5, so
+   Lightning emits no prefixed twin).
+
+   The reduced-transparency arm below already knew these selectors needed a seal — it restates
+   exactly this declaration for exactly this list. The @supports fallback never got one. */
+.kui-surface.kui-floating[data-material="thin"],
+.kui-surface.kui-floating[data-material="regular"],
 .kui-surface.kui-floating[data-material="thick"] {
-  --kui-sf-fill: var(--material-thick-fill-floating);
+  --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-opaque-alpha), transparent);
+}
+@supports (backdrop-filter: blur(1px)) {
+  .kui-surface.kui-floating[data-material="thin"] {
+    --kui-sf-fill: var(--material-thin-fill-floating);
+  }
+  .kui-surface.kui-floating[data-material="regular"] {
+    --kui-sf-fill: var(--material-regular-fill-floating);
+  }
+  .kui-surface.kui-floating[data-material="thick"] {
+    --kui-sf-fill: var(--material-thick-fill-floating);
+  }
 }
 /* A menu is small and dense — the pane's full flare reads as costume on it (lab
    2026-08-14). Same ring, at 60%: jewelry, not headline. */
@@ -2141,10 +2257,13 @@
    the preference made exactly the surface it targets strictly worse. A sealed floating
    pane takes the in-flow seal; "floating panes lighten" is a glass fact, and a seal is
    not glass. */
-@media (prefers-reduced-transparency: reduce) {
+/* Three conditions, one answer — see the surface arm in surfaces.css for why print and
+   forced-colors want exactly the sealed pane this arm already describes. */
+@media (prefers-reduced-transparency: reduce), print, (forced-colors: active) {
   .kui-surface.kui-floating[data-material="thin"],
   .kui-surface.kui-floating[data-material="regular"],
-  .kui-surface.kui-floating[data-material="thick"] {
+  .kui-surface.kui-floating[data-material="thick"],
+  .kui-surface.kui-floating[data-material="on-glass"] {
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-opaque-alpha), transparent);
   }
 }
