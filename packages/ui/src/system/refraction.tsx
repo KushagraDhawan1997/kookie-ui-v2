@@ -315,6 +315,15 @@ function rung(material: SurfaceMaterial): LensParams | null {
     low-frequency field, so this is invisible and it is what bounds the cost of a big pane. */
 const MAP_CAP = 320;
 
+/** Map pixels the glint's band needs to carry its ramp — see the scale floor in `measure()`.
+    Three is where the measured edge alpha stops collapsing; the cost of holding it is the
+    area cap below, not an unbounded map. */
+const GLINT_BAND_PX = 3;
+/** And the ceiling on that floor, in map pixels of area: a pane bigger than this gets a band
+    thinner than GLINT_BAND_PX rather than a canvas nobody can afford. 640x640 is four times
+    MAP_CAP's area and still a fifth of a full-window pane's. */
+const GLINT_AREA_CAP = 640 * 640;
+
 /**
  * The lip a box has ROOM for, and the depth that goes with it — or null for a box with no
  * room at all.
@@ -838,7 +847,20 @@ function acquire(
    */
   const filter = el("filter", {
     id,
-    colorInterpolationFilters: "sRGB",
+    // HYPHENATED, because `el()` applies these with `setAttribute` and SVG attribute names are
+    // not the camelCase IDL spellings (2026-09-11 audit). `colorInterpolationFilters` stood here
+    // since the lens shipped and set a meaningless attribute, so the chain ran in the filter
+    // default, linearRGB — measured `getComputedStyle(filter)` returning `linearrgb`.
+    //
+    // The map encodes 128 = "no bend" as an sRGB BYTE. Read as linear, 128/255 linearises to
+    // 0.216, so `scale * (C - 0.5)` gave every pixel a constant -0.284*scale displacement
+    // instead of zero: the whole backdrop seen through a pane sat ~2.4px off the backdrop
+    // beside it (regular), and because R and B carry the fringe at different scales their
+    // constant offsets differed — a permanent ~1.4px chromatic separation across the pane BODY,
+    // not only at the lip. That is the blue band chased on 2026-08-25 and attributed to the
+    // pre-blur, and it is why `boost: 4` measured worse rather than stronger: it doubles a
+    // separation, not a bend.
+    "color-interpolation-filters": "sRGB",
     x: 0,
     y: 0,
     width: "100%",
@@ -961,6 +983,27 @@ export function lensSupported(): boolean {
   return supported;
 }
 
+/**
+ * TELL THE STYLESHEET WHETHER THE LENS IS REAL (2026-09-11).
+ *
+ * The near-clear blur ladder is licensed by the lens, so the engines that cannot render one
+ * need a different row (`--material-<t>-filter-frost`) — and no feature query can ask the
+ * question, which is the whole finding of 2026-09-08: WebKit answers `true` to both
+ * `CSS.supports` calls and then paints nothing. `lensSupported()` is the only thing in the
+ * system that knows, so it is the only thing that can say.
+ *
+ * The stamp is the POSITIVE, and the absence is the defended default: an engine nobody has
+ * stamped, a server render and a page with JS off all keep the frost row. One write, once per
+ * document, from a gate that is already memoised — this is not a per-element decision and must
+ * never become one, or a nested scope could disagree with the engine it is running on.
+ */
+let stamped = false;
+function stampLens(): void {
+  if (stamped || typeof document === "undefined") return;
+  stamped = true;
+  if (lensSupported()) document.documentElement.setAttribute("data-lens", "on");
+}
+
 /* ── The hook ──────────────────────────────────────────────────────────────────────────── */
 
 /**
@@ -999,6 +1042,10 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
     (node: HTMLElement | null) => {
       const s = state.current;
       if (s.node === node) return;
+      // Before anything measures: the stylesheet's fork needs the answer whether or not THIS
+      // element ends up with a lens (a solid pane still sits in a document whose other panes
+      // are glass).
+      stampLens();
 
       const detach = () => {
         s.ro?.disconnect();
@@ -1115,7 +1162,15 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
         if (!params) return;
         const box = target();
         if (!box) return;
-        const rect = { width: box.w, height: box.h };
+        /**
+         * ROUNDED BEFORE ANYTHING READS IT (2026-09-11 audit). `getBoundingClientRect` returns
+         * sub-pixel floats, and above the cap `scale` is derived from them and then multiplies
+         * every downstream term, so two panes that paint identically — a row of equal cards, a
+         * grid of equal panels — carried different keys and each minted its own map and filter.
+         * Below the cap `scale` is 1 and the `Math.round`s already collapsed them, which is why
+         * the miss only ever showed on the big panes that can least afford it.
+         */
+        const rect = { width: Math.round(box.w), height: Math.round(box.h) };
         // The map is generated at a capped resolution and stretched to the box — the bend is a
         // low-frequency field, so this bounds a full-page pane to a small pane's cost. The
         // stretch is the filter's job (see `acquire`); what is this function's job is that the
@@ -1145,8 +1200,37 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
         // through the same alpha inside the filter — so a bench run with `rimSaturate > 0`
         // still needs the map on a pane whose CSS would never sample it.
         if (fit && bandX > 0 && !(box.sealed && box.ringDown) && (box.glinted || sat > 0)) {
-          const band = Math.max(1, fit.bezel * bandX * scale);
-          glintUrl = acquireGlint(w, h, r, band, box.k);
+          /**
+           * THE GLINT KEEPS ITS OWN SCALE, and the lens keeps the cap (2026-09-11 audit).
+           *
+           * Both maps rode `scale`, which is floored on the BOX. The lens survives that — a
+           * displacement field is low-frequency, which is the cap's whole argument. The glint
+           * does not: its band is a LENGTH, so at the cap it shrinks with the map until it is
+           * about one map pixel, and a `(1-t)^falloff` ramp sampled once per pixel across one
+           * pixel has no ridge left. Measured at the middle of an edge, where the lip is what
+           * a person actually sees: alpha 159 on a 96x32 button, 84 on a phone-width pane, 37
+           * on a 1100x64 toolbar and 18 on a 1400x900 shell pane — an 89% collapse across the
+           * size range, on the one part of the material WebKit still paints (the lens is gated
+           * off there, so on every Apple device this IS the glass's light).
+           *
+           * Supersampling was refused before it was built: averaging a one-pixel-wide ramp
+           * returns its mean, not its peak (1/(falloff+1) of it), so it buys a third of the
+           * amplitude and none of the sharpness. A stretched map cannot hold a lip it has no
+           * pixels for — the repair has to be resolution.
+           *
+           * So the glint's scale is floored on the BAND: enough map pixels to carry the ramp,
+           * never more than the box, and never past an area cap so a wall-sized pane cannot
+           * mint a wall-sized canvas. The lens's own `scale`, `w`, `h` and `r` are untouched.
+           */
+          const bandCss = fit.bezel * bandX;
+          const wanted = bandCss > 0 ? GLINT_BAND_PX / bandCss : 1;
+          const area = Math.sqrt(GLINT_AREA_CAP / Math.max(1, rect.width * rect.height));
+          const gScale = Math.min(1, Math.max(scale, Math.min(wanted, area)));
+          const gw = Math.max(8, Math.round(rect.width * gScale));
+          const gh = Math.max(8, Math.round(rect.height * gScale));
+          const gr = Math.min(Math.round(box.r * gScale), Math.floor(Math.min(gw, gh) / 2));
+          const band = Math.max(1, bandCss * gScale);
+          glintUrl = acquireGlint(gw, gh, gr, band, box.k);
         }
         if (glintUrl && fit) {
           node.style.setProperty("--kui-glint", `url("${glintUrl}")`);
@@ -1242,6 +1326,22 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
       measureUnlessFlying();
       s.retune = measureUnlessFlying;
       remeasures.add(measureUnlessFlying);
+      /**
+       * NOT COALESCED BEHIND A rAF, and that was measured before it was refused (2026-09-11).
+       * The 2026-09-11 audit called for one measurement per frame on the four gestures that
+       * resize a pane continuously — a shell divider drag, a TextArea resize handle, a phone
+       * rotation, a window resize — none of which carries the `[data-unfurling]` stamp the
+       * flight guard reads. The premise is that the observer delivers more often than a frame.
+       * It does not: a ResizeObserver notification is dispatched once per frame, after layout,
+       * and coalesces every size change since the last one. Measured with several synchronous
+       * width and height writes inside each of 40 frames: 40 frames, 40 callbacks, 40 records.
+       * So a rAF in front of this saves nothing and costs the lens a frame of lag.
+       *
+       * What WOULD cut the cost is a settle guard — build nothing until the box has held still
+       * for a frame — and that is a different thing with a visible price: the lens would trail
+       * a drag instead of tracking it. It is a design call, not a repair, and it is not made
+       * here.
+       */
       s.ro = new ResizeObserver(measureUnlessFlying);
       s.ro.observe(node);
       // The seam is still watched, and it is still a signal rather than a guess — but what it
