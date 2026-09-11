@@ -561,11 +561,11 @@ describe("glass and the grip (§10, §26, 2026-08-24)", () => {
     );
     const track = within(host, ".kui-segmented");
     const ring = getComputedStyle(track, "::after").backgroundImage;
-    expect(ring).toContain("conic-gradient");
+    expect(ring).toContain("gradient(");
     expect(ring).toBe(getComputedStyle(within(host, ".kui-button"), "::after").backgroundImage);
     // And a solid track paints none — the ring is the material's, never the well's.
     const solid = control({});
-    expect(getComputedStyle(solid, "::after").backgroundImage).not.toContain("conic-gradient");
+    expect(getComputedStyle(solid, "::after").backgroundImage).not.toContain("gradient(");
   });
 
   it("a glass TRACK wears the pane's RIM too — the sixth part, added 2026-08-26", () => {

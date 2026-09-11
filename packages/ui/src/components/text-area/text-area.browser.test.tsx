@@ -416,13 +416,17 @@ describe("the app's identities reach it without it knowing (§5, §10)", () => {
     const glass = mounted(<TextArea backdrop aria-label="glass" />, { theme: { material: "thin" } });
     const glassBtn = mounted(<Button backdrop>b</Button>, { theme: { material: "thin" } });
     const ring = getComputedStyle(glassBtn, "::after").backgroundImage;
-    expect(ring).toContain("conic-gradient");
+    expect(ring).toContain("gradient(");
     expect(getComputedStyle(glass, "::after").content, "the wrapper grew no annulus").not.toBe("none");
     expect(getComputedStyle(glass, "::after").backgroundImage).toBe(ring);
     // …and the border is out of the way, or the box wears two lines (§10, 2026-08-07).
     expect(computed(glass, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
-    // No conic in the element's OWN stack: the border-area layer is gone, not merely joined.
-    expect(computed(glass, "background-image")).not.toContain("conic-gradient");
+    // The lip is not in the element's OWN stack: the border-area layer is gone, not merely
+    // joined. Stated against the RING VALUE rather than a gradient keyword (2026-09-11) — the
+    // element legitimately paints the rim here, which is gradients too, so "contains no
+    // gradient" would be false for the wrong reason and "contains no conic" went vacuous the
+    // day the lip became a linear light model.
+    expect(computed(glass, "background-image")).not.toContain(ring);
     // The negative control: a SOLID textarea keeps its pigment hairline and no ring at all.
     const solid = mounted(<TextArea aria-label="solid" />, {});
     expect(computed(solid, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");

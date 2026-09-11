@@ -465,6 +465,49 @@ export async function asksForStillness(): Promise<void> {
 }
 
 /**
+ * Ask the browser for MORE CONTRAST, the way an operating system does (2026-09-11).
+ *
+ * The third preference this suite can enter, and the one whose absence hid a live defect: the
+ * generator emits every token-level conformance move under BOTH `[data-contrast="high"]` and
+ * `@media (prefers-contrast: more)`, but the three rules that make a highlighted ROW legible
+ * existed only in the prop form. So a person who turns the setting on at the OS level got the
+ * tone bands, the solved edges, the track and the veil — and not the one thing they are
+ * arrowing through. Measured when the prop path was fixed: 1.16:1 light, 1.08:1 dark.
+ *
+ * A law keyed on the prop cannot see that, because the prop path was always right.
+ */
+export async function asksForContrast(): Promise<void> {
+  emulating = true;
+  await cdp().send("Emulation.setEmulatedMedia", {
+    features: [{ name: "prefers-contrast", value: "more" }],
+  });
+}
+
+/**
+ * Ask the browser to SEAL the glass, the way iOS and Windows do (2026-09-11).
+ *
+ * `asksForStillness` above, one preference over. The material's seal arm answers three media
+ * conditions at once — `prefers-reduced-transparency: reduce`, `print` and
+ * `forced-colors: active` — because a sealed pane is what all three want, and none of them was
+ * enterable from this suite: every law about the seal read the STYLESHEET and none had ever
+ * executed the block.
+ *
+ * That mattered the moment the filter row forked on the lens. The fork is a descendant selector,
+ * so written as a `backdrop-filter` declaration it outweighed the seal arm and a sealed pane
+ * kept a live blur — a defect no declaration-reading law could see, in the block that exists for
+ * the person who asked the OS for less.
+ *
+ * Reset by the same afterEach that resets stillness, so a law that seals cannot leave the next
+ * file sealed.
+ */
+export async function asksForSolidity(): Promise<void> {
+  emulating = true;
+  await cdp().send("Emulation.setEmulatedMedia", {
+    features: [{ name: "prefers-reduced-transparency", value: "reduce" }],
+  });
+}
+
+/**
  * LANDING a floating panel (promoted from menu.browser.test.tsx 2026-08-10, on its second
  * consumer — Select).
  *

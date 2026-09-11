@@ -18,9 +18,10 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { APPEARANCES, GLASS_MATERIALS, colorOn, computed, mounted } from "../test/browser.tsx";
+import { APPEARANCES, GLASS_MATERIALS, asksForContrast, asksForSolidity, colorOn, computed, mounted } from "../test/browser.tsx";
 import { Card } from "../components/card/card.tsx";
 import { Button } from "../components/button/button.tsx";
+import { Row } from "../components/row/row.tsx";
 import { TextArea } from "../components/text-area/text-area.tsx";
 import { TextField } from "../components/text-field/text-field.tsx";
 
@@ -194,7 +195,15 @@ describe("the glint band exists, wears the mode's ring, and stands down with it 
       const before = getComputedStyle(card, "::before");
       // …the pseudo is masked by it, coloured by the glint conic, and actually lit.
       expect(before.maskImage, "the band's mask is not the minted image").toContain("data:image/png");
-      expect(before.backgroundImage, "the band is not wearing the ring's conic").toContain("conic-gradient");
+      // MODEL-AGNOSTIC SINCE 2026-09-11, and the word it dropped is the point. These read
+      // `toContain("conic-gradient")`, which pins the light model's SPELLING rather than the
+      // guarantee — that the band wears the mode's own lip gradient and is lit. The lip is a
+      // linear gradient since the edge-normal change (a conic is measured from the box's
+      // CENTRE, so on a wide pane the catch collapsed into a blob at one end; measured, the
+      // top lip's spread across a 540x56 pane went 68% -> 10%). `gradient(` keeps the half
+      // that is real — the lip is a gradient, never a flat fill — and the value agreements
+      // below are what actually hold the two members and the two pseudos together.
+      expect(before.backgroundImage, "the band is not wearing the ring's gradient").toContain("gradient(");
       expect(Number(before.opacity), "the band is dark on an ordinary glass pane").toBeGreaterThan(0.5);
       // The spectral fold is DELETED (2026-08-25) — its red/blue stops read as pink haze
       // across the band (2026-08-24) and as a blue hairline at the 1px lip on plain grounds
@@ -376,7 +385,7 @@ describe("a glass textarea is a glass field — parity by construction (§10)", 
       expect(before.maskImage, "the band's mask is not the minted image").toContain("data:image/png");
       // The band: the ::before wears the minted mask over the glint conic, and it is lit —
       // the same three facts the field's own band law reads.
-      expect(before.backgroundImage, "the band is not wearing the glint conic").toContain("conic-gradient");
+      expect(before.backgroundImage, "the band is not wearing the glint gradient").toContain("gradient(");
       expect(before.backgroundImage, "the two members' bands disagree").toBe(
         getComputedStyle(tf, "::before").backgroundImage,
       );
@@ -385,7 +394,7 @@ describe("a glass textarea is a glass field — parity by construction (§10)", 
       // band. Both members must carry it and carry the same one.
       const after = getComputedStyle(ta, "::after");
       expect(after.content, "the textarea grew no annulus").not.toBe("none");
-      expect(after.backgroundImage, "the lip is not the ring conic").toContain("conic-gradient");
+      expect(after.backgroundImage, "the lip is not the ring gradient").toContain("gradient(");
       expect(after.backgroundImage, "the two members' lips disagree").toBe(
         getComputedStyle(tf, "::after").backgroundImage,
       );
@@ -540,4 +549,218 @@ describe("a glass pane's ring is its edge, and the seal takes the band back (§1
       }
     });
   }
+});
+
+/**
+ * THE LENS-LESS FILTER ROW (§10, 2026-09-11).
+ *
+ * The near-clear ladder is licensed by the lens, and the lens is Chromium-only — gated off on
+ * WebKit outright since 2026-09-08, because WebKit parses `url()` in a backdrop filter and then
+ * paints nothing for the whole chain. So the engines that cannot have it were the ones running
+ * the ladder built for it. `--material-<t>-filter-frost` is the row the material lab wrote for
+ * exactly that tier and the port left behind.
+ *
+ * What the mechanism owes, and what nothing else in the suite reads: the DEFAULT is the frost
+ * row, not the clear one. A server render, a page with JS off and any engine nobody has stamped
+ * all get the row that defends — which is only true while the absence of `data-lens` means
+ * frost. Inverted, the defended row would be the opt-in and every un-stamped engine would fall
+ * back to the ladder it cannot carry.
+ *
+ * The harness mounts into a document the lens hook has already stamped, so both branches are
+ * driven here by toggling that stamp rather than by pretending to be another browser.
+ */
+describe("the filter row forks on the lens, and the default is the defended one (§10)", () => {
+  const stamp = document.documentElement.getAttribute("data-lens");
+  const setStamp = (on: boolean) => {
+    if (on) document.documentElement.setAttribute("data-lens", "on");
+    else document.documentElement.removeAttribute("data-lens");
+  };
+  const restore = () => {
+    if (stamp === null) document.documentElement.removeAttribute("data-lens");
+    else document.documentElement.setAttribute("data-lens", stamp);
+  };
+
+  for (const appearance of APPEARANCES) {
+    for (const material of GLASS_MATERIALS) {
+      it(`${appearance}/${material}: unstamped is frost, stamped is the clear row, and frost blurs harder`, () => {
+        const card = mounted(<Card backdrop>pane</Card>, { theme: { appearance, material } });
+        const blurOf = (chain: string): number => {
+          const m = chain.match(/blur\(([\d.]+)px\)/);
+          if (!m?.[1]) throw new Error(`no blur in ${chain}`);
+          return Number(m[1]);
+        };
+
+        setStamp(false);
+        const frost = getComputedStyle(card).backdropFilter;
+        setStamp(true);
+        const clear = getComputedStyle(card).backdropFilter;
+        restore();
+
+        // Both are real chains — a fork that resolved to nothing on one side would read as a
+        // pass on every "is there a filter" law in the suite.
+        expect(frost, `${material} unstamped chain`).toContain("blur(");
+        expect(clear, `${material} stamped chain`).toContain("blur(");
+        // The whole point: the engine that cannot bend light hides more instead.
+        expect(blurOf(frost), `${material} frost does not defend harder than the clear row`).toBeGreaterThan(
+          blurOf(clear),
+        );
+        // And ONLY the blur moves — saturation and brightness are the judged values in both,
+        // so this is one lever changing rather than a second material appearing.
+        const rest = (chain: string) => chain.replace(/blur\([\d.]+px\)\s*/, "");
+        expect(rest(frost), `${material} frost changed more than the blur`).toBe(rest(clear));
+      });
+    }
+  }
+
+  it("a control forks too, and the atom family rides the control's row", () => {
+    const btn = mounted(<Button backdrop>b</Button>, { theme: { material: "regular" } });
+    setStamp(false);
+    const frost = getComputedStyle(btn).backdropFilter;
+    setStamp(true);
+    const clear = getComputedStyle(btn).backdropFilter;
+    restore();
+    const blur = (c: string) => Number(c.match(/blur\(([\d.]+)px\)/)?.[1] ?? 0);
+    expect(blur(frost), "a glass control never took the frost row").toBeGreaterThan(blur(clear));
+  });
+});
+
+/**
+ * AND THE SEAL STILL WINS OVER BOTH ROWS (§10, 2026-09-11).
+ *
+ * The fork is a descendant selector, so it outweighs the per-thickness blocks — which is fine
+ * for a variable and was NOT fine for the property. Written as a second `backdrop-filter`
+ * declaration it also outweighed the reduced-transparency, print and forced-colors arm that
+ * says `backdrop-filter: none`, and a sealed pane kept a live blur. Measured before the repair.
+ *
+ * The fork therefore declares only the HOOK, leaving the seal the single writer of the
+ * property. This is what that costs if anyone respells it back.
+ */
+describe("the seal outranks the filter fork, in both branches (§10)", () => {
+  for (const stamped of [false, true]) {
+    it(`${stamped ? "stamped" : "unstamped"}: a sealed pane, control and atom carry no filter`, async () => {
+      const card = mounted(<Card backdrop>pane</Card>, { theme: { material: "regular" } });
+      const btn = mounted(<Button backdrop>b</Button>, { theme: { material: "regular" } });
+      if (stamped) document.documentElement.setAttribute("data-lens", "on");
+      else document.documentElement.removeAttribute("data-lens");
+
+      // The calibration half: both are LIVE before the preference, or an assertion that they
+      // carry no filter afterwards cannot tell a seal from a fork that resolved to nothing.
+      expect(getComputedStyle(card).backdropFilter, "the pane had no filter to seal").toContain("blur(");
+      expect(getComputedStyle(btn).backdropFilter, "the control had no filter to seal").toContain("blur(");
+
+      await asksForSolidity();
+
+      expect(getComputedStyle(card).backdropFilter, "the sealed pane kept a live blur").toBe("none");
+      expect(getComputedStyle(btn).backdropFilter, "the sealed control kept a live blur").toBe("none");
+      document.documentElement.removeAttribute("data-lens");
+    });
+  }
+
+  it("and the seal reaches on-glass, which is the value the arms used to miss", async () => {
+    // `on-glass` is what a member sitting ON a pane resolves, and every arm of this preference
+    // keyed on the three THICKNESSES — the list that means "this element IS a pane". So the
+    // pane sealed and everything on it stayed translucent: the setting doing half its job,
+    // which reads worse than doing none because the pane and its contents then disagree.
+    const card = mounted(
+      <Card backdrop>
+        <Button>on the pane</Button>
+      </Card>,
+      { theme: { material: "regular" } },
+    );
+    const inner = card.querySelector<HTMLElement>(".kui-button");
+    expect(inner, "the fixture grew no hosted control").not.toBeNull();
+    expect(inner!.dataset.material, "the fixture's control is not on-glass").toBe("on-glass");
+    const before = computed(inner!, "background-color");
+
+    await asksForSolidity();
+
+    // An on-glass member carries no filter of its own (one glass per stack), so what the seal
+    // owes it is the FILL — which is exactly the part that stayed see-through.
+    expect(computed(inner!, "background-color"), "the on-glass member ignored the seal").not.toBe(before);
+  });
+});
+
+/**
+ * THE LIP SURVIVES A BIG PANE (§10, 2026-09-11).
+ *
+ * The glint's band is a LENGTH and it rode the lens's resolution cap, so on a large pane it
+ * shrank with the map to about one pixel — and a `(1-t)^falloff` ramp sampled once per pixel has
+ * no ridge left. Measured at the middle of an edge, which is where a person reads a lip: alpha
+ * 159 on a 96x32 button and 18 on a 1400x900 shell pane, an 89% collapse across the size range.
+ * On WebKit the lens is gated off, so this IS the glass's light there.
+ *
+ * Every law about the band read whether it EXISTS and what it wears. None read how strong it is,
+ * which is why the same material could arrive as a lit object and as a flat rectangle on one
+ * screen. This reads the minted map's own pixels, at the edge midpoint, at two sizes a real app
+ * has — and the two must agree, not merely both be non-zero.
+ */
+describe("the glint's band holds its strength as the pane grows (§10)", () => {
+  const edgePeak = async (el: HTMLElement): Promise<number> => {
+    const url = el.style.getPropertyValue("--kui-glint").replace(/^url\("?|"?\)$/g, "");
+    expect(url, "the hook never minted a mask for this box").toContain("data:image/png");
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const c = document.createElement("canvas");
+    c.width = img.width;
+    c.height = img.height;
+    const x = c.getContext("2d");
+    if (!x) throw new Error("no 2d context");
+    x.drawImage(img, 0, 0);
+    const d = x.getImageData(0, 0, c.width, c.height).data;
+    // Down a vertical cut at the MIDDLE of the top edge. The corners are where the band
+    // overlaps itself, so a whole-map maximum reports the corner and not the lip — which is
+    // how this collapse was first measured at 20% instead of 89%.
+    const mid = Math.floor(c.width / 2);
+    let peak = 0;
+    for (let y = 0; y < Math.min(c.height, 40); y += 1) {
+      const a = d[(y * c.width + mid) * 4 + 3] ?? 0;
+      if (a > peak) peak = a;
+    }
+    return peak;
+  };
+
+  it("a full-window pane's lip is as strong as a small card's", async () => {
+    const small = mounted(<Card backdrop style={{ width: 280, height: 180 }} />, {
+      theme: { material: "regular" },
+    });
+    const large = mounted(<Card backdrop style={{ width: 1200, height: 800 }} />, {
+      theme: { material: "regular" },
+    });
+    const a = await edgePeak(small);
+    const b = await edgePeak(large);
+    // Calibration: the small pane is the judged case and must be a real lip, or "they agree"
+    // is satisfied by two panes that both paint nothing.
+    expect(a, "the small pane's lip is not lit").toBeGreaterThan(100);
+    // And the big one is within a third of it. Before the scale floor this was 18 against 140.
+    expect(b, `the large pane's lip collapsed: ${b} against ${a}`).toBeGreaterThan(a * 0.66);
+  });
+});
+
+/**
+ * THE OS CONTRAST SIGNAL REACHES THE LIT ROW (§19, 2026-09-11).
+ *
+ * The prop path was fixed on 2026-08-09 and the platform path was never wired, so every law
+ * here passed while the person the rule exists for — keyboard navigation, low vision — saw a
+ * 1.16:1 wash. A law keyed on `contrast="high"` cannot see that.
+ */
+describe("a highlighted row answers the platform's contrast signal, not only the prop (§19)", () => {
+  it("the lit row goes solid under prefers-contrast: more", async () => {
+    const lit = mounted(<Row highlighted>Duplicate</Row>, { theme: {} });
+    const dark = mounted(<Row highlighted={false}>Duplicate</Row>, { theme: {} });
+    const before = computed(lit, "background-color");
+    // Calibration: the row is LIT to begin with, and differs from an unlit one — otherwise
+    // "the setting changed it" is satisfied by a fixture that was never the subject.
+    expect(before, "the fixture's row is not lit at all").not.toBe(computed(dark, "background-color"));
+
+    await asksForContrast();
+
+    const after = computed(lit, "background-color");
+    expect(after, "the OS contrast signal never reached the lit row").not.toBe(before);
+    // And it lands on the SOLID rung, which is where the prop path lands — the two must agree
+    // or the setting means something different depending on who asked for it.
+    expect(after, "the platform path landed somewhere the prop path does not").toBe(
+      colorOn(lit, "var(--tone-solid)"),
+    );
+  });
 });

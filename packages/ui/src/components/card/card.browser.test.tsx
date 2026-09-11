@@ -157,7 +157,7 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
       "rgba(0, 0, 0, 0)",
     );
     // The negative control: the ring is the GLASS pane's own anatomy — a matte slab wears none.
-    expect(getComputedStyle(solid, "::after").backgroundImage).not.toContain("conic-gradient");
+    expect(getComputedStyle(solid, "::after").backgroundImage).not.toContain("gradient(");
     for (const m of GLASS_MATERIALS) {
       const el = mounted(<Card backdrop>B</Card>, {
         theme: { material: m },
@@ -167,7 +167,7 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
         "rgba(0, 0, 0, 0)",
       );
       const ring = getComputedStyle(el, "::after");
-      expect(ring.backgroundImage, `${m} lost the ring`).toContain("conic-gradient");
+      expect(ring.backgroundImage, `${m} lost the ring`).toContain("gradient(");
       expect(parseFloat(ring.opacity), `${m}: the ring is invisible`).toBeGreaterThan(0.5);
     }
   });

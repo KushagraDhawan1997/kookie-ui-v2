@@ -561,12 +561,16 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     // Button's ::after paints must be the conic this field's ::after paints.
     const glassBtn = mounted(<Button backdrop>b</Button>, { theme: { depth: "flat", material: "thin" } });
     const ring = getComputedStyle(glassBtn, "::after").backgroundImage;
-    expect(ring).toContain("conic-gradient");
+    expect(ring).toContain("gradient(");
     expect(getComputedStyle(glass, "::after").content, "the wrapper grew no annulus").not.toBe("none");
     expect(getComputedStyle(glass, "::after").backgroundImage).toBe(ring);
     expect(computed(glass, "border-top-color")).toBe("rgba(0, 0, 0, 0)");
-    // No conic in the element's OWN stack: the border-band layer is gone, not merely joined.
-    expect(computed(glass, "background-image")).not.toContain("conic-gradient");
+    // The lip is not in the element's OWN stack: the border-band layer is gone, not merely
+    // joined. Stated against the RING VALUE rather than a gradient keyword (2026-09-11) — the
+    // element legitimately paints the rim here, which is gradients too, so "contains no
+    // gradient" would be false for the wrong reason and "contains no conic" went vacuous the
+    // day the lip became a linear light model.
+    expect(computed(glass, "background-image")).not.toContain(ring);
     // The rim still paints — it is the material, not the edge.
     expect(computed(glass, "background-image")).not.toBe("none");
     // Flat: glass never floats — the cast AND the pool are no-op LAYERS (the pool rides the
@@ -605,8 +609,15 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     expect(computed(disabled, "border-top-color")).toBe(colorOn(disabled, "var(--disabled-border)"));
     // And the RING dies with the edge (2026-08-24): both arms stand --kui-ct-glass-ring down
     // beside --kui-ct-glass-edge, or the error border would paint UNDER a ring of light.
-    expect(computed(invalid, "background-image")).not.toContain("conic-gradient");
-    expect(computed(disabled, "background-image")).not.toContain("conic-gradient");
+    //
+    // READ ON THE LEVER, not on the element's own background (2026-09-11). These asserted that
+    // the ELEMENT's background-image carries no conic — and the lip moved to the `::after`
+    // annulus on 2026-09-02, so there has been no conic in that stack to find since, in any
+    // state. The law passed because its subject was empty, and it kept passing when the lip
+    // stopped being a conic at all. What the arms actually do is zero the ring's opacity, and
+    // that is what a stood-down ring means: measured live 1, invalid 0, disabled 0.
+    expect(getComputedStyle(invalid, "::after").opacity, "the invalid field kept its ring").toBe("0");
+    expect(getComputedStyle(disabled, "::after").opacity, "the dead field kept its ring").toBe("0");
   });
 
   it("contrast=high leaves the field's glass light alone — the trade is deleted (2026-08-26)", () => {
@@ -632,7 +643,7 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     // so the claim moves there with it — and the element's own stack, which used to carry it,
     // must still agree across contrasts, because the rim and the world's light live there.
     expect(getComputedStyle(high, "::after").backgroundImage, "the field's ring must stay lit").toContain(
-      "conic-gradient",
+      "gradient(",
     );
     expect(getComputedStyle(high, "::after").backgroundImage).toBe(
       getComputedStyle(normal, "::after").backgroundImage,

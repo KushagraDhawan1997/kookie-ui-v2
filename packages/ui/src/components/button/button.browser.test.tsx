@@ -346,7 +346,7 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
         { theme: { material } },
       );
       const after = getComputedStyle(el, "::after");
-      expect(after.backgroundImage, `${material} ring is the conic light`).toContain("conic-gradient");
+      expect(after.backgroundImage, `${material} ring is the conic light`).toContain("gradient(");
       // Opacity is the TOKEN's (--material-ring-opacity), read resolved rather than
       // restated — the recipe's `1` is only the un-themed fallback — plus a floor so a
       // token edited to 0 cannot hide the ring with this law green.
@@ -360,7 +360,7 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
     // The negative control: a solid button paints no ring — the ::after does not exist
     // (no content), so its background must not carry the conic.
     const solid = render(<Button emphasis="medium">Label</Button>);
-    expect(getComputedStyle(solid, "::after").backgroundImage).not.toContain("conic-gradient");
+    expect(getComputedStyle(solid, "::after").backgroundImage).not.toContain("gradient(");
   });
 
   it("tone and loudness both survive the glass — colour was the point (§7, §9)", () => {
@@ -1444,7 +1444,7 @@ describe("the shared layer's glass, audited 2026-08-26 (§5, §10)", () => {
     for (const which of ["::after", "::before"] as const) {
       // The ring and the band are real: each pseudo still RESOLVES its conic, so what is
       // asserted is that the paint is off, not that the recipe went missing.
-      expect(getComputedStyle(button, which).backgroundImage).toContain("conic-gradient");
+      expect(getComputedStyle(button, which).backgroundImage).toContain("gradient(");
       expect(
         getComputedStyle(button, which).opacity,
         `a sealed glass button still paints its ${which} light`,
@@ -1479,7 +1479,7 @@ describe("the shared layer's glass, audited 2026-08-26 (§5, §10)", () => {
     );
     expect(computed(solid!, "border-top-color")).not.toBe("rgba(0, 0, 0, 0)");
     // And the ring really is there to yield to — the premise, read off the element itself.
-    expect(getComputedStyle(glass!, "::after").backgroundImage).toContain("conic-gradient");
+    expect(getComputedStyle(glass!, "::after").backgroundImage).toContain("gradient(");
     expect(computed(glass!, "border-top-color"), "a bordered glass button drew two edges").toBe(
       "rgba(0, 0, 0, 0)",
     );
@@ -1553,7 +1553,7 @@ describe("a dead glass button catches no light at all (§10, §19)", () => {
           getComputedStyle(live, "::after").opacity,
           "the live button's ring was never lit — this cell proves nothing",
         ).toBe("1");
-        expect(getComputedStyle(live, "::after").backgroundImage).toContain("conic-gradient");
+        expect(getComputedStyle(live, "::after").backgroundImage).toContain("gradient(");
 
         expect(
           getComputedStyle(dead, "::after").opacity,
