@@ -1,0 +1,65 @@
+/* NumberField adds the value's own facts and nothing else (§4).
+ *
+ * The box, the dress, the states, the focus ring, the read-only well, the slot geometry and the
+ * glass all arrive by wearing `kui-field` and `kui-field-input` — TextField's rules are the
+ * field family's, and the steppers are ordinary hosted controls. If this file grows a fill, an
+ * edge or a size, the family has stopped absorbing variation, which is the moment to fix the
+ * family rather than this file.
+ */
+
+.kui-number-field-input {
+  /* Centred between its two steppers. A stepper field is symmetric — the value sits between
+     "less" and "more" — and a start-aligned value leaves the air on one side of the number
+     only, reading as a text field that happens to have buttons. */
+  text-align: center;
+
+  /* THE VALUE'S FLOOR (2026-09-12, the ship audit's N2). Measured before it: in a four-column
+     grid on a phone the field was handed 80.25px, the input shrank to 0 and the increase
+     stepper painted 16.75px OUTSIDE the field's own border — a control that had eaten the one
+     thing it exists to show. The cause is the field family's `min-width: 0` on the input (which
+     is right, and is what lets a long value scroll inside the box instead of pushing the
+     trailing slot out) meeting two `flex: none` slots: the input is the only item with any give,
+     so it absorbs every pixel of shrink down to nothing.
+
+     It is THIS component's floor and not the family's, and the difference is who put the slots
+     there. A TextField's slots are the CALL SITE's and optional — a bare TextField shrinking to
+     nothing is the open "can a field shrink" question (DECISIONS, open list), which is not
+     settled here and not settled by one component. A NumberField ALWAYS carries two, because it
+     placed them itself, so "there is a value between them" is its own anatomy rather than a
+     call site's arrangement.
+
+     `ch` for the atoms' reason (Code, Kbd, Blockquote, §15): a value's room is a property of the
+     glyphs in it, not of the layout around it, so it scales with the index for free and needs no
+     token. Three digit advances — two digits and the caret's column — under `tabular-nums`,
+     where a `ch` IS a digit. It is a floor and not a width: above it the input still takes what
+     the slots leave, and a long value still scrolls inside the box.
+
+     Specificity is load-bearing: `.kui-field-input { min-width: 0 }` lives in text-field.css,
+     which the entry stylesheet imports AFTER this file, and a logical property and its physical
+     counterpart cascade together — at equal weight that later `min-width` would win. The child
+     selector settles it by RANK rather than by import order. */
+}
+
+/* CHANGES 2026-09-12: `font-variant-numeric` moved here from the bare-class rule above, where it
+   computed `normal` and had done since the day it was written — a NumberField has never once
+   rendered tabular figures. `.kui-field-input` (text-field.css, which the entry imports AFTER
+   this file) declares `font: inherit`, and the `font` SHORTHAND resets every font-variant
+   longhand: equal specificity, later in source order, so the reset won. That is the floor's own
+   specificity story one declaration up, and it takes the same repair — the child selector settles
+   it by RANK rather than by import order. Found by the mounted law below it, which measures the
+   rendered advance rather than reading the declaration back. */
+.kui-number-field > .kui-number-field-input {
+  /* Every digit one advance wide, so a value stepping 9 -> 10 -> 11 does not jitter under the
+     caret and a column of these fields lines its digits up. Numbers only: the face's own
+     proportional figures stay everywhere else. */
+  font-variant-numeric: tabular-nums;
+  min-inline-size: 3ch;
+}
+
+/* The steppers are PLACED here and written last (see the DOM-order comment in number-field.tsx):
+   decrease sits at the leading edge, and the input is the first labelable child so a wrapping
+   `<label>` names the value rather than a button. `order` is direction-agnostic — it runs along
+   the flex main axis, which flips with `dir`, so RTL needs nothing of its own. */
+.kui-number-field > [data-slot="leading"] {
+  order: -1;
+}
