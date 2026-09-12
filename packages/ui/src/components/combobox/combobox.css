@@ -1,0 +1,134 @@
+/* Combobox (§21, §22, §23, §44). The FIELD is TextField's wrapper by membership
+   (`kui-control kui-field` + a bare `kui-field-input`), so the seal, edge, ring, material and
+   state arms are the field family's and nothing is re-stated here. The PANEL and ROWS repeat
+   Select's facts self-keyed — and since 2026-09-12 the ones that were genuinely one fact in three
+   files are the SHARED LAYER's (audit C10): this is the third floating member hugging option rows
+   with a width floor, which is the promotion menu.css had been asking for in writing. What is
+   this file's own: the chevron is a button, the panel's seed is a line rather than the field's
+   body, its height follows the list, and the empty message takes room only when it speaks. */
+
+/* ── The chevron: Base UI's trigger rendered AS the trailing slot ─────────────────────────
+   A `<button>` carries the platform's chrome, and the slot must look exactly like Select's
+   passive chevron: no box, no fill, the slot's muted colour (from `.kui-field-slot`), the icon
+   sized by the shared `.kui-control > [data-slot] > svg` rule. What it adds is the pointer's
+   promise — a hand, because pressing it opens the list — over the field's caret. It stretches to
+   the field's content height so the whole trailing edge is the target, not only the glyph. */
+.kui-combobox-trigger {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  align-self: stretch;
+  cursor: var(--cursor-button);
+  /* Base UI keeps it out of the tab order; it takes no ring of its own, because the field's
+     ring is the mode and the keyboard opens the list from the input. */
+  outline: none;
+}
+.kui-combobox-trigger:disabled {
+  cursor: inherit;
+}
+/* AND A READ-ONLY FIELD'S CHEVRON PROMISES NOTHING EITHER (audit 2026-09-12, C8). The
+   stand-down above keys on `:disabled`, and Base UI never disables this button for read-only —
+   it returns early inside its own handlers instead — so the trigger computed `cursor: pointer`
+   while a real click opened zero popups. A hand over a control that does nothing is the dead
+   affordance the breadcrumb's ellipsis was, one component over. `data-readonly` is Base UI's own
+   stamp on the input group, which is the wrapper, and it was already being written with nothing
+   reading it. (0,3,0) against the resting rule's (0,1,0). */
+.kui-combobox-field[data-readonly] > .kui-combobox-trigger {
+  cursor: inherit;
+}
+
+/* ── The panel: Select's popup facts, self-keyed ─────────────────────────────────────────── */
+
+/* THE PANEL'S FLOOR, ITS BOUNDS AND ITS OUTLINE ARE THE SHARED LAYER'S SINCE 2026-09-12 (audit
+   C10). They were written out here byte-identically with select.css:165-168 and menu.css:89-92,
+   and menu.css carried the expiry beside its own copy: "the third floating member that wants a
+   width floor is the one to move it." This is the third. The popup wears `kui-floating-anchored`
+   and `kui-floating-rows`, and surfaces.css states both facts once. No value differs.
+
+   What is left below is exactly what a combobox's panel has and the others do not.
+
+   THE HEIGHT FOLLOWS THE LIST, at rest as well as in flight (audit 2026-09-12, C9). A settled
+   panel's height is `auto`, and `auto` does not interpolate without this — so every filter change
+   snapped the box in one frame (measured 234 → 162 → 234 with nothing in between) while Command,
+   which this component takes its filtering from, animates the identical change. The flight's own
+   half is the runner's (`followsContent`); this is the same claim for the panel after it lands,
+   and the channel it rides is the family's own `block-size` transition, already declared.
+
+   It INHERITS, which is why it is scoped to this pane and not declared wider — §41's note, and
+   Command's. Where an engine does not have it the height snaps, which is exactly today. */
+.kui-surface.kui-combobox-popup {
+  interpolate-size: allow-keywords;
+}
+
+/* THE SEED IS A LINE AT THE FIELD'S BOTTOM EDGE, not the field's own body (audit 2026-09-12, C7).
+
+   §22's silhouette is the trigger's opaque box lifting, and it is honest wherever the panel LANDS
+   on the thing it came out of — a menu's button, a select's field, which the panel straddles. A
+   combobox's field is the one trigger you are still USING while its panel opens: the seed covered
+   it for 60-100ms of every open, so the caret and the letter just typed were behind a blank white
+   capsule (measured, `elementFromPoint` at the input's text midline returning the popup from
+   t=86 to t=140 while `input.value` became "L"). An opaque photograph of a box the user is typing
+   into is the one case the morph cannot be.
+
+   So the seed keeps the field's WIDTH and corner — the edge they share is real, and the panel
+   does hang from exactly that line — and gives up its height, starting as a zero-tall line at the
+   field's bottom edge and unfurling down. That is Command's zero-height seed (§44), which reached
+   the same answer from the other direction: its pane's top edge is already its bar's bottom edge,
+   so there is nothing to photograph.
+
+   `--kui-seed-h` is the runner's measurement of the trigger, so reading it as the offset IS "the
+   field's bottom edge" with no number stated anywhere. And the seed FADES, where the family's is
+   opaque from frame one: that rule's own reason is that it covers the trigger exactly, and a line
+   with no height covers nothing. (0,5,0) over the family's (0,4,0). */
+.kui-surface.kui-floating.kui-combobox-popup[data-unfurling][data-seed] {
+  block-size: 0;
+  --kui-seed-dy: var(--kui-seed-h, 0px);
+  opacity: 0;
+}
+
+/* The list scrolls inside a ScrollArea viewport (Menu's arrangement): the popup's height bound
+   restated for the element that actually scrolls, minus the popup's own border. `100vh` keeps
+   the calc valid where no positioner exists. */
+.kui-combobox-popup .kui-scroll-viewport {
+  max-block-size: calc(var(--available-height, 100vh) - 2 * var(--border-width));
+}
+
+/* A group label reads, it does not act — the row skeleton for the step and inset, control-ness
+   stood down, muted ink (Select's and Menu's label). */
+.kui-combobox-label {
+  pointer-events: none;
+  color: var(--color-text-muted);
+}
+
+/* The reserved gutter (§21): the indicator stays mounted so chosen and unchosen rows align. */
+.kui-combobox-item > [data-slot="leading"]:not([data-selected]) {
+  visibility: hidden;
+}
+
+/* ── Empty ───────────────────────────────────────────────────────────────────────────────────
+   Room only when it has something to say. The element exists on every state (a live region
+   must), so `display: none` is refused — that would take the announcement out with it. The
+   block inset is the same number as the inline one, so the message sits in a row-sized band
+   rather than a dialog-sized one.
+
+   THE INLINE INSET IS THE GROUP LABEL'S VERTICAL, NOT AN OPTION'S (corrected 2026-09-12, audit
+   C12 — this comment claimed the sentence "starts where an option's label would have" and
+   measured 21px left of it: at size 2, empty text at x=57, group label at x=58, option text at
+   x=78). `--kui-sf-row-px` is the BARE-edged row's inset, which is §21's own anchor — the same
+   one a group label takes and the same one a separator's rule spans — and an option's label sits
+   one reserved tick gutter further in by design. The claim was wrong; the value is right, because
+   what the message lines up with is every other thing in the panel that is not an option.
+
+   AND IT DRESSES NOTHING (audit 2026-09-12, C11). It set the muted ink, which its own JSDoc said
+   it did not, and that colour reached only a BARE STRING — so a `<ComboboxEmpty>` given a string
+   read muted and one given a `<Text>` read loud, which is two appearances for one part decided by
+   which of two equivalent spellings the caller used. Command's empty sets no colour and this
+   states the same rule: the part places the sentence, the caller's `<Text>` says it. */
+.kui-combobox-empty:not(:empty) {
+  padding-block: var(--kui-sf-row-px);
+  padding-inline: var(--kui-sf-row-px);
+}
