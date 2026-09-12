@@ -316,14 +316,20 @@ function popupProps(
   anchored: boolean,
   className?: string,
 ) {
-  // `kui-menu-anchored` is what carries the --anchor-width floor (§22), and ONLY a top-level
+  // `kui-floating-anchored` is what carries the --anchor-width floor (§22), and ONLY a top-level
   // panel wears it. A submenu's anchor is its trigger ROW, which is inline-size: 100% of the
   // parent panel — so the floor that means "never narrower than the button you pressed" read
   // as "never narrower than the panel you came from", and it compounded: measured 446.59 ->
   // 437 -> 427 across three levels, a panel holding one character 427px wide (audit
   // 2026-08-09). The argument for the floor is Button-shaped and does not survive the move.
+  //
+  // It was `kui-menu-anchored` until 2026-09-12 (audit C10). The floor's declaration was
+  // written out three times — here, in select.css and in combobox.css, byte-identical — and
+  // menu.css carried the note that the third member wanting it is the one that promotes it.
+  // Combobox is the third. The class is the family's now because the FACT is: only its opt-in
+  // is a menu's, since a menu is the one member with a panel the floor would be wrong for.
   const base = "kui-surface kui-floating kui-floating-rows kui-menu-popup";
-  const identity = anchored ? `${base} kui-menu-anchored` : base;
+  const identity = anchored ? `${base} kui-floating-anchored` : base;
   return {
     "data-size": size,
     "data-tone": "neutral",

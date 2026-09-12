@@ -907,7 +907,7 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
     ));
     const child = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop()!;
     if (child === sub && !child.querySelector(".kui-menu-item")) throw new Error("no child panel");
-    expect(child.classList.contains("kui-menu-anchored")).toBe(false);
+    expect(child.classList.contains("kui-floating-anchored")).toBe(false);
     child.style.setProperty("--anchor-width", wide);
     expect(parseFloat(computed(child, "min-width")), "a submenu must not inherit panel width").toBe(
       floor,
@@ -4424,10 +4424,16 @@ describe("the panel unfurls out of a seed (§22)", () => {
     // pane wants a boundary, not a scrollport it never uses. The declaration is deleted and
     // the base surface rule carries it, which is why this now reads through from the pane.
     expect(computed(popup, "overflow-y")).toBe("clip");
-    // `scroll`, not `auto`: Base UI's viewport asks for a permanent scrollport so its own
-    // measurements do not change the box they measure, and the custom bar replaces the one
-    // that would otherwise always show (scrollbar-width: none, scroll-area.css).
-    expect(computed(padBox(popup), "overflow-y")).toBe("scroll");
+    // `auto` since 2026-09-11, and the word is the point again. Base UI writes `overflow:
+    // scroll` INLINE on its viewport, and an inline declaration beats every rule — so a
+    // context that needs this box not to scroll could not say so without `!important`, which
+    // this package refuses. The one that needs it is a window Shell on a phone, where the
+    // page scrolls and the viewport must stop being a scroll container or nothing inside it
+    // can stick (§27). The ScrollArea's render function strips the inline value, and
+    // scroll-area.css has always declared `auto` here, so what moved is which declaration
+    // wins — never what renders, because the native bar is hidden in both spellings
+    // (scrollbar-width: none) and the custom thumb is what a reader sees.
+    expect(computed(padBox(popup), "overflow-y")).toBe("auto");
     expect(parseFloat(computed(popup, "min-width")), "and it comes back").toBeGreaterThan(0);
   });
 
@@ -4493,8 +4499,8 @@ describe("the panel unfurls out of a seed (§22)", () => {
     // a top-level popup carries. An index here is the stale-subject bug this file has been
     // caught by twice.
     const panels = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")];
-    const child = panels.find((el) => !el.classList.contains("kui-menu-anchored"));
-    const parent = panels.find((el) => el.classList.contains("kui-menu-anchored"));
+    const child = panels.find((el) => !el.classList.contains("kui-floating-anchored"));
+    const parent = panels.find((el) => el.classList.contains("kui-floating-anchored"));
     if (!child || !parent) throw new Error("the submenu never mounted");
     expect(child).not.toBe(parent);
     // A submenu opens toward the inline END, so the edge its positioner holds is the START

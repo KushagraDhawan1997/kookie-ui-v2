@@ -26,6 +26,13 @@ export const CHECK_PATH = "M4 8.5 6.75 11.25 12 5.75";
 /** The grid every path here is drawn on. */
 export const GLYPH_VIEWBOX = "0 0 16 16";
 
+/** The field chevron. A Select trigger's and a Combobox field's trailing mark — both say "this
+    field opens a list below it", so they are one drawing. Soft apex (a quadratic through the
+    point) so it reads as the same weight as the tick beside it at 16px. It points DOWN, which no
+    direction mirrors. It was inline in `select.tsx` while it had one consumer; Combobox is the
+    second, so it lands here. */
+export const CHEVRON_DOWN_PATH = "M4.5 6 L7.2 8.7 Q8 9.5 8.8 8.7 L11.5 6";
+
 /** The dismissal ✕. A Notice's acknowledgement and an Attachment's remove — both mean "take
     this away", and both draw it at the same weight in the same box. It was written inline in
     `notice.tsx` while it had one consumer, which is this file's own rule (a path in two files

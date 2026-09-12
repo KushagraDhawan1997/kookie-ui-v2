@@ -566,6 +566,70 @@
   --kui-sf-row-px: var(--control-px-pill-4);
 }
 
+/* ── What every floating pane of ROWS bounds itself by (§22, §23 — promoted 2026-09-12) ──────
+   Three declarations that were written out in menu.css, select.css and combobox.css, byte for
+   byte, with menu.css carrying the expiry beside its own copy: "the sentence now exists in two
+   files… the third floating member that wants a width floor is the one to move it." Combobox is
+   the third (audit C10), so both halves land here.
+
+   THE BOUNDS. A long panel scrolls and a wide one is held inside the room the positioner reports,
+   rather than pushed off the viewport (the width half is §22, audit 2026-08-09). And the pane
+   itself never RINGS: Base UI focuses the popup on open in some members and lets a dismissal's
+   plumbing touch it in others, and §8's ring is a keyboard affordance for CONTROLS — a panel
+   holding focus is a mode, and its rows carry the highlight.
+
+   Keyed on `.kui-floating` AND `.kui-floating-rows`, which excludes exactly one pane and does it
+   on purpose: the command palette's results pane wears `kui-floating-rows` (it holds rows) and
+   not `kui-floating` (it is not a floating pane — it is a block in a dialog's column), so it has
+   no positioner, no room to be told about and no reason to gain a bound it never had. */
+.kui-surface.kui-floating.kui-floating-rows {
+  max-height: var(--available-height, none);
+  max-width: var(--available-width, none);
+  outline: none;
+}
+
+/* ── THE ANCHOR FLOOR (§22) ───────────────────────────────────────────────────────────────────
+   "Never narrower than the trigger that opened it" — the size-match argument applied to geometry,
+   so the options sit under the control that opened them rather than under a panel narrower than
+   it. It is an OPT-IN class rather than a fact of the family, and that is the whole reason it
+   survives as a class at all: a submenu's anchor is its trigger ROW, which is `inline-size: 100%`
+   of the panel it sits in, so the same declaration read "never narrower than the panel you came
+   from" and compounded — measured 446.59 -> 437 -> 427 across three levels, a panel holding one
+   character 427px wide (audit 2026-08-09). Menu stamps it on a top-level panel only; a select and
+   a combobox are always anchored and wear it unconditionally.
+
+   THE ANCHOR TERM CONSULTS THE ENTRY'S OWN MEASUREMENT FIRST (2026-08-10): the flight needs this
+   floor inside its measured target, and floating-ui has not written `--anchor-width` yet on a
+   first open — the panel flew to its content width and re-expanded at release. `--kui-anchor-w`
+   is the trigger's LAYOUT box and it OUTLIVES the flight (corrected 2026-08-22): a settled panel
+   used to fall through to floating-ui's own, which is still travelling with the held press —
+   measured, `--anchor-width` walking 400 -> 388 -> 390 over ~350ms while the panel sat at 400,
+   then a 10px snap one frame after the release. The two terms are one number, taken once, for the
+   panel's whole life; the runner's block above `useFlight` carries the measurement.
+
+   AND IT IS CAPPED BY THE ROOM, INSIDE THE `min()` (2026-08-22 audit) — not by the `max-width`
+   above, which could never win. In CSS a minimum beats a maximum, so for any trigger wider than
+   the room the anchor arm won and the protection the bound claims was unreachable: measured 619px
+   against a 300px cap on a select, and on a menu `<MenuContent side="right">` over a 900px trigger
+   painted 951px starting at x=967 in a 1280 window — 638px off screen, with a horizontal page
+   scrollbar and the items unreachable. The `max-width` stays for the other half: a panel made wide
+   by its own long rows rather than by its trigger. The inner `max()` keeps the designed floor from
+   being squeezed away when the reported room is absurdly small.
+
+   (0,2,0), which is what the three component copies were and is load-bearing in both directions:
+   it beats `.kui-menu-popup`'s bare `--floating-min-w` at (0,1,0), so a top-level menu takes the
+   anchor floor and a submenu takes the plain one; and it LOSES to the flight's own
+   `min-inline-size: 0` at `.kui-surface.kui-floating[data-unfurling]`, (0,3,0), which is the
+   stand-down that lets a panel be narrower than its trigger while it is still unfurling. That
+   second relationship is stated as specificity rather than as source order on purpose — see the
+   promotion note at the head of the motion block below, where the same tie was got wrong once. */
+.kui-surface.kui-floating-anchored {
+  min-width: min(
+    max(var(--floating-min-w), var(--kui-anchor-w, var(--anchor-width, var(--floating-min-w)))),
+    max(var(--floating-min-w), var(--available-width, 100vw))
+  );
+}
+
 /* THE ONE PANE WITH TWO INSETS (§32, 2026-08-26 audit). A tooltip is one line of words priced
    on its own two axes, and it paints them with `padding-block` / `padding-inline` longhands —
    which beat this layer's `padding` shorthand on source order, so the pane's real inset and
@@ -2304,7 +2368,7 @@
    and it is answered above by the person who asks for it.
 
    One hazard the move surfaced, and it is the reason every selector below carries
-   `.kui-surface`: the width floor is `.kui-menu-popup.kui-menu-anchored`, two classes, and the
+   `.kui-surface`: the width floor is `.kui-surface.kui-floating-anchored`, two classes, and the
    seed's stand-down used to TIE with it and win on source order because both lived in one
    file. Promoted into a sheet that loads earlier, the same tie now goes the other way and the
    panel opened at its 112px floor instead of its 40px seed. Stated as specificity rather than

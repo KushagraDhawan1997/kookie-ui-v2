@@ -17,7 +17,9 @@
      `--kui-panel-p` in the shared join, stated once for the three sheets that each spelled the
      same `max()`. Nothing is re-declared here at all now: the rows join reads `--kui-panel-p`
      as its own fallback, so a menu that supplies no hook already pads by the band. */
-  /* Never narrower than the designed floor (§22). */
+  /* Never narrower than the designed floor (§22). This one stays, and it is the half that is
+     genuinely a MENU's: it is the floor a SUBMENU takes, and a submenu is the only panel in the
+     family that must not take the anchor floor beside it (see the anchored block below). */
   min-width: var(--floating-min-w);
   /* Long menus scroll INSIDE the panel — and since 2026-08-17 the scroller is the
      ScrollArea viewport, not the popup: the panel keeps its glass, corner and cast, the
@@ -31,11 +33,10 @@
      is a scroll container, `clip` is not, and this panel wants the second one. It said the
      right word in prose and the wrong one in CSS for three days, which cost nothing only
      because the flight rule was overriding it for the frames where it would have shown. */
-  max-height: var(--available-height, none);
-  max-width: var(--available-width, none);
-  /* Base UI focuses the popup itself on open. The ring is a keyboard affordance for
-     CONTROLS; a panel holding focus is a mode, and its rows carry the highlight. */
-  outline: none;
+  /* The two BOUNDS and the outline moved to the shared layer 2026-09-12 (audit C10) — they were
+     written out here, in select.css and in combobox.css byte-identically, and the sentence
+     below about the third member promoting applies to them as much as to the floor. The
+     reasoning above is unchanged and is where surfaces.css points back to. */
 }
 
 .kui-menu-popup .kui-scroll-viewport {
@@ -70,27 +71,21 @@
    "never narrower than the panel you came from" and compounded down the chain — measured
    446.59 -> 437 -> 427 across three levels, a panel holding one character 427px wide (audit
    2026-08-09). --anchor-width is the positioner's own measurement; the inner fallback keeps
-   the declaration valid where no positioner exists (the agreement law's in-flow twin). */
-.kui-menu-popup.kui-menu-anchored {
-  /* The entry's own anchor measurement first — same sentence as the select floor: the flight
-     measures its target through this floor before floating-ui has written --anchor-width.
+   the declaration valid where no positioner exists (the agreement law's in-flow twin).
 
-     AND CAPPED BY THE ROOM (2026-08-22 audit). In CSS a minimum beats a maximum, so this floor
-     beside the `max-width: var(--available-width)` two rules up meant the bound the popup's own
-     comment calls "the hard stop" could never apply. select.css carries the repair for exactly
-     this defect, with its own measurement written above it, and the 2026-08-09 audit landed it
-     in one sibling only. Measured here with `<MenuContent side="right">` on a 900px trigger:
-     painted 951px starting at x=967 in a 1280 window — 638px off screen, with a horizontal page
-     scrollbar and the items unreachable. The inner max() keeps the designed floor from being
-     squeezed away when the reported room is absurdly small.
+   PROMOTED 2026-09-12 (audit C10), so there is no rule left here — only this reason. The
+   declaration was written out in three files byte for byte, and the note that used to close this
+   block said so: "the sentence now exists in two files, which is where it should promote to the
+   shared layer: the third floating member that wants a width floor is the one to move it."
+   Combobox is the third. The floor, the anchor term, the room clamp and every measurement behind
+   them now live once in surfaces.css, on `.kui-surface.kui-floating-anchored`.
 
-     The sentence now exists in two files, which is where it should promote to the shared layer:
-     the third floating member that wants a width floor is the one to move it. */
-  min-width: min(
-    max(var(--floating-min-w), var(--kui-anchor-w, var(--anchor-width, var(--floating-min-w)))),
-    max(var(--floating-min-w), var(--available-width, 100vw))
-  );
-}
+   What stays a MENU's is the OPT-IN, and it is the reason the family states this as a class at
+   all rather than as a fact of an anchored panel: menu.tsx stamps `kui-floating-anchored` on a
+   top-level panel and withholds it from a submenu — the one panel in the family whose anchor is
+   not a trigger — while a select and a combobox wear it unconditionally. The old class name
+   (`kui-menu-anchored`) is gone rather than kept as an alias, since a second name for one fact is
+   exactly what the promotion was removing. */
 
 /* A separator inside a menu is the ordinary Separator (the part is refused — it would rename
    existing vocabulary), and all this rule supplies is the RHYTHM: the same distance above and

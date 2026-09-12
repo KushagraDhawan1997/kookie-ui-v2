@@ -31,6 +31,7 @@ import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial, type SurfaceMaterial, themeDefaults } from "../../theme/theme.tsx";
 import { useSize } from "../../system/size.ts";
 import { glyphStroke } from "../../tokens/config.ts";
+import { CHECK_PATH, CHEVRON_DOWN_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
 
 /* `themeDefaults.size`, never a literal: this default is only reachable in an invalid tree
    (a part outside its root), and nine private copies of the number 2 is nine claims about a
@@ -220,7 +221,7 @@ export function SelectTrigger({
       <span className="kui-field-slot" data-slot={"trailing" satisfies SlotName}>
         <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
           <path
-            d="M4.5 6 L7.2 8.7 Q8 9.5 8.8 8.7 L11.5 6"
+            d={CHEVRON_DOWN_PATH}
             stroke="currentColor"
             strokeWidth={glyphStroke}
             strokeLinecap="round"
@@ -265,7 +266,11 @@ export type SelectContentProps = ComponentRefusals & Omit<
 /** The panel's surface identity — the menu popup's constants, self-keyed (§23). data-size
     is stamped for the concentric corner (the floating size join reads it). */
 function popupProps(size: Size, material: SurfaceMaterial, className?: string) {
-  const identity = "kui-surface kui-floating kui-floating-rows kui-select-popup";
+  // `kui-floating-anchored` carries the width floor since 2026-09-12 (audit C10) — a select's
+  // panel is always anchored to its trigger, so the class is unconditional here. The rule it
+  // stands for is unchanged and lives in surfaces.css now, where three files had spelled it.
+  const identity =
+    "kui-surface kui-floating kui-floating-rows kui-floating-anchored kui-select-popup";
   return {
     "data-size": size,
     "data-tone": "neutral",
@@ -396,10 +401,16 @@ export function SelectItem({ children, className, ...props }: SelectItemProps) {
       {...rowProps(React.use(SelectSizeContext), "kui-select-item", { ...(className !== undefined ? { className } : {}) })}
       {...props}
     >
+      {/* The tick is the system's own drawing, not this file's (audit 2026-09-12, X3). It was
+          hand-written here — `M3.5 8.5 6.5 11.5 12.5 4.5` — while Checkbox, Menu and now
+          Combobox all draw `CHECK_PATH`, so a select's chosen row wore a DIFFERENT tick from
+          every other chosen thing in the library, and the glyphs law could not see it because
+          it matches only the exact shared string. Combobox is what made the two visible side by
+          side: the same panel shape, one row over. */}
       <BaseSelect.ItemIndicator keepMounted render={<span data-slot={"leading" satisfies SlotName} />}>
-        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+        <svg viewBox={GLYPH_VIEWBOX} fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
           <path
-            d="M3.5 8.5 6.5 11.5 12.5 4.5"
+            d={CHECK_PATH}
             stroke="currentColor"
             strokeWidth={glyphStroke}
             strokeLinecap="round"
