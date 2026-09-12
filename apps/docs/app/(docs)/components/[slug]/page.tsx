@@ -32,7 +32,7 @@
  */
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Box, Code, Flex, Heading, Page, Stack, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Text } from "@kookie-ui/react";
+import { Box, Code, Flex, Heading, List, ListItem, Page, Stack, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Text } from "@kookie-ui/react";
 
 import { CodeSample } from "../../../../blocks/code-sample";
 import { TableOfContents } from "../../../../blocks/table-of-contents";
@@ -390,17 +390,17 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
                 `InlineCode` on the NAME because the names are two kinds of thing and the
                 writing knows it: an identifier keeps its code spelling (`modal`, `readOnly`,
                 `FieldControl`), a phrase is capitalised because a list item starts a line. */}
-            <Text size="3" render={<ul className="kd-list" />}>
+            <List size="3">
               {entry.refusals.map((refusal) => (
-                <li key={refusal.name}>
+                <ListItem key={refusal.name}>
                   <Text size="3" weight="medium" render={<span />}>
                     <InlineCode text={refusal.name} />
                   </Text>
                   {" — "}
                   <InlineCode text={refusal.why} />
-                </li>
+                </ListItem>
               ))}
-            </Text>
+            </List>
           </Section>
 
           <Section title={SECTIONS.everywhere}>
@@ -413,11 +413,11 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
                   which is this repo's most-repeated defect wearing the name of its own cure. A
                   law now reads the rendered list against `EVERYWHERE`, and a second one fails
                   on any of these sentences appearing as a literal anywhere else. */}
-              <Text size="3" render={<ul className="kd-list" />}>
+              <List size="3">
                 {EVERYWHERE.map((line) => (
-                  <li key={line}>{line}</li>
+                  <ListItem key={line}>{line}</ListItem>
                 ))}
-              </Text>
+              </List>
             </Stack>
           </Section>
         </Page>

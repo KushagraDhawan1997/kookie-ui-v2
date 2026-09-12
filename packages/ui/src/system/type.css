@@ -84,6 +84,7 @@
    list lives here because a family slot is the layer's mechanism, not a component's. */
 .kui-text,
 .kui-blockquote,
+.kui-list,
 .kui-link {
   font-family: var(--font-body);
 }

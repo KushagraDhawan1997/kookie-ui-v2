@@ -39,14 +39,12 @@
  * a figure keep the column. They share a left edge, so there is still one axis; only the right
  * edge differs, which is the arrangement HIG and Material both use for the same reason.
  *
- * ONE ELEMENT HAS NO COMPONENT TO RESOLVE TO — the list — and it is handled here in the only
- * honest way: the semantic element, kept for what it announces, with its type coming from
- * `<Text render>` and its remaining details from `prose.css` in tokens. Nothing in the system
- * has ever named a list. Writing the docs is what turned that from an absence nobody had
- * noticed into three recorded gaps (LOG 2026-08-21), which is the pattern this repo keeps
- * having: /preview forced the composition rules, the builder forced `componentAxes`, and the
- * canon forced the prose primitives — `Link` shipped as a result, and the static `Table`
- * followed 2026-08-31 (§36), taking the hand-drawn `.kd-table` rules with it.
+ * EVERY ELEMENT RESOLVES TO A COMPONENT NOW. Writing the docs turned three absences nobody had
+ * noticed into recorded gaps (LOG 2026-08-21), which is the pattern this repo keeps having:
+ * /preview forced the composition rules, the builder forced `componentAxes`, and the canon
+ * forced the prose primitives — `Link` shipped as a result, the static `Table` followed
+ * 2026-08-31 (§36) taking `.kd-table` with it, and `List` closed the set 2026-09-12, taking
+ * `.kd-list`.
  */
 import * as React from "react";
 import type { MDXComponents } from "mdx/types";
@@ -57,6 +55,8 @@ import {
   Code,
   Heading,
   Link,
+  List,
+  ListItem,
   Separator,
   Stack,
   Text,
@@ -193,20 +193,17 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     ),
     em: ({ children }) => <em>{children}</em>,
 
-    // `<Text render>` gives the list the ramp step and the ink; every `li` inherits both,
-    // and a nested list re-wraps and inherits again. Indent and marker colour are the two
-    // things left over, and they live in prose.css because the system has no list to ask.
-    ul: ({ children }) => (
-      <Text size="3" render={<ul className="kd-list" />}>
+    // Lists: the package's own since 2026-09-12 (§15) — the `.kd-list` rules prose.css drew
+    // by hand came across unchanged. A nested markdown list is a `List` inside a `ListItem`,
+    // which takes its parent's step and ink with no size stated. Markdown's `start` (a list
+    // written from "3.") passes through, since it changes what the numbers say.
+    ul: ({ children }) => <List>{children}</List>,
+    ol: ({ children, start }) => (
+      <List ordered {...(start !== undefined ? { start } : {})}>
         {children}
-      </Text>
+      </List>
     ),
-    ol: ({ children }) => (
-      <Text size="3" render={<ol className="kd-list" />}>
-        {children}
-      </Text>
-    ),
-    li: ({ children }) => <li>{children}</li>,
+    li: ({ children }) => <ListItem>{children}</ListItem>,
 
     blockquote: ({ children }) => <Blockquote>{children}</Blockquote>,
     // A thematic break outranks a figure, so it takes more air than one: 40px a side.

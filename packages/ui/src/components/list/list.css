@@ -1,0 +1,79 @@
+/* A prose list (§15): the docs' judged `.kd-list` (prose.css, 2026-08-21), promoted.
+ *
+ * `.kui-type` already zeroes the UA margin a <ul>/<ol> arrives with (§3 — components never own
+ * outer spacing) and points the colour at the foreground role; the ramp, the weights, the
+ * emphasis rungs and the body family slot are the shared layer's. What is here is the three
+ * things that make copy a list: the indent, the distance between items, and the marker's ink.
+ *
+ * `li + li` rather than a gap, because a flex list stops generating markers — the browser's
+ * list-item layout is the thing being kept, and it is also what indents a nested list with no
+ * rule of its own. */
+
+/* ── The indent is the room the marker hangs in, so it is the LIST's own type ──────────────
+   It was `--layout-space-5` until the audit (2026-09-12): 16px at every step, and 12 or 24 by
+   density — the value the docs judged in open prose at size 3, carried across with the rest of
+   `.kd-list` and never asked about anywhere else. Two things are wrong with it and both were
+   measured rather than reasoned.
+
+   THE ROOM A MARKER NEEDS IS A PROPERTY OF THE FONT, not of the layout rhythm. Measured across
+   the nine steps, the marker box the browser reserves runs 1.34–1.43em for a disc and
+   1.50–1.84em for "10." — so one fixed distance holds the marker at one step and lets it hang
+   outside the list's own box at every other one. At size 3 a disc already hung 6px out; at
+   size 9 "10." hung 55.
+
+   AND A HANGING MARKER IS A DELETED MARKER WHEREVER A BOX CLIPS. A pane clips since the bleed
+   shipped (§3, 2026-08-20) and a table cell has no inset at all, so the overflow has no symptom
+   and no repair from the call site: measured in a first column at compact size 1, "10." painted
+   as "0." and the discs disappeared entirely.
+
+   So it is stated in `em`, which is Blockquote's own sentence one component over — the distance
+   between a mark and the words it introduces is a property of the words — and it is why DENSITY
+   no longer touches it: the marker's room is not breathing room, it is the glyph.
+
+   TWO VALUES, because the two elements draw different markers and what the room has to hold is
+   the widest one. A disc is the same mark at every step and a number grows with what it counts,
+   so a single value is either short for the numbers or a third of a line of air in front of
+   every bullet. 1.5em clears the widest disc (1.429em, step 2) and 2em clears the widest
+   two-digit number (1.839em, step 1) — two digits being what this component promises to hold,
+   since `start` and `reversed` pass through and three digits is not a list anyone sets in prose.
+   Both numbers are taste over a measured floor. */
+ul.kui-list {
+  padding-inline-start: 1.5em;
+}
+
+ol.kui-list {
+  padding-inline-start: 2em;
+}
+
+/* The rhythm between items, and between an item's words and the list nested under them. The
+   nested list's top margin is the PARENT's rule about its own contents — internal rhythm, not
+   a component owning its outer spacing — and it beats `.kui-type`'s zeroed margin on rank.
+
+   THE DIRECT CHAIN ONLY (audit 2026-09-12). It was `.kui-list .kui-list`, a descendant
+   selector, which in open prose reaches exactly the nested list it was written for and
+   everywhere else reaches past it: a `Stack` or a `Card` placed inside a list item owns its own
+   spacing (§3) and took 4px of someone else's margin on top of it — measured, a Stack's first
+   gap read 6px inside an item against 2px outside one. `> li >` is the shape the rule always
+   meant, and it is what markdown renders anyway. */
+.kui-list > li + li,
+.kui-list > li > .kui-list {
+  margin-block-start: var(--layout-space-2);
+}
+
+/* ── A BULLET IS FURNITURE; A NUMBER IS NOT (audit 2026-09-12) ─────────────────────────────
+   The faint rung is the one §15 minted for "something stood down", and it is right for a disc:
+   a bullet says only "this is one of several", the same thing for every item, and nobody reads
+   it. A NUMBER is read. It is the thing a procedure is cited by — "step 3" — it is announced
+   as text by the accessibility tree ("9. "), and at the faint rung it measured 1.72:1 against
+   the page in light, with `contrast="high"` moving it only to 1.86 — below every floor this
+   system holds a signal to, on a glyph carrying information.
+
+   So the rule is the disc's alone, and an ordinary number takes the list's own ink by saying
+   NOTHING: `::marker` inherits `color` from the item it belongs to, so a numbered list's
+   markers land on whatever rung and whatever family the words landed on — 16.49:1 at the
+   resting loud rung in light, 3.45 at medium, and the tone indirection carries them without
+   this file naming a colour. A declaration restating a default is a declaration no law can
+   fail on, so there is not one here. */
+ul.kui-list > li::marker {
+  color: var(--color-text-faint);
+}

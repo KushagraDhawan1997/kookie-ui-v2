@@ -1,16 +1,13 @@
 /**
  * The docs' own CSS, and it is deliberately this short.
  *
- * Everything here is one of two things, never a third: a prose primitive the system has not
- * shipped (a list; the inline link and the data table have since shipped), or the code theme's variable bindings. Both
- * resolve entirely through the public token contract (§13) — there is no raw colour and no
- * raw distance in this file — so a re-judged palette or a density change moves the docs with
- * the system rather than leaving them behind.
+ * Everything here resolves entirely through the public token contract (§13) — there is no raw
+ * colour and no raw distance in this file — so a re-judged palette or a density change moves
+ * the docs with the system rather than leaving them behind.
  *
- * The three gaps are recorded in LOG 2026-08-21. §11 has planned `Link` since the defaults
- * table was written and plans a table ROW as an interactive surface; a list has never been
- * named by anything. Each rule below is the app drawing one for itself, which is what the
- * escape hatch is for, and each is small enough to delete the day the component lands.
+ * The three prose primitives recorded as gaps in LOG 2026-08-21 have all shipped and left
+ * this file: `Link`, the static `Table` (2026-08-31, §36) and `List` (2026-09-12, §15). What
+ * is left is this site's own layout — the measure, the chapter column, the wordmark.
  */
 
 /* ── The reading measure ───────────────────────────────────────────────────────────────────
@@ -69,27 +66,6 @@
    characters, `--kd-measure` is a pixel number taken at body size, and the title and the deck
    are not at body size. What is left under this class is what the class was measured for —
    the running prose of a chapter. */
-
-/* ── Lists ─────────────────────────────────────────────────────────────────────────────────
-   Type and ink arrive from `<Text render={<ul/>}>` and inherit; what is left is the indent
-   and the marker. `li + li` rather than a gap, because a flex list stops generating markers
-   — the browser's list-item layout is the thing being kept here, and it is also what makes a
-   nested list indent correctly with no rule of its own. */
-.kd-list {
-  padding-inline-start: var(--layout-space-5);
-  margin: 0;
-}
-
-.kd-list li + li,
-.kd-list .kd-list {
-  margin-block-start: var(--layout-space-2);
-}
-
-/* The marker is furniture, not content — the faint role is exactly the rung §15 minted for
-   "something stood down". */
-.kd-list li::marker {
-  color: var(--color-text-faint);
-}
 
 /* ── Inline links ──────────────────────────────────────────────────────────────────────────
    Tone comes from `<Text tone="accent">`, so this owns only the underline. Offset and
