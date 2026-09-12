@@ -8,6 +8,286 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-12 Four components shipped, and almost every defect in them was a borrowed premise
+
+**What.** Sheet, Combobox, NumberField and List, audited before ship and repaired. Fifty-three surviving
+findings, deduplicated to twenty-nine defects and thirteen law breaks. The components are recorded in
+DECISIONS §49–§52; this entry is for the SHAPE, because it recurred often enough to be the ship's real
+finding.
+
+**What they cost.** The four together are **+1,027 bytes gzipped** — 41,006 → 42,033, re-recorded in
+`budget.json` in this commit, against a 65,536 ceiling. The figure is for all four because gzip
+attribution is not additive: the artifact is measured whole, and a per-component share would be a
+number nothing measured. What the total says is that the additivity claim still holds at fifty-eight
+components — a modal panel, a filtering field, a stepper field and a prose list between them cost less
+than Button's own control layer did on day one (+1,206), because every one of them is mostly the
+surface, field, row and type layers that were already paid for.
+
+**The pattern: a sibling's rule taken with a reason that does not hold for the new component.** Not a
+copied bug — a copied JUSTIFICATION. In most cases the new component's own comment states the reason,
+and nobody measured it against the thing it had been pasted onto.
+
+- **Sheet claims Dialog and runs on Drawer.** Its header says it "takes Dialog's a11y whole", and it
+  was getting Drawer's initial-focus default, Dialog's close-reason union for a primitive that sends
+  one more reason, and Dialog's narrow-arm height cap — which was argued for touch REACH and never for
+  safe areas.
+- **Combobox takes Select's panel.** Select's panel never changes content while open and its trigger
+  never holds a caret; a combobox breaks both, so the flight pinned a height that typing then changed,
+  and the opaque seed covered the field being typed into. The header's own comment read "the runner
+  already copes."
+- **Combobox copies TextField's prop shape.** TextField OWNS its input, so a prop on it is a prop on
+  the control. A combobox's state lives in the root's store, so five of those props did nothing the
+  type promised.
+- **List takes the docs' judged `.kd-list` values**, which were judged in open prose, at one step, in a
+  container with room to spill into. The comment claimed the indent had "room for a two-digit number";
+  measured, it does not, at any step but the one it was judged at.
+
+**The second shape, and it is this repo's own rule restated: two sources for one state.** The stylesheet
+and the machine read one fact from different places and disagreed. A combobox's CSS read `:read-only`
+and `:disabled` on the `<input>` and painted the field locked while Base UI read the root store and kept
+the list live; the read-only chevron's cursor stand-down keyed on `:disabled`, which Base UI never sets
+for read-only; a portalled List read as nested in React while the DOM said it was not. Each one is the
+ENGINEERING clause that a mechanism with two implementations owes a law that they agree.
+
+**Three findings were cross-cutting — the new component only exposed a fault that was already shipped.**
+**The lens read ONE corner radius and mirrored it**, which was true of every box it had ever met; Sheet is
+the first glass pane whose corners disagree, so its square corners got curved light and an inline-start
+sheet got a fully square map with no glint on the two corners it paints. **An invalid or disabled GLASS
+field drew no boundary at all**: the glass block zeroes `border-width` so the lip is the one edge
+(2026-09-11), and the state arms handed back only the colour — measured `border-top-width: 0px` with the
+pigment set and the ring and glint at opacity 0, less edge than a valid field, on TextField as much as on
+the new one. And **the width floor, the two bounds and the panel's `outline: none` were written out in
+three files byte for byte**, with `menu.css` carrying the expiry beside its own copy; Combobox is the
+third member, so the promotion its comment scheduled fired. `kui-menu-anchored` is `kui-floating-anchored`
+with the move, because a second name for one fact is the drift the promotion exists to end.
+
+**Rejected: forwarding the combobox's borrowed props to the root instead of refusing them.** It repairs
+the behaviour and re-commits the shape — one fact in two places, free to disagree, which is the same
+defect one layer over. They are refused on the input and stated on the root, which is where all five
+already behaved correctly.
+
+## 2026-09-12 A sheet is Base UI's Drawer, not Dialog with an edge
+
+**What.** `Sheet` ships on Base UI's Drawer. Six exports in Dialog's vocabulary; the panel is Card's
+stamped identity plus `kui-overlay`, so it looks like a dialog by construction and only what an EDGE
+panel owns is designed here.
+
+**Why not Dialog, which the part names and the a11y both come from.** The Drawer IS a dialog — it re-uses
+Dialog's root context and its a11y wiring — plus the two things an edge-anchored panel owes that a centred
+one does not: swipe-to-dismiss with release velocity, and touch scroll locking that tells a scroll INSIDE
+the panel from a drag OF the panel. Building those on Dialog means writing a gesture machine this package
+has no business owning. §25 named this exactly when it deferred drag on the dialog's narrow arm — *"that
+is what a separate Drawer component would be for."*
+
+**What it is not, stated because three things in this system are nearby.** Not the Shell's bottom pane,
+which is part of the app FRAME: it pushes or recedes the frame and states no scrim (§27). Not §25's
+narrow arm, which is a DIALOG changing how it sits on a narrow window — presentation is dress, not a
+component. This is a task the app pauses for, at any width.
+
+**`top` is refused on the record rather than left pending.** The top edge belongs to the platform on
+every system this package answers to — iOS's and Android's notification shades, macOS's menu bar — and
+to the app's own toolbar on the web, so a modal arriving from above lands on the chrome the reader
+navigates by. Material ships no top sheet and iOS has none. The one peer that does, a macOS window
+sheet, is attached to a window, which a web page is not.
+
+**The edge is LOGICAL and Base UI's is PHYSICAL, so the component resolves one from the other at render.**
+An inspector that opens on the right in English opens on the left in Arabic, so `left`/`right` would be
+wrong in one of them. The safe areas and the slide then key on the physical stamp, because
+`env(safe-area-inset-*)` is physical too: a home indicator is at the bottom whatever the language.
+
+**Three audit repairs, each a borrowed premise.** **Focus** — Base UI's Dialog resolves `touch ? popup :
+true` and Drawer resolves the popup always, so a keyboard open landed on the panel DIV, which declares
+`outline: none`: no ring, no name, one Tab from the first control, where a dialog puts you on the control.
+The touch arm must NOT change, because focusing a field on touch raises the soft keyboard over the panel
+that just slid up — which is why this is a function rather than a flag, and why `initialFocus` stays
+refused as a PROP: the point is that the default is right. **`close-watcher`** — Drawer installs a
+`CloseWatcher` where the platform has one, so Android's system BACK gesture closes the panel and reports
+itself, and the union shipped without it: an exhaustive unsaved-changes guard had no case for the
+commonest dismissal on that platform, and TypeScript REJECTED the case that would have handled it. The
+guard looks complete and the compiler agrees, which is the worst shape a missing union member can take.
+It is Sheet's and not the family's, measured rather than assumed — Dialog's root declares no
+`closeWatcher`, so widening the shared union would publish a reason Dialog and AlertDialog can never send.
+**The top safe area** — the bottom sheet caps one touch target short so a strip of scrim stays tappable,
+and under `viewport-fit=cover` the viewport is the whole glass: `100% - 44px` put the panel's top at y=44
+on a phone with a 59px inset, with the tappable strip lying ENTIRELY under the status bar where the system
+takes the touch. The strip has to be reachable, not merely present. The two distances are ADDED and not
+`max()`ed, because an unsafe band and a target are different things that stack. Dialog's narrow arm
+carried the same cap and takes the same repair.
+
+**Rejected: aliasing the reason union to Base UI's.** It would have prevented the `close-watcher` defect
+and it re-opens a worse one — the published API is Kookie's, and a Base UI minor bump must not silently
+widen what a consumer's `switch` has to handle. The union stays hand-listed, which means the agreement is
+owed a LAW rather than a comment: a node law can assert the two are the same set without importing one
+into the other.
+
+**And the body's scroll-container exemption is written out rather than copied.** The law that sweeps raw
+scrollers would have let this take Dialog's entry, and Dialog's reason is that the FLIGHT blurs that box.
+A sheet has no flight, so that exemption would be taken on a premise that is false here. The real reasons
+are that the element is not ours — it carries the gesture contract Base UI finds with `closest()`, so the
+attribute has to sit on this element — and that making it a ScrollArea would WRAP the caller's children,
+foreclosing the composition the component publishes.
+
+## 2026-09-12 A combobox's input props promised what the root owns
+
+**What.** Five props left `ComboboxInput` — `disabled`, `readOnly`, `name`, `required`, `form` — and
+`form` was added to the root, which could not state it before. The listbox's accessible name moved to the
+element that carries the role.
+
+**Why.** They were borrowed from TextField's prop shape along with everything else, and TextField's own
+reason is what exposes the borrow: **TextField OWNS its input, so a prop on it is a prop on the control.**
+A combobox's state lives in the root's store and its VALUE lives in a hidden input, so each of these
+reached an element that is not where the fact lives. Measured: `<ComboboxInput disabled>` painted the
+field dead while a chevron click opened three options and picking Paris gave FormData `city=Paris`;
+`readOnly` dropped the well while the list stayed live and Escape cleared the value; `name` submitted the
+LETTERS, so typing "zzz" gave `region=zzz` and a correct pick of London submitted "London" instead of
+"eu-west" — the exact thing the component's header promises never happens; `required` validated that
+something had been TYPED, so `checkValidity()` passed with nothing chosen; `form` enrolled the visible
+input and left the hidden one out, so the field submitted nothing at all.
+
+**Rejected: forwarding them to the root.** The behaviour would be right and the shape would be wrong —
+one fact with two homes, free to disagree, which is exactly the stylesheet-versus-store split found in the
+same audit. Refusing them leaves the root as the one home, where all five already worked.
+
+**The listbox had no name and no prop could give it one.** `aria-label` on `ComboboxContent` type-checked
+and landed on the popup, which Base UI renders as `role="presentation"` — so the name went onto a node the
+accessibility tree does not expose while the `role="listbox"` inside it stayed nameless, in a demo written
+specifically to give it one. Select's 2026-08-26 audit is the same defect one component over; there the
+repair was to stop hand-listing props, here it is to put the name on the element that has the role.
+
+**And the chevron's `aria-hidden` was true of the KEYBOARD alone.** Base UI's trigger prevents its
+mousedown default — which is what stops a button taking focus — for every pointer type EXCEPT touch,
+deliberately, because on touch it also declines to focus the input. Nothing then stops the BUTTON taking
+focus: measured on a Pixel 7, a tap put `activeElement` on the `aria-hidden` trigger, Chrome logged
+"Blocked aria-hidden on an element because its descendant retained focus", and the tree exposed a focused
+button named "". A mouse click was correct throughout. **Rejected: dropping `aria-hidden` and naming the
+button** — it makes the package ship an English string for a control the design says should not be
+announced at all, and it fixes the announcement while leaving the stray focus. Preventing the default on
+every pointer type restores the mouse's own behaviour on touch.
+
+## 2026-09-12 The flight follows its content, and the seed stops covering the field
+
+**What.** A combobox's panel keeps its height aimed at the list while it flies, animates the same change
+once it has landed, and starts its entry as a zero-height line at the field's bottom edge instead of a
+photograph of the field.
+
+**The seed.** §22's silhouette is the trigger's opaque box lifting, and it is honest wherever the panel
+LANDS on the thing it came out of — a menu's button, a select's field, which the panel straddles. **A
+combobox's field is the one trigger you are still USING while its panel opens.** Measured, the seed
+covered it for 60–100ms of every open: `elementFromPoint` at the input's text midline returned the popup
+from t=86 to t=140 while `input.value` became "L", so the caret and the letter just typed sat behind a
+blank capsule. An opaque photograph of a box the user is typing into is the one case the morph cannot be.
+The seed keeps the field's WIDTH and corner — that edge is real, and the panel hangs from exactly that
+line — and gives up its height. It also FADES where the family's seed is opaque from frame one, because
+that rule's own reason is that it covers the trigger exactly, and a line with no height covers nothing.
+Command's zero-height seed reached the same answer from the other direction, its pane's top edge already
+being its bar's bottom edge.
+
+**The height, in flight.** The entry pins a height measured at mount, and a combobox is the first member
+whose content changes WHILE it flies — because typing is how it is opened. Measured at 130ms per key,
+typing "par" took the list to one row inside an 86px box and the box snapped 86→56 at t=589; backspacing
+took it to nine rows inside a 146px box whose `clientHeight` equalled its `scrollHeight`, so the extra
+rows could not be scrolled to at all, and the box then snapped 146→296. The body carries `followsContent`,
+which re-aims that one number at the list's real height; everything else about the entry is the family's,
+and the choice is made once in the component that knows it rather than passed down a tree where a caller
+could reach it.
+
+**The height, at rest.** A settled panel's height is `auto` and `auto` does not interpolate, so every
+filter change snapped the box in one frame — measured 234→162→234 with nothing in between — while Command,
+which this component takes its filtering from, animates the identical change. `interpolate-size:
+allow-keywords` is scoped to this pane because it INHERITS; where an engine lacks it the height snaps,
+which is exactly the current behaviour, so the feature is additive and its fallback is what shipped.
+
+**Rejected: leaving the snap and recording why.** There was no why. The component takes its filtering from
+a component that animates the same change, and "the runner already copes" was the sentence that had stood
+in for the measurement.
+
+## 2026-09-12 A bullet is furniture and a number is not, and the indent belongs to the font
+
+**What.** `List` ships as the type family's fourth component — the third and last of the prose primitives
+the docs recorded unshipped on 2026-08-21. The item rhythm came across from the docs' hand-drawn
+`.kd-list` unchanged. The INDENT and the marker's INK did not.
+
+**Why they did not.** Both were judged in open MDX prose, at size 3, in a container with room to spill
+into, and neither claim held anywhere else.
+
+**The indent was a density-aware layout step, and two things are wrong with that.** **The room a marker
+needs is a property of the FONT, not of the layout rhythm.** Measured across the nine steps, the marker
+box the browser reserves runs 1.34–1.43em for a disc and 1.50–1.84em for "10.", so one fixed distance
+holds the marker at one step and lets it hang outside the list's own box at every other one — at size 3 a
+disc already hung 6px out, at size 9 "10." hung 55. **And a hanging marker is a DELETED marker wherever a
+box clips.** A pane clips since the bleed shipped and a table cell has no inset at all, so the overflow
+has no symptom and no repair from the call site: measured in a first column at compact size 1, "10."
+painted as "0." and the discs disappeared entirely. So it is `em` — Blockquote's own sentence one
+component over — and DENSITY no longer touches it, because the marker's room is not breathing room, it is
+the glyph. Two values, because a disc is the same mark at every step while a number grows with what it
+counts, so one value is either short for the numbers or a third of a line of air in front of every bullet.
+
+**The marker's ink was the faint rung, which is right for a disc and wrong for a number.** A bullet says
+only "this is one of several", the same thing for every item, and nobody reads it. A number is READ: it is
+what a procedure is cited by, it is announced as text by the accessibility tree ("9. "), and at faint it
+measured 1.72:1 against the page in light with `contrast="high"` moving it only to 1.86 — below every
+floor this system holds a signal to, on a glyph carrying information. The faint rule is the disc's alone
+now, and an ordered list's markers take the list's own ink **by saying nothing**: `::marker` inherits
+`color` from its item, so they land on whatever rung and whatever family the words landed on, and the tone
+indirection carries them without the file naming a colour. A declaration restating a default is one no law
+can fail on, so there is not one.
+
+**Two more the same audit found, both about reach.** The nested-rhythm rule was a DESCENDANT selector,
+which in open prose reaches exactly the nested list it was written for and everywhere else reaches past
+it: a `Stack` or `Card` inside a list item owns its own spacing and took 4px of someone else's margin —
+measured, a Stack's first gap read 6px inside an item against 2px outside one. And **nesting is detected
+by React context, which crosses portals**: a `List` inside a Popover, Dialog or Sheet opened from inside a
+`ListItem` read as nested, stamped no step, weight or ink, and had no `<li>` to inherit a line from —
+measured 14px at `line-height: normal` against the 16/24 the same list renders at anywhere else.
+`PortalScope` resets it, which is `GlassScope`'s own sentence at the portal: what crosses is what the app
+SAID, never what the thing behind it happened to be doing.
+
+**Rejected: detecting nesting from the DOM instead.** It answers the portal case and costs a measurement
+at render time on a type component that otherwise takes none. **Rejected: importing the context out of
+`list.tsx` into the floating layer** — it inverts the layers and drags a type-family component into every
+portalling component's graph. A context two layers share is a fact about the system, so it is declared in
+the system.
+
+## 2026-09-12 A label binds to the first labelable child, and the steppers were first
+
+**What.** `NumberField`'s input is first in the DOM and the steppers are placed visually with `order`. Its
+value takes a floor of three digit advances.
+
+**Why the order.** `<label>Seats <NumberField/></label>` binds to the first LABELABLE descendant, and a
+`<button>` is labelable — so with the decrease stepper written first, the label named a STEPPER, the input
+went unnamed, and clicking the words focused a button that is not even in the tab order. TextField has no
+such bug because its input is its first child. Nothing else reads the DOM order: the steppers are
+`tabIndex: -1`, so sequential focus is unmoved either way, and every rule that dresses a slot keys on the
+`data-slot` ATTRIBUTE rather than on a position. `order` is direction-agnostic, because it runs along the
+flex main axis, which flips with `dir`.
+
+**Rejected: documenting the limit and adding a law for it.** The arrangement is the system's — this
+component places both steppers itself — so a caller cannot repair it, and a documented trap on the most
+ordinary way to label a field is not a smaller defect than an undocumented one.
+
+**Why the floor.** Measured: in a four-column grid on a phone the field was handed 80.25px, the input
+shrank to 0 and the increase stepper painted 16.75px OUTSIDE the field's own border — a control that had
+eaten the one thing it exists to show. The cause is the field family's `min-width: 0` on the input, which
+is RIGHT and is what lets a long value scroll inside the box instead of pushing the trailing slot out,
+meeting two `flex: none` slots: the input is the only item with any give, so it absorbs every pixel of
+shrink down to nothing.
+
+**It is THIS component's floor and not the family's, and the difference is who put the slots there.** A
+TextField's slots are the CALL SITE's and optional, so a bare TextField shrinking to nothing is the open
+"can a field shrink" question and is not settled by one component. A NumberField ALWAYS carries two,
+because it placed them itself, so "there is a value between them" is its own anatomy rather than a call
+site's arrangement. Stated in `ch` on the atoms' argument — a value's room is a property of the glyphs in
+it — under `tabular-nums`, where a `ch` IS a digit. A floor and not a width: above it the input still
+takes what the slots leave. The open question keeps the harder half, which is unchanged: below that floor
+the field still overflows its container rather than its own border, and nothing in the family says whether
+a field may be squeezed past its anatomy at all.
+
+**And `aria-roledescription` is deliberately not a prop**, where the two stepper labels are. Base UI
+writes it on the input as the English "Number field", and the attribute already reaches the input through
+the ordinary spread — Base UI merges a caller's props AFTER its own, so the caller's value wins. The
+criterion for a label prop is that the platform leaves no route to the element, which is true of two
+buttons the system places and false here; minting one anyway would be a second spelling of one fact.
+
 ## 2026-09-11 The glass had a part missing on every engine but one, and the lens was bending the wrong numbers
 
 **What.** A deep audit of the material system aimed at mobile and Safari (Kushagra: *"I think we still

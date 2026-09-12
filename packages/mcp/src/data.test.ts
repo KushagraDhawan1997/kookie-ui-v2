@@ -131,12 +131,21 @@ describe("the closed unions", () => {
     const OPEN_ON_PURPOSE = [
       // A node, not a value: `render` takes an element, and there is nothing to close.
       "RenderElement",
+      // Not a vocabulary at all, and the second kind this list holds (2026-09-12, §50): a
+      // combobox option is DATA — a string, or an object carrying the value and the label the
+      // reader sees. There is no set of legal words to check a call site against, so closing it
+      // would be closing a shape rather than a union.
+      "ComboboxOption",
       // Closed unions in the package that this server does not close, because `typeAxis` only
       // reaches axes and these are per-component vocabularies. `check_usage` therefore says
-      // nothing about a wrong value on these six props; recorded rather than left to be
+      // nothing about a wrong value on these seven props; recorded rather than left to be
       // discovered from a tool result that stayed silent.
       "AttachmentState",
       "ComposerStatus",
+      // The three edges a modal sheet may come in from (§49, 2026-09-12) — `bottom`,
+      // `inline-start`, `inline-end`. Logical on purpose, so it mirrors under RTL; `top` and
+      // the physical pair are refused in the component rather than absent by oversight.
+      "SheetSide",
       "ShellPaneTarget",
       "ShellPresentation",
       // The rail's own four postures (§27, 2026-09-09) — `auto`, `bar`, `rail`, `overlay`.
