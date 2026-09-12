@@ -275,7 +275,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
     family: "Control",
     blurb: "The unit that makes one input make sense: a label, a description, the control and an error, wired so they are read as one thing. The index prices all four.",
     props: { size: size(), disabled: bool },
-    children: { only: ["FieldLabel", "FieldItem", "FieldDescription", "FieldError", "TextField", "TextArea", "Checkbox", "Switch", "Select", "SegmentedControl", "Slider", "RadioGroup"] },
+    children: { only: ["FieldLabel", "FieldItem", "FieldDescription", "FieldError", "TextField", "TextArea", "NumberField", "Checkbox", "Switch", "Select", "SegmentedControl", "Slider", "RadioGroup"] },
     make: () =>
       node("Field", {}, {
         children: [
@@ -345,6 +345,26 @@ export const CATALOG: Record<string, CatalogEntry> = {
     props: { size: size(), rows: { kind: "number", min: 1, max: 12 }, placeholder: text, "aria-label": text, disabled: bool, backdrop: bool },
     children: "none",
     make: () => node("TextArea", { rows: 3, placeholder: "Write something…", "aria-label": "Notes" }),
+  },
+  NumberField: {
+    family: "Control",
+    blurb: "A field holding a number, with a step down and a step up in its two slots. The value is centred, and its digits are one width so stepping does not move them.",
+    /* No `placeholder`: it reaches the input through the platform's own props rather than
+       through a prop this component declares, and the schemas here follow what the package
+       declares. `defaultValue` is offered because a number field with no starting value is a
+       specimen of an empty box. */
+    props: {
+      size: size(),
+      defaultValue: { kind: "number" },
+      min: { kind: "number" },
+      max: { kind: "number" },
+      step: { kind: "number" },
+      disabled: bool,
+      backdrop: bool,
+      "aria-label": text,
+    },
+    children: "none",
+    make: () => node("NumberField", { defaultValue: 4, min: 1, "aria-label": "Seats" }),
   },
   Checkbox: {
     family: "Control",
@@ -700,6 +720,31 @@ export const CATALOG: Record<string, CatalogEntry> = {
     props: typeProps,
     children: "text",
     make: () => node("Blockquote", { size: "3" }, { text: "Taste is the last layer." }),
+  },
+  List: {
+    family: "Type",
+    blurb: "A bulleted or numbered list of prose. `ordered` picks the element, which is what a screen reader announces.",
+    props: { ...typeProps, ordered: bool },
+    children: { only: ["ListItem"] },
+    make: () =>
+      node("List", {}, {
+        children: [
+          node("ListItem", {}, { text: "Invite your team" }),
+          node("ListItem", {}, { text: "Connect a repository" }),
+          node("ListItem", {}, { text: "Deploy the first build" }),
+        ],
+      }),
+  },
+  ListItem: {
+    family: "Type",
+    /* Text, not `any`: a list inside an item is the one thing an item holds that is not words,
+       and the canvas has no way to state an item's words AND a child at once. Nesting stays a
+       hand edit, which is the honest answer rather than a seat that would also accept a Card. */
+    blurb: "One item. It takes the list's step, weight and ink, so nothing about how it reads is stated twice.",
+    props: {},
+    children: "text",
+    partOf: "List",
+    make: () => node("ListItem", {}, { text: "An item" }),
   },
   Accordion: {
     family: "Control",
@@ -1257,6 +1302,96 @@ export const CATALOG: Record<string, CatalogEntry> = {
     make: () => node("DialogClose", {}, { children: [node("Button", { emphasis: "quiet", bordered: true }, { text: "Close" })] }),
   },
 
+  Sheet: {
+    family: "Surface",
+    blurb: "A modal panel entering from an edge of the window. Dropped whole; the content is yours to compose.",
+    /* `side` is a designed vocabulary the package types as a union of three logical words, so
+       it is offered closed exactly like the flex keywords — and the labels are what a person is
+       choosing, since `inline-end` is the edge you read toward rather than a side of the glass. */
+    props: {
+      size: size(),
+      side: {
+        kind: "options",
+        values: ["bottom", "inline-start", "inline-end"],
+        labels: { bottom: "Bottom", "inline-start": "Reading start", "inline-end": "Reading end" },
+        optional: true,
+      },
+    },
+    children: { only: ["SheetTrigger", "SheetContent"] },
+    phantom: true,
+    make: () =>
+      node("Sheet", { size: "2", side: "inline-end" }, {
+        children: [
+          node("SheetTrigger", {}, { children: [node("Button", { emphasis: "medium" }, { text: "Filters" })] }),
+          node("SheetContent", {}, {
+            children: [
+              node("Stack", { gap: "6" }, {
+                children: [
+                  node("Stack", { gap: "2" }, {
+                    children: [
+                      node("SheetTitle", {}, { text: "Filters" }),
+                      node("SheetDescription", {}, { text: "Narrow what this page shows." }),
+                    ],
+                  }),
+                  node("Flex", { gap: "3", justify: "flex-end" }, {
+                    children: [
+                      node("SheetClose", {}, { children: [node("Button", { emphasis: "quiet", bordered: true }, { text: "Reset" })] }),
+                      node("SheetClose", {}, { children: [node("Button", { emphasis: "loud" }, { text: "Apply" })] }),
+                    ],
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      }),
+  },
+  SheetTrigger: {
+    family: "Surface",
+    blurb: "The button that opens it.",
+    props: {},
+    children: { only: ["Button"] },
+    partOf: "Sheet",
+    renderChild: true,
+    make: () => node("SheetTrigger", {}, { children: [node("Button", { emphasis: "medium" }, { text: "Open" })] }),
+  },
+  SheetContent: {
+    family: "Surface",
+    blurb: "The panel: portal, dimmed page, focus trap, and the edge it stands against. Its layout is yours.",
+    props: {},
+    children: "any",
+    partOf: "Sheet",
+    make: () => node("SheetContent", {}, { children: [] }),
+  },
+  SheetTitle: {
+    family: "Surface",
+    blurb: "The panel's accessible name — a real heading at the step the sheet's size sets.",
+    props: {},
+    children: "text",
+    requiresAncestor: "SheetContent",
+    partOf: "Sheet",
+    make: () => node("SheetTitle", {}, { text: "Sheet title" }),
+  },
+  SheetDescription: {
+    family: "Surface",
+    blurb: "The supporting line, wired as the accessible description.",
+    props: {},
+    children: "text",
+    requiresAncestor: "SheetContent",
+    partOf: "Sheet",
+    make: () => node("SheetDescription", {}, { text: "The supporting line." }),
+  },
+  SheetClose: {
+    family: "Surface",
+    blurb: "A dismissing button, placed wherever the composition wants one.",
+    props: {},
+    children: { only: ["Button"] },
+    requiresAncestor: "SheetContent",
+    partOf: "Sheet",
+    renderChild: true,
+    make: () => node("SheetClose", {}, { children: [node("Button", { emphasis: "quiet", bordered: true }, { text: "Close" })] }),
+  },
+
   AlertDialog: {
     family: "Surface",
     blurb: "A modal question: title, description, two actions — nothing else, on purpose.",
@@ -1337,6 +1472,42 @@ export const CATALOG: Record<string, CatalogEntry> = {
  * and holds the reason to a sentence).
  */
 export const EXCLUDED: { name: string; why: string }[] = [
+  {
+    name: "Combobox",
+    why: "Its options are DATA (`items`), and the list that shows them is a render function over whatever survives the filter — two value classes this canvas has no way to edit, which is Command's exclusion and Tree's before it. A placeable one could only ever be built with an empty list, which is a field that narrows nothing. Its parts are excluded with it, because none of them means anything outside the field and the panel it opens. It joins the palette the day `items` has a canvas-editable shape.",
+  },
+  {
+    name: "ComboboxInput",
+    why: "Combobox's exclusion, inherited: the field reads the combobox's own state, so outside one it is a bare input with nothing to narrow and nothing to submit.",
+  },
+  {
+    name: "ComboboxContent",
+    why: "Combobox's exclusion, inherited: the panel exists only for the field that opens it, and one with no root around it would render nothing at all.",
+  },
+  {
+    name: "ComboboxList",
+    why: "Combobox's exclusion, inherited: the list takes a render function over the options array, which is the value class this builder refuses to invent an editor for.",
+  },
+  {
+    name: "ComboboxCollection",
+    why: "Combobox's exclusion, inherited: it renders each surviving option of the group around it, so it is meaningless without both the group and the filter.",
+  },
+  {
+    name: "ComboboxItem",
+    why: "Combobox's exclusion, inherited: a row here is driven by the filter's highlight inside the panel; placed anywhere else it is a Row, which the builder does offer.",
+  },
+  {
+    name: "ComboboxGroup",
+    why: "Combobox's exclusion, inherited: a section carries its own slice of the options array, and that array is the thing the builder has no value class for.",
+  },
+  {
+    name: "ComboboxLabel",
+    why: "Combobox's exclusion, inherited: a section's heading means nothing outside the section, and sections only exist inside the panel a combobox opens.",
+  },
+  {
+    name: "ComboboxEmpty",
+    why: "Combobox's exclusion, inherited: the sentence it holds is shown when the filter matches nothing, and there is no filter outside a combobox.",
+  },
   {
     name: "Command",
     why: "A palette is a list built from a data array, and an array of commands with handlers on them is not a value class the builder has — the same wall ScrollArea's stated height runs into. It also covers the whole app, where this canvas composes inside a frame. Its parts are excluded with it, because none of them means anything outside the palette.",

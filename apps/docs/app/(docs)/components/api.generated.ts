@@ -1205,6 +1205,309 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "ComboboxCollection": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "(item: T, index: number) => React.ReactNode",
+        "optional": false,
+        "doc": "Called once per surviving option of the group it sits in."
+      }
+    ]
+  },
+  "ComboboxContent": {
+    "element": "div",
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "A `<ComboboxList>` and, beside it, a `<ComboboxEmpty>`. A `<Separator>` is refused here as in Select: the list is a `listbox`, and a group is the divider a listbox has."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Your classes, appended; they land on the popup, not the positioner around it."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": "Inline styles, merged last; they land on the popup."
+      }
+    ]
+  },
+  "ComboboxEmpty": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "What the panel says when nothing matches — your words, in your app's language. A sentence goes in as a `<Text>`; the part places it and dresses nothing (Command's 2026-09-04 rule)."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "ComboboxGroup": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "A `ComboboxLabel` naming the section, and a `ComboboxCollection` rendering its options."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "items",
+        "type": "readonly ComboboxOption[]",
+        "optional": false,
+        "doc": "This group's own options, so the filter can narrow the section and hide it when it empties."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "ComboboxInput": {
+    "element": "input",
+    "props": [
+      {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Says content passes behind this field, so the theme's material can show. Unset, it follows the surrounding `<Box backdrop>` region."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Applied to the wrapper, which is the element that is the control."
+      },
+      {
+        "name": "leading",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "Before the value: an icon, a unit. Passive; clicking it lands the caret. Empty-safe — the package ships no icon set."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": "Applied to the wrapper, so a `width` sizes the field rather than the text inside it."
+      }
+    ]
+  },
+  "ComboboxItem": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "What the row reads as. The field shows the option's own label on a pick, never these words — so write the label here, or what the field shows will differ from the row."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "disabled",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Turns the option off. It stays in the list and stays announced (Select's sentence)."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "value",
+        "type": "ComboboxOption",
+        "optional": false,
+        "doc": "The option this row picks — the item handed to your render function, as it is."
+      }
+    ]
+  },
+  "ComboboxLabel": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The section's name — never an option."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "ComboboxList": {
+    "element": null,
+    "props": [
+      {
+        "name": "aria-label",
+        "type": "string",
+        "optional": true,
+        "doc": "What the list of options is CALLED. This element carries `role=\"listbox\"`, so this is the only place a name for it can land — a label on `ComboboxContent` reaches the popup around it, which is `role=\"presentation\"`. **Usually unnecessary, and deliberately so.** With neither this nor `aria-labelledby`, the list takes the name the FIELD already has — the `aria-label` on `<ComboboxInput>`, or the `<Field>` label Base UI resolves onto the input — so the ordinary call site names the listbox by naming the combobox, and nobody writes the same word twice. State one here only to give the list a name DIFFERENT from the field's."
+      },
+      {
+        "name": "aria-labelledby",
+        "type": "string",
+        "optional": true,
+        "doc": "The `id` of an element that names the list, where the words are already on screen."
+      },
+      {
+        "name": "children",
+        "type": "(item: T, index: number) => React.ReactNode",
+        "optional": false,
+        "doc": "Called for each option (or group) that survives the filter. Static children are refused by the type: they would render every option whatever was typed."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "Combobox": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The field and the panel: a `<ComboboxInput>` and a `<ComboboxContent>`. Combobox renders no DOM of its own, only state and wiring."
+      },
+      {
+        "name": "defaultOpen",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Uncontrolled starting state for the panel."
+      },
+      {
+        "name": "defaultValue",
+        "type": "T | null",
+        "optional": true,
+        "doc": "Uncontrolled starting value. Mutually exclusive with `value`."
+      },
+      {
+        "name": "disabled",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Turns the whole control off: no typing, no panel, nothing submitted."
+      },
+      {
+        "name": "form",
+        "type": "string",
+        "optional": true,
+        "doc": "The `id` of the form this field belongs to, for a combobox rendered outside it. It lands on the HIDDEN input, which is the element that carries the value — which is why it is stated here and refused on `ComboboxInput`: on the visible input it would enrol the letters in the form and leave the chosen option out of it."
+      },
+      {
+        "name": "items",
+        "type": "readonly (T | ComboboxOptionGroup<T>)[]",
+        "optional": false,
+        "doc": "Every option before filtering — flat, or as groups (`{ value, items }`). Base UI matches the typed text against each option's label and renders only what survives, which is why `ComboboxList` takes a function rather than children. **Hold this array stable.** It crosses to the matcher by identity, so an inline literal re-runs the whole filter pass on every unrelated render. Module scope, or a `useMemo`."
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "optional": true,
+        "doc": "Identifies the field when a form is submitted (Base UI renders the hidden input)."
+      },
+      {
+        "name": "onOpenChange",
+        "type": "(open: boolean) => void",
+        "optional": true,
+        "doc": "Fires when the panel opens or closes — never when the value changes."
+      },
+      {
+        "name": "onValueChange",
+        "type": "(value: T | null) => void",
+        "optional": true,
+        "doc": "Fires when the chosen option changes — on a pick, and with `null` when the field is cleared. It never fires for typing: the letters narrow the list, they are not a value."
+      },
+      {
+        "name": "open",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Controlled open state of the panel, paired with `onOpenChange`. Opening chooses nothing."
+      },
+      {
+        "name": "readOnly",
+        "type": "boolean",
+        "optional": true,
+        "doc": "The value is shown and submitted but cannot change: the panel does not open and the field drops its well, exactly as a read-only TextField does. Unlike Select, this is not refused — the platform defines `readonly` on a text `<input>`, and the field here is one."
+      },
+      {
+        "name": "required",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Marks the field required for form validation; it lands on the hidden input."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "optional": true,
+        "doc": "The same index the field wears. The rows, the glyphs and the type all take it; inside a `Field`, the field states it and an explicit value here still wins."
+      },
+      {
+        "name": "value",
+        "type": "T | null",
+        "optional": true,
+        "doc": "Controlled value, paired with `onValueChange`. `null` is the empty field."
+      }
+    ]
+  },
   "CommandCollection": {
     "element": null,
     "props": [
@@ -2200,6 +2503,102 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "ListItem": {
+    "element": "li",
+    "props": []
+  },
+  "List": {
+    "element": "ul",
+    "props": [
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "emphasis",
+        "type": "Emphasis",
+        "values": [
+          "loud",
+          "medium",
+          "quiet"
+        ],
+        "optional": true,
+        "doc": "Picks an ink colour for the words. It rests loud, as all reading copy does. Unset on a nested list, which keeps its parent's rung — including when the nested list states a tone of its own, which is the whole of what \"keeps its parent's ink\" has to mean. A BULLET stays in the faint role at every rung, because it is furniture; a NUMBER takes the rung the words took, because it is read and cited."
+      },
+      {
+        "name": "ordered",
+        "type": "false",
+        "optional": true,
+        "doc": "Renders `<ul>`: the items are a set, and their order carries nothing."
+      },
+      {
+        "name": "reversed",
+        "type": "never",
+        "optional": true,
+        "doc": "Refused on a bulleted list, for the same reason as `start`: reversing a run of discs changes nothing a reader can see. State `ordered`, and it passes through to the `<ol>` as the platform's own attribute."
+      },
+      {
+        "name": "size",
+        "type": "TypeSize",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9"
+        ],
+        "optional": true,
+        "doc": "A step on the shared ramp. It defaults to 3 like `Text` and `Blockquote`, because a list is a block of copy and sets its own step. A list NESTED in another list has no default: unset, it takes the step of the item it sits in, so a size-2 list's sub-list is size 2 without the call site repeating the index."
+      },
+      {
+        "name": "start",
+        "type": "never",
+        "optional": true,
+        "doc": "Refused on a bulleted list, because there is no number to start from: `start` is the platform's attribute on an `<ol>`, and it reaches the element once the list states `ordered`. Stating it here is almost always a list that should have been ordered."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "tone",
+        "type": "Tone",
+        "values": [
+          "neutral",
+          "accent",
+          "destructive",
+          "blue",
+          "green",
+          "orange",
+          "amber",
+          "success",
+          "warning",
+          "info"
+        ],
+        "optional": true,
+        "doc": "Moves the ink onto that family — the words and the markers together, because both read the family's ink roles. Stamped only when chosen."
+      },
+      {
+        "name": "weight",
+        "type": "Weight",
+        "values": [
+          "regular",
+          "medium",
+          "semibold"
+        ],
+        "optional": true,
+        "doc": "Token names, never numbers, and semibold is the heaviest. Rests at regular — a list is copy. Unset on a nested list, which keeps its parent's weight."
+      }
+    ]
+  },
   "MenuCheckboxItem": {
     "element": null,
     "props": [
@@ -2848,6 +3247,167 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "NumberField": {
+    "element": "input",
+    "props": [
+      {
+        "name": "allowOutOfRange",
+        "type": "boolean | undefined",
+        "optional": true,
+        "doc": "Let TYPING leave the range, so the browser reports it as out of range on submit instead of the field silently correcting it. Stepping still clamps."
+      },
+      {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Says content passes behind this control, so the theme's material can show. Unset, it follows the surrounding `<Box backdrop>` region."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Applied to the wrapper, which is the element that is the control."
+      },
+      {
+        "name": "decrementLabel",
+        "type": "string",
+        "optional": true,
+        "doc": "The decrease button's name, in your own language. Defaults to \"Decrease\"."
+      },
+      {
+        "name": "defaultValue",
+        "type": "number | undefined",
+        "optional": true,
+        "doc": "The number it starts at when you do not hold it. Use `value` for a controlled field."
+      },
+      {
+        "name": "disabled",
+        "type": "boolean | undefined",
+        "optional": true,
+        "doc": "Stops the field taking input, and stands its whole box down (§8)."
+      },
+      {
+        "name": "form",
+        "type": "string | undefined",
+        "optional": true,
+        "doc": "The form this belongs to, when the field is rendered outside it."
+      },
+      {
+        "name": "format",
+        "type": "Intl.NumberFormatOptions | undefined",
+        "optional": true,
+        "doc": "Intl options — and the reason this component has no adornment slots. A unit, a currency or a percent belongs here (`{ style: \"currency\", currency: \"USD\" }`): Intl writes it into the value in the reader's locale, it is announced as part of the number, and it is parsed back out when the person types. A symbol sitting beside the input does none of the three."
+      },
+      {
+        "name": "id",
+        "type": "string | undefined",
+        "optional": true,
+        "doc": "Lands on the input, so a `<label for>` and a `Field` both reach the value."
+      },
+      {
+        "name": "incrementLabel",
+        "type": "string",
+        "optional": true,
+        "doc": "The increase button's name, in your own language. Defaults to \"Increase\"."
+      },
+      {
+        "name": "largeStep",
+        "type": "number | undefined",
+        "optional": true,
+        "doc": "How far Shift + an arrow key moves it — the coarse one. Page Up and Page Down do nothing."
+      },
+      {
+        "name": "locale",
+        "type": "Intl.LocalesArgument | undefined",
+        "optional": true,
+        "doc": "The locale to format and parse in. Defaults to the reader's own."
+      },
+      {
+        "name": "max",
+        "type": "number | undefined",
+        "optional": true,
+        "doc": "The highest value. The increase stepper goes disabled on it rather than disappearing."
+      },
+      {
+        "name": "min",
+        "type": "number | undefined",
+        "optional": true,
+        "doc": "The lowest value. The decrease stepper goes disabled on it rather than disappearing."
+      },
+      {
+        "name": "name",
+        "type": "string | undefined",
+        "optional": true,
+        "doc": "Names the value in the submitted form. It lands on the hidden input that carries the number, never on the text the person is reading."
+      },
+      {
+        "name": "onValueChange",
+        "type": "| ((value: number | null, eventDetails: BaseNumberField.Root.ChangeEventDetails) => void) | undefined",
+        "optional": true,
+        "doc": "Fires on every change, with the number (`null` when the field is empty) and what caused it — typing, a stepper press, an arrow key. The value is a NUMBER, which is why there is no `onChange`: a string handler is the half that cannot read a formatted value back."
+      },
+      {
+        "name": "onValueCommitted",
+        "type": "| ((value: number | null, eventDetails: BaseNumberField.Root.CommitEventDetails) => void) | undefined",
+        "optional": true,
+        "doc": "Fires when the number SETTLES — on blur after typing, or when a press is released — where `onValueChange` fires on every intermediate value. The one to save with."
+      },
+      {
+        "name": "readOnly",
+        "type": "boolean | undefined",
+        "optional": true,
+        "doc": "The value is live, selectable and submitted — only the invitation to type is gone."
+      },
+      {
+        "name": "required",
+        "type": "boolean | undefined",
+        "optional": true,
+        "doc": "The form will not submit without a number in it."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "optional": true,
+        "doc": "The control index, the same ladder Button and TextField use: the height, the side padding, the corner, the value's type step and the two steppers all come from one number. Rests at the enclosing `Field`'s index, else the app's."
+      },
+      {
+        "name": "smallStep",
+        "type": "number | undefined",
+        "optional": true,
+        "doc": "How far Alt + an arrow key moves it — the fine adjustment."
+      },
+      {
+        "name": "snapOnStep",
+        "type": "boolean | undefined",
+        "optional": true,
+        "doc": "Round to a multiple of the step as it moves, rather than stepping from where it was."
+      },
+      {
+        "name": "step",
+        "type": "number | \"any\" | undefined",
+        "optional": true,
+        "doc": "How far one press or one arrow key moves the value. `\"any\"` turns off the browser's own step validation; stepping then moves by 1."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": "Applied to the wrapper, so a `width` sizes the field rather than the digits inside it."
+      },
+      {
+        "name": "value",
+        "type": "number | null | undefined",
+        "optional": true,
+        "doc": "The number, when you hold it yourself. `null` is an empty field — not zero."
+      }
+    ]
+  },
   "Page": {
     "element": "div",
     "props": [
@@ -3473,6 +4033,197 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "SheetClose": {
+    "element": "button",
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The button's words. They land on the `render` target when there is one, so the result is one button carrying one label."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "nativeButton",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Whether the rendered element really is a `<button>`. It is inferred from `render`."
+      },
+      {
+        "name": "render",
+        "type": "RenderElement",
+        "optional": true,
+        "doc": "Usually a Kookie Button: `<SheetTrigger render={<Button/>}>Filters</SheetTrigger>`."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "SheetContent": {
+    "element": "div",
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The panel's whole content, and it belongs to you. Reach for a `SheetTitle` (without it the panel has no accessible name) and a `SheetClose`. The panel scrolls its own content when it is taller than the room, and a `ScrollArea` placed directly inside pins whatever sits above and below it."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Your classes, appended. They land on the panel, not on the scrim or the viewport."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": "Inline styles, merged last. They land on the panel, not on the scrim or the viewport."
+      }
+    ]
+  },
+  "SheetDescription": {
+    "element": "p",
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The supporting line, said once. It is announced with the title, so a description that restates the title is heard twice."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "Sheet": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The trigger and the content: a `<SheetTrigger>` and a `<SheetContent>`, in either order. Sheet renders no DOM of its own."
+      },
+      {
+        "name": "defaultOpen",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Uncontrolled starting state. Mutually exclusive with `open`."
+      },
+      {
+        "name": "onOpenChange",
+        "type": "(open: boolean, details: SheetOpenChangeDetails) => void",
+        "optional": true,
+        "doc": "Fires on every open and close, controlled or not. `reason` names what did it (including `swipe`), `event` is the native event behind it, and `cancel()` refuses that one change — which is what makes \"you have unsaved changes\" writable."
+      },
+      {
+        "name": "open",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Controlled open state. Pass it with `onOpenChange` — the library's one controlled-state pattern, unchanged."
+      },
+      {
+        "name": "side",
+        "type": "SheetSide",
+        "values": [
+          "bottom",
+          "inline-start",
+          "inline-end"
+        ],
+        "optional": true,
+        "doc": "The edge the sheet enters from. `bottom` (the default) is the platform sheet: a task that rises over the page. `inline-end` and `inline-start` hold a panel beside the page, such as details, filters or a cart. Logical, so the edge follows the reading direction."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "optional": true,
+        "doc": "Sets the panel's width, its padding, its corner, and the two parts the system owns, `SheetTitle` and `SheetDescription`, at the step map a dialog and an alert take. The width is Dialog's ladder: the whole width of a side sheet, and the maximum width of a bottom sheet on a roomy window. Its height is its content, stopped short of the window. It never touches type the call site wrote."
+      }
+    ]
+  },
+  "SheetTitle": {
+    "element": "h2",
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The panel's name, in words: the visible heading and the string a screen reader announces the sheet by. Name the task, such as \"Filters\", never the widget."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "SheetTrigger": {
+    "element": "button",
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The button's words. They land on the `render` target when there is one, so the result is one button carrying one label."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "nativeButton",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Whether the rendered element really is a `<button>`. It is inferred from `render`."
+      },
+      {
+        "name": "render",
+        "type": "RenderElement",
+        "optional": true,
+        "doc": "Usually a Kookie Button: `<SheetTrigger render={<Button/>}>Filters</SheetTrigger>`."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
   "ShellBottom": {
     "element": "aside",
     "props": [
@@ -3780,6 +4531,12 @@ export const API: Record<string, ApiEntry> = {
   "Shell": {
     "element": "div",
     "props": [
+      {
+        "name": "contained",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Put the Shell inside something else instead of making it the window. By default a Shell is the app: it takes the window's height, and on a narrow touch screen the page itself scrolls, so the browser can shrink its toolbars. A contained Shell fills its parent and always scrolls inside itself, on every device. Use it for a Shell in a card, a demo, or a canvas that must keep its own scroll."
+      },
       {
         "name": "size",
         "type": "Size",

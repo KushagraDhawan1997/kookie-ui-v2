@@ -12,6 +12,10 @@ Every pane owns its own `open` state, exactly as `Dialog` does. Nothing inspects
 and no pane closes another one. The only thing that crosses the frame is a `ShellTrigger`, which
 finds a pane by name.
 
+An app frame writes no height. A `Shell` fills the window by default, and on a phone the page
+itself scrolls, so the browser can shrink its toolbars. A `Shell` inside something else, such as
+a demo in a card, writes `contained` and gets its height from its parent.
+
 ```tsx
 <Shell size="2">
   <ShellHeader>…</ShellHeader>

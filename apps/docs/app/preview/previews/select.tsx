@@ -475,7 +475,15 @@ function Permutations() {
                   </SelectContent>
                 </Select>,
                 ...glassMaterials().map((material) => (
-                  <Theme key={material} material={material}>
+                  /* THE THEME IS THE GRID ITEM, so the stretch stops at it (2026-09-12, the ship
+                     audit). A wide SpecTable stretches its items, which is what makes the solid
+                     cell fill its track — but the glass cells put a `<Theme>` div in between, and
+                     a div that is stretched does not pass that on to an inline-flex trigger
+                     inside it. Measured: 70-83px of trigger in a full-width column, so the one
+                     table that exists to compare the material at four sizes compared four
+                     different widths. `display: grid` hands the stretch on to its one child; the
+                     defect the table is for is the veil, not the box. */
+                  <Theme key={material} material={material} style={{ display: "grid" }}>
                     <Select size={size as Size} defaultValue="team" items={SHORT_ITEMS}>
                       <SelectTrigger placeholder="Visibility" aria-label={material} />
                       <SelectContent>

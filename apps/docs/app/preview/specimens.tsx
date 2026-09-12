@@ -1906,7 +1906,7 @@ function ShellSection() {
           pane's padding. */}
       <Demo label="Pane chrome floats — rows pass behind it, the scroll edge fades">
         <Box height="18rem">
-          <Shell>
+          <Shell contained>
             <ShellSidebar aria-label="Files">
               <ShellPaneHeader float>
                 <Flex align="center" justify="between">
@@ -1966,7 +1966,7 @@ function ShellSection() {
           drag the window across 48rem and nothing re-renders. */}
       <Demo label="Flush — auto sidebar, trigger in the header, bottom pane on demand">
         <Box height="22rem">
-          <Shell>
+          <Shell contained>
             <ShellHeader>
               <Flex align="center" justify="between">
                 <Flex align="center" gap="3">
@@ -2048,7 +2048,7 @@ function ShellSection() {
           surface, while the chrome around it stays welded. One word on one pane. */}
       <Demo label="Grounded content — the chrome stays flush, the work area becomes a surface">
         <Box height="22rem">
-          <Shell>
+          <Shell contained>
             <ShellHeader>
               <Flex align="center" gap="3">
                 <Text size="2" weight="medium">
@@ -2087,7 +2087,7 @@ function ShellSection() {
           behind the rail and the sidebar. */}
       <Demo label="Floating nav — the content stays whole and the columns sit over it">
         <Box height="22rem">
-          <Shell>
+          <Shell contained>
             <ShellHeader>
               <Flex align="center" gap="3">
                 <Text size="2" weight="medium">
@@ -2143,7 +2143,7 @@ function ShellSection() {
           every page on a phone. */}
       <Demo label="A tab bar — the top level of an app with no rail, on a narrow window">
         <Box width="24rem" height="22rem">
-          <Shell size="2">
+          <Shell contained size="2">
             <ShellHeader>
               <Text size="2" weight="medium">
                 Kookie Studio
@@ -2183,7 +2183,7 @@ function ShellSection() {
           posture replaced its only demo instead of converting it. */}
       <Demo label="All cards — every pane pulled off the frame, so nothing floats">
         <Box height="22rem">
-          <Shell>
+          <Shell contained>
             <ShellHeader flush={false}>
               <Flex align="center" gap="3">
                 <Text size="2" weight="medium">
@@ -2220,7 +2220,7 @@ function ShellSection() {
       <Demo label="Floating over a photograph — the pane states its backdrop, and earns it">
         <HostileBed>
           <Box height="20rem">
-            <Shell>
+            <Shell contained>
               <ShellSidebar aria-label="Primary" flush={false} backdrop>
                 <Stack gap="1" p="3">
                   <Text size="2" weight="medium">
@@ -3183,7 +3183,7 @@ function PageSection() {
             card's padding shows its own scrollbar and pane edges short of the box a reader
             reads as the app's edge (§3). */}
         <Box height="26rem" m="bleed">
-          <Shell size="3">
+          <Shell contained size="3">
             <ShellContent>
               {/* THE ROW STATES `backdrop`, and the pinned demo below states none (§10,
                   2026-09-06). A floating band has the document passing behind it, so the mark
@@ -3220,7 +3220,7 @@ function PageSection() {
           the air alone. Nothing about the page changes. */}
       <Demo label="A pinned band — the same page, no branch anywhere">
         <Box height="22rem" m="bleed">
-          <Shell size="3">
+          <Shell contained size="3">
             <ShellContent>
               <ShellPaneHeader>
                 <Toolbar>
@@ -3261,17 +3261,20 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "checkbox", name: "Checkbox", body: <CheckboxSection /> },
   { id: "code", name: "Code and Kbd", body: <CodeSection /> },
   { id: "code-block", name: "CodeBlock", body: <CodeBlockSection /> },
+  ported("combobox"),
   { id: "context-menu", name: "ContextMenu", body: <ContextMenuSection /> },
   ported("alert-dialog"),
   { id: "field", name: "Field", body: <FieldSection /> },
   ported("dialog"),
   { id: "heading", name: "Heading", body: <HeadingSection /> },
   { id: "link", name: "Link", body: <LinkSection /> },
+  ported("list"),
   ported("menu"),
   ported("composer"),
   { id: "attachment", name: "Attachment", body: <AttachmentSection /> },
   { id: "command", name: "Command", body: <CommandSection /> },
   { id: "notice", name: "Notice", body: <NoticeSection /> },
+  ported("number-field"),
   { id: "page", name: "Page", body: <PageSection /> },
   ported("select"),
   { id: "layout", name: "Layout — Box, Flex, Grid, Stack", body: <LayoutSection /> },
@@ -3282,6 +3285,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "scroll-area", name: "Scroll area", body: <ScrollAreaSection /> },
   ported("segmented-control"),
   { id: "separator", name: "Separator", body: <SeparatorSection /> },
+  ported("sheet"),
   { id: "shell", name: "Shell", body: <ShellSection /> },
   ported("slider"),
   { id: "spinner", name: "Spinner", body: <SpinnerSection /> },

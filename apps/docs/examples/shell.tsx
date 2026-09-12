@@ -64,11 +64,12 @@ const clearsFloatingChrome = {
 
 export default function Example() {
   return (
-    // A frame fills what it is given, so give it a box. `m="bleed"` undoes the surrounding
+    // A `contained` frame fills what it is given, so give it a box. An app frame writes neither:
+    // it is the window. `m="bleed"` undoes the surrounding
     // pane's padding — an app frame reaches the edges of the thing it is in — and `flexGrow`
     // is what makes it take the whole line when that thing is a centred row.
     <Box m="bleed" style={{ flexGrow: 1, blockSize: "28rem" }}>
-      <Shell>
+      <Shell contained>
         {/* Untouched, the sidebar rests open on a roomy window and closed on a narrow one.
             Nothing here decides that — CSS does, at first paint, with no script. */}
         <ShellSidebar aria-label="Sections">

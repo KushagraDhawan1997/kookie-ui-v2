@@ -127,9 +127,10 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
   }));
 
   return (
-    // The frame takes the window; `100dvh` rather than `100vh` so a phone's collapsing
-    // browser chrome does not leave the shell taller than the screen it is in.
-    <Box style={{ blockSize: "100dvh" }}>
+    // The frame IS the window — a Shell's default since 2026-09-11, which is also what lets the
+    // page scroll on a phone so Safari can shrink its toolbars. No wrapper: a box stating a
+    // height around it would bound the page it now grows.
+    <>
       {/* THE SIDEBAR'S WIDTH IS STATED ON THE FRAME, NOT ON THE PANE (2026-09-05). It was
           `width={336}` for a few hours, which is the one spelling §27 warns about: the frame
           builds `--kui-shell-inset-inline-start` — the reach this pane's floating chrome clears
@@ -469,6 +470,6 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
           </ShellScroll>
         </ShellContent>
       </Shell>
-    </Box>
+    </>
   );
 }

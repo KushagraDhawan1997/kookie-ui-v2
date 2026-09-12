@@ -547,6 +547,77 @@ const DECLARED: Entry[] = [
     ],
   },
   {
+    slug: "combobox",
+    name: "Combobox",
+    family: "Surface",
+    spec: "§20, §21, §23, §28, §50",
+    abstract: "Combobox is a field you type in to narrow a list of options, and pick one of them.",
+    overview: [
+      "The field is a TextField you type into, with the same fill, border, height and focus behaviour, and the panel is Select's, so the rows, the corner and the tick all match. The panel is never narrower than the field above it. The part names follow shadcn/ui's combobox (MIT), with credit, and the behaviour is Base UI's Combobox.",
+      "What you type narrows the list and never becomes the value: what a form receives is the option you picked. Base UI matches the typed text against each option's label and renders only what survives, which is why `ComboboxList` takes a function instead of children. You write every option once, and the panel decides which of them exist right now.",
+      "Keep the `items` array steady. It reaches the matcher by identity, so an array written inside your component runs the whole filter again on every unrelated render. Put it at module scope, or in a `useMemo`.",
+    ],
+    declaration: `<Combobox items={regions}>
+  <ComboboxInput placeholder="Search regions" />
+  <ComboboxContent>
+    <ComboboxEmpty>No region matches.</ComboboxEmpty>
+    <ComboboxList>
+      {(region) => (
+        <ComboboxItem value={region}>{region}</ComboboxItem>
+      )}
+    </ComboboxList>
+  </ComboboxContent>
+</Combobox>`,
+    topics: [
+      { title: "Typing and picking", symbols: ["Combobox", "ComboboxInput"] },
+      { title: "Presenting the panel", symbols: ["ComboboxContent"] },
+      { title: "Listing the options", symbols: ["ComboboxList", "ComboboxItem", "ComboboxEmpty"] },
+      { title: "Grouping into sections", symbols: ["ComboboxGroup", "ComboboxLabel", "ComboboxCollection"] },
+    ],
+    refusals: [
+      {
+        name: "Free text with suggestions",
+        why: "A Combobox picks a value that is one of your options, so a form receives the option and never the letters. A field that submits whatever was typed, and treats the list as help, is a different thing: a search box, a tag input, an address line. Command wraps that shape for a palette, and a free-text field with suggestions has not shipped.",
+      },
+      {
+        name: "`multiple`",
+        why: "Deferred, not refused. A combobox holding several values shows them as chips inside the field, and a chip inside a field is a control hosted in a control that nobody has designed yet. It arrives with its own geometry rather than as a flag on this one.",
+      },
+      {
+        name: "A matcher of your own, a limit, and inline completion",
+        why: "The mode is fixed: the letters filter, and the field never rewrites itself under your caret. Base UI's match over each option's label is the one behaviour, and an app that wants a different one hands in a list it has already narrowed.",
+      },
+      {
+        name: "`disabled`, `readOnly`, `name`, `required` and `form` on the field",
+        why: "All five belong on the Combobox itself. The value lives in a hidden input and the state lives in the root, so on the visible input each one lands where the fact is not: `name` there submits the letters you typed, `required` passes with no option chosen, and `disabled` paints the field dead while the list still opens and the form still submits.",
+        on: ["ComboboxInput"],
+      },
+      {
+        name: "A Separator inside the panel",
+        why: "The list is a listbox, and a listbox may hold only options and groups. A separator in it is markup an accessibility scan reports as a violation, from library code you cannot fix. Use a group: it divides the list for a screen reader as well as on screen, and it disappears on its own when nothing in it matches.",
+      },
+      {
+        name: "`render` on the field",
+        why: "There are two elements here and neither can move: the wrapper holds a border the input cannot, and the input has to stay an input or the platform wiring goes with it. TextField's sentence, one component over.",
+        on: ["ComboboxInput"],
+      },
+      {
+        name: "A clear button",
+        why: "Open rather than refused. The trailing edge is the chevron's, and a second control there would compete for the one place a combobox has to put one. It ships when its shape beside the chevron has been drawn.",
+      },
+    ],
+    parts: [
+      { part: "ComboboxInput", blurb: "The field you type in. The wrapper is the control and the input inside it is bare, which is what lets the chevron sit inside the border. The chevron opens the list for a pointer and stays out of the tab order, because the keyboard opens it from the field" },
+      { part: "ComboboxContent", blurb: "The floating panel: it portals, hangs below the field, re-applies the theme, and is never narrower than the field that opened it" },
+      { part: "ComboboxList", blurb: "The listbox. It takes a function and calls it for each option that survives what you typed, and it is the element a name for the list belongs on" },
+      { part: "ComboboxCollection", blurb: "Renders each surviving option of the group it sits in, which is what lets one section narrow and empty while the others stay" },
+      { part: "ComboboxItem", blurb: "One option row. Its tick stays in place so chosen and unchosen rows line up, and the words you write here are what the row reads as" },
+      { part: "ComboboxGroup", blurb: "A section carrying its own options, so the filter empties it and hides the heading with it" },
+      { part: "ComboboxLabel", blurb: "A heading for a run of option rows. It works inside a group and on its own, and the keyboard never lands on it" },
+      { part: "ComboboxEmpty", blurb: "What the panel says when nothing matches. It is always rendered, so a screen reader announces the message when it arrives, and it takes room only when it speaks" },
+    ],
+  },
+  {
     slug: "context-menu",
     name: "ContextMenu",
     family: "Surface",
@@ -769,6 +840,51 @@ const DECLARED: Entry[] = [
         name: "A target of its own",
         why: "WCAG 2.2 SC 2.5.8 exempts a target inside a sentence. A checkbox grows its hit area because it has no container. A link's container is the paragraph, and a paragraph may not grow.",
       },
+    ],
+  },
+  {
+    slug: "list",
+    name: "List",
+    family: "Type",
+    spec: "§11, §15, §52",
+    abstract: "List sets a bulleted or a numbered list of prose.",
+    overview: [
+      "How it reads comes from the shared type layer, so it takes the same steps, weights and ink levels as Text. What it adds is the three things that make copy a list: the room the marker sits in, the distance between items, and the marker's colour. A bullet stays faint, because it is furniture. A number takes the colour the words took, because it is read and cited.",
+      "`ordered` picks the element, and that is the one structural choice a list has: a screen reader announces a numbered list as one, and `start` and `reversed` change what the numbers say. A list placed inside an item indents one level and takes the step it sits at, so a nested list needs no props at all.",
+    ],
+    declaration: `<List>
+  <ListItem>Invite your team</ListItem>
+  <ListItem>
+    Deploy the first build
+    <List>
+      <ListItem>Preview builds run on every push</ListItem>
+    </List>
+  </ListItem>
+</List>`,
+    topics: [
+      { title: "Setting the list", symbols: ["List"] },
+      { title: "One item", symbols: ["ListItem"] },
+    ],
+    refusals: [
+      {
+        name: "A marker of your own",
+        why: "The marker belongs to the element: a disc says the items are a set, a number says they are a sequence, and nesting changes the glyph one level down. A chosen glyph is decoration that every place would pick differently. A list with no marker at all is a Stack, and a list of rows led by icons is a Row.",
+      },
+      {
+        name: "`render`",
+        why: "`ordered` is the element choice. A list that is neither a `<ul>` nor an `<ol>` has nothing to announce, and announcing it is most of what a list is for.",
+      },
+      {
+        name: "A gap or a density prop",
+        why: "The distance between items is the system's. Two lists on one page spaced two different ways is the drift that a system exists to stop, and the item rhythm is one of the places it shows first.",
+      },
+      {
+        name: "A description list",
+        why: "`<dl>` is a different structure — terms and the details under them — and it arrives as its own component rather than as a prop that turns this one into it.",
+      },
+    ],
+    parts: [
+      { part: "ListItem", blurb: "One item: the `<li>`. It takes the list's step, weight and ink, and a List placed inside it indents one level with no prop of its own" },
     ],
   },
   {
@@ -1091,6 +1207,40 @@ const DECLARED: Entry[] = [
     ],
   },
   {
+    slug: "number-field",
+    name: "NumberField",
+    family: "Control",
+    spec: "§4, §11, §28, §51",
+    abstract: "NumberField holds a number, with a step down and a step up beside it.",
+    overview: [
+      "It is a TextField whose two slots are spent on the steppers, so the box, the border, the focus ring, the read-only and disabled states and the material all match the field standing next to it. Base UI owns the number: it parses and formats it in the language your app is running in, keeps it between `min` and `max`, and steps it with `step` on the arrow keys or on a press and hold. A hidden input carries the value into a form.",
+      "The value sits between the two steppers, in figures of one width, so going from 9 to 10 does not move the digits under the caret. A stepper at its limit, or in a read-only field, stays where it is and stops looking pressable. Neither stepper takes a tab stop, because the keyboard already steps from the field itself.",
+      "Inside a Field it takes that unit's size, and a size you state here still wins.",
+    ],
+    refusals: [
+      {
+        name: "`leading` and `trailing`",
+        why: "The two slots are the steppers. A unit, a currency or a percent goes in `format` instead, so it is written into the value in the same language the number is formatted in, announced as part of the number, and parsed back out when somebody types. Something placed beside the field could do none of those three.",
+      },
+      {
+        name: "`emphasis` and `tone`",
+        why: "Loudness ranks actions, and a form where one field is louder than the next says nothing. Whether the value is acceptable is a state rather than a level: set `aria-invalid`, or put the field in a Field.",
+      },
+      {
+        name: "`render`",
+        why: "There are two elements here and neither can move: the wrapper holds a border the input cannot, and the input has to stay an input or the platform wiring goes with it.",
+      },
+      {
+        name: "The platform's number input",
+        why: "The input is text with a numeric keyboard. A native number input formats nothing, parses nothing in the language your app is running in, and draws a spinner of its own inside the box, which is three problems for one attribute.",
+      },
+      {
+        name: "Dragging and scrolling to change the value",
+        why: "Deferred, not refused. Dragging a label to scrub a number and rolling a wheel over the field are both a pointer gesture with a cursor of their own, and this system has not drawn one yet.",
+      },
+    ],
+  },
+  {
     slug: "page",
     name: "Page",
     family: "Layout",
@@ -1403,6 +1553,71 @@ const DECLARED: Entry[] = [
     ],
   },
   {
+    slug: "sheet",
+    name: "Sheet",
+    family: "Surface",
+    spec: "§10, §20, §24, §49",
+    abstract: "Sheet slides a panel in from an edge of the window, over a dimmed app.",
+    overview: [
+      "It takes Dialog's behaviour whole: focus is trapped in the panel, the page behind it stops scrolling, the dimmed background says the page is out of play, and Escape or a press on that background closes it. What it adds is the edge. `side` follows the reading direction — `bottom`, `inline-start` or `inline-end` — so a panel that arrives from the right in English arrives from the left in Arabic, with nothing in your markup saying which. The part names follow shadcn/ui's sheet (MIT), with credit, and the behaviour is Base UI's Drawer.",
+      "A swipe toward the edge closes it, and the panel follows your finger while you drag. It stops short of the far edge so a strip of the dimmed page stays reachable, and the panel's own body scrolls when the content is taller than the room. On a phone it rises above the keyboard rather than under it.",
+      "`size` sets the width, the padding, the corner, and the two parts the system owns: the title and the description. A side sheet takes that width. A bottom sheet takes it as a maximum, so it is the width of the window on a phone and a task-sized panel on a desktop. Nothing you wrote inside is resized.",
+    ],
+    declaration: `<Sheet side="inline-end">
+  <SheetTrigger render={<Button>Filters</Button>} />
+  <SheetContent>
+    <SheetTitle>Filters</SheetTitle>
+    <SheetDescription>
+      Narrow the deploys shown on this page.
+    </SheetDescription>
+    <SheetClose render={<Button>Apply</Button>} />
+  </SheetContent>
+</Sheet>`,
+    topics: [
+      { title: "Opening it", symbols: ["Sheet", "SheetTrigger"] },
+      { title: "Presenting the panel", symbols: ["SheetContent"] },
+      { title: "Naming it", symbols: ["SheetTitle", "SheetDescription"] },
+      { title: "Closing it", symbols: ["SheetClose"] },
+    ],
+    refusals: [
+      {
+        name: "A top edge, and a physical left or right",
+        why: "The top of the screen belongs to the platform — the notification shades on iOS and Android, the menu bar on macOS — and to your own toolbar on the web, so a panel arriving from above lands on the chrome people navigate by. Neither iOS nor Material ships a top sheet. A physical left or right is refused because the edge a sheet sits against is the end of the window you read toward, which changes with the language.",
+      },
+      {
+        name: "Header and Footer, and a close button in the corner",
+        why: "A title, a description and a row of actions are a Stack you write, and blessing one arrangement deprecates every other. SheetClose puts a real Button wherever the composition wants one, which is also what somebody using a screen reader on a touch device needs in order to leave a trapped panel, because a swipe is not a gesture that reaches the page.",
+      },
+      {
+        name: "`modal` and `disablePointerDismissal`",
+        why: "An open sheet is the interaction: focus trapped, the page locked, the dimmed background saying so. A panel that sits beside the page and leaves it live is a Shell pane, not a flag on this component.",
+      },
+      {
+        name: "Snap points, and a swipe that opens it",
+        why: "A sheet is open or closed. A panel resting at half its height is a third state with its own layout, its own announcement and its own gesture, and a swipe inward from the window's edge fights the browser's own gesture for going back.",
+      },
+      {
+        name: "Sheets inside sheets",
+        why: "A second panel over the first leaves nothing of the page to go back to, and two focus traps have no order between them. Change what the open panel shows instead.",
+      },
+      {
+        name: "`tone` and `emphasis`",
+        why: "A panel ranks nothing and carries no meaning of its own. What you put inside it carries both, which is where a destructive action or a loud button belongs.",
+      },
+      {
+        name: "A shadow",
+        why: "The dimmed page is the separation: the whole window going dark is what says the panel covers the app, so a shadow would say it a second time. In a raised theme the panel lifts exactly as much as a Card does.",
+      },
+    ],
+    parts: [
+      { part: "SheetTrigger", blurb: "The button that opens it, usually render={`<Button/>`}. A sheet driven by your own state needs no trigger at all" },
+      { part: "SheetContent", blurb: "Portals the panel, re-applies the theme, dims the page, and places the panel against the edge you named. The body inside it is what scrolls" },
+      { part: "SheetTitle", blurb: "The panel's accessible name, wired by aria-labelledby. A real heading element, at the step the sheet's own size sets" },
+      { part: "SheetDescription", blurb: "The supporting line, wired by aria-describedby. It is announced with the title, so a description that restates the title is heard twice" },
+      { part: "SheetClose", blurb: "A dismissing button you place yourself. There is no corner glyph, so the action zone stays where the composition put it" },
+    ],
+  },
+  {
     slug: "shell",
     name: "Shell",
     family: "Layout",
@@ -1464,7 +1679,7 @@ const DECLARED: Entry[] = [
       { part: "ShellHeader", blurb: "The full-width top bar, and a real `<header>` landmark. A header that is not full-width belongs inside ShellContent" },
       { part: "ShellRail", blurb: "The narrow icon column that switches sections: a `<nav>`, independent of the sidebar. Give each nav an aria-label when both are present" },
       { part: "ShellSidebar", blurb: "The wide navigation column: a `<nav>`. Untouched, it rests open on a roomy window and closed on a narrow one, with no script deciding" },
-      { part: "ShellContent", blurb: "The work area: a real `<main>` that scrolls itself and takes whatever room the other panes leave" },
+      { part: "ShellContent", blurb: "The work area: a real `<main>` that takes whatever room the other panes leave. It scrolls inside the frame, except on a phone, where the page itself scrolls" },
       { part: "ShellRailItem", blurb: "One square in the rail, for a high-level region rather than a row. Icon-only, because narrow is part of what a rail means" },
       { part: "ShellRailList", blurb: "A run of rail squares. A rail usually has two: the regions at the top, and the account and settings squares pinned at the bottom. On a narrow window, where the rail is a tab bar, this run is the pill the places sit in" },
       { part: "ShellRailAction", blurb: "A control in the tab bar that is not a place \u2014 a search, or anything else that opens rather than goes somewhere. It sits outside the pill of tabs as its own pane, a circle at the default radius, because a trigger that looks like a tab promises a destination it does not have" },

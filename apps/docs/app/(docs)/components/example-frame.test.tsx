@@ -170,20 +170,38 @@ describe("the specimen frame agrees with what the example renders", () => {
   });
 });
 
-describe("an example that hands a component a handler is a client component (audit 2026-09-02)", () => {
+describe("an example that hands a component a function is a client component (audit 2026-09-02)", () => {
   /* `next build` prerenders every component page, and an example that passes an event handler
      while rendering as a Server Component fails at that prerender. It shipped for a day, hidden
      behind the licensed-font failure that makes `docs#build` red in any fresh clone — so the
      one thing that would have caught it was the one thing nobody could read. A habit is not a
      mechanism; this is the mechanism. Falsified by removing the directive from any example
-     that passes a handler. */
-  it("every example passing an on* prop declares \"use client\"", () => {
+     that passes a handler.
+
+     A HANDLER WAS ONE WAY OF TWO, and the law named the way its author had in mind (2026-09-12).
+     The boundary refuses a FUNCTION, whatever prop carries it — and `Combobox` is the one
+     component in the library whose part takes a render function as CHILDREN, so `ComboboxList`
+     took `{(region) => …}` from a server example and `next build` died on
+     `{children: function children}` with this law green beside it. The predicate reads what the
+     rule is about: an arrow function standing as a JSX CHILD, or a handler prop.
+
+     THE `>` IS LOAD-BEARING. A child is an expression container opening straight after a tag,
+     and anchoring there is what separates the function that CROSSES from the arrows that do
+     not: `{Array.from({ length: 12 }, (_, i) => …)}` is a callback the server calls itself,
+     and its result is elements. Written without the anchor this law's first spelling reported
+     `scroll-area`, which prerenders correctly and always has — a law wrong about the general
+     case while right on the case its author had in mind. Falsified by deleting the directive
+     from `combobox.tsx`, which is the build failure this exists to catch. */
+  it("every example handing a function across the RSC boundary declares \"use client\"", () => {
     const names = Object.keys(EXAMPLES);
     expect(names.length, "the registry is empty — this law reads nothing").toBeGreaterThan(20);
+    const handler = /\son[A-Z][A-Za-z]+=\{/;
+    const renderChild = />\s*\{\s*(?:\([^()]*\)|[A-Za-z_$][\w$]*)\s*(?::[^=(){},]*)?=>/;
     const offending = names.filter((name) => {
       const src = readExampleSource(name);
-      return /\son[A-Z][A-Za-z]+=\{/.test(src) && !src.trimStart().startsWith('"use client"');
+      const sends = handler.test(src) || renderChild.test(src);
+      return sends && !src.trimStart().startsWith('"use client"');
     });
-    expect(offending, "these examples pass a handler across the RSC boundary").toEqual([]);
+    expect(offending, "these examples send a function across the RSC boundary").toEqual([]);
   });
 });

@@ -71,13 +71,13 @@ answer how much room the component has, not how wide the window is.
 <Flex direction={{ initial: "column", md: "row" }} gap="4" />
 ```
 
-## The components (146)
+## The components (164)
 
 This list is closed. There are no deep imports — every symbol comes from
 `@kookie-ui/react`. If what you want is not here, it is not there, and the answer is
 composition rather than a wrapper that re-implements it.
 
-`Accordion` · `AccordionItem` · `AccordionTrigger` · `AccordionPanel` · `AlertDialog` · `AlertDialogTrigger` · `AlertDialogContent` · `AlertDialogTitle` · `AlertDialogDescription` · `AlertDialogCancel` · `AlertDialogAction` · `Avatar` · `AvatarGroup` · `Attachment` · `Badge` · `Chip` · `Breadcrumb` · `BreadcrumbItem` · `BreadcrumbLink` · `BreadcrumbPage` · `BreadcrumbEllipsis` · `Blockquote` · `Box` · `Button` · `Card` · `Checkbox` · `Code` · `CodeBlock` · `Field` · `FieldItem` · `FieldLabel` · `FieldDescription` · `FieldError` · `Command` · `CommandTrigger` · `CommandContent` · `CommandInput` · `CommandList` · `CommandGroup` · `CommandGroupLabel` · `CommandCollection` · `CommandItem` · `CommandEmpty` · `Dialog` · `DialogTrigger` · `DialogContent` · `DialogTitle` · `DialogDescription` · `DialogClose` · `Heading` · `Kbd` · `Link` · `ContextMenu` · `ContextMenuTrigger` · `ContextMenuContent` · `Menu` · `MenuTrigger` · `MenuContent` · `MenuItem` · `MenuGroup` · `MenuLabel` · `MenuCheckboxItem` · `MenuRadioGroup` · `MenuRadioItem` · `MenuSub` · `MenuSubTrigger` · `MenuSubContent` · `Select` · `SelectTrigger` · `SelectContent` · `SelectItem` · `SelectGroup` · `SelectLabel` · `Composer` · `ComposerInput` · `ComposerRow` · `ComposerSend` · `Notice` · `Page` · `Toolbar` · `ToolbarGroup` · `ToolbarButton` · `ToolbarOverflow` · `ToolbarSeparator` · `ToolbarTitle` · `Popover` · `PopoverTrigger` · `PopoverContent` · `PopoverTitle` · `PopoverDescription` · `PopoverClose` · `Progress` · `Radio` · `RadioGroup` · `Separator` · `SegmentedControl` · `SegmentedItem` · `Row` · `Tree` · `NavTree` · `ScrollArea` · `Shell` · `ShellHeader` · `ShellRail` · `ShellTabBar` · `ShellSidebar` · `ShellContent` · `ShellInspector` · `ShellBottom` · `ShellScroll` · `ShellPaneHeader` · `ShellPaneFooter` · `ShellRailAction` · `ShellRailItem` · `ShellRailList` · `ShellNavGroup` · `ShellNavItem` · `ShellTrigger` · `Slider` · `Switch` · `Table` · `TableHeader` · `TableBody` · `TableRow` · `TableHead` · `TableCell` · `TableCaption` · `Tabs` · `TabsList` · `TabsTab` · `TabsPanel` · `Toggle` · `ToggleGroup` · `Tooltip` · `TooltipProvider` · `TooltipTrigger` · `TooltipContent` · `Text` · `TextArea` · `TextField` · `Spinner` · `Surface` · `Flex` · `Grid` · `Stack` · `Theme`
+`Accordion` · `AccordionItem` · `AccordionTrigger` · `AccordionPanel` · `AlertDialog` · `AlertDialogTrigger` · `AlertDialogContent` · `AlertDialogTitle` · `AlertDialogDescription` · `AlertDialogCancel` · `AlertDialogAction` · `Avatar` · `AvatarGroup` · `Attachment` · `Badge` · `Chip` · `Breadcrumb` · `BreadcrumbItem` · `BreadcrumbLink` · `BreadcrumbPage` · `BreadcrumbEllipsis` · `Blockquote` · `Box` · `Button` · `Card` · `Checkbox` · `Code` · `CodeBlock` · `Field` · `FieldItem` · `FieldLabel` · `FieldDescription` · `FieldError` · `Combobox` · `ComboboxInput` · `ComboboxContent` · `ComboboxList` · `ComboboxCollection` · `ComboboxItem` · `ComboboxGroup` · `ComboboxLabel` · `ComboboxEmpty` · `Command` · `CommandTrigger` · `CommandContent` · `CommandInput` · `CommandList` · `CommandGroup` · `CommandGroupLabel` · `CommandCollection` · `CommandItem` · `CommandEmpty` · `Dialog` · `DialogTrigger` · `DialogContent` · `DialogTitle` · `DialogDescription` · `DialogClose` · `Heading` · `Kbd` · `Link` · `List` · `ListItem` · `ContextMenu` · `ContextMenuTrigger` · `ContextMenuContent` · `Menu` · `MenuTrigger` · `MenuContent` · `MenuItem` · `MenuGroup` · `MenuLabel` · `MenuCheckboxItem` · `MenuRadioGroup` · `MenuRadioItem` · `MenuSub` · `MenuSubTrigger` · `MenuSubContent` · `Select` · `SelectTrigger` · `SelectContent` · `SelectItem` · `SelectGroup` · `SelectLabel` · `Composer` · `ComposerInput` · `ComposerRow` · `ComposerSend` · `Notice` · `NumberField` · `Page` · `Toolbar` · `ToolbarGroup` · `ToolbarButton` · `ToolbarOverflow` · `ToolbarSeparator` · `ToolbarTitle` · `Popover` · `PopoverTrigger` · `PopoverContent` · `PopoverTitle` · `PopoverDescription` · `PopoverClose` · `Progress` · `Radio` · `RadioGroup` · `Separator` · `Sheet` · `SheetTrigger` · `SheetContent` · `SheetTitle` · `SheetDescription` · `SheetClose` · `SegmentedControl` · `SegmentedItem` · `Row` · `Tree` · `NavTree` · `ScrollArea` · `Shell` · `ShellHeader` · `ShellRail` · `ShellTabBar` · `ShellSidebar` · `ShellContent` · `ShellInspector` · `ShellBottom` · `ShellScroll` · `ShellPaneHeader` · `ShellPaneFooter` · `ShellRailAction` · `ShellRailItem` · `ShellRailList` · `ShellNavGroup` · `ShellNavItem` · `ShellTrigger` · `Slider` · `Switch` · `Table` · `TableHeader` · `TableBody` · `TableRow` · `TableHead` · `TableCell` · `TableCaption` · `Tabs` · `TabsList` · `TabsTab` · `TabsPanel` · `Toggle` · `ToggleGroup` · `Tooltip` · `TooltipProvider` · `TooltipTrigger` · `TooltipContent` · `Text` · `TextArea` · `TextField` · `Spinner` · `Surface` · `Flex` · `Grid` · `Stack` · `Theme`
 
 Also exported, and not components:
 
@@ -103,6 +103,7 @@ system wrong. The reason each one was refused is on the component's own page —
 - **Chip** — A fill scale, or a variant prop; A dismissal; A count prop; A position; An empty chip
 - **Code** — A fill that gets louder with emphasis; Block code
 - **CodeBlock** — Highlighting; A switch for wrapping; A copy button, line numbers, and a collapse; `tone` and `emphasis`; A Card as the pane
+- **Combobox** — Free text with suggestions; `multiple`; A matcher of your own, a limit, and inline completion; `disabled`, `readOnly`, `name`, `required` and `form` on the field; A Separator inside the panel; `render` on the field; A clear button
 - **Command** — A footer; `modal`; Fuzzy reordering as you type; A Separator inside the panel; An edge-to-edge panel
 - **Composer** — The conversation, and every part of it; The scroller; An attach button; Owning the files; A row of slots; A compact or collapsed mode; `submitOnEnter`
 - **ContextMenu** — A parallel set of parts; Side, align and an offset; An appearance for the region; Opening on a left click
@@ -113,9 +114,11 @@ system wrong. The reason each one was refused is on the component's own page —
 - **Heading** — A level prop
 - **Kbd** — A shadow that follows Theme depth
 - **Link** — `emphasis`; A :visited style; A hover-only underline; A target of its own
+- **List** — A marker of your own; `render`; A gap or a density prop; A description list
 - **Menu** — `emphasis` on rows; A Shortcut part; `MenuSeparator`; An inset prop; `modal` and `openOnHover`; Arrow, Backdrop, Viewport, LinkItem and collision knobs
 - **NavTree** — Role="tree"; Selection; The tree keyboard; An indent prop
 - **Notice** — A position, and the name Banner; Toast, and any transient version of this; A title, a description and any fixed anatomy; More than one action; Remembering its own dismissal; A shadow; An icon set
+- **NumberField** — `leading` and `trailing`; `emphasis` and `tone`; `render`; The platform's number input; Dragging and scrolling to change the value
 - **Page** — A heading level; A size; Actions beside the title; A width; Collapsing on its own outside a frame
 - **Popover** — A modal mode; An arrow; Free positioning; A width that matches the trigger; A drawn close button
 - **Progress** — `size`; `tone`
@@ -126,6 +129,7 @@ system wrong. The reason each one was refused is on the component's own page —
 - **SegmentedControl** — `tone` and `emphasis`; An exported thumb; Multi-select; `nativeButton` and `render`; `readOnly`
 - **Select** — `readOnly`; A Separator inside the panel; `emphasis` and `tone` on the trigger; SelectValue as a part; `render` and `children` on the trigger; The scroll arrows; `multiple`
 - **Separator** — `children`; A length prop; `decorative`
+- **Sheet** — A top edge, and a physical left or right; Header and Footer, and a close button in the corner; `modal` and `disablePointerDismissal`; Snap points, and a swipe that opens it; Sheets inside sheets; `tone` and `emphasis`; A shadow
 - **Shell** — A gap prop; A header position axis; A thin sidebar mode; A close-cascade between rail and sidebar; `peek`; A `ShellRailItem` with a prop for the detached seat; `backdrop` on `ShellContent`; A tab bar derived from the sidebar; A tab bar that changes what the sidebar shows; A floating or stacked presentation value
 - **Slider** — `tone` and `emphasis`; `orientation`
 - **Spinner** — A size prop; A colour prop

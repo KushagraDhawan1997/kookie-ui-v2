@@ -58,7 +58,7 @@ export default function Example() {
           (§46) — so what holds a large title off the window's edge is the PANE's padding,
           which is the app's index. At 3 that is 24px, the band steps with it, and the title
           lines up with the control that opens the nav. */}
-      <Shell size="3">
+      <Shell contained size="3">
         <ShellContent>
           {/* `float` lifts the row out of flow, so the document passes underneath it — which is
               the whole arrangement this component exists for. The pane publishes what the row

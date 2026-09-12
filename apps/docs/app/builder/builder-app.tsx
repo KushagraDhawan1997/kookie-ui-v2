@@ -1457,10 +1457,10 @@ export function BuilderApp() {
   return (
     /* THE FRAME IS THE SYSTEM'S (§27, 2026-08-20). It was a hand-rolled `100dvh` column
        holding three fixed-width boxes and four Separators; it is the Shell now, and the
-       builder pays what every app pays for one. `100dvh` is stated here because the Shell
-       root fills the box it is given and this IS the app root — the one place a viewport
-       height is the honest answer. */
-    <Shell style={{ height: "100dvh" }}>
+       builder pays what every app pays for one. CONTAINED, with the window's height stated,
+       because the canvas is a room with its own scroll: a window Shell lets the page scroll on
+       a phone (2026-09-11), and a canvas that grew with the page would stop being a room. */
+    <Shell contained style={{ height: "100dvh" }}>
       {/* NO `size`, and that is the statement (Kushagra, 2026-08-21: "anything system
           default should use size 2 as default, that's our baseline"). The panes said
           `size="1"` three separate times, which is the default-with-no-home the Shell's own

@@ -9,11 +9,15 @@
 import type { ComponentPreview } from "./types";
 import { alertDialogPreview } from "./alert-dialog";
 import { cardPreview } from "./card";
+import { comboboxPreview } from "./combobox";
 import { composerPreview } from "./composer";
 import { dialogPreview } from "./dialog";
+import { listPreview } from "./list";
 import { menuPreview } from "./menu";
+import { numberFieldPreview } from "./number-field";
 import { segmentedControlPreview } from "./segmented-control";
 import { selectPreview } from "./select";
+import { sheetPreview } from "./sheet";
 import { sliderPreview } from "./slider";
 import { switchPreview } from "./switch";
 import { tabsPreview } from "./tabs";
@@ -23,11 +27,15 @@ import { textFieldPreview } from "./text-field";
 export const COMPONENT_PREVIEWS: readonly ComponentPreview[] = [
   alertDialogPreview,
   cardPreview,
+  comboboxPreview,
   composerPreview,
   dialogPreview,
+  listPreview,
   menuPreview,
+  numberFieldPreview,
   segmentedControlPreview,
   selectPreview,
+  sheetPreview,
   sliderPreview,
   switchPreview,
   tabsPreview,

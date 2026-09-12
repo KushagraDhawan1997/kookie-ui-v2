@@ -148,9 +148,14 @@ describe("checking a snippet", () => {
   });
 
   it("names an import the package does not export", () => {
-    const found = checkSnippet(`import { Button, Stack, Sheet } from "@kookie-ui/react";`);
-    expect(only(found).message).toContain("does not export Sheet");
-    expect(found[0]!.symbol).toBe("Sheet");
+    // The name is DELIBERATELY unbuildable (2026-09-12, the ship audit). This fixture used
+    // `Sheet`, which was a name the package did not export on the day it was written and is a
+    // real export now — so the law asserted a message about the wrong thing and failed on
+    // correct code. A fixture whose premise is "this does not exist" has to name something
+    // nothing will ever be called; `get` one describe up already uses this one.
+    const found = checkSnippet(`import { Button, Stack, Frobnicator } from "@kookie-ui/react";`);
+    expect(only(found).message).toContain("does not export Frobnicator");
+    expect(found[0]!.symbol).toBe("Frobnicator");
   });
 
   /* A VALUE OUTSIDE THE AXIS. `size="7"` is legal-looking React, and the list it is wrong

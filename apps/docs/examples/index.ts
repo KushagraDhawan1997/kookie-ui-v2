@@ -54,6 +54,7 @@ import CardExample from "./card";
 import CheckboxExample from "./checkbox";
 import CodeExample from "./code";
 import CodeBlockExample from "./code-block";
+import ComboboxExample from "./combobox";
 import ContextMenuExample from "./context-menu";
 import DialogExample from "./dialog";
 import FieldExample from "./field";
@@ -62,9 +63,11 @@ import GridExample from "./grid";
 import HeadingExample from "./heading";
 import KbdExample from "./kbd";
 import LinkExample from "./link";
+import ListExample from "./list";
 import MenuExample from "./menu";
 import ComposerExample from "./composer";
 import NoticeExample from "./notice";
+import NumberFieldExample from "./number-field";
 import PopoverExample from "./popover";
 import ProgressExample from "./progress";
 import RadioGroupExample from "./radio-group";
@@ -74,6 +77,7 @@ import ScrollAreaExample from "./scroll-area";
 import SegmentedControlExample from "./segmented-control";
 import SelectExample from "./select";
 import SeparatorExample from "./separator";
+import SheetExample from "./sheet";
 import ShellExample from "./shell";
 import SliderExample from "./slider";
 import SpinnerExample from "./spinner";
@@ -115,6 +119,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "code": CodeExample,
   command: CommandExample,
   "code-block": CodeBlockExample,
+  "combobox": ComboboxExample,
   "context-menu": ContextMenuExample,
   "dialog": DialogExample,
   "flex": FlexExample,
@@ -122,6 +127,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "heading": HeadingExample,
   "kbd": KbdExample,
   "link": LinkExample,
+  "list": ListExample,
   "menu": MenuExample,
   "accordion.disabled": AccordionDisabledExample,
   "accordion.rtl": AccordionRtlExample,
@@ -134,6 +140,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "select.rtl": SelectRtlExample,
   "composer": ComposerExample,
   "notice": NoticeExample,
+  "number-field": NumberFieldExample,
   "popover": PopoverExample,
   "progress": ProgressExample,
   "radio-group": RadioGroupExample,
@@ -144,6 +151,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "select": SelectExample,
   "field": FieldExample,
   "separator": SeparatorExample,
+  "sheet": SheetExample,
   "shell": ShellExample,
   "slider": SliderExample,
   "spinner": SpinnerExample,
