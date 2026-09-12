@@ -48,7 +48,6 @@ import {
   colorOn,
   computed,
   inMotion,
-  numberOn,
   mounted,
   render,
   tokenOn,
@@ -73,7 +72,7 @@ function fixture(props: {
   rail?: boolean;
 } = {}) {
   return (
-    <Shell style={{ height: 600 }}>
+    <Shell contained style={{ height: 600 }}>
       <ShellHeader flush={props.flush ?? true}>
         <ShellTrigger target="sidebar" data-testid="trigger">
           menu
@@ -172,7 +171,7 @@ describe("anatomy: the landmarks are by construction (§27)", () => {
     // pinned to a Separator's colour by its own laws below rather than restated here.
 
     const off = mounted(
-      <Shell style={{ height: 400 }}>
+      <Shell contained style={{ height: 400 }}>
         <ShellSidebar aria-label="Primary" flush={false}>
           nav
         </ShellSidebar>
@@ -205,7 +204,7 @@ describe("anatomy: the landmarks are by construction (§27)", () => {
     flush.remove();
     // And the fixture where it CAN be false: a floating pane lifts, and the root still does not.
     const floating = mounted(
-      <Shell style={{ height: 300 }}>
+      <Shell contained style={{ height: 300 }}>
         <ShellSidebar aria-label="Primary" flush={false}>
           nav
         </ShellSidebar>
@@ -344,7 +343,7 @@ describe("a pane that holds a scroller still hides (§27)", () => {
 
   const frame = (arrangement: "only" | "sibling", props: Parameters<typeof fixture>[0] = {}) =>
     mounted(
-      <Shell style={{ height: 600 }}>
+      <Shell contained style={{ height: 600 }}>
         <ShellHeader>
           <ShellTrigger target="sidebar">menu</ShellTrigger>
         </ShellHeader>
@@ -400,7 +399,7 @@ describe("a pane that holds a scroller still hides (§27)", () => {
 describe("pinned siblings and the scroller are separated by the pane's own padding (§27)", () => {
   const app = (pinned: boolean) =>
     mounted(
-      <Shell style={{ height: 600, width: 1200 }}>
+      <Shell contained style={{ height: 600, width: 1200 }}>
         <ShellHeader>h</ShellHeader>
         <ShellSidebar aria-label="Primary">
           {pinned ? <Box data-testid="head">pinned head</Box> : null}
@@ -470,7 +469,7 @@ describe("a pane pads like any other surface (§27)", () => {
 
   const app = (size: Size) =>
     mounted(
-      <Shell size={size} style={{ height: 600, width: 1200 }}>
+      <Shell contained size={size} style={{ height: 600, width: 1200 }}>
         <ShellHeader>h</ShellHeader>
         <ShellRail aria-label="Sections">
           <ShellRailItem aria-label="Files" />
@@ -545,7 +544,7 @@ describe("a child may bleed to a pane's wall (§3, §27)", () => {
   // bleeding child stops short of the wall.
   it("the bleeding child reaches it and its plain sibling does not", () => {
     const shell = mounted(
-      <Shell size="2" style={{ height: 400, width: 900 }}>
+      <Shell contained size="2" style={{ height: 400, width: 900 }}>
         <ShellSidebar aria-label="Primary">
           <Box data-testid="plain" style={{ height: 20 }} />
           <Box m="bleed" data-testid="bled" style={{ height: 20 }} />
@@ -587,7 +586,7 @@ describe("a child may bleed to a pane's wall (§3, §27)", () => {
   it("it bleeds by the PANE's padding, at whatever index the pane was given", () => {
     for (const size of ["1", "3", "4"] as const) {
       const shell = mounted(
-        <Shell size="2" style={{ height: 400, width: 900 }}>
+        <Shell contained size="2" style={{ height: 400, width: 900 }}>
           <ShellContent size={size}>
             <Box m="bleed" data-testid="bled" style={{ height: 20 }} />
           </ShellContent>
@@ -618,7 +617,7 @@ describe("a header's box is a control row inside the pane's padding (§27)", () 
   // button again; delete `align-content` and the button rests on the top edge.
   it("a shorter control centres in the row rather than defining it", () => {
     const shell = mounted(
-      <Shell size="2" style={{ height: 400 }}>
+      <Shell contained size="2" style={{ height: 400 }}>
         <ShellHeader>
           <Button size="1" data-testid="short">
             file
@@ -652,7 +651,7 @@ describe("a header's box is a control row inside the pane's padding (§27)", () 
   // clipping the taller control — a cap where the design says floor.
   it("the row is a FLOOR: something taller grows the header", () => {
     const shell = mounted(
-      <Shell size="1" style={{ height: 400 }}>
+      <Shell contained size="1" style={{ height: 400 }}>
         <ShellHeader>
           <Button size="4" data-testid="tall">
             file
@@ -675,7 +674,7 @@ describe("a header's box is a control row inside the pane's padding (§27)", () 
   it("a header is as TALL as the rail at that index is WIDE", () => {
     for (const size of ["1", "2", "3", "4"] as const) {
       const shell = mounted(
-        <Shell size={size} style={{ height: 600, width: 1200 }}>
+        <Shell contained size={size} style={{ height: 600, width: 1200 }}>
           <ShellHeader>h</ShellHeader>
           <ShellRail aria-label="Sections">
             <ShellRailItem aria-label="Files" />
@@ -698,7 +697,7 @@ describe("the app states its size once, and control may be handed back (§27)", 
   // against a root that said `1`.
   it("a pane takes the app's index unless it states its own, and the ROWS follow", () => {
     const shell = mounted(
-      <Shell size="1" style={{ height: 400 }}>
+      <Shell contained size="1" style={{ height: 400 }}>
         <ShellSidebar aria-label="Primary">
           <ShellNavItem data-testid="inherited">files</ShellNavItem>
         </ShellSidebar>
@@ -726,7 +725,7 @@ describe("the app states its size once, and control may be handed back (§27)", 
     function App() {
       const [pinned, setPinned] = React.useState(false);
       return (
-        <Shell style={{ height: 400 }}>
+        <Shell contained style={{ height: 400 }}>
           <ShellHeader>
             <ShellTrigger target="sidebar">nav</ShellTrigger>
             <button data-testid="pin" onClick={() => setPinned((p) => !p)}>
@@ -802,7 +801,7 @@ describe("the app states its size once, and control may be handed back (§27)", 
 describe("a flush seam is a hairline, and exactly one pane owns each (§7, §27)", () => {
   const frame = (depth: (typeof DEPTHS)[number], appearance: (typeof APPEARANCES)[number]) =>
     mounted(
-      <Shell style={{ height: 300 }}>
+      <Shell contained style={{ height: 300 }}>
         <ShellHeader>h</ShellHeader>
         <ShellRail aria-label="Sections">r</ShellRail>
         <ShellSidebar aria-label="Primary">s</ShellSidebar>
@@ -883,7 +882,7 @@ describe("a side drawer PUSHES the frame; it does not cover it (§27, 2026-09-09
 
   const wide = (flush: boolean, size: Size = "2") =>
     mounted(
-      <Shell size={size} style={{ height: 400 }}>
+      <Shell contained size={size} style={{ height: 400 }}>
         <ShellSidebar aria-label="Primary" flush={flush} defaultOpen>
           nav
         </ShellSidebar>
@@ -899,7 +898,7 @@ describe("a side drawer PUSHES the frame; it does not cover it (§27, 2026-09-09
     it(`an EXPLICIT overlay ${flush ? "flush" : "floating"} drawer is the wide-window pane, at every size`, () => {
       for (const size of SIZES) {
         const shell = mounted(
-          <Shell size={size} style={{ height: 400 }}>
+          <Shell contained size={size} style={{ height: 400 }}>
             <ShellSidebar aria-label="Primary" flush={flush} presentation="overlay" defaultOpen>
               nav
             </ShellSidebar>
@@ -1024,25 +1023,61 @@ describe("a side drawer PUSHES the frame; it does not cover it (§27, 2026-09-09
   });
 
   /**
-   * NOTHING ABOUT THE FRAME RECEDES FOR A SIDE PANE, and the bottom sheet is the negative
-   * control that keeps this from being a law about nothing: a sheet from below is a different
-   * gesture and keeps the recession, the well and the plate. Read on the root's own transform,
-   * because that is where the recession is declared.
+   * NOTHING RECEDES ANY MORE, AND THAT IS NOW TRUE OF BOTH GESTURES (§27, 2026-09-11).
    *
-   * Falsified: keying the recession on `.kui-shell-pane` again — its pre-push spelling — fails
-   * the side half at `expected 'matrix(0.925, 0, 0, 0.925, 0, 0)' to be 'none'`.
+   * What stood here asserted that a side pane leaves the frame at its own size WHILE a sheet
+   * from below scales it back, with the sheet as the negative control that kept it from being a
+   * law about nothing. The sheet half stopped being true the day the bottom pane began pushing
+   * too: the frame moves up by the pane's height and the pane rides in beneath it, which is the
+   * sidebar's own sentence turned ninety degrees. The root carries no transform at all now, and
+   * that absence is load-bearing rather than incidental — a transformed element is a containing
+   * block for `position: fixed`, which is what the fixed drawers, the sheet and the tab bar all
+   * need the root not to be.
+   *
+   * So the negative control is gone and a POSITIVE one replaces it: the frame does not scale,
+   * AND it really moves. Without the second half this is a law that a shell doing nothing
+   * whatsoever would pass — the degenerate fixture this file has already paid for three times.
+   * The movement is read as a rect delta rather than off `translate`, because the side push
+   * computes as an unresolved `min(288px, 100% - 44px)` (a percentage cannot resolve at
+   * computed-value time) while the sheet's resolves to a length: one of the two would have had
+   * to be read a second way, and the geometry is the thing either spelling is FOR.
+   *
+   * Falsified: re-declaring the recession on the root under a live drawer
+   * (`transform: scale(0.925)`) fails at
+   * `expected 'matrix(0.925, 0, 0, 0.925, 0, 0)' to be 'none'`.
    */
-  it("a side pane leaves the frame at its own size; a sheet from below recedes it", async () => {
+  it("neither gesture recedes the frame: a side pane pushes it aside, a sheet pushes it up", async () => {
     await narrow();
     const side = mountShell();
     await userEvent.click(within(side, ".kui-shell-header button"));
     await expect.poll(() => within(side, ".kui-shell-sidebar").dataset.state).toBe("open");
     await expect.poll(() => computed(side, "transform")).toBe("none");
+    /* AND THE PUSH IS REAL, on the INLINE axis: the frame's children slide by the pane's width,
+       so the work area starts where it would have started plus that distance. At rest it starts
+       at the frame's own leading edge, which is what makes a positive delta the push's
+       signature rather than ordinary layout. */
+    await expect
+      .poll(
+        () =>
+          within(side, ".kui-shell-content").getBoundingClientRect().left -
+          side.getBoundingClientRect().left,
+      )
+      .toBeGreaterThan(0);
     side.remove();
 
     const sheet = mountShell({ bottom: { defaultOpen: true } });
     await expect.poll(() => within(sheet, ".kui-shell-bottom").dataset.state).toBe("open");
-    await expect.poll(() => computed(sheet, "transform")).not.toBe("none");
+    await expect.poll(() => computed(sheet, "transform")).toBe("none");
+    /* And the sheet's push is the BLOCK axis, upward. At rest the work area sits BELOW the
+       header, so its top is a positive distance into the frame; pushed, it crosses the frame's
+       own top edge. A negative delta is therefore the push and cannot be the layout. */
+    await expect
+      .poll(
+        () =>
+          within(sheet, ".kui-shell-content").getBoundingClientRect().top -
+          sheet.getBoundingClientRect().top,
+      )
+      .toBeLessThan(0);
   });
 
   /**
@@ -1070,17 +1105,24 @@ describe("a side drawer PUSHES the frame; it does not cover it (§27, 2026-09-09
   });
 
   /**
-   * A SIDE PANE STATES ITS OWN MATERIAL; THE POSTURE NO LONGER INFERS ONE (§10, 2026-09-09).
-   * The covering-panel rule — every popup in this package hardcodes a backdrop because a panel
-   * over the page HAS the page behind it — was applied to a drawer while a drawer covered. Under
-   * the push it does not cover: the page beside it is the page a wide-window sidebar has beside
-   * it, so `backdrop` (or an ambient region) is the only thing that may say glass. The bottom
-   * sheet is the negative control, and it still infers.
+   * NO DRAWER INFERS A MATERIAL, AND THE SHEET JOINED THAT RULE ON 2026-09-11 (§10, §27).
    *
-   * Falsified: passing the posture back into `usePaneDress` fails at
-   * `expected 'regular' to be undefined` on the unmarked drawer.
+   * The covering-panel rule — every popup in this package hardcodes a backdrop, because a panel
+   * over the page HAS the page behind it — was applied to a drawer while a drawer covered. A side
+   * pane stopped covering on 2026-09-09 and the bottom pane stopped on 2026-09-11: both PUSH the
+   * frame now, so the page beside a drawer (or below a sheet) is the page a wide window has
+   * beside its columns, and `backdrop` — or an ambient region — is the only thing that may say
+   * glass. This law kept the sheet as its negative control right up until the sheet joined it.
+   *
+   * What replaces that control is the app's own statement, read in BOTH directions: unmarked is
+   * solid, and one that ASKED is glass. The pair is what says the material is keyed on the prop
+   * rather than on nothing at all — an inference deleted in favour of silence would pass the
+   * first half alone.
+   *
+   * Falsified: passing the posture back into `usePaneDress` (`overlaying` true for either pane)
+   * fails at `expected 'regular' to be undefined` on that pane.
    */
-  it("an unmarked drawer is solid under a glass theme; one that asked is not; a sheet still infers", async () => {
+  it("no drawer infers a material: unmarked is solid, sheet included; one that asked is glass", async () => {
     await narrow();
     const plain = mounted(fixture(), { theme: { material: "regular" } });
     await userEvent.click(within(plain, ".kui-shell-header button"));
@@ -1091,53 +1133,33 @@ describe("a side drawer PUSHES the frame; it does not cover it (§27, 2026-09-09
     ).toBeUndefined();
     expect(
       within(plain, ".kui-shell-bottom").dataset.material,
-      "a sheet over the content is the covering-panel case, and keeps it",
-    ).toBe("regular");
+      "a sheet volunteered a material — it pushes the frame as the sidebar does and states its own",
+    ).toBeUndefined();
     plain.remove();
 
-    const asked = mounted(fixture({ sidebar: { backdrop: true } }), {
-      theme: { material: "regular" },
-    });
+    const asked = mounted(
+      fixture({ sidebar: { backdrop: true }, bottom: { backdrop: true } }),
+      { theme: { material: "regular" } },
+    );
     await userEvent.click(within(asked, ".kui-shell-header button"));
     await expect.poll(() => within(asked, ".kui-shell-sidebar").dataset.state).toBe("open");
     expect(within(asked, ".kui-shell-sidebar").dataset.material, "the app asked and got nothing").toBe(
       "regular",
     );
+    expect(
+      within(asked, ".kui-shell-bottom").dataset.material,
+      "the app asked for a glass sheet and got nothing",
+    ).toBe("regular");
   });
 });
 
-/** THE SCREEN, not a computed value. Grabs one frame, decodes it, and answers "what colour is
-    this CSS pixel" — the instrument the drawer's own bugs needed, because both of them were
-    about WHERE a correct declaration painted rather than about what it said. Device-pixel
-    ratio is divided out against a known viewport width, which is also the calibration: an
-    instrument whose scale is guessed is the 2026-08-08 finding waiting to happen. */
-async function screenPixels(cssWidth: number) {
-  const shot = (await page.screenshot({ base64: true, save: false })) as unknown as string;
-  const b64 = typeof shot === "string" ? shot : (shot as { base64: string }).base64;
-  const img = new Image();
-  await new Promise((done) => {
-    img.onload = done;
-    img.src = `data:image/png;base64,${b64}`;
-  });
-  const canvas = document.createElement("canvas");
-  canvas.width = img.width;
-  canvas.height = img.height;
-  const ctx = canvas.getContext("2d")!;
-  ctx.drawImage(img, 0, 0);
-  const ratio = img.width / cssWidth;
-  return (x: number, y: number) => {
-    const [r, g, b] = ctx.getImageData(Math.round(x * ratio), Math.round(y * ratio), 1, 1).data;
-    return [r, g, b] as [number, number, number];
-  };
-}
-
-/** A token resolved to the three channels the screen speaks in, so a pixel can be compared
-    against the system's own value rather than against a literal nobody would notice going
-    stale. */
-async function rgbOf(scope: HTMLElement, expr: string) {
-  const [r, g, b] = colorOn(scope, expr).match(/\d+/g)!.map(Number);
-  return [r, g, b] as [number, number, number];
-}
+/* THE SCREEN-READING INSTRUMENTS WERE DELETED WITH THEIR LAW (2026-09-12). `screenPixels`
+   decoded a real frame and answered "what colour is this CSS pixel", and `rgbOf` resolved a
+   token into the three channels a screen speaks in; both existed for the receding-frame law,
+   which went when the bottom pane began PUSHING instead of receding (2026-09-11) and the frame
+   stopped scaling at all. A mechanism with no consumer is the entropy this repo keeps paying
+   for, so they are in git history rather than here — and the note is what says where to look
+   when a law next needs to read paint rather than a declaration. */
 
 describe("a parked drawer is off the frame, not merely invisible (§27, §8, 2026-09-06)", () => {
   /**
@@ -1167,7 +1189,7 @@ describe("a parked drawer is off the frame, not merely invisible (§27, §8, 202
   // parked drawer's right edge sits 8px INSIDE the frame instead of on or past its left edge.
   it("an EXPLICIT overlay pane rests one pane-width outside the frame's own edge", () => {
     const shell = mounted(
-      <Shell style={{ height: 400 }}>
+      <Shell contained style={{ height: 400 }}>
         <ShellSidebar aria-label="Primary" presentation="overlay">
           nav
         </ShellSidebar>
@@ -1282,9 +1304,11 @@ describe("a live drawer is not cut, and neither is the scrim over it (§27, §8,
    */
   const topmostAt = (x: number, y: number) => document.elementFromPoint(x, y);
 
-  /** THE SHEET, which is what recedes since 2026-09-09 (§27): a side pane pushes the frame and
-      a sheet from below pushes it BACK, so every law about the recession, the well and the
-      frame's plane reads the bottom pane. */
+  /** THE SHEET. It RECEDED the frame from 2026-09-06 to 2026-09-11 and PUSHES it up now (§27),
+      so what this hands back is a live drawer of the second kind — the gesture that differs from
+      a side pane's by an axis and by nothing else. The laws that read it for the recession, the
+      well and the frame's plane either moved to the guarantee that survived the change or went
+      with it; the note at each one says which. */
   const liveSheet = async () => {
     await narrow();
     const shell = mountShell({ bottom: { defaultOpen: true } });
@@ -1319,106 +1343,98 @@ describe("a live drawer is not cut, and neither is the scrim over it (§27, §8,
   });
 
   /**
-   * AND THE SCRIM REACHES THE FRAME'S TRAILING EDGE. The scrim and the well take the same
-   * inverse the drawer does, so they were cut by the same line and by the same amount —
-   * measured on a 375px frame, both stopped at x=347 and the trailing 28px showed raw page
-   * under nothing at all. This is the half a person sees as a bright band beside a dimmed app,
-   * which inverts the depth the recession is for.
+   * AND NOTHING IS LEFT BARE BETWEEN THE DIMMED PAGE AND THE PANE.
+   *
+   * RE-KEYED FROM THE RECESSION TO THE PUSH (2026-09-11). What stood here asserted that the
+   * scrim reaches the frame's trailing edge, "which is where the recession opened", on a premise
+   * that read `transform !== "none"` — and the frame stopped receding for ANY gesture when the
+   * bottom pane began pushing (§27), so the premise was the first thing to fail. The defect it
+   * was written for was real and is worth keeping the shape of: the scrim and the well took the
+   * frame's inverse, both were cut by the frame's own `overflow: clip`, and on a 375px frame
+   * both stopped at x=347 with the trailing 28px showing raw page under nothing at all.
+   *
+   * The CONCERN outlives the mechanism exactly. A bright band beside a dimmed app inverts the
+   * depth a scrim is for, and a push can open one just as a clipped recession could — the scrim
+   * rides the frame's CHILDREN, so it travels with the page and away from the edge the pane
+   * arrived at. What holds is that the pane and the scrim cover the frame's box BETWEEN them.
+   *
+   * Read by hit-testing, which is how the original defect was found at all: a rect reports a
+   * border box and says nothing about who paints at a point. The frame's own rect is its layout
+   * box here precisely BECAUSE the root no longer transforms, which is why this no longer needs
+   * the `offsetLeft` reading its predecessor did.
+   *
+   * Both gestures, because they are one guarantee at ninety degrees and a law that mounted one
+   * would be a law about that one — this file's own recurring finding.
+   *
+   * Falsified: deleting the sheet's push (`--kui-shell-push-y`) leaves the scrim over the whole
+   * frame and fails the seam at `expected 600 to be close to 400`; stopping the scrim
+   * travelling with the frame's children fails it from the other side.
    */
-  it("the scrim covers the frame's trailing edge, which is where the recession opened", async () => {
-    const { shell } = await liveSheet();
-    const root = within(shell, ".kui-shell");
-    const frame = root.getBoundingClientRect();
-    const scrim = within(shell, ".kui-shell-scrim");
-    // The premise: the frame really has receded, or there is no trailing gap to cover.
-    expect(computed(root, "transform"), "the frame did not recede").not.toBe("none");
-    const y = frame.top + frame.height / 2;
-    // Just inside the frame's LAYOUT box, past where the receded frame now paints.
-    const trailing = root.offsetLeft + root.offsetWidth - 2;
-    expect(topmostAt(trailing, y), "the trailing edge is outside the scrim").toBe(scrim);
-  });
+  for (const gesture of ["sheet", "side"] as const) {
+    it(`the scrim and the live ${gesture} cover the frame between them`, async () => {
+      const { shell, pane } = gesture === "sheet" ? await liveSheet() : await liveNarrowShell();
+      const root = within(shell, ".kui-shell");
+      const scrim = within(shell, ".kui-shell-scrim");
+      // The premise, re-keyed: the frame really is out of its resting place, or there is no
+      // strip for either of them to fail to cover.
+      expect(computed(root, "transform"), "the frame is transformed, so this reads the wrong box").toBe(
+        "none",
+      );
+      const frame = root.getBoundingClientRect();
+      const probes: [number, number][] = [
+        [frame.left + frame.width / 2, frame.top + 2],
+        [frame.left + frame.width / 2, frame.top + frame.height / 2],
+        [frame.left + frame.width / 2, frame.bottom - 2],
+        [frame.left + 2, frame.top + frame.height / 2],
+        [frame.right - 2, frame.top + frame.height / 2],
+      ];
+      const hits = probes.map(([x, y]) => topmostAt(x, y));
+      const isPane = (hit: Element | null) => hit === pane || (hit !== null && pane.contains(hit));
+      for (const [i, hit] of hits.entries()) {
+        expect(
+          hit === scrim || isPane(hit),
+          `bare frame at ${probes[i]!.map(Math.round).join(",")}: ${(hit as HTMLElement | null)?.className}`,
+        ).toBe(true);
+      }
+      /* THE VACUITY GUARD, and it is what makes this a law about the PAIR: each must really be
+         reached. A frame covered entirely by one of them says nothing about the seam between
+         them, and is exactly what a broken push would produce. */
+      expect(
+        hits.some((hit) => hit === scrim),
+        "the scrim covers none of the frame",
+      ).toBe(true);
+      expect(hits.some(isPane), "the pane covers none of the frame").toBe(true);
+      /* AND THE SEAM IS EXACT, which is the push's own signature: the dimmed page ends precisely
+         where the pane begins, because the scrim rides the frame and the frame moved by the
+         pane's own extent. Two distances on one curve — the shape the park distance got wrong by
+         2px and no landed-state law could see. */
+      const s = scrim.getBoundingClientRect();
+      const p = pane.getBoundingClientRect();
+      if (gesture === "sheet") {
+        expect(s.bottom, "daylight between the dimmed page and the sheet").toBeCloseTo(p.top, 0);
+      } else {
+        expect(s.left, "daylight between the drawer and the page it pushed").toBeCloseTo(p.right, 0);
+      }
+    });
+  }
 
-  /**
-   * AND THE APP IS STILL THERE BEHIND THE DRAWER — READ OFF THE PIXELS (Kushagra, twice:
-   * "Normal white page becomes black when sidebar comes", then "The entire page is black there
-   * is no ring").
-   *
-   * The well is a pseudo-element behind the panes, sized to the frame's whole box, and a flush
-   * pane paints nothing because a pane level with the page is not a plane. So through a frame
-   * of flush panes the well was not a ring around a receded app; it WAS the app, replaced by a
-   * near-black slab. The frame carries the seal for as long as it is away from the page, which
-   * is flush's own rule one level up.
-   *
-   * THIS LAW GRABS THE SCREEN, and it is the only kind that could have caught either half. The
-   * first repair put the seal on the root's own background, which measured perfectly on the
-   * element — and painted nowhere, because the root isolates and a `z-index: -1` pseudo paints
-   * ABOVE its parent's background. A computed value cannot see paint order; a pixel can. It is
-   * the calibration lesson (2026-08-08) taken one step further: an instrument that reads a
-   * declaration is measuring the author's intent, not the reader's screen.
-   *
-   * Falsified twice: with the plane deleted the frame reads 9,9,10 — the well; with the plane
-   * moved back onto the root it reads 9,9,10 again, which is the defect this law was written
-   * a second time to catch.
-   */
-  it("a flush frame is still the app when a SHEET opens — in pixels", async () => {
-    /* RE-KEYED 2026-09-09: the recession belongs to the sheet from below, so the strip of well
-       this law reads opens on the sides rather than past a drawer's trailing edge. Everything
-       else about it is unchanged, including the reason it exists — the frame's plane is painted
-       by a pseudo-element at a negative layer, and the well is painted by another one at the
-       same layer, so an ordering mistake shows as the app disappearing into the well and as
-       nothing at all in any computed value. */
-    await page.viewport(375, 700);
-    const shell = mounted(
-      <Shell style={{ height: 700 }}>
-        <ShellContent>content</ShellContent>
-        <ShellBottom presentation="overlay" defaultOpen>sheet</ShellBottom>
-      </Shell>,
-      { theme: {}, select: ".kui-shell" },
-    );
-    const root = within(shell, ".kui-shell");
-    const content = within(shell, ".kui-shell-content");
-    // The premise, and the reason this fixture can see the defect at all: the pane paints
-    // nothing of its own, so whatever the screen shows there came from behind it.
-    expect(computed(content, "background-color"), "the pane paints its own bed").toBe(
-      "rgba(0, 0, 0, 0)",
-    );
-    expect(computed(root, "transform"), "the frame did not recede").not.toBe("none");
-    await expect.poll(() => root.getAnimations().length).toBe(0);
+  /* THE FRAME NO LONGER RECEDES, SO THIS LAW HAS NO SUBJECT (2026-09-12, the ship audit).
 
-    /* THE POINT MATTERS AS MUCH AS THE READING. The subject is the strip of frame the sheet
-       does not cover: the recession pulls the frame's leading edge in, so the ring is between
-       the root's own wall and where the frame now stops, and the frame itself is just inside
-       that. (The degenerate-fixture rule: sampling the middle of the window would read the
-       frame in both a correct and a broken build.) */
-    const at = await screenPixels(375);
-    const recede = numberOn(shell, "--shell-drawer-scale");
-    // The recession's origin for a sheet is `50% 100%`, so the frame loses half the shrink at
-    // each side; the ring is that half, and the reading sits inside it and just past it.
-    const inset = (root.offsetWidth * (1 - recede)) / 2;
-    expect(inset, "the recession opened no ring on the sides").toBeGreaterThan(8);
-    const y = root.offsetTop + root.offsetHeight / 4;
-    const well = at(root.offsetLeft + 2, y);
-    const inside = at(root.offsetLeft + inset + 8, y);
+     What stood here was "a flush frame is still the app when a SHEET opens — in pixels": it
+     grabbed the screen, found the ring of well the recession opened at the frame’s side, and
+     asserted the frame inside it was painting the seal rather than the well. The bottom pane
+     stopped receding the frame on 2026-09-11 and PUSHES it instead, so there is no ring: the
+     law’s own vacuity guard ("the recession opened no ring, so this law proves nothing") was
+     failing before this pass touched anything, and it read `--shell-drawer-scale`, the token
+     the recession left behind and which is deleted with it.
 
-    /* READ AS A DISTANCE, because the scrim sits over both regions and neither pixel is its
-       token exactly. What the claim has always been is which of the two colours the frame is
-       showing, so that is what the law asks: the pixel inside the frame must be nearer the seal
-       than the well, and the ring the other way round. The second half is the vacuity guard —
-       without a ring there is nothing here to be on the wrong side of. */
-    const seal = await rgbOf(shell, "var(--color-surface)");
-    const wellToken = await rgbOf(shell, "var(--scrim-well)");
-    const near = (px: number[], to: number[]) =>
-      Math.hypot(px[0]! - to[0]!, px[1]! - to[1]!, px[2]! - to[2]!);
-    expect(
-      near(well, wellToken) < near(well, seal),
-      `the recession opened no ring, so this law proves nothing (${well})`,
-    ).toBe(true);
-    expect(
-      near(inside, seal) < near(inside, wellToken),
-      `the well painted straight through the frame — the app is gone (${inside})`,
-    ).toBe(true);
-  });
-
+     Deleted rather than widened, on this repo’s own rule for a superseded law: its claim was
+     about paint ORDER between two negative-layer pseudo-elements while one of them was lit, and
+     nothing lights the well now. The guarantee that survives — the plane may paint only the
+     seal, and never from the root — is read in shell.test.ts, off the stylesheet, where it is
+     a property of the selector rather than of a state no drawer can produce. If a pane ever
+     recedes the frame again, this law comes back WITH it; it is not a check anyone should
+     re-derive from a passing suite. */
   /**
    * AND THE SCRIM LEAVES WITH THE DRAWER, NOT BEFORE IT (Kushagra: "When I dismiss it, the bg
    * loses its blur instantly making it look weird"). It was `display: none` at rest and
@@ -1465,23 +1481,23 @@ describe("a live drawer is not cut, and neither is the scrim over it (§27, §8,
     expect(computed(scrim, "background-color"), "the dim went in one frame").not.toBe("rgba(0, 0, 0, 0)");
   });
 
-  /**
-   * AND THE RECEDED FRAME IS AN OBJECT, SO IT HAS CORNERS (Kushagra: "when the bg scales down,
-   * it should have corner radius too"). Read as an AGREEMENT with a mounted Card at the frame's
-   * own step rather than against a number, because the squircle multiplier sits between the
-   * token and the painted corner and a literal here would be pinning the multiplier by
-   * accident — the shape §27's own pane-corner law already takes.
-   */
-  it("the frame rounds while it recedes, at the corner a card wears", async () => {
-    const { shell } = await liveSheet();
-    const root = within(shell, ".kui-shell");
-    const plane = getComputedStyle(root, "::after").borderTopLeftRadius;
-    expect(plane, "the receding frame is a square slab").not.toBe("0px");
-    const card = mounted(<Card size="3">c</Card>, { theme: {}, select: ".kui-surface" });
-    expect(plane, "the frame's corner is not the system's").toBe(
-      computed(card, "border-top-left-radius"),
-    );
-  });
+  /* THE FRAME NO LONGER RECEDES, SO THIS LAW HAS NO SUBJECT EITHER (2026-09-12, the ship pass).
+
+     What stood here was "the frame rounds while it recedes, at the corner a card wears": it read
+     `::after`'s `border-top-left-radius` on a live sheet, asserted it was not `0px`, and then
+     asserted it AGREED with a mounted Card at the frame's own step — Kushagra's "when the bg
+     scales down, it should have corner radius too". The bottom pane stopped receding the frame on
+     2026-09-11 and pushes it instead, so nothing scales and there is no set-back plane to round:
+     measured on a live sheet, the plane computes `border-radius: 0px` over a transparent fill,
+     which is the recession machinery pinned inert in shell.css until it is removed.
+
+     Deleted rather than widened, for the same reason its neighbour above was: its claim was about
+     a CORNER on a plane while that plane was lit, and nothing lights the plane now — a law whose
+     premise no drawer can produce. The guarantee that survives is the narrower one and it is read
+     in shell.test.ts, off the stylesheet, where it is a property of the rule rather than of a
+     state: the plane exists exactly once and may name exactly one colour, the seal. If a pane ever
+     recedes the frame again, this law comes back WITH it; it is not a check anyone should
+     re-derive from a suite that passes without it. */
 
   /**
    * AND THE PRICE OF NOT CLIPPING IS PAID BY THE OTHER DRAWERS. Parking is affordable because
@@ -1508,7 +1524,7 @@ describe("a live drawer is not cut, and neither is the scrim over it (§27, §8,
 describe("the JS mirror agrees with the stylesheet, and is read (§27)", () => {
   it("an untouched explicit-overlay pane reports closed AND contains nothing, at a wide window", async () => {
     const shell = mounted(
-      <Shell style={{ height: 400 }}>
+      <Shell contained style={{ height: 400 }}>
         <ShellHeader>
           <ShellTrigger target="sidebar">nav</ShellTrigger>
         </ShellHeader>
@@ -1529,7 +1545,7 @@ describe("the JS mirror agrees with the stylesheet, and is read (§27)", () => {
 
   it("an OPEN explicit-overlay pane carries the whole obligation at a wide window", async () => {
     const shell = mounted(
-      <Shell style={{ height: 400 }}>
+      <Shell contained style={{ height: 400 }}>
         <ShellHeader>
           <ShellTrigger target="sidebar">nav</ShellTrigger>
         </ShellHeader>
@@ -1590,7 +1606,7 @@ describe("the trigger: the one crossing (§27)", () => {
 
   it("the render escape composes — the trigger's wiring lands on the caller's element", async () => {
     const shell = mounted(
-      <Shell style={{ height: 400 }}>
+      <Shell contained style={{ height: 400 }}>
         <ShellContent>
           <ShellTrigger target="sidebar" render={<button className="my-btn" />}>go</ShellTrigger>
         </ShellContent>
@@ -1727,7 +1743,7 @@ describe("the overlay treatment: one element, dressed — and its obligations (�
 describe("two overlays at once — the plural the critical defect lived in (§27)", () => {
   const twoOverlays = () =>
     mounted(
-      <Shell style={{ height: 600 }}>
+      <Shell contained style={{ height: 600 }}>
         <ShellHeader>
           <ShellTrigger target="sidebar">nav</ShellTrigger>
           <ShellTrigger target="inspector">details</ShellTrigger>
@@ -1789,7 +1805,7 @@ describe("two overlays at once — the plural the critical defect lived in (§27
     // own open drawer. A plain <div> around a pane is an ordinary consumer shape.
     await narrow();
     const shell = mounted(
-      <Shell style={{ height: 600 }}>
+      <Shell contained style={{ height: 600 }}>
         <ShellHeader>h</ShellHeader>
         <div data-wrapper>
           <ShellSidebar defaultOpen aria-label="Primary">
@@ -1832,10 +1848,10 @@ describe("two overlays at once — the plural the critical defect lived in (§27
     // computes `block` and this reads `expected "block" to be "none"`.
     await narrow();
     const outer = mounted(
-      <Shell style={{ height: 600 }}>
+      <Shell contained style={{ height: 600 }}>
         <ShellHeader>h</ShellHeader>
         <ShellContent>
-          <Shell style={{ height: 300 }} data-inner>
+          <Shell contained style={{ height: 300 }} data-inner>
             <ShellSidebar defaultOpen aria-label="Inner">inner</ShellSidebar>
             <ShellContent>c</ShellContent>
           </Shell>
@@ -1885,7 +1901,7 @@ describe("two overlays at once — the plural the critical defect lived in (§27
       const [extra, setExtra] = React.useState(false);
       add = () => setExtra(true);
       return (
-        <Shell style={{ height: 600 }}>
+        <Shell contained style={{ height: 600 }}>
           <ShellHeader>h</ShellHeader>
           <ShellSidebar defaultOpen aria-label="Primary">
             s
@@ -1924,7 +1940,7 @@ describe("two overlays at once — the plural the critical defect lived in (§27
         <button type="button" data-add onClick={() => setExtra(true)}>
           add
         </button>
-        <Shell style={{ height: 600 }}>
+        <Shell contained style={{ height: 600 }}>
           <ShellHeader>h</ShellHeader>
           <ShellSidebar defaultOpen aria-label="Primary">
             s
@@ -2058,7 +2074,7 @@ describe("an overlay never takes the whole window (§27, audit 2026-08-16)", () 
      */
     await page.viewport(320, 700);
     const shell = mounted(
-      <Shell style={{ height: 600 }}>
+      <Shell contained style={{ height: 600 }}>
         <ShellHeader>h</ShellHeader>
         <ShellSidebar aria-label="Primary" defaultOpen flush={false}>
           nav
@@ -2103,7 +2119,7 @@ describe("an overlay never takes the whole window (§27, audit 2026-08-16)", () 
     // rather than measuring it, which is the mistake this file exists to catch.
     await page.viewport(375, 800);
     const shell = mounted(
-      <Shell style={{ height: 600 }}>
+      <Shell contained style={{ height: 600 }}>
         <ShellHeader>h</ShellHeader>
         <ShellSidebar aria-label="Primary" presentation="overlay" defaultOpen flush={false}>
           nav
@@ -2166,7 +2182,7 @@ describe("flush and floating: one fact, two postures (§27)", () => {
     // read 336px of "gap").
     const shell = mounted(
       <div data-frame style={{ height: 600, width: 900 }}>
-        <Shell style={{ height: "100%" }}>
+        <Shell contained style={{ height: "100%" }}>
           <ShellHeader flush={false}>h</ShellHeader>
           <ShellSidebar aria-label="Primary" flush={false}>
             s
@@ -2206,7 +2222,7 @@ describe("flush and floating: one fact, two postures (§27)", () => {
     const seen = new Set<string>();
     for (const size of ["1", "2", "3", "4"] as const) {
       const shell = mounted(
-        <Shell size={size} style={{ height: 400, width: 900 }}>
+        <Shell contained size={size} style={{ height: 400, width: 900 }}>
           <ShellSidebar aria-label="Primary" flush={false}>
             s
           </ShellSidebar>
@@ -2269,7 +2285,7 @@ describe("a seam needs something on the other side of it (§27, 2026-08-29)", ()
   /** Every pane flush unless named, so each law changes exactly one thing. */
   const shellWith = (content: React.ReactElement, extra?: React.ReactNode) =>
     mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellHeader>h</ShellHeader>
         {extra}
         <ShellSidebar aria-label="Primary">s</ShellSidebar>
@@ -2327,7 +2343,7 @@ describe("a seam needs something on the other side of it (§27, 2026-08-29)", ()
     // floats, and the content's area grows across its column, so the rail's hairline meets the
     // content rather than a gap — measured at x=65 on both.
     const shell = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellHeader>h</ShellHeader>
         <ShellRail aria-label="Sections">r</ShellRail>
         <ShellSidebar aria-label="Primary" flush={false}>
@@ -2365,7 +2381,7 @@ describe("a seam needs something on the other side of it (§27, 2026-08-29)", ()
     // welded pane. Guarded rather than assumed — the same sibling question `grid-column-start`
     // got wrong in the 2026-08-16 audit.
     const grounded = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellRail aria-label="Sections">r</ShellRail>
         <ShellSidebar aria-label="Primary" flush={false}>
           s
@@ -2380,7 +2396,7 @@ describe("a seam needs something on the other side of it (§27, 2026-08-29)", ()
     ).toBe("0px");
 
     const noSidebar = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellRail aria-label="Sections">r</ShellRail>
         <ShellContent flush={false}>c</ShellContent>
       </Shell>,
@@ -2404,7 +2420,7 @@ describe("a seam needs something on the other side of it (§27, 2026-08-29)", ()
     // for the behaviour this repo reversed. A pane the app pulled off the frame is the one that
     // has four, which is also the pane the specificity hazard is about.
     const shell = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellSidebar aria-label="Primary" flush={false} presentation="overlay" defaultOpen>
           s
         </ShellSidebar>
@@ -2435,7 +2451,7 @@ describe("a mixed boundary gets ONE share of air (§27, 2026-08-30)", () => {
      margins independently. */
   const mixed = () =>
     mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellHeader>h</ShellHeader>
         <ShellSidebar aria-label="Primary">s</ShellSidebar>
         <ShellContent flush={false}>c</ShellContent>
@@ -2475,7 +2491,7 @@ describe("a mixed boundary gets ONE share of air (§27, 2026-08-30)", () => {
     const gap = (shell: HTMLElement) => tokenOn(shell, "--shell-gap");
 
     const closed = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellSidebar aria-label="Primary" defaultOpen={false}>
           s
         </ShellSidebar>
@@ -2489,7 +2505,7 @@ describe("a mixed boundary gets ONE share of air (§27, 2026-08-30)", () => {
     ).toBe(gap(closed));
 
     const overlay = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellSidebar aria-label="Primary" presentation="overlay" defaultOpen>
           s
         </ShellSidebar>
@@ -2503,7 +2519,7 @@ describe("a mixed boundary gets ONE share of air (§27, 2026-08-30)", () => {
     ).toBe(gap(overlay));
 
     const cards = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellHeader>h</ShellHeader>
         <ShellSidebar aria-label="Primary" flush={false}>
           s
@@ -2523,7 +2539,7 @@ describe("a mixed boundary gets ONE share of air (§27, 2026-08-30)", () => {
 
   it("the rail's arm fires only when it actually borders the content", () => {
     const railOnly = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellRail aria-label="Sections">r</ShellRail>
         <ShellContent flush={false}>c</ShellContent>
       </Shell>,
@@ -2539,7 +2555,7 @@ describe("a mixed boundary gets ONE share of air (§27, 2026-08-30)", () => {
     // An open NON-flush sidebar stands between rail and content: the boundary that matters
     // is card-against-card, and the rail's flushness buys nothing across it.
     const interposed = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellRail aria-label="Sections">r</ShellRail>
         <ShellSidebar aria-label="Primary" flush={false}>
           s
@@ -2560,7 +2576,7 @@ describe("a mixed boundary gets ONE share of air (§27, 2026-08-30)", () => {
   it("on a narrow window an auto-presentation neighbour leaves flow, and the card gets its air back", async () => {
     await narrow();
     const shell = mounted(
-      <Shell style={{ height: 600 }}>
+      <Shell contained style={{ height: 600 }}>
         <ShellSidebar aria-label="Primary">s</ShellSidebar>
         <ShellContent flush={false}>c</ShellContent>
       </Shell>,
@@ -2582,7 +2598,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
      lesson). Both are falsified: pin the derivation to either answer and exactly one fails. */
   const derived = (contentFlush: boolean) =>
     mounted(
-      <Shell style={{ height: 400, width: 900 }}>
+      <Shell contained style={{ height: 400, width: 900 }}>
         <ShellHeader>h</ShellHeader>
         <ShellSidebar aria-label="Primary" flush={false}>
           nav
@@ -2649,7 +2665,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     // first, which is the degenerate fixture this file has already paid for twice.
     const shellOf = (backdrop?: boolean) =>
       mounted(
-        <Shell style={{ height: 300 }}>
+        <Shell contained style={{ height: 300 }}>
           <ShellSidebar aria-label="Primary" flush={false} {...(backdrop ? { backdrop } : {})}>
             nav
           </ShellSidebar>
@@ -2674,7 +2690,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     // over 288px of sidebar. The derivation's premise is "the content is underneath THIS
     // pane", and a flush pane in between means it is not, so the rail grounds instead.
     const shell = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellRail aria-label="Sections" flush={false}>
           rail
         </ShellRail>
@@ -2700,7 +2716,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     // also the fixture where the general case and the special case give different answers:
     // with only ONE nav column floating, either ordering produces the same layout.
     const shell = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellRail aria-label="Sections" flush={false}>
           rail
         </ShellRail>
@@ -2767,7 +2783,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
 
   it("a floating SIDEBAR publishes exactly the reach it takes (§27)", () => {
     const shell = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellSidebar aria-label="Primary" flush={false}>
           s
         </ShellSidebar>
@@ -2790,7 +2806,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
 
   it("a floating INSPECTOR and BOTTOM publish theirs, on the other two sides (§27)", () => {
     const shell = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellContent>c</ShellContent>
         <ShellInspector flush={false} defaultOpen>
           i
@@ -2825,7 +2841,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
   it("a floating RAIL and HEADER publish a row's reach, at every index (§27)", () => {
     for (const size of SIZES) {
       const shell = mounted(
-        <Shell style={{ height: 600, width: 1280 }} size={size}>
+        <Shell contained style={{ height: 600, width: 1280 }} size={size}>
           <ShellHeader flush={false}>h</ShellHeader>
           <ShellRail aria-label="Sections" flush={false}>
             r
@@ -2858,7 +2874,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
    */
   it("rail + sidebar floating: the inset is BOTH columns, not the outer one (§27)", () => {
     const shell = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellRail aria-label="Sections" flush={false}>
           r
         </ShellRail>
@@ -2892,7 +2908,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
    */
   it("the inset inherits to depth, and a nested Shell resets it (§27)", () => {
     const shell = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellHeader flush={false}>h</ShellHeader>
         <ShellSidebar aria-label="Primary" flush={false}>
           s
@@ -2900,7 +2916,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
         <ShellContent>
           <ShellScroll>
             <Box data-testid="deep">
-              <Shell data-testid="nested" style={{ height: 200 }}>
+              <Shell contained data-testid="nested" style={{ height: 200 }}>
                 <ShellSidebar aria-label="Inner">n</ShellSidebar>
                 <ShellContent>inner</ShellContent>
               </Shell>
@@ -2953,7 +2969,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     const stale = (msg: unknown) => String(msg).includes("--kui-shell-inset-inline-start");
     try {
       render(
-        <Shell style={{ height: 400, width: 900 }}>
+        <Shell contained style={{ height: 400, width: 900 }}>
           <ShellSidebar aria-label="Primary" flush={false} width={200}>
             s
           </ShellSidebar>
@@ -2966,7 +2982,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
 
       warn.mockClear();
       render(
-        <Shell style={{ height: 400, width: 900 }}>
+        <Shell contained style={{ height: 400, width: 900 }}>
           <ShellSidebar aria-label="Primary" flush={false}>
             s
           </ShellSidebar>
@@ -2998,7 +3014,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
    */
   it("a closed, overlaying or narrow-window pane publishes no reach (§27)", async () => {
     const closed = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellSidebar aria-label="Primary" flush={false} open={false}>
           s
         </ShellSidebar>
@@ -3012,7 +3028,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     ).toBe(0);
 
     const overlaying = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellSidebar aria-label="Primary" flush={false} presentation="overlay" defaultOpen>
           s
         </ShellSidebar>
@@ -3027,7 +3043,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     // The vacuity guard: the same pane in the same frame, standing in flow, DOES publish —
     // otherwise the two reads above pass on a stylesheet that publishes nothing at all.
     const standing = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellSidebar aria-label="Primary" flush={false}>
           s
         </ShellSidebar>
@@ -3041,7 +3057,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
 
     await narrow();
     const phone = mounted(
-      <Shell style={{ height: 600 }}>
+      <Shell contained style={{ height: 600 }}>
         <ShellSidebar aria-label="Primary" flush={false}>
           s
         </ShellSidebar>
@@ -3060,7 +3076,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     // column — which is why only these two exclude `auto` in the stylesheet, and why reading
     // one of the four sides would not have caught a missing arm on the other.
     const shell = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellContent>c</ShellContent>
         <ShellInspector flush={false}>i</ShellInspector>
         <ShellBottom flush={false}>b</ShellBottom>
@@ -3080,7 +3096,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
   it("an in-flow pane header is one control row at the pane's index — the stated height", () => {
     for (const size of SIZES) {
       const shell = mounted(
-        <Shell style={{ height: 600, width: 900 }} size={size}>
+        <Shell contained style={{ height: 600, width: 900 }} size={size}>
           <ShellSidebar aria-label="Primary">
             <ShellPaneHeader data-testid="ph">
               <span>chrome</span>
@@ -3093,7 +3109,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
       );
       const ph = within(shell, "[data-testid='ph']");
       const rail = mounted(
-        <Shell style={{ height: 600, width: 900 }} size={size}>
+        <Shell contained style={{ height: 600, width: 900 }} size={size}>
           <ShellRail aria-label="Sections">r</ShellRail>
           <ShellContent>c</ShellContent>
         </Shell>,
@@ -3113,7 +3129,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
 
   it("a FLOATING pane header leaves flow, and the pane publishes exactly its reach (§27)", () => {
     const shell = mounted(
-      <Shell style={{ height: 600, width: 900 }}>
+      <Shell contained style={{ height: 600, width: 900 }}>
         <ShellSidebar aria-label="Primary">
           <ShellPaneHeader float data-testid="ph">
             <span>chrome</span>
@@ -3147,7 +3163,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
 
   it("a floating FOOTER publishes the other end, an in-flow one publishes nothing, and a nested pane resets (§27)", () => {
     const shell = mounted(
-      <Shell style={{ height: 600, width: 900 }}>
+      <Shell contained style={{ height: 600, width: 900 }}>
         <ShellSidebar aria-label="Primary">
           <ShellScroll>
             <Box data-testid="deep">
@@ -3193,11 +3209,11 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     // repo keeps writing down. The guard above proves the value is live on that path;
     // falsified by deleting the pane's `initial` reset, where the inner pane reads 64px.
     const nested = mounted(
-      <Shell style={{ height: 600, width: 900 }}>
+      <Shell contained style={{ height: 600, width: 900 }}>
         <ShellContent>
           <ShellPaneFooter float>chrome</ShellPaneFooter>
           <Box data-testid="beside">
-            <Shell data-testid="inner" style={{ height: 300 }}>
+            <Shell contained data-testid="inner" style={{ height: 300 }}>
               <ShellSidebar aria-label="Inner">n</ShellSidebar>
               <ShellContent>inner</ShellContent>
             </Shell>
@@ -3232,7 +3248,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
    */
   it("a scroller bleeds past FLOATING chrome to the pane's edges, and still re-pads (§27)", () => {
     const shell = mounted(
-      <Shell style={{ height: 400, width: 900 }}>
+      <Shell contained style={{ height: 400, width: 900 }}>
         <ShellSidebar aria-label="Primary">
           <ShellPaneHeader float>chrome</ShellPaneHeader>
           <ShellScroll>
@@ -3261,7 +3277,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     // And an IN-FLOW sibling still blocks the bleed — the question is in-flow, not "skip
     // everything": a scroller under a pinned heading must not pull itself up past it.
     const pinned = mounted(
-      <Shell style={{ height: 400, width: 900 }}>
+      <Shell contained style={{ height: 400, width: 900 }}>
         <ShellSidebar aria-label="Primary">
           <ShellPaneHeader data-testid="pinned">chrome</ShellPaneHeader>
           <ShellScroll>rows</ShellScroll>
@@ -3287,7 +3303,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
    */
   it("a floating row's empty band passes the pointer through; its children keep theirs (§27)", () => {
     const shell = mounted(
-      <Shell style={{ height: 400, width: 900 }}>
+      <Shell contained style={{ height: 400, width: 900 }}>
         <ShellContent style={{ position: "relative" }}>
           <ShellPaneHeader float>
             <Button data-testid="chrome">Chrome</Button>
@@ -3336,7 +3352,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     // the card pays there in full; the flush sidebar pays with its own padding, so the card
     // pays nothing across that boundary. One share everywhere, from two different pockets.
     const shell = mounted(
-      <Shell style={{ height: 400, width: 900 }}>
+      <Shell contained style={{ height: 400, width: 900 }}>
         <ShellSidebar aria-label="Primary">nav</ShellSidebar>
         <ShellContent flush={false}>c</ShellContent>
       </Shell>,
@@ -3357,7 +3373,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
 describe("the sidebar's own anatomy: the scrolling region and the nav row (§21, §27)", () => {
   const nav = (props?: { size?: "1" | "2" | "3" | "4"; rows?: number }) =>
     mounted(
-      <Shell style={{ height: 400, width: 900 }}>
+      <Shell contained style={{ height: 400, width: 900 }}>
         <ShellSidebar aria-label="Primary" size={props?.size ?? "2"}>
           <Button size={props?.size ?? "2"}>New project</Button>
           <ShellScroll>
@@ -3389,7 +3405,7 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
     // Read on a pane holding a sibling and one holding the scroller alone: the shared rule
     // makes a pane a column two different ways, and only one of them was ever exercised here.
     const shell = mounted(
-      <Shell style={{ height: 400, width: 900 }}>
+      <Shell contained style={{ height: 400, width: 900 }}>
         <ShellSidebar aria-label="Primary">
           <Button>New</Button>
           <ShellScroll>
@@ -3581,7 +3597,7 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
     // Its own mount rather than the shared `nav()` fixture: the fixture's rows carry no icon,
     // and adding one there would perturb twenty geometry laws to serve this one.
     const shell = mounted(
-      <Shell style={{ height: 400, width: 900 }}>
+      <Shell contained style={{ height: 400, width: 900 }}>
         <ShellSidebar aria-label="Primary">
           <ShellNavGroup label="Workspace">
             <ShellNavItem current leading={<span>▲</span>}>Inbox</ShellNavItem>
@@ -3640,7 +3656,7 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
     // buys the distinction, because a size step would buy the same rank and break the shared
     // left edge the label's own comment exists to protect.
     const shell = mounted(
-      <Shell style={{ height: 400, width: 900 }}>
+      <Shell contained style={{ height: 400, width: 900 }}>
         <ShellSidebar aria-label="Primary">
           <ShellNavGroup label="Workspace">
             <ShellNavItem>Inbox</ShellNavItem>
@@ -3675,7 +3691,7 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
       // with no shell override, so it proves the remap works and isolates the defect to this
       // member. Without it the law could pass on a package where nothing dims at all.
       const shell = mounted(
-        <Shell style={{ height: 400, width: 900 }}>
+        <Shell contained style={{ height: 400, width: 900 }}>
           <ShellSidebar aria-label="Primary">
             <ShellNavGroup label="Workspace">
               <ShellNavItem data-t="live">Inbox</ShellNavItem>
@@ -3695,7 +3711,7 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
       // And the CURRENT arm still wins where it should — it reads --tone-ink too, so a dead
       // current row must dim rather than keep the accent.
       const both = mounted(
-        <Shell style={{ height: 400, width: 900 }}>
+        <Shell contained style={{ height: 400, width: 900 }}>
           <ShellSidebar aria-label="Primary">
             <ShellNavItem data-t="dc" current disabled>Inbox</ShellNavItem>
           </ShellSidebar>
@@ -3732,7 +3748,7 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
     // where growth is the only thing holding the footer down, and a pinned footer is half of
     // what "mark the one region that scrolls" is for.
     const shell = mounted(
-      <Shell style={{ height: 400, width: 900 }}>
+      <Shell contained style={{ height: 400, width: 900 }}>
         <ShellSidebar aria-label="Primary">
           <ShellScroll>
             <ShellNavItem>Only row</ShellNavItem>
@@ -3783,7 +3799,7 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
 describe("the rail: a column of squares whose width is not the app's to state (§27)", () => {
   const rail = (size: "1" | "2" | "3" | "4") =>
     mounted(
-      <Shell style={{ height: 400, width: 900 }}>
+      <Shell contained style={{ height: 400, width: 900 }}>
         <ShellRail aria-label="Sections" size={size}>
           <ShellRailList>
             <ShellRailItem aria-label="Home" current>
@@ -3913,7 +3929,7 @@ describe("placement: at the root, and composed inside another layer (§27)", () 
         <DialogContent>
           <DialogTitle>Embedded</DialogTitle>
           <div style={{ height: 400 }}>
-            <Shell>
+            <Shell contained>
               <ShellHeader>
                 <ShellTrigger target="sidebar">nav</ShellTrigger>
               </ShellHeader>
@@ -3964,7 +3980,7 @@ describe("placement: at the root, and composed inside another layer (§27)", () 
     // the app rendered itself, not just panes — is contained while a pane overlays.
     await narrow();
     const shell = mounted(
-      <Shell style={{ height: 600 }}>
+      <Shell contained style={{ height: 600 }}>
         <ShellHeader>h</ShellHeader>
         <ShellSidebar defaultOpen aria-label="Primary">s</ShellSidebar>
         <ShellContent>c</ShellContent>
@@ -3998,7 +4014,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
   const paneAndCardIn = (backdrop: boolean) => {
     const host = mounted(
       <Box backdrop={backdrop}>
-        <Shell style={{ height: 300 }}>
+        <Shell contained style={{ height: 300 }}>
           <ShellSidebar aria-label="Primary">nav</ShellSidebar>
           <ShellContent>c</ShellContent>
         </Shell>
@@ -4039,7 +4055,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
     // self-sufficient — blur hides a backdrop, the lens re-states it — so the shell was the
     // one glass in the library defended by blur alone, on the largest boxes in the library.
     const shell = mounted(
-      <Shell style={{ height: 300, width: 600 }}>
+      <Shell contained style={{ height: 300, width: 600 }}>
         {/* `backdrop` since 2026-08-29: the posture no longer states one for the pane. */}
         <ShellSidebar aria-label="Primary" flush={false} backdrop>
           nav
@@ -4084,7 +4100,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
       const [n, setN] = React.useState(0);
       bump = () => flushSync(() => setN((v) => v + 1));
       return (
-        <Shell style={{ height: 300, width: 600 }} data-tick={n}>
+        <Shell contained style={{ height: 300, width: 600 }} data-tick={n}>
           <ShellSidebar aria-label="Primary" flush={false} backdrop>
             nav
           </ShellSidebar>
@@ -4126,7 +4142,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
     // glass pane to stack on; the content pane used to be the cheapest one to reach and is now
     // the one pane in the family that never resolves glass at all (the law below states why).
     const shell = mounted(
-      <Shell style={{ height: 300 }}>
+      <Shell contained style={{ height: 300 }}>
         <ShellSidebar aria-label="Primary" backdrop>
           <Card>on the pane</Card>
         </ShellSidebar>
@@ -4145,7 +4161,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
     // lens-churn audit). The rail is included even though it shares SidePane's body, because
     // what is under test is the prop reaching the DOM through each export.
     const shell = mounted(
-      <Shell style={{ height: 600, width: 1280 }}>
+      <Shell contained style={{ height: 600, width: 1280 }}>
         <ShellHeader backdrop>h</ShellHeader>
         <ShellRail aria-label="Sections" backdrop>
           r
@@ -4185,7 +4201,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
       // go glass, or this passes under a theme whose glass never resolved and proves nothing.
       const shell = mounted(
         <Box backdrop>
-          <Shell style={{ height: 300 }}>
+          <Shell contained style={{ height: 300 }}>
             <ShellSidebar aria-label="Primary">nav</ShellSidebar>
             <ShellContent>c</ShellContent>
           </Shell>
@@ -4207,7 +4223,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
 
     it("...at either posture — pulling it off the frame does not buy it either", () => {
       const shell = mounted(
-        <Shell style={{ height: 300 }}>
+        <Shell contained style={{ height: 300 }}>
           <ShellSidebar aria-label="Primary" flush={false} backdrop>
             nav
           </ShellSidebar>
@@ -4227,7 +4243,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
       // is reachable and is what a caller wanting one actually composes — the refusal above is
       // the pane declining to pretend it is that region, never the library withholding glass.
       const shell = mounted(
-        <Shell style={{ height: 300 }}>
+        <Shell contained style={{ height: 300 }}>
           <ShellContent>
             <Card backdrop>over the canvas</Card>
           </ShellContent>
@@ -4242,31 +4258,64 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
     });
   });
 
-  /* RE-KEYED TO THE BOTTOM PANE 2026-09-09 (§27). Every claim in this block is the
-     covering-panel rule — a panel over the page HAS the page behind it, so it resolves the
-     theme's glass whatever the call site said — and a SIDE pane stopped being that shape the
-     day it started pushing the frame instead of covering it. A sheet from below still covers,
-     so the block reads the sheet; the side pane's opposite guarantee (it states its own
-     material, and an unmarked one is solid) is a law of its own in the push block above.
-     Nothing about the mechanism moved: `usePaneDress` still hands the posture to the bottom
-     pane and no longer hands it to the three side panes. */
-  describe("a SHEET takes the material by construction (§10, §27, 2026-09-05, re-keyed 2026-09-09)", () => {
-    // Kushagra: "like dialog or menu are always glass bc theyre above". Menu, Select, Popover,
-    // Dialog and AlertDialog all hardcode `useMaterial({ backdrop: true })`, because a panel
-    // over the page HAS the page behind it — §10's selectivity satisfied structurally rather
-    // than by a claim. An overlaying pane is that shape, with the scrim under it exactly as a
-    // dialog has (scrim z 1, pane z 2), so the shell answers for it and the app is not asked.
-    //
-    // EVERY FIXTURE HERE CARRIES A FLUSH SIDEBAR THAT STATES NOTHING, and it is not decoration:
-    // without it these pass under a theme whose glass reaches every pane unconditionally,
-    // which is the degenerate fixture this file has paid for three times. The control is the
-    // half that says the mechanism is keyed on the DRAWER.
+  /* RE-KEYED AGAIN 2026-09-11, AND THIS TIME THE CLAIM ITSELF INVERTS (§10, §27).
 
-    // Falsified: with `overlaying` dropped from `usePaneDress`'s material call, the drawer
-    // reads `expected undefined to be 'regular'` and the control still passes.
-    it("an explicit overlay sheet resolves the theme's glass, having stated no backdrop", () => {
+     This block was the covering-panel rule — a panel over the page HAS the page behind it, so it
+     resolves the theme's glass whatever the call site said. It was re-keyed from the side panes
+     to the sheet on 2026-09-09, when a side pane stopped covering; on 2026-09-11 the sheet
+     stopped covering too. It PUSHES the frame up and rides in beneath it, so the page below a
+     sheet is the page a wide window has below its columns, and there is no longer any pane in
+     this component that the shell answers for.
+
+     So what these laws hold is the 2026-08-29 rule taken whole, which is where the panes'
+     material had already been heading: THE AUTHOR STATES THE BACKDROP. A prop when it is stated,
+     the ambient `<Box backdrop>` region when it is not, and nothing computed from a sibling fact
+     or from a posture — "a prop whose default is computed from a different prop is the shape this
+     system refuses". The five claims below are the same five, each turned to face the rule that
+     shipped: a sheet that ASKS gets the theme's glass, one that does not stays solid, the window
+     moves neither, the scope still forbids stacking, and the veil still PAINTS. */
+  describe("a SHEET states its material; nothing infers one for it (§10, §27, re-keyed 2026-09-11)", () => {
+    // Kushagra, 2026-08-29: "all panels should support backdrop prop, we already have precedence
+    // for it" — Card's line verbatim. The covering-panel spelling this block used to assert
+    // (Menu, Select, Popover, Dialog and AlertDialog all hardcode `useMaterial({ backdrop: true })`)
+    // is still right for those components and is no longer right for any Shell pane, because no
+    // Shell pane covers the page any more.
+    //
+    // EVERY FIXTURE HERE CARRIES A PANE THAT STATES NOTHING, and it is not decoration: without it
+    // these pass under a theme whose glass reaches every pane unconditionally, which is the
+    // degenerate fixture this file has paid for three times. The control is the half that says
+    // the mechanism is keyed on the PROP.
+
+    /* Falsified: passing `overlaying` back into `usePaneDress` for the bottom pane fails the
+       unmarked half at `expected 'regular' to be undefined` — which is the claim this law made
+       until 2026-09-11, now standing as its negative. */
+    it("an explicit overlay sheet resolves glass when it ASKS, and stays solid when it does not", () => {
       const shell = mounted(
-        <Shell style={{ height: 400 }}>
+        <Shell contained style={{ height: 400 }}>
+          <ShellRail aria-label="Sections">r</ShellRail>
+          <ShellBottom presentation="overlay" defaultOpen backdrop>
+            nav
+          </ShellBottom>
+          <ShellContent>c</ShellContent>
+        </Shell>,
+        { theme: { material: "regular" }, select: ".kui-shell" },
+      );
+      expect(
+        within(shell, ".kui-shell-bottom").dataset.material,
+        "a sheet stated `backdrop` and got nothing",
+      ).toBe("regular");
+      expect(
+        within(shell, ".kui-shell-rail").dataset.material,
+        "a pane IN THE FRAME took glass it never asked for — the control, and the whole point",
+      ).toBeUndefined();
+      // Stamped is not painted. The lens joins on the same call, so read the chain too.
+      expect(computed(within(shell, ".kui-shell-bottom"), "backdrop-filter")).toContain("blur");
+
+      /* AND THE OTHER DIRECTION, which is the half that inverted: an overlaying sheet that says
+         nothing is SOLID. It used to be the one pane the shell answered for, and the rule it
+         answered under died with the cover. Same fixture, same theme, one prop removed. */
+      const silent = mounted(
+        <Shell contained style={{ height: 400 }}>
           <ShellRail aria-label="Sections">r</ShellRail>
           <ShellBottom presentation="overlay" defaultOpen>
             nav
@@ -4276,26 +4325,42 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
         { theme: { material: "regular" }, select: ".kui-shell" },
       );
       expect(
-        within(shell, ".kui-shell-bottom").dataset.material,
-        "a pane over the content stayed solid — every other covering panel glasses",
-      ).toBe("regular");
-      expect(
-        within(shell, ".kui-shell-rail").dataset.material,
-        "a pane IN THE FRAME took glass it never asked for — the control, and the whole point",
+        within(silent, ".kui-shell-bottom").dataset.material,
+        "a sheet that stated nothing volunteered the theme's glass",
       ).toBeUndefined();
-      // Stamped is not painted. The lens joins on the same call, so read the chain too.
-      expect(computed(within(shell, ".kui-shell-bottom"), "backdrop-filter")).toContain("blur");
+      expect(computed(within(silent, ".kui-shell-bottom"), "backdrop-filter")).toBe("none");
     });
 
-    // Falsified: same deletion fails here with `expected undefined to be 'regular'`. Kept
-    // separate from the law above for the reason the drawer's DRESS laws are — the treatment
-    // is written twice, and `auto` is the path every phone takes (2026-08-06's agreement
-    // clause). This one also proves the resolution runs at all: `useWindowClass()` is null on
-    // the server by design, so a drawer that never re-resolved would read solid forever.
-    it("...and so does a phone's sheet, the resolved arm", async () => {
+    /* ...AND THE WINDOW MOVES NEITHER ANSWER, which is the inference's absence stated as a
+       guarantee (2026-09-11).
+
+       This law used to read the phone's `auto` arm and assert that the SAME pane with the SAME
+       props was glass at 375px and solid at 1280 — "it is in the frame there and solid" — which
+       is precisely what a material inferred from a posture produces. The posture is gone from
+       the material call, so the window is now the axis along which nothing may happen, and that
+       is worth more than the old claim: a material that moves with the viewport is the defect
+       this rule was written to end.
+
+       Both panes carry `auto`, which is the path every phone takes and a different code path
+       from the explicit one (2026-08-06's agreement clause), so the resolution really does run
+       here — it simply no longer reaches the material.
+
+       Falsified: passing `overlaying` back into `usePaneDress` fails the unmarked pane's narrow
+       reading at `expected 'regular' to be undefined`, and leaves the wide one passing — which
+       is the window-dependence itself, caught at the one width it shows. */
+    it("...and the window moves neither answer: a stated backdrop is glass at both, silence solid at both", async () => {
       await narrow();
-      const shell = mounted(
-        <Shell style={{ height: 600 }}>
+      const asked = mounted(
+        <Shell contained style={{ height: 600 }}>
+          <ShellBottom defaultOpen backdrop>
+            nav
+          </ShellBottom>
+          <ShellContent>c</ShellContent>
+        </Shell>,
+        { theme: { material: "regular" }, select: ".kui-shell" },
+      );
+      const silent = mounted(
+        <Shell contained style={{ height: 600 }}>
           <ShellBottom defaultOpen>
             nav
           </ShellBottom>
@@ -4303,24 +4368,53 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
         </Shell>,
         { theme: { material: "regular" }, select: ".kui-shell" },
       );
-      const sheet = within(shell, ".kui-shell-bottom");
-      expect(sheet.dataset.presentation, "resolved by CSS, not restamped").toBe("auto");
-      await expect
-        .poll(() => sheet.dataset.material, {
-          timeout: 1000,
-        })
-        .toBe("regular");
-      // The same pane, same props, on a roomy window: it is in the frame there and solid.
+      const askedSheet = within(asked, ".kui-shell-bottom");
+      const silentSheet = within(silent, ".kui-shell-bottom");
+      expect(askedSheet.dataset.presentation, "resolved by CSS, not restamped").toBe("auto");
+      // The premise, and it is what makes this a law about a PHONE: the pane really did resolve
+      // to a drawer at this width, so the old inference would have fired here.
+      await expect.poll(() => computed(askedSheet, "position"), { timeout: 1000 }).toBe("absolute");
+      expect(askedSheet.dataset.material, "a stated backdrop did not reach a phone's sheet").toBe(
+        "regular",
+      );
+      expect(
+        silentSheet.dataset.material,
+        "a phone's sheet volunteered glass — the posture is back in the material call",
+      ).toBeUndefined();
+
+      // The same two panes, the same props, on a roomy window: in the frame there, and unmoved.
       await page.viewport(WIDE.width, WIDE.height);
-      await expect.poll(() => sheet.dataset.material).toBeUndefined();
+      await expect.poll(() => computed(askedSheet, "position")).not.toBe("absolute");
+      expect(
+        askedSheet.dataset.material,
+        "a stated backdrop stopped meaning glass on a wide window",
+      ).toBe("regular");
+      expect(
+        silentSheet.dataset.material,
+        "an unmarked sheet found glass on a wide window",
+      ).toBeUndefined();
     });
 
-    // Falsified: with the material call reading `backdrop` first, this fails at
-    // `expected undefined to be 'regular'` — which is the shape a "let the app override it"
-    // spelling would ship.
-    it("and the app cannot ask for a solid sheet — Dialog's terms, taken whole", () => {
+    /* AND THE APP CAN ASK FOR A SOLID SHEET — the exact opposite of what stood here, and the
+       reversal is the design (2026-09-11).
+
+       This law asserted "you cannot ask for a solid sheet — Dialog's terms, taken whole", on the
+       argument that you cannot ask for a solid menu either. That held while a sheet COVERED. A
+       pane that pushes the frame is part of the frame, and a pane in the frame has always been
+       the app's to state (2026-08-29) — so `backdrop={false}` is honoured here exactly as it is
+       on a sidebar, and the three values of the prop mean three different things: stated true is
+       glass, stated false is solid, and unset follows the ambient region.
+
+       The `false` and the UNSET cases are read separately, because they are not the same answer
+       arriving twice: unset is silence and defers to a `<Box backdrop>` around the shell, while
+       `false` is a statement that must beat that region. A law reading only one of them would
+       pass on an implementation that collapsed the two.
+
+       Falsified: passing `overlaying` back into `usePaneDress` fails the stated-false half at
+       `expected 'regular' to be undefined`. */
+    it("and the app CAN ask for a solid sheet — a pane in the frame is the app's to state", () => {
       const shell = mounted(
-        <Shell style={{ height: 400 }}>
+        <Shell contained style={{ height: 400 }}>
           <ShellBottom presentation="overlay" defaultOpen backdrop={false}>
             nav
           </ShellBottom>
@@ -4330,22 +4424,64 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
       );
       expect(
         within(shell, ".kui-shell-bottom").dataset.material,
-        "a stated `backdrop={false}` unmade a drawer's glass — you cannot ask for a solid menu",
+        "a stated `backdrop={false}` was overruled — the shell answered for a pane the app owns",
+      ).toBeUndefined();
+
+      /* AND IT BEATS AN AMBIENT REGION, which is the half that tells a statement from silence.
+         A `<Box backdrop>` marks everything inside it; an unset sheet takes that glass, and one
+         that says `false` does not. */
+      const inRegion = mounted(
+        <Box backdrop>
+          <Shell contained style={{ height: 400 }}>
+            <ShellBottom presentation="overlay" defaultOpen>
+              nav
+            </ShellBottom>
+            <ShellContent>c</ShellContent>
+          </Shell>
+        </Box>,
+        { theme: { material: "regular" }, select: ".kui-shell" },
+      );
+      expect(
+        within(inRegion, ".kui-shell-bottom").dataset.material,
+        "an unset sheet ignored the region it was composed inside",
       ).toBe("regular");
+
+      const refusing = mounted(
+        <Box backdrop>
+          <Shell contained style={{ height: 400 }}>
+            <ShellBottom presentation="overlay" defaultOpen backdrop={false}>
+              nav
+            </ShellBottom>
+            <ShellContent>c</ShellContent>
+          </Shell>
+        </Box>,
+        { theme: { material: "regular" }, select: ".kui-shell" },
+      );
+      expect(
+        within(refusing, ".kui-shell-bottom").dataset.material,
+        "a stated `backdrop={false}` lost to the ambient region — silence and refusal collapsed",
+      ).toBeUndefined();
     });
 
-    // Falsified: with GlassScope removed from the pane the Card reads `regular` rather than
-    // `on-glass` — glass stacking on glass, which is what the scope exists to forbid.
+    /* Falsified: with GlassScope removed from the pane the Card reads `regular` rather than
+       `on-glass` — glass stacking on glass, which is what the scope exists to forbid.
+
+       The sheet states `backdrop` since 2026-09-11: the scope follows the material, so a sheet
+       that resolves solid has no glass to scope and this law would be asserting nothing. That is
+       the same fixture defect notice.tsx paid for twice on the day it shipped — "before trusting
+       a law, ask what its fixture would look like if the mechanism were absent". */
     it("and it scopes its subtree, so nothing inside stacks a second pane of glass", () => {
       const shell = mounted(
-        <Shell style={{ height: 400 }}>
-          <ShellBottom presentation="overlay" defaultOpen>
+        <Shell contained style={{ height: 400 }}>
+          <ShellBottom presentation="overlay" defaultOpen backdrop>
             <Card>in the drawer</Card>
           </ShellBottom>
           <ShellContent>c</ShellContent>
         </Shell>,
         { theme: { material: "regular" }, select: ".kui-shell" },
       );
+      // The premise: the pane really is glass, or `on-glass` below is a claim about nothing.
+      expect(within(shell, ".kui-shell-bottom").dataset.material).toBe("regular");
       expect(within(shell, ".kui-card").dataset.material).toBe("on-glass");
     });
 
@@ -4364,22 +4500,36 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
     // Falsified: with `--kui-sf-fill: initial` back in the drawer exception this reads
     // `expected "rgb(255, 255, 255)" not to be "rgb(255, 255, 255)"`, and the four laws above
     // stay green — which is the whole reason it exists.
+    /* RE-KEYED TO A GROUNDED SHEET 2026-09-11, and the fixture is the whole of the repair.
+
+       A FLUSH pane paints nothing — no fill, no light, no cast — because it is level with the
+       page and therefore not a plane (§27, 2026-08-21). While the sheet COVERED, shell.css handed
+       its fill back for exactly that case; under the push it is the frame's bottom pane revealed
+       and paints what a flush sidebar paints, which is nothing. Measured on the old fixture: the
+       glass sheet, the solid sheet and the reference all computed `rgba(0, 0, 0, 0)`, so this law
+       was comparing three transparencies and its `not.toBe` could only fail. (The one place a
+       flush sheet still paints is a WINDOW Shell on a phone, where the page runs on below the
+       screen — shell.css names it — and every fixture in this file is `contained`.)
+
+       `flush={false}` is what gives the pane a face to paint, which is what this law has always
+       needed and used to get for free. Grounded, the veil measures `color(srgb 1 1 1 / 0.49)`
+       against the seal's `rgb(255, 255, 255)`: two real colours, one of them translucent. */
     it("and the veil actually PAINTS — the sheet is not an opaque pane wearing a filter", () => {
       const glassDrawer = mounted(
-        <Shell style={{ height: 400 }}>
-          <ShellBottom presentation="overlay" defaultOpen>
+        <Shell contained style={{ height: 400 }}>
+          <ShellBottom presentation="overlay" defaultOpen flush={false} backdrop>
             nav
           </ShellBottom>
           <ShellContent>c</ShellContent>
         </Shell>,
         { theme: { material: "regular" }, select: ".kui-shell" },
       );
-      // The reference is the SEAL a solid drawer paints in the same shell at the same size:
-      // a translucent veil cannot be it, and reading against a literal would only pin today's
-      // alpha rather than the guarantee.
+      // The reference is the SEAL a solid drawer paints in the same shell at the same size and
+      // the same POSTURE: a translucent veil cannot be it, and reading against a literal would
+      // only pin today's alpha rather than the guarantee.
       const solidDrawer = mounted(
-        <Shell style={{ height: 400 }}>
-          <ShellBottom presentation="overlay" defaultOpen>
+        <Shell contained style={{ height: 400 }}>
+          <ShellBottom presentation="overlay" defaultOpen flush={false}>
             nav
           </ShellBottom>
           <ShellContent>c</ShellContent>
@@ -4412,7 +4562,7 @@ describe("a floating band in the work area clears the frame's safe area (§27, �
      sidebar lifts off and the work area runs underneath it. A tiled fixture is the negative
      control, and without it every assertion here passes on a shell that floats nothing. */
   const Frame = (props: { flush?: boolean }) => (
-    <Shell style={{ height: 400, width: 900 }}>
+    <Shell contained style={{ height: 400, width: 900 }}>
       <ShellSidebar aria-label="Primary" flush={props.flush ?? false} defaultOpen>
         nav
       </ShellSidebar>
@@ -4454,7 +4604,7 @@ describe("a floating band in the work area clears the frame's safe area (§27, �
        would have been a law nothing could break — the selector on the rule above is belt and
        braces, and this is the brace that can actually fail. */
     const root = mounted(
-      <Shell style={{ height: 400, width: 900 }}>
+      <Shell contained style={{ height: 400, width: 900 }}>
         <ShellSidebar aria-label="Primary" flush={false} defaultOpen>
           <ShellPaneHeader float>
             <button data-nav type="button">
@@ -4480,7 +4630,7 @@ describe("a pane's chrome takes the pane's index; its content does not (§27, §
      pane's index ran through a context only the shell's own vocabulary reads. The boundary is
      chrome against content — a band is the frame talking, a scroller is the app's. */
   const Frame = () => (
-    <Shell style={{ height: 400, width: 900 }}>
+    <Shell contained style={{ height: 400, width: 900 }}>
       <ShellSidebar aria-label="Primary" size="3" defaultOpen>
         <ShellPaneHeader>
           <Button data-chrome>Search</Button>
@@ -4517,7 +4667,7 @@ describe("a pane's chrome takes the pane's index; its content does not (§27, §
 
   it("an explicit prop still wins inside a band — the unit layer's ordinary third rung", () => {
     const root = mounted(
-      <Shell style={{ height: 400, width: 900 }}>
+      <Shell contained style={{ height: 400, width: 900 }}>
         <ShellSidebar aria-label="Primary" size="3" defaultOpen>
           <ShellPaneHeader>
             <Button data-chrome size="1">
@@ -4543,7 +4693,7 @@ describe("a band follows the TOOLBAR in it, and the reach says so (§27, §45, 2
      broke the sentence underneath it. Measured before the repair: an 88px band over a 64px
      reach, so a page cleared 24px less than the bar it was clearing. */
   const Frame = (props: { size?: Size; footer?: boolean }) => (
-    <Shell style={{ height: 400, width: 900 }}>
+    <Shell contained style={{ height: 400, width: 900 }}>
       <ShellContent>
         <ShellPaneHeader float>
           <Toolbar {...(props.size ? { size: props.size } : {})}>
@@ -4604,7 +4754,7 @@ describe("the scroller fades across the band it passes under (§27, 2026-09-06)"
      content legible, and it was not: 32px of designed fade against a band up to 88px deep, so
      the lower two thirds of a floating row had full-strength text behind it. */
   const Frame = (props: { float?: boolean }) => (
-    <Shell style={{ height: 400, width: 900 }}>
+    <Shell contained style={{ height: 400, width: 900 }}>
       <ShellContent>
         <ShellPaneHeader {...(props.float ? { float: true } : {})}>
           <button type="button">Toggle</button>
@@ -4647,7 +4797,7 @@ describe("the scroller fades across the band it passes under (§27, 2026-09-06)"
 describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
   const bars = (props?: { only?: boolean; backdrop?: boolean }) =>
     mounted(
-      <Shell style={{ height: 600 }}>
+      <Shell contained style={{ height: 600 }}>
         <ShellHeader>
           <ShellTrigger target="sidebar" data-testid="trigger">
             menu
@@ -4909,7 +5059,7 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
     await narrow();
     for (const [level, capsule] of [["full", true], ["medium", false]] as const) {
       const shell = mounted(
-        <Shell style={{ height: 600 }}>
+        <Shell contained style={{ height: 600 }}>
           <ShellTabBar aria-label="Sections" flush={false}>
             <ShellRailList>
               <ShellRailItem label="One" current>

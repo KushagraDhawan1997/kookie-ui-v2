@@ -36,7 +36,7 @@ function Frame(props: { float?: boolean; size?: "1" | "2" | "3" | "4" }) {
     </ShellPaneHeader>
   );
   return (
-    <Shell {...(props.size ? { size: props.size } : {})} style={{ blockSize: "600px" }}>
+    <Shell contained {...(props.size ? { size: props.size } : {})} style={{ blockSize: "600px" }}>
       <ShellContent>
         {band}
         <ShellScroll>
@@ -187,7 +187,7 @@ describe("a page clears the band floating over it (§27, §46)", () => {
      value for value. */
   it("a footer band is the same mechanism at the other end — it publishes its row, and the page clears it", () => {
     const root = mounted(
-      <Shell style={{ blockSize: "600px" }}>
+      <Shell contained style={{ blockSize: "600px" }}>
         <ShellContent>
           <ShellScroll>
             <Page title="Dialog">
@@ -240,7 +240,7 @@ describe("a page clears the band floating over it (§27, §46)", () => {
        step above it. Read as an agreement between the two ends rather than against the number
        3, so the day the app's index moves this law moves with it. */
     const both = mounted(
-      <Shell style={{ blockSize: "600px" }}>
+      <Shell contained style={{ blockSize: "600px" }}>
         <ShellContent>
           <ShellPaneHeader float>
             <Toolbar>

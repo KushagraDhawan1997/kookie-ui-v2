@@ -110,21 +110,37 @@ export function ScrollArea({
         role={named ? "region" : "presentation"}
         {...(label !== undefined ? { "aria-label": label } : {})}
         {...(labelledBy !== undefined ? { "aria-labelledby": labelledBy } : {})}
-        render={
-          focusable
-            ? undefined
-            : (props: React.ComponentPropsWithRef<"div">) => {
-                // Base UI computes tabIndex unconditionally (0 when scrollable, -1 when
-                // not); either value makes the element focusable-by-script, and ARIA's
-                // conflict rule voids `presentation` on ANY focusable element. Dropping
-                // the attribute is the only spelling that keeps the wrapper structural.
-                const { tabIndex: _tabIndex, ...rest } = props;
-                void _tabIndex;
-                return <div {...rest} />;
-              }
-        }
+        render={(props: React.ComponentPropsWithRef<"div">) => {
+          // Base UI computes tabIndex unconditionally (0 when scrollable, -1 when not); either
+          // value makes the element focusable-by-script, and ARIA's conflict rule voids
+          // `presentation` on ANY focusable element. Dropping the attribute is the only
+          // spelling that keeps the wrapper structural.
+          const { tabIndex, style: libraryStyle, ...rest } = props;
+          // AND THE OVERFLOW IS THE STYLESHEET'S (2026-09-11). Base UI writes `overflow: scroll`
+          // inline, and an inline declaration beats every rule, so a context that needs this box
+          // NOT to scroll could not say so without `!important` — which this package refuses.
+          // The one that needs it is a window Shell on a phone, where the page scrolls and the
+          // viewport must stop being a scroll container or nothing inside it can stick to the
+          // page. The stylesheet has always declared `overflow: auto` here, so removing the
+          // inline value changes what wins, never what renders: the bars are hidden either way.
+          const { overflow: _overflow, ...ownStyle } = libraryStyle ?? {};
+          void _overflow;
+          return <div {...rest} {...(focusable ? { tabIndex } : {})} style={ownStyle} />;
+        }}
       >
-        <BaseScrollArea.Content className="kui-scroll-content" role="presentation">
+        <BaseScrollArea.Content
+          className="kui-scroll-content"
+          role="presentation"
+          render={(props: React.ComponentPropsWithRef<"div">) => {
+            // The content's minimum width is the stylesheet's too, for the viewport's reason: Base
+            // UI writes `min-width: fit-content` inline, and a window Shell on a phone has to take
+            // it away so wide content wraps at the screen instead of widening the page.
+            const { style: libraryStyle, ...rest } = props;
+            const { minWidth: _minWidth, ...ownStyle } = libraryStyle ?? {};
+            void _minWidth;
+            return <div {...rest} style={ownStyle} />;
+          }}
+        >
           {children}
         </BaseScrollArea.Content>
       </BaseScrollArea.Viewport>

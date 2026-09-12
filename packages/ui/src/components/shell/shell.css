@@ -147,11 +147,13 @@
   /* A Shell inside a receding Shell states its own rest, so the recession cannot compound. */
   --kui-shell-recede: 1;
   --kui-shell-push-x: initial;
+  --kui-shell-push-y: initial;
   /* The width a side pane is WEARING, published here by the drag and the `width` prop so the
      push can read it (the pane's own `--kui-shell-w` is registered not to inherit, on purpose).
      `initial` is guaranteed-invalid, so a nested Shell falls through to the token. */
   --kui-shell-sidebar-w: initial;
   --kui-shell-inspector-w: initial;
+  --kui-shell-bottom-h: initial;
   --kui-shell-inset-inline-start: initial;
   --kui-shell-inset-inline-end: initial;
   --kui-shell-inset-block-start: initial;
@@ -190,6 +192,16 @@
      that invalid at computed-value time — which does not fail loudly, it falls back to the
      initial 0px, so the frame simply did not move while every declaration read correctly. */
   syntax: "<length-percentage>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+/* The bottom pane's push, the side push turned ninety degrees (2026-09-11). A `<length>`, not a
+   percentage: `translate` resolves a percentage against each child's OWN box, and on the block
+   axis a header is ninety pixels tall while the content is the whole page, so a percentage cap
+   would push them by different distances and tear the frame apart. */
+@property --kui-shell-push-y {
+  syntax: "<length>";
   inherits: true;
   initial-value: 0px;
 }
@@ -262,6 +274,18 @@
      so this element has exactly one `transition` and neither half can silently reset the
      other — which the first spelling did, the shorthand in that rule dropping this one. */
   overflow: clip;
+}
+
+/* A SHELL IS THE WINDOW UNLESS IT SAYS OTHERWISE (§27, 2026-09-11, Kushagra: "shouldn't this be
+   the default and if a user needs opt in scrollarea … we provide a prop"). The app frame is the
+   common case, so it takes the window's height with nothing asked of the call site — every app
+   in this repo was writing `100dvh` around it by hand. A Shell that lives inside something else
+   (a demo in a card, a canvas) says `contained` and fills its parent, which is the old `100%`.
+
+   Forgetting `contained` is loud on every device, which is why the default can sit on this side:
+   a Shell dropped into a card comes out the height of the window. */
+.kui-shell:not([data-contained]) {
+  block-size: 100dvh;
 }
 
 /* ── The panes ─────────────────────────────────────────────────────────────────────────────
@@ -589,9 +613,18 @@
   --kui-shell-push-x: calc(-1 * min(calc(var(--kui-shell-inspector-w, var(--shell-inspector-w)) + 2 * var(--shell-gap)), calc(100% - var(--touch-target-min))));
 }
 
-.kui-shell:has(> :where(.kui-shell-bottom)[data-state="open"][data-presentation="overlay"]) {
-  --kui-shell-recede: var(--shell-drawer-scale);
-  --kui-shell-recede-origin: 50% 100%;
+/* THE BOTTOM PANE PUSHES TOO (2026-09-11, Kushagra: "The bottom sheet in a shell is different
+   from a dialog sheet. Just like sidebar pushes content side, shell bottom should also push
+   content up, not appear like modal"). It was the one drawer that receded the frame, which is a
+   dialog's arrival — the page set back behind something that covers it. A Shell's bottom pane is
+   part of the app the way its sidebar is, so it arrives the way the sidebar does: the frame moves
+   up by the pane's height and the pane rides in beneath it. Nothing scales. Capped against the
+   window in `dvh` rather than `%`, for the reason the registration above gives. */
+.kui-shell:has(> .kui-shell-bottom[data-flush][data-state="open"][data-presentation="overlay"]) {
+  --kui-shell-push-y: calc(-1 * min(var(--kui-shell-bottom-h, var(--shell-bottom-h)), calc(100dvh - var(--touch-target-min))));
+}
+.kui-shell:has(> .kui-shell-bottom:not([data-flush])[data-state="open"][data-presentation="overlay"]) {
+  --kui-shell-push-y: calc(-1 * min(calc(var(--kui-shell-bottom-h, var(--shell-bottom-h)) + 2 * var(--shell-gap)), calc(100dvh - var(--touch-target-min))));
 }
 
 .kui-shell {
@@ -605,14 +638,6 @@
     overflow 0s var(--motion-drawer) allow-discrete;
 }
 
-.kui-shell:has(> .kui-shell-bottom[data-state="open"][data-presentation="overlay"]) {
-  transform: scale(var(--kui-shell-recede));
-  overflow: visible;
-  transition:
-    transform var(--motion-drawer) var(--motion-spring-carried),
-    overflow 0s allow-discrete;
-}
-
 /* THE FRAME'S CHILDREN CARRY THE PUSH, NOT THE ROOT (2026-09-08, Kushagra: "when sidebar opens
    the page is very wide so I can actually scroll"). A transform on the root does not move it
    in layout, but the transformed box still counts as scrollable overflow, so the document
@@ -624,7 +649,13 @@
    already declares. */
 .kui-shell:has(> :where(.kui-shell-rail, .kui-shell-sidebar, .kui-shell-inspector)[data-state="open"][data-presentation="overlay"])
   > :not(.kui-shell-rail[data-presentation="auto"]):not(.kui-shell-rail[data-presentation="overlay"]):not(.kui-shell-sidebar):not(.kui-shell-inspector) {
-  translate: var(--kui-shell-push-x) 0;
+  translate: var(--kui-shell-push-x) var(--kui-shell-push-y);
+}
+
+/* And the bottom pane's push moves everything but the pane itself, the side panes included: a
+   column standing in the frame goes up with the frame. */
+.kui-shell:has(> .kui-shell-bottom[data-state="open"][data-presentation="overlay"]) > :not(.kui-shell-bottom) {
+  translate: var(--kui-shell-push-x) var(--kui-shell-push-y);
 }
 /* Zero weight on purpose: three `:not()`s put the bare selector at (0,4,0), which REPLACED the
    scrim's own transition list (its opacity stopped fading — measured 1 at 120ms) and would have
@@ -653,11 +684,9 @@
     transform var(--motion-drawer) var(--motion-spring-carried);
 }
 
-/* The well and the plate are the SHEET's (2026-09-08): a pushed frame is the same frame moved,
-   so it changes neither colour nor corner. */
-.kui-shell:has(> .kui-shell-bottom[data-state="open"][data-presentation="overlay"])::before {
-  background-color: var(--scrim-well);
-}
+/* No drawer paints the well any more (2026-09-11): the bottom pane was the last one that
+   receded the frame, and it pushes now. The pseudo-element stays transparent until the
+   recession machinery is removed with the ship pass. */
 
 /* AND THE FRAME'S OWN PLANE, WHICH IS THIS FILE'S FLUSH SENTENCE ONE LEVEL UP (2026-09-06,
    Kushagra: "Normal white page becomes black when sidebar comes", then "its still black").
@@ -708,10 +737,7 @@
     border-radius var(--motion-drawer) var(--motion-spring-carried);
 }
 
-.kui-shell:has(> .kui-shell-bottom[data-state="open"][data-presentation="overlay"])::after {
-  background-color: var(--color-surface);
-  border-radius: calc(var(--radius-surface-3) * var(--kui-corner-k, 1));
-}
+
 
 /* THE DRAWER ITSELF: the exact inverse of the frame's scale, and then its own slide. Written
    as one `transform` so the ORDER is stated rather than left to the property model — the slide
@@ -810,7 +836,10 @@
 }
 
 .kui-shell-bottom[data-presentation="overlay"]:where([data-state="closed"], [data-state="auto"]) {
-  --kui-shell-drawer-y: calc(100% + var(--shell-gap));
+  --kui-shell-drawer-y: calc(100% + 2 * var(--shell-gap));
+}
+.kui-shell-bottom[data-flush][data-presentation="overlay"]:where([data-state="closed"], [data-state="auto"]) {
+  --kui-shell-drawer-y: 100%;
 }
 
 /* Stillness (§8): the frame does not recede, the drawer does not travel, the well does not
@@ -1121,25 +1150,9 @@
    A NON-FLUSH DRAWER IS UNCHANGED: it keeps the margin and the corner the rule below gives
    every pane the app pulled off the frame, which is now what the two values actually mean
    here rather than a distinction the drawer erased. */
-/* A FLUSH SHEET FROM BELOW STILL COVERS, SO IT STILL PAINTS (2026-09-09). The flush stand-down
-   is right for a pane level with the page and wrong for one over it, which is what the whole
-   2026-08-21 exception was about — and the 2026-09-09 push narrowed that exception to the pane
-   it is true of rather than deleting it: a SIDE pane is the desktop pane revealed and paints
-   exactly what the desktop pane paints, a sheet is over the content and would otherwise be a
-   see-through slab sliding across an article. Nothing about how it SITS comes back, which is
-   Kushagra's own call from 2026-09-08 ("it should be rather flush"): no margin, no corner, no
-   fourth edge — the scrim and the recession are what separate it.
-
-   The PROPERTY, not the hook: `--kui-sf-fill` is the name a material declares its veil on and
-   the flush rule stands that same hook down, so handing it back as `initial` is not silence but
-   an instruction to fall through to the opaque seal (2026-09-05, and four laws were green over
-   it because they read the stamp, the filter and the scope rather than the fill). */
-.kui-shell-bottom[data-flush][data-presentation="overlay"] {
-  background-color: var(--kui-sf-fill, var(--kui-sf-fill-src));
-  background-image: var(--kui-sf-light);
-  --kui-sf-cast: initial;
-  --kui-sf-pool: initial;
-}
+/* A FLUSH BOTTOM PANE PAINTS WHAT THE SIDEBAR PAINTS (2026-09-11). It covered the content and
+   restated the fill, light and cast a flush pane stands down; since it pushes rather than covers,
+   it is the frame's bottom pane revealed, exactly as the flush sidebar is. */
 
 /* DELETED 2026-09-08: the flush drawer restated fill, light and cast here. Under the push it
    is the desktop flush sidebar revealed, and paints exactly what that paints. */
@@ -1811,14 +1824,6 @@
      resolved value, the way every overlay fact in this block is. Dropping it here is the
      shape of the 2026-08-16 half-applied width-cap repair, which reached the explicit arms
      and not this one: the path every phone takes. */
-  /* A flush sheet still paints — the explicit arm's note, restated for the resolved value,
-     which is the path every phone takes and the half this file has recorded forgetting. */
-  .kui-shell-bottom[data-flush][data-presentation="auto"] {
-    background-color: var(--kui-sf-fill, var(--kui-sf-fill-src));
-    background-image: var(--kui-sf-light);
-    --kui-sf-cast: initial;
-    --kui-sf-pool: initial;
-  }
 
 /* DELETED 2026-09-08: the flush drawer restated fill, light and cast here. Under the push it
    is the desktop flush sidebar revealed, and paints exactly what that paints. */
@@ -2198,7 +2203,10 @@
   }
 
   .kui-shell-bottom[data-presentation="auto"]:where([data-state="closed"], [data-state="auto"]) {
-    --kui-shell-drawer-y: calc(100% + var(--shell-gap));
+    --kui-shell-drawer-y: calc(100% + 2 * var(--shell-gap));
+  }
+  .kui-shell-bottom[data-flush][data-presentation="auto"]:where([data-state="closed"], [data-state="auto"]) {
+    --kui-shell-drawer-y: 100%;
   }
 
   /* The push, restated for the resolved value — the explicit arm's note. */
@@ -2215,36 +2223,21 @@
     --kui-shell-push-x: calc(-1 * min(calc(var(--kui-shell-inspector-w, var(--shell-inspector-w)) + 2 * var(--shell-gap)), calc(100% - var(--touch-target-min))));
   }
 
-  .kui-shell:has(> :where(.kui-shell-bottom)[data-state="open"][data-presentation="auto"]) {
-    --kui-shell-recede: var(--shell-drawer-scale);
-    --kui-shell-recede-origin: 50% 100%;
+  .kui-shell:has(> .kui-shell-bottom[data-flush][data-state="open"][data-presentation="auto"]) {
+    --kui-shell-push-y: calc(-1 * min(var(--kui-shell-bottom-h, var(--shell-bottom-h)), calc(100dvh - var(--touch-target-min))));
   }
-
-  /* The frame's fill, restated for the resolved value — this block's own standing hazard, and
-     the path every phone takes. */
-  .kui-shell:has(> .kui-shell-bottom[data-state="open"][data-presentation="auto"]) {
-    transform: scale(var(--kui-shell-recede));
-    overflow: visible;
-    transition:
-      transform var(--motion-drawer) var(--motion-spring-carried),
-      overflow 0s allow-discrete;
+  .kui-shell:has(> .kui-shell-bottom:not([data-flush])[data-state="open"][data-presentation="auto"]) {
+    --kui-shell-push-y: calc(-1 * min(calc(var(--kui-shell-bottom-h, var(--shell-bottom-h)) + 2 * var(--shell-gap)), calc(100dvh - var(--touch-target-min))));
   }
 
   /* The children carry the push, restated for the resolved value. */
   .kui-shell:has(> :where(.kui-shell-rail, .kui-shell-sidebar, .kui-shell-inspector)[data-state="open"][data-presentation="auto"])
     > :not(.kui-shell-rail[data-presentation="auto"]):not(.kui-shell-rail[data-presentation="overlay"]):not(.kui-shell-sidebar):not(.kui-shell-inspector) {
-    translate: var(--kui-shell-push-x) 0;
+    translate: var(--kui-shell-push-x) var(--kui-shell-push-y);
   }
 
-  .kui-shell:has(> .kui-shell-bottom[data-state="open"][data-presentation="auto"])::before {
-    background-color: var(--scrim-well);
-  }
-
-  /* The frame's plane, restated for the resolved value — this block's own standing hazard,
-     and the path every phone takes. */
-  .kui-shell:has(> .kui-shell-bottom[data-state="open"][data-presentation="auto"])::after {
-    background-color: var(--color-surface);
-    border-radius: calc(var(--radius-surface-3) * var(--kui-corner-k, 1));
+  .kui-shell:has(> .kui-shell-bottom[data-state="open"][data-presentation="auto"]) > :not(.kui-shell-bottom) {
+    translate: var(--kui-shell-push-x) var(--kui-shell-push-y);
   }
 
   /* Untouched nav columns rest closed on a narrow window. The class is the hide rule's, not
@@ -2357,6 +2350,196 @@
     > .kui-shell-scrim {
     opacity: 1;
     visibility: visible;
+  }
+}
+
+/* ── On a phone, the page scrolls (§27, 2026-09-11) ─────────────────────────────────────────
+   Kushagra, from an iPhone: the content scrolled inside the frame, so the document never moved
+   and Safari never shrank its toolbars — they kept a fifth of the screen for as long as the app
+   was open. A mobile browser collapses its chrome only when the DOCUMENT scrolls; no inner
+   scroller reaches it.
+
+   So on a narrow touch window the frame stops being the window's height and grows with its
+   content, the content pane stops scrolling, and everything that stayed put while the content
+   scrolled inside the frame stays put while the page scrolls instead: the header and the pane
+   bands stick, the tab bar and the drawers attach to the screen. A wide window, and any pointer
+   that is not coarse, keeps the frame scrolling inside itself with the ScrollArea's own fade and
+   scrollbar — nothing here reaches it.
+
+   NARROW AND COARSE, NOT COARSE ALONE. On a wide touch window the side columns are in flow, and
+   a page that scrolls would carry them away with it unless each were pinned at the height of the
+   window less the header and the bottom pane — a second derivation of the frame for a case whose
+   browser chrome barely moves. Stated as the boundary rather than hidden: a phone in landscape
+   and an iPad keep the frame scrolling inside itself, toolbars included.
+
+   NOTHING IN THE FRAME IS TRANSFORMED, which is what lets every drawer attach to the screen.
+   The panes push — the side panes sideways, the bottom pane up (2026-09-11) — and a push
+   translates the frame's children, never the root, so `fixed` means the screen throughout.
+
+   NO FADE AND NO SCROLL EDGE (Kushagra, 2026-09-11: "it shouldn't use fade because it stops
+   abruptly where iOS safe area isnt"). The ScrollArea's fade masks its own viewport, which a page
+   does not have; a blur strip standing in for it was built and measured, and on a phone it ends at
+   the layout viewport while the page runs on under Safari's translucent toolbar and the home
+   indicator, so the effect stops mid-glass. Content passes under the chrome as it does under
+   Safari's own. */
+@media (max-width: 48rem) and (pointer: coarse) {
+  .kui-shell:not([data-contained]) {
+    block-size: auto;
+    min-block-size: 100dvh;
+  }
+
+  /* THE PAGE HOLDS STILL UNDER A DRAWER. Set by the Shell while any pane overlays (counted across
+     every Shell on the page) and never written as an inline value, so another library's own lock
+     on the same element is never saved over or restored under. */
+  :root[data-kui-shell-lock] {
+    overflow: hidden;
+  }
+
+  /* The content pane stops scrolling. `clip` rather than `visible` because a pane is a surface
+     and a surface clips (§3), and `clip` is not a scroll container, so nothing sticky inside it
+     is caught by it. ISOLATED, so nothing the app layers inside the content — a `z-index` on a
+     card, a map — can climb over the sticky header it passes under and take its taps.
+
+     `--kui-shell-page-top` is how far the stuck header reaches down the screen: every sticky row in
+     the content starts beneath it, and every focus or link target scrolls into view beneath it.
+     Derived like the frame's other reaches (one control row, the pane's padding, its borders) and
+     stale in the same way if the header outgrows its row. Zero with no header. */
+  .kui-shell:not([data-contained]) > .kui-shell-content {
+    overflow: clip;
+    isolation: isolate;
+  }
+
+  .kui-shell:not([data-contained]):has(> .kui-shell-header[data-flush]) > .kui-shell-content {
+    --kui-shell-page-top: calc(var(--kui-shell-row) + 2 * var(--kui-sf-p) + var(--border-width));
+  }
+
+  .kui-shell:not([data-contained]):has(> .kui-shell-header:not([data-flush])) > .kui-shell-content {
+    --kui-shell-page-top: calc(var(--kui-shell-row) + 2 * var(--kui-sf-p) + 2 * var(--border-width));
+  }
+
+  /* A FOCUSED CONTROL OR A LINKED HEADING LANDS WHERE IT CAN BE SEEN (WCAG 2.4.11). The page is
+     the scroller now, and the browser scrolls a target to the top of the window — under the
+     header and any band — or to the bottom, under the tab bar. `scroll-margin` on the content's
+     own elements rather than `scroll-padding` on the document, because the reach is only known
+     inside the pane. */
+  .kui-shell:not([data-contained]) > .kui-shell-content :where(*) {
+    scroll-margin-block:
+      calc(var(--kui-shell-page-top, 0px) + var(--kui-pane-inset-block-start))
+      calc(var(--kui-shell-inset-block-end) + var(--kui-pane-inset-block-end));
+  }
+
+  .kui-shell:not([data-contained]) > .kui-shell-content > .kui-shell-scroll {
+    flex: none;
+  }
+
+  /* WIDER THAN THE SCREEN STAYS INSIDE IT. The viewport stops scrolling in both directions here,
+     so nothing can be allowed to widen it: the content box gives up its fit-to-content minimum
+     (which the frame that scrolls needs, to scroll sideways) and lines wrap at the screen. A thing
+     that genuinely cannot wrap owes its own horizontal scroller, as a code block has. The fade's
+     mask goes too — with no overflow of its own it could only ever cut the page's right edge. */
+  .kui-shell:not([data-contained]) > .kui-shell-content > .kui-shell-scroll > .kui-scroll-viewport {
+    overflow: visible;
+    flex: none;
+    max-block-size: none;
+    mask-image: none;
+  }
+
+  .kui-shell:not([data-contained]) > .kui-shell-content > .kui-shell-scroll > .kui-scroll-viewport > .kui-scroll-content {
+    min-inline-size: auto;
+  }
+
+  /* The document's own scrollbar is the one a phone shows. */
+  .kui-shell:not([data-contained]) > .kui-shell-content > .kui-shell-scroll > .kui-scrollbar {
+    display: none;
+  }
+
+  /* THE BANDS STICK, AND STILL FLOAT. A floating band is out of flow over the scroller; sticky
+     is in flow, so the margins give back exactly the room it would take — the pane's padding
+     above it and the band's own reach below — and the scroller lands where it lands in the frame
+     that scrolls. `order` because a band is sticky where it SITS, and a header written after the
+     scroller would otherwise stick only at the end of the page. It sticks beneath the header. */
+  .kui-shell:not([data-contained]) > .kui-shell-content:has(> .kui-shell-scroll) > .kui-pane-header[data-float] {
+    position: sticky;
+    inset-block-start: var(--kui-shell-page-top, 0px);
+    order: -1;
+    margin-inline: calc(-1 * var(--kui-sf-p));
+    margin-block: calc(-1 * var(--kui-sf-p)) calc(-1 * var(--kui-pane-inset-block-start));
+  }
+
+  .kui-shell:not([data-contained]) > .kui-shell-content:has(> .kui-shell-scroll) > .kui-pane-footer[data-float] {
+    position: sticky;
+    inset-block-end: 0;
+    order: 1;
+    margin-inline: calc(-1 * var(--kui-sf-p));
+    margin-block: calc(-1 * var(--kui-pane-inset-block-end)) calc(-1 * var(--kui-sf-p));
+  }
+
+  /* A pinned sibling of the scroller pins to the screen: anything before it to the top, beneath
+     the header, anything after it to the bottom. Each keeps the pane's padding from the edge it
+     sticks to, the room it had in the frame that scrolls, and the bottom one clears the home
+     indicator the way the tab bar does. */
+  .kui-shell:not([data-contained]) > .kui-shell-content > :not(.kui-shell-scroll):not([data-float]):has(~ .kui-shell-scroll) {
+    position: sticky;
+    inset-block-start: calc(var(--kui-shell-page-top, 0px) + var(--kui-sf-p));
+    z-index: 1;
+  }
+
+  .kui-shell:not([data-contained]) > .kui-shell-content > .kui-shell-scroll ~ :not([data-float]) {
+    position: sticky;
+    inset-block-end: max(var(--kui-sf-p), env(safe-area-inset-bottom));
+    z-index: 1;
+  }
+
+  /* THE HEADER STICKS, AT THE TOP OF THE SCREEN. A sticky grid item is held against the scrolling
+     page rather than its own row, so it keeps the row it reserves and the content below it needs no
+     arithmetic. A header pulled off the frame sticks at the top too: held a gap down, the page
+     showed through the gap above it. */
+  .kui-shell:not([data-contained]) > .kui-shell-header {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 1;
+  }
+
+  /* A pane that stays in flow on a phone — only by stating `fixed` — pins as it is. */
+  .kui-shell:not([data-contained]) > .kui-shell-rail[data-presentation="fixed"],
+  .kui-shell:not([data-contained]) > .kui-shell-sidebar[data-presentation="fixed"],
+  .kui-shell:not([data-contained]) > .kui-shell-inspector[data-presentation="fixed"] {
+    position: sticky;
+    inset-block-start: 0;
+    align-self: start;
+    max-block-size: 100dvh;
+  }
+
+  .kui-shell:not([data-contained]) > .kui-shell-bottom[data-presentation="fixed"] {
+    position: sticky;
+    inset-block-end: 0;
+    z-index: 1;
+  }
+
+  /* THE TAB BAR ATTACHES TO THE SCREEN. */
+  .kui-shell:not([data-contained]) > .kui-shell-rail[data-presentation="bar"] {
+    position: fixed;
+  }
+
+  /* A FLUSH BOTTOM PANE PAINTS HERE, and only here. Everywhere else it is the frame's bottom pane
+     revealed and paints what the sidebar paints, because the frame's own edge cuts off whatever the
+     push moved up. A page has no such edge: the content runs on below the screen, and without a
+     fill the text below slid up behind a see-through pane (measured, the lab's paragraphs drawn
+     through the sheet's rows). The PROPERTY and not the hook, for the 2026-09-05 reason — the
+     material declares its veil on `--kui-sf-fill`. */
+  .kui-shell:not([data-contained]) > .kui-shell-bottom[data-flush]:where([data-presentation="overlay"], [data-presentation="auto"]) {
+    background-color: var(--kui-sf-fill, var(--kui-sf-fill-src));
+    background-image: var(--kui-sf-light);
+  }
+
+  /* THE DRAWERS ATTACH TO THE SCREEN, the bottom pane with them. Everything else about them — the
+     cap, the park, the push, the scrim — resolves against the window already, because the window
+     is what the frame was. */
+  .kui-shell:not([data-contained]) > .kui-shell-rail:where([data-presentation="overlay"], [data-presentation="auto"]),
+  .kui-shell:not([data-contained]) > .kui-shell-sidebar:where([data-presentation="overlay"], [data-presentation="auto"]),
+  .kui-shell:not([data-contained]) > .kui-shell-inspector:where([data-presentation="overlay"], [data-presentation="auto"]),
+  .kui-shell:not([data-contained]) > .kui-shell-bottom:where([data-presentation="overlay"], [data-presentation="auto"]) {
+    position: fixed;
   }
 }
 

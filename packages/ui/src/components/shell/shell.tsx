@@ -44,6 +44,7 @@ import * as React from "react";
 import { composeRender, slot, useMergedRefs, type RenderElement } from "../../system/render.ts";
 import { useWindowClass } from "../../system/window.ts";
 import { PageScope } from "../../system/page.tsx";
+import { onPageScrollMediaChange, pageScrollQuery, usePageScrollMedia } from "../../system/page-scroll.ts";
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { ScrollArea, type ScrollAreaProps } from "../scroll-area/scroll-area.tsx";
@@ -96,7 +97,13 @@ type ShellCtx = {
   store: ShellStore;
   subscribe: (cb: () => void) => () => void;
   rootRef: React.RefObject<HTMLDivElement | null>;
+  /** Whether this Shell fills its parent rather than being the window. */
+  contained: boolean;
 };
+
+/** Set by ShellContent: a ShellScroll here is the work area's, the one region the page takes over
+    on a phone. */
+const WorkAreaContext = React.createContext(false);
 
 
 const ShellContext = React.createContext<ShellCtx | null>(null);
@@ -105,6 +112,15 @@ function useShellCtx(part: string): ShellCtx {
   const ctx = React.use(ShellContext);
   if (!ctx) throw new Error(`<${part}> must be used within <Shell>`);
   return ctx;
+}
+
+/* Every Shell that has a drawer open holds the page; the attribute stays while any of them does. */
+let pageLockHolders = 0;
+function updatePageLock(delta: 1 | -1) {
+  pageLockHolders = Math.max(0, pageLockHolders + delta);
+  const doc = document.documentElement;
+  if (pageLockHolders > 0) doc.setAttribute("data-kui-shell-lock", "");
+  else doc.removeAttribute("data-kui-shell-lock");
 }
 
 const notifyStore = (store: ShellStore) => {
@@ -303,17 +319,27 @@ export type ShellProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef
    * this is an index.
    */
   size?: Size;
+  /**
+   * Put the Shell inside something else instead of making it the window.
+   *
+   * By default a Shell is the app: it takes the window's height, and on a narrow touch screen the
+   * page itself scrolls, so the browser can shrink its toolbars. A contained Shell fills its
+   * parent and always scrolls inside itself, on every device. Use it for a Shell in a card, a
+   * demo, or a canvas that must keep its own scroll.
+   */
+  contained?: boolean;
   ref?: React.Ref<HTMLDivElement>;
 };
 
 /**
  * The frame. A CSS grid whose areas the panes claim for themselves — no child scanning, no
- * arrangement logic, DOM order free for reading order. Height is the app's: the root fills
- * the parent it is given (`100%`), and an app-frame call site typically sits it in a
- * `100dvh` box. The root paints nothing — in floating mode the gaps show the app's own page,
- * the same relationship a card has to the page anywhere else.
+ * arrangement logic, DOM order free for reading order. By default it is the window: the
+ * window's height, and on a narrow touch screen the page scrolls rather than the content pane
+ * (§27, 2026-09-11). `contained` makes it fill its parent instead. The root paints nothing — in
+ * floating mode the gaps show the app's own page, the same relationship a card has to the page
+ * anywhere else.
  */
-export function Shell({ size: sizeProp, className, style, children, ref, ...props }: ShellProps) {
+export function Shell({ size: sizeProp, contained, className, style, children, ref, ...props }: ShellProps) {
   const size = useSize(sizeProp);
   const rootRef = React.useRef<HTMLDivElement | null>(null);
   const [store] = React.useState<ShellStore>(() => ({
@@ -330,8 +356,9 @@ export function Shell({ size: sizeProp, className, style, children, ref, ...prop
         return () => store.listeners.delete(cb);
       },
       rootRef,
+      contained: contained === true,
     }),
-    [store],
+    [store, contained],
   );
 
   const closeOverlays = React.useCallback(() => {
@@ -348,6 +375,60 @@ export function Shell({ size: sizeProp, className, style, children, ref, ...prop
   /** The overlay elements live on the previous pass — read on the closing edge, where the
       browser may not have blurred the pane the user is standing in yet. */
   const lastLive = React.useRef<HTMLElement[]>([]);
+  /** Whether this Shell is one of the holders of the page lock. */
+  const holdsLock = React.useRef(false);
+  React.useEffect(
+    () => () => {
+      if (holdsLock.current) {
+        holdsLock.current = false;
+        updatePageLock(-1);
+      }
+    },
+    [],
+  );
+
+  // THE READING POSITION CROSSES WITH THE POSTURE (2026-09-11, audit). When a touch window crosses
+  // the narrow boundary — a phone rotating, an iPad entering Split View — the scroller changes
+  // from the content's viewport to the page, and the new one starts at the top. The offset is
+  // carried across: remembered from whichever scroller is live, handed to the other once the new
+  // layout exists. Remembered on `scroll` rather than read on the change, because by the time the
+  // change is reported the old scroller has already been laid out in the new posture and clamped.
+  React.useEffect(() => {
+    if (contained) return;
+    const rootEl = rootRef.current;
+    if (!rootEl) return;
+    const viewport = () =>
+      rootEl.querySelector<HTMLElement>(":scope > .kui-shell-content > .kui-shell-scroll > .kui-scroll-viewport");
+    let offset = 0;
+    // Only the LIVE scroller is listened to. The one being left reports its own clamp to zero as
+    // a scroll — measured arriving after the new scroller had already been handed the offset —
+    // and would otherwise overwrite what was carried.
+    let pageScrolls = window.matchMedia(pageScrollQuery).matches;
+    const fromPage = () => {
+      if (pageScrolls) offset = window.scrollY;
+    };
+    const fromViewport = (event: Event) => {
+      if (!pageScrolls && event.target === viewport()) offset = (event.target as HTMLElement).scrollTop;
+    };
+    window.addEventListener("scroll", fromPage, { passive: true });
+    rootEl.addEventListener("scroll", fromViewport, { passive: true, capture: true });
+    const stop = onPageScrollMediaChange((matches) => {
+      pageScrolls = matches;
+      const carried = offset;
+      requestAnimationFrame(() => {
+        if (matches) window.scrollTo(0, carried);
+        else {
+          const el = viewport();
+          if (el) el.scrollTop = carried;
+        }
+      });
+    });
+    return () => {
+      window.removeEventListener("scroll", fromPage);
+      rootEl.removeEventListener("scroll", fromViewport, { capture: true });
+      stop();
+    };
+  }, [contained]);
 
   // Subscribed for the RE-RENDER, not for a value: a pane opening or closing must bring the
   // root back so the containment pass below runs. The version is read (not bound) because a
@@ -407,6 +488,18 @@ export function Shell({ size: sizeProp, className, style, children, ref, ...prop
 
     const live = [...store.entries.values()].filter((e) => e.overlayLive && e.el);
     const snapshot = inertSnapshot;
+
+    // THE PAGE HOLDS STILL UNDER A DRAWER (2026-09-11). A window Shell on a phone scrolls the
+    // document, so a finger dragged across the scrim would scroll the page behind it. Held by an
+    // ATTRIBUTE the stylesheet reads, counted across every Shell on the page — never by saving and
+    // restoring the document's inline `overflow`, which Base UI's own scroll lock writes too: the
+    // two saved each other's values and left a phone page unscrollable until reload (audit
+    // 2026-09-11).
+    const wantsLock = !contained && live.length > 0;
+    if (wantsLock !== holdsLock.current) {
+      holdsLock.current = wantsLock;
+      updatePageLock(wantsLock ? 1 : -1);
+    }
 
     if (live.length === 0) {
       for (const [el, previous] of snapshot) {
@@ -585,6 +678,14 @@ export function Shell({ size: sizeProp, className, style, children, ref, ...prop
       ] as const;
 
       for (const side of sides) {
+        // The tab bar publishes a block-end reach of its own (the bar rules), and it is not one of
+        // the panes this side compares against, so a Shell with a bar would always disagree here.
+        if (
+          side.name === "block-end" &&
+          rootEl.querySelector<HTMLElement>(':scope > .kui-shell-rail[data-presentation="bar"]')?.checkVisibility?.()
+        ) {
+          continue;
+        }
         const panes = [...rootEl.querySelectorAll<HTMLElement>(`:scope > :is(${side.sel})`)]
           /* `checkVisibilityCSS` since 2026-09-06: a parked drawer is `visibility: hidden`
              rather than `display: none`, and the default options answer TRUE for that — so
@@ -594,7 +695,9 @@ export function Shell({ size: sizeProp, className, style, children, ref, ...prop
           // behind it — read as the position it computes rather than as the attribute it
           // carries, because `auto` resolves to an overlay on a narrow window and the
           // attribute still says `auto` there.
-          .filter((el) => getComputedStyle(el).position !== "absolute")
+          // `fixed` as well since 2026-09-11: on a phone a window Shell attaches its drawers and
+          // its tab bar to the screen, and those leave no reach either.
+          .filter((el) => !/^(absolute|fixed)$/.test(getComputedStyle(el).position))
           .map((el) => el.getBoundingClientRect())
           .filter((r) => r.width > 0 && r.height > 0 && side.under(r));
         // NOT `continue` when the list is empty, which is the direction that matters most: a
@@ -637,9 +740,13 @@ export function Shell({ size: sizeProp, className, style, children, ref, ...prop
         {...props}
         ref={setRoot}
         className={cx("kui-shell", className)}
+        {...(contained ? { "data-contained": "" } : {})}
         style={style}
       >
-        <ShellSizeContext.Provider value={size}>{children}</ShellSizeContext.Provider>
+        <ShellSizeContext.Provider value={size}>
+          {/* Reset, so a Shell composed inside another Shell's work area starts outside it. */}
+          <WorkAreaContext.Provider value={false}>{children}</WorkAreaContext.Provider>
+        </ShellSizeContext.Provider>
         {/* Root-owned and always mounted; CSS shows it exactly when a pane overlays, keyed on
             the same two attributes the JS mirror reads. Hidden from AT: the root's
             containment pass is what takes the rest of the shell out of the tree. */}
@@ -706,7 +813,8 @@ export type ShellContentProps = ComponentRefusals & Omit<React.ComponentPropsWit
     size?: Size;
   };
 
-/** The work area — renders `<main>`, scrolls itself, takes whatever room the panes leave.
+/** The work area — renders `<main>`, takes whatever room the panes leave, and scrolls inside
+    the frame — except in a window Shell on a phone, where the page itself scrolls (2026-09-11).
     It pads like every other pane; a picture or a canvas that wants the full box says
     `m="bleed"`, and a `ShellScroll` inside it reaches the edges on its own (§3, §10).
 
@@ -753,7 +861,9 @@ export function ShellContent({
               first. `ShellHeader` renders none, which is what keeps the full-width row out of
               the arrangement by construction — a `ToolbarTitle` there can find no page and so
               always speaks for itself. */}
-          <PageScope>{children}</PageScope>
+          <WorkAreaContext.Provider value={true}>
+            <PageScope>{children}</PageScope>
+          </WorkAreaContext.Provider>
         </ShellSizeContext.Provider>
       </GlassScope>
     </main>
@@ -1279,9 +1389,14 @@ function ResizeHandle(props: {
     not to inherit, the `--kui-h` trap). So every writer of that width — the drag, the controlled
     extent, the `width` prop — also publishes it one level up under the pane's own name. */
 function publishExtent(pane: HTMLElement, axis: "inline" | "block", px: number) {
-  if (axis !== "inline") return;
+  const root = pane.closest<HTMLElement>(".kui-shell");
+  if (axis === "block") {
+    // The bottom pane pushes too (2026-09-11), so its height has to reach the root the same way.
+    root?.style.setProperty("--kui-shell-bottom-h", `${px}px`);
+    return;
+  }
   const name = pane.classList.contains("kui-shell-inspector") ? "inspector" : "sidebar";
-  pane.closest<HTMLElement>(".kui-shell")?.style.setProperty(`--kui-shell-${name}-w`, `${px}px`);
+  root?.style.setProperty(`--kui-shell-${name}-w`, `${px}px`);
 }
 
 function sidePaneStyle(width: number | undefined, style: React.CSSProperties | undefined) {
@@ -1364,8 +1479,8 @@ function SidePane({
   // right, so sidebar always stays compliant with how desktop works"). Under the push the
   // frame slides aside and the pane is the desktop pane revealed, with the page behind it
   // exactly as on a wide window — so the covering-panel rule in `usePaneDress` does not
-  // apply, and only `backdrop` (or an ambient region) states its material. The bottom pane is
-  // still a sheet over the content and keeps passing its posture.
+  // apply, and only `backdrop` (or an ambient region) states its material. The bottom pane
+  // pushes too since 2026-09-11.
   const { material, stamps, ref: paneRef } = usePaneDress(flush, backdrop, composedRef, false);
   // The `width` prop's own publication (see `publishExtent`); a drag or a controlled change
   // overwrites it, which is the same order the pane's own inline width already resolves in.
@@ -1753,7 +1868,18 @@ export function ShellBottom(props: ShellBottomProps) {
   // callback per render, which tears the lens down and rebuilds its map.
   const ownRef = React.useRef<HTMLElement | null>(null);
   const composedRef = useMergedRefs(ref, pane.paneRef, ownRef);
-  const { material, stamps, ref: paneRef } = usePaneDress(flush, backdrop, composedRef, pane.overlaying);
+  // IT PUSHES, IT DOES NOT COVER (2026-09-11, Kushagra: "Just like sidebar pushes content side,
+  // shell bottom should also push content up, not appear like modal"). The side panes' sentence
+  // turned ninety degrees: the frame moves up and this pane is the frame's bottom pane revealed,
+  // so the covering-panel rule does not apply and only `backdrop` (or a region) states its
+  // material.
+  const { material, stamps, ref: paneRef } = usePaneDress(flush, backdrop, composedRef, false);
+  // The `height` prop's own publication, the side panes' `width` one turned ninety degrees.
+  React.useLayoutEffect(() => {
+    const el = ownRef.current;
+    if (!el || height === undefined) return;
+    publishExtent(el, "block", height);
+  }, [height]);
   const element_ = (
     <aside
       {...rest}
@@ -1842,12 +1968,30 @@ export type ShellScrollProps = ComponentRefusals & ScrollAreaProps;
  * put; the pane becomes a column, this takes the leftover room, and the pane stops scrolling
  * itself. Custom scrollbars arrive with it because it IS a ScrollArea.
  *
+ * In the work area of a window Shell on a phone, the page does the scrolling instead, so the
+ * browser can shrink its toolbars. What was pinned stays pinned, and content that cannot wrap
+ * needs its own horizontal scroller.
+ *
  * A DIRECT child of the pane, deliberately: the stylesheet asks the pane whether it has one
  * (`:has(> …)`) and hands it the leftover room by flex, and neither question survives a
  * wrapper. Wrapping it is the same mistake as wrapping a pane, one level in.
  */
-export function ShellScroll({ className, ...props }: ShellScrollProps) {
-  return <ScrollArea {...props} className={cx("kui-shell-scroll", className)} />;
+export function ShellScroll({ className, focusable, ...props }: ShellScrollProps) {
+  // NOT A TAB STOP WHILE THE PAGE SCROLLS (2026-09-11, audit). On a phone a window Shell hands the
+  // work area's scrolling to the page, so this viewport scrolls nothing — and a focusable one is a
+  // page-tall presentation box that takes a Tab, draws a ring round the whole page and moves
+  // nothing. Resolved after mount (the answer is a media query); an explicit prop still wins.
+  const shell = React.use(ShellContext);
+  const workArea = React.use(WorkAreaContext);
+  const pageScrolls = usePageScrollMedia();
+  const inert = workArea && shell !== null && !shell.contained && pageScrolls;
+  return (
+    <ScrollArea
+      {...props}
+      focusable={focusable ?? !inert}
+      className={cx("kui-shell-scroll", className)}
+    />
+  );
 }
 
 /* ── The pane's own chrome rows: header and footer, optionally FLOATING (§27, 2026-08-29) ──

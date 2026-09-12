@@ -17,7 +17,7 @@ import { Shell, ShellBottom, ShellContent, ShellHeader, ShellInspector, ShellScr
 
 function frame(sidebar: React.ComponentProps<typeof ShellSidebar> = {}) {
   return mounted(
-    <Shell style={{ height: 600, width: 1000 }}>
+    <Shell contained style={{ height: 600, width: 1000 }}>
       <ShellHeader>header</ShellHeader>
       <ShellSidebar aria-label="Primary" resizable {...sidebar}>
         sidebar
@@ -82,7 +82,7 @@ describe("the boundary is a window splitter, not a div with a mousedown (§27)",
 
   it("a pane that was not asked to resize draws no boundary at all", () => {
     const root = mounted(
-      <Shell style={{ height: 600, width: 1000 }}>
+      <Shell contained style={{ height: 600, width: 1000 }}>
         <ShellHeader>header</ShellHeader>
         <ShellSidebar aria-label="Primary">sidebar</ShellSidebar>
         <ShellContent>content</ShellContent>
@@ -136,7 +136,7 @@ describe("the boundary is a window splitter, not a div with a mousedown (§27)",
   it("a control at the pane's trailing wall owns its own centre", () => {
     // Falsified against the pre-fix code: `expected 'kui-shell-resize' to be 'BUTTON'`.
     const root = mounted(
-      <Shell style={{ height: 400, width: 900 }}>
+      <Shell contained style={{ height: 400, width: 900 }}>
         <ShellSidebar aria-label="Primary" resizable>
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
             <button type="button" aria-label="Search">
@@ -213,7 +213,7 @@ describe("the boundary is a window splitter, not a div with a mousedown (§27)",
        all — a flush pane leaves none, so a law written on the default frame would assert
        0 === 0 and pass against anything. */
     const root = mounted(
-      <Shell style={{ height: 600, width: 1000 }}>
+      <Shell contained style={{ height: 600, width: 1000 }}>
         <ShellSidebar aria-label="Primary" flush={false} resizable>
           sidebar
         </ShellSidebar>
@@ -353,7 +353,7 @@ describe("every arm the component can actually produce (audit 2026-09-02)", () =
      nothing, and a sabotage swapping the two anchors is invisible in a sidebar-only fixture. */
   it("the inspector's boundary is the mirror, and it grows the other way", () => {
     const root = mounted(
-      <Shell style={{ height: 600, width: 1000 }}>
+      <Shell contained style={{ height: 600, width: 1000 }}>
         <ShellHeader>header</ShellHeader>
         <ShellContent>content</ShellContent>
         <ShellInspector aria-label="Details" resizable defaultOpen>
@@ -379,7 +379,7 @@ describe("every arm the component can actually produce (audit 2026-09-02)", () =
     /* The block arm was written, unreachable and wrong: no prop produced it, and `write()`
        named `--kui-shell-w` unconditionally while the bottom pane reads `--kui-shell-h`. */
     const root = mounted(
-      <Shell style={{ height: 600, width: 1000 }}>
+      <Shell contained style={{ height: 600, width: 1000 }}>
         <ShellHeader>header</ShellHeader>
         <ShellContent>content</ShellContent>
         <ShellBottom resizable defaultOpen>
@@ -413,7 +413,7 @@ describe("every arm the component can actually produce (audit 2026-09-02)", () =
        anatomy. Read as the AGREEMENT: resizable and not must bleed identically. */
     const shell = (resizable: boolean) =>
       mounted(
-        <Shell style={{ height: 600, width: 1000 }}>
+        <Shell contained style={{ height: 600, width: 1000 }}>
           <ShellHeader>header</ShellHeader>
           <ShellSidebar aria-label="Primary" {...(resizable ? { resizable: true } : {})}>
             <ShellScroll>rows</ShellScroll>
@@ -431,7 +431,7 @@ describe("every arm the component can actually produce (audit 2026-09-02)", () =
        the overlay arm still wins outright. Nothing read it, and the stylesheet's comment cited
        a "drawer law" that did not exist. */
     const root = mounted(
-      <Shell style={{ height: 600, width: 1000 }}>
+      <Shell contained style={{ height: 600, width: 1000 }}>
         <ShellHeader>header</ShellHeader>
         <ShellSidebar aria-label="Primary" resizable presentation="overlay" defaultOpen>
           sidebar
@@ -457,7 +457,7 @@ describe("what a person dragged stands until the app says otherwise (audit 2026-
     function Fixture({ width }: { width: number }) {
       const [, force] = React.useState(0);
       return (
-        <Shell style={{ height: 600, width: 1000 }}>
+        <Shell contained style={{ height: 600, width: 1000 }}>
           <ShellHeader>
             <button type="button" data-testid="rerender" onClick={() => force((n) => n + 1)}>
               render

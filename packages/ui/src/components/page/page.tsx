@@ -5,6 +5,7 @@ import * as React from "react";
 
 import { PAGE_DECK_STEP, PAGE_TITLE_STEP } from "../../system/type-steps.ts";
 import { setPageCollapsed, useClaimPage, usePageScope } from "../../system/page.tsx";
+import { usePageScrollMedia } from "../../system/page-scroll.ts";
 import { Heading } from "../heading/heading.tsx";
 import { Text } from "../text/text.tsx";
 
@@ -72,6 +73,9 @@ export function Page({
   const marker = React.useRef<HTMLDivElement>(null);
   useClaimPage(store, title);
 
+  // Re-read when a touch window crosses the phone boundary: the scroller changes from the
+  // content's viewport to the page, and an observer built for one never fires for the other.
+  const pageScrolls = usePageScrollMedia();
   React.useEffect(() => {
     const el = marker.current;
     if (!el || !store) return;
@@ -79,7 +83,12 @@ export function Page({
     // means the document scrolls, which is the ordinary page outside a frame. `closest` is
     // read ONCE, on mount — this is machinery, not interaction handling, and the observer that
     // follows fires twice per visit rather than per frame (§8).
-    const root = el.closest(".kui-scroll-viewport");
+    // A viewport that does not scroll is not the scroller: a window Shell on a phone lets the
+    // page scroll and leaves its viewport `overflow: visible` (§27, 2026-09-11), and observing
+    // against a box that never moves would never collapse the title.
+    const viewport = el.closest<HTMLElement>(".kui-scroll-viewport");
+    const scrolls = viewport !== null && !/^(visible|clip)$/.test(getComputedStyle(viewport).overflowY);
+    const root = scrolls ? viewport : null;
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[entries.length - 1];
@@ -102,7 +111,7 @@ export function Page({
       // holding the last one's answer.
       setPageCollapsed(store, false);
     };
-  }, [store]);
+  }, [store, pageScrolls]);
 
   return (
     <div className={className ? `kui-page ${className}` : "kui-page"} {...props}>

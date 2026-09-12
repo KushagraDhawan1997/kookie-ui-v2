@@ -2,9 +2,10 @@
  * Shell node laws (§27) — what can be read off the shipped files without a browser.
  *
  * The mounted laws live in shell.browser.test.tsx; these pin the two seams that cross
- * files: the viewport boundary (shell.css and dialog.css are the two sheets sanctioned to key
- * on the viewport, §13/§18, the set is swept here, and each literal must be config's,
- * verbatim) and the token emission
+ * files: the viewport boundary (FOUR sheets are sanctioned to key on the viewport — shell.css,
+ * dialog.css, command.css and sheet.css, §13/§18 — the set is swept here, and each literal must
+ * be config's, verbatim; this sentence said "two" from 2026-08-26, when the set was already
+ * three, until the Sheet ship audit made it four) and the token emission
  * (the designed pane defaults and the gap pick must be what config states — a hand edit to
  * the generated sheet fails the drift check, but a generator that silently stopped emitting
  * would not, which is the "did not run" way of not failing).
@@ -17,13 +18,22 @@ import { allStylesheets, block, raw, sheet } from "../../test/stylesheets.ts";
 describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () => {
   const css = sheet("components/shell/shell.css");
 
-  it("the one width query is the narrow boundary — derived here, so a respelled literal fails", () => {
+  it("every width query is the narrow boundary — derived here, so a respelled literal fails", () => {
     // CSS cannot var() a media query, so the boundary is a literal in the sheet; this law is
-    // what keeps that literal from being a second home. One occurrence: every narrow-window
-    // rule lives in the single media block.
+    // what keeps that literal from being a second home.
+    //
+    // IT WAS ONE BLOCK UNTIL 2026-09-11, and the second is a different question asked at the
+    // same width: the narrow block is about the LAYOUT a window this size gets, and
+    // `(max-width: 48rem) and (pointer: coarse)` is about a phone letting its PAGE scroll —
+    // which is a posture, not a width, and a squeezed desktop window must not take it. Both
+    // spell the boundary the same way and both must keep spelling it config's way, so what
+    // this law binds is the LITERAL rather than the count: a third block is a decision the
+    // sheet's own @media set law one test down makes someone state.
     const queries = css.match(/@media\s*\(max-width:[^)]*\)/g) ?? [];
-    expect(queries).toHaveLength(1);
-    expect(queries[0]!.replace(/\s+/g, " ")).toBe(`@media ${narrowMedia}`);
+    expect(queries, "the narrow boundary left the sheet — this law reads nothing").toHaveLength(2);
+    for (const query of queries) {
+      expect(query.replace(/\s+/g, " ")).toBe(`@media ${narrowMedia}`);
+    }
   });
 
   it("the sanctioned set is CLOSED, and it is two sheets — not one (2026-08-26)", () => {
@@ -45,10 +55,20 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     // sheet. A dialog-as-sheet grows from a fixed bottom edge, and a palette's height is its
     // results, so bottom-pinning moves the field on every keystroke (§44). Adding it here is the
     // decision this law exists to force — the alternative was a silent third consumer.
+    // FOUR since 2026-09-12, and the fourth is the second's rule arriving on the component the
+    // second was imitating. `dialog.css` keys on the viewport to present a dialog AS a sheet;
+    // `sheet.css` keys on it to make a real sheet the window's width, dropping the overlay
+    // width — a reading-measure cap that is right on a roomy window and reads as a card that
+    // fell on a phone. It cannot be keyed on a container, and that is a fact about the element
+    // rather than a preference: the panel is `position: fixed`, so its containing block IS the
+    // viewport and there is no container between the two to ask. That is the same argument
+    // §18 makes for every member of this set — these are the panes positioned against the
+    // window itself.
     const sanctioned = [
       "components/shell/shell.css",
       "components/dialog/dialog.css",
       "components/command/command.css",
+      "components/sheet/sheet.css",
     ];
     const keyed = allStylesheets().filter((file) => /@media[^{]*\((?:max|min)-width:/.test(sheet(file)));
     expect(keyed.sort(), "a stylesheet keys on the viewport without being sanctioned").toEqual(
@@ -89,9 +109,17 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     const queries = [
       ...new Set((css.match(/@media[^{]+/g) ?? []).map((q) => q.replace(/\s+/g, " ").trim())),
     ];
+    // IT IS FIVE SINCE 2026-09-11, and the fifth is the phone's page scroll (§27). It is the
+    // narrow boundary AND `(pointer: coarse)` together, because the two facts it needs are
+    // "this window is phone-shaped" and "this is a phone" — a squeezed desktop window keeps
+    // its own scroller, and a tablet in portrait is not narrow. Stating it as one query rather
+    // than nesting the pointer test inside the narrow block is what keeps the narrow block
+    // about layout alone; the alternative would have put a posture rule inside a width rule and
+    // left neither readable.
     expect(queries.sort()).toEqual(
       [
         `@media ${narrowMedia}`,
+        `@media ${narrowMedia} and (pointer: coarse)`,
         "@media (prefers-reduced-transparency: reduce)",
         "@media (hover: hover)",
         "@media (prefers-reduced-motion: reduce)",
@@ -246,7 +274,16 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
       // The SHEET's, since 2026-09-09: the flush stand-down is right for a pane level with the
       // page and wrong for one over it, and the exception narrowed to the pane it is true of
       // when the side panes started pushing the frame instead of covering it.
-      /\.kui-shell-bottom\[data-flush\]\[data-presentation="(?:overlay|auto)"\]\s*\{[^}]*\}/g,
+      //
+      // BOTH SPELLINGS SINCE 2026-09-11, and the second is this file's own recurring slip — a
+      // reader that names a combinator is a claim about the anatomy, and the anatomy moved. The
+      // phone page-scroll block restates the same hand-back for a window Shell
+      // (`.kui-shell:not([data-contained]) > …:where(…)`), which is the identical fact at the
+      // identical values; the old pattern matched neither the ancestor nor the `:where()`, so a
+      // sanctioned paint read as an unsanctioned one and failed the sweep below. Widened rather
+      // than loosened: the VALUE bound is what this arm has ever promised, and it still runs on
+      // every rule either pattern finds.
+      /(?:\.kui-shell[^{]*> )?\.kui-shell-bottom\[data-flush\](?::where\([^)]*\)|\[data-presentation="(?:overlay|auto)"\])\s*\{[^}]*\}/g,
     ];
     for (const re of standDowns) {
       for (const rule of css.match(re) ?? []) {
@@ -293,22 +330,27 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
        one negative layer settle it by order instead. Bounded by VALUE like every other paint
        here — the plane may name exactly one colour and it is the seal — and by the SHAPE, so
        the arm cannot quietly move back onto the root where it does not work. */
-    const planeRe = /\.kui-shell(?::has\(> \.kui-shell-bottom\[data-state="open"\]\[data-presentation="(?:overlay|auto)"\]\))?::after\s*\{[^}]*\}/g;
+    /* ONE RULE SINCE 2026-09-11, because the last pane that RECEDED the frame now pushes it
+       (§27). The plane existed in three arms — the root's own, and one per presentation for the
+       bottom pane — and the two lit arms went with the recession they were lit for. What is
+       left is the resting declaration, and it is still worth bounding by value for the reason
+       it always was: it is a paint in a sheet that paints nothing, so the one colour it may
+       ever name is the seal.
+
+       The "it did not move back onto the root" half needs no reader of its own. `sanctioned`
+       below strips exactly this rule and then asserts the whole remaining sheet names no
+       `background` at all — and the root's `.kui-shell { … }` block is part of that remainder,
+       so a seal painted there fails there. A second reader would have been two homes for one
+       guarantee. */
+    const planeRe = /\.kui-shell::after\s*\{[^}]*\}/g;
     const plane = css.match(planeRe) ?? [];
-    expect(plane.length, "the frame's plane vanished — this arm reads nothing").toBe(3);
+    expect(plane.length, "the frame's plane vanished — this arm reads nothing").toBe(1);
     for (const rule of plane) {
       for (const decl of rule.match(/background-color\s*:[^;]*/g) ?? []) {
         expect(decl.trim(), "the frame's plane may not name a colour of its own").toMatch(
           /^background-color:\s*(transparent|var\(--color-surface\))$/,
         );
       }
-    }
-    const recedingRoot = css.match(/\.kui-shell:has\(> \.kui-shell-bottom\[data-state="open"\]\[data-presentation="(?:overlay|auto)"\]\)\s*\{[^}]*\}/g) ?? [];
-    expect(recedingRoot.length, "the recession's own rules vanished").toBe(2);
-    for (const rule of recedingRoot) {
-      expect(rule, "the plane moved back onto the root, where the well paints over it").not.toMatch(
-        /background/,
-      );
     }
 
     const sanctioned = css
@@ -363,10 +405,11 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
       /\.kui-shell::after\s*\{[^}]*\}/g,
       /\.kui-shell-scrim\s*\{[^}]*\}/g,
       /\.kui-shell-pane\[data-presentation="(?:overlay|auto)"\]\s*\{[^}]*\}/g,
-      // The live arm, both spellings: it carries the frame's recession AND the clip that stops
-      // (2026-09-06) — one `transition` per element, so the two channels cannot reset each
-      // other, which is what the first spelling did.
-      /\.kui-shell:has\(> \.kui-shell-bottom\[data-state="open"\]\[data-presentation="(?:overlay|auto)"\]\)\s*\{[^}]*\}/g,
+      // The bottom pane's live arm carried the frame's recession and its clip, and it LEFT with
+      // the recession (2026-09-11): the pane pushes now, so the frame's own clock is the root
+      // rule's above and the travel is the children's below. Its licence is deleted rather than
+      // left standing, because every entry here is checked to match something — a licence for a
+      // rule that does not exist is a hole with a comment on it.
       // THE PUSH (2026-09-09): a side pane slides the whole frame rather than covering it, so
       // the frame's children carry the travel — the pane itself is excluded, since the open one
       // slides the same distance on the same clock and a parked one is off the frame either way.

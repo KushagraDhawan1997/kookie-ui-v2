@@ -51,6 +51,12 @@
      because Safari answered only the pseudo for years and the property is the standard. */
   scrollbar-width: none;
 }
+/* What Base UI writes inline and the component moves here (scroll-area.tsx): content never
+   narrower than itself, so a wide row scrolls sideways rather than being squeezed. */
+.kui-scroll-content {
+  min-inline-size: fit-content;
+}
+
 .kui-scroll-viewport::-webkit-scrollbar {
   display: none;
 }

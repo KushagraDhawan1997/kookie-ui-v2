@@ -53,13 +53,41 @@ describe("the platform keeps the scrolling; the system only draws the bar (§13)
   it("the viewport is the scroll container, and the native bar is gone by BOTH spellings", async () => {
     const root = await laidOut(mounted(overflowing, { theme: {} }));
     const viewport = within(root, ".kui-scroll-viewport");
-    // `scroll`, not the sheet's `auto`: Base UI writes overflow INLINE, so the stylesheet's
-    // declaration never lands. Read as the resolved value rather than as the rule we wrote,
-    // which is the difference between a law about this component and a law about our file.
-    expect(computed(viewport, "overflow")).toBe("scroll");
+    /* `auto` SINCE 2026-09-11, and the word is the point. Base UI writes `overflow: scroll`
+       INLINE on its viewport, and an inline declaration beats every rule — so a context that
+       needs this box NOT to scroll could not say so without `!important`, which this package
+       refuses. The one that needs it is a window Shell on a phone, where the page scrolls and
+       the viewport must stop being a scroll container or nothing inside it can stick to the
+       page (§27). The render function strips the inline value, and scroll-area.css has always
+       declared `auto` here, so what moved is which declaration WINS — never what renders,
+       because the native bar is hidden by `scrollbar-width: none` in both spellings and the
+       custom thumb is what a reader sees. (menu.browser.test.tsx states the same sentence for
+       the popup's own viewport, and the two must not drift.)
+
+       BOTH halves are read, and neither is sufficient alone: the resolved value, which says the
+       stylesheet is what lands, and the ABSENCE of the inline declaration, which is the whole
+       mechanism — a law reading only the computed value would pass just as happily on a
+       viewport that had gone back to winning inline. */
+    expect(
+      viewport.style.overflow,
+      "Base UI's inline overflow is back, and an inline declaration beats every rule",
+    ).toBe("");
+    expect(computed(viewport, "overflow")).toBe("auto");
     expect(computed(viewport, "scrollbar-width")).toBe("none");
-    // The load-bearing half: the content overflows and the viewport gives up NO layout width
-    // to a native bar. A UA bar would take ~15px here and clientWidth would fall short.
+    /* AND IT REALLY SCROLLS — the load-bearing half, and the one no declaration can give. This
+       law's subject is that the viewport IS the scroll container, and `auto` is a promise about
+       a box that overflows rather than a statement that this one does: on a box that has stopped
+       being a scroll container (`visible`, say) every assertion above still reads sensibly while
+       nothing scrolls at all. Drive it and read the offset back, which a non-scrolling box
+       answers with 0. */
+    viewport.scrollTop = 100;
+    viewport.scrollLeft = 50;
+    expect(viewport.scrollTop, "the viewport stopped being a scroll container").toBe(100);
+    expect(viewport.scrollLeft, "the viewport scrolls in one axis and not the other").toBe(50);
+    viewport.scrollTop = 0;
+    viewport.scrollLeft = 0;
+    // The other half of "no native bar": the content overflows and the viewport gives up NO
+    // layout width to one. A UA bar would take ~15px here and clientWidth would fall short.
     expect(viewport.clientWidth).toBe(Math.round(viewport.getBoundingClientRect().width));
     expect(viewport.scrollHeight).toBeGreaterThan(viewport.clientHeight);
   });
