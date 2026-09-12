@@ -16,6 +16,7 @@ import * as React from "react";
 
 import { Theme, useThemeRooted } from "../theme/theme.tsx";
 import { DEV } from "./dev.ts";
+import { ListInkContext } from "./list-context.ts";
 
 export type TextDirection = "ltr" | "rtl";
 
@@ -192,7 +193,19 @@ export function PortalScope({ children }: { children: React.ReactNode }) {
     // distinction being expressed at all is the point: an unmeasured direction states nothing,
     // so the portal keeps the document's.
     <div className="kui-portal" {...(direction ? { dir: direction } : {})}>
-      {children}
+      {/* A PORTALLED SUBTREE IS NOT INSIDE THE THING THAT OPENED IT (§15, §20, audit
+          2026-09-12). React context follows the React tree, and a portal is the one place where
+          that tree and the DOM disagree — so a `<List>` in a panel opened from inside a
+          `<ListItem>` read as a NESTED list: it stamped no step, no weight and no ink, and then
+          had no `<li>` anywhere above it to inherit a line from, which is 14px at
+          `line-height: normal` against the 16/24 the same list renders at outside one.
+
+          Reset rather than re-stamped, which is `GlassScope`'s own sentence at the portal
+          (2026-08-16): what crosses into a panel is what the app said, never what the thing
+          behind it happened to be doing. This is the only context in the package whose value is
+          a claim about the DOM ancestry rather than about the app, so it is the only one that
+          has to be said here. */}
+      <ListInkContext.Provider value={null}>{children}</ListInkContext.Provider>
     </div>
   );
   return rooted ? <Theme render={scope} /> : scope;
@@ -399,6 +412,28 @@ type FlightPlan = {
    * that happens to straddle the trigger rather than hang below it.
    */
   readonly placedByContent: boolean;
+  /**
+   * Whether the panel's CONTENT can change while it is still flying (§23, audit 2026-09-12).
+   *
+   * The flight measures the panel's natural box once and holds it for the whole entry, which is
+   * correct for every member that had existed: a menu, a select, a popover and a dialog all hold
+   * whatever they were rendered with, so one measurement is the whole truth. A COMBOBOX is the
+   * first whose content is the thing being typed — you open it by typing into it — so the list
+   * under the pinned box changes while the box is travelling toward a height that describes a
+   * list that is no longer there.
+   *
+   * Measured at 130ms per key: typing "par" left one row inside an 86px box which then snapped
+   * 86 → 56 when the flight released; backspacing left NINE rows inside a 146px box whose
+   * viewport reported `clientHeight === scrollHeight`, so the extra rows could not be reached at
+   * all until the flight ended.
+   *
+   * With this set, the flight re-aims that one number — and only that one number — at the
+   * content's real height, for the length of the entry. It is a `ResizeObserver` on the body, so
+   * it is layout answering rather than an event being handled, it is armed only between departure
+   * and release, and it is confined to this flag so every other member is byte-identical by
+   * construction (`placedByContent`'s own shape, one flag over).
+   */
+  readonly followsContent: boolean;
 };
 
 const FLOATING_PLAN: FlightPlan = {
@@ -406,18 +441,30 @@ const FLOATING_PLAN: FlightPlan = {
   body: "kui-floating-body",
   fromAnchor: true,
   placedByContent: false,
+  followsContent: false,
 };
 const SELECT_PLAN: FlightPlan = {
   popup: "kui-floating",
   body: "kui-floating-body",
   fromAnchor: true,
   placedByContent: true,
+  followsContent: false,
+};
+/** A combobox's panel: the anchored plan, plus the one thing only this member has — a list that
+    narrows under the box while the box is still on its way (see `followsContent`). */
+const COMBOBOX_PLAN: FlightPlan = {
+  popup: "kui-floating",
+  body: "kui-floating-body",
+  fromAnchor: true,
+  placedByContent: false,
+  followsContent: true,
 };
 const OVERLAY_PLAN: FlightPlan = {
   popup: "kui-overlay",
   body: "kui-overlay-body",
   fromAnchor: false,
   placedByContent: false,
+  followsContent: false,
 };
 
 /** Every custom property a flight may write, stripped as a SET at both ends: a reopen must not
@@ -882,7 +929,7 @@ function useFlight(plan: FlightPlan) {
              seed box of its own, it is because the panel was summoned rather than opened: the
              silhouette is a zero-size rect at the cursor, so the corner is `0px` (there is no
              box to have one) and the anchor-width floor is skipped, which is right twice over —
-             a point's width is zero, and a point-placed panel never wears `kui-menu-anchored`
+             a point's width is zero, and a point-placed panel never wears `kui-floating-anchored`
              in the first place. */
           const summoned = seedSize?.() ?? null;
           if (summoned) {
@@ -1227,10 +1274,68 @@ function useFlight(plan: FlightPlan) {
            * read off the popup's own computed transition list, so the clocks keep their one
            * home in the tokens and this cannot drift from them.
            */
+          /**
+           * THE FLIGHT'S OWN RETARGETS, counted so the dismissal listener can tell them from a
+           * dismissal (audit 2026-09-12, C3 — `followsContent` above carries the why).
+           *
+           * Changing a running transition's target value CANCELS it and starts a new one, which
+           * fires `transitioncancel` — and `onCancel` reads exactly that event as "the flight
+           * died". That is the wall the 2026-08-23 clamp hit when it tried re-fitting per frame
+           * ("released the flight at frame five and snapped the panel open"), and it is why this
+           * counts rather than flags: the event is dispatched at a later style update, not
+           * synchronously on the write, so a flag cleared in a microtask would be gone before the
+           * event it is meant to excuse arrives. One increment per write, one decrement per
+           * cancellation consumed, and a cancellation this runner did not cause still releases.
+           */
+          let selfRetargets = 0;
+          let contentWatcher: ResizeObserver | null = null;
+          /**
+           * Re-aim the block axis at the content's real height, and NOTHING else.
+           *
+           * The delta, not a re-measurement: the panel's natural height is its body plus two
+           * paddings, and the paddings do not move, so the body's own growth IS the panel's. That
+           * avoids rebuilding the padding arithmetic here, which is the audits' standing lesson
+           * about sums that agree with themselves — and it avoids the suppress-and-restore dance
+           * `fitSink` needs, because an absolutely-positioned body already reports its content's
+           * height rather than the pinned box's.
+           *
+           * Clamped by the same room `fitToRoom` clamps by, with `fitPin`'s suffix check: Base UI
+           * seeds `--available-height: 100vh` until floating-ui's promise resolves, and
+           * `parseFloat` reads that as ONE HUNDRED.
+           */
+          const followContent = () => {
+            if (!plan.followsContent || typeof ResizeObserver === "undefined") return;
+            contentWatcher = new ResizeObserver(() => {
+              if (!popup.hasAttribute("data-unfurling") || popup.hasAttribute("data-seed")) return;
+              let target = natural.height + (node.getBoundingClientRect().height - bodyBox.height);
+              if (positioner) {
+                const raw = getComputedStyle(positioner).getPropertyValue("--available-height").trim();
+                const room = parseFloat(raw);
+                if (raw.endsWith("px") && Number.isFinite(room) && room > 0 && room < target) {
+                  target = room;
+                }
+              }
+              if (!Number.isFinite(target) || target <= 0) return;
+              const current = parseFloat(popup.style.getPropertyValue("--kui-fly-h"));
+              if (Number.isFinite(current) && Math.abs(current - target) < 0.5) return;
+              selfRetargets += 1;
+              popup.style.setProperty("--kui-fly-h", `${target}px`);
+              // The positioner is pinned at the same number, so the collision box would otherwise
+              // go on describing a panel that no longer exists. Guarded by `heldHeight` for
+              // `fitToRoom`'s reason: where Base UI owns that height it is not ours to write.
+              if (!heldHeight && positioner?.hasAttribute("data-side")) {
+                positioner.style.height = `${target}px`;
+              }
+            });
+            contentWatcher.observe(node);
+          };
+
           let released = false;
           const release = () => {
             if (released) return;
             released = true;
+            contentWatcher?.disconnect();
+            contentWatcher = null;
             // Keyed on the STATE as well as the flag: the browser suite lands panels by
             // stripping the flight attribute directly, and a timeout that fired afterwards
             // would remove style the running law had just written.
@@ -1341,6 +1446,13 @@ function useFlight(plan: FlightPlan) {
           const onCancel = (event: TransitionEvent) => {
             if (event.target !== popup) return;
             if (!FLIGHT_GEOMETRY.test(event.propertyName)) return;
+            // A retarget this runner asked for is not a dismissal (see `selfRetargets`). Narrowed
+            // to the one axis it can ever write, so a cancellation on any other channel still
+            // releases even while a retarget is outstanding.
+            if (selfRetargets > 0 && /^(block-size|height)$/.test(event.propertyName)) {
+              selfRetargets -= 1;
+              return;
+            }
             release();
           };
 
@@ -1506,6 +1618,9 @@ function useFlight(plan: FlightPlan) {
             // listener armed earlier caught those dying events as a dismissal and released the
             // newborn flight on the spot.
             popup.addEventListener("transitioncancel", onCancel);
+            // …and the content watcher arms with it, for the same reason in reverse: armed any
+            // earlier it would fire on the pose's own geometry, which is not the content moving.
+            followContent();
             // The deadline is read HERE, after the pose is off: the pose pins
             // `transition: none` — so the aim's writes cannot start cancellable transitions —
             // which means a posed read would see zero-length spans and release the flight at
@@ -1769,6 +1884,23 @@ export function SelectBody({ children }: { children: React.ReactNode }) {
   const attach = useFlight(SELECT_PLAN);
   return (
     <div className={SELECT_PLAN.body} role="presentation" ref={attach}>
+      {children}
+    </div>
+  );
+}
+
+/**
+ * A combobox's panel body (§23, audit 2026-09-12) — the anchored flight, with its one difference.
+ *
+ * Split out for `SelectBody`'s reason rather than a new one: the choice is made once, in the
+ * component that knows it, and never passed down a tree where a caller could reach it. The
+ * difference is `followsContent` — a combobox is the only member whose list narrows while its
+ * panel is still flying, because typing is how it is opened.
+ */
+export function ComboboxBody({ children }: { children: React.ReactNode }) {
+  const attach = useFlight(COMBOBOX_PLAN);
+  return (
+    <div className={COMBOBOX_PLAN.body} role="presentation" ref={attach}>
       {children}
     </div>
   );

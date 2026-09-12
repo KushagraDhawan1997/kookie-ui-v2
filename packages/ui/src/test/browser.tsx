@@ -47,14 +47,17 @@ import buttonCss from "../components/button/button.css?raw";
 import checkboxCss from "../components/checkbox/checkbox.css?raw";
 import codeCss from "../components/code/code.css?raw";
 import codeBlockCss from "../components/code-block/code-block.css?raw";
+import comboboxCss from "../components/combobox/combobox.css?raw";
 import commandCss from "../components/command/command.css?raw";
 import dialogCss from "../components/dialog/dialog.css?raw";
 import fieldCss from "../components/field/field.css?raw";
 import kbdCss from "../components/kbd/kbd.css?raw";
 import linkCss from "../components/link/link.css?raw";
+import listCss from "../components/list/list.css?raw";
 import menuCss from "../components/menu/menu.css?raw";
 import composerCss from "../components/composer/composer.css?raw";
 import noticeCss from "../components/notice/notice.css?raw";
+import numberFieldCss from "../components/number-field/number-field.css?raw";
 import pageCss from "../components/page/page.css?raw";
 import popoverCss from "../components/popover/popover.css?raw";
 import selectCss from "../components/select/select.css?raw";
@@ -63,6 +66,7 @@ import radioCss from "../components/radio/radio.css?raw";
 import scrollAreaCss from "../components/scroll-area/scroll-area.css?raw";
 import segmentedControlCss from "../components/segmented-control/segmented-control.css?raw";
 import separatorCss from "../components/separator/separator.css?raw";
+import sheetCss from "../components/sheet/sheet.css?raw";
 import shellCss from "../components/shell/shell.css?raw";
 import sliderCss from "../components/slider/slider.css?raw";
 import spinnerCss from "../components/spinner/spinner.css?raw";
@@ -107,13 +111,16 @@ export function installStyles(): void {
     codeCss,
     codeBlockCss,
     dialogCss,
+    comboboxCss,
     commandCss,
     fieldCss,
     kbdCss,
     linkCss,
+    listCss,
     menuCss,
     composerCss,
     noticeCss,
+    numberFieldCss,
     pageCss,
     scrollAreaCss,
     segmentedControlCss,
@@ -122,6 +129,7 @@ export function installStyles(): void {
     progressCss,
     radioCss,
     separatorCss,
+    sheetCss,
     shellCss,
     sliderCss,
     switchCss,

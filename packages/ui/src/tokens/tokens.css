@@ -364,7 +364,6 @@
   --shell-inspector-w: calc(320px * var(--scale));
   --shell-bottom-h: calc(200px * var(--scale));
   --shell-gap: var(--layout-space-3);
-  --shell-drawer-scale: 0.925;
 }
 
 :root, [data-appearance="light"] {
@@ -3730,7 +3729,6 @@
   --tooltip-p-inline: var(--layout-space-4);
   --dialog-inset: var(--layout-space-6);
   --shell-gap: var(--layout-space-3);
-  --shell-drawer-scale: 0.925;
 }
 
 [data-density="default"] {
@@ -3786,7 +3784,6 @@
   --tooltip-p-inline: var(--layout-space-4);
   --dialog-inset: var(--layout-space-6);
   --shell-gap: var(--layout-space-3);
-  --shell-drawer-scale: 0.925;
 }
 
 [data-density="comfortable"] {
@@ -3842,7 +3839,6 @@
   --tooltip-p-inline: var(--layout-space-4);
   --dialog-inset: var(--layout-space-6);
   --shell-gap: var(--layout-space-3);
-  --shell-drawer-scale: 0.925;
 }
 
 [data-radius="none"] {

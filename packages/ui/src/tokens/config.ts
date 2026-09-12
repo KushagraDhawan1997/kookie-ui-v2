@@ -1842,10 +1842,15 @@ export const shellResize = { step: 16, min: 160 } as const;
  * value nothing reads is a claim the eye pass cannot check.
  */
 export const shellDrawer = {
-  /** How far back the frame goes. 0.925 is the reference's, judged there. */
-  scale: 0.925,
-  /** One clock for the slide, the recession and the scrim. Longer than the overlay family's
-      entry because the travel is a whole pane's width rather than a panel's own box. */
+  /** One clock for the slide, the push and the scrim. Longer than the overlay family's entry
+      because the travel is a whole pane's width rather than a panel's own box.
+
+      THE RECESSION IS GONE AND ITS NUMBER WENT WITH IT (2026-09-12, the ship audit). `scale`
+      stated how far back the frame went — 0.925, the reference's — and the last pane that
+      receded the frame started PUSHING it instead (2026-09-11), so the token it emitted
+      (`--shell-drawer-scale`) was read by nothing in the package. An orphaned token is a
+      decision nobody is consuming, which is exactly what shell.test.ts's both-directions law
+      says; it failed here, and this is the removal it asked for rather than a widened law. */
   duration: 500,
 } as const;
 

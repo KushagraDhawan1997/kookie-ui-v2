@@ -1658,12 +1658,11 @@ function dialogFamily(): string[] {
     for the same substitution reason as the three families above — a compact app's floating
     shell tightens with the rest of its distances. */
 function shellFamily(): string[] {
-  return [
-    decl("shell-gap", `var(--layout-space-${shellGap})`),
-    /* The drawer's arrival (§27, 2026-09-06). Density-invariant on purpose: a recession is a
-       depth cue rather than a distance, and the travel is the pane's own width. */
-    decl("shell-drawer-scale", String(shellDrawer.scale)),
-  ];
+  /* ONE NAME, since 2026-09-12. `--shell-drawer-scale` rode along here for the recession — how
+     far back the frame went while a drawer was live — and the last pane that receded the frame
+     now pushes it instead, so nothing read the token. The clock stays (`--motion-drawer`, emitted
+     with the motion family); the depth cue had no consumer left. */
+  return [decl("shell-gap", `var(--layout-space-${shellGap})`)];
 }
 
 /** The control radii for one designed set at one level (§6). At `full` the band is the rule

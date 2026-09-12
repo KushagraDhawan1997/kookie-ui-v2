@@ -983,6 +983,28 @@ describe("a raw scroll container is named, or it is a defect (§3, 2026-09-04)",
     ".kui-dialog-viewport": "the viewport a sheet scrolls in — Base UI's own box",
     ".kui-dialog-popup .kui-dialog-body": "the sheet's body, which bleeds and re-pads by hand",
     ".kui-alert-viewport": "the alert's viewport, the dialog's own arrangement",
+    // §11 — and NOT the dialog body's reason one line up, which is why it is written out. A
+    // sheet has no flight and no blur: there is no entry that owns this box's geometry, so
+    // "the flight owns it" would be an exemption taken on a premise that is false here.
+    //
+    // The reason it cannot be a ScrollArea is that it is not ours. The sheet's body IS Base
+    // UI's `Drawer.Content`, and the element carries the gesture contract: `data-drawer-content`
+    // is what refuses a MOUSE drag inside it, so text in a sheet stays selectable while a touch
+    // still swipes the panel away (DrawerViewport's `isDrawerContentTarget`, which reads
+    // `closest()` — so the attribute has to sit on this element and not on a descendant).
+    //
+    // And making it a ScrollArea would WRAP the caller's children, which forecloses the
+    // composition the component publishes: a ScrollArea placed directly in a sheet bleeds to
+    // the panel's walls and pins whatever sits above and below it (the shared
+    // `.kui-dialog-body > .kui-scroll-area` arms in surfaces.css). That works end to end today
+    // — Base UI's touch machine finds the scrolling box by walking for a real overflow
+    // (`findScrollableTouchTarget`), not by looking for its own attribute, so the viewport a
+    // ScrollArea creates is what the swipe-versus-scroll decision reads.
+    //
+    // So this is the FALLBACK for a sheet whose content simply overran, and a call site that
+    // wants the real thing places a ScrollArea — which is `.kui-shell-pane`'s entry below,
+    // verbatim, two components apart.
+    ".kui-sheet-popup .kui-sheet-body": "a sheet's fallback scroll; the body is Base UI's gesture region, and a ScrollArea placed inside it is the composition (§11)",
     // §23: a select's panel scrolls ITSELF because the item-aligned placement is a scroll offset
     // — the panel's position IS its scrollTop, so a viewport between them would break the
     // placement. Recorded in select.css and in surfaces.css beside the rule it excepts.
@@ -1072,6 +1094,13 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
       // member is what would promote this into the shared layer if it were CSS; it is a handler
       // on an element each component creates for itself, so it stays where the element is.
       "components/command/command.tsx": ["onMouseDown"],
+      // The same contract, the same reason, a FOURTH and FIFTH time (2026-09-12). Combobox's
+      // visible box is a wrapper around the input — it carries the padding and the chevron and
+      // paints the text cursor over both — and NumberField's carries the padding and two
+      // steppers, neither of which may take the caret. A press in either band landed nowhere.
+      // One pointer-down commitment each, no per-frame work.
+      "components/combobox/combobox.tsx": ["onMouseDown"],
+      "components/number-field/number-field.tsx": ["onMouseDown"],
       // The floating layer's seam (§20/§22): the entry runner holds the page during the
       // opening frames and observes its own transitions — mount/flight machinery, the seam
       // the doctrine names, never per-frame pointer tracking. THE FLIGHT MEASUREMENT is the
@@ -1085,6 +1114,36 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
         // pose is stamped from it; the entry is what these reads serve, start to finish.
         "getBoundingClientRect",
         "getComputedStyle",
+        /**
+         * THE FLIGHT'S CONTENT WATCHER (§23, audit 2026-09-12, C3) — the same bounded
+         * exception as the measurement above, on the one member whose content moves inside it.
+         *
+         * The entry animates to a MEASURED length, because CSS cannot interpolate to `auto`
+         * outside Chromium, and every member until Combobox holds whatever it was rendered
+         * with — so one measurement was the whole truth. A combobox is opened BY TYPING into
+         * it, so its list narrows while the box is still travelling toward a height that
+         * describes a list that is no longer there: measured at 130ms per key, "par" left one
+         * row inside an 86px box which snapped 86 → 56 at release, and backspacing left nine
+         * rows inside a 146px box whose viewport reported `clientHeight === scrollHeight`, so
+         * the rows could not be reached at all until the flight ended.
+         *
+         * WHY IT IS NOT WHAT THE RULE FORBIDS. The doctrine is that STATE styling costs no
+         * frames — hover, press and focus are served by the stylesheet so they stay instant
+         * while the main thread is busy — and this paints nothing and answers no state. It is
+         * a `ResizeObserver`, so it is LAYOUT reporting rather than an event being handled:
+         * there is no keystroke handler, no pointer handler and no polling, and a keystroke
+         * that does not change the list's box produces no callback at all. It is armed at
+         * DEPARTURE and disconnected at RELEASE (`followContent` / `release` in this file), so
+         * it cannot exist outside the ~700ms of one entry, and it is confined behind
+         * `FlightPlan.followsContent` so every other member is byte-identical by construction.
+         * What it writes is one custom property — the flight's own target — never a paint.
+         *
+         * Stated honestly: it CAN fire on a keystroke, and that is the thing it exists to do.
+         * The alternative is the `interpolate-size` channel the settled panel already uses
+         * (combobox.css), which the flight cannot reach because the flight's destination is a
+         * measured length for the engines that lack it.
+         */
+        "new ResizeObserver",
       ],
       // THE LENS (DECISIONS §10, the second bounded exception): built on mount and on resize,
       // never on hover, press, focus or scroll — and never while a pane is flying (2026-08-22).
@@ -1165,7 +1224,14 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
        * cross from the scroller to a sibling band — Chromium-only at the time of writing. This
        * is `ScrollArea`'s own stance on its own scroll listener, one component over.
        */
-      "components/page/page.tsx": ["new IntersectionObserver"],
+      "components/page/page.tsx": [
+        "new IntersectionObserver",
+        // Which box is the scroller, read once per posture (§27, 2026-09-11): a window Shell on a
+        // phone lets the page scroll and leaves its viewport `overflow: visible`, and the observer
+        // has to be built against whichever one moves. Read when the observer is built, never on
+        // scroll.
+        "getComputedStyle",
+      ],
       "components/shell/shell.tsx": [
         // ── The tab bar's thumb (§27, 2026-09-09): the segmented control's `useTravelingThumb`,
         // self-keyed as its second member, and its exception with it. Seats are equal only
@@ -1194,6 +1260,13 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
         "onPointerDown =",
         "onPointerDown=",
         'addEventListener("pointer',
+        // ── The reading position across the phone boundary (§27, 2026-09-11). When a touch window
+        // crosses it the scroller swaps between the content's viewport and the page, and the new
+        // one starts at the top. The offset has to be REMEMBERED, not read at the change: by the
+        // time the change is reported, the old scroller has already been laid out in the new
+        // posture and clamped to zero. Bounded: passive, one number assigned, no layout read, no
+        // state, no write — the only write happens once, on the posture change itself.
+        'addEventListener("scroll',
       ],
     };
     // `getComputedStyle` and `getBoundingClientRect` joined the ban 2026-08-31 (performance
@@ -1462,6 +1535,41 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
    * to add a channel to it. The stems still have to resolve SOMEWHERE, which is the half of
    * this that catches an invented hook.
    */
+  /**
+   * A TRANSITION LIST IS SPLIT AT ITS TOP-LEVEL COMMAS, never at every comma (2026-09-12, the
+   * ship audit — the defect was in the law).
+   *
+   * Both laws below walk a `transition` shorthand channel by channel, and both took
+   * `body.split(",")`. That is right until a channel carries a function with arguments, and the
+   * package's own grammar guarantees one eventually will: a var() with a fallback is how every
+   * hook in this system is written. Sheet is where it arrived — `transform
+   * calc(var(--motion-drawer) * var(--drawer-swipe-strength, 1)) var(--motion-spring-carried)`
+   * is ONE channel, and the naive split cut it into two at the fallback's comma, handing the
+   * second law a fragment with no property and the first a duration with no easing. The
+   * stylesheet was correct and the sibling motion-token law passed on the same declaration,
+   * which is the tell: two laws reading one string disagreed, so the disagreement was the
+   * instrument's.
+   *
+   * Depth-counted rather than regex'd, because the nesting is real (`calc(var(…, 1))`) and a
+   * regex that balances parentheses is a parser wearing a pattern's name.
+   */
+  function channels(body: string): string[] {
+    const out: string[] = [];
+    let depth = 0;
+    let start = 0;
+    for (let i = 0; i < body.length; i++) {
+      const c = body[i];
+      if (c === "(") depth += 1;
+      else if (c === ")") depth -= 1;
+      else if (c === "," && depth === 0) {
+        out.push(body.slice(start, i));
+        start = i + 1;
+      }
+    }
+    out.push(body.slice(start));
+    return out;
+  }
+
   const withLayers = (file: string): string =>
     file.startsWith("system/")
       ? sheet(file)
@@ -1486,7 +1594,7 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
       for (const declaration of [...sheet(file).matchAll(/[^-\w]transition\s*:([^;]+);/g)]) {
         const body = declaration[1]!;
         if (body.trim() === "none") continue;
-        for (const raw of body.split(",")) {
+        for (const raw of channels(body)) {
           const channel = resolveHooks(withLayers(file), raw);
           // The var() references are STRIPPED before the check, which is the whole law: the
           // first spelling asked whether the channel mentioned a motion token anywhere, and
@@ -1532,7 +1640,7 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
       for (const declaration of [...sheet(file).matchAll(/[^-\w]transition\s*:([^;]+);/g)]) {
         const body = declaration[1]!;
         if (body.trim() === "none") continue;
-        for (const raw of body.split(",")) {
+        for (const raw of channels(body)) {
           const [property] = raw.trim().split(/\s+/);
           if (!property) continue;
           const channel = resolveHooks(withLayers(file), raw);

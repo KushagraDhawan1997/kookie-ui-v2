@@ -1534,6 +1534,12 @@
      went with the border-area fork when the family's lip moved onto the annulus; the INVALID
      remap below now pulls this same lever, which it could not before. */
   --material-ring-opacity: 0;
+  /* AND THE BAND COMES BACK (2026-09-12, the ship audit) — the invalid arm's own sentence, and
+     the reduced-transparency arm's before it. Glass zeroes `border-width` so the lip is the
+     control's one edge; this arm stands the lip down on the line above, so without this a dead
+     glass field drew no boundary at all while the dead solid one beside it kept its receded
+     hairline. The colour is already the receded --disabled-border. */
+  border-width: var(--border-width);
   /* And the elevated light stands down the same way (§5, 2026-08-07): a disabled control
      makes no promise, so it neither hovers above the page nor catches light. `initial`
      makes the world tokens guaranteed-invalid here; the consumption sites fall back to
@@ -1618,6 +1624,15 @@
      already pull. It carries the glint band with it, whose opacity multiplies this. Safe to
      state here even though it reaches every control: a button is never invalid. */
   --material-ring-opacity: 0;
+  /* AND THE BAND COMES BACK WITH IT (2026-09-12, the ship audit), for the reason the
+     reduced-transparency arm already states one screen down: the @supports block zeroes
+     `border-width` on every glass control so the LIP is its one edge, and this arm stands the
+     lip down on the line above. An invalid glass field was therefore drawing no boundary of any
+     kind — measured, border-top-width 0px carrying a perfectly correct red, with the ring and
+     the glint at opacity 0 — so the state that has to be loudest had LESS edge than the resting
+     control beside it, against §10. Only the WIDTH is restated: the colour is already the
+     re-pointed --invalid-edge, and naming one here would break §7's tone indirection. */
+  border-width: var(--border-width);
 }
 
 /* Loading blocks interaction without the disabled remap: the control still looks like itself,

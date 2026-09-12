@@ -84,6 +84,64 @@ function sdSuperRect(x: number, y: number, w: number, h: number, r: number, k: n
 }
 
 /**
+ * A BOX HAS FOUR CORNERS, and until 2026-09-12 both maps were built from one of them.
+ *
+ * The radius was read off `borderTopLeftRadius` alone and mirrored, which is exactly right for
+ * every box this file had ever met: a card, a button, a field and a menu all round all four
+ * corners the same way. SHEET is the first glass pane that does not — a bottom sheet is
+ * 64.52/64.52/0/0, flush to the window's edge, and an inline-start sheet is 0 on the two edges
+ * it is pinned to. So a sheet's square corners were handed curved light and curved bend, and an
+ * inline-start sheet read r=0 and got a fully square map: no glint at all on the two corners it
+ * actually paints. Both maps, both failures, one cause.
+ *
+ * The field is built PER QUADRANT. Inside the quadrant a corner owns, the distance to the box is
+ * the distance to a rounded rect with that corner's radius everywhere — `sdSuperRect` is
+ * symmetric in both axes, so restricting it to one quadrant is what makes this exact rather than
+ * an approximation. The quadrant is decided by the pixel's own coordinate, so nothing has to be
+ * stitched at the seams: along the centre lines the field depends on the edge alone and every
+ * candidate radius answers the same number.
+ *
+ * A UNIFORM BOX MUST GENERATE THE MAP IT ALWAYS DID, to the byte, and that is a law
+ * (refraction.browser.test.tsx's oracle, which passes a scalar). Two things make it hold rather
+ * than nearly hold: `corners()` below widens a scalar to four equal numbers, so every SDF call
+ * takes the same float it took before; and the corner loops solve each corner directly where
+ * they used to solve one and mirror it. Mirroring was exact — a mirrored pixel centre is
+ * `w - u` against `u`, and `|u - w/2|` is symmetric, so the input floats are identical and the
+ * gradient is exactly negated — which is precisely why solving directly returns the same floats
+ * and rounds the same bytes. The mirror is dropped rather than kept beside a second path,
+ * because two generators for one map is how the two would drift.
+ */
+export type Corners = readonly [tl: number, tr: number, br: number, bl: number];
+
+/** A scalar radius is the four-corner case where the four agree. */
+function corners(r: number | Corners): Corners {
+  return typeof r === "number" ? [r, r, r, r] : r;
+}
+
+/** Which corner owns this point, and the distance measured on ITS radius. */
+function sdCorners(x: number, y: number, w: number, h: number, c: Corners, k: number): number {
+  const right = x > w / 2;
+  const bottom = y > h / 2;
+  return sdSuperRect(x, y, w, h, c[bottom ? (right ? 2 : 3) : right ? 1 : 0], k);
+}
+
+/** Do all four agree? The fallback paths scan a row inward from each edge and then JUMP to the
+    mirrored column, which is exact only while both ends of the row carry the same corner — so
+    where they do not, the row is walked whole. It costs the mixed boxes a full scan and leaves
+    the uniform ones byte-identical, which is the trade this file's identity law is about. */
+function sameCorners(c: Corners): boolean {
+  return c[0] === c[1] && c[1] === c[2] && c[2] === c[3];
+}
+
+/** Four corners across the map's generation scale, each capped at the half-side a radius can
+    never exceed — the scalar line `measure()` used to write, once per corner. */
+function scaleCorners(c: Corners, scale: number, w: number, h: number): Corners {
+  const cap = Math.floor(Math.min(w, h) / 2);
+  const at = (v: number): number => Math.min(Math.round(v * scale), cap);
+  return [at(c[0]), at(c[1]), at(c[2]), at(c[3])];
+}
+
+/**
  * The superellipse exponent a computed `corner-shape` describes — 2 (a circle) for anything
  * this file cannot read, which is the value that generates the map it always generated.
  *
@@ -434,7 +492,7 @@ export const __genPaths = { analytic: 0, banded: 0, glintAnalytic: 0, glintBande
  * sweep exercises BOTH — a sweep that only ever took the fallback would be a law about the
  * special case wearing the general one's name.
  */
-export function physicalMap(w: number, h: number, r: number, p: LensParams, k = 2): { url: string; max: number } {
+export function physicalMap(w: number, h: number, r: number | Corners, p: LensParams, k = 2): { url: string; max: number } {
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
@@ -445,6 +503,12 @@ export function physicalMap(w: number, h: number, r: number, p: LensParams, k = 
   if (!fit) return { url: "", max: 0 };
   const { bezel, thickness } = fit;
   const memo = bendMemo(bezel, thickness, p.ior);
+  // The four corners (a scalar is the case where they agree), and the field measured on
+  // whichever one owns the point — see `sdCorners`.
+  const c = corners(r);
+  const uniform = sameCorners(c);
+  const maxR = Math.max(c[0], c[1], c[2], c[3]);
+  const sd = (x: number, y: number): number => sdCorners(x, y, w, h, c, k);
   const bend = (inside: number): number => {
     let v = memo.get(inside);
     if (v === undefined) {
@@ -465,34 +529,46 @@ export function physicalMap(w: number, h: number, r: number, p: LensParams, k = 
    * nothing is assumed; outside it, a pixel is PURE: its field value and gradient depend on one
    * edge alone, which is what the span fills below rely on.
    */
-  const cz = Math.ceil(Math.max(r, bezel)) + 3;
+  const cz = Math.ceil(Math.max(maxR, bezel)) + 3;
   if (w - 2 * cz >= 1 && h - 2 * cz >= 1) {
     __genPaths.analytic += 1;
-    // ── one corner quadrant, per pixel, exactly the loop the whole map used to run ──
-    const cmag = new Float32Array(cz * cz);
-    const cnx = new Float32Array(cz * cz);
-    const cny = new Float32Array(cz * cz);
-    const con = new Uint8Array(cz * cz);
-    for (let y = 0; y < cz; y++) {
-      for (let x = 0; x < cz; x++) {
-        const inside = -sdSuperRect(x + 0.5, y + 0.5, w, h, r, k);
-        if (inside < 0 || inside > bezel) continue;
-        const i = y * cz + x;
-        const mag = bend(inside);
-        const gx = sdSuperRect(x + 1.5, y + 0.5, w, h, r, k) - sdSuperRect(x - 0.5, y + 0.5, w, h, r, k);
-        const gy = sdSuperRect(x + 0.5, y + 1.5, w, h, r, k) - sdSuperRect(x + 0.5, y - 0.5, w, h, r, k);
-        const gl = Math.hypot(gx, gy) || 1;
-        cmag[i] = mag;
-        cnx[i] = gx / gl;
-        cny[i] = gy / gl;
-        con[i] = 1;
-        const a = Math.abs(mag);
-        if (a > maxAbs) maxAbs = a;
+    /* ── the four corners, each on its own radius ──
+       One zone size for all four, taken from the WIDEST corner: a zone that is bigger than a
+       corner needs costs a few skipped pixels, and a zone that is too small would let a pixel
+       inside somebody's arc be filled as if it were pure. Sizing it on the max is what keeps
+       the span fills below honest for every corner at once, and on a uniform box it is the
+       number this line has always computed. */
+    const cmag = new Float32Array(4 * cz * cz);
+    const cnx = new Float32Array(4 * cz * cz);
+    const cny = new Float32Array(4 * cz * cz);
+    const con = new Uint8Array(4 * cz * cz);
+    // Corner q's own block coordinate, placed in the box: 0 tl, 1 tr, 2 br, 3 bl.
+    const cxOf = (q: number, x: number): number => (q === 1 || q === 2 ? w - 1 - x : x);
+    const cyOf = (q: number, y: number): number => (q === 2 || q === 3 ? h - 1 - y : y);
+    for (let q = 0; q < 4; q++) {
+      for (let y = 0; y < cz; y++) {
+        for (let x = 0; x < cz; x++) {
+          const bx = cxOf(q, x);
+          const by = cyOf(q, y);
+          const inside = -sd(bx + 0.5, by + 0.5);
+          if (inside < 0 || inside > bezel) continue;
+          const i = (q * cz + y) * cz + x;
+          const mag = bend(inside);
+          const gx = sd(bx + 1.5, by + 0.5) - sd(bx - 0.5, by + 0.5);
+          const gy = sd(bx + 0.5, by + 1.5) - sd(bx + 0.5, by - 0.5);
+          const gl = Math.hypot(gx, gy) || 1;
+          cmag[i] = mag;
+          cnx[i] = gx / gl;
+          cny[i] = gy / gl;
+          con[i] = 1;
+          const a = Math.abs(mag);
+          if (a > maxAbs) maxAbs = a;
+        }
       }
     }
     // ── the spans' per-depth values, off the real field at a representative pure pixel ──
     const px = cz + 0.5;
-    const sdRow = (yy: number): number => sdSuperRect(px, yy + 0.5, w, h, r, k);
+    const sdRow = (yy: number): number => sd(px, yy + 0.5);
     type Span = { y: number; mag: number; ny: number };
     const rows: Span[] = [];
     for (let y = 0; ; y++) {
@@ -506,7 +582,7 @@ export function physicalMap(w: number, h: number, r: number, p: LensParams, k = 
       const a = Math.abs(mag);
       if (a > maxAbs) maxAbs = a;
     }
-    const sdCol = (xx: number): number => sdSuperRect(xx + 0.5, cz + 0.5, w, h, r, k);
+    const sdCol = (xx: number): number => sd(xx + 0.5, cz + 0.5);
     const cols: Span[] = [];
     for (let x = 0; ; x++) {
       const inside = -sdCol(x);
@@ -519,37 +595,26 @@ export function physicalMap(w: number, h: number, r: number, p: LensParams, k = 
       const a = Math.abs(mag);
       if (a > maxAbs) maxAbs = a;
     }
-    // ── write: corners from mirrored floats, spans as one value per depth ──
+    /* ── write: each corner from its own floats, spans as one value per depth ──
+       The mirror is gone and the bytes are the same, which is the whole argument for removing
+       it: a mirrored pixel centre is `w - u` against `u`, `|u - w/2|` is symmetric, so the two
+       SDF inputs are the IDENTICAL float and the finite-difference gradient is exactly negated
+       — and `128 + (-nx)*m*127` is bit-for-bit `128 - nx*m*127`. Rounding still happens after
+       the sign, never before it, for the reason the old note gave: Math.round is half-up, so
+       128.5 and 127.5 do not mirror. */
     const u32 = new Uint32Array(data.buffer);
-    for (let y = 0; y < cz; y++) {
-      for (let x = 0; x < cz; x++) {
-        const i = y * cz + x;
-        if (!con[i]) continue;
-        const m = maxAbs > 0 ? (cmag[i] as number) / maxAbs : 0;
-        const nx = cnx[i] as number;
-        const ny = cny[i] as number;
-        const xr = w - 1 - x;
-        const yb = h - 1 - y;
-        let j = (y * w + x) * 4;
-        data[j] = Math.round(128 + nx * m * 127);
-        data[j + 1] = Math.round(128 + ny * m * 127);
-        data[j + 2] = 0;
-        data[j + 3] = 255;
-        j = (y * w + xr) * 4;
-        data[j] = Math.round(128 - nx * m * 127);
-        data[j + 1] = Math.round(128 + ny * m * 127);
-        data[j + 2] = 0;
-        data[j + 3] = 255;
-        j = (yb * w + x) * 4;
-        data[j] = Math.round(128 + nx * m * 127);
-        data[j + 1] = Math.round(128 - ny * m * 127);
-        data[j + 2] = 0;
-        data[j + 3] = 255;
-        j = (yb * w + xr) * 4;
-        data[j] = Math.round(128 - nx * m * 127);
-        data[j + 1] = Math.round(128 - ny * m * 127);
-        data[j + 2] = 0;
-        data[j + 3] = 255;
+    for (let q = 0; q < 4; q++) {
+      for (let y = 0; y < cz; y++) {
+        for (let x = 0; x < cz; x++) {
+          const i = (q * cz + y) * cz + x;
+          if (!con[i]) continue;
+          const m = maxAbs > 0 ? (cmag[i] as number) / maxAbs : 0;
+          const j = (cyOf(q, y) * w + cxOf(q, x)) * 4;
+          data[j] = Math.round(128 + (cnx[i] as number) * m * 127);
+          data[j + 1] = Math.round(128 + (cny[i] as number) * m * 127);
+          data[j + 2] = 0;
+          data[j + 3] = 255;
+        }
       }
     }
     for (const { y, mag, ny } of rows) {
@@ -587,22 +652,27 @@ export function physicalMap(w: number, h: number, r: number, p: LensParams, k = 
       mark.fill(0);
       let x = 0;
       for (; x < w; x++) {
-        const v = sdSuperRect(x + 0.5, y + 0.5, w, h, r, k);
+        const v = sd(x + 0.5, y + 0.5);
         out[x] = v;
         mark[x] = 1;
-        if (-v > bezel) break;
+        // The jump is only exact while both ends of the row carry the same corner: it resumes
+        // at the MIRROR of where the field left the bezel, and on a box whose two ends round
+        // differently the far band can reach further in than that mirror. So a mixed box walks
+        // the row whole (`x` ends at `w`, which leaves the second loop nothing to do) and a
+        // uniform one keeps the skip it has always taken.
+        if (-v > bezel && uniform) break;
       }
       for (let x2 = Math.max(w - 1 - x, x); x2 < w; x2++) {
-        out[x2] = sdSuperRect(x2 + 0.5, y + 0.5, w, h, r, k);
+        out[x2] = sd(x2 + 0.5, y + 0.5);
         mark[x2] = 1;
       }
     };
     const at = (row: Float64Array, mk: Uint8Array, x: number, y: number): number =>
       x < 0 || x >= w
-        ? sdSuperRect(x + 0.5, y + 0.5, w, h, r, k)
+        ? sd(x + 0.5, y + 0.5)
         : mk[x]
           ? (row[x] as number)
-          : sdSuperRect(x + 0.5, y + 0.5, w, h, r, k);
+          : sd(x + 0.5, y + 0.5);
     scan(-1, rowC[0]!, rowM[0]!);
     scan(0, rowC[1]!, rowM[1]!);
     for (let y = 0; y < h; y++) {
@@ -657,7 +727,7 @@ export function physicalMap(w: number, h: number, r: number, p: LensParams, k = 
    they never get the bend. */
 const glints = new Map<string, string>();
 
-export function glintMap(w: number, h: number, r: number, band: number, falloff: number, k: number): string {
+export function glintMap(w: number, h: number, r: number | Corners, band: number, falloff: number, k: number): string {
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
@@ -665,6 +735,13 @@ export function glintMap(w: number, h: number, r: number, band: number, falloff:
   if (!ctx) return "";
   const img = ctx.createImageData(w, h);
   const data = img.data;
+  // Four corners, the same way the displacement map takes them: a sheet's square edge must get
+  // no band and its rounded one must get the whole band, and one radius mirrored gave both the
+  // wrong answer at once.
+  const c = corners(r);
+  const uniform = sameCorners(c);
+  const maxR = Math.max(c[0], c[1], c[2], c[3]);
+  const sd = (x: number, y: number): number => sdCorners(x, y, w, h, c, k);
   // Feather inward; the half-pixel coverage ramp at the lip is the outer anti-alias. One
   // rounded byte per field value — every float below comes from the real SDF, so pixels that
   // share a depth share a byte and a span is a Uint32 fill (physicalMap's argument, one map
@@ -675,28 +752,28 @@ export function glintMap(w: number, h: number, r: number, band: number, falloff:
     const a = Math.pow(1 - t, falloff) * Math.min(1, inside + 1);
     return Math.round(Math.max(0, Math.min(1, a)) * 255);
   };
-  const cz = Math.ceil(Math.max(r, band)) + 2;
+  const cz = Math.ceil(Math.max(maxR, band)) + 2;
   if (w - 2 * cz >= 1 && h - 2 * cz >= 1) {
     __genPaths.glintAnalytic += 1;
     const u32 = new Uint32Array(data.buffer);
-    // ── one corner quadrant, mirrored as BYTES — an alpha has no sign to flip ──
-    for (let y = 0; y < cz; y++) {
-      for (let x = 0; x < cz; x++) {
-        const inside = -sdSuperRect(x + 0.5, y + 0.5, w, h, r, k);
-        if (inside < -0.5 || inside > band) continue;
-        const v = ((alphaOf(inside) << 24) | 0x00ffffff) >>> 0;
-        const xr = w - 1 - x;
-        const yb = h - 1 - y;
-        u32[y * w + x] = v;
-        u32[y * w + xr] = v;
-        u32[yb * w + x] = v;
-        u32[yb * w + xr] = v;
+    // ── the four corners, each on its own radius (the displacement map's own sentence) ──
+    const cxOf = (q: number, x: number): number => (q === 1 || q === 2 ? w - 1 - x : x);
+    const cyOf = (q: number, y: number): number => (q === 2 || q === 3 ? h - 1 - y : y);
+    for (let q = 0; q < 4; q++) {
+      for (let y = 0; y < cz; y++) {
+        for (let x = 0; x < cz; x++) {
+          const bx = cxOf(q, x);
+          const by = cyOf(q, y);
+          const inside = -sd(bx + 0.5, by + 0.5);
+          if (inside < -0.5 || inside > band) continue;
+          u32[by * w + bx] = ((alphaOf(inside) << 24) | 0x00ffffff) >>> 0;
+        }
       }
     }
     // ── spans: one field value per depth, read at a representative pure pixel ──
     const px = cz + 0.5;
     for (let y = 0; ; y++) {
-      const inside = -sdSuperRect(px, y + 0.5, w, h, r, k);
+      const inside = -sd(px, y + 0.5);
       if (inside > band) break;
       if (inside < -0.5) continue;
       const v = ((alphaOf(inside) << 24) | 0x00ffffff) >>> 0;
@@ -704,7 +781,7 @@ export function glintMap(w: number, h: number, r: number, band: number, falloff:
       u32.fill(v, (h - 1 - y) * w + cz, (h - 1 - y) * w + w - cz);
     }
     for (let x = 0; ; x++) {
-      const inside = -sdSuperRect(x + 0.5, cz + 0.5, w, h, r, k);
+      const inside = -sd(x + 0.5, cz + 0.5);
       if (inside > band) break;
       if (inside < -0.5) continue;
       const v = ((alphaOf(inside) << 24) | 0x00ffffff) >>> 0;
@@ -720,8 +797,13 @@ export function glintMap(w: number, h: number, r: number, band: number, falloff:
     for (let y = 0; y < h; y++) {
       let x = 0;
       for (; x < w; x++) {
-        const inside = -sdSuperRect(x + 0.5, y + 0.5, w, h, r, k);
-        if (inside > band) break;
+        const inside = -sd(x + 0.5, y + 0.5);
+        // The jump is exact only while both ends of the row carry the same corner — see the
+        // displacement map's own note. A mixed box walks the row whole instead.
+        if (inside > band) {
+          if (uniform) break;
+          continue;
+        }
         if (inside < -0.5) continue;
         const i = (y * w + x) * 4;
         data[i] = 255;
@@ -730,7 +812,7 @@ export function glintMap(w: number, h: number, r: number, band: number, falloff:
         data[i + 3] = alphaOf(inside);
       }
       for (let x2 = Math.max(w - 1 - x, x); x2 < w; x2++) {
-        const inside = -sdSuperRect(x2 + 0.5, y + 0.5, w, h, r, k);
+        const inside = -sd(x2 + 0.5, y + 0.5);
         if (inside < -0.5 || inside > band) continue;
         const i = (y * w + x2) * 4;
         data[i] = 255;
@@ -747,9 +829,12 @@ export function glintMap(w: number, h: number, r: number, band: number, falloff:
 /** Mint (or reuse) the glint mask for one box, in map pixels. The memo is dropped whole past
     a bound rather than LRU-tracked: distinct boxes on one page are few, and a data URL held
     by an element's own style survives the memo being emptied. */
-function acquireGlint(w: number, h: number, r: number, band: number, k: number): string {
+function acquireGlint(w: number, h: number, r: number | Corners, band: number, k: number): string {
   const falloff = tuning?.glintFalloff ?? glint.falloff;
-  const key = `${w}x${h}r${r}b${Math.round(band * 10)}f${falloff}k${k}z${tuningSerial}`;
+  // ALL FOUR CORNERS IN THE KEY (2026-09-12): two panes of one size whose corners differ need
+  // two masks, and without this the first one minted is handed to the second — which is how a
+  // bottom sheet and a card of the same box would have shared one band.
+  const key = `${w}x${h}r${corners(r).join("_")}b${Math.round(band * 10)}f${falloff}k${k}z${tuningSerial}`;
   const hit = glints.get(key);
   if (hit) return hit;
   const url = glintMap(w, h, r, band, falloff, k);
@@ -797,7 +882,7 @@ const el = (name: string, attrs: Record<string, string | number>): SVGElement =>
 function acquire(
   w: number,
   h: number,
-  r: number,
+  r: number | Corners,
   p: LensParams,
   fit: number,
   rim: { url: string; sat: number } | null,
@@ -806,7 +891,10 @@ function acquire(
       maps; without it the first one minted would be handed to the second. */
   k = 2,
 ): string | null {
-  const key = `${w}x${h}r${r}k${k}z${fit}b${p.bezel}t${p.thickness}i${p.ior}f${p.fringe}s${p.boost}q${tuningSerial}rs${rim ? rim.sat : 0}`;
+  // The corners are ALL of them, for the reason the exponent is here: two panes of one size
+  // whose corners are shaped differently need two maps, and a key that names one corner hands
+  // the first map to the second pane.
+  const key = `${w}x${h}r${corners(r).join("_")}k${k}z${fit}b${p.bezel}t${p.thickness}i${p.ior}f${p.fringe}s${p.boost}q${tuningSerial}rs${rim ? rim.sat : 0}`;
   const hit = filters.get(key);
   if (hit) {
     hit.users += 1;
@@ -1087,7 +1175,7 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
        * runner reads that one un-posed and hands it over rather than leaving it to be guessed
        * from a moving element.
        */
-      const target = (): { w: number; h: number; r: number; k: number; sealed: boolean; ringDown: boolean; glinted: boolean } | null => {
+      const target = (): { w: number; h: number; r: Corners; k: number; sealed: boolean; ringDown: boolean; glinted: boolean } | null => {
         const rect = node.getBoundingClientRect();
         const cs = getComputedStyle(node);
         /**
@@ -1146,7 +1234,10 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
           const h = parseFloat(node.style.getPropertyValue("--kui-fly-h"));
           const r = parseFloat(node.style.getPropertyValue("--kui-fly-r"));
           if (Number.isFinite(w) && Number.isFinite(h) && w >= 8 && h >= 8) {
-            return { w, h, r: Number.isFinite(r) ? r : 0, k, sealed, ringDown, glinted };
+            // The flight publishes ONE corner, because a panel in flight is a panel that rounds
+            // all four the same way — the anchored families' own geometry. A mixed-corner pane
+            // (a sheet) does not fly: it slides, with its box already settled.
+            return { w, h, r: corners(Number.isFinite(r) ? r : 0), k, sealed, ringDown, glinted };
           }
           // Published nothing readable — a reduced-motion open bails before writing these, and
           // a pane can carry the stamp for a frame before they land. Waiting is right: the old
@@ -1154,7 +1245,27 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
           return null;
         }
         if (rect.width < 8 || rect.height < 8) return null;
-        return { w: rect.width, h: rect.height, r: parseFloat(cs.borderTopLeftRadius) || 0, k, sealed, ringDown, glinted };
+        /* ALL FOUR, since 2026-09-12. This read `borderTopLeftRadius` alone and the two maps
+           mirrored it, which is right for every box that rounds uniformly and wrong for the
+           first one that does not: a bottom Sheet is 64.52/64.52/0/0 and got curved light on
+           the two square corners it presses against the window, while an inline-start sheet
+           read 0 and got a square map over corners it really paints. A corner is a property of
+           the corner, so it is read at the corner. */
+        const corner = (v: string): number => parseFloat(v) || 0;
+        return {
+          w: rect.width,
+          h: rect.height,
+          r: [
+            corner(cs.borderTopLeftRadius),
+            corner(cs.borderTopRightRadius),
+            corner(cs.borderBottomRightRadius),
+            corner(cs.borderBottomLeftRadius),
+          ],
+          k,
+          sealed,
+          ringDown,
+          glinted,
+        };
       };
 
       const measure = () => {
@@ -1178,7 +1289,7 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
         const scale = Math.min(1, MAP_CAP / Math.max(rect.width, rect.height));
         const w = Math.max(8, Math.round(rect.width * scale));
         const h = Math.max(8, Math.round(rect.height * scale));
-        const r = Math.min(Math.round(box.r * scale), Math.floor(Math.min(w, h) / 2));
+        const r = scaleCorners(box.r, scale, w, h);
         /**
          * The bezel and the glass depth are LENGTHS, so they are drawn in the map's own pixels
          * and then stretched with it. Left unscaled, an 18px lip on a 320-wide map stretched
@@ -1228,7 +1339,7 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
           const gScale = Math.min(1, Math.max(scale, Math.min(wanted, area)));
           const gw = Math.max(8, Math.round(rect.width * gScale));
           const gh = Math.max(8, Math.round(rect.height * gScale));
-          const gr = Math.min(Math.round(box.r * gScale), Math.floor(Math.min(gw, gh) / 2));
+          const gr = scaleCorners(box.r, gScale, gw, gh);
           const band = Math.max(1, bandCss * gScale);
           glintUrl = acquireGlint(gw, gh, gr, band, box.k);
         }
@@ -1317,7 +1428,7 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
         }
         const box = target();
         if (!box) return;
-        const key = `${box.w}x${box.h}r${box.r}`;
+        const key = `${box.w}x${box.h}r${box.r.join("_")}`;
         if (key === s.flightKey) return;
         s.flightKey = key;
         measure();

@@ -191,6 +191,92 @@ describe("the assembled generator is byte-identical to the frozen 2026-08-23 ora
   });
 });
 
+/* ── a box has FOUR corners (§10, 2026-09-12) ─────────────────────────────────────────────────
+   Both maps were built from `borderTopLeftRadius` alone and mirrored it, which is right for
+   every box that rounds uniformly and wrong for the first one that does not. Sheet is that box:
+   a bottom sheet is 64.52/64.52/0/0, flush to the window's edge, so its two square corners were
+   handed curved light and curved bend while an inline-start sheet read r=0 and got a square map
+   over the corners it actually paints.
+
+   THE ORACLE ABOVE CANNOT SEE THIS, and that is the point of writing these separately: it passes
+   a scalar, so it proves the uniform case to the byte and says nothing whatever about the mixed
+   one. A generator that read `c[0]` and mirrored it would pass every law up there. */
+describe("each corner is built on its own radius, not on the first one", () => {
+  /** One map's alpha channel, decoded. */
+  async function alphaOf(url: string, w: number, h: number): Promise<(x: number, y: number) => number> {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const c = document.createElement("canvas");
+    c.width = w;
+    c.height = h;
+    const ctx = c.getContext("2d")!;
+    ctx.drawImage(img, 0, 0);
+    const px = ctx.getImageData(0, 0, w, h);
+    return (x, y) => px.data[(y * w + x) * 4 + 3] ?? 0;
+  }
+
+  const W = 200;
+  const H = 120;
+  const BAND = 4;
+
+  it("a scalar and four equal corners are the SAME map — the identity the oracle assumes", () => {
+    // The bridge between the oracle's spelling and the one the hook now passes. Without it,
+    // "byte-identical" is a claim about a call signature nothing in the package uses any more.
+    const p = lens.regular;
+    expect(physicalMap(W, H, 24, p).url).toBe(physicalMap(W, H, [24, 24, 24, 24] as const, p).url);
+    expect(glintMap(W, H, 24, BAND, glint.falloff, 2)).toBe(
+      glintMap(W, H, [24, 24, 24, 24] as const, BAND, glint.falloff, 2),
+    );
+  });
+
+  it("a sheet's square corners take the band to the apex and its round ones do not", async () => {
+    /* THE FIXTURE IS THE DEFECT'S OWN SHAPE: rounded at the top, square at the bottom, which is
+       what a bottom sheet paints. The reading is at the four apex pixels, because that is where
+       the two answers are furthest apart and where neither can be mistaken for the other — a
+       square corner's apex sits ON the boundary and is lit, and a rounded corner's apex is
+       OUTSIDE the box entirely and is transparent. */
+    const sheet = await alphaOf(glintMap(W, H, [64, 64, 0, 0] as const, BAND, glint.falloff, 2), W, H);
+    expect(sheet(0, 0), "the top-left is rounded — its apex is outside the box").toBe(0);
+    expect(sheet(W - 1, 0), "the top-right is rounded — its apex is outside the box").toBe(0);
+    expect(sheet(0, H - 1), "the bottom-left is square — its apex is on the boundary").toBeGreaterThan(0);
+    expect(sheet(W - 1, H - 1), "the bottom-right is square — its apex is on the boundary").toBeGreaterThan(0);
+
+    /* The vacuity guard, and it is the half that catches the OLD generator: a mirrored `c[0]`
+       answers the all-round mask for this box, and a mirrored `c[3]` answers the all-square one.
+       Being different from both is what says the four corners were read separately. */
+    const round = glintMap(W, H, 64, BAND, glint.falloff, 2);
+    const square = glintMap(W, H, 0, BAND, glint.falloff, 2);
+    const mixed = glintMap(W, H, [64, 64, 0, 0] as const, BAND, glint.falloff, 2);
+    expect(mixed, "the mask mirrored the first corner — the whole box came out round").not.toBe(round);
+    expect(mixed, "the mask mirrored the last corner — the whole box came out square").not.toBe(square);
+  });
+
+  it("and the BEND reads the same four corners, not only the light", () => {
+    // The lens half of the same defect. Stated separately because the two maps are two
+    // generators: the glint's is an alpha and the displacement's carries a sign, and the repair
+    // had to land in both.
+    const p = lens.regular;
+    const mixed = physicalMap(W, H, [64, 64, 0, 0] as const, p).url;
+    expect(mixed, "the bend mirrored the first corner").not.toBe(physicalMap(W, H, 64, p).url);
+    expect(mixed, "the bend mirrored the last corner").not.toBe(physicalMap(W, H, 0, p).url);
+  });
+
+  it("the fallback path takes the four corners too — the small boxes, where the zones meet", () => {
+    /* The analytic path owns a box with a pure span; a box whose corner zones meet takes the
+       banded fallback, and the fallback is where the row scan JUMPS to the mirrored column. That
+       jump is exact only while both ends of a row carry the same corner, so a mixed box has to
+       walk the row whole — and a law that only ever exercised the analytic path would be a law
+       about the general case wearing the special one's name. 56x56 at r=28 is a capsule: the
+       oracle sweep above uses it for exactly this reason. */
+    const before = __genPaths.glintBanded;
+    const mixed = glintMap(56, 56, [28, 28, 0, 0] as const, BAND, glint.falloff, 2);
+    expect(__genPaths.glintBanded, "this box did not take the fallback — the law proves nothing").toBeGreaterThan(before);
+    expect(mixed, "the fallback mirrored one corner").not.toBe(glintMap(56, 56, 28, BAND, glint.falloff, 2));
+    expect(mixed, "the fallback mirrored one corner").not.toBe(glintMap(56, 56, 0, BAND, glint.falloff, 2));
+  });
+});
+
 /* ── the seal: under reduced transparency the hook builds NOTHING (§10, 2026-08-24) ──────
    surfaces.css calls the preference "an accessibility requirement and a performance escape in
    one", and until this law's subject existed only the CSS half of the escape did: the pane
