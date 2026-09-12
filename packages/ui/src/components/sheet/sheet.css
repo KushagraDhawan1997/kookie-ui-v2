@@ -1,0 +1,197 @@
+/* Sheet (§10, §11, §24). The panel is a surface — fill, edge, glass, padding and the overlay
+   band's corner all arrive from surfaces.css through `kui-surface kui-overlay`, exactly as a
+   dialog's do. What is left for this sheet is what an EDGE panel owns: the scrim on the drawer's
+   clock, where the panel stands, which corners it keeps, the safe areas it pads, and the slide.
+
+   Like Dialog it declares no shadow: the scrim is the separation, and the world's ordinary
+   surface chrome reaches the panel by inheritance. Per-size spellings live in the shared overlay
+   join; nothing here names `data-size`. */
+
+/* ── The scrim ────────────────────────────────────────────────────────────────────────────
+   Dialog's recipe (dialog.css), self-keyed: the same fill, the same filter, the same stand-down
+   under reduced transparency. Its clock is the SLIDE's rather than the dialog's quick reveal,
+   because the app going back and the panel coming in are one progress (§27's drawer sentence:
+   "one clock for the slide, the recession and the scrim"). While a finger drags the panel, Base
+   UI publishes how far it has gone as `--drawer-swipe-progress`, and the dim follows the finger
+   with no clock at all. */
+.kui-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: var(--scrim-fill);
+  backdrop-filter: var(--scrim-filter, none);
+  opacity: calc(1 - var(--drawer-swipe-progress, 0));
+  transition: opacity var(--motion-drawer) var(--motion-easing);
+}
+.kui-sheet-backdrop[data-swiping] {
+  transition-duration: 0s;
+}
+.kui-sheet-backdrop[data-starting-style],
+.kui-sheet-backdrop[data-ending-style] {
+  opacity: 0;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .kui-sheet-backdrop {
+    background-color: var(--scrim-fill-high);
+    backdrop-filter: none;
+  }
+}
+
+/* ── The viewport: the whole window, and the swipe surface ────────────────────────────────
+   Base UI's positioning container. It holds no gutter — a sheet is flush to its edge — and it
+   takes the soft keyboard's inset from Base UI's keyboard provider, so a bottom sheet rises
+   above a phone keyboard rather than under it. */
+.kui-sheet-viewport {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  padding-block-end: var(--drawer-keyboard-inset, 0);
+}
+
+/* ── The panel ────────────────────────────────────────────────────────────────────────────
+   A column whose body scrolls (see the body below), resting at Base UI's swipe offset. The
+   offset is zero at rest; while a finger drags, Base UI writes an inline transform that beats
+   this declaration, and on release it hands back the offset for the spring to settle from. */
+.kui-sheet-popup {
+  display: flex;
+  flex-direction: column;
+  /* A panel holding focus is a mode; its controls carry the ring (Dialog's sentence). */
+  outline: none;
+  transform: translate(var(--drawer-swipe-movement-x, 0), var(--drawer-swipe-movement-y, 0));
+  /* The drawer's own clock and curve (§27, `shellDrawer` and `carried`): critically damped from
+     rest, so a panel a screen's height long gathers and settles rather than snapping to the
+     middle and creeping. Base UI scales the duration by how hard a swipe was released. */
+  transition: transform calc(var(--motion-drawer) * var(--drawer-swipe-strength, 1))
+    var(--motion-spring-carried);
+}
+.kui-sheet-popup[data-swiping] {
+  user-select: none;
+}
+
+/* BOTTOM: content-tall, stopped one touch target short of the top so a strip of scrim stays
+   tappable (the Shell's cap and Dialog's narrow arm, for their reason), and never wider than
+   the overlay width its index designed — a bottom sheet on a wide window is a task, not a
+   banner across the whole screen (Material's and iPadOS's sheets both stop). Centred by auto
+   margins; the bottom edge is the window's, so its two corners are square.
+
+   THE TOP SAFE AREA IS PART OF THE RESERVE (2026-09-12, the ship audit), and leaving it out
+   made the cap's own reason false. Under `viewport-fit=cover` the viewport is the whole glass,
+   status bar included, so `100% - 44px` put the panel's top edge at y=44 on a phone with a
+   59px inset — the top of the sheet inside the status-bar band, and the tappable strip of
+   scrim lying ENTIRELY under it, where the system takes the touch. The strip has to be
+   reachable, not merely present, so the reserve is the unsafe band PLUS a target rather than a
+   target measured from the glass. Added and not `max()`ed, for the same reason: these are two
+   different distances that stack, where the body's paddings below are one distance that must
+   clear the larger of two. `env()` is 0 wherever it does not apply, so every other device
+   computes exactly what it did before. */
+.kui-sheet-popup[data-side="bottom"] {
+  margin-block-start: auto;
+  margin-inline: auto;
+  inline-size: 100%;
+  max-inline-size: var(--kui-overlay-w);
+  max-block-size: calc(100% - (env(safe-area-inset-top) + var(--touch-target-min)));
+  border-end-start-radius: var(--radius-0);
+  border-end-end-radius: var(--radius-0);
+}
+
+/* INLINE: the window's height, and the index's overlay width — the lesser of that and the room
+   a touch target short of the window, so a size-4 sheet on a phone still leaves a way out. The
+   edge it sits against keeps no corners. */
+.kui-sheet-popup[data-side="inline-end"],
+.kui-sheet-popup[data-side="inline-start"] {
+  inline-size: 100%;
+  max-inline-size: min(var(--kui-overlay-w), calc(100% - var(--touch-target-min)));
+}
+.kui-sheet-popup[data-side="inline-end"] {
+  margin-inline-start: auto;
+  border-start-end-radius: var(--radius-0);
+  border-end-end-radius: var(--radius-0);
+}
+.kui-sheet-popup[data-side="inline-start"] {
+  margin-inline-end: auto;
+  border-start-start-radius: var(--radius-0);
+  border-end-start-radius: var(--radius-0);
+}
+
+/* ── The body: the one box allowed to scroll ──────────────────────────────────────────────
+   Dialog's narrow arm, whole: the padding moves INTO the scroller so a focus ring at the edge is
+   not clipped (a scroll container clips at its padding box), by the shared bleed spelling. */
+.kui-sheet-popup .kui-sheet-body {
+  flex: 1;
+  min-block-size: 0;
+  overflow-y: auto;
+  margin: calc(-1 * var(--kui-sf-p));
+  padding: var(--kui-sf-p);
+}
+
+/* The safe areas, on the edges the window owns. Keyed on Base UI's PHYSICAL swipe direction
+   because `env(safe-area-inset-*)` is physical: a home indicator is at the bottom whatever the
+   language, and a notch is on the left or the right of the glass. The env() values are zero
+   wherever they do not apply, so each max() is the pane's own padding everywhere else. */
+.kui-sheet-popup[data-swipe-direction="down"] .kui-sheet-body {
+  padding-block-end: max(var(--kui-sf-p), env(safe-area-inset-bottom));
+}
+.kui-sheet-popup[data-swipe-direction="right"] .kui-sheet-body,
+.kui-sheet-popup[data-swipe-direction="left"] .kui-sheet-body {
+  padding-block-start: max(var(--kui-sf-p), env(safe-area-inset-top));
+  padding-block-end: max(var(--kui-sf-p), env(safe-area-inset-bottom));
+}
+.kui-sheet-popup[data-swipe-direction="right"] .kui-sheet-body {
+  padding-right: max(var(--kui-sf-p), env(safe-area-inset-right));
+}
+.kui-sheet-popup[data-swipe-direction="left"] .kui-sheet-body {
+  padding-left: max(var(--kui-sf-p), env(safe-area-inset-left));
+}
+
+/* ── The slide: in from the edge it was parked behind ─────────────────────────────────────
+   Its own box is the distance, a length CSS already has, so this measures nothing and needs no
+   runner — the Shell drawer's reading. Keyed on the physical direction for the reason the safe
+   areas are: a translate is physical. Leaving is the same distance on the same clock, which is
+   also where a swipe-dismissed panel continues from wherever the finger let it go. */
+.kui-sheet-popup[data-swipe-direction="down"][data-starting-style],
+.kui-sheet-popup[data-swipe-direction="down"][data-ending-style] {
+  transform: translateY(100%);
+}
+.kui-sheet-popup[data-swipe-direction="right"][data-starting-style],
+.kui-sheet-popup[data-swipe-direction="right"][data-ending-style] {
+  transform: translateX(100%);
+}
+.kui-sheet-popup[data-swipe-direction="left"][data-starting-style],
+.kui-sheet-popup[data-swipe-direction="left"][data-ending-style] {
+  transform: translateX(-100%);
+}
+
+/* A leaving panel and its scrim are not targets (the overlay family's 2026-08-22 stand-down,
+   stated for this family's own classes). */
+.kui-sheet-popup[data-ending-style],
+.kui-sheet-backdrop[data-ending-style] {
+  pointer-events: none;
+}
+
+/* ── The narrow window (§18): a bottom sheet is the window's width ───────────────────────
+   The overlay width is a reading-measure cap for a roomy window; on a phone a centred sheet
+   narrower than the glass would read as a card that fell. The boundary is the system's one
+   definition, `narrowMedia` — Dialog's sheet arm uses the same literal. */
+@media (max-width: 48rem) {
+  .kui-sheet-popup[data-side="bottom"] {
+    max-inline-size: none;
+  }
+}
+
+/* ── Reduced motion: present and gone ────────────────────────────────────────────────────
+   Weighed at each recipe's own specificity, the stand-down's rule (surfaces.css). A drag still
+   follows the finger — that is direct manipulation, not motion the system adds. */
+@media (prefers-reduced-motion: reduce) {
+  .kui-sheet-popup,
+  .kui-sheet-backdrop {
+    transition: none;
+  }
+  .kui-sheet-popup[data-swipe-direction][data-starting-style],
+  .kui-sheet-popup[data-swipe-direction][data-ending-style] {
+    transform: none;
+  }
+  .kui-sheet-backdrop[data-starting-style],
+  .kui-sheet-backdrop[data-ending-style] {
+    opacity: 1;
+  }
+}

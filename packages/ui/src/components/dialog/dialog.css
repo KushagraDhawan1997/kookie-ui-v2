@@ -136,9 +136,14 @@
    - The GUTTER goes. A sheet is the window's width, so the viewport's inset would fight it.
    - The CAP. Pinned to the bottom with no maximum, a tall panel runs off the top of the
      screen with no way back — so it stops one touch target short, which is the Shell's own
-     rule (`calc(100% - var(--touch-target-min))`) and its own reason: a strip of scrim must
-     stay tappable or there is no route out. That cap is also what makes the sheet a sheet
-     rather than a full-screen page.
+     rule and its own reason: a strip of scrim must stay tappable or there is no route out.
+     That cap is also what makes the sheet a sheet rather than a full-screen page. The reserve
+     INCLUDES the top safe area (2026-09-12, the Sheet ship audit, which found the identical
+     cap in both files): under `viewport-fit=cover` the viewport is the whole glass, so a bare
+     `100% - 44px` put the panel's top edge at y=44 on a phone with a 59px inset and left the
+     whole tappable strip inside the status-bar band, where the system takes the touch. The
+     strip has to be reachable, not merely present. `env()` is 0 wherever it does not apply, so
+     every other device computes what it did before.
    - The BODY scrolls, because the cap obliges it. A pane clips (§3), so a capped panel whose
      content overflows would DELETE the overflow — the defect closed 2026-08-21, walked into
      again by a rule written one day later. The panel becomes a column and the body takes the
@@ -167,7 +172,7 @@
        a margin, not a corner. */
     margin-block-end: 0;
     max-inline-size: none;
-    max-block-size: calc(100% - var(--touch-target-min));
+    max-block-size: calc(100% - (env(safe-area-inset-top) + var(--touch-target-min)));
     /* The knob has to be restated, not dropped. The surface layer's own corner is
        `calc(--kui-sf-radius * --kui-corner-k)` — the squircle multiplier lives in the
        arithmetic, not in the token — so a bare `var(--kui-sf-radius)` here quietly draws a
