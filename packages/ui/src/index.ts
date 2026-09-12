@@ -26,6 +26,7 @@ export { Checkbox, type CheckboxProps } from "./components/checkbox/checkbox.tsx
 export { Code, type CodeProps } from "./components/code/code.tsx";
 export { CodeBlock, type CodeBlockProps } from "./components/code-block/code-block.tsx";
 export { Field, FieldItem, FieldLabel, FieldDescription, FieldError, type FieldProps, type FieldItemProps, type FieldLabelProps, type FieldDescriptionProps, type FieldErrorProps } from "./components/field/field.tsx";
+export { Combobox, ComboboxInput, ComboboxContent, ComboboxList, ComboboxCollection, ComboboxItem, ComboboxGroup, ComboboxLabel, ComboboxEmpty, type ComboboxProps, type ComboboxOption, type ComboboxOptionGroup, type ComboboxInputProps, type ComboboxContentProps, type ComboboxListProps, type ComboboxCollectionProps, type ComboboxItemProps, type ComboboxGroupProps, type ComboboxLabelProps, type ComboboxEmptyProps } from "./components/combobox/combobox.tsx";
 export { Command, CommandTrigger, CommandContent, CommandInput, CommandList, CommandGroup, CommandGroupLabel, CommandCollection, CommandItem, CommandEmpty, type CommandProps, type CommandTriggerProps, type CommandContentProps, type CommandInputProps, type CommandListProps, type CommandGroupProps, type CommandItemProps, type CommandGroupLabelProps, type CommandCollectionProps, type CommandEmptyProps } from "./components/command/command.tsx";
 export { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription, DialogClose, type DialogProps, type DialogTriggerProps, type DialogContentProps, type DialogTitleProps, type DialogDescriptionProps, type DialogCloseProps } from "./components/dialog/dialog.tsx";
 // The overlay family's `onOpenChange` second argument, forwarded 2026-08-26 (ultracode audit).
@@ -39,6 +40,7 @@ export type { OverlayOpenChangeReason, OverlayOpenChangeDetails } from "./system
 export { Heading, type HeadingProps } from "./components/heading/heading.tsx";
 export { Kbd, type KbdProps } from "./components/kbd/kbd.tsx";
 export { Link, type LinkProps } from "./components/link/link.tsx";
+export { List, ListItem, type ListProps, type ListItemProps } from "./components/list/list.tsx";
 export { ContextMenu, ContextMenuTrigger, ContextMenuContent, type ContextMenuProps, type ContextMenuTriggerProps, type ContextMenuContentProps } from "./components/menu/menu.tsx";
 export { Menu, MenuTrigger, MenuContent, MenuItem, MenuGroup, MenuLabel, MenuCheckboxItem, MenuRadioGroup, MenuRadioItem, MenuSub, MenuSubTrigger, MenuSubContent, type MenuProps, type MenuTriggerProps, type MenuContentProps, type MenuItemProps, type MenuGroupProps, type MenuLabelProps, type MenuCheckboxItemProps, type MenuRadioGroupProps, type MenuRadioItemProps, type MenuSubProps, type MenuSubTriggerProps, type MenuSubContentProps } from "./components/menu/menu.tsx";
 export { Select, SelectTrigger, SelectContent, SelectItem, SelectGroup, SelectLabel, type SelectProps, type SelectTriggerProps, type SelectContentProps, type SelectItemProps, type SelectGroupProps, type SelectLabelProps } from "./components/select/select.tsx";
@@ -54,6 +56,7 @@ export {
   type ComposerStatus,
 } from "./components/composer/composer.tsx";
 export { Notice, type NoticeProps } from "./components/notice/notice.tsx";
+export { NumberField, type NumberFieldProps } from "./components/number-field/number-field.tsx";
 export { Page, type PageProps } from "./components/page/page.tsx";
 export {
   Toolbar,
@@ -74,6 +77,7 @@ export { Popover, PopoverTrigger, PopoverContent, PopoverTitle, PopoverDescripti
 export { Progress, type ProgressProps } from "./components/progress/progress.tsx";
 export { Radio, RadioGroup, type RadioProps, type RadioGroupProps } from "./components/radio/radio.tsx";
 export { Separator, type SeparatorProps } from "./components/separator/separator.tsx";
+export { Sheet, SheetTrigger, SheetContent, SheetTitle, SheetDescription, SheetClose, type SheetProps, type SheetTriggerProps, type SheetContentProps, type SheetTitleProps, type SheetDescriptionProps, type SheetCloseProps, type SheetSide, type SheetOpenChangeReason, type SheetOpenChangeDetails } from "./components/sheet/sheet.tsx";
 export { SegmentedControl, SegmentedItem, type SegmentedControlProps, type SegmentedItemProps } from "./components/segmented-control/segmented-control.tsx";
 export { Row, type RowProps } from "./components/row/row.tsx";
 export { Tree, NavTree, type TreeProps, type NavTreeProps, type TreeNode } from "./components/tree/tree.tsx";
