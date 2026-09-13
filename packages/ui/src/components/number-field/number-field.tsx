@@ -4,14 +4,13 @@ import type { ComponentRefusals } from "../../system/refused.ts";
 import { NumberField as BaseNumberField } from "@base-ui/react/number-field";
 import * as React from "react";
 
-import type { Size, SlotName } from "../../system/axes.ts";
+import type { Size } from "../../system/axes.ts";
 import { GLYPH_VIEWBOX } from "../../system/glyphs.ts";
 import { useMergedRefs } from "../../system/render.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { useSize } from "../../system/size.ts";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { glyphStroke } from "../../tokens/config.ts";
-import { Button, type ButtonProps } from "../button/button.tsx";
 
 type RootProps = BaseNumberField.Root.Props;
 
@@ -347,48 +346,62 @@ export function NumberField({
           `data-slot` ATTRIBUTE rather than on a position — the pill correction, the slot inset,
           the hosted geometry and the focus ring are all attribute or child selectors. */}
       <BaseNumberField.Input ref={setInput} className="kui-field-input kui-number-field-input" {...inputProps} />
-      <span className="kui-field-slot" data-slot={"leading" satisfies SlotName}>
-        <GlassScope material={material}>
-          <BaseNumberField.Decrement
-            // A render FUNCTION rather than an element, because the disabled state lives in
-            // Base UI's state (the bound, and read-only) and a Button has to be told it to stop
-            // looking pressable. `focusableWhenDisabled` keeps Base UI's own branch — a stepper
-            // that goes natively disabled mid-hold would drop the press it is in.
-            render={(props, state) => (
-              <Button
-                {...(props as ButtonProps)}
-                size={size}
-                emphasis="quiet"
-                iconOnly
-                aria-label={decrementLabel}
-                disabled={state.disabled || state.readOnly}
-                focusableWhenDisabled
-              >
-                {minusGlyph()}
-              </Button>
-            )}
-          />
-        </GlassScope>
-      </span>
-      <span className="kui-field-slot" data-slot={"trailing" satisfies SlotName}>
-        <GlassScope material={material}>
-          <BaseNumberField.Increment
-            render={(props, state) => (
-              <Button
-                {...(props as ButtonProps)}
-                size={size}
-                emphasis="quiet"
-                iconOnly
-                aria-label={incrementLabel}
-                disabled={state.disabled || state.readOnly}
-                focusableWhenDisabled
-              >
-                {plusGlyph()}
-              </Button>
-            )}
-          />
-        </GlassScope>
-      </span>
+      <GlassScope material={material}>
+        {/* A ZONE, NOT A HOSTED BUTTON (2026-09-13, Kushagra: "the button being used as is is
+            wrong… the right layout is ( - | 12 | + ) so that the ( - | button is the entire
+            button area, with hover and click spanning entire left and right block").
+
+            Measured before the change, at size 2: a 20 x 20 button inset 4px on every side of a
+            256 x 28 field, so a press 3px inside the field's own edge landed on the FIELD. The
+            hosted-control rule (§4) put it there and was right to — that rule exists for a
+            control a CALL SITE hosts in a field, where the field's box is the container and the
+            button is a guest that must not touch its walls. These two are not guests: the
+            component places them, they are the only way to work it with a pointer, and what
+            they divide is the field's own box. So the field is three zones edge to edge, and the
+            hit area is the block rather than a square floating inside it.
+
+            And the MOTION was the same mistake from the other side. `.kui-button` is what
+            travels (button.css): it rises to the pointer and sinks 1px into the page on press,
+            because a button sits ON a surface and pressing it puts it INTO that surface. A zone
+            inside a contained box has nowhere to go — measured, the stepper rose 0.989px on
+            hover and sank 2px on press, carrying its glyph away from the value beside it. The
+            repair is structural rather than an override: these wear `kui-control` and NOT
+            `kui-button`, so the fill states, the disabled remap and the cursor all arrive and
+            the travel never does. That is the segmented control's own arrangement, which is the
+            component this most resembles — segments in a track, lighting without moving. */}
+        <BaseNumberField.Decrement
+          // A render FUNCTION rather than an element: the disabled state lives in Base UI's
+          // state (the bound, and read-only), and `focusableWhenDisabled` is Base UI's own
+          // branch — a stepper that went natively disabled mid-hold would drop the press it is
+          // in. It sits on the part, which is where that prop's contract lives.
+          render={(props, state) => (
+            <button
+              type="button"
+              {...(props as React.ComponentPropsWithoutRef<"button">)}
+              className="kui-control kui-number-field-step"
+              data-step="decrement"
+              aria-label={decrementLabel}
+              disabled={state.disabled || state.readOnly}
+            >
+              {minusGlyph()}
+            </button>
+          )}
+        />
+        <BaseNumberField.Increment
+          render={(props, state) => (
+            <button
+              type="button"
+              {...(props as React.ComponentPropsWithoutRef<"button">)}
+              className="kui-control kui-number-field-step"
+              data-step="increment"
+              aria-label={incrementLabel}
+              disabled={state.disabled || state.readOnly}
+            >
+              {plusGlyph()}
+            </button>
+          )}
+        />
+      </GlassScope>
     </BaseNumberField.Root>
   );
 }

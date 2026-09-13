@@ -56,10 +56,134 @@
   min-inline-size: 3ch;
 }
 
-/* The steppers are PLACED here and written last (see the DOM-order comment in number-field.tsx):
-   decrease sits at the leading edge, and the input is the first labelable child so a wrapping
-   `<label>` names the value rather than a button. `order` is direction-agnostic — it runs along
-   the flex main axis, which flips with `dir`, so RTL needs nothing of its own. */
-.kui-number-field > [data-slot="leading"] {
+/* THE FIELD IS THREE ZONES, EDGE TO EDGE (2026-09-13). The skeleton pads a control for a
+   LABEL, and this control's content is two blocks and a value — the segmented control's own
+   sentence about a track. The zones reach the border, so the inline padding stands down here
+   and the INPUT carries its own breathing room instead. Block padding is untouched: the zones
+   stretch to the field's full height and the value sits between them. */
+.kui-number-field {
+  padding-inline: 0;
+}
+
+.kui-number-field > .kui-number-field-input {
+  padding-inline: var(--kui-ct-px);
+}
+
+/* The steppers are PLACED, not ordered by the DOM (see the zone comment in number-field.tsx):
+   decrease sits at the leading edge, and the input is written FIRST so a wrapping `<label>`
+   binds to the value rather than to a button. `order` runs along the flex main axis, which
+   flips with `dir`, so RTL needs nothing of its own. */
+.kui-number-field > [data-step="decrement"] {
   order: -1;
+}
+
+.kui-number-field > .kui-number-field-step {
+  /* The whole block, which is the point: full height by stretching, and a SQUARE end by
+     deriving the width from the field's own height rather than minting a ladder that would
+     drift from it. */
+  align-self: stretch;
+  flex: none;
+  inline-size: var(--kui-ct-h);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  /* AND IT MUST NOT GROW THE FIELD (the segmented track's D2, verbatim — 2026-09-13). The
+     skeleton gives every control `min-height: var(--kui-ct-h)` under `box-sizing: border-box`,
+     and a stretched zone demands that as its OWN box: measured, the field went 28 -> 30 in every
+     cell, because the rung's height became the field's CONTENT height and the field's own border
+     sat outside it. The zone is inside that border, so what stands between it and the rung is
+     exactly the two hairlines. Subtracting them is the same sentence the segmented control
+     writes about its inset, one component over — and it keeps `min-height` rather than `height`
+     for the skeleton's own reason: a hard height clips a 200%-resized glyph. */
+  min-height: calc(var(--kui-ct-h) - 2 * var(--border-width));
+
+  /* The glyph reads as an adornment at rest, like the slots it replaces. The shared icon rule
+     sizes it through `--kui-ct-icon` off the field's own index. */
+  --kui-ct-label-color: var(--color-text-muted);
+  color: var(--kui-ct-label-color);
+
+  /* A zone is pressable where the field is typeable: the field re-points the skeleton's
+     pointer cursor to a caret, and the zones take it back for their own box. */
+  cursor: pointer;
+
+  /* The field draws the boundary; a zone inside it draws none of its own, except the one
+     hairline that faces the value (below). Stood down by WIDTH rather than by colour — naming
+     the painted variable is what the component-sheet law forbids (the checkbox audit's defect
+     (a)). The spelling is deliberately not load-bearing: the minifier rewrites these two
+     direction-agnostic logical widths into the physical `border-width: 0` shorthand, so what
+     makes the divider below survive is that it states its own SIDE in longhands and comes
+     later — not that this declaration is logical. */
+  border-block-width: 0;
+  border-inline-width: 0;
+
+  /* THE ZONE LIGHTS, AND IT IS THE QUIET RUNG THAT LIGHTS (recipes.css's own three sources).
+     Both boxes answer the pointer — the field is a control too — so a zone that stepped to the
+     field's own hover value would be invisible as a target. The quiet rung is the vocabulary
+     for exactly this: bare at rest so the field's fill shows through, `--tone-soft` under the
+     pointer, one step deeper while held. It is the ALPHA ramp, so it composites over whatever
+     the field is painted with and stays correct on glass, where an opaque step would not.
+
+     All three sources, the field's own lesson (§8): a rule that declared only rest would fall
+     back to the rung's values mid-gesture. The first spelling gave hover and press the same
+     token and shipped a zone with no press feedback at all — measured identical fills through
+     the whole gesture. */
+  --kui-ct-fill-src: transparent;
+  --kui-ct-fill-src-hover: var(--tone-soft);
+  --kui-ct-fill-src-active: var(--tone-soft-hover);
+
+  /* Concentric on the outside, flush on the inside (§6): the outer corners follow the field's
+     own curve less the border between them, and the edges that meet the value are square,
+     because a zone is a division of one box rather than a box beside another. `max()` is the
+     guard `radius="none"` needs, spelled as "never subtract more corner than there is". */
+  border-start-start-radius: calc(max(var(--kui-ct-radius), var(--border-width)) - var(--border-width));
+  border-end-start-radius: calc(max(var(--kui-ct-radius), var(--border-width)) - var(--border-width));
+  border-start-end-radius: var(--radius-0);
+  border-end-end-radius: var(--radius-0);
+}
+
+/* The trailing zone is the mirror: its OUTER corners are the ones at the end of the line. */
+.kui-number-field > [data-step="increment"] {
+  border-start-start-radius: var(--radius-0);
+  border-end-start-radius: var(--radius-0);
+  border-start-end-radius: calc(max(var(--kui-ct-radius), var(--border-width)) - var(--border-width));
+  border-end-end-radius: calc(max(var(--kui-ct-radius), var(--border-width)) - var(--border-width));
+}
+
+/* The pipes in ( - | 12 | + ): one hairline per zone, on the edge that faces the value.
+ *
+ * IT READS THE FIELD FAMILY'S OWN CHAIN, NOT THE PAINTED VARIABLE, and that is the whole of
+ * why the first two spellings drew nothing (2026-09-13). `--kui-border-color` is registered
+ * `inherits: false` on purpose — recipes.css says so where it registers it, because
+ * `[data-bordered]` declares it on the control and a descendant must not inherit the boundary
+ * its container is drawing. On a zone it therefore resolves to the guaranteed-invalid initial,
+ * which makes `border-inline-end: var(--border-width) solid var(--kui-border-color)` INVALID AT
+ * COMPUTED-VALUE TIME — and an invalid shorthand takes its whole declaration with it, which is
+ * why the measured style was `none` and not merely the width being zero. The chain below is the
+ * one the field's own border rule uses (recipes.css, the field-family arm), resolved HERE at the
+ * element: glass lip first, then the field's dress edge, then the tone role. Every name in it
+ * inherits, and none of them is the painted variable a component sheet may not mention.
+ *
+ * LONGHANDS, not the shorthand, for the second half of the same lesson: one invalid term in a
+ * shorthand silently drops the sides and the style with it, and the minifier merges
+ * direction-agnostic logical WIDTHS into the physical shorthand (it rewrote this file's
+ * `border-inline-width: 0` to `border-width: 0`), so a per-side longhand written last is the
+ * only spelling that reliably survives both. */
+.kui-number-field > [data-step="decrement"] {
+  border-inline-end-width: var(--border-width);
+  border-inline-end-style: solid;
+  border-inline-end-color: var(--kui-ct-glass-edge, var(--dress-field-edge, var(--tone-border)));
+}
+
+.kui-number-field > [data-step="increment"] {
+  border-inline-start-width: var(--border-width);
+  border-inline-start-style: solid;
+  border-inline-start-color: var(--kui-ct-glass-edge, var(--dress-field-edge, var(--tone-border)));
+}
+
+/* At a bound, or in a read-only field, the zone stops promising a press — it keeps its box and
+   its divider so nothing shifts, and loses the hand and the light. The shared disabled remap
+   flattens the glyph with the rest of the control. */
+.kui-number-field > .kui-number-field-step:disabled {
+  cursor: default;
 }
