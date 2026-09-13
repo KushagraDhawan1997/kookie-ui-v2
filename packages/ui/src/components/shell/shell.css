@@ -1490,8 +1490,11 @@
   pointer-events: none;
 }
 
-.kui-pane-header[data-float] > *,
-.kui-pane-footer[data-float] > * {
+/* A toolbar is excluded: it paints nothing either and hands the pointer to its own children
+   (toolbar.css). Taking it back here at (0,2,0) beat that rule and made the whole row catch
+   clicks again. */
+.kui-pane-header[data-float] > :not(.kui-toolbar),
+.kui-pane-footer[data-float] > :not(.kui-toolbar) {
   pointer-events: auto;
 }
 

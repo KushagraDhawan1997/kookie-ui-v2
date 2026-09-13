@@ -39,6 +39,11 @@ const InToolbarGroup = React.createContext(false);
  */
 const InOverflow = React.createContext(false);
 
+/* The axis the toolbar's arrow keys walk, for the one control that has to know it: a menu
+   button in a VERTICAL toolbar. Base UI's menu trigger opens on ArrowDown/ArrowUp whatever it
+   sits in, so in a column those keys opened the menu instead of moving to the next control. */
+const ToolbarOrientation = React.createContext<"horizontal" | "vertical">("horizontal");
+
 /**
  * True while this subtree is being drawn into a `ToolbarOverflow`'s menu instead of into the row.
  *
@@ -142,6 +147,7 @@ export function Toolbar({
       {...props}
     >
       <SizeScopeContext.Provider value={size}>
+        <ToolbarOrientation.Provider value={orientation}>
         {/* The region mark rides context, not the DOM — Box's own mechanism, for Box's own
             reason: components resolve their material in React, so an attribute here would be a
             second and unread home for one fact. Nothing is provided when nothing is said, so a
@@ -151,6 +157,7 @@ export function Toolbar({
         ) : (
           <BackdropContext.Provider value={backdrop}>{children}</BackdropContext.Provider>
         )}
+        </ToolbarOrientation.Provider>
       </SizeScopeContext.Provider>
     </BaseToolbar.Root>
   );
@@ -496,7 +503,20 @@ export function ToolbarButton(props: ToolbarButtonProps) {
   // Both contexts are read before either branch: a hook that runs on one path and not the other
   // is the oldest way to break a component.
   const overflow = React.use(InOverflow);
+  const orientation = React.use(ToolbarOrientation);
   const emphasis = props.emphasis ?? (hosted ? ("quiet" as const) : undefined);
+
+  // In a column, Up and Down belong to the toolbar. A menu trigger rendering this hands its
+  // open-on-arrow handler in through `onKeyDown`; those two keys skip it and bubble to the
+  // toolbar's own navigation instead.
+  const incomingKeyDown = (props as { onKeyDown?: React.KeyboardEventHandler<HTMLElement> }).onKeyDown;
+  const onKeyDown =
+    orientation === "vertical" && incomingKeyDown
+      ? (event: React.KeyboardEvent<HTMLElement>) => {
+          if (event.key === "ArrowDown" || event.key === "ArrowUp") return;
+          incomingKeyDown(event);
+        }
+      : incomingKeyDown;
 
   /* IN THE MENU IT IS A ROW, and it already carries everything a row needs. An icon-only control
      in a band says its name in `aria-label` because there is nowhere else to put it — which is
@@ -543,7 +563,13 @@ export function ToolbarButton(props: ToolbarButtonProps) {
       // anchor. Base UI warns loudly on the mismatch, and warned here — every law in this file
       // was green throughout, because none of them read what the element ANNOUNCES.
       nativeButton={render === undefined ? true : rootsInButton(render)}
-      render={<Button {...(props as ButtonProps)} {...(emphasis ? { emphasis } : {})} />}
+      render={
+        <Button
+          {...(props as ButtonProps)}
+          {...(emphasis ? { emphasis } : {})}
+          {...(onKeyDown ? { onKeyDown } : {})}
+        />
+      }
     />
   );
 }

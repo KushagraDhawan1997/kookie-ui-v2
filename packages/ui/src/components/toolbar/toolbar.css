@@ -133,6 +133,12 @@
   min-inline-size: var(--kui-tb-row);
 }
 
+/* A group in a column stacks its controls too. Base UI stamps the toolbar's orientation on the
+   group, so this reads the group's own attribute. */
+.kui-toolbar-group[data-orientation="vertical"] {
+  flex-direction: column;
+}
+
 /* A rule between two clusters sits at the height of the GLYPHS beside it, not of the row: a
    hairline spanning the full band reads as a division of the frame rather than as a gap in a
    list of tools. The extent is the icon box at the row's index, so it is a derivation and not a
