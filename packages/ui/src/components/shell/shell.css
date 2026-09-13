@@ -1777,6 +1777,11 @@
   gap: var(--layout-space-1);
 }
 
+/* Consecutive groups get air between them, so a column of sections reads as sections. */
+.kui-shell-nav-group + .kui-shell-nav-group {
+  margin-block-start: var(--layout-space-5);
+}
+
 /* The heading keeps the FAMILY's short box — it is a caption, not a target, so it must not
    take the member height above. It wears the row skeleton for one reason: its words line up
    with the rows under it, which is what the reserved gutter buys (the menu label's own
