@@ -311,7 +311,7 @@ their sabotage passes, doc amendments, budget, `pnpm run ci`.
 
 ## Commands
 
-From repo root (pnpm 10 / Node 22; turbo fans out to packages):
+From repo root (pnpm 12 / Node 24; turbo fans out to packages):
 
 - `pnpm run ci` — build + test + lint + budget gate, the full check; run before claiming any task done
 - `pnpm run build` — tsdown (JS + d.ts) then Lightning CSS bundle to `dist/styles.css`, then `pack:check` — publint + are-the-types-wrong against the PACKED artifact, so the exports map is verified rather than trusted. attw runs the `esm-only` profile: node10 resolution and `require()` are formally unsupported, not silently untested (LOG 2026-08-05).

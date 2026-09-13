@@ -38,3 +38,4 @@ apps/docs/next-env.d.ts
 *.otf
 *.ttf
 *.eot
+.vitest/

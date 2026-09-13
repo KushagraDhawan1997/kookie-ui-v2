@@ -8,9 +8,9 @@
     "url": "git+https://github.com/KushagraDhawan1997/kookie-ui-v2.git"
   },
   "type": "module",
-  "packageManager": "pnpm@10.28.2",
+  "packageManager": "pnpm@12.4.1",
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "scripts": {
     "build": "turbo run build",
@@ -22,10 +22,10 @@
     "changeset": "changeset"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.29.0",
-    "@types/node": "^26.1.2",
-    "eslint": "^9.30.0",
-    "turbo": "^2.5.0",
-    "typescript-eslint": "^8.35.0"
+    "@changesets/cli": "^3.0.2",
+    "@types/node": "^26.5.1",
+    "eslint": "^10.10.0",
+    "turbo": "^2.10.12",
+    "typescript-eslint": "^8.70.0"
   }
 }

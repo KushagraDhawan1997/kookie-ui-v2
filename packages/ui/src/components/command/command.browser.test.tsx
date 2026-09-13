@@ -1737,7 +1737,8 @@ describe("the results pane nests its rows at every count (§6, §44, 2026-09-05)
       "the pane is not at the capsule limit, so it never had to nest anything",
     ).toBeGreaterThanOrEqual(height / 2);
     expect(computed(pane, "corner-shape")).toBe(computed(row, "corner-shape"));
-    expect(computed(pane, "corner-shape")).toBe("round");
+    // Chromium 153 serialises the keyword as its function form.
+    expect(["round", "superellipse(1)"]).toContain(computed(pane, "corner-shape"));
   });
 
   it("holding a LIST it is not, so it keeps the family's squircle and a Menu's corner", () => {
@@ -1766,7 +1767,7 @@ describe("the results pane nests its rows at every count (§6, §44, 2026-09-05)
     const menus = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
     const menu = menus[menus.length - 1]!;
     expect(computed(pane, "corner-shape")).toBe(computed(menu, "corner-shape"));
-    expect(computed(pane, "corner-shape")).toBe("squircle");
+    expect(["squircle", "superellipse(2)"]).toContain(computed(pane, "corner-shape"));
   });
 
   it("a caption above the one row is STILL a capsule, at every index (2026-09-06)", async () => {
@@ -1812,7 +1813,9 @@ describe("the results pane nests its rows at every count (§6, §44, 2026-09-05)
         parseFloat(computed(box, "border-radius")),
         `at ${size} the captioned pane is NOT at the capsule limit — the exclusion was right`,
       ).toBeGreaterThanOrEqual(box.getBoundingClientRect().height / 2);
-      expect(computed(box, "corner-shape"), `at ${size} a captioned capsule is drawn flat`).toBe("round");
+      expect(["round", "superellipse(1)"], `at ${size} a captioned capsule is drawn flat`).toContain(
+        computed(box, "corner-shape"),
+      );
     }
   });
 

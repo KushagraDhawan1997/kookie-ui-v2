@@ -1391,7 +1391,10 @@ describe("continuous curvature reaches the DEFAULT world (§6, 2026-08-17)", () 
     // and the carve-out this law exists to catch had nothing to match. It passed with the
     // bug re-added — the sabotage run is what caught the law, not the law the bug.
     const el = mounted(<Card>B</Card>, { theme: {}, select: ".kui-surface" });
-    expect(computed(el, "corner-shape"), "the default world lost the squircle").toBe("squircle");
+    // Chromium 153 serialises the keyword as its function form.
+    expect(["squircle", "superellipse(2)"], "the default world lost the squircle").toContain(
+      computed(el, "corner-shape"),
+    );
     // The drawn corner is the band's pick TIMES the corner knob (1.613 since 2026-08-17,
     // Kushagra: match the lab): the band is authored as arcs and the squircle needs the
     // bigger number for the same visual weight — the default card draws the lab's 64

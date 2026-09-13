@@ -6,7 +6,7 @@ not repeat them.
 
 ## Setup
 
-You need pnpm 10 and Node 22.
+You need pnpm 12 and Node 24.
 
 ```bash
 pnpm install

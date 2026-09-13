@@ -15,7 +15,7 @@
  * lessons live here now; a law states its fact.
  */
 import type { ReactElement } from "react";
-import { cdp } from "@vitest/browser/context";
+import { cdp } from "vitest/browser";
 import { afterEach, beforeAll, it } from "vitest";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";

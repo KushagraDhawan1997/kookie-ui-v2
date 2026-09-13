@@ -97,7 +97,7 @@ describe("the shipped declarations", () => {
     for (const file of declarationFiles(dist)) {
       const lines = fs.readFileSync(file, "utf8").split("\n");
       lines.forEach((line, i) => {
-        const declared = /^declare (?:function|const|class) (\w+)/.exec(line);
+        const declared = /^(?:export )?declare (?:function|const|class) (\w+)/.exec(line);
         const name = declared?.[1];
         if (!name || !wanted.has(name)) return;
         seen.add(name);

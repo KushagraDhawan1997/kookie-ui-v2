@@ -77,7 +77,7 @@ docs/           the governance documents
 
 ## Commands
 
-Run these from the repository root. They need pnpm 10 and Node 22.
+Run these from the repository root. They need pnpm 12 and Node 24.
 
 | command | what it does |
 |---|---|

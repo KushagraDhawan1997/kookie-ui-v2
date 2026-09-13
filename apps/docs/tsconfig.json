@@ -6,6 +6,7 @@
     "incremental": true,
     "allowImportingTsExtensions": false,
     "module": "esnext",
+    "types": ["node", "mdx"],
     "plugins": [{ "name": "next" }]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

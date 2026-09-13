@@ -18,7 +18,8 @@ export default defineConfig({
   // Next's tsconfig says `jsx: preserve` because Next owns the transform; Vitest does not,
   // so the runtime is stated here. Needed since 2026-08-08, when the shell laws started
   // rendering the layouts rather than reading them.
-  esbuild: { jsx: "automatic" },
+  // Vite 8 (Vitest 5) transforms with Oxc; the `esbuild` key is ignored there.
+  oxc: { jsx: { runtime: "automatic" } },
   // THE SAME COMPILER THE SITE USES (2026-08-21). The chapter law renders every chapter to
   // static markup, which means the suite has to be able to import a `.mdx` — and importing
   // one through a DIFFERENT compiler than `next build` uses would make the law an assertion

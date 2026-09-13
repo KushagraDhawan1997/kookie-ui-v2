@@ -20,7 +20,7 @@
  * one's name (the 2026-08-20 degenerate-fixture rule).
  */
 import { describe, expect, it } from "vitest";
-import { cdp } from "@vitest/browser/context";
+import { cdp } from "vitest/browser";
 
 import { Chip } from "../components/chip/chip.tsx";
 import { Button } from "../components/button/button.tsx";
@@ -463,8 +463,9 @@ describe("the lens bends the corner the box paints, not a circle standing in for
     const el = root.querySelector<HTMLElement>(".kui-card")!;
     await until(() => el.style.getPropertyValue("--kui-lens").includes("#"), 4000);
     const cs = getComputedStyle(el);
-    expect(cs.getPropertyValue("corner-shape"), "the fixture does not paint a squircle").toContain(
-      "squircle",
+    // Chromium 153 serialises the keyword as its function form.
+    expect(["squircle", "superellipse(2)"], "the fixture does not paint a squircle").toContain(
+      cs.getPropertyValue("corner-shape").trim(),
     );
 
     const map = await mapOf(el);

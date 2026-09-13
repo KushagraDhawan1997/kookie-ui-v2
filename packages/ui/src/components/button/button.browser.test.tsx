@@ -3,7 +3,7 @@
  * of this project; this is where it either resolves to real pixels or does not.
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { cdp } from "@vitest/browser/context";
+import { cdp } from "vitest/browser";
 
 import type * as React from "react";
 
