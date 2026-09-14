@@ -1,4 +1,7 @@
 import "@kookie-ui/react/styles.css";
+import "@fontsource-variable/inter/wght.css";
+import "@fontsource-variable/inter/wght-italic.css";
+import "@fontsource-variable/inter-tight/wght.css";
 import "./fonts.css";
 import "./globals.css";
 

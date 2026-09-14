@@ -1,22 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="KookieUI">
-  <!--
-    The site's mark. Next serves this as the favicon by filename convention.
-
-    THE ONE RAW COLOUR IN THIS APP, and it has to be: a favicon is painted by browser chrome,
-    outside every Theme, so it can resolve no custom property. #0094fc is `--accent-solid`'s
-    generated value in light — copied deliberately rather than picked, so re-judging the accent
-    means changing this line too. Everything inside the page reads the token.
-
-    The corner is 8 of 32 — a quarter, which is the surface band's own proportion at the sizes
-    a favicon is actually rendered at.
-  -->
-  <rect width="32" height="32" rx="8" fill="#0094fc" />
-  <path
-    d="M11 8v16M11 16.5L20 8M14 14.5L21 24"
-    stroke="#ffffff"
-    stroke-width="2.6"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    fill="none"
-  />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>path{fill:#111113}@media (prefers-color-scheme:dark){path{fill:#fff}}</style>
+  <path transform="translate(4.00 54.85) scale(0.05989)" d="M217 17Q109 17 54.5-35Q0-87 0-181L0-181Q0-225 10-271L10-271L90-648Q104-719 109-780L109-780L268-780Q249-720 234-648L234-648L153-271Q142-221 142-180L142-180Q142-108 174.5-67Q207-26 273-26L273-26Q360-26 415.5-94.5Q471-163 496-273L496-273L547-508Q562-576 571.5-653.5Q581-731 581-780L581-780L646-780Q627-732 606-655.5Q585-579 569-508L569-508L517-268Q486-124 413-53.5Q340 17 217 17L217 17ZM611 0Q626-45 646-132L646-132L756-648Q771-721 775-780L775-780L935-780Q919-732 900-648L900-648L790-132Q774-52 771 0L771 0L611 0Z"/>
 </svg>

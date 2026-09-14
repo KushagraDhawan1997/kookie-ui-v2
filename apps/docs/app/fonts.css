@@ -29,31 +29,16 @@
 /* THE WORDMARK. One word, one place — the masthead. A single static face, no italic and no
    second weight, so a heading asking for semibold cannot make the browser synthesize one. */
 @font-face {
-  font-family: "Boska";
-  src: url("/fonts/Boska-Medium.woff2") format("woff2");
+  font-family: "PP Hatton";
+  src: url("/fonts/PPHatton-MediumItalic.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
-/* THE READING FACE, and the heading face too: §15 points both slots at one family and lets the
-   ladder do the separating. A variable file across its whole axis, so the ladder asks for any
-   weight in range and gets it rather than a synthesized one. */
-@font-face {
-  font-family: "Switzer";
-  src: url("/fonts/Switzer.woff2") format("woff2");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Switzer";
-  src: url("/fonts/Switzer-Italic.woff2") format("woff2");
-  font-weight: 100 900;
-  font-style: italic;
-  font-display: swap;
-}
+/* THE READING FACE, and the heading face too, is Inter (2026-09-14, Kushagra), declared by
+   `@fontsource-variable/inter` imported in layout.tsx. It is OFL, so unlike the faces in this
+   file it travels with the repo and every clone renders it. */
 
 /* THE MONO FACE. Two static cuts rather than a variable one — regular for code, medium for the
    one place a fence sets a token bolder. */
@@ -77,7 +62,7 @@
    `prose.css` read these exactly as they did before, each with the system stack behind it, so
    a face that never loads costs one 404 and nothing else. */
 :root {
-  --kd-font-wordmark: "Boska";
-  --kd-font-body: "Switzer";
+  --kd-font-wordmark: "PP Hatton";
+  --kd-font-body: "Inter Variable";
   --kd-font-mono: "Neue Montreal Mono";
 }
