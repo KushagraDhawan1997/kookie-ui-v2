@@ -721,7 +721,359 @@ export const RULES: Rule[] = [
           };
         }),
   },
+
+  /* ── From the field (2026-09-14) ────────────────────────────────────────────────────────
+     Rules drawn from WCAG, axe-core, GOV.UK, NN/g, Carbon and LukeW, kept only where the tree
+     alone can decide them. Each `why` names its source. */
+
+  {
+    id: "placeholder-as-label",
+    title: "A placeholder is not a label",
+    severity: "warning",
+    why:
+      "Placeholder text disappears the moment someone types, so it cannot be the only thing that says what a field is for. It also reads as a value already filled in. Put the field in a Field with a FieldLabel (NN/g, WCAG 3.3.2).",
+    run: ({ all }) =>
+      all
+        .filter(({ node, parents }) => {
+          if (!["TextField", "TextArea"].includes(node.type)) return false;
+          if (!str(node.props.placeholder)?.trim()) return false;
+          const field = nearest(parents, new Set(["Field", "FieldItem"]));
+          if ((field?.children ?? []).some((c) => c.type === "FieldLabel")) return false;
+          // A visible line of text directly above it is a label to the eye, even unwired.
+          const siblings = parents.at(-1)?.children ?? [];
+          const before = siblings[siblings.indexOf(node) - 1];
+          return before?.type !== "Text";
+        })
+        .map(({ node }) => ({
+          nodeId: node.id,
+          message: `${node.type} says “${str(node.props.placeholder)}” only as a placeholder.`,
+        })),
+  },
+  {
+    id: "instructions-in-placeholder",
+    title: "Instructions do not go in a placeholder",
+    severity: "warning",
+    why:
+      "A format hint in a placeholder is gone as soon as typing starts, which is exactly when it is needed. Say the format in a FieldDescription, which stays (NN/g, GOV.UK).",
+    run: ({ all }) =>
+      all
+        .filter(({ node, parents }) => {
+          const placeholder = str(node.props.placeholder);
+          if (!placeholder || !/\be\.g\.|\bmust\b|\bformat\b|\bDD\b|\bMM\b|\bYYYY\b|characters|at least/i.test(placeholder)) return false;
+          const field = nearest(parents, new Set(["Field"]));
+          return !(field?.children ?? []).some((c) => c.type === "FieldDescription");
+        })
+        .map(({ node }) => ({ nodeId: node.id, message: `“${str(node.props.placeholder)}” is an instruction in a placeholder.` })),
+  },
+  {
+    id: "label-in-name",
+    title: "The spoken name contains the visible words",
+    severity: "error",
+    why:
+      "Someone using voice control says what they see. A button reading “Save” whose accessible name is “Store document” cannot be pressed by saying “Save”. The visible text must appear in the name, and usually the name should simply be the text (WCAG 2.5.3).",
+    run: ({ all }) =>
+      all
+        .filter(({ node }) => {
+          const visible = node.text?.trim().toLowerCase().replace(/\s+/g, " ");
+          const name = str(node.props["aria-label"])?.trim().toLowerCase().replace(/\s+/g, " ");
+          return !!visible && !!name && !name.includes(visible);
+        })
+        .map(({ node }) => ({
+          nodeId: node.id,
+          message: `${label(node)} is announced as “${str(node.props["aria-label"])}”.`,
+          fix: {
+            title: "Let the text be the name",
+            apply: (roots) => updateProps(roots, node.id, { "aria-label": undefined }),
+          },
+        })),
+  },
+  {
+    id: "empty-heading",
+    title: "A heading has words",
+    severity: "error",
+    why:
+      "An empty heading still puts an entry in the page outline, so a screen reader announces a heading with nothing in it and the outline has a hole (axe empty-heading).",
+    run: ({ all }) =>
+      all
+        .filter(({ node }) => ["Heading", "DialogTitle", "SheetTitle", "AlertDialogTitle", "PopoverTitle"].includes(node.type) && !node.text?.trim())
+        .map(({ node }) => ({ nodeId: node.id, message: `${node.type} is empty.` })),
+  },
+  {
+    id: "single-radio",
+    title: "One radio cannot be turned off",
+    severity: "warning",
+    why:
+      "A radio is one answer among several. A group of one can be chosen and never unchosen, so it is a yes-or-no question asked with the wrong control. Use a Checkbox (GOV.UK).",
+    run: ({ all }) =>
+      all
+        .filter(({ node }) => node.type === "RadioGroup" && walk(node.children ?? []).filter((e) => e.node.type === "Radio").length === 1)
+        .map(({ node }) => ({ nodeId: node.id, message: "This RadioGroup holds a single Radio." })),
+  },
+  {
+    id: "radios-in-a-row",
+    title: "Radios sit in a row only when there are two",
+    severity: "warning",
+    why:
+      "Options in a row are read as one line and their labels run together. Two short options, like Yes and No, can share a row. Three or more stack, one option per line (GOV.UK).",
+    run: ({ all }) =>
+      all
+        .filter(({ node, parents }) => {
+          if (!isLayout(node) || axisOf(node) !== "row") return false;
+          if (!parents.some((p) => p.type === "RadioGroup")) return false;
+          const options = (node.children ?? []).filter(
+            (c) => c.type === "Radio" || (c.type === "FieldItem" && (c.children ?? []).some((k) => k.type === "Radio")),
+          );
+          return options.length > 2;
+        })
+        .map(({ node }) => ({
+          nodeId: node.id,
+          message: "Three or more radios share one row.",
+          fix: { title: "Stack them", apply: (roots) => writeProp(roots, node.id, "direction", "column", node.type) },
+        })),
+  },
+  {
+    id: "switch-in-a-form",
+    title: "A switch acts at once, so it does not wait for Save",
+    severity: "warning",
+    why:
+      "A switch says the change has already happened. Beside a Save button it says two opposite things, and people either leave without saving or wonder whether flipping it did anything. In a form that is submitted, use a Checkbox (NN/g).",
+    run: ({ all }) => {
+      const scopes = new Set([...SURFACES, "SheetContent", "PopoverContent"]);
+      const out: RawFinding[] = [];
+      for (const { node, parents } of all) {
+        if (node.type !== "Switch") continue;
+        const scope = nearest(parents, scopes);
+        if (!scope) continue;
+        const submit = walk(scope.children ?? []).find(
+          (e) => e.node.type === "Button" && SUBMIT.test(e.node.text?.trim() ?? ""),
+        );
+        if (!submit) continue;
+        out.push({ nodeId: node.id, message: `This Switch shares a surface with ${label(submit.node)}.` });
+      }
+      return out;
+    },
+  },
+  {
+    id: "tabs-without-panels",
+    title: "Every tab has its panel",
+    severity: "error",
+    why:
+      "A tab is a promise that something is behind it. A tab with no panel of its value opens onto nothing, and a panel no tab names can never be reached (axe aria-required-children).",
+    run: ({ all }) => {
+      const out: RawFinding[] = [];
+      for (const { node } of all) {
+        if (node.type !== "Tabs") continue;
+        const inside = walk(node.children ?? []).map((e) => e.node);
+        const tabs = inside.filter((n) => n.type === "TabsTab");
+        const panels = inside.filter((n) => n.type === "TabsPanel");
+        const panelValues = new Set(panels.map((p) => str(p.props.value)));
+        const tabValues = new Set(tabs.map((t) => str(t.props.value)));
+        for (const t of tabs) {
+          if (!panelValues.has(str(t.props.value))) out.push({ nodeId: t.id, message: `${label(t)} has no panel.` });
+        }
+        for (const p of panels) {
+          if (!tabValues.has(str(p.props.value))) out.push({ nodeId: p.id, message: `No tab opens the panel “${str(p.props.value)}”.` });
+        }
+      }
+      return out;
+    },
+  },
+  {
+    id: "single-tab",
+    title: "One tab switches to nothing",
+    severity: "warning",
+    why:
+      "Tabs exist to choose between views. A tab list with one tab is a heading dressed as a control, with nothing to switch to (NN/g).",
+    run: ({ all }) =>
+      all
+        .filter(({ node }) => node.type === "TabsList" && (node.children ?? []).filter((c) => c.type === "TabsTab").length === 1)
+        .map(({ node }) => ({ nodeId: node.id, message: "This tab list holds one tab." })),
+  },
+  {
+    id: "too-many-choices",
+    title: "A long flat list is slow to choose from",
+    severity: "warning",
+    why:
+      "The time to choose grows with the number of options (Hick's law). Past about seven tabs, five segments or nine menu items with no grouping, people scan instead of choosing. Group the menu, or move the options into a Select.",
+    run: ({ all }) => {
+      const out: RawFinding[] = [];
+      for (const { node } of all) {
+        const kids = node.children ?? [];
+        const count = (type: string) => kids.filter((c) => c.type === type).length;
+        if (node.type === "TabsList" && count("TabsTab") > 7) out.push({ nodeId: node.id, message: `${count("TabsTab")} tabs in one list.` });
+        if (node.type === "SegmentedControl" && count("SegmentedItem") > 5)
+          out.push({ nodeId: node.id, message: `${count("SegmentedItem")} segments in one control.` });
+        if (node.type === "MenuContent" && count("MenuItem") > 9 && !kids.some((c) => ["MenuGroup", "Separator"].includes(c.type)))
+          out.push({ nodeId: node.id, message: `${count("MenuItem")} menu items with no grouping.` });
+      }
+      return out;
+    },
+  },
+  {
+    id: "table-headers",
+    title: "A table says what its columns are",
+    severity: "error",
+    why:
+      "A screen reader reads each cell with its column's header. A table with no header row, or a header cell with no words, leaves every value without its meaning (axe empty-table-header, WAI tables).",
+    run: ({ all }) => {
+      const out: RawFinding[] = [];
+      for (const { node } of all) {
+        if (node.type !== "Table") continue;
+        const inside = walk(node.children ?? []).map((e) => e.node);
+        const heads = inside.filter((n) => n.type === "TableHead");
+        if (!heads.length) out.push({ nodeId: node.id, message: "This table has no header cells." });
+        for (const h of heads) if (!h.text?.trim()) out.push({ nodeId: h.id, message: "This header cell is empty." });
+      }
+      return out;
+    },
+  },
+  {
+    id: "breadcrumb-current-linked",
+    title: "The last crumb is where you are",
+    severity: "warning",
+    why:
+      "The last item in a breadcrumb is the current page. As a link it offers to take you where you already are. Make it a BreadcrumbPage (NN/g).",
+    run: ({ all }) => {
+      const out: RawFinding[] = [];
+      for (const { node } of all) {
+        if (node.type !== "Breadcrumb") continue;
+        const last = (node.children ?? []).at(-1);
+        const link = last?.children?.find((c) => c.type === "BreadcrumbLink");
+        if (link) out.push({ nodeId: link.id, message: `${label(link)} is the current page and still a link.` });
+      }
+      return out;
+    },
+  },
+  {
+    id: "vague-action",
+    title: "An action says what it does",
+    severity: "warning",
+    why:
+      "“OK”, “Yes” and “Submit” make the reader go back and reread the question to know what they are agreeing to. “Delete project” can be pressed without rereading anything. A link that says “click here” or “learn more” means nothing out of context, and screen reader users often hear links out of context (Carbon, NN/g, WCAG 2.4.4).",
+    run: ({ all }) =>
+      all
+        .filter(({ node }) => {
+          const words = node.text?.trim() ?? "";
+          if (["Button", "ToolbarButton", "AlertDialogAction", "AlertDialogCancel"].includes(node.type)) return VAGUE_ACTION.test(words);
+          if (["Link", "BreadcrumbLink"].includes(node.type)) return VAGUE_LINK.test(words);
+          return false;
+        })
+        .map(({ node }) => ({ nodeId: node.id, message: `${label(node)} does not say what happens.` })),
+  },
+  {
+    id: "long-action",
+    title: "An action is a verb and its object",
+    severity: "warning",
+    why:
+      "A button is read in a glance. Past three or four words it becomes a sentence, which belongs in the text beside it. A button is also not a sentence, so it ends without a period (Carbon).",
+    run: ({ all }) =>
+      all
+        .filter(({ node }) => {
+          if (!["Button", "ToolbarButton", "AlertDialogAction", "AlertDialogCancel"].includes(node.type)) return false;
+          const words = node.text?.trim() ?? "";
+          return words.split(/\s+/).length > 4 || /\.$/.test(words);
+        })
+        .map(({ node }) => ({ nodeId: node.id, message: `${label(node)} is a sentence, not an action.` })),
+  },
+  {
+    id: "way-back-as-loud",
+    title: "The way back is quieter than the way forward",
+    severity: "warning",
+    why:
+      "Cancel, Back and Close are escape routes, not goals. When they carry the same weight as Save or Continue, the reader has to read both labels to find the one that finishes the task (LukeW, primary and secondary actions).",
+    run: ({ all }) => {
+      const out: RawFinding[] = [];
+      for (const { node } of all) {
+        const buttons = (node.children ?? []).filter((c) => c.type === "Button");
+        const forward = buttons.filter((b) => SUBMIT.test(b.text?.trim() ?? ""));
+        if (!forward.length) continue;
+        const loudest = Math.max(...forward.map(rank));
+        for (const back of buttons.filter((b) => BACK.test(b.text?.trim() ?? ""))) {
+          if (rank(back) < loudest) continue;
+          out.push({
+            nodeId: back.id,
+            message: `${label(back)} is as loud as the action it backs out of.`,
+            ...(loudest > 0
+              ? { fix: { title: "Make it quiet", apply: (roots: BuilderNode[]) => writeProp(roots, back.id, "emphasis", "quiet", back.type) } }
+              : {}),
+          });
+        }
+      }
+      return out;
+    },
+  },
+  {
+    id: "reset-beside-submit",
+    title: "No reset beside submit",
+    severity: "warning",
+    why:
+      "A Reset or Clear button next to Submit is the easiest way to lose everything just typed, and almost nobody needs it. Leave it out (NN/g).",
+    run: ({ all }) => {
+      const out: RawFinding[] = [];
+      for (const { node } of all) {
+        const buttons = (node.children ?? []).filter((c) => c.type === "Button");
+        if (!buttons.some((b) => SUBMIT.test(b.text?.trim() ?? ""))) continue;
+        for (const b of buttons) {
+          if (!/^(reset|clear|clear form|clear all|start over)$/i.test(b.text?.trim() ?? "")) continue;
+          out.push({ nodeId: b.id, message: `${label(b)} sits beside the action that submits.` });
+        }
+      }
+      return out;
+    },
+  },
+  {
+    id: "negative-option",
+    title: "An option is stated in the positive",
+    severity: "warning",
+    why:
+      "“Don't send me emails”, left unticked, means send me emails, and the reader has to work that out. Say the positive, “Send me emails”, and let the tick carry the no (NN/g).",
+    run: ({ all }) =>
+      all
+        .filter(({ node, parents }) => {
+          if (node.type !== "FieldLabel") return false;
+          const item = parents.at(-1);
+          if (item?.type !== "FieldItem" || !(item.children ?? []).some((c) => ["Checkbox", "Switch"].includes(c.type))) return false;
+          return /^(don['’]t|do not|never|disable|turn off|stop)\b/i.test(node.text?.trim() ?? "");
+        })
+        .map(({ node }) => ({ nodeId: node.id, message: `${label(node)} is phrased as a negative.` })),
+  },
+  {
+    id: "generic-error",
+    title: "An error says how to fix it",
+    severity: "warning",
+    why:
+      "“Invalid” tells someone they are wrong and not what to do about it. Say what went wrong and what to enter instead, such as “Enter an email address in the correct format, like name@example.com” (GOV.UK).",
+    run: ({ all }) =>
+      all
+        .filter(
+          ({ node }) =>
+            node.type === "FieldError" &&
+            /^(invalid|error|required|invalid input|invalid value|this field is required|wrong)\.?$/i.test(node.text?.trim() ?? ""),
+        )
+        .map(({ node }) => ({ nodeId: node.id, message: `${label(node)} does not say how to fix it.` })),
+  },
+  {
+    id: "picture-without-alt",
+    title: "A picture of a person says who it is",
+    severity: "warning",
+    why:
+      "An avatar with a photo and no alternative text is announced as an unnamed image, or not at all, so the person in it is invisible to a screen reader (axe image-alt).",
+    run: ({ all }) =>
+      all
+        .filter(({ node }) => node.type === "Avatar" && !!str(node.props.src)?.trim() && !str(node.props.alt)?.trim())
+        .map(({ node }) => ({ nodeId: node.id, message: "This Avatar has a photo and no alt text." })),
+  },
 ];
+
+/** Words that finish a task, and words that back out of one. Shared by the action rules so
+    "submit-like" means one thing across all of them. */
+const SUBMIT = /^(save|submit|continue|apply|update|create|send|publish|confirm|done|next|sign in|sign up|log in)\b/i;
+const BACK = /^(cancel|back|close|discard|not now|dismiss)\b/i;
+const VAGUE_ACTION = /^(ok|okay|yes|no|submit|confirm|go|click here|accept)$/i;
+const VAGUE_LINK = /^(click here|here|learn more|read more|more|this|link|this link)$/i;
+
+/** Emphasis as a number; a Button that states none rests at medium. */
+const rank = (n: BuilderNode): number => ({ quiet: 0, medium: 1, loud: 2 })[str(n.props.emphasis) ?? "medium"] ?? 1;
 
 /** Run every rule, newest concern first: errors before warnings, document order within. */
 export const reviewDocument = (doc: BuilderDoc): Finding[] => {
