@@ -61,10 +61,14 @@ import { Heading } from "@kookie-ui/react";
  * they look at all day. Putting it on the short form would have put it in the sidebar too,
  * which nobody asked for and which a glanced-at mark does not want.
  */
-type Form = "short" | "full";
+/**
+ * AND THE BUILDER'S (2026-09-14). The builder's floating band sets its own name in the mark, as
+ * the studio app does; the word is still stated here and nowhere else.
+ */
+type Form = "short" | "full" | "builder";
 
 export function Wordmark({
-  size = "8",
+  size = "7",
   form = "short",
 }: {
   size?: "7" | "8" | "9";
@@ -92,8 +96,10 @@ export function Wordmark({
               span here plus a rule there is two lines to write back. */}
           Kookie© User Interface
         </>
+      ) : form === "builder" ? (
+        "Builder"
       ) : (
-        "Kookie"
+        "User Interface"
       )}
     </Heading>
   );

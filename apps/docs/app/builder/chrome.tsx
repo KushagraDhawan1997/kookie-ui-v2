@@ -39,7 +39,6 @@ import {
   SelectItem,
   SelectTrigger,
   Separator,
-  ShellPaneHeader,
   Stack,
   Text,
   TextField,
@@ -185,17 +184,10 @@ export function JumpBar({
   roots,
   selection,
   onSelect,
-  extra,
-  hidePath,
 }: {
   roots: BuilderNode[];
   selection: string[];
   onSelect: (id: string) => void;
-  extra?: React.ReactNode;
-  /** Preview keeps the VIEWING controls in this bar and drops the selection path: a path is
-      an editing affordance, and "Nothing selected" over a screen you are trying out is the
-      editor talking about itself. */
-  hidePath?: boolean;
 }) {
   const primary = selection[selection.length - 1] ?? null;
   const node = primary ? findNode(roots, primary) : null;
@@ -220,20 +212,13 @@ export function JumpBar({
   const hiddenItems = dropped.map((n) => ({ label: n.type, onClick: () => onSelect(n.id) }));
 
   return (
-    /* A `ShellPaneHeader` since 2026-09-02, and the part is what deletes the numbers: this
-       row used to state `px="4" py="1"` by hand and came out whatever height its content
-       happened to be, so it stood level with nothing. A pane's header is one control row at
-       the pane's index wherever it appears, which is what keeps it level with the rail and
-       the frame's own header beside it.
-
-       NOT `float`, deliberately, where the docs shell's chrome floats: this pane's scroller
-       is a DROP SURFACE, and a bar with content passing beneath it is a bar the pointer has
-       to fight during a drag. Floating buys legibility for reading and costs targeting for
-       building. */
-    <ShellPaneHeader>
-      <Flex align="center" justify="space-between" gapX="3" style={{ flex: 1, minWidth: 0 }}>
-      <Flex align="center" gap="3" style={{ minWidth: 0 }}>
-        {hidePath ? null : chain.length === 0 ? (
+    /* IN THE CANVAS'S BOTTOM BAND since 2026-09-14. It was a pane header of its own, kept in
+       flow because the scroller under it is a DROP SURFACE and a bar with content passing
+       beneath it is a bar the pointer has to fight during a drag. The band floats and hands the
+       pointer through between its controls, so that argument no longer holds, and the path sits
+       beside the history it belongs to. */
+    <Flex align="center" gap="3" style={{ minWidth: 0 }}>
+        {chain.length === 0 ? (
           <Text size="2" emphasis="quiet">
             Nothing selected
           </Text>
@@ -286,10 +271,7 @@ export function JumpBar({
             +{selection.length - 1} more
           </Text>
         ) : null}
-      </Flex>
-        {extra}
-      </Flex>
-    </ShellPaneHeader>
+    </Flex>
   );
 }
 

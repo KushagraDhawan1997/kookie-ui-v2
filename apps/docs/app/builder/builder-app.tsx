@@ -33,23 +33,12 @@ import {
   DialogDescription,
   DialogTitle,
   Flex,
-  Grid,
-  Heading,
-  Kbd,
-  Menu,
-  MenuContent,
-  MenuItem,
-  MenuTrigger,
-  Row,
   ScrollArea,
   Shell,
   ShellContent,
-  ShellHeader,
   ShellInspector,
-  ShellRail,
-  ShellRailItem,
+  ShellPaneFooter,
   ShellPaneHeader,
-  ShellRailList,
   ShellScroll,
   ShellSidebar,
   ShellTrigger,
@@ -63,13 +52,17 @@ import {
   Text,
   TextField,
   Theme,
+  Toolbar,
+  ToolbarButton,
   tiers,
   useWindowClass,
 } from "@kookie-ui/react";
 
-import { LayersIcon, MinusIcon, MoreIcon, PanelLeftIcon, PanelRightIcon, PlusIcon, RedoIcon, UndoIcon, XIcon } from "../icons";
+import { AppearanceToggle } from "../appearance-toggle";
+import { Wordmark } from "../(docs)/wordmark";
+import { LayersIcon, MinusIcon, PanelLeftIcon, PanelRightIcon, PlusIcon, RedoIcon, UndoIcon } from "../icons";
 import { Layers, LayersFilter } from "./layers";
-import { CATALOG, canContain, gapStepsFor, paletteEntries, sanitizeNode, seatVocabularyFor, sizeStepsFor, PALETTE_FAMILIES, type CatalogEntry, type SeatVocabulary } from "./catalog";
+import { CATALOG, canContain, gapStepsFor, sanitizeNode, seatVocabularyFor, sizeStepsFor, type SeatVocabulary } from "./catalog";
 import {
   cloneWithNewIds,
   defaultDocTheme,
@@ -92,7 +85,7 @@ import {
   type DocTheme,
 } from "./model";
 import { canvasRoom, documentIndex, dropSpot, rowsOf, widthAfterDrag } from "./geometry";
-import { canAccept, insertableInto, insertionTarget, placeNodes, typesThrough } from "./placement";
+import { canAccept, insertableInto, insertionTarget, placeNodes } from "./placement";
 import { renderNode } from "./render";
 import { deriveParams, serializeBlock, serializeDocument } from "./serialize";
 import { TEMPLATES, templateDoc } from "./templates";
@@ -113,7 +106,6 @@ import {
 import {
   COMMANDS,
   armed,
-  chordLabel,
   chordMatches,
   decodeNodes,
   encodeNodes,
@@ -121,6 +113,7 @@ import {
   type CommandContext,
   type CommandUi,
 } from "./commands";
+import { AddPanel } from "./add-panel";
 import { CommandPalette } from "./command-palette";
 import { liveFix, reviewDocument, type Finding } from "./review";
 import { EmptyState } from "../../blocks/empty-state";
@@ -131,23 +124,15 @@ import { CanvasBoundary, CanvasMenu, DocumentBar, JumpBar, ShortcutSheet, Templa
 const ZOOMS: number[] = [0.5, 0.67, 0.8, 1, 1.25, 1.5, 2];
 
 /**
- * The rail's regions, and the sidebar reads the same list (2026-08-20). One home, because a
- * square that picks a region the sidebar cannot show is the doc-code drift rule inside one
- * file — the rail and the panel would have been two lists agreeing by hand.
+ * The rail's regions (2026-08-20). The rail and its Add region went on 2026-09-14 — + opens the
+ * palette, and the sidebar is Layers alone — so nothing here reads this any more; it stays only
+ * until the frame's laws are rewritten for the new chrome.
  */
 export const LEFT_REGIONS = [
   { id: "add", label: "Add components", Icon: PlusIcon },
   { id: "layers", label: "Layers", Icon: LayersIcon },
 ] as const;
 
-type LeftRegion = (typeof LEFT_REGIONS)[number]["id"];
-
-/** The unreachable arm of the region switch — see its call site. */
-const noPanel = (region: never): null => {
-  throw new Error(`the rail offers "${String(region)}" and the sidebar has no panel for it`);
-};
-
-const DRAG_TYPE = "application/x-kookie-component";
 const MOVE_TYPE = "application/x-kookie-move";
 
 /* Selection chrome (Figma's grammar): a shape outline tracing the element's own corners,
@@ -277,18 +262,6 @@ export function BuilderApp() {
       cut off is a match nobody can place. */
   const [layerFilter, setLayerFilter] = React.useState("");
   const layerFilterRef = React.useRef<HTMLInputElement | null>(null);
-  /** The palette's filter — the Add region's half of the pane's chrome row. Forty entries in
-      five families had no way to say a name, so a hand went hunting through the families for
-      something it could already spell. */
-  const [paletteFilter, setPaletteFilter] = React.useState("");
-  /** Case-insensitive on the component's own name — the one word an author knows to type. */
-  const matchesPalette = React.useCallback(
-    (type: string) => type.toLowerCase().includes(paletteFilter.trim().toLowerCase()),
-    [paletteFilter],
-  );
-  /** Which region the rail has picked — the sidebar shows it. Controlled so ⌘F can bring
-      the tree forward before focusing it. */
-  const [leftTab, setLeftTab] = React.useState<LeftRegion>("add");
   /** The inspector states its own open, where the sidebar keeps the Shell's `auto` — see the
       pane's own comment below for why the asymmetry is the design and not a shortcut.
       `null` means UNTOUCHED, which is Shell's own word: until somebody says otherwise the
@@ -305,18 +278,6 @@ export function BuilderApp() {
       resolves to OPEN, which is the right first paint for a desktop tool. */
   const windowClass = useWindowClass();
   const roomy = windowClass !== "narrow";
-  /** Whether the header can afford to CENTRE the document (2026-09-03).
-   *
-   *  Centring against the window means the two side cells are equal by construction — that is
-   *  what `1fr auto 1fr` says — so the window has to be wide enough for twice the WIDER side
-   *  plus the middle. Measured: the right cluster is ~420px, the left ~102, the document ~204,
-   *  so three zones need ~1,076px and at 900 the right cluster overflowed its own cell and
-   *  drew over the document. The old two-cluster row degraded instead of overlapping because
-   *  the left one carried `min-width: 0` and simply squeezed the name.
-   *
-   *  `null` on the server resolves to CENTRED, which is the right first paint for a desktop
-   *  tool and is the same call the inspector's own `roomy` makes one line up. */
-  const centred = windowClass === null || windowClass === "wide";
   const inspectorShown = !preview && (inspectorOpen ?? roomy);
   /** The key listener is mounted once and never re-bound, so it needs the CURRENT mode
       rather than the one that was true when it was attached. */
@@ -346,6 +307,11 @@ export function BuilderApp() {
     [],
   );
   const [paletteOpen, setPaletteOpen] = React.useState(false);
+  /** The sidebar's tab: the document's layers, or the components to add to it. */
+  const [leftTab, setLeftTab] = React.useState<"layers" | "add">("layers");
+  /** Whether the palette was opened from + rather than ⌘K: the components lead the list then.
+      Kept through the close, so the rows do not reorder under the panel on its way out. */
+  const [paletteAdding, setPaletteAdding] = React.useState(false);
   const [shortcutsOpen, setShortcutsOpen] = React.useState(false);
   const [exportOpen, setExportOpen] = React.useState(false);
   /** Which block the export dialog is showing, or null for the whole document. */
@@ -519,17 +485,6 @@ export function BuilderApp() {
     const fresh = cloneWithNewIds(block.node);
     const target = insertionTarget(doc.roots, selection, fresh.type) ?? { parentId: null };
     commitRoots(insertNode(doc.roots, target.parentId, fresh, target.index), [fresh.id]);
-  };
-
-  /** A block, opened as its own document so it can be edited. Fresh ids, because editing the
-      copy must not reach into the block itself or into any screen the block was placed in. */
-  const openBlock = (block: Block) => {
-    dispatch({
-      type: "docNew",
-      name: block.name,
-      doc: { theme: doc.theme, roots: [cloneWithNewIds(block.node)] },
-    });
-    say(`Opened ${block.name} — save it under the same name to update the block`);
   };
 
   const runCommand = (id: string) => {
@@ -1240,10 +1195,16 @@ export function BuilderApp() {
   const inspectorTextRef = React.useRef<HTMLInputElement | null>(null);
 
   const ui: CommandUi = {
-    openPalette: () => setPaletteOpen(true),
+    openPalette: () => {
+      setPaletteAdding(false);
+      setPaletteOpen(true);
+    },
     openExport: () => setExportOpen(true),
     openShortcuts: () => setShortcutsOpen(true),
-    openDocuments: () => setPaletteOpen(true),
+    openDocuments: () => {
+      setPaletteAdding(false);
+      setPaletteOpen(true);
+    },
     toggleReview: () => setReviewOpen((v) => !v),
     togglePreview: () => setPreview((v) => !v),
     stepZoom: (delta) => {
@@ -1271,11 +1232,7 @@ export function BuilderApp() {
       }
     },
     focusInspectorText: () => inspectorTextRef.current?.focus(),
-    focusLayerFilter: () => {
-      setLeftTab("layers");
-      // The tab has to be on screen before the field can take the caret.
-      requestAnimationFrame(() => layerFilterRef.current?.focus());
-    },
+    focusLayerFilter: () => layerFilterRef.current?.focus(),
     insertBlockByIndex: (index) => {
       const block = stateRef.current.blocks[index];
       if (block) insertBlock(block);
@@ -1347,62 +1304,6 @@ export function BuilderApp() {
     [selected, doc.roots],
   );
 
-  /* Saved blocks the palette's filter kept, each with the index it has in the store — see
-     the note at the call site: an action on a block is addressed by that index. */
-  const matchingBlocks: [Block, number][] = blocks
-    .map((b, i): [Block, number] => [b, i])
-    .filter(([b]) => matchesPalette(b.name));
-  /* Parts the current selection can hold directly — the contextual half of the palette. */
-  const contextualParts: [string, CatalogEntry][] = selected
-    ? Object.entries(CATALOG).filter(
-        ([type, entry]) =>
-          entry.partOf && canContain(selected.type, type, typesThrough(doc.roots, selected.id)),
-      )
-    : [];
-
-  /** What the Add region would DRAW — which is not what the catalog HOLDS, and the difference
-      is why this is derived here rather than counted off one list. `paletteEntries()` excludes
-      parts, the family groups render only `PALETTE_FAMILIES`, and the contextual group is the
-      only place a part appears at all — so counting the catalog would hide a matching part
-      behind a "nothing matched" that was not true.
-
-      Zero is a real state and it had no rendering: every group returns null when its entries
-      are filtered out, so a word nothing is called left an empty pane saying nothing about why. */
-  const matchingContextual = contextualParts.filter(([type]) => matchesPalette(type));
-  const matchingPalette = paletteEntries().filter(
-    ([type, e]) => matchesPalette(type) && (PALETTE_FAMILIES as readonly string[]).includes(e.family),
-  );
-  /* ONE LIST PER GROUP, read by the COUNT and by the render alike. Counting with one predicate
-     and drawing with another is how "nothing matched" comes to disagree with what is on screen
-     — the count would be right about the catalog and wrong about the pane. */
-  const paletteHits = matchingPalette.length + matchingContextual.length + matchingBlocks.length;
-
-  /* THE DOCUMENT AND ITS OWN HISTORY — one cluster, placed in the middle when the window can
-     centre it and beside the identity when it cannot. ONE thing rather than two spellings: the
-     two placements differ in where it sits, and nothing else. */
-  const documentZone = (
-    <Flex align="center" gap="2" justify="center" style={{ minWidth: 0 }}>
-      {/* Undo and redo belong HERE rather than in the right-hand run, because that is what
-          they are about: they act on this document and nothing else in the bar does. Among
-          Commands, Review and Preview they read as two more global modes.
-
-          They stand down in preview along with the panels. Guarding the keyboard and leaving
-          the buttons would be half a guard: a click on undo edits the document just as well as
-          ⌘Z does, and preview draws nothing to say it happened. */}
-      {!preview ? (
-        <>
-          <Button emphasis="quiet" disabled={!canUndo(state)} onClick={undo} aria-label="Undo" iconOnly>
-            <UndoIcon />
-          </Button>
-          <Button emphasis="quiet" disabled={!canRedo(state)} onClick={redo} aria-label="Redo" iconOnly>
-            <RedoIcon />
-          </Button>
-        </>
-      ) : null}
-      <DocumentBar state={state} dispatch={dispatch} preview={preview} />
-    </Flex>
-  );
-
   /* THE SECTIONS THE APP OWNS rather than the schema, seated INSIDE whichever inspector is
      showing (2026-09-02). They used to be a `<Panel>` of their own under a `<Stack gap="5">`,
      which gave the pane two label columns and put a third distance between two sections
@@ -1460,148 +1361,31 @@ export function BuilderApp() {
        builder pays what every app pays for one. CONTAINED, with the window's height stated,
        because the canvas is a room with its own scroll: a window Shell lets the page scroll on
        a phone (2026-09-11), and a canvas that grew with the page would stop being a room. */
-    <Shell contained style={{ height: "100dvh" }}>
+    <Shell
+      contained
+      style={
+        {
+          height: "100dvh",
+          "--shell-sidebar-w": `${panelWidth.sidebar}px`,
+          "--shell-inspector-w": `${panelWidth.inspector}px`,
+        } as React.CSSProperties
+      }
+    >
       {/* NO `size`, and that is the statement (Kushagra, 2026-08-21: "anything system
           default should use size 2 as default, that's our baseline"). The panes said
           `size="1"` three separate times, which is the default-with-no-home the Shell's own
           root prop was added to end — and the index they were reaching for was the wrong one
           anyway. Stating `size="2"` here would be a second home for the baseline; the one
           that counts lives in the component. */}
-      {/* ── The top bar (2026-09-03, Kushagra: "the top bar is partociarlarly bad") ────────
-          THREE ZONES, AND EACH ONE IS ABOUT ONE THING. It was two clusters pushed apart by
-          `space-between`, which put the DOCUMENT at the far left beside the app's own name
-          and everything you do TO that document 1,200px away at the other end, with a dead
-          gap between them. Six peer controls ran along the right in one weight, so nothing
-          said which of them you reach for.
+      {/* ── NO HEADER, NO RAIL (2026-09-14, Kushagra: the studio app's chrome, brought here) ──
+          The frame's header and the jump bar were two bands across the top: the app's name, the
+          document and its actions in one, the selection path and the canvas's own controls in
+          the other. Both float over the canvas now, a band at each end of the work area, and
+          they pass the pointer between their controls, so a drag still lands on the canvas under
+          them. The rail went with its Add region: + opens the palette, so the sidebar is Layers
+          and nothing else, and a column of two squares had nothing left to pick. */}
 
-          Now: the panes at the two extremes (the convention, and they are symmetric), the
-          identity beside the one it opens, the DOCUMENT centred with its own history beside
-          it, and the actions on the right ending on the one loud thing.
-
-          A GRID, not `space-between`, and that is the whole mechanism: `1fr auto 1fr` keeps
-          the middle centred against the WINDOW however wide the two side clusters get, where
-          a flex row centres it against whatever room the sides leave — so the document name
-          would drift every time a finding count changed. */}
-      <ShellHeader>
-        <Grid
-          /* THREE ZONES WHILE THE WINDOW CAN AFFORD THEM, two when it cannot — see `centred`
-             for the arithmetic. Below the boundary the document rejoins the identity, which is
-             where it lived before, and the row is a plain `auto 1fr`: the actions take the rest
-             and land at its end. */
-          columns={centred ? "1fr auto 1fr" : "auto 1fr"}
-          gapX="4"
-          align="center"
-          style={{ flex: 1, minWidth: 0 }}
-        >
-          <Flex align="center" gap="3" style={{ minWidth: 0 }}>
-            {/* The pane toggles sit where every app frame puts them — at the two ends,
-                driving panes BY NAME through the registry rather than through lifted state. */}
-            {!preview ? (
-              <ShellTrigger
-                target="sidebar"
-                render={<Button emphasis="quiet" iconOnly aria-label="Editing panels" />}
-              >
-                <PanelLeftIcon />
-              </ShellTrigger>
-            ) : null}
-            <Heading size="3" render={<h1 />}>
-              <Link href="/" style={{ color: "inherit", textDecoration: "none" }}>
-                Builder
-              </Link>
-            </Heading>
-            {centred ? null : documentZone}
-          </Flex>
-
-          {centred ? documentZone : null}
-
-          {/* THE ACTIONS, ending on the one loud thing. The pane toggle sits after it because
-              a pane toggle is not an action on the document — it belongs at the frame's edge
-              with its twin, which is the one arrangement that reads as a frame rather than as
-              a sixth button. */}
-          <Flex align="center" gap="2" justify="flex-end" style={{ minWidth: 0 }}>
-            <Button emphasis="quiet" onClick={() => setPaletteOpen(true)} trailing={<Kbd>{chordLabel("mod+k")}</Kbd>}>
-              Commands
-            </Button>
-            {/* Review is a REGION of the inspector, so the button goes there and takes the
-                pane's visibility with it — the dead-control problem the last audit named,
-                answered structurally this time rather than by hiding the button. It still
-                stands down in preview, where the pane is closed on purpose.
-
-                THE COUNT IS A BADGE (§38, 2026-09-03), not part of the label. Baked into the
-                string it changed the button's WIDTH every time the document did, so the whole
-                right-hand run shifted while you were reaching for it — Tabs' own measured
-                argument against a heavier active label. A badge is a marker pinned to a thing;
-                the thing here is the word "Review".
-
-                `aria-current` is GONE with it. It said `"true"` on an open pane, and
-                `aria-current` names a location in a set — a page in a nav, a crumb in a path.
-                Whether a pane is open is `aria-expanded`, which `ShellTrigger` has been
-                publishing all along, so the attribute was redundant and wrong at once. */}
-            {!preview ? (
-              <ShellTrigger
-                target="inspector"
-                action="open"
-                onClick={() => setRightTab("review")}
-                render={<Button emphasis={reviewOpen ? "medium" : "quiet"} />}
-              >
-                Review
-                {findings.length ? (
-                  <Badge tone={findings.some((f) => f.severity === "error") ? "destructive" : "warning"}>
-                    {findings.length}
-                  </Badge>
-                ) : null}
-              </ShellTrigger>
-            ) : null}
-            {/* A TOGGLE (§34, 2026-09-03). It was a Button with `aria-pressed` bolted on and
-                an emphasis the call site computed — which is the component, written out by
-                hand: a toggle's emphasis IS its state, which is why `Toggle` has no emphasis
-                prop and why `aria-pressed` comes from the primitive.
-
-                The LABEL stopped changing with it. "Preview" became "Editing off" when it was
-                on, so the control announced two different things and neither of them named
-                what pressing it does. A toggle says what it turns on, and its own state says
-                whether it is on. */}
-            <Toggle pressed={preview} onPressedChange={setPreview}>
-              Preview
-            </Toggle>
-            <Button tone="accent" emphasis="loud" onClick={() => setExportOpen(true)}>
-              Export code
-            </Button>
-            {!preview ? (
-              <ShellTrigger
-                target="inspector"
-                render={<Button emphasis="quiet" iconOnly aria-label="Inspector" />}
-              >
-                <PanelRightIcon />
-              </ShellTrigger>
-            ) : null}
-          </Flex>
-        </Grid>
-      </ShellHeader>
-
-      {/* ── The rail: which region the sidebar shows ──────────────────────────────────────
-          It was a two-tab strip inside the sidebar, and the Shell's own sentence is what it
-          became: "the rail picks, the sidebar shows what was picked". Each square is a
-          TRIGGER as well as a switch, `action="open"` — picking a region the sidebar is not
-          showing must show it, or a press on a visible control does nothing, which is the
-          dead-control problem the header's Review button answers one screen up. */}
-      <ShellRail aria-label="Panels" {...(preview ? { open: false } : {})}>
-        <ShellRailList>
-          {LEFT_REGIONS.map(({ id, label, Icon }) => (
-            <ShellTrigger
-              key={id}
-              target="sidebar"
-              action="open"
-              onClick={() => setLeftTab(id)}
-              render={<ShellRailItem aria-label={label} current={leftTab === id} />}
-            >
-              <Icon />
-            </ShellTrigger>
-          ))}
-        </ShellRailList>
-      </ShellRail>
-
-      {/* ── The sidebar: whichever region the rail picked ──────────────────────────────────
+      {/* ── The sidebar: Layers ─────────────────────────────────────────────────────────────
           THE PROP IS SPREAD, not passed as `open={preview ? false : undefined}`, and the
           type is what said so: `exactOptionalPropertyTypes` refuses an explicit `undefined`,
           which is the API stating that saying nothing and saying "I don't know" are
@@ -1609,269 +1393,168 @@ export function BuilderApp() {
           CSS-resolved `auto` posture — open on a roomy window, an overlay on a phone,
           decided at first paint with no script — and the user's own toggles keep working.
           Preview is the one thing that overrules it, and letting go restores whatever it
-          was. Passing `!preview` instead would have frozen the pane open on a phone and
-          killed the responsive default outright. */}
-      <ShellSidebar
-        aria-label="Editing panels"
-        resizable
-        width={panelWidth.sidebar}
-        minWidth={240}
-        maxWidth={560}
-        resizeLabel="Resize the editing panels"
-        onResize={(w) => setPanelWidth((p) => ({ ...p, sidebar: w }))}
-        {...(preview ? { open: false } : {})}
-      >
-        {/* THE PANE'S OWN CHROME ROW (§27, 2026-09-02) — the docs shell's pattern, which is
-            where it was proven: a floating header with the panel's rows passing behind it and
-            the scroller's `fade` keeping them legible. It holds the ONE control the picked
-            region owns and nothing else — no title, because the rail's lit square already
-            says which region this is and a row repeating it would be the 100%-chrome header
-            the docs site deleted.
+          was.
 
-            THE ADD REGION GOT A FILTER TO PUT HERE, and the row is what forced the question:
-            the palette is forty entries in five families and had no way to say a name, so the
-            row was going to be empty half the time. A filter in each region is the answer that
-            makes the row honest in both. */}
-        <ShellPaneHeader float>
-          {leftTab === "layers" ? (
-            <LayersFilter value={layerFilter} onChange={setLayerFilter} inputRef={layerFilterRef} />
-          ) : (
-            <TextField
-              aria-label="Filter components"
-              placeholder="Filter by name"
-              /* The same statement as the Layers filter beside it — see LayersFilter for
-                 why a floating field over passing rows has to express the material. */
-              backdrop
-              value={paletteFilter}
-              onChange={(e) => setPaletteFilter(e.target.value)}
-              style={{ flex: 1 }}
-              {...(paletteFilter
-                ? {
-                    trailing: (
-                      <Button
-                        emphasis="quiet"
-                        iconOnly
-                        aria-label="Clear the filter"
-                        onClick={() => setPaletteFilter("")}
-                      >
-                        <XIcon />
-                      </Button>
-                    ),
-                  }
-                : {})}
-            />
-          )}
+          NOT FLUSH (2026-09-14, Kushagra), so it floats over the canvas, which is flush: the
+          canvas passes under it and clears it by the reach the frame publishes. Its width is
+          stated on the Shell (`--shell-sidebar-w`) rather than as `width` here, so the pane and
+          that reach read one number — a `width` prop moves the pane and leaves the reach at the
+          token's 288, which Shell's development guard measures and warns about. */}
+      {/* The pane IS the Tabs root, as the inspector's is, so the header and the scroller stay
+          direct children of the pane. */}
+      <Tabs
+        value={leftTab}
+        onValueChange={(v) => setLeftTab(v as typeof leftTab)}
+        render={
+          <ShellSidebar
+            aria-label="Layers and components"
+            flush={false}
+            resizable
+            minWidth={240}
+            maxWidth={560}
+            resizeLabel="Resize the layers panel"
+            onResize={(w) => setPanelWidth((p) => ({ ...p, sidebar: w }))}
+            {...(preview ? { open: false } : {})}
+          />
+        }
+      >
+        {/* THE MASTHEAD (2026-09-14, Kushagra), the docs sidebar's own: a floating row holding
+            the mark, with the filter and the tree passing behind it and the scroller's `fade`
+            keeping them legible. The mark is the way home; the link carries the name, and the
+            word inside it is a picture of the name. `kd-masthead` keeps the mark's box to the
+            row (prose.css). */}
+        {/* THE TABS ARE THE HEADER, spelled as the inspector's: in flow, so they stay put, and
+            spending the pane's inset so the bar meets both walls. */}
+        <ShellPaneHeader style={{ margin: "calc(-1 * var(--kui-sf-p))", marginBlockEnd: 0 }}>
+          <TabsList style={{ flex: 1 }}>
+            <TabsTab value="layers">Layers</TabsTab>
+            <TabsTab value="add">Add</TabsTab>
+          </TabsList>
         </ShellPaneHeader>
         {/* The rows scroll BEHIND the chrome and rest clear of it — the pane publishes the
             row's reach and the content spends it (§27's safe-area pattern at pane scale),
             minus the viewport's own re-pad, because a ShellScroll already insets by the
             pane's padding. */}
         <ShellScroll fade>
-          <Box style={{ paddingBlockStart: "calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p))" }}>
-            {leftTab === "add" ? (
-              paletteHits === 0 ? (
-                /* THE FILTER'S OWN EMPTY STATE (2026-09-02). Every group returns null when
-                   its entries are filtered out, so a word that matched nothing rendered an
-                   EMPTY PANE — no rows, no message, nothing to say the filter was the reason
-                   it was empty. The block's second state, with the action that clears rather
-                   than one that offers to create. */
-                <EmptyState
-                  title="Nothing here is called that"
-                  description="The palette filters on a component's own name. Try a shorter one."
-                  action={
-                    /* Quiet and BORDERED — see the same call in layers.tsx: the rank is
-                       the block's, the border is what makes it read as a control. */
-                    <Button emphasis="quiet" bordered onClick={() => setPaletteFilter("")}>
-                      Clear the filter
-                    </Button>
-                  }
-                />
-              ) : (
-              <Stack gap="4">
-                {contextualParts.length ? (
-                  <PaletteGroup
-                    label={`Inside ${selected!.type}`}
-                    entries={matchingContextual}
-                    canInsert={() => true}
-                    onInsert={insertType}
-                    onDragBegin={(payload) => (dragRef.current = payload)}
-                    onDragFinish={endDrag}
-                  />
+          <Stack
+            gap="3"
+            pt="4"
+            style={{
+              paddingBlockEnd: "calc(var(--kui-pane-inset-block-end) - var(--kui-sf-p))",
+            }}
+          >
+            <TabsPanel value="layers">
+              <Stack gap="3">
+                {/* The filter leads the tree and scrolls with it as the docs nav's rows do; ⌘F
+                    focuses it, which brings it back into view. */}
+                {canvasChildren(doc).length > 0 ? (
+                  <LayersFilter value={layerFilter} onChange={setLayerFilter} inputRef={layerFilterRef} />
                 ) : null}
-                {PALETTE_FAMILIES.map((family) => (
-                  <PaletteGroup
-                    key={family}
-                    label={family}
-                    entries={matchingPalette.filter(([, e]) => e.family === family)}
-                    canInsert={(type) => insertionTarget(doc.roots, selection, type) !== null}
-                    onInsert={insertType}
-                    onDragBegin={(payload) => (dragRef.current = payload)}
-                    onDragFinish={endDrag}
-                  />
-                ))}
-                {blocks.length > 0 && matchingBlocks.length === 0 ? null : (
-                <Stack gap="1">
-                  {/* The palette's own group label — an inert row, so it lines up with the
-                      words under it for the reason PaletteGroup states. */}
-                  <Row render={<div />}>
-                    <Text size="1" emphasis="quiet" weight="medium">
-                      Blocks
-                    </Text>
-                  </Row>
-                  {blocks.length === 0 ? (
-                    <Row render={<div />}>
-                      <Text size="1" emphasis="quiet">
-                        Save a selection as a block and it lands here.
-                      </Text>
-                    </Row>
-                  ) : (
-                    /* The INDEX travels with the block, because it is the id every action on
-                       one uses — the drag payload, the export, the remove — and filtering a
-                       list you then index by position is how the wrong block gets deleted. */
-                    matchingBlocks.map(([b, i]) => (
-                      <Flex key={`${b.name}-${i}`} gap="1" align="center">
-                        {/* The row keeps its own box and the ⋯ stays a SIBLING: Row's
-                            trailing slot is for a shortcut, a count or a chevron, and a
-                            menu trigger in it would be a control nested in a control's
-                            element. */}
-                        <Row
-                          draggable
-                          onDragStart={(e) => {
-                            dragRef.current = { kind: "block", index: i };
-                            e.dataTransfer.setData(DRAG_TYPE, b.node.type);
-                            e.dataTransfer.effectAllowed = "copy";
-                          }}
-                          onDragEnd={endDrag}
-                          onClick={() => insertBlock(b)}
-                          style={{ flex: 1 }}
-                        >
-                          {b.name}
-                        </Row>
-                        <Menu>
-                          <MenuTrigger
-                            render={
-                              <Button emphasis="quiet" iconOnly aria-label={`Actions for ${b.name}`}>
-                                <MoreIcon />
-                              </Button>
-                            }
-                          />
-                          <MenuContent>
-                            <MenuItem onClick={() => insertBlock(b)}>Insert</MenuItem>
-                            {/* A block was write-only: you could save one and place
-                                one, and there was no way back into it — so a typo in
-                                a saved card meant rebuilding it. It opens as its own
-                                document now, with fresh ids so editing the copy
-                                cannot reach into the block or into any screen the
-                                block was already placed in. Re-saving under the same
-                                name replaces it. */}
-                            <MenuItem onClick={() => openBlock(b)}>Open as document</MenuItem>
-                            <MenuItem
-                              onClick={() => {
-                                setExportBlock(i);
-                                setExportOpen(true);
-                              }}
-                            >
-                              Export as component
-                            </MenuItem>
-                            <MenuItem tone="destructive" onClick={() => dispatch({ type: "blockRemove", index: i })}>
-                              Remove
-                            </MenuItem>
-                          </MenuContent>
-                        </Menu>
-                      </Flex>
-                    ))
-                  )}
-                </Stack>
-                )}
+                {/* THE PACKAGE'S OWN TREE since 2026-09-02 — see layers.tsx for what the swap
+                    deleted and why the drag stayed here. */}
+                <Layers
+                  roots={doc.roots}
+                  selection={state.selection}
+                  empty={canvasChildren(doc).length === 0}
+                  onSelect={(ids) => dispatch({ type: "select", ids })}
+                  onDragBegin={(id) => {
+                    dragRef.current = { kind: "move", id };
+                    setSelection(id);
+                  }}
+                  onDragFinish={endDrag}
+                  canRowDrop={(id, mode) => rowSpot(id, mode) !== null}
+                  onRowDrop={onRowDrop}
+                  visible={visibleRows}
+                  onClearFilter={() => setLayerFilter("")}
+                />
               </Stack>
-              )
-            ) : leftTab === "layers" ? (
-              /* THE PACKAGE'S OWN TREE since 2026-09-02 — see layers.tsx for what the swap
-                 deleted and why the drag stayed here. The filter row moved to the pane's
-                 floating chrome; what is left in the scroller is the structure itself. */
-              <Layers
-                roots={doc.roots}
-                selection={state.selection}
-                empty={canvasChildren(doc).length === 0}
-                onSelect={(ids) => dispatch({ type: "select", ids })}
-                onDragBegin={(id) => {
-                  dragRef.current = { kind: "move", id };
-                  setSelection(id);
+            </TabsPanel>
+            <TabsPanel value="add">
+              <AddPanel
+                ctx={ctx}
+                active={leftTab === "add"}
+                onDragBegin={(type) => {
+                  dragRef.current = { kind: "insert", type };
                 }}
                 onDragFinish={endDrag}
-                canRowDrop={(id, mode) => rowSpot(id, mode) !== null}
-                onRowDrop={onRowDrop}
-                visible={visibleRows}
-                onClearFilter={() => setLayerFilter("")}
               />
-            ) : (
-              /* EXHAUSTIVE, and that is the other half of what one region list buys. The
-                 rail derives its squares from LEFT_REGIONS, so adding a region adds a square
-                 — and with a two-arm ternary the new square would have silently shown the
-                 LAYERS panel, a control that looks like it works. Narrowed to `never` here,
-                 so the missing panel is a build failure instead. */
-              noPanel(leftTab)
-            )}
-          </Box>
+            </TabsPanel>
+          </Stack>
         </ShellScroll>
-      </ShellSidebar>
+        {/* THE APPEARANCE TOGGLE, at the pane's foot (2026-09-14, Kushagra), where the docs
+            site's sidebar keeps it. It acts on the editor's chrome rather than on the document,
+            so it sits with the panel rather than among the canvas's controls. */}
+        <ShellPaneFooter float>
+          <Toolbar backdrop aria-label="Appearance">
+            <AppearanceToggle />
+          </Toolbar>
+        </ShellPaneFooter>
+      </Tabs>
 
-      {/* ── The work area: the jump bar, then the live canvas ─────────────────────────────
-          `<main>`, and it stops scrolling itself the moment a ShellScroll is its direct
-          child — which is what pins the jump bar without the bar saying so. The grey
-          workbench moved onto the SCROLLER with the scroll: the pane's own seal is chrome,
-          the region the canvas floats in is the work. */}
-      <ShellContent>
-        <JumpBar
-          roots={doc.roots}
-          selection={preview ? [] : state.selection}
-          hidePath={preview}
-          onSelect={(id) => setSelection(id)}
-          extra={
-            <Flex align="center" gap="2">
-              <Flex align="center" gap="1">
-                <Button
-                  emphasis="quiet"
-                  iconOnly
-                  aria-label="Zoom out"
-                  disabled={zoom === ZOOMS[0]}
-                  onClick={() => ctx.ui.stepZoom(-1)}
+      {/* ── The work area: the live canvas, with its bands floating over it ──────────────────
+          `<main>`, and it stops scrolling itself the moment a ShellScroll is its direct child.
+          `position: relative` is for the + strip, which is placed against the pane rather than
+          inside the scroller, so it stays put while the canvas moves. */}
+      <ShellContent style={{ position: "relative" }}>
+        {/* THE TOP BAND: the Layers toggle at the frame's edge on one side; on the other, the
+            document, what you do with it, and the inspector's toggle at the other edge. The mark
+            lives in the sidebar's masthead. The one loud thing is still Export code. */}
+        <ShellPaneHeader float>
+          <Toolbar backdrop aria-label="Document">
+            {/* The mark sits beside the sidebar's toggle (2026-09-14, Kushagra): the sidebar's
+                own header is its tabs. */}
+            <Flex align="center" gap="3">
+              {!preview ? (
+                <ShellTrigger target="sidebar" render={<ToolbarButton iconOnly aria-label="Layers" />}>
+                  <PanelLeftIcon />
+                </ShellTrigger>
+              ) : null}
+              <Link
+                href="/"
+                aria-label="Builder, KookieUI home"
+                className="kd-masthead"
+                style={{ color: "inherit", textDecoration: "none" }}
+              >
+                <Wordmark form="builder" />
+              </Link>
+            </Flex>
+            {/* `marginInlineStart: auto` holds the run at the end in preview too, where the
+                toggle stands down and the band would otherwise start with it. */}
+            <Flex align="center" gap="3" style={{ minWidth: 0, marginInlineStart: "auto" }}>
+              <DocumentBar state={state} dispatch={dispatch} preview={preview} />
+              {/* Review is a REGION of the inspector, so the button goes there and takes the
+                  pane's visibility with it. THE COUNT IS A BADGE (§38, 2026-09-03), so the run
+                  does not shift while the document changes. */}
+              {!preview ? (
+                <ShellTrigger
+                  target="inspector"
+                  action="open"
+                  onClick={() => setRightTab("review")}
+                  render={<ToolbarButton />}
                 >
-                  <MinusIcon />
-                </Button>
-                {/* The reading is the button: pressing it goes back to actual size, which
-                    is the only zoom anybody asks for by name. */}
-                <Button emphasis="quiet" aria-label="Actual size" onClick={() => ctx.ui.stepZoom(null)}>
-                  {`${Math.round(zoom * 100)}%`}
-                </Button>
-                <Button
-                  emphasis="quiet"
-                  iconOnly
-                  aria-label="Zoom in"
-                  disabled={zoom === ZOOMS[ZOOMS.length - 1]}
-                  onClick={() => ctx.ui.stepZoom(1)}
-                >
-                  <PlusIcon />
-                </Button>
-              </Flex>
-              {/* A Toggle for the reason Preview is one (§34): a mode you turn on, whose
-                  emphasis IS its state. */}
-              <Toggle pressed={tiersView} onPressedChange={setTiersView}>
-                Compare tiers
+                  Review
+                  {findings.length ? (
+                    <Badge tone={findings.some((f) => f.severity === "error") ? "destructive" : "warning"}>
+                      {findings.length}
+                    </Badge>
+                  ) : null}
+                </ShellTrigger>
+              ) : null}
+              {/* A TOGGLE (§34, 2026-09-03): a mode you turn on, whose emphasis IS its state. */}
+              <Toggle pressed={preview} onPressedChange={setPreview}>
+                Preview
               </Toggle>
-              {canvasW ? (
-                <>
-                  <Text size="2" emphasis="quiet">
-                    {`${canvasW}px · ${activeTier(canvasW)}`}
-                  </Text>
-                  <Button emphasis="quiet" onClick={() => setCanvasW(null)}>
-                    Full width
-                  </Button>
-                </>
+              <ToolbarButton tone="accent" emphasis="loud" onClick={() => setExportOpen(true)}>
+                Export code
+              </ToolbarButton>
+              {!preview ? (
+                <ShellTrigger target="inspector" render={<ToolbarButton iconOnly aria-label="Inspector" />}>
+                  <PanelRightIcon />
+                </ShellTrigger>
               ) : null}
             </Flex>
-          }
-        />
+          </Toolbar>
+        </ShellPaneHeader>
         {/* NO SEPARATOR under the bar, deliberately: the workbench grey below it already
             draws that seam, and a hairline on top of it is the doubled-edge defect this
             repo has paid for twice (the material's ring, 2026-08-17).
@@ -1883,6 +1566,7 @@ export function BuilderApp() {
             (the same property that makes two buttons fill a grid row), and the cap then lands it
             exactly on the area's height. */}
         <ShellScroll
+          fade
           className="kb-canvas-scroller"
           style={{ flex: 1, minHeight: 0, display: "grid", background: "var(--neutral-2)" }}
         >
@@ -1911,7 +1595,20 @@ export function BuilderApp() {
                   onDrop={onCanvasDrop}
                   onDragLeave={onCanvasDragLeave}
                   onDragEnd={endDrag}
-                  style={{ minHeight: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column" }}
+                  style={{
+                    minHeight: "100%",
+                    boxSizing: "border-box",
+                    display: "flex",
+                    flexDirection: "column",
+                    // Clear of both floating bands at rest: each publishes its reach, and the
+                    // viewport has already re-padded by the pane's own padding once.
+                    paddingBlockStart: "calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p) + var(--layout-space-9))",
+                    paddingBlockEnd: "calc(var(--kui-pane-inset-block-end) - var(--kui-sf-p) + var(--layout-space-9))",
+                    // And clear of a floating sidebar or inspector at rest, by the reach the frame
+                    // publishes for each; zero while a pane is flush or closed.
+                    paddingInlineStart: "calc(var(--kui-shell-inset-inline-start) + var(--layout-space-9))",
+                    paddingInlineEnd: "calc(var(--kui-shell-inset-inline-end) + var(--layout-space-9))",
+                  }}
                 />
               }
             >
@@ -2260,6 +1957,92 @@ export function BuilderApp() {
             />
           </ContextMenu>
         </ShellScroll>
+        {/* THE BOTTOM BAND: the document's history and the selection on one side, how the canvas
+            is viewed on the other. Undo, redo and the path stand down in preview with the panes;
+            the viewing controls stay, because looking is what preview is for. */}
+        <ShellPaneFooter float>
+          <Toolbar backdrop aria-label="Canvas">
+            <Flex align="center" gap="3" style={{ minWidth: 0 }}>
+              {!preview ? (
+                <>
+                  <ToolbarButton iconOnly aria-label="Undo" disabled={!canUndo(state)} onClick={undo}>
+                    <UndoIcon />
+                  </ToolbarButton>
+                  <ToolbarButton iconOnly aria-label="Redo" disabled={!canRedo(state)} onClick={redo}>
+                    <RedoIcon />
+                  </ToolbarButton>
+                  <JumpBar roots={doc.roots} selection={state.selection} onSelect={(id) => setSelection(id)} />
+                </>
+              ) : null}
+            </Flex>
+            <Flex align="center" gap="3">
+              <ToolbarButton
+                iconOnly
+                aria-label="Zoom out"
+                disabled={zoom === ZOOMS[0]}
+                onClick={() => ctx.ui.stepZoom(-1)}
+              >
+                <MinusIcon />
+              </ToolbarButton>
+              {/* The reading is the button: pressing it goes back to actual size, which is the
+                  only zoom anybody asks for by name. */}
+              <ToolbarButton aria-label="Actual size" onClick={() => ctx.ui.stepZoom(null)}>
+                {`${Math.round(zoom * 100)}%`}
+              </ToolbarButton>
+              <ToolbarButton
+                iconOnly
+                aria-label="Zoom in"
+                disabled={zoom === ZOOMS[ZOOMS.length - 1]}
+                onClick={() => ctx.ui.stepZoom(1)}
+              >
+                <PlusIcon />
+              </ToolbarButton>
+              {/* A Toggle for the reason Preview is one (§34): a mode you turn on, whose
+                  emphasis IS its state. */}
+              <Toggle pressed={tiersView} onPressedChange={setTiersView}>
+                Compare tiers
+              </Toggle>
+              {canvasW ? (
+                <>
+                  <Text size="2" emphasis="quiet">
+                    {`${canvasW}px · ${activeTier(canvasW)}`}
+                  </Text>
+                  <ToolbarButton onClick={() => setCanvasW(null)}>Full width</ToolbarButton>
+                </>
+              ) : null}
+            </Flex>
+          </Toolbar>
+        </ShellPaneFooter>
+        {/* + at the canvas's edge, halfway down, in line with the bands' own inset. It opens the
+            palette with the components leading; ⌘K opens the same palette on the command table.
+
+            `data-float`, as the bands say it: the pane pulls its scroller to both edges only while
+            the scroller is its first and last child IN FLOW (surfaces.css), and this box is out of
+            flow over it. Unmarked, the scroller stopped at the pane's padding and a strip of the
+            pane's own fill showed under the bottom band. */}
+        {!preview ? (
+          <Box
+            data-float=""
+            position="absolute"
+            style={{
+              insetInlineStart: "calc(var(--kui-sf-p) + var(--kui-shell-inset-inline-start, 0px))",
+              insetBlockStart: "50%",
+              transform: "translateY(-50%)",
+              zIndex: 1,
+            }}
+          >
+            <Toolbar orientation="vertical" backdrop aria-label="Add components">
+              <ToolbarButton
+                iconOnly
+                emphasis="loud"
+                aria-label="Add a component"
+                onClick={() => setLeftTab("add")}
+              >
+                <PlusIcon />
+              </ToolbarButton>
+            </Toolbar>
+          </Box>
+        ) : null}
       </ShellContent>
 
       {/* ── The inspector: selected, theme, review ────────────────────────────────────────
@@ -2276,7 +2059,11 @@ export function BuilderApp() {
           toggle pins it. Recorded open rather than papered over: this is a THIRD resting
           rule the library does not offer, and the honest library answer is an inspector
           whose `auto` an app can mean — this app is the first consumer with an opinion, so
-          the rule lives here until a second one wants it. */}
+          the rule lives here until a second one wants it.
+
+          NOT FLUSH (2026-09-14, Kushagra), as the sidebar is: it floats over the canvas at the
+          other edge, and its width is stated on the Shell (`--shell-inspector-w`) for the
+          sidebar's reason — so the reach the canvas and the bands clear by is the pane's own. */}
       {/* THE TABS ROOT *IS* THE PANE (2026-09-02, Kushagra: "property panel has no bleed
             stuff, tabs are floating in the middle"). Two faults, one cause. The strip sat
             inside the scroller under a `Box p="3"` — a second inset on top of the padding the
@@ -2300,8 +2087,8 @@ export function BuilderApp() {
           render={
             <ShellInspector
               aria-label="Inspector"
+              flush={false}
               resizable
-              width={panelWidth.inspector}
               minWidth={240}
               maxWidth={560}
               resizeLabel="Resize the inspector"
@@ -2431,7 +2218,7 @@ export function BuilderApp() {
         </Tabs>
 
       {/* ── The editor's own dialogs ── */}
-      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} ctx={ctx} />
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} ctx={ctx} adding={paletteAdding} />
       <ShortcutSheet open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
       {/* SIZE 4, and the code is why (2026-08-21): the export block is a `<pre>` that must
           not wrap, and moving the editor to the baseline index made its longest line — the
@@ -2590,70 +2377,6 @@ function TierCompare({ doc }: { doc: BuilderDoc }) {
             </Box>
           </Theme>
         </Stack>
-      ))}
-    </Stack>
-  );
-}
-
-/**
- * A family of the palette, as ROWS (2026-09-02, Kushagra: "this is the same (the add
- * thing)?" — asked with the Layers tree open beside it).
- *
- * It was a two-column `Grid` of quiet Buttons, which is the shape a palette takes before the
- * system has a row: a button is a thing you press to DO something, and every entry here is a
- * thing you pick out of a list — which is §21's own sentence and what the row family is for.
- * Beside the tree next door the difference was the whole complaint: one panel's items filled
- * the pane and lit across it, the other's were two columns of indented chips.
- *
- * ONE COLUMN, not two rows of the family in a grid: a row is a full-width thing, and the
- * filter in the pane's chrome is what replaced the scan the two columns were buying.
- *
- * THE GROUP LABEL IS AN INERT ROW, which is how it lines up with the words beneath it without
- * anybody picking a number. A row's text inset is `--kui-ct-px`, declared by the control size
- * join on each ROW's element, so a sibling cannot read it — the menu had to publish
- * `--kui-sf-row-px` for exactly this and that token is the floating family's. Wearing the row
- * is the alignment (§21: a menu label IS a `.kui-row` that is not a control), and
- * `render={<div/>}` is what stops it promising a press it does not answer.
- */
-function PaletteGroup({
-  label,
-  entries,
-  canInsert,
-  onInsert,
-  onDragBegin,
-  onDragFinish,
-}: {
-  label: string;
-  entries: [string, CatalogEntry][];
-  canInsert: (type: string) => boolean;
-  onInsert: (type: string) => void;
-  onDragBegin: (payload: DragPayload) => void;
-  onDragFinish: () => void;
-}) {
-  if (entries.length === 0) return null;
-  return (
-    <Stack gap="1">
-      <Row render={<div />}>
-        <Text size="1" emphasis="quiet" weight="medium">
-          {label}
-        </Text>
-      </Row>
-      {entries.map(([type, entry]) => (
-        <Row
-          key={type}
-          disabled={!canInsert(type)}
-          title={entry.blurb}
-          draggable
-          onDragStart={(e) => {
-            onDragBegin({ kind: "insert", type });
-            e.dataTransfer.setData(DRAG_TYPE, type);
-            e.dataTransfer.effectAllowed = "copy";
-          }}
-          onDragEnd={onDragFinish}
-          onClick={() => onInsert(type)}
-        >
-          {type}
-        </Row>
       ))}
     </Stack>
   );

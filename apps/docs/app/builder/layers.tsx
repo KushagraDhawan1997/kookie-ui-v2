@@ -50,7 +50,7 @@ const labelOf = (n: BuilderNode, depth: number): string =>
   depth === 0
     ? `Canvas · ${n.type}`
     : n.text
-      ? `${n.type} · ${n.text.slice(0, 18)}${n.text.length > 18 ? "…" : ""}`
+      ? `${n.type} · ${n.text}`
       : n.type;
 
 /** The visible rows in the order the machine will draw them — the same walk `Tree` does, run
@@ -230,10 +230,12 @@ export function Layers({
             `EmptyState` exists to prevent, and it is what the one-line versions of these
             were on their way to becoming. */}
         {empty ? (
-          <EmptyState
-            title="The canvas is empty"
-            description="Place a component from Add, or start the document from a template."
-          />
+          <Box py="8">
+            <EmptyState
+              title="No layers yet"
+              description="Press + beside the canvas to add a component, or start from a template."
+            />
+          </Box>
         ) : rows.length === 0 ? (
           <EmptyState
             title="Nothing here is called that"
@@ -316,15 +318,20 @@ export function LayersFilter({
   value,
   onChange,
   inputRef,
+  label = "Filter layers",
+  placeholder = "Filter by type or words",
 }: {
   value: string;
   onChange: (next: string) => void;
-  inputRef: React.Ref<HTMLInputElement>;
+  inputRef?: React.Ref<HTMLInputElement>;
+  /** The sidebar's two filters are one field; only the words differ. */
+  label?: string;
+  placeholder?: string;
 }) {
   return (
     <TextField
-      aria-label="Filter layers"
-      placeholder="Filter by type or words"
+      aria-label={label}
+      placeholder={placeholder}
       /* IT STATES ITS BACKDROP (§10, 2026-09-02, Kushagra). The row floats and the tree
          scrolls behind it, and a field's fill is an ALPHA over the neutral ramp (2026-08-17,
          so fills composite against their local ground) — which here is passing rows, not the
@@ -333,7 +340,7 @@ export function LayersFilter({
          sidebar is flush and therefore solid, and a solid surface HOSTS glass (2026-08-19).
          The docs shell's own floating search button says the same word for the same reason. */
       backdrop
-      ref={inputRef}
+      {...(inputRef ? { ref: inputRef } : {})}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       style={{ flex: 1 }}

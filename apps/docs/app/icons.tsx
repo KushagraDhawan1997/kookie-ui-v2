@@ -55,8 +55,8 @@ import {
   Structure01Icon,
   PreferenceHorizontalIcon,
   TextFontIcon,
-  ArrowTurnBackwardIcon,
-  ArrowTurnForwardIcon,
+  UndoIcon as UndoDrawing,
+  RedoIcon as RedoDrawing,
   ArrowLeft02Icon,
   ArrowRight02Icon,
   ArrowUp02Icon,
@@ -191,9 +191,11 @@ export const SettingsIcon = glyph(Settings02Icon);
 export const UsersIcon = glyph(UserMultiple02Icon);
 
 /* The builder's editor chrome (2026-08-20). Named for the JOB, like every glyph above:
-   the toolbar says undo, not "arrow turning backward". */
-export const UndoIcon = glyph(ArrowTurnBackwardIcon);
-export const RedoIcon = glyph(ArrowTurnForwardIcon);
+   the toolbar says undo, not "arrow turning backward". The drawings are Hugeicons' own Undo and
+   Redo since 2026-09-14, the pair the studio app uses; the names clash with these wrappers, so
+   they are imported as `UndoDrawing` and `RedoDrawing`. */
+export const UndoIcon = glyph(UndoDrawing);
+export const RedoIcon = glyph(RedoDrawing);
 export const PreviewIcon = glyph(EyeIcon);
 export const LayersIcon = glyph(LayerIcon);
 export const PanelLeftIcon = glyph(SidebarLeftIcon);

@@ -48,6 +48,7 @@ import {
 } from "@kookie-ui/react";
 
 import { EmptyState } from "../../blocks/empty-state";
+import { CATALOG, PALETTE_FAMILIES } from "./catalog";
 import {
   COMMANDS,
   armed,
@@ -85,10 +86,14 @@ export function CommandPalette({
   open,
   onOpenChange,
   ctx,
+  adding = false,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   ctx: CommandContext;
+  /** Opened from + rather than ⌘K (2026-09-14): the components lead, under the families the old
+      Add panel listed them by, and the command table follows. The same rows either way. */
+  adding?: boolean;
 }) {
   const sections: PaletteSection[] = React.useMemo(() => {
     if (!open) return [];
@@ -104,34 +109,46 @@ export function CommandPalette({
     /* Blocks and templates are insertion by another name, and a document switch changes what
        preview is previewing. None of them are on the command table, so `armed` cannot reach
        them and the mode has to be asked once, here, where the rows are built. */
-    const rows: PaletteRow[] = [
-      ...COMMANDS.filter((c) => armed(c, ctx)).map(asRow),
-      ...templateCommands()
-        .filter((c) => armed(c, ctx))
-        .map((c): PaletteRow => ({ ...asRow(c), group: "Templates" })),
-      ...insertCommands(ctx).map(asRow),
-      ...(ctx.preview ? [] : ctx.state.blocks).map(
-        (b, i): PaletteRow => ({
-          key: `block:${i}`,
-          title: `Insert ${b.name}`,
-          group: "Blocks",
-          // The old spelling matched against "Insert block <name>", so typing "block" found a
-          // saved block. The word is a keyword now rather than a sentence nobody renders.
-          keywords: "block",
-          run: () => ctx.ui.insertBlockByIndex(i),
+    const commands = COMMANDS.filter((c) => armed(c, ctx)).map(asRow);
+    const templates = templateCommands()
+      .filter((c) => armed(c, ctx))
+      .map((c): PaletteRow => ({ ...asRow(c), group: "Templates" }));
+    /* From +, each component sits under its family rather than one "Insert" caption, in the
+       order the families were listed in; a family outside that list goes last. The sort is
+       stable, so the catalog's own order holds inside a family. */
+    const rank = (row: PaletteRow) => {
+      const at = (PALETTE_FAMILIES as readonly string[]).indexOf(row.group);
+      return at === -1 ? PALETTE_FAMILIES.length : at;
+    };
+    const inserts = adding
+      ? insertCommands(ctx)
+          .map((c): PaletteRow => ({ ...asRow(c), group: CATALOG[c.id.slice("insert:".length)]?.family ?? c.group }))
+          .sort((a, b) => rank(a) - rank(b))
+      : insertCommands(ctx).map(asRow);
+    const blocks = (ctx.preview ? [] : ctx.state.blocks).map(
+      (b, i): PaletteRow => ({
+        key: `block:${i}`,
+        title: `Insert ${b.name}`,
+        group: "Blocks",
+        // The old spelling matched against "Insert block <name>", so typing "block" found a
+        // saved block. The word is a keyword now rather than a sentence nobody renders.
+        keywords: "block",
+        run: () => ctx.ui.insertBlockByIndex(i),
+      }),
+    );
+    const documents = (ctx.preview ? [] : ctx.state.docs)
+      .filter((d) => d.id !== ctx.state.activeId)
+      .map(
+        (d): PaletteRow => ({
+          key: `doc:${d.id}`,
+          title: `Switch to ${d.name}`,
+          group: "Documents",
+          run: () => ctx.dispatch({ type: "docSwitch", id: d.id }),
         }),
-      ),
-      ...(ctx.preview ? [] : ctx.state.docs)
-        .filter((d) => d.id !== ctx.state.activeId)
-        .map(
-          (d): PaletteRow => ({
-            key: `doc:${d.id}`,
-            title: `Switch to ${d.name}`,
-            group: "Documents",
-            run: () => ctx.dispatch({ type: "docSwitch", id: d.id }),
-          }),
-        ),
-    ];
+      );
+    const rows: PaletteRow[] = adding
+      ? [...inserts, ...blocks, ...templates, ...commands, ...documents]
+      : [...commands, ...templates, ...inserts, ...blocks, ...documents];
 
     /* Consecutive runs, not a keyed bucket: the command table is written in the order it should
        be read, and grouping by key would re-sort it. This is exactly what the old
@@ -143,7 +160,7 @@ export function CommandPalette({
       else out.push({ key: `${row.group}:${out.length}`, caption: row.group, items: [row] });
     }
     return out;
-  }, [open, ctx]);
+  }, [open, ctx, adding]);
 
   /* THE PANEL'S MATCHER IS TYPED `unknown`, because Base UI's list can hold groups as well as
      items and only this file knows which is which. The guard is what makes the cast unnecessary
