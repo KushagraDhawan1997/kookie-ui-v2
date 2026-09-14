@@ -772,6 +772,13 @@ export const focusRing = { width: 2, offset: 2 } as const;
  * laggy past ~150. Both values were designed 2026-08-03 and sat unread until the motion
  * system landed 2026-08-09; they are consumed now.
  */
+/**
+ * Every emitted motion duration is multiplied by this (2026-09-14, Kushagra: "keep animation as
+ * is, but make them faster"). The springs are baked per transition, so the curves keep their
+ * shape at any duration. Loops (spinner, progress sweep) are content and do not read it.
+ */
+export const motionSpeed = 0.6;
+
 export const motion = {
   duration: "120ms",
   easing: "cubic-bezier(0.22, 1, 0.36, 1)",

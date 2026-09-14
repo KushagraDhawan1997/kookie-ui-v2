@@ -181,20 +181,20 @@
   /* motion (§8) — two clocks. Signal (colour, opacity) eases and is short; travel
      (geometry) rides a baked damped spring, so a state change costs a cubic-bezier and
      reads like mass. The curves are SAMPLED from the model in config, never pasted. */
-  --motion-duration: 120ms;
-  --motion-drawer: 500ms;
+  --motion-duration: 72ms;
+  --motion-drawer: 300ms;
   --motion-easing: cubic-bezier(0.22, 1, 0.36, 1);
   --motion-spring: linear(0, 0.021 2.78%, 0.076 5.56%, 0.154 8.33%, 0.247 11.11%, 0.347 13.89%, 0.449 16.67%, 0.548 19.44%, 0.641 22.22%, 0.726 25%, 0.801 27.78%, 0.866 30.56%, 0.92 33.33%, 0.964 36.11%, 0.999 38.89%, 1.026 41.67%, 1.045 44.44%, 1.058 47.22%, 1.065 50%, 1.068 52.78%, 1.067 55.56%, 1.064 58.33%, 1.059 61.11%, 1.053 63.89%, 1.047 66.67%, 1.04 69.44%, 1.033 72.22%, 1.026 75%, 1.02 77.78%, 1.015 80.56%, 1.011 83.33%, 1.007 86.11%, 1.003 88.89%, 1.001 91.67%, 0.999 94.44%, 0.997 97.22%, 1 100%);
-  --motion-hover-in: 80ms;
-  --motion-hover-out: 220ms;
-  --motion-press: 140ms;
-  --motion-rise: 550ms;
+  --motion-hover-in: 48ms;
+  --motion-hover-out: 132ms;
+  --motion-press: 84ms;
+  --motion-rise: 330ms;
   --hover-travel: calc(1px * var(--scale));
-  --motion-mark: 380ms;
-  --motion-travel: 420ms;
-  --motion-travel-lead: 320ms;
-  --motion-travel-trail: 480ms;
-  --motion-ring: 260ms;
+  --motion-mark: 228ms;
+  --motion-travel: 252ms;
+  --motion-travel-lead: 192ms;
+  --motion-travel-trail: 288ms;
+  --motion-ring: 156ms;
   --focus-ring-land: calc(4px * var(--scale));
   --press-travel: calc(2px * var(--scale));
   --press-scale: 0.975;
@@ -215,33 +215,33 @@
      no --scale: a panel does not unfurl slower because the interface is zoomed. */
   --floating-seed: calc(56px * var(--scale));
   --floating-echo: calc(8px * var(--scale));
-  --floating-fall: 345ms;
-  --floating-spread: 510ms;
-  --floating-corner: 420ms;
-  --floating-reveal: 195ms;
-  --floating-paint: 80ms;
-  --floating-reveal-delay: 45ms;
-  --floating-dissolve: 105ms;
-  --floating-settle: 120ms;
+  --floating-fall: 207ms;
+  --floating-spread: 306ms;
+  --floating-corner: 252ms;
+  --floating-reveal: 117ms;
+  --floating-paint: 48ms;
+  --floating-reveal-delay: 27ms;
+  --floating-dissolve: 63ms;
+  --floating-settle: 72ms;
   --overlay-seed: calc(64px * var(--scale));
   --overlay-lift: calc(32px * var(--scale));
   --overlay-hold: 0ms;
   --overlay-grow: 0ms;
   --overlay-echo: calc(8px * var(--scale));
-  --overlay-materialize: 525ms;
-  --overlay-fall: 420ms;
-  --overlay-spread: 600ms;
-  --overlay-reveal: 150ms;
-  --overlay-reveal-delay: 120ms;
-  --overlay-print: 285ms;
-  --dialog-settle: 600ms;
-  --dialog-reveal: 300ms;
+  --overlay-materialize: 315ms;
+  --overlay-fall: 252ms;
+  --overlay-spread: 360ms;
+  --overlay-reveal: 90ms;
+  --overlay-reveal-delay: 72ms;
+  --overlay-print: 171ms;
+  --dialog-settle: 360ms;
+  --dialog-reveal: 180ms;
   --dialog-depth: 0.97;
   --print-blur: 6px;
-  --overlay-dissolve: 105ms;
-  --overlay-settle: 120ms;
-  --tooltip-form: 300ms;
-  --tooltip-paint: 120ms;
+  --overlay-dissolve: 63ms;
+  --overlay-settle: 72ms;
+  --tooltip-form: 180ms;
+  --tooltip-paint: 72ms;
   --tooltip-seed: 0.9;
 
   /* §8 — pointer feedback; `button` is the contested one, so it is overridable */

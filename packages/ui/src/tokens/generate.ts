@@ -49,6 +49,7 @@ import {
   markSteps,
   material,
   motion,
+  motionSpeed,
   radiusLevels,
   radiusOverlay,
   radiusSurface,
@@ -111,6 +112,9 @@ import {
   type DensitySet,
   type RadiusLevel,
 } from "./config.ts";
+
+/** A config duration in ms, scaled by the global motion speed. */
+const ms = (n: number) => `${Math.round(n * motionSpeed)}ms`;
 
 const HEADER = `/* GENERATED FILE — do not edit.
    Source: src/tokens/generate.ts from src/tokens/config.ts.
@@ -330,24 +334,24 @@ export function generateTokens(): string {
   lines.push("", "  /* motion (§8) — two clocks. Signal (colour, opacity) eases and is short; travel");
   lines.push("     (geometry) rides a baked damped spring, so a state change costs a cubic-bezier and");
   lines.push("     reads like mass. The curves are SAMPLED from the model in config, never pasted. */");
-  put("motion-duration", motion.duration);
+  put("motion-duration", ms(parseFloat(motion.duration)));
   /* The drawer's one clock (§27): the slide, the recession, the well and the scrim all ride
      it, so the world's depth is a property of where the drawer is rather than a second
      animation that happens to agree. In the motion family because every duration in this
      package is — a component that names its own is how a hand-typed 150ms gets in. */
-  put("motion-drawer", `${shellDrawer.duration}ms`);
+  put("motion-drawer", ms(shellDrawer.duration));
   put("motion-easing", motion.easing);
   put("motion-spring", springCurve(springs.calm));
-  put("motion-hover-in", `${controlMotion.hoverIn}ms`);
-  put("motion-hover-out", `${controlMotion.hoverOut}ms`);
-  put("motion-press", `${controlMotion.press}ms`);
-  put("motion-rise", `${controlMotion.rise}ms`);
+  put("motion-hover-in", ms(controlMotion.hoverIn));
+  put("motion-hover-out", ms(controlMotion.hoverOut));
+  put("motion-press", ms(controlMotion.press));
+  put("motion-rise", ms(controlMotion.rise));
   put("hover-travel", zoom(controlMotion.hoverTravel));
-  put("motion-mark", `${controlMotion.mark}ms`);
-  put("motion-travel", `${controlMotion.travel}ms`);
-  put("motion-travel-lead", `${controlMotion.travelLead}ms`);
-  put("motion-travel-trail", `${controlMotion.travelTrail}ms`);
-  put("motion-ring", `${controlMotion.ring}ms`);
+  put("motion-mark", ms(controlMotion.mark));
+  put("motion-travel", ms(controlMotion.travel));
+  put("motion-travel-lead", ms(controlMotion.travelLead));
+  put("motion-travel-trail", ms(controlMotion.travelTrail));
+  put("motion-ring", ms(controlMotion.ring));
   put("focus-ring-land", zoom(controlMotion.ringLand));
   put("press-travel", zoom(controlMotion.pressTravel));
   put("press-scale", String(controlMotion.pressScale));
@@ -370,35 +374,35 @@ export function generateTokens(): string {
   lines.push("     no --scale: a panel does not unfurl slower because the interface is zoomed. */");
   put("floating-seed", zoom(floatingSeed));
   put("floating-echo", zoom(floatingEcho));
-  put("floating-fall", `${floatingMotion.fall}ms`);
-  put("floating-spread", `${floatingMotion.spread}ms`);
-  put("floating-corner", `${floatingMotion.corner}ms`);
-  put("floating-reveal", `${floatingMotion.reveal}ms`);
-  put("floating-paint", `${floatingMotion.paint}ms`);
-  put("floating-reveal-delay", `${floatingMotion.revealDelay}ms`);
-  put("floating-dissolve", `${floatingMotion.dissolve}ms`);
-  put("floating-settle", `${floatingMotion.settle}ms`);
+  put("floating-fall", ms(floatingMotion.fall));
+  put("floating-spread", ms(floatingMotion.spread));
+  put("floating-corner", ms(floatingMotion.corner));
+  put("floating-reveal", ms(floatingMotion.reveal));
+  put("floating-paint", ms(floatingMotion.paint));
+  put("floating-reveal-delay", ms(floatingMotion.revealDelay));
+  put("floating-dissolve", ms(floatingMotion.dissolve));
+  put("floating-settle", ms(floatingMotion.settle));
   put("overlay-seed", zoom(overlaySeed));
   put("overlay-lift", zoom(overlayLift));
-  put("overlay-hold", `${overlayMotion.hold}ms`);
-  put("overlay-grow", `${overlayMotion.grow}ms`);
+  put("overlay-hold", ms(overlayMotion.hold));
+  put("overlay-grow", ms(overlayMotion.grow));
   put("overlay-echo", zoom(overlayEcho));
-  put("overlay-materialize", `${overlayMotion.materialize}ms`);
-  put("overlay-fall", `${overlayMotion.fall}ms`);
-  put("overlay-spread", `${overlayMotion.spread}ms`);
-  put("overlay-reveal", `${overlayMotion.reveal}ms`);
-  put("overlay-reveal-delay", `${overlayMotion.revealDelay}ms`);
-  put("overlay-print", `${overlayMotion.print}ms`);
+  put("overlay-materialize", ms(overlayMotion.materialize));
+  put("overlay-fall", ms(overlayMotion.fall));
+  put("overlay-spread", ms(overlayMotion.spread));
+  put("overlay-reveal", ms(overlayMotion.reveal));
+  put("overlay-reveal-delay", ms(overlayMotion.revealDelay));
+  put("overlay-print", ms(overlayMotion.print));
   /* §24 — the dialog's own entry: depth, not distance. */
-  put("dialog-settle", `${dialogMotion.settle}ms`);
-  put("dialog-reveal", `${dialogMotion.reveal}ms`);
+  put("dialog-settle", ms(dialogMotion.settle));
+  put("dialog-reveal", ms(dialogMotion.reveal));
   put("dialog-depth", `${dialogEntry.depth}`);
   put("print-blur", `${printBlur}px`);
-  put("overlay-dissolve", `${overlayMotion.dissolve}ms`);
-  put("overlay-settle", `${overlayMotion.settle}ms`);
+  put("overlay-dissolve", ms(overlayMotion.dissolve));
+  put("overlay-settle", ms(overlayMotion.settle));
   /* §32 — the tooltip's entry: one geometry clock, one paint clock, and a seed that is a scale. */
-  put("tooltip-form", `${tooltipMotion.form}ms`);
-  put("tooltip-paint", `${tooltipMotion.paint}ms`);
+  put("tooltip-form", ms(tooltipMotion.form));
+  put("tooltip-paint", ms(tooltipMotion.paint));
   put("tooltip-seed", `${tooltipEntry.seed}`);
 
   lines.push("", "  /* §8 — pointer feedback; `button` is the contested one, so it is overridable */");

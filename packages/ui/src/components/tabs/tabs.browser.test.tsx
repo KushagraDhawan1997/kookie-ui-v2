@@ -598,8 +598,8 @@ describe("the rule travels as two edges at two speeds (§8, §26)", () => {
       const style = computed(rule, "transition-property").split(", ");
       const clocks = computed(rule, "transition-duration").split(", ");
       const at = (name: string) => clocks[style.indexOf(name)];
-      expect(at(lead), `${dir}: the leading edge is not on the short clock`).toBe("0.32s");
-      expect(at(trail), `${dir}: the trailing edge is not on the long clock`).toBe("0.48s");
+      expect(at(lead), `${dir}: the leading edge is not on the short clock`).toBe(`${parseFloat(computed(rule, "--motion-travel-lead")) / 1000}s`);
+      expect(at(trail), `${dir}: the trailing edge is not on the long clock`).toBe(`${parseFloat(computed(rule, "--motion-travel-trail")) / 1000}s`);
       // …and they are actually DIFFERENT, which is the whole claim: two edges on one clock is
       // a photograph being slid, which is the motion this replaced.
       expect(at(lead)).not.toBe(at(trail));
@@ -759,7 +759,7 @@ describe("the rule travels as two edges at two speeds (§8, §26)", () => {
     const { rule, tabs } = bar3("forward");
     const from = rule.getBoundingClientRect().width;
     await userEvent.click(tabs[2]!);
-    const running = seize(rule, 160);
+    const running = seize(rule, parseFloat(computed(rule, "--motion-travel-lead")) / 2);
     expect(running.length, "nothing is animating — the flight never started").toBeGreaterThan(0);
     const midFlight = rule.getBoundingClientRect().width;
     const to = tabs[2]!.getBoundingClientRect().width;

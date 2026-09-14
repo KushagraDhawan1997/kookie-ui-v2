@@ -856,8 +856,8 @@ describe("the grip travels between segments (§8, §26)", () => {
       const props = computed(thumb, "transition-property").split(", ");
       const clocks = computed(thumb, "transition-duration").split(", ");
       const at = (name: string) => clocks[props.indexOf(name)];
-      expect(at(lead), `${dir}: the leading edge is not on the short clock`).toBe("0.32s");
-      expect(at(trail), `${dir}: the trailing edge is not on the long clock`).toBe("0.48s");
+      expect(at(lead), `${dir}: the leading edge is not on the short clock`).toBe(`${parseFloat(computed(thumb, "--motion-travel-lead")) / 1000}s`);
+      expect(at(trail), `${dir}: the trailing edge is not on the long clock`).toBe(`${parseFloat(computed(thumb, "--motion-travel-trail")) / 1000}s`);
       expect(at(lead)).not.toBe(at(trail));
     });
 
@@ -942,7 +942,7 @@ describe("the grip travels between segments (§8, §26)", () => {
     const { thumb, segs } = three();
     const from = thumb.getBoundingClientRect().width;
     await userEvent.click(segs[2]!);
-    const running = seize(thumb, 160);
+    const running = seize(thumb, parseFloat(computed(thumb, "--motion-travel-lead")) / 2);
     expect(running.length, "nothing is animating — the flight never started").toBeGreaterThan(0);
     const midFlight = thumb.getBoundingClientRect().width;
     const to = segs[2]!.getBoundingClientRect().width;
