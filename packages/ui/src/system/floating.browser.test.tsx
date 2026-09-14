@@ -12,7 +12,7 @@ import { describe, expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
 
 import { Button } from "../components/button/button.tsx";
-import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from "../components/popover/popover.tsx";
+import { Menu, MenuContent, MenuItem, MenuTrigger } from "../components/menu/menu.tsx";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "../components/select/select.tsx";
 import { FloatingDirectionContext, PortalScope } from "./floating.tsx";
 import { Theme } from "../theme/theme.tsx";
@@ -197,6 +197,8 @@ describe("a centre-aligned panel keeps its content centred for every frame (§22
     return { skew: b.left - p.left - (p.right - b.right), width: p.width };
   };
 
+  // A MENU since 2026-09-14: the popover left the family's flight for Dialog's depth entry
+  // (§31), so its box no longer passes through widths either.
   // ONE case since 2026-08-31, and the deletion is the record: this law was written on a
   // tooltip and a popover, and the tooltip's box no longer passes through any width — its entry
   // is a lift at its landed size (§32, tooltip.css), so "at every width the box passes through"
@@ -206,15 +208,15 @@ describe("a centre-aligned panel keeps its content centred for every frame (§22
   // its centre across the scale sweep instead (tooltip.browser.test.tsx).
   const cases = [
     {
-      what: "popover",
-      selector: ".kui-popover-popup",
+      what: "menu",
+      selector: ".kui-menu-popup",
       ui: (
-        <Popover defaultOpen>
-          <PopoverTrigger render={<Button iconOnly aria-label="Filters">…</Button>} />
-          <PopoverContent>
-            <PopoverTitle>Filters</PopoverTitle>
-          </PopoverContent>
-        </Popover>
+        <Menu defaultOpen>
+          <MenuTrigger render={<Button iconOnly aria-label="Filters">…</Button>} />
+          <MenuContent align="center">
+            <MenuItem>Show archived projects</MenuItem>
+          </MenuContent>
+        </Menu>
       ),
     },
   ] as const;
@@ -268,26 +270,28 @@ describe("a centre-aligned panel keeps its content centred for every frame (§22
 describe("a panel beside its trigger never squeezes its content (§22)", () => {
   it("the body holds its words at every height the pane passes through", async () => {
     inMotion();
-    // A POPOVER since 2026-08-31 — the tooltip this was measured on no longer grows (its entry
+    // A MENU since 2026-09-14 (the popover's entry became Dialog's, §31). A POPOVER since 2026-08-31 — the tooltip this was measured on no longer grows (its entry
     // is a lift at its landed size, §32), so the fixture moved to the member that still passes
     // through heights. The paragraph is capped so it genuinely wraps: a one-line body cannot be
     // shorter than its words at any height, and the law would be about nothing.
     render(
       <Theme>
         <div style={{ padding: 240 }}>
-          <Popover defaultOpen>
-            <PopoverTrigger render={<Button iconOnly aria-label="Restore">…</Button>} />
-            <PopoverContent side="left" aria-label="Restore">
-              <p style={{ margin: 0, maxWidth: 160 }}>
-                Restore this document to the version saved before the last import
-              </p>
-            </PopoverContent>
-          </Popover>
+          <Menu defaultOpen>
+            <MenuTrigger render={<Button iconOnly aria-label="Restore">…</Button>} />
+            <MenuContent side="left">
+              <MenuItem>
+                <span style={{ whiteSpace: "normal", maxWidth: 160 }}>
+                  Restore this document to the version saved before the last import
+                </span>
+              </MenuItem>
+            </MenuContent>
+          </Menu>
         </div>
       </Theme>,
     );
-    await until(() => !!document.querySelector(".kui-popover-popup"));
-    const pane = document.querySelector<HTMLElement>(".kui-popover-popup")!;
+    await until(() => !!document.querySelector(".kui-menu-popup"));
+    const pane = document.querySelector<HTMLElement>(".kui-menu-popup")!;
     const body = pane.querySelector<HTMLElement>(".kui-floating-body")!;
     const flying = () =>
       pane.getAnimations().some((a) => (a as CSSTransition).transitionProperty === "height");

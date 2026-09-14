@@ -26,6 +26,7 @@ import {
   mounted,
   render,
   settleAll,
+  sweep,
   tokenOn,
   until,
 } from "../../test/browser.tsx";
@@ -531,125 +532,106 @@ describe("the panel knows its direction and its anchor (§20, §22)", () => {
     expect(ltr.computed).toBe("ltr");
   });
 
-  it("the seed is a CIRCLE on the trigger's centre, faint — the alert's grammar at the family's origin (§31, 2026-08-31)", async () => {
-    /**
-     * Read at the LAST aimed seed frame (menu's own submenu law says why: the first aimed
-     * frame can precede floating-ui's placement). The negative control is a Menu opened the
-     * same way: its seed is the trigger's own box, so if the two agree the popover's rule
-     * reached nothing.
-     */
+  /**
+   * THE ENTRY IS DIALOG'S (§31, 2026-09-14, Kushagra: "Popover should animate like dialog,
+   * because it can be huge"). The landed box from frame one, 3% in z on the poised spring,
+   * presence as paint, the content coming into focus. The negative control is a Menu on the
+   * same trigger, whose silhouette flight still runs a size channel.
+   */
+  const WIDE = 420;
+  function mountWide() {
     inMotion();
     render(
       <Theme>
-        <div style={{ padding: "200px 0 0 300px" }}>
+        <div style={{ padding: "200px 0 0 200px" }}>
           <Popover>
-            <PopoverTrigger render={<Button emphasis="quiet" bordered>Rename the project</Button>} />
+            <PopoverTrigger render={<Button emphasis="quiet" bordered style={{ width: WIDE }}>Rename the project</Button>} />
             <PopoverContent aria-label="Rename">
-              <p>This changes the name everywhere it appears in the workspace.</p>
+              <p style={{ margin: 0 }}>This changes the name everywhere it appears in the workspace.</p>
             </PopoverContent>
           </Popover>
           <Menu>
-            <MenuTrigger render={<Button emphasis="quiet" bordered>Rename the project</Button>} />
+            <MenuTrigger render={<Button emphasis="quiet" bordered style={{ width: WIDE }}>The same trigger, a menu</Button>} />
             <MenuContent align="center">
-              <MenuItem>This changes the name everywhere it appears</MenuItem>
+              <MenuItem>Rename</MenuItem>
             </MenuContent>
           </Menu>
         </div>
       </Theme>,
     );
-    const seedFrame = async (trigger: HTMLElement, selector: string) => {
-      trigger.click();
-      let seed: DOMRect | undefined;
-      let style: { width: string; radius: string; opacity: string } | undefined;
-      for (let i = 0; i < 40; i++) {
-        await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
-        const popups = document.querySelectorAll<HTMLElement>(selector);
-        const posed = popups[popups.length - 1];
-        if (posed?.hasAttribute("data-seed") && posed.hasAttribute("data-aimed")) {
-          seed = posed.getBoundingClientRect();
-          const cs = getComputedStyle(posed);
-          style = { width: cs.inlineSize, radius: cs.borderTopLeftRadius, opacity: cs.opacity };
-        } else if (seed) break;
-      }
-      if (!seed || !style) throw new Error(`${selector} never reached an aimed seed frame`);
-      return { seed, style };
+    const [trigger, menuTrigger] = [...document.querySelectorAll<HTMLElement>("button")];
+    trigger!.click();
+    const popup = () => {
+      const all = document.querySelectorAll<HTMLElement>(".kui-popover-popup");
+      return all[all.length - 1];
     };
-    const [popoverTrigger, menuTrigger] = [...document.querySelectorAll<HTMLElement>("button")];
-    const tBox = popoverTrigger!.getBoundingClientRect();
-    const { seed, style } = await seedFrame(popoverTrigger!, ".kui-popover-popup");
-    const designed = parseFloat(tokenOn(popoverTrigger!, "--floating-seed"));
-    // Calibration: the trigger must be far wider than the circle, or "sits on the trigger"
-    // and "is the trigger's box" are the same number.
-    expect(tBox.width, "the trigger must out-size the seed for the two poses to differ").toBeGreaterThan(designed + 40);
+    return { popup, trigger: trigger!, menuTrigger: menuTrigger! };
+  }
+  const channels = (el: Element) =>
+    el.getAnimations().map((a) => (a as CSSTransition).transitionProperty);
+  const samples = (v: string) =>
+    v
+      .replace(/^linear\(|\)$/g, "")
+      .split(",")
+      .map((stop) => stop.trim().split(/\s+/)[0] ?? "")
+      .join(",");
 
-    expect(seed.width, "the seed is the family's designed circle, not the trigger's width").toBeCloseTo(designed, 0);
-    expect(seed.height, "and it is round").toBeCloseTo(designed, 0);
-    expect(style.radius, "a circle: 50%, so it stays curvy as it opens").toBe("50%");
-    expect(style.opacity, "the alert's paint: the circle does not arrive opaque").toBe("0");
-    expect((seed.left + seed.right) / 2, "centred on the trigger, inline").toBeCloseTo((tBox.left + tBox.right) / 2, 0);
-    expect((seed.top + seed.bottom) / 2, "centred on the trigger, block").toBeCloseTo((tBox.top + tBox.bottom) / 2, 0);
+  it("only depth and paint move — no size, no travel, no corner — on the dialog's clocks (§31, 2026-09-14)", async () => {
+    const { popup, trigger, menuTrigger } = mountWide();
+    if (!(await until(() => !!popup() && channels(popup()!).includes("scale"))))
+      throw new Error("the entry never departed on the scale channel — the pose is gone");
+    const pane = popup()!;
+    const running = channels(pane);
+    for (const still of ["width", "height", "translate", "border-top-left-radius"])
+      expect(running, `${still} is flying — the popover is not its landed box`).not.toContain(still);
+    expect(running, "the pane paints in on its own clock").toContain("opacity");
 
-    // THE CLOCKS ARE THE ALERT'S (2026-08-31): the popover re-points the family's clock tokens
-    // to the overlay's on its own element, so the pane's fall/spread/becoming and the body's
-    // reveal, delay and print all read the alert's numbers. Read as the resolved tokens on the
-    // popup rather than as `transition-duration` strings, which would pin the property order.
-    const popup = document.querySelector<HTMLElement>(".kui-popover-popup")!;
-    for (const [family, overlay] of [
-      ["--floating-fall", "--overlay-fall"],
-      ["--floating-spread", "--overlay-spread"],
-      ["--floating-corner", "--overlay-materialize"],
-      ["--floating-paint", "--overlay-reveal"],
-      ["--floating-reveal", "--overlay-reveal"],
-      ["--floating-reveal-delay", "--overlay-reveal-delay"],
-    ] as const) {
-      expect(computed(popup, family), `${family} is not the alert's ${overlay}`).toBe(computed(popup, overlay));
-    }
-    // And the calibration that the re-pointing did something: the family's own numbers differ.
-    expect(computed(popoverTrigger!, "--floating-fall")).not.toBe(computed(popoverTrigger!, "--overlay-fall"));
+    const scale = pane.getAnimations().find((a) => (a as CSSTransition).transitionProperty === "scale")!;
+    const timing = scale.effect!.getComputedTiming();
+    expect(timing.duration, "the depth rides the dialog's settle").toBe(parseFloat(computed(pane, "--dialog-settle")));
+    expect(samples(timing.easing ?? ""), "the depth rides the poised spring").toBe(
+      samples(computed(pane, "--motion-spring-poised")),
+    );
+    expect(samples(computed(pane, "--motion-spring-poised")), "calibration: the family's elastic differs").not.toBe(
+      samples(computed(pane, "--motion-spring-elastic")),
+    );
+    const paint = pane.getAnimations().find((a) => (a as CSSTransition).transitionProperty === "opacity")!;
+    expect(paint.effect!.getComputedTiming().duration, "paint rides the dialog's reveal").toBe(
+      parseFloat(computed(pane, "--dialog-reveal")),
+    );
+    // Calibration: the trigger dwarfs nothing it would share with a silhouette.
+    expect(trigger.getBoundingClientRect().width).toBeGreaterThan(pane.offsetWidth - 1 > WIDE ? 0 : 100);
 
-    // The negative control: a menu opened the same way seeds as its trigger's silhouette.
+    // The negative control: the family's size channel is alive on the same trigger.
     await userEvent.keyboard("{Escape}");
-    const mBox = menuTrigger!.getBoundingClientRect();
-    const menu = await seedFrame(menuTrigger!, ".kui-menu-popup");
-    expect(menu.seed.width, "the menu's seed is still its trigger's box — the rule leaked past the popover").toBeCloseTo(mBox.width, 0);
-    expect(menu.style.opacity, "and a lifting body is opaque from frame one").toBe("1");
+    menuTrigger.click();
+    const menu = () => {
+      const all = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
+      return all[all.length - 1];
+    };
+    if (!(await until(() => !!menu() && channels(menu()!).includes("height"))))
+      throw new Error("the menu's height never flew — the control proves nothing");
   });
 
-  it("and on a START-aligned placement the circle still sits on the trigger's centre — the inline hook's law", async () => {
-    /**
-     * A centred placement lands the seed by the family's own middle arm, so the popover's
-     * `--kui-seed-dx` is never consulted there; a start-aligned one pins the seed's start on
-     * the trigger's start and the hook is the whole of the inline centring. Both axes read,
-     * because the block hook is consulted in both cells.
-     */
-    inMotion();
-    render(
-      <Theme>
-        <div style={{ padding: "200px 0 0 300px" }}>
-          <Popover>
-            <PopoverTrigger render={<Button emphasis="quiet" bordered>Rename the project</Button>} />
-            <PopoverContent align="start" aria-label="Rename">
-              <p>This changes the name everywhere it appears in the workspace.</p>
-            </PopoverContent>
-          </Popover>
-        </div>
-      </Theme>,
-    );
-    const trigger = document.querySelector<HTMLElement>("button")!;
-    const tBox = trigger.getBoundingClientRect();
-    trigger.click();
-    let seed: DOMRect | undefined;
-    for (let i = 0; i < 40; i++) {
-      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
-      const popups = document.querySelectorAll<HTMLElement>(".kui-popover-popup");
-      const posed = popups[popups.length - 1];
-      if (posed?.hasAttribute("data-seed") && posed.hasAttribute("data-aimed")) seed = posed.getBoundingClientRect();
-      else if (seed) break;
-    }
-    if (!seed) throw new Error("the popover never reached an aimed seed frame");
-    expect(document.querySelector(".kui-popover-popup")!.parentElement!.getAttribute("data-align"), "the premise").toBe("start");
-    expect((seed.left + seed.right) / 2, "inline: the circle sat at the trigger's START, the hook's term is missing").toBeCloseTo((tBox.left + tBox.right) / 2, 0);
-    expect((seed.top + seed.bottom) / 2, "block: the circle sat at the trigger's TOP").toBeCloseTo((tBox.top + tBox.bottom) / 2, 0);
+  it("the seed is the landed box at the dialog's depth, faint; the words stay in flow and come into focus", async () => {
+    const { popup } = mountWide();
+    if (!(await until(() => !!popup() && channels(popup()!).includes("scale"))))
+      throw new Error("the entry never departed on the scale channel");
+    const pane = popup()!;
+    const body = pane.querySelector<HTMLElement>(".kui-floating-body")!;
+    // The body does not leave flow for the flight, and nothing on it runs but its focus.
+    expect(computed(body, "position"), "the body was lifted out of flow for a box that never grows").toBe("static");
+    expect(channels(body), "the body runs a channel other than its focus").toEqual(["filter"]);
+
+    const depth = parseFloat(computed(pane, "--dialog-depth"));
+    expect(depth, "the depth token resolves to a seed, not full size").toBeLessThan(1);
+    const landedWidth = pane.offsetWidth;
+    const series = await sweep(pane, "scale", () => pane.getBoundingClientRect().width);
+    expect(series[0]!, "the seed is the landed box at the dialog's depth").toBeCloseTo(landedWidth * depth, 0);
+    expect(series[series.length - 1]!, "and it lands at full size").toBeCloseTo(landedWidth, 0);
+    const paint = await sweep(pane, "opacity", () => computed(pane, "opacity"), 4);
+    expect(paint[0], "the pane arrives faint").toBe("0");
+    expect(paint[paint.length - 1], "and paints in").toBe("1");
   });
 
   it("the flight's anchor is the popover's OWN trigger, standing alone and inside a dialog", async () => {

@@ -42,7 +42,6 @@ import { Card } from "../components/card/card.tsx";
 import { Checkbox } from "../components/checkbox/checkbox.tsx";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "../components/menu/menu.tsx";
 import { Notice } from "../components/notice/notice.tsx";
-import { Popover, PopoverContent, PopoverTrigger } from "../components/popover/popover.tsx";
 import { Radio, RadioGroup } from "../components/radio/radio.tsx";
 import { Text } from "../components/text/text.tsx";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../components/tooltip/tooltip.tsx";
@@ -482,16 +481,19 @@ describe("the flight pins the body at the pane's OWN padding, on BOTH axes (§22
     expect(inline[0], "the flight pins the inline axis at some other pane's padding").toBe(inline[1]);
   });
 
-  it("and a POPOVER, whose axes agree, is unmoved by the pair — the control", () => {
+  // A MENU since 2026-09-14: the popover's body no longer leaves flow (§31, Dialog's entry).
+  it("and a MENU, whose axes agree, is unmoved by the pair — the control", () => {
     const { popup, body } = airborne(
       <>
         <div style={{ height: 200 }} />
-        <Popover defaultOpen>
-          <PopoverTrigger render={<Button>Open</Button>} />
-          <PopoverContent align="start" aria-label="Details">Popover content here</PopoverContent>
-        </Popover>
+        <Menu defaultOpen>
+          <MenuTrigger render={<Button>Open</Button>} />
+          <MenuContent align="start">
+            <MenuItem>Menu content here</MenuItem>
+          </MenuContent>
+        </Menu>
       </>,
-      ".kui-popover-popup",
+      ".kui-menu-popup",
     );
     const { block, inline } = pinned(popup, body);
     expect(block[0]).toBe(block[1]);

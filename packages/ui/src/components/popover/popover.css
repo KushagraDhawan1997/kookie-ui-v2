@@ -82,19 +82,68 @@
    opacity by 60ms on an 80ms fade). The exit keeps the family's dissolve and settle, which
    the alert shares anyway. Self-keyed, the family's second-member rule; one specificity step
    over the base pose, which is also what makes it win regardless of sheet order. */
-.kui-popover-popup {
-  --floating-fall: var(--overlay-fall);
-  --floating-spread: var(--overlay-spread);
-  --floating-corner: var(--overlay-materialize);
-  --floating-paint: var(--overlay-reveal);
-  --floating-reveal: var(--overlay-reveal);
-  --floating-reveal-delay: var(--overlay-reveal-delay);
+/* SUPERSEDED 2026-09-14 (Kushagra: "Popover should animate like dialog, because it can be huge
+   and that animation doesnt work for that big a container"). A circle growing into a panel
+   half the window tall is the room moving. The entry is now DIALOG's — 3% in z on the poised
+   spring, presence as paint, the content coming into focus with the plane — carried by the
+   tooltip's mechanism: the landed box from the first frame, no travel, a scale about the
+   trigger-facing origin the family's table already answers. */
+.kui-surface.kui-floating.kui-popover-popup {
+  transition:
+    scale var(--dialog-settle) var(--motion-spring-poised),
+    opacity var(--dialog-reveal) ease-out,
+    box-shadow var(--dialog-reveal) ease-out;
 }
-.kui-surface.kui-floating.kui-popover-popup[data-unfurling][data-seed] {
-  inline-size: var(--kui-seed);
-  block-size: var(--kui-seed);
-  border-radius: 50%;
-  --kui-seed-dx: calc((var(--kui-seed-w, var(--kui-seed)) - var(--kui-seed)) / 2);
-  --kui-seed-dy: calc((var(--kui-seed-h, var(--kui-seed)) - var(--kui-seed)) / 2);
+.kui-surface.kui-floating.kui-popover-popup[data-ending-style] {
   opacity: 0;
+  scale: 0.99;
+  transition:
+    scale var(--overlay-settle) var(--motion-spring-stiff),
+    opacity var(--overlay-dissolve) ease-in,
+    box-shadow var(--overlay-dissolve) ease-in;
+}
+.kui-surface.kui-floating.kui-popover-popup[role][data-unfurling][data-seed][data-side][data-align] {
+  inline-size: var(--kui-fly-w, auto);
+  block-size: var(--kui-fly-h, auto);
+  border-radius: var(--kui-fly-r, var(--kui-sf-radius));
+  translate: 0 0;
+  scale: var(--dialog-depth);
+  opacity: 0;
+}
+/* The centred pin drifts under a scale (tooltip.css states the arithmetic); a landed box needs
+   no pin. */
+.kui-surface.kui-floating.kui-popover-popup[role][data-unfurling][data-side][data-align] {
+  inset-block-start: 0;
+  inset-block-end: auto;
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+  transform: none;
+}
+/* The content focuses with the plane and does nothing else: no print, no echo, no squish. */
+.kui-surface.kui-floating.kui-popover-popup .kui-floating-body {
+  transition: filter var(--dialog-settle) ease-out;
+}
+/* The family lifts the body out of flow for a flight (absolute, pinned, sunk) so its words
+   cannot re-break while the box grows. This box never grows, and on a panel taller than its
+   room the pin and the sink moved the content by most of the panel for the whole entry. The
+   body stays in flow. `[role]` is for rank over the family's (0,5,1) seed arm. */
+.kui-surface.kui-floating.kui-popover-popup[role][data-unfurling] .kui-floating-body {
+  position: static;
+  /* The family's centred arm holds the body by its middle with a half-body negative margin,
+     and a margin survives `position: static`. */
+  inset: auto;
+  margin: 0;
+  opacity: 1;
+  scale: none;
+  translate: none;
+}
+.kui-surface.kui-floating.kui-popover-popup[role][data-unfurling][data-seed] .kui-floating-body {
+  filter: blur(var(--print-blur));
+}
+@media (prefers-reduced-motion: reduce) {
+  .kui-surface.kui-floating.kui-popover-popup,
+  .kui-surface.kui-floating.kui-popover-popup[data-ending-style],
+  .kui-surface.kui-floating.kui-popover-popup .kui-floating-body {
+    transition: none;
+  }
 }
