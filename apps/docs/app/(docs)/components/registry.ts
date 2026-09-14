@@ -1908,6 +1908,19 @@ const DECLARED: Entry[] = [
     ],
   },
   {
+    slug: "split-button",
+    name: "SplitButton",
+    family: "Control",
+    spec: "§11, §53",
+        abstract: "SplitButton is a button with its alternatives one press away: the label runs the common action, the chevron opens the rest.",
+    overview: ["It is two Buttons drawn as one box. Both halves take the same size, tone and emphasis, so they read as one control, and each half presses on its own. The chevron opens a Menu under the whole button, aligned to its end."],
+    refusals: [
+      { name: "`iconOnly`", why: "The label is the common action. A split button with no words is two icons, and a toolbar spells that as two buttons." },
+      { name: "Travel on hover and press", why: "A button rises and sinks because it sits on the page. Half of one box moving alone would tear the box at the seam, so the fill still lights and presses and the geometry stays put." },
+      { name: "`render`", why: "There are two elements and a menu. Neither half can become a different element without leaving the other behind." },
+    ],
+  },
+  {
     slug: "tooltip",
     name: "Tooltip",
     family: "Surface",

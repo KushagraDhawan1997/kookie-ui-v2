@@ -125,6 +125,7 @@ import {
   TableHeader,
   TableRow,
   Text,
+  SplitButton,
   Toggle,
   ToggleGroup,
   Tooltip,
@@ -2628,6 +2629,39 @@ function ToggleSection() {
   );
 }
 
+function SplitButtonSection() {
+  const merge = (
+    <>
+      <MenuItem>Squash and merge</MenuItem>
+      <MenuItem>Rebase and merge</MenuItem>
+    </>
+  );
+  return (
+    <Stack gap="6">
+      <Demo label="A primary action with its alternatives one press away">
+        <Flex gap="2" align="center">
+          <SplitButton emphasis="loud" tone="accent" menuLabel="More merge options" menu={merge}>
+            Merge
+          </SplitButton>
+          <Button>Cancel</Button>
+        </Flex>
+      </Demo>
+      <SpecTable
+        cols={["Loud", "Medium", "Quiet, bordered", "Disabled"]}
+        rows={SIZES.map((size) => ({
+          label: `size ${size}`,
+          cells: [
+            <SplitButton key="1" size={size} emphasis="loud" menuLabel="More" menu={merge}>Merge</SplitButton>,
+            <SplitButton key="2" size={size} menuLabel="More" menu={merge}>Merge</SplitButton>,
+            <SplitButton key="3" size={size} emphasis="quiet" bordered menuLabel="More" menu={merge}>Merge</SplitButton>,
+            <SplitButton key="4" size={size} disabled menuLabel="More" menu={merge}>Merge</SplitButton>,
+          ],
+        }))}
+      />
+    </Stack>
+  );
+}
+
 function TooltipSection() {
   return (
     <Stack gap="6">
@@ -3297,6 +3331,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   ported("text-area"),
   ported("text-field"),
   { id: "toggle", name: "Toggle", body: <ToggleSection /> },
+  { id: "split-button", name: "Split Button", body: <SplitButtonSection /> },
   { id: "toolbar", name: "Toolbar", body: <ToolbarSection /> },
   { id: "tooltip", name: "Tooltip", body: <TooltipSection /> },
   { id: "tree", name: "Tree", body: <TreeSection /> },

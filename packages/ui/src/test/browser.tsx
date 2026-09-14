@@ -75,6 +75,7 @@ import tableCss from "../components/table/table.css?raw";
 import tabsCss from "../components/tabs/tabs.css?raw";
 import textAreaCss from "../components/text-area/text-area.css?raw";
 import toggleCss from "../components/toggle/toggle.css?raw";
+import splitButtonCss from "../components/split-button/split-button.css?raw";
 import toolbarCss from "../components/toolbar/toolbar.css?raw";
 import tooltipCss from "../components/tooltip/tooltip.css?raw";
 import textFieldCss from "../components/text-field/text-field.css?raw";
@@ -139,6 +140,7 @@ export function installStyles(): void {
     tooltipCss,
     textAreaCss,
     toggleCss,
+    splitButtonCss,
     toolbarCss,
     treeCss,
   ].join("\n");

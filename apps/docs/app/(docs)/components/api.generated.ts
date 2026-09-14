@@ -4869,6 +4869,106 @@ export const API: Record<string, ApiEntry> = {
     "element": "span",
     "props": []
   },
+  "SplitButton": {
+    "element": "button",
+    "props": [
+      {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Says that content passes behind this button, so the theme's material can show. Unset, it follows the surrounding `<Box backdrop>` region. It cannot pick a material. It only says there is something behind this to bend."
+      },
+      {
+        "name": "bordered",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Adds a hairline. It is separate from loudness: quiet with a border is the old outline button, and it reads half a step above quiet."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "emphasis",
+        "type": "Emphasis",
+        "values": [
+          "loud",
+          "medium",
+          "quiet"
+        ],
+        "optional": true,
+        "doc": "How loud this action is against the actions beside it. It is the only ranking axis in the system, and there is no `variant`: one prop cannot mean colour and prominence at once. On a button it picks a fill. Loud is the tone's solid colour, medium is a soft wash, and quiet has no fill at all. Read a row of actions in the order the fills state. Defaults to `medium`, so a screen earns its one loud button by asking for it."
+      },
+      {
+        "name": "focusableWhenDisabled",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Keep focus on the button when it becomes disabled part-way through an interaction."
+      },
+      {
+        "name": "leading",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The slot before the label, usually an icon. While `loading` is true the Spinner takes this slot, in the same box, so nothing shifts."
+      },
+      {
+        "name": "loading",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Blocks the press and shows a Spinner. The label never goes away. On an `iconOnly` button the Spinner takes the glyph's place rather than sitting beside it, because there the glyph IS the label."
+      },
+      {
+        "name": "menu",
+        "type": "React.ReactNode",
+        "optional": false,
+        "doc": "The other actions: `MenuItem`s, groups and separators, exactly what `MenuContent` holds."
+      },
+      {
+        "name": "menuLabel",
+        "type": "string",
+        "optional": false,
+        "doc": "The chevron half's name. Required, because that half has no words of its own."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "optional": true,
+        "doc": "An index into the control family, never a measurement. One number sets five things at once: the height, the side padding, the corner, the icon box and the label's type step. Every control at the same index stands level with every other, and re-pricing a step is one config line rather than a sweep of call sites. Density and the pointer setting change what the index resolves to. They never change what it means. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "tone",
+        "type": "Tone",
+        "values": [
+          "neutral",
+          "accent",
+          "destructive",
+          "blue",
+          "green",
+          "orange",
+          "amber",
+          "success",
+          "warning",
+          "info"
+        ],
+        "optional": true,
+        "doc": "What the action means, not what colour it is. `destructive` says what the press does, and the theme decides the colour, which is what lets a palette move without a call site being edited. Defaults to `neutral`, so nothing is accent by accident."
+      }
+    ]
+  },
   "Stack": {
     "element": "div",
     "props": [

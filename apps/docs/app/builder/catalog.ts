@@ -1473,6 +1473,10 @@ export const CATALOG: Record<string, CatalogEntry> = {
  */
 export const EXCLUDED: { name: string; why: string }[] = [
   {
+    name: "SplitButton",
+    why: "Its alternatives are a `menu` prop holding MenuItems — a subtree passed as a value, which is a value class this canvas has no way to edit. A placeable one could only ever open an empty menu, which is a chevron promising something it does not have.",
+  },
+  {
     name: "Combobox",
     why: "Its options are DATA (`items`), and the list that shows them is a render function over whatever survives the filter — two value classes this canvas has no way to edit, which is Command's exclusion and Tree's before it. A placeable one could only ever be built with an empty list, which is a field that narrows nothing. Its parts are excluded with it, because none of them means anything outside the field and the panel it opens. It joins the palette the day `items` has a canvas-editable shape.",
   },

@@ -86,6 +86,7 @@ import SurfaceExample from "./surface";
 import SwitchExample from "./switch";
 import TableExample from "./table";
 import ToggleExample from "./toggle";
+import SplitButtonExample from "./split-button";
 import TabsExample from "./tabs";
 import TextAreaExample from "./text-area";
 import TextFieldExample from "./text-field";
@@ -160,6 +161,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "switch": SwitchExample,
   "table": TableExample,
   "toggle": ToggleExample,
+  "split-button": SplitButtonExample,
   "tabs": TabsExample,
   "text-area": TextAreaExample,
   "text-field": TextFieldExample,
