@@ -436,7 +436,7 @@ export function Tree({
             onKeyDown={(event) => onKeyDown(event, row, index)}
           >
             {disclosure}
-            {node.label}
+            <span className="kui-tree-label">{node.label}</span>
           </button>
         );
       })}
@@ -556,7 +556,7 @@ export function NavTree({
             >
               {gutter}
               {slot(node.leading, "leading")}
-              {node.label}
+              <span className="kui-tree-label">{node.label}</span>
             </button>
           );
         }
@@ -564,7 +564,7 @@ export function NavTree({
           <>
             {gutter}
             {slot(node.leading, "leading")}
-            {node.label}
+            <span className="kui-tree-label">{node.label}</span>
           </>
         );
         /**

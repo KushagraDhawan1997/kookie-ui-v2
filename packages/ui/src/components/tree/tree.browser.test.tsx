@@ -21,6 +21,7 @@ import {
   until,
   within,
 } from "../../test/browser.tsx";
+import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { NavTree, Tree, type TreeNode } from "./tree.tsx";
 
 /**
@@ -644,7 +645,7 @@ describe("the nav gutter is the LEAF's too (§33, audit 2026-08-26)", () => {
       own box starts at the same padding in both cases and the defect is entirely downstream
       of it. */
   const labelLeft = (row: HTMLElement): number => {
-    const text = [...row.childNodes].find(
+    const text = [...within(row, ".kui-tree-label").childNodes].find(
       (n): n is Text => n.nodeType === Node.TEXT_NODE && (n.textContent ?? "").trim() !== "",
     );
     if (!text) throw new Error(`no label text node in "${row.textContent}"`);
@@ -677,4 +678,33 @@ describe("the nav gutter is the LEAF's too (§33, audit 2026-08-26)", () => {
       1,
     );
   });
+});
+
+describe("one line per row (§33, 2026-09-14)", () => {
+  const LONG: readonly TreeNode[] = [
+    { id: "short", label: "Home" },
+    { id: "long", label: "A label long enough that no narrow sidebar could ever hold all of it on one line" },
+  ];
+
+  for (const [name, make] of [
+    // Inside a ScrollArea, because its content is `min-width: fit-content`: that is the holder a
+    // nowrap label would widen, and outside one the `contain` is invisible (its sabotage survived).
+    ["Tree", () => mounted(<ScrollArea style={{ width: 180, height: 200 }}><Tree items={LONG} aria-label="Files" /></ScrollArea>, { theme: {}, select: "[role='tree']" })],
+    ["NavTree", () => mounted(<ScrollArea style={{ width: 180, height: 200 }}><NavTree items={LONG.map((n) => ({ ...n, href: `/${n.id}` }))} /></ScrollArea>, { theme: {}, select: ".kui-tree-nav" })],
+  ] as const) {
+    it(`${name}: a long label clips to an ellipsis — the row keeps the short row's height and the tree its width`, () => {
+      const tree = make();
+      const rows = [...tree.querySelectorAll<HTMLElement>(".kui-tree-item")];
+      const short = rows.find((r) => r.textContent === "Home")!;
+      const long = rows.find((r) => r.textContent !== "Home")!;
+      const label = within(long, ".kui-tree-label");
+      // The premise: the words really are longer than the room, or an ellipsis is never asked for.
+      expect(label.scrollWidth, "the fixture's label fits — nothing to clip").toBeGreaterThan(label.clientWidth + 20);
+      expect(computed(label, "text-overflow")).toBe("ellipsis");
+      expect(long.getBoundingClientRect().height, "the long row wrapped").toBeCloseTo(short.getBoundingClientRect().height, 1);
+      // And the label does not widen what holds it.
+      const viewport = tree.closest<HTMLElement>(".kui-scroll-viewport")!;
+      expect(viewport.scrollWidth, "the label widened the scroller — it scrolls sideways").toBeLessThanOrEqual(viewport.clientWidth + 0.5);
+    });
+  }
 });

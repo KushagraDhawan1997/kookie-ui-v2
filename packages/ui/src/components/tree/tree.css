@@ -37,6 +37,21 @@
   padding-inline-start: calc(var(--kui-ct-px) + var(--kui-tree-level) * var(--kui-ct-icon));
 }
 
+/* ONE LINE PER ROW (2026-09-14, Kushagra). A long label clips with an ellipsis instead of
+   wrapping, so every row at one size is one height. `min-inline-size: 0` lets the flex item
+   shrink below its text, which is what gives the ellipsis a width to cut at. */
+.kui-tree-label {
+  /* AND IT MUST NOT WIDEN WHAT HOLDS IT. A ScrollArea's content is `min-width: fit-content`, so
+     a nowrap label's full length would widen the whole tree and scroll it sideways. Contained,
+     the label contributes no width of its own and takes the room the row has left. */
+  contain: inline-size;
+  flex: 1 1 0;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* The disclosure: passive paint in the leading slot (the row IS a button, and a control may
    not nest a control's element — the keyboard's Left/Right is the accessible route). A LEAF
    keeps the hidden box so every label at one level shares a left edge — alignment by
