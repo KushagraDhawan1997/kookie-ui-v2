@@ -72,6 +72,7 @@ import { CodeSample } from "./blocks/code-sample";
 import { parseMeta } from "./blocks/highlight";
 import { Example } from "./app/(docs)/example";
 import { ReviewRules } from "./app/(docs)/review-rules";
+import { ColorGrounds, ColorInks, ColorScales } from "./app/(docs)/color-figures";
 import { nodeText, slugify } from "./app/(docs)/slug";
 import type { TypeSize } from "@kookie-ui/react";
 
@@ -279,6 +280,22 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       </Figure>
     ),
     ReviewRules,
+    /* The colour chapter's figures: the palette drawn from its own tokens, in both modes. */
+    ColorScales: () => (
+      <Figure>
+        <ColorScales />
+      </Figure>
+    ),
+    ColorInks: () => (
+      <Figure>
+        <ColorInks />
+      </Figure>
+    ),
+    ColorGrounds: () => (
+      <Figure>
+        <ColorGrounds />
+      </Figure>
+    ),
 
     // Anything a chapter passes in at the call site wins over the defaults above.
     ...components,

@@ -38,6 +38,8 @@ equally light.
 Use a meaning name when the thing has a meaning, such as an error. Use a category name when
 it only has a category, such as one series in a chart.
 
+<ColorScales />
+
 ### Success and green are separate families
 
 `success` and `green` render the same value today, and they're still two separate families.
@@ -148,6 +150,8 @@ every family reaches the same contrast at the same level.
 Don't set a whole paragraph in quiet. Text that matters less stays loud at a smaller size, or
 moves to medium.
 
+<ColorInks />
+
 ## The high-contrast setting
 
 `contrast="high"` is a Theme setting, not a per-component prop. It also responds to the
@@ -177,6 +181,8 @@ Three named backgrounds sit under everything, from the bottom up.
 --color-ground    /* a bounded region that holds objects */
 --color-surface   /* an object's own opaque fill */
 ```
+
+<ColorGrounds />
 
 The library paints no page background, because a Theme that painted one would repaint it every
 time you nested another Theme. Paint it yourself and read `--color-page` for the value.
