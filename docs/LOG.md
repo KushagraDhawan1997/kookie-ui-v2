@@ -11268,3 +11268,10 @@ range of zero, and the only scrollers are `ScrollArea` viewports two levels in. 
 app shell IS, and getting the browser chrome back means a document-scrolling posture where the
 pinned panes are `position: fixed` against a viewport whose height changes as the bar animates —
 a second frame architecture, not a flag. Recorded, not built.
+
+## 2026-09-14 — Motion runs at 0.6 of its judged clocks; the popover takes the dialog's entry
+
+**Faster, not different.** Kushagra: "whatever animates, lets make it all much faster, like keep animation as is, but make them faster". One multiplier in config (`motionSpeed`, 0.6) scales every emitted duration in the generator. Rejected: editing each clock (thirty-three numbers, each already judged as a ratio to the others, and the next retune would be thirty-three edits again) and scaling the spring models (the curves are normalised to their transitions, so the shape was never the slow part). The JS runners already read their deadlines from computed styles, so nothing in TypeScript moved. Found on the first look: the docs site reads `dist/styles.css`, so the change was invisible until the package was rebuilt, and "seems slow still" was the stale build. Four tabs/segmented laws had pinned `0.32s`/`0.48s` and a seize at 160ms; they read the tokens now.
+
+**The popover's circle is gone.** "Popover should animate like dialog, because it can be huge." The circle entry of 2026-08-31 was judged on a small panel; on a large one it read as the room moving. It takes §24's depth entry through §32's lift mechanism, with the body left in flow. Rejected: keeping the circle below a size threshold (two entries for one component, keyed on a measurement). §31 carries the mechanism.
+
