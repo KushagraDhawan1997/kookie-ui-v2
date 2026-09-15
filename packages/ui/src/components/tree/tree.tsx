@@ -38,8 +38,7 @@ export type TreeNode = {
    */
   href?: string;
   /**
-   * NavTree only: an icon rendered in the row's leading slot. On an expandable row it sits
-   * after the disclosure. Ignored by `Tree`, whose leading slot is the disclosure's.
+   * An icon rendered in the row's leading slot, after the disclosure, in both trees.
    */
   leading?: React.ReactNode;
 };
@@ -436,6 +435,7 @@ export function Tree({
             onKeyDown={(event) => onKeyDown(event, row, index)}
           >
             {disclosure}
+            {slot(node.leading, "leading")}
             <span className="kui-tree-label">{node.label}</span>
           </button>
         );
