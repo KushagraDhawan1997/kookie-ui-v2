@@ -40,6 +40,7 @@ import { Box, TextField, Button, Tree, type TreeNode } from "@kookie-ui/react";
 import { EmptyState } from "../../blocks/empty-state";
 import { XIcon } from "../icons";
 import type { BuilderNode } from "./model";
+import { iconFor } from "./component-icons";
 
 export type RowMode = "before" | "into" | "after";
 export type RowSpot = { id: string; mode: RowMode };
@@ -183,9 +184,11 @@ export function Layers({
         .map((n): TreeNode => {
           const label = labelOf(n, depth);
           const kids = (n.children ?? []).filter((c) => !visible || visible.has(c.id));
+          const icon = iconFor(n.type);
           return {
             id: n.id,
             textValue: label,
+            ...(icon ? { leading: icon } : {}),
             label: (
               <span
                 // The DRAG STARTS ON THE LABEL, because `draggable` must sit on an element and
@@ -340,10 +343,11 @@ export function LayersFilter({
          sidebar is flush and therefore solid, and a solid surface HOSTS glass (2026-08-19).
          The docs shell's own floating search button says the same word for the same reason. */
       backdrop
+      size="2"
       {...(inputRef ? { ref: inputRef } : {})}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      style={{ flex: 1 }}
+      style={{ flex: 1, minInlineSize: 0 }}
       {...(value
         ? {
             trailing: (

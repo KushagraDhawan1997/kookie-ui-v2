@@ -60,6 +60,10 @@ import {
   ArrowLeft02Icon,
   ArrowRight02Icon,
   ArrowUp02Icon,
+  ArrowDown02Icon,
+  FloppyDiskIcon,
+  SquareArrowUpRightIcon,
+  UngroupItemsIcon,
   Attachment01Icon,
   Cancel01Icon,
   Copy01Icon,
@@ -105,6 +109,10 @@ import {
   InformationCircleIcon,
   KeyboardIcon,
   LayoutThreeColumnIcon,
+  LayoutTwoColumnIcon,
+  LayoutTwoRowIcon,
+  RectangularIcon,
+  SquareDashedIcon,
   LayoutThreeRowIcon,
   LayoutTopIcon,
   Layout05Icon,
@@ -177,6 +185,10 @@ export const BellIcon = glyph(Notification02Icon);
 export const MinusIcon = glyph(MinusSignIcon);
 export const MoreIcon = glyph(MoreHorizontalIcon);
 export const ArrowUpIcon = glyph(ArrowUp02Icon);
+export const ArrowDownIcon = glyph(ArrowDown02Icon);
+export const SaveIcon = glyph(FloppyDiskIcon);
+export const OpenExternalIcon = glyph(SquareArrowUpRightIcon);
+export const UnwrapIcon = glyph(UngroupItemsIcon);
 export const ArrowLeftIcon = glyph(ArrowLeft02Icon);
 export const ArrowRightIcon = glyph(ArrowRight02Icon);
 /* The chevrons, which are a different glyph from the arrows above and mean a different thing: an
@@ -197,6 +209,15 @@ export const UsersIcon = glyph(UserMultiple02Icon);
 export const UndoIcon = glyph(UndoDrawing);
 export const RedoIcon = glyph(RedoDrawing);
 export const PreviewIcon = glyph(EyeIcon);
+/* The Layers panel's containers (2026-09-15, Kushagra). One outline-frame family, so the
+   column reads as a set: split rows, split columns, quarters, a dashed box that paints
+   nothing, a frame with a header band, a plain wide frame. */
+export const LayerStackIcon = glyph(LayoutTwoRowIcon);
+export const LayerFlexIcon = glyph(LayoutTwoColumnIcon);
+export const LayerGridIcon = glyph(LayoutGridIcon);
+export const LayerBoxIcon = glyph(SquareDashedIcon);
+export const LayerCardIcon = glyph(BrowserIcon);
+export const LayerSurfaceIcon = glyph(RectangularIcon);
 export const LayersIcon = glyph(LayerIcon);
 export const PanelLeftIcon = glyph(SidebarLeftIcon);
 export const PanelRightIcon = glyph(SidebarRightIcon);

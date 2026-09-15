@@ -33,6 +33,11 @@ import {
   DialogDescription,
   DialogTitle,
   Flex,
+  ButtonGroup,
+  SegmentedControl,
+  SegmentedItem,
+  ToolbarTitle,
+  ToolbarOverflow,
   ScrollArea,
   Shell,
   ShellContent,
@@ -45,9 +50,7 @@ import {
   Stack,
   Surface,
   Tabs,
-  TabsList,
   TabsPanel,
-  TabsTab,
   Toggle,
   Text,
   TextField,
@@ -60,7 +63,27 @@ import {
 
 import { AppearanceToggle } from "../appearance-toggle";
 import { Wordmark } from "../(docs)/wordmark";
-import { LayersIcon, MinusIcon, PanelLeftIcon, PanelRightIcon, PlusIcon, RedoIcon, UndoIcon } from "../icons";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  CheckIcon,
+  ColorIcon,
+  CopyIcon,
+  LayerBoxIcon,
+  VocabularyIcon,
+  LayerFlexIcon,
+  LayerStackIcon,
+  LayersIcon,
+  MinusIcon,
+  PanelLeftIcon,
+  PanelRightIcon,
+  PlusIcon,
+  RedoIcon,
+  SaveIcon,
+  TrashIcon,
+  UndoIcon,
+  UnwrapIcon,
+} from "../icons";
 import { Layers, LayersFilter } from "./layers";
 import { CATALOG, canContain, gapStepsFor, sanitizeNode, seatVocabularyFor, sizeStepsFor, type SeatVocabulary } from "./catalog";
 import {
@@ -89,7 +112,7 @@ import { canAccept, insertableInto, insertionTarget, placeNodes } from "./placem
 import { renderNode } from "./render";
 import { deriveParams, serializeBlock, serializeDocument } from "./serialize";
 import { TEMPLATES, templateDoc } from "./templates";
-import { Inspector, MultiInspector, Section, Span, ThemePanel } from "./inspector";
+import { Cell, IconAction, Inspector, MultiInspector, Row, Section, ThemePanel, referenceHref } from "./inspector";
 import {
   activeDoc,
   canRedo,
@@ -228,6 +251,8 @@ export function BuilderApp() {
   stateRef.current = state;
 
   const [blockName, setBlockName] = React.useState("");
+  /** The Block section is collapsed until someone asks to save one. */
+  const [naming, setNaming] = React.useState(false);
   const [drop, setDrop] = React.useState<DropSpot | null>(null);
   /** What is being dragged, held in a ref because HTML5 DnD only surfaces payload DATA on
       drop — during dragover only the type names are readable, and the grammar needs the
@@ -309,6 +334,7 @@ export function BuilderApp() {
   const [paletteOpen, setPaletteOpen] = React.useState(false);
   /** The sidebar's tab: the document's layers, or the components to add to it. */
   const [leftTab, setLeftTab] = React.useState<"layers" | "add">("layers");
+  const [addFilter, setAddFilter] = React.useState("");
   /** Whether the palette was opened from + rather than ⌘K: the components lead the list then.
       Kept through the close, so the rows do not reorder under the panel on its way out. */
   const [paletteAdding, setPaletteAdding] = React.useState(false);
@@ -320,6 +346,9 @@ export function BuilderApp() {
   /** Where a right-click landed, and therefore where the context menu anchors. */
 
   const doc = activeDoc(state);
+  /* Layers shows no filter over an empty document; Add always has something to filter. */
+  const filterShown = leftTab === "add" || canvasChildren(doc).length > 0;
+  /* The pinned filter's band: the pane's padding either side of one size-3 field. */
   const blocks = state.blocks;
   const selection = primaryId(state);
   const selected = primaryNode(state);
@@ -502,6 +531,7 @@ export function BuilderApp() {
     const replaced = state.blocks.some((b) => b.name === name);
     dispatch({ type: "blockSave", block: { name, node: cloneWithNewIds(selected) } });
     setBlockName("");
+    setNaming(false);
     say(`${replaced ? "Replaced" : "Saved"} “${name}”`);
   };
 
@@ -944,20 +974,21 @@ export function BuilderApp() {
     // side of its actual-size value (202 at 100%, 203 at 67%, 201 at 150% on the starter's
     // card). The readout is telling the truth about the zoomed layout; it is the zoomed
     // layout that differs.
+    /* ONE VALUE PER READOUT, IN PAIRS (2026-09-15): every readout sits in a half-width cell, so
+       nothing composite ("0 14 0 14px", "24px / 32px") — each is split into the two numbers it
+       was, and the pairs are ordered to land side by side. */
     const rows: Measured = [
-      { label: "box", value: `${Math.round(parseFloat(cs.width))} × ${Math.round(parseFloat(cs.height))}` },
+      { label: "width", value: `${Math.round(parseFloat(cs.width))}px` },
+      { label: "height", value: `${Math.round(parseFloat(cs.height))}px` },
     ];
-    const gap = px(cs.rowGap) ?? px(cs.columnGap);
-    if (gap) rows.push({ label: "gap", value: gap, ...(stated("gap") ? { stated: stated("gap") } : {}) });
     const pads = [cs.paddingTop, cs.paddingRight, cs.paddingBottom, cs.paddingLeft].map((v) => Math.round(parseFloat(v) || 0));
     if (pads.some((p) => p > 0)) {
-      const uniform = pads.every((p) => p === pads[0]);
-      rows.push({
-        label: "padding",
-        value: uniform ? `${pads[0]}px` : `${pads[0]} ${pads[1]} ${pads[2]} ${pads[3]}px`,
-        ...(stated("p") ? { stated: stated("p") } : {}),
-      });
+      const side = (a: number, b: number) => (a === b ? `${a}px` : `${a} / ${b}px`);
+      rows.push({ label: "padding x", value: side(pads[3]!, pads[1]!) });
+      rows.push({ label: "padding y", value: side(pads[0]!, pads[2]!) });
     }
+    const gap = px(cs.rowGap) ?? px(cs.columnGap);
+    if (gap) rows.push({ label: "gap", value: gap, ...(stated("gap") ? { stated: stated("gap") } : {}) });
     const radius = px(cs.borderTopLeftRadius);
     if (radius) rows.push({ label: "corner", value: radius });
     // Type only where the node OWNS one. Every element has a computed font size, but a
@@ -966,11 +997,8 @@ export function BuilderApp() {
     const font = px(cs.fontSize);
     const ownsType = CATALOG[node.type]?.family === "Type" || CATALOG[node.type]?.family === "Control";
     if (font && ownsType) {
-      rows.push({
-        label: "type",
-        value: `${font} / ${px(cs.lineHeight) ?? "auto"}`,
-        ...(stated("size") ? { stated: stated("size") } : {}),
-      });
+      rows.push({ label: "font size", value: font, ...(stated("size") ? { stated: stated("size") } : {}) });
+      rows.push({ label: "line height", value: px(cs.lineHeight) ?? "Auto" });
     }
     setMeasured(rows);
     // The theme axes and the canvas width all move these, so the readout re-measures when
@@ -1311,46 +1339,91 @@ export function BuilderApp() {
      rest of the panel — see inspector.tsx's contract — so the seam above them is the same
      hairline and the heading is the same heading. A run of commands is not a Row: there is
      no name on the left, the buttons ARE the content. */
+  const act = (id: string, icon: React.ReactNode, opts: { tone?: "destructive"; segment?: boolean } = {}) => {
+    const cmd = COMMANDS.find((c) => c.id === id)!;
+    const on = ctxRef.current ? armed(cmd, ctxRef.current) : false;
+    return (
+      <IconAction key={id} label={cmd.title} disabled={!on} onClick={() => runCommand(id)} {...opts}>
+        {icon}
+      </IconAction>
+    );
+  };
+  /** Commands on the node itself, in the pane's toolbar beside its name. */
+  const toolbarCommand = (id: string, icon: React.ReactNode, tone?: "destructive") => {
+    const cmd = COMMANDS.find((c) => c.id === id)!;
+    const on = ctxRef.current ? armed(cmd, ctxRef.current) : false;
+    return (
+      <ToolbarButton key={id} iconOnly aria-label={cmd.title} disabled={!on} onClick={() => runCommand(id)} {...(tone ? { tone } : {})}>
+        {icon}
+      </ToolbarButton>
+    );
+  };
+  /** Moving the node in its tree — the top of the Position section. */
+  const arrangeRow = (
+    <Row>
+      <Cell label="Order">
+        <ButtonGroup style={{ inlineSize: "100%" }}>
+          {act("moveUp", <ArrowUpIcon />, { segment: true })}
+          {act("moveDown", <ArrowDownIcon />, { segment: true })}
+        </ButtonGroup>
+      </Cell>
+      <Cell label="Wrap">
+        <ButtonGroup style={{ inlineSize: "100%" }}>
+          {act("wrapInStack", <LayerStackIcon />, { segment: true })}
+          {act("wrapInFlex", <LayerFlexIcon />, { segment: true })}
+          {act("unwrap", <UnwrapIcon />, { segment: true })}
+        </ButtonGroup>
+      </Cell>
+    </Row>
+  );
   const appSections = (
     <>
-      <Section title="Arrange">
-        <Span>
-          <Flex gap="1" wrap="wrap">
-            {["moveUp", "moveDown", "duplicate", "wrapInStack", "wrapInFlex", "unwrap", "delete"].map((id) => {
-              const cmd = COMMANDS.find((c) => c.id === id)!;
-              const on = ctxRef.current ? armed(cmd, ctxRef.current) : false;
-              return (
-                <Button
-                  key={id}
-                  emphasis="quiet"
-                  bordered
-                  {...(id === "delete" ? { tone: "destructive" as const } : {})}
-                  disabled={!on}
-                  onClick={() => runCommand(id)}
-                >
-                  {cmd.title}
-                </Button>
-              );
-            })}
-          </Flex>
-        </Span>
-      </Section>
-      <Section title="Save as block">
-        <Span>
-          <Flex gap="2">
-            <TextField
-              placeholder="Block name"
-              aria-label="Block name"
-              value={blockName}
-              onChange={(e) => setBlockName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && saveBlock()}
-              style={{ flex: 1 }}
-            />
-            <Button emphasis="medium" disabled={!blockName.trim()} onClick={saveBlock}>
-              Save
-            </Button>
-          </Flex>
-        </Span>
+      <Section
+        title="Block"
+        actions={
+          naming ? (
+            <IconAction
+              label="Cancel"
+              onClick={() => {
+                setNaming(false);
+                setBlockName("");
+              }}
+            >
+              <MinusIcon />
+            </IconAction>
+          ) : (
+            <IconAction label="Save as block" onClick={() => setNaming(true)}>
+              <PlusIcon />
+            </IconAction>
+          )
+        }
+      >
+        {naming ? (
+          <Row
+            actions={
+              <IconAction label="Save" disabled={!blockName.trim()} onClick={saveBlock}>
+                <SaveIcon />
+              </IconAction>
+            }
+          >
+            <Cell span={2}>
+              <TextField
+                autoFocus
+                placeholder="Block name"
+                aria-label="Block name"
+                value={blockName}
+                onChange={(e) => setBlockName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") saveBlock();
+                  if (e.key === "Escape") {
+                    setNaming(false);
+                    setBlockName("");
+                  }
+                }}
+              />
+            </Cell>
+          </Row>
+        ) : null}
       </Section>
     </>
   );
@@ -1423,33 +1496,48 @@ export function BuilderApp() {
             keeping them legible. The mark is the way home; the link carries the name, and the
             word inside it is a picture of the name. `kd-masthead` keeps the mark's box to the
             row (prose.css). */}
-        {/* THE TABS ARE THE HEADER, spelled as the inspector's: in flow, so they stay put, and
-            spending the pane's inset so the bar meets both walls. */}
-        <ShellPaneHeader style={{ margin: "calc(-1 * var(--kui-sf-p))", marginBlockEnd: 0 }}>
-          <TabsList style={{ flex: 1 }}>
-            <TabsTab value="layers">Layers</TabsTab>
-            <TabsTab value="add">Add</TabsTab>
-          </TabsList>
+        {/* ONE FLOATING ROW, the inspector's (2026-09-15, Kushagra): the panel switch and the
+            filter side by side at size 2, over rows that scroll behind it. One row at the pane's
+            index, so the pane's published reach is the scroller's fade and top padding with no
+            number stated here. */}
+        <ShellPaneHeader float>
+          <Toolbar backdrop size="2">
+            <SegmentedControl
+              aria-label="Panel"
+              value={leftTab}
+              onValueChange={(v) => setLeftTab(v as typeof leftTab)}
+            >
+              <SegmentedItem value="layers" aria-label="Layers">
+                <LayersIcon />
+              </SegmentedItem>
+              <SegmentedItem value="add" aria-label="Add">
+                <PlusIcon />
+              </SegmentedItem>
+            </SegmentedControl>
+            {filterShown ? (
+              leftTab === "layers" ? (
+                <LayersFilter value={layerFilter} onChange={setLayerFilter} inputRef={layerFilterRef} />
+              ) : (
+                <LayersFilter
+                  value={addFilter}
+                  onChange={setAddFilter}
+                  label="Filter components"
+                  placeholder="Filter by name or purpose"
+                />
+              )
+            ) : null}
+          </Toolbar>
         </ShellPaneHeader>
-        {/* The rows scroll BEHIND the chrome and rest clear of it — the pane publishes the
-            row's reach and the content spends it (§27's safe-area pattern at pane scale),
-            minus the viewport's own re-pad, because a ShellScroll already insets by the
-            pane's padding. */}
         <ShellScroll fade>
           <Stack
             gap="3"
-            pt="4"
             style={{
+              paddingBlockStart: "calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p))",
               paddingBlockEnd: "calc(var(--kui-pane-inset-block-end) - var(--kui-sf-p))",
             }}
           >
             <TabsPanel value="layers">
               <Stack gap="3">
-                {/* The filter leads the tree and scrolls with it as the docs nav's rows do; ⌘F
-                    focuses it, which brings it back into view. */}
-                {canvasChildren(doc).length > 0 ? (
-                  <LayersFilter value={layerFilter} onChange={setLayerFilter} inputRef={layerFilterRef} />
-                ) : null}
                 {/* THE PACKAGE'S OWN TREE since 2026-09-02 — see layers.tsx for what the swap
                     deleted and why the drag stayed here. */}
                 <Layers
@@ -1473,6 +1561,8 @@ export function BuilderApp() {
               <AddPanel
                 ctx={ctx}
                 active={leftTab === "add"}
+                query={addFilter}
+                onClearQuery={() => setAddFilter("")}
                 onDragBegin={(type) => {
                   dragRef.current = { kind: "insert", type };
                 }}
@@ -1522,24 +1612,6 @@ export function BuilderApp() {
                 toggle stands down and the band would otherwise start with it. */}
             <Flex align="center" gap="3" style={{ minWidth: 0, marginInlineStart: "auto" }}>
               <DocumentBar state={state} dispatch={dispatch} preview={preview} />
-              {/* Review is a REGION of the inspector, so the button goes there and takes the
-                  pane's visibility with it. THE COUNT IS A BADGE (§38, 2026-09-03), so the run
-                  does not shift while the document changes. */}
-              {!preview ? (
-                <ShellTrigger
-                  target="inspector"
-                  action="open"
-                  onClick={() => setRightTab("review")}
-                  render={<ToolbarButton />}
-                >
-                  Review
-                  {findings.length ? (
-                    <Badge tone={findings.some((f) => f.severity === "error") ? "destructive" : "warning"}>
-                      {findings.length}
-                    </Badge>
-                  ) : null}
-                </ShellTrigger>
-              ) : null}
               {/* A TOGGLE (§34, 2026-09-03): a mode you turn on, whose emphasis IS its state. */}
               <Toggle pressed={preview} onPressedChange={setPreview}>
                 Preview
@@ -2120,30 +2192,60 @@ export function BuilderApp() {
               width. Nothing is put back at all: a tab's own control padding is 14px against
               the pane's 16, so the labels land within two pixels of the body's column with
               no number stated here — measured, not assumed. */}
-          <ShellPaneHeader
-            style={{ margin: "calc(-1 * var(--kui-sf-p))", marginBlockEnd: 0 }}
-          >
-            <TabsList style={{ flex: 1 }}>
-              <TabsTab value="inspect">Selected</TabsTab>
-              <TabsTab value="theme">Theme</TabsTab>
-              {/* THE COUNT IS A BADGE HERE TOO (§38, 2026-09-03) — and this is where a badge
-                  most belongs, pinned to the tab it is about. Spliced into the label it
-                  changed the TAB's width every time the document did, which moves the
-                  travelling rule under a bar you are reading: Tabs' own measured argument
-                  against a heavier active label, arriving as a wider one. */}
-              <TabsTab value="review">
-                Review
-                {findings.length ? (
-                  <Badge tone={findings.some((f) => f.severity === "error") ? "destructive" : "warning"}>
-                    {findings.length}
-                  </Badge>
+          {/* THE PANE'S TOOLBAR (2026-09-15, Kushagra: "like how our Page look — a title at top
+              left, toolbar buttons on right, backdrop, scroll fade"). One floating glass row: what
+              this panel is showing, the node's own commands, and the panel switch. */}
+          <ShellPaneHeader float>
+            <Toolbar backdrop size="2">
+              <ToolbarTitle>
+                {rightTab === "theme"
+                  ? "Theme"
+                  : rightTab === "review"
+                    ? "Review"
+                    : !selected
+                      ? "Inspector"
+                      : state.selection.length > 1
+                        ? `${state.selection.length} selected`
+                        : selected.type}
+              </ToolbarTitle>
+                {rightTab === "inspect" && selected ? (
+                  <ToolbarOverflow label="More actions">
+                    {state.selection.length === 1 && referenceHref(selected.type) ? (
+                      <ToolbarButton
+                        iconOnly
+                        aria-label="Open the reference"
+                        render={<a href={referenceHref(selected.type)!} target="_blank" rel="noreferrer" />}
+                      >
+                        <VocabularyIcon />
+                      </ToolbarButton>
+                    ) : null}
+                    {toolbarCommand("duplicate", <CopyIcon />)}
+                    {toolbarCommand("delete", <TrashIcon />, "destructive")}
+                  </ToolbarOverflow>
                 ) : null}
-              </TabsTab>
-            </TabsList>
+                <SegmentedControl
+                  aria-label="Panel"
+                  value={rightTab}
+                  onValueChange={(v) => setRightTab(v as typeof rightTab)}
+                >
+                  <SegmentedItem value="inspect" aria-label="Selected">
+                    <LayerBoxIcon />
+                  </SegmentedItem>
+                  <SegmentedItem value="theme" aria-label="Theme">
+                    <ColorIcon />
+                  </SegmentedItem>
+                  <SegmentedItem
+                    value="review"
+                    aria-label={findings.length ? `Review, ${findings.length} findings` : "Review"}
+                  >
+                    <CheckIcon />
+                  </SegmentedItem>
+                </SegmentedControl>
+            </Toolbar>
           </ShellPaneHeader>
-          <ShellScroll>
+          <ShellScroll fade>
               <TabsPanel value="inspect">
-                <Box pt="4">
+                <Box style={{ paddingBlockStart: "calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p))" }}>
                   {selected ? (
                     <>
                       {/* One panel or the other, never both: two `size` pickers over one
@@ -2155,11 +2257,13 @@ export function BuilderApp() {
                             commitRoots(updatePropsMany(doc.roots, state.selection, { [key]: next }))
                           }
                         >
-                          {appSections}
+                          <Section title="Position">{arrangeRow}</Section>
+
                         </MultiInspector>
                       ) : (
                         <Inspector
                           node={selected}
+                          arrange={arrangeRow}
                           textRef={inspectorTextRef}
                           measured={measured}
                           /* Typing is ONE gesture: every keystroke in a field rides the
@@ -2200,12 +2304,12 @@ export function BuilderApp() {
                 </Box>
               </TabsPanel>
               <TabsPanel value="theme">
-                <Box pt="4">
+                <Box style={{ paddingBlockStart: "calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p))" }}>
                   <ThemePanel theme={doc.theme} onAxis={setThemeAxis} />
                 </Box>
               </TabsPanel>
               <TabsPanel value="review">
-                <Box pt="4">
+                <Box style={{ paddingBlockStart: "calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p))" }}>
                   <ReviewPanel
                     findings={findings}
                     selection={state.selection}
