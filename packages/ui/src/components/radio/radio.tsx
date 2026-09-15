@@ -53,15 +53,23 @@ export type RadioGroupProps = ComponentRefusals & Omit<
 >;
 
 /**
- * The shared state for a set of radios (§4, §11): one name, one value, roving focus. Renders
- * Base UI's `role="radiogroup"` div and nothing else — the group owns no layout and no
- * appearance, so stacking its radios is the caller's Stack (`gap="5"`: stacked marks need 12
- * real pixels, §4's spacing rule, and 5 is the smallest index that holds it at every density).
- * `render` stays open — the group is one swappable element, so `render={<Stack gap="5"/>}`
- * is the sanctioned way to make the group BE the layout.
+ * The shared state for a set of radios (§4, §11): one name, one value, roving focus.
+ *
+ * It STACKS by default: a column at `--layout-space-5`, because stacked marks need 12 real
+ * pixels (§4's spacing rule) and a group with no gap breaks it. The default has zero
+ * specificity, so `render={<Flex gap="…"/>}` still makes the group any layout it wants.
  */
-export function RadioGroup(props: RadioGroupProps) {
-  return <BaseRadioGroup {...props} />;
+export function RadioGroup({ className, ...props }: RadioGroupProps) {
+  const cls =
+    typeof className === "function"
+      ? (state: Parameters<typeof className>[0]) => {
+          const own = className(state);
+          return own ? `kui-radio-group ${own}` : "kui-radio-group";
+        }
+      : className
+        ? `kui-radio-group ${className}`
+        : "kui-radio-group";
+  return <BaseRadioGroup className={cls} {...props} />;
 }
 
 /**

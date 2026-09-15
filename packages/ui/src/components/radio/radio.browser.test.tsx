@@ -27,6 +27,7 @@ import {
   inMotion,
 } from "../../test/browser.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
+import { Flex } from "../flex/flex.tsx";
 import { TextField } from "../text-field/text-field.tsx";
 import { Radio, RadioGroup } from "./radio.tsx";
 
@@ -115,6 +116,43 @@ describe("the circle is role semantics, and the radius axis never reaches it (§
       expect(px(computed(mark, "border-top-left-radius"))).toBeCloseTo(markBox(mark).h / 2, 1);
     });
   }
+});
+
+describe("the group stacks by default, and a stated layout wins (§4)", () => {
+  for (const density of DENSITIES) {
+    it(`${density}: two radios in a bare group stand at least 12px apart, one above the other`, () => {
+      const el = render(
+        <Theme density={density}>
+          <RadioGroup>
+            <Radio value="a" />
+            <Radio value="b" />
+          </RadioGroup>
+        </Theme>,
+      );
+      const [a, b] = [...el.querySelectorAll(".kui-radio")].map((m) => m.getBoundingClientRect()) as [
+        DOMRect,
+        DOMRect,
+      ];
+      expect(b.left, "one above the other").toBeCloseTo(a.left, 1);
+      expect(b.top - a.bottom, `${density}`).toBeGreaterThanOrEqual(12);
+    });
+  }
+
+  it("render={<Flex/>} replaces the default: the caller's direction and gap land", () => {
+    const el = render(
+      <RadioGroup render={<Flex direction="row" gap="2" />}>
+        <Radio value="a" />
+        <Radio value="b" />
+      </RadioGroup>,
+    );
+    const group = el.querySelector<HTMLElement>(".kui-radio-group") ?? (el as HTMLElement);
+    expect(computed(group, "flex-direction")).toBe("row");
+    const [a, b] = [...el.querySelectorAll(".kui-radio")].map((m) => m.getBoundingClientRect()) as [
+      DOMRect,
+      DOMRect,
+    ];
+    expect(b.top, "side by side").toBeCloseTo(a.top, 1);
+  });
 });
 
 describe("neutral off, accent on — the family identity, not a per-component copy (§11)", () => {
