@@ -1421,7 +1421,7 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     `     stamping accent and wearing a tinted edge at rest, or stamping neutral and having no`,
     `     way to name accent when it is checked — and naming a FAMILY in a component stylesheet`,
     `     is what the role-not-family law forbids. Neutral's own border role, exposed. */`,
-    decl("color-border", "var(--neutral-border)"),
+    decl("color-border", "var(--neutral-6)"),
     "",
     `  /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;`,
     `     elevation stays deleted. Row 1 is the inset well, row 2 the control drop. */`,
