@@ -8,6 +8,24 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-15 ButtonGroup's seam is a gap, and RadioGroup stops shipping no layout
+
+**What.** Two reversals found by eye in one session. ButtonGroup (DECISIONS §54) shipped with §53's
+divider — the label's ink at 30% — and it read too dark on the medium rung (a near-black line on a
+light fill). The seam is now a GAP: the ground colour showing between two fills, at 25% on a loud
+fill, and a bordered member's own edge colour, which also closed the double line two bordered
+buttons made. RadioGroup shipped as zero CSS on the argument that the group is wiring and layout is
+the caller's; every `/preview` demo that forgot `render={<Stack/>}` put radios flush and broke §4's
+12px stacking rule. It now stacks by default at `--layout-space-5`, under `:where()` so any rendered
+layout still wins.
+
+**Rejected.** A lighter ink divider (still a line drawn on a fill, tone-dependent); fixing the radio
+demos instead of the package (leaves the rule to memory at every call site); a full-strength ground
+gap on loud (reads as a cut). §53's SplitButton keeps its ink divider and double bordered line for
+now — noted, not changed.
+
+---
+
 ## 2026-09-12 Four components shipped, and almost every defect in them was a borrowed premise
 
 **What.** Sheet, Combobox, NumberField and List, audited before ship and repaired. Fifty-three surviving

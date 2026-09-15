@@ -124,6 +124,7 @@ export { Switch, type SwitchProps } from "./components/switch/switch.tsx";
 export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableCaption, type TableProps, type TableHeaderProps, type TableBodyProps, type TableRowProps, type TableHeadProps, type TableCellProps, type TableCaptionProps } from "./components/table/table.tsx";
 export { Tabs, TabsList, TabsTab, TabsPanel, type TabsProps, type TabsListProps, type TabsTabProps, type TabsPanelProps } from "./components/tabs/tabs.tsx";
 export { Toggle, ToggleGroup, type ToggleProps, type ToggleGroupProps } from "./components/toggle/toggle.tsx";
+export { ButtonGroup, type ButtonGroupProps } from "./components/button-group/button-group.tsx";
 export { SplitButton, type SplitButtonProps } from "./components/split-button/split-button.tsx";
 export { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent, type TooltipProps, type TooltipProviderProps, type TooltipTriggerProps, type TooltipContentProps } from "./components/tooltip/tooltip.tsx";
 export { Text, type TextProps, type TypeSize, type Weight } from "./components/text/text.tsx";

@@ -47,5 +47,6 @@
 @import "../components/text-area/text-area.css";
 @import "../components/toggle/toggle.css";
 @import "../components/split-button/split-button.css";
+@import "../components/button-group/button-group.css";
 @import "../components/toolbar/toolbar.css";
 @import "../components/tree/tree.css";

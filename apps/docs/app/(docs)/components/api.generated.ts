@@ -774,6 +774,23 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "ButtonGroup": {
+    "element": "div",
+    "props": [
+      {
+        "name": "size",
+        "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "optional": true,
+        "doc": "Sizes every button inside that does not state its own."
+      }
+    ]
+  },
   "Button": {
     "element": "button",
     "props": [

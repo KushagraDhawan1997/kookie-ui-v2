@@ -534,6 +534,20 @@ export const CATALOG: Record<string, CatalogEntry> = {
         ],
       }),
   },
+  ButtonGroup: {
+    family: "Control",
+    blurb: "Related Buttons drawn as one control: square inner corners, a faint line between each pair.",
+    props: { size: size(), "aria-label": text },
+    children: { only: ["Button"] },
+    make: () =>
+      node("ButtonGroup", { "aria-label": "Range" }, {
+        children: [
+          node("Button", {}, { text: "Day" }),
+          node("Button", {}, { text: "Week" }),
+          node("Button", {}, { text: "Month" }),
+        ],
+      }),
+  },
   RadioGroup: {
     family: "Control",
     blurb: "Wiring for one choice: keyboard and form value. What it looks like is the layout inside it.",

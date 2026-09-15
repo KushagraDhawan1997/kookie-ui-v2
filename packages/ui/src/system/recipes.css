@@ -943,6 +943,9 @@
      tokens resolve to none in a flat world, so this line is inert on the default path. */
   --kui-ct-cast: var(--kui-ct-cast-glass, var(--kui-control-chrome, none));
   --kui-ct-light: var(--kui-control-light, none);
+  /* A joined group's seam (§54): the full ground reads as a cut across a solid fill, so this
+     rung publishes it at a quarter. Every other rung takes the ground whole. */
+  --kui-ct-seam: color-mix(in oklab, var(--color-surface) 25%, transparent);
 }
 
 [data-emphasis="medium"] {

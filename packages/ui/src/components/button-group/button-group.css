@@ -1,0 +1,42 @@
+/* Button group: Buttons drawn as one box. Split button's join, for any number of buttons. */
+
+.kui-button-group {
+  display: inline-flex;
+  align-items: stretch;
+  vertical-align: middle;
+}
+
+/* Inner corners are square: one box divided, not boxes touching. */
+.kui-button-group > .kui-button:not(:last-child) {
+  border-start-end-radius: var(--radius-0);
+  border-end-end-radius: var(--radius-0);
+}
+
+.kui-button-group > .kui-button:not(:first-child) {
+  border-start-start-radius: var(--radius-0);
+  border-end-start-radius: var(--radius-0);
+  /* Overlap the neighbour's end border, so two bordered buttons meet on one line, not two. */
+  margin-inline-start: calc(-1 * var(--border-width));
+}
+
+/* The divider is a GAP: a hairline of the ground showing through between two fills. A rung
+   whose full ground reads as a cut publishes a softer seam through the hook (recipes.css).
+   A bordered member is left alone: after the overlap its own edge is the seam. */
+.kui-button-group > .kui-button:not(:first-child, [data-bordered]) {
+  border-inline-start-color: var(--kui-ct-seam, var(--color-surface));
+}
+
+/* A focused member's ring must not sit under its later neighbour. Siblings paint in DOM order,
+   so the ring's trailing arc was covered (measured: the pixel just past a focused middle
+   button's edge belonged to the next button). Lifting the focused one is the one repair; it
+   does nothing to a member at rest. */
+.kui-button-group > .kui-button:focus-visible {
+  position: relative;
+  z-index: 1;
+}
+
+/* The buttons do not travel: one moving alone would tear the box at the seam. */
+.kui-button-group > .kui-button.kui-button {
+  translate: 0 0;
+  scale: 1;
+}

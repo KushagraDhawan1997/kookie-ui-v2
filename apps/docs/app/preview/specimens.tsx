@@ -126,6 +126,7 @@ import {
   TableRow,
   Text,
   SplitButton,
+  ButtonGroup,
   Toggle,
   ToggleGroup,
   Tooltip,
@@ -2662,6 +2663,46 @@ function SplitButtonSection() {
   );
 }
 
+function ButtonGroupSection() {
+  return (
+    <Stack gap="6">
+      <Demo label="Related actions drawn as one control">
+        <Flex gap="2" align="center">
+          <ButtonGroup>
+            <Button>Day</Button>
+            <Button>Week</Button>
+            <Button>Month</Button>
+          </ButtonGroup>
+        </Flex>
+      </Demo>
+      <SpecTable
+        cols={["Loud", "Medium", "Quiet, bordered", "Disabled"]}
+        rows={SIZES.map((size) => ({
+          label: `size ${size}`,
+          cells: [
+            <ButtonGroup key="1" size={size}>
+              <Button emphasis="loud">Copy</Button>
+              <Button emphasis="loud">Paste</Button>
+              </ButtonGroup>,
+            <ButtonGroup key="2" size={size}>
+              <Button>Copy</Button>
+              <Button>Paste</Button>
+            </ButtonGroup>,
+            <ButtonGroup key="3" size={size}>
+              <Button emphasis="quiet" bordered>Copy</Button>
+              <Button emphasis="quiet" bordered>Paste</Button>
+              </ButtonGroup>,
+            <ButtonGroup key="4" size={size}>
+              <Button disabled>Copy</Button>
+              <Button disabled>Paste</Button>
+              </ButtonGroup>,
+          ],
+        }))}
+      />
+    </Stack>
+  );
+}
+
 function TooltipSection() {
   return (
     <Stack gap="6">
@@ -3332,6 +3373,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   ported("text-field"),
   { id: "toggle", name: "Toggle", body: <ToggleSection /> },
   { id: "split-button", name: "Split Button", body: <SplitButtonSection /> },
+  { id: "button-group", name: "Button Group", body: <ButtonGroupSection /> },
   { id: "toolbar", name: "Toolbar", body: <ToolbarSection /> },
   { id: "tooltip", name: "Tooltip", body: <TooltipSection /> },
   { id: "tree", name: "Tree", body: <TreeSection /> },
