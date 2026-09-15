@@ -334,7 +334,7 @@
    captioned pane is as much a capsule as the bare one and drawing it as a squircle is the same
    lozenge the reported defect was. What still keeps the family's squircle is a pane holding a
    LIST, which is the guard that stays. */
-.kui-surface.kui-command-panel:has(.kui-command-item):not(:has(.kui-command-item ~ .kui-command-item)) {
+.kui-surface.kui-command-panel:has(.kui-command-item):not(:has(.kui-command-item ~ .kui-command-item, .kui-command-group-label)) {
   corner-shape: round;
 }
 
