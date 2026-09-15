@@ -233,7 +233,7 @@ const DECLARED: Entry[] = [
     family: "Type",
     spec: "§11, §35",
         abstract: "Avatar shows a person, a team or a thing as a small round picture, with initials or a generic figure standing in until the picture loads.",
-    overview: ["Its box is one line of the text beside it, so an avatar next to a name in a list is list-sized and one in a page header is header-sized without a second number. A row of overlapped faces is an AvatarGroup, on its own page."],
+    overview: ["Sizes 1 to 4 are the control heights, so an avatar stands level with the button beside it and grows with density and on touch. Sizes 5 to 9 go past them, for a face that stands alone. Without a size it takes the app's size, like a control. A row of overlapped faces is an AvatarGroup, on its own page."],
     refusals: [
       { name: "A shape prop", why: "A person is a disc on every platform, at every radius level. A square picture is a picture, and you have Card and Box for that. A rounded square for a workspace waits for the screen that needs it." },
       { name: "`emphasis`", why: "No avatar is louder than the one beside it. Rank in a list of people is order and size, never a heavier face." },
@@ -249,7 +249,7 @@ const DECLARED: Entry[] = [
     family: "Type",
     spec: "§35",
         abstract: "AvatarGroup shows several avatars overlapped, each ringed in the surface colour so the discs stay separate.",
-    overview: ["It is a line of text with no words in it: a size on the group reaches every avatar inside that states none, and an avatar that states its own still wins. How many to show is yours, and the rest is an Avatar whose fallback says +3."],
+    overview: ["A size on the group reaches every avatar inside that states none, and an avatar that states its own still wins. How many to show is yours, and the rest is an Avatar whose fallback says +3."],
     refusals: [
       { name: "A max count", why: "How many to show and what the rest reads as is a product decision. The group overlaps whatever you give it, and the rest is an Avatar whose fallback says +3." },
       { name: "A spacing prop", why: "The overlap is one share of a face, stated once in the system. A group that overlapped less would be a row of avatars, which is a Flex." },

@@ -424,7 +424,7 @@ export const API: Record<string, ApiEntry> = {
     "props": [
       {
         "name": "size",
-        "type": "TypeSize",
+        "type": "AvatarSize",
         "values": [
           "1",
           "2",
@@ -470,7 +470,7 @@ export const API: Record<string, ApiEntry> = {
       },
       {
         "name": "size",
-        "type": "TypeSize",
+        "type": "AvatarSize",
         "values": [
           "1",
           "2",
@@ -483,7 +483,7 @@ export const API: Record<string, ApiEntry> = {
           "9"
         ],
         "optional": true,
-        "doc": "A step on the type ramp, 1–9, and OPTIONAL with no default: unset, an avatar is exactly one line of the text beside it, so the one next to a name in a list is list-sized and the one in a profile header is header-sized with nothing said twice. Set it when the avatar stands alone."
+        "doc": "1–9. Sizes 1–4 are the control heights, so an avatar stands level with a Button at the same index; 5–9 continue past them. Unset, it takes its group's size, then the nearest size scope, then the Theme's."
       },
       {
         "name": "src",
@@ -5491,7 +5491,7 @@ export const API: Record<string, ApiEntry> = {
           "4"
         ],
         "optional": true,
-        "doc": "The index every family on the 1-4 ladder rests at when the call site says nothing (§4). `size=\"3\"` is an app whose buttons are 40px and whose cards pad and corner one step wider; it is a rung rather than a measurement, which is what lets one number mean the same thing to a control, a card and a dialog at once. It is a DEFAULT, not a clamp. A stated `size` on any component wins, and a `Field` or a `Composer` — the two units a person sizes as one object — win over the theme for what they contain, because they are nearer. It does not reach type. `Text`, `Heading` and `Blockquote` read a scale nine steps long rather than four, so they can share neither this rest nor this range; rank them with the composition ladder (§15) and the emphasis roles. `Code`, `Kbd`, `Badge`, `Avatar` and `Chip` rest at nothing on purpose and take the line they sit in."
+        "doc": "The index every family on the 1-4 ladder rests at when the call site says nothing (§4). `size=\"3\"` is an app whose buttons are 40px and whose cards pad and corner one step wider; it is a rung rather than a measurement, which is what lets one number mean the same thing to a control, a card and a dialog at once. It is a DEFAULT, not a clamp. A stated `size` on any component wins, and a `Field` or a `Composer` — the two units a person sizes as one object — win over the theme for what they contain, because they are nearer. It does not reach type. `Text`, `Heading` and `Blockquote` read a scale nine steps long rather than four, so they can share neither this rest nor this range; rank them with the composition ladder (§15) and the emphasis roles. `Code`, `Kbd`, `Badge` and `Chip` rest at nothing on purpose and take the line they sit in. `Avatar` reads it like a control."
       },
       {
         "name": "style",

@@ -332,7 +332,7 @@ describe("what the app's index deliberately does NOT reach", () => {
   });
 
   it("an inert atom still rests at NOTHING and takes the line it sits in", () => {
-    // Badge, Code, Kbd, Avatar and Chip are the one family whose `size` has no default at all
+    // Badge, Code, Kbd and Chip are the one family whose `size` has no default at all
     // (§38): unset means the element states no step, so it belongs to the text around it. An
     // app-wide index reaching them would end that, silently — a badge in a caption would grow
     // to the app's rest while the caption did not.

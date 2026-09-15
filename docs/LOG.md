@@ -8,6 +8,27 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-15 Avatar's box is the control ladder
+
+**What.** Avatar shipped (§35) one line of the text beside it — `1lh`, an optional type step,
+unset meaning "take the line". Kushagra: "The avatar sizes with text based sizing isnt working. It
+needs to follow control sizing, but it still needs to support scale 1-9." Sizes 1-4 are now
+`--control-height-1..4` (level with a Button at the same index, every density x pointer cell,
+law-read), 5-9 continue as `avatarSizes` 56/64/80/96/128. Unset resolves like a control — group,
+size scope, Theme — and AvatarGroup hands its size down by context instead of by line. The avatar
+re-states its line to the box, so every `1lh` share (initials, overlap, badge slot) is unchanged.
+
+**Why the line lost.** §35 rejected the control ladder because "a picture beside a NAME is what an
+avatar mostly is". In use the line was the wrong reference both ways: at body steps a face one line
+tall is too small beside a name, and at heading steps it swells into the heading's line. An
+avatar's real neighbours in a row are controls.
+
+**Rejected.** Pricing 5-9 per density and pointer cell (no second consumer; comfortable size 4 at
+60 out-sizing size 5 at 56 is stated in §35 instead); keeping unset = the line with only stated
+sizes on the ladder (two mechanisms for one prop).
+
+---
+
 ## 2026-09-15 ButtonGroup's seam is a gap, and RadioGroup stops shipping no layout
 
 **What.** Two reversals found by eye in one session. ButtonGroup (DECISIONS §54) shipped with §53's

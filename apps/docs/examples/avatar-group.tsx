@@ -1,10 +1,10 @@
-import { Avatar, AvatarGroup, type TypeSize } from "@kookie-ui/react";
+import { Avatar, AvatarGroup, type AvatarSize } from "@kookie-ui/react";
 
 export default function Example({
-  size = "6",
+  size = "3",
   backdrop = false,
 }: {
-  size?: TypeSize;
+  size?: AvatarSize;
   backdrop?: boolean;
 }) {
   return (

@@ -815,7 +815,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
   },
   Avatar: {
     family: "Type",
-    blurb: "A person or a thing as a round picture, with initials standing in. One line of the text beside it.",
+    blurb: "A person or a thing as a round picture, with initials standing in. Sizes 1-4 match the controls.",
     props: { size: typeSize, fallback: text, src: text, alt: text, backdrop: bool },
     children: "none",
     make: () => node("Avatar", { fallback: "KD" }),
@@ -826,7 +826,7 @@ export const CATALOG: Record<string, CatalogEntry> = {
     props: { size: typeSize },
     children: { only: ["Avatar"] },
     make: () =>
-      node("AvatarGroup", { size: "5" }, {
+      node("AvatarGroup", { size: "3" }, {
         children: [
           node("Avatar", { fallback: "KD" }),
           node("Avatar", { fallback: "SB" }),

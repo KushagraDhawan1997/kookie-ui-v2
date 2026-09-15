@@ -1,19 +1,17 @@
 /**
  * Avatar's laws, mounted (§11, §35).
  *
- * The box is the atom family's, so the box laws are AGREEMENTS with a mounted Kbd — one line
- * tall at every step — and the fill law is an agreement with a Chip. The claims that carry
- * weight are the ones a reader would assume: an avatar in a line of text never spreads that
- * line; the fallback stands in until a picture has loaded and the picture then covers it; and
- * a group's overlap and ring are what make two discs two.
+ * The box is the control ladder at 1-4, so those box laws are AGREEMENTS with a mounted Button
+ * at the same index in every cell, and 5-9 read the stated ladder past it. The fill law is an
+ * agreement with a Chip. The other claims that carry weight: the fallback stands in until a
+ * picture has loaded and the picture then covers it; and a group's overlap and ring are what
+ * make two discs two.
  */
 import { describe, expect, it } from "vitest";
 
 import { APPEARANCES, DENSITIES, POINTERS, SIZES, computed, mounted, until } from "../../test/browser.tsx";
-import { avatarBadge, avatarBadgeOut, avatarOverlap, avatarScale, badgeBox } from "../../tokens/config.ts";
+import { avatarBadge, avatarBadgeOut, avatarOverlap, avatarScale, avatarSizes, badgeBox } from "../../tokens/config.ts";
 import { Chip } from "../chip/chip.tsx";
-import { Kbd } from "../kbd/kbd.tsx";
-import { Text } from "../text/text.tsx";
 import { Badge } from "../badge/badge.tsx";
 import { Button } from "../button/button.tsx";
 import { Avatar, AvatarGroup } from "./avatar.tsx";
@@ -22,70 +20,68 @@ import { Avatar, AvatarGroup } from "./avatar.tsx";
 const PIXEL =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
 
-describe("the box is the atom family's: one line, and a circle (§11, §15, §35)", () => {
-  for (const size of ["1", "3", "6", "9"] as const) {
-    it(`size ${size}: one line tall, as wide as tall, and it never spreads the line it sits in`, () => {
-      const host = mounted(
-        <Text size={size} render={<p />}>
-          <Avatar fallback="KD" /> Kushagra <Kbd>K</Kbd>
-        </Text>,
-        { theme: {} },
-      );
-      const avatar = host.querySelector<HTMLElement>(".kui-avatar")!;
-      const kbd = host.querySelector<HTMLElement>(".kui-kbd")!;
-      const line = parseFloat(computed(host, "line-height"));
-      const box = avatar.getBoundingClientRect();
-      expect(box.height, "not one line tall").toBeCloseTo(line, 1);
-      expect(box.width, "not a disc").toBeCloseTo(box.height, 1);
-      expect(box.height).toBeCloseTo(kbd.getBoundingClientRect().height, 1);
-      // The line did not grow around it.
-      expect(host.getBoundingClientRect().height).toBeCloseTo(line, 1);
-      // And the initials are a SHARE OF THE DISC at every step — read off the config, so the
-      // eye can move the number without moving this law; a constant discount on the type
-      // step failed exactly here (step 9 filled the disc) before the share was stated.
-      const fallback = avatar.querySelector<HTMLElement>(".kui-avatar-fallback")!;
-      expect(parseFloat(computed(fallback, "font-size"))).toBeCloseTo(box.height * avatarScale, 0);
-    });
-  }
+describe("the box is the control ladder, and past it (§4, §35)", () => {
+  // EVERY CELL (2026-09-15). Sizes 1-4 ARE the control heights, so the claim is an agreement
+  // with a mounted Button at the same index in every density x pointer cell — one cell of the
+  // ladder is a law about that cell.
+  for (const density of DENSITIES)
+    for (const pointer of POINTERS)
+      for (const size of SIZES) {
+        it(`${density}/${pointer}/${size}: level with a Button at the same index, a disc, initials at their share`, () => {
+          const avatar = mounted(<Avatar size={size} fallback="KD" />, { theme: { density, pointer } });
+          const button = mounted(<Button size={size}>x</Button>, { theme: { density, pointer }, select: ".kui-button" });
+          const box = avatar.getBoundingClientRect();
+          expect(box.height).toBeCloseTo(button.getBoundingClientRect().height, 1);
+          expect(box.width, "not a disc").toBeCloseTo(box.height, 1);
+          // The initials are a SHARE OF THE DISC: the fallback's `1lh` must be the box, which
+          // only holds while the avatar re-states its line to its own height.
+          const fallback = avatar.querySelector<HTMLElement>(".kui-avatar-fallback")!;
+          expect(parseFloat(computed(fallback, "font-size"))).toBeCloseTo(box.height * avatarScale, 0);
+        });
+      }
 
-  for (const size of ["3", "6", "9"] as const) {
-    it(`size ${size}: a GROUP in a line does not spread it either`, () => {
-      // THE HALF THAT WAS UNREAD (ultracode audit 2026-09-01). "Never spreads the line" was
-      // asserted for a lone Avatar and for nothing else, and all three group laws mounted the
-      // group standalone — where `vertical-align` cannot change any answer. Measured before
-      // the fix: `<Text size="9">Team <AvatarGroup/> x</Text>` rendered a 72.95px paragraph
-      // against a 62px line, because an inline-flex box with no `vertical-align` sits on the
-      // BASELINE and a box one line tall then pushes past the strut.
-      const host = mounted(
-        <Text size={size} render={<p />}>
-          Team{" "}
-          <AvatarGroup>
-            <Avatar fallback="KD" />
-            <Avatar fallback="MC" />
-          </AvatarGroup>{" "}
-          ships today
-        </Text>,
-        { theme: {} },
-      );
-      const line = parseFloat(computed(host, "line-height"));
-      const group = host.querySelector<HTMLElement>(".kui-avatar-group")!;
-      expect(group.getBoundingClientRect().height, "the group is one line tall").toBeCloseTo(line, 1);
-      expect(host.getBoundingClientRect().height, "and the line did not grow around it").toBeCloseTo(line, 1);
+  it("5-9 continue the ladder past size 4, at the stated heights", () => {
+    const four = mounted(<Avatar size="4" fallback="KD" />, { theme: {} }).getBoundingClientRect().height;
+    let previous = four;
+    (["5", "6", "7", "8", "9"] as const).forEach((size, i) => {
+      const el = mounted(<Avatar size={size} fallback="KD" />, { theme: {} });
+      const h = el.getBoundingClientRect().height;
+      expect(h, `size ${size}`).toBeCloseTo(avatarSizes[i]!, 1);
+      expect(h, `size ${size} does not climb`).toBeGreaterThan(previous);
+      const fallback = el.querySelector<HTMLElement>(".kui-avatar-fallback")!;
+      expect(parseFloat(computed(fallback, "font-size"))).toBeCloseTo(h * avatarScale, 0);
+      previous = h;
     });
-  }
+  });
 
-  it("a stated size wins over the line, and the group's size reaches its unset members", () => {
-    const stated = mounted(<Avatar size="6" fallback="KD" />, { theme: {} });
+  it("unset, it rests at the app's index — and moves with it", () => {
+    const at = (size: "1" | "3") => ({
+      avatar: mounted(<Avatar fallback="KD" />, { theme: { size } }).getBoundingClientRect().height,
+      button: mounted(<Button>x</Button>, { theme: { size }, select: ".kui-button" }).getBoundingClientRect().height,
+    });
+    const one = at("1");
+    const three = at("3");
+    expect(one.avatar).toBeCloseTo(one.button, 1);
+    expect(three.avatar).toBeCloseTo(three.button, 1);
+    // The vacuity guard: two different app indexes must give two different faces.
+    expect(three.avatar).toBeGreaterThan(one.avatar);
+  });
+
+  it("the group's size reaches its unset members, and a member's own size wins", () => {
+    const stated = mounted(<Avatar size="6" fallback="KD" />, { theme: { size: "1" } });
     const group = mounted(
       <AvatarGroup size="6">
         <Avatar fallback="KD" />
         <Avatar size="2" fallback="MC" />
       </AvatarGroup>,
-      { theme: {} },
+      { theme: { size: "1" } },
     );
     const [inherited, own] = Array.from(group.querySelectorAll<HTMLElement>(".kui-avatar"));
-    expect(stated.getBoundingClientRect().height).toBeCloseTo(inherited!.getBoundingClientRect().height, 1);
-    expect(own!.getBoundingClientRect().height).toBeLessThan(inherited!.getBoundingClientRect().height);
+    const alone = mounted(<Avatar size="2" fallback="KD" />, { theme: { size: "1" } });
+    expect(inherited!.getBoundingClientRect().height).toBeCloseTo(stated.getBoundingClientRect().height, 1);
+    expect(own!.getBoundingClientRect().height).toBeCloseTo(alone.getBoundingClientRect().height, 1);
+    // The group is exactly as tall as its tallest face — it adds no line of its own.
+    expect(group.getBoundingClientRect().height).toBeCloseTo(inherited!.getBoundingClientRect().height, 1);
   });
 
   it("is a circle at every radius level — a person is a disc (§6)", () => {
@@ -181,7 +177,7 @@ describe("the picture and what stands in for it (§35)", () => {
     void (<Avatar shape="square" />);
     // @ts-expect-error — no margin prop on any component (first non-negotiable)
     void (<Avatar m="4" />);
-    // @ts-expect-error — the size is a type step, not a control index of the wrong ladder
+    // @ts-expect-error — the ladder stops at 9
     void (<Avatar size="10" />);
     expect(true).toBe(true);
   });
@@ -226,7 +222,7 @@ describe("a group overlaps its faces and rings them (§35)", () => {
       const probe = mounted(<span style={{ color: "var(--color-surface)" }} />, { theme: { appearance } });
       expect(ring.borderTopColor).toBe(computed(probe, "color"));
       // OUTSIDE: the ring's box starts before the face's edge, and the face itself is the
-      // full line — exactly as big as the lone avatar (2026-08-31: a border inside the box
+      // full box — exactly as big as the lone avatar (2026-08-31: a border inside the box
       // had been shrinking every grouped face by 4px).
       expect(parseFloat(ring.top)).toBeLessThan(0);
       expect(ringed.getBoundingClientRect().width).toBeCloseTo(alone.getBoundingClientRect().width, 1);

@@ -29,6 +29,7 @@ import {
   avatarBadgeOut,
   avatarOverlap,
   avatarScale,
+  avatarSizes,
   badgeLift,
   badgeBox,
   breadcrumbGlyph,
@@ -216,6 +217,7 @@ export function generateTokens(): string {
   put("chip-scale", String(chipScale));
   put("avatar-scale", String(avatarScale));
   put("avatar-overlap", String(avatarOverlap));
+  avatarSizes.forEach((px, i) => put(`avatar-size-${i + 5}`, `calc(${px}px * var(--scale))`));
   put("badge-box", String(badgeBox));
   put("badge-text", String(badgeText));
   put("badge-lift", String(badgeLift));

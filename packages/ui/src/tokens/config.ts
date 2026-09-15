@@ -2440,6 +2440,14 @@ export const chipScale = 0.9;
 export const avatarScale = 0.45;
 
 /**
+ * §35 — the avatar box past the control ladder (2026-09-15). Sizes 1-4 ARE
+ * `--control-height-1..4`, so an avatar stands level with the Button beside it and answers
+ * density and pointer the same way; 5-9 continue the ladder in raw px for a face that stands
+ * alone. Taste, one home: here.
+ */
+export const avatarSizes = [56, 64, 80, 96, 128] as const;
+
+/**
  * §35 — how far a later avatar in a group sits over the one before it, as a share of the
  * box (`1lh`), so the overlap grows with the size the way the ring around each face does.
  * Mantine, Chakra and Ant sit near a third of the diameter; a quarter here, judged in the playground 2026-08-31 — at a third the next disc clipped the initials it covered. Taste, one home: here.

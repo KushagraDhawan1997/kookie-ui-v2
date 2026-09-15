@@ -6,17 +6,21 @@ import * as React from "react";
 
 import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
+import { useSize } from "../../system/size.ts";
 import { glyphStroke } from "../../tokens/config.ts";
-import type { TypeSize } from "../text/text.tsx";
+/** An avatar's index: 1-4 are the control heights, 5-9 continue past them (§35). Not a type
+ *  step — the avatar left the type scale 2026-09-15. */
+export type AvatarSize = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
+
+const AvatarGroupSizeContext = React.createContext<AvatarSize | undefined>(undefined);
 
 export type AvatarProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"span">, "color"> & {
   /**
-   * A step on the type ramp, 1–9, and OPTIONAL with no default: unset, an avatar is exactly
-   * one line of the text beside it, so the one next to a name in a list is list-sized and the
-   * one in a profile header is header-sized with nothing said twice. Set it when the avatar
-   * stands alone.
+   * 1–9. Sizes 1–4 are the control heights, so an avatar stands level with a Button at the
+   * same index; 5–9 continue past them. Unset, it takes its group's size, then the nearest
+   * size scope, then the Theme's.
    */
-  size?: TypeSize;
+  size?: AvatarSize;
   /** The picture. When it has not loaded, or fails, the fallback shows in its place. */
   src?: string;
   /**
@@ -77,7 +81,7 @@ function PersonGlyph() {
  * colour carrying meaning on its own).
  */
 export function Avatar({
-  size,
+  size: sizeProp,
   src,
   alt = "",
   fallback,
@@ -87,6 +91,9 @@ export function Avatar({
   ref,
   ...props
 }: AvatarProps) {
+  const grouped = React.useContext(AvatarGroupSizeContext);
+  const scoped = useSize();
+  const size = sizeProp ?? grouped ?? scoped;
   // §10 — the app says what things are built of; an avatar only states placement.
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   const lensRef = useLensRef<HTMLElement>(material, ref);
@@ -136,7 +143,7 @@ export type AvatarGroupProps = ComponentRefusals & Omit<React.ComponentPropsWith
    * it, and each unset avatar takes that line — so the size is said once, here, and an
    * avatar that states its own still wins.
    */
-  size?: TypeSize;
+  size?: AvatarSize;
   ref?: React.Ref<HTMLSpanElement>;
 };
 
@@ -148,10 +155,12 @@ export type AvatarGroupProps = ComponentRefusals & Omit<React.ComponentPropsWith
  */
 export function AvatarGroup({ size, className, ...props }: AvatarGroupProps) {
   return (
-    <span
-      data-size={size}
-      className={className ? `kui-type kui-avatar-group ${className}` : "kui-type kui-avatar-group"}
-      {...props}
-    />
+    <AvatarGroupSizeContext.Provider value={size}>
+      <span
+        data-size={size}
+        className={className ? `kui-avatar-group ${className}` : "kui-avatar-group"}
+        {...props}
+      />
+    </AvatarGroupSizeContext.Provider>
   );
 }

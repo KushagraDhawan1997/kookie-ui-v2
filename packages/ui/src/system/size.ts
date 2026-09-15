@@ -45,7 +45,7 @@ import { useTheme } from "../theme/theme.tsx";
  * **Who reads it is every family on the 1-4 index and nothing else.** The type family does
  * not: Text rests at 3, Heading at 6, on a ladder nine steps long rather than four, so it can
  * share neither this rest nor this range — a `size="4"` app would mean maxed-out controls
- * beside barely-larger-than-body text. The inert atoms (Code, Kbd, Badge, Avatar, Chip) rest
+ * beside barely-larger-than-body text. The inert atoms (Code, Kbd, Badge, Chip) rest
  * at NOTHING on purpose and take the line they sit in; a theme value reaching them would end
  * that. Both absences are law-asserted, because an absence nothing reads is an absence that
  * comes back.
@@ -57,7 +57,7 @@ export const SizeScopeContext = React.createContext<Size | null>(null);
  *
  * Read by every component on the 1-4 ladder — the control family, and the compounds beside it
  * (Card, Surface, Menu, Popover, Tabs, Table, Tree, Row, Accordion, Notice, Composer, Field,
- * Shell, Breadcrumb, Attachment, CodeBlock). NOT by Text, Heading or Blockquote, and not by the
+ * Shell, Breadcrumb, Attachment, CodeBlock, Avatar — whose 1-4 are the control heights). NOT by Text, Heading or Blockquote, and not by the
  * inert atoms. NOT by Dialog, AlertDialog or Command either, since 2026-09-06: an overlay that
  * covers the screen skips the unit layer and reads `useAppSize` below.
  *

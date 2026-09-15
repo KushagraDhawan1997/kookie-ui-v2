@@ -11,8 +11,8 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  block-size: 1lh;
-  inline-size: 1lh;
+  block-size: var(--kui-avatar-h);
+  inline-size: var(--kui-avatar-h);
   flex: none;
   vertical-align: top;
   /* A circle, at every radius level: a person is a disc on every platform, and a square
@@ -21,6 +21,14 @@
   border-radius: 50%;
   color: var(--color-text);
   user-select: none;
+}
+
+/* The box is the CONTROL ladder (§4, §35, 2026-09-15), published by the avatar size join in
+   surfaces.css. The line is re-stated to the box because the initials, the group overlap and
+   the badge slot all read `1lh` as the disc — at (0,2,0), which ties the type join's
+   `.kui-type[data-size]` and wins on file order (this sheet loads after type.css). */
+.kui-type.kui-avatar {
+  line-height: var(--kui-avatar-h);
 }
 
 .kui-avatar-image {

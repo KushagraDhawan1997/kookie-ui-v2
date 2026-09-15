@@ -402,34 +402,36 @@ function AccordionSection() {
 function AvatarSection() {
   return (
     <Stack gap="6">
-      {/* The box is one line of the text beside it: an unset avatar in a paragraph at each
-          step is exactly that step's line, and the initials hold their share of the disc as
-          the disc grows — the reason the share is stated against the box, not the type. */}
+      {/* 1-4 are the control heights — the last column puts a Button at the same index beside
+          the face — and 5-9 go past them. The initials hold their share of the disc throughout. */}
       <SpecTable
-        cols={["Picture", "Initials", "Badged", "Generic", "In its line"]}
-        rows={(["2", "3", "5", "7", "9"] as const).map((size) => ({
+        cols={["Picture", "Initials", "Badged", "Generic", "Beside a button"]}
+        rows={(["1", "2", "3", "4", "5", "7", "9"] as const).map((size) => ({
           label: `size ${size}`,
           cells: [
             <Avatar key="1" size={size} src="/backdrop.jpg" alt="" fallback="SB" />,
             <Avatar key="2" size={size} fallback="KD" />,
             <Avatar key="3" size={size} fallback="AR" badge={<Badge>3</Badge>} />,
             <Avatar key="4" size={size} />,
-            <Text key="5" size={size}>
-              <Avatar fallback="KD" /> Kushagra
-            </Text>,
+            size <= "4" ? (
+              <Flex key="5" gap="2" align="center">
+                <Avatar size={size} fallback="KD" />
+                <Button size={size as "1" | "2" | "3" | "4"}>Follow</Button>
+              </Flex>
+            ) : null,
           ],
         }))}
       />
       <Demo label="A group — overlapped, ringed in the surface colour, the rest is an Avatar">
         <Flex gap="4" align="center" wrap="wrap">
-          <AvatarGroup size="5">
+          <AvatarGroup size="3">
             <Avatar src="/backdrop.jpg" alt="" fallback="SB" />
             <Avatar fallback="KD" />
             <Avatar fallback="AR" />
             <Avatar fallback="+3" />
           </AvatarGroup>
           <Card size="2">
-            <AvatarGroup size="4">
+            <AvatarGroup size="2">
               <Avatar fallback="KD" />
               <Avatar fallback="SB" />
               <Avatar fallback="AR" />

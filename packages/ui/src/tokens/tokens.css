@@ -81,6 +81,11 @@
   --chip-scale: 0.9;
   --avatar-scale: 0.45;
   --avatar-overlap: 0.25;
+  --avatar-size-5: calc(56px * var(--scale));
+  --avatar-size-6: calc(64px * var(--scale));
+  --avatar-size-7: calc(80px * var(--scale));
+  --avatar-size-8: calc(96px * var(--scale));
+  --avatar-size-9: calc(128px * var(--scale));
   --badge-box: 0.7;
   --badge-text: 0.48;
   --badge-lift: 0.095;

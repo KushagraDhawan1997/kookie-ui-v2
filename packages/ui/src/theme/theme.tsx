@@ -120,8 +120,8 @@ export type ThemeProps = ThemeRefusals & RadixReflexRefusals & {
    *
    * It does not reach type. `Text`, `Heading` and `Blockquote` read a scale nine steps long
    * rather than four, so they can share neither this rest nor this range; rank them with the
-   * composition ladder (§15) and the emphasis roles. `Code`, `Kbd`, `Badge`, `Avatar` and
-   * `Chip` rest at nothing on purpose and take the line they sit in.
+   * composition ladder (§15) and the emphasis roles. `Code`, `Kbd`, `Badge` and `Chip`
+   * rest at nothing on purpose and take the line they sit in. `Avatar` reads it like a control.
    */
   size?: Size;
   /**

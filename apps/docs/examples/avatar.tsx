@@ -1,11 +1,11 @@
-import { Avatar, Badge, type TypeSize } from "@kookie-ui/react";
+import { Avatar, Badge, type AvatarSize } from "@kookie-ui/react";
 
 export default function Example({
-  size = "7",
+  size = "4",
   backdrop = false,
   badge = true,
 }: {
-  size?: TypeSize;
+  size?: AvatarSize;
   backdrop?: boolean;
   badge?: boolean;
 }) {

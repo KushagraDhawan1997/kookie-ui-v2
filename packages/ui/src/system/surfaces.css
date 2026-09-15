@@ -874,6 +874,20 @@
   --kui-tb-px: var(--layout-space-6);
 }
 
+/* ── The AVATAR's size join (§35, 2026-09-15) ─────────────────────────────────────────────
+   1-4 ARE the control heights, so an avatar stands level with the Button at the same index and
+   answers density and pointer with it; 5-9 continue past the ladder. avatar.css consumes the
+   hook for the box and re-states the line to it. */
+.kui-avatar[data-size="1"] { --kui-avatar-h: var(--control-height-1); }
+.kui-avatar[data-size="2"] { --kui-avatar-h: var(--control-height-2); }
+.kui-avatar[data-size="3"] { --kui-avatar-h: var(--control-height-3); }
+.kui-avatar[data-size="4"] { --kui-avatar-h: var(--control-height-4); }
+.kui-avatar[data-size="5"] { --kui-avatar-h: var(--avatar-size-5); }
+.kui-avatar[data-size="6"] { --kui-avatar-h: var(--avatar-size-6); }
+.kui-avatar[data-size="7"] { --kui-avatar-h: var(--avatar-size-7); }
+.kui-avatar[data-size="8"] { --kui-avatar-h: var(--avatar-size-8); }
+.kui-avatar[data-size="9"] { --kui-avatar-h: var(--avatar-size-9); }
+
 /* ── The OVERLAY pane's size join (§6, §24 — shipped with Dialog 2026-08-10) ─────────────────
    A pane that COVERS is not a card and not an anchored panel: nothing about it hugs rows, so
    there is no concentric arithmetic to do, and its corner comes from the radius palette's own
