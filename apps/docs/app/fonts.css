@@ -29,8 +29,8 @@
 /* THE WORDMARK. One word, one place — the masthead. A single static face, no italic and no
    second weight, so a heading asking for semibold cannot make the browser synthesize one. */
 @font-face {
-  font-family: "PP Hatton";
-  src: url("/fonts/PPHatton-MediumItalic.woff2") format("woff2");
+  font-family: "PP Acma";
+  src: url("/fonts/PPAcma-Semibold.woff2") format("woff2");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -62,7 +62,7 @@
    `prose.css` read these exactly as they did before, each with the system stack behind it, so
    a face that never loads costs one 404 and nothing else. */
 :root {
-  --kd-font-wordmark: "PP Hatton";
+  --kd-font-wordmark: "PP Acma";
   --kd-font-body: "Inter Variable";
   --kd-font-mono: "Neue Montreal Mono";
 }

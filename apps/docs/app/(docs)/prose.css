@@ -230,6 +230,7 @@
    ink is a fraction of it. */
 .kd-wordmark {
   font-family: var(--kd-font-wordmark), var(--font-body);
+  font-feature-settings: "liga", "dlig";
 }
 
 .kui-type.kd-wordmark[data-size] {
