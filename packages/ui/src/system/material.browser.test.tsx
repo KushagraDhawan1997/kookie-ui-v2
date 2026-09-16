@@ -472,7 +472,11 @@ describe("high contrast raises the control veil's floor (§10)", () => {
         const normal = veil();
         const high = veil("high");
         // Calibration: the normal-mode veil is a real translucency, or this compares nothing.
-        expect(normal, `${cell}: the glass fill never mixed`).toBeGreaterThan(0.1);
+        // The floor is "mixed at all", not a designed amount: since the clear pass
+        // (2026-09-17) a light thin control veils at 4%, and a 0.1 floor would fail the
+        // material for being the glass it was judged to be. Zero still fails — a veil that
+        // never mixed is what this calibration exists to catch.
+        expect(normal, `${cell}: the glass fill never mixed`).toBeGreaterThan(0.02);
         expect(normal, `${cell}: the normal veil is already opaque`).toBeLessThan(0.95);
         expect(high, `${cell}: high contrast never reached the control veil`).toBeGreaterThan(normal + 0.05);
         expect(high, `${cell}: the floor unmade the glass`).toBeLessThan(1);

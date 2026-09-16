@@ -997,11 +997,23 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
     // serializes as "… -14px inset," (no "px,"), so the old slice ate the pool AND the
     // contact row and compared unequal tails. Commas inside rgb(…) are excluded by the
     // lookahead; layer one is dropped, the cast is the rest.
+    // The pool is not one layer (2026-09-17: bottom shade, rim glow, top catch), so the cut
+    // is the POOL'S OWN layer count read off the token the glass rule consumes — a number
+    // written here would be a second home for how many layers matter has.
     const layersOf = (shadow: string) => shadow.split(/,(?![^(]*\))/).map((l) => l.trim());
-    const castOf = (shadow: string) => layersOf(shadow).slice(1).join(", ");
+    const poolLayers = (el: HTMLElement) =>
+      layersOf(
+        probeIn(
+          el,
+          (probe) => (probe.style.boxShadow = "var(--kui-surface-pool, 0 0 0 0 transparent)"),
+          (st) => st.boxShadow,
+        ),
+      ).length;
+    const castOf = (shadow: string, n: number) => layersOf(shadow).slice(n).join(", ");
     for (const depth of DEPTHS) {
       const { popup: solidPopup } = openMenu({ depth });
-      const solidShadow = castOf(computed(solidPopup, "box-shadow"));
+      // The solid popup's first layer is its seat line — one layer, whatever the glass pool is.
+      const solidShadow = castOf(computed(solidPopup, "box-shadow"), 1);
       // Fresh mount with glass: the filter engages, the fill goes translucent, and the
       // cast is byte-identical to the solid popup's — the floating chrome, not the
       // transmitted row (which is none in flat, where this assertion has teeth).
@@ -1020,7 +1032,8 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
       const g = glass as HTMLElement;
       expect(computed(g, "backdrop-filter"), depth).not.toBe("none");
       const glassShadow = computed(g, "box-shadow");
-      expect(castOf(glassShadow), `${depth} glass cast`).toBe(solidShadow);
+      const n = poolLayers(g);
+      expect(castOf(glassShadow, n), `${depth} glass cast`).toBe(solidShadow);
       // And the first layer is the WORLD's surface pool, or the cast comparison above is
       // comparing tails of two one-layer lists and proving nothing. Lab port 2026-08-17:
       // read the first LAYER (the old first-"px," slice never contained the pool at all)
@@ -1028,7 +1041,7 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
       // world pointers, so elevated resolves the inset shade and flat stands it down to
       // the list-legal no-op ("flat means flat": the pool is matter, and flat quiets it
       // with the same stroke as the chrome).
-      const pool = layersOf(glassShadow)[0]!;
+      const pool = layersOf(glassShadow).slice(0, n).join(", ");
       const expectedPool = probeIn(
         g,
         (el) => (el.style.boxShadow = "var(--kui-surface-pool, 0 0 0 0 transparent)"),

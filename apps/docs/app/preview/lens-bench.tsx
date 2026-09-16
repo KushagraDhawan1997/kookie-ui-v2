@@ -193,7 +193,7 @@ function Slider({
   );
 }
 
-const LENS_DEFAULT = { bezelX: 1, thicknessX: 1, ior: 0, profileP: 2, concave: false, preBlur: 0 };
+const LENS_DEFAULT = { bezelX: 1, thicknessX: 1, ior: 0, profileP: 2, concave: true, preBlur: 0 };
 const GLINT_DEFAULT = { glintBandX: 1, glintFalloff: 4, rimSaturate: 0 };
 
 export function LensBench() {
@@ -214,7 +214,7 @@ export function LensBench() {
   React.useEffect(() => {
     if (!open) return;
     const lensAtRest =
-      lensD.bezelX === 1 && lensD.thicknessX === 1 && lensD.ior === 0 && lensD.profileP === 2 && !lensD.concave && lensD.preBlur === 0;
+      lensD.bezelX === 1 && lensD.thicknessX === 1 && lensD.ior === 0 && lensD.profileP === 2 && lensD.concave && lensD.preBlur === 0;
     const glintAtRest = glintD.glintBandX === 1 && glintD.glintFalloff === 4 && glintD.rimSaturate === 0;
     if (lensAtRest && glintAtRest) {
       __retuneLens(null);
@@ -316,7 +316,7 @@ export function LensBench() {
       "// The material bench's settings — each line is one config lever.",
       "// packages/ui/src/system/refraction.tsx:",
       `//   lens ladder: bezel x${lensD.bezelX}, thickness x${lensD.thicknessX}, ior ${lensD.ior === 0 ? "(ladder's own)" : lensD.ior}`,
-      `//   PROFILE_P ${lensD.profileP}${lensD.concave ? " CONCAVE" : ""}, pre-blur ${lensD.preBlur}px`,
+      `//   PROFILE_P ${lensD.profileP}${lensD.concave ? "" : " CONVEX"}, pre-blur ${lensD.preBlur}px`,
       `//   glint: band x${glintD.glintBandX}, falloff ${glintD.glintFalloff}, rimSaturate ${glintD.rimSaturate}`,
       `//   bend x${bend} (boost), fringe x${fringe}`,
       "// packages/ui/src/tokens/config.ts (material):",

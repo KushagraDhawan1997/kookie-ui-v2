@@ -191,6 +191,46 @@ describe("the assembled generator is byte-identical to the frozen 2026-08-23 ora
   });
 });
 
+/* ── the bend points INWARD (§10, 2026-09-17) ────────────────────────────────────────────────
+   The lip samples from inside the pane. Pointed outward, a pixel near the edge asked for
+   backdrop past the box, and on a clear pane — no blur left to hide it — that drew hard blue
+   and red lines along the straight edges, stopping short of the corners. The oracle above
+   cannot see the direction: it calls the same `bendAt`, so a flipped sign changes both sides
+   of its equality at once. This law reads the encoded bytes against the one convention that
+   is not ours — `feDisplacementMap` samples at x + scale * (R/255 - 0.5), so an inward bend
+   is R above the neutral 128 at the left lip and below it at the right, and the same for G
+   on the block axis. Falsified by setting `CONCAVE` to false: all four edges fail. */
+describe("the bend points inward (§10)", () => {
+  it("every edge of the map samples from inside the pane", async () => {
+    const W = 240;
+    const H = 160;
+    const { url } = physicalMap(W, H, 16, lens.regular);
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext("2d")!;
+    ctx.drawImage(img, 0, 0);
+    const px = ctx.getImageData(0, 0, W, H).data;
+    const at = (x: number, y: number) => ({ r: px[(y * W + x) * 4]!, g: px[(y * W + x) * 4 + 1]! });
+    // Two pixels in from each edge, at its midpoint: inside the lip, clear of every corner.
+    const left = at(2, H / 2);
+    const right = at(W - 3, H / 2);
+    const top = at(W / 2, 2);
+    const bottom = at(W / 2, H - 3);
+    expect(left.r, "the left lip samples outward").toBeGreaterThan(140);
+    expect(right.r, "the right lip samples outward").toBeLessThan(116);
+    expect(top.g, "the top lip samples outward").toBeGreaterThan(140);
+    expect(bottom.g, "the bottom lip samples outward").toBeLessThan(116);
+    // Calibration: the body is true, so the thresholds above measure a bend and not an offset.
+    const centre = at(W / 2, H / 2);
+    expect(Math.abs(centre.r - 128), "the body is displaced").toBeLessThanOrEqual(1);
+    expect(Math.abs(centre.g - 128), "the body is displaced").toBeLessThanOrEqual(1);
+  });
+});
+
 /* ── a box has FOUR corners (§10, 2026-09-12) ─────────────────────────────────────────────────
    Both maps were built from `borderTopLeftRadius` alone and mirrored it, which is right for
    every box that rounds uniformly and wrong for the first one that does not. Sheet is that box:

@@ -1252,7 +1252,10 @@ export const glint = {
       belongs at the lip. 1.0 since 2026-08-27 (Kushagra, the bench's band dial at 2x),
       judged AFTER the bezel narrowed 4x the same day: the whole lip lights now, and in
       pixels the band is still narrower than the 0.5 it replaces was on the old lip
-      (3-6.5px against 6-13). The wash verdict was about pixels, not the fraction. */
+      (3-6.5px against 6-13). The wash verdict was about pixels, not the fraction.
+      The lip widened back to 12/18/26 on 2026-09-17 and the band went with it. Narrowing it
+      to 0.3 was built and reverted the same day — the edge he was reading on menus was the
+      lens's bend, not this band. */
   band: 1.0,
   /** feather: alpha = (1 - t)^falloff across the band — HIGHER hugs the lip tighter, with a
       longer soft tail. 2.2 read as haze on a plain ground; 3 was the correction; 4 with the
@@ -1267,6 +1270,17 @@ export const glint = {
 } as const;
 
 export const material = {
+  // THE CLEAR PASS (2026-09-17, Kushagra: "its not glass, its a fancy blur. I want glass,
+  // clear, clean thick transparent glass"). The veil, the blur and the saturation were what
+  // read as frost, so all three came down and the LIP took the thickness (refraction.tsx):
+  // veil 2/4/6% light and 8/12/16% dark, blur 3/4/5px on panes and 1.5/2/2.5 on controls,
+  // saturation 115/120/125%. Brightness went UP (light 1.12-1.14, dark 1.04-1.06), because a
+  // clear pane over a scrim otherwise takes the scrim's grey. Each number was judged in the
+  // playground over the pattern bed and a thin dialog over a photograph; 1.2 brightness and
+  // blur 1/1.5/2 were both tried and walked back. The `frost` rows keep their blur and now
+  // share everything else with the clear row — one material rendered two ways. Some of the
+  // prose below describes the frost-era numbers; this paragraph and the rows are current.
+  //
   // The ladder is monotone in every lever — alpha, blur, saturation, brightness push — so
   // thickness reads as one dimension. Thin is a veil: the backdrop's structure ghosts
   // through on purpose (its blur sits below §10's 12px defense floor, which applies to the
@@ -1337,14 +1351,14 @@ export const material = {
      step — the veil holds and only brightness moves (lab 2026-08-14, "hover mode looks
      weird": the quiet-hover was laying an opaque pastel over the pane). */
   light: {
-    thin: { alpha: [34, 42, 50], alphaHigh: [72, 77, 82], filter: "blur(2.4px) saturate(172.5%) brightness(1.03)", frost: "blur(8px) saturate(172.5%) brightness(1.03)", sheen: 13.6, control: { alpha: 30, filter: "blur(1.2px) saturate(140%) brightness(1.02)", frost: "blur(4px) saturate(140%) brightness(1.02)", filterHover: "blur(1.2px) saturate(140%) brightness(1.09)", filterLoud: "blur(1.2px) saturate(220%) brightness(1.1)" } },
-    regular: { alpha: [49, 57, 65], alphaHigh: [80, 84, 88], filter: "blur(4px) saturate(207%) brightness(1.05)", frost: "blur(16px) saturate(207%) brightness(1.05)", sheen: 20.4, control: { alpha: 48, filter: "blur(2px) saturate(160%) brightness(1.04)", frost: "blur(8px) saturate(160%) brightness(1.04)", filterHover: "blur(2px) saturate(160%) brightness(1.09)", filterLoud: "blur(2px) saturate(220%) brightness(1.1)" } },
-    thick: { alpha: [65, 69, 72], alphaHigh: [86, 89, 92], filter: "blur(5.6px) saturate(241.5%) brightness(1.06)", frost: "blur(24px) saturate(241.5%) brightness(1.06)", sheen: 25.5, control: { alpha: 66, filter: "blur(3.2px) saturate(180%) brightness(1.05)", frost: "blur(13.7px) saturate(180%) brightness(1.05)", filterHover: "blur(3.2px) saturate(180%) brightness(1.09)", filterLoud: "blur(3.2px) saturate(220%) brightness(1.1)" } },
+    thin: { alpha: [2, 8, 14], alphaHigh: [72, 77, 82], filter: "blur(3px) saturate(115%) brightness(1.12)", frost: "blur(8px) saturate(115%) brightness(1.12)", sheen: 6, control: { alpha: 4, filter: "blur(1.5px) saturate(115%) brightness(1.12)", frost: "blur(4px) saturate(115%) brightness(1.12)", filterHover: "blur(1.5px) saturate(115%) brightness(1.07)", filterLoud: "blur(1.5px) saturate(160%) brightness(1.08)" } },
+    regular: { alpha: [4, 10, 16], alphaHigh: [80, 84, 88], filter: "blur(4px) saturate(120%) brightness(1.13)", frost: "blur(16px) saturate(120%) brightness(1.13)", sheen: 9, control: { alpha: 6, filter: "blur(2px) saturate(120%) brightness(1.13)", frost: "blur(8px) saturate(120%) brightness(1.13)", filterHover: "blur(2px) saturate(120%) brightness(1.08)", filterLoud: "blur(2px) saturate(160%) brightness(1.09)" } },
+    thick: { alpha: [6, 12, 18], alphaHigh: [86, 89, 92], filter: "blur(5px) saturate(125%) brightness(1.14)", frost: "blur(24px) saturate(125%) brightness(1.14)", sheen: 12, control: { alpha: 8, filter: "blur(2.5px) saturate(125%) brightness(1.14)", frost: "blur(13.7px) saturate(125%) brightness(1.14)", filterHover: "blur(2.5px) saturate(125%) brightness(1.09)", filterLoud: "blur(2.5px) saturate(160%) brightness(1.12)" } },
   },
   dark: {
-    thin: { alpha: [52, 60, 68], alphaHigh: [76, 80, 84], filter: "blur(2.4px) saturate(175.5%) brightness(0.92)", frost: "blur(8px) saturate(175.5%) brightness(0.92)", sheen: 2.75, control: { alpha: 48, filter: "blur(1.2px) saturate(162.5%) brightness(0.95)", frost: "blur(4px) saturate(162.5%) brightness(0.95)", filterHover: "blur(1.2px) saturate(162.5%) brightness(1.02)", filterLoud: "blur(1.2px) saturate(180%) brightness(1)" } },
-    regular: { alpha: [67, 74, 81], alphaHigh: [84, 87, 90], filter: "blur(4px) saturate(195%) brightness(0.9)", frost: "blur(16px) saturate(195%) brightness(0.9)", sheen: 3.85, control: { alpha: 60, filter: "blur(2px) saturate(175%) brightness(0.94)", frost: "blur(8px) saturate(175%) brightness(0.94)", filterHover: "blur(2px) saturate(175%) brightness(1.02)", filterLoud: "blur(2px) saturate(180%) brightness(1)" } },
-    thick: { alpha: [80, 82, 84], alphaHigh: [90, 92, 94], filter: "blur(5.6px) saturate(208%) brightness(0.88)", frost: "blur(24px) saturate(208%) brightness(0.88)", sheen: 4.95, control: { alpha: 74, filter: "blur(3.2px) saturate(187.5%) brightness(0.92)", frost: "blur(13.7px) saturate(187.5%) brightness(0.92)", filterHover: "blur(3.2px) saturate(187.5%) brightness(1.02)", filterLoud: "blur(3.2px) saturate(180%) brightness(1)" } },
+    thin: { alpha: [8, 16, 24], alphaHigh: [76, 80, 84], filter: "blur(3px) saturate(115%) brightness(1.06)", frost: "blur(8px) saturate(115%) brightness(1.06)", sheen: 2, control: { alpha: 10, filter: "blur(1.5px) saturate(115%) brightness(1.06)", frost: "blur(4px) saturate(115%) brightness(1.06)", filterHover: "blur(1.5px) saturate(115%) brightness(1.12)", filterLoud: "blur(1.5px) saturate(150%) brightness(1)" } },
+    regular: { alpha: [12, 20, 28], alphaHigh: [84, 87, 90], filter: "blur(4px) saturate(120%) brightness(1.05)", frost: "blur(16px) saturate(120%) brightness(1.05)", sheen: 3, control: { alpha: 14, filter: "blur(2px) saturate(120%) brightness(1.05)", frost: "blur(8px) saturate(120%) brightness(1.05)", filterHover: "blur(2px) saturate(120%) brightness(1.02)", filterLoud: "blur(2px) saturate(150%) brightness(1)" } },
+    thick: { alpha: [16, 24, 32], alphaHigh: [90, 92, 94], filter: "blur(5px) saturate(125%) brightness(1.04)", frost: "blur(24px) saturate(125%) brightness(1.04)", sheen: 4, control: { alpha: 18, filter: "blur(2.5px) saturate(125%) brightness(1.04)", frost: "blur(13.7px) saturate(125%) brightness(1.04)", filterHover: "blur(2.5px) saturate(125%) brightness(1.02)", filterLoud: "blur(2.5px) saturate(150%) brightness(1)" } },
   },
   /** How much of the app's shadow a pane lets survive (§10's transmission seam): glass
       passes light, so its cast is the surface row FADED — thin passes most, thick least.
@@ -1405,7 +1419,12 @@ export const material = {
      all three thicknesses, the lab's own shape (its dark buttons overrode a/b/c/d once). */
   ringControlDark: { a: "rgb(255 255 255 / 0.72)", b: "rgb(210 230 255 / 0.22)", c: "rgb(255 255 255 / 0.08)", d: "rgb(255 245 235 / 0.2)" },
 
-  /* THE POOL (lab, ported 2026-08-17): the shade that settles at a pane's bottom INSIDE it —
+  /* THE POOL is three layers since 2026-09-17 (the clear pass): the bottom shade, a soft inner
+     rim glow (22px on panes, 10px on controls), and a 1px top catch. With the veil gone the
+     glass had nothing left saying it has a body; the glow gathers light at the rim so the
+     centre can stay clear. An all-edges DARK shade was tried in its place and reverted the
+     same day — it read as a vignette, not as glass.
+     THE POOL (lab, ported 2026-08-17): the shade that settles at a pane's bottom INSIDE it —
      matter, not elevation, so it lives in both depth worlds and joins the cast in the one
      box-shadow list. Surfaces take the card geometry, controls the button's. The SOLID
      surface's pool is its seat line (light only — lab's dark solid has none): the crisp
@@ -1416,8 +1435,8 @@ export const material = {
     // The lab's .l2-solid does carry it, but at the app's card sizes the two never merge the
     // way they do on the lab's 340px specimen, and the doubled edge is worse than the lost
     // seat. The GLASS pools stay: soft inner washes, not lines.
-    light: { surface: "inset 0 -10px 20px -14px rgb(0 0 0 / 0.06)", control: "inset 0 -6px 12px -10px rgb(0 0 0 / 0.06)", solid: "0 0 0 0 transparent" },
-    dark: { surface: "inset 0 -10px 20px -14px rgb(0 0 0 / 0.18)", control: "inset 0 -6px 12px -10px rgb(0 0 0 / 0.18)", solid: "0 0 0 0 transparent" },
+    light: { surface: "inset 0 -14px 24px -14px rgb(0 0 0 / 0.1), inset 0 0 22px -6px rgb(255 255 255 / 0.35), inset 0 1px 2px 0 rgb(255 255 255 / 0.6)", control: "inset 0 -8px 14px -10px rgb(0 0 0 / 0.1), inset 0 0 10px -3px rgb(255 255 255 / 0.3), inset 0 1px 1px 0 rgb(255 255 255 / 0.6)", solid: "0 0 0 0 transparent" },
+    dark: { surface: "inset 0 -14px 24px -14px rgb(0 0 0 / 0.3), inset 0 0 22px -6px rgb(255 255 255 / 0.07), inset 0 1px 2px 0 rgb(255 255 255 / 0.12)", control: "inset 0 -8px 14px -10px rgb(0 0 0 / 0.3), inset 0 0 10px -3px rgb(255 255 255 / 0.05), inset 0 1px 1px 0 rgb(255 255 255 / 0.12)", solid: "0 0 0 0 transparent" },
   },
   /** §10 — the SOLID pane's own lighting (2026-08-17, measured off the lab's .l2-solid):
       matte per the lock — grain plus ONE sheen washing down to 55%, no bloom, no 1px top

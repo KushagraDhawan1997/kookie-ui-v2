@@ -192,13 +192,15 @@ export function cornerExponent(value: string): number {
  * `thickness` no longer meaning a length. The rungs below are solved against this form.
  */
 const PROFILE_P = 2;
+/** The bend points INWARD (2026-09-17) — see the ladder note on `lens`. */
+const CONCAVE = true;
 const PROFILE_Q = 0.25;
 
 function surface(t: number): { height: number; slope: number } {
   const P = tuning?.profileP ?? PROFILE_P;
   const u = 1 - t;
   const uP = Math.pow(u, P);
-  const sign = tuning?.concave ? -1 : 1;
+  const sign = (tuning?.concave ?? CONCAVE) ? -1 : 1;
   return {
     height: Math.pow(Math.max(1 - uP, 0), PROFILE_Q),
     // The 0.04 floor is the shipped guard kept: at the lip the denominator goes to zero and
@@ -343,11 +345,27 @@ export type LensThickness = Exclude<Material, "solid">;
  * 97% of its own clamp (2.91/4.37/6.30px of bend): within 3% of the pixels that were
  * judged, and still a designed lens rather than whatever the clamp allowed. The glint band
  * rides the bezel and narrows with it, which the same dial also showed.
+ *
+ * THE CLEAR PASS WIDENED IT AGAIN AND TURNED IT INWARD (2026-09-17, Kushagra: "its not glass,
+ * its a fancy blur ... clear, clean thick transparent glass"). With the veil at a few percent
+ * and the blur near zero, thickness has to be carried by the lip, so the bezels went back to
+ * 12/18/26. Two consequences, both measured:
+ *
+ *   - The bend points INWARD (`CONCAVE`). Pointed outward, a lip pixel sampled backdrop past
+ *     the box; the old blur had been hiding that, and on clear glass it drew hard blue and
+ *     red lines along the straight edges that stopped short of the corners.
+ *   - At these widths every rung clamps on a small control (24px box, 10px lip), and three
+ *     rungs each solved to the same share of their clamp are one lens there. So the SHARE is
+ *     the ladder — 85 / 91 / 97% of each rung's own clamp — and `boost` puts back the bend
+ *     judged at card scale (12 / 20.7 / 33.8px). The judging rounds had typed depths past
+ *     the clamp; these are those same rendered bends drawn inside it.
+ *
+ * `fringe` fell to 1 / 1.5 / 2 the same day: the split read as a rainbow once nothing blurred it.
  */
 export const lens: Record<LensThickness, LensParams> = {
-  thin: { bezel: 3, thickness: 6.7, ior: 1.45, fringe: 18, boost: 2 },
-  regular: { bezel: 4.5, thickness: 9.6, ior: 1.5, fringe: 30, boost: 2 },
-  thick: { bezel: 6.5, thickness: 12.6, ior: 1.62, fringe: 48, boost: 2 },
+  thin: { bezel: 12, thickness: 23.1, ior: 1.5, fringe: 1, boost: 1.18 },
+  regular: { bezel: 18, thickness: 33.6, ior: 1.6, fringe: 1.5, boost: 1.27 },
+  thick: { bezel: 26, thickness: 47.6, ior: 1.7, fringe: 2, boost: 1.34 },
 };
 
 /**
