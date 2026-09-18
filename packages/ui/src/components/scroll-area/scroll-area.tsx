@@ -2,6 +2,7 @@
 
 import type { ComponentRefusals } from "../../system/refused.ts";
 import { ScrollArea as BaseScrollArea } from "@base-ui/react/scroll-area";
+import { ViewportAsContext } from "../../system/scroll-viewport.ts";
 import * as React from "react";
 
 export type ScrollAreaProps = ComponentRefusals & {
@@ -97,6 +98,9 @@ export function ScrollArea({
      `region` only where the pair is real: a landmark with no name is worse than no landmark,
      and a non-focusable viewport (a menu's) must stay structural whatever it is called. */
   const named = focusable && (label !== undefined || labelledBy !== undefined);
+  // A message scroller inside asks the viewport to render as its own element: one div, both
+  // libraries' refs and listeners (system/scroll-viewport.ts).
+  const Viewport = React.use(ViewportAsContext) ?? "div";
   return (
     <BaseScrollArea.Root
       className={className ? `kui-scroll-area ${className}` : "kui-scroll-area"}
@@ -125,7 +129,7 @@ export function ScrollArea({
           // inline value changes what wins, never what renders: the bars are hidden either way.
           const { overflow: _overflow, ...ownStyle } = libraryStyle ?? {};
           void _overflow;
-          return <div {...rest} {...(focusable ? { tabIndex } : {})} style={ownStyle} />;
+          return <Viewport {...rest} {...(focusable ? { tabIndex } : {})} style={ownStyle} />;
         }}
       >
         <BaseScrollArea.Content
@@ -141,7 +145,10 @@ export function ScrollArea({
             return <div {...rest} style={ownStyle} />;
           }}
         >
-          {children}
+          {/* The request is for THIS viewport only. A ScrollArea nested inside (a CodeBlock in a
+              reply, a menu's popup — context crosses portals) must render a plain div again, or
+              every nested viewport claims the outer scroller's id, ref and listeners. */}
+          <ViewportAsContext value={null}>{children}</ViewportAsContext>
         </BaseScrollArea.Content>
       </BaseScrollArea.Viewport>
       <BaseScrollArea.Scrollbar orientation="vertical" className="kui-scrollbar" role="presentation">
