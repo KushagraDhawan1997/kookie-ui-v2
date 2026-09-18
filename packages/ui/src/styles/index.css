@@ -25,6 +25,7 @@
 @import "../components/link/link.css";
 @import "../components/list/list.css";
 @import "../components/menu/menu.css";
+@import "../components/message-scroller/message-scroller.css";
 @import "../components/composer/composer.css";
 @import "../components/notice/notice.css";
 @import "../components/number-field/number-field.css";
@@ -50,3 +51,4 @@
 @import "../components/button-group/button-group.css";
 @import "../components/toolbar/toolbar.css";
 @import "../components/tree/tree.css";
+@import "../components/carousel/carousel.css";

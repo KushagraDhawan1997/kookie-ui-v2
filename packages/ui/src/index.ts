@@ -22,6 +22,7 @@ export { Blockquote, type BlockquoteProps } from "./components/blockquote/blockq
 export { Box, type BoxProps } from "./components/box/box.tsx";
 export { Button, type ButtonProps } from "./components/button/button.tsx";
 export { Card, type CardProps } from "./components/card/card.tsx";
+export { Carousel, CarouselRail, CarouselItem, CarouselPrevious, CarouselNext, type CarouselProps, type CarouselRailProps, type CarouselItemProps, type CarouselButtonProps } from "./components/carousel/carousel.tsx";
 export { Checkbox, type CheckboxProps } from "./components/checkbox/checkbox.tsx";
 export { Code, type CodeProps } from "./components/code/code.tsx";
 export { CodeBlock, type CodeBlockProps } from "./components/code-block/code-block.tsx";
@@ -55,7 +56,12 @@ export {
   type ComposerSendProps,
   type ComposerStatus,
 } from "./components/composer/composer.tsx";
-export { Notice, type NoticeProps } from "./components/notice/notice.tsx";
+export {
+  Confirmation,
+  Notice,
+  type ConfirmationProps,
+  type NoticeProps,
+} from "./components/notice/notice.tsx";
 export { NumberField, type NumberFieldProps } from "./components/number-field/number-field.tsx";
 export { Page, type PageProps } from "./components/page/page.tsx";
 export {
@@ -75,6 +81,19 @@ export {
 } from "./components/toolbar/toolbar.tsx";
 export { Popover, PopoverTrigger, PopoverContent, PopoverTitle, PopoverDescription, PopoverClose, type PopoverProps, type PopoverTriggerProps, type PopoverContentProps, type PopoverTitleProps, type PopoverDescriptionProps, type PopoverCloseProps } from "./components/popover/popover.tsx";
 export { Progress, type ProgressProps } from "./components/progress/progress.tsx";
+export {
+  MessageScroller,
+  MessageScrollerContent,
+  MessageScrollerItem,
+  MessageScrollerButton,
+  useMessageScroller,
+  useMessageScrollerScrollable,
+  useMessageScrollerVisibility,
+  type MessageScrollerProps,
+  type MessageScrollerContentProps,
+  type MessageScrollerItemProps,
+  type MessageScrollerButtonProps,
+} from "./components/message-scroller/message-scroller.tsx";
 export { Radio, RadioGroup, type RadioProps, type RadioGroupProps } from "./components/radio/radio.tsx";
 export { Separator, type SeparatorProps } from "./components/separator/separator.tsx";
 export { Sheet, SheetTrigger, SheetContent, SheetTitle, SheetDescription, SheetClose, type SheetProps, type SheetTriggerProps, type SheetContentProps, type SheetTitleProps, type SheetDescriptionProps, type SheetCloseProps, type SheetSide, type SheetOpenChangeReason, type SheetOpenChangeDetails } from "./components/sheet/sheet.tsx";

@@ -55,6 +55,7 @@ import kbdCss from "../components/kbd/kbd.css?raw";
 import linkCss from "../components/link/link.css?raw";
 import listCss from "../components/list/list.css?raw";
 import menuCss from "../components/menu/menu.css?raw";
+import messageScrollerCss from "../components/message-scroller/message-scroller.css?raw";
 import composerCss from "../components/composer/composer.css?raw";
 import noticeCss from "../components/notice/notice.css?raw";
 import numberFieldCss from "../components/number-field/number-field.css?raw";
@@ -81,6 +82,7 @@ import toolbarCss from "../components/toolbar/toolbar.css?raw";
 import tooltipCss from "../components/tooltip/tooltip.css?raw";
 import textFieldCss from "../components/text-field/text-field.css?raw";
 import treeCss from "../components/tree/tree.css?raw";
+import carouselCss from "../components/carousel/carousel.css?raw";
 import layoutCss from "../system/layout.css?raw";
 import recipesCss from "../system/recipes.css?raw";
 import surfacesCss from "../system/surfaces.css?raw";
@@ -120,6 +122,7 @@ export function installStyles(): void {
     linkCss,
     listCss,
     menuCss,
+    messageScrollerCss,
     composerCss,
     noticeCss,
     numberFieldCss,
@@ -145,6 +148,7 @@ export function installStyles(): void {
     buttonGroupCss,
     toolbarCss,
     treeCss,
+    carouselCss,
   ].join("\n");
   document.head.append(sheet);
   installed = true;

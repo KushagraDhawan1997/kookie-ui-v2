@@ -384,14 +384,16 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
     }
   });
 
-  it("every Base UI entry a component imports is pre-bundled for the browser suite (ENGINEERING §7)", () => {
+  it("every runtime-dependency entry a component imports is pre-bundled for the browser suite (ENGINEERING §7)", () => {
     // An entry discovered mid-run is optimized in a second pass and holds a different React
     // than the page, so every hook inside it reads null — how @base-ui/react/input failed the
     // first time TextField mounted, with a stack that blames React. "Add the entry when you
     // add the component" was a prose rule; the walk makes it a law.
     const config = raw("../vitest.config.ts");
     for (const p of walkFiles("components", ".tsx").filter((f) => !f.includes(".test."))) {
-      for (const m of raw(p).matchAll(/from "(@base-ui\/react\/[a-z-]+)"/g)) {
+      // Every runtime dependency's entries, not only Base UI's: @shadcn/react's message-scroller
+      // is a hook-bearing entry with the same failure (§56).
+      for (const m of raw(p).matchAll(/from "(@(?:base-ui|shadcn)\/react\/[a-z-]+)"/g)) {
         expect(config, `${m[1]} is missing from optimizeDeps.include`).toContain(`"${m[1]}"`);
       }
     }
@@ -1199,6 +1201,30 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
       // already uses — mount and resize, never at interaction time — and a child's natural
       // width does not move with the window, so it is read once and cached.
       "components/toolbar/toolbar.tsx": ["getComputedStyle", "new ResizeObserver"],
+      /*
+       * ── THE CAROUSEL'S REACH (§55, 2026-09-18): THE EIGHTH EXCEPTION, and it is a measurement
+       * of the same kind as the toolbar's — how much of a row is off screen.
+       *
+       * A previous and a next button have to go dead at the ends, and "is there more that way"
+       * is a fact about a scroll position and two widths. No CSS expresses it on an element
+       * OUTSIDE the scroller: Base UI publishes the per-edge overflow as custom properties on
+       * the viewport (the fade reads them), and a button is a sibling of that viewport, which
+       * custom properties do not reach upward. `::scroll-button()` is the spelling that deletes
+       * this entry altogether — the engine generates the buttons and disables them itself — and
+       * it cannot hold an icon element yet (the component's own note records when to return).
+       *
+       * Bounded, and the bounds are the point: the listener is passive, every event is coalesced
+       * into one frame, the frame publishes only when a boolean actually FLIPS, and nothing is
+       * measured on hover, press or focus. A traversal of a rail is two renders of two buttons.
+       * `getBoundingClientRect` is read only inside a press, to find the next snap point — the
+       * one place a layout read is the answer being asked for.
+       */
+      "components/carousel/carousel.tsx": [
+        'addEventListener("scroll',
+        "new ResizeObserver",
+        "requestAnimationFrame",
+        "getBoundingClientRect",
+      ],
       "components/menu/menu.tsx": ["getComputedStyle"],
       // The shell's overlay Escape, moved off `document` so a Dialog inside a pane does not
       // dismiss the pane under it (audit 2026-08-16). A keydown is not interaction-time paint.
@@ -1242,6 +1268,13 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
         // two custom properties on one out-of-flow element, so no React state and no re-render.
         "new MutationObserver",
         'addEventListener("keydown',
+        // ── A floating band measures itself (§46, 2026-09-19): THE NINTH EXCEPTION, sharing the
+        // thumb's `new ResizeObserver` entry. The published reach is derived as one control row,
+        // and a band holding a composer outgrows it — while the person types, when the text
+        // wraps. That makes this a measurement AT interaction time, which is what it is recorded
+        // as: the observer fires only when the band's box changes size (never on hover, focus or
+        // a keystroke that does not wrap), writes ONE custom property on the pane, and holds no
+        // React state, so nothing re-renders. Law: shell.browser.test.tsx, "a floating band taller".
         "new ResizeObserver",
         "requestAnimationFrame",
         // The same DEV-only safe-area guard: it compares the published `--kui-shell-inset-*`
