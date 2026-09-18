@@ -1,0 +1,54 @@
+/* Carousel (2026-09-18): the pattern, three declarations deep.
+
+   Everything a carousel LOOKS like is the call site's — the cards, their width, the gap, whether
+   the buttons sit above the rail or over it. What the package states is the machinery those
+   arrangements all need and none of them should write twice: where scrolling settles, and a
+   position parent for the arrangement that overlays.
+
+   No token is named here because no value is invented here: a snap axis and an alignment are
+   keywords, not distances. The one thing this file must NOT grow is a designed width for an item
+   — that is the layout, and layouts are blocks (§10). */
+
+.kui-carousel {
+  /* The only paint-adjacent declaration in the file, and it is for the arrangement rather than
+     the look: the buttons are placed by the call site, and the commonest placement — one over
+     each end of the rail, the way every streaming service does it — needs something to be
+     positioned against. A call site that puts its buttons in a row above the rail pays nothing
+     for this. */
+  position: relative;
+}
+
+/* WHERE SCROLLING SETTLES. `inline` and not `x`, because the axis a rail runs along is the
+   reading axis: in Arabic the rail starts on the right, and the logical keyword is what keeps
+   "previous" pointing at the content that came before rather than at a compass direction. The
+   viewport belongs to the ScrollArea inside (the rail brings no scroller of its own), so this is
+   stated through it — the one place this component reaches into another's anatomy, and it reaches
+   for a behaviour rather than a paint.
+
+   `mandatory` rather than `proximity`: a rail is a row of peers and the reader is choosing
+   between them, so every rest is on an item. The trap mandatory is known for — content taller
+   than the box, which can never be reached — cannot happen on an axis whose items are the width
+   of a card. */
+.kui-carousel-rail .kui-scroll-viewport {
+  scroll-snap-type: inline mandatory;
+}
+
+/* The item is the snap point and nothing else: no width, no aspect ratio, no gap. `start`,
+   because a rail is read from its start and an item half-off the leading edge reads as a mistake;
+   the trailing end is allowed to be ragged, which is what tells the eye there is more. */
+.kui-carousel-item {
+  scroll-snap-align: start;
+}
+
+/* NO BAR (2026-09-18, Kushagra: "I dont want to see visible scrollbar in carousel"). ScrollArea
+   draws a thumb because a scroll region has to say how far along you are and how much is left,
+   and a rail says both of those in two louder ways: the buttons go dead at the ends, and the fade
+   shows there is more beside the edge. A third voice saying the same thing, overlaid on the
+   cards, is the one that reads as a mistake.
+
+   The bars are hidden rather than not mounted: Base UI mounts the one the content needs, on the
+   frame after it measures, and that is the scroller's business rather than the rail's. Scrolling
+   itself is untouched — wheel, trackpad, touch, keyboard and the native drag all still work. */
+.kui-carousel-rail .kui-scrollbar {
+  display: none;
+}
