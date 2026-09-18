@@ -3,6 +3,7 @@
 import type { ComponentRefusals } from "../../system/refused.ts";
 import { Button as BaseButton } from "@base-ui/react/button";
 import * as React from "react";
+import { ToneScopeContext } from "../../system/tone-scope.ts";
 
 import type { Emphasis, Size, Tone } from "../../system/axes.ts";
 import { useSize } from "../../system/size.ts";
@@ -191,7 +192,7 @@ function DoneSwap({ children }: { children: React.ReactNode }) {
  */
 export function Button({
   size: sizeProp,
-  tone = "neutral",
+  tone: toneProp,
   emphasis = "medium",
   bordered = false,
   loading = false,
@@ -209,6 +210,8 @@ export function Button({
   ref,
   ...props
 }: ButtonProps) {
+  // The strip it sits in lends its tone when this states none (system/tone-scope.ts).
+  const tone = toneProp ?? React.use(ToneScopeContext) ?? "neutral";
   // The index of the UNIT this button sits in, when it states none of its own (§28, widened
   // to Button 2026-08-23). `control-size.ts` excluded Button by name, and its argument was
   // that "a button beside that control is a sibling in the form's layout" — which describes

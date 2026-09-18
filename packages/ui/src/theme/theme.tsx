@@ -5,6 +5,7 @@ import * as React from "react";
 
 import { composeRender, type RenderElement } from "../system/render.ts";
 import { CardScopeReset } from "../system/nesting.tsx";
+import { ToneScopeContext } from "../system/tone-scope.ts";
 import { MATERIALS, SIZES, type Material, type Size } from "../system/axes.ts";
 import { DEV } from "../system/dev.ts";
 
@@ -598,7 +599,11 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
             inside a menu or a dialog opened FROM a card is an ordinary card rather than a
             nested one. Context only, so this adds no DOM. */}
         <CardScopeReset>
-          {render ? composeRender(render, merged, children) : <div {...merged}>{children}</div>}
+          {/* And the lent tone (system/tone-scope.ts): a dialog opened from a notice's action is
+              a new plane, not part of the strip, so its buttons rest on their own default. */}
+          <ToneScopeContext value={null}>
+            {render ? composeRender(render, merged, children) : <div {...merged}>{children}</div>}
+          </ToneScopeContext>
         </CardScopeReset>
       </PaneContext.Provider>
     </ThemeContext.Provider>

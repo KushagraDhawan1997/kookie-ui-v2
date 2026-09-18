@@ -7,14 +7,16 @@ import * as React from "react";
 import { flushSync } from "react-dom";
 import { describe, expect, it } from "vitest";
 
-import { APPEARANCES, DEPTHS, colorOn, computed, mounted, tokenOn, within } from "../../test/browser.tsx";
+import { APPEARANCES, DEPTHS, colorOn, computed, mounted, tokenOn, until, within } from "../../test/browser.tsx";
+import { userEvent } from "vitest/browser";
 import { Box } from "../box/box.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "../dialog/dialog.tsx";
 import { Stack } from "../stack/stack.tsx";
 import { Text } from "../text/text.tsx";
-import { Notice } from "./notice.tsx";
+import { Composer, ComposerInput } from "../composer/composer.tsx";
+import { Confirmation, Notice } from "./notice.tsx";
 
 describe("it is a condition stated in place: it takes space and never floats (§29)", () => {
   it("it occupies flow — the content under it moves down by the strip's own height", () => {
@@ -152,11 +154,29 @@ describe("two verbs, and both are optional (§29)", () => {
 });
 
 describe("the box is the surface layer's, not the component's (§10)", () => {
-  it("its padding and corner are a surface's at the same index — nothing designed twice", () => {
-    const notice = mounted(<Notice size="3">Approaching weekly usage limit</Notice>, { theme: {} });
+  it("its padding and corner are the composer's at every index — a pane holding controls, designed once", () => {
+    // A notice holds buttons, so it takes the panel join the composer takes (2026-09-19): the
+    // panel inset, and a corner concentric with the controls inside. It rests above a composer,
+    // so the two must agree; a Card at the same index pads for a document and must NOT.
+    for (const size of ["1", "2", "3", "4"] as const) {
+      const notice = mounted(<Notice size={size}>Approaching weekly usage limit</Notice>, { theme: {} });
+      const composer = mounted(
+        <Composer size={size}>
+          <ComposerInput aria-label="Message" />
+        </Composer>,
+        { theme: {}, select: ".kui-composer" },
+      );
+      expect(computed(notice, "padding-top"), `size ${size}`).toBe(computed(composer, "padding-top"));
+      expect(computed(notice, "border-top-left-radius"), `size ${size}`).toBe(computed(composer, "border-top-left-radius"));
+    }
     const card = mounted(<Card size="3">Body</Card>, { theme: {} });
-    expect(computed(notice, "padding-top")).toBe(computed(card, "padding-top"));
-    expect(computed(notice, "border-radius")).toBe(computed(card, "border-radius"));
+    const notice = mounted(<Notice size="3">x</Notice>, { theme: {} });
+    expect(computed(notice, "padding-top"), "vacuity: a card pads differently").not.toBe(computed(card, "padding-top"));
+  });
+
+  it("at radius none its corner is none, not the padding the concentric sum would add", () => {
+    const notice = mounted(<Notice size="3">x</Notice>, { theme: { radius: "none" } });
+    expect(computed(within(notice.parentElement!, ".kui-notice"), "border-top-left-radius")).toBe("0px");
   });
 
   it("the symbol takes the label cluster's icon box, so it lands on the drawing grid", () => {
@@ -355,5 +375,108 @@ describe("the message is the system's type, so the index reaches it (§15, §29)
     expect(parseFloat(computed(own, "font-size"))).toBeLessThan(
       parseFloat(computed(within(el, ".kui-notice-body"), "font-size")),
     );
+  });
+});
+
+describe("Confirmation: a question with two answers (§29)", () => {
+  const ask = (extra: Partial<React.ComponentProps<typeof Confirmation>> = {}) => (
+    <Confirmation confirmLabel="Run" cancelLabel="Not now" onConfirm={() => {}} onCancel={() => {}} {...extra}>
+      Run 4 nodes for $0.32?
+    </Confirmation>
+  );
+
+  it("has two worded answers, a quiet no before a loud yes, and no ✕", () => {
+    const el = mounted(ask(), { theme: {}, select: ".kui-confirmation" });
+    const buttons = [...el.querySelectorAll<HTMLElement>(".kui-button")];
+    expect(buttons.map((b) => b.textContent)).toEqual(["Not now", "Run"]);
+    expect(buttons.map((b) => b.getAttribute("data-emphasis"))).toEqual(["quiet", "loud"]);
+    expect(el.querySelector(".kui-notice-dismiss")).toBeNull();
+    expect(el.getAttribute("role")).toBe("status");
+  });
+
+  it("busy: the yes spins and the no is dead", () => {
+    const el = mounted(ask({ busy: true }), { theme: {}, select: ".kui-confirmation" });
+    const [no, yes] = [...el.querySelectorAll<HTMLElement>(".kui-button")];
+    expect(yes?.getAttribute("aria-busy")).toBe("true");
+    expect(no?.hasAttribute("disabled") || no?.getAttribute("aria-disabled") === "true").toBe(true);
+  });
+
+  it("forwards what a Notice forwards", () => {
+    const el = mounted(ask({ id: "run-confirm", "aria-describedby": "cost" } as never), {
+      theme: {},
+      select: ".kui-confirmation",
+    });
+    expect(el.id).toBe("run-confirm");
+    expect(el.getAttribute("aria-describedby")).toBe("cost");
+  });
+
+  it("each answer calls its own callback", async () => {
+    const said: string[] = [];
+    const el = mounted(ask({ onConfirm: () => said.push("yes"), onCancel: () => said.push("no") }), {
+      theme: {},
+      select: ".kui-confirmation",
+    });
+    const [no, yes] = [...el.querySelectorAll<HTMLElement>(".kui-button")];
+    await userEvent.click(no!);
+    await userEvent.click(yes!);
+    expect(said).toEqual(["no", "yes"]);
+  });
+});
+
+describe("a strip lends its tone to the controls in it (system/tone-scope.ts)", () => {
+  it("an unstated button takes the strip's tone; a stated one keeps its own", () => {
+    const el = mounted(
+      <Notice tone="destructive" action={<Button>Try again</Button>}>
+        Could not reach storage
+      </Notice>,
+      { theme: {}, select: ".kui-notice" },
+    );
+    expect(within(el, ".kui-notice-action .kui-button").getAttribute("data-tone")).toBe("destructive");
+    const stated = mounted(
+      <Notice tone="destructive" action={<Button tone="neutral">Try again</Button>}>
+        Could not reach storage
+      </Notice>,
+      { theme: {}, select: ".kui-notice" },
+    );
+    expect(within(stated, ".kui-notice-action .kui-button").getAttribute("data-tone")).toBe("neutral");
+  });
+
+  it("a confirmation's answers take its tone", () => {
+    const el = mounted(
+      <Confirmation tone="warning" confirmLabel="Run" cancelLabel="Not now" onConfirm={() => {}} onCancel={() => {}}>
+        Run it?
+      </Confirmation>,
+      { theme: {}, select: ".kui-confirmation" },
+    );
+    for (const b of el.querySelectorAll(".kui-button")) expect(b.getAttribute("data-tone")).toBe("warning");
+  });
+
+  it("a card never lends its tone, and a dialog opened from a strip does not inherit it", async () => {
+    const card = mounted(
+      <Card>
+        <Button>Plain</Button>
+      </Card>,
+      { theme: {}, select: ".kui-button" },
+    );
+    expect(card.getAttribute("data-tone")).toBe("neutral");
+    mounted(
+      <Notice
+        tone="destructive"
+        action={
+          <Dialog defaultOpen>
+            <DialogContent>
+              <DialogTitle>Details</DialogTitle>
+              <DialogDescription>More</DialogDescription>
+              <Button className="in-dialog">Plain</Button>
+            </DialogContent>
+          </Dialog>
+        }
+      >
+        Could not reach storage
+      </Notice>,
+      { theme: {} },
+    );
+    expect(await until(() => document.querySelector(".in-dialog") !== null)).toBe(true);
+    expect(document.querySelector(".in-dialog")?.getAttribute("data-tone")).toBe("neutral");
   });
 });

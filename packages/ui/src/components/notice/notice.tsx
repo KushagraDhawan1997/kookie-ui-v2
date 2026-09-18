@@ -12,6 +12,7 @@ import { Text } from "../text/text.tsx";
 import { DISMISS_PATH, GLYPH_VIEWBOX } from "../../system/glyphs.ts";
 import { glyphStroke } from "../../tokens/config.ts";
 import { useSize } from "../../system/size.ts";
+import { ToneScopeContext } from "../../system/tone-scope.ts";
 
 export type NoticeProps = ComponentRefusals & {
   /**
@@ -119,7 +120,8 @@ function dismissGlyph() {
  * not a dialog (a decision that blocks is an `AlertDialog`), and not the answer to a
  * background job, which is an object with a lifecycle rather than an event.
  *
- * One per anchor. Two stacked notices means neither is read.
+ * One per anchor. Two stacked notices means neither is read. A composer's `notices` column is
+ * the one anchor that stacks: everything there is pending on the same next message (§29).
  */
 export function Notice({
   size: sizeProp,
@@ -178,6 +180,7 @@ export function Notice({
       <Text size={OWNED_BODY_STEP[size]} className="kui-notice-body">
         {children}
       </Text>
+      <ToneScopeContext.Provider value={tone}>
       {action ? <span className="kui-notice-action">{action}</span> : null}
       {onDismiss ? (
         <Button
@@ -191,6 +194,7 @@ export function Notice({
           {dismissGlyph()}
         </Button>
       ) : null}
+      </ToneScopeContext.Provider>
     </div>
   );
 
@@ -198,4 +202,103 @@ export function Notice({
   // button never paints a second backdrop-filter over the notice's own (§10, one glass per
   // stack, structurally). Context only — no DOM.
   return <GlassScope material={material}>{strip}</GlassScope>;
+}
+
+export type ConfirmationProps = ComponentRefusals & {
+  /** Sets the box, the buttons and the words, as a Notice's index does. */
+  size?: Size;
+  /** Says content passes behind this strip, so the theme's material can show. */
+  backdrop?: boolean;
+  /**
+   * The category of the request, never its volume. Neutral rests; reach for `warning` or
+   * `destructive` when saying yes is risky in a way the sentence does not already say.
+   */
+  tone?: Tone;
+  /** The symbol, if your app has an icon set. Hidden from assistive technology. */
+  icon?: React.ReactNode;
+  /** The request, in your words: "Run 4 nodes for $0.32?" */
+  children: React.ReactNode;
+  /** The yes, in your words: "Run". */
+  confirmLabel: string;
+  /** The no, in your words: "Not now". */
+  cancelLabel: string;
+  /** Called when the yes is pressed. Set `busy` while the work it starts is starting. */
+  onConfirm: () => void;
+  /** Called when the no is pressed. Remove the confirmation; there is no other way out. */
+  onCancel: () => void;
+  /** The yes has been given and the work is starting: the yes spins and the no is dead. */
+  busy?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+  ref?: React.Ref<HTMLDivElement>;
+};
+
+/**
+ * A request waiting for a yes or a no (§29) — Notice's sibling, sharing its strip.
+ *
+ * A notice is about a condition, and its ✕ only acknowledges it. A confirmation is a question,
+ * and closing it without answering is not an answer, so it has no ✕: it has two verbs of the
+ * SAME kind, a quiet no and a loud yes, both worded by the app. It exists until one is pressed.
+ *
+ * It announces politely, as a notice does: the thing waiting for an answer is not an emergency,
+ * and focus stays where the person is — in a composer, the text box is also where "no, do this
+ * instead" is typed.
+ */
+export function Confirmation({
+  size: sizeProp,
+  tone = "neutral",
+  backdrop,
+  icon,
+  children,
+  confirmLabel,
+  cancelLabel,
+  onConfirm,
+  onCancel,
+  busy = false,
+  className,
+  style,
+  ref,
+  ...props
+}: ConfirmationProps) {
+  const size = useSize(sizeProp);
+  const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
+  const lensRef = useLensRef<HTMLElement>(material, ref as React.Ref<HTMLElement>);
+  return (
+    <GlassScope material={material}>
+      <div
+        {...props}
+        ref={lensRef}
+        role="status"
+        className={cx("kui-surface kui-notice kui-confirmation", className)}
+        data-size={size}
+        data-tone={tone}
+        data-emphasis="medium"
+        data-material={material === "solid" ? undefined : material}
+        style={style}
+      >
+        {icon ? (
+          <span className="kui-notice-icon" aria-hidden>
+            {icon}
+          </span>
+        ) : null}
+        <Text size={OWNED_BODY_STEP[size]} className="kui-notice-body">
+          {children}
+        </Text>
+        <ToneScopeContext.Provider value={tone}>
+        <span className="kui-notice-action">
+          <Button size={size} emphasis="quiet" disabled={busy} onClick={onCancel}>
+            {cancelLabel}
+          </Button>
+          <Button size={size} emphasis="loud" loading={busy} onClick={onConfirm}>
+            {confirmLabel}
+          </Button>
+        </span>
+        </ToneScopeContext.Provider>
+      </div>
+    </GlassScope>
+  );
+}
+
+function cx(base: string, extra: string | undefined): string {
+  return extra ? `${base} ${extra}` : base;
 }

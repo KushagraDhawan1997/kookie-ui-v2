@@ -70,3 +70,9 @@
   inline-size: 100%;
   block-size: 100%;
 }
+
+/* A confirmation's two answers sit together at the trailing edge, a quiet no before a loud yes. */
+.kui-confirmation > .kui-notice-action {
+  display: flex;
+  gap: var(--layout-space-2);
+}
