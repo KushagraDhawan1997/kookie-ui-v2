@@ -188,11 +188,13 @@ describe("a page-shaped route gets the page chrome — including the one Next re
     // A new page added outside the group silently opts out of the chrome, which is a decision
     // (/preview owns its viewport on purpose) — so it is allowed, and it has to be listed.
     // "lab" and "lab2" are the material scratch surfaces — temporary judging routes,
-    // deleted when the recipes they exist to find move into config.
+    // deleted when the recipes they exist to find move into config. "scratch-region" and
+    // "scratch-composer" are the same kind of thing for the region scale and the composer's
+    // frame — mock-ups judged by eye, deleted when what they judge has shipped.
     // "builder" is the composition editor (2026-08-19): a full-height three-pane app that
     // owns its viewport the way /preview does — site chrome around an editor would nest a
     // scroll inside a scroll.
-    const BARE = new Set(["preview", "lab", "lab2", "lab3", "builder"]);
+    const BARE = new Set(["preview", "lab", "lab2", "lab3", "scratch-region", "scratch-composer", "builder"]);
     const outside = readdirSync(app, { withFileTypes: true })
       .filter((e) => e.isDirectory() && !e.name.startsWith("(") && !e.name.startsWith("_"))
       .filter((e) => {

@@ -24,10 +24,17 @@ import { EmptyState } from "./empty-state";
 import { Footer } from "./footer";
 import { Specimen } from "./specimen";
 import { TableOfContents } from "./table-of-contents";
-import { Button, Grid, Stack, iconStroke } from "@kookie-ui/react";
+import { Button, Grid, Stack, Text, iconStroke } from "@kookie-ui/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FolderLibraryIcon, NoInternetIcon } from "@hugeicons/core-free-icons";
 import { Wordmark } from "../app/(docs)/wordmark";
+import {
+  AskingThread,
+  EmptyThread,
+  FailedThread,
+  FinishedThread,
+  LiveThread,
+} from "../app/(docs)/blocks/conversation-demos";
 
 export type BlockEntry = {
   /** The URL segment, and the block's name in every law message. Kebab-case. */
@@ -533,6 +540,47 @@ export const BLOCKS: readonly BlockEntry[] = [
             current="toc-nested-nickname"
           />
         ),
+      },
+    ],
+  },
+  {
+    slug: "conversation",
+    title: "Conversation",
+    blurb:
+      "A conversation with an agent, as a screen: the transcript and the parts it holds. The transcript opens at its end, follows a reply while you are at the end, leaves you alone once you scroll up, anchors each of your messages near the top so the reply is read from its start, and offers a button back to the latest; underneath it is MessageScroller over the pane's own scroller. Your message sits right on a tint with its attachments above it, and the agent's reply has no bubble. The run of tool calls between replies folds to one line that says what is happening while it runs and how much happened once it is done. The pictures a turn made stay out of the fold. When the agent wants to spend something it stops and asks at the composer, as a Confirmation in its notices, and only the answer is recorded in the transcript; a failure that ends the turn is a notice with the one action that answers it. Every word is the app's, including the counts, because a copied file cannot localise.",
+    files: ["conversation.tsx", "conversation.css"],
+    demos: [
+      /* WHOLE SCREENS, because the parts are the parts of one: a card holding the transcript over
+         a composer. Each draws its own card, so none is put on paper. */
+      {
+        label: "Live: send a message and watch the transcript follow the reply",
+        pane: false,
+        fill: true,
+        render: () => <LiveThread />,
+      },
+      {
+        label: "A thread with history, opening at its end",
+        pane: false,
+        fill: true,
+        render: () => <FinishedThread />,
+      },
+      {
+        label: "Asking before it spends",
+        pane: false,
+        fill: true,
+        render: () => <AskingThread />,
+      },
+      {
+        label: "A failure that stops the turn",
+        pane: false,
+        fill: true,
+        render: () => <FailedThread />,
+      },
+      {
+        label: "Nothing yet",
+        pane: false,
+        fill: true,
+        render: () => <EmptyThread />,
       },
     ],
   },

@@ -13,6 +13,7 @@
 import type * as React from "react";
 
 import CodeSampleUsage from "./code-sample";
+import ConversationUsage from "./conversation";
 import EmptyStateUsage from "./empty-state";
 import FooterUsage from "./footer";
 import SpecimenUsage from "./specimen";
@@ -23,6 +24,7 @@ export const BLOCK_EXAMPLES: Record<
   () => React.ReactElement | Promise<React.ReactElement>
 > = {
   "code-sample": CodeSampleUsage,
+  conversation: ConversationUsage,
   "empty-state": EmptyStateUsage,
   footer: FooterUsage,
   specimen: SpecimenUsage,
