@@ -95,7 +95,8 @@
     "defaults and fully supports es6-module"
   ],
   "dependencies": {
-    "@base-ui/react": "1.7.0"
+    "@base-ui/react": "1.7.0",
+    "@shadcn/react": "0.3.1"
   },
   "bin": {
     "kookie-ui": "./agents/install.mjs"

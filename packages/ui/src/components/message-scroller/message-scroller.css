@@ -1,0 +1,76 @@
+/* Message scroller: a transcript that follows its live edge, inside the ScrollArea a pane
+   already has. The scrolling, the fade and the floating bands are the ScrollArea's and the
+   Shell's; this sheet owns only the rows and the jump button. */
+
+.kui-message-scroller-content {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100%;
+  gap: var(--layout-space-4);
+}
+
+.kui-message-scroller-item,
+.kui-message-scroller-spacer {
+  flex: none;
+  min-inline-size: 0;
+}
+
+/* Hidden until the opening position is applied, so a saved thread never flashes its start
+   before it lands at its end. The primitive marks its root, which is the dock here. */
+.kui-scroll-area:has(.kui-message-scroller-dock[data-pending-scroll]) > .kui-scroll-viewport {
+  visibility: hidden;
+}
+
+/* THE DOCK STICKS, SO IT NEEDS NO POSITIONED ANCESTOR. Last in the scrolled content and zero
+   tall, it rides the end of the viewport while there is more below and rests at the end of the
+   transcript otherwise, where its button is already gone. It rests one step above a floating
+   footer's CONTROLS: the reach the pane publishes includes the pane's own padding under them,
+   which the button has no reason to clear, so that padding comes back off.
+
+   THE BUTTON IS PLACED BY LAYOUT, NEVER BY A TRANSFORM (2026-09-17, Kushagra: it "travels a lot
+   when I hover on it"). It was lifted with `translate`, and a Button's own hover and press motion
+   is `translate` and `scale`, so the first hover replaced the lift and threw the button its own
+   height down the transcript. The dock is a zero-height row whose items align to its end, so the
+   button overflows upward on its own and its transforms stay the Button's.
+
+   OUTSIDE A SURFACE both hooks fall to zero (the pane's reach is registered; the surface
+   padding takes page.css's fallback), so the dock still sticks. The floor is spelled as
+   page.css spells it — max() against the padding, then the padding off — because a bare
+   zero is a raw length. */
+.kui-message-scroller-dock {
+  position: sticky;
+  inset-block-end: calc(
+    max(var(--kui-pane-inset-block-end), var(--kui-sf-p, 0px)) - var(--kui-sf-p, 0px) + var(--layout-space-3)
+  );
+  block-size: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.kui-message-scroller-button {
+  pointer-events: auto;
+  flex: none;
+}
+
+/* THE FADE IS THE DOCK'S, NOT THE BUTTON'S. A `transition` on the button ties the Button
+   skeleton's own at (0,1,0) and wins on file order, which replaces its six channels with one
+   and snaps its hover and press (the accordion audit's defect). The dock has no transition of
+   its own to lose, and the primitive already makes an inactive button inert. */
+.kui-message-scroller-dock {
+  transition: opacity var(--motion-hover-out) var(--motion-easing);
+}
+
+.kui-message-scroller-dock:has(> [data-active="false"]) {
+  opacity: 0;
+}
+
+/* The fade is a response to a state change, so it stands down whole (§8): the button is there or
+   it is not. */
+@media (prefers-reduced-motion: reduce) {
+  .kui-message-scroller-dock {
+    transition: none;
+  }
+}

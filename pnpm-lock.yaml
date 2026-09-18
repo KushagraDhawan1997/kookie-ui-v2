@@ -300,6 +300,9 @@ importers:
       '@base-ui/react':
         specifier: 1.7.0
         version: 1.7.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@shadcn/react':
+        specifier: 0.3.1
+        version: 0.3.1(@types/react@19.3.0)(react@19.3.0)
     devDependencies:
       '@arethetypeswrong/cli':
         specifier: ^0.18.5
@@ -1299,6 +1302,17 @@ packages:
     resolution: {integrity: sha512-at8QVep6S3h5Y6gSbdGU06bRY5WJkf6WUduM9YtvYMbYhB1MOFfUgc6kehitQXzOtMSaT70q7f9ydPhpqu821w==}
     cpu: [x64]
     os: [win32]
+
+  '@shadcn/react@0.3.1':
+    resolution: {integrity: sha512-2gOR0HDMtWeRsCZfNDaU0YDFdgH3zsDQ6lz67Fv/y/qjY9y+R8kJqAn6q56phqv7/zHi0wqURjntrNO9zL7vnQ==}
+    peerDependencies:
+      '@types/react': '>=19'
+      react: '>=19'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      react:
+        optional: true
 
   '@shikijs/core@4.4.3':
     resolution: {integrity: sha512-QCR4q2ZO/ILJEuwiBMel4wdcTDb1JGwfjKTxPDF6x8ixOaluPrVqIn06C99AcRPhmYlBR56d/Fb+GN58GzExpg==}
@@ -3840,6 +3854,11 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.63.1':
     optional: true
+
+  '@shadcn/react@0.3.1(@types/react@19.3.0)(react@19.3.0)':
+    optionalDependencies:
+      '@types/react': 19.3.0
+      react: 19.3.0
 
   '@shikijs/core@4.4.3':
     dependencies:
