@@ -2038,6 +2038,43 @@ function ChromeSize({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * A FLOATING BAND MEASURES ITSELF (2026-09-19). The reach a floating band publishes is derived —
+ * one control row at the pane's index — which is right on the server and wrong the moment the
+ * band holds something taller: a composer that grows with its text, gains notices above it or a
+ * context ground below it. Every app floating one was measuring it by hand and writing the
+ * pane's `--kui-pane-band-row-*` itself. The band does that now: its content box, written onto
+ * its pane as the row the reach is computed from, so the scroller's end padding, its fade and
+ * the jump button all follow. First paint keeps the derivation; the measurement replaces it
+ * once mounted and only ever changes when the band's size does — which a composer's does while
+ * someone types, the moment its text wraps. So this IS a measurement at interaction time, and it
+ * is recorded as one (recipes.test.ts, the shell's entry): bounded to a size change of the band
+ * itself, one custom property written on the pane, no React state and no re-render.
+ */
+function useBandMeasure(end: "start" | "end" | null): React.RefCallback<HTMLDivElement> {
+  // The merged ref drops a callback's cleanup, so the teardown is held here and run on `null`.
+  const teardown = React.useRef<(() => void) | null>(null);
+  return React.useCallback(
+    (band: HTMLDivElement | null) => {
+      teardown.current?.();
+      teardown.current = null;
+      if (!band || !end) return;
+      const pane = band.parentElement;
+      if (!pane || typeof ResizeObserver === "undefined") return;
+      const name = `--kui-pane-band-row-${end}`;
+      const observer = new ResizeObserver(([entry]) => {
+        if (entry) pane.style.setProperty(name, `${entry.contentRect.height}px`);
+      });
+      observer.observe(band);
+      teardown.current = () => {
+        observer.disconnect();
+        pane.style.removeProperty(name);
+      };
+    },
+    [end],
+  );
+}
+
 export type ShellPaneHeaderProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
   /**
    * Lift the row out of flow, over the pane's scroller: content passes behind it, and the
@@ -2050,11 +2087,13 @@ export type ShellPaneHeaderProps = ComponentRefusals & Omit<React.ComponentProps
 
 /** A pane's own header row: one control row at the pane's index, pinned above the scroller —
     or floating over it with `float`, its reach published for the pane's content to spend. */
-export function ShellPaneHeader({ className, float, ...props }: ShellPaneHeaderProps) {
+export function ShellPaneHeader({ className, float, ref, ...props }: ShellPaneHeaderProps & { ref?: React.Ref<HTMLDivElement> }) {
+  const measured = useMergedRefs(ref, useBandMeasure(float ? "start" : null));
   return (
     <ChromeSize>
       <div
         {...props}
+        ref={measured}
         className={cx("kui-pane-header", className)}
         {...(float ? { "data-float": "" } : {})}
       />
@@ -2065,11 +2104,13 @@ export function ShellPaneHeader({ className, float, ...props }: ShellPaneHeaderP
 export type ShellPaneFooterProps = ComponentRefusals & ShellPaneHeaderProps;
 
 /** The same row at the pane's other end; with `float` it publishes `--kui-pane-inset-block-end`. */
-export function ShellPaneFooter({ className, float, ...props }: ShellPaneFooterProps) {
+export function ShellPaneFooter({ className, float, ref, ...props }: ShellPaneFooterProps & { ref?: React.Ref<HTMLDivElement> }) {
+  const measured = useMergedRefs(ref, useBandMeasure(float ? "end" : null));
   return (
     <ChromeSize>
       <div
         {...props}
+        ref={measured}
         className={cx("kui-pane-footer", className)}
         {...(float ? { "data-float": "" } : {})}
       />

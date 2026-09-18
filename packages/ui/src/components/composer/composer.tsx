@@ -6,8 +6,9 @@ import * as React from "react";
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { SizeScopeContext, useSize } from "../../system/size.ts";
-import { GlassScope, useMaterial } from "../../theme/theme.tsx";
+import { BackdropContext, GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { Button } from "../button/button.tsx";
+import { Surface } from "../surface/surface.tsx";
 
 /** Every value the status takes, in ONE home, so a law walks the axis rather than a tuple
     somebody typed out beside it (the 2026-08-16 rule — a hand-copied list is a list that
@@ -57,6 +58,22 @@ export type ComposerProps = ComponentRefusals & Omit<
    * (§30). There is no attach button here for the same reason.
    */
   onFiles?: (files: File[]) => void;
+  /**
+   * What needs the person's attention before their next message: `Notice`s and
+   * `Confirmation`s, in the order given, the last nearest the text. They stand apart from the
+   * composer in a column above it and take its index unless they state their own. Each keeps
+   * its own semantics — a notice announces politely, a confirmation waits for its answer —
+   * and focus never moves to them: the person may be mid-sentence.
+   */
+  notices?: React.ReactNode;
+  /**
+   * Quiet information about the conversation — the model, how much context is left, the cost.
+   * Drawn on a ground tucked behind the composer's bottom edge, inset from its sides. The words
+   * are yours.
+   */
+  context?: React.ReactNode;
+  /** The form. `className` and `style` dress the frame around it, which holds the notices and
+      the context too. */
   ref?: React.Ref<HTMLFormElement>;
 };
 
@@ -84,13 +101,17 @@ export function Composer({
   backdrop,
   onSubmit,
   onFiles,
+  notices,
+  context,
   className,
+  style,
   children,
   ref,
   onDragOver,
   onDrop,
   ...props
 }: ComposerProps) {
+  const region = React.use(BackdropContext);
   const size = useSize(sizeProp);
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   const lensRef = useLensRef<HTMLElement>(material, ref as React.Ref<HTMLElement>);
@@ -130,32 +151,54 @@ export function Composer({
     onDragOver?.(event);
   };
 
+  const form = (
+    <form
+      ref={lensRef as React.Ref<HTMLFormElement>}
+      data-size={size}
+      // Fixed identity, not API — Card's sentence. The tone indirection needs a family to
+      // resolve `--tone-border` against, and the fill is the seal rather than a tone alpha.
+      data-tone="neutral"
+      data-emphasis="quiet"
+      data-bordered
+      data-material={material === "solid" ? undefined : material}
+      className="kui-surface kui-region kui-composer"
+      onSubmit={handleSubmit}
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      {...props}
+    >
+      {children}
+    </form>
+  );
+
+  // THE FRAME. The notices and the context are OUTSIDE the form: a button in a notice must not
+  // submit the message, and a question the agent asks may be a form of its own, which cannot
+  // nest. The form keeps its own glass scope; the notices stand apart and answer the same
+  // backdrop statement the composer did, so a floating composer's notices float as glass too.
   return (
-    <GlassScope material={material}>
-      <SizeScopeContext.Provider value={size}>
-        <ComposerFilesContext.Provider value={onFiles ?? null}>
-          <form
-            ref={lensRef as React.Ref<HTMLFormElement>}
-            data-size={size}
-            // Fixed identity, not API — Card's sentence. The tone indirection needs a family to
-            // resolve `--tone-border` against, and the fill is the seal rather than a tone alpha.
-            data-tone="neutral"
-            data-emphasis="quiet"
-            data-bordered
-            data-material={material === "solid" ? undefined : material}
-            className={
-              className ? `kui-surface kui-region kui-composer ${className}` : "kui-surface kui-region kui-composer"
-            }
-            onSubmit={handleSubmit}
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            {...props}
-          >
-            {children}
-          </form>
-        </ComposerFilesContext.Provider>
-      </SizeScopeContext.Provider>
-    </GlassScope>
+    <SizeScopeContext.Provider value={size}>
+      <ComposerFilesContext.Provider value={onFiles ?? null}>
+        <div
+          className={className ? `kui-composer-frame ${className}` : "kui-composer-frame"}
+          // The composer's own inset and corner, published for the context ground beside it by
+          // the frame's size join in surfaces.css.
+          data-size={size}
+          style={style}
+        >
+          {notices ? (
+            <BackdropContext.Provider value={backdrop ?? region}>
+              <div className="kui-composer-notices">{notices}</div>
+            </BackdropContext.Provider>
+          ) : null}
+          <GlassScope material={material}>{form}</GlassScope>
+          {context ? (
+            <Surface size={size} className="kui-composer-context">
+              {context}
+            </Surface>
+          ) : null}
+        </div>
+      </ComposerFilesContext.Provider>
+    </SizeScopeContext.Provider>
   );
 }
 

@@ -6,6 +6,49 @@
    three things a Card has never had to answer — a column, a ring that watches one child, and a
    text box with no dress of its own. */
 
+/* ── The frame (2026-09-19) ─────────────────────────────────────────────────────────────────
+   The composer and what is attached to it: notices above, standing apart; the context ground
+   below, tucked behind the composer's bottom edge. It spans the room it is given, as the
+   composer did before it had a frame. */
+.kui-composer-frame {
+  display: flex;
+  flex-direction: column;
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* The notices: a column, apart from the composer by the gap the composer keeps inside itself. */
+.kui-composer-notices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--layout-space-2);
+  margin-block-end: var(--layout-space-3);
+}
+
+/* The composer sits OVER the context ground. */
+.kui-composer-frame > .kui-composer {
+  position: relative;
+  z-index: 1;
+}
+
+/* THE CONTEXT GROUND. A ground rather than a pane: it holds no object, only words about the
+   conversation. Its top is under the composer — pulled up by the composer's own corner, so its
+   straight sides meet the composer's straight sides and nothing shows at the curve — and it is
+   inset from the composer's sides by the composer's padding, with a corner concentric to the
+   composer's. Over a glass composer its hidden top shows through as a band, which is the glass
+   doing what it says. The words are set a step down and muted; a caller's own Text still wins. */
+.kui-composer-frame > .kui-composer-context {
+  --kui-cp-r: calc(var(--kui-cp-radius) * var(--kui-corner-k, 1));
+  margin-inline: var(--kui-cp-inset);
+  margin-block-start: calc(-1 * var(--kui-cp-r));
+  padding: calc(var(--kui-cp-r) + var(--layout-space-2)) var(--kui-cp-inset) var(--layout-space-2);
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+  border-end-start-radius: calc(var(--kui-cp-r) - var(--kui-cp-inset));
+  border-end-end-radius: calc(var(--kui-cp-r) - var(--kui-cp-inset));
+  color: var(--color-text-muted);
+}
+
 .kui-composer {
   /* A column, and the gap IS the pane's own padding (2026-08-23, Kushagra: the text and the row
      "need to have some gap, it doesnt"). It was `--layout-space-3` — half the inset at every

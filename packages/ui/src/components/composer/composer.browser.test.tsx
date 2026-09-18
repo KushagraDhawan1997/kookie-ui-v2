@@ -13,6 +13,7 @@ import { computed, mounted, tokenOn, within } from "../../test/browser.tsx";
 import { Box } from "../box/box.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
+import { Notice } from "../notice/notice.tsx";
 import { Text } from "../text/text.tsx";
 import { TextArea } from "../text-area/text-area.tsx";
 import { TextField } from "../text-field/text-field.tsx";
@@ -758,5 +759,52 @@ describe("a dead composer greys its words (§10, §30)", () => {
         { theme: {} },
       );
     expect(computed(pane(true), "background-color")).toBe(computed(pane(false), "background-color"));
+  });
+});
+
+describe("the frame: notices above, the context ground below (§30)", () => {
+  it("the notices are OUTSIDE the form: a question may be a form of its own, and forms cannot nest", () => {
+    let sent = 0;
+    const el = mounted(
+      <Composer onSubmit={() => sent++} notices={<Notice action={<Button className="retry">Retry</Button>}>Offline</Notice>}>
+        <ComposerInput aria-label="Message" />
+      </Composer>,
+      { theme: {} },
+    );
+    const retry = within(el, ".retry");
+    expect(retry.closest("form")).toBeNull();
+    retry.click();
+    expect(sent).toBe(0);
+  });
+
+  it("the context ground sits inset by the composer's padding and tucks under its corner", () => {
+    for (const size of ["1", "2", "3", "4"] as const) {
+      const el = mounted(
+        <Composer size={size} context={<span>Model · 12% context left</span>}>
+          <ComposerInput aria-label="Message" />
+        </Composer>,
+        { theme: {} },
+      );
+      const form = within(el, ".kui-composer");
+      const ground = within(el, ".kui-composer-context");
+      const f = form.getBoundingClientRect();
+      const g = ground.getBoundingClientRect();
+      const pad = parseFloat(computed(form, "padding-left"));
+      expect(g.left - f.left, `size ${size}: inset`).toBeCloseTo(pad, 0);
+      // Its top is hidden under the composer by exactly the composer's own corner.
+      expect(f.bottom - g.top, `size ${size}: tuck`).toBeCloseTo(parseFloat(computed(form, "border-bottom-left-radius")), 0);
+    }
+  });
+
+  it("at radius none the ground is square and tucks under nothing", () => {
+    const el = mounted(
+      <Composer context={<span>Model</span>}>
+        <ComposerInput aria-label="Message" />
+      </Composer>,
+      { theme: { radius: "none" } },
+    );
+    const ground = within(el, ".kui-composer-context");
+    expect(computed(ground, "margin-top")).toBe("0px");
+    expect(computed(ground, "border-bottom-left-radius")).toBe("0px");
   });
 });

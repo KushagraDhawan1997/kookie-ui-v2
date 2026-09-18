@@ -530,25 +530,29 @@
 .kui-surface.kui-floating[data-size="1"],
 .kui-surface.kui-floating-rows[data-size="1"],
 .kui-surface.kui-attachment[data-size="1"],
-.kui-surface.kui-composer[data-size="1"] {
+.kui-surface.kui-composer[data-size="1"],
+.kui-surface.kui-notice[data-size="1"] {
   --kui-panel-p: max(var(--panel-p-1), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
 }
 .kui-surface.kui-floating[data-size="2"],
 .kui-surface.kui-floating-rows[data-size="2"],
 .kui-surface.kui-attachment[data-size="2"],
-.kui-surface.kui-composer[data-size="2"] {
+.kui-surface.kui-composer[data-size="2"],
+.kui-surface.kui-notice[data-size="2"] {
   --kui-panel-p: max(var(--panel-p-2), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
 }
 .kui-surface.kui-floating[data-size="3"],
 .kui-surface.kui-floating-rows[data-size="3"],
 .kui-surface.kui-attachment[data-size="3"],
-.kui-surface.kui-composer[data-size="3"] {
+.kui-surface.kui-composer[data-size="3"],
+.kui-surface.kui-notice[data-size="3"] {
   --kui-panel-p: max(var(--panel-p-3), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
 }
 .kui-surface.kui-floating[data-size="4"],
 .kui-surface.kui-floating-rows[data-size="4"],
 .kui-surface.kui-attachment[data-size="4"],
-.kui-surface.kui-composer[data-size="4"] {
+.kui-surface.kui-composer[data-size="4"],
+.kui-surface.kui-notice[data-size="4"] {
   --kui-panel-p: max(var(--panel-p-4), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
 }
 
@@ -1150,7 +1154,8 @@
    A composer is a pane holding controls — the command palette's shape, not a document's — and the
    card band padded one line of text and a row of buttons like a card. Its text-to-row gap reads
    `--kui-sf-p` (composer.css), so the rhythm inside moves with the inset by construction. */
-.kui-surface.kui-composer {
+.kui-surface.kui-composer,
+.kui-surface.kui-notice {
   --kui-sf-p: var(--kui-panel-p);
 }
 /* And its corner is CONCENTRIC with the controls it holds — the tile join's arithmetic, one pane
@@ -1158,16 +1163,20 @@
    the curve, which read as a pane with no padding at all (2026-09-08, Kushagra: "no padding at
    size 3 or 4"). Control corner + inset means the row's buttons and the strip's tiles sit
    parallel to the pane's own edge at every radius level. */
-.kui-surface.kui-composer[data-size="1"] {
+.kui-surface.kui-composer[data-size="1"],
+.kui-surface.kui-notice[data-size="1"] {
   --kui-sf-radius: calc(var(--radius-control-1) + var(--kui-sf-p));
 }
-.kui-surface.kui-composer[data-size="2"] {
+.kui-surface.kui-composer[data-size="2"],
+.kui-surface.kui-notice[data-size="2"] {
   --kui-sf-radius: calc(var(--radius-control-2) + var(--kui-sf-p));
 }
-.kui-surface.kui-composer[data-size="3"] {
+.kui-surface.kui-composer[data-size="3"],
+.kui-surface.kui-notice[data-size="3"] {
   --kui-sf-radius: calc(var(--radius-control-3) + var(--kui-sf-p));
 }
-.kui-surface.kui-composer[data-size="4"] {
+.kui-surface.kui-composer[data-size="4"],
+.kui-surface.kui-notice[data-size="4"] {
   --kui-sf-radius: calc(var(--radius-control-4) + var(--kui-sf-p));
 }
 .kui-surface.kui-attachment[data-size="1"] {
@@ -1189,8 +1198,34 @@
    which is why this sits after them (the hover stand-down's own mechanism, law-pinned). */
 [data-radius="none"] .kui-surface.kui-floating,
 [data-radius="none"] .kui-surface.kui-attachment,
-[data-radius="none"] .kui-surface.kui-composer {
+[data-radius="none"] .kui-surface.kui-composer,
+[data-radius="none"] .kui-surface.kui-notice {
   --kui-sf-radius: var(--radius-0);
+}
+
+/* THE COMPOSER'S FRAME (2026-09-19) publishes the composer's own inset and corner for the
+   context ground beside it — the same two identities the arms above state on the form, which a
+   SIBLING of the form cannot inherit. Stated here and nowhere else: an inline copy in the
+   component missed the `none` arm below and pulled the ground up by a corner that was not
+   there. */
+.kui-composer-frame[data-size="1"] {
+  --kui-cp-inset: max(var(--panel-p-1), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
+  --kui-cp-radius: calc(var(--radius-control-1) + var(--kui-cp-inset));
+}
+.kui-composer-frame[data-size="2"] {
+  --kui-cp-inset: max(var(--panel-p-2), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
+  --kui-cp-radius: calc(var(--radius-control-2) + var(--kui-cp-inset));
+}
+.kui-composer-frame[data-size="3"] {
+  --kui-cp-inset: max(var(--panel-p-3), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
+  --kui-cp-radius: calc(var(--radius-control-3) + var(--kui-cp-inset));
+}
+.kui-composer-frame[data-size="4"] {
+  --kui-cp-inset: max(var(--panel-p-4), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
+  --kui-cp-radius: calc(var(--radius-control-4) + var(--kui-cp-inset));
+}
+[data-radius="none"] .kui-composer-frame {
+  --kui-cp-radius: var(--radius-0);
 }
 
 /* ── The rungs, in surface dressing (§9, §10) ────────────────────────────────────────────────

@@ -51,6 +51,7 @@ import {
   mounted,
   render,
   tokenOn,
+  until,
   within,
 } from "../../test/browser.tsx";
 import { VIEWPORT as WIDE } from "../../test/viewport.ts";
@@ -3159,6 +3160,42 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
       ph.getBoundingClientRect().bottom - pane.getBoundingClientRect().top,
       1,
     );
+  });
+
+  it("a floating band taller than one row publishes its REAL reach, and follows it as it grows (§46)", async () => {
+    // The derivation is one control row. A band holding a composer outgrows that — here a
+    // 120px child, three times the row — so a reach still at one row would leave the last
+    // message under the band. The band measures itself; this reads where an app reads it.
+    const shell = mounted(
+      <Shell contained style={{ height: 600, width: 900 }}>
+        <ShellContent>
+          <ShellScroll>
+            <Box data-testid="deep">rows</Box>
+          </ShellScroll>
+          <ShellPaneFooter float data-testid="pf">
+            <div data-testid="tall" style={{ blockSize: "120px" }} />
+          </ShellPaneFooter>
+        </ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const pane = within(shell, ".kui-shell-content");
+    const pf = within(shell, "[data-testid='pf']");
+    const reach = () => {
+      const probe = document.createElement("div");
+      probe.style.blockSize = "var(--kui-pane-inset-block-end)";
+      within(shell, "[data-testid='deep']").appendChild(probe);
+      const v = probe.getBoundingClientRect().height;
+      probe.remove();
+      return v;
+    };
+    const real = () => pane.getBoundingClientRect().bottom - pf.getBoundingClientRect().top;
+    expect(real(), "calibration: the band is taller than one row").toBeGreaterThan(120);
+    expect(await until(() => Math.abs(reach() - real()) < 1), `reach ${reach()} against ${real()}`).toBe(true);
+    // It grows with no scroll and no render — a composer wrapping a line.
+    within(shell, "[data-testid='tall']").style.blockSize = "200px";
+    expect(await until(() => Math.abs(reach() - real()) < 1), `grown: reach ${reach()} against ${real()}`).toBe(true);
+    expect(real()).toBeGreaterThan(200);
   });
 
   it("a floating FOOTER publishes the other end, an in-flow one publishes nothing, and a nested pane resets (§27)", () => {
