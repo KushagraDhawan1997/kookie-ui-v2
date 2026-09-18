@@ -10,16 +10,16 @@ function Scene({ appearance }: { appearance: "light" | "dark" }) {
       <BedSurface bed={PHOTO_BED} backdrop>
         <Stack gap="4" p="4">
           <Flex gap="4" align="start">
-            <Button size="2">Button (control)</Button>
+            <Button size="2">Button (control)</Button><Button size="2" emphasis="quiet">Quiet</Button>
             <Card size="2" style={{ width: 240 }}>
               <Stack gap="1">
                 <Text size="2" weight="medium">Card (pane)</Text>
                 <Text size="2" emphasis="medium">A muted line over the photo.</Text>
               </Stack>
             </Card>
-            <Popover defaultOpen><PopoverTrigger><Button size="2" emphasis="quiet">Popover</Button></PopoverTrigger>
+            <Popover defaultOpen><PopoverTrigger render={<Button size="2" emphasis="quiet">Popover</Button>} />
               <PopoverContent><Box p="2" style={{ width: 200 }}><Text size="2" emphasis="medium">Popover (pane) — a muted line over the photo.</Text></Box></PopoverContent></Popover>
-            <Menu defaultOpen><MenuTrigger><Button size="2" emphasis="quiet">Menu</Button></MenuTrigger>
+            <Menu defaultOpen><MenuTrigger render={<Button size="2" emphasis="quiet">Menu</Button>} />
               <MenuContent><MenuItem>Rename</MenuItem><MenuItem>Duplicate</MenuItem><MenuItem>Move to…</MenuItem></MenuContent></Menu>
           </Flex>
           <Composer size="2" style={{ width: 560 }}>
