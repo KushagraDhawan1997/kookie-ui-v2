@@ -240,6 +240,8 @@ export type LensTuning = {
   rimSaturate: number;
   /** px of Gaussian blur applied INSIDE the filter, before displacement (0 = none). */
   preBlur: number;
+  /** × on the REGION scale's bezel multiplier (`lensScale.region`), over `bezelX`. */
+  regionBezelX: number;
 };
 let tuning: Partial<LensTuning> | null = null;
 let tuningSerial = 0;
@@ -369,14 +371,27 @@ export const lens: Record<LensThickness, LensParams> = {
 };
 
 /**
+ * The material's SCALE (2026-09-18): a region — a shell pane, a sheet, a composer — is a
+ * thicker slab of the same glass, so its lip is wider and its depth deeper by one multiplier
+ * per rung. `pane` is the judged ladder verbatim; controls share it (their lip was judged
+ * beside the card's). A first cut for the bench; the value is taste, one line.
+ */
+export type LensScale = "pane" | "region";
+export const lensScale: Record<LensScale, number> = { pane: 1, region: 2 };
+
+/**
  * The rung a material bends at, or null for the two that never do. Asking the ladder is what
  * keeps those two spellings out of TWELVE call sites: every consumer used to hand this hook a
  * boolean it had assembled itself, and `shell` shipped one arm short of the others for
  * exactly as long as that was each caller's job.
  */
-function rung(material: SurfaceMaterial): LensParams | null {
+function rung(material: SurfaceMaterial, scale: LensScale = "pane"): LensParams | null {
   if (material === "solid" || material === ON_GLASS) return null;
-  const base = lens[material];
+  const at = lens[material];
+  // The scale's slab: bezel and depth together, so a region's lip carries a region's bend
+  // rather than sitting on its clamp (see the re-solve note above `lens`).
+  const x = lensScale[scale] * (scale === "region" ? (tuning?.regionBezelX ?? 1) : 1);
+  const base = x === 1 ? at : { ...at, bezel: at.bezel * x, thickness: at.thickness * x };
   if (!tuning) return base;
   // The bench's multipliers, applied over the shipped rung — 1.0 everywhere restores it.
   return {
@@ -1193,9 +1208,12 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
        * runner reads that one un-posed and hands it over rather than leaving it to be guessed
        * from a moving element.
        */
-      const target = (): { w: number; h: number; r: Corners; k: number; sealed: boolean; ringDown: boolean; glinted: boolean } | null => {
+      const target = (): { w: number; h: number; r: Corners; k: number; sealed: boolean; ringDown: boolean; glinted: boolean; scale: LensScale } | null => {
         const rect = node.getBoundingClientRect();
         const cs = getComputedStyle(node);
+        // The material's scale, off the cascade (the region rule in surfaces.css publishes it;
+        // registered non-inheriting, so only the pane that IS a region reads it).
+        const scale: LensScale = cs.getPropertyValue("--kui-material-scale").trim() === "region" ? "region" : "pane";
         /**
          * THE CASCADE IS THE GATE; THE LISTENER BELOW IS ONLY A WAKE-UP (2026-08-24, the
          * performance audit). Under `prefers-reduced-transparency: reduce` every pane computes
@@ -1255,7 +1273,7 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
             // The flight publishes ONE corner, because a panel in flight is a panel that rounds
             // all four the same way — the anchored families' own geometry. A mixed-corner pane
             // (a sheet) does not fly: it slides, with its box already settled.
-            return { w, h, r: corners(Number.isFinite(r) ? r : 0), k, sealed, ringDown, glinted };
+            return { w, h, r: corners(Number.isFinite(r) ? r : 0), k, sealed, ringDown, glinted, scale };
           }
           // Published nothing readable — a reduced-motion open bails before writing these, and
           // a pane can carry the stamp for a frame before they land. Waiting is right: the old
@@ -1283,14 +1301,15 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
           sealed,
           ringDown,
           glinted,
+          scale,
         };
       };
 
       const measure = () => {
-        const params = rung(material);
-        if (!params) return;
         const box = target();
         if (!box) return;
+        const params = rung(material, box.scale);
+        if (!params) return;
         /**
          * ROUNDED BEFORE ANYTHING READS IT (2026-09-11 audit). `getBoundingClientRect` returns
          * sub-pixel floats, and above the cap `scale` is derived from them and then multiplies

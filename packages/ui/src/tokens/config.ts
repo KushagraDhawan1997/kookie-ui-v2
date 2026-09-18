@@ -1350,15 +1350,36 @@ export const material = {
      number in this file already follows. filterHover: on glass, hover is LIGHT, not a fill
      step — the veil holds and only brightness moves (lab 2026-08-14, "hover mode looks
      weird": the quiet-hover was laying an opaque pastel over the pane). */
+  /* THE PANE ROW DID NOT MOVE, and the branch that proposed moving it is why this sentence
+     exists (merged 2026-09-18). It raised the pane veils to 40/56/70 light against the
+     pre-clear 34/49/65, on a real finding — a muted line over the photograph was the weakest
+     text on the page — but it was built the day before the glass became CLEAR (§10,
+     2026-09-17), so its whole ladder argues against a row that no longer exists. The MECHANISM
+     came across and the values did not: the veils here are the clear ones, judged, and the
+     region below is derived from them rather than from the branch's. The legibility finding is
+     NOT closed by that choice — it is the first thing to check in the bench, and if it holds,
+     the answer is the region's own alpha, not a denser pane. */
+  /* REGION-scale material (2026-09-18, Kushagra: a composer, a popover, a shell sidebar "need
+     opaqueness that is more than buttons, and we generally need more glass around edges for
+     these too because these are bigger areas"). The third scale of ONE material — the same
+     oak, a thicker slab: a region holds paragraphs you must read over scrolling content, so
+     its veil is denser and its blur reaches further, and its lip is wider (`lensScale` in
+     refraction.tsx multiplies the bezel). NOT a thickness rung — a region at thin is still
+     thin, and there is still no rung above thick. One alpha (a region is never pressed).
+     Members stamp `kui-region`: the shell panes, Sheet, Composer. DERIVED, not judged: the
+     alpha is the pane's own top rung (its pressed value), so a resting region is as dense as
+     a pressed pane and the ladder reads control < pane < region with no invented number; the
+     blur is the pane's × 1.5 and the frost the pane's + 4. Every one of those is a first cut
+     for the bench. */
   light: {
-    thin: { alpha: [2, 8, 14], alphaHigh: [72, 77, 82], filter: "blur(3px) saturate(115%) brightness(1.12)", frost: "blur(8px) saturate(115%) brightness(1.12)", sheen: 6, control: { alpha: 4, filter: "blur(1.5px) saturate(115%) brightness(1.12)", frost: "blur(4px) saturate(115%) brightness(1.12)", filterHover: "blur(1.5px) saturate(115%) brightness(1.07)", filterLoud: "blur(1.5px) saturate(160%) brightness(1.08)" } },
-    regular: { alpha: [4, 10, 16], alphaHigh: [80, 84, 88], filter: "blur(4px) saturate(120%) brightness(1.13)", frost: "blur(16px) saturate(120%) brightness(1.13)", sheen: 9, control: { alpha: 6, filter: "blur(2px) saturate(120%) brightness(1.13)", frost: "blur(8px) saturate(120%) brightness(1.13)", filterHover: "blur(2px) saturate(120%) brightness(1.08)", filterLoud: "blur(2px) saturate(160%) brightness(1.09)" } },
-    thick: { alpha: [6, 12, 18], alphaHigh: [86, 89, 92], filter: "blur(5px) saturate(125%) brightness(1.14)", frost: "blur(24px) saturate(125%) brightness(1.14)", sheen: 12, control: { alpha: 8, filter: "blur(2.5px) saturate(125%) brightness(1.14)", frost: "blur(13.7px) saturate(125%) brightness(1.14)", filterHover: "blur(2.5px) saturate(125%) brightness(1.09)", filterLoud: "blur(2.5px) saturate(160%) brightness(1.12)" } },
+    thin: { alpha: [2, 8, 14], alphaHigh: [72, 77, 82], filter: "blur(3px) saturate(115%) brightness(1.12)", frost: "blur(8px) saturate(115%) brightness(1.12)", sheen: 6, control: { alpha: 4, filter: "blur(1.5px) saturate(115%) brightness(1.12)", frost: "blur(4px) saturate(115%) brightness(1.12)", filterHover: "blur(1.5px) saturate(115%) brightness(1.07)", filterLoud: "blur(1.5px) saturate(160%) brightness(1.08)" }, region: { alpha: 14, filter: "blur(4.5px) saturate(115%) brightness(1.12)", frost: "blur(12px) saturate(115%) brightness(1.12)" } },
+    regular: { alpha: [4, 10, 16], alphaHigh: [80, 84, 88], filter: "blur(4px) saturate(120%) brightness(1.13)", frost: "blur(16px) saturate(120%) brightness(1.13)", sheen: 9, control: { alpha: 6, filter: "blur(2px) saturate(120%) brightness(1.13)", frost: "blur(8px) saturate(120%) brightness(1.13)", filterHover: "blur(2px) saturate(120%) brightness(1.08)", filterLoud: "blur(2px) saturate(160%) brightness(1.09)" }, region: { alpha: 16, filter: "blur(6px) saturate(120%) brightness(1.13)", frost: "blur(20px) saturate(120%) brightness(1.13)" } },
+    thick: { alpha: [6, 12, 18], alphaHigh: [86, 89, 92], filter: "blur(5px) saturate(125%) brightness(1.14)", frost: "blur(24px) saturate(125%) brightness(1.14)", sheen: 12, control: { alpha: 8, filter: "blur(2.5px) saturate(125%) brightness(1.14)", frost: "blur(13.7px) saturate(125%) brightness(1.14)", filterHover: "blur(2.5px) saturate(125%) brightness(1.09)", filterLoud: "blur(2.5px) saturate(160%) brightness(1.12)" }, region: { alpha: 18, filter: "blur(7.5px) saturate(125%) brightness(1.14)", frost: "blur(28px) saturate(125%) brightness(1.14)" } },
   },
   dark: {
-    thin: { alpha: [8, 16, 24], alphaHigh: [76, 80, 84], filter: "blur(3px) saturate(115%) brightness(1.06)", frost: "blur(8px) saturate(115%) brightness(1.06)", sheen: 2, control: { alpha: 10, filter: "blur(1.5px) saturate(115%) brightness(1.06)", frost: "blur(4px) saturate(115%) brightness(1.06)", filterHover: "blur(1.5px) saturate(115%) brightness(1.12)", filterLoud: "blur(1.5px) saturate(150%) brightness(1)" } },
-    regular: { alpha: [12, 20, 28], alphaHigh: [84, 87, 90], filter: "blur(4px) saturate(120%) brightness(1.05)", frost: "blur(16px) saturate(120%) brightness(1.05)", sheen: 3, control: { alpha: 14, filter: "blur(2px) saturate(120%) brightness(1.05)", frost: "blur(8px) saturate(120%) brightness(1.05)", filterHover: "blur(2px) saturate(120%) brightness(1.02)", filterLoud: "blur(2px) saturate(150%) brightness(1)" } },
-    thick: { alpha: [16, 24, 32], alphaHigh: [90, 92, 94], filter: "blur(5px) saturate(125%) brightness(1.04)", frost: "blur(24px) saturate(125%) brightness(1.04)", sheen: 4, control: { alpha: 18, filter: "blur(2.5px) saturate(125%) brightness(1.04)", frost: "blur(13.7px) saturate(125%) brightness(1.04)", filterHover: "blur(2.5px) saturate(125%) brightness(1.02)", filterLoud: "blur(2.5px) saturate(150%) brightness(1)" } },
+    thin: { alpha: [8, 16, 24], alphaHigh: [76, 80, 84], filter: "blur(3px) saturate(115%) brightness(1.06)", frost: "blur(8px) saturate(115%) brightness(1.06)", sheen: 2, control: { alpha: 10, filter: "blur(1.5px) saturate(115%) brightness(1.06)", frost: "blur(4px) saturate(115%) brightness(1.06)", filterHover: "blur(1.5px) saturate(115%) brightness(1.12)", filterLoud: "blur(1.5px) saturate(150%) brightness(1)" }, region: { alpha: 24, filter: "blur(4.5px) saturate(115%) brightness(1.06)", frost: "blur(12px) saturate(115%) brightness(1.06)" } },
+    regular: { alpha: [12, 20, 28], alphaHigh: [84, 87, 90], filter: "blur(4px) saturate(120%) brightness(1.05)", frost: "blur(16px) saturate(120%) brightness(1.05)", sheen: 3, control: { alpha: 14, filter: "blur(2px) saturate(120%) brightness(1.05)", frost: "blur(8px) saturate(120%) brightness(1.05)", filterHover: "blur(2px) saturate(120%) brightness(1.02)", filterLoud: "blur(2px) saturate(150%) brightness(1)" }, region: { alpha: 28, filter: "blur(6px) saturate(120%) brightness(1.05)", frost: "blur(20px) saturate(120%) brightness(1.05)" } },
+    thick: { alpha: [16, 24, 32], alphaHigh: [90, 92, 94], filter: "blur(5px) saturate(125%) brightness(1.04)", frost: "blur(24px) saturate(125%) brightness(1.04)", sheen: 4, control: { alpha: 18, filter: "blur(2.5px) saturate(125%) brightness(1.04)", frost: "blur(13.7px) saturate(125%) brightness(1.04)", filterHover: "blur(2.5px) saturate(125%) brightness(1.02)", filterLoud: "blur(2.5px) saturate(150%) brightness(1)" }, region: { alpha: 32, filter: "blur(7.5px) saturate(125%) brightness(1.04)", frost: "blur(28px) saturate(125%) brightness(1.04)" } },
   },
   /** How much of the app's shadow a pane lets survive (§10's transmission seam): glass
       passes light, so its cast is the surface row FADED — thin passes most, thick least.

@@ -60,6 +60,13 @@
    nothing set the property, which is every browser that cannot render an SVG filter in a
    backdrop-filter (all but Chromium today) and every surface that is not glass. There is no
    path here that can subtract glass — the lens is only ever prepended. */
+/* The material SCALE a pane paints at (2026-09-18): `region` on a `kui-region` glass pane,
+   unset otherwise. Read by the lens hook off the cascade to widen the bezel. Non-inheriting,
+   because a scale is a fact about ONE box. */
+@property --kui-material-scale {
+  syntax: "*";
+  inherits: false;
+}
 @property --kui-lens {
   syntax: "*";
   inherits: false;
@@ -1919,6 +1926,36 @@
      Element-keyed on both sides. Re-pointing `--material-<t>-filter` at `:root` would lose to
      any `<Theme appearance>` in between, which re-declares the same name nearer the element —
      the 2026-08-20 high-contrast defect, exactly. */
+  /* REGION scale (2026-09-18, Kushagra: bigger areas need more opaqueness and more glass at the
+     edges). A member that holds paragraphs over passing content — the shell panes, Sheet,
+     Composer — stamps `kui-region` and takes the region cell: denser veil, further blur, and a
+     wider lip (the lens reads the scale off `--kui-material-scale`). (0,3,0) beats the pane
+     block above by weight — which is why the reduced-transparency seal below carries a region
+     arm at the same weight: its (0,2,0) seal would otherwise lose the fill to this rule. */
+  .kui-surface.kui-region[data-material="thin"] {
+    --kui-material-scale: region;
+    --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-thin-region-alpha), transparent);
+    --kui-sf-glass-filter: var(--material-thin-region-filter);
+  }
+  .kui-surface.kui-region[data-material="regular"] {
+    --kui-material-scale: region;
+    --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-regular-region-alpha), transparent);
+    --kui-sf-glass-filter: var(--material-regular-region-filter);
+  }
+  .kui-surface.kui-region[data-material="thick"] {
+    --kui-material-scale: region;
+    --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-thick-region-alpha), transparent);
+    --kui-sf-glass-filter: var(--material-thick-region-filter);
+  }
+  :root:not([data-lens="on"]) .kui-surface.kui-region[data-material="thin"] {
+    --kui-sf-glass-filter: var(--material-thin-region-filter-frost);
+  }
+  :root:not([data-lens="on"]) .kui-surface.kui-region[data-material="regular"] {
+    --kui-sf-glass-filter: var(--material-regular-region-filter-frost);
+  }
+  :root:not([data-lens="on"]) .kui-surface.kui-region[data-material="thick"] {
+    --kui-sf-glass-filter: var(--material-thick-region-filter-frost);
+  }
   :root:not([data-lens="on"]) .kui-surface[data-material="thin"] {
     --kui-sf-glass-filter: var(--material-thin-filter-frost);
   }
@@ -2245,6 +2282,12 @@
    the one property the mode actually paints, and `background-image: none` takes the rogue
    light away. */
 @media (prefers-reduced-transparency: reduce), print, (forced-colors: active) {
+  /* The region arm restates the seal at the region rule's own (0,3,0) — see that rule. */
+  .kui-surface.kui-region[data-material="thin"],
+  .kui-surface.kui-region[data-material="regular"],
+  .kui-surface.kui-region[data-material="thick"] {
+    --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-opaque-alpha), transparent);
+  }
   .kui-surface[data-material="thin"],
   .kui-surface[data-material="regular"],
   .kui-surface[data-material="thick"],
