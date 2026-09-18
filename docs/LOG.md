@@ -8,6 +8,95 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-19 The audit of the transcript work: one context the nested scrollers kept
+
+**What.** An ultracode audit of the uncommitted Carousel, MessageScroller, Confirmation and Composer
+work (eight lenses, every finding verified by three skeptics) upheld 28 defects, and all are fixed.
+The headline was one line: `ScrollArea` read `ViewportAsContext` and never cleared it for its own
+children, so every ScrollArea nested inside a transcript or a carousel — a code block, a table, a
+menu's popup through its portal — rendered its viewport AS the outer one. A reply holding a code
+block stopped the transcript following; a carousel of four code blocks carried the rail's id five
+times. The reset sits inside the viewport's content, so the request reaches exactly one viewport.
+
+**The same shape twice more.** The tone a notice lends its buttons crossed into a dialog opened
+from the notice's action, because context crosses portals; every Theme resets it now, and the
+portal wrapper is a bare Theme (§20). And the composer frame's inset and corner were written as an
+inline style copying the surface join — missing the `radius="none"` arm, and invisible to the
+dangling-var law — so they moved into `surfaces.css` as a frame join.
+
+**The laws that could not fail.** The MessageScroller's one-box law passes unwired, because an
+unwired ScrollArea still has one scroller; the carousel's "a rail that fits" law passed on the
+pre-measurement state, where both buttons already read dead. Both are replaced by laws that read
+what only the mechanism does — a thread opening at its end, a rail widened until it fits AFTER it
+has woken — and every new law was falsified against the defect it guards.
+
+**Rejected.** Registering the second dependency's refusal away: §33's "one runtime dependency"
+sentence is amended rather than left beside §56 contradicting it. Deleting the scratch routes: they
+are judging surfaces like `lab`, listed in the bare-route law with the same deletion condition.
+
+---
+
+## 2026-09-18 MessageScroller, and the scroller it refused to bring
+
+**What.** A transcript that follows its live edge shipped as `MessageScroller` (§56) with three
+parts and three hooks, over shadcn/ui's headless message-scroller primitive (`@shadcn/react`, MIT,
+credited). Beside it, `Conversation` joined the blocks: the person's message on a tint, a run of
+tool calls folded to one row that opens to a timeline, a live row that sweeps, and the pictures a
+turn made. The component is the machine; the block is the arrangement and every word.
+
+**Why the block's parts default to size 3 where the package defaults to 2.** A conversation is the
+thing being read, and at 2 it sat a step under the composer and the toolbar around it (Kushagra:
+*"the chat block should be using size 3 as default, no?"*). The index rides the parts' own text and
+the lengths derived from it — the thumbnail's height, the timeline's half-row, the corners —
+through a `data-kb-size` attribute the block owns. Not `data-size`: that writes the system's axis
+onto the DOM past the type, which the lint rule refuses and which would re-grow an axis the parts
+do not have.
+
+**What the first real conversations found, all of it invisible in a snapshot.** A step's words are
+one line cut with an ellipsis, and inside a scroll content box of `min-inline-size: fit-content`
+that scrolled the whole panel sideways. A lone step drew a timeline dot with no timeline to be a
+mark on, so the dot hung outside the text column. A dot centred against its row's line-height sat
+off its own words, because the row's line-height is the panel's. And the jump button's `translate`
+lift met the Button's `translate` hover. Each is a fix in this repo; only the last has a law — in
+the package, on the jump button. The block has no mounted laws of its own.
+
+**Rejected: a `Shimmer` component.** A sweeping label is one declaration block over text the app
+owns, and the two places that want it — a live step row and a "Thinking" line — are both in the
+block already. A component would have been a name for a gradient.
+
+---
+
+## 2026-09-18 Carousel, and the machinery React was carrying
+
+**What.** The carousel pattern shipped (§55) as five parts over a snapping ScrollArea: a named
+group, a rail, an item that marks where scrolling settles, and a button each way that goes dead at
+the end it faces. The component states nothing about what scrolls — Kushagra: *"I dont care what
+scrolls, I want to ship the pattern"* — so no item width, gap or aspect exists in it, and a card
+carousel stays a block (§10).
+
+**Why not a block, and why not Embla.** Snapping, the two buttons, and the buttons going dead are
+the pattern rather than a layout, which is the §10 test for system-owned anatomy — and the a11y
+join (`role=group`, `aria-roledescription`, `aria-controls` from each button to the rail) is
+non-visual. Base UI has no carousel and records that it is unlikely to build one
+(mui/base-ui#4785). The JS carousels reimplement scrolling, which is where their bugs and their
+accessibility failures come from; here the browser scrolls and a press only asks it to move.
+
+**The sabotage pass that could not go red, twice.** A ref callback is a new function every render,
+and Base UI re-renders the scroll viewport on every scroll as it sizes its thumb — so the first
+spelling re-attached its listeners continuously and stayed correct with its own scroll listener
+deleted. Nothing any law could see. The element now arrives by ref and the listeners are attached
+by an effect. What remains recorded rather than repaired: the listener and the resize observation
+overlap in Chromium, so removing either alone is still green and removing both is red.
+
+**Rejected.** `::scroll-button()` and `::scroll-marker-group`, which would delete the machinery
+altogether — the generated button's content is the `content` property and cannot hold an icon
+element, and Firefox is partial (revisit when both change). Autoplay, looping and drag-to-scroll,
+each of which replaces the browser's scrolling with ours. Dots, which say a second time what the
+rail already shows. A builder seat: a carousel needs a bounded rail and items wider than it, two
+lengths that live in the call site's layout, so a placeable one would draw two dead buttons.
+
+---
+
 ## 2026-09-15 Avatar's box is the control ladder
 
 **What.** Avatar shipped (§35) one line of the text beside it — `1lh`, an optional type step,
