@@ -1174,7 +1174,11 @@ const DECLARED: Entry[] = [
     family: "Surface",
     spec: "§29",
         abstract: "Notice states a condition that is true right now, on the region it is about.",
-    overview: ["The person did not cause it, so it is not a receipt, and it lasts as long as the condition lasts, so it does not disappear on a timer. It takes up layout space and never floats, because a strip that hovered would cover the content it is telling you about. It carries at most one action that fixes the condition, and one dismissal that only acknowledges it."],
+    overview: [
+      "The person did not cause it, so it is not a receipt, and it lasts as long as the condition lasts, so it does not disappear on a timer. It takes up layout space and never floats, because a strip that hovered would cover the content it is telling you about. It carries at most one action that fixes the condition, and one dismissal that only acknowledges it.",
+      "A button in the strip takes the strip's tone unless it states its own: \"Try again\" on a failure is part of the failure. A dialog opened from that button is a new plane and does not inherit it.",
+      "Its sibling `Confirmation` shares the strip and asks a question instead. It has two worded answers, a quiet no and a loud yes, and no ✕, because closing a question without answering it is not an answer. It stays until one answer is pressed.",
+    ],
     refusals: [
       {
         name: "A position, and the name Banner",
@@ -1204,6 +1208,29 @@ const DECLARED: Entry[] = [
         name: "An icon set",
         why: "The package ships no icons. The slot is safe when empty, takes whatever your app draws, and is hidden from assistive technology, because the words are the message.",
       },
+      {
+        name: "A ✕ on a Confirmation",
+        why: "A question waits for an answer. A way to close it without answering leaves the app not knowing what the person wanted, so the no is a worded button like the yes.",
+      },
+    ],
+    declaration: `<Notice tone="warning" action={<Button>Renew</Button>}>
+  Your certificate expires in six days.
+</Notice>
+
+<Confirmation
+  confirmLabel="Run"
+  cancelLabel="Not now"
+  onConfirm={run}
+  onCancel={dismiss}
+>
+  Run 4 nodes for $0.32?
+</Confirmation>`,
+    topics: [
+      { title: "A condition", symbols: ["Notice"] },
+      { title: "A question", symbols: ["Confirmation"] },
+    ],
+    parts: [
+      { part: "Confirmation", blurb: "A question waiting for a yes or a no: the same strip, two worded answers, no dismissal" },
     ],
   },
   {
@@ -1522,6 +1549,52 @@ const DECLARED: Entry[] = [
         name: "An indent prop",
         why: "Tree's own refusal, inherited with the machine: one level is one icon box, derived.",
       },
+    ],
+  },
+  {
+    slug: "message-scroller",
+    name: "MessageScroller",
+    family: "Surface",
+    spec: "§56",
+    abstract: "MessageScroller keeps a transcript at its live edge while a reply streams in.",
+    overview: [
+      "A conversation scrolls differently from a page: while you are at the end it follows what arrives, and the moment you scroll up it leaves you alone until you come back. A new turn anchors near the top so a long reply is read from its start, older history can load above without moving what you are reading, and a button brings you back to the latest.",
+      "It brings no scroller of its own. The `ScrollArea` the pane already has becomes its viewport, so the pane keeps its fade, its bars and its floating bands, and a conversation is that pane with the behaviour added. The rows, the words and the counts are yours: the Conversation block draws a turn.",
+    ],
+    declaration: `<MessageScroller>
+  <ScrollArea fade aria-label="Transcript">
+    <MessageScrollerContent>
+      <MessageScrollerItem messageId="m1" scrollAnchor>
+        \u2026
+      </MessageScrollerItem>
+    </MessageScrollerContent>
+    <MessageScrollerButton aria-label="Jump to the latest">
+      \u2026
+    </MessageScrollerButton>
+  </ScrollArea>
+</MessageScroller>`,
+    topics: [
+      { title: "Following the live edge", symbols: ["MessageScroller", "MessageScrollerContent"] },
+      { title: "Rows, anchors and jumping back", symbols: ["MessageScrollerItem", "MessageScrollerButton"] },
+    ],
+    refusals: [
+      {
+        name: "`size`",
+        why: "It paints nothing but the button. The rows are the app's, and each states its own index.",
+      },
+      {
+        name: "A viewport of its own",
+        why: "Two scroll boxes in one pane is the failure, not the feature. It composes the pane's `ScrollArea` instead, which is why the fade and the bars still belong to the pane.",
+      },
+      {
+        name: "English",
+        why: "The button's name is yours, like every other accessible name the system cannot write.",
+      },
+    ],
+    parts: [
+      { part: "MessageScrollerContent", blurb: "The transcript itself: a live region whose direct children are its rows" },
+      { part: "MessageScrollerItem", blurb: "One row, the boundary the transcript measures, anchors and can be jumped to; `scrollAnchor` marks a turn" },
+      { part: "MessageScrollerButton", blurb: "Back to the latest: shown while there is more below, inert when there is not, and placed by the dock it sits in" },
     ],
   },
   {
@@ -1918,6 +1991,43 @@ const DECLARED: Entry[] = [
       { name: "`iconOnly`", why: "The label is the common action. A split button with no words is two icons, and a toolbar spells that as two buttons." },
       { name: "Travel on hover and press", why: "A button rises and sinks because it sits on the page. Half of one box moving alone would tear the box at the seam, so the fill still lights and presses and the geometry stays put." },
       { name: "`render`", why: "There are two elements and a menu. Neither half can become a different element without leaving the other behind." },
+    ],
+  },
+  {
+    slug: "carousel",
+    name: "Carousel",
+    family: "Surface",
+    spec: "\u00a710, \u00a755",
+        abstract: "Carousel is a row that scrolls sideways, settles on its items, and has a button each way.",
+    overview: ["It is the pattern, not the contents: a rail that snaps, a previous and a next, and those buttons going dead when there is nothing more that way. What sits inside is yours \u2014 cards, covers, frames, a row of anything \u2014 and the component states no width, no gap and no aspect for it. The scrolling is the browser\u2019s own, so the wheel, the trackpad, touch and the keyboard all keep working, and a press only asks the rail to move by one item. No scrollbar is drawn: the buttons and the fade already say where you are."],
+    declaration: `<Carousel aria-label="Covers">
+  <CarouselRail fade>
+    <Flex gap="4">
+      <CarouselItem>\u2026</CarouselItem>
+      <CarouselItem>\u2026</CarouselItem>
+    </Flex>
+  </CarouselRail>
+  <CarouselPrevious>‹</CarouselPrevious>
+  <CarouselNext>›</CarouselNext>
+</Carousel>`,
+    topics: [
+      { title: "Naming the whole thing", symbols: ["Carousel"] },
+      { title: "What scrolls", symbols: ["CarouselRail", "CarouselItem"] },
+      { title: "Moving it", symbols: ["CarouselPrevious", "CarouselNext"] },
+    ],
+    refusals: [
+      { name: "Autoplay", why: "Content that moves on a timer is content you can lose your place in, and the accepted answer to it is a pause button almost nobody presses. A rail moves when a person moves it." },
+      { name: "Looping", why: "A loop is either cloned items or a scroll position that lies about where you are. The ends are real, which is what lets the buttons tell you there is nothing more that way." },
+      { name: "Drag to scroll", why: "Touch and trackpad already drag, and on a mouse the same gesture selects text and drags images. Adding a third meaning would take those away." },
+      { name: "A width, a gap or an aspect for the items", why: "What scrolls is yours. The component marks where scrolling settles and nothing else, so one carousel can hold wide covers and another a row of small tiles." },
+      { name: "`orientation`", why: "A rail is a row, and previous and next are its two directions. A column of items that scrolls is a ScrollArea with a fade." },
+      { name: "Dots under the rail", why: "They are a second way to say the same thing, they need a name per item, and past a handful of items they stop being countable. The rail already shows where you are." },
+    ],
+    parts: [
+      { part: "CarouselRail", blurb: "What scrolls: a ScrollArea that settles on items. Give it a bounded box, and `fade` if it runs to the edge of a pane" },
+      { part: "CarouselItem", blurb: "One place scrolling can settle. It states no size \u2014 the layout between the rail and the items is yours" },
+      { part: "CarouselPrevious", blurb: "Back one item. It goes dead at the start, in the spelling that keeps it focusable" },
+      { part: "CarouselNext", blurb: "On one item. It goes dead at the end, the same way" },
     ],
   },
   {

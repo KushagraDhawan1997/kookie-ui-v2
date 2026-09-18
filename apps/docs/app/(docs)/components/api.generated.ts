@@ -962,6 +962,103 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "CarouselButton": {
+    "element": null,
+    "props": [
+      {
+        "name": "aria-label",
+        "type": "string",
+        "optional": true,
+        "doc": "The button's name, since it has no words. Defaults to the plain English one."
+      },
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The glyph. An arrow both ways, from the call site's icon set — the package ships no icons."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "CarouselItem": {
+    "element": "div",
+    "props": []
+  },
+  "Carousel": {
+    "element": null,
+    "props": [
+      {
+        "name": "aria-label",
+        "type": "string",
+        "optional": true,
+        "doc": "Names the whole pattern — the rail and its buttons together. A carousel announces as a group with a role description, and a group with no name is a group nobody can be told about, so a screen reader's user hears \"previous\" and \"next\" with nothing saying what they move."
+      },
+      {
+        "name": "aria-labelledby",
+        "type": "string",
+        "optional": true,
+        "doc": "Names it from words already on the screen — the heading above it, usually."
+      },
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The rail and its buttons, in any arrangement: the buttons are placed by the call site, which is why they are parts and not a prop."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Dresses the root. Outer spacing is the caller's Box, never this (the non-negotiable)."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "CarouselRail": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The items. Mark each snap point with `CarouselItem`; the layout between them is yours."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "fade",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Fades content toward an edge that has more behind it — ScrollArea's own mask, passed through. A rail that runs to the edge of a pane is what it is for; a rail with buttons at both ends may not need it."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
   "Checkbox": {
     "element": null,
     "props": [
@@ -1821,6 +1918,18 @@ export const API: Record<string, ApiEntry> = {
         "doc": "Says content passes behind the composer, so the theme's material can show. Unset, it follows the surrounding `<Box backdrop>` region. A composer over a scrolling conversation is the case selectivity exists for (§10)."
       },
       {
+        "name": "context",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "Quiet information about the conversation — the model, how much context is left, the cost. Drawn on a ground tucked behind the composer's bottom edge, inset from its sides. The words are yours."
+      },
+      {
+        "name": "notices",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "What needs the person's attention before their next message: `Notice`s and `Confirmation`s, in the order given, the last nearest the text. They stand apart from the composer in a column above it and take its index unless they state their own. Each keeps its own semantics — a notice announces politely, a confirmation waits for its answer — and focus never moves to them: the person may be mid-sentence."
+      },
+      {
         "name": "onFiles",
         "type": "(files: File[]) => void",
         "optional": true,
@@ -1882,6 +1991,101 @@ export const API: Record<string, ApiEntry> = {
         ],
         "optional": true,
         "doc": "What the request is doing. Defaults to `ready`."
+      }
+    ]
+  },
+  "Confirmation": {
+    "element": null,
+    "props": [
+      {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Says content passes behind this strip, so the theme's material can show."
+      },
+      {
+        "name": "busy",
+        "type": "boolean",
+        "optional": true,
+        "doc": "The yes has been given and the work is starting: the yes spins and the no is dead."
+      },
+      {
+        "name": "cancelLabel",
+        "type": "string",
+        "optional": false,
+        "doc": "The no, in your words: \"Not now\"."
+      },
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": false,
+        "doc": "The request, in your words: \"Run 4 nodes for $0.32?\""
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "confirmLabel",
+        "type": "string",
+        "optional": false,
+        "doc": "The yes, in your words: \"Run\"."
+      },
+      {
+        "name": "icon",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The symbol, if your app has an icon set. Hidden from assistive technology."
+      },
+      {
+        "name": "onCancel",
+        "type": "() => void",
+        "optional": false,
+        "doc": "Called when the no is pressed. Remove the confirmation; there is no other way out."
+      },
+      {
+        "name": "onConfirm",
+        "type": "() => void",
+        "optional": false,
+        "doc": "Called when the yes is pressed. Set `busy` while the work it starts is starting."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "optional": true,
+        "doc": "Sets the box, the buttons and the words, as a Notice's index does."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "tone",
+        "type": "Tone",
+        "values": [
+          "neutral",
+          "accent",
+          "destructive",
+          "blue",
+          "green",
+          "orange",
+          "amber",
+          "success",
+          "warning",
+          "info"
+        ],
+        "optional": true,
+        "doc": "The category of the request, never its volume. Neutral rests; reach for `warning` or `destructive` when saying yes is risky in a way the sentence does not already say."
       }
     ]
   },
@@ -3125,6 +3329,84 @@ export const API: Record<string, ApiEntry> = {
         "type": "React.CSSProperties",
         "optional": true,
         "doc": "Inline styles, merged last. They land on the trigger, and with `render` on the element you rendered into."
+      }
+    ]
+  },
+  "MessageScrollerButton": {
+    "element": null,
+    "props": [
+      {
+        "name": "aria-label",
+        "type": "string",
+        "optional": false,
+        "doc": "The button's name, in your own words. The system cannot write them."
+      },
+      {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Whether something passes behind the button. It floats over the transcript by construction, so it says yes unless told otherwise, and wears the theme's material there; on a solid theme that still resolves solid and costs nothing."
+      },
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": false,
+        "doc": "The glyph."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": ""
+      }
+    ]
+  },
+  "MessageScrollerContent": {
+    "element": "div",
+    "props": []
+  },
+  "MessageScrollerItem": {
+    "element": "div",
+    "props": [
+      {
+        "name": "messageId",
+        "type": "string",
+        "optional": true,
+        "doc": "A stable id, so the row can be jumped to and reported visible."
+      },
+      {
+        "name": "scrollAnchor",
+        "type": "boolean",
+        "optional": true,
+        "doc": "A turn boundary: when it arrives, the transcript anchors it near the top so the reply that follows is read from its start. The person's own message, in a chat."
+      }
+    ]
+  },
+  "MessageScroller": {
+    "element": null,
+    "props": [
+      {
+        "name": "autoScroll",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Follow the live edge: while the reader is at the end, new content keeps the end in view. Scrolling up is the reader's opt-out and holds their place until they come back."
+      },
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The pane's own `ScrollArea` (or `ShellScroll`), holding the transcript and the jump button. Its viewport becomes the scroller; name it there with `aria-label`."
+      },
+      {
+        "name": "defaultScrollPosition",
+        "type": "MessageScrollerDefaultScrollPosition",
+        "values": [
+          "start",
+          "end",
+          "last-anchor"
+        ],
+        "optional": true,
+        "doc": "Where a transcript opens: at its end (a saved thread), its start, or the last anchored turn."
       }
     ]
   },

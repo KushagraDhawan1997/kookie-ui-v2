@@ -1487,6 +1487,30 @@ export const CATALOG: Record<string, CatalogEntry> = {
  */
 export const EXCLUDED: { name: string; why: string }[] = [
   {
+    name: "Confirmation",
+    why: "A confirmation is a question, and its two answers are callbacks. A builder document holds no behaviour, so a placed one would be two buttons that answer nothing.",
+  },
+  {
+    name: "Carousel",
+    why: "A carousel is only a carousel when its rail is bounded and its items are wider than the rail — two lengths that live in the layout the call site writes, not in any prop this canvas can edit. A placeable one would sit at content width with nothing to scroll, which draws two dead buttons and calls itself a carousel. Its parts are excluded with it, for the reason each of them states.",
+  },
+  {
+    name: "CarouselRail",
+    why: "Carousel's exclusion, inherited: the rail is a scroll region, and a scroll region with no stated box is an ordinary row of boxes that happens to be named after one.",
+  },
+  {
+    name: "CarouselItem",
+    why: "Carousel's exclusion, inherited: an item states no size on purpose, so on a canvas that cannot give it one it is an unstyled div that marks a snap point nothing will ever reach.",
+  },
+  {
+    name: "CarouselPrevious",
+    why: "Carousel's exclusion, inherited: the button reads the rail it belongs to, so outside a carousel it is a dead icon button with nothing to move.",
+  },
+  {
+    name: "CarouselNext",
+    why: "Carousel's exclusion, inherited: the button reads the rail it belongs to, so outside a carousel it is a dead icon button with nothing to move.",
+  },
+  {
     name: "SplitButton",
     why: "Its alternatives are a `menu` prop holding MenuItems — a subtree passed as a value, which is a value class this canvas has no way to edit. A placeable one could only ever open an empty menu, which is a chevron promising something it does not have.",
   },
@@ -1673,6 +1697,22 @@ export const EXCLUDED: { name: string; why: string }[] = [
   {
     name: "ShellNavItem",
     why: "A part of the Shell's sidebar. A nav row navigates — it needs a destination and a notion of which page you are on, neither of which a composition canvas has; a Button is what the builder offers for an action that stays on the screen.",
+  },
+  {
+    name: "MessageScroller",
+    why: "It is a behaviour over a scroller, and a scroller needs a stated height — `ScrollArea`'s own exclusion, inherited. There is nothing to see on this canvas either: what it does only appears when a transcript is taller than its box and something new arrives at the end of it. Its parts are excluded with it, because a row and a jump button mean nothing outside the transcript they belong to.",
+  },
+  {
+    name: "MessageScrollerContent",
+    why: "MessageScroller's exclusion, inherited: it is the transcript inside it.",
+  },
+  {
+    name: "MessageScrollerItem",
+    why: "MessageScroller's exclusion, inherited: it is one row of the transcript.",
+  },
+  {
+    name: "MessageScrollerButton",
+    why: "MessageScroller's exclusion, inherited: it is the jump control the transcript shows.",
   },
   {
     name: "ScrollArea",

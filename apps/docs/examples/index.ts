@@ -73,6 +73,7 @@ import ProgressExample from "./progress";
 import RadioGroupExample from "./radio-group";
 import RadioExample from "./radio";
 import RowExample from "./row";
+import MessageScrollerExample from "./message-scroller";
 import ScrollAreaExample from "./scroll-area";
 import SegmentedControlExample from "./segmented-control";
 import SelectExample from "./select";
@@ -88,6 +89,7 @@ import TableExample from "./table";
 import ToggleExample from "./toggle";
 import SplitButtonExample from "./split-button";
 import ButtonGroupExample from "./button-group";
+import CarouselExample from "./carousel";
 import TabsExample from "./tabs";
 import TextAreaExample from "./text-area";
 import TextFieldExample from "./text-field";
@@ -148,6 +150,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "radio-group": RadioGroupExample,
   "radio": RadioExample,
   "row": RowExample,
+  "message-scroller": MessageScrollerExample,
   "scroll-area": ScrollAreaExample,
   "segmented-control": SegmentedControlExample,
   "select": SelectExample,
@@ -164,6 +167,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "toggle": ToggleExample,
   "split-button": SplitButtonExample,
   "button-group": ButtonGroupExample,
+  carousel: CarouselExample,
   "tabs": TabsExample,
   "text-area": TextAreaExample,
   "text-field": TextFieldExample,

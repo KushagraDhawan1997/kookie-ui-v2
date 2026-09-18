@@ -40,6 +40,11 @@ import {
   BreadcrumbPage,
   Button,
   Card,
+  Carousel,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  CarouselRail,
   Checkbox,
   Code,
   CodeBlock,
@@ -74,6 +79,7 @@ import {
   MenuSub,
   MenuSubTrigger,
   MenuSubContent,
+  Confirmation,
   Notice,
   Popover,
   PopoverClose,
@@ -141,6 +147,10 @@ import {
   type Tone,
   Select,
   NavTree,
+  MessageScroller,
+  MessageScrollerButton,
+  MessageScrollerContent,
+  MessageScrollerItem,
   ScrollArea,
   SelectTrigger,
   SelectContent,
@@ -148,6 +158,7 @@ import {
 } from "@kookie-ui/react";
 
 import {
+  ArrowDownIcon,
   ChartIcon,
   FolderIcon,
   MoreIcon,
@@ -1310,6 +1321,31 @@ function AttachmentSection() {
 function NoticeSection() {
   return (
     <Stack gap="6">
+      {/* The sibling: a question rather than a condition. Two worded answers and no ✕; the
+          buttons take the strip's tone, and busy spins the yes while the no goes dead. */}
+      <Stack gap="4">
+        <Text size="2" emphasis="medium">Confirmation: a question with two answers</Text>
+        <Box maxWidth="34rem">
+          <Stack gap="3">
+            <Confirmation confirmLabel="Run" cancelLabel="Not now" onConfirm={() => {}} onCancel={() => {}}>
+              Run 4 nodes for $0.32?
+            </Confirmation>
+            <Confirmation
+              tone="destructive"
+              confirmLabel="Delete"
+              cancelLabel="Keep"
+              onConfirm={() => {}}
+              onCancel={() => {}}
+            >
+              Delete the 12 files this run created?
+            </Confirmation>
+            <Confirmation busy confirmLabel="Run" cancelLabel="Not now" onConfirm={() => {}} onCancel={() => {}}>
+              Run 4 nodes for $0.32?
+            </Confirmation>
+          </Stack>
+        </Box>
+      </Stack>
+
       {/* The specimen the component was designed from: a condition that is true right now,
           sitting on the thing it constrains, with one action that RESOLVES it and a dismissal
           that only acknowledges. Grey, and it is a warning — tone is the category (§29). */}
@@ -2665,6 +2701,55 @@ function SplitButtonSection() {
   );
 }
 
+function CarouselSection() {
+  const covers = ["One", "Two", "Three", "Four", "Five", "Six"];
+  return (
+    <Stack gap="6">
+      <Demo label="A rail that settles on its items, with a button each way">
+        <Carousel aria-label="Covers">
+          <Flex justify="space-between" align="center" gap="4">
+            <Text weight="medium">Covers</Text>
+            <Flex gap="2">
+              <CarouselPrevious>‹</CarouselPrevious>
+              <CarouselNext>›</CarouselNext>
+            </Flex>
+          </Flex>
+          <CarouselRail fade style={{ inlineSize: "28rem" }}>
+            <Flex gap="4">
+              {covers.map((name) => (
+                <CarouselItem key={name} style={{ inlineSize: "10rem", flex: "none" }}>
+                  <Stack gap="2">
+                    <div style={{ aspectRatio: "4 / 3", borderRadius: "var(--radius-surface-1)", background: "var(--neutral-3)" }} />
+                    <Text size="2">{name}</Text>
+                  </Stack>
+                </CarouselItem>
+              ))}
+            </Flex>
+          </CarouselRail>
+        </Carousel>
+      </Demo>
+      <Demo label="Nothing to scroll: both buttons dead, and the rail is still a rail">
+        <Carousel aria-label="One cover">
+          <Flex gap="2">
+            <CarouselPrevious>‹</CarouselPrevious>
+            <CarouselNext>›</CarouselNext>
+          </Flex>
+          <CarouselRail style={{ inlineSize: "28rem" }}>
+            <Flex gap="4">
+              <CarouselItem style={{ inlineSize: "10rem", flex: "none" }}>
+                <Stack gap="2">
+                  <div style={{ aspectRatio: "4 / 3", borderRadius: "var(--radius-surface-1)", background: "var(--neutral-3)" }} />
+                  <Text size="2">Only one</Text>
+                </Stack>
+              </CarouselItem>
+            </Flex>
+          </CarouselRail>
+        </Carousel>
+      </Demo>
+    </Stack>
+  );
+}
+
 function ButtonGroupSection() {
   return (
     <Stack gap="6">
@@ -3005,6 +3090,65 @@ const TREE_ITEMS: readonly TreeNode[] = [
   { id: "docs", label: "docs", children: [{ id: "readme", label: "README.md" }] },
   { id: "license", label: "LICENSE" },
 ];
+
+function MessageScrollerSection() {
+  const turns = Array.from({ length: 14 }, (_, i) => i + 1);
+  return (
+    <Stack gap="6">
+      {/* THE SCROLLER IS NOT A BOX OF ITS OWN: the ScrollArea the pane already has becomes its
+          viewport, so what is drawn here is the pane's anatomy unchanged — a card with a
+          scroller in it — that has learned to follow a live edge and to be jumped back to. */}
+      <Demo label="A transcript: opens at its end, and the jump button appears once you leave it">
+        <Card size="3" style={{ height: "22rem" }}>
+          <MessageScroller>
+            <ScrollArea fade aria-label="Transcript">
+              <MessageScrollerContent>
+                {turns.map((n) => (
+                  <MessageScrollerItem key={n} messageId={`m${n}`} scrollAnchor={n % 2 === 1}>
+                    <Stack gap="2">
+                      <Text size="3" weight="medium">
+                        {n % 2 === 1 ? "Asked" : "Answered"} {n}
+                      </Text>
+                      <Text size="3" emphasis="medium">
+                        A turn of a conversation, long enough that fourteen of them do not fit in the
+                        box they are in.
+                      </Text>
+                    </Stack>
+                  </MessageScrollerItem>
+                ))}
+              </MessageScrollerContent>
+              <MessageScrollerButton aria-label="Jump to the latest">
+                <ArrowDownIcon />
+              </MessageScrollerButton>
+            </ScrollArea>
+          </MessageScroller>
+        </Card>
+      </Demo>
+      {/* The opening position is the other half of the behaviour: a thread saved at its last
+          anchored turn opens there rather than at the end or the top. */}
+      <Demo label="Opening at the start, with following off">
+        <Card size="3" style={{ height: "14rem" }}>
+          <MessageScroller autoScroll={false} defaultScrollPosition="start">
+            <ScrollArea fade aria-label="Transcript from the start">
+              <MessageScrollerContent>
+                {turns.slice(0, 8).map((n) => (
+                  <MessageScrollerItem key={n} messageId={`s${n}`}>
+                    <Text size="3" emphasis="medium">
+                      Turn {n}
+                    </Text>
+                  </MessageScrollerItem>
+                ))}
+              </MessageScrollerContent>
+              <MessageScrollerButton aria-label="Jump to the end">
+                <ArrowDownIcon />
+              </MessageScrollerButton>
+            </ScrollArea>
+          </MessageScroller>
+        </Card>
+      </Demo>
+    </Stack>
+  );
+}
 
 function TreeSection() {
   return (
@@ -3355,6 +3499,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "page", name: "Page", body: <PageSection /> },
   ported("select"),
   { id: "layout", name: "Layout — Box, Flex, Grid, Stack", body: <LayoutSection /> },
+  { id: "message-scroller", name: "Message scroller", body: <MessageScrollerSection /> },
   { id: "popover", name: "Popover", body: <PopoverSection /> },
   { id: "progress", name: "Progress", body: <ProgressSection /> },
   { id: "radio", name: "Radio", body: <RadioSection /> },
@@ -3376,6 +3521,7 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "toggle", name: "Toggle", body: <ToggleSection /> },
   { id: "split-button", name: "Split Button", body: <SplitButtonSection /> },
   { id: "button-group", name: "Button Group", body: <ButtonGroupSection /> },
+  { id: "carousel", name: "Carousel", body: <CarouselSection /> },
   { id: "toolbar", name: "Toolbar", body: <ToolbarSection /> },
   { id: "tooltip", name: "Tooltip", body: <TooltipSection /> },
   { id: "tree", name: "Tree", body: <TreeSection /> },
