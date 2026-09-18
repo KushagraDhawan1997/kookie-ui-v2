@@ -155,7 +155,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
             pre-paint script's treatment, the same one dark mode has. */}
         <ShellSidebar
           aria-label="Documentation"
-          flush={true}
+          flush={false}
           resizable
           /* 336 SINCE 2026-09-05 (Kushagra: "much wider"), against the package's own 288 — the
              one number the app has to state, because §27's default is right for a library that
@@ -440,7 +440,11 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
                   ]}
                 />
                 <PageActions paths={PAGES.map((page) => page.path)} />
-                <RepoLink label={GITHUB.label} name={GITHUB.name} href={GITHUB.href} />
+                <RepoLink
+                  label={GITHUB.label}
+                  name={GITHUB.name}
+                  href={GITHUB.href}
+                />
               </ToolbarOverflow>
             </Toolbar>
           </ShellPaneHeader>
