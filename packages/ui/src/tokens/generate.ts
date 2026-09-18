@@ -593,6 +593,12 @@ export function generateTokens(): string {
               `material-${t}-control-alpha`,
               `${material[mode][t].alphaHigh[0] + (material[mode][t].control.alpha - material[mode][t].alpha[0])}%`,
             ),
+            // And the REGION cell, by the same derivation, capped where the offset would
+            // carry it past opaque (2026-09-18).
+            decl(
+              `material-${t}-region-alpha`,
+              `${Math.min(98, material[mode][t].alphaHigh[0] + (material[mode][t].region.alpha - material[mode][t].alpha[0]))}%`,
+            ),
           );
         }
         // The resting edges yield for the same reason the material's does, and by the same
@@ -1280,6 +1286,13 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
       // against the cell's 140-180%): a committed pigment wants the backdrop glowing
       // through it, not politely tinted. Dark's lock: saturate 180%, no brightness lift.
       decl(`material-${name}-control-filter-loud`, m[name].control.filterLoud),
+      // REGION-scale material (2026-09-18): the third scale of one material — a denser veil
+      // and a further blur for the panes that hold paragraphs over passing content (shell
+      // panes, Sheet, Composer). Same saturation and brightness as the pane row: one thing
+      // moves per scale, not a second material. See config's region comment.
+      decl(`material-${name}-region-alpha`, `${m[name].region.alpha}%`),
+      decl(`material-${name}-region-filter`, m[name].region.filter),
+      decl(`material-${name}-region-filter-frost`, m[name].region.frost),
       // Dark FLOATING panes lighten (lab 2026-08-15): the veil lifts toward white. Light's
       // floating veil is the in-flow veil verbatim, so the token exists in both modes and
       // the floating rules stay mode-blind.

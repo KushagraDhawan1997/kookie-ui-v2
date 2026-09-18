@@ -281,7 +281,7 @@ export type SheetContentProps = ComponentRefusals &
     the overlay band's corner, the family's padding and `--kui-overlay-w`. `data-side` is the
     logical edge the sheet's own stylesheet places and rounds by. */
 function popupProps(size: Size, side: SheetSide, material: SurfaceMaterial, className?: string) {
-  const identity = "kui-surface kui-overlay kui-sheet-popup";
+  const identity = "kui-surface kui-region kui-overlay kui-sheet-popup";
   return {
     "data-size": size,
     "data-side": side,

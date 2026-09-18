@@ -144,7 +144,7 @@ export function Composer({
             data-bordered
             data-material={material === "solid" ? undefined : material}
             className={
-              className ? `kui-surface kui-composer ${className}` : "kui-surface kui-composer"
+              className ? `kui-surface kui-region kui-composer ${className}` : "kui-surface kui-region kui-composer"
             }
             onSubmit={handleSubmit}
             onDrop={handleDrop}

@@ -794,7 +794,7 @@ export function ShellHeader({
       {...stamps}
       ref={ref}
       data-size={size}
-      className={cx("kui-surface kui-shell-pane kui-shell-header", className)}
+      className={cx("kui-surface kui-region kui-shell-pane kui-shell-header", className)}
     >
       <GlassScope material={material}>
         <ShellSizeContext.Provider value={size}>{children}</ShellSizeContext.Provider>
@@ -849,7 +849,7 @@ export function ShellContent({
       {...stamps}
       ref={ref}
       data-size={size}
-      className={cx("kui-surface kui-shell-pane kui-shell-content", className)}
+      className={cx("kui-surface kui-region kui-shell-pane kui-shell-content", className)}
     >
       <GlassScope material={material}>
         <ShellSizeContext.Provider value={size}>
@@ -1495,7 +1495,7 @@ function SidePane({
       {...rest}
       id={pane.id}
       ref={bare ? composedRef : paneRef}
-      className={cx(bare ? "kui-shell-pane" : "kui-surface kui-shell-pane", `kui-shell-${name}`, className)}
+      className={cx(bare ? "kui-shell-pane" : "kui-surface kui-region kui-shell-pane", `kui-shell-${name}`, className)}
       {...(bare ? {} : stamps)}
       // The pane wears the index as well as providing it: its own geometry reads it (the
       // rail derives its whole extent from `--control-height-N` at this index), and a
@@ -1885,7 +1885,7 @@ export function ShellBottom(props: ShellBottomProps) {
       {...rest}
       id={pane.id}
       ref={paneRef}
-      className={cx("kui-surface kui-shell-pane kui-shell-bottom", className)}
+      className={cx("kui-surface kui-region kui-shell-pane kui-shell-bottom", className)}
       {...stamps}
       data-size={size}
       data-state={pane.state}

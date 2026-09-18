@@ -74,7 +74,9 @@ const TOKEN_NAMES = THICKNESSES.flatMap((t) => [
   `--material-${t}-alpha-active`,
   `--material-${t}-alpha-floating`,
   `--material-${t}-control-alpha`,
+  `--material-${t}-region-alpha`,
   `--material-${t}-filter`,
+  `--material-${t}-region-filter`,
   `--material-${t}-control-filter`,
   `--material-${t}-control-filter-hover`,
   `--material-${t}-control-filter-loud`,
@@ -107,14 +109,21 @@ function snapshot(): Record<Mode, Map<string, string>> {
   return out;
 }
 
-type MatDials = { veil: number; blur: number; sat: number; contrast: number; sheen: number; edge: number };
-const MAT_DEFAULT: MatDials = { veil: 1, blur: 1, sat: 1, contrast: 1, sheen: 1, edge: 1 };
+type MatDials = { veil: number; blur: number; sat: number; contrast: number; sheen: number; edge: number; regionVeil: number; regionBlur: number };
+const MAT_DEFAULT: MatDials = { veil: 1, blur: 1, sat: 1, contrast: 1, sheen: 1, edge: 1, regionVeil: 1, regionBlur: 1 };
 
 const scaleNum = (v: number, x: number) => Number((v * x).toFixed(3));
 
 /** One token value under the dials. Percentages inside gradients are the sheen's; alphas
     inside `rgb(... / a)` are the ring's; `blur()`/`saturate()` terms are the filter's own. */
 function retoken(name: string, value: string, d: MatDials): string {
+  // The REGION cell has its own two dials, over the shared ones — so the region can be judged
+  // against the pane it holds rather than moving with it.
+  if (name.includes("-region-")) {
+    const shared = retoken(name.replace("-region-", "-"), value, d);
+    if (name.endsWith("-filter")) return shared.replace(/blur\(([0-9.]+)px\)/, (_, b: string) => `blur(${scaleNum(parseFloat(b), d.regionBlur)}px)`);
+    return shared.replace(/([0-9.]+)%/, (_, a: string) => `${Math.min(100, scaleNum(parseFloat(a), d.regionVeil))}%`);
+  }
   if (name.includes("-ring") || name.includes("-glint")) {
     return value.replace(/\/ ([0-9.]+)\)/g, (_, a: string) => `/ ${Math.min(1, scaleNum(parseFloat(a), d.edge))})`);
   }
@@ -193,7 +202,7 @@ function Slider({
   );
 }
 
-const LENS_DEFAULT = { bezelX: 1, thicknessX: 1, ior: 0, profileP: 2, concave: false, preBlur: 0 };
+const LENS_DEFAULT = { bezelX: 1, thicknessX: 1, ior: 0, profileP: 2, concave: false, preBlur: 0, regionBezelX: 1 };
 const GLINT_DEFAULT = { glintBandX: 1, glintFalloff: 4, rimSaturate: 0 };
 
 export function LensBench() {
@@ -214,7 +223,7 @@ export function LensBench() {
   React.useEffect(() => {
     if (!open) return;
     const lensAtRest =
-      lensD.bezelX === 1 && lensD.thicknessX === 1 && lensD.ior === 0 && lensD.profileP === 2 && !lensD.concave && lensD.preBlur === 0;
+      lensD.bezelX === 1 && lensD.thicknessX === 1 && lensD.ior === 0 && lensD.profileP === 2 && !lensD.concave && lensD.preBlur === 0 && lensD.regionBezelX === 1;
     const glintAtRest = glintD.glintBandX === 1 && glintD.glintFalloff === 4 && glintD.rimSaturate === 0;
     if (lensAtRest && glintAtRest) {
       __retuneLens(null);
@@ -227,6 +236,7 @@ export function LensBench() {
       profileP: lensD.profileP,
       concave: lensD.concave,
       preBlur: lensD.preBlur,
+      regionBezelX: lensD.regionBezelX,
       glintBandX: glintD.glintBandX,
       glintFalloff: glintD.glintFalloff,
       rimSaturate: glintD.rimSaturate,
@@ -322,6 +332,7 @@ export function LensBench() {
       "// packages/ui/src/tokens/config.ts (material):",
       `//   veil x${mat.veil}, blur x${mat.blur}, saturate x${mat.sat}, contrast ${mat.contrast === 1 ? "(none)" : `+contrast(${mat.contrast})`}`,
       `//   sheen x${mat.sheen}, ring alphas x${mat.edge}`,
+      `//   region: veil x${mat.regionVeil}, blur x${mat.regionBlur}, bezel x${lensD.regionBezelX} (over lensScale.region)`,
     ].join("\n");
 
   if (!open) {
@@ -381,6 +392,16 @@ export function LensBench() {
         <Slider label="contrast term" value={mat.contrast} min={0.7} max={1.4} step={0.05} suffix="" onChange={(v) => setMat({ ...mat, contrast: v })} />
         <Slider label="sheen" value={mat.sheen} min={0} max={2} step={0.1} suffix="×" onChange={(v) => setMat({ ...mat, sheen: v })} />
         <Slider label="edge light" value={mat.edge} min={0} max={3} step={0.1} suffix="×" onChange={(v) => setMat({ ...mat, edge: v })} />
+
+        <Heading size="1" render={<h3 />}>
+          Region
+        </Heading>
+        <Text size="1" emphasis="medium">
+          The shell panes, a sheet and the composer — over the pane cell they already carry.
+        </Text>
+        <Slider label="region veil" value={mat.regionVeil} min={0.5} max={1.5} step={0.05} suffix="×" onChange={(v) => setMat({ ...mat, regionVeil: v })} />
+        <Slider label="region blur" value={mat.regionBlur} min={0} max={3} step={0.1} suffix="×" onChange={(v) => setMat({ ...mat, regionBlur: v })} />
+        <Slider label="region bezel" value={lensD.regionBezelX} min={0.25} max={4} step={0.25} suffix="×" onChange={(v) => setLensD({ ...lensD, regionBezelX: v })} />
 
         <Text size="1" emphasis="quiet">
           {seen} lens{seen === 1 ? "" : "es"} on the page.
