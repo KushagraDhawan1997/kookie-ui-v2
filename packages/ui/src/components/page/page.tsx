@@ -119,7 +119,7 @@ export function Page({
         {mark === undefined || mark === null ? null : (
           <div className="kui-page-mark">{mark}</div>
         )}
-        <Heading size={PAGE_TITLE_STEP} render={<h1 />}>
+        <Heading size={PAGE_TITLE_STEP} weight="medium" render={<h1 />}>
           {title}
         </Heading>
         {description === undefined || description === null ? null : (
