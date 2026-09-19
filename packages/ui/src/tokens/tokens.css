@@ -49,18 +49,18 @@
   --font-size-4: calc(18px * var(--scale));
   --font-size-5: calc(20px * var(--scale));
   --font-size-6: calc(24px * var(--scale));
-  --font-size-7: calc(30px * var(--scale));
-  --font-size-8: calc(40px * var(--scale));
-  --font-size-9: calc(56px * var(--scale));
+  --font-size-7: calc(32px * var(--scale));
+  --font-size-8: calc(44px * var(--scale));
+  --font-size-9: calc(64px * var(--scale));
   --line-height-1: calc(16px * var(--scale));
   --line-height-2: calc(20px * var(--scale));
   --line-height-3: calc(24px * var(--scale));
   --line-height-4: calc(26px * var(--scale));
   --line-height-5: calc(28px * var(--scale));
   --line-height-6: calc(32px * var(--scale));
-  --line-height-7: calc(38px * var(--scale));
-  --line-height-8: calc(48px * var(--scale));
-  --line-height-9: calc(62px * var(--scale));
+  --line-height-7: calc(40px * var(--scale));
+  --line-height-8: calc(52px * var(--scale));
+  --line-height-9: calc(70px * var(--scale));
   --letter-spacing-1: 0em;
   --letter-spacing-2: 0em;
   --letter-spacing-3: 0em;
@@ -5825,10 +5825,10 @@
 
 @media (max-width: 48rem) {
   :root {
-    --font-size-8: calc(30px * var(--scale));
-    --font-size-9: calc(40px * var(--scale));
-    --line-height-8: calc(38px * var(--scale));
-    --line-height-9: calc(48px * var(--scale));
+    --font-size-8: calc(32px * var(--scale));
+    --font-size-9: calc(44px * var(--scale));
+    --line-height-8: calc(40px * var(--scale));
+    --line-height-9: calc(52px * var(--scale));
     --letter-spacing-8: -0.015em;
     --letter-spacing-9: -0.02em;
   }

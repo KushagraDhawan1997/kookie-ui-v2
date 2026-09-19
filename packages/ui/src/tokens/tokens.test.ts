@@ -1047,7 +1047,7 @@ describe("the two type bands, and only type (§15, §17, split 2026-08-05)", () 
       expect(picks.every((p, i) => i === 0 || p >= picks[i - 1]!)).toBe(true);
     }
     // The direction of each band is its reason for existing (the values are taste): reading rises
-    // toward the HIG's 17pt, display falls because a short line cannot hold 56px.
+    // toward the HIG's 17pt, display falls because a short line cannot hold 64px.
     expect(typeBands.handheld[2]!).toBeGreaterThan(3);
     expect(typeBands.narrow[8]!).toBeLessThan(9);
     // ...and each band leaves the OTHER's steps alone, which is the split itself.
@@ -1063,12 +1063,12 @@ describe("the two type bands, and only type (§15, §17, split 2026-08-05)", () 
     const tabletLandscape = [px(typeBands.handheld, 2), px([1, 2, 3, 4, 5, 6, 7, 8, 9], 8)];
     const narrowDesktop = [px([1, 2, 3, 4, 5, 6, 7, 8, 9], 2), px(typeBands.narrow, 8)];
 
-    expect(desktopWide).toEqual([16, 56]);
-    expect(phone).toEqual([18, 40]);
+    expect(desktopWide).toEqual([16, 64]);
+    expect(phone).toEqual([18, 44]);
     // The two the single band got wrong: a tablet rises AND keeps its display size...
-    expect(tabletLandscape).toEqual([18, 56]);
+    expect(tabletLandscape).toEqual([18, 64]);
     // ...and a squeezed desktop window cuts its display without touching reading sizes.
-    expect(narrowDesktop).toEqual([16, 40]);
+    expect(narrowDesktop).toEqual([16, 44]);
   });
 });
 

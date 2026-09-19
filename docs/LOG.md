@@ -11419,3 +11419,9 @@ a second frame architecture, not a flag. Recorded, not built.
 ## 2026-09-19 — The page title is medium weight
 
 Kushagra: "Go medium." `Page` rendered its title with `Heading`'s default, semibold. It now states `weight="medium"`. At step 9 the size already ranks the title, and §15's first rule is that size ranks and weight does not. Only the page title moved; `Heading` still defaults to semibold. The law reads the title against two mounted headings, one medium and one default, so it still fails if the Heading default ever becomes medium.
+
+## 2026-09-19 — The display steps spread further apart
+
+Kushagra: "I feel the 9 is too small… it should scale bit more aggressively." Steps 7-9 went 30/40/56 → 32/44/64, with their line heights 38/48/62 → 40/52/70. Steps 1-6 are unchanged: the reading sizes stay close together on purpose (§15), so only the display end widens. The step-to-step ratio across the top is now ~1.33/1.38/1.45 against 1.25/1.33/1.4. The narrow band still drops steps 8-9 by one step each, so a narrow window now shows 32/44 where it showed 30/40.
+
+**Rejected.** Changing the ramp to a single ratio: the reading steps need their near-linear spacing, and a ratio aggressive enough for the display end pulls step 4 and 5 apart as well.

@@ -37,9 +37,9 @@ describe("a size step joins the three paired scales at one index (§15)", () => 
     expect(computed(body, "line-height")).toBe("24px");
 
     const display = render(<Text size="9">display</Text>);
-    expect(computed(display, "font-size")).toBe("56px");
-    // Paired, not derived: 62/56 ≈ 1.11 — a global 1.5 ratio would have said 84.
-    expect(computed(display, "line-height")).toBe("62px");
+    expect(computed(display, "font-size")).toBe("64px");
+    // Paired, not derived: 70/64 ≈ 1.09 — a global 1.5 ratio would have said 96.
+    expect(computed(display, "line-height")).toBe("70px");
     // Display sizes tighten; the negative tracking comes from the paired token.
     expect(parseFloat(computed(display, "letter-spacing"))).toBeLessThan(0);
   });
@@ -101,7 +101,7 @@ describe("the HANDHELD band: coarse re-picks the reading steps, fine is the esca
     // Step 9 maps to ITSELF here, and that is the split of 2026-08-05 (LOG): a held screen is
     // close to the eye, which is a reason to raise reading sizes and no reason at all to cut
     // display sizes. Cutting them is a line-length fact, and line length is width — so the
-    // display steps moved to their own band and an iPad keeps its 56px heading.
+    // display steps moved to their own band and an iPad keeps its 64px heading.
     for (const appearance of APPEARANCES) {
       for (const [size, pick] of [
         ["1", "2"],

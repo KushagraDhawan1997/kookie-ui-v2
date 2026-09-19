@@ -311,9 +311,9 @@ export const targetMin = 24;
 export const inputFontFloor = 16;
 
 /** §15 — type. Nine steps: type's dynamic range is wider than the control family's. */
-export const fontSize = [12, 14, 16, 18, 20, 24, 30, 40, 56] as const;
+export const fontSize = [12, 14, 16, 18, 20, 24, 32, 44, 64] as const;
 /** Paired designed values, not a derived ratio: ~1.5 through reading sizes, tightening toward ~1.1 at display. */
-export const lineHeight = [16, 20, 24, 26, 28, 32, 38, 48, 62] as const;
+export const lineHeight = [16, 20, 24, 26, 28, 32, 40, 52, 70] as const;
 /** Paired, in em so it tracks the size for free. ~0 through reading sizes, slightly negative at display. */
 export const letterSpacing = [0, 0, 0, -0.005, -0.0075, -0.01, -0.015, -0.02, -0.025] as const;
 
@@ -349,7 +349,7 @@ export const letterSpacing = [0, 0, 0, -0.005, -0.0075, -0.01, -0.015, -0.02, -0
  *                            wrongly ignored.
  *
  * They compose, and the four cells come out right — including the two the single band got
- * wrong: an iPad in landscape rises and keeps its 56px display, and a narrow desktop window
+ * wrong: an iPad in landscape rises and keeps its 64px display, and a narrow desktop window
  * cuts its display without touching its reading sizes.
  *
  * Each band emits only the steps it MOVES (the generator derives that set), so the two cannot

@@ -1384,12 +1384,12 @@ It is the only component in the library whose identity §11 had described and no
 `--font-size-1..9`. Controls consume steps 1-4 through the size index (section 4); Text and Heading span the full range. Hybrid curve like space (section 3): near-linear through the reading sizes (all constantly used, must stay distinct), geometric at display sizes. Illustrative:
 
 ```css
---font-size-1: 12px    --font-size-4: 18px    --font-size-7: 30px
---font-size-2: 14px    --font-size-5: 20px    --font-size-8: 40px
---font-size-3: 16px    --font-size-6: 24px    --font-size-9: 56px
+--font-size-1: 12px    --font-size-4: 18px    --font-size-7: 32px
+--font-size-2: 14px    --font-size-5: 20px    --font-size-8: 44px
+--font-size-3: 16px    --font-size-6: 24px    --font-size-9: 64px
 ```
 
-Anchor-derived off `--font-size-base` (step 3) x `--scale` — never `--density` (section 12). Nine steps, not six: type's dynamic range (12 to 56+) is wider than the control family's, the same reasoning that gave space 12 steps and radius 6 (section 6's ceilings rule). The type bands (section 17) re-price the palette per band — a size step names a *role on the ramp*, and what a role renders as follows the band, the same move contrast makes on colour roles; density still never touches it, and the handheld band's carrier is the pointer axis itself (the `device` prop is dropped — section 17).
+Anchor-derived off `--font-size-base` (step 3) x `--scale` — never `--density` (section 12). Nine steps, not six: type's dynamic range (12 to 64+) is wider than the control family's, the same reasoning that gave space 12 steps and radius 6 (section 6's ceilings rule). The type bands (section 17) re-price the palette per band — a size step names a *role on the ramp*, and what a role renders as follows the band, the same move contrast makes on colour roles; density still never touches it, and the handheld band's carrier is the pointer axis itself (the `device` prop is dropped — section 17).
 
 ### Line height: paired, not derived
 
@@ -1539,7 +1539,7 @@ Rejected: rem-derived geometry from a root font-size switch (one root scales gut
 | band | what moves | why | signal |
 |---|---|---|---|
 | `handheld` | reading steps 1–4 rise (16 → 18) | the screen is close to the eye | `(pointer: coarse)` |
-| `narrow` | display steps 8–9 fall (56 → 40) | the line is short | `(max-width: 48rem)` |
+| `narrow` | display steps 8–9 fall (64 → 44) | the line is short | `(max-width: 48rem)` |
 
 Steps 5–7 are nobody's. Each band emits **only the steps it moves**, which is what lets two bands coexist without overwriting each other on a phone, where both apply.
 
