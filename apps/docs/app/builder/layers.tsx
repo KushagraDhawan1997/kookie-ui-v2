@@ -343,7 +343,6 @@ export function LayersFilter({
          sidebar is flush and therefore solid, and a solid surface HOSTS glass (2026-08-19).
          The docs shell's own floating search button says the same word for the same reason. */
       backdrop
-      size="2"
       {...(inputRef ? { ref: inputRef } : {})}
       value={value}
       onChange={(e) => onChange(e.target.value)}

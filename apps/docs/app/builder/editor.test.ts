@@ -1958,6 +1958,117 @@ describe("review reads the house style off the document", () => {
         }),
       ],
       "orphan-part": [node("SegmentedItem", { value: "x" }, { text: "Stray" })],
+      "placeholder-as-label": [node("TextField", { placeholder: "Email", "aria-label": "Email" })],
+      "instructions-in-placeholder": [
+        node("TextField", { placeholder: "DD/MM/YYYY", "aria-label": "Date of birth" }),
+      ],
+      "breadcrumb-current-linked": [
+        node("Breadcrumb", {}, {
+          children: [
+            node("BreadcrumbItem", {}, { children: [node("BreadcrumbLink", { href: "#" }, { text: "Home" })] }),
+            node("BreadcrumbItem", {}, { children: [node("BreadcrumbLink", { href: "#" }, { text: "Here" })] }),
+          ],
+        }),
+      ],
+      "empty-heading": [node("Heading", {}, { text: "" })],
+      "generic-error": [
+        node("Field", {}, {
+          children: [
+            node("FieldLabel", {}, { text: "Email" }),
+            node("TextField", {}),
+            node("FieldError", {}, { text: "Invalid" }),
+          ],
+        }),
+      ],
+      "label-in-name": [node("Button", { "aria-label": "Submit form" }, { text: "Save" })],
+      "long-action": [node("Button", {}, { text: "Save all of my changes now" })],
+      "negative-option": [
+        node("Field", {}, {
+          children: [
+            node("FieldItem", {}, {
+              children: [node("Checkbox", {}), node("FieldLabel", {}, { text: "Don't send email" })],
+            }),
+          ],
+        }),
+      ],
+      "picture-without-alt": [node("Avatar", { src: "/face.jpg", fallback: "SB" })],
+      "radios-in-a-row": [
+        node("RadioGroup", { defaultValue: "a", "aria-label": "Plan" }, {
+          children: [
+            node("Flex", { gap: "3" }, {
+              children: ["a", "b", "c"].map((v) => node("Radio", { value: v, "aria-label": v })),
+            }),
+          ],
+        }),
+      ],
+      "reset-beside-submit": [
+        node("Flex", { gap: "3" }, {
+          children: [node("Button", {}, { text: "Reset" }), node("Button", { emphasis: "loud" }, { text: "Save" })],
+        }),
+      ],
+      "single-radio": [
+        node("RadioGroup", { defaultValue: "a", "aria-label": "Plan" }, {
+          children: [node("Radio", { value: "a", "aria-label": "Only" })],
+        }),
+      ],
+      "single-tab": [
+        node("Tabs", { defaultValue: "one" }, {
+          children: [
+            node("TabsList", { "aria-label": "Sections" }, {
+              children: [node("TabsTab", { value: "one" }, { text: "First" })],
+            }),
+            node("TabsPanel", { value: "one" }, { children: [node("Text", {}, { text: "one" })] }),
+          ],
+        }),
+      ],
+      "switch-in-a-form": [
+        node("Card", { size: "3" }, {
+          children: [
+            node("Stack", { gap: "5" }, {
+              children: [
+                node("Switch", { "aria-label": "Alerts" }),
+                node("Button", { emphasis: "loud" }, { text: "Save" }),
+              ],
+            }),
+          ],
+        }),
+      ],
+      "table-headers": [
+        node("Table", {}, {
+          children: [
+            node("TableBody", {}, {
+              children: [node("TableRow", {}, { children: [node("TableCell", {}, { text: "Cell" })] })],
+            }),
+          ],
+        }),
+      ],
+      "tabs-without-panels": [
+        node("Tabs", { defaultValue: "one" }, {
+          children: [
+            node("TabsList", { "aria-label": "Sections" }, {
+              children: [
+                node("TabsTab", { value: "one" }, { text: "First" }),
+                node("TabsTab", { value: "two" }, { text: "Second" }),
+              ],
+            }),
+            node("TabsPanel", { value: "one" }, { children: [node("Text", {}, { text: "one" })] }),
+          ],
+        }),
+      ],
+      "too-many-choices": [
+        node("SegmentedControl", { defaultValue: "1", "aria-label": "Pick" }, {
+          children: ["1", "2", "3", "4", "5", "6"].map((v) => node("SegmentedItem", { value: v }, { text: v })),
+        }),
+      ],
+      "vague-action": [node("Button", {}, { text: "OK" })],
+      "way-back-as-loud": [
+        node("Flex", { gap: "3" }, {
+          children: [
+            node("Button", { emphasis: "loud" }, { text: "Cancel" }),
+            node("Button", { emphasis: "loud" }, { text: "Save" }),
+          ],
+        }),
+      ],
     };
 
     for (const rule of RULES) {

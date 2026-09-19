@@ -299,8 +299,14 @@ export const RULES: Rule[] = [
         if (n.type === "Button") return !n.text?.trim();
         return false;
       };
+      // A FieldLabel in the control's own Field (or FieldItem) names it: Base UI wires the two
+      // together by id, which is the whole reason Field exists (§28).
+      const labelled = (parents: BuilderNode[]): boolean =>
+        (nearest(parents, new Set(["Field", "FieldItem"]))?.children ?? []).some(
+          (c) => c.type === "FieldLabel",
+        );
       return all
-        .filter(({ node }) => needsName(node))
+        .filter(({ node, parents }) => needsName(node) && !labelled(parents))
         .map(({ node }) => ({
           nodeId: node.id,
           message: `${node.type} has no accessible name.`,

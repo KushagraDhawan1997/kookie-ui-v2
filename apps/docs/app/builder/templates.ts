@@ -123,6 +123,8 @@ export const TEMPLATES: Template[] = [
   {
     id: "settings",
     name: "Settings section",
+    // No Save button: a switch acts the moment it flips, and a Save beside it says the opposite
+    // (switch-in-a-form).
     blurb: "Labelled switches with their consequences said quietly.",
     build: () => [
       node("Card", { size: "3" }, {
@@ -145,9 +147,6 @@ export const TEMPLATES: Template[] = [
                   node("Separator"),
                   switchRow("Weekly digest", "One summary each Monday morning."),
                 ],
-              }),
-              node("Flex", { gap: "3", justify: "flex-end" }, {
-                children: [node("Button", { emphasis: "loud" }, { text: "Save changes" })],
               }),
             ],
           }),

@@ -12,58 +12,12 @@
  * ── THE PANEL'S STRUCTURE (2026-09-02, Kushagra, with Figma's own inspector open beside
  *    ours: "we dont have a system yet, lets try and make a structure and system out of it")
  *
- * It had none, and that is a fair reading of what was there: three different shapes for the
- * one thing a property panel does. A picker was a `space-between` row, a string was a label
- * stacked over a full-width field, a boolean was a third arrangement — so no two controls
- * began at the same x, and nothing in the column said where one group of knobs ended and the
- * next began. The headings were the same size and weight as the labels under them, and a
- * hairline appeared above two sections out of five.
- *
- * Three parts, and every row in this file is one of them:
- *
- *   PANEL   — the COLUMNS, declared once for the whole panel: `auto minmax(0, 1fr)`. This is
- *             the part that makes it read as a panel, and the part the first two passes got
- *             wrong. A grid per row aligns a row with itself; a grid per section lets every
- *             section disagree with the next; one grid for the panel is the only arrangement
- *             where "the label column" is a thing that exists. Measured: every control in
- *             every section now starts at one x and ends at one x.
- *             No number in it — the content sizes the names' column, and a stated width
- *             would be a raw length in a system that has none for this.
- *
- *   SECTION — a heading, a hairline above it running wall to wall, and rows underneath. Also
- *             a fragment, for the same reason: the panel owns the columns.
- *             The hairline is the panel's own seam, so it bleeds (`mx="bleed"`) exactly as
- *             the pane's chrome row does; a section boundary that stops short of the walls
- *             reads as a line drawn inside the panel rather than as a division of it.
- *
- *   ROW     — a name and its value, as TWO CELLS of that grid. The ONLY row shape there is,
- *             which is the third pass's whole change (2026-09-02, Kushagra with Figma open:
- *             "every row is standard, every label standard"). A fragment, never a wrapper: a
- *             box around the pair would make it one grid item and put the halves back inside
- *             their own box, the same mistake one level down. Its three rules are stated on
- *             the component — the label is a STRING by type, the value cell divides evenly
- *             among what is in it, and a control that cannot fill sits on the column's far
- *             line rather than its near one.
- *
- * There is no FIELD any more. A string used to stack its name above a full-width input, on
- * the argument that a sentence does not fit a column — true of a paragraph, and not of what
- * is typed here: a button's label, a placeholder, a heading. What it actually bought was a
- * second label position, which is exactly what stops a panel reading as one thing.
- *
- * The header is outside all of it: the node's name, its reference link and its blurb, over
- * the first hairline. Figma's says less because Figma is not teaching anybody; the blurb
- * earns its place here for the same reason the refusals do.
- *
- * ONE RANK PER STEP, which is what stops a structure from flattening back out. Four ranks, one
- * type step apart each, and every piece of text in the panel is one of them:
- *
- *   the panel's title    size 4, medium weight, full ink
- *   a section heading    size 3, medium weight, full ink
- *   a name               size 2, regular weight, the muted ink
- *   a sentence           size 1, regular weight, the quiet ink
- *
- * Rank was carried by weight and ink alone before this — a heading and a name were both size
- * 2 — and a difference you have to look for is not a rank.
+ * The 2026-09-02 passes gave it one: a single two-column grid, a name beside every value,
+ * and one type step per rank. The 2026-09-15 iteration took Figma's anatomy instead — a
+ * caption ABOVE each control, two value columns and an action column — and the structure
+ * block beside `Panel` below is the contract now. What survived from the first cut is the
+ * rule under both: the columns are declared ONCE for the whole panel, every row is a subgrid
+ * of them, and every caption is written the same way.
  */
 
 import * as React from "react";
@@ -96,7 +50,7 @@ import {
   themeAxes,
 } from "@kookie-ui/react";
 
-import { VocabularyIcon, PlusIcon, XIcon } from "../icons";
+import { PlusIcon, XIcon } from "../icons";
 import { ENTRIES } from "../(docs)/components/registry";
 
 /** The reference page for a component, when the docs have one — the inspector's header links
@@ -621,7 +575,6 @@ const sameValue = (a: PropValue | undefined, b: PropValue | undefined): boolean 
 export function MultiInspector({
   nodes,
   onProp,
-  actions,
   children,
 }: {
   actions?: React.ReactNode;
@@ -715,10 +668,8 @@ export function Inspector({
   onProp,
   onText,
   onSlot,
-  onSelect,
   textRef,
   measured,
-  actions,
   arrange,
   children,
 }: {

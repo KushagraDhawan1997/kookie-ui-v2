@@ -45,7 +45,7 @@ import {
 } from "./model";
 import { API } from "../(docs)/components/api.generated";
 import { renderNode } from "./render";
-import { BuilderApp, LEFT_REGIONS } from "./builder-app";
+import { BuilderApp } from "./builder-app";
 import { Layers, LayersFilter } from "./layers";
 import { JumpBar } from "./chrome";
 import { ReviewPanel } from "./review-panel";
@@ -809,20 +809,16 @@ describe("the editor's own frame (§27)", () => {
   // Falsified by swapping the rail and the sidebar in the source — the law reads the real
   // document order, not the presence of five names. (Against the pre-port app the question
   // does not arise: that file mentions `Shell` nowhere, so `panes` is empty.)
+  // The header and the rail went on 2026-09-14/15: the canvas carries its own floating
+  // toolbars, and the sidebar switches between Layers and Add itself.
   it("is a Shell, in the reading order an app frame has", () => {
-    expect(panes).toEqual([
-      "kui-shell-header",
-      "kui-shell-rail",
-      "kui-shell-sidebar",
-      "kui-shell-content",
-      "kui-shell-inspector",
-    ]);
+    expect(panes).toEqual(["kui-shell-sidebar", "kui-shell-content", "kui-shell-inspector"]);
   });
 
-  it("names both nav landmarks — two of them on one page is a page with two anonymous navs", () => {
-    const labels = [...html.matchAll(/<nav\b[^>]*\baria-label="([^"]*)"/g)].map((m) => m[1]);
-    expect(labels).toHaveLength(2);
-    expect(new Set(labels).size).toBe(2);
+  it("names every landmark it draws, each with its own name", () => {
+    const labels = [...html.matchAll(/<(?:nav|aside)\b[^>]*\baria-label="([^"]*)"/g)].map((m) => m[1]);
+    expect(labels.length, "the sidebar and the inspector are both named").toBeGreaterThanOrEqual(2);
+    expect(new Set(labels).size).toBe(labels.length);
   });
 
   /**
@@ -839,27 +835,13 @@ describe("the editor's own frame (§27)", () => {
    */
   it("preview closes the panes; it does not unmount them", () => {
     const source = readFileSync(new URL("./builder-app.tsx", import.meta.url), "utf8");
-    for (const pane of ["ShellRail", "ShellSidebar", "ShellContent", "ShellInspector"]) {
+    for (const pane of ["ShellSidebar", "ShellContent", "ShellInspector"]) {
       expect(source.match(new RegExp(`<${pane}\\b`, "g")), `${pane} is rendered exactly once`).toHaveLength(1);
     }
-    const guarded = source.match(/\{\s*!preview\s*\?\s*\(\s*<Shell(?:Rail|Sidebar|Content|Inspector)\b/g);
+    const guarded = source.match(/\{\s*!preview\s*\?\s*\(\s*<Shell(?:Sidebar|Content|Inspector)\b/g);
     expect(guarded, "a pane inside a preview guard is a pane preview unmounts").toBeNull();
   });
 
-  /**
-   * ONE LIST BEHIND THE RAIL AND THE PANEL. A square that picks a region the sidebar cannot
-   * show is the doc-code drift rule inside a single file, and the two halves are held by
-   * different mechanisms: the squares DERIVE from the list (here), and the panel switch is
-   * narrowed to `never` (a third region with no panel fails `tsc`, checked by adding one).
-   */
-  it("the rail offers exactly the regions the sidebar has panels for", () => {
-    const squares = [...html.matchAll(/<button\b[^>]*\bkui-shell-rail-item[^>]*>/g)].map((m) => m[0]);
-    expect(squares).toHaveLength(LEFT_REGIONS.length);
-    for (const region of LEFT_REGIONS) {
-      expect(squares.some((s) => s.includes(`aria-label="${region.label}"`))).toBe(true);
-    }
-    expect(squares.filter((s) => s.includes('aria-current="page"'))).toHaveLength(1);
-  });
 });
 
 /* ── Layers: the panel is the package's Tree, not a drawing of one ─────────────────────────
@@ -962,9 +944,10 @@ describe("a pane's chrome is a pane part", () => {
   const headerTag = (region: string): string | null =>
     pane(region).match(/<div [^>]*class="[^"]*kui-pane-header[^"]*"[^>]*>/)?.[0] ?? null;
 
-  it("both panes drew a header at all — a null audits nothing", () => {
+  it("every pane drew a header at all — a null audits nothing", () => {
     expect(headerTag("sidebar")).not.toBeNull();
     expect(headerTag("content")).not.toBeNull();
+    expect(headerTag("inspector")).not.toBeNull();
   });
 
   it("the sidebar's filter row floats over its scroller", () => {
@@ -978,61 +961,22 @@ describe("a pane's chrome is a pane part", () => {
     expect(sidebar).toMatch(/data-fade/);
   });
 
-  /* NOT FLOATING, and the absence is the design: this pane's scroller is a drop surface, so
-     content passing under the bar is content the pointer has to fight during a drag. */
-  it("the jump bar is a pane header in flow, over a canvas you can drop onto", () => {
-    expect(headerTag("content")).not.toMatch(/data-float/);
-  });
-
-  /* THE INSPECTOR'S PANE ELEMENT IS THE TABS ROOT (2026-09-02). Both halves of Kushagra's
-     report were one cause: the strip sat inside the scroller under a second inset, so its
-     rule stopped short of the pane's content edge and it scrolled away with the panel it
-     switches. Making it the pane's chrome row needs `TabsList` inside a `ShellPaneHeader`,
-     and both parts are read with `:has(> …)`, so the Tabs root has to BE the pane.
-
-     Read structurally, because Base UI's Tabs root writes nothing on the element a law could
-     recognise: the pane has a header, the tab bar is in it, and the bar comes BEFORE the
-     scroller. Falsified by putting the old `<ShellScroll><Box p="3"><Tabs>` back — the header
-     vanishes and the bar moves after the scroller's opening tag. */
-  it("the inspector's tab bar is its chrome row, not the first thing in its scroller", () => {
+  /* THE INSPECTOR'S PANEL SWITCH IS ITS CHROME ROW (2026-09-02; a SegmentedControl in a
+     floating Toolbar since 2026-09-15, where it was a tab bar). Pinned above the scroller, so
+     it never scrolls away with the panel it switches. Falsified by moving the switch into the
+     scroller. */
+  it("the inspector's panel switch is its chrome row, not the first thing in its scroller", () => {
     const inspector = pane("inspector");
-    expect(headerTag("inspector"), "the inspector has a pane header").not.toBeNull();
-    const list = inspector.indexOf("kui-tabs-list");
+    const header = inspector.indexOf("kui-pane-header");
+    const control = inspector.indexOf('role="radiogroup"');
     const scroll = inspector.indexOf("kui-shell-scroll");
-    expect(list, "the bar rendered at all").toBeGreaterThan(-1);
+    expect(header, "the inspector has a pane header").toBeGreaterThan(-1);
+    expect(control, "the switch rendered at all").toBeGreaterThan(-1);
     expect(scroll, "the scroller rendered at all").toBeGreaterThan(-1);
-    expect(list, "the bar is pinned above the scroller, not inside it").toBeLessThan(scroll);
-    expect(inspector.indexOf("kui-pane-header")).toBeLessThan(list);
+    expect(header).toBeLessThan(control);
+    expect(control, "the switch is pinned above the scroller, not inside it").toBeLessThan(scroll);
   });
 
-  /* AND THE SEAM IS FLUSH (2026-09-02, Kushagra: "inset tabs arent flush still"). The bar's
-     hairline is the boundary between the pane's chrome and its body, so a line stopping short
-     of the walls reads as drawn inside the pane rather than as the pane's own seam.
-
-     A SPELLING LAW, and it is worth saying why rather than pretending otherwise: what is true
-     here is a measurement (the rule spans 977→1280 against a pane of 976→1280) and this suite
-     renders to a string — the docs app has no browser project. What it CAN hold is the half
-     that is a decision rather than a distance: the row spends the pane's own padding back
-     through `--kui-sf-p`, never a stated length, so a hardcoded `-16px` fails it just as
-     loudly as a deleted margin. Falsified in both directions. */
-  it("the inspector's chrome row spends the pane's own padding back, not a number", () => {
-    const header = headerTag("inspector")!;
-    expect(header, "it spends the padding as a value, never a length").toMatch(
-      /margin:\s*calc\(-1\s*\*\s*var\(--kui-sf-p\)\)/,
-    );
-    // THREE EDGES, and the fourth is the point (2026-09-02, "Even the top bleed"): a band
-    // flush on the sides and inset at the top is a rule with a margin above it. The block-END
-    // stays, because that edge is the gap to the panel below rather than the pane's inset.
-    expect(header, "the block end is not spent — that gap is content spacing").toMatch(
-      /margin-block-end:\s*0/,
-    );
-  });
-
-  /* AND THE PADDING IS NEVER PUT BACK ON THE LIST. tabs.css states the constraint outright:
-     `--active-tab-left` is measured from the list's BORDER box while the travelling rule
-     resolves its insets against the PADDING box, so inline padding on the list shifts every
-     rule by its own width. It is exactly the repair a later reader reaches for when the labels
-     look two pixels off, so the source says no. */
   /* A FLOATING CHROME CONTROL EXPRESSES THE MATERIAL (§10, 2026-09-02, Kushagra: "This text
      field needs backdrop"). The sidebar's filter row floats and the panel scrolls behind it,
      and a field's fill is an ALPHA over the neutral ramp (2026-08-17 — fills composite
@@ -1046,23 +990,10 @@ describe("a pane's chrome is a pane part", () => {
      renders — demonstrated rather than asserted: swapping the fixture to `material="solid"`
      fails the law, which is what says the environment is doing work.
 
-     BOTH FIELDS, because the row holds a different one per region and a single `backdrop`
-     would leave the other reading through. The Add region's is read off the whole app; the
-     Layers one is rendered directly, because reaching it through the app would mean a
-     test-only prop for switching regions and a production escape written for a law is worse
-     than a second fixture. Falsified by removing the prop from either. */
-  it("the Add region's floating filter states its backdrop", () => {
-    const themed = renderToStaticMarkup(
-      <Theme material="regular">
-        <BuilderApp />
-      </Theme>,
-    );
-    const sidebar = themed.slice(themed.indexOf("kui-shell-sidebar"), themed.indexOf("kui-shell-content"));
-    const header = sidebar.slice(sidebar.indexOf("kui-pane-header"), sidebar.indexOf("kui-shell-scroll"));
-    expect(header, "the header holds its field").toContain("Filter components");
-    expect(header, "and that field expresses the theme's material").toMatch(/data-material="(?!solid)/);
-  });
-
+     ONE FIELD for both regions since 2026-09-15 (the Add filter is `LayersFilter` with other
+     words), so one law covers both. Rendered directly, because reaching the Add region
+     through the app would mean a test-only prop for switching regions. Falsified by removing
+     the prop. */
   it("the Layers filter states its backdrop", () => {
     const themed = renderToStaticMarkup(
       <Theme material="regular">
@@ -1073,57 +1004,41 @@ describe("a pane's chrome is a pane part", () => {
     expect(themed).toMatch(/data-material="(?!solid)/);
   });
 
-  it("nothing puts inline padding on the tab list", () => {
-    const source = readFileSync(new URL("./builder-app.tsx", import.meta.url), "utf8");
-    const list = source.slice(source.indexOf("<TabsList"), source.indexOf("</TabsList>"));
-    expect(list).not.toMatch(/padding(Inline|Left|Right)?\s*:/);
-  });
 });
 
 /* ── The palette is a list of rows ─────────────────────────────────────────────────────────
    Kushagra, with the Layers tree open beside it: "this is the same (the add thing)?" The
    entries were quiet Buttons in a two-column grid — a button is a thing you press to DO
    something and every entry here is a thing you pick out of a list, which is §21's own
-   sentence. Falsified by restoring the Buttons. */
+   sentence. Since 2026-09-15 the palette is the package's Tree grouped by category, so the
+   row family arrives by construction. Read from the SOURCE: the panel needs a live command
+   context to render, and a test-only one would be a second builder. Falsified by rendering
+   the entries as Buttons. */
 describe("the component palette is the row family", () => {
-  const html = renderToStaticMarkup(<BuilderApp />);
-  const sidebar = html.slice(html.indexOf("kui-shell-sidebar"), html.indexOf("kui-shell-content"));
+  const source = readFileSync(new URL("./add-panel.tsx", import.meta.url), "utf8");
 
-  it("the palette rendered at all — an empty panel audits nothing", () => {
-    expect(sidebar).toContain(">Stack<");
+  it("the palette is the package's Tree, and its entries are tree nodes", () => {
+    expect(source).toMatch(/<Tree\b/);
+    expect(source).toMatch(/items: TreeNode\[\]/);
   });
 
-  it("every entry is a row, and none of them is a button wearing a row's job", () => {
-    expect(sidebar).toMatch(/<button[^>]*class="kui-control kui-row"[^>]*>Stack<\/button>/);
-    expect((sidebar.match(/kui-row/g) ?? []).length).toBeGreaterThan(30);
-    expect(sidebar, "a Button in the palette is the shape this replaced").not.toMatch(/kui-button/);
-  });
-
-  /* The group label wears the row too, which is what lines it up with the words under it —
-     a row's text inset is declared on each ROW's element, so a sibling cannot read it. */
-  it("a family's label is an inert row, not a control", () => {
-    expect(sidebar).toMatch(/<div[^>]*class="kui-control kui-row"[^>]*>[^<]*<span[^>]*>Layout<\/span>/);
+  it("no entry is a Button wearing a row's job", () => {
+    // The one Button in the file clears the filter, inside the empty state.
+    const buttons = source.match(/<Button\b/g) ?? [];
+    expect(buttons.length).toBe(1);
+    expect(source.slice(source.indexOf("<Button"), source.indexOf("</Button>"))).toContain("onClearQuery");
   });
 });
 
 
-/* ── The property panel's structure (2026-09-02) ──────────────────────────────────────────
+/* ── The property panel's structure (2026-09-02, re-cut 2026-09-15) ───────────────────────
    Kushagra, with Figma's inspector open beside ours: "we dont have a system yet, lets try
-   and make a structure and system out of it". There were three different shapes for the one
-   thing a property panel does — a picker was a `space-between` row, a string was a label
-   stacked over a full-width field, a boolean was a third arrangement — so no two controls
-   began at the same x, the headings were the same size and weight as the labels under them,
-   and a hairline appeared above two sections out of five.
-
-   The THIRD pass is what these laws mostly hold (2026-09-02, Kushagra with Figma open:
-   "every row is standard, every label standard"). The second pass built the column and left
-   the panel ragged inside it — half the value cells held a control that filled the column and
-   half held a small object sitting at its start — and it still had two label positions, plus
-   a third treatment for the readout, whose label was a composed node.
-
-   inspector.tsx's header states the contract: PANEL, SECTION, ROW, and four text ranks.
-   These laws hold the parts of it a string can see. */
-describe("the inspector is built from its three shapes", () => {
+   and make a structure and system out of it". The 2026-09-02 passes built a two-column panel
+   with names beside their values; the 2026-09-15 iteration took Figma's anatomy instead —
+   captions ABOVE controls, two value columns and one action column — and inspector.tsx's
+   structure block states it: PANEL, SECTION, ROW, CELL. These laws hold the parts of it a
+   string can see. */
+describe("the inspector is built from its four parts", () => {
   const node = { id: "n1", type: "TextField", props: { placeholder: "you@company.com" } };
   const html = renderToStaticMarkup(
     <Theme>
@@ -1133,139 +1048,71 @@ describe("the inspector is built from its three shapes", () => {
         onText={() => {}}
         onSlot={() => {}}
         onSelect={() => {}}
-        measured={[
-          { label: "box", value: "748 x 44" },
-          { label: "corner", value: "22px" },
-        ]}
+        measured={[{ label: "box", value: "748 x 44" }]}
       />
     </Theme>,
   );
+  const source = readFileSync(new URL("./inspector.tsx", import.meta.url), "utf8");
+  const SECTIONS = ["Content", "Appearance", "State", "Slots"];
 
   it("the panel rendered its sections at all — an empty match audits nothing", () => {
-    expect(html).toContain("Properties");
-    expect(html).toContain("Not here, on purpose");
+    for (const title of SECTIONS) expect(html).toContain(">" + title + "<");
   });
 
-  /* EVERY SEAM REACHES THE WALLS. A section boundary that stops short of the pane's edge
-     reads as a line drawn inside the panel rather than as a division of it — the same
-     sentence the pane's own chrome row earned an hour earlier. `mx="bleed"` is the system's
-     spelling for it (§3), so the law reads the resolved hook and not a length: a hand-written
-     `-16px` fails this as loudly as a deleted margin. */
-  it("every hairline in the panel bleeds to the pane's walls", () => {
-    const seps = [...html.matchAll(/<div[^>]*style="([^"]*)"[^>]*>\s*<div[^>]*role="separator"/g)].map(
-      (m) => m[1],
+  /* ONE GRID FOR THE PANEL, DECLARED ONCE. A grid per section lets every section pick its own
+     columns; the rows are subgrids of this one, so every control starts and ends on the same
+     lines. A second `columns=` anywhere in the file is how a section takes its columns back. */
+  it("the panel is ONE grid, and its columns have one home", () => {
+    expect((html.match(/--kui-gtc/g) ?? []).length, "one grid, not one per section").toBe(1);
+    expect(html).toContain("--kui-gtc:minmax(0, 1fr) minmax(0, 1fr) var(--control-height-2)");
+    expect(source.match(/columns=\{?["`][^"`]*["`]/g) ?? [], "one grid template in the file").toHaveLength(1);
+    expect(html, "every row is a subgrid of it").toContain("grid-template-columns:subgrid");
+  });
+
+  /* EVERY SEAM SPANS THE PANEL. A section boundary that stops at the value columns reads as a
+     line under one control rather than a division of the panel. */
+  it("every hairline spans all three columns", () => {
+    const seps = [...html.matchAll(/<div class="kui-box" style="([^"]*)"><div[^>]*role="separator"/g)].map(
+      (m) => m[1]!,
     );
     expect(seps.length, "the panel drew hairlines").toBeGreaterThanOrEqual(3);
-    for (const style of seps) expect(style).toMatch(/--kui-sf-p/);
+    for (const style of seps) expect(style).toContain("--kui-ga:auto / 1 / auto / -1");
   });
 
-  /* ONE COLUMN PAIR FOR THE WHOLE PANEL, DECLARED ONCE. This is what "structure" turned out
-     to mean, and the first two passes both missed it: a grid per ROW aligns a row with itself
-     and nothing else, and a grid per SECTION lets Properties, Slots and the readout each pick
-     their own left edge. Measured after: every control in every section starts at x=1061 and
-     the value-bearing ones end at x=1264.
-
-     So the law reads the COUNT as well as the template — one grid, one spelling. A second
-     `columns=` anywhere in the file is how a section takes its columns back. */
-  it("the panel is ONE grid, and its columns have one home", () => {
-    expect(html, "the panel renders that grid").toContain("auto minmax(0, 1fr)");
-    expect(
-      (html.match(/--kui-gtc/g) ?? []).length,
-      "one grid, not one per section",
-    ).toBe(1);
-    const source = readFileSync(new URL("./inspector.tsx", import.meta.url), "utf8");
-    expect(source.match(/columns="[^"]*"/g) ?? [], "one grid template in the file").toEqual([
-      'columns="auto minmax(0, 1fr)"',
-    ]);
+  /* THE RANKS ARE A LADDER, one type step apart: a section title at 2, medium weight, full ink;
+     a control's caption at 1, medium ink. Collapsing the two onto one step is how the panel read
+     flat before the 2026-09-02 pass. */
+  it("a section title stands one type step over the captions under it", () => {
+    const step = (text: string) => html.match(new RegExp(`<span data-size="(\\d)"([^>]*)>${text}</span>`));
+    const title = step("Content");
+    const caption = step("Placeholder");
+    expect(title, "a section heads itself").not.toBeNull();
+    expect(caption, "a control is captioned").not.toBeNull();
+    expect(Number(title![1]) - Number(caption![1])).toBe(1);
+    expect(title![2]).toContain('data-weight="medium"');
+    expect(title![2]).toContain('data-emphasis="loud"');
   });
 
-  /* THREE RANKS, AND THE HEADING IS ALONE AT THE TOP OF ITS SECTION. The refusal names
-     carried the heading's own identity, so "emphasis and tone" competed with "Not here, on
-     purpose" one line above it. Counted rather than located: a section heading is the only
-     full-ink medium-weight text the panel writes, so the count of those must equal the count
-     of sections. */
-  it("only a section heading speaks in the heading's voice", () => {
-    const headings = (html.match(/data-weight="medium"/g) ?? []).length;
-    const sections = ["Content", "Properties", "Slots", "What that comes to", "Not here, on purpose"]
-      .filter((t) => html.includes(">" + t + "<")).length;
-    expect(sections, "the fixture reached several sections").toBeGreaterThanOrEqual(3);
-    // Plus ONE for the panel's own title, which is outside the sections. It is a step LARGER
-    // than a section heading (see the ladder law below) and shares its weight, because a
-    // panel title and a section title are the same kind of thing said at two scales.
-    expect(headings, "one medium-weight voice per section, plus the panel's title").toBe(sections + 1);
+  /* EVERY CAPTION IS THE SAME CAPTION. Anchored on the control that FOLLOWS it, so this reads
+     only text that really captions a value, and asserts one spelling for all of them. */
+  it("every caption in the panel is written the same way", () => {
+    const captions = [...html.matchAll(/<span ([^>]*)class="kui-type kui-text"[^>]*>[^<]*<\/span><(?:span|div|button)[^>]*class="kui-control/g)];
+    expect(captions.length, "the fixture reached several captioned controls").toBeGreaterThanOrEqual(3);
+    expect(new Set(captions.map((m) => m[1]))).toEqual(
+      new Set(['data-size="1" data-weight="regular" data-emphasis="medium" ']),
+    );
   });
 
-  /* THE RANKS ARE A LADDER, one type step apart (2026-09-02). Before this pass a heading and
-     a name were both size 2, separated by weight and ink alone — a difference you have to
-     look for, which is why the panel read flat however its rows were arranged. The law reads
-     the three steps in the rendered markup and asserts each is one below the last, so
-     collapsing any two of them back onto one size fails here rather than by eye. */
-  it("the panel's title, its headings and its names are three type steps", () => {
-    const step = (text: string) => {
-      const m = html.match(new RegExp(`<span data-size="(\\d)"[^>]*>${text}</span>`));
-      return m ? Number(m[1]) : null;
-    };
-    const title = step("TextField");
-    const heading = step("Properties");
-    const name = step("placeholder");
-    expect(title, "the panel titles itself").not.toBeNull();
-    expect(heading, "a section heads itself").not.toBeNull();
-    expect(name, "a row names itself").not.toBeNull();
-    expect(title! - heading!, "a panel title is one step over a section heading").toBe(1);
-    expect(heading! - name!, "a section heading is one step over a name").toBe(1);
-  });
-
-  /* EVERY NAME IS THE SAME NAME. "Every label standard" is a claim about the SPELLING, not
-     about the arrangement, and the panel had three: a row's name beside its control, a
-     string's name stacked above it, and the readout's, which was a composed node carrying a
-     quieter half inside it. Anchored on the value cell that FOLLOWS, so this only reads text
-     that is really a row's name; the law then asserts every one of them was written the same
-     way, which a second treatment cannot survive. */
-  it("every name in the panel is written the same way", () => {
-    const names = [
-      ...html.matchAll(
-        /<div class="kui-box"(?: style="--kui-pl:[^"]*")?><span ([^>]*)class="kui-type kui-text">([^<]*)<\/span><\/div><div class="kui-box" style="--kui-d:flex;/g,
-      ),
-    ];
-    expect(names.length, "the fixture reached several rows").toBeGreaterThanOrEqual(4);
-    const spellings = new Set(names.map((m) => m[1]));
-    expect([...spellings], "one spelling for every name in the panel").toEqual([
-      'data-size="2" data-weight="regular" data-emphasis="medium" ',
-    ]);
-  });
-
-  /* EVERY VALUE CELL IS THE SAME CELL. This is the rag the third pass was called on: a value
-     that filled the column and a value that sat at its start were two different cells, and
-     which one you got depended on whether the call site had remembered to say `flex: 1`. The
-     cell states it now, once, for every row — so there are exactly TWO spellings, and the
-     second is not a width, it is the far line a Switch lands on because filling is not
-     available to it. A call site that re-states a width shows up here as a third. */
-  it("a value cell fills its column, or sits on its far line — and nothing else", () => {
-    // `grid-auto-flow:column` is what makes it a value CELL rather than the panel's own grid
-    // — which is also a `kui-box` with `--kui-d:grid` and would otherwise be counted here.
-    const cells = [...html.matchAll(/<div class="kui-box" style="(--kui-d:grid;[^"]*grid-auto-flow:column[^"]*)"/g)]
-      .map((m) => m[1]!);
-    expect(cells.length, "the fixture reached several rows").toBeGreaterThanOrEqual(4);
-    const fill = cells.filter((c) => c.includes("justify-items:stretch"));
-    const end = cells.filter((c) => c.includes("justify-items:end"));
-    expect(fill.length, "most rows fill").toBeGreaterThan(0);
-    expect(end.length, "and the fixture reached a Switch").toBeGreaterThan(0);
-    expect(fill.length + end.length, "two spellings, no third").toBe(cells.length);
-    expect(new Set(fill).size, "one fill spelling").toBe(1);
-    expect(new Set(end).size, "one end spelling").toBe(1);
-    // And no call site states a width of its own on the control inside a cell.
-    const source = readFileSync(new URL("./inspector.tsx", import.meta.url), "utf8");
-    expect(source, "no row states its own fill").not.toMatch(/flex: 1, minInlineSize: 0/);
-  });
-
-  /* THE LABEL IS A STRING, BY TYPE. The readout's composed label is how a second treatment
-     got in, and prose in a header does not stop the next one. Read from the source, because
-     the type is the enforcement and a rendered panel cannot see it. */
-  it("a row's name is typed as a string, not a node", () => {
-    const source = readFileSync(new URL("./inspector.tsx", import.meta.url), "utf8");
-    const props = source.slice(source.indexOf("export function Row({"), source.indexOf("}) {", source.indexOf("export function Row({")));
-    expect(props, "Row declares its label").toMatch(/label: string;/);
-    expect(props, "and it is not a node").not.toMatch(/label: React\.ReactNode/);
+  /* A CAPTION IS A STRING, BY TYPE. A composed label is how a second treatment gets in, and
+     prose in a header does not stop the next one. Read from the source, because the type is
+     the enforcement and a rendered panel cannot see it. */
+  it("a row's and a cell's caption is typed as a string, not a node", () => {
+    for (const part of ["Row", "Cell"]) {
+      const from = source.indexOf(`export function ${part}({`);
+      const props = source.slice(from, source.indexOf(") {", from));
+      expect(props, `${part} declares its label`).toMatch(/label\?: string;/);
+      expect(props, "and it is not a node").not.toMatch(/label\??: React\.ReactNode/);
+    }
   });
 });
 
@@ -1288,18 +1135,18 @@ describe("a responsive row's trailing control never leaves", () => {
       </Theme>,
     );
 
+  // One + per SECTION since 2026-09-15, offering every breakpoint any prop in it could take.
   const plus = (html: string) =>
-    [...html.matchAll(/<button[^>]*aria-label="Add a breakpoint to gap"[^>]*>/g)].map((m) => m[0]);
+    [...html.matchAll(/<button[^>]*aria-label="Add a breakpoint"[^>]*>/g)].map((m) => m[0]);
 
   it("it is there with tiers left to add, and there when there are none", () => {
     const some = plus(render("3"));
-    expect(some.length, "a plain value offers the breakpoints").toBe(1);
-    expect(some[0], "and the control is live").not.toMatch(/disabled/);
+    expect(some.length, "a plain value offers the breakpoints").toBeGreaterThanOrEqual(1);
+    expect(some.some((tag) => !/disabled/.test(tag)), "and the control is live").toBe(true);
 
     const all = Object.fromEntries(TIER_KEYS.map((t) => [t, "3"]));
     const none = plus(render(all));
-    expect(none.length, "every tier stated, and the control is still in the row").toBe(1);
-    expect(none[0], "standing down rather than leaving").toMatch(/disabled/);
+    expect(none.length, "every tier stated, and the control is still in the row").toBe(some.length);
   });
 
   it("a stated tier can be taken back from the row itself", () => {
@@ -1374,7 +1221,7 @@ describe("the builder's empty states are the block, and they carry its taxonomy"
       />,
     );
     expect(html, "it is the block").toContain("kb-empty");
-    expect(html).toContain("The canvas is empty");
+    expect(html).toContain("No layers yet");
     expect(html, "there is no filter to clear").not.toContain("Clear the filter");
   });
 
@@ -1603,15 +1450,15 @@ describe("the builder writes no control the package already ships", () => {
     }
   });
 
-  /* A COUNT IS A BADGE (§38), not part of a label. Baked into the string it changed the
-     button's WIDTH every time the document did, so the whole right-hand run shifted while you
-     were reaching for it — Tabs' own measured argument against a heavier active label. */
-  it("the review count is pinned to the word, not spliced into it", () => {
+  /* A COUNT NEVER CHANGES A CONTROL'S WIDTH. Baked into a visible label it moved every
+     control after it each time the document did — Tabs' own measured argument against a
+     heavier active label. Since 2026-09-15 Review is an icon segment and the count lives in
+     its accessible name, which has no width. */
+  it("the review count is in the accessible name, never in visible text", () => {
     const html = renderToStaticMarkup(<BuilderApp />);
-    expect(html, "the button is there").toContain("Review");
+    expect(html, "the control is there").toMatch(/aria-label="Review(?:, \d+ findings)?"/);
     const app = readFileSync(new URL("./builder-app.tsx", import.meta.url), "utf8");
-    expect(code(app), "no count spliced into a label").not.toMatch(/`Review \$\{/);
-    expect(code(app), "the count is a Badge").toMatch(/<Badge[\s\S]{0,200}findings\.length/);
+    expect(code(app), "no count spliced into a visible label").not.toMatch(/>\s*Review \{/);
   });
 
   /* THE FENCE (§13). `--shadow-1..5` is reached through the world's chrome roles, and a law
@@ -1643,58 +1490,10 @@ describe("the builder writes no control the package already ships", () => {
       lines.forEach((line, i) => {
         if (!/\bsize="2"/.test(line)) return;
         expect.soft(line.trim(), `${file}:${i + 1} restates the default size`).toMatch(
-          /Card|Surface|Dialog|Text|Heading|Code|Kbd|Badge|Chip|CodeBlock/,
+          // A Toolbar's own default is one step ABOVE the app's (BAND_STEP), so 2 there is a choice.
+          /Card|Surface|Dialog|Text|Heading|Code|Kbd|Badge|Chip|CodeBlock|Toolbar/,
         );
       });
-    }
-  });
-});
-
-/* ── The top bar has three zones, and each is about one thing (2026-09-03) ─────────────────
-   Kushagra: *"the top bar is partociarlarly bad"*, and it was. Two clusters pushed apart by
-   `space-between` put the DOCUMENT at the far left beside the app's own name and everything
-   you do to that document at the other end, with a dead gap between them; six peer controls
-   ran along the right in one weight, so nothing said which of them you reach for. */
-describe("the top bar is three zones", () => {
-  const html = renderToStaticMarkup(<BuilderApp />);
-  const header = html.slice(html.indexOf("kui-shell-header"), html.indexOf("kui-shell-rail"));
-
-  /* A GRID, NOT `space-between` — and that is the mechanism rather than the styling. `1fr auto
-     1fr` centres the middle against the WINDOW however wide the side clusters get; a flex row
-     centres it against whatever room the sides leave, so the document name would drift every
-     time a finding count changed. */
-  it("the document is centred against the window, not against the room the sides leave", () => {
-    expect(header, "the header is a grid").toContain("--kui-gtc:1fr auto 1fr");
-    expect(header, "and not a pushed-apart row").not.toContain("--kui-jc:space-between");
-  });
-
-  it("three cells, and the document is the middle one", () => {
-    const grid = header.slice(header.indexOf("--kui-gtc"));
-    // The document switcher is a Select, so its trigger is the one combobox in the bar.
-    const before = grid.slice(0, grid.indexOf('role="combobox"'));
-    const after = grid.slice(grid.indexOf('role="combobox"'));
-    expect(before, "the identity is before it").toContain("Builder");
-    expect(after, "and the actions are after it").toContain("Export code");
-  });
-
-  /* ONE EMPHASIS PEAK, AT THE END OF THE RUN. Everything else in the bar is quiet or a
-     toggle's own state; `Export code` is the only loud thing, and nothing louder follows it. */
-  it("exactly one loud control, and the run ends on it", () => {
-    /* CONTROLS, not text. A `Heading` renders `data-emphasis="loud"` because loud is the type
-       family's own resting rung (§15) — the ladder's top, not a focal action — so a law that
-       counted every `loud` in the header counted the wordmark. Caught by its own first run. */
-    const loud = [...header.matchAll(/data-emphasis="loud" class="kui-control/g)];
-    expect(loud.length, "one focal action in the frame's header").toBe(1);
-    /* And nothing with a LABEL follows it. Only the pane toggle does, which is the frame's
-       own edge rather than an action — read as "every control after the loud one is icon-only"
-       rather than as "no capitalised word follows", which the loud button's own label
-       satisfied on the first run. */
-    const from = header.indexOf('data-emphasis="loud" class="kui-control');
-    const after = header.slice(header.indexOf("</button>", from) + "</button>".length);
-    const trailing = [...after.matchAll(/<button [^>]*>/g)].map((m) => m[0]);
-    expect(trailing.length, "the bar does end with the frame's edge").toBeGreaterThan(0);
-    for (const tag of trailing) {
-      expect(tag, "a labelled control follows the loud one").toContain('data-icon-only="true"');
     }
   });
 });

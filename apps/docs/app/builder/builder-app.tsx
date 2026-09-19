@@ -22,7 +22,6 @@ import * as React from "react";
 import Link from "next/link";
 
 import {
-  Badge,
   Box,
   Button,
   ContextMenu,
@@ -146,15 +145,6 @@ import { CanvasBoundary, CanvasMenu, DocumentBar, JumpBar, ShortcutSheet, Templa
 /** The rungs the magnifier steps through — a closed list, like everything else here. */
 const ZOOMS: number[] = [0.5, 0.67, 0.8, 1, 1.25, 1.5, 2];
 
-/**
- * The rail's regions (2026-08-20). The rail and its Add region went on 2026-09-14 — + opens the
- * palette, and the sidebar is Layers alone — so nothing here reads this any more; it stays only
- * until the frame's laws are rewritten for the new chrome.
- */
-export const LEFT_REGIONS = [
-  { id: "add", label: "Add components", Icon: PlusIcon },
-  { id: "layers", label: "Layers", Icon: LayersIcon },
-] as const;
 
 const MOVE_TYPE = "application/x-kookie-move";
 
@@ -224,7 +214,13 @@ export const starterDoc = (): BuilderDoc => ({
                 node("Text", { size: "2", emphasis: "medium" }, { text: "Everyone with access will see the new name." }),
               ],
             }),
-            node("TextField", { placeholder: "Project name", "aria-label": "Project name" }),
+            // A labelled Field, never a placeholder standing in for one (placeholder-as-label).
+            node("Field", {}, {
+              children: [
+                node("FieldLabel", {}, { text: "Project name" }),
+                node("TextField", {}),
+              ],
+            }),
             node("Flex", { gap: "3", justify: "flex-end" }, {
               children: [
                 node("Button", { emphasis: "quiet", bordered: true }, { text: "Cancel" }),
@@ -316,7 +312,6 @@ export function BuilderApp() {
       controlled value flips to undefined, and "is review open" is the same question as
       "which tab is showing". */
   const [rightTab, setRightTab] = React.useState<"inspect" | "theme" | "review">("inspect");
-  const reviewOpen = rightTab === "review";
   const setReviewOpen = React.useCallback(
     (next: boolean | ((v: boolean) => boolean)) => {
       setRightTab((tab) => {
