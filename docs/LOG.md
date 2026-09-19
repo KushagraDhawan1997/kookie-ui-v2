@@ -8,6 +8,40 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-20 The 58 red laws on main, and the one real defect among them
+
+**What.** 58 package laws had been red on main for up to a week, spread across six recent
+commits that changed behaviour without touching the laws (four of them iteration commits, which is
+what iteration is for). All green now. 57 were laws describing the old behaviour; one group hid a
+real defect.
+
+**The defect.** NumberField's zones (2026-09-13) are direct children of the field, natively
+disabled at a bound or read-only. The shared disabled arm reads a disabled DIRECT child as the
+field's own state, so a field resting at `min` rendered dead: its value at L 0.76 against a live
+field's 0.27. The arm's own comment already said a hosted control's state is never its host's; it
+held that only through "direct child only", which stopped being enough once a control sat outside a
+slot. Both the arm and the card-as-label arm in the surface layer now exclude a child that is
+itself a control, spelled inside `:where()` so neither changes weight. It was invisible to 45 laws
+because they were all failing on a selector before they reached a colour.
+
+**The rewrites, by cause.** NumberField (45): the hosted-button laws became zone laws — full height,
+square, against the border, a divider in the field's edge colour, lit and not travelling, and the
+value carrying the plain inset. Grey brand (7, 2026-09-19): every "current/selected reads the
+accent" law proved it by asserting the colour differs from neutral text, which a grey brand makes
+false in dark on a correct stylesheet. `Marked` (test/browser.tsx) replaces the family's role with
+a colour nothing produces, so the reading is observable whatever the brand is; the tones law states
+the brand's consequence per branch from the generator's own low-chroma predicate. Hairline step 6
+(2026-09-15, 2): the token law states "one step under the family's border" instead of a name, and
+the tab-bar law compares against the flat Card its comment always claimed. Region glass
+(2026-09-18, 1): Sheet is read against the region cell with Dialog as the negative control. Command
+caption (2026-09-15, 1): the captioned one-row pane keeps the squircle, as decided.
+
+**Left undone on purpose.** The region scale and the grey brand are still iterations in the docs:
+DECISIONS says the brand is blue and has no region paragraph. Those are Kushagra's calls to ship,
+not a test fix's.
+
+---
+
 ## 2026-09-19 A pane inside a pane is concentric
 
 **What.** A Card or Surface held by a Card or Surface now takes the outer corner minus the outer
