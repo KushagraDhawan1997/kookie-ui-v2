@@ -306,99 +306,89 @@ describe("the index prices the content", () => {
 /* ── The owned layout (§25) ───────────────────────────────────────────────────────────── */
 
 describe("the action row", () => {
-  it("two actions share the row equally and fill it", () => {
+  /** The panel's content box, the one width the row is laid out in. */
+  const contentBox = (popup: HTMLElement) => {
+    const box = popup.getBoundingClientRect();
+    const inset =
+      parseFloat(computed(popup, "padding-left")) + parseFloat(computed(popup, "border-left-width"));
+    return { left: box.left + inset, right: box.right - inset, width: box.width - 2 * inset };
+  };
+  /** A label on ONE line: the button is exactly as tall as its control height. */
+  const oneLine = (button: HTMLElement) =>
+    expect(
+      button.getBoundingClientRect().height,
+      `"${button.textContent}" broke onto a second line`,
+    ).toBeCloseTo(parseFloat(computed(button, "min-block-size")) || parseFloat(computed(button, "height")), 0);
+
+  it("two short labels sit side by side, fill the row, Cancel at the start", () => {
     const { popup, buttons } = openAlert({});
     const [cancel, action] = buttons.map((b) => b.getBoundingClientRect());
-    // Same row, equal share, and together they span the panel's content box.
     expect(cancel!.top).toBeCloseTo(action!.top, 1);
-    expect(cancel!.width).toBeCloseTo(action!.width, 1);
-    const pad = parseFloat(computed(popup, "padding-left"));
-    const border = parseFloat(computed(popup, "border-left-width"));
-    const content = popup.getBoundingClientRect().width - 2 * (pad + border);
     const gap = action!.left - cancel!.right;
-    expect(cancel!.width + action!.width + gap).toBeCloseTo(content, 1);
-    // Cancel sits at the start — document order is the mechanism, and it is also what hands
-    // Cancel the initial focus.
+    expect(cancel!.width + action!.width + gap).toBeCloseTo(contentBox(popup).width, 1);
+    // Cancel sits at the start — the reversed row's `order` undoes the reversal side by side,
+    // and document order is what hands Cancel the initial focus.
     expect(cancel!.left).toBeLessThan(action!.left);
+    for (const button of buttons) oneLine(button);
   });
 
-  it("a long pair of labels stays INSIDE the panel — the box is not negotiable (§25, 2026-08-26)", () => {
+  it("ONE label that does not fit stacks BOTH, full width, Action on top — and no label wraps (2026-09-19)", () => {
     /**
-     * The row shipped as `grid-template-columns: 1fr 1fr`, which is `minmax(auto, 1fr)` twice —
-     * and a grid item's automatic minimum is its MIN-CONTENT. A `.kui-button` declares
-     * `white-space: nowrap` and a control declares no overflow, so each track was floored at a
-     * whole label and the row grew past a panel that states a FIXED width and clips.
+     * The row shipped as a 50/50 grid whose labels broke onto a second line (2026-08-26). A
+     * label never wraps now; the row wraps instead (iOS's alert). The fixture has ONE long label
+     * and one short one on purpose: two long labels stack under a design that stacks only the
+     * long one, and a grid with wrapping labels puts both on one row at any length, so only
+     * this pair separates "the row decides" from either wrong answer.
      *
-     * Measured before the fix at the default density: 334px of row inside 270px of content
-     * box, the committing button 39px outside the panel with 39px of it cut off — and 113px at
-     * comfortable × coarse, where the padding is widest.
-     *
-     * Read as PAINTED geometry against the panel's own content box, not as `scrollWidth`: what
-     * fails is that a person cannot see the button they are being asked to press.
+     * Falsified: restoring the grid fails the stack; dropping `row-reverse` fails the order;
+     * `white-space: normal` on the actions fails one-line.
      */
     for (const theme of [{}, { density: "comfortable", pointer: "coarse" }] as ThemeProps[]) {
       const { popup, buttons } = openAlert(theme, {
         body: (
           <>
-            <AlertDialogTitle>Delete workspace?</AlertDialogTitle>
-            <AlertDialogDescription>Everything goes with it.</AlertDialogDescription>
-            <AlertDialogCancel>No, keep my workspace</AlertDialogCancel>
-            <AlertDialogAction tone="destructive">Yes, delete everything</AlertDialogAction>
+            <AlertDialogTitle>Stay signed in?</AlertDialogTitle>
+            <AlertDialogDescription>Your session ends in two minutes.</AlertDialogDescription>
+            <AlertDialogCancel>Sign out</AlertDialogCancel>
+            <AlertDialogAction>Stay signed in for another hour</AlertDialogAction>
           </>
         ),
       });
-      const box = popup.getBoundingClientRect();
-      const pad = parseFloat(computed(popup, "padding-left"));
-      const border = parseFloat(computed(popup, "border-left-width"));
-      for (const button of buttons) {
-        const rect = button.getBoundingClientRect();
-        expect(rect.left, `${button.textContent} starts outside the panel`).toBeGreaterThanOrEqual(
-          box.left + pad + border - 0.5,
-        );
-        expect(rect.right, `${button.textContent} runs past the panel`).toBeLessThanOrEqual(
-          box.right - pad - border + 0.5,
-        );
+      const content = contentBox(popup);
+      const [cancel, action] = buttons.map((b) => b.getBoundingClientRect());
+      expect(action!.bottom, "Action is not above Cancel").toBeLessThanOrEqual(cancel!.top + 0.5);
+      for (const rect of [cancel!, action!]) {
+        expect(rect.left).toBeCloseTo(content.left, 1);
+        expect(rect.width).toBeCloseTo(content.width, 1);
       }
-      // Still 50/50 and still one row: the repair may not become "stack them", which is a
-      // different design and one nobody has judged.
-      expect(buttons[0]!.getBoundingClientRect().width).toBeCloseTo(
-        buttons[1]!.getBoundingClientRect().width,
-        1,
-      );
-      expect(buttons[0]!.getBoundingClientRect().top).toBeCloseTo(
-        buttons[1]!.getBoundingClientRect().top,
-        1,
-      );
-      // And the label is INSIDE the button it belongs to — moving the clipping from the box to
-      // the words would satisfy every assertion above.
-      for (const button of buttons) {
-        expect(button.scrollWidth, `${button.textContent} overflows its own box`).toBeLessThanOrEqual(
-          button.clientWidth + 1,
-        );
-      }
+      for (const button of buttons) oneLine(button);
+      // Two stacked actions keep the ordinary row gap — the section distance above the actions
+      // belongs to the text, never to a button.
+      const title = document.getElementById(popup.getAttribute("aria-labelledby")!)!;
+      const description = document.getElementById(popup.getAttribute("aria-describedby")!)!;
+      const textGap = description.getBoundingClientRect().top - title.getBoundingClientRect().bottom;
+      expect(cancel!.top - action!.bottom).toBeCloseTo(textGap, 0);
     }
   });
 
-  it("and the word that cannot break yields too", () => {
-    // The fixture lesson this repo has paid for: a multi-word label breaks at a space whether
-    // or not anything was fixed, so the harder case is the one that says whether the repair is
-    // total. `overflow-wrap: anywhere` is the declaration under test.
+  it("a word too long for the whole panel still leaves no button outside it", () => {
+    // The unbreakable label is caller error the alert cannot fix without wrapping it, which it
+    // refuses; what it still owes is its box — a button past the panel is one nobody can see.
     const { popup, buttons } = openAlert({}, {
       body: (
         <>
           <AlertDialogTitle>Delete workspace?</AlertDialogTitle>
           <AlertDialogDescription>Everything goes with it.</AlertDialogDescription>
-          <AlertDialogCancel>Keepmyentireworkspaceplease</AlertDialogCancel>
-          <AlertDialogAction tone="destructive">Deleteabsolutelyeverything</AlertDialogAction>
+          <AlertDialogCancel>Keepmyentireworkspacepleaseandthankyouverymuch</AlertDialogCancel>
+          <AlertDialogAction tone="destructive">Delete</AlertDialogAction>
         </>
       ),
     });
-    const box = popup.getBoundingClientRect();
-    const pad = parseFloat(computed(popup, "padding-left"));
-    const border = parseFloat(computed(popup, "border-left-width"));
+    const content = contentBox(popup);
     for (const button of buttons) {
-      expect(button.getBoundingClientRect().right).toBeLessThanOrEqual(box.right - pad - border + 0.5);
-      expect(button.scrollWidth).toBeLessThanOrEqual(button.clientWidth + 1);
+      const rect = button.getBoundingClientRect();
+      expect(rect.left).toBeGreaterThanOrEqual(content.left - 0.5);
+      expect(rect.right).toBeLessThanOrEqual(content.right + 0.5);
     }
   });
 

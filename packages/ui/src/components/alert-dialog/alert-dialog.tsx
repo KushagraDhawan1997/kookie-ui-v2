@@ -23,7 +23,8 @@
  * Because the content is closed, `size` prices EVERYTHING — box, corner, padding, the
  * title's and description's type steps, the buttons — where Dialog's size stops at the box.
  * The width is the component's alone: a designed fixed width per index (`--alert-w-N`
- * through the shared overlay join), no prop, and the two actions split it 50/50.
+ * through the shared overlay join), no prop. The two actions share one row while both labels fit and stack when either does
+ * not — a label never wraps (§25, 2026-09-19).
  */
 import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";

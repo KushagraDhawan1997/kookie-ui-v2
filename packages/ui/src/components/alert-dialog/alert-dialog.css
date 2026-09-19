@@ -48,7 +48,7 @@
 
 /* ── The panel: a FIXED width, not a maximum (§25) ────────────────────────────────────────
    An alert's content is closed, so its box is too: the component states the width and the
-   words wrap to it — which is also what holds the 50/50 action row's shape. The viewport's
+   words wrap to it; the action labels do not, and stack instead (below). The viewport's
    gutter still wins on a narrow window through the max. No width prop exists. */
 .kui-alert-popup {
   margin: auto;
@@ -59,15 +59,16 @@
 
 /* ── The layout the component owns (§25) ──────────────────────────────────────────────────
    The one place in the system a surface arranges its children, licensed by the closed
-   anatomy: the entry's body is a two-column grid; anything that is not a button spans both
-   columns, and the actions take a column each — equal space, filling the row, Cancel at the
-   start (DOM order; RTL flips it for free). A lone action spans the row whole: an
-   acknowledgement alert has one button and it is full-width.
+   anatomy: anything that is not a button takes a line of its own, and the actions share the
+   last line — filling it, Cancel at the start (DOM order; RTL flips it for free). A lone
+   action spans the row whole: an acknowledgement alert has one button and it is full-width.
+   Side by side the two are close to equal but not identical, each growing from its own
+   label's width: equal widths AND wrap-on-overflow is not expressible in CSS, and the stack
+   was chosen over the equality.
 
-   The row gap is the title-description distance; the actions stand off from the text by the
-   section distance, stated as the difference so the two land on §15's composed steps. An
-   internal margin, not an outer one — §3 forbids components owning the space AROUND
-   themselves, and this is the component laying out content it owns. */
+   The row gap is the title-description distance, and the margin below states the section
+   distance above the actions. An internal margin, not an outer one — §3 forbids components
+   owning the space AROUND themselves, and this is the component laying out content it owns. */
 .kui-alert-popup .kui-overlay-body {
   /* A wrapping row, read in REVERSE (2026-09-19, Kushagra: labels never wrap, the alert
      stacks instead — iOS's alert). Side by side when both labels fit on one line; when either

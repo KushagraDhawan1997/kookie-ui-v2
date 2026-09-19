@@ -11425,3 +11425,21 @@ Kushagra: "Go medium." `Page` rendered its title with `Heading`'s default, semib
 Kushagra: "I feel the 9 is too small… it should scale bit more aggressively." Steps 7-9 went 30/40/56 → 32/44/64, with their line heights 38/48/62 → 40/52/70. Steps 1-6 are unchanged: the reading sizes stay close together on purpose (§15), so only the display end widens. The step-to-step ratio across the top is now ~1.33/1.38/1.45 against 1.25/1.33/1.4. The narrow band still drops steps 8-9 by one step each, so a narrow window now shows 32/44 where it showed 30/40.
 
 **Rejected.** Changing the ramp to a single ratio: the reading steps need their near-linear spacing, and a ratio aggressive enough for the display end pulls step 4 and 5 apart as well.
+
+## 2026-09-19 — Heading defaults to medium
+
+Kushagra: "At package level, can we make headings default to use medium?" The page title went medium earlier the same day, and the argument was already general: size ranks, weight does not (§15 rule 1), so a semibold resting face was weight doing size's job on every heading. `Heading` now rests at medium. Semibold stays in the set for a caller who states it. The page title entry above said its law would fail if the default ever became medium. It did, and it was rewritten to read the title against a mounted medium and a mounted semibold heading, which still separates the two ends of the ladder.
+
+## 2026-09-19 — An alert's actions stack when a label does not fit, and a label never wraps
+
+Kushagra, on "Stay signed in" breaking onto two lines in an alert's 50/50 row: "the only way is to stack buttons vertically, but how will consumer choose it? And secondly, I hate long text in buttons." The answer to the first is that the consumer does not choose. The alert already owns its layout (§25), so it stacks on its own, the way iOS's alert does. The two actions sit side by side while both labels fit on one line. When either does not, both take a full-width line each, with Action on top.
+
+The row is a wrapping flex row read in reverse (`row-reverse wrap`, with `order` putting Action before Cancel), so side by side keeps Cancel at the start and stacked puts Action on top, while the DOM keeps Cancel first for focus. The 2026-08-26 `white-space: normal` licence on the actions is deleted: Button's `nowrap` holds here too.
+
+**The cost, stated.** Side by side, the two buttons are close to equal but not identical, each growing from its own label's width. Equal widths and wrap-on-overflow cannot both be expressed in CSS, and the stack was chosen over the equality.
+
+**Rejected.** A `stacked` prop: it asks every call site something the layout already knows. Wrapping labels: a two-line button is the paragraph-with-a-border that Button's `nowrap` refuses.
+
+**The laws.** The fixture has ONE long label and one short label. Two long labels would also stack under a design that stacked only the long one, and a grid with wrapping labels keeps both on one row at any length, so only this pair separates "the row decides" from both wrong answers. Five sabotages each failed the right law: wrapping labels, dropping the reverse, restoring the grid, a margin on the buttons, and dropping the flex floor.
+
+The docs example's labels were shortened as well: "Stay signed in" is "Stay", and "Simulate an expiring session" is "Expire session".
