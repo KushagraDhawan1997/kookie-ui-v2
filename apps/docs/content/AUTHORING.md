@@ -173,46 +173,40 @@ six ordinary words in an ordinary order, and "There is no colour prop and no var
 true sentence that was wrong only because of where it was printed. That half is yours, and it is
 the half worth reading this section for.
 
-## Language: Google's technical writing rules
+## Language: ASD-STE100 Simplified Technical English
 
-These pages follow Google's Technical Writing courses (One and Two) and the Google developer
-documentation style guide. Edit the way the course's own LLM guidance says to: audit a draft by
-asking where it deviates from these principles, then fix the deviations — generated prose reads
-plausibly and still fails them.
+Every page on this site is written in ASD-STE100 Simplified Technical English (STE). STE is a
+controlled language for technical documents. It makes text easy to read for people who do not
+speak English as a first language, and easy to translate. The rules below are the STE rules we
+use. The register rules above still apply.
 
-The Technical Writing One checklist:
+Words:
 
-- Define new or unfamiliar terms, and use terms consistently.
-- Avoid ambiguous pronouns. If "it" or "this" could name two things, repeat the noun.
-- Prefer active voice. Name the agent: "the generator calculates every shade", not "every
-  shade is calculated".
-- Pick specific verbs over vague ones.
-- Reduce "there is" and "there are".
-- Focus each sentence on a single idea, and eliminate unneeded words — but write complete,
-  fluent phrases. Choppiness is not concision.
-- Convert some long sentences to lists. Keep list items parallel, and start numbered list
-  items with imperative verbs.
-- Establish a paragraph's central point in its first sentence, and give each paragraph one
-  topic.
-- Determine what your audience needs to learn, and fit the document to them.
+- Use simple, common words. Use one word for one meaning, and use it the same way every time.
+  If you write "panel", do not write "pane", "box" and "sheet" for the same thing.
+- Use a verb as a verb and a noun as a noun. Do not make a verb from a noun ("to gate", "to
+  surface", "to host") when a simple verb exists.
+- Use the simple tenses: present, past and future. Do not use "-ing" forms as verbs where a
+  simple form is possible.
+- Use articles ("a", "an", "the") before nouns. Do not write telegraphic text.
+- Do not use more than three nouns together. Break long noun groups with "of", "for" or "in".
+- Do not use slang, idioms, metaphors or figures of speech.
 
-Tone, from the style guide: conversational and professional, second person, present tense,
-contractions where a normal writer would use them, and the serial comma.
+Sentences:
 
-Two deviations we keep on purpose: British spelling (colour, behaviour), and "judgment" rather
-than "judgement".
+- Write one topic in each sentence.
+- An instruction is 20 words or fewer. A description is 25 words or fewer.
+- Use the active voice. Name the thing that does the action.
+- Write instructions as commands: "Set `size` to change the height." Put a condition first:
+  "If the field is empty, the button is disabled."
+- Do not leave out words to make a sentence shorter. Keep "that", "which" and the verb.
+- Use a vertical list when a sentence has more than two or three items.
 
-House rules that survive under the standard:
+Paragraphs:
 
-- **Do not use metaphors.** Do not write that a value is "frozen", that a rule "bites", or
-  that a system "argues". Write what the code does.
-- **Do not use filler.** Delete "simply", "just", "of course", "it turns out", "the thing
-  is", and "said plainly".
-- **Do not write a preamble, and never let a page talk about itself.** Start with the fact.
-  "Nothing else on this page changes" is the page narrating its own future; say what the
-  person will do instead: "The rest of the setup is the same."
-- **Use articles, and no more than three nouns together.** Write "the control", not
-  "control"; break up long noun groups.
+- Write one topic in each paragraph. Put the topic in the first sentence.
+- A paragraph is six sentences or fewer.
+- Start with the fact. Do not start with an introduction to the fact.
 
 ### Conventions
 
@@ -226,12 +220,9 @@ House rules that survive under the standard:
   importing, and wrapping", not the bare imperatives "add, import, wrap".
 - **Use the ordinary precise word, not a folksy phrase.** "Calculated beforehand", not "worked
   out ahead of time". Plain is not the same as homespun.
-- **Write complete phrases, and let the prose flow.** "All eight questions are optional, and
-  the default answers are suitable", never "All eight are optional, and the defaults are
-  right". Clipping the nouns out of a sentence is the punchy register in disguise, and a page
-  of short declaratives is choppy, which is its own mannerism. A participial transition —
-  "eliminating the need for every screen to answer them again" — is ordinary professional
-  prose and is allowed to do its work.
+- **Write complete phrases.** "All eight questions are optional, and the default answers are
+  suitable", never "All eight are optional, and the defaults are right". Clipping the nouns out
+  of a sentence is not STE. Short sentences are correct; clipped sentences are not.
 - **Capitalise a heading, always.** A heading is a sentence-case phrase, never a lowercase
   identifier: write `### Appearance`, not `### appearance`, even when the section is about a
   prop of that name. Name the prop in the first line instead, where the backticks make it a
