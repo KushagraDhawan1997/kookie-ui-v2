@@ -69,38 +69,30 @@
    internal margin, not an outer one — §3 forbids components owning the space AROUND
    themselves, and this is the component laying out content it owns. */
 .kui-alert-popup .kui-overlay-body {
-  display: grid;
-  /* `minmax(0, 1fr)`, never the `1fr` shorthand (2026-08-26). A bare `1fr` track is
-     `minmax(auto, 1fr)`, and a grid item's automatic minimum is its MIN-CONTENT — which for a
-     `.kui-button` is the whole label, because the family declares `white-space: nowrap` and a
-     control declares no overflow. So the row was floored at the two labels plus the gap and
-     grew past the panel, which states a FIXED width and clips (§3): measured at the default
-     density, "Keep my workspace" / "Delete everything" put the committing button 39px outside
-     the panel with 39px of it cut off, and 113px at comfortable × coarse. A dialog's box is
-     the one thing an alert does not negotiate, so the row yields instead. */
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  /* A wrapping row, read in REVERSE (2026-09-19, Kushagra: labels never wrap, the alert
+     stacks instead — iOS's alert). Side by side when both labels fit on one line; when either
+     does not, the row wraps and each action takes a line of its own, full width. Reversed so
+     the stacked order puts the Action on top and Cancel under it while side by side stays
+     Cancel-at-start; the `order` values below undo the reversal for everything else. */
+  display: flex;
+  flex-flow: row-reverse wrap;
   gap: var(--layout-space-2) var(--layout-space-3);
 }
 .kui-alert-popup .kui-overlay-body > * {
-  grid-column: 1 / -1;
+  flex: 1 1 100%;
+  order: 0;
+  min-inline-size: 0;
+}
+/* The text stands off from the actions by the section distance, stated as the difference so
+   the two land on §15's composed steps — on the last text, never on a button, so two stacked
+   actions keep the ordinary gap between them. */
+.kui-alert-popup .kui-overlay-body > :not(.kui-button):has(+ .kui-button) {
+  margin-block-end: calc(var(--layout-space-5) - var(--layout-space-2));
 }
 .kui-alert-popup .kui-overlay-body > .kui-button {
-  grid-column: auto;
-  inline-size: 100%;
-  margin-block-start: calc(var(--layout-space-5) - var(--layout-space-2));
-  /* And the label wraps, which is the other half of the same fix and is the ALERT's licence
-     rather than a change to the Button family (§25: the one place in the system a surface
-     arranges its children, because the anatomy is closed and the box is the component's).
-     Button rests `nowrap` on the argument that "a wrapped button reads as a paragraph with a
-     border" — true of a button in flow, where the label decides the width. Here the width is
-     decided first and the words come second, exactly as the title and the description do, so
-     without this the track above simply moves the clipping from the box to the label.
-     `anywhere` for the word that cannot break: a truncation this system never designed is
-     worse than a second line, and the repo has already paid once for a fixture whose long
-     word was hyphenated (Notice, 2026-08-21). */
-  white-space: normal;
-  overflow-wrap: anywhere;
+  flex: 1 1 max-content;
+  order: 2;
 }
-.kui-alert-popup .kui-overlay-body > .kui-button:only-of-type {
-  grid-column: 1 / -1;
+.kui-alert-popup .kui-overlay-body > .kui-button:last-child {
+  order: 1;
 }
