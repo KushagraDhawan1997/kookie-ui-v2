@@ -218,7 +218,7 @@ export const solidPinBounds = { min: 0.42, max: 0.92 } as const;
  * moved from 295 to 250 with this line, which is the mechanism working rather than a second
  * change.
  */
-const accent = { hue: 250, vividness: 1 } as const;
+const accent = { hue: 250, vividness: 0.04 } as const;
 
 export const tones = {
   /** Not a brand colour: THE ACCENT'S OWN HUE at near-zero chroma, which is all a tinted
