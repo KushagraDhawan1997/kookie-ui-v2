@@ -8,6 +8,7 @@ import { readChapterSource } from "./toc";
 import { readExampleSource } from "./example";
 import { humanLabel } from "./label";
 import { RULES } from "../builder/review";
+import { FIGURE_CAPTIONS } from "./color-figures";
 import type { Entry } from "./components/registry";
 
 /**
@@ -106,9 +107,10 @@ const fence = (code: string, lang = "tsx"): string => `\`\`\`${lang}\n${code.tri
  * linter's own array — dropping it would publish a chapter that says "the rules are" and then
  * stops. `<Example />` renders a live specimen, and a plain-text reader cannot see a rendered
  * panel, so the twin carries the specimen's SOURCE: the same file, in a fence, which is what a
- * reader with no pixels can actually use.
+ * reader with no pixels can actually use. The colour chapter's figures draw the palette, so
+ * the twin carries each one's caption, from the one home the figure renders it from.
  *
- * Both are expansions rather than a compiler. A law holds that nothing else in `content/` is
+ * All three are expansions rather than a compiler. A law holds that nothing else in `content/` is
  * JSX, so this list grows only when a chapter genuinely needs a component, and the same law
  * fails on a bare tag this function does not know how to expand.
  */
@@ -121,6 +123,12 @@ function chapterMarkdown(chapter: { title: string; source: string }): string {
     )
     .replace(/^\s*<Example\s+name="([^"]+)"[^>]*\/>\s*$/gm, (_match, name: string) =>
       fence(readExampleSource(String(name))),
+    )
+    // A figure draws the palette, so the twin carries what it asks the reader to look at.
+    .replace(/^\s*<(\w+)\s*\/>\s*$/gm, (match, name: string) =>
+      name in FIGURE_CAPTIONS
+        ? `*Figure, in light and dark.* ${FIGURE_CAPTIONS[name as keyof typeof FIGURE_CAPTIONS]}`
+        : match,
     );
   return `# ${chapter.title}\n\n${source.trim()}\n`;
 }

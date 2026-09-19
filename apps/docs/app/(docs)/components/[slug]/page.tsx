@@ -91,8 +91,6 @@ export async function generateMetadata({
 const SECTIONS = {
   declaration: "Declaration",
   overview: "Overview",
-  example: "Example",
-  examples: "Examples",
   topics: "Topics",
   props: "Props",
   refusals: "Not supported",

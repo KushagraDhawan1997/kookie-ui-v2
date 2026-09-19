@@ -577,8 +577,13 @@ describe("the reference page's headings carry the anchors its contents column po
        sabotage removed one of the two readers `SECTIONS.examples` has — the heading — and the
        law stayed green off the contents column's use, which is correct behaviour and a weaker
        guarantee than "every name is rendered". Falsified by removing both. */
-    const names = [...source.matchAll(/^\s+(\w+): "/gm)].map((m) => m[1]);
-    expect(names.length, "no section names found; this walk has gone stale").toBeGreaterThan(5);
+    // Read inside the SECTIONS object only: the file has other `key: "value"` literals (a
+    // fence's `lang`), and a whole-file walk read them as section names.
+    const start = source.indexOf("const SECTIONS = {");
+    expect(start, "SECTIONS is gone; this walk has gone stale").toBeGreaterThanOrEqual(0);
+    const table = source.slice(start, source.indexOf("}", start));
+    const names = [...table.matchAll(/^\s+(\w+): "/gm)].map((m) => m[1]);
+    expect(names.length, "no section names found; this walk has gone stale").toBeGreaterThan(4);
     for (const name of names) {
       expect(source, `SECTIONS.${name} is named and never rendered`).toContain(
         `SECTIONS.${name}`,

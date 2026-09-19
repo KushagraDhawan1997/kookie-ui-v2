@@ -84,24 +84,17 @@ describe("code spans in reference prose", () => {
   // second time: main made a refusal and a review finding into prose in the builder, and the
   // two new surfaces rendered the same strings bare.
   it("every surface that renders system prose renders it through InlineCode", () => {
-    // `within` narrows the bare-render scan to one renderer. The inspector needs it and the
-    // need is the point: its Refusal takes props called `name` and `why`, and `{name}` appears
-    // ten times elsewhere in that file for a property row's own label. A file-wide scan called
-    // all ten a defect, which is a law failing on correct code.
-    const surfaces: { file: string; fields: string[]; within?: string }[] = [
+    // The builder's inspector rendered refusals too, until 2026-09-15 took them out of it.
+    const surfaces: { file: string; fields: string[] }[] = [
       {
         file: "(docs)/components/[slug]/page.tsx",
         fields: ["entry.abstract", "paragraph", "refusal.name", "refusal.why", "summary"],
       },
       { file: "(docs)/review-rules.tsx", fields: ["rule.title", "rule.why"] },
-      { file: "builder/inspector.tsx", fields: ["name", "why"], within: "function Refusal(" },
       { file: "builder/review-panel.tsx", fields: ["finding.title", "finding.why"] },
     ];
-    for (const { file, fields, within } of surfaces) {
-      const whole = readFileSync(join(__dirname, file), "utf8");
-      const from = within ? whole.indexOf(within) : 0;
-      expect(from, `${file}: ${within} is gone`).toBeGreaterThanOrEqual(0);
-      const source = within ? whole.slice(from, whole.indexOf("\n}", from) + 2) : whole;
+    for (const { file, fields } of surfaces) {
+      const source = readFileSync(join(__dirname, file), "utf8");
       // Strip the wrappers first. `text={paragraph}` contains `{paragraph}`, so a naive scan
       // for a bare render matches the correct code — the first spelling of this law failed on
       // the very file it was written to bless.

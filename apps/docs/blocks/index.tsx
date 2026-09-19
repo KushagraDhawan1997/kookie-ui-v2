@@ -24,7 +24,7 @@ import { EmptyState } from "./empty-state";
 import { Footer } from "./footer";
 import { Specimen } from "./specimen";
 import { TableOfContents } from "./table-of-contents";
-import { Button, Grid, Stack, Text, iconStroke } from "@kookie-ui/react";
+import { Button, Grid, Stack, iconStroke } from "@kookie-ui/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FolderLibraryIcon, NoInternetIcon } from "@hugeicons/core-free-icons";
 import { Wordmark } from "../app/(docs)/wordmark";

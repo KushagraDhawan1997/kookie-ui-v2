@@ -11,6 +11,20 @@ import { Button, Card, Flex, Grid, Stack, Surface, Text, Theme, componentAxes } 
  * figure says in one line what to look at, because a wall of swatches explains nothing.
  */
 
+/**
+ * What each figure asks the reader to look at. One home, read twice: the figure renders it
+ * under the swatches, and the chapter's markdown twin states it in place of a picture a
+ * plain-text reader cannot see.
+ */
+export const FIGURE_CAPTIONS = {
+  ColorScales:
+    "Read a column top to bottom: every family is equally light at the same step, so swapping a tone never changes how loud something looks. Dark is not light inverted — each step is redesigned for a dark background.",
+  ColorInks:
+    "The three levels reach the same contrast in every family. Look at accent: its medium and quiet go grey, because a faded brand colour stops looking like the brand. The meanings stay coloured, because a faded red still reads as danger.",
+  ColorGrounds:
+    "In light, a card and the page are the same white, so the card's shadow is what separates them — only the ground is a different colour. In dark, all three step apart: page darkest, cards lightest.",
+} as const;
+
 const MODES = ["light", "dark"] as const;
 type Mode = (typeof MODES)[number];
 
@@ -99,11 +113,7 @@ export function ColorScales() {
           </Grid>
         </ModePanel>
       ))}
-      <Caption>
-        Read a column top to bottom: every family is equally light at the same step, so swapping a
-        tone never changes how loud something looks. Dark is not light inverted — each step is
-        redesigned for a dark background.
-      </Caption>
+      <Caption>{FIGURE_CAPTIONS.ColorScales}</Caption>
     </Stack>
   );
 }
@@ -162,11 +172,7 @@ export function ColorInks() {
           </ModePanel>
         ))}
       </Stack>
-      <Caption>
-        The three levels reach the same contrast in every family. Look at accent: its medium and
-        quiet go grey, because a faded brand colour stops looking like the brand. The meanings
-        stay coloured, because a faded red still reads as danger.
-      </Caption>
+      <Caption>{FIGURE_CAPTIONS.ColorInks}</Caption>
     </Stack>
   );
 }
@@ -209,11 +215,7 @@ export function ColorGrounds() {
           </ModePanel>
         ))}
       </Grid>
-      <Caption>
-        In light, a card and the page are the same white, so the card's shadow is what separates
-        them — only the ground is a different colour. In dark, all three step apart: page darkest,
-        cards lightest.
-      </Caption>
+      <Caption>{FIGURE_CAPTIONS.ColorGrounds}</Caption>
     </Stack>
   );
 }

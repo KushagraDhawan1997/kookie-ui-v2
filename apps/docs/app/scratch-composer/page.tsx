@@ -73,21 +73,6 @@ function Plain({ placeholder = "Describe what you need", backdrop }: { placehold
   );
 }
 
-function ApprovalRow() {
-  return (
-    <Flex justify="space-between" align="center" gap="3">
-      <Flex gap="2" align="baseline">
-        <Text size="2" weight="medium">Run 4 nodes</Text>
-        <Text size="2" emphasis="medium">$0.32</Text>
-      </Flex>
-      <Flex gap="2">
-        <Button size="1" emphasis="quiet">Not now</Button>
-        <Button size="1" emphasis="loud" tone="accent">Run</Button>
-      </Flex>
-    </Flex>
-  );
-}
-
 function ContextRow() {
   return (
     <Flex justify="space-between" align="center" gap="3">
