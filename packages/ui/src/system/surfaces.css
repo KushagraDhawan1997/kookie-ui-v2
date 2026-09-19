@@ -143,7 +143,11 @@
      them for why one authored band needs a different number in each shape, and for the
      measurement that says the ratio between them is what was wrong. The `1` here is the
      un-themed document's fallback and nothing else. */
-  border-radius: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1));
+  /* Named so a nested Card or Surface can re-point it (the concentric join below) and so a
+     child that must bend with the pane — a code well's scroller — reads the pane's PAINTED
+     corner rather than re-deriving it from the band. */
+  --kui-sf-r: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1));
+  border-radius: var(--kui-sf-r);
   padding: var(--kui-sf-p);
   /* The pane's inset, per AXIS — the pair the entry flight's body pin reads (see it for the
      whole argument). Defaulted here so every pane answers both names, and re-stated by the one
@@ -460,6 +464,46 @@
   --kui-sf-p: var(--surface-p-4);
   --kui-sf-radius: var(--radius-surface-4);
   --kui-sf-icon: var(--icon-size-4);
+}
+
+/* ── A pane inside a pane is CONCENTRIC (§6, §10, 2026-09-19, Kushagra) ───────────────────
+   Inner corner = outer corner − outer padding. A nested corner belongs to the RELATIONSHIP, not
+   to either component, so neither band can answer it alone: a Card and a Surface at one index
+   wore one corner, and a card sitting one padding inside a ground read inside-out.
+
+   The OUTER pane publishes `--kui-nest` onto its CHILDREN, never onto itself. Two reasons, both
+   load-bearing. A pane that is a direct child would otherwise compute the formula from its own
+   declarations (substitution-at-declaration, §6), which is why the formula is written from the
+   size TOKENS at the publisher's index rather than from `--kui-sf-radius`/`--kui-sf-p`. And a
+   custom property inherits, so the value crosses any Flex, Stack, Grid or Box in between — the
+   ordinary shape, and the one the refused `:has(> .kui-surface)` spelling could not see.
+
+   The INNER pane takes the smaller of that and its own corner; `calc()` clamps a negative
+   result to zero, so a padding wider than the corner squares the inner pane, which is what
+   concentric geometry says. Card and Surface only, both ways round: a shell pane, a notice, a
+   composer and a row panel derive their corners from what is INSIDE them, and a box cannot be
+   concentric with both its inside and its outside.
+
+   Two levels, not three (Kushagra: a third level usually sits several paddings deep): the
+   second pane publishes from its own index's tokens, not from the corner it was handed. */
+.kui-card[data-size="1"] > *,
+.kui-ground[data-size="1"] > * {
+  --kui-nest: calc(var(--radius-surface-1) * var(--kui-corner-k, 1) - var(--surface-p-1));
+}
+.kui-card[data-size="2"] > *,
+.kui-ground[data-size="2"] > * {
+  --kui-nest: calc(var(--radius-surface-2) * var(--kui-corner-k, 1) - var(--surface-p-2));
+}
+.kui-card[data-size="3"] > *,
+.kui-ground[data-size="3"] > * {
+  --kui-nest: calc(var(--radius-surface-3) * var(--kui-corner-k, 1) - var(--surface-p-3));
+}
+.kui-card[data-size="4"] > *,
+.kui-ground[data-size="4"] > * {
+  --kui-nest: calc(var(--radius-surface-4) * var(--kui-corner-k, 1) - var(--surface-p-4));
+}
+:is(.kui-card, .kui-ground) :is(.kui-card, .kui-ground) {
+  --kui-sf-r: min(var(--kui-nest), calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1)));
 }
 
 /* ── The FLOATING pane's size join (§22, Kushagra 2026-08-09) ────────────────────────────────

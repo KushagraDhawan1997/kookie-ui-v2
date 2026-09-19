@@ -123,7 +123,8 @@
    harmless for a well whose content is inset text and is not harmless for a panel of rows
    that reach the walls. The general rule stays an open question. */
 .kui-code-block:not([data-hosted]) > .kui-scroll-area > .kui-scroll-viewport {
-  border-radius: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1));
+  /* The pane's PAINTED corner, which a well nested in a Card or Surface derives (§6). */
+  border-radius: var(--kui-sf-r);
 }
 
 @supports (corner-shape: squircle) {

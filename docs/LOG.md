@@ -8,6 +8,38 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-19 A pane inside a pane is concentric
+
+**What.** A Card or Surface held by a Card or Surface now takes the outer corner minus the outer
+padding, either way round (§6). Kushagra, on the docs example frame: a size-2 ground holding a
+size-2 card painted both at 51.6px, and the card read inside-out. It now paints 27.6.
+
+**Why the old answer went.** 2026-09-07 made nesting the call site's job: state a larger `size`
+on the container. The frame's own authors did not, which is the first objection — a memory rule.
+The others are structural: `size` moves padding too, the four-rung ladder runs out at the third
+level, and a larger index is rank rather than geometry (a size-3 ground wants 32.5 inside it; a
+size-2 card paints 51.6).
+
+**Why the automatic answer is allowed now.** 2026-09-07 refused `:has(> .kui-surface)`: it sees
+direct children only, and it moves the parent when its contents change. This goes the other way.
+The outer pane publishes `--kui-nest` onto its children, written from the size tokens so a direct
+child does not compute it from its own numbers, and inheritance carries it through any layout
+element. The parent never moves.
+
+**Rejected.** A per-component offset (dialog one up, card one down): it is the material ladder's
+"thick has no rung above it" again. A floor at the control corner: nothing forced it, and the
+geometry says a pane padded wider than its corner holds a square one. Three levels: the second
+pane publishes from its own tokens, and a third level usually sits several paddings deep
+(Kushagra). An opt-out: the error from a floating inner pane is only ever a tighter corner.
+
+**Found on the way.** A law pinned the base rule's corner as one literal string under the claim
+"multiplied at ONE site". The claim is now false by design; the law asserts the painted corner is
+one named expression and every concentric declaration goes through the same knob. One sabotage
+survived and taught something: letting every surface PUBLISH changed nothing, because the reader's
+selector is what keeps a card in a shell pane at its own corner. The law was renamed to say so.
+
+---
+
 ## 2026-09-19 Colour numbers left the stylesheets
 
 A sweep for colour that bypasses the system found six rules typing their arithmetic inline: the split button's divider (30%), a joined group's loud seam (25%), the loud glass boost (l x 1.04, c x 1.6, alpha 0.8), the on-glass loud trio (c x 1.1, alpha .88/.93/.96) and the on-glass medium mixes (55/62/70%). A grep found two of them. The new law found the other four. All six now read tokens from `glassRungs` and `dividerMix` in config. They are emitted once at `:root` because none of them changes by mode. The rendered values are unchanged. Budget +175 bytes.

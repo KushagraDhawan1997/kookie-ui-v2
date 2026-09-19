@@ -11,6 +11,8 @@ import { APPEARANCES, colorOn, computed, mounted, within } from "../../test/brow
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
 import { Box } from "../box/box.tsx";
+import { CodeBlock } from "../code-block/code-block.tsx";
+import { Flex } from "../flex/flex.tsx";
 import { Surface } from "./surface.tsx";
 
 const tokenOn = (el: Element, name: string): string => colorOn(el, `var(${name})`);
@@ -303,10 +305,11 @@ describe("a ground, not an object (§10, 2026-08-20)", () => {
     }
   });
 
-  it("and a step is the CALL SITE's, which is what the deleted join took away", () => {
-    /* The vacuity guard on the law above, and the mechanism the deletion leaves in place: a
-       ground meant to hold cards states a larger `size` than the cards in it. Without this the
-       agreement law is satisfied by a system where the size axis reaches neither component. */
+  it("and the size axis reaches both, so a larger ground out-pads and out-rounds its card", () => {
+    /* The vacuity guard on the law above: without it the agreement is satisfied by a system
+       where the size axis reaches neither component. (Until 2026-09-19 this was also THE
+       mechanism for nesting — the call site stated a larger size on the container. The corner
+       half of that is the concentric join's now, below; the padding half is still the index.) */
     const root = mounted(
       <Surface size="3">
         <Card size="2" data-testid="held">Body</Card>
@@ -320,6 +323,85 @@ describe("a ground, not an object (§10, 2026-08-20)", () => {
     expect(parseFloat(computed(root, "padding-top"))).toBeGreaterThan(
       parseFloat(computed(held, "padding-top")),
     );
+  });
+
+  describe("a pane inside a pane is concentric — inner corner = outer corner − outer padding (2026-09-19)", () => {
+    const corner = (el: Element) => parseFloat(computed(el, "border-top-left-radius"));
+    const pad = (el: Element) => parseFloat(computed(el, "padding-top"));
+    const Outer = { Surface, Card } as const;
+
+    /* MIXED INDEXES, on purpose. Outer 3 holding inner 2 is the fixture where "the outer pane
+       publishes" and "each pane publishes on ITSELF" give different answers; at one index both
+       spellings compute the same number and the law could not tell them apart. */
+    for (const [outerName, innerName] of [["Surface", "Card"], ["Card", "Surface"], ["Card", "Card"], ["Surface", "Surface"]] as const) {
+      for (const wrapped of [false, true]) {
+        it(`${innerName} in ${outerName}${wrapped ? ", through a Flex" : ", as a direct child"}`, () => {
+          const O = Outer[outerName];
+          const I = Outer[innerName];
+          const inner = <I size="2" data-testid="inner">Body</I>;
+          const root = mounted(<O size="3">{wrapped ? <Flex direction="column">{inner}</Flex> : inner}</O>, {
+            theme: {},
+            select: ".kui-surface",
+          });
+          const held = within(root, "[data-testid='inner']");
+          const twin = mounted(<I size="2">Body</I>, { theme: {}, select: ".kui-surface" });
+          // The fixture must be one where the derivation MOVES the corner, or the law is vacuous.
+          expect(corner(root) - pad(root)).toBeLessThan(corner(twin));
+          expect(corner(held)).toBeCloseTo(corner(root) - pad(root), 1);
+        });
+      }
+    }
+
+    it("never rounds the inner pane PAST its own corner", () => {
+      /* Compact pads less, so a size-4 ground's derived corner outgrows a size-1 card's own —
+         the one cell family where the `min()` binds. The guard asserts the fixture really is
+         that cell, since at default density no pairing reaches it. */
+      const theme = { density: "compact" } as const;
+      const root = mounted(
+        <Surface size="4">
+          <Card size="1" data-testid="held">Body</Card>
+        </Surface>,
+        { theme, select: ".kui-ground" },
+      );
+      const held = within(root, "[data-testid='held']");
+      const twin = mounted(<Card size="1">Body</Card>, { theme, select: ".kui-surface" });
+      expect(corner(root) - pad(root)).toBeGreaterThan(corner(twin));
+      expect(corner(held)).toBeCloseTo(corner(twin), 1);
+    });
+
+    it("only a pane held by a Card or Surface derives — inside any other pane it keeps its own", () => {
+      /* The READER's gate, and the one that matters: a consumer's pane, a shell pane or a notice
+         may publish nothing or anything, and a card inside it still keeps its own corner,
+         because the concentric rule only reads where a Card or Surface is the ancestor. (A
+         sabotage that let every surface PUBLISH survived this law, correctly — the gate is here.) */
+      const root = mounted(
+        <div className="kui-surface" data-size="3">
+          <Card size="2" data-testid="held">Body</Card>
+        </div>,
+        { theme: {}, select: ".kui-surface" },
+      );
+      const held = within(root, "[data-testid='held']");
+      const twin = mounted(<Card size="2">Body</Card>, { theme: {}, select: ".kui-surface" });
+      // Guard: had this pane published, the card's corner would have moved.
+      expect(corner(root) - pad(root)).toBeLessThan(corner(twin));
+      expect(corner(held)).toBeCloseTo(corner(twin), 1);
+    });
+
+    it("a code well's scroller bends with the corner its pane was handed", () => {
+      /* The viewport rounds itself to clip at the corners (code-block.css). Re-deriving that
+         from the band left a nested well's scroller at the old corner inside a tighter pane. */
+      const root = mounted(
+        <Card size="3">
+          <CodeBlock size="2">{"const a = 1;"}</CodeBlock>
+        </Card>,
+        { theme: {}, select: ".kui-card" },
+      );
+      const well = within(root, ".kui-code-block");
+      const viewport = within(well, ".kui-scroll-viewport");
+      const twin = mounted(<CodeBlock size="2">{"const a = 1;"}</CodeBlock>, { theme: {}, select: ".kui-surface" });
+      expect(corner(well)).toBeLessThan(corner(twin));
+      expect(corner(viewport)).toBeCloseTo(corner(well), 1);
+    });
   });
 
   it("has no axis to disagree with — a stamped tone or emphasis changes nothing", () => {

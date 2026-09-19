@@ -11,9 +11,9 @@
  * THE ARRANGEMENT IS THE SYSTEM'S OWN SENTENCE (§10): a Card is an object, a Surface is what
  * an object sits on. So the figure is a GROUND — it holds things, it is not one — carrying the
  * specimen on paper and its source beneath. The nesting is Apple's grouped-background pattern
- * and the one the builder's canvas already uses; the surface size join reads the OVERLAY band,
- * so the ground out-rounds the Card inside it by construction rather than by a number picked
- * here.
+ * and the one the builder's canvas already uses. Ground and Card take the same `size` here, and
+ * the card inside still wears the smaller corner: a Card held by a Surface is concentric with it
+ * (§6), so the relationship is the package's and no number is picked here.
  *
  * IT IS A BLOCK AND NOT A DOCS COMPONENT, which took one change to be true. The pairing lived
  * in `app/(docs)/example.tsx` and could not be copied, because it read its source off disk

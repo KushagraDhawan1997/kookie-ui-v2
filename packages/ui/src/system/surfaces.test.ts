@@ -786,10 +786,18 @@ describe("continuous curvature (§6, ported 2026-08-16)", () => {
     expect(guard, "the guard block lost the shape itself").toContain("corner-shape: squircle");
   });
 
-  it("the radius is multiplied at ONE site, so nothing can wear the shape at the wrong number", () => {
-    expect(block(css, ".kui-surface {")).toContain(
-      "border-radius: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1))",
-    );
+  it("the radius is multiplied by ONE knob, so nothing can wear the shape at the wrong number", () => {
+    // The pane's painted corner is one named expression and the border reads the name — which
+    // is what lets a nested Card or Surface re-point it (the concentric join, 2026-09-19).
+    const base = block(css, ".kui-surface {");
+    expect(base).toContain("--kui-sf-r: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1))");
+    expect(base).toContain("border-radius: var(--kui-sf-r)");
+    // Until that day the multiplication lived at exactly one site. The concentric join adds
+    // more, and every one must go through the knob: a surface-band corner multiplied by a
+    // literal, or not at all, is a corner in the wrong shape.
+    const nested = [...stripped(css).matchAll(/--kui-(?:nest|sf-r): [^;]*/g)].map((m) => m[0]);
+    expect(nested.length, "four publishers, the base and the reader").toBe(6);
+    for (const use of nested) expect(use, use).toContain("* var(--kui-corner-k, 1)");
   });
 });
 
