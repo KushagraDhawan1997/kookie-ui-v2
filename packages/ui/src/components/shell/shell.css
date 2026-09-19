@@ -1369,12 +1369,12 @@
    sidebar's own rule, so neither depends on source order. The guard that keeps a FLUSH
    sidebar standing between the rail and the content from claiming the rail's line is the
    placement rule's, restated: there the content does not reach the rail at all. */
-.kui-shell:has(> .kui-shell-rail:where(:not([data-flush]):not([data-state="closed"]):not([data-presentation="overlay"]))):has(> .kui-shell-sidebar:where(:not([data-flush]):not([data-state="closed"]):not([data-presentation="overlay"])))
+.kui-shell:has(> .kui-shell-rail:where(:not([data-flush]):not([data-bar="only"]):not([data-state="closed"]):not([data-presentation="overlay"]))):has(> .kui-shell-sidebar:where(:not([data-flush]):not([data-state="closed"]):not([data-presentation="overlay"])))
   > .kui-shell-content[data-flush] {
   --kui-shell-inset-inline-start: calc(calc(var(--kui-shell-row) + 2 * var(--kui-sf-p) + 2 * var(--border-width) + 2 * var(--shell-gap)) + calc(var(--shell-sidebar-w) + 2 * var(--shell-gap)));
 }
 
-.kui-shell:has(> .kui-shell-rail:where(:not([data-flush]):not([data-state="closed"]):not([data-presentation="overlay"]))):not(:has(> .kui-shell-sidebar))
+.kui-shell:has(> .kui-shell-rail:where(:not([data-flush]):not([data-bar="only"]):not([data-state="closed"]):not([data-presentation="overlay"]))):not(:has(> .kui-shell-sidebar))
   > .kui-shell-content[data-flush] {
   --kui-shell-inset-inline-start: calc(var(--kui-shell-row) + 2 * var(--kui-sf-p) + 2 * var(--border-width) + 2 * var(--shell-gap));
 }

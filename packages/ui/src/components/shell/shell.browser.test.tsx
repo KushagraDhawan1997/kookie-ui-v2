@@ -4911,6 +4911,45 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
   });
 
   /**
+   * A BAR THAT DRAWS NOTHING RESERVES NOTHING (2026-09-19). On a wide window a bar-only rail is
+   * `display: none`, but the flush content's leading inset still counted a rail's width beside
+   * a floating sidebar — a gutter the width of a rail nobody could see. Read as an AGREEMENT
+   * with the same frame holding no rail at all, so the law does not restate the arithmetic.
+   *
+   * Falsified: dropping `:not([data-bar="only"])` from the two rail-and-sidebar inset rules
+   * fails at the rail's own width.
+   */
+  it("a bar-only rail adds nothing to the work area's leading inset on a wide window", () => {
+    const frame = (withBar: boolean) =>
+      mounted(
+        <Shell contained style={{ height: 600 }}>
+          {withBar ? (
+            <ShellTabBar aria-label="Sections" flush={false}>
+              <ShellRailList>
+                <ShellRailItem label="One" current render={<a href="#one" />}>
+                  <svg viewBox="0 0 16 16" />
+                </ShellRailItem>
+              </ShellRailList>
+            </ShellTabBar>
+          ) : null}
+          <ShellSidebar aria-label="Primary" flush={false}>
+            sidebar
+          </ShellSidebar>
+          <ShellContent flush>content</ShellContent>
+        </Shell>,
+        { select: ".kui-shell" },
+      );
+    const inset = (shell: HTMLElement) =>
+      parseFloat(tokenOn(within(shell, ".kui-shell-content"), "--kui-shell-inset-inline-start"));
+    const bare = frame(false);
+    const expected = inset(bare);
+    bare.remove();
+    const barred = frame(true);
+    expect(expected, "vacuity: the floating sidebar reserves room").toBeGreaterThan(0);
+    expect(inset(barred), "a hidden bar reserved a rail's width").toBeCloseTo(expected, 1);
+  });
+
+  /**
    * ON A PHONE IT IS A BAR: across the bottom, inside the window, above the safe area, and out
    * of the frame's flow. Both postures, because `auto` and `bar` are one bar and the day they
    * diverge is the day this file records forgetting the resolved arm again.
