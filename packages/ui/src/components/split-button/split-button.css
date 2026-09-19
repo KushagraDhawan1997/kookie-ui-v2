@@ -17,7 +17,7 @@
   border-start-start-radius: var(--radius-0);
   border-end-start-radius: var(--radius-0);
   /* The divider: the label's own ink, faint, so it reads on every emphasis and tone. */
-  border-inline-start-color: color-mix(in oklab, currentColor 30%, transparent);
+  border-inline-start-color: color-mix(in oklab, currentColor var(--split-divider-mix), transparent);
 }
 
 /* The halves do not travel. A button rises and sinks because it sits on the page; half of one

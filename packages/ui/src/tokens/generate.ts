@@ -58,6 +58,8 @@ import {
   controlChromeActive,
   controlLight,
   disabledDim,
+  glassRungs,
+  dividerMix,
   disabledSteps,
   scrollbar,
   gripCast,
@@ -332,6 +334,24 @@ export function generateTokens(): string {
   put("border-width", zoom(borderWidth));
   put("focus-ring-width", zoom(focusRing.width));
   put("focus-ring-offset", zoom(focusRing.offset));
+
+  lines.push(
+    "",
+    "  /* colour arithmetic (§7, §10) — the rungs on glass and the dividers across a fill. Mode-",
+    "     invariant, so emitted at :root alone; a stylesheet never types a colour number. */",
+  );
+  put("glass-loud-l", `${glassRungs.loudPane.lightness}`);
+  put("glass-loud-c", `${glassRungs.loudPane.chroma}`);
+  put("glass-loud-alpha", `${glassRungs.loudPane.alpha}`);
+  put("on-glass-loud-c", `${glassRungs.loudOnGlass.chroma}`);
+  put("on-glass-loud-alpha", `${glassRungs.loudOnGlass.alpha.rest}`);
+  put("on-glass-loud-alpha-hover", `${glassRungs.loudOnGlass.alpha.hover}`);
+  put("on-glass-loud-alpha-active", `${glassRungs.loudOnGlass.alpha.active}`);
+  put("on-glass-medium-mix", `${glassRungs.mediumOnGlass.rest}%`);
+  put("on-glass-medium-mix-hover", `${glassRungs.mediumOnGlass.hover}%`);
+  put("on-glass-medium-mix-active", `${glassRungs.mediumOnGlass.active}%`);
+  put("split-divider-mix", `${dividerMix.splitButton}%`);
+  put("loud-seam-mix", `${dividerMix.loudSeam}%`);
 
   lines.push("", "  /* motion (§8) — two clocks. Signal (colour, opacity) eases and is short; travel");
   lines.push("     (geometry) rides a baked damped spring, so a state change costs a cubic-bezier and");

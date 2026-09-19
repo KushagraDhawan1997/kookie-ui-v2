@@ -8,6 +8,14 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-19 Colour numbers left the stylesheets
+
+A sweep for colour that bypasses the system found six rules typing their arithmetic inline: the split button's divider (30%), a joined group's loud seam (25%), the loud glass boost (l x 1.04, c x 1.6, alpha 0.8), the on-glass loud trio (c x 1.1, alpha .88/.93/.96) and the on-glass medium mixes (55/62/70%). A grep found two of them. The new law found the other four. All six now read tokens from `glassRungs` and `dividerMix` in config. They are emitted once at `:root` because none of them changes by mode. The rendered values are unchanged. Budget +175 bytes.
+
+Kept on purpose, not moved: `destructive` and `orange` stay pinned hex (orange's hue-built solid fails the label law at hue 55). `glassInk` stays fixed alphas: glass has no known bed to solve against, so the ink ladder's solver has nothing to measure. The well stays one literal for both modes, because it is what lies under the page, not a shade of it.
+
+---
+
 ## 2026-09-19 The audit of the transcript work: one context the nested scrollers kept
 
 **What.** An ultracode audit of the uncommitted Carousel, MessageScroller, Confirmation and Composer

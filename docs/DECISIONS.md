@@ -624,6 +624,10 @@ Uniform lightness across hues forces **non-uniform chroma** across hues (the gam
 
 ---
 
+### A stylesheet never types a colour number (2026-09-19)
+
+Colour arithmetic is taste like every other number, so it lives in `config.ts`: mix shares, chroma boosts, lightness multipliers, alphas. A stylesheet reads them as tokens (`--on-glass-medium-mix`, `--glass-loud-c`, `--split-divider-mix`, `--loud-seam-mix` …). A node law walks every hand-authored sheet and fails on any number inside a `color-mix()` or a relative colour. Literal colours in `config.ts` are allowed: config is their home. That covers the pinned `destructive` and `orange`, the scrim, the well and `glassInk`.
+
 ## 8. Variants and interaction states
 
 **Decision: variants and interaction states are shared system primitives, defined once, that components cannot deviate from. Consistency is enforced, not designed.**

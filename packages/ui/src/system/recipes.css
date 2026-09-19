@@ -945,7 +945,7 @@
   --kui-ct-light: var(--kui-control-light, none);
   /* A joined group's seam (§54): the full ground reads as a cut across a solid fill, so this
      rung publishes it at a quarter. Every other rung takes the ground whole. */
-  --kui-ct-seam: color-mix(in oklab, var(--color-surface) 25%, transparent);
+  --kui-ct-seam: color-mix(in oklab, var(--color-surface) var(--loud-seam-mix), transparent);
 }
 
 [data-emphasis="medium"] {
@@ -1926,9 +1926,9 @@
        again: the lab's written 1.18/0.72 sat under live dials, and the screen showed
        c×1.6 at α0.8 (first derived as 1.455 against the wrong source chroma — measured
        twice now, against accent's own solid) — porting the text shipped a washed-out loud). */
-    --kui-ct-fill: oklch(from var(--kui-ct-fill-src) calc(l * 1.04) calc(c * 1.6) h / 0.8);
-    --kui-ct-fill-hover: oklch(from var(--kui-ct-fill-src-hover) calc(l * 1.04) calc(c * 1.6) h / 0.8);
-    --kui-ct-fill-active: oklch(from var(--kui-ct-fill-src-active) calc(l * 1.04) calc(c * 1.6) h / 0.8);
+    --kui-ct-fill: oklch(from var(--kui-ct-fill-src) calc(l * var(--glass-loud-l)) calc(c * var(--glass-loud-c)) h / var(--glass-loud-alpha));
+    --kui-ct-fill-hover: oklch(from var(--kui-ct-fill-src-hover) calc(l * var(--glass-loud-l)) calc(c * var(--glass-loud-c)) h / var(--glass-loud-alpha));
+    --kui-ct-fill-active: oklch(from var(--kui-ct-fill-src-active) calc(l * var(--glass-loud-l)) calc(c * var(--glass-loud-c)) h / var(--glass-loud-alpha));
     /* And loud KEEPS a wash (the lab grid's own sheen-10 cell): the pane-minus-wash rule is
        about the neutral box, not about rank — a committed pigment is lit like the pane. */
     --kui-ct-light: var(--material-control-wash-loud, none);
@@ -2178,14 +2178,14 @@
    :where() keeps the material at zero weight so these tie with the block above and win on
    source order — the same mechanism the loud-hot rule uses. */
 .kui-control:where([data-material="on-glass"])[data-emphasis="loud"] {
-  --kui-ct-fill: oklch(from var(--kui-ct-fill-src) l calc(c * 1.1) h / 0.88);
-  --kui-ct-fill-hover: oklch(from var(--kui-ct-fill-src-hover) l calc(c * 1.1) h / 0.93);
-  --kui-ct-fill-active: oklch(from var(--kui-ct-fill-src-active) l calc(c * 1.1) h / 0.96);
+  --kui-ct-fill: oklch(from var(--kui-ct-fill-src) l calc(c * var(--on-glass-loud-c)) h / var(--on-glass-loud-alpha));
+  --kui-ct-fill-hover: oklch(from var(--kui-ct-fill-src-hover) l calc(c * var(--on-glass-loud-c)) h / var(--on-glass-loud-alpha-hover));
+  --kui-ct-fill-active: oklch(from var(--kui-ct-fill-src-active) l calc(c * var(--on-glass-loud-c)) h / var(--on-glass-loud-alpha-active));
 }
 .kui-control:where([data-material="on-glass"])[data-emphasis="medium"] {
-  --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) 55%, transparent);
-  --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) 62%, transparent);
-  --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) 70%, transparent);
+  --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--on-glass-medium-mix), transparent);
+  --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--on-glass-medium-mix-hover), transparent);
+  --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--on-glass-medium-mix-active), transparent);
 }
 
 /* Three conditions, one answer — see the surface arm in surfaces.css for why print and

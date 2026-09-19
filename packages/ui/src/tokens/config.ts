@@ -2127,6 +2127,27 @@ export const controlLight = {
 export const disabledDim = 70;
 
 /**
+ * THE RUNGS ON GLASS (§10, 2026-09-19) — the numbers the glass rung rules in recipes.css had
+ * typed inline since the 2026-08-17 lab port. A loud PANE member is its own solid, chroma
+ * boosted, at a high alpha (backlit stained glass, not a painted button); a loud member ON a
+ * pane keeps its lightness and takes a smaller boost, its alpha stepping with state; a medium
+ * member on a pane carries its soft pigment at the lab's judged steps, so hover moves within
+ * the rung and never climbs into loud's band. The values are the lab's RENDERED ones (the
+ * extraction rule), unchanged by the move — one home now, one config line each.
+ */
+export const glassRungs = {
+  loudPane: { lightness: 1.04, chroma: 1.6, alpha: 0.8 },
+  loudOnGlass: { chroma: 1.1, alpha: { rest: 0.88, hover: 0.93, active: 0.96 } },
+  mediumOnGlass: { rest: 55, hover: 62, active: 70 },
+} as const;
+
+/** The dividers drawn across a control's own fill. The split button's is the label's own ink
+    at this share, so one line reads on every emphasis and tone; a joined group's seam across
+    a loud fill is the ground at this share, because the full ground reads as a cut. Both were
+    inline percentages in their stylesheets until 2026-09-19. */
+export const dividerMix = { splitButton: 30, loudSeam: 25 } as const;
+
+/**
  * §8 — the dead palette's alpha steps, PER MODE (2026-08-19). One rule: dead recedes from
  * live, one ramp step under the live wells' RESTING step in its own mode. The single a3 that
  * preceded this table delivered that only in dark (live soft rests at a4 there); in light the

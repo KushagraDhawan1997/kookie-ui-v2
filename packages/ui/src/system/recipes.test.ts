@@ -1973,6 +1973,30 @@ describe("the ring and the chrome are designed once, applied wherever they land 
   // that every one of them resolves the same designed value.
   const sheets = allStylesheets().map((f) => [f, sheet(f)] as const);
 
+  it("no colour expression carries a number of its own — mixes and boosts read config (§7)", () => {
+    // The 2026-09-19 sweep found two: the split button's divider at an inline 30%, and the
+    // loud-glass boosts (l x 1.04, c x 1.6, alpha 0.8 and the on-glass trio) typed into
+    // recipes.css. Both moved to config.ts. A colour's arithmetic is taste like any other
+    // number, so it gets one config line and never a literal in a stylesheet.
+    const inside = (css: string, at: number): string => {
+      let depth = 0;
+      for (let i = at; i < css.length; i++) {
+        if (css[i] === "(") depth += 1;
+        else if (css[i] === ")" && --depth === 0) return css.slice(at, i + 1);
+      }
+      throw new Error("unbalanced colour expression");
+    };
+    let found = 0;
+    for (const [file, css] of sheets) {
+      for (const match of css.matchAll(/color-mix\(|(?:oklch|oklab|lch|lab|rgb|hsl)\(from\b/g)) {
+        const body = inside(css, match.index! + match[0].indexOf("("));
+        found += 1;
+        expect(body, `${file} states a colour number inline: ${body}`).not.toMatch(/(?<![\w.-])\d*\.?\d+%?(?![\w-])/);
+      }
+    }
+    expect(found, "the walk must find colour expressions").toBeGreaterThan(10);
+  });
+
   it("every focus rule reads the ring tokens — no literal, no second colour", () => {
     // §8's "one ring, defined once" was already three rules before TextField existed: the
     // control, the interactive surface (card-as-button) and now the field wrapper. One ring

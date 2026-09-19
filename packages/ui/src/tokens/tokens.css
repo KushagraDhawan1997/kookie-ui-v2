@@ -183,6 +183,21 @@
   --focus-ring-width: calc(2px * var(--scale));
   --focus-ring-offset: calc(2px * var(--scale));
 
+  /* colour arithmetic (§7, §10) — the rungs on glass and the dividers across a fill. Mode-
+     invariant, so emitted at :root alone; a stylesheet never types a colour number. */
+  --glass-loud-l: 1.04;
+  --glass-loud-c: 1.6;
+  --glass-loud-alpha: 0.8;
+  --on-glass-loud-c: 1.1;
+  --on-glass-loud-alpha: 0.88;
+  --on-glass-loud-alpha-hover: 0.93;
+  --on-glass-loud-alpha-active: 0.96;
+  --on-glass-medium-mix: 55%;
+  --on-glass-medium-mix-hover: 62%;
+  --on-glass-medium-mix-active: 70%;
+  --split-divider-mix: 30%;
+  --loud-seam-mix: 25%;
+
   /* motion (§8) — two clocks. Signal (colour, opacity) eases and is short; travel
      (geometry) rides a baked damped spring, so a state change costs a cubic-bezier and
      reads like mass. The curves are SAMPLED from the model in config, never pasted. */
