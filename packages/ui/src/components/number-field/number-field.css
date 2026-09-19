@@ -1,11 +1,9 @@
-/* NumberField adds the value's own facts and nothing else (§4).
+/* NumberField adds the value's own facts and its two zones (§4, §51).
  *
- * The box, the dress, the states, the focus ring, the read-only well, the slot geometry and the
- * glass all arrive by wearing `kui-field` and `kui-field-input` — TextField's rules are the
- * field family's, and the steppers are ordinary hosted controls. If this file grows a fill, an
- * edge or a size, the family has stopped absorbing variation, which is the moment to fix the
- * family rather than this file.
- */
+ * The box, the dress, the states, the focus ring, the read-only well and the glass all arrive by
+ * wearing `kui-field` and `kui-field-input` — TextField's rules are the field family's. The
+ * steppers are NOT hosted controls since 2026-09-13: they are zones of the field's own box, and
+ * their geometry is the one thing this file designs (below). */
 
 .kui-number-field-input {
   /* Centred between its two steppers. A stepper field is symmetric — the value sits between

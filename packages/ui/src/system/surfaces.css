@@ -1457,12 +1457,14 @@
    THE REACH IS THE CHOSEN RULE'S, deliberately — a descendant `:has()`, not the direct-child
    `:has(> …)` the field family uses. A card that LIGHTS for a checked control (the rule below)
    must go DEAD for a disabled one, and two different reaches would leave a card that is both
-   chosen and dead answering only one of them.
+   chosen and dead answering only one of them. A control INSIDE a control is excluded (2026-09-20):
+   a NumberField's zone is disabled at a bound, and a field resting at `min` is not a dead card.
+   The exclusion is spelled inside `:where()` so the arm keeps its weight.
 
    (0,3,0) rather than (0,2,0): `:has()` takes its most specific argument, so this arm outranks
    the hover and press rules by weight where the arm above outranks them by source order. Both
    ends land on the same declarations, which is what the paint arms below assert. */
-.kui-surface:where(label):has(.kui-control:is(:disabled, [data-disabled])) {
+.kui-surface:where(label):has(.kui-control:is(:disabled, [data-disabled]):not(:where(.kui-control) *)) {
   --kui-sf-fill-src: var(--disabled-fill);
   --kui-sf-cast: 0 0 0 0 transparent;
   --kui-sf-pool: 0 0 0 0 transparent;
@@ -1552,7 +1554,7 @@
   /* The label member's own arm, for the reason the resting rule states (2026-08-26 audit): a
      `<label>` never carries the state, so without this a dead card holding a disabled Radio lit
      up under the pointer with the live hover step. */
-  .kui-surface:where(label):has(.kui-control:is(:disabled, [data-disabled])):hover {
+  .kui-surface:where(label):has(.kui-control:is(:disabled, [data-disabled]):not(:where(.kui-control) *)):hover {
     background-color: var(--kui-sf-fill, var(--kui-sf-fill-src));
   }
 }
@@ -1561,7 +1563,7 @@
     [aria-disabled="true"],
     [data-disabled]
   ):active,
-.kui-surface:where(label):has(.kui-control:is(:disabled, [data-disabled])):active {
+.kui-surface:where(label):has(.kui-control:is(:disabled, [data-disabled]):not(:where(.kui-control) *)):active {
   background-color: var(--kui-sf-fill, var(--kui-sf-fill-src));
 }
 /* ── A CHOSEN surface (§10, §11, 2026-08-22, Kushagra: "find me patterns for Card's this one
@@ -1816,7 +1818,7 @@
     [aria-disabled="true"],
     [data-disabled]
   ),
-.kui-surface[data-material]:where(label):has(.kui-control:is(:disabled, [data-disabled])) {
+.kui-surface[data-material]:where(label):has(.kui-control:is(:disabled, [data-disabled]):not(:where(.kui-control) *)) {
   --kui-sf-fill-src: var(--disabled-fill-solid);
 }
 

@@ -206,12 +206,11 @@ function plusGlyph() {
 }
 
 /**
- * A field that holds a number (§4, §11, §28). TextField's anatomy with its two slots spent on
- * the steppers: the WRAPPER is the control, the input inside it is bare, and decrease and
- * increase are real Buttons HOSTED in the leading and trailing slots — so the field family's
- * dress, states, invalid and disabled arms, focus ring and glass all arrive by wearing
- * `kui-field`, and the steppers take §4's hosted-control geometry (one `slotInset` on all four
- * sides, the hosted height derived from it) with no rule of this component's own.
+ * A field that holds a number (§4, §11, §28). TextField's anatomy: the WRAPPER is the control
+ * and the input inside it is bare, so the field family's dress, states, invalid and disabled
+ * arms, focus ring and glass all arrive by wearing `kui-field`. Decrease and increase are ZONES
+ * of that box, edge to edge — ( - | 12 | + ) — each one the field's whole end, as wide as the
+ * field is tall, lit by the quiet rung and never travelling (see the zone comment below).
  *
  * Base UI owns the number: parsing and formatting in the user's locale, clamping to
  * `min`/`max`, `step`/`smallStep`/`largeStep` (alt and shift), arrow keys, Home and End,
@@ -278,8 +277,8 @@ export function NumberField({
 }: NumberFieldProps) {
   // §28 — a Field states the whole unit's index; an explicit prop here always wins.
   const size = useSize(sizeProp);
-  // §10 — the wrapper carries the veil, so the steppers inside it are scoped (one glass per
-  // stack): a hosted Button in a glass field resolves on-glass, never a second veil.
+  // §10 — the wrapper carries the veil, and the zones inside it are scoped (one glass per
+  // stack): a zone states no material of its own, so the veil and the lens are the field's.
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   const lensRef = useLensRef<HTMLElement>(material, undefined);
 
@@ -336,15 +335,14 @@ export function NumberField({
       id={id}
     >
       {/* THE INPUT IS FIRST IN THE DOM, and the steppers are placed visually — number-field.css
-          gives the leading slot `order: -1`, which is the whole of it.
+          gives the decrease zone `order: -1`, which is the whole of it.
           `<label>Seats <NumberField/></label>` binds to the first LABELABLE descendant, and a
           `<button>` is labelable: with the decrease stepper written first, the label named a
           stepper, the input went unnamed, and clicking the words focused a button that is not
           even in the tab order. TextField has no such bug because its input is its first child.
           Nothing else reads this order: the steppers are `tabIndex: -1` (Base UI's decision, so
-          sequential focus is unmoved either way), and every rule that dresses a slot keys on the
-          `data-slot` ATTRIBUTE rather than on a position — the pill correction, the slot inset,
-          the hosted geometry and the focus ring are all attribute or child selectors. */}
+          sequential focus is unmoved either way), and every rule that dresses a zone keys on its
+          `data-step` ATTRIBUTE rather than on a position. */}
       <BaseNumberField.Input ref={setInput} className="kui-field-input kui-number-field-input" {...inputProps} />
       <GlassScope material={material}>
         {/* A ZONE, NOT A HOSTED BUTTON (2026-09-13, Kushagra: "the button being used as is is
@@ -371,9 +369,11 @@ export function NumberField({
             component this most resembles — segments in a track, lighting without moving. */}
         <BaseNumberField.Decrement
           // A render FUNCTION rather than an element: the disabled state lives in Base UI's
-          // state (the bound, and read-only), and `focusableWhenDisabled` is Base UI's own
-          // branch — a stepper that went natively disabled mid-hold would drop the press it is
-          // in. It sits on the part, which is where that prop's contract lives.
+          // state (the bound, and read-only), and the zone goes NATIVELY disabled from it, which
+          // is what lets the shared remap and the `:disabled` cursor reach it. A zone is never a
+          // tab stop, so nothing is lost to the keyboard. It is a direct child of the field, so
+          // the shared disabled arm must not read it as the field's own state — that arm
+          // excludes a child that is itself a control (recipes.css, 2026-09-20).
           render={(props, state) => (
             <button
               type="button"

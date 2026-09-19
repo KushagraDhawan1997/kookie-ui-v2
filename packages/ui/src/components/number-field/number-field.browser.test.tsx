@@ -8,24 +8,25 @@
  * that asserted any of those against a LITERAL would keep passing on the day the family moved
  * underneath it — which is the same law passing while the component had silently stopped being
  * a field. So the family half of this file is AGREEMENT: every one of those facts is read off
- * a mounted TextField carrying a hosted Button in each slot, which is precisely what a
- * NumberField is, and the assertion is that the two resolve the same value.
+ * a mounted TextField carrying a hosted Button in each slot, and the assertion is that the two
+ * resolve the same value.
  *
- * THE TWIN IS THE FIXTURE, AND THE FIXTURE IS THE LAW. A bare `<TextField/>` is the wrong
- * twin and would have made three of these laws vacuous in the accommodating direction: a bare
- * field pads `--kui-ct-px` where a field with hosted controls pads `--kui-ct-slot-inset`, so
- * "the paddings agree" against a bare twin fails on a correct implementation, and the repair
- * anyone would reach for is to stop asserting padding at all. The twin holds two Buttons
- * because the subject holds two Buttons.
+ * THE STEPPERS STOPPED BEING HOSTED BUTTONS ON 2026-09-13 (Kushagra: "( - | 12 | + )"): they are
+ * ZONES of the field, edge to edge, and the laws were rewritten for that on 2026-09-20 — a week in
+ * which all 45 of them were red on main. What survived the redesign is everything a field IS (box,
+ * dress, states, glass), and it is still read against the twin. What did not is where the inline
+ * inset lives: a zone reaches the border, so the field pads nothing inline and the VALUE carries
+ * the family's inset instead. That half is read against a BARE TextField, whose wrapper is where
+ * the family puts it.
  */
 import { describe, expect, it } from "vitest";
+import { userEvent } from "vitest/browser";
 
 import type { Size } from "../../system/axes.ts";
 import { Theme } from "../../theme/theme.tsx";
 import { coarse, density } from "../../tokens/config.ts";
 import {
   APPEARANCES,
-  DENSITIES,
   POINTERS,
   SIZES,
   colorOn,
@@ -44,10 +45,10 @@ import { NumberField } from "./number-field.tsx";
 const tokenOn = (el: Element, name: string): string => colorOn(el, `var(${name})`);
 
 const inputOf = (el: HTMLElement) => within(el, ".kui-number-field-input") as HTMLInputElement;
-/** Decrease sits in the LEADING slot and increase in the TRAILING one — which is a fact about
-    the DOM, not about the paint. Where the two land on screen is its own law below. */
-const decOf = (el: HTMLElement) => within(el, '[data-slot="leading"] > .kui-button') as HTMLButtonElement;
-const incOf = (el: HTMLElement) => within(el, '[data-slot="trailing"] > .kui-button') as HTMLButtonElement;
+/** The two ZONES (2026-09-13), found by the step each one takes — a fact about the DOM, not
+    about the paint. Where the two land on screen is its own law below. */
+const decOf = (el: HTMLElement) => within(el, '[data-step="decrement"]') as HTMLButtonElement;
+const incOf = (el: HTMLElement) => within(el, '[data-step="increment"]') as HTMLButtonElement;
 
 /**
  * THE TWIN: a TextField hosting a Button in each slot, which is what a NumberField is.
@@ -102,8 +103,6 @@ describe("it IS a field, and that is asserted as an agreement (§4, §11)", () =
    */
   const BOX = [
     "min-height",
-    "padding-left",
-    "padding-right",
     "border-top-left-radius",
     "border-bottom-right-radius",
     "font-size",
@@ -130,8 +129,29 @@ describe("it IS a field, and that is asserted as an agreement (§4, §11)", () =
     // standing on the ladder rather than beside it.
     const el = mounted(<NumberField size="3" />, { theme: { radius: "medium" } });
     expect(computed(el, "min-height")).toBe(`${density.default.height[2]}px`);
-    expect(computed(el, "padding-left")).toBe(`${density.default.slotInset[2]}px`);
+    expect(computed(inputOf(el), "padding-left")).toBe(`${density.default.px[2]}px`);
   });
+
+  for (const size of SIZES) {
+    it(`size ${size}: the zones reach the border, so the VALUE carries the family's inline inset`, () => {
+      // The one box property the redesign moved (2026-09-13): a bare TextField pads its wrapper by
+      // `--kui-ct-px`; a NumberField pads nothing inline and hands that inset to the input, so the
+      // number sits exactly as far from its zones as a text field's value sits from its border.
+      //
+      // The PLAIN inset, never the pill's: at `radius="full"` a bare field pads wider because its
+      // corner swings inward at the text (§4), and here a zone stands between the value and the
+      // curve — the per-side rule a slot already gets. So the twin is a bare field at a level
+      // where no pill correction exists, while the subject stays at the default `full`.
+      const field = mounted(<NumberField size={size} />, { theme: {}, select: ".kui-number-field" });
+      const bare = mounted(<TextField size={size} />, { theme: { radius: "medium" }, select: ".kui-field" });
+      expect(computed(field, "padding-left")).toBe("0px");
+      expect(computed(field, "padding-right")).toBe("0px");
+      expect(computed(inputOf(field), "padding-left"), `size ${size}`).toBe(computed(bare, "padding-left"));
+      expect(computed(inputOf(field), "padding-right"), `size ${size}`).toBe(computed(bare, "padding-right"));
+      // Vacuity: the inset is a real length, or both sides agree on nothing.
+      expect(parseFloat(computed(bare, "padding-left"))).toBeGreaterThan(0);
+    });
+  }
 
   for (const appearance of APPEARANCES) {
     it(`${appearance}: the dress is the family's — well, edge and value colour`, () => {
@@ -151,7 +171,9 @@ describe("it IS a field, and that is asserted as an agreement (§4, §11)", () =
     const el = render(<NumberField />);
     const input = inputOf(el);
     expect(computed(input, "border-top-width")).toBe("0px");
-    expect(computed(input, "padding-left")).toBe("0px");
+    // Its inline PADDING is the field's inset, moved onto it (the law above); the block axis is
+    // still the wrapper's alone.
+    expect(computed(input, "padding-top")).toBe("0px");
     expect(computed(input, "outline-style")).toBe("none");
     expect(computed(input, "background-color")).toBe("rgba(0, 0, 0, 0)");
     // The border is the WRAPPER's, and it is really painted.
@@ -247,7 +269,14 @@ describe("the glass is the family's, part for part (§10)", () => {
     const { field, twin: reference } = pair(<NumberField backdrop />, twin({ backdrop: true }), {
       material: "regular",
     });
-    for (const property of ["backdrop-filter", "background-color", "border-top-color"]) {
+    // The lens is minted PER BOX (its map encodes one width and height), and the two boxes are
+    // different widths — so the id is stripped and its presence asserted separately.
+    const stripLens = (v: string) => v.replace(/url\("[^"]*"\)\s*/, "");
+    expect(stripLens(computed(field, "backdrop-filter")), "glass disagrees on the filter").toBe(
+      stripLens(computed(reference, "backdrop-filter")),
+    );
+    expect(computed(field, "backdrop-filter"), "a glass field wears the lens").toMatch(/^url\(/);
+    for (const property of ["background-color", "border-top-color"]) {
       expect(computed(field, property), `glass disagrees on ${property}`).toBe(
         computed(reference, property),
       );
@@ -261,17 +290,18 @@ describe("the glass is the family's, part for part (§10)", () => {
     expect(computed(field, "backdrop-filter")).not.toBe("none");
   });
 
-  it("a hosted stepper refuses the veil structurally — one glass per stack", () => {
-    // The React half, which is the stronger claim (2026-08-16): whatever the stylesheet does,
-    // a stepper inside a glass field is not ASKING to be glass.
+  it("a zone paints no glass of its own — one glass per stack", () => {
+    // A zone is a DIVISION of the glass field, not a control sitting on it: it states no material
+    // and draws no filter, so the veil and the lens are the field's alone.
     const field = mounted(<NumberField backdrop />, {
       theme: { material: "regular" },
       select: ".kui-number-field",
     });
     expect(field.dataset["material"]).toBe("regular");
-    expect(decOf(field).dataset["material"]).toBe("on-glass");
-    expect(incOf(field).dataset["material"]).toBe("on-glass");
-    expect(computed(decOf(field), "backdrop-filter")).toBe("none");
+    for (const zone of [decOf(field), incOf(field)]) {
+      expect(zone.dataset["material"]).toBeUndefined();
+      expect(computed(zone, "backdrop-filter")).toBe("none");
+    }
   });
 
   it("state outranks glass: an invalid glass field wears the state's border, ring stood down", () => {
@@ -284,24 +314,19 @@ describe("the glass is the family's, part for part (§10)", () => {
   });
 });
 
-describe("the two steppers are hosted controls, and their ladder is read as a ladder (§4)", () => {
+describe("the two steppers are ZONES of the field, edge to edge (§4, 2026-09-13)", () => {
   /**
-   * §4's hosted-control rule: one designed `slotInset` shows on all four sides and the hosted
-   * height is that inset subtracted from the container's own box. The claims below are
-   * AGREEMENT and MONOTONICITY rather than arithmetic, deliberately — re-deriving the intended
-   * inset from the same inputs the implementation uses is what made `targetBox()` unfalsifiable
-   * in the 2026-08-06 audit.
+   * Kushagra: "the right layout is ( - | 12 | + ) so that the ( - | button is the entire button
+   * area, with hover and click spanning entire left and right block". So the claims are about
+   * the FIELD's box: each zone fills its block axis inside the border, reaches the border on its
+   * outer side, and is as wide as the field is tall. Read at every index in both pointer worlds,
+   * because the field's height is what everything here derives from.
    */
-  const sides = (field: HTMLElement, stepper: HTMLElement) => {
-    const f = field.getBoundingClientRect();
-    const s = stepper.getBoundingClientRect();
-    return { top: s.top - f.top, bottom: f.bottom - s.bottom, outer: Math.min(s.left - f.left, f.right - s.right) };
-  };
+  const border = (field: HTMLElement) => parseFloat(computed(field, "border-top-width"));
 
   for (const pointer of POINTERS) {
-    it(`${pointer}: the hosted height climbs the whole index, and never repeats a step`, () => {
-      // A ladder, read as a ladder. Two adjacent indexes agree under a pinned value, a
-      // fraction of the wrong box, and an off-by-one pick — four do not.
+    it(`${pointer}: the zones climb the whole index, and never repeat a step`, () => {
+      // A ladder, read as a ladder. Two adjacent indexes agree under a pinned value — four do not.
       const heights = SIZES.map((size) => {
         const el = mounted(<NumberField size={size} />, { theme: { pointer }, select: ".kui-number-field" });
         return decOf(el).getBoundingClientRect().height;
@@ -314,54 +339,72 @@ describe("the two steppers are hosted controls, and their ladder is read as a la
     });
 
     for (const size of SIZES) {
-      it(`${pointer}/size ${size}: the stepper is the size the family hosts, on both sides`, () => {
-        const { field, twin: reference } = pair(<NumberField size={size} />, twin({ size }), { pointer });
-        const hosted = within(reference, '[data-slot="trailing"] > .kui-button').getBoundingClientRect();
-        // AGREEMENT with the family's own hosted control, never a restated number.
-        expect(decOf(field).getBoundingClientRect().height).toBeCloseTo(hosted.height, 1);
-        expect(incOf(field).getBoundingClientRect().height).toBeCloseTo(hosted.height, 1);
-        // Strictly inside the box that contains it: an affordance in a field, not a second
-        // field wedged into one (the 2026-08-04 measurement this rule exists for).
+      it(`${pointer}/size ${size}: each zone is the field's whole end — full height, square, against the border`, () => {
+        const field = mounted(<NumberField size={size} />, { theme: { pointer }, select: ".kui-number-field" });
         const box = field.getBoundingClientRect();
-        expect(decOf(field).getBoundingClientRect().height).toBeLessThan(box.height);
-        // Equal air on all four sides, which is the point of ONE designed inset driving the
-        // padding and the derived height together.
-        for (const stepper of [decOf(field), incOf(field)]) {
-          const air = sides(field, stepper);
-          expect(Math.abs(air.top - air.bottom), `${pointer}/${size}: vertical air is uneven`).toBeLessThanOrEqual(1);
-          expect(Math.abs(air.outer - air.top), `${pointer}/${size}: the outer air is not the vertical air`).toBeLessThanOrEqual(1);
+        const b = border(field);
+        for (const zone of [decOf(field), incOf(field)]) {
+          const z = zone.getBoundingClientRect();
+          // The whole block axis inside the border — the field does not grow to hold it.
+          expect(z.top, `${pointer}/${size}: a zone floats below the top border`).toBeCloseTo(box.top + b, 1);
+          expect(z.bottom, `${pointer}/${size}: a zone stops short of the bottom border`).toBeCloseTo(box.bottom - b, 1);
+          // SQUARE against the field's own height, the one number it derives from.
+          expect(z.width, `${pointer}/${size}: a zone is not as wide as the field is tall`).toBeCloseTo(box.height, 1);
         }
+        // Each zone meets the border on its OUTER side — no air, which is the whole redesign.
+        expect(decOf(field).getBoundingClientRect().left).toBeCloseTo(box.left + b, 1);
+        expect(incOf(field).getBoundingClientRect().right).toBeCloseTo(box.right - b, 1);
       });
     }
 
-    it(`${pointer}: the field's own height is the designed one — hosting does not stretch it`, () => {
-      // The half of the 2026-08-04 defect that was invisible from the button: the CONTAINER
-      // had grown 2px past its own size token in 16 of 16 cells.
+    it(`${pointer}: the field's own height is the designed one — the zones do not stretch it`, () => {
+      // The segmented track's D2, reproduced and repaired on the redesign's own day: a stretched
+      // zone demanding the rung as its OWN box grew the field 28 -> 30 in every cell.
       const set = pointer === "coarse" ? coarse.default : density.default;
       for (const [index, size] of SIZES.entries()) {
         const el = mounted(<NumberField size={size} />, { theme: { pointer }, select: ".kui-number-field" });
-        expect(computed(el, "min-height"), `${pointer}/size ${size}`).toBe(`${set.height[index]}px`);
+        expect(el.getBoundingClientRect().height, `${pointer}/size ${size}`).toBeCloseTo(set.height[index]!, 1);
       }
     });
   }
 
-  for (const level of DENSITIES) {
-    it(`${level}: the steppers re-price with density, because both numbers ride the family`, () => {
-      const { field, twin: reference } = pair(<NumberField size="2" />, twin({ size: "2" }), {
-        density: level,
-      });
-      const hosted = within(reference, '[data-slot="trailing"] > .kui-button').getBoundingClientRect();
-      expect(decOf(field).getBoundingClientRect().height).toBeCloseTo(hosted.height, 1);
-    });
-  }
-
-  it("a compact stepper is smaller than a comfortable one — the density walk is not a no-op", () => {
-    // The vacuity guard the loop above cannot carry: three densities that all resolved the
-    // same number would satisfy every cell of it.
+  it("a compact zone is smaller than a comfortable one — the density walk is not a no-op", () => {
     const at = (level: "compact" | "comfortable") =>
       decOf(mounted(<NumberField size="2" />, { theme: { density: level }, select: ".kui-number-field" }))
         .getBoundingClientRect().height;
     expect(at("compact")).toBeLessThan(at("comfortable"));
+  });
+
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: one hairline per zone, on the edge facing the value, in the field's own colour`, () => {
+      const field = mounted(<NumberField />, { theme: { appearance }, select: ".kui-number-field" });
+      const edge = computed(field, "border-top-color");
+      const dec = decOf(field);
+      const inc = incOf(field);
+      expect(computed(dec, "border-right-width")).toBe(computed(field, "border-top-width"));
+      expect(computed(dec, "border-right-style")).toBe("solid");
+      expect(computed(dec, "border-right-color"), "the divider is not the field's edge").toBe(edge);
+      expect(computed(inc, "border-left-width")).toBe(computed(field, "border-top-width"));
+      expect(computed(inc, "border-left-color")).toBe(edge);
+      // ONLY the inner edge: the field draws the boundary, a zone draws none of its own.
+      for (const side of ["top", "bottom", "left"]) expect(computed(dec, `border-${side}-width`)).toBe("0px");
+      for (const side of ["top", "bottom", "right"]) expect(computed(inc, `border-${side}-width`)).toBe("0px");
+    });
+  }
+
+  it("a zone LIGHTS under the pointer and does not travel — it is not a button", async () => {
+    // The redesign's motion half: a zone wears `kui-control` and NOT `kui-button`, so the fill
+    // states arrive and the rise and sink never do. Measured before, the stepper rose 0.989px on
+    // hover and sank 2px on press, carrying its glyph away from the value.
+    const field = mounted(<NumberField defaultValue={5} />, { theme: {}, select: ".kui-number-field" });
+    const inc = incOf(field);
+    expect(inc.classList.contains("kui-button")).toBe(false);
+    const rest = computed(inc, "background-color");
+    await userEvent.hover(inc);
+    expect(computed(inc, "background-color"), "the zone does not light").not.toBe(rest);
+    expect(computed(inc, "background-color")).toBe(colorOn(inc, "var(--tone-soft)"));
+    expect(computed(inc, "translate"), "the zone rose like a button").toBe("none");
+    await userEvent.unhover(inc);
   });
 });
 
@@ -413,7 +456,7 @@ describe("a wrapping <label> names the VALUE, not a button (N1, the ship audit)"
     const el = render(<NumberField />);
     const children = [...el.children];
     expect(children[0]).toBe(inputOf(el));
-    expect(children.indexOf(decOf(el).parentElement!)).toBeGreaterThan(0);
+    expect(children.indexOf(decOf(el))).toBeGreaterThan(0);
   });
 
   it("and decrease still paints at the leading edge — the placement is CSS `order`", () => {
@@ -887,11 +930,16 @@ describe("stepping: the buttons, the keyboard, and the bounds (§4)", () => {
     expect(dec.getBoundingClientRect().width).toBeCloseTo(before.width, 1);
     // And its live twin is not disabled, or this law is about a field with two dead buttons.
     expect(incOf(el).getAttribute("data-disabled") !== null || incOf(el).disabled).toBe(false);
-    // It stays FOCUSABLE while disabled (`focusableWhenDisabled`), because a stepper that went
-    // natively disabled mid-hold would drop the press it is in.
-    dec.focus();
-    expect(document.activeElement).toBe(dec);
-    dec.blur();
+    // NATIVELY disabled since the zones (2026-09-13), which is what lets the shared remap and
+    // the `:disabled` cursor rule reach it. A zone was never a tab stop, so nothing is lost to
+    // the keyboard — the value steps from the input.
+    expect(dec.disabled).toBe(true);
+    // AND IT DOES NOT TAKE THE FIELD WITH IT (2026-09-20). The shared disabled arm read any
+    // disabled direct child, and a zone is one — so a field resting at `min` painted its value
+    // in the dead ink. Read against a live field, on the value and the edge.
+    const live = render(<NumberField defaultValue={5} min={0} max={10} locale="en-US" />);
+    expect(computed(inputOf(el), "color"), "a field at its bound went dead").toBe(computed(inputOf(live), "color"));
+    expect(computed(el, "border-top-color")).toBe(computed(live, "border-top-color"));
   });
 
   it("a read-only field steps by nothing, and its value is still live", async () => {

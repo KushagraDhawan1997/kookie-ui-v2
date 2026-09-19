@@ -1450,13 +1450,20 @@
    disabled fieldset rendered a field that looked entirely live. Direct child only: a disabled
    Button hosted in a slot is a grandchild, and must not grey out the field containing it.
 
+   AND NEVER A CHILD THAT IS ITSELF A CONTROL (2026-09-20). "Direct child only" held the line
+   while every hosted control sat inside a slot; NumberField's zones (2026-09-13) are direct
+   children, disabled at a bound or in a read-only field, and they turned the whole field grey —
+   measured, a field resting at `min` painted its value at L 0.76 against a live one's 0.27. A
+   control inside a control is its own state, never its host's. `:where()` keeps the arm at the
+   weight it had, because it ties with the glass rules and is settled by source order.
+
    The `:disabled` arm (added with TextArea, 2026-08-05) is the third spelling of the same
    state, for the control that IS the native form element: no wrapper, no attribute stamp —
    whichever route disables it, our prop or a Field.Root, it lands here as the native
    attribute, and the native attribute is the one source of truth. */
 .kui-control[data-disabled]:not([data-loading]),
 .kui-control:disabled:not([data-loading]),
-.kui-control:has(> :is(:disabled, [data-disabled])):not([data-loading]),
+.kui-control:has(> :is(:disabled, [data-disabled]):not(:where(.kui-control))):not([data-loading]),
 /* An interactive SURFACE takes the same remap (2026-08-22): §10 says a card that is a button
    reuses the control state machine rather than inventing a surface one, and what "disabled"
    means has to be one fact. Measured before it was added — a dead card computed byte-identical
