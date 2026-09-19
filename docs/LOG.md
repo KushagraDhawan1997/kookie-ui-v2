@@ -11443,3 +11443,15 @@ The row is a wrapping flex row read in reverse (`row-reverse wrap`, with `order`
 **The laws.** The fixture has ONE long label and one short label. Two long labels would also stack under a design that stacked only the long one, and a grid with wrapping labels keeps both on one row at any length, so only this pair separates "the row decides" from both wrong answers. Five sabotages each failed the right law: wrapping labels, dropping the reverse, restoring the grid, a margin on the buttons, and dropping the flex floor.
 
 The docs example's labels were shortened as well: "Stay signed in" is "Stay", and "Simulate an expiring session" is "Expire session".
+
+## 2026-09-19 — The docs suite green again: the builder's laws caught up with its 09-15 chrome
+
+33 docs laws had been red since the builder iteration of 2026-09-14/15 (no header, no rail, a sidebar switching Layers and Add, floating toolbars, an inspector cut to Figma's anatomy) and a few later changes. Each was either rewritten to the new structure or deleted where the feature it held is gone.
+
+**Deleted, the feature is gone:** the rail's region list (and `LEFT_REGIONS`, which said it stayed only until these laws were rewritten), the top bar's three zones, the in-flow jump bar (the content toolbar floats now), the inspector's tab-list padding and chrome-row bleed, and the separate Add-filter backdrop law (both filters are one `LayersFilter`).
+
+**Rewritten to the new structure:** the frame order (sidebar, content, inspector), the landmark names, the inspector's panel switch as its chrome row, the palette as the package's Tree (a source law, since the panel needs a live command context), and the inspector's contract — one grid declared once with subgrid rows, hairlines spanning all three columns, a section title one step over its captions, one caption spelling, captions typed as strings. The review count lives in the accessible name now, never in visible text.
+
+**Two real fixes the laws surfaced.** The review rule `accessible-name` flagged a control named by its own `FieldLabel`, so the placeholder-as-label rule and it could not both be satisfied; a FieldLabel in the control's Field or FieldItem now names it. The starter document named its field by a placeholder alone, and the Settings template put a Save button beside switches that act at once; the starter takes a labelled Field and the template loses the Save. Nineteen review rules added in 848a0a3 had no trigger document and now do.
+
+**Elsewhere:** the component page's unused `example`/`examples` section names went with the Examples tab, and its section-name walk now reads only the `SECTIONS` object (it had been reading a fence's `lang:` as a section). The colour chapter's three figures get their captions into the markdown twin from one home (`FIGURE_CAPTIONS`). The inspector's refusal surface left the InlineCode law with the 2026-09-15 decision that took refusals out of it.
