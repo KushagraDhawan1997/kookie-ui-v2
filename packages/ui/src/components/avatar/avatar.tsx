@@ -8,41 +8,40 @@ import { useLensRef } from "../../system/refraction.tsx";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { useSize } from "../../system/size.ts";
 import { glyphStroke } from "../../tokens/config.ts";
-/** An avatar's index: 1-4 are the control heights, 5-9 continue past them (§35). Not a type
- *  step — the avatar left the type scale 2026-09-15. */
+/** An avatar size step, from `"1"` to `"9"`. Steps `1` to `4` match the control heights, and
+ *  `5` to `9` are larger. */
 export type AvatarSize = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
 
 const AvatarGroupSizeContext = React.createContext<AvatarSize | undefined>(undefined);
 
 export type AvatarProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"span">, "color"> & {
   /**
-   * 1–9. Sizes 1–4 are the control heights, so an avatar stands level with a Button at the
-   * same index; 5–9 continue past them. Unset, it takes its group's size, then the nearest
-   * size scope, then the Theme's.
+   * The size step of the avatar, from `1` to `9`. Sizes `1` to `4` match the height of a
+   * `Button` at the same step, and `5` to `9` are larger. Unset, the avatar uses the size of
+   * its `AvatarGroup`, then the nearest `Theme`.
    */
   size?: AvatarSize;
   /** The picture. When it has not loaded, or fails, the fallback shows in its place. */
   src?: string;
   /**
-   * What the picture is, for someone who cannot see it. Defaults to empty, which marks the
-   * image decorative — right when the person's name is written beside it, which is where an
-   * avatar usually is. State the name here when the avatar is the only thing naming them.
+   * The text alternative for the picture. Defaults to empty, so screen readers skip the
+   * avatar. This is correct when the person's name shows next to it. If the avatar is the
+   * only thing that names the person, put the name here.
    */
   alt?: string;
   /**
-   * What shows when there is no picture: initials, usually. Unset, a generic person glyph.
-   * A string is drawn at the avatar's own type step; anything else is placed as given.
+   * The content that shows when there is no picture, usually initials. Unset, the avatar
+   * shows a person icon. A string scales with the avatar. Other content shows as you give it.
    */
   fallback?: React.ReactNode;
   /**
-   * A `Badge` pinned to the top-end of the disc — a count, or a bare dot. The avatar owns
-   * the corner and the cut-out (a ring in the surface colour, the group's own); the badge owns
-   * only itself. A word beside the avatar is a Chip in the row, not this.
+   * A `Badge` in the top-end corner of the avatar, such as a count or a dot. The avatar
+   * positions the badge. For a word next to the avatar, use a `Chip` instead.
    */
   badge?: React.ReactNode;
-  /** Says that content passes behind this avatar, so the theme's material can show through its
-   *  fallback face (a picture is opaque and covers it). Unset, it follows the surrounding
-   *  `<Box backdrop>` region — Chip's wiring. */
+  /** Set `backdrop` when the avatar sits over other content, such as an image. The fallback
+   *  then uses the theme's material. A picture covers it. Unset, it follows the nearest
+   *  `<Box backdrop>`. */
   backdrop?: boolean;
   ref?: React.Ref<HTMLSpanElement>;
 };
@@ -139,9 +138,8 @@ export function Avatar({
 
 export type AvatarGroupProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"span">, "color"> & {
   /**
-   * One step for every avatar in the group. The group is a line of text with no words in
-   * it, and each unset avatar takes that line — so the size is said once, here, and an
-   * avatar that states its own still wins.
+   * The size step for all avatars in the group, from `1` to `9`. A `size` that you set on an
+   * avatar wins.
    */
   size?: AvatarSize;
   ref?: React.Ref<HTMLSpanElement>;

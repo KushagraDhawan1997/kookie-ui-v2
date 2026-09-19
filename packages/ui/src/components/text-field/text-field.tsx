@@ -11,16 +11,9 @@ import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { useSize } from "../../system/size.ts";
 
 /**
- * The `type` values a text FIELD is (§4). A closed union, the way `size` is one — because
- * `type` on the native element is not one axis but a component selector: `hidden` renders no
- * box at all, `checkbox`, `radio`, `range`, `color` and `file` each render a different control
- * with its own anatomy, and `submit` and `button` are buttons.
- *
- * Unconstrained, `<TextField type="hidden" />` produced a **visible empty bordered box**, which
- * is the whole argument in one render: the wrapper is what draws the border and the height, and
- * a wrapper cannot honour a type it was never told about. The ones left here are the values for
- * which "a box you type text into" is the right control. Date and time are absent on purpose —
- * they render a native picker inside the box and are a component, not a value of this one.
+ * The `type` values that a `TextField` accepts. Each one is a box that you type text into.
+ * Other input types, such as `checkbox`, `file` or `date`, are different controls, so use the
+ * matching component for them.
  */
 export type TextFieldType = "text" | "email" | "password" | "search" | "tel" | "url" | "number";
 
@@ -35,32 +28,32 @@ export type TextFieldProps = ComponentRefusals & Omit<
   "color" | "style" | "className" | "size" | "children" | "type"
 > & {
   /**
-   * The control index, the same ladder Button uses: the height, the side padding, the corner, the
-   * value's type step and the slot geometry all come from one number, so a field and the button
-   * that submits it stand level. It replaces the platform's own `size` attribute rather than
-   * joining it, because that one counts characters, predates CSS, and would collide. The wrapper
-   * wears it, because the wrapper is the control.
+   * Sets the size of the field: the height, the padding, the corner and the text. A field has
+   * the same height as a `Button` of the same size. This prop replaces the native `size`
+   * attribute of `<input>`.
    */
   size?: Size;
   /**
-   * Says content passes behind this control, so the theme's material can show. Unset, it follows
-   * the surrounding `<Box backdrop>` region.
+   * Set `backdrop` when content passes behind the field. The field then uses the theme's
+   * material. If you don't set it, the field follows the nearest `<Box backdrop>`.
    */
   backdrop?: boolean;
-  /** Narrowed from the platform's open list. See {@link TextFieldType}. */
+  /** The input type. Only text types are available. See {@link TextFieldType}. */
   type?: TextFieldType;
-  /** Passive by convention: an icon, a unit, a currency mark. Clicking it lands the caret. */
+  /** Content before the text, such as an icon, a unit or a currency symbol. A click on it puts
+      the caret in the field. */
   leading?: React.ReactNode;
   /**
-   * May be interactive: a clear button, a reveal toggle. A real button brings its own semantics,
-   * and the wrapper stands out of its way.
+   * Content after the text. It can be interactive, such as a clear button or a toggle that shows
+   * a password.
    */
   trailing?: React.ReactNode;
-  /** Applied to the wrapper, which is the element that is the control. */
+  /** Adds a class to the visible box around the input. */
   className?: string;
-  /** Applied to the wrapper, so a `width` sizes the field rather than the text inside it. */
+  /** Styles the visible box around the input, so a `width` sets the width of the whole field. */
   style?: React.CSSProperties;
-  /** Reaches the INPUT, not the wrapper — `.focus()`, `.select()`, the value. */
+  /** A ref to the `<input>` element, not to the box around it. Use it to call `.focus()` or
+      `.select()`. */
   ref?: React.Ref<HTMLInputElement>;
 };
 

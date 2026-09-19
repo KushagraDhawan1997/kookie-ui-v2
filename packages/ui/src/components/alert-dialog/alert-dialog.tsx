@@ -76,24 +76,24 @@ const AlertSizeContext = React.createContext<Size>(themeDefaults.size);
 
 export type AlertDialogProps = ComponentRefusals & {
   /**
-   * Sets the whole alert: the box, the corner, the padding, the title and description type steps,
-   * and the two buttons. It may reach the type where Dialog's size cannot, because the content
-   * here is the system's own.
+   * Sets the size step of the whole alert.
+   * It changes the panel, its corner and padding, the title and description text, and the two
+   * buttons.
    */
   size?: Size;
-  /** Controlled open state, paired with `onOpenChange`, in the pattern the whole library shares. */
+  /** Controlled open state. Use it together with `onOpenChange`. */
   open?: boolean;
-  /** Uncontrolled starting state. Mutually exclusive with `open`. */
+  /** Uncontrolled starting state. Don't use it together with `open`. */
   defaultOpen?: boolean;
   /**
-   * Fires on every open and close. It carries no dismissal details, and that follows from the
-   * role rather than being an omission: an alert refuses outside presses, so the only ways out are
-   * the two buttons and Escape, and Escape is the Cancel action by another route.
+   * Called when the alert opens or closes.
+   * A press outside the alert doesn't close it. Only the two buttons and Escape close it, and
+   * Escape does the same as Cancel.
    */
   onOpenChange?: (open: boolean, details: OverlayOpenChangeDetails) => void;
   /**
-   * The trigger and the content. AlertDialog renders no DOM of its own, only state and wiring, so
-   * this is an `<AlertDialogTrigger>` and an `<AlertDialogContent>`.
+   * The `AlertDialogTrigger` and the `AlertDialogContent`.
+   * `AlertDialog` renders no element of its own.
    */
   children?: React.ReactNode;
 };
@@ -127,30 +127,25 @@ export function AlertDialog({ size: sizeProp, open, defaultOpen, onOpenChange, c
 
 /* ── Trigger ──────────────────────────────────────────────────────────────────────────── */
 
-/** Menu's own check, on its third consumer (§5): does the render target bottom out in a real
-    `<button>`? A component with its own `render` escape is transparent — follow it. */
+/** Props for the control that opens the alert. */
 export type AlertDialogTriggerProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"button">,
   "color" | "style" | "className"
 > & {
   /** Usually a Kookie Button: `<AlertDialogTrigger render={<Button/>}>Delete…</AlertDialogTrigger>`. */
   render?: RenderElement;
-  /** Whether the rendered element really is a `<button>`. It is inferred from `render`. */
+  /** Tells the trigger if the rendered element is a real `<button>`. By default, the trigger finds this from `render`. */
   nativeButton?: boolean;
   /** Turns the trigger off, so the alert cannot be raised from here. */
   disabled?: boolean;
   /**
-   * The button's words. Name what is about to be risked rather than the alert itself:
-   * "Delete…" opens the confirmation, and the ellipsis is the platform's own promise that a
-   * question is coming. They land on the `render` target, so a Kookie Button plus children is one
-   * button.
+   * The button's label. Name the action, not the alert, such as "Delete…".
+   * The ellipsis tells people that a question comes next. The label goes on the `render` element.
    */
   children?: React.ReactNode;
-  /** Your classes, appended rather than replacing the component's own. They land on the trigger,
-      and with `render` on the element you rendered into. */
+  /** Adds your classes to the trigger. With `render`, they go on the element that you rendered. */
   className?: string;
-  /** Inline styles, merged last. They land on the trigger, and with `render` on the element you
-      rendered into. */
+  /** Adds inline styles to the trigger. With `render`, they go on the element that you rendered. */
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLButtonElement>;
 };
@@ -185,18 +180,16 @@ export type AlertDialogContentProps = ComponentRefusals & Omit<
   "color" | "style" | "className"
 > & {
   /**
-   * The alert's parts, in reading order: `AlertDialogTitle`, `AlertDialogDescription`, then
-   * `AlertDialogCancel` and `AlertDialogAction`. Write a list of parts, never a Flex, because
-   * Content owns the layout. That is what lets the entry animate the content, and what makes
-   * Cancel-first mean reading order, start side and initial focus at once. Anything beyond those
-   * four makes the thing a Dialog.
+   * The alert's parts, in reading order: `AlertDialogTitle`, `AlertDialogDescription`,
+   * `AlertDialogCancel`, then `AlertDialogAction`.
+   * Put the parts directly inside, not in a `Flex`, because the content sets the layout. Cancel
+   * comes first, so it gets focus when the alert opens. If you need more than these four parts,
+   * use a `Dialog`.
    */
   children?: React.ReactNode;
-  /** Your classes, appended rather than replacing the component's own. They land on the panel,
-      not on the scrim and not on the scrollable viewport between them. */
+  /** Adds your classes to the panel. They don't replace the component's own classes. */
   className?: string;
-  /** Inline styles, merged last. They land on the panel, not on the scrim and not on the
-      scrollable viewport between them. */
+  /** Adds inline styles to the panel, not to the dimmed background behind it. */
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLDivElement>;
 };
@@ -286,9 +279,8 @@ export type AlertDialogTitleProps = ComponentRefusals & Omit<
   "color" | "style" | "className"
 > & {
   /**
-   * The question, phrased as one. It is the alert's accessible name as well as its heading, so it
-   * should say what is about to happen and to what. "Delete three files?" works. A title naming
-   * the widget leaves the buttons underneath meaningless.
+   * The question that the alert asks. It is the heading, and screen readers announce the alert by it.
+   * Say what will happen and to what, such as "Delete three files?".
    */
   children?: React.ReactNode;
   className?: string;
@@ -312,9 +304,8 @@ export type AlertDialogDescriptionProps = ComponentRefusals & Omit<
   "color" | "style" | "className"
 > & {
   /**
-   * What going ahead costs: the consequence the title could not fit, said once. It is announced
-   * together with the title, so it should add something, such as what is lost and whether it comes
-   * back, rather than restate the question in longer words.
+   * The result of going ahead, such as what is lost and if it can come back.
+   * Screen readers announce it with the title, so don't repeat the question.
    */
   children?: React.ReactNode;
   className?: string;
@@ -339,19 +330,18 @@ export type AlertDialogCancelProps = ComponentRefusals & Omit<
   "color" | "style" | "className"
 > & {
   /**
-   * The way out, in words. "Cancel" always reads, and naming what staying means often reads
-   * better, such as "Keep editing". Judge the two buttons together: two named sides is what makes
-   * the alert a choice rather than a warning with a dismiss button.
+   * The label of the safe choice. "Cancel" is always correct.
+   * A label that names what staying means is often better, such as "Keep editing".
    */
   children?: React.ReactNode;
   /**
-   * Runs on the press, before the alert closes. Cancel always closes, so use this for tidying up,
-   * never for deciding whether to close.
+   * Called on the press, before the alert closes. Cancel always closes the alert, so don't use
+   * this to keep it open.
    */
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   /**
-   * Turns off the safe way out. It is rarely right, because it leaves Escape as the only retreat
-   * from a panel that refuses outside presses.
+   * Turns off the Cancel button. Use it rarely: then only Escape can close the alert without
+   * the action.
    */
   disabled?: boolean;
   className?: string;
@@ -392,25 +382,22 @@ export type AlertDialogActionProps = ComponentRefusals & Omit<
   "color" | "style" | "className"
 > & {
   /**
-   * The one meaning an action may carry beyond going ahead. Use `destructive` for the deletes this
-   * component mostly exists for. Neutral otherwise.
+   * Sets the colour meaning of the action button. Use `destructive` for a delete or another
+   * action that you can't undo. The default is neutral.
    */
   tone?: Tone;
   /**
-   * The committing choice, in words, and it should be the verb. "OK" makes the reader go back to
-   * the title to remember what they are agreeing to. "Delete" answers the question where it is
-   * pressed.
+   * The label of the action. Use the verb from the question, such as "Delete", not "OK".
    */
   children?: React.ReactNode;
   /**
-   * Where the work starts. The alert closes on the same press, because its job ends when a choice
-   * is made. An action that has to wait for a result and report back belongs in a Dialog whose
-   * `open` you control.
+   * Called when the action is pressed. The alert closes on the same press.
+   * If the action must wait for a result, use a `Dialog` and control its `open` prop.
    */
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   /**
-   * Turns the committing action off, for a confirmation that is not satisfied yet, such as a
-   * typed-name gate or a pending check. Cancel stays live, so this is never a trap.
+   * Turns off the action button, such as until the person types a name to confirm.
+   * Cancel stays on.
    */
   disabled?: boolean;
   className?: string;

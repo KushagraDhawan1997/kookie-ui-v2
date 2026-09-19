@@ -4,12 +4,12 @@ import type { RadixReflexRefusals } from "../../system/refused.ts";
 import { Box, type BoxProps } from "../box/box.tsx";
 
 /**
- * Grid's container vocabulary does not exist here: raw CSS would accept `grid-template-columns`
- * on a flexbox and ignore it silently, and the named primitives are where that silence becomes
- * a type error (§3). Box remains the escape for a responsive flex-to-grid switch.
+ * Props for `Flex`. It has no grid props, such as `columns` or `rows`. To change from flex to
+ * grid at a width, use `Box`.
  */
 export type FlexProps = RadixReflexRefusals & Omit<BoxProps, "display" | "columns" | "rows" | "areas" | "flow"> & {
-  /** Flex participates in text flow as `inline-flex`; the tier-switching `display` lives on Box. */
+  /** Set `inline-flex` to place the flex container in a line of text. Defaults to `flex`. For
+      a `display` that changes with the width, use `Box`. */
   display?: "flex" | "inline-flex";
 };
 

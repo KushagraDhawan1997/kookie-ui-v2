@@ -12,7 +12,8 @@ import { SizeScopeContext, useSize } from "../../system/size.ts";
  */
 export type ButtonGroupProps = ComponentRefusals &
   Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
-    /** Sizes every button inside that does not state its own. */
+    /** The size step of the buttons in the group, from `1` to `4`. A `size` that you set on
+     *  a button wins. */
     size?: Size;
     ref?: React.Ref<HTMLDivElement>;
   };

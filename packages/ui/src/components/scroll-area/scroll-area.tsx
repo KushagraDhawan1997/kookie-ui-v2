@@ -7,48 +7,34 @@ import * as React from "react";
 
 export type ScrollAreaProps = ComponentRefusals & {
   /**
-   * The content that scrolls. It lands inside the viewport, never beside the bars, because the
-   * viewport, the scrollbars and the corner are assembly rather than API. A scroll region needs a
-   * bounded height to be a scroll region: state one here through `style`, or let a Shell pane or a
-   * menu's panel bound it.
+   * The content that scrolls. The scroll area must have a limited height. Set one with `style`,
+   * or put the scroll area in a container that limits its height, such as a `Shell` panel.
    */
   children?: React.ReactNode;
-  /** Dresses the root. Outer spacing is the caller's Box, never this (the non-negotiable). */
+  /** Adds a class to the outer element. To add space around it, wrap it in a `<Box m>`. */
   className?: string;
-  /** Inline styles, merged last. They land on the root, not on the viewport that scrolls. */
+  /** Inline styles for the outer element, not for the viewport that scrolls. */
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLDivElement>;
   /**
-   * Whether the viewport is a keyboard tab stop. It defaults to true, because a standalone scroll
-   * region has to be reachable in order to scroll by keyboard. Pass false from a component that
-   * already owns keyboard scrolling, such as Menu: ARIA drops `role="presentation"` from any
-   * focusable element, so a focusable viewport inside a menu would appear as a nameless node
-   * between the menu and its items, and would add a stray tab stop.
+   * Whether keyboard users can tab to the scroll area. The default is `true`, so people can
+   * scroll it with the keyboard. Set it to `false` inside a component that already handles
+   * keyboard scrolling, such as a menu.
    */
   focusable?: boolean;
   /**
-   * Names the scroll region. A focusable ScrollArea is a real tab stop, and a tab stop with no
-   * name is announced as nothing — so this is the one thing a standalone scroll region cannot
-   * do without. Given a name, the viewport announces as a `region` landmark; given none, it
-   * stays structural and the surrounding content has to carry the meaning.
-   *
-   * It is a DECLARED prop rather than a hyphenated attribute riding a rest spread, because
-   * TypeScript exempts hyphenated JSX attribute names from excess-property checking: written
-   * on a closed props object with no rest, `aria-label` compiled, rendered, and reached the DOM
-   * nowhere at all (2026-08-26).
+   * The accessible name of the scroll area. Set it on a focusable scroll area, because screen
+   * readers announce a tab stop without a name as nothing. With a name, the scroll area is a
+   * `region` landmark.
    */
   "aria-label"?: string;
-  /** Names the region from an element that already carries the words — the heading above it,
-      usually. Same rules as `aria-label`, and the two are mutually exclusive in ARIA. */
+  /** The id of an element that names the scroll area, usually a heading above it. Use it
+      instead of `aria-label`, not together with it. */
   "aria-labelledby"?: string;
   /**
-   * Fades content toward any edge that has more behind it (2026-08-29, opt-in). A MASK on the
-   * viewport, so the content dissolves and whatever the pane paints — seal, ground, a glass
-   * veil, a photograph — shows through; no colour is picked and none can be wrong. Each edge
-   * fades only while content is actually hidden on that side, ramping in over the first
-   * `--scrollbar-fade` pixels of scrolling, and it costs no JS of this package's: Base UI
-   * already publishes the per-edge overflow distances as CSS variables in the same pass that
-   * sizes the thumb, and the mask is pure CSS over them.
+   * Fades the content at each edge that has more content beyond it. An edge fades only while
+   * content is hidden on that side. The fade shows the background behind it, so it works on
+   * any colour or on glass. The default is `false`.
    */
   fade?: boolean;
 };

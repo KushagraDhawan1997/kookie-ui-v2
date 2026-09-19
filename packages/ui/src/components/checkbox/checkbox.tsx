@@ -44,16 +44,14 @@ export type CheckboxProps = ComponentRefusals & Omit<
   "children" | "render" | "className" | "nativeButton" | "readOnly"
 > & {
   /**
-   * An index into the mark ladder, which every control that is its own mark shares. It leaves
-   * the height ladder, because that is the geometry of a box that contains a label and this one
-   * sits beside one. It keeps the index, so a checkbox, a radio and a switch at the same number
-   * read as the same size of thing. The ladder is the line box, so the mark is exactly one line
-   * of the label beside it and lines up with no offset. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise.
+   * The size step of the checkbox, from `1` to `4`. The box is one line of text tall at the
+   * same step, so it lines up with its label. A checkbox, a radio and a switch at the same step
+   * look the same size. Unset, it uses the `size` of the nearest `Field` or `Theme`.
    */
   size?: Size;
-  /** Dresses the mark. Outer spacing is the caller's Box, never this (the non-negotiable). */
+  /** A class name for the checkbox. For space around it, wrap it in a `Box` with `m`. */
   className?: string;
-  /** The honest element (audit 2026-08-05, D12): Base UI's root renders a <span>. See below. */
+  /** A ref to the checkbox, which is a `<span>` element. */
   ref?: React.Ref<HTMLSpanElement>;
 };
 

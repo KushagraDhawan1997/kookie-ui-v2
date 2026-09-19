@@ -11,18 +11,19 @@ export type KbdProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"kbd">,
   "color" | "style" | "className"
 > & {
-  /** A step on the shared ramp. Optional with no default, for the same reason `Code` is: a
-      key cap inside a sentence takes that sentence's step. */
+  /** The text size step, from `1` to `9`. There's no default: unset, the key takes the text
+      size of the line around it. */
   size?: TypeSize;
-  /** Token names, never numbers, and semibold is the heaviest. Unset with no default, as
-      `size` is. The box, the edge and the shadow are what say "key". The weight never was. */
+  /** The font weight, by name. `semibold` is the heaviest. There's no default: unset, the key
+      takes the weight of the text around it. */
   weight?: Weight;
-  /** Picks an ink colour, as it does on all type. It changes the letters, not the cap. */
+  /** The emphasis level of the text: `loud`, `medium` or `quiet`. It changes the text
+      colour, not the key. */
   emphasis?: Emphasis;
-  /** Moves the ink and the fill onto that family. The edge is a grey relief line and does not
-      follow the tone. Defaults to `neutral`. */
+  /** The colour family of the text and the fill. Defaults to `neutral`. The edge stays grey
+      in every tone. */
   tone?: Tone;
-  /** Render into the element the document needs. */
+  /** Renders the key as a different element. */
   render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;

@@ -12,24 +12,20 @@ export type CodeProps = ComponentRefusals & Omit<
   "color" | "style" | "className"
 > & {
   /**
-   * A step on the shared ramp. It is optional with no default, which is the one thing this
-   * component does differently from `Text`: a word inside a sentence has no size of its own.
-   * Unset, it takes the font size, line height and letter spacing of the line it sits in, so
-   * `<Text size="2">the <Code>value</Code></Text>` matches without the call site repeating the
-   * index. Set it only when the chip stands alone.
+   * The text size step, from `1` to `9`. There's no default: unset, the code takes the text
+   * size of the line around it. For example, `<Text size="2">the <Code>value</Code></Text>`
+   * matches the text. Set it only when the code stands alone.
    */
   size?: TypeSize;
-  /** Token names, never numbers, and semibold is the heaviest. Unset with no default, for
-      the same reason `size` is: a literal quoted inside a sentence keeps that sentence's
-      weight, and the mono font is already what sets it apart. */
+  /** The font weight, by name. `semibold` is the heaviest. There's no default: unset, the
+      code takes the weight of the text around it. */
   weight?: Weight;
-  /** Picks an ink colour, the same three the surrounding copy uses. It rests loud, because a
-      faded literal is harder to read and gains nothing. */
+  /** The emphasis level of the text: `loud`, `medium` or `quiet`. It changes the text colour.
+      Defaults to `loud`. */
   emphasis?: Emphasis;
-  /** Moves both the ink and the chip's own fill onto that family, because a word with a fill
-      behind it has two things to tint. Defaults to `neutral`. */
+  /** The colour family of the text and the fill. Defaults to `neutral`. */
   tone?: Tone;
-  /** Render into the element the document needs. */
+  /** Renders the code as a different element. */
   render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;

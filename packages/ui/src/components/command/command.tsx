@@ -141,41 +141,31 @@ export type CommandOpenChangeDetails = Omit<OverlayOpenChangeDetails, "reason"> 
 
 export type CommandProps = ComponentRefusals & {
   /**
-   * Sets the panel and everything the component places in it: the box, the filter field, the
-   * rows and the group labels. It owns all of it, so the index reaches the type — the rule
-   * AlertDialog and Composer both settled on, where a Dialog stops at the box because the
-   * content is yours.
-   *
-   * The parts do not all stand at the index you state, and they are not meant to: a palette is
-   * the one object on the screen, so the line you type into is set above the rows it filters
-   * and the rows themselves stand one step above the controls in the app behind them. Both
-   * ladders are derived from this one, so nothing can invert and there is no index where the
-   * palette reads like a form.
+   * The size step of the palette, from `"1"` to `"4"`. It sets the panel, the search field, the
+   * rows and the group labels, including their text size. The rows are one step larger than
+   * the app's controls at the same step, and the search text is larger again. The default
+   * comes from the theme.
    */
   size?: Size;
   /**
-   * Everything the palette can offer, before filtering. Base UI matches against these and
-   * renders only what survives, which is why `CommandList` takes a function rather than
-   * children: the list you write is the list of ALL commands, and the panel decides which of
-   * them exist right now.
+   * All the items that the palette can show, before filtering. The palette shows only the items
+   * that match the query, so `CommandList` takes a function, not children.
    *
-   * **Hold this array stable.** It crosses to the matcher by identity, so an inline literal —
-   * the shape every call site reaches for first — re-runs the whole filter pass on every
-   * unrelated render of whatever holds the palette. Module scope, or a `useMemo`.
+   * Keep this array stable. Declare it at module scope or wrap it in `useMemo`. A new array on
+   * each render runs the filter again each time.
    */
   items: readonly unknown[];
-  /** Open state. A palette is almost always controlled, because the chord that opens it lives
-      in the app's own key handler. */
+  /** Whether the palette is open, for a controlled palette. Use it with `onOpenChange`. Most
+      palettes are controlled, because your own key handler opens them. */
   open?: DialogProps["open"];
-  /** Open on the first render and manage itself after that. Useful for a demo; almost never
-      what a real palette wants, because the chord that opens it lives in your key handler. */
+  /** Whether the palette is open at the start, for an uncontrolled palette. Use it for demos.
+      A real palette usually uses `open`, because your key handler opens it. */
   defaultOpen?: DialogProps["defaultOpen"];
-  /** Called when it opens or closes, with the reason — an Escape, an outside press, or a row
-      being run (`"item-press"`, the one reason no other overlay can produce). The second argument
-      carries `cancel()` if you need to refuse the dismissal, which is how a palette keeps itself
-      open for a row that does not end the interaction. */
+  /** Called each time the palette opens or closes. `details.reason` tells the cause, such as
+      Escape, an outside press, or `"item-press"` when a row runs. Call `details.cancel()` to keep
+      the palette open, for example after a row that doesn't end the task. */
   onOpenChange?: (open: boolean, details: CommandOpenChangeDetails) => void;
-  /** The trigger, if there is one, and the panel. */
+  /** A `CommandTrigger`, if there is one, and a `CommandContent`. */
   children: React.ReactNode;
 };
 
@@ -288,30 +278,21 @@ export function CommandTrigger(props: CommandTriggerProps) {
 }
 
 export type CommandContentProps = ComponentRefusals & {
-  /** The palette's accessible name. It has no visible title — the field is the affordance —
-      so the name is stated here and it is required by the type. */
+  /** The accessible name of the palette. It is required, because the palette has no visible title. */
   "aria-label": string;
-  /** Base UI's matcher, if the app wants a different one. Left alone, it is Base UI's own; pass
-      `null` to turn filtering off entirely, which is what an app narrowing its own array wants. */
+  /** A custom function that decides which items match the query. If you don't set it, the
+      palette uses Base UI's matcher. Set it to `null` to turn off filtering, for example when
+      you filter `items` yourself. */
   filter?: React.ComponentPropsWithoutRef<typeof Autocomplete.Root>["filter"];
   /**
-   * What has been typed, as it is typed. READ-ONLY: the input stays Base UI's, because the
-   * keyboard model is the thing this component exists to own.
-   *
-   * It closes a hole §44 described and did not implement (2026-09-04). That section already said
-   * "an app that wants none hands in an already-narrowed array" — and narrowing needs the query,
-   * which nothing handed over, so the sentence named a path no call site could take. A ranked
-   * search is the case that forces it: `filter` is a boolean predicate, so it can neither ORDER
-   * results by relevance nor cap them, and a docs search that cannot rank is a docs search.
-   *
-   * §44's refusal of fuzzy reordering is not weakened by this and is worth restating: it is about
-   * a palette of COMMANDS, where the order is the table's own and muscle memory is most of what
-   * the thing is for. A search over prose has no order of its own to keep.
+   * Called with the query each time it changes, and with an empty query when the palette closes.
+   * You can read the query but not set it. Use it to rank, limit or fetch `items` yourself,
+   * which `filter` can't do.
    */
   onQueryChange?: (query: string) => void;
-  /** The field, the list, and the sentence shown when nothing matches. */
+  /** A `CommandInput`, a `CommandList`, and a `CommandEmpty` for when nothing matches. */
   children: React.ReactNode;
-  /** Dresses the panel. Outer spacing is not yours to set here — a palette covers the app. */
+  /** A class name for the panel. */
   className?: string;
   style?: React.CSSProperties;
 };
@@ -421,16 +402,13 @@ export type CommandInputProps = ComponentRefusals & Omit<
   "className" | "render" | "aria-label"
 > & {
   /**
-   * The field's accessible name, required by the type. It is the palette's one interactive
-   * control — a `role="combobox"` — and it shipped nameless whenever the placeholder was
-   * omitted, while the panel nobody focuses required a name two exports above. A placeholder
-   * is not a name: it disappears the moment anyone types.
+   * The accessible name of the search field. It is required, because a placeholder is not a
+   * name: it goes away when you type.
    */
   "aria-label": string;
-  /** Before the field: a magnifier, if your app draws one. Empty-safe — the package ships no
-      icon set. */
+  /** Content before the field, such as a search icon. The package has no icons, so supply your own. */
   leading?: React.ReactNode;
-  /** Dresses the input line. */
+  /** A class name for the search field. */
   className?: string;
 };
 
@@ -535,7 +513,7 @@ export function CommandInput({ leading, className, ...props }: CommandInputProps
 export type CommandListProps<T> = ComponentRefusals & {
   /** Called for each item that survives the filter. */
   children: (item: T) => React.ReactNode;
-  /** Dresses the scrolling list. */
+  /** A class name for the list panel. */
   className?: string;
 };
 
@@ -593,11 +571,11 @@ export function CommandList<T>({ children, className }: CommandListProps<T>) {
 }
 
 export type CommandGroupProps = ComponentRefusals & {
-  /** This group's own items, so the filter can narrow a section and hide it when it empties. */
+  /** The items in this group. The group hides when none of them match the query. */
   items: readonly unknown[];
-  /** The section's caption and its rows. */
+  /** A `CommandGroupLabel` and a `CommandCollection` for the rows. */
   children: React.ReactNode;
-  /** Dresses the section. */
+  /** A class name for the group. */
   className?: string;
 };
 
@@ -623,7 +601,7 @@ export function CommandGroup({ items, children, className }: CommandGroupProps) 
    function. `refusal-sets.test.ts` walks the built declarations so a fourth cannot appear. */
 
 export type CommandGroupLabelProps = ComponentRefusals & {
-  /** The section's name. Words, not a control: nothing here is reachable. */
+  /** The name of the group. It is text only, and it isn't focusable. */
   children: React.ReactNode;
   className?: string;
 };
@@ -643,7 +621,7 @@ export function CommandGroupLabel({ children, className }: CommandGroupLabelProp
 }
 
 export type CommandCollectionProps<T> = ComponentRefusals & {
-  /** Called once per surviving item. Required: a collection with nothing to render is a group. */
+  /** A function that renders a row for each item in the group that matches the query. */
   children: (item: T) => React.ReactNode;
 };
 
@@ -657,25 +635,18 @@ export type CommandItemProps = ComponentRefusals & Omit<
   "className" | "render"
 > & {
   /**
-   * Render the row into the element it really is — your framework's link component, or an
-   * `<a href>` — for a palette of PLACES rather than of verbs. A search result is a place, and
-   * a row that navigates without being a link has no middle-click, no open-in-new-tab, no URL
-   * on the status bar and nothing for a screen reader to announce as a link.
-   *
-   * Opened 2026-09-04 for the docs site's own search, which is the second consumer of the
-   * argument `MenuItem` was opened on three days earlier — `BreadcrumbEllipsis` lists places by
-   * definition, and so does a search. The row stays ONE target, which is the whole reason this
-   * is a render escape rather than an anchor nested inside the row: a link inside would be a
-   * second target inside a target, and `trailing` already refuses that.
+   * The element to render the row as, such as an `<a href>` or your framework's link component.
+   * Use it when a row goes to a page, such as a search result. The row then works as a real
+   * link, with open in a new tab and a link role for screen readers.
    */
   render?: RenderElement;
-  /** Before the label: an icon, an avatar. */
+  /** Content before the label, such as an icon or an avatar. */
   leading?: React.ReactNode;
-  /** After it, pushed to the far edge: the chord that also runs this, a category, a count. */
+  /** Content at the far end of the row, such as a keyboard shortcut, a category or a count. */
   trailing?: React.ReactNode;
-  /** The one meaning a row may carry. Not a palette — the list stays this narrow on purpose. */
+  /** The colour of the row. Set it to `destructive` for a command that deletes something. */
   tone?: "destructive";
-  /** Dresses the row. */
+  /** A class name for the row. */
   className?: string;
 };
 
@@ -749,19 +720,11 @@ export function CommandItem({ leading, trailing, tone, render, children, classNa
 }
 
 /**
- * What the panel shows when nothing matches. It states WHERE that goes and nothing about what it
- * looks like, which is the difference between a slot and a wrapper — and it was a wrapper until
- * 2026-09-04 (Kushagra: "no empty state block being used when no results found").
- *
- * It put its children inside a `Text`, so the only thing that could go in it was a sentence: a
- * real empty state — a mark, a title, a line of explanation, a way out — came back with its
- * heading rendered as body copy at the caption's step. §44 already said the words are the app's,
- * in the app's language; an empty REGION is the same claim about the arrangement, and a part that
- * dresses what it is handed cannot make it. So a sentence is now passed as a `Text` and a full
- * empty state as whatever block the app composes, and this places both.
+ * The content that the list shows when no item matches the query. It sets only the position,
+ * not the style. Pass a `Text` for one sentence, or your own block for a full empty state.
  */
 export type CommandEmptyProps = ComponentRefusals & {
-  /** What to show when the query matches nothing. Rendered into the list's own pane. */
+  /** The content to show when no item matches. It shows inside the list panel. */
   children: React.ReactNode;
   className?: string;
 };

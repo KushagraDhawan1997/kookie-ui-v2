@@ -50,13 +50,13 @@ export function TooltipProvider(props: TooltipProviderProps) {
 }
 
 export type TooltipProps = ComponentRefusals & {
-  /** Controlled open state. */
+  /** Whether the tooltip is open. Use it with `onOpenChange` to control the tooltip. */
   open?: boolean;
-  /** Uncontrolled starting state. */
+  /** Whether the tooltip starts open, when you don't control it. */
   defaultOpen?: boolean;
-  /** Told when it opens or closes. */
+  /** Called when the tooltip opens or closes. */
   onOpenChange?: (open: boolean) => void;
-  /** The trigger and the content, in that order. */
+  /** A `TooltipTrigger` and a `TooltipContent`, in that order. */
   children?: React.ReactNode;
 };
 
@@ -107,15 +107,8 @@ export function Tooltip({ children, ...props }: TooltipProps) {
 }
 
 /**
- * THE DELAY IS THE SYSTEM'S, AND THE TYPE IS WHERE THAT IS SAID (2026-08-26, ultracode audit).
- *
- * Base UI's trigger accepts its own `delay` and `closeDelay` and honours them over the
- * provider's, so inheriting its props verbatim left the documented refusal — "deliberately not
- * a prop; a delay that varied per call site would make one product feel like several" — stated
- * in four places and enforced in none: `<TooltipTrigger delay={0}/>` compiled and worked. A
- * refusal the type does not express is a comment (ENGINEERING §1.3). The escape, when a region
- * genuinely needs different timing, is a second `TooltipProvider` — which is the right shape
- * anyway, a delay being a property of a REGION rather than of one label.
+ * Props for `TooltipTrigger`. It takes no `delay` or `closeDelay`, because all tooltips share
+ * one timing. If a region needs different timing, wrap it in its own `TooltipProvider`.
  */
 export type TooltipTriggerProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BaseTooltip.Trigger>,
@@ -142,24 +135,18 @@ export type TooltipContentProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"div">,
   "color" | "style" | "className"
 > & {
-  /** Which side of the trigger to prefer. It flips itself when that side has no room. */
+  /** The side of the trigger to show the tooltip on. The default is `top`. If that side has no
+      room, the tooltip moves to the opposite side. */
   side?: "top" | "right" | "bottom" | "left";
-  /** How it lines up along that side. */
+  /** How the tooltip lines up with the trigger along that side. The default is `center`. */
   align?: "start" | "center" | "end";
-  /** The gap from the trigger, in pixels. Defaults to the family's own. */
+  /** The gap between the trigger and the tooltip, in pixels. The default is the gap that all
+      floating panels use. */
   sideOffset?: number;
   /**
-   * The words, and they are a STRING rather than nodes — the one refusal the type carries.
-   *
-   * A tooltip is a label, and a label is a sentence. What it cannot be is a small composition:
-   * an inverted pane cannot invert an arbitrary subtree, because a component that stamps a tone
-   * re-declares the ink roles ON ITS OWN ELEMENT, which overrides anything a parent re-scoped —
-   * measured, a `Kbd` inside a tooltip kept the page's ink and its own pale fill, and vanished
-   * on a near-black pane. Inverting the whole palette instead would mean knowing the current
-   * appearance, which under `appearance="inherit"` no React code can.
-   *
-   * The shortcut case is a string too: `Undo ⌘Z`. Anything that genuinely needs a chip in it is
-   * a `Popover`, which holds content because it was built to.
+   * The text of the tooltip. It must be a string, such as "Undo" or "Undo ⌘Z". Components such
+   * as `Kbd` don't show correctly on the tooltip's inverted colours. For richer content, use a
+   * `Popover`.
    */
   children?: string;
   className?: string;

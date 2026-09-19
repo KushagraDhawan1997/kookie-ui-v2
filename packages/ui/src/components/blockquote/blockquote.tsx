@@ -11,20 +11,17 @@ export type BlockquoteProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"blockquote">,
   "color" | "style" | "className"
 > & {
-  /** A step on the shared ramp. It defaults to 3 like `Text`, and unlike `Code`, because a
-      quote is a block and sets its own step rather than taking the line it sits in. */
+  /** The text size step, from `1` to `9`. Defaults to `3`, the body size, as on `Text`. */
   size?: TypeSize;
-  /** Token names, never numbers, and semibold is the heaviest. It rests at regular, like
-      `Text`, because a quote is copy. The rule and the indent set it apart, and a heavier
-      weight would make it a heading in quotation marks. */
+  /** The font weight: `regular`, `medium` or `semibold`. Defaults to `regular`. */
   weight?: Weight;
-  /** Picks an ink colour. It rests loud, as all type does, because a quote is something
-      somebody reads and quiet sits below the reading contrast floor. */
+  /** The emphasis level of the text, which sets its colour. Defaults to `loud`. Don't use
+      `quiet` for a quote, because its contrast is too low to read easily. */
   emphasis?: Emphasis;
-  /** Moves the ink onto that family. It does not tint the rule: a destructive quote is red
-      words beside a neutral rule. */
+  /** The colour family of the text, such as `destructive`. The line at the side stays grey
+      in every tone. */
   tone?: Tone;
-  /** Render into the element the document needs, such as a child of a `<figure>`. */
+  /** Renders the quote as a different element. */
   render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;

@@ -17,19 +17,15 @@ export type SegmentedControlProps = ComponentRefusals & Omit<
   "readOnly" | "className"
 > & {
   /**
-   * The control height ladder, set on the track, because the track is the control: a segmented
-   * control stands level with a Button of the same size in the toolbar beside it. Each segment
-   * derives its own box from that channel, which is the track minus a fixed inset, and states no
-   * index of its own, so the two boxes cannot disagree. It sits on the root, never on a segment: a
-   * bar of mixed sizes is not a thing anyone means.
+   * The size step of the control, from `1` to `4`. It is as tall as a `Button` at the same step.
+   * Set it here, not on each segment. All segments use this size.
    */
   size?: Size;
-  /** Dresses the track. Outer spacing is the caller's Box, never this (the non-negotiable). */
+  /** A class name for the control. For space around it, wrap it in a `Box` with `m`. */
   className?: string;
   /**
-   * Says content passes behind this control, so it shows the theme's material instead of resolving
-   * solid. A `<Box backdrop>` region answers this for a whole toolbar. This is the one-off escape,
-   * and it is Button's own prop.
+   * Set `backdrop` when the control sits over other content, such as an image. It then uses the
+   * theme's material. Unset, it follows the nearest `<Box backdrop>`.
    */
   backdrop?: boolean;
   ref?: React.Ref<HTMLDivElement>;
@@ -53,7 +49,7 @@ export type SegmentedItemProps = ComponentRefusals & Omit<
   // one IS argued, below.
   "readOnly" | "className" | "nativeButton" | "render"
 > & {
-  /** Dresses the segment. Outer spacing is the caller's Box, never this. */
+  /** A class name for the segment. */
   className?: string;
 };
 

@@ -239,38 +239,23 @@ function usePaneDress(
     `flush` sentence in one home. */
 type PaneDressProps = {
   /**
-   * Is this pane part of the app frame? `flush`, the default, tiles it against its neighbours
-   * with one hairline at each seam. `flush={false}` pulls it off the frame, and what happens next
-   * is derived rather than chosen: a pane floats if the content is underneath it, and the content
-   * is underneath it only when the content is itself flush. Otherwise it grounds, and becomes its
-   * own surface resting on the app's ground. One boolean reaches all four arrangements, and it
-   * cannot be told a lie a three-value prop could, such as a floating sidebar beside a grounded
-   * content card.
+   * Sets whether this pane joins the app frame. The default is `true`.
    *
-   * It also decides the seams. A flush pane draws one hairline on its inner edge, and that edge
-   * needs something on the other side of it: pull the content off the frame and every seam
-   * facing it goes, because the card's own gap and edge already draw that boundary. A rail
-   * beside a flush sidebar keeps its seam — both of those are still in the frame.
+   * A flush pane sits against its neighbours with one hairline between them. Set `flush={false}`
+   * to pull the pane off the frame. The pane then floats over the content if the content is flush.
+   * Otherwise it becomes a separate panel on the app background.
    *
-   * It says nothing about the material. A pane over a canvas states `backdrop`, whatever its
-   * posture — the two questions are independent and were briefly wired together (LOG 2026-08-29).
+   * This prop does not change the material. Use `backdrop` for that.
    */
   flush?: boolean;
   /**
-   * Says whether something passes behind this pane: a canvas, a map, a photograph, the work
-   * area itself when this pane floats over it. A pane in an ordinary frame sits on the app's
-   * ground, where glass blurs a flat colour and still costs a full backdrop read on every
-   * paint — and a pane is the largest box in the library, so it is the most expensive place to
-   * pay for nothing. By default it renders solid whatever the theme's material is. Unset, it
-   * follows the surrounding `<Box backdrop>` region, which is what makes a flush pane
-   * translucent over a window-wide wallpaper. The material itself is still the theme's: this
-   * prop cannot pick one.
+   * Set `backdrop` when content passes behind this pane, such as a canvas, a map or an image.
    *
-   * It does not reach a pane that is OVERLAYING. A drawer sits over the page with a scrim
-   * under it, which is Dialog's arrangement, and every covering panel in this package takes
-   * the theme's material without being asked — so this prop answers for the pane in the frame
-   * and the shell answers for the drawer. You cannot ask for a solid drawer, in the same sense
-   * that you cannot ask for a solid menu.
+   * The pane then uses the theme's material. Without it, the pane stays solid. If you leave it
+   * unset, the pane follows the nearest `<Box backdrop>` region.
+   *
+   * A pane that opens as an overlay always uses the theme's material. This prop does not change
+   * that.
    */
   backdrop?: boolean;
 };
@@ -313,19 +298,18 @@ function usePaneSize(stated: Size | undefined): Size {
 
 export type ShellProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
   /**
-   * The control index this app's navigation is drawn at. Every pane inherits it, and any pane can
-   * overrule it. It is not the app's type size, and it is not any pane's width: a pane's extent
-   * is a statement about your content and has no ladder, which is why `width` is a raw number and
-   * this is an index.
+   * Sets the size step for the shell's panes and navigation. Each pane uses it unless the pane sets
+   * its own `size`.
+   *
+   * It does not set the type size or the pane widths. Use `width` on a pane for its width.
    */
   size?: Size;
   /**
-   * Put the Shell inside something else instead of making it the window.
+   * Makes the shell fill its parent element instead of the window.
    *
-   * By default a Shell is the app: it takes the window's height, and on a narrow touch screen the
-   * page itself scrolls, so the browser can shrink its toolbars. A contained Shell fills its
-   * parent and always scrolls inside itself, on every device. Use it for a Shell in a card, a
-   * demo, or a canvas that must keep its own scroll.
+   * By default, the shell takes the window's height. On a narrow touch screen the page scrolls, so
+   * the browser can hide its toolbars. A contained shell always scrolls inside itself. Use it for a
+   * shell in a card, in a demo or in a canvas.
    */
   contained?: boolean;
   ref?: React.Ref<HTMLDivElement>;
@@ -761,8 +745,8 @@ export function Shell({ size: sizeProp, contained, className, style, children, r
 export type ShellHeaderProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"header">, "color"> &
   PaneDressProps & {
     /**
-     * The index this header is drawn at: its padding, the height of its row, and anything it holds.
-     * It defaults to the app's, like every pane.
+     * Sets the size step of the header: its padding, its row height and the controls in it. The
+     * default is the shell's `size`.
      */
     size?: Size;
   };
@@ -808,7 +792,8 @@ export type ShellContentProps = ComponentRefusals & Omit<React.ComponentPropsWit
   // the one pane that never gets glass.
   Omit<PaneDressProps, "backdrop"> & {
     /**
-     * The index this pane is drawn at: its padding, and anything it holds. It defaults to the app's.
+     * Sets the size step of the pane: its padding and the controls in it. The default is the shell's
+     * `size`.
      */
     size?: Size;
   };
@@ -876,38 +861,36 @@ type PaneState = "auto" | "open" | "closed";
 
 type TogglePaneOwnProps = {
   /**
-   * Controlled open state, in the same pattern Dialog uses.
+   * Controls whether the pane is open. Use it with `onOpenChange`.
    *
-   * Passing it conditionally is supported. `{...(preview ? { open: false } : {})}` pins the pane
-   * closed while the flag is on, and hands control straight back when it goes. The uncontrolled
-   * state is kept untouched throughout rather than overwritten, so the pane returns to exactly
-   * the state the user last left it in.
+   * You can set it only some of the time. For example, `{...(preview ? { open: false } : {})}` keeps
+   * the pane closed during a preview. When you remove it, the pane goes back to its last state.
    */
   open?: boolean;
   /**
-   * The starting state when the pane is uncontrolled. Omit both this and `open` and the pane is
-   * auto: the stylesheet decides its resting state from the window size, and the first toggle
-   * makes the choice explicit.
+   * Sets whether the pane starts open when you do not control it.
+   *
+   * If you set neither this nor `open`, the window size decides whether the pane is open. The
+   * first toggle then sets the state.
    */
   defaultOpen?: boolean;
   /**
-   * Fires on user-driven changes only: a trigger, Escape, a press on the scrim. It never fires at
-   * mount, and never when the window crosses a size boundary, because auto is resolved in CSS and
-   * CSS calls nobody.
+   * Called when the user opens or closes the pane: with a trigger, the Escape key or a press on
+   * the scrim.
+   *
+   * It is not called when the pane mounts. It is not called when a window resize opens or closes
+   * the pane.
    */
   onOpenChange?: (open: boolean) => void;
   /**
-   * How this pane occupies the window while it is open.
+   * Sets how the pane takes space when it is open.
    *
-   * `auto` answers a question about the room, and it answers it in CSS from the window size, so
-   * first paint is right with no script and nothing for hydration to mismatch.
+   * - `auto`, the default: in the layout on a wide window, and over the content on a narrow one.
+   * - `fixed`: always in the layout.
+   * - `overlay`: always over the content, with a scrim. The pane also starts closed at every window
+   *   size.
    *
-   * Stating a value instead answers a question about the product, and it does more than pin the
-   * arrangement: `overlay` also makes the pane rest closed at every width, because an overlay is
-   * something you summon rather than live in, where `auto` lets a nav column rest open on a roomy
-   * window. So state a value for a pane whose behaviour is a decision, such as a drawer that must
-   * never be ambient. Leave it auto for a pane whose behaviour follows from how much window there
-   * is.
+   * Use `overlay` for a drawer that the user opens when they need it.
    */
   presentation?: ShellPresentation;
 };
@@ -1030,44 +1013,41 @@ type SidePaneProps = Omit<React.ComponentPropsWithoutRef<"nav">, "color"> &
   TogglePaneOwnProps &
   PaneDressProps & {
     /**
-     * The pane's width in CSS pixels, and the one place this system sanctions a raw length: a
-     * pane's width is your content speaking, and no ladder could size it. It overrides the default
-     * by writing the custom property the stylesheet reads, which is also where a future drag-resize
-     * will write.
+     * Sets the pane's width in CSS pixels. If you leave it unset, the pane uses its default width.
      */
     width?: number;
     /**
-     * The control index this pane's own navigation is drawn at: its rows and its squares. It is not
-     * the pane's width. A pane's extent is a statement about your content and has no ladder, which
-     * is why `width` is a raw number and this is an index.
+     * Sets the size step of the pane: its padding, its rows and its buttons. It does not set the
+     * width. The default is the shell's `size`.
      */
     size?: Size;
     /**
-     * Lets a person move this pane's edge. Draws a boundary the pointer can drag and the
-     * keyboard can step — `role="separator"` with a value, which is the platform's own window
-     * splitter and the reason this is not a bare div with a mousedown on it.
+     * Lets the user drag the pane's edge to change its width.
      *
-     * The rail cannot take it: a rail's extent is its item's box plus the air around it (§27),
-     * so there is nothing free to drag.
+     * The pane gets a handle with `role="separator"`. The user can also move it with the arrow keys.
      */
     resizable?: boolean;
-    /** The floor, in CSS pixels. Defaults to the system's, because a resize with no floor is a
-        way to destroy a layout by accident and not be able to get back. */
+    /**
+     * Sets the smallest width, in CSS pixels, that a resize can give the pane. The default is a
+     * minimum that the shell supplies.
+     */
     minWidth?: number;
-    /** The ceiling, in CSS pixels. Unset, the only limit is the frame. */
+    /**
+     * Sets the largest width, in CSS pixels, that a resize can give the pane. If you leave it unset,
+     * the shell's width is the limit.
+     */
     maxWidth?: number;
     /**
-     * Called once when the gesture ENDS, with the pane's new extent — not on every frame,
-     * because the app's job is to remember the number rather than to watch it move.
+     * Called once when the user ends a resize, with the pane's new width.
      *
-     * **The memory is yours**, exactly as a Notice's dismissal is. During the drag the DOM
-     * leads; afterwards you are told. A pane given `width` is CONTROLLED, so a render after the
-     * gesture leaves the dragged width in place. Store what this hands you if you want it to
-     * survive a reload; change `width` when you want to move the pane yourself.
+     * Save the width if you want it to stay after a reload. If you set `width`, the pane keeps the
+     * dragged width until you change `width`.
      */
     onResize?: (width: number) => void;
-    /** The handle's accessible name. English by default because the package ships no
-        translation layer; state your own and it is stated once, here. */
+    /**
+     * Sets the accessible name of the resize handle. The default is in English, so set it for other
+     * languages.
+     */
     resizeLabel?: string;
     ref?: React.Ref<HTMLElement>;
   };
@@ -1619,10 +1599,15 @@ export type ShellRailProps = ComponentRefusals & Omit<
   SidePaneProps,
   "width" | "resizable" | "minWidth" | "maxWidth" | "onResize" | "resizeLabel" | "presentation"
 > & {
-  /** How the rail meets a narrow window. `auto` (the default) is a rail on a wide window and a
-      tab bar across the bottom on a narrow one, carrying the rail's own items across. `bar` is
-      the tab bar only, and nothing on a wide window. `rail` is never a bar, for a tool rail with
-      more items than a bar can hold. `overlay` is always a drawer. */
+  /**
+   * Sets how the rail looks on a narrow window.
+   *
+   * - `auto`, the default: a rail on a wide window, and a tab bar along the bottom on a narrow one.
+   * - `bar`: a tab bar on a narrow window, and nothing on a wide one.
+   * - `rail`: never a tab bar. It opens as a drawer on a narrow window. Use it when the rail has too
+   *   many items for a tab bar.
+   * - `overlay`: always a drawer.
+   */
   presentation?: ShellRailPresentation;
 };
 
@@ -1806,25 +1791,34 @@ export type ShellBottomProps = ComponentRefusals & Omit<React.ComponentPropsWith
   TogglePaneOwnProps &
   PaneDressProps & {
     /**
-     * The bottom pane's height in CSS pixels. It is the `width` prop's sentence turned ninety
-     * degrees.
+     * Sets the pane's height in CSS pixels. If you leave it unset, the pane uses its default height.
      */
     height?: number;
     /**
-     * Lets a person move this pane's top edge. The side panes' `resizable`, turned ninety
-     * degrees: the same separator, the same keyboard, the same floor.
+     * Lets the user drag the pane's top edge to change its height. The user can also move it with the
+     * arrow keys.
      */
     resizable?: boolean;
-    /** The floor, in CSS pixels. Defaults to the system's. */
+    /**
+     * Sets the smallest height, in CSS pixels, that a resize can give the pane. The default is a
+     * minimum that the shell supplies.
+     */
     minHeight?: number;
-    /** The ceiling, in CSS pixels. Unset, the frame is the ceiling and it is announced. */
+    /**
+     * Sets the largest height, in CSS pixels, that a resize can give the pane. If you leave it unset,
+     * the shell's height is the limit.
+     */
     maxHeight?: number;
-    /** Called once when the gesture ends, with the pane's new height. The memory is yours. */
+    /**
+     * Called once when the user ends a resize, with the pane's new height. Save it if you want it to
+     * stay after a reload.
+     */
     onResize?: (height: number) => void;
     /** The handle's accessible name. */
     resizeLabel?: string;
     /**
-     * The index this pane is drawn at: its padding, and anything it holds. It defaults to the app's.
+     * Sets the size step of the pane: its padding and the controls in it. The default is the shell's
+     * `size`.
      */
     size?: Size;
     ref?: React.Ref<HTMLElement>;
@@ -2077,10 +2071,11 @@ function useBandMeasure(end: "start" | "end" | null): React.RefCallback<HTMLDivE
 
 export type ShellPaneHeaderProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
   /**
-   * Lift the row out of flow, over the pane's scroller: content passes behind it, and the
-   * pane publishes `--kui-pane-inset-block-start` — one control row plus the pane's padding —
-   * so what should clear the row can pad by it and what should run behind it can ignore it.
-   * Pairs with ScrollArea's `fade`, which is what keeps the passing content legible.
+   * Makes the row float over the pane's scrolling content, so the content passes behind it.
+   *
+   * The pane then sets `--kui-pane-inset-block-start` (or `--kui-pane-inset-block-end` for a
+   * footer) to the row's height. Use it to pad content that must not go under the row. Use it with
+   * the `fade` prop of `ScrollArea` to keep the row legible.
    */
   float?: boolean;
 };
@@ -2127,21 +2122,24 @@ export function ShellPaneFooter({ className, float, ref, ...props }: ShellPaneFo
    scrolling, and `m="bleed"` for rows that want to reach the pane's edge. */
 
 export type ShellRailItemProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
-  /** The region you are in. Announced as well as painted, exactly as a nav row's is. */
+  /**
+   * Marks the item as the current section. Screen readers announce it, and the item shows it.
+   */
   current?: boolean;
-  /** Be an anchor instead. A rail is primary navigation, and a link is a link. */
+  /**
+   * Renders the item as another element, such as a link: `render={<a href="/inbox" />}`.
+   */
   render?: RenderElement;
   /**
-   * Required, because the item is icon-only, and an icon with no name is a button nobody can read.
-   * If the rail ever grows labels they go under the icon and stay a setting on the pane: one word
-   * under one icon and not the next is how a column of icons stops lining up.
+   * Sets the item's name. In the rail, screen readers announce it, because the item shows only an
+   * icon. In the tab bar, it also shows under the icon.
    */
-  /** The item's name. The rail SPEAKS it (an icon-only square names itself to AT); the tab
-      bar SHOWS it under the icon (2026-09-09). */
   label?: string;
-  /** The item's name, for an item that predates `label`. State `label` instead: it names the
-      item to a screen reader in the rail and shows the word under the icon in the tab bar.
-      @deprecated since 2026-09-09 — use `label`. */
+  /**
+   * Sets the item's name. Use `label` instead: it names the item and also shows the word in the tab
+   * bar.
+   * @deprecated Use `label`.
+   */
   "aria-label"?: string;
   ref?: React.Ref<HTMLElement>;
 };
@@ -2249,9 +2247,13 @@ export function ShellRailList({ className, children, ...props }: ShellRailListPr
 }
 
 export type ShellRailActionProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
-  /** The button's name — spoken to AT and shown under the glyph, exactly as a tab's is. */
+  /**
+   * Sets the button's name. Screen readers announce it, and the tab bar shows it under the icon.
+   */
   label: string;
-  /** Be an anchor instead, for an action that is really a destination. */
+  /**
+   * Renders the button as another element, such as a link, for an action that goes to a page.
+   */
   render?: RenderElement;
   ref?: React.Ref<HTMLElement>;
 };
@@ -2342,21 +2344,22 @@ export function ShellNavGroup({ label, id, className, children, ...props }: Shel
 
 export type ShellNavItemProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
   /**
-   * This is the page you are on. It is announced with `aria-current="page"` as well as painted,
-   * because "you are here" is information and a colour alone tells nobody who cannot see it.
+   * Marks the row as the current page. Screen readers announce it with `aria-current="page"`, and
+   * the row shows it.
    */
   current?: boolean;
   /**
-   * The row's icon. It rests in the label's neutral ink and takes the ACCENT only on the
-   * current row (REVERSED 2026-08-26, Kushagra, judging Finder over the docs sidebar: "make
-   * resting icons neutral not accent" — when every icon is accent, accent stops meaning
-   * "you are here", and the current row has nothing to pop against). The 2026-08-23 rule
-   * this replaces painted them accent always; recipes.css carries the reversal's record.
+   * Sets the icon before the label. It uses the label's neutral colour, and the accent colour on
+   * the current row.
    */
   leading?: React.ReactNode;
-  /** After the label, pushed to the far edge: a count, a chevron, a status dot. */
+  /**
+   * Sets content after the label, at the far edge of the row, such as a count or a chevron.
+   */
   trailing?: React.ReactNode;
-  /** Be an anchor instead. A nav item usually navigates, and a link is a link. */
+  /**
+   * Renders the row as another element, such as a link: `render={<a href="/settings" />}`.
+   */
   render?: RenderElement;
   ref?: React.Ref<HTMLElement>;
 };
@@ -2433,17 +2436,17 @@ export type ShellTriggerProps = ComponentRefusals & Omit<React.ComponentPropsWit
   /** Which pane this button drives. */
   target: ShellPaneTarget;
   /**
-   * What the press does to `target`. `toggle` is the disclosure button every shell has, and it is
-   * the default.
+   * Sets what a press does to the `target` pane: `toggle`, `open` or `close`. The default is
+   * `toggle`.
    *
-   * The one-way values are for a press that already means something else and must not undo itself.
-   * A rail square that re-points the sidebar has to show the sidebar, so it is `open`: as a toggle,
-   * pressing a second region would close the panel it had just filled, and picking a region the
-   * sidebar is not showing would do nothing visible at all. A dismiss button inside an overlaying
-   * pane is `close` for the mirror reason.
+   * Use `open` when a press must always show the pane, such as a rail item that changes what the
+   * sidebar shows. Use `close` for a close button inside a pane that opens as an overlay.
    */
   action?: "toggle" | "open" | "close";
-  /** Usually a Kookie Button: `<ShellTrigger target="sidebar" render={<Button iconOnly …/>}>`. */
+  /**
+   * Renders the trigger as another element, usually a Kookie `Button`:
+   * `<ShellTrigger target="sidebar" render={<Button iconOnly />} />`.
+   */
   render?: RenderElement;
   ref?: React.Ref<HTMLButtonElement>;
 };

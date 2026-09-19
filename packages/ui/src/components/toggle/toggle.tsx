@@ -17,19 +17,18 @@ type ToggleBase = Omit<
   "color" | "style" | "className" | "value"
 > & {
   /**
-   * An index into the control family, never a measurement — Button's own prop, because a
-   * toggle IS a button that holds its state. Rests at the app's index — the `size` on the nearest `Theme` — or at the index of the Field it
-   * sits in.
+   * The size step of the toggle, from `1` to `4`. It matches a `Button` at the same step.
+   * Unset, the toggle uses the `size` of the nearest `Field` or `Theme`.
    */
   size?: Size;
   /**
-   * What the state means, not what colour it is. Defaults to `neutral`: a pressed toggle rests
-   * on the soft wash of its own family, so a toolbar of neutral toggles reads as one set and a
-   * `destructive` toggle says what being on does.
+   * The meaning of the toggle's state, which sets its colour. Defaults to `neutral`. When
+   * pressed, the toggle shows a soft fill in this tone. Use `destructive` if turning it on
+   * does something dangerous.
    */
   tone?: Tone;
-  /** Adds a hairline. Orthogonal to the pressed state: an unpressed bordered toggle is the old
-   *  outline button, and pressing it fills the same box. */
+  /** Adds a thin border. The border shows in both states: unpressed it looks like an outline
+   *  button, and pressed it also gets a fill. */
   bordered?: boolean;
   /** Whether the toggle is on. The controlled counterpart of `defaultPressed`. */
   pressed?: boolean;
@@ -43,8 +42,8 @@ type ToggleBase = Omit<
   leading?: React.ReactNode;
   /** The slot after the label. */
   trailing?: React.ReactNode;
-  /** Says that content passes behind this toggle, so the theme's material can show. Unset, it
-   *  follows the surrounding `<Box backdrop>` region. */
+  /** Set `backdrop` when the toggle sits over other content, such as an image. The toggle then
+   *  uses the theme's material. Unset, it follows the nearest `<Box backdrop>`. */
   backdrop?: boolean;
   className?: string;
   style?: React.CSSProperties;
@@ -118,9 +117,8 @@ export type ToggleGroupProps = ComponentRefusals & Omit<
   // it is `SegmentedControl`, which says `radiogroup` and moves the value with the arrows.
   "orientation" | "multiple"
 > & {
-  /** The axis the arrow keys walk. The group draws nothing, so the layout is the caller's
-   *  Flex or Stack; this only tells the keyboard which way the toggles run. Defaults to
-   *  `horizontal`. */
+  /** The direction in which the arrow keys move focus. Defaults to `horizontal`. This prop
+   *  doesn't change the layout. Use `render` with a `Flex` or `Stack` to arrange the toggles. */
   orientation?: "horizontal" | "vertical";
 };
 

@@ -39,18 +39,11 @@ export type TabsListProps = ComponentRefusals & Omit<
   "className"
 > & {
   /**
-   * The control height ladder, set on the list and not on the tabs.
-   *
-   * It is SegmentedControl's decision one component over, and the thing a reader gets wrong exactly
-   * once: the bar carries the index, and each tab derives its box from that bar and states no index
-   * of its own. A mixed-size bar is therefore not expressible, which is right, and asking every tab
-   * to repeat the number is an invitation to disagree.
-   *
-   * It sits here rather than on `Tabs` because the list is the part that has a box. The root owns
-   * no layout at all.
+   * The size step of the tab bar, from `1` to `4`. Set it on the list, not on each tab. All the
+   * tabs in the bar use this size, so one bar can't mix sizes.
    */
   size?: Size;
-  /** Dresses the bar. Outer spacing is the caller's Box, never this (the non-negotiable). */
+  /** A class name for the bar. For space around the bar, wrap it in a `Box` with `m`. */
   className?: string;
 };
 
@@ -62,7 +55,7 @@ export type TabsTabProps = ComponentRefusals & Omit<
   // omitted-and-lost.
   "className"
 > & {
-  /** Dresses the tab. Outer spacing is the caller's Box, never this (the non-negotiable). */
+  /** A class name for the tab. For space around the tab, use a `Box` with `m`. */
   className?: string;
 };
 

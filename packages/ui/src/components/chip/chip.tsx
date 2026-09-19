@@ -14,44 +14,30 @@ export type ChipProps = ComponentRefusals & Omit<
   "color" | "style" | "className"
 > & {
   /**
-   * A step on the shared ramp. Optional with no default, for the same reason `Code` and `Kbd`
-   * are: a chip takes the size of the line it sits beside, so a chip next to a card title is
-   * bigger than one in a table row without either call site repeating the index. Set it only
-   * when the chip stands alone.
+   * The text size step of the chip, from `1` to `9`. There's no default: unset, the chip takes
+   * the text size of the line around it. Set it only when the chip stands alone.
    */
   size?: TypeSize;
-  /** Token names, never numbers, and semibold is the heaviest. Unset with no default, as
-      `size` is: the fill and the pill are what mark a chip out, never the weight. */
+  /** The font weight, by name. `semibold` is the heaviest. There's no default: unset, the
+      chip takes the weight of the text around it. */
   weight?: Weight;
-  /** Picks an ink colour, the same three the surrounding copy uses. It moves the letters, not
-      the fill — a chip that faded its box would be reading one axis two ways. */
+  /** The emphasis level of the text: `loud`, `medium` or `quiet`. It changes the text colour,
+      not the fill. */
   emphasis?: Emphasis;
   /**
-   * The family, and this is the axis a chip exists for. `success` for a finished job,
-   * `destructive` for a failed one, `warning` for one that needs attention, `info` for one
-   * that is merely running. It moves the INK, and the chip stays grey. That reversed on
-   * 2026-08-23 (Kushagra, from the tone x emphasis board: *"why do these buttons continue to
-   * have a light filter?"*): no family paints a faded wash any more, so a chip's box is one
-   * neutral whatever category it carries and the category arrives in the letters. Measured, a
-   * `destructive` chip is byte-identical to a `neutral` one and only the word is red.
-   *
-   * `Notice` deliberately did NOT follow, and that is the line the change was drawn along: a
-   * chip's chip reads `--tone-soft` and a Notice's box reads `--tone-a3`, so a tone-forward
-   * SURFACE keeps its tint while a chip loses one. Defaults to `neutral`.
+   * The category of the chip, which sets its text colour. Defaults to `neutral`. For example,
+   * use `success` for a finished job, `destructive` for a failed one, `warning` for one that
+   * needs attention and `info` for one that is running. The fill stays grey in every tone.
    */
   tone?: Tone;
   /**
-   * States PLACEMENT, never a material (§10, 2026-08-26 — Kushagra: "chip must grow
-   * backdrop", the floating-controls-take-glass rule reaching the one inert atom that
-   * floats): a chip overlaying content — a status chip over an image, a count over a map,
-   * a file label over a code well — marks itself as over-content and resolves the theme's
-   * material. On calm ground it resolves solid and pays nothing. `Code` and `Kbd`
-   * deliberately do not take it: they live inside running text, which never floats.
+   * Set `backdrop` when the chip sits over other content, such as an image or a map. The chip
+   * then uses the theme's material. On a plain background it stays solid.
    */
   backdrop?: boolean;
-  /** Render into the element the document needs. */
+  /** Renders the chip as a different element. */
   render?: RenderElement;
-  /** The word, or the count. A chip with nothing in it is refused by this type: see below. */
+  /** The word or the number in the chip. A chip must have content. */
   children: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;

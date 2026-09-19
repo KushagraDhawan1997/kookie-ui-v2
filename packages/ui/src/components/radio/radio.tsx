@@ -34,15 +34,15 @@ export type RadioProps = ComponentRefusals & Omit<
   "children" | "render" | "className" | "nativeButton" | "readOnly"
 > & {
   /**
-   * The mark ladder, and the same index a checkbox uses. The mark is one line of the label
-   * beside it, and the circle's diameter is that square's, so a radio and the checkbox above it
-   * in a form are the same size of thing. The painted box leaves the control height ladder. The
-   * target does not: it stays the size of a control at that index. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise.
+   * The size step of the radio, from `1` to `4`. The circle is one line of text tall at the
+   * same step, so it lines up with its label and matches a checkbox. The area that you can
+   * press is as large as a `Button` at the same step. Unset, it uses the `size` of the nearest
+   * `Field` or `Theme`.
    */
   size?: Size;
-  /** Dresses the mark. Outer spacing is the caller's Box, never this (the non-negotiable). */
+  /** A class name for the radio. For space around it, wrap it in a `Box` with `m`. */
   className?: string;
-  /** The honest element: Base UI's root renders a <span> with the input hidden beside it. */
+  /** A ref to the radio, which is a `<span>` element. */
   ref?: React.Ref<HTMLSpanElement>;
 };
 

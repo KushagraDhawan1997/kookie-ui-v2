@@ -25,80 +25,63 @@ import { glyphStroke } from "../../tokens/config.ts";
 import { useSize } from "../../system/size.ts";
 
 /**
- * What the file is doing, set by the app and drawn by the system.
+ * What is happening to the file. Your app sets it, and the tile shows it.
  *
- * **Four values, not the five §30 named — `done` is dropped, and the spec's own sentence is
- * why.** That section says "a file about to be sent and a file already sent are the same
- * tile", which makes `done` and `idle` one appearance; a value that cannot be told from
- * another is not a value, and this system has deleted a whole axis for exactly that reason
- * (`controlLook`, 2026-08-19: both values emitted identical declarations). What separates a
- * pending attachment from a sent one is what the app puts IN the tile — a remove button
- * before, a download after — not a state the system draws. Re-adding `done` is additive if a
- * real screen ever wants a distinct terminal drawing, which is the direction that keeps the
- * decision cheap.
+ * There's no `done` value. A file that is sent looks the same as a file that is ready to send
+ * (`idle`). To show the difference, put different controls in the tile, such as a remove
+ * button before sending and a download link after.
  */
 export type AttachmentState = "idle" | "uploading" | "processing" | "error";
 
 export type AttachmentProps = ComponentRefusals & {
   /**
-   * Prices the tile: padding, corner, the symbol's box, the remove button and the file's own
-   * name. It owns all of that, so the index reaches the words — the composer's rule (§30,
-   * 2026-08-23): a component that owns its content sizes it, one that hosts yours does not.
+   * The size step of the tile, from `1` to `4`. It sets the padding, the corner, the icon, the
+   * remove button and the text size of the name.
    */
   size?: Size;
   /**
-   * What is happening to this file. **The system draws the state; the app owns the file**
-   * (§30). Nothing here starts a timer, holds a `File`, or mints an object URL — v1 did the
-   * last of those and revoked the URL one commit after handing it to `onSubmit`, so the
-   * preview of the message you just sent was already broken.
+   * What is happening to the file: `idle`, `uploading`, `processing` or `error`. Defaults to
+   * `idle`. The tile only shows the state. Your app holds the file and changes the state.
    */
   state?: AttachmentState;
   /**
-   * How far, 0 to 1, and read only while `state="uploading"`. Omit it and the bar sweeps
-   * instead of filling, which is the honest drawing when nobody is counting bytes.
-   * `processing` never reads it: a server working on a file reports no fraction, and that
-   * difference is the whole reason these are two states rather than one busy flag.
+   * The upload progress, from 0 to 1. The tile uses it only when `state` is `uploading`. If
+   * you don't know the progress, leave it out: the bar then moves without a value. The
+   * `processing` state never shows a value.
    */
   progress?: number;
   /**
-   * The file's symbol or thumbnail, if your app has one. The package ships no icon set, so
-   * the slot is safe when empty. It carries no meaning of its own and is hidden from
-   * assistive technology, because the name is what identifies the file.
+   * An icon or a thumbnail for the file. It's optional. Screen readers skip it, because the
+   * name identifies the file.
    */
   icon?: React.ReactNode;
   /**
-   * The file's name, and the tile's accessible name. Typed `string` rather than `ReactNode`
-   * because the sentence "it is text" has to be enforced by something: the name is announced,
-   * and it is composed into the remove control's name so a list of attachments is not a column
-   * of buttons all called "Remove".
+   * The file name. It must be a string. It is also the accessible name of the tile, and it is
+   * added to the name of the remove button, such as "Remove report.pdf".
    */
   children: string;
   /**
-   * The second line — a size, a type, a failure reason. Muted and one step down, because it
-   * describes the name rather than competing with it, and tied to the tile with
-   * `aria-describedby` so it is announced with it rather than found separately.
+   * A second line of text, such as the file size, the file type or an error message. It shows
+   * smaller and quieter than the name, and screen readers read it with the tile.
    *
-   * **An `error` tile's reason belongs here.** The state paints the tile in the destructive
-   * family, and colour alone is not a message (WCAG 1.4.1) — the system cannot write the reason
-   * because it is in your language and about your file, which is §41's own sentence for the
-   * Button done state. A failed attachment with no `meta` says "this one is red".
+   * If `state` is `error`, put the reason here. Colour alone doesn't tell the user what went
+   * wrong.
    */
   meta?: React.ReactNode;
   /**
-   * Removes the file. Renders the ✕ only when given: an attachment nobody may detach should
-   * not draw a control that does nothing. **The list is the app's**, exactly as a Notice's
-   * dismissal is — a tile that removed itself would disagree with the array it came from.
+   * Called when the user presses the remove button. The button shows only when you set this
+   * prop. The tile doesn't remove itself: remove the file from your own list.
    */
   onRemove?: () => void;
-  /** The remove control's accessible name. English by default, because the package ships no
-      translation layer; state your own and it is stated once, here. */
+  /** The accessible name of the remove button. Defaults to `"Remove"`. Set it to translate
+      the label. */
   removeLabel?: string;
   /**
-   * Says content passes behind this tile, so the theme's material can show. Unset, it follows
-   * the surrounding `<Box backdrop>` region. Card's wiring verbatim.
+   * Set `backdrop` when the tile sits over other content, such as an image. The tile then uses
+   * the theme's material. Unset, it follows the nearest `<Box backdrop>`.
    */
   backdrop?: boolean;
-  /** Dresses the tile. Outer spacing is the caller's Box, never this (the non-negotiable). */
+  /** A class name for the tile. For space around the tile, wrap it in a `Box` with `m`. */
   className?: string;
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLDivElement>;

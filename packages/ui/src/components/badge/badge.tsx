@@ -8,16 +8,15 @@ import type { TypeSize } from "../text/text.tsx";
 
 type BadgeBase = Omit<React.ComponentPropsWithoutRef<"span">, "color" | "children"> & {
   /**
-   * A step on the type ramp, 1–9, and OPTIONAL with no default: unset, a badge is a share of
-   * the line it sits in — the tab label, the row, the avatar it is pinned to — so it is never
-   * priced twice. Set it only when it stands alone.
+   * The text size step of the badge, from `1` to `9`. There's no default: unset, the badge
+   * scales with the line it sits in, such as a tab label, a row or an avatar. Set it only
+   * when the badge stands alone.
    */
   size?: TypeSize;
   /**
-   * What the badge means, in the system's own vocabulary: `accent` (the default) for
-   * "something is here", `destructive` for "something needs you", `warning`, `success`, `info`
-   * or any family. It is the same closed set every tone-carrying component reads, so an app
-   * maps its own words onto it — "alert" is `destructive` — and the system never learns them.
+   * The meaning of the badge, which sets its colour. Defaults to `accent`, which means
+   * "something is here". Use `destructive` for "something needs you". You can also use
+   * `warning`, `success`, `info` or any other tone.
    */
   tone?: Tone;
   ref?: React.Ref<HTMLSpanElement>;
@@ -29,16 +28,17 @@ type BadgeBase = Omit<React.ComponentPropsWithoutRef<"span">, "color" | "childre
  * word — the content is the name and no label is required.
  */
 type Bare = {
-  /** Nothing inside. A bare badge is the DOT, which is why the name below is required. */
+  /** No content. A badge with no content shows as a dot, and it needs an `aria-label`. */
   children?: undefined;
-  /** What the dot means, in your own words. Required with no content: colour alone says
-      nothing to a screen reader, and this is the sentence a sighted reader infers. */
+  /** The accessible name of the dot, such as "New messages". It's required when the badge
+      has no content, because a screen reader can't read a colour. */
   "aria-label": string;
 };
 type Counted = {
-  /** A count or a short word. The content IS the name, so a label becomes optional. */
+  /** A number or a short word. The content is the accessible name, so `aria-label` is
+      optional. */
   children: React.ReactNode;
-  /** An override, where the content alone reads wrong out loud — `3` announced as "3 unread". */
+  /** An accessible name that replaces the content, such as "3 unread" for `3`. */
   "aria-label"?: string;
 };
 

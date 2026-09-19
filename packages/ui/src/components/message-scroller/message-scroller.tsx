@@ -13,15 +13,16 @@ import {
 import * as React from "react";
 
 export type MessageScrollerProps = ComponentRefusals & {
-  /** The pane's own `ScrollArea` (or `ShellScroll`), holding the transcript and the jump button.
-      Its viewport becomes the scroller; name it there with `aria-label`. */
+  /** A `ScrollArea` or a `ShellScroll` that holds the transcript and the jump button. Its
+      viewport becomes the scroller. Give that scroll area an `aria-label`. */
   children?: React.ReactNode;
   /**
-   * Follow the live edge: while the reader is at the end, new content keeps the end in view.
-   * Scrolling up is the reader's opt-out and holds their place until they come back.
+   * Keeps the newest content in view while the user is at the end. The default is `true`.
+   * If the user scrolls up, the transcript stays where they are until they return to the end.
    */
   autoScroll?: boolean;
-  /** Where a transcript opens: at its end (a saved thread), its start, or the last anchored turn. */
+  /** Where the transcript opens: at the end, at the start, or at the last anchored message.
+      The default is `end`. */
   defaultScrollPosition?: MessageScrollerDefaultScrollPosition;
 };
 
@@ -80,10 +81,11 @@ export type MessageScrollerItemProps = ComponentRefusals & Omit<
   "color"
 > & {
   ref?: React.Ref<HTMLDivElement>;
-  /** A stable id, so the row can be jumped to and reported visible. */
+  /** A stable id for the message. Use it to scroll to the message and to know when it is
+      visible. */
   messageId?: string;
-  /** A turn boundary: when it arrives, the transcript anchors it near the top so the reply that
-      follows is read from its start. The person's own message, in a chat. */
+  /** Scrolls this message near the top when it arrives, so the user sees the reply from its
+      start. In a chat, set it on the person's own message. */
   scrollAnchor?: boolean;
 };
 
@@ -98,14 +100,14 @@ export function MessageScrollerItem({ className, ...props }: MessageScrollerItem
 }
 
 export type MessageScrollerButtonProps = ComponentRefusals & {
-  /** The button's name, in your own words. The system cannot write them. */
+  /** The accessible name of the button, such as "Jump to latest". */
   "aria-label": string;
-  /** The glyph. */
+  /** The icon of the button. */
   children: React.ReactNode;
   /**
-   * Whether something passes behind the button. It floats over the transcript by construction, so
-   * it says yes unless told otherwise, and wears the theme's material there; on a solid theme that
-   * still resolves solid and costs nothing.
+   * Whether content passes behind the button. The default is `true`, because the button floats
+   * over the transcript. The button then uses the theme's material. With a solid theme it stays
+   * solid.
    */
   backdrop?: boolean;
   className?: string;

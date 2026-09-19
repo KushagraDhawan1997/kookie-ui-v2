@@ -11,7 +11,7 @@ import { DEV } from "../../system/dev.ts";
 
 export type BoxProps = RadixReflexRefusals & BoxStyleProps &
   Omit<React.ComponentPropsWithoutRef<"div">, keyof BoxStyleProps> & {
-    /** Render into an element you already have, instead of adding a wrapper. */
+    /** Renders the box as a different element, so you don't add a wrapper. */
     render?: RenderElement;
     ref?: React.Ref<HTMLElement>;
     /**
@@ -27,11 +27,10 @@ export type BoxProps = RadixReflexRefusals & BoxStyleProps &
      */
     container?: boolean;
     /**
-     * Marks a region where content passes behind the components inside it, such as a toolbar
-     * over a canvas or a panel over a hero image. Every glass-capable component within it
-     * (buttons, fields, cards, selects) then resolves the theme's material instead of solid.
-     * Say it once for the region rather than on every control. `backdrop={false}` marks a
-     * sub-region as plain again. Layout is untouched: this is a React context, not a style.
+     * Marks an area where the components sit over other content, such as a toolbar over a
+     * canvas or a panel over an image. Buttons, fields, cards and selects inside it then use
+     * the theme's material. Set it once here, not on each control. Set `backdrop={false}` to
+     * make an area inside it plain again. It doesn't change the layout.
      */
     backdrop?: boolean;
   };

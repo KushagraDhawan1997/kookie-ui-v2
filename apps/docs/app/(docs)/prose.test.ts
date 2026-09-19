@@ -32,6 +32,8 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
+import { API } from "./components/api.generated";
+
 const contentRoot = join(fileURLToPath(new URL(".", import.meta.url)), "../../content");
 
 /** Every chapter, as [name, prose]. AUTHORING.md is the guide, not a chapter: it quotes the
@@ -215,4 +217,39 @@ describe("the pages outside content/ are written to the same reader", () => {
       expect(found.join("\n"), `${name}\n${found.join("\n")}`).toBe("");
     });
   }
+});
+
+/**
+ * The prop tables are reader prose too.
+ *
+ * They are generated from the JSDoc on each prop in the package, and the generator shows those
+ * comments on every component page and in every editor hover. They were written for the people
+ * who built the system, so they carried section numbers, dates, quotes and history, and no law
+ * read them: this file walked the docs app's own sources and never the package's.
+ */
+describe("the props tables are written to the same reader", () => {
+  const HISTORY: [RegExp, string][] = [
+    [/§/, "a spec section number — the spec is for maintainers"],
+    [/\b20\d\d-\d\d\b/, "a date — development history belongs in docs/LOG.md"],
+    [/\bKushagra\b/, "a person's name — a decision's author belongs in docs/LOG.md"],
+    [/\b(audit|LOG\.md|DECISIONS)\b/, "development history"],
+  ];
+
+  it("found the prop docs — an empty walk audits nothing", () => {
+    const docs = Object.values(API).flatMap((entry) => entry.props.map((prop) => prop.doc));
+    expect(docs.filter(Boolean).length).toBeGreaterThan(300);
+  });
+
+  it("no prop doc uses a word a reader cannot decode, or carries its history", () => {
+    const found: string[] = [];
+    for (const [symbol, entry] of Object.entries(API)) {
+      for (const prop of entry.props) {
+        for (const [pattern, why] of [...BANNED, ...HISTORY]) {
+          const hit = pattern.exec(prop.doc);
+          if (hit) found.push(`${symbol}.${prop.name}: "${hit[0]}" — ${why}`);
+        }
+      }
+    }
+    expect(found, found.join("\n")).toEqual([]);
+  });
 });

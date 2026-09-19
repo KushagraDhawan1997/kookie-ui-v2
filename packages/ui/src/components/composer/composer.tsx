@@ -34,46 +34,39 @@ export type ComposerProps = ComponentRefusals & Omit<
   "color" | "onSubmit"
 > & {
   /**
-   * The index, set once for the whole unit. It prices the pane's padding and corner, the step
-   * its own text is set at, AND the controls you compose into the row — a Button, a Select or
-   * a field under the text all take it through `SizeScopeContext` (§28), so a composer is
-   * sized as one thing.
-   *
-   * An explicit `size` on a control always wins, so nothing is ever re-sized behind a number
-   * somebody typed. The reach stops at the composer's own subtree: a Button beside it keeps
-   * the family's rest.
+   * Sets the size step of the whole composer, from `1` to `4`.
+   * It sets the padding, the corner, the text size and the size of the controls in the row.
+   * A `size` prop on a control inside the composer overrides it.
    */
   size?: Size;
   /**
-   * Says content passes behind the composer, so the theme's material can show. Unset, it
-   * follows the surrounding `<Box backdrop>` region. A composer over a scrolling conversation
-   * is the case selectivity exists for (§10).
+   * Set `backdrop` when content passes behind the composer, such as a scrolling conversation.
+   * The composer then uses the theme's material. If you don't set it, the composer follows the
+   * nearest `<Box backdrop>`.
    */
   backdrop?: boolean;
-  /** Fired when the person sends. The event is already `preventDefault`ed. */
+  /** Called when the user sends a message. The default form submission is already prevented. */
   onSubmit?: (event: React.FormEvent<HTMLFormElement>) => void;
   /**
-   * Files dropped on the composer or pasted into its input, handed over raw. The system owns
-   * the two events that land on its own elements; the app owns the files and everything after
-   * (§30). There is no attach button here for the same reason.
+   * Called with the files that the user drops on the composer or pastes into the text.
+   * The composer has no attach button. Add your own control for that.
    */
   onFiles?: (files: File[]) => void;
   /**
-   * What needs the person's attention before their next message: `Notice`s and
-   * `Confirmation`s, in the order given, the last nearest the text. They stand apart from the
-   * composer in a column above it and take its index unless they state their own. Each keeps
-   * its own semantics — a notice announces politely, a confirmation waits for its answer —
-   * and focus never moves to them: the person may be mid-sentence.
+   * Messages that need attention before the next message, such as `Notice` and `Confirmation`.
+   * They show in a column above the composer, and the last one is nearest to the text.
+   * They use the composer's `size` unless they set their own. Focus doesn't move to them.
    */
   notices?: React.ReactNode;
   /**
-   * Quiet information about the conversation — the model, how much context is left, the cost.
-   * Drawn on a ground tucked behind the composer's bottom edge, inset from its sides. The words
-   * are yours.
+   * Short information about the conversation, such as the model or the remaining context.
+   * It shows below the composer, inset from its sides.
    */
   context?: React.ReactNode;
-  /** The form. `className` and `style` dress the frame around it, which holds the notices and
-      the context too. */
+  /**
+   * The ref of the `<form>` element. `className` and `style` apply to the outer frame, which
+   * also holds `notices` and `context`.
+   */
   ref?: React.Ref<HTMLFormElement>;
 };
 
@@ -218,27 +211,23 @@ type ComposerInputBase = Omit<
 > & { ref?: React.Ref<HTMLTextAreaElement> };
 
 /**
- * The name, required, and the union is the point of it rather than decoration (§30, ENGINEERING
- * §1.3 — Button's `iconOnly` one family over).
+ * The accessible name of the input. You must set `aria-label` or `aria-labelledby`.
  *
- * This is the one text control in the library that a surrounding `Field` cannot name. Every
- * other input goes through a Base UI primitive that registers itself with `Field.Root` and
- * takes the label's `htmlFor`; a composer's text is a BARE `<textarea>` — the §30 decision that
- * keeps a second box from appearing — so it registers with nothing and a `FieldLabel` above it
- * points at an id no element carries. A placeholder is not a name. With no `aria-label` a
- * screen reader announces "edit text, blank" and nothing else, which is the same defect
- * `iconOnly` refuses, in the same shape. Here it does not compile.
+ * A surrounding `Field` can't name this input, and a placeholder isn't a name.
  */
 type ComposerInputName =
   | {
-      /** What this box is for, in your own words. REQUIRED: a composer's text is a bare
-          `<textarea>` that registers with no `Field`, so nothing else can name it and a
-          placeholder is not a name. */
+      /**
+       * The name of the input for screen readers, such as `Message`. Required, because a `Field`
+       * label can't name this input.
+       */
       "aria-label": string;
     }
   | {
-      /** The id of the element that already names this box. The alternative to `aria-label`,
-          and one of the two is required. */
+      /**
+       * The id of an element on the page that names this input. Use it instead of `aria-label`.
+       * One of the two is required.
+       */
       "aria-labelledby": string;
     };
 
@@ -374,13 +363,19 @@ export type ComposerSendProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof Button>,
   "iconOnly" | "type" | "children" | "aria-label" | "loading"
 > & {
-  /** What the request is doing. Defaults to `ready`. */
+  /**
+   * Sets what the request is doing, which changes what the button does. The default is `ready`.
+   * `ready` sends, `submitted` shows a spinner, `streaming` stops the request and `error` sends again.
+   */
   status?: ComposerStatus;
-  /** Called instead of submitting while `status` is `streaming`. */
+  /** Called when the user presses the button while `status` is `streaming`. The button doesn't submit then. */
   onStop?: () => void;
-  /** The accessible name in each state, for an app that is not in English. */
+  /**
+   * The accessible name for each `status`. The defaults are `Send`, `Sending`, `Stop` and `Retry`.
+   * Set them if your app isn't in English.
+   */
   labels?: Partial<Record<ComposerStatus, string>>;
-  /** The glyph in each state. The system ships no icon set (§8), so these are the app's. */
+  /** The icon for each `status`. The library ships no icons, so supply your own. */
   icons?: Partial<Record<ComposerStatus, React.ReactNode>>;
 };
 

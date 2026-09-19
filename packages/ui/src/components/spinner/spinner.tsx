@@ -2,12 +2,8 @@ import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
 /**
- * `color` is omitted for the reason every other DOM-typed component in the package omits it
- * (2026-08-26 audit): `React.HTMLAttributes` declares the legacy presentational attribute, so
- * without the omission `<Spinner color="red"/>` compiles, reaches `...props`, renders a
- * `color` ATTRIBUTE on a span — which no engine has honoured on that element since HTML4 —
- * and draws nothing at all. The spokes fill with `currentColor`, so the way to colour a
- * spinner is to colour the text around it (ENGINEERING §1.3: the refusals are the type).
+ * Props for `Spinner`. There's no `color` prop. The spinner uses the text colour around it,
+ * so to change its colour, change the colour of the parent text.
  */
 export type SpinnerProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"span">, "children" | "color"> & {
   ref?: React.Ref<HTMLSpanElement>;

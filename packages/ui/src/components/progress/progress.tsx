@@ -20,14 +20,14 @@ export type ProgressProps = ComponentRefusals & Omit<
   // a `<Text>`. Both would be anatomy bought for layout, which is what kookie-blocks is for.
   "children" | "render" | "className"
 > & {
-  /** Dresses the bar. Outer spacing is the caller's Box, never this (the non-negotiable). */
+  /** A class name for the bar. For space around it, wrap it in a `Box` with `m`. */
   className?: string;
   /**
-   * Names the task for AT. Required in spirit but not by the type: inside a `Field.Root`, or
-   * with a visible heading wired through `aria-labelledby`, a second name is noise.
+   * The accessible name of the task, such as "Uploading photos". Set it unless something else
+   * names the bar, such as a `Field` label or `aria-labelledby`.
    */
   "aria-label"?: string;
-  /** The root — the `role="progressbar"` box, and what `className`/`style` dress. */
+  /** A ref to the bar, which is the element with `role="progressbar"`. */
   ref?: React.Ref<HTMLDivElement>;
 };
 

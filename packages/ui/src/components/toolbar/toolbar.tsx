@@ -57,60 +57,27 @@ export function useToolbarOverflow(): boolean {
 }
 
 /**
- * Toolbar (§45) — the row where an app's controls live.
+ * A row of controls with one tab stop. The arrow keys move focus between the controls.
  *
- * WHY IT IS A COMPONENT AND NOT A `Flex`. Base UI's Toolbar announces `role="toolbar"` and runs
- * a roving tab stop: the whole row is ONE stop and the arrow keys move inside it, which is what
- * every platform toolbar does and what a row of eleven separately-tabbable icon buttons is not.
- * That is a non-visual forcer (§10's criterion), and it is the same reason `Field` exists.
- *
- * WHAT IT STATES is the rhythm — the row's height, its alignment, the gap between clusters, and
- * the index its controls take. What it does NOT state is which controls sit at which end: that
- * is what those controls MEAN, and it is the app's to say (`ComposerRow`'s sentence, §30). So a
- * caller clusters with `Flex` and the row spaces the clusters; one cluster sits at the start,
- * two split, three read leading / centre / trailing.
- *
- * IT SUPPLIES THE SIZE (§4, §28). A toolbar is a unit a person points at and sizes as one
- * thing — Field's argument exactly — so the index reaches every control in the row through
- * `SizeScopeContext`, an explicit prop on any of them still wins, and a `Field` nested inside
- * still beats the row for its own control. What it supplies is ONE STEP ABOVE the app's rest
- * (`BAND_STEP`, system/size.ts): a band holds icon-only controls at the edge of the window, and
- * a default app's band is 3 without a call site saying so.
- *
- * REFUSED: `tone`, `emphasis` and `material`. A toolbar is a ROW, not a pane — it paints
- * nothing of its own, so there is no fill to rank or to make translucent, and the surface it
- * sits in (a `ShellPaneHeader`, a Card, a `ShellHeader`) is what answers the theme. A group
- * inside it is the one thing here that draws a box, and it does not take them either.
+ * Use a `Flex` to group controls into clusters. The toolbar spaces the clusters and gives
+ * its `size` to every control inside it. The toolbar has no fill, so it takes no `tone`,
+ * `emphasis` or `material`.
  */
 export type ToolbarProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
   /**
-   * The index every control in the row takes unless it states its own. Defaults to ONE STEP
-   * ABOVE the app's own rest — `3` in a default app — because a band holds icon-only controls
-   * at the edge of the window and a form holds labelled ones. `BAND_STEP` (system/size.ts)
-   * carries the derivation and the reason it is a derivation rather than a literal.
+   * Sets the size step of every control in the row that doesn't set its own `size`.
+   * The default is one step above the app's `size`, which is `3` in a default app.
    */
   size?: Size;
   /**
-   * The axis the arrow keys walk, and the axis the row lays out on. `vertical` is a real
-   * toolbar — an edge strip of tools — and it costs no designed value: the same tokens with
-   * the axes swapped, which is Separator's own argument for taking the prop Slider refuses.
+   * Sets the direction of the row and of the arrow keys. The default is `horizontal`.
+   * Use `vertical` for a strip of tools along an edge.
    */
   orientation?: "horizontal" | "vertical";
   /**
-   * Marks the row as a region where content passes BEHIND its controls, so every glass-capable
-   * one inside resolves the theme's material instead of solid. Said once for the row rather
-   * than on every button (2026-09-06, Kushagra: "backdrop of toolbar should suggest items inside
-   * it get backdrop").
-   *
-   * IT DOES NOT MAKE THE ROW GLASS, and the two are different things rather than a compromise.
-   * A material makes a component's own FILL translucent and this component has no fill — which
-   * is why `material` stays refused. `backdrop` says something TRUE ABOUT THE SPACE the row
-   * occupies, which is exactly what `<Box backdrop>` says and exactly what `float` on a
-   * `ShellPaneHeader` makes true. The row still paints nothing; it just stops every control in
-   * it from having to repeat the same fact.
-   *
-   * A control's own prop still wins, and `backdrop={false}` marks the row plain again inside a
-   * region that is not. Layout is untouched: this is a React context, not a style.
+   * Set `backdrop` when content passes behind the row, such as in a floating header.
+   * Every control in the row then uses the theme's material. The row itself stays transparent.
+   * A `backdrop` prop on a control overrides it.
    */
   backdrop?: boolean;
   ref?: React.Ref<HTMLDivElement>;
@@ -164,36 +131,19 @@ export function Toolbar({
 }
 
 /**
- * A capsule holding controls that belong together (§45) — the formatting cluster in a macOS
- * toolbar, the alignment set in an editor.
+ * A group of controls that belong together, drawn as one capsule.
  *
- * It is the segmented control's TRACK with nothing chosen in it (§26): an edgeless well on the
- * control height ladder, hosting its children by §4's rule — the hosted box is the group minus
- * `--toolbar-group-inset` on every side, so the buttons inside stand level with a Button beside
- * the group and the group stands level with both.
- *
- * IT ALWAYS DRAWS. A group that drew nothing would be a `Flex` wearing a part's name, which is
- * the shape `Breadcrumb` and `ComposerRow` both refused — so clustering without a capsule is
- * exactly a `Flex`, and this is what you reach for when the controls should read as one object.
- *
- * It takes no `size`: the group and the buttons in it both read the row's index, which is what
- * makes "the group is as tall as the button beside it" true by construction rather than by
- * two call sites agreeing.
+ * The group has the same height as a button beside it. Buttons inside the group are `quiet`
+ * by default. The group takes its size from the toolbar. To group controls without a capsule,
+ * use a `Flex`.
  */
 export type ToolbarGroupProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
   /** Turns every control in the group off at once. */
   disabled?: boolean;
   /**
-   * Says content passes behind this group, so it shows the theme's material instead of resolving
-   * solid. A `<Box backdrop>` region answers it for a whole band; this is the one-off escape.
-   *
-   * THE ROW REFUSES THIS AND THE GROUP TAKES IT, which is one rule rather than two (§10,
-   * 2026-09-06, Kushagra: "I like how a toolbar group looks, it looks similar to a medium
-   * emphasis button, so therefore it needs to support backdrop also"). A material makes a
-   * component's own FILL translucent, so it is only expressible on something that has one: the
-   * toolbar is a row and paints nothing, and this is the one part in it that draws a box. It is
-   * the segmented control's track with nothing chosen in it, and that component has taken the
-   * prop since materials became selective.
+   * Set `backdrop` when content passes behind the group. The group then uses the theme's
+   * material. If you don't set it, the group follows the nearest `<Box backdrop>` or the toolbar's
+   * `backdrop`.
    */
   backdrop?: boolean;
   ref?: React.Ref<HTMLDivElement>;
@@ -254,50 +204,17 @@ export function ToolbarGroup({ className, backdrop, ref, children, ...props }: T
 /* ── The overflow (§45, 2026-09-08) ───────────────────────────────────────────────────────── */
 
 /**
- * A cluster that COLLAPSES INTO A MENU when the row runs out of room (§45).
+ * A cluster of controls that moves into a `⋯` menu when the row runs out of room.
  *
- * WHY IT MEASURES RATHER THAN TAKING A BREAKPOINT. A band's contents are not the same on every
- * screen of an app — a page with no twin draws no export cluster, a first page has no "previous"
- * — so a width at which "this row is too full" is a different width per route. Nothing a call
- * site can state is true twice. What IS always true is whether the controls fit, and only the
- * browser knows that, which is why this is one of the few places in the package that reads a
- * pixel. macOS's toolbar is the same mechanism and the same reason; iOS designs the narrow bar
- * by hand instead, which is the answer for a bar with four fixed items and not for this one.
- *
- * WHERE THE MEASUREMENT SITS. On mount and on resize — the seam the glass lens already uses —
- * never on hover, press or scroll. A child's natural width does not move with the window, so it
- * is read ONCE while that child is in the row and cached; every later decision is arithmetic
- * over the cache. The row's own width cannot move when a child is hidden either, because this
- * box takes the space left over (`flex-basis: 0`) rather than the space its contents want — a
- * content-sized box would shrink as it hid things, freeing room, showing them again, and
- * hiding them once more, forever.
- *
- * WHAT HAPPENS TO A CONTROL THAT DOES NOT FIT. It is not converted into something else: it is
- * the same element, rendered in the menu, where `ToolbarButton` draws itself as a `MenuItem`
- * and takes its words from the `aria-label` it was always carrying. So nothing is written
- * twice, and an app's own cluster answers `useToolbarOverflow()` for itself.
- *
- * EACH CHILD SITS IN A SEAT, and the seat is what gets measured. A child that renders nothing is
- * the ordinary case here rather than an edge — the walk draws nothing outside the reading order,
- * the page actions draw nothing on a route with no twin — so measuring `children[i]` directly
- * would read the NEXT child's width under this one's name and quietly mis-collapse the row. The
- * seat is one box per child whether or not the child drew anything, which makes the index exact;
- * an empty one is `display: none`, so it costs neither width nor a gap. What a child renders in
- * the MENU is free — one `Flex` of two groups in the row is welcome to be two `MenuGroup`s
- * there, because nothing measures that copy.
- *
- * The controls collapse from the END, which is the platform's order and the useful one: the
- * things nearest the edge of the window are the ones an app puts last.
+ * The controls move into the menu from the end of the cluster. A `ToolbarButton` shows as a
+ * menu item there, and uses its `aria-label` as its text. Use `useToolbarOverflow()` in your
+ * own components to render a different form in the menu.
  */
 export type ToolbarOverflowProps = ComponentRefusals &
   Omit<React.ComponentPropsWithoutRef<"div">, "color"> & {
-    /**
-     * The accessible name of the button that opens what did not fit. It is icon-only, so this is
-     * the only name it has.
-     */
+    /** The accessible name of the `⋯` button. The default is `More`. */
     label?: string;
-    /** The controls in the cluster, in order. Whatever does not fit the room the row has left is
-      drawn inside the `⋯` menu instead — the same element, asked where it is. */
+  /** The controls in the cluster, in order. The controls that don't fit show in the `⋯` menu. */
   children?: React.ReactNode;
     ref?: React.Ref<HTMLDivElement>;
   };
@@ -457,35 +374,10 @@ export function ToolbarOverflow({
 }
 
 /**
- * One control in the row, registered with the toolbar's keyboard (§45).
+ * A `Button` that joins the toolbar's keyboard navigation. It takes every `Button` prop.
  *
- * It exists for that registration alone: our `Button` cannot enrol itself in Base UI's composite,
- * so a plain Button in a toolbar is a second tab stop and an arrow key never reaches it. Every
- * Button prop passes through, `render` included — so a toolbar item that navigates is
- * `<ToolbarButton render={<a href="…"/>}>`, and one that opens a menu is a `MenuTrigger`
- * rendering this.
- *
- * IT RESTS WHERE A BUTTON RESTS — `medium` — UNLESS IT IS IN A GROUP, where it rests `quiet`.
- * The group is a well and a control in a well is a mark ON it: two fills stacked read as one
- * thing with a lighter thing inside it (2026-09-06, Kushagra: "not in the toolbar group, because
- * toolbar group has a bg now"). Neither is a call site's job to remember — the group says where
- * its children are, the button reads it, and a stated `emphasis` beats both.
- *
- * The row's own rung (2026-09-06, Kushagra: "make sure we prefer a medium
- * emphasis button whenever, quiet and loud are for exceptional cases"). It defaulted to `quiet`
- * on the argument that a row of filled boxes has no focal point, which is true of a row of
- * WORDS and was never true of the icon-only controls a band actually holds: with no fill, an
- * icon in a band is a glyph floating on the content behind it rather than a thing to press.
- * Deleting the override is also one fewer special case — `medium` is the rung every other
- * control in the system rests at, and a component that quietly re-ranks itself is the kind of
- * exception this system spends its budget removing. A row that genuinely wants bare glyphs says
- * `emphasis="quiet"` per control, which is the escape it always was.
- *
- * IN A FLOATING BAND, STATE `backdrop`. `float` on a `ShellPaneHeader` means the row leaves flow
- * and the document passes underneath it, so the only thing between a paragraph and this button
- * sliding over it is the material on the button — the row paints nothing and cannot supply one.
- * It costs nothing until the app chooses a glass material (§10: expression is placement), and a
- * band that is pinned rather than floating wants none, because nothing passes behind it.
+ * It is `medium` by default, and `quiet` inside a `ToolbarGroup`. Set `emphasis` to override
+ * both. In a floating header, set `backdrop` so that the button uses the theme's material.
  */
 export type ToolbarButtonProps = ComponentRefusals & ButtonProps;
 
@@ -574,11 +466,7 @@ export function ToolbarButton(props: ToolbarButtonProps) {
   );
 }
 
-/**
- * The rule between two clusters (§45). Base UI's part for the announcement, our `Separator` for
- * the paint — so a toolbar's rule is the same hairline a Separator draws anywhere else, and its
- * orientation is the toolbar's, flipped: a rule across a horizontal row is a vertical line.
- */
+/** A thin line between two clusters in a toolbar. Its direction is always opposite to the toolbar's. */
 export type ToolbarSeparatorProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<typeof Separator>, "orientation">;
 
 /**
@@ -592,34 +480,17 @@ export function ToolbarSeparator(props: ToolbarSeparatorProps) {
 }
 
 /**
- * What the row is about (§45, §46) — the title cluster in the band.
+ * The title of the toolbar, at the start of the row.
  *
- * IT SITS AT THE LEADING EDGE, where macOS puts a document's name — centred for an hour on
- * 2026-09-06 and reversed the same day (Kushagra: "lets move title to left again, but the title
- * group should have more spacing between action group"). What survived the reversal is the
- * finding underneath it, which was never about centring: a title is a different KIND of thing
- * from the controls beside it, so the row states one step more air around this part than it
- * states between controls. That is written on the part rather than on the row's own gap, which
- * is what lets it sit either as a direct child of the `Toolbar` or inside a leading cluster —
- * a band is written `<Flex>{toggle}{back}{title}</Flex>` as often as it is written flat, and
- * the air has to reach inside the cluster to be worth anything.
- *
- * TWO WAYS TO GET ITS WORDS, and they are the same part because they are the same thing. Given
- * children it says them, which is the permanent title of a pane that has no page under it (the
- * app's name in a `ShellHeader`, "Notes" over a list). Given none, it MIRRORS the `Page` in the
- * same pane: invisible while that page's own large title is on screen, and fading in the moment
- * it scrolls up behind the band. That is the platform's large-title behaviour, and it is the
- * whole reason this part is not just a `Text`.
- *
- * With nothing to say it renders NOTHING — not an empty box, which would still spend the row's
- * gap and leave a hole between two clusters.
+ * If you give it children, it shows them. If you don't, it shows the title of the `Page` in the
+ * same panel after that title scrolls out of view. With no words to show, it renders nothing.
  */
 export type ToolbarTitleProps = ComponentRefusals & {
-  /** The words. Omit them to mirror the `Page` in this pane. */
+  /** The title text. Leave it out to show the title of the `Page` in this panel. */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
-  /** So a caller can point `aria-labelledby` at the row's own title. */
+  /** The id of the title, so that you can point `aria-labelledby` at it. */
   id?: string;
 };
 

@@ -9,50 +9,40 @@ import type { TypeSize, Weight } from "../text/text.tsx";
 
 type ListShared = {
   /**
-   * A step on the shared ramp. It defaults to 3 like `Text` and `Blockquote`, because a list is
-   * a block of copy and sets its own step. A list NESTED in another list has no default: unset,
-   * it takes the step of the item it sits in, so a size-2 list's sub-list is size 2 without the
-   * call site repeating the index.
+   * Sets the text size, from `1` to `9`. The default is `3`, as on `Text`. A nested list without
+   * a `size` uses the size of the list that holds it.
    */
   size?: TypeSize;
-  /** Token names, never numbers, and semibold is the heaviest. Rests at regular — a list is
-      copy. Unset on a nested list, which keeps its parent's weight. */
+  /** Sets the font weight. The default is `regular`, and `semibold` is the heaviest. A nested
+      list without a `weight` uses its parent's weight. */
   weight?: Weight;
-  /** Picks an ink colour for the words. It rests loud, as all reading copy does. Unset on a
-      nested list, which keeps its parent's rung — including when the nested list states a tone
-      of its own, which is the whole of what "keeps its parent's ink" has to mean. A BULLET
-      stays in the faint role at every rung, because it is furniture; a NUMBER takes the rung
-      the words took, because it is read and cited. */
+  /** Sets how strong the text colour is. The default is `loud`, which is full contrast. A
+      nested list without an `emphasis` keeps its parent's level, also when it sets its own
+      `tone`. Bullets always stay faint. Numbers use the same level as the words. */
   emphasis?: Emphasis;
-  /** Moves the ink onto that family — the words and the markers together, because both read
-      the family's ink roles. Stamped only when chosen. */
+  /** Sets the colour family of the words and the markers. */
   tone?: Tone;
   className?: string;
   style?: React.CSSProperties;
 };
 
 type UnorderedProps = Omit<React.ComponentPropsWithoutRef<"ul">, "color" | "style" | "className"> & {
-  /** Renders `<ul>`: the items are a set, and their order carries nothing. */
+  /** Renders a bulleted `<ul>`. Use it when the order of the items has no meaning. */
   ordered?: false;
-  /** Refused on a bulleted list, because there is no number to start from: `start` is the
-      platform's attribute on an `<ol>`, and it reaches the element once the list states
-      `ordered`. Stating it here is almost always a list that should have been ordered. */
+  /** Not available on a bulleted list, because there is no number to start from. Set
+      `ordered` to use `start`. */
   start?: never;
-  /** Refused on a bulleted list, for the same reason as `start`: reversing a run of discs
-      changes nothing a reader can see. State `ordered`, and it passes through to the `<ol>`
-      as the platform's own attribute. */
+  /** Not available on a bulleted list, because bullets have no order to reverse. Set `ordered`
+      to use `reversed`. */
   reversed?: never;
   ref?: React.Ref<HTMLUListElement>;
 };
 
 type OrderedProps = Omit<React.ComponentPropsWithoutRef<"ol">, "color" | "style" | "className" | "type"> & {
   /**
-   * Renders `<ol>`: the order IS information — steps, a ranking, a sequence someone will
-   * follow or cite by number. This is the one structural choice a list has, and it is a choice
-   * of ELEMENT because that is what a screen reader announces ("list, 4 items" against a
-   * numbered one). `start` and `reversed` pass through: they are the platform's own attributes
-   * on an ordered list, they change what the numbers SAY rather than how they look, and a
-   * list resumed after a paragraph needs `start` to be true.
+   * Renders a numbered `<ol>`. Use it when the order has meaning, such as steps or a ranking.
+   * You can then set the `start` and `reversed` attributes. Use `start` to continue a list
+   * after a paragraph.
    */
   ordered: true;
   ref?: React.Ref<HTMLOListElement>;
@@ -142,12 +132,7 @@ export function List(props: ListProps) {
 }
 
 /**
- * `ComponentRefusals` is intersected HERE rather than inside `ListShared`, and it is a law that
- * asks for it rather than a preference: `refusal-sets.test.ts` reads the HEAD of every exported
- * props declaration in the built `.d.ts` and counts the refusal sets it names, so a set reached
- * through an alias is a set the law cannot see (audit 2026-09-12). The refusals were enforced
- * either way — `<List m="4" />` has always been rejected — but a guarantee that only the
- * compiler can see is a guarantee nothing checks.
+ * Props for `List`. Set `ordered` for a numbered list. Without it, the list has bullets.
  */
 export type ListProps = ComponentRefusals & ListShared & (UnorderedProps | OrderedProps);
 

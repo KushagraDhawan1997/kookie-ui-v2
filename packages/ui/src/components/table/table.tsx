@@ -8,28 +8,24 @@ import { useSize } from "../../system/size.ts";
 
 export type TableProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"table">, "color"> & {
   /**
-   * An index into the control family, 1–4, and it sets two things at once: the cell inset,
-   * picked from the layout-space palette so it tightens with density, and the type step the
-   * cells read at. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise, and `2` is the step tables are set at almost everywhere, because a
-   * table is dense by nature.
+   * Sets the cell padding and the text size, from `1` to `4`. The padding also follows the
+   * theme's density. The default is the `size` of the nearest `Theme`, which is `2` unless you
+   * change it.
    */
   size?: Size;
-  /** Dresses the scroll wrapper, never the table — the wrapper is the element you lay out. */
+  /** Adds a class to the scroll wrapper around the table, not to the `<table>`. */
   className?: string;
   style?: React.CSSProperties;
-  /** Reaches the `<table>` element itself. */
+  /** A ref to the `<table>` element. */
   ref?: React.Ref<HTMLTableElement>;
   /**
-   * Names the SCROLL REGION around the table — the box a keyboard reaches when the table is
-   * wider than its room. DECLARED rather than left to ride the rest spread, both because it
-   * has to be pulled off the props that reach the `<table>` and because TypeScript exempts
-   * hyphenated attribute names from excess-property checking, which is how a prop can compile,
-   * render, and reach the DOM nowhere at all (ScrollArea's own scar, 2026-08-26). A `<caption>`
-   * names the table itself, natively, and needs nothing here.
+   * The accessible name of the scroll region around the table. Keyboard users reach this
+   * region when the table is wider than its container. To name the table itself, use a
+   * `TableCaption`.
    */
   "aria-label"?: string;
-  /** The same, from an element that already carries the words — a heading above the table,
-      usually. Mutually exclusive with `aria-label`, as ARIA has it. */
+  /** The id of an element that names the scroll region, usually a heading above the table.
+      Use it instead of `aria-label`, not together with it. */
   "aria-labelledby"?: string;
 };
 
@@ -116,9 +112,9 @@ export function TableRow(props: TableRowProps) {
 
 type CellAlign = {
   /**
-   * Where the cell's content sits on the inline axis. Numbers end-align so their digits line
-   * up; words start-align. Defaults to `start`. Set it on the head and the cells of a column
-   * together, or the column reads as two.
+   * Sets the horizontal alignment of the cell content. The default is `start`. Use `end` for
+   * numbers, so their digits line up. Set the same value on the head and on every cell of a
+   * column.
    */
   align?: "start" | "center" | "end";
 };

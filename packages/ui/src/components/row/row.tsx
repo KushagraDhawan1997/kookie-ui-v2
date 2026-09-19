@@ -15,48 +15,38 @@ import {
 
 export type RowProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
   /**
-   * The row's box: a standing row rides the control height ladder, so it stands level with a
-   * `Button` of the same index (§21). The text line plus one designed inset — the shorter box
-   * — is the FLOATING row's, i.e. a row inside a menu or a select panel. It rests at 2, like
-   * every other control in the library.
+   * Sets the height of the row. A row has the same height as a `Button` of the same size. If you
+   * don't set it, the row uses the size of the nearest `Theme`, which is `2` by default.
    */
   size?: Size;
   /**
-   * The one meaning a row carries beyond being itself. A `destructive` row is the delete in a
-   * list of verbs. It is a narrow vocabulary on purpose: a list of peers where three rows wear
-   * three families is a list that has stopped being a list.
+   * Sets the colour family of the row. Use it only when one row has a special meaning, such as
+   * `destructive` for a delete action in a list of commands.
    */
   tone?: Tone;
-  /** Before the label: an icon, an avatar, a tick. */
+  /** Content before the label, such as an icon, an avatar or a tick. */
   leading?: React.ReactNode;
-  /** After it, pushed to the far edge: a shortcut, a count, a chevron. */
+  /** Content at the far end of the row, such as a shortcut, a count or a chevron. */
   trailing?: React.ReactNode;
   /**
-   * Lights the row from OUTSIDE — for a list that moves a highlight with the arrow keys while
-   * focus stays somewhere else, which is what a command palette and a search field's results
-   * both are.
-   *
-   * **Passing it at all changes how the row answers the pointer**, and that is the point.
-   * A list with a roving highlight has two cursors — the keyboard's and the pointer's — and a
-   * row that answered both would stay lit under a resting pointer after the keyboard had moved
-   * on. So a row you drive is driven only by you: state `highlighted` and hover stops painting;
-   * leave it unset and the pointer is the only cursor, which is what an ordinary list wants.
+   * Highlights the row from your code. Use it for a list that moves a highlight with the arrow
+   * keys while focus stays elsewhere, such as a command palette. When you set this prop, even
+   * to `false`, the row no longer highlights on hover. If you don't set it, the row highlights
+   * on hover.
    */
   highlighted?: boolean;
   /**
-   * This is the thing you are looking at now — the page you are on, the file that is open.
-   * It is LOCATION, not selection: it announces `aria-current` and it is not a form value.
-   *
-   * For "the one I picked out of several", use a `RadioGroup`: picking one of several is a
-   * radio group (§26), and a row that faked it with an attribute would be the exact shape that
-   * decision refused.
+   * Marks the row as the current location, such as the page you are on or the open file. The
+   * row sets `aria-current`. It is not a selection or a form value. To let people pick one of
+   * several options, use a `RadioGroup`.
    */
   current?: boolean;
-  /** Turns the row off. It stays in the list: a dead row still says the thing exists. */
+  /** Disables the row. The row stays in the list, so people can still see that the item
+      exists. */
   disabled?: boolean;
   /**
-   * Be a link, or be inert. A row that navigates should be an `<a>`, and a row in a list you
-   * only read should be a `<div>` — the element is the semantics, and this is how you say so.
+   * Renders the row as a different element. Use `<a>` for a row that goes to a page. Use
+   * `<div>` for a row in a read-only list. A `<div>` row doesn't highlight on hover.
    */
   render?: RenderElement;
   className?: string;

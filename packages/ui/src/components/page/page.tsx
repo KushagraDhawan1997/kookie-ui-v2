@@ -11,19 +11,17 @@ import { Text } from "../text/text.tsx";
 
 export type PageProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"div">, "color" | "title"> & {
   /**
-   * What this screen is. It is a string rather than a child element for one reason: the same
-   * words are said twice — once large, once in the band after they have scrolled away — and
-   * only a value can be rendered in two places. (Select's `items` exists for the same reason.)
+   * The title of the page. It shows large at the top. When it scrolls away, it also shows in
+   * the `ToolbarTitle` of the toolbar above. It must be a string, because it shows in two
+   * places.
    */
   title: string;
-  /** The sentence under the title, set well above the body — the most important sentence on
-      the page. Optional: a screen whose title says everything needs no deck. */
+  /** A sentence under the title that describes the page. It shows larger than the body
+      text. It's optional. */
   description?: React.ReactNode;
   /**
-   * Something above the title, in the reading column — an app's own mark on its front door.
-   * It is a LOCKUP with the title (§15): the mark says the name in a drawn letter and the
-   * title says it in words, so they sit at the closer interval and the deck is the sentence
-   * under the pair. Almost no page has one; a page that does has exactly one.
+   * A logo or mark above the title, such as an app's logo on its home page. It sits close to
+   * the title. Most pages don't need it.
    */
   mark?: React.ReactNode;
   ref?: React.Ref<HTMLDivElement>;

@@ -4,9 +4,8 @@ import type { RadixReflexRefusals } from "../../system/refused.ts";
 import { Box, type BoxProps } from "../box/box.tsx";
 
 /**
- * Stack is the vertical case, so the axis props do not exist: `direction` would make it a Flex
- * with a different name, `wrap` has no meaning in a single column, and the axis-split gaps
- * (`gapX`/`gapY`) collapse to `gap` when there is only one axis (§3).
+ * Props for `Stack`. A stack is always a vertical column, so it has no `direction` or `wrap`.
+ * Use `gap` for the space between items. For a row, use `Flex`.
  */
 export type StackProps = RadixReflexRefusals & Omit<
   BoxProps,

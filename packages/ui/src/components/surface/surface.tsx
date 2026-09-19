@@ -13,11 +13,11 @@ export type SurfaceProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"div">,
   "color" | "style" | "className"
 > & {
-  /** Sets the padding and the corner, one step larger than a card at the same index, because
-      a container needs a larger corner than the things inside it. */
+  /** The size step of the surface, from `1` to `4`. It sets the padding and the corner. The
+      corner is larger than a card's at the same step, so cards inside it fit well. */
   size?: Size;
-  /** Render into an element you already have, such as a `<section>`, an `<aside>` or a
-      layout primitive. */
+  /** Renders the surface as a different element, such as a `<section>`, an `<aside>` or a
+      layout component. */
   render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;

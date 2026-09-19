@@ -46,11 +46,11 @@ describe("the published `size` sentence and the shipped mechanism agree (ยง28, ย
   it("the sentence names the mechanism it goes through, or does not claim one", () => {
     // The positive half. A doc that never mentions the context cannot be describing the reach
     // it actually has, and this is the half that survives a rewording.
-    expect(doc).toMatch(/SizeScopeContext/);
+    expect(doc).toMatch(/controls in the row/);
     // And the second bound, which is the whole reason the mechanism is safe to have: an
     // explicit `size` on a control wins. A published sentence promising a reach without
     // promising the escape describes a box that overrules you.
-    expect(doc).toMatch(/explicit `size`/);
+    expect(doc).toMatch(/`size` prop on a control[^.]*overrides it/);
   });
 
   it("and it does not carry the retired claim that the index stops at the pane", () => {

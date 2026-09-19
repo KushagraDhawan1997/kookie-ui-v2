@@ -72,66 +72,65 @@ export type NumberBehaviour = Pick<
  * fails the build here instead of quietly making these sentences wrong.
  */
 export type NumberOwnBehaviour = {
-  /** The number, when you hold it yourself. `null` is an empty field — not zero. */
+  /** The value of a controlled field. `null` means the field is empty, not zero. */
   value?: number | null | undefined;
-  /** The number it starts at when you do not hold it. Use `value` for a controlled field. */
+  /** The start value of an uncontrolled field. Use `value` for a controlled field. */
   defaultValue?: number | undefined;
   /**
-   * Fires on every change, with the number (`null` when the field is empty) and what caused it
-   * — typing, a stepper press, an arrow key. The value is a NUMBER, which is why there is no
-   * `onChange`: a string handler is the half that cannot read a formatted value back.
+   * Called on every change of the value. It receives the number, or `null` when the field is
+   * empty, and details of the cause: typing, a stepper press or an arrow key. Use this in place
+   * of `onChange`, which the field doesn't take.
    */
   onValueChange?:
     | ((value: number | null, eventDetails: BaseNumberField.Root.ChangeEventDetails) => void)
     | undefined;
   /**
-   * Fires when the number SETTLES — on blur after typing, or when a press is released — where
-   * `onValueChange` fires on every intermediate value. The one to save with.
+   * Called when the value is final: on blur after typing, or when a press is released.
+   * `onValueChange` also gets each intermediate value. Use this callback to save the value.
    */
   onValueCommitted?:
     | ((value: number | null, eventDetails: BaseNumberField.Root.CommitEventDetails) => void)
     | undefined;
-  /** The lowest value. The decrease stepper goes disabled on it rather than disappearing. */
+  /** The lowest permitted value. At this value, the decrease button is disabled. */
   min?: number | undefined;
-  /** The highest value. The increase stepper goes disabled on it rather than disappearing. */
+  /** The highest permitted value. At this value, the increase button is disabled. */
   max?: number | undefined;
   /**
-   * How far one press or one arrow key moves the value. `"any"` turns off the browser's own
-   * step validation; stepping then moves by 1.
+   * The amount that one button press or one arrow key adds or removes. `"any"` turns off the
+   * browser's step validation, and each step then moves the value by 1.
    */
   step?: number | "any" | undefined;
-  /** How far Alt + an arrow key moves it — the fine adjustment. */
+  /** The amount that Alt + an arrow key adds or removes. Use it for fine changes. */
   smallStep?: number | undefined;
-  /** How far Shift + an arrow key moves it — the coarse one. Page Up and Page Down do nothing. */
+  /** The amount that Shift + an arrow key adds or removes. Use it for large changes. */
   largeStep?: number | undefined;
-  /** Round to a multiple of the step as it moves, rather than stepping from where it was. */
+  /** Rounds the value to a multiple of `step` when it steps. Otherwise, it steps from the current value. */
   snapOnStep?: boolean | undefined;
   /**
-   * Let TYPING leave the range, so the browser reports it as out of range on submit instead of
-   * the field silently correcting it. Stepping still clamps.
+   * Lets a typed value go outside `min` and `max`. The browser then reports the value as out of
+   * range when the form submits, and the field doesn't correct it. The buttons and arrow keys
+   * still stay in range.
    */
   allowOutOfRange?: boolean | undefined;
   /**
-   * Intl options — and the reason this component has no adornment slots. A unit, a currency or
-   * a percent belongs here (`{ style: "currency", currency: "USD" }`): Intl writes it into the
-   * value in the reader's locale, it is announced as part of the number, and it is parsed back
-   * out when the person types. A symbol sitting beside the input does none of the three.
+   * The `Intl.NumberFormat` options that format the value. Put a unit, a currency or a percent
+   * here, for example `{ style: "currency", currency: "USD" }`. The field shows it in the
+   * user's locale, screen readers announce it, and typed text is parsed back to a number.
    */
   format?: Intl.NumberFormatOptions | undefined;
-  /** The locale to format and parse in. Defaults to the reader's own. */
+  /** The locale that formats and parses the value. The default is the user's locale. */
   locale?: Intl.LocalesArgument | undefined;
-  /** Stops the field taking input, and stands its whole box down (§8). */
+  /** Disables the field. It takes no input, and the whole field shows as disabled. */
   disabled?: boolean | undefined;
-  /** The value is live, selectable and submitted — only the invitation to type is gone. */
+  /** Prevents changes to the value. The value stays selectable, and the form still submits it. */
   readOnly?: boolean | undefined;
-  /** The form will not submit without a number in it. */
+  /** Prevents form submission while the field is empty. */
   required?: boolean | undefined;
-  /** Names the value in the submitted form. It lands on the hidden input that carries the
-      number, never on the text the person is reading. */
+  /** The name of the value in the submitted form. The form submits the number, not the formatted text. */
   name?: string | undefined;
-  /** The form this belongs to, when the field is rendered outside it. */
+  /** The `id` of the form that the field belongs to. Use it when the field is outside the form. */
   form?: string | undefined;
-  /** Lands on the input, so a `<label for>` and a `Field` both reach the value. */
+  /** The `id` of the input. A `<label for>` uses it to name the field. */
   id?: string | undefined;
 };
 
@@ -146,7 +145,7 @@ export type NumberFieldProps = ComponentRefusals &
     // A void element has no children, and the slots are the steppers.
     | "children"
     // Always `text` with a computed `inputMode`: a native `type="number"` field formats nothing,
-    // parses nothing in the reader's locale, and draws its own spinner inside our box.
+    // parses nothing in the user's locale, and draws its own spinner inside our box.
     | "type"
     | "inputMode"
     // The value arrives as a number through `onValueChange`. A string `onChange` would be a
@@ -157,25 +156,26 @@ export type NumberFieldProps = ComponentRefusals &
     | "className"
   > & {
     /**
-     * The control index, the same ladder Button and TextField use: the height, the side padding,
-     * the corner, the value's type step and the two steppers all come from one number. Rests at
-     * the enclosing `Field`'s index, else the app's.
+     * The size step of the field, from `"1"` to `"4"`. It sets the height, padding, corner, text
+     * size and buttons, the same as a `Button` or `TextField`. The default comes from the
+     * enclosing `Field`, then from the theme.
      */
     size?: Size;
     /**
-     * Says content passes behind this control, so the theme's material can show. Unset, it
-     * follows the surrounding `<Box backdrop>` region.
+     * Set `backdrop` when the field sits over other content, such as an image. The field then
+     * uses the theme's material. If you don't set it, the field follows the nearest
+     * `<Box backdrop>`.
      */
     backdrop?: boolean;
-    /** The decrease button's name, in your own language. Defaults to "Decrease". */
+    /** The accessible name of the decrease button. The default is "Decrease". Set it to translate the name. */
     decrementLabel?: string;
-    /** The increase button's name, in your own language. Defaults to "Increase". */
+    /** The accessible name of the increase button. The default is "Increase". Set it to translate the name. */
     incrementLabel?: string;
-    /** Applied to the wrapper, which is the element that is the control. */
+    /** A class name for the outer element, which draws the field. */
     className?: string;
-    /** Applied to the wrapper, so a `width` sizes the field rather than the digits inside it. */
+    /** Inline styles for the outer element. A `width` here sets the width of the whole field. */
     style?: React.CSSProperties;
-    /** Reaches the visible INPUT — `.focus()`, `.select()`. The number is `value`, not this. */
+    /** A ref to the visible input. Use it to call `.focus()` or `.select()`. To read the number, use `value`. */
     ref?: React.Ref<HTMLInputElement>;
   };
 
@@ -213,7 +213,7 @@ function plusGlyph() {
  * `kui-field`, and the steppers take §4's hosted-control geometry (one `slotInset` on all four
  * sides, the hosted height derived from it) with no rule of this component's own.
  *
- * Base UI owns the number: parsing and formatting in the reader's locale, clamping to
+ * Base UI owns the number: parsing and formatting in the user's locale, clamping to
  * `min`/`max`, `step`/`smallStep`/`largeStep` (alt and shift), arrow keys, Home and End,
  * press-and-hold on the steppers, and a hidden native input that carries the value into a form.
  *
@@ -236,7 +236,7 @@ function plusGlyph() {
  *
  * - **No `leading` or `trailing`.** The slots are the steppers. A unit, a currency or a percent
  *   belongs in `format` (`{ style: "currency", currency: "USD" }`, `{ style: "unit", unit:
- *   "kilogram" }`): Intl writes it into the value in the reader's locale, it is announced as
+ *   "kilogram" }`): Intl writes it into the value in the user's locale, it is announced as
  *   part of the number, and it is parsed back out when the person types. An adornment beside
  *   the input could do none of those three.
  * - **No `emphasis` and no `tone`**, TextField's refusal verbatim — fields do not rank against

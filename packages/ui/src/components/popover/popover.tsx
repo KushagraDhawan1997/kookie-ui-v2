@@ -40,21 +40,19 @@ const PopoverSizeContext = React.createContext<Size>(themeDefaults.size);
 
 export type PopoverProps = ComponentRefusals & {
   /**
-   * The panel's box: its padding and its corner. NOT the type inside it — the content is yours,
-   * so its steps are yours to state. That line is Dialog's and it holds here for the same
-   * reason: a surface never sizes the words it is holding. What the index does reach is
-   * `PopoverTitle` and `PopoverDescription`, because those two exist only because the
-   * accessibility wiring forces them, and type the system owns is type the system may size.
+   * Sets the size step of the panel's padding and corner.
+   * It doesn't change the size of your own content. Set the text size on that content yourself.
+   * `PopoverTitle` and `PopoverDescription` follow this size.
    */
   size?: Size;
   /** Controlled open state. */
   open?: boolean;
   /** Uncontrolled starting state. */
   defaultOpen?: boolean;
-  /** Told when the panel opens or closes. */
+  /** Called when the panel opens or closes. */
   onOpenChange?: (open: boolean) => void;
-  /** The trigger and the content, in that order. Both are parts of this component rather than
-      free children: the trigger is what the panel anchors to, and the content is what portals. */
+  /** The `PopoverTrigger` and the `PopoverContent`, in that order. The panel attaches to the
+      trigger. */
   children?: React.ReactNode;
 };
 
@@ -108,14 +106,10 @@ export function Popover({ size: sizeProp, children, ...props }: PopoverProps) {
 }
 
 /**
- * `render` is narrowed to an ELEMENT (Menu's and Dialog's spelling, restated here 2026-08-26).
+ * Props for the control that opens the popover.
  *
- * Base UI also accepts a render FUNCTION, and inheriting its props verbatim let that form
- * type-check while `rootsInButton` — which asks an element what it is — read `.props` off a
- * function and threw. A refusal the type expresses is the house rule (ENGINEERING §1.3); a
- * refusal spelled as a runtime crash is not one. What the function form buys (a trigger that
- * relabels itself by open state) is reachable by reading Base UI's own `data-popup-open`
- * attribute in CSS, which is where this system puts state anyway.
+ * `render` takes an element, not a function. To style the trigger while the panel is open, use
+ * the `data-popup-open` attribute in CSS.
  */
 export type PopoverTriggerProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BasePopover.Trigger>,
@@ -179,10 +173,9 @@ export type PopoverContentProps = ComponentRefusals & Omit<
    * `PopoverTitle`, without which the panel has no accessible name.
    */
   children?: React.ReactNode;
-  /** Your classes, appended rather than replacing the component's own. They land on the panel,
-      not on the positioner around it. */
+  /** Adds your classes to the panel. They don't replace the component's own classes. */
   className?: string;
-  /** Inline styles, merged last. They land on the panel, so a width you set is the panel's. */
+  /** Adds inline styles to the panel. A width that you set here is the panel's width. */
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLDivElement>;
 };
@@ -315,9 +308,8 @@ export type PopoverTitleProps = ComponentRefusals & Omit<
   "color" | "style" | "className"
 > & {
   /**
-   * The panel's name, in words. It is the visible heading and the string a screen reader
-   * announces the panel by, which is one obligation rather than two. Name the thing, such as
-   * "Filters", never the widget.
+   * The panel's name. It is the visible heading, and screen readers announce the panel by it.
+   * Name the content, such as "Filters", not the type of control.
    */
   children?: React.ReactNode;
   className?: string;
@@ -341,8 +333,8 @@ export type PopoverDescriptionProps = ComponentRefusals & Omit<
   "color" | "style" | "className"
 > & {
   /**
-   * The supporting line, said once. It is announced together with the title, so a description
-   * that restates the title is heard twice.
+   * The supporting text under the title. Screen readers announce it with the title, so don't
+   * repeat the title here.
    */
   children?: React.ReactNode;
   className?: string;
@@ -365,7 +357,7 @@ export function PopoverDescription({ children, ...props }: PopoverDescriptionPro
   );
 }
 
-/** `render` is an ELEMENT here for the reason it is on the trigger — see PopoverTriggerProps. */
+/** Props for the button that closes the popover. `render` takes an element, not a function. */
 export type PopoverCloseProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<typeof BasePopover.Close>,
   "render"

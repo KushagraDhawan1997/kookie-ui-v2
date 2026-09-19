@@ -9,37 +9,25 @@ import { glyphStroke } from "../../tokens/config.ts";
 import { useSize } from "../../system/size.ts";
 
 /**
- * One node of the tree's data. The API is DATA-DRIVEN, not JSX composition, and that is §33's
- * flat-list architecture speaking: the visible nodes render as a flat sequence of rows with
- * ARIA level attributes, so the machine must know the hierarchy as a value — a nested JSX
- * walk would be the child-scanning the Shell deleted (v1's displayName inspection), brittle
- * against any wrapper an app composes in between.
+ * One node in the data of a `Tree` or a `NavTree`.
+ *
+ * You give the tree its structure as data, not as nested JSX. A node with `children` can open and close.
  */
 export type TreeNode = {
   /** Identifies the node in the expansion and selection sets. Unique across the whole tree. */
   id: string;
   /** The row's content. */
   label: React.ReactNode;
-  /**
-   * What typeahead matches. Required only when `label` is not a plain string — a tree cannot
-   * read words out of an element.
-   */
+  /** The text that typeahead matches. Set it when `label` isn't a plain string. */
   textValue?: string;
-  /** Child nodes. Present (even empty) means the row is expandable and shows a disclosure. */
+  /** The child nodes. If this is set, even to an empty array, the node can open and close. */
   children?: readonly TreeNode[];
   /**
-   * NavTree only: where this leaf navigates. A leaf renders as a real link (the default `<a>`,
-   * or whatever `renderLink` supplies), which is what separates the NAV vocabulary from the
-   * instrument's — activation navigates rather than selects. Ignored by `Tree`.
-   *
-   * A leaf with neither this nor a `renderLink` destination is NOT a link and is not drawn as
-   * one: it renders as plain text in the row's place, with no pointer light and no press to
-   * promise. Optional only because `Tree` shares this shape and ignores the field.
+   * The address that a leaf opens. `NavTree` only; `Tree` ignores it.
+   * The leaf renders as a link. A leaf with no `href` and no `renderLink` renders as plain text.
    */
   href?: string;
-  /**
-   * An icon rendered in the row's leading slot, after the disclosure, in both trees.
-   */
+  /** An icon before the label, after the disclosure arrow. */
   leading?: React.ReactNode;
 };
 
@@ -49,7 +37,10 @@ export type TreeProps = ComponentRefusals & Omit<
 > & {
   /** The hierarchy, as data. See `TreeNode`. */
   items: readonly TreeNode[];
-  /** The rows' index — the row family's own `size`, stamped per row. Rests at 2. */
+  /**
+   * Sets the size step of the rows. The default is the `size` of the nearest `Theme`, which is `2`
+   * by default.
+   */
   size?: Size;
   /** Uncontrolled starting expansion. */
   defaultExpandedIds?: readonly string[];
@@ -58,8 +49,9 @@ export type TreeProps = ComponentRefusals & Omit<
   /** Fires when a node opens or closes, with the whole expanded set. */
   onExpandedChange?: (ids: string[]) => void;
   /**
-   * Several rows selectable at once (§33): Shift-arrow and Shift-click extend a range,
-   * Cmd/Ctrl-click toggles. Announced as `aria-multiselectable`. Off, a click replaces.
+   * Lets the user select more than one row.
+   * Shift with an arrow key or a click selects a range. Cmd or Ctrl with a click adds or removes one row.
+   * If it's off, a click replaces the selection.
    */
   multiselectable?: boolean;
   /** Uncontrolled starting selection. */
@@ -447,7 +439,10 @@ export function Tree({
 export type NavTreeProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"div">, "color" | "children"> & {
   /** The hierarchy, as data. Leaves carry `href`; sections carry `children`. See `TreeNode`. */
   items: readonly TreeNode[];
-  /** The rows' index — the row family's own `size`, stamped per row. Rests at 2. */
+  /**
+   * Sets the size step of the rows. The default is the `size` of the nearest `Theme`, which is `2`
+   * by default.
+   */
   size?: Size;
   /** Uncontrolled starting expansion. */
   defaultExpandedIds?: readonly string[];
@@ -456,16 +451,13 @@ export type NavTreeProps = ComponentRefusals & Omit<React.ComponentPropsWithoutR
   /** Fires when a section opens or closes, with the whole expanded set. */
   onExpandedChange?: (ids: string[]) => void;
   /**
-   * The id of the node for the page the person is ON. That row announces
-   * `aria-current="page"` and paints the current identity (accent ink, the medium rung) —
-   * ShellNavItem's own pair. Location, not selection: a nav tree has no selection at all.
+   * The id of the node for the current page.
+   * That row gets `aria-current="page"` and shows in the accent colour. A nav tree has no selection.
    */
   currentId?: string | null;
   /**
-   * The link escape, per node — how a leaf becomes the app's router link
-   * (`renderLink={(node) => <Link href={node.href!} />}`). Without it a leaf renders a plain
-   * `<a href>`. The element's own props win, the Button-as-anchor lesson: the machine never
-   * writes `type` onto a link.
+   * Renders each leaf as your router's link, for example
+   * `renderLink={(node) => <Link href={node.href!} />}`. Without it, a leaf renders a plain `<a href>`.
    */
   renderLink?: (node: TreeNode) => RenderElement;
   ref?: React.Ref<HTMLDivElement>;

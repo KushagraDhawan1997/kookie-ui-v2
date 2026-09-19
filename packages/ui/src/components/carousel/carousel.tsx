@@ -215,20 +215,18 @@ function useCarousel(part: string): CarouselStore {
 }
 
 export type CarouselProps = ComponentRefusals & {
-  /** The rail and its buttons, in any arrangement: the buttons are placed by the call site, which
-      is why they are parts and not a prop. */
+  /** The rail and its buttons. You decide where the buttons go. */
   children?: React.ReactNode;
-  /** Dresses the root. Outer spacing is the caller's Box, never this (the non-negotiable). */
+  /** A class for the root element. To add space around the carousel, wrap it in a `Box`. */
   className?: string;
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLDivElement>;
   /**
-   * Names the whole pattern — the rail and its buttons together. A carousel announces as a group
-   * with a role description, and a group with no name is a group nobody can be told about, so a
-   * screen reader's user hears "previous" and "next" with nothing saying what they move.
+   * The name of the carousel for screen readers. Set this or `aria-labelledby`, so that users
+   * know what the previous and next buttons move.
    */
   "aria-label"?: string;
-  /** Names it from words already on the screen — the heading above it, usually. */
+  /** The id of an element on the page that names the carousel, usually the heading above it. */
   "aria-labelledby"?: string;
 };
 
@@ -270,14 +268,13 @@ export function Carousel({
 }
 
 export type CarouselRailProps = ComponentRefusals & {
-  /** The items. Mark each snap point with `CarouselItem`; the layout between them is yours. */
+  /** The items. Wrap each item that the rail stops at in a `CarouselItem`. */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
   /**
-   * Fades content toward an edge that has more behind it — ScrollArea's own mask, passed through.
-   * A rail that runs to the edge of a pane is what it is for; a rail with buttons at both ends
-   * may not need it.
+   * Fades the content at an edge when more content is past that edge.
+   * Use it when the rail runs to the edge of a panel. With buttons at both ends, you may not need it.
    */
   fade?: boolean;
 };
@@ -363,9 +360,9 @@ export function CarouselItem({ className, ...props }: CarouselItemProps) {
 }
 
 export type CarouselButtonProps = ComponentRefusals & {
-  /** The glyph. An arrow both ways, from the call site's icon set — the package ships no icons. */
+  /** The icon, usually an arrow. The library ships no icons, so supply your own. */
   children?: React.ReactNode;
-  /** The button's name, since it has no words. Defaults to the plain English one. */
+  /** The name of the button for screen readers. The default is `Previous` or `Next`. */
   "aria-label"?: string;
   className?: string;
   style?: React.CSSProperties;

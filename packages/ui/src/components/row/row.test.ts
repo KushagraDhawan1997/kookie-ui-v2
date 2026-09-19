@@ -59,7 +59,7 @@ describe("the published `size` doc agrees with the box the browser law measures 
     // is the cheapest way to satisfy a law of this shape (the coverage laws' own anti-rot
     // clause, one file over).
     expect(sizeDoc(), "`size` no longer names the ladder its box comes from").toMatch(
-      /height ladder/i,
+      /same height as a `Button`/i,
     );
   });
 });

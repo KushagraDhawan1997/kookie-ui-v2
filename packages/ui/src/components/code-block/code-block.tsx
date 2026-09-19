@@ -13,79 +13,37 @@ export type CodeBlockProps = ComponentRefusals & {
   /** The code. Plain text, or the spans a highlighter produced from it. */
   children: React.ReactNode;
   /**
-   * One index for the whole element: the pane's padding and corner, the mono step, and the
-   * arithmetic the bound and the chrome's safe area are built from.
-   *
-   * SIZE PRICES EVERYTHING here for the reason §24/§25/§30 already state: a component that
-   * owns its pane AND its text prices both. `Dialog` stops at the box because its content is
-   * the caller's; a code well's content is code, and code is the one thing this element knows
-   * it is holding.
+   * The size step of the code block, from `1` to `4`. It sets the padding, the corner and the
+   * text size of the code. It also sets the height of a line for `maxLines`.
    */
   size?: Size;
-  /** Dresses the code element (the `<pre>`), which is where a highlighter's own classes go.
-      Outer spacing is the caller's Box, never this. */
+  /** A class name for the `<pre>` element. Put a syntax highlighter's classes here. For space
+      around the block, wrap it in a `Box` with `m`. */
   className?: string;
   /**
-   * The bound: the well's maximum height, in LINES of its own code.
-   *
-   * Bounded means SCROLLABLE, never clipped — every line stays reachable by wheel, keyboard
-   * and assistive technology. That is what lets an expand control be a convenience rather
-   * than a gate: a collapse that hides code leaves it in the tab order, and this shape makes
-   * that defect inexpressible.
-   *
-   * No fade over the last lines. A scrollable well with a visible scrollbar already says
-   * there is more.
+   * The maximum height of the block, in lines of code. Longer code scrolls. No line is
+   * hidden, so users can reach all lines with the mouse, the keyboard or a screen reader.
    */
   maxLines?: number;
   /**
-   * A row floating over the TOP of the pane — a file name, a language chip, a copy button.
-   *
-   * A NODE RATHER THAN A FLAG, because the well does not know what its chrome is. It owns the
-   * pane, the mono step, the scroller and the row's BOX; what sits in the row, and how that
-   * content is arranged, belongs to the caller. Pass content, not a positioned element: the
-   * element places the row itself, reaching both walls and padding itself back by less than
-   * the code's own inset, so the chrome reads as belonging to the pane rather than to the
-   * text.
-   *
-   * It floats rather than sitting in flow because a translucent control exists to be legible
-   * with content passing behind it. A glass row with nothing behind it is decoration wearing
-   * a material's name. The platform pattern is the same one: a scroll view holds a top
-   * content inset and its content passes under a translucent toolbar.
+   * Content for a row at the top of the block, such as a file name, a language chip or a copy
+   * button. The row floats over the code. Pass the content only: the block positions the row.
+   * If the row goes across the full width, also set `band`.
    */
   topbar?: React.ReactNode;
-  /** The same row at the BOTTOM of the pane — an expand control, a status line. Both rows
-      hang from the pane itself, so in a hosted well they measure from the same box: hanging
-      one of them from a wrapper around the element counts the host's inset twice. */
+  /** Content for a row at the bottom of the block, such as an expand button or a status
+      line. Pass the content only: the block positions the row. */
   footer?: React.ReactNode;
   /**
-   * Does the top row SPAN the pane, so the code owes it a safe area?
-   *
-   * A BAND IS RESERVED FOR A ROW THAT REACHES TWO WALLS, NOT FOR ONE CONTROL IN A CORNER. A
-   * name at one wall and an action at the other cover the whole of the first line, so the
-   * first line needs somewhere else to be. A row holding only an action occupies one corner,
-   * and reserving a pane's width of clearance for it puts a hand's width of nothing in the
-   * other one.
-   *
-   * A FLAG HERE AND A NODE ABOVE, deliberately: the well cannot read its chrome's shape off
-   * the node — counting the row's children would be this element guessing at the caller's
-   * arrangement. What it can be told is the one geometric fact it needs, by the code that
-   * decided it.
+   * Moves the code down so that the `topbar` row doesn't cover the first line. Set it when the
+   * row goes across the full width, such as a file name on one side and a button on the other.
+   * Don't set it for one button in a corner.
    */
   band?: boolean;
   /**
-   * The element is already inside a pane, so it draws none of its own.
-   *
-   * A pane inside a pane of the same kind is two grounds painting one colour, separated by a
-   * hairline that says nothing — the fault §10 names when it separates a Card (an object)
-   * from a Surface (what an object sits on). A code well is a ground, so a well inside a
-   * ground is the same ground twice. Hosted, the HOST's pane is the well: fill, corner,
-   * hairline, clip and inset all come from it, and what stays here is the one thing the host
-   * cannot give — a positioning context for the floating chrome, and a scroller that reaches
-   * the host's own walls.
-   *
-   * It is not a second appearance. The element still renders one arrangement; this says who
-   * owns the box around it, the way §4 says a hosted control's geometry comes from its
-   * container.
+   * Removes the block's own background, border and padding. Set it when the block is already
+   * inside a panel of the same kind, such as a `Surface`. The parent panel then supplies the
+   * background, the corner and the padding.
    */
   hosted?: boolean;
   style?: React.CSSProperties;

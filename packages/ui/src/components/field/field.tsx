@@ -21,12 +21,11 @@ export type FieldProps = ComponentRefusals & Omit<
   "className"
 > & {
   /**
-   * The control index, set once for the whole unit: the label, the description, the error and
-   * the control inside it. It reaches the control through React context, and an explicit `size`
-   * on the control always wins, so a control is never re-sized behind a number somebody typed.
+   * The size step for the whole field, from `1` to `4`. It sets the size of the label, the
+   * description, the error and the control. A `size` that you set on the control itself wins.
    */
   size?: Size;
-  /** Dresses the column. Outer spacing is the caller's Box, never this (the non-negotiable). */
+  /** A class name for the field. For space around the field, wrap it in a `Box` with `m`. */
   className?: string;
 };
 

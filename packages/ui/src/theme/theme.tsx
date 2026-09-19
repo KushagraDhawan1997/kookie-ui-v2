@@ -92,108 +92,89 @@ export const DEPTHS = themeAxes.depth;
 
 export type ThemeProps = ThemeRefusals & RadixReflexRefusals & {
   /**
-   * What the app is made of. One value covers the whole scope, so a dialog and a menu under one
-   * theme are the same glass. There is no per-component thickness and no ceiling to hit at
-   * `thick`.
+   * Sets the material for every component in this scope.
    *
-   * What makes a dialog read heavier than a menu is not its material. It is coverage and the
-   * scrim. The same glass over 900 pixels of application hides far more than the same glass over
-   * a 170-pixel menu, and a dialog also pushes the page back behind a scrim it already owns.
+   * The values are `solid`, `thin`, `regular` and `thick`. The default is `solid`, which lets no
+   * light through. The other three are glass, from the clearest to the most frosted. One value
+   * applies to the whole scope, so a menu and a dialog in the same theme use the same glass.
    *
-   * `solid` is the default, and it is a material rather than the absence of one: it is the level
-   * where light stops passing through. That is also why this is not a boolean. A `glass` flag
-   * would still need a thickness beside it, which is two props for one fact.
-   *
-   * Where the glass shows is decided by placement. Mark a region with `<Box backdrop>`, or pass
-   * `backdrop` on a single component. An unmarked control in ordinary flow renders solid and
-   * costs nothing.
+   * Glass shows only where something sits over other content. Mark a region with
+   * `<Box backdrop>`, or set `backdrop` on one component. Other controls stay solid.
    */
   material?: Material;
   /**
-   * The index every family on the 1-4 ladder rests at when the call site says nothing (§4).
-   * `size="3"` is an app whose buttons are 40px and whose cards pad and corner one step wider;
-   * it is a rung rather than a measurement, which is what lets one number mean the same thing
-   * to a control, a card and a dialog at once.
+   * Sets the default size step for every sized component in this scope.
    *
-   * It is a DEFAULT, not a clamp. A stated `size` on any component wins, and a `Field` or a
-   * `Composer` — the two units a person sizes as one object — win over the theme for what they
-   * contain, because they are nearer.
+   * The values are `"1"` to `"4"`, and the default is `"2"`. A `size` on a component always wins.
+   * A `Field` or a `Composer` also wins for the controls inside it.
    *
-   * It does not reach type. `Text`, `Heading` and `Blockquote` read a scale nine steps long
-   * rather than four, so they can share neither this rest nor this range; rank them with the
-   * composition ladder (§15) and the emphasis roles. `Code`, `Kbd`, `Badge` and `Chip`
-   * rest at nothing on purpose and take the line they sit in. `Avatar` reads it like a control.
+   * It does not change type. `Text`, `Heading` and `Blockquote` use their own nine-step scale.
+   * `Code`, `Kbd`, `Badge` and `Chip` take the size of the line they sit in.
    */
   size?: Size;
   /**
-   * Which palette this scope resolves against. `inherit` is a real third value, not a no-op: it
-   * writes no attribute at all, so the nearest ancestor keeps applying. That is what makes
-   * server rendering work in dark mode. A small script in the document head owns the attribute
-   * on `<html>`, the root Theme inherits it, and there is one source of truth with no flash and
-   * nothing for hydration to mismatch. Set it to pin a section against the document: a light
-   * panel inside a dark app is `appearance="light"` here.
+   * Sets the colour scheme for this scope: `light`, `dark` or `inherit`.
+   *
+   * `inherit` writes nothing, so the nearest ancestor decides. Use it on the root theme when a
+   * script in the document head sets the appearance on `<html>`. This prevents a flash of the
+   * wrong scheme with server rendering. Set `light` or `dark` to fix one section, such as a
+   * light panel inside a dark app.
    */
   appearance?: Appearance;
   /**
-   * How much room the app gives its controls. It re-picks the layout-space steps every distance
-   * reads, and it restates each control height and padding directly. It reaches neither type,
-   * the icon box, nor a mark, because those are content and would otherwise answer the same
-   * question twice. Choose it once for the app. A denser toolbar is a nested Theme on an element
-   * you already have, never a prop on each control.
+   * Sets how much space the app gives its controls: `compact`, `default` or `comfortable`.
+   *
+   * It changes layout gaps, control heights and control padding. It does not change type, icons
+   * or checkboxes. Set it once for the app. For one denser area, such as a toolbar, wrap that
+   * area in a nested `Theme`.
    */
   density?: Density;
   /**
-   * The corner, chosen once for the app. Each level is a set of hand-picked values rather than a
-   * multiplier, restated per family, so `none` squares every corner that is decoration while the
-   * four that carry a role hold their shape: a radio, the slider grip, the switch thumb, and the
-   * track a round thumb nests in. `full` states the capsule for each cell, which is half the
-   * control's own height, rather than asking CSS to clamp a huge number against the rendered
-   * box.
+   * Sets the corner radius for the app: `none`, `small`, `medium`, `large` or `full`.
+   *
+   * The default is `full`, which gives controls a pill shape. `none` gives square corners. A
+   * radio button, a slider thumb, a switch thumb and a switch track keep their round shape at
+   * every value.
    */
   radius?: RadiusLevel;
   /**
-   * An accessibility setting, not a design knob. At rest a border or a fill is decoration, judged
-   * by eye and held to no floor. `high` is where the contrast floors bind: it re-solves the tone
-   * bands, the control and field edges and the track, and it leans on the glass rather than
-   * unmaking it. Left unset the Theme writes no attribute, which is what lets
-   * `@media (prefers-contrast: more)` reach the scope. Asking for `normal` is an explicit opt-out
-   * of that platform signal.
+   * Turns on high contrast for this scope: `normal` or `high`.
    *
-   * **It has to sit on the same element as an `appearance`, and this scope's cannot be
-   * `inherit`.** The high-contrast palette is selected by the two together, so a Theme that
-   * resolves `inherit` and asks for `high` re-solves nothing. On the dark-SSR shape the
-   * appearance lives on `<html>`, so put `data-contrast` there too — which is what the pre-paint
-   * script does. A development build warns when the two come apart.
+   * `high` makes borders, fills and tracks meet the accessibility contrast minimums. If you leave
+   * it unset, the scope follows the user's `prefers-contrast: more` setting. `normal` ignores
+   * that setting.
+   *
+   * Put it on the same element as an `appearance` that is not `inherit`. If the appearance is
+   * set on `<html>`, set `data-contrast` on `<html>` too. A development build warns when the
+   * two are on different elements.
    */
   contrast?: Contrast;
   /**
-   * What is touching the screen. `auto` follows `@media (pointer: coarse)`. Pinning it forces the
-   * whole coarse world, not only the touch targets: the wider control cells, the mark ladder and
-   * the handheld type band all move together. That is what a phone needs, and it is also how
-   * those cells get judged on a desktop. There is no `device` prop, because coarse means
-   * handheld.
+   * Sets the input type for this scope: `fine`, `coarse` or `auto`.
+   *
+   * The default is `auto`, which follows the device's `pointer: coarse` media query. `coarse`
+   * gives touch-sized controls and larger reading type, as on a phone. Set it to check the
+   * touch layout on a desktop.
    */
   pointer?: Pointer;
   /**
-   * Whether light exists in this app: whether surfaces sit up off the page and raised controls
-   * catch it. Depth is an app identity and never a per-card choice, so no call site picks a
-   * shadow. This is the one thing that reads the shadow palette. `flat` writes no-op layers
-   * rather than deleting the rules.
+   * Sets whether surfaces and raised controls cast shadows: `elevated` or `flat`.
+   *
+   * The default is `elevated`. `flat` removes the shadows. Set it once for the app. No component
+   * has its own shadow prop.
    */
   depth?: Depth;
   /**
-   * What the scope covers. The Theme renders a real element to carry its attributes, because the
-   * tokens are scoped by attribute selectors and an attribute needs a node.
+   * The content that this theme applies to. The theme renders an element to hold its attributes.
    */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
   /**
-   * Put the theme on an element you already have, rather than adding a wrapper.
+   * Renders the theme on an element that you supply, instead of an extra wrapper element.
    *
-   * Never on `<body>` or `<html>`. Portals land at `document.body`, so a theme on the body
-   * contains its own portals: the stacking order inverts silently and an app z-index covers every
-   * popup. A development build warns you if you do.
+   * Do not use `<body>` or `<html>`. Popups render into `<body>`, and a theme on it puts every
+   * popup below the app's own layers. A development build warns if you do.
    */
   render?: RenderElement;
 };

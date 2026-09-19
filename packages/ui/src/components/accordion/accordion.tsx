@@ -22,9 +22,9 @@ export type AccordionProps = ComponentRefusals & Omit<
   "orientation" | "loopFocus" | "className" | "style" | "render"
 > & {
   /**
-   * An index into the control family, 1–4. It sets the trigger rows — height, inset, type
-   * step, the chevron's box — and the panel's inset with them, so the panel's words start
-   * under the trigger's label. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise.
+   * The size step of the accordion, from `1` to `4`. It sets the height, the padding, the text
+   * size and the chevron of each trigger. It also sets the panel padding, so the panel text
+   * lines up with the trigger label. Unset, it uses the `size` of the nearest `Theme`.
    */
   size?: Size;
   className?: string;
@@ -82,9 +82,8 @@ export type AccordionTriggerProps = ComponentRefusals & Omit<
   "className" | "style" | "render" | "nativeButton"
 > & {
   /**
-   * The heading level the trigger sits in. An accordion's triggers are headings — that is
-   * how a screen reader user finds them — and the level should follow the page's outline.
-   * Defaults to `3`.
+   * The heading level of the trigger, from `2` to `6`. Defaults to `3`. Screen reader users
+   * find the sections by their headings, so match the level to the page outline.
    */
   headingLevel?: 2 | 3 | 4 | 5 | 6;
   className?: string;

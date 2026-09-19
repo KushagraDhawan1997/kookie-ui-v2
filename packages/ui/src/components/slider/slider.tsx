@@ -28,22 +28,20 @@ export type SliderProps = ComponentRefusals & Omit<
   "children" | "render" | "className" | "orientation" | "thumbAlignment"
 > & {
   /**
-   * The control height ladder, taken on the root, because the root is the control: the whole
-   * strip is pressable, so a slider is exactly as tall a target as the Button beside it. The
-   * same index then sizes the parts through the families they belong to, with the thumb on the
-   * mark ladder. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise.
+   * The size step of the slider, from `1` to `4`. The slider is as tall as a `Button` at the
+   * same step, and the track and thumb grow with it. Unset, it uses the `size` of the nearest
+   * `Field` or `Theme`.
    */
   size?: Size;
-  /** Dresses the root. Outer spacing is the caller's Box, never this (the non-negotiable). */
+  /** A class name for the slider. For space around it, wrap it in a `Box` with `m`. */
   className?: string;
   /**
-   * Names the value for assistive technology. It lands on the thumb's hidden range input. Inside a
-   * `Field` the field's label wires itself instead. A range slider names both thumbs with the same
-   * string, plus Base UI's per-thumb value text. Something that needs "Minimum" and "Maximum" is a
-   * composition of a Field and two labelled sliders, not a prop here.
+   * The accessible name of the slider. Inside a `Field`, the field's label names it, so you
+   * don't need this prop. A range slider gives the same name to both thumbs. If each thumb
+   * needs its own name, use two sliders with their own labels.
    */
   "aria-label"?: string;
-  /** The root div — what `className` and `style` dress. The VALUE is `onValueChange`'s. */
+  /** A ref to the outer `<div>`. To read the value, use `onValueChange`. */
   ref?: React.Ref<HTMLDivElement>;
 };
 

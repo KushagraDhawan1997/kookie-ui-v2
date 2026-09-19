@@ -11,31 +11,12 @@ import type { Emphasis, Tone } from "../../system/axes.ts";
 import type { fontSize, fontWeight } from "../../tokens/config.ts";
 
 /**
- * §15 — the full ramp: type's dynamic range is wider than the control family's (§4).
- *
- * DERIVED from the ramp itself, one step per entry, 1-based because §4's rule is the index.
- * Prepending one slot and dropping key "0" is the whole trick, and it is deliberately not
- * `(typeof componentAxes.typeSize)[number]`: `.map` over a tuple widens to `string[]`, so that
- * spelling would type the prop as `string` and delete the closed union this line exists for.
+ * A text size step, from `"1"` to `"9"`. Text has more steps than controls, which have four.
  */
 export type TypeSize = Exclude<Extract<keyof [unknown, ...typeof fontSize], `${number}`>, "0">;
 /**
- * §15 — the closed weight set; token names, never numbers.
- *
- * THREE, not four: `bold` (700) is refused (2026-08-09, Kushagra — "we don't use bold, we
- * shouldn't"). Semibold is the top of the ladder, and a heading rests a step under it at medium
- * (2026-09-19), so hierarchy is carried by SIZE and the ink roles, which is where this system already puts it.
- * A 700 face beside a 600 one at the same step is a fifth way to say "important" competing
- * with three that are already designed.
- *
- * Refused in the TYPE, not merely re-defaulted: a value left in the union is a value every
- * call site can re-introduce, and the decision would then hold only by memory (ENGINEERING
- * §1.3 — types are the refusals, enforced). An app that genuinely needs 700 has `style`, the
- * §13 escape every fenced resource uses; the set widens by config the day something real
- * forces it, which is the tone set's own rule — and DERIVING the union from `fontWeight` is
- * what makes "the set widens by config" true rather than a second edit somebody remembers:
- * a hand-written copy of a list with one home is exactly the entropy `componentAxes` exists
- * to end, and the builder's inspector already generates from the derived half.
+ * A font weight, by name: `regular`, `medium` or `semibold`. There's no `bold`. To show that
+ * something is important, use a larger size or a stronger emphasis level.
  */
 export type Weight = keyof typeof fontWeight;
 
@@ -43,26 +24,21 @@ export type TextProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"span">,
   "color" | "style" | "className"
 > & {
-  /** A step on the type ramp. One index sets three things together: font size, line height
-      and letter spacing, so a step can never change the size without the leading that makes
-      it readable. There are nine steps here, against the four a control has, because reading
-      covers a wider range. Defaults to 3, the body step. */
+  /** The text size step, from `1` to `9`. Defaults to `3`, the body size. Each step sets the
+      font size, the line height and the letter spacing together. */
   size?: TypeSize;
-  /** The weight, named rather than numbered, because a token is the system's to re-point and
-      a `600` is not. There are three, and semibold is the heaviest: `bold` is refused across
-      the system, since a 700 face is another way to say "important" competing with the size
-      ramp and the ink colours. Defaults to regular. */
+  /** The font weight: `regular`, `medium` or `semibold`. Defaults to `regular`. There's no
+      `bold`. */
   weight?: Weight;
-  /** On text, this picks an ink colour: loud is `--color-text`, medium is muted, quiet is
-      faint. It rests loud, because full contrast is the correct resting state for reading.
-      Quiet sits below the reading contrast floor on purpose, so never use it for a full line
-      of text. */
+  /** The emphasis level of the text, which sets its colour. Defaults to `loud`, the full text
+      colour. `medium` is muted and `quiet` is faint. Don't use `quiet` for text that people
+      must read, because its contrast is low. */
   emphasis?: Emphasis;
-  /** A meaning, never a colour name. The theme resolves the colour. Setting a tone moves the
-      three emphasis levels onto that family's own inks. Unset, the text reads whatever ink
-      colour its surface set. */
+  /** The meaning of the text, which sets its colour family, such as `destructive`. The
+      emphasis levels then use colours from that family. Unset, the text uses the colour of
+      the surface it sits on. */
   tone?: Tone;
-  /** Render into the element the document needs, such as a `<p>` or a `<label>`. */
+  /** Renders the text as a different element, such as a `<p>` or a `<label>`. */
   render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;

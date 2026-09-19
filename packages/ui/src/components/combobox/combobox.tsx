@@ -86,72 +86,65 @@ const ComboboxFieldContext = React.createContext<React.RefObject<HTMLInputElemen
 /* ── Root ─────────────────────────────────────────────────────────────────────────────── */
 
 /**
- * What an option may be. A string is its own label and its own submitted value; an object
- * carries both, and Base UI reads `label` for the field's text and `value` for the form without
- * being told. Anything else would need a stringifier prop, and a combobox whose field can paint
- * `[object Object]` is a combobox waiting to — so the shape is closed here instead.
+ * The shape of one option. A string is both its label and its submitted value. An object gives
+ * them separately: the field shows `label` and the form submits `value`.
  */
 export type ComboboxOption = string | { value: string; label: string };
 
-/** A group of options: the section's name and its own options, which is what lets the filter
-    empty a section and hide it rather than leave a heading over nothing. */
+/** A group of options: the name of the group and its own options. When no option in a group
+    matches, the group is hidden. */
 export type ComboboxOptionGroup<T extends ComboboxOption = ComboboxOption> = {
   value: string;
   items: readonly T[];
 };
 
 export type ComboboxProps<T extends ComboboxOption = ComboboxOption> = ComponentRefusals & {
-  /** The same index the field wears. The rows, the glyphs and the type all take it; inside a
-      `Field`, the field states it and an explicit value here still wins. */
+  /**
+   * Sets the size step of the field and the panel. The rows, the icons and the text all use it.
+   * Inside a `Field`, the field's size applies when you don't set this.
+   */
   size?: Size;
   /**
-   * Every option before filtering — flat, or as groups (`{ value, items }`). Base UI matches the
-   * typed text against each option's label and renders only what survives, which is why
-   * `ComboboxList` takes a function rather than children.
-   *
-   * **Hold this array stable.** It crosses to the matcher by identity, so an inline literal
-   * re-runs the whole filter pass on every unrelated render. Module scope, or a `useMemo`.
+   * All the options, as a flat list or as groups (`{ value, items }`). The typed text filters
+   * them by label, and `ComboboxList` renders only the matches. Keep this array stable: define it
+   * outside the component or in a `useMemo`. A new array on each render runs the filter again.
    */
   // One array type rather than `T[] | Group<T>[]`: inferring through a union of two ARRAY types
   // makes TypeScript try the group shape as T and fail the constraint, where a union of ELEMENT
   // types infers T from the group's own `items` first.
   items: readonly (T | ComboboxOptionGroup<T>)[];
-  /** Controlled value, paired with `onValueChange`. `null` is the empty field. */
+  /** The chosen option, when you control it. Use it with `onValueChange`. `null` means no option is chosen. */
   value?: T | null;
-  /** Uncontrolled starting value. Mutually exclusive with `value`. */
+  /** The option chosen at the start, when the combobox controls its own value. Don't use it with `value`. */
   defaultValue?: T | null;
   /**
-   * Fires when the chosen option changes — on a pick, and with `null` when the field is cleared.
-   * It never fires for typing: the letters narrow the list, they are not a value.
+   * Called when the chosen option changes. The value is `null` when the field is cleared. It
+   * isn't called when you type, because typed text only filters the list.
    */
   onValueChange?: (value: T | null) => void;
-  /** Identifies the field when a form is submitted (Base UI renders the hidden input). */
+  /** The name of the field when a form is submitted. The combobox sends the chosen value through a hidden input. */
   name?: string;
-  /** Marks the field required for form validation; it lands on the hidden input. */
+  /** Makes a chosen option necessary before the form can submit. Typed text alone doesn't count. */
   required?: boolean;
   /**
-   * The `id` of the form this field belongs to, for a combobox rendered outside it. It lands on
-   * the HIDDEN input, which is the element that carries the value — which is why it is stated
-   * here and refused on `ComboboxInput`: on the visible input it would enrol the letters in the
-   * form and leave the chosen option out of it.
+   * The `id` of the form that the field belongs to. Use it when the combobox is outside that
+   * form. Set it here, not on `ComboboxInput`.
    */
   form?: string;
-  /** Turns the whole control off: no typing, no panel, nothing submitted. */
+  /** Turns off the whole control. You can't type, the panel can't open, and the form doesn't submit the value. */
   disabled?: boolean;
   /**
-   * The value is shown and submitted but cannot change: the panel does not open and the field
-   * drops its well, exactly as a read-only TextField does. Unlike Select, this is not refused —
-   * the platform defines `readonly` on a text `<input>`, and the field here is one.
+   * Shows and submits the value, but you can't change it. The panel doesn't open, and the field
+   * loses its fill, as a read-only `TextField` does.
    */
   readOnly?: boolean;
-  /** Controlled open state of the panel, paired with `onOpenChange`. Opening chooses nothing. */
+  /** Whether the panel is open, when you control it. Use it with `onOpenChange`. Opening the panel doesn't change the value. */
   open?: boolean;
-  /** Uncontrolled starting state for the panel. */
+  /** Whether the panel is open at the start, when the combobox controls it. Don't use it with `open`. */
   defaultOpen?: boolean;
-  /** Fires when the panel opens or closes — never when the value changes. */
+  /** Called when the panel opens or closes. It isn't called when the value changes. */
   onOpenChange?: (open: boolean) => void;
-  /** The field and the panel: a `<ComboboxInput>` and a `<ComboboxContent>`. Combobox renders no
-      DOM of its own, only state and wiring. */
+  /** A `<ComboboxInput>` and a `<ComboboxContent>`. `Combobox` renders no element of its own. */
   children?: React.ReactNode;
 };
 
@@ -300,19 +293,18 @@ export type ComboboxInputProps = ComponentRefusals & Omit<
   | "form"
   | "color" | "className" | "style" | "size" | "children" | "type" | "value" | "defaultValue"
 > & {
-  /** Before the value: an icon, a unit. Passive; clicking it lands the caret. Empty-safe — the
-      package ships no icon set. */
+  /** Content before the text, such as an icon or a unit. A click on it puts the cursor in the field. The package has no icons, so bring your own. */
   leading?: React.ReactNode;
   /**
-   * Says content passes behind this field, so the theme's material can show. Unset, it follows
-   * the surrounding `<Box backdrop>` region.
+   * Set `backdrop` when the field sits over other content, such as an image. The field then uses
+   * the theme's material. If you don't set it, the field follows the nearest `<Box backdrop>`.
    */
   backdrop?: boolean;
-  /** Applied to the wrapper, which is the element that is the control. */
+  /** Adds your classes to the visible field box, not to the `<input>` inside it. */
   className?: string;
-  /** Applied to the wrapper, so a `width` sizes the field rather than the text inside it. */
+  /** Adds inline styles to the visible field box. A `width` sets the width of the whole field. */
   style?: React.CSSProperties;
-  /** Reaches the INPUT — `.focus()`, `.select()`. */
+  /** A ref to the `<input>` element, for example to call `.focus()` or `.select()`. */
   ref?: React.Ref<HTMLInputElement>;
 };
 
@@ -459,12 +451,11 @@ export type ComboboxContentProps = ComponentRefusals & Omit<
   // the role.
   "color" | "className" | "style" | "aria-label" | "aria-labelledby"
 > & {
-  /** A `<ComboboxList>` and, beside it, a `<ComboboxEmpty>`. A `<Separator>` is refused here as
-      in Select: the list is a `listbox`, and a group is the divider a listbox has. */
+  /** A `<ComboboxList>` and a `<ComboboxEmpty>`. Don't use a `<Separator>` here. Use groups to divide the options. */
   children?: React.ReactNode;
-  /** Your classes, appended; they land on the popup, not the positioner around it. */
+  /** Adds your classes to the panel. The component's own classes stay. */
   className?: string;
-  /** Inline styles, merged last; they land on the popup. */
+  /** Adds inline styles to the panel. Your styles apply last. */
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLDivElement>;
 };
@@ -564,19 +555,12 @@ export function ComboboxContent({ children, className, style, ref, ...rest }: Co
 /* ── The list and its collection (Command's parts, one component over) ─────────────────── */
 
 export type ComboboxListProps<T> = ComponentRefusals & {
-  /** Called for each option (or group) that survives the filter. Static children are refused by
-      the type: they would render every option whatever was typed. */
+  /** A function that renders one option or group. It is called for each match of the typed text. */
   children: (item: T, index: number) => React.ReactNode;
   /**
-   * What the list of options is CALLED. This element carries `role="listbox"`, so this is the
-   * only place a name for it can land — a label on `ComboboxContent` reaches the popup around
-   * it, which is `role="presentation"`.
-   *
-   * **Usually unnecessary, and deliberately so.** With neither this nor `aria-labelledby`, the
-   * list takes the name the FIELD already has — the `aria-label` on `<ComboboxInput>`, or the
-   * `<Field>` label Base UI resolves onto the input — so the ordinary call site names the
-   * listbox by naming the combobox, and nobody writes the same word twice. State one here only
-   * to give the list a name DIFFERENT from the field's.
+   * The accessible name of the list of options. You usually don't need it. If you don't set it,
+   * the list uses the name of the field, from `ComboboxInput`'s `aria-label` or a `Field` label.
+   * Set it only to give the list a different name.
    */
   "aria-label"?: string;
   /** The `id` of an element that names the list, where the words are already on screen. */
@@ -651,7 +635,7 @@ export function ComboboxList<T = ComboboxOption>({
 }
 
 export type ComboboxCollectionProps<T> = ComponentRefusals & {
-  /** Called once per surviving option of the group it sits in. */
+  /** A function that renders one option. It is called for each match in the group. */
   children: (item: T, index: number) => React.ReactNode;
 };
 
@@ -667,12 +651,11 @@ export function ComboboxCollection<T = ComboboxOption>({ children }: ComboboxCol
 /* ── Rows ─────────────────────────────────────────────────────────────────────────────── */
 
 export type ComboboxItemProps = ComponentRefusals & {
-  /** The option this row picks — the item handed to your render function, as it is. */
+  /** The option that this row chooses. Pass the item that your render function receives. */
   value: ComboboxOption;
-  /** Turns the option off. It stays in the list and stays announced (Select's sentence). */
+  /** Turns off the option, so you can't choose it. The option stays in the list, and screen readers still announce it. */
   disabled?: boolean;
-  /** What the row reads as. The field shows the option's own label on a pick, never these
-      words — so write the label here, or what the field shows will differ from the row. */
+  /** The text of the row. When you choose the option, the field shows the option's label, not this text. Use the same label here. */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -712,9 +695,9 @@ export function ComboboxItem({ children, className, ...props }: ComboboxItemProp
 const ComboboxInGroupContext = React.createContext(false);
 
 export type ComboboxGroupProps = ComponentRefusals & {
-  /** This group's own options, so the filter can narrow the section and hide it when it empties. */
+  /** The options in this group. The group is hidden when none of them match. */
   items: readonly ComboboxOption[];
-  /** A `ComboboxLabel` naming the section, and a `ComboboxCollection` rendering its options. */
+  /** A `ComboboxLabel` that names the group, and a `ComboboxCollection` that renders its options. */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -731,7 +714,7 @@ export function ComboboxGroup(props: ComboboxGroupProps) {
 }
 
 export type ComboboxLabelProps = ComponentRefusals & {
-  /** The section's name — never an option. */
+  /** The name of the group. You can't choose a label. */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -751,8 +734,7 @@ export function ComboboxLabel({ className, ...props }: ComboboxLabelProps) {
 /* ── Empty ────────────────────────────────────────────────────────────────────────────── */
 
 export type ComboboxEmptyProps = ComponentRefusals & {
-  /** What the panel says when nothing matches — your words, in your app's language. A sentence
-      goes in as a `<Text>`; the part places it and dresses nothing (Command's 2026-09-04 rule). */
+  /** The message that the panel shows when no option matches. Put a sentence in a `<Text>`. */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;

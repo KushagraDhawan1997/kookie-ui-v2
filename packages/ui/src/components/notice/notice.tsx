@@ -16,52 +16,45 @@ import { ToneScopeContext } from "../../system/tone-scope.ts";
 
 export type NoticeProps = ComponentRefusals & {
   /**
-   * Sets the box: the padding, the corner and the dismiss button the component places. It does
-   * not set the words, because a notice holds your text and text sets its own step. It rests at
-   * 2 rather than a card's 3, because a notice is a strip across the top of something rather
-   * than an object in its own right.
+   * Sets the size of the notice: the padding, the corner, the text and the dismiss button.
+   * If you don't set it, the notice uses the size of the nearest `Theme`, which is `2` by
+   * default. A `<Text>` that sets its own `size` keeps it.
    */
   size?: Size;
   /**
-   * Says content passes behind this strip, so the theme's material can show. A notice pinned
-   * over a scrolling region is exactly the case. A notice in ordinary flow says nothing here,
-   * resolves solid and costs nothing. Unset, it follows the surrounding `<Box backdrop>`
-   * region.
+   * Set `backdrop` when content passes behind the notice, such as a scrolling region. The
+   * notice then uses the theme's material. In normal flow it stays solid. If you don't set it,
+   * the notice follows the nearest `<Box backdrop>`.
    */
   backdrop?: boolean;
   /**
-   * The category, never the volume. It rests neutral, and a warning can be grey: a notice is a
-   * condition stated plainly, not an alarm. Reach for `warning`, `destructive`, `success` or
-   * `info` when the family says something the sentence does not already say.
+   * Sets the colour family, which tells the category of the message. The default is `neutral`.
+   * Use `warning`, `destructive`, `success` or `info` only when the colour adds a fact that the
+   * words don't already give.
    */
   tone?: Tone;
   /**
-   * The symbol, if your app has an icon set. The package ships none, so the slot is safe when
-   * empty and a notice with nothing in it has no symbol. It carries no meaning of its own and is
-   * hidden from assistive technology, because the words are the message.
+   * An icon shown before the message. The package has no icons, so bring one from your own
+   * icon set. The icon is hidden from assistive technology, so put the meaning in the words.
    */
   icon?: React.ReactNode;
   /**
-   * One action, and it is the one that resolves the condition. "Get more usage", not "OK". Bring
-   * your own `<Button/>`, so the system never invents a label.
+   * One action that fixes the condition, such as "Get more usage". Pass your own `<Button>`.
+   * Don't use a general label such as "OK".
    */
   action?: React.ReactNode;
   /**
-   * Acknowledgement, which is a different verb from the action: pressing ✕ agrees to stop
-   * being told, and changes nothing about whether the condition holds.
-   *
-   * **The memory is the app's, and that is the whole reason this is a callback.** A notice
-   * that dismissed itself would forget on reload, and a ✕ the app cannot honour is a ✕ that
-   * lied. Passing nothing renders no dismissal at all, which is right for a condition nobody
-   * may wave away.
+   * Called when the person presses the ✕ dismiss button. The button shows only when you set
+   * this callback. Dismissing hides the message but doesn't fix the condition. Your app must
+   * remove the notice and remember the choice, because the notice keeps no state of its own.
    */
   onDismiss?: () => void;
-  /** The dismissal's accessible name. English by default because the package ships no
-      translation layer; state your own and it is stated once, here. */
+  /** The accessible name of the dismiss button. The default is "Dismiss". Set it to translate
+      the label. */
   dismissLabel?: string;
-  /** The message, usually one sentence. A notice with several paragraphs is a Card. */
+  /** The message, usually one sentence. For several paragraphs, use a `Card`. */
   children: React.ReactNode;
-  /** Dresses the strip. Outer spacing is the caller's Box, never this (the non-negotiable). */
+  /** Adds a class to the notice. To add space around it, wrap it in a `<Box m>`. */
   className?: string;
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLDivElement>;
@@ -205,16 +198,19 @@ export function Notice({
 }
 
 export type ConfirmationProps = ComponentRefusals & {
-  /** Sets the box, the buttons and the words, as a Notice's index does. */
+  /** Sets the size of the padding, the corner, the buttons and the text. If you don't set it,
+      the confirmation uses the size of the nearest `Theme`. */
   size?: Size;
-  /** Says content passes behind this strip, so the theme's material can show. */
+  /** Set `backdrop` when content passes behind the confirmation. It then uses the theme's
+      material. */
   backdrop?: boolean;
   /**
-   * The category of the request, never its volume. Neutral rests; reach for `warning` or
-   * `destructive` when saying yes is risky in a way the sentence does not already say.
+   * Sets the colour family of the request. The default is `neutral`. Use `warning` or
+   * `destructive` when saying yes is risky and the words don't already say so.
    */
   tone?: Tone;
-  /** The symbol, if your app has an icon set. Hidden from assistive technology. */
+  /** An icon from your own icon set, shown before the request. It is hidden from assistive
+      technology. */
   icon?: React.ReactNode;
   /** The request, in your words: "Run 4 nodes for $0.32?" */
   children: React.ReactNode;
@@ -222,11 +218,13 @@ export type ConfirmationProps = ComponentRefusals & {
   confirmLabel: string;
   /** The no, in your words: "Not now". */
   cancelLabel: string;
-  /** Called when the yes is pressed. Set `busy` while the work it starts is starting. */
+  /** Called when the person presses the confirm button. Set `busy` while the work starts. */
   onConfirm: () => void;
-  /** Called when the no is pressed. Remove the confirmation; there is no other way out. */
+  /** Called when the person presses the cancel button. Remove the confirmation here, because
+      it has no dismiss button. */
   onCancel: () => void;
-  /** The yes has been given and the work is starting: the yes spins and the no is dead. */
+  /** Shows that the work is starting. The confirm button shows a spinner and the cancel button
+      is disabled. */
   busy?: boolean;
   className?: string;
   style?: React.CSSProperties;

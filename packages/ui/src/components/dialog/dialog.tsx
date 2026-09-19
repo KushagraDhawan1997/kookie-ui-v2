@@ -77,31 +77,26 @@ export type { OverlayOpenChangeReason, OverlayOpenChangeDetails } from "../../sy
 
 export type DialogProps = ComponentRefusals & {
   /**
-   * Sets the panel's maximum width, its padding, its corner — and the two parts the system
-   * owns, `DialogTitle` and `DialogDescription`, which take the same step map an alert's
-   * title and description take, so the two components agree at every index. It never touches
-   * type the call site wrote: a `<Text>` or a `<Heading>` you place keeps its own step.
+   * Sets the size step of the panel: its maximum width, padding and corner.
+   * `DialogTitle` and `DialogDescription` follow this size, and match an `AlertDialog` at the
+   * same size. A `Text` or `Heading` that you add keeps its own size.
    */
   size?: Size;
-  /**
-   * Controlled open state. Pass it with `onOpenChange`. These three props are the library's one
-   * controlled-state pattern, and every floating component and every Shell pane repeats it
-   * unchanged.
-   */
+  /** Controlled open state. Use it together with `onOpenChange`. */
   open?: boolean;
-  /** Uncontrolled starting state, for a dialog whose openness nothing else needs to know
-      about. Mutually exclusive with `open`. */
+  /** Uncontrolled starting state. Use it when no other code needs to know if the dialog is
+      open. Don't use it together with `open`. */
   defaultOpen?: boolean;
   /**
-   * Fires on every open and close, controlled or not. The second argument is what makes a guard
-   * writable: `reason` names what did it, such as an outside press or Escape, `event` is the
-   * native event behind it, and `cancel()` refuses that one dismissal. That makes "you have
-   * unsaved changes" a real answer rather than a race.
+   * Called when the dialog opens or closes.
+   * The second argument gives the `reason`, such as an outside press or Escape, and the native
+   * `event`. Call `cancel()` on it to keep the dialog open, for example when there are unsaved
+   * changes.
    */
   onOpenChange?: (open: boolean, details: OverlayOpenChangeDetails) => void;
   /**
-   * The trigger and the content. Dialog renders no DOM of its own, only state and wiring, so this
-   * is a `<DialogTrigger>` and a `<DialogContent>`, in either order.
+   * The `DialogTrigger` and the `DialogContent`, in either order.
+   * `Dialog` renders no element of its own.
    */
   children?: React.ReactNode;
 };
@@ -140,27 +135,21 @@ export function Dialog({ size: sizeProp, open, defaultOpen, onOpenChange, childr
 
 /* ── Trigger and Close: the same button, two jobs ──────────────────────────────────────── */
 
-/**
- * Does this render target bottom out in a real `<button>`? (§5 — Menu's own check, restated
- * on the second consumer.) Base UI branches its entire a11y contract on `nativeButton`, and
- * the element handed to a trigger is usually a COMPONENT (`render={<Button/>}`), so a
- * one-level check for the string "button" answers false for the commonest shape in the
- * library. A component that itself takes a `render` escape is transparent, so follow it and
- * stop at the first intrinsic element; an opaque component takes Base UI's default, and
- * `nativeButton` is the escape for what inspection cannot see.
- */
+/** Props shared by `DialogTrigger` and `DialogClose`. */
 type ButtonPartProps = Omit<
   React.ComponentPropsWithoutRef<"button">,
   "color" | "style" | "className"
 > & {
   /** Usually a Kookie Button: `<DialogTrigger render={<Button/>}>Delete…</DialogTrigger>`. */
   render?: RenderElement;
-  /** Whether the rendered element really is a `<button>`. It is inferred from `render`. */
+  /**
+   * Tells the part if the rendered element is a real `<button>`. By default, the part finds this
+   * from `render`. Set it if your own component renders a `<button>` that the part can't detect.
+   */
   nativeButton?: boolean;
   /**
-   * The button's words. They land on the `render` target when there is one, so
-   * `<DialogClose render={<Button/>}>Cancel</DialogClose>` is a single button carrying a single
-   * label, not a Button nested inside a second one.
+   * The button's label. With `render`, the label goes on the rendered element, so
+   * `<DialogClose render={<Button/>}>Cancel</DialogClose>` makes one button.
    */
   children?: React.ReactNode;
   className?: string;
@@ -229,34 +218,21 @@ export function DialogClose({ render, nativeButton, ref, ...props }: DialogClose
 /* ── Content: the fold (§24) ───────────────────────────────────────────────────────────── */
 
 /**
- * The panel's own props, and the fix for a hole every part in this file had (2026-08-21, the
- * audit). Four props were declared and everything else was dropped in silence — measured with
- * `id`, `aria-label`, `data-testid` and an `onKeyDown`, none of which reached the element and
- * none of which failed to type-check. That is the Select audit's blocked-`id` finding in a
- * third home, and here it had a second victim: with no `DialogTitle` the panel had NO
- * accessible name and `aria-label` was the obvious repair, accepted and discarded.
- *
- * `style` and `className` are re-declared because they dress the POPUP specifically, and
- * `color` is omitted for the same reason every surface in this package omits it (the HTML
- * presentational attribute, not the CSS property).
+ * Props for the dialog panel. Other `div` props, such as `id` and `aria-label`, go on the panel.
  */
 export type DialogContentProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"div">,
   "color" | "style" | "className"
 > & {
   /**
-   * The panel's whole content, and it belongs to you. That is the line between this component and
-   * AlertDialog, whose content belongs to the system. Nothing here is arranged for you, so write
-   * the layout the screen needs. Two parts are worth reaching for: a `DialogTitle`, without which
-   * the panel has no accessible name at all, and a `DialogClose`, because a screen reader user
-   * inside a trapped panel needs a reachable way out.
+   * The panel's content. You write the layout yourself.
+   * Add a `DialogTitle`, because without it the panel has no accessible name. Add a `DialogClose`,
+   * so that screen reader users can leave the dialog.
    */
   children?: React.ReactNode;
-  /** Your classes, appended rather than replacing the component's own. They land on the panel,
-      not on the scrim and not on the scrollable viewport between them. */
+  /** Adds your classes to the panel. They don't replace the component's own classes. */
   className?: string;
-  /** Inline styles, merged last. They land on the panel, not on the scrim and not on the
-      scrollable viewport between them. */
+  /** Adds inline styles to the panel, not to the dimmed background behind it. */
   style?: React.CSSProperties;
   ref?: React.Ref<HTMLDivElement>;
 };
@@ -368,9 +344,8 @@ export type DialogTitleProps = ComponentRefusals & Omit<
   "color" | "style" | "className"
 > & {
   /**
-   * The panel's name, in words. It is the visible heading and the string a screen reader announces
-   * the dialog by, which is one obligation rather than two. Name the task, such as "Rename
-   * project", never the widget.
+   * The dialog's name. It is the visible heading, and screen readers announce the dialog by it.
+   * Name the task, such as "Rename project", not the type of control.
    */
   children?: React.ReactNode;
   className?: string;
@@ -414,9 +389,8 @@ export type DialogDescriptionProps = ComponentRefusals & Omit<
   "color" | "style" | "className"
 > & {
   /**
-   * The supporting line: what the panel is asking for, said once. It is announced together with
-   * the title, so a description that restates the title is heard twice. A panel with nothing to
-   * add has no description, rather than a padded sentence.
+   * The supporting text: what the dialog asks for. Screen readers announce it with the title, so
+   * don't repeat the title. If you have nothing to add, leave the description out.
    */
   children?: React.ReactNode;
   className?: string;

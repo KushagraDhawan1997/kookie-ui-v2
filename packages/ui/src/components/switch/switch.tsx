@@ -34,15 +34,14 @@ export type SwitchProps = ComponentRefusals & Omit<
   "children" | "render" | "className" | "nativeButton" | "readOnly"
 > & {
   /**
-   * The mark ladder, one step up. The track is the checkbox's mark at the next index, which is
-   * the relationship every peer system arrives at by hand, so a switch reads one weight class
-   * above the checkbox at the same number while both stay in one family. The width follows the
-   * same index. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise.
+   * The size step of the switch, from `1` to `4`. The track is as tall as a checkbox one step
+   * larger, so a switch looks a little larger than a checkbox at the same step. Unset, it uses
+   * the `size` of the nearest `Field` or `Theme`.
    */
   size?: Size;
-  /** Dresses the mark. Outer spacing is the caller's Box, never this (the non-negotiable). */
+  /** A class name for the switch. For space around it, wrap it in a `Box` with `m`. */
   className?: string;
-  /** The honest element: Base UI's root renders a <span> with the input hidden beside it. */
+  /** A ref to the switch, which is a `<span>` element. */
   ref?: React.Ref<HTMLSpanElement>;
 };
 

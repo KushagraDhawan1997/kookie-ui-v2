@@ -23,26 +23,25 @@ export type TextAreaProps = ComponentRefusals & Omit<
   "color" | "children" | "cols" | "className" | "style"
 > & {
   /**
-   * The control index, minus the one part a growing box cannot take. The padding, the corner, the
-   * type and the border all come from it. The height does not, because the content decides that
-   * through `rows`. The block padding IS the side padding — one inset on all four sides — so a
-   * `rows={1}` textarea sits TALLER than a TextField at the same index; the control height
-   * survives as a floor, never a ceiling.
+   * The size step of the text area, from `1` to `4`. It sets the padding, the corner, the text
+   * size and the border. It doesn't set the height: use `rows` for that. The padding is the
+   * same on all four sides, so `rows={1}` is taller than a `TextField` at the same step.
    */
   size?: Size;
   /**
-   * Says content passes behind this control, so the theme's material can show. Unset, it follows
-   * the surrounding `<Box backdrop>` region.
+   * Set `backdrop` when the text area sits over other content, such as an image. It then uses
+   * the theme's material. Unset, it follows the nearest `<Box backdrop>`.
    */
   backdrop?: boolean;
-  /** Applied to the wrapper, which is the element that is the control (TextField's rule). */
+  /** A class name for the outer element, which draws the box. */
   className?: string;
   /**
-   * Applied to the wrapper, so a `width` sizes the box rather than the text inside it — and so
-   * `resize: "none"` still reaches the handle, which the wrapper carries.
+   * Styles for the outer element, which draws the box. A `width` sets the width of the box. Set
+   * `resize: "none"` to remove the resize handle.
    */
   style?: React.CSSProperties;
-  /** Reaches the TEXTAREA, not the wrapper — `.focus()`, `.select()`, the value. */
+  /** A ref to the inner `<textarea>` element, not the outer box. Use it for `.focus()`,
+   *  `.select()` or the value. */
   ref?: React.Ref<HTMLTextAreaElement>;
 };
 

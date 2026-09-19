@@ -131,32 +131,28 @@ export type SheetOpenChangeDetails = {
 
 export type SheetProps = ComponentRefusals & {
   /**
-   * The edge the sheet enters from. `bottom` (the default) is the platform sheet: a task that
-   * rises over the page. `inline-end` and `inline-start` hold a panel beside the page, such as
-   * details, filters or a cart. Logical, so the edge follows the reading direction.
+   * The edge that the sheet comes in from. `bottom` is the default, and shows a task that comes
+   * up over the page. `inline-end` and `inline-start` show a panel beside the page, such as
+   * details, filters or a cart. The inline sides follow the reading direction.
    */
   side?: SheetSide;
   /**
-   * Sets the panel's width, its padding, its corner, and the two parts the system owns,
-   * `SheetTitle` and `SheetDescription`, at the step map a dialog and an alert take. The width
-   * is Dialog's ladder: the whole width of a side sheet, and the maximum width of a bottom
-   * sheet on a roomy window. Its height is its content, stopped short of the window. It never
-   * touches type the call site wrote.
+   * The size step of the sheet, from `"1"` to `"4"`. It sets the width, padding and corner, and
+   * the text size of `SheetTitle` and `SheetDescription`. On a side sheet, the width is the full
+   * width. On a bottom sheet, it is the maximum width. It doesn't change text that you add.
    */
   size?: Size;
-  /** Controlled open state. Pass it with `onOpenChange` — the library's one controlled-state
-      pattern, unchanged. */
+  /** Whether the sheet is open, for a controlled sheet. Use it with `onOpenChange`. */
   open?: boolean;
-  /** Uncontrolled starting state. Mutually exclusive with `open`. */
+  /** Whether the sheet is open at the start, for an uncontrolled sheet. Don't use it with `open`. */
   defaultOpen?: boolean;
   /**
-   * Fires on every open and close, controlled or not. `reason` names what did it (including
-   * `swipe`), `event` is the native event behind it, and `cancel()` refuses that one change —
-   * which is what makes "you have unsaved changes" writable.
+   * Called each time the sheet opens or closes. `details.reason` tells the cause, such as
+   * `swipe`, and `details.event` is the native event. Call `details.cancel()` to stop the change,
+   * for example to warn about unsaved changes.
    */
   onOpenChange?: (open: boolean, details: SheetOpenChangeDetails) => void;
-  /** The trigger and the content: a `<SheetTrigger>` and a `<SheetContent>`, in either order.
-      Sheet renders no DOM of its own. */
+  /** A `<SheetTrigger>` and a `<SheetContent>`, in either order. The sheet adds no elements of its own. */
   children?: React.ReactNode;
 };
 
@@ -203,12 +199,12 @@ export function Sheet({ side = "bottom", size: sizeProp, open, defaultOpen, onOp
 /* ── Trigger and Close: Dialog's two buttons ────────────────────────────────────────────── */
 
 type ButtonPartProps = Omit<React.ComponentPropsWithoutRef<"button">, "color" | "style" | "className"> & {
-  /** Usually a Kookie Button: `<SheetTrigger render={<Button/>}>Filters</SheetTrigger>`. */
+  /** The element to render as the button, usually a Kookie `Button`: `<SheetTrigger render={<Button/>}>Filters</SheetTrigger>`. */
   render?: RenderElement;
-  /** Whether the rendered element really is a `<button>`. It is inferred from `render`. */
+  /** Whether the rendered element is a native `<button>`. The default comes from `render`. */
   nativeButton?: boolean;
-  /** The button's words. They land on the `render` target when there is one, so the result is
-      one button carrying one label. */
+  /** The label of the button. If you set `render`, the label goes inside that element, so
+      the result is one button with one label. */
   children?: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
@@ -263,15 +259,15 @@ export function SheetClose({ render, nativeButton, ref, ...props }: SheetClosePr
 export type SheetContentProps = ComponentRefusals &
   Omit<React.ComponentPropsWithoutRef<"div">, "color" | "style" | "className"> & {
     /**
-     * The panel's whole content, and it belongs to you. Reach for a `SheetTitle` (without it the
-     * panel has no accessible name) and a `SheetClose`. The panel scrolls its own content when
-     * it is taller than the room, and a `ScrollArea` placed directly inside pins whatever sits
-     * above and below it.
+     * The content of the panel. Include a `SheetTitle`, because it gives the panel its
+     * accessible name. Also include a `SheetClose`. If the content is taller than the window,
+     * the panel scrolls. Put a `ScrollArea` directly inside to keep the content above and below it
+     * in place.
      */
     children?: React.ReactNode;
-    /** Your classes, appended. They land on the panel, not on the scrim or the viewport. */
+    /** Class names for the panel. They don't go on the backdrop. */
     className?: string;
-    /** Inline styles, merged last. They land on the panel, not on the scrim or the viewport. */
+    /** Inline styles for the panel. They don't go on the backdrop. */
     style?: React.CSSProperties;
     ref?: React.Ref<HTMLDivElement>;
   };
@@ -392,8 +388,8 @@ function SheetPopup({
 
 export type SheetTitleProps = ComponentRefusals &
   Omit<React.ComponentPropsWithoutRef<"h2">, "color" | "style" | "className"> & {
-    /** The panel's name, in words: the visible heading and the string a screen reader announces
-        the sheet by. Name the task, such as "Filters", never the widget. */
+    /** The title of the sheet. It is the visible heading and the name that a screen reader
+        announces. Name the task, such as "Filters", not the type of panel. */
     children?: React.ReactNode;
     className?: string;
     style?: React.CSSProperties;
@@ -413,8 +409,8 @@ export function SheetTitle({ children, ...props }: SheetTitleProps) {
 
 export type SheetDescriptionProps = ComponentRefusals &
   Omit<React.ComponentPropsWithoutRef<"p">, "color" | "style" | "className"> & {
-    /** The supporting line, said once. It is announced with the title, so a description that
-        restates the title is heard twice. */
+    /** A short description of the sheet. Screen readers announce it with the title, so don't
+        repeat the title here. */
     children?: React.ReactNode;
     className?: string;
     style?: React.CSSProperties;

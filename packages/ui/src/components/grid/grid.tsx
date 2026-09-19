@@ -4,12 +4,12 @@ import type { RadixReflexRefusals } from "../../system/refused.ts";
 import { Box, type BoxProps } from "../box/box.tsx";
 
 /**
- * Flexbox's axis vocabulary does not exist here — `direction` and `wrap` are flex concepts a
- * real grid ignores, and the silence is exactly what the named primitives turn into type
- * errors (§3). `align`/`justify` stay: they are shared by both layout models.
+ * Props for `Grid`. It has no `direction` or `wrap`, because a grid ignores them. `align` and
+ * `justify` work as on `Flex`.
  */
 export type GridProps = RadixReflexRefusals & Omit<BoxProps, "display" | "direction" | "wrap"> & {
-  /** Grid participates in text flow as `inline-grid`; the tier-switching `display` lives on Box. */
+  /** Set `inline-grid` to place the grid in a line of text. Defaults to `grid`. For a
+      `display` that changes with the width, use `Box`. */
   display?: "grid" | "inline-grid";
 };
 

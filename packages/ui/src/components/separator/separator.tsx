@@ -14,7 +14,7 @@ export type SeparatorProps = ComponentRefusals & Omit<
   // not API — the container decides it, the same sentence that refuses margin everywhere.
   "children" | "className"
 > & {
-  /** Dresses the line. Outer spacing is the caller's Box, never this (the non-negotiable). */
+  /** A class name for the line. For space around it, wrap it in a `Box` with `m`. */
   className?: string;
   ref?: React.Ref<HTMLDivElement>;
 };

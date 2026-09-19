@@ -15,24 +15,20 @@ export type CardProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"div">,
   "color" | "style" | "className"
 > & {
-  /** Sets the padding and the corner. A card has no height of its own to set. */
+  /** Sets the padding and the corner size. The card's height comes from its content. */
   size?: Size;
   /**
-   * Says whether something passes behind this card: a hero image, a canvas, a scrolling
-   * feed. A card in ordinary flow sits on the page, where glass blurs nothing and still costs
-   * a full backdrop read on every paint, so by default it renders solid whatever the theme's
-   * material is. Unset, it follows the surrounding `<Box backdrop>` region. A menu or a
-   * dialog always covers content, so neither needs this. The material itself is still the
-   * theme's: this prop cannot pick one.
+   * Set `backdrop` when content passes behind the card, such as an image, a canvas or a
+   * scrolling feed. The card then uses the theme's material. Without it, the card is solid.
+   * If you don't set it, the card follows the nearest `<Box backdrop>`. The theme chooses the
+   * material, not this prop.
    */
   backdrop?: boolean;
   /**
-   * Render into an element you already have, and let that element decide what the card does.
-   * An `<article>` stays inert. A button or a link presses, and takes the control state
-   * machine whole, disabled included. A `<label>` wrapped around a `Radio` or a `Checkbox`
-   * makes the whole card the target of that control, and the chosen card takes the selected
-   * edge. There is no `selected` prop and no `interactive` prop, because the element already
-   * says which of these it is.
+   * Renders the card as a different element, which decides what the card does. An `<article>`
+   * is static. A `<button>` or an `<a>` makes the card pressable, with hover, press and
+   * disabled states. A `<label>` around a `Radio` or a `Checkbox` makes the whole card select
+   * that control, and a selected card shows a selected edge.
    */
   render?: RenderElement;
   className?: string;

@@ -19,87 +19,58 @@ type ButtonBase = Omit<
   "color" | "style" | "className"
 > & {
   /**
-   * An index into the control family, never a measurement. One number sets five things at
-   * once: the height, the side padding, the corner, the icon box and the label's type step.
-   * Every control at the same index stands level with every other, and re-pricing a step is
-   * one config line rather than a sweep of call sites. Density and the pointer setting change
-   * what the index resolves to. They never change what it means. Rests at the app's index — the `size` on the nearest `Theme`, which is `2` unless the app says otherwise.
+   * Sets the size step of the button, from `1` to `4`.
+   * The step sets the height, the side padding, the corner, the icon size and the label size together.
+   * Controls with the same `size` stand level with each other. If you don't set it, the button
+   * uses the `size` of the nearest `Theme`, which is `2` by default.
    */
   size?: Size;
   /**
-   * What the action means, not what colour it is. `destructive` says what the press does, and
-   * the theme decides the colour, which is what lets a palette move without a call site being
-   * edited. Defaults to `neutral`, so nothing is accent by accident.
+   * Sets what the action means, and the theme picks the colour.
+   * For example, use `destructive` for an action that deletes something. The default is `neutral`.
    */
   tone?: Tone;
   /**
-   * How loud this action is against the actions beside it. It is the only ranking axis in the
-   * system, and there is no `variant`: one prop cannot mean colour and prominence at once.
-   *
-   * On a button it picks a fill. Loud is the tone's solid colour, medium is a soft wash, and
-   * quiet has no fill at all. Read a row of actions in the order the fills state. Defaults to
-   * `medium`, so a screen earns its one loud button by asking for it.
+   * Sets how prominent the button is next to the buttons beside it.
+   * `loud` uses the solid colour of the tone, `medium` uses a soft fill, and `quiet` has no fill.
+   * The default is `medium`. Use `loud` for the one main action on a screen.
    */
   emphasis?: Emphasis;
-  /** Adds a hairline. It is separate from loudness: quiet with a border is the old outline
-   *  button, and it reads half a step above quiet. */
+  /** Adds a thin border. A `quiet` button with a border looks a little more prominent than a
+   *  `quiet` button without one. */
   bordered?: boolean;
-  /** Blocks the press and shows a Spinner. The label never goes away. On an `iconOnly`
-   *  button the Spinner takes the glyph's place rather than sitting beside it, because there
-   *  the glyph IS the label. */
+  /** Shows a spinner and blocks the press while an action runs. The label stays visible. On an
+   *  `iconOnly` button, the spinner replaces the icon. */
   loading?: boolean;
   /**
-   * The action finished, and the button says so where the eyes already are: its glyph becomes
-   * a tick.
-   *
-   * THIS IS WHAT THE TOAST REFUSAL OWED (§29). A copy button is the one case where an
-   * operation genuinely has no visible result, and the answer is the control reporting its own
-   * outcome in place — not a window that appears somewhere else, too late to act on, and
-   * disappears.
-   *
-   * THE STATE IS YOURS AND THE DRAWING IS THE SYSTEM'S, which is §29's own rule for
-   * `onDismiss` one component over: a control that ran its own timer would forget on reload
-   * and would decide, for every app, how long "just now" lasts. You hold the boolean and clear
-   * it; the button draws the tick and moves it.
-   *
-   * IT DOES NOT BLOCK THE PRESS, and that is the difference from `loading`. Loading blocks
-   * because the action is still running; done means it finished, and pressing copy a second
-   * time is an ordinary thing to want. A button that goes dead for two seconds after
-   * succeeding is worse than either state.
-   *
-   * SAY THE WORD TOO. The tick is a drawing, and a drawing is silent: assistive technology
-   * announces a name, not a glyph. On a labelled button change the label (`Copy` → `Copied`);
-   * on an `iconOnly` one change `aria-label`. The system cannot write those words — they are
-   * in your language, not its.
-   *
-   * Passing it at all — even `false` — mounts the tick beside the glyph so the two can cross.
-   * A button with no done state renders exactly as it always has.
+   * Shows a tick in place of the icon to say that the action finished.
+   * Use it for actions with no other visible result, such as copy. You hold the value and clear
+   * it yourself. Unlike `loading`, it doesn't block the press. Also change the label or
+   * `aria-label` (for example, `Copy` to `Copied`), because screen readers don't announce the tick.
    */
   done?: boolean;
   /**
-   * The slot before the label, usually an icon. While `loading` is true the Spinner takes this
-   * slot, in the same box, so nothing shifts.
+   * Content before the label, usually an icon. While `loading` is true, the spinner takes this
+   * place, so nothing moves.
    */
   leading?: React.ReactNode;
-  /** The slot after the label: a chevron, a count, or a whole control. The Spinner never
+  /** Content after the label, such as a chevron, a count or a control. The spinner never
    *  replaces it. */
   trailing?: React.ReactNode;
   /** Keep focus on the button when it becomes disabled part-way through an interaction. */
   focusableWhenDisabled?: boolean;
   /**
-   * Whether the rendered element really is a `<button>`. It is inferred from `render`, and you
-   * almost never need to pass it. It exists because Base UI decides its whole accessibility
-   * contract from this value, and getting it wrong fails silently.
+   * Says whether the rendered element is a real `<button>`. The value comes from `render`, so
+   * you almost never need to set it. Set it only when `render` passes a component that renders
+   * a `<button>`, because a wrong value breaks accessibility without a warning.
    */
   nativeButton?: boolean;
-  /** Says that content passes behind this button, so the theme's material can show. Unset, it
-   *  follows the surrounding `<Box backdrop>` region. It cannot pick a material. It only says
-   *  there is something behind this to bend. */
+  /** Set `backdrop` when the button sits over other content, such as an image. The button then
+   *  uses the theme's material. If you don't set it, the button follows the nearest
+   *  `<Box backdrop>`. */
   backdrop?: boolean;
-  /** Render into an element you already have, such as a link or a `<summary>`. The appearance
-      and the behaviour stay this component's, and only the tag changes. Base UI decides its
-      accessibility contract from what the result is, which is inferred from what you pass
-      here. See `nativeButton` for the case that cannot be inspected. */
+  /** Renders the button as a different element, such as a link. The appearance and behaviour
+      stay the same. See `nativeButton` if you pass a component. */
   render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;
@@ -107,37 +78,24 @@ type ButtonBase = Omit<
 };
 
 /**
- * `iconOnly` squares the box and drops the label — the glyph goes in `children`, because for
- * this button the glyph IS the content, not an adornment beside one. That is why it is not
- * spelled through `leading`, which means "the thing to the left of a label" and would have to mean
- * two different things depending on a boolean.
- *
- * A separate `IconButton` component was the v1 answer and it failed in a specific way worth
- * recording: it was opt-in by memory, so both people and agents reached for `Button` and got a
- * pill where they wanted a square. One component cannot be forgotten.
- *
- * The union is the point of the prop, not decoration: an icon-only control has no visible text,
- * so without an accessible name a screen reader announces "button" and nothing else — the single
- * most common a11y defect in any component library. Here it does not compile. ENGINEERING §1.3:
- * types are the refusals, enforced.
+ * Props for a button that shows only an icon.
+ * Put the icon in `children`. You must also give an accessible name with `aria-label` or
+ * `aria-labelledby`, because the button has no visible text.
  */
 export type IconOnly =
   | {
-      /** Squares the box and drops the label. The glyph goes in `children`, and an accessible
-          name becomes REQUIRED — `aria-label` or `aria-labelledby` — because a control with no
-          visible text announces as "button" and nothing else. */
+      /** Makes the button square and shows only the icon in `children`. You must also set
+          `aria-label` or `aria-labelledby`. */
       iconOnly: true;
-      /** The button's name, in your own words. Required when `iconOnly` is set, because the
-          system cannot write what this particular button does. */
+      /** The name of the button for screen readers. Required when `iconOnly` is set. */
       "aria-label": string;
     }
   | {
-      /** Squares the box and drops the label. The glyph goes in `children`, and an accessible
-          name becomes REQUIRED — `aria-label` or `aria-labelledby` — because a control with no
-          visible text announces as "button" and nothing else. */
+      /** Makes the button square and shows only the icon in `children`. You must also set
+          `aria-label` or `aria-labelledby`. */
       iconOnly: true;
-      /** The id of the element that already names this button, when one is on the page. The
-          alternative to `aria-label`, and one of the two is required with `iconOnly`. */
+      /** The id of an element on the page that names this button. Use it instead of
+          `aria-label`. One of the two is required with `iconOnly`. */
       "aria-labelledby": string;
     };
 

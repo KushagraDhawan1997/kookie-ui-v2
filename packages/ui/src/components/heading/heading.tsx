@@ -11,20 +11,19 @@ export type HeadingProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"h2">,
   "color" | "style" | "className"
 > & {
-  /** A step on the same ramp `Text` reads. One type system, not two, so the index means the
-      same thing on both. It sets the type and nothing else: the document outline level is
-      `render`'s job, which is what lets a sidebar's `h2` sit at 4 while the hero's sits at 8.
-      Defaults to 6, the card-title step. */
+  /** The text size step, from `1` to `9`, the same steps as `Text`. Defaults to `6`, the size
+      for a card title. It doesn't change the heading level: use `render` for that. */
   size?: TypeSize;
-  /** Token names, never numbers. It rests at medium; semibold is the heaviest weight in the
-      system, because `bold` is refused. A heading gets its weight from the step it stands
-      on and the ink colour it wears, never from a heavier face. */
+  /** The font weight: `regular`, `medium` or `semibold`. Defaults to `medium`. There's no
+      `bold`: use a larger `size` to make a heading stronger. */
   weight?: Weight;
-  /** Picks an ink colour, the same three `Text` uses. Use it for a muted section label. */
+  /** The emphasis level of the text, which sets its colour, as on `Text`. Use `medium` for a
+      muted section label. */
   emphasis?: Emphasis;
-  /** A meaning for the ink, never a colour name. The theme resolves the colour. */
+  /** The meaning of the heading, which sets its colour family, such as `destructive`. */
   tone?: Tone;
-  /** Name the real outline level, such as `render={<h1/>}`, without moving the type step. */
+  /** Renders the heading as a different element. Use it to set the heading level, such as
+      `render={<h1/>}`. The text size doesn't change. Defaults to `<h2>`. */
   render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;

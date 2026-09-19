@@ -12,29 +12,20 @@ export type LinkProps = ComponentRefusals & Omit<
   "color" | "style" | "className"
 > & {
   /**
-   * A step on the shared ramp. Optional with no default, which is `Code`'s rule: a word
-   * inside a sentence has no size of its own. Unset, a link takes the font size, line height
-   * and letter spacing of the sentence it sits in, so a link inside `<Text size="2">` matches
-   * without the call site repeating the index. Set it only when the link stands alone.
+   * The text size step, from `1` to `9`. There's no default: unset, the link takes the text
+   * size of the sentence around it. Set it only when the link stands alone.
    */
   size?: TypeSize;
-  /** Token names, never numbers, and semibold is the heaviest. Unset with no default, for
-      the same reason `size` is: a link inside a sentence keeps that sentence's weight, and
-      the colour and the underline already set it apart. */
+  /** The font weight, by name. `semibold` is the heaviest. There's no default: unset, the
+      link takes the weight of the text around it. */
   weight?: Weight;
   /**
-   * A meaning, never a colour name. It moves the ink onto that family, so a destructive link
-   * is red words with a red underline.
-   *
-   * It defaults to `accent`, which is one of four places in the system where a component does
-   * not rest neutral. A link is the one run of text whose job is to be found inside a
-   * paragraph. The exception is about which family it picks, not about loudness, so the rule
-   * that a screen has one focal action is untouched.
+   * The meaning of the link, which sets the colour of the text and the underline. Defaults to
+   * `accent`, so that users can find the link in a paragraph. A `destructive` link is red.
    */
   tone?: Tone;
-  /** Render into the element you need, such as your framework's own link component or an
-      `<a>` carrying `target` and `rel`. `Link` supplies the type treatment. The element and
-      where it goes are yours. */
+  /** Renders the link as a different element, such as your framework's link component or an
+      `<a>` with `target` and `rel`. `Link` keeps its text styles. */
   render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;

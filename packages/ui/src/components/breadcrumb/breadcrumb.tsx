@@ -14,22 +14,19 @@ export type BreadcrumbProps = ComponentRefusals & Omit<
   "color" | "style" | "className"
 > & {
   /**
-   * A step on the shared ramp, and it reaches every crumb by inheritance — a bar of mixed
-   * steps is not a thing anyone means, which is Tabs' own sentence one family over. Defaults
-   * to 2, §15's label-and-meta rung: a breadcrumb tells you where you are, and where you are
-   * is not the thing you came to read.
+   * Sets the text size of every item in the breadcrumb. The default is `2`, the size for labels
+   * and secondary text.
    */
   size?: TypeSize;
   /**
-   * The landmark's accessible name, which is how a screen reader's landmark list tells this
-   * `<nav>` from the app's own. It is a WORD, so a non-English app states its own —
-   * `Notice`'s `dismissLabel` is the same prop for the same reason.
+   * The accessible name of the `<nav>` landmark. The default is "Breadcrumb". Screen readers
+   * use it to tell this navigation from others. Set it to translate the name.
    */
   label?: string;
-  /** Dresses the `<nav>` — the element you lay out. The list inside it is the system's. */
+  /** Adds a class to the outer `<nav>` element. */
   className?: string;
   style?: React.CSSProperties;
-  /** Reaches the `<nav>`. */
+  /** A ref to the outer `<nav>` element. */
   ref?: React.Ref<HTMLElement>;
 };
 
@@ -139,8 +136,8 @@ export type BreadcrumbLinkProps = ComponentRefusals & Omit<
   React.ComponentPropsWithoutRef<"a">,
   "color" | "style" | "className"
 > & {
-  /** Render into your framework's own link component, or an `<a>` carrying `target` and
-      `rel`. `BreadcrumbLink` supplies the treatment; where it goes is yours. */
+  /** Renders the link as your framework's own link component, or as an `<a>` with `target`
+      and `rel`. `BreadcrumbLink` keeps its appearance. */
   render?: RenderElement;
   className?: string;
   style?: React.CSSProperties;
@@ -223,32 +220,25 @@ export function BreadcrumbPage({ className, style, children, ref, ...props }: Br
 }
 
 /**
- * A level that was dropped from the path — and a way to reach it.
- *
- * A UNION, not four optional fields, so a row with nowhere to go cannot be written. That is
- * the same refusal `items` itself carries one level up: an ellipsis exists to open the levels
- * it hides, and a row that opens nothing is a control promising what it does not have. Written
- * as optional props it type-checked, rendered a focusable `menuitem` that took the highlight,
- * and dismissed the panel on press without going anywhere (ultracode audit 2026-09-01) — which
- * is verbatim the defect the whole component was reversed for, one level down. `tree.tsx`
- * diagnoses the same case in the same words and records the type refusal as owed; this is it.
+ * A level that is hidden from the path, shown as a row in the ellipsis menu. Each item needs a
+ * `label` and one of `href`, `render` or `onClick`, so every row goes somewhere.
  */
 export type BreadcrumbEllipsisItem = { label: string } & (
   | {
-      /** Where it goes. The row becomes an `<a>`, so it is a link a reader can open in a new
-          tab — which is what a place, as opposed to a verb, owes. */
+      /** The URL of the level. The row becomes an `<a>`, so people can open it in a new tab. */
       href: string;
       render?: never;
       onClick?: React.MouseEventHandler<HTMLElement>;
     }
   | {
-      /** Render the row into your framework's own link component instead. */
+      /** Renders the row as your framework's own link component. */
       render: RenderElement;
       href?: never;
       onClick?: React.MouseEventHandler<HTMLElement>;
     }
   | {
-      /** A place reached by code rather than by a URL. */
+      /** Called when the person picks the row. Use it for a level that your code opens
+          without a URL. */
       onClick: React.MouseEventHandler<HTMLElement>;
       href?: never;
       render?: never;
@@ -257,13 +247,12 @@ export type BreadcrumbEllipsisItem = { label: string } & (
 
 export type BreadcrumbEllipsisProps = ComponentRefusals & {
   /**
-   * The levels you dropped, in path order. REQUIRED, and that is the design: three dots say
-   * "there is more here", so an ellipsis that opens nothing is a control promising something
-   * it does not have. The component owns the menu so that no call site can ship a dead one.
+   * The hidden levels, in path order. The ellipsis button opens a menu of these levels. This
+   * prop is required, so the button always opens something.
    */
   items: BreadcrumbEllipsisItem[];
-  /** What the hidden stretch is called — the button's accessible name. A WORD, so a
-      non-English app states its own. */
+  /** The accessible name of the ellipsis button. The default is "More levels". Set it to
+      translate the name. */
   label?: string;
   className?: string;
   style?: React.CSSProperties;
