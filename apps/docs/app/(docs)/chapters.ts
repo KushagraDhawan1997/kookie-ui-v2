@@ -59,13 +59,13 @@ export const SECTIONS: readonly Section[] = [
     id: "start",
     title: "Getting started",
     blurb:
-      "What the system believes and the words it uses, then how to install it, theme it, and build your first screen.",
+      "Learn the principles and the words of the system. Then install it, set its theme and build your first screen.",
   },
   {
     id: "foundations",
     title: "Foundations",
     blurb:
-      "Colour, type, space, size, material, depth and motion. Every other decision in the system is built from these seven.",
+      "These chapters cover colour, type, space, size, material, depth and motion. Every other decision in the system is built from these seven.",
   },
   {
     id: "patterns",
@@ -126,7 +126,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Principles",
     section: "start",
     blurb:
-      "Components are organised by what they do, rather than by how they look. Two components can look alike and still be different things, so they are kept separate.",
+      "Kookie organises components by what they do, not by how they look. If two components look alike but do different jobs, they stay separate.",
     spec: [
       "THESIS §1",
       "THESIS §2",
@@ -144,7 +144,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Vocabulary",
     section: "start",
     blurb:
-      "These are the words Kookie uses for the different kinds of component, and a component's kind decides which props it takes. When a component doesn't have the prop you expected, its kind is usually the reason.",
+      "These are the words that Kookie uses for the different kinds of component. The kind of a component decides which props it takes. If a component doesn't have the prop that you expected, its kind is usually the reason.",
     spec: ["THESIS §2", "THESIS §3", "§9", "§10", "§11"],
     source: "start/vocabulary.mdx",
     Content: Vocabulary,
@@ -164,7 +164,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Theming",
     section: "start",
     blurb:
-      "A Theme sets eight values for your whole app. They control what the app is made of, how tight its spacing is, and whether its surfaces cast light.",
+      "A Theme sets eight values for your whole app. They control the material of the app, the density of its spacing, and whether its surfaces cast shadows.",
     spec: ["§5", "§12"],
     source: "start/theming.mdx",
     Content: Theming,
@@ -174,7 +174,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Quickstart",
     section: "start",
     blurb:
-      "Build a publish dialog from an empty file, and see how much of the screen you never had to describe.",
+      "Build a publish dialog from an empty file. You will see how much of the screen you did not have to describe.",
     spec: ["§3", "§15"],
     source: "start/quickstart.mdx",
     examples: [
@@ -190,7 +190,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "AI agents",
     section: "start",
     blurb:
-      "An AI agent writes this library well once it knows what the library refuses. Turn on the compiler messages, the lint rules, the rules file and the MCP server, and review what it produces against the composition rules.",
+      "An AI agent writes good code with this library when it knows which props and values the library does not accept. Turn on the compiler messages, the lint rules, the rules file and the MCP server. Then check the output of the agent against the composition rules.",
     spec: ["§47", "§48"],
     source: "start/agents.mdx",
     Content: Agents,
@@ -201,7 +201,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Colour",
     section: "foundations",
     blurb:
-      "Choose what a colour means, and the theme picks the exact value. You get ten families, text colours that always stay readable, and one setting for high contrast.",
+      "Choose the meaning of a colour, and the theme picks the exact value. You get ten colour families, text colours that always stay readable, and one setting for high contrast.",
     spec: ["§7", "§11"],
     source: "foundations/color.mdx",
     Content: Color,
@@ -241,7 +241,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Radius",
     section: "foundations",
     blurb:
-      "One word sets the corner radius for your whole app. Each kind of component then takes a corner that suits the box it is drawn on.",
+      "One word sets the corner radius for your whole app. Each kind of component then gets a corner that suits the size of its box.",
     spec: ["§6"],
     source: "foundations/radius.mdx",
     Content: Radius,
@@ -251,7 +251,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Materials",
     section: "foundations",
     blurb:
-      "Decide whether your app is made of solid panels or glass. One value covers the whole app, and it only takes effect where something can pass behind a surface.",
+      "Decide whether your app is made of solid panels or glass. One value applies to the whole app. It has an effect only where content can pass behind a surface.",
     spec: ["§10"],
     source: "foundations/materials.mdx",
     Content: Materials,
@@ -261,7 +261,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Depth",
     section: "foundations",
     blurb:
-      "No component picks its own shadow. You decide once whether your app has a light source, and every surface follows.",
+      "No component picks its own shadow. Decide one time whether your app has a light source, and every surface uses that decision.",
     spec: ["§5", "§11"],
     source: "foundations/depth.mdx",
     Content: Depth,
@@ -271,7 +271,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Motion",
     section: "foundations",
     blurb:
-      "Motion runs on two clocks. A colour change lands on the very first frame, and anything that moves follows a spring.",
+      "Motion uses two clocks. A colour change shows on the first frame, and anything that moves follows a spring.",
     spec: ["§8"],
     source: "foundations/motion.mdx",
     Content: Motion,
@@ -281,7 +281,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "States",
     section: "foundations",
     blurb:
-      "Every control shares one set of states: hover, press, focus, disabled and invalid. CSS handles all of them, so no JavaScript runs when someone points at a control.",
+      "Every control shares one set of states: hover, press, focus, disabled and invalid. CSS controls all of them, so no JavaScript runs when you point at a control.",
     spec: ["§8", "§9"],
     source: "foundations/states.mdx",
     Content: States,
@@ -291,7 +291,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Responsiveness",
     section: "foundations",
     blurb:
-      "Adapt your interface to the person using it, not only to the width of the window. Touch and mouse need different targets, and that is a separate question from reflowing a layout.",
+      "Adapt your interface to the person who uses it, not only to the width of the window. Touch and mouse need different target sizes. That is a different question from how a layout reflows.",
     spec: ["§2", "§17", "§18"],
     source: "foundations/responsiveness.mdx",
     Content: Responsiveness,
@@ -322,7 +322,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Modality",
     section: "patterns",
     blurb:
-      "Decide how much to interrupt someone. The choices run from a menu that borrows the pointer for a moment to an alert that stops everything for one question.",
+      "Decide how much to interrupt the person who uses your app. The smallest interruption is a menu, which is open for a moment. The largest is an alert, which stops all work for one question.",
     spec: ["§24", "§25"],
     source: "patterns/modality.mdx",
     Content: Modality,
@@ -332,7 +332,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Navigation",
     section: "patterns",
     blurb:
-      "The app frame is a pattern you build rather than a component you drop in, and the shape it takes follows from the window size.",
+      "You build the app frame as a pattern, not as one component that you add. The size of the window decides its shape.",
     spec: ["§26", "§27", "§18"],
     source: "patterns/navigation.mdx",
     Content: Navigation,
@@ -342,7 +342,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Feedback",
     section: "patterns",
     blurb:
-      "An interface has four things to say about its own work: it is busy, it has made progress, it finished, or it failed. Each one has a single right answer.",
+      "An interface tells you four things about its own work: it is busy, it has made progress, it finished, or it failed. Each one has one correct answer.",
     spec: ["§11", "§8"],
     source: "patterns/feedback.mdx",
     Content: Feedback,

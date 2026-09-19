@@ -108,7 +108,7 @@ export default function Home() {
             already about the title rather than about the mark. */}
         <Page
           title="Kookie User Interface"
-          description="A design system for React that covers the components, the rules behind them and the tools that check your screens against those rules. It gives you one way to say what something means, which is fewer choices than you may be used to and the reason screens built months apart still look like one product."
+          description="Kookie is a design system for React. It gives you components, the rules for how to use them, and tools that check your screens against those rules. It gives you one way to say what something means. You get fewer choices than you may be used to. Because of this, screens that you build months apart still look like one product."
         />
 
         {/* NO HEADING OVER THIS (2026-08-29, Kushagra: "Do I need 'Everything on this site'
@@ -213,9 +213,9 @@ export default function Home() {
                   Components
                 </Heading>
                 <Text size="3" emphasis="medium" render={<p />}>
-                  Every component in the package, grouped by family. Each page
-                  tells you what the component is, which props it takes, and
-                  what it will not do and why.
+                  This index shows every component in the package, grouped by
+                  family. Each page tells you what the component is, which props
+                  it takes, and what it does not do and why.
                 </Text>
               </Stack>
               <Flex>
@@ -237,10 +237,10 @@ export default function Home() {
                   Workbench
                 </Heading>
                 <Text size="3" emphasis="medium" render={<p />}>
-                  Build a screen by dragging real components into place, and
-                  copy whole patterns out of it. Every size and distance comes
-                  from the system&apos;s own scales, so you cannot draw what the
-                  code could not express.
+                  Use the builder to make a screen from real components. Drag each
+                  component into place, and copy full patterns out of it. Every
+                  size and distance comes from the scales of the system. Because
+                  of this, you cannot draw a layout that the code cannot make.
                 </Text>
               </Stack>
               <Stack gap="3" align="start">

@@ -23,7 +23,7 @@ export default function BlocksIndex() {
     <PageFrame width="48rem">
       <Page
         title="Blocks"
-        description="A block is a few files you copy into your app and own from then on. It arranges components you already have, and every colour and distance in it still comes from the package — so you can change how a block behaves without changing how your app looks."
+        description="A block is a small set of files that you copy into your app. After you copy them, the files are yours. A block arranges components that you already have, and every colour and distance in it still comes from the package. Thus you can change how a block behaves, and your app still looks the same."
       >
         <Stack gap="3" align="start">
           {BLOCKS.map((block) => (

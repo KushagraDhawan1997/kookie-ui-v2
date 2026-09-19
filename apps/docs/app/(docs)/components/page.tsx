@@ -41,7 +41,7 @@ export default function ComponentsIndex() {
     <PageFrame width="48rem">
       <Page
         title="Components"
-        description="Every component in the package, grouped by family. Each page tells you what the component is, which props it takes, and what it will not do and why."
+        description="This index shows every component in the package, grouped by family. Each page tells you what the component is, which props it takes, and what it does not do and why."
       >
         <Grid columns="repeat(auto-fit, minmax(20rem, 1fr))" gapX="7" gapY="9">
           {FAMILIES.map((family) => {
