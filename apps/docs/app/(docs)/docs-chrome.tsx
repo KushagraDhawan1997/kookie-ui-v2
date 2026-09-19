@@ -63,6 +63,7 @@ import { Wordmark } from "./wordmark";
 import { humanLabel } from "./label";
 import { buildSearchIndex } from "./search-index";
 import { ENTRIES } from "./components/registry";
+import { BLOCKS } from "../../blocks";
 import "./prose.css";
 
 /**
@@ -124,6 +125,11 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
   const components = ENTRIES.map((entry) => ({
     href: `/components/${entry.slug}`,
     label: humanLabel(entry.name),
+  }));
+
+  const blocks = BLOCKS.map((block) => ({
+    href: `/blocks/${block.slug}`,
+    label: block.title,
   }));
 
   return (
@@ -264,7 +270,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
               vertically, lost the bleed re-pad (15px of real x-overflow) and drew a
               horizontal bar over the footer. Measured 2026-08-26. The scroller must be the
               pane's DIRECT child for the pinned-stack and bleed machinery to see it. */}
-          <DocsNav sections={sections} components={components} />
+          <DocsNav sections={sections} components={components} blocks={blocks} />
 
           {/* The footer, floating with the header — one posture for the pane's chrome.
 

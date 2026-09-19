@@ -244,19 +244,16 @@ function NavRow({ href, label, current }: NavLink & { current: boolean }) {
  * A plain array rather than a prop, because unlike the chapters and the components these are
  * not derived from anything — there are two of them and they are named here.
  */
-const WORKBENCH: NavLink[] = [
-  { href: "/builder", label: "Builder" },
-  // Blocks sits here for now rather than earning a section of its own: with one block the
-  // index IS the section, and where the entry lives can be re-judged when there are several.
-  { href: "/blocks", label: "Blocks" },
-];
+const WORKBENCH: NavLink[] = [{ href: "/builder", label: "Builder" }];
 
 export function DocsNav({
   sections,
   components,
+  blocks,
 }: {
   sections: readonly NavSection[];
   components: readonly NavLink[];
+  blocks: readonly NavLink[];
 }) {
   const pathname = usePathname();
   const row = (link: NavLink) => (
@@ -287,6 +284,12 @@ export function DocsNav({
         <ShellNavGroup label="Components">
           {row({ href: "/components", label: "All components" })}
           {components.map(row)}
+        </ShellNavGroup>
+        {/* Blocks are a flat list like the components (2026-09-19, Kushagra): every block is
+            one press away, and the index keeps its row as the components' does. */}
+        <ShellNavGroup label="Blocks">
+          {row({ href: "/blocks", label: "All blocks" })}
+          {blocks.map(row)}
         </ShellNavGroup>
         <ShellNavGroup label="Workbench">
           {WORKBENCH.map(row)}
