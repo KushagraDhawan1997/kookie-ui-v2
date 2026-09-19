@@ -1,10 +1,10 @@
 Setting up takes three steps: adding the package, importing one stylesheet, and wrapping your
-app in a `Theme`. There's no config file or build plugin because every value is calculated
-beforehand and shipped as CSS custom properties.
+app in a `Theme`. There's no config file or build plugin. The package calculates every value
+beforehand and ships it as a CSS custom property.
 
 ## Add the package
 
-`@kookie-ui/react` is pre-release and isn't on npm yet, so for now you build it from the
+`@kookie-ui/react` is pre-release, and it isn't on npm yet. For now, build it from the
 repository:
 
 ```bash
@@ -14,7 +14,7 @@ pnpm install
 pnpm run build
 ```
 
-Then depend on it from an app in the same workspace:
+Then add it as a dependency of an app in the same workspace:
 
 ```json title="package.json"
 {
@@ -24,8 +24,8 @@ Then depend on it from an app in the same workspace:
 }
 ```
 
-Once the package is on npm, you'll install it with `pnpm add @kookie-ui/react` instead.
-The rest of the setup is the same. You need React 19 and React DOM 19.
+When the package is on npm, you'll install it with `pnpm add @kookie-ui/react`. The other
+setup steps stay the same. You need React 19 and React DOM 19.
 
 ## Import the stylesheet once
 
@@ -33,8 +33,11 @@ The rest of the setup is the same. You need React 19 and React DOM 19.
 import "@kookie-ui/react/styles.css";
 ```
 
-Import it at the root of your app. This single file contains everything: the colour and
-spacing values, the shared rules for controls, and the rules for every component.
+Import it at the root of your app. This one file contains all the styles:
+
+- the colour and spacing values
+- the shared rules for controls
+- the rules for each component
 
 ## Wrap your app in a Theme
 
@@ -47,13 +50,13 @@ export default function App({ children }: { children: React.ReactNode }) {
 }
 ```
 
-`Theme` holds your app's eight settings: appearance, radius, density, depth, material, size,
-contrast, and pointer. Everything inside it picks up those settings automatically. The
-[Theming](/start/theming) chapter explains what each one does.
+`Theme` holds eight settings for your app: appearance, radius, density, depth, material, size,
+contrast, and pointer. Each component inside it uses those settings. The
+[Theming](/start/theming) chapter explains each setting.
 
 ## Set the page background
 
-The library doesn't paint your page's background. Set it in your own CSS:
+The library doesn't paint the background of your page. Set it in your own CSS:
 
 ```css
 body {
@@ -65,19 +68,22 @@ body {
 }
 ```
 
-If your page is mostly cards, use `--color-ground` instead. It's slightly darker than the page
-in light mode and slightly lighter in dark mode, so the cards have something to sit on.
+If your page holds mostly cards, use `--color-ground` instead. In light mode, it's slightly
+darker than the page. In dark mode, it's slightly lighter. The cards then have a background
+that is different from their own fill.
 
 ## Set dark mode before the page paints
 
-Your server can't know whether to render light or dark, because a saved preference and the
-operating system's setting both live in the browser. If the server guesses, you get one of two
-problems: the page flashes the wrong colours, or React complains that the server and browser
-disagree.
+Your server can't know whether to render light or dark. A saved preference and the setting of
+the operating system are both in the browser. If the server guesses, you get one of two
+problems:
 
-The fix is a small script in your `<head>` that writes the answer onto `<html>` before
-anything paints. Then set your root `Theme` to `appearance="inherit"`, which tells it not to
-write an appearance of its own.
+- The page shows the wrong colours for a short time.
+- React reports that the server and the browser do not agree.
+
+To prevent this, put a small script in your `<head>`. The script writes the mode onto `<html>`
+before the page paints. Then set your root `Theme` to `appearance="inherit"`. This tells the
+Theme not to write an appearance of its own.
 
 ```html
 <script>
@@ -106,22 +112,22 @@ write an appearance of its own.
 </html>
 ```
 
-Two details in that script matter, and both are easy to get wrong.
+Two details in that script are important, and it's easy to get them wrong.
 
-**Put the `try` around the read, not around everything.** Some browsers throw an error when
-you read `localStorage`. Safari throws when someone blocks all cookies. If you wrap the
-whole function in one `try`, that error also skips the two `setAttribute` calls, and someone
-with a dark operating system gets a light page. Reading the media query never throws, so guard
-the read and leave the writes outside.
+**Put the `try` around the read, not around the whole function.** Some browsers throw an error
+when you read `localStorage`. For example, Safari throws when a person blocks all cookies. If
+one `try` wraps the whole function, the error also skips the two `setAttribute` calls. Then a
+person with a dark operating system gets a light page. The media query never throws an error.
+So put the `try` around the read only, and keep the writes outside it.
 
-**Write both attributes onto the same element.** The high-contrast colours only apply when
-`data-appearance` and `data-contrast` sit on one element together. If your script takes over
-the appearance, it has to take over the contrast too.
+**Write both attributes onto the same element.** The high-contrast colours apply only when
+`data-appearance` and `data-contrast` are on the same element. If your script sets the
+appearance, it must also set the contrast.
 
 ## Point the font tokens at your fonts
 
-The library doesn't ship any font files. It reads three tokens, so point them at whatever
-fonts you serve:
+The library doesn't ship font files. It uses three font tokens. Set them to the fonts that
+your app serves:
 
 ```css
 :root {
@@ -131,7 +137,7 @@ fonts you serve:
 }
 ```
 
-If you don't set them, they fall back to the system fonts.
+If you don't set them, the tokens use the system fonts.
 
 ## Check that it worked
 
@@ -151,4 +157,4 @@ export function Smoke() {
 ```
 
 If the card has rounded corners and the button shows your accent colour, the stylesheet and
-the Theme are both working.
+the Theme both work.

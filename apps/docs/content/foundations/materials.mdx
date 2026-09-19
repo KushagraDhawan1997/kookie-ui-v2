@@ -1,8 +1,8 @@
-Material is what your app is made of. It's one setting on the Theme with four values, and no
-component picks its own.
+Material is what your app is made of. It's one setting on the Theme. It has four values, and no
+component picks its own value.
 
-A material keeps a foreground readable over whatever passes behind it, so it only takes effect
-where something passes behind a panel.
+A material keeps a foreground readable over the content that passes behind it. So it only takes
+effect where content passes behind a panel.
 
 ## One material for the whole app
 
@@ -12,23 +12,24 @@ where something passes behind a panel.
 </Theme>
 ```
 
-The four values are `solid`, `thin`, `regular`, and `thick`, and `solid` is what you get by
-default. Solid is the value where light stops passing through.
+The four values are `solid`, `thin`, `regular`, and `thick`. The default is `solid`. At `solid`,
+no light passes through.
 
-One value covers everything, because every panel in one app is made of the same material. A
-dialog still feels heavier than a menu, because it covers far more of the screen and dims
-everything behind it. The same glass over 900 pixels of app hides more than the same glass
-over a 170-pixel menu.
+One value covers the whole app, because every panel in one app is made of the same material. A
+dialog still feels heavier than a menu. It covers far more of the screen, and it dims
+everything behind it. The same glass hides more over 900 pixels of app than over a 170-pixel
+menu.
 
-No component takes a `material` prop. To change it for one part of your app, nest a
-`<Theme material>`. That's the same escape every other setting uses.
+No component takes a `material` prop. To change the material for one part of your app, nest a
+`<Theme material>`. Every other Theme setting uses the same method.
 
 ## Glass needs something behind it
 
-The Theme sets the value. Where you place things decides where it takes effect.
+The Theme sets the value. The place where you put a component decides where the value takes
+effect.
 
-Glass over a plain background blurs nothing at all, but it still reads the background on every
-repaint. So the material only reaches components you have marked as sitting over something.
+Glass over a plain background blurs nothing. But it still reads the background on every
+repaint. So the material only reaches the components that you mark as sitting over content.
 
 Mark the place, not each control.
 
@@ -48,48 +49,63 @@ Mark the place, not each control.
 </Theme>
 ```
 
-One `backdrop` marks the toolbar. Every control inside it becomes glass, keeps its own
-loudness, and shows the artwork underneath.
+One `backdrop` marks the toolbar. Every control inside the toolbar becomes glass. Each control
+keeps its own loudness and shows the artwork underneath.
 
-`backdrop` is a boolean. It says where a panel sits. It never says how thick the glass is.
+`backdrop` is a boolean. It tells where a panel sits. It never tells how thick the glass is.
 
-`Card`, `Button`, `TextField`, `TextArea`, `SelectTrigger`, `SegmentedControl`, `Notice`,
-`Chip`, and `Composer` each take `backdrop` when you want a single control to be glass.
-`backdrop={false}` marks a smaller region as plain again.
+To make a single control glass, set `backdrop` on it. These components take the prop:
 
-The five `Shell` panels take it too: `ShellHeader`, `ShellRail`, `ShellSidebar`,
+- `Card`
+- `Button`
+- `TextField` and `TextArea`
+- `SelectTrigger`
+- `SegmentedControl`
+- `Notice`
+- `Chip`
+- `Composer`
+
+Set `backdrop={false}` to mark a smaller region as plain again.
+
+The five `Shell` panels also take `backdrop`: `ShellHeader`, `ShellRail`, `ShellSidebar`,
 `ShellInspector`, and `ShellBottom`. A sidebar that floats over a canvas is the clearest case
-for glass in a whole app. `ShellContent` doesn't take it: the work area is the bottom of the
-stack, so nothing ever passes behind it. A vibrant region inside the work area is still yours
-to build. Put a `Box backdrop` or a `Card backdrop` in it, because a solid panel can hold
-glass.
+for glass in an app.
 
-A panel doesn't need the prop once it becomes a drawer. On a narrow window, a nav column
-slides over the page with a scrim under it, the same as a dialog, so it takes the theme's
-material on its own. The prop matters while the panel stands in the frame.
+`ShellContent` doesn't take the prop. The work area is at the bottom of the stack, so nothing
+passes behind it. You can still build a vibrant region inside the work area. Put a
+`Box backdrop` or a `Card backdrop` in it, because a solid panel can hold glass.
 
-The material resolves in this order: a panel that covers something, then the component's own
-prop, then the region it sits in, then `solid`. A panel that covers the page marks itself,
-because something is always behind it.
+When a panel becomes a drawer, it doesn't need the prop. On a narrow window, a nav column
+slides over the page with a scrim under it, like a dialog. So the drawer takes the theme's
+material automatically. The prop only has an effect while the panel stands in the frame.
 
-An unmarked control sitting in ordinary page flow stays solid and costs you nothing. That's
-the performance reason for the rule: a blur filter on something with nothing behind it
-re-reads the page on every paint and produces no visible result.
+The system resolves the material in this order:
+
+1. A panel that covers something.
+2. The component's own prop.
+3. The region that the component sits in.
+4. `solid`.
+
+A panel that covers the page marks itself, because content is always behind it.
+
+An unmarked control in the ordinary page flow stays solid and costs you nothing. This is the
+performance reason for the rule. A blur filter with nothing behind it re-reads the page on
+every paint, and it produces no visible result.
 
 ## Glass doesn't stack
 
-A panel that paints translucent glass makes everything inside it solid. Those children take
-the same transparency and add no blur of their own. You can't put glass on glass. The system
-stops you, so it's not a rule you have to remember.
+A panel that paints translucent glass makes everything inside it solid. Its children take the
+same transparency and add no blur of their own. You can't put glass on glass. The system
+prevents it, so you don't have to remember this rule.
 
-The reason is physical. A panel looks like glass because it blurs what's behind it. On top
-of another panel, nothing is left to blur, so the child reads the background again, blurs an
-already-blurred image, and ends up looking like a sticker.
+The reason is physical. A panel looks like glass because it blurs the content behind it. On top
+of another panel, no content is left to blur. The child reads the background again and blurs
+an image that is already blurred. The result looks like a sticker.
 
-A solid panel also resets the region, so an unmarked control on an opaque card stays solid.
+A solid panel also resets the region. So an unmarked control on an opaque card stays solid.
 
-A solid card can still hold glass. If you ask for it explicitly inside a card, you get it,
-because a map or a feed inside a card really does have content passing behind it.
+A solid card can still hold glass. If you ask for glass explicitly inside a card, you get it. A
+map or a feed inside a card does have content that passes behind it.
 
 ```tsx
 <Card>
@@ -100,10 +116,10 @@ because a map or a feed inside a card really does have content passing behind it
 </Card>
 ```
 
-A `<Theme>` resets it too, and that's why menus stay correct. A menu opened from a glass
-card is glass again, because it paints over the page rather than inside the card.
+A `<Theme>` also resets the region. This keeps menus correct. A menu that opens from a glass
+card is glass again, because the menu paints over the page and not inside the card.
 
-Building your own panel takes one line:
+To build your own panel, write one line:
 
 ```tsx
 const material = useMaterial({ backdrop: true });
@@ -112,30 +128,37 @@ return <div className="kui-surface" data-material={material} />;
 
 ## Glass uses the component's own colour
 
-A material changes a fill, and it isn't a fill itself. It takes the colour the component
-would have painted, mixes it toward transparent, and adds the blur. It never picks a colour of
-its own.
+A material changes a fill. It isn't a fill itself. It takes the colour that the component
+would paint, mixes it toward transparent, and adds the blur. It never picks a colour of its
+own.
 
-Your other two choices survive. A loud accent button under glass is translucent accent. A medium button is a soft tint. A quiet button is blur with no fill at all. Each one
-keeps its own label colour, because the fill is still its own fill.
+Your tone and your emphasis stay the same. Under glass, a loud accent button is translucent
+accent. A medium button is a soft tint. A quiet button is blur with no fill. Each button keeps
+its own label colour, because the fill is still its own fill.
 
 ## When to use glass
 
-Use glass where content genuinely passes behind a panel: a toolbar over a canvas, a panel over a
-hero image, chrome that content scrolls underneath. Fixed chrome is the best case, because a
-blurred element that moves has to re-read its background on every frame.
+Use glass where content passes behind a panel. For example:
 
-Don't use it over a solid surface. It blurs nothing, it looks like a smudge, and it costs a
-background read per element.
+- a toolbar over a canvas
+- a panel over a hero image
+- chrome that content scrolls under
 
-Every glass panel costs a background read. To avoid that cost in one region, set
+Fixed chrome is the best case. A blurred element that moves must read its background again on
+every frame.
+
+Don't use glass over a solid surface. It blurs nothing, and it looks like a smudge. Each element
+also costs a background read.
+
+Every glass panel costs a background read. To prevent that cost in one region, set
 `material="solid"` on a nested Theme.
 
-Two accessibility settings change the glass without you doing anything. If someone has asked for
-reduced transparency, every panel becomes solid and the filter is removed. If someone has asked
-for higher contrast, each value becomes more opaque. The thinnest moves furthest, so the
-three values stay clearly different from each other.
+Two accessibility settings change the glass automatically:
+
+- If a person asks for reduced transparency, every panel becomes solid. The system removes the
+  filter.
+- If a person asks for higher contrast, each value becomes more opaque. The thinnest value moves
+  furthest, so the three values stay clearly different.
 
 The highlight along the top edge stays in both cases. It's a gradient inside the panel, so it
-can't lower anyone's contrast, and it shows that the panel is a physical thing catching
-light.
+can't lower the contrast. It shows that the panel is a physical thing that catches light.

@@ -1,17 +1,17 @@
-A form is a set of labelled values and one action that saves them. This system takes three
-decisions out of your hands: fields don't rank against each other, checkboxes don't carry
-their own labels, and validity isn't a prop. Everything else is yours: the words, the order,
-and the grouping.
+A form is a set of labelled values and one action that saves them. The system makes three
+decisions for you. Fields don't rank against each other. Checkboxes don't carry their own
+labels. Validity isn't a prop. You make all the other decisions: the words, the order and the
+grouping.
 
 ## The label is a separate element
 
-A label is prose, and `Text` already handles every size, weight, and colour prose needs. So no
-control here takes a `label` prop. Adding one would mean building a second, smaller text system
-inside a checkbox.
+A label is prose. `Text` already gives prose every size, weight and colour that it needs. For
+this reason, no control takes a `label` prop. A `label` prop would put a second, smaller text
+system inside a checkbox.
 
-Because the label is a sibling, something has to tie the two together. `Field` does that. It
-supplies the name, the description, and the error message, and wires all three to the control,
-so you write the words and never the plumbing.
+The label is a sibling of the control, so something must connect the two. `Field` connects
+them. It supplies the name, the description and the error message. It also connects all three
+to the control. You write the words, and `Field` does the wiring.
 
 ```tsx
 <Field>
@@ -21,17 +21,19 @@ so you write the words and never the plumbing.
 </Field>
 ```
 
-The order is fixed: label, control, description, error. The label sits on the control it names,
-and everything about that control gathers underneath it.
+The order is fixed: label, control, description and error. The label is directly on the
+control that it names. All the other text about that control is below it.
 
-You only write the association yourself outside a Field: point `htmlFor` at an `id`, or wrap the
-control in a `<label>`. Don't rely on things being near each other.
+Outside a `Field`, you must write the connection yourself. Point `htmlFor` at an `id`, or put
+the control inside a `<label>`. Do not use position alone to connect a label to a control.
 
-**A placeholder is not a label.** It disappears the moment somebody types, and it's grey. Use
-it for a real example of the value, not for the name of the field.
+**A placeholder is not a label.** It disappears when a person starts to type, and its colour is
+grey. Use a placeholder for a real example of the value. Do not use it for the name of the
+field.
 
-A checkbox or radio sits beside its label rather than containing it, and the row between them
-sets the distance. `FieldItem` is that row. Use one per option.
+A checkbox or a radio sits next to its label. It does not contain the label. The row that
+holds the two sets the distance between them. `FieldItem` is that row. Use one `FieldItem` for
+each option.
 
 ```tsx
 <Field>
@@ -53,22 +55,22 @@ sets the distance. `FieldItem` is that row. Use one per option.
 </Field>
 ```
 
-A label inside an item names the control beside it, and a description inside an item explains
+A label inside an item names the control next to it. A description inside an item explains
 that one option.
 
 ## Fields don't rank
 
-`TextField` and `TextArea` take no `emphasis` or `tone`, and that absence is deliberate.
-Loudness ranks one action against another, and every field is equally there to be filled in.
+`TextField` and `TextArea` take no `emphasis` or `tone`. This is intentional. Loudness ranks
+one action against another action. Every field has the same job: a person fills it in.
 
-Show importance in the label, in the order of the form, and in what you leave out. Mark a
-required field with `required` on the control, and repeat that in the label if the form is long.
-Only the buttons at the end rank against each other.
+Show importance with the label, with the order of the form, and with what you leave out. To
+mark a field as required, set `required` on the control. If the form is long, also say it in
+the label. Only the buttons at the end rank against each other.
 
 ## One button saves the form
 
-Use one loud button per screen, and give it to the thing the form is for. Everything else is
-medium or quiet.
+Use one loud button on each screen. Give it to the action that the form is for. Make all the
+other buttons medium or quiet.
 
 ```tsx
 <Card size="3">
@@ -99,33 +101,36 @@ medium or quiet.
 </Card>
 ```
 
-Three gaps carry the structure there: 3 from a label to its field, 5 between rows of the
-form, and 6 between the title, the form, and the buttons.
+In that example, three gaps show the structure:
 
-Put the buttons at the end and align them to the end edge. A single button with nothing
-beside it can go full width instead.
+- gap 3 from a label to its field
+- gap 5 between the rows of the form
+- gap 6 between the title, the form and the buttons
 
-Write what the button does. "Create project", not "Submit". Then keep that word through the rest
-of the flow.
+Put the buttons at the end, and align them to the end edge. If there is only one button, you
+can make it full width.
+
+Write what the button does. Write "Create project", not "Submit". Then use the same word
+through the remaining steps of the flow.
 
 ## Group with space
 
-Put related rows closer together than unrelated ones. The house intervals are gap 3 from a label
-to its field, gap 5 between groups, and gap 6 between sections.
+Put related rows closer together than unrelated rows. The standard gaps are gap 3 from a label
+to its field, gap 5 between groups and gap 6 between sections.
 
-Keep the gap inside a group at least two steps below the gap around it. A form where every
-gap is the same number looks like one undifferentiated column.
+Keep the gap inside a group at least two steps smaller than the gap around it. If every gap in
+a form is the same number, the form looks like one column with no groups.
 
-Don't add a Separator or a Card to do work the spacing has already done. A container groups,
-and so does distance, so using both says it twice. Add a line only where distance genuinely
-can't do the job. A long settings list is the real case: the groups are already at the section
-interval, and something still has to divide them.
+Do not add a `Separator` or a `Card` where the spacing already makes the group. A container
+makes a group, and distance also makes a group. If you use both, you say the same thing two
+times. Add a line only where distance cannot do the job. A long settings list is the real
+case. Its groups already use the section gap, and something must still divide them.
 
 ## Validity is a state, not a prop
 
-There's no `invalid` prop, because nothing chooses to *look* invalid. The system reads
-`aria-invalid`, and Base UI's `data-invalid`, which a control inside a Field gets
-automatically.
+There is no `invalid` prop, because nothing chooses to look invalid. The system reads
+`aria-invalid`. It also reads the `data-invalid` attribute from Base UI. A control inside a
+`Field` gets that attribute automatically.
 
 ```tsx
 <TextField
@@ -135,30 +140,34 @@ automatically.
 />
 ```
 
-A ticked checkbox is a resting appearance. Being invalid is a state, and the state wins. So
-a ticked checkbox that is also invalid looks invalid. Disabled beats both.
+A ticked checkbox is a resting appearance. Invalid is a state, and a state has priority over a
+resting appearance. So if a ticked checkbox is also invalid, it looks invalid. Disabled has
+priority over both.
 
-The border and the ring are the system's half of an error message. The words are yours. Colour
-on its own isn't enough (WCAG 1.4.1), so a red field needs words beside it.
+The border and the focus ring are the part of the error message that the system supplies. You
+supply the words. Colour alone is not sufficient (WCAG 1.4.1). A red field must have words next
+to it.
 
 ## Use TextArea for a paragraph
 
-Reach for `TextArea` when the value is prose somebody will read back: a description, a note, an
-address. Its padding above and below matches the padding at the sides, and `rows` sets how many
-lines tall it starts. At the default `full` radius the sides take a little more, because a
-round corner cuts into text running sideways and not into text stacked above and below it.
+Use `TextArea` when the value is prose that a person will read again. Examples are a
+description, a note and an address. Its padding above and below is the same as its padding at
+the sides. `rows` sets how many lines tall it is at the start. At the default `full` radius,
+the sides get a little more padding. A round corner cuts into text that runs from side to side.
+It does not cut into text above and below.
 
-There's no `cols`. Width belongs to the layout that owns the row. The `cols` attribute
-counts characters, predates CSS, and doesn't work well with it.
+There is no `cols` prop. The layout that contains the row sets the width. The `cols` attribute
+counts characters. It is older than CSS, and it does not work well with CSS.
 
-A message composer isn't a big TextArea. A box that needs a toolbar, attachments, a send button
-and a growth rule is its own component, and building it out of a TextArea means bolting parts
-onto a field.
+A message composer is not a large `TextArea`. A box that needs a toolbar, attachments, a send
+button and a rule for growth is a different component. If you make it from a `TextArea`, you
+must attach parts to a field that was not made for them.
 
 ## Helper text has to change a decision
 
-Write helper text that carries what the label can't: a consequence, a limit, a scope, or the
-reason a control is disabled. Delete any line that restates what you can already see.
+Write helper text that gives information the label cannot give. Examples are a consequence, a
+limit, a scope, or the reason that a control is disabled. Delete any line that repeats what a
+person can already see.
 
 ```tsx
 // Filler. The label above already said this.
@@ -168,8 +177,8 @@ reason a control is disabled. Delete any line that restates what you can already
 <Text size="2" emphasis="medium">Receipts and billing notices go here.</Text>
 ```
 
-Set helper text at size 2 in the muted colour, the same size as the label. A helper line two
-steps smaller than everything around it looks like a mistake.
+Set helper text at size 2 in the muted colour. This is the same size as the label. If a helper
+line is two steps smaller than the text around it, it looks like a mistake.
 
-Don't drop to size 1 for it. The muted and faint colours already say "this matters less" at a
-size people can read.
+Do not use size 1 for helper text. The muted and faint colours already say "this is less
+important", at a size that people can read.

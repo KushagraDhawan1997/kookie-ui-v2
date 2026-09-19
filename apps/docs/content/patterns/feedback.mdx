@@ -1,48 +1,49 @@
-An interface has four things to say about work it's doing: that it started, how far it has
-got, how it ended, and what went wrong. Each has one right answer. The usual mistake is
-picking the wrong answer, not styling it badly.
+An interface has four things to tell you about work that it does. It tells you that the work
+started, how much is done, how the work ended, and what went wrong. Each of these has one
+correct answer. The usual mistake is to choose the wrong answer, not to give it a bad style.
 
 ## Four things to say
 
 | what you say | when | the answer |
 |---|---|---|
-| Busy | It started and you can't say how long | `Spinner`, or `loading` on the button that started it |
-| Progress | You know the fraction | `Progress` with a `value` |
-| Outcome | It finished | Words where the action was, in the tone that names the result |
-| Error | It failed, or the input was wrong | The control's invalid state, plus a sentence |
+| Busy | The work started, and you cannot say how long it will take | `Spinner`, or `loading` on the button that started it |
+| Progress | You know the fraction that is done | `Progress` with a `value` |
+| Outcome | The work is finished | Words where the action was, in the tone that names the result |
+| Error | The work failed, or the input was wrong | The invalid state of the control, and a sentence |
 
-Outcome is the one row with no component. The last section says what to build instead.
+Outcome is the only row that has no component. The last section tells you what to build
+instead.
 
 ## A busy button keeps its label
 
-Set `loading` on a `Button`. It swaps its leading icon for a spinner, reusing the same box so
-nothing shifts, and the label stays. A button that stops saying what it does is worse than one
-that changes width.
+Set `loading` on a `Button`. The button replaces its leading icon with a spinner. The spinner
+uses the same box, so nothing moves. The label stays. A button that stops saying what it does
+is worse than a button that changes width.
 
 ```tsx
 <Button emphasis="loud" loading={saving}>Save changes</Button>
 ```
 
-A loading button keeps focus and its place in the tab order, announces that it's busy, and
-can't be activated again. The spinner inside it is hidden from screen readers on purpose,
-because the button is already saying it.
+A loading button keeps focus and its position in the tab order. It announces that it is busy,
+and a person cannot activate it again. The spinner inside it is hidden from screen readers
+intentionally, because the button already gives that information.
 
-Use a standalone `Spinner` for a region with nothing to show yet. It takes its colour from the
-text around it and the icon size of whatever it sits in, so it needs neither a colour nor a size
-from you.
+Use a standalone `Spinner` for an area that has nothing to show yet. It gets its colour from
+the text around it. It gets its size from the icon size of the element that contains it. So you
+do not give it a colour or a size.
 
 ## Progress when you know the fraction
 
-`Progress` is a track with a fill in it. Give it a number and it shows a fraction. Give it
-`value={null}` and it sweeps instead. The prop is required, so you have to say "I don't know
-how far along this is" rather than arrive there by forgetting.
+`Progress` is a track with a fill in it. If you give it a number, it shows a fraction. If you
+give it `value={null}`, it shows a moving sweep. The prop is required. So you must say "I do not
+know how much is done". You cannot get that result because you forgot the prop.
 
-`Progress` has no `size`, and that absence is a decision. The nearest scale sizes a track as a
-fraction of a slider's handle, and a bar has no handle. Its width comes from whatever contains
-it, so the Box that owns the row decides.
+`Progress` has no `size`, and this is intentional. The nearest scale sets the size of a track as
+a fraction of a slider handle. A bar has no handle. The container of the bar sets its width. So
+the `Box` that contains the row decides.
 
-All three answers compose into one panel: the button says it started, the bar says how far, and
-the words say how it ended.
+The three answers go together in one panel. The button tells you that the work started. The bar
+tells you how much is done. The words tell you how the work ended.
 
 ```tsx
 <Card size="3">
@@ -65,33 +66,33 @@ the words say how it ended.
 </Card>
 ```
 
-Notice the outcome replaces the bar exactly where the bar was, rather than appearing somewhere
-else on the screen.
+The outcome replaces the bar in the same position. It does not appear in a different part of
+the screen.
 
-Give every bar a name. A bar with no accessible name and no heading wired to it reports a number
-nobody can read. And use a real fraction wherever you have one. A sweeping bar only says
-that something is happening.
+Give each bar a name. If a bar has no accessible name and no heading connected to it, it gives
+a number that nobody can understand. Use a real fraction when you have one. A moving sweep only
+tells you that something is in progress.
 
 ## Reduced motion
 
-Everything else here stops moving when someone asks their operating system for reduced motion. A
-spinner and a sweeping progress bar are the exception. Their movement doesn't report a state
-change. It reports that work is still happening. A stopped spinner looks finished, so they
-slow down instead.
+A person can ask their operating system for reduced motion. Then all other motion here stops.
+A spinner and a moving progress bar are the exception. Their movement does not show a change of
+state. It shows that the work continues. A stopped spinner looks finished, so these two move
+more slowly and do not stop.
 
-Carry that distinction into anything you build. A shimmer, a pulsing dot, and a sweeping bar
-all carry their message by moving. A hover colour, a panel opening, and a focus ring landing
-are all responses to a change, so they stop.
+Use the same rule in everything that you build. A shimmer, a pulsing dot and a moving bar all
+give their message with movement, so they continue to move. A hover colour, a panel that opens
+and a focus ring that appears are all responses to a change, so they stop.
 
 ## Use a status tone for what it means
 
-Four names carry meaning: `success`, `warning`, `info`, and `destructive`. Four more are
-colour as data: `blue`, `green`, `orange`, and `amber`. Use the second set when the colour is the
-data: a chart series, a project label, a category.
+Four tone names carry a meaning: `success`, `warning`, `info` and `destructive`. Four other tone
+names are colour as data: `blue`, `green`, `orange` and `amber`. Use the second set when the
+colour is the data. Examples are a chart series, a project label and a category.
 
-`success` and `green` render the same colour today and are still two separate families,
-because you have to be able to correct each meaning on its own. Don't write `green` when you
-mean success. It looks right today and goes wrong when either family's value changes.
+Currently, `success` and `green` show the same colour. They are still two separate families,
+because you must be able to change each meaning independently. Do not write `green` when you
+mean success. It looks correct now. It becomes wrong when the value of either family changes.
 
 ```tsx
 // The tone people reach for
@@ -101,26 +102,27 @@ mean success. It looks right today and goes wrong when either family's value cha
 <Text size="2" tone="success">Deployed</Text>
 ```
 
-Keep the count down. Four or more data tones on one surface look like a palette rather than
-a set of meanings. Three look like a legend.
+Use a small number of data tones. Four or more data tones on one surface look like a palette,
+not a set of meanings. Three look like a legend.
 
 ## Colour is never the whole message
 
-Colour on its own isn't enough (WCAG 1.4.1), so every status the system paints is only half
-a message. The border, the ring, and the text colour are the system's half. You write the
+Colour alone is not sufficient (WCAG 1.4.1). So each status that the system paints is only half
+of a message. The system supplies the border, the focus ring and the text colour. You write the
 sentence.
 
-A red field with nothing beside it fails this, and so do a green dot with no label and a chart
-keyed only by hue. All three fail hardest for the people who can't see the colour.
+A red field with nothing next to it does not obey this rule. A green dot with no label does not
+obey it. A chart that shows its keys only with colour does not obey it. These three examples are
+worst for people who cannot see the colour.
 
-In an error, write what to do next. Colour can't carry that.
+In an error, tell the person what to do next. Colour cannot give that information.
 
 ## Use a Notice for something that stays true
 
-`Notice` is for a condition that is true right now. Nobody caused it, and it lasts as long as the
-condition does. It takes up layout space and never floats, so it can't cover the thing it's
-telling you about. It rests neutral, because the tone says what kind of thing it is rather than
-how loudly to say it.
+Use `Notice` for a condition that is true now. Nobody caused the condition. The notice stays
+while the condition stays. It takes space in the layout and never floats. So it cannot cover
+the thing that it tells you about. Its resting colour is neutral. The tone tells you the kind of
+message, not how loud to make it.
 
 ```tsx
 <Notice
@@ -132,34 +134,34 @@ how loudly to say it.
 </Notice>
 ```
 
-`action` holds one control that fixes the condition. `onDismiss` adds a dismissal that only
-acknowledges it. Fixing and acknowledging are different jobs, so they're different props.
-`onDismiss` is a callback with no state of its own, because a component can't remember a
-dismissal across a page reload. Your app has to.
+`action` holds one control that fixes the condition. `onDismiss` adds a close control that only
+acknowledges the condition. A fix and an acknowledgement are different jobs, so they are
+different props. `onDismiss` is a callback with no state of its own. A component cannot
+remember a dismissal after the page reloads, so your app must remember it.
 
 ## There is no toast
 
-`Toast` is refused and won't ship. Anything that deserves attention should get it *before*
-it runs, and anything that doesn't deserve attention doesn't need a report afterwards.
+`Toast` is refused and will not ship. If something needs attention, it must get attention
+before it runs. If something does not need attention, it does not need a report after it runs.
 
-The two cases people build a toast for both belong somewhere else. Undo belongs in an undo
-stack, on a control people can find later. A copy confirmation belongs on the button that
-copied.
+People build a toast for two cases, and both cases belong in a different place. Undo belongs in
+an undo stack, on a control that people can find later. A copy confirmation belongs on the
+button that did the copy.
 
-Don't build a substitute either. A Card pinned to a corner gets neither the live region that
-makes the announcement nor the dismissal behaviour people expect.
+Do not build a replacement. A `Card` pinned to a corner does not get the live region that makes
+the announcement. It also does not get the close behaviour that people expect.
 
-`Callout` and `Banner` are other libraries' names for `Notice`. Banner names a position, and
-no component here owns its own position.
+`Callout` and `Banner` are the names that other libraries use for `Notice`. The name "Banner"
+describes a position, and no component here sets its own position.
 
 ## Where to put an outcome
 
-Put the result where the action was.
+Put the result where the action was:
 
-- **Inline.** A `Text` in the matching tone beside or under the control, with the verb moved into
-  the past. A button that said "Publish" is followed by "Published", not by "Success".
-- **With a heading.** A Card holding a `Heading` and a `Text`, with the tone on the words.
-  Don't tint the card: surfaces take no tone, and faking one with `style` writes a fixed
-  colour into an app that can no longer change theme.
-- **A decision.** An `AlertDialog`, when the moment needs an answer before anything else can
+- **Inline.** Put a `Text` in the matching tone next to the control or under it. Write its verb
+  in the past tense. After a button that said "Publish", write "Published", not "Success".
+- **With a heading.** Use a `Card` that holds a `Heading` and a `Text`. Put the tone on the
+  words. Do not give the card a colour. Surfaces take no tone. If you add a colour with `style`,
+  you write a fixed colour into the app, and the app can no longer change its theme.
+- **A decision.** Use an `AlertDialog` when the person must answer before anything else can
   happen.

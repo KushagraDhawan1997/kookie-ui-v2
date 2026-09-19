@@ -1,38 +1,43 @@
-`size` picks a step, not a measurement. When you write `size="2"` you're asking for the
-second step on a scale, and the theme decides what that step is worth today.
+`size` picks a step, not a measurement. `size="2"` asks for the second step on a scale. The
+theme decides what that step is worth today.
 
-The same number means different things on different components, because the components are
-measuring different things. On a Button, size sets how tall the box is. On Text, size sets how
-large the words are.
+The same number means different things on different components, because the components measure
+different things. On a Button, size sets the height of the box. On Text, size sets how large the
+words are.
 
 ## A step, not a number of pixels
 
-`size="2"` on a Button gives you a control 32 pixels tall right now, on a normal-density
-theme with a mouse. It's 44 pixels on a touch screen. You didn't ask for either number, and
-your code doesn't change when they change.
+Today, `size="2"` on a Button gives you a control that is 32 pixels tall. That is on a theme
+with normal density and a mouse. On a touch screen, it is 44 pixels. You didn't ask for either
+number. When the numbers change, your code doesn't change.
 
 The values are fixed lists. Controls take `"1"` to `"4"`. Text and Heading take `"1"` to
-`"9"`. There's no `size="2.5"`, and there's no way to pass a length. If one screen could
-invent a value in between, the scale would no longer hold across the app.
+`"9"`. There's no `size="2.5"`, and you can't give a length. If one screen could make up a
+value between two steps, the scale would no longer be the same across the app.
 
-Three different scales share these numbers:
+Three different scales use these numbers:
 
-- Button, TextField, and Select use a **height** scale.
+- Button, TextField and Select use a **height** scale.
 - Card and Surface use a **padding and corner** scale.
-- Checkbox, Radio, Switch, and Slider use a **mark** scale.
+- Checkbox, Radio, Switch and Slider use a **mark** scale.
 
-So `size="3"` on a Card and `size="3"` on a Button aren't the same size. They're the third
-step of two different things. Pick the number that looks right for each
-component rather than matching numbers across them.
+So `size="3"` on a Card and `size="3"` on a Button aren't the same size. Each is the third step
+of a different scale. For each component, pick the number that looks correct. Don't try to make
+the numbers the same across components.
 
 ## One number sets everything about a control
 
-Set `size` once and the component takes a group of values that were designed to go together:
-its height, its side padding, its corner, its icon size, the gap between the icon and the
-label, and the size of the label text.
+Set `size` one time, and the component gets a group of values that were designed together:
 
-None of those are worked out by multiplying a base number. Every combination of density and
-pointer has its own written-out values:
+- its height
+- its side padding
+- its corner
+- its icon size
+- the gap between the icon and the label
+- the size of the label text.
+
+The system doesn't calculate these values from a base number. Each combination of density and
+pointer has its own values, written out in full:
 
 ```css
 /* normal density, mouse */
@@ -46,35 +51,35 @@ pointer has its own written-out values:
 --icon-size-2: calc(20px * var(--scale));
 ```
 
-Each value is written out separately, so correcting one doesn't move the other three. If a
-single multiplier produced all four heights, nudging one would drag the rest with it.
+Each value is written out separately. So when you correct one value, the other three don't
+move. If one multiplier made all four heights, a change to one height would move the others.
 
-Controls set a minimum height rather than a fixed one. If someone turns their text up to 200%,
-or a label wraps onto a second line, the control grows instead of clipping the text. WCAG 2.2
-Success Criterion 1.4.4 requires that, so this one is a measured limit.
+Controls set a minimum height, not a fixed height. If a person makes their text 200% larger, or
+a label goes onto a second line, the control grows. It doesn't cut off the text. WCAG 2.2
+Success Criterion 1.4.4 requires this, so this is a measured limit.
 
 ## Checkboxes and switches use their own scale
 
-A checkbox, a radio, a switch, and a slider handle all sit *beside* a label rather than
-containing one. They have no text inside them, so the control height scale doesn't apply. They
-use a scale of their own, and a switch is one step larger than a checkbox at the same size.
-Most design systems arrive at that relationship by hand.
+A checkbox, a radio, a switch and a slider handle are *next to* a label. They don't contain a
+label. They have no text inside them, so the control height scale doesn't apply to them. They
+use a different scale. At the same size, a switch is one step larger than a checkbox. Most
+design systems find that relationship by hand.
 
-A checkbox is exactly as tall as one line of the text beside it. So it lines up with its
-label without any adjustment, and it grows on a phone: the text grows there, and the checkbox
-follows.
+A checkbox is exactly as tall as one line of the text next to it. So it aligns with its label
+without an adjustment. It also grows on a phone. The text grows there, and the checkbox grows
+with it.
 
 ### Leave 12 pixels between stacked checkboxes
 
-A checkbox is small, so its tappable area reaches past the box you can see, out to the size a
-Button of the same size would occupy.
+A checkbox is small. So its tappable area goes past the box that you can see. It goes out to
+the size of a Button with the same size.
 
-That means stacked checkboxes need room. Put at least 12 real pixels between them. Any closer
-and the lower checkbox's invisible tappable area covers the one above it and wins the tap, so
-clicking one checkbox toggles its neighbour.
+So stacked checkboxes need space between them. Put at least 12 real pixels between them. If
+they are closer, the tappable area of the lower checkbox covers the upper checkbox. The lower
+checkbox gets the tap, so a click on one checkbox changes the checkbox next to it.
 
-`gap="4"` gives you 12 pixels at normal density. Use `gap="5"` if you want it to stay safe at
-every density, because compact density pulls step 4 down to 8 pixels.
+At normal density, `gap="4"` gives you 12 pixels. Compact density makes step 4 smaller, 8
+pixels. To be safe at every density, use `gap="5"`.
 
 ```tsx
 <Stack gap="5">
@@ -91,33 +96,40 @@ every density, because compact density pulls step 4 down to 8 pixels.
 
 ## Touch screens get bigger controls
 
-`pointer` has two settings, `fine` for a mouse and `coarse` for a touch screen. They're two
-complete sets of measurements, in the same way light and dark are two complete sets of
-colours. The components, the size numbers, and the rules are identical. Only the values
-differ.
+`pointer` has two settings: `fine` for a mouse and `coarse` for a touch screen. Each setting is
+a full set of measurements. Light and dark are two full sets of colours in the same way. The
+components, the size numbers and the rules are the same. Only the values are different.
 
-The setting follows what touches the screen, not how wide the window is. A narrow browser
-window on a laptop is still a mouse.
+The setting follows what touches the screen. It doesn't follow the width of the window. A narrow
+browser window on a laptop still uses a mouse.
 
-On a touch screen, seven things get new values: control heights, side padding, icon size, the
-gap between icon and label, control corners, the checkbox scale, and reading text. Spacing
-between components doesn't change, because a phone needs more content per inch rather than
+On a touch screen, seven things get new values:
+
+- control heights
+- side padding
+- icon size
+- the gap between the icon and the label
+- control corners
+- the checkbox scale
+- reading text.
+
+The spacing between components doesn't change. A phone needs more content in each inch, not
 less.
 
 ### The 24-pixel floor and the 44-pixel default
 
 WCAG 2.2 Success Criterion 2.5.8 sets a minimum tappable area of 24 by 24 pixels at Level AA.
-Nothing in this system falls below it: the smallest control you can build is a size 1 control
-at compact density with a mouse, and it measures exactly 24.
+Nothing in this system is smaller. The smallest control is size 1, at compact density, with a
+mouse. It measures exactly 24 pixels.
 
-44 pixels is what you normally get, and it's a higher bar than the minimum. Success Criterion
-2.5.5 sets 44 at Level AAA, and Apple uses the same number. A fingertip is about 10
-millimetres across. A size 2 control on a touch screen measures exactly 44. You only go below
-that by choosing size 1 or by setting a denser theme, and both are deliberate.
+Normally, you get 44 pixels, which is more than the minimum. Success Criterion 2.5.5 sets 44
+pixels at Level AAA, and Apple uses the same number. A fingertip is approximately 10
+millimetres wide. On a touch screen, a size 2 control measures exactly 44 pixels. A control is
+only smaller if you choose size 1 or a denser theme. Both are intentional choices.
 
-Set `pointer` on the Theme. It takes `fine`, `coarse`, or `auto`, and `auto` follows the
-device. Setting `coarse` yourself switches everything together, including reading text. Use it
-to test a phone layout on your laptop.
+Set `pointer` on the Theme. It takes `fine`, `coarse` or `auto`, and `auto` follows the device.
+If you set `coarse`, everything changes together, including reading text. Use it to test a
+phone layout on your laptop.
 
 ```tsx
 <Theme pointer="coarse">
@@ -127,15 +139,15 @@ to test a phone layout on your laptop.
 
 ## A control inside another control sizes itself
 
-Put a Button inside a TextField and you don't give it a size. The field works it out, so
-that the button has even space on all four sides.
+If you put a Button inside a TextField, don't give the Button a size. The field calculates it,
+so that the Button has equal space on all four sides.
 
-You couldn't pick the size reliably yourself. The control heights are only four to eight
-pixels apart, so no size number leaves a button sitting neatly inside a field.
+You can't pick this size correctly yourself. The control heights are only four to eight pixels
+apart. So no size number puts a button neatly inside a field.
 
-Its tappable area matches the field's box rather than growing to 44 pixels. A 44-pixel
-target inside a 36-pixel field would be larger than the field itself, and WCAG treats that as
-a failure.
+The tappable area of the Button is the same as the box of the field. It doesn't grow to 44
+pixels. A 44-pixel target inside a 36-pixel field would be larger than the field, and WCAG
+treats that as a failure.
 
 ```tsx
 <TextField
@@ -147,16 +159,16 @@ a failure.
 
 ## Some components have no size
 
-Before adding a `size` prop to a component, check whether any of the three scales actually
-suits it. Sometimes none does, and then the component ships without one.
+Before you add a `size` prop to a component, check whether one of the three scales is
+applicable. Sometimes none of them is. Then the component has no `size` prop.
 
-Progress has no size. The closest scale is the slider's track, which is drawn as a fraction of
-the slider's handle. A progress bar has no handle, so sizing it that way would measure it
-against something it doesn't have. It works like Separator instead: one thickness, the width
-of whatever contains it, and no size prop.
+Progress has no size. The nearest scale is the slider track, which is a fraction of the slider
+handle. A progress bar has no handle. That scale would measure the bar against a part that it
+doesn't have. So Progress works like Separator. It has one thickness, it is as wide as its
+container, and it has no size prop.
 
-Code does the opposite. Its `size` is optional, and if you leave it out it takes the size of
-the line it sits in. A word inside a sentence shouldn't have a size of its own.
+Code does the opposite. Its `size` is optional. If you don't set it, Code uses the size of the
+line around it. A word inside a sentence mustn't have a different size.
 
 ```tsx
 {/* A progress bar has no size. */}
@@ -170,5 +182,5 @@ the line it sits in. A word inside a sentence shouldn't have a size of its own.
 </Text>
 ```
 
-If you're unsure, ship without a size. Adding one later doesn't break anyone's code, and
-removing one does.
+If you aren't sure, don't add a size. If you add a size later, no code breaks. If you remove a
+size later, code breaks.

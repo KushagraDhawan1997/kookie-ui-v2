@@ -1,20 +1,19 @@
 Navigation answers two questions: where can I go, and where am I now. `Shell` answers the first
-with a frame of named regions. A few small decisions answer the second, and most of those are
-about announcing the answer rather than painting it.
+question with a frame of named regions. Some small decisions answer the second question. Most of
+those decisions are about how the app announces the answer, not how it paints it.
 
 ## The frame is a pattern, not a component
 
-`Shell` arranges things it doesn't own, and that makes it a pattern. A component contains
-the things it owns, and if a child ever has to reach upward and configure its parent, you've
-built a pattern as a component.
+`Shell` arranges things that it does not own. That makes it a pattern. A component contains the
+things that it owns. If a child must reach up and configure its parent, you have built a
+pattern as a component.
 
-Every pane owns its own `open` state, exactly as `Dialog` does. Nothing inspects the children,
-and no pane closes another one. The only thing that crosses the frame is a `ShellTrigger`, which
-finds a pane by name.
+Each pane has its own `open` state, the same as `Dialog`. Nothing examines the children, and no
+pane closes a different pane. Only a `ShellTrigger` crosses the frame. It finds a pane by name.
 
-An app frame writes no height. A `Shell` fills the window by default, and on a phone the page
-itself scrolls, so the browser can shrink its toolbars. A `Shell` inside something else, such as
-a demo in a card, writes `contained` and gets its height from its parent.
+An app frame sets no height. By default, a `Shell` fills the window. On a phone, the page itself
+scrolls, so the browser can make its toolbars smaller. If a `Shell` is inside something else,
+such as a demo in a card, set `contained`. Then the `Shell` gets its height from its parent.
 
 ```tsx
 <Shell size="2">
@@ -28,43 +27,47 @@ a demo in a card, writes `contained` and gets its height from its parent.
 
 ## The panes
 
-The header is full width by definition. A header that isn't full width is a header inside
-the content, which is a different thing. If you want a sidebar running the full height under a
-header that only covers the content, write no `ShellHeader` and put a header inside
-`ShellContent` instead.
+The header is always full width. A header that is not full width is a header inside the
+content, and that is a different thing. You can have a sidebar that runs the full height, under
+a header that covers only the content. For this layout, do not write a `ShellHeader`. Put a
+header inside `ShellContent`.
 
-The rail and the sidebar are two independent columns. The rail is the narrow icon column
-that picks a high-level area. The sidebar is the wide column showing what the rail picked.
-They coexist, and neither collapses into the other, because a sidebar holds many items and a
-rail holds a few. One column of navigation is a sidebar.
-Icons alone are a rail. Both together is the shape VS Code and Slack use.
+The rail and the sidebar are two independent columns:
 
-`ShellContent` renders `<main>` and is the one pane you must have. `ShellInspector` is the
-right-hand detail column. `ShellBottom` is a terminal or log drawer. Both of those rest closed,
-because detail is something people ask for.
+- The rail is the narrow column of icons. It selects a high-level area.
+- The sidebar is the wide column. It shows the content of the area that the rail selected.
 
-`ShellScroll` marks the one part of a pane that scrolls. Everything else in that column stays put
-by being an ordinary child of the pane, so a pinned header and footer in a sidebar are
-siblings rather than special parts.
+The two columns can both be present, and neither one collapses into the other. A sidebar holds
+many items, and a rail holds a few. One column of navigation is a sidebar. A column of icons
+only is a rail. VS Code and Slack use both together.
+
+`ShellContent` renders `<main>`. It is the only pane that you must have. `ShellInspector` is the
+detail column on the right. `ShellBottom` is a drawer for a terminal or a log. These two panes
+are closed at the start, because people ask for detail when they need it.
+
+`ShellScroll` marks the one part of a pane that scrolls. Everything else in that column stays
+where it is, because it is a usual child of the pane. So a pinned header and a pinned footer in
+a sidebar are siblings. They are not special parts.
 
 ## A pane pads its own content
 
-Every pane is a surface and pads like one, based on its `size`. Don't add your own `p` or
-`px` to the first child of a pane. That would add a second inset to one that's already
-there.
+Each pane is a surface, and it has padding like a surface. Its `size` sets the padding. Do not
+add your own `p` or `px` to the first child of a pane. That adds a second inset to the inset
+that is already there.
 
-The header's height comes from the same rule: one control row at the pane's size, inside the
-pane's padding. So at any given size, a header is exactly as tall as the rail is wide. It's
-a minimum rather than a fixed height, so something taller grows it and something shorter
-centres in it.
+The same rule sets the height of the header. The header holds one row of controls at the size of
+the pane, inside the padding of the pane. So at a given size, a header is exactly as tall as the
+rail is wide. This height is a minimum, not a fixed height. Taller content makes the header
+taller. Shorter content is centred in it.
 
-Two things still reach the pane's edges, and both are automatic:
+Two things still go to the edges of the pane. Both do this automatically:
 
-- **A `ShellScroll` reaches them on its own.** It's a scroll area, and a scroll area placed
-  directly inside a surface stretches to that surface's edges and re-pads its own contents. So
-  a highlighted nav row can span its whole column.
-- **Anything else says `m="bleed"`.** A picture across the top of the content pane, or a canvas
-  that wants the whole box, cancels the pane's padding with the same value any surface takes.
+- **A `ShellScroll` goes to the edges without help.** It is a scroll area. A scroll area that is
+  directly inside a surface extends to the edges of that surface. It then adds padding to its
+  own contents again. So a highlighted navigation row can extend across its full column.
+- **For anything else, set `m="bleed"`.** Examples are a picture across the top of the content
+  pane, or a canvas that needs the full box. `m="bleed"` cancels the padding of the pane. Any
+  surface takes the same value.
 
 ```tsx
 <ShellContent>
@@ -76,36 +79,37 @@ Two things still reach the pane's edges, and both are automatic:
 
 ## An untouched pane decides for itself
 
-A pane nobody has touched rests on `auto`, and CSS decides what auto means at the current window
-size. So the first paint is right on the server and in the browser with no script, and React
-can't complain that the two disagree, because both produce the same attribute. The first time
-someone toggles a pane, that choice becomes explicit and beats any boundary.
+If nobody has touched a pane, its state is `auto`. CSS decides what `auto` means at the current
+window size. So the first paint is correct on the server and in the browser, with no script.
+Both produce the same attribute, so React does not report a difference between them. When a
+person first opens or closes a pane, that choice becomes explicit. It then has priority over
+the window size.
 
 Nothing in the frame measures anything when it mounts. `useWindowClass()` returns `null` on the
-server and until the first paint rather than guessing. Use the hook for decisions after mount,
-and let the stylesheet hold the resting shape of the app.
+server. It also returns `null` until the first paint, because it does not guess. Use the hook
+for decisions after mount. Let the stylesheet set the resting layout of the app.
 
 ## Three window sizes, three shapes
 
-A window size picks the shape of the navigation, and you decide it once, at the top, against
-the window. Never per container, and never per component.
+A window size selects the shape of the navigation. You decide it one time, at the top of the
+app, from the window size. Do not decide it for each container or for each component.
 
-`narrow` shows one thing at a time and opens the navigation over it. `regular` and `wide`
-keep the navigation columns in the layout. `wide` has the extra room a second column, such as
-an inspector, needs.
+- `narrow` shows one thing at a time. It opens the navigation over the content.
+- `regular` keeps the navigation columns in the layout.
+- `wide` also keeps them in the layout. It has space for a second column, such as an inspector.
 
-Three classes exist because navigation has three shapes. A fourth would ask
-how much room a pane has, and container sizes already answer that.
+There are three window sizes because navigation has three shapes. A fourth size would ask how
+much space a pane has. Container sizes already answer that question.
 
 ## Tabs or a segmented control
 
-Both draw a row of choices, and they're two different things. Ask what each does when the other
-is absent: you can switch views without setting a value, and set a value without switching a
-view. **Use `Tabs` when the thing underneath changes.**
+Both draw a row of choices, and they are two different things. Think about what each one does
+without the other. You can switch views without setting a value. You can set a value without
+switching a view. **Use `Tabs` when the content under the row changes.**
 
-The difference is in the markup, not only the paint. A segmented control is a real radio group:
-it announces itself as one, its arrow keys select as they move, and its value submits with a
-form. A tab bar announces a tab list and owns the panels.
+The difference is in the markup, not only in the paint. A segmented control is a real radio
+group. It announces itself as a radio group. Its arrow keys select a value when they move focus.
+Its value is sent with a form. A tab bar announces a tab list, and it owns the panels.
 
 ```tsx
 <SegmentedControl defaultValue="grid" aria-label="Layout">
@@ -114,27 +118,30 @@ form. A tab bar announces a tab list and owns the panels.
 </SegmentedControl>
 ```
 
-Formatting buttons are neither. Italic and underline both switched on at once is a set of toggle
-buttons, which is a third thing. A radio group holds one answer, so it can't express that.
+Formatting buttons are neither of these. If italic and underline can both be on at the same
+time, you need a set of toggle buttons. That is a third thing. A radio group holds one answer,
+so it cannot show two answers at the same time.
 
 ## Menu or select
 
-The same test separates these two. A `Menu` is a list of actions: choosing one runs it and closes
-the panel. A `Select` is a list of values: choosing one fills a control that submits with a form.
-A select renders a hidden input and announces itself as a combobox, and a styled menu cannot do
-that.
+The same test separates these two. A `Menu` is a list of actions. When you choose an action, it
+runs, and the panel closes. A `Select` is a list of values. When you choose a value, it goes into
+a control that is sent with a form. A select renders a hidden input and announces itself as a
+combobox. A menu with a custom style cannot do that.
 
-Two things follow from it. A select positions its panel so the chosen row lands on the value
-it's replacing, which means the panel can hang both above and below the trigger. And a select
-nobody has opened needs `items` to turn its value into a label, because the labels live on
-options that haven't mounted yet.
+This has two results:
+
+- A select puts its panel so that the chosen row is on top of the value that it replaces. So
+  the panel can extend both above and below the trigger.
+- If nobody has opened a select, it needs `items` to change its value into a label. The labels
+  are on options that have not mounted yet.
 
 ## Say where you are
 
-Set `current` on a navigation row or a rail square. It colours the row *and* sets
-`aria-current="page"`, and both halves matter. Colour alone tells nothing to anyone who
-can't see it. The announcement carries through a screen reader, a high-contrast setting, and a
-monochrome display.
+Set `current` on a navigation row or on a rail square. It changes the colour of the row. It also
+sets `aria-current="page"`. Both halves are important. Colour alone gives no information to a
+person who cannot see it. The announcement works with a screen reader, with a high-contrast
+setting and on a monochrome display.
 
 ```tsx
 <Shell size="2">
@@ -163,9 +170,9 @@ monochrome display.
 </Shell>
 ```
 
-The colour comes from a tone and a loudness rather than a louder step on one scale. Grey
-means your pointer is over the row. Accent means this is where you are. Because they use
-different colours, the row you're on still changes under the pointer.
+The colour comes from a tone and a loudness. It does not come from a louder step on one scale.
+Grey means that your pointer is on the row. Accent means that you are at this location. The two
+states use different colours, so the current row still changes when the pointer is on it.
 
-Rows never rank against each other, because every item in a list of places is a peer. Being the
-current one is a state the component sets, not a loudness you pick.
+Rows never rank against each other, because every item in a list of locations has the same
+importance. The component sets "current" as a state. It is not a loudness that you select.

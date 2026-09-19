@@ -1,22 +1,21 @@
-One scale of nine steps sets the size of all text: body copy, headings, button labels, field
-values, and code. A step is a position on that scale rather than a font size. The heaviest
-weight is semibold, so you rank text by size and colour instead.
+One scale of nine steps sets the size of all text. This includes body copy, headings, button
+labels, field values, and code. A step is a position on that scale. It is not a font size. The
+heaviest weight is semibold. Thus you rank text by size and colour.
 
 ## Text and Heading share one scale
 
-`Text` and `Heading` use the same nine steps through two different fonts. Choosing a step sets
-the font size, the line height, and the letter spacing together. There's no single line-height
-ratio, because one ratio can't be right at both ends of a scale that runs from 12 to 56
-pixels.
+`Text` and `Heading` use the same nine steps with two different fonts. When you select a step,
+you set the font size, the line height, and the letter spacing together. There is no single
+ratio for line height. One ratio cannot be correct at both ends of a scale from 12 to 56 pixels.
 
-A size means the same thing on both components. `<Text size="6">` and `<Heading size="6">`
-are the same step, and only the font and the default weight differ. Button labels use the same
-scale, so a button and the text beside it can't drift out of step.
+A size means the same thing on both components. `<Text size="6">` and `<Heading size="6">` are
+the same step. Only the font and the default weight are different. Button labels use the same
+scale. Thus a button and the text next to it always use the same steps.
 
 ## Size sets the step, render sets the element
 
-How large text looks and where it sits in the document outline are two different questions,
-and each has its own prop.
+The size of the text and its position in the document outline are two different questions.
+Each question has its own prop.
 
 ```tsx
 // The page title: an h1 in the outline, at the top of the scale
@@ -26,26 +25,27 @@ and each has its own prop.
 <Heading size="6" render={<h3 />}>Payment method</Heading>
 ```
 
-`Heading` renders an `<h2>` at size 6 unless you say otherwise, because a page rarely wants a
-second `<h1>`. `Text` renders a `<span>` at size 3, so write `render={<p />}` when you want a
-paragraph.
+By default, `Heading` renders an `<h2>` at size 6, because a page seldom needs a second `<h1>`.
+By default, `Text` renders a `<span>` at size 3. If you want a paragraph, write
+`render={<p />}`.
 
-There's no `level` or `as` prop that does both jobs. One prop for both would force you to
-choose between the right outline for a screen reader and the right size for the design.
+There is no `level` or `as` prop that does both jobs. With one prop for both jobs, you must
+select between two results. One result is the correct outline for a screen reader. The other
+result is the correct size for the design.
 
 ## The heaviest weight is semibold
 
 The three weights are `--font-weight-regular`, `--font-weight-medium`, and
-`--font-weight-semibold`. The `weight` prop takes those names and no numbers.
+`--font-weight-semibold`. The `weight` prop takes those names. It does not take numbers.
 
-There's no bold. The system already has two ways to say that one thing outranks another: the
-nine steps and the three text colours. A bold face would be a third way that sits on neither
-scale, and in practice it ends up on everything.
+There is no bold. The system already has two ways to show that one item is more important than
+another. These are the nine steps and the three text colours. A bold face is a third way, and it
+is not on either scale. In practice, people put it on everything.
 
-The refusal is in the type, so a bold weight doesn't compile, and the token doesn't exist
-either. An app that genuinely needs a bold face can set it with `style`.
+The type does not accept bold, so a bold weight does not compile. The token does not exist. If
+your app really needs a bold face, set it with `style`.
 
-Rank with size, and shade with colour:
+Rank with size, and make text quieter with colour:
 
 ```tsx
 // Not this: a heavier face at the same step
@@ -59,71 +59,76 @@ Rank with size, and shade with colour:
 
 ## Three fonts
 
-Your Theme sets `--font-heading`, `--font-body`, and `--font-mono`. Components ask for one of
-those three, never for a font stack, so the Theme is the only place anyone writes one.
+Your Theme sets `--font-heading`, `--font-body`, and `--font-mono`. Components use one of those
+three. They never use a font stack. Thus the Theme is the only place where you write a font
+stack.
 
-`Heading` uses the heading font. `Text`, `Blockquote`, and `Link` use the body font. `Code`
-uses the mono font, slightly smaller, because a monospaced face runs wider and taller, so at
-the same size it looks a step larger.
+`Heading` uses the heading font. `Text`, `Blockquote`, and `Link` use the body font. `Code` uses
+the mono font at a slightly smaller size. A monospaced face is wider and taller. At the same
+size, it looks one step larger.
 
-`Kbd` is the exception: a keycap uses the **body** font. A monospaced ⌘ is squeezed to fit a
-fixed character width, and every platform sets shortcuts in its interface font.
+`Kbd` is the exception: a keycap uses the **body** font. A monospaced ⌘ becomes narrow to fit a
+fixed character width. Also, every platform shows shortcuts in its interface font.
 
 ## Emphasis picks a text colour
 
-`emphasis` means three different things depending on what carries it. On a button it picks a
-fill. On a card it picks the styling. On text it picks a colour: loud is `--color-text`, medium
-is `--color-text-muted`, quiet is `--color-text-faint`. Add a `tone` and those same three levels
-move onto that colour family.
+`emphasis` has three different effects. The effect depends on the component:
 
-Text rests at loud, and that's deliberate. Full contrast is the right resting state for
-reading. A greyed-out paragraph looks optional.
+- On a button, it selects a fill.
+- On a card, it selects the styling.
+- On text, it selects a colour.
 
-Quiet sits below the contrast floor for body text on purpose. Use it for something nobody has
-to read or act on, such as a disabled option. Don't set a whole paragraph in it.
+On text, loud is `--color-text`, medium is `--color-text-muted`, and quiet is
+`--color-text-faint`. If you add a `tone`, the same three levels move to that colour family.
+
+Text is loud at rest, and this is intentional. Full contrast is the correct default for
+reading. A grey paragraph looks optional.
+
+Quiet is below the minimum contrast for body text intentionally. Use it for an item that nobody
+must read or act on, such as a disabled option. Do not set a full paragraph in quiet.
 
 ## How text responds to the device
 
-Two things change with the device, and they're unrelated, so the system handles them
+Two items change with the device. They are not related, so the system controls them
 separately.
 
-- **Reading sizes go up on a touch screen.** Steps 1 to 4 rise, so body copy goes from 16 to 18
-  pixels. The reason is distance: a phone is held close to your face. Apple publishes one
-  Dynamic Type table covering both iPhone and iPad, so this question doesn't distinguish a
-  phone from a tablet.
-- **Display sizes come down on a narrow window.** Steps 8 and 9 drop, so a page title goes from
-  56 to 40 pixels. The reason is line length: a 56-pixel title on a 375-pixel screen fits about
-  seven characters per line. A squeezed browser window on a laptop has exactly the same
+- **Reading sizes increase on a touch screen.** Steps 1 to 4 increase, so body copy goes from 16
+  to 18 pixels. The reason is distance: you hold a phone near your face. Apple publishes one
+  Dynamic Type table for both iPhone and iPad. Thus this rule is the same for a phone and a
+  tablet.
+- **Display sizes decrease on a narrow window.** Steps 8 and 9 decrease, so a page title goes
+  from 56 to 40 pixels. The reason is line length. A 56-pixel title on a 375-pixel screen fits
+  approximately seven characters on each line. A narrow browser window on a laptop has the same
   problem.
 
-Each rule only changes the steps it needs, so the two never fight on a phone, where both apply.
-A tablet in landscape gets bigger reading text and keeps its full-size titles. A narrow desktop
-window gets smaller titles and leaves the reading text alone.
+Each rule changes only the steps that it must change. Thus the two rules do not conflict on a
+phone, where both apply. A tablet in landscape gets larger reading text and keeps its full-size
+titles. A narrow desktop window gets smaller titles, and the reading text does not change.
 
-None of this needs opting into. A size number names a role rather than a pixel value, so
-don't build a layout around a pixel measurement you once took from a step.
+You do not have to turn these rules on. A size number names a role, not a pixel value. Thus do
+not build a layout on a pixel measurement that you took from a step.
 
 ## The five steps to compose with
 
-These five steps are the house style, and they're a judgment rather than a measurement. Every
-distance answers to a theme setting, but type doesn't, so the rule is written down instead.
+These five steps are the house style. They are a judgment, not a measurement. Each distance
+follows a theme setting, but type has no theme setting. Thus the rule is written here.
 
 **Use these five.** Page title **8**. Section **7**. Card or block title **6**. Body **3**.
-Label and small print **2**. A card title over body is 24 against 16, which is a real step
-down. Steps 4, 5, and 9 exist for the cases these five don't cover, such as a hero or a big
-number. Use them for those cases only.
+Label and small print **2**. A card title over body is 24 pixels over 16 pixels, and that is a
+real step down. Steps 4, 5, and 9 are for cases that these five do not cover, such as a hero or
+a large number. Use them only for those cases.
 
-**Rank by size, not by weight.** A 16-pixel title over a 14-pixel body is 1.14 times the
-size, which is too small a difference to look like a hierarchy. Larger steps also tighten their
-letter spacing: spacing is neutral through steps 1 to 3 and tightens from step 4 upward, so a
-title that stays small never gets the tightening.
+**Rank by size, not by weight.** A 16-pixel title over a 14-pixel body is 1.14 times the size.
+That difference is too small to look like a hierarchy. Larger steps also have tighter letter
+spacing. The spacing is neutral from step 1 to step 3, and it becomes tighter from step 4 up.
+Thus a small title never gets the tighter spacing.
 
-**Don't use size 1 on a real screen.** Twelve pixels is for genuinely marginal text: a
-footer, a legal line, the chrome of a dense table. If something matters less, say so with the
-muted or faint colour at 14 or 16 pixels. If a screen needs 12-pixel text to make room, the
-problem is spacing, not type.
+**Do not use size 1 on a real screen.** Twelve pixels is only for text at the edge of a screen.
+Examples are a footer, a legal line, or the controls of a dense table. If an item is less
+important, use the muted or faint colour at 14 or 16 pixels. If a screen needs 12-pixel text to
+make space, the problem is the spacing, not the type.
 
-Here are the five steps together:
+This example shows the five steps together:
 
 ```tsx
 <Stack gap="6">
@@ -143,6 +148,6 @@ Here are the five steps together:
 </Stack>
 ```
 
-The page title, the section, the card title, the body, and the small print are five
-different steps. The document outline is also correct, because `render` picked the element and
-`size` picked the step.
+The page title, the section, the card title, the body, and the small print are five different
+steps. The document outline is also correct, because `render` selected the element and `size`
+selected the step.

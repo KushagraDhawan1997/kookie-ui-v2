@@ -1,17 +1,17 @@
-Correct components make a screen consistent, but they don't make it good. Every distance
-answers to a setting, every colour to a tone, and every size to a step, and you can still put
-nine components on one screen at nine different sizes.
+Correct components make a screen consistent, but they do not make it good. Every distance comes
+from a setting, every colour from a tone and every size from a step. You can still put nine
+components on one screen at nine different sizes.
 
-These are the rules for putting things together, rather than for using any one component. The
-[builder](/builder) checks most of them for you as you work.
+These rules are for putting components together, not for using one component. The
+[builder](/builder) checks most of them for you while you work.
 
 ## One obvious action per screen
 
-Use one loud control per screen. Give it `tone="accent"` and `emphasis="loud"`, and set every
+Use one loud control on each screen. Give it `tone="accent"` and `emphasis="loud"`. Set every
 other control to medium or quiet.
 
-Two loud controls cancel each other out, and nobody can tell which one is the point. This is a
-judgment, and it follows the figure-and-ground principle: something can only stand out if
+Two loud controls cancel each other. Nobody can tell which one is the main action. This is a
+judgment, and it follows the figure-and-ground principle. Something can stand out only if
 everything around it is quiet.
 
 ```tsx
@@ -28,20 +28,21 @@ everything around it is quiet.
 </Flex>
 ```
 
-Nothing defaults to loud and accent, so a second one is always something you typed on purpose.
+No component is loud and accent by default. So a second loud control is always something that
+you typed on purpose.
 
-The unit is the screen, not the nearest box. A dialog counts as its own screen, because it
-covers the page and its loud button is not competing with anything underneath. Two tab panels
-never compete either, because you only ever see one at a time.
+Count loud controls on the whole screen, not in the nearest box. A dialog counts as a separate
+screen. It covers the page, so its loud button does not compete with anything below it. Two tab
+panels also never compete, because you only see one at a time.
 
 ## Let space do the grouping
 
-Put related things closer together than unrelated things. People group by distance before
-they read anything, and more reliably than they group by a border, a fill, or a line. Set the
-spacing first. You usually won't need the other three.
+Put related things closer together than unrelated things. People group items by distance
+before they read anything. Distance groups items more reliably than a border, a fill or a line.
+Set the spacing first. Usually, you will not need the other three.
 
-Make the gap inside a group at least two steps smaller than the gap around it. The same gap
-repeated down a screen shows no structure at all.
+Make the gap inside a group at least two steps smaller than the gap around it. If a screen
+repeats the same gap from top to bottom, it shows no structure.
 
 ```tsx
 <Stack gap="6">
@@ -56,14 +57,14 @@ repeated down a screen shows no structure at all.
 </Stack>
 ```
 
-Two levels of separation can sit one step apart. A section at gap 6 holding groups at gap 5
-is fine, because both gaps separate groups. The two-step rule is about the inside of a group
-against the space around it.
+Two levels of separation can be one step apart. A section at gap 6 can hold groups at gap 5,
+because both gaps separate groups. The two-step rule compares the inside of a group with the
+space around it.
 
 ## Five type sizes and one floor
 
-Type is the one thing with no setting to answer to. `size` is a free number, so a written rule
-is the only limit on it. Use five steps:
+Type is the one thing that no setting controls. `size` is a free number, so only a written rule
+limits it. Use these five steps:
 
 - **Size 8** for the page title.
 - **Size 7** for a section title.
@@ -71,15 +72,15 @@ is the only limit on it. Use five steps:
 - **Size 3** for body text.
 - **Size 2** for labels and small print.
 
-Don't use size 1 on a real screen. Twelve pixels is for genuinely marginal text. When
-something matters less, say so with the muted or faint colour at size 2 or 3.
+Do not use size 1 on a real screen. Twelve pixels is only for text of very low importance.
+If something is less important, use the muted or faint colour at size 2 or 3.
 
-Move at least two steps to show a rank. A size 4 title above size 3 body text looks like an
-accident rather than a hierarchy.
+To show a rank, move at least two steps. A size 4 title above size 3 body text looks like an
+accident, not a hierarchy.
 
 ## Use a tone because of what it means
 
-A tone carries a meaning. Don't pick one because the screen looks grey.
+A tone carries a meaning. Do not select a tone because the screen looks grey.
 
 ```tsx
 // Wrong. Green because green is pleasant.
@@ -89,48 +90,52 @@ A tone carries a meaning. Don't pick one because the screen looks grey.
 <Text tone="success">Backup completed</Text>
 ```
 
-`success`, `warning`, `info`, and `destructive` mean things. `blue`, `green`, `orange`, and
-`amber` are colour used as data: a chart series, a project label, a category.
+`success`, `warning`, `info` and `destructive` have meanings. `blue`, `green`, `orange` and
+`amber` are colour used as data, for example a chart series, a project label or a category.
 
-Use three tones at most on one surface. Four or more look like a palette rather than a set of
-meanings. Three look like a legend.
+Use three tones or fewer on one surface. Four or more tones look like a palette, not a set of
+meanings. Three tones look like a legend.
 
-And colour is never the whole message. Write the words too.
+Colour is never the full message. Write the words too.
 
 ## Same job, same size
 
-Every control doing the same job on one surface should be the same size. A row holding a
-size 3 button next to a size 2 button looks like two different kinds of control, and you're
-left working out why.
+On one surface, all controls that do the same job must be the same size. If a row has a size 3
+button next to a size 2 button, the two look like different kinds of control. You must then
+find the reason.
 
-Match controls to the surface they're on, as well. A size 3 dialog holds size 3 fields and
-size 3 buttons. A control two steps smaller than its container looks like a mistake.
+Also match controls to their surface. A size 3 dialog holds size 3 fields and size 3 buttons.
+A control that is two steps smaller than its container looks like a mistake.
 
 ## Write the real words
 
-Put real content into a layout. If the real content does not exist yet, write something of the
-same shape and length.
+Put real content into a layout. If the real content does not exist yet, write text of the same
+shape and length.
 
-Placeholder text hides the problems: a heading that wraps onto three lines on a phone, a name
-longer than its column, a button label that changes the rhythm of a row.
+Placeholder text hides problems like these:
 
-The same goes for helper text. Keep a line that changes what somebody does next. Delete a
-line that only restates the label.
+- a heading that wraps onto three lines on a phone
+- a name that is longer than its column
+- a button label that changes the rhythm of a row
+
+This rule also applies to helper text. Keep a line if it changes what a person does next.
+Delete a line if it only repeats the label.
 
 ## Run the reviewer
 
-Run the reviewer over a real screen before you ship it. Every rule on this page is a live check
-in the builder, each finding quotes the sentence it comes from, and each one offers a fix.
+Before you ship a real screen, run the reviewer on it. Each rule on this page is a live check
+in the builder. Each finding quotes the sentence that it comes from, and each finding offers a
+fix.
 
-Every template that ships with the builder passes every one of these rules, so a rule nobody
-could satisfy would break the templates the day it was added.
+Every template in the builder passes all of these rules. So if a new rule were impossible to
+satisfy, the templates would fail on the day that the rule was added.
 
-The reviewer won't tell you whether a screen is good. It tells you whether a screen breaks a
-rule this system has already settled.
+The reviewer does not tell you whether a screen is good. It tells you whether a screen breaks a
+rule that this system has already decided.
 
 ## The full set of rules
 
-The list below comes straight from the reviewer. A rule added there appears here the same
-day, and the sentence you read is the sentence the finding prints.
+The list below comes directly from the reviewer. When a rule is added there, it appears here
+on the same day. The sentence that you read here is the sentence that the finding shows.
 
 <ReviewRules />
