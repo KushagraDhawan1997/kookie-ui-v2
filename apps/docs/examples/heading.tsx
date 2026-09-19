@@ -2,7 +2,7 @@ import { Heading, Stack } from "@kookie-ui/react";
 import type { Tone, Weight } from "@kookie-ui/react";
 
 export default function Example({
-  weight = "semibold",
+  weight = "medium",
   tone = "neutral",
 }: {
   weight?: Weight;

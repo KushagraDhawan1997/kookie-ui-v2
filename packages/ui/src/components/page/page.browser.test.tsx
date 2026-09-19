@@ -79,22 +79,24 @@ describe("a page states its title, once, at the house step (§15, §46)", () => 
     expect(computed(deck, "font-size")).toBe(computed(ladder.querySelector(".kui-text")!, "font-size"));
   });
 
-  it("the title is MEDIUM, not the Heading default — a page title at step 9 carries its rank by size", () => {
+  it("the title is MEDIUM — a page title at step 9 carries its rank by size", () => {
     const page = mounted(<Page title="Dialog" />, { theme: {} });
     /* Read against both mounted weights, never a number: the agreement says it is medium, and
-       the inequality is the vacuity guard — if Heading's default ever became medium, the first
-       assertion alone would pass with the prop deleted. */
+       the inequality against semibold is the vacuity guard — a ladder whose two ends resolved
+       one weight would pass the first assertion with anything. Heading's own default became
+       medium the same day (2026-09-19), so the page's explicit statement and the default now
+       agree; the page keeps stating it, because its step is its own decision. */
     const ladder = mounted(
       <div>
         <Heading size={PAGE_TITLE_STEP} weight="medium">Dialog</Heading>
-        <Heading size={PAGE_TITLE_STEP}>Dialog</Heading>
+        <Heading size={PAGE_TITLE_STEP} weight="semibold">Dialog</Heading>
       </div>,
       { theme: {} },
     );
-    const [medium, fallback] = ladder.querySelectorAll(".kui-heading");
+    const [medium, semibold] = ladder.querySelectorAll(".kui-heading");
     const title = page.querySelector("h1")!;
     expect(computed(title, "font-weight")).toBe(computed(medium!, "font-weight"));
-    expect(computed(title, "font-weight")).not.toBe(computed(fallback!, "font-weight"));
+    expect(computed(title, "font-weight")).not.toBe(computed(semibold!, "font-weight"));
   });
 
   it("the title/deck interval is the one the frame judged, and the interval below is two steps clear", () => {

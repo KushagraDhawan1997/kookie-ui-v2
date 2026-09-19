@@ -2571,7 +2571,7 @@ export const API: Record<string, ApiEntry> = {
           "semibold"
         ],
         "optional": true,
-        "doc": "Token names, never numbers. It rests at semibold, which is also the heaviest weight in the system, because `bold` is refused. A heading gets its weight from the step it stands on and the ink colour it wears, never from a heavier face."
+        "doc": "Token names, never numbers. It rests at medium; semibold is the heaviest weight in the system, because `bold` is refused. A heading gets its weight from the step it stands on and the ink colour it wears, never from a heavier face."
       }
     ]
   },

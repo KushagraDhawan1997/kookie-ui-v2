@@ -16,8 +16,8 @@ export type HeadingProps = ComponentRefusals & Omit<
       `render`'s job, which is what lets a sidebar's `h2` sit at 4 while the hero's sits at 8.
       Defaults to 6, the card-title step. */
   size?: TypeSize;
-  /** Token names, never numbers. It rests at semibold, which is also the heaviest weight in
-      the system, because `bold` is refused. A heading gets its weight from the step it stands
+  /** Token names, never numbers. It rests at medium; semibold is the heaviest weight in the
+      system, because `bold` is refused. A heading gets its weight from the step it stands
       on and the ink colour it wears, never from a heavier face. */
   weight?: Weight;
   /** Picks an ink colour, the same three `Text` uses. Use it for a muted section label. */
@@ -43,7 +43,7 @@ export type HeadingProps = ComponentRefusals & Omit<
  */
 export function Heading({
   size = "6",
-  weight = "semibold",
+  weight = "medium",
   emphasis = "loud",
   tone,
   render,

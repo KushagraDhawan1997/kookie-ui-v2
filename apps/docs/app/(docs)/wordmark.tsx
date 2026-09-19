@@ -30,7 +30,7 @@ import { Heading } from "@kookie-ui/react";
  * call sites keep stating theirs.
  *
  * `weight="medium"` IS LOAD-BEARING, and leaving it off shipped a fake bold for an hour.
- * Heading rests at semibold; exactly one file is loaded and it is 400, and a request BOLDER
+ * Heading rested at semibold then (medium since 2026-09-19); exactly one file is loaded and it is 400, and a request BOLDER
  * than anything available is the case a browser synthesizes — it strokes the outline. Measured
  * on the face in the slot at the time: 3,717 ink pixels at 600 against 2,806 at 400, a third
  * heavier than the face the designer drew. Stating the weight makes the request match the only

@@ -23,8 +23,8 @@ export type TypeSize = Exclude<Extract<keyof [unknown, ...typeof fontSize], `${n
  * §15 — the closed weight set; token names, never numbers.
  *
  * THREE, not four: `bold` (700) is refused (2026-08-09, Kushagra — "we don't use bold, we
- * shouldn't"). Semibold is the top of the ladder and the resting weight of every heading, so
- * hierarchy is carried by SIZE and the ink roles, which is where this system already puts it.
+ * shouldn't"). Semibold is the top of the ladder, and a heading rests a step under it at medium
+ * (2026-09-19), so hierarchy is carried by SIZE and the ink roles, which is where this system already puts it.
  * A 700 face beside a 600 one at the same step is a fifth way to say "important" competing
  * with three that are already designed.
  *
