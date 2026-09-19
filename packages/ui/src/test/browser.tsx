@@ -14,7 +14,7 @@
  * lines of ceremony, which is a tax on exactly the laws the 2026-08-03 standard demands. The
  * lessons live here now; a law states its fact.
  */
-import type { ReactElement } from "react";
+import type { CSSProperties, ReactElement, ReactNode } from "react";
 import { cdp } from "vitest/browser";
 import { afterEach, beforeAll, it } from "vitest";
 import { flushSync } from "react-dom";
@@ -722,6 +722,25 @@ export const numberOn = (scope: Element, name: string): number =>
 /** A colour expression as the scope resolves it. */
 export const colorOn = (scope: Element, expr: string): string =>
   probeIn(scope, (el) => (el.style.backgroundColor = expr), (s) => s.backgroundColor);
+
+/**
+ * A family role, replaced by a colour nothing in the palette can produce (2026-09-20). A law
+ * that says "the current row reads the accent" used to prove it by asserting the row is NOT the
+ * neutral text — which only holds while the brand is a pigment. With a grey brand the two are the
+ * same pixels in dark, and the law failed on a correct stylesheet (the brand went grey on
+ * 2026-09-19 as one config line, and seven laws broke with it).
+ *
+ * Marking the role makes the reading observable whatever the brand is: a subject that reads the
+ * role paints `MARKER`, one that reads anything else does not. Declared on a wrapper INSIDE the
+ * mounted Theme, so it beats the appearance scope by proximity. Name the role the subject reads
+ * DIRECTLY: `--accent-current` is itself `var(--accent-ink)` in light, substituted at the Theme
+ * scope, so marking the ink would not reach it.
+ */
+export const MARKER = "rgb(255, 0, 255)";
+
+export function Marked({ roles, children }: { roles: string[]; children: ReactNode }) {
+  return <div style={Object.fromEntries(roles.map((role) => [role, MARKER])) as CSSProperties}>{children}</div>;
+}
 
 /** A colour-valued custom property declared ON the element — the `inherits: false` case: the
     raw value is read off the element itself, then resolved through a child probe. */

@@ -333,7 +333,12 @@
    36.75/72, 40.25/76 and 40.25/76 — the corner is at or past half the box in all four, so the
    captioned pane is as much a capsule as the bare one and drawing it as a squircle is the same
    lozenge the reported defect was. What still keeps the family's squircle is a pane holding a
-   LIST, which is the guard that stays. */
+   LIST, which is the guard that stays.
+
+   THE CAPTION IS OUT AGAIN SINCE 2026-09-15 (Kushagra, by eye): the arithmetic above still holds
+   — the captioned pane sits at the capsule limit at every index — and the pane keeps the family's
+   squircle anyway. A caption makes the pane a GROUP rather than one row with a box around it, so
+   it reads as a panel, and a panel wears the squircle. The rule is the bare one-row pane only. */
 .kui-surface.kui-command-panel:has(.kui-command-item):not(:has(.kui-command-item ~ .kui-command-item, .kui-command-group-label)) {
   corner-shape: round;
 }

@@ -1770,16 +1770,15 @@ describe("the results pane nests its rows at every count (§6, §44, 2026-09-05)
     expect(["squircle", "superellipse(2)"]).toContain(computed(pane, "corner-shape"));
   });
 
-  it("a caption above the one row is STILL a capsule, at every index (2026-09-06)", async () => {
-    /* REVERSED, and the reversal is the whole point of the law. It read the other way until the
-       rows stood a step above the palette, on a measurement that was true by a QUARTER OF A PIXEL
-       — 33.25 of corner against a 67px box — which is not a boundary, it is the same case reached
-       from underneath. Re-measured with the step: 33.25/66, 36.75/72, 40.25/76 and 40.25/76, so
-       the corner is at or past half the box at every index and a squircle there draws the exact
-       lozenge the reported defect was.
+  it("a caption above the one row keeps the family's squircle, at every index (2026-09-15)", async () => {
+    /* REVERSED TWICE, and both reversals are in the stylesheet's comment. 2026-09-06 drew the
+       captioned one-row pane round, because its corner is at or past half the box at every index
+       (33.25/66, 36.75/72, 40.25/76, 40.25/76). 2026-09-15 kept the squircle anyway (Kushagra, by
+       eye): a caption makes it a group, and a group is a panel.
 
-       READ AT ALL FOUR, because the old spelling was written off one, and the clamp guard is what
-       makes each index a measurement rather than a restatement of the selector. */
+       THE CLAMP GUARD STAYS, because it is what makes the law about THIS case: without it, a
+       captioned pane that stopped being at the capsule limit would keep its squircle for a reason
+       that has nothing to do with the decision. READ AT ALL FOUR, as before. */
     for (const size of ["1", "2", "3", "4"] as const) {
       render(
         <Theme>
@@ -1811,9 +1810,9 @@ describe("the results pane nests its rows at every count (§6, §44, 2026-09-05)
       expect(pop.querySelectorAll(".kui-command-group-label").length, `no caption at ${size}`).toBe(1);
       expect(
         parseFloat(computed(box, "border-radius")),
-        `at ${size} the captioned pane is NOT at the capsule limit — the exclusion was right`,
+        `at ${size} the captioned pane is not at the capsule limit, so this law is not about it`,
       ).toBeGreaterThanOrEqual(box.getBoundingClientRect().height / 2);
-      expect(["round", "superellipse(1)"], `at ${size} a captioned capsule is drawn flat`).toContain(
+      expect(["squircle", "superellipse(2)"], `at ${size} a captioned pane lost the squircle`).toContain(
         computed(box, "corner-shape"),
       );
     }

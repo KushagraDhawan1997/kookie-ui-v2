@@ -138,10 +138,17 @@ describe("the closed unions", () => {
       "ComboboxOption",
       // Closed unions in the package that this server does not close, because `typeAxis` only
       // reaches axes and these are per-component vocabularies. `check_usage` therefore says
-      // nothing about a wrong value on these seven props; recorded rather than left to be
+      // nothing about a wrong value on these props; recorded rather than left to be
       // discovered from a tool result that stayed silent.
       "AttachmentState",
+      // Avatar's own ladder, "1" to "9": the control heights for 1-4 and the avatar's own sizes
+      // above them (2026-09-15). Wider than the size axis, so closing it against that axis would
+      // refuse five legal values.
+      "AvatarSize",
       "ComposerStatus",
+      // Where a transcript opens, `start` or `end` — the scroller primitive's own vocabulary,
+      // re-exported under the component's name.
+      "MessageScrollerDefaultScrollPosition",
       // The three edges a modal sheet may come in from (§49, 2026-09-12) — `bottom`,
       // `inline-start`, `inline-end`. Logical on purpose, so it mirrors under RTL; `top` and
       // the physical pair are refused in the component rather than absent by oversight.

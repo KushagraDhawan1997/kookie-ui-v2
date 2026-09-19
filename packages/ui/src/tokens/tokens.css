@@ -998,7 +998,8 @@
      Switch: neutral off, accent on). Without it, such a control has to choose between
      stamping accent and wearing a tinted edge at rest, or stamping neutral and having no
      way to name accent when it is checked — and naming a FAMILY in a component stylesheet
-     is what the role-not-family law forbids. Neutral's own border role, exposed. */
+     is what the role-not-family law forbids. One step under neutral's own border role
+     (2026-09-15): a line with no family is quieter than the edge a pane draws. */
   --color-border: var(--neutral-6);
 
   /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;
@@ -1702,7 +1703,8 @@
      Switch: neutral off, accent on). Without it, such a control has to choose between
      stamping accent and wearing a tinted edge at rest, or stamping neutral and having no
      way to name accent when it is checked — and naming a FAMILY in a component stylesheet
-     is what the role-not-family law forbids. Neutral's own border role, exposed. */
+     is what the role-not-family law forbids. One step under neutral's own border role
+     (2026-09-15): a line with no family is quieter than the edge a pane draws. */
   --color-border: var(--neutral-6);
 
   /* the shadow palette (§13) — a resource for Box and blocks, never read by a component;

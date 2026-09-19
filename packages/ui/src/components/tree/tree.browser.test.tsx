@@ -20,6 +20,8 @@ import {
   tokenOn,
   until,
   within,
+  MARKER,
+  Marked,
 } from "../../test/browser.tsx";
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { NavTree, Tree, type TreeNode } from "./tree.tsx";
@@ -196,8 +198,20 @@ describe("selection (§33): announced by the machine, painted in the family's ow
       expect(computed(resting, "color"), `${appearance}: resting ink`).toBe(
         colorOn(resting, "var(--color-text)"),
       );
-      expect(computed(selected, "color")).not.toBe(computed(resting, "color"));
     }
+    // Both directions whatever the brand is (2026-09-20): with the family's current role marked,
+    // the selected row paints the mark and its sibling does not. It compared the two inks until
+    // then, and a grey brand makes them the same pixels in dark on a correct stylesheet.
+    const marked = mounted(
+      <Marked roles={["--accent-current"]}>
+        <Tree items={ITEMS} aria-label="Files" />
+      </Marked>,
+      { theme: {} },
+    );
+    rowsOf(marked)[0]!.focus();
+    await userEvent.keyboard("{Enter}");
+    expect(computed(rowsOf(marked)[0]!, "color"), "selected did not read the family").toBe(colorOn(marked, MARKER));
+    expect(computed(rowsOf(marked)[1]!, "color"), "the whole panel reads the family").not.toBe(colorOn(marked, MARKER));
   });
 
   it("SELECTED OUTRANKS HOVERED (§10's clause, 2026-08-26) — the persistent fill is darker than the transient one", async () => {
@@ -415,8 +429,21 @@ describe("NavTree announces as navigation, never as a tree (§33)", () => {
       expect(computed(resting, "color"), `${appearance}: resting ink`).toBe(
         colorOn(resting, "var(--color-text)"),
       );
-      expect(computed(current, "color")).not.toBe(computed(resting, "color"));
     }
+    // Whatever the brand is (2026-09-20): see the selected-ink law above.
+    const marked = mounted(
+      <Marked roles={["--accent-current"]}>
+        <NavTree items={NAV} defaultExpandedIds={["start"]} currentId="install" />
+      </Marked>,
+      { theme: {} },
+    );
+    const markedResting = [...marked.querySelectorAll<HTMLElement>("a[href]")].find(
+      (a) => !a.hasAttribute("aria-current"),
+    )!;
+    expect(computed(within(marked, "[aria-current='page']"), "color"), "current did not read the family").toBe(
+      colorOn(marked, MARKER),
+    );
+    expect(computed(markedResting, "color"), "a resting link reads the family").not.toBe(colorOn(marked, MARKER));
   });
 
   it("the link escape carries the row's identity onto the app's own element", () => {

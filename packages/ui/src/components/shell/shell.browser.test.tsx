@@ -53,6 +53,8 @@ import {
   tokenOn,
   until,
   within,
+  MARKER,
+  Marked,
 } from "../../test/browser.tsx";
 import { VIEWPORT as WIDE } from "../../test/viewport.ts";
 
@@ -3662,9 +3664,25 @@ describe("the sidebar's own anatomy: the scrolling region and the nav row (§21,
     expect(icon(currentRow), "the current icon and label disagree").toBe(
       computed(currentRow, "color"),
     );
-    expect(icon(currentRow), "current and resting icons agree — nothing says here").not.toBe(
-      icon(plain),
+    // Whatever the brand is (2026-09-20, the Marked note in test/browser.tsx): with the family's
+    // current role marked, the current icon paints the mark and the resting one does not.
+    const marked = mounted(
+      <Marked roles={["--accent-current"]}>
+        <Shell contained style={{ height: 400, width: 900 }}>
+          <ShellSidebar aria-label="Primary">
+            <ShellNavGroup label="Workspace">
+              <ShellNavItem current leading={<span>▲</span>}>Inbox</ShellNavItem>
+              <ShellNavItem leading={<span>▲</span>}>Drafts</ShellNavItem>
+            </ShellNavGroup>
+          </ShellSidebar>
+          <ShellContent>c</ShellContent>
+        </Shell>
+      </Marked>,
+      { theme: { appearance } },
     );
+    const [markedCurrent, markedPlain] = [...marked.querySelectorAll<HTMLElement>(".kui-shell-nav-item")];
+    expect(icon(markedCurrent!), "current and resting icons agree — nothing says here").toBe(colorOn(marked, MARKER));
+    expect(icon(markedPlain!), "a resting icon reads the family").not.toBe(colorOn(marked, MARKER));
   });
 
   it("the LABEL stands back down, so a sidebar is not a column of blue words", () => {
@@ -4941,9 +4959,11 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
       );
     const inset = (shell: HTMLElement) =>
       parseFloat(tokenOn(within(shell, ".kui-shell-content"), "--kui-shell-inset-inline-start"));
+    // Both frames stay mounted: each is `contained`, so neither reads the other. It removed the
+    // first one by hand until 2026-09-20, and React's own unmount then threw `removeChild` on a
+    // node that was already gone — an unhandled error that failed the whole run.
     const bare = frame(false);
     const expected = inset(bare);
-    bare.remove();
     const barred = frame(true);
     expect(expected, "vacuity: the floating sidebar reserves room").toBeGreaterThan(0);
     expect(inset(barred), "a hidden bar reserved a rail's width").toBeCloseTo(expected, 1);
@@ -5104,10 +5124,16 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
     glass.remove();
 
     /* THE LINE, on a bar with no material — where light is not the edge and the cast is gone, so
-       the hairline is the only boundary left. Compared against a mounted Card at the same index,
-       which is the value the system already gives a region's boundary. */
+       the hairline is the only boundary left. Compared against a mounted Card in the flat world,
+       where a pane's hairline is the only thing bounding it — the value the system already gives
+       a pane's edge.
+
+       IT READ THE CONTENT PANE'S SEAM until 2026-09-20, under this same comment claiming a Card.
+       The two agreed while both were `--neutral-border`; the 2026-09-15 move of the tone-less
+       hairline to one step lighter split them, and the seam between regions is not a pane's
+       edge. */
     const solid = bars({ only: true });
-    const card = within(solid, ".kui-shell-content");
+    const card = mounted(<Card>x</Card>, { theme: { depth: "flat" }, select: ".kui-card" });
     for (const sel of [".kui-shell-rail-list", ".kui-shell-rail-action"]) {
       const pane = within(solid, sel);
       expect(parseFloat(computed(pane, "border-top-width")), `${sel} has no hairline`).toBeGreaterThan(0);

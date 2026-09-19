@@ -532,17 +532,21 @@ describe("it is an overlay, exactly as a dialog is", () => {
     ).not.toBe(menuCast);
   });
 
-  it("answers `material` the way a dialog does — the panel is glass, the scrim is unchanged", () => {
+  it("answers `material` as a REGION — the panel is thicker glass than a dialog, the scrim is unchanged", () => {
     // A covering pane is over content by construction, so it always expresses the theme (§10's
     // selectivity, and `useMaterial({ backdrop: true })` in the component is what states it).
+    //
+    // It matched a dialog's chain until 2026-09-18, when a Sheet joined the region scale (a pane
+    // that holds paragraphs is a thicker slab of the same glass). The dialog stays as the
+    // negative control: a sheet that fell back to the pane cell would agree with it again.
     const sheet = openSheet({ appearance: "light" }, { material: "regular" });
     const dialog = openDialog({ appearance: "light" }, { material: "regular" });
     const stripLens = (v: string) => v.replace(/url\("[^"]*"\)\s*/, "");
-    expect(stripLens(computed(sheet.popup, "backdrop-filter")), "the family's filter chain").toBe(
-      stripLens(computed(dialog.popup, "backdrop-filter")),
+    expect(stripLens(computed(sheet.popup, "backdrop-filter")), "the region's filter chain").toBe(
+      filterOn(sheet.popup, "--material-regular-region-filter"),
     );
-    expect(stripLens(computed(sheet.popup, "backdrop-filter"))).toBe(
-      filterOn(sheet.popup, "--material-regular-filter"),
+    expect(stripLens(computed(sheet.popup, "backdrop-filter")), "a region is not the pane cell").not.toBe(
+      stripLens(computed(dialog.popup, "backdrop-filter")),
     );
     expect(computed(sheet.popup, "backdrop-filter"), "a glass panel wears the lens").toMatch(/^url\(/);
     expect(alphaOf(computed(sheet.popup, "background-color")), "and a glass veil is translucent").toBeLessThan(1);

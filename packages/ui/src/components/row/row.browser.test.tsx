@@ -24,6 +24,8 @@ import {
   settle,
   until,
   within,
+  MARKER,
+  Marked,
 } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Kbd } from "../kbd/kbd.tsx";
@@ -392,9 +394,20 @@ describe("the leading icon: rests in the label's ink, speaks the family when cur
       // ink/glyph pick (2026-08-26: "the icon color and label not matching bothers me").
       const current = within(root, '[data-t="current"]');
       expect(icon("current")).toBe(colorOn(current, "var(--accent-current)"));
-      expect(icon("current"), "the current icon settled for the neutral ink").not.toBe(
-        icon("plain"),
+      // Whatever the brand is: with the family's current role marked, the current icon paints
+      // the mark and the resting one does not. (It read "current is not the plain ink" until
+      // 2026-09-20, which a grey brand makes false in dark on a correct stylesheet.)
+      const marked = mounted(
+        <Marked roles={["--accent-current"]}>
+          <Row data-t="plain" leading={<span>▲</span>}>Rename</Row>
+          <Row data-t="current" current leading={<span>▲</span>}>Overview</Row>
+        </Marked>,
+        { theme: { appearance } },
       );
+      const markedIcon = (t: string) =>
+        computed(within(marked, `[data-t="${t}"] [data-slot="leading"]`), "color");
+      expect(markedIcon("current"), "the current icon settled for the neutral ink").toBe(colorOn(marked, MARKER));
+      expect(markedIcon("plain"), "a resting icon reads the family").not.toBe(colorOn(marked, MARKER));
       // AND THE MATCH IS THE POINT: the current row's icon and label are ONE colour, in
       // both appearances — which is what the shared role makes structural.
       expect(icon("current"), "the current icon and label disagree").toBe(

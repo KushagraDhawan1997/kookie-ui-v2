@@ -32,7 +32,9 @@
 import { describe, expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
 
-import { APPEARANCES, colorOn, computed, mounted, within } from "../test/browser.tsx";
+import { APPEARANCES, MARKER, Marked, colorOn, computed, mounted, within } from "../test/browser.tsx";
+import { resolveTone } from "../tokens/color.ts";
+import { lowChromaThreshold, tones } from "../tokens/color-config.ts";
 import { Button } from "../components/button/button.tsx";
 import { Row } from "../components/row/row.tsx";
 import { Text } from "../components/text/text.tsx";
@@ -141,17 +143,32 @@ for (const appearance of APPEARANCES) {
       expect(blueHover, "blue still hovers to a tint").toBe(neutralHover);
     });
 
-    it("a LOUD accent button keeps the pigment (2026-08-29, Kushagra: accent is blue again)", () => {
-      // REVERSED TWICE, and the second reversal restores the first spelling. This law read
-      // "accent IS neutral's solid" for one day, while `color-config.ts` held accent at
-      // `vividness: 0.04` — true then, and true only by the low-chroma branch collapsing both
-      // families onto step 12. With a pigment brand the loud rung is where accent and neutral
-      // are furthest apart, which is what makes it the one rung worth reading.
+    it("a LOUD accent button paints the brand's solid, whatever the brand is", () => {
+      // REVERSED THREE TIMES because it was written against the brand of the day: "accent IS
+      // neutral's solid" while the brand was grey, "accent is NOT neutral's solid" while it was
+      // blue, and the brand went grey again on 2026-09-19 as one config line. So both halves are
+      // now stated in the brand's own terms.
       const { accent, neutral } = trio("loud", appearance);
       expect(fill(accent)).toBe(colorOn(accent, "var(--accent-solid)"));
-      expect(fill(accent), "accent went neutral at the one rung it must not").not.toBe(
-        fill(neutral),
+      // THE READING, independent of the brand: with the role marked, the loud accent paints the
+      // mark and a loud neutral does not.
+      const marked = mounted(
+        <Marked roles={["--accent-solid"]}>
+          <Button data-t="accent" tone="accent" emphasis="loud">Save</Button>
+          <Button data-t="neutral" tone="neutral" emphasis="loud">Save</Button>
+        </Marked>,
+        { theme: { appearance } },
       );
+      expect(fill(within(marked, '[data-t="accent"]')), "a loud accent stopped reading its family").toBe(
+        colorOn(marked, MARKER),
+      );
+      expect(fill(within(marked, '[data-t="neutral"]'))).not.toBe(colorOn(marked, MARKER));
+      // THE CONSEQUENCE, per branch: a pigment brand keeps its pigment at the loud rung; a grey
+      // one takes the low-chroma branch onto step 12 and lands exactly on neutral's solid —
+      // which is the designed cost of a grey brand (color-config.ts), not a defect.
+      const grey = resolveTone(tones.accent).vividness < lowChromaThreshold;
+      if (grey) expect(fill(accent), "a grey brand's loud rung is neutral's solid").toBe(fill(neutral));
+      else expect(fill(accent), "accent went neutral at the one rung it must not").not.toBe(fill(neutral));
     });
 
     it("accent TEXT is loud or it is not accent — and blue is the control that still holds", () => {

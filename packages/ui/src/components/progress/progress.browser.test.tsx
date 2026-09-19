@@ -22,6 +22,9 @@ import {
   tokenOn,
   inMotion,
   asksForStillness,
+  MARKER,
+  Marked,
+  within,
 } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Flex } from "../flex/flex.tsx";
@@ -72,7 +75,20 @@ describe("the well is neutral and the level is the accent, in both appearances (
       // it asserted that two neutrals differ, which is a law about nothing. `--accent-soft` is
       // still emitted and still the thing a bar must not paint, so the guarantee survives the
       // doctrine change and a well repointed at the family still fails here.
-      expect(computed(root, "background-color")).not.toBe(colorOn(root, "var(--accent-soft)"));
+      // MARKED since 2026-09-20: `--accent-soft` itself stopped being a probe the day the brand
+      // went grey, because a grey family's wash and the neutral well are then the same pixels in
+      // dark. Marking the role asks the question directly — does the well READ the family's
+      // wash — whatever the brand is.
+      const marked = mounted(
+        <Marked roles={["--accent-soft", "--accent-solid"]}>
+          <Progress value={40} />
+        </Marked>,
+        { theme: { appearance } },
+      );
+      const markedRoot = within(marked, ".kui-progress");
+      expect(computed(markedRoot, "background-color"), "the well read the family").not.toBe(colorOn(marked, MARKER));
+      // The negative control: the FILL does read the family, so the mark reaches a bar at all.
+      expect(computed(within(markedRoot, ".kui-progress-fill"), "background-color")).toBe(colorOn(marked, MARKER));
     });
   }
 });

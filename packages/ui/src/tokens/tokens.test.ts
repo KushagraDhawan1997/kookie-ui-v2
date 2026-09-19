@@ -1505,10 +1505,15 @@ describe("the tone-independent hairline (§7, §11)", () => {
     }
   });
 
-  it("resolves through neutral's own border role, never a raw step", () => {
-    // A role, not a coincidence (§13): if this ever became --neutral-7 directly, a contrast
-    // shift that moved the family's border would leave this one behind.
-    expect(declaration("color-border")).toBe("var(--neutral-border)");
+  it("sits ONE STEP under neutral's own border, so a family-less line is quieter than a pane's edge", () => {
+    // It was `var(--neutral-border)` until 2026-09-15, when the tone-less hairline moved to
+    // step 6 (Kushagra) — separators and seams one step lighter than the edge a pane draws.
+    // Stated as the relationship rather than the step, so moving the family's border drags this
+    // line with it instead of leaving it behind.
+    const step = (decl: string | undefined) => Number(decl?.match(/^var\(--neutral-(\d+)\)$/)?.[1]);
+    const border = step(declaration("neutral-border"));
+    expect(border, "neutral's border is a palette step").toBeGreaterThan(1);
+    expect(step(declaration("color-border"))).toBe(border - 1);
   });
 });
 

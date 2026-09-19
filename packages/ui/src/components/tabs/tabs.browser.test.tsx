@@ -26,6 +26,8 @@ import {
   tokenOn,
   until,
   within,
+  MARKER,
+  Marked,
 } from "../../test/browser.tsx";
 import { Theme } from "../../theme/theme.tsx";
 import { Button } from "../button/button.tsx";
@@ -35,18 +37,19 @@ import { Tabs, TabsList, TabsPanel, TabsTab } from "./tabs.tsx";
 
 const px = (v: string) => parseFloat(v);
 
+const barTree = (size: "1" | "2" | "3" | "4" = "2") => (
+  <Tabs defaultValue="a">
+    <TabsList size={size}>
+      <TabsTab value="a">Overview</TabsTab>
+      <TabsTab value="b">Projects</TabsTab>
+    </TabsList>
+    <TabsPanel value="a">first</TabsPanel>
+    <TabsPanel value="b">second</TabsPanel>
+  </Tabs>
+);
+
 function bar(size: "1" | "2" | "3" | "4" = "2", theme = {}) {
-  return mounted(
-    <Tabs defaultValue="a">
-      <TabsList size={size}>
-        <TabsTab value="a">Overview</TabsTab>
-        <TabsTab value="b">Projects</TabsTab>
-      </TabsList>
-      <TabsPanel value="a">first</TabsPanel>
-      <TabsPanel value="b">second</TabsPanel>
-    </Tabs>,
-    { theme },
-  );
+  return mounted(barTree(size), { theme });
 }
 
 const listOf = (root: Element) => within(root, ".kui-tabs-list");
@@ -157,15 +160,17 @@ describe("the rule (§26)", () => {
       // (#0095fe vs #0094fc), so nothing visible moved there.
       const root = bar("2", { appearance });
       expect(computed(ruleOf(root), "background-color")).toBe(colorOn(root, "var(--accent-glyph)"));
-      // In DARK the two genuinely differ, which is what makes this law fail on a revert rather
-      // than pass on a coincidence. Light is deliberately not asserted apart: there the solve
-      // lands beside the solid, and demanding a difference would pin an accident.
-      if (appearance === "dark") {
-        expect(
-          computed(ruleOf(root), "background-color"),
-          "the rule went back to the solid",
-        ).not.toBe(colorOn(root, "var(--accent-solid)"));
-      }
+      // The glyph and the solid are different ROLES whatever the brand is, and marking one tells
+      // them apart in every appearance. (Until 2026-09-20 this compared their values in dark,
+      // where a blue brand made them differ — and a grey brand makes them the same pixels.)
+      const glyph = mounted(<Marked roles={["--accent-glyph"]}>{barTree("2")}</Marked>, { theme: { appearance } });
+      expect(computed(ruleOf(glyph), "background-color"), "the rule went back to the solid").toBe(
+        colorOn(glyph, MARKER),
+      );
+      const solid = mounted(<Marked roles={["--accent-solid"]}>{barTree("2")}</Marked>, { theme: { appearance } });
+      expect(computed(ruleOf(solid), "background-color"), "the rule reads the solid").not.toBe(
+        colorOn(solid, MARKER),
+      );
     });
   }
 
