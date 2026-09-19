@@ -60,7 +60,7 @@ export type ExampleProps = {
  * box that holds full-size controls is a Card), so wrapping one puts a pane in a pane.
  */
 export const rootsOwnPane = (source: string): boolean =>
-  /return\s*\(\s*<(Card|Composer)\b/.test(source);
+  /<(Card|Composer)\b/.test(source);
 
 export async function Example({ name, quiet }: ExampleProps) {
   const Component = EXAMPLES[name];

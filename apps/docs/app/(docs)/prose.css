@@ -60,6 +60,49 @@
   max-inline-size: none;
 }
 
+/* ── Rhythm between figures and headings ───────────────────────────────────────────────────
+   A figure's air is for separating it from PROSE. Next to a heading or another figure it would
+   stack: a heading sat 32px over a fence and 16px over a paragraph, a fence sat 64px under a
+   section break a paragraph sat 48px under, and two fences sat 48px apart. The heading keeps
+   its body close whatever that body is, a section break is one distance, and two figures are
+   one figure interval apart. */
+.kd-prose > .kd-heading + .kd-figure,
+.kd-prose > .kd-figure + .kd-figure {
+  margin-block-start: 0;
+}
+.kd-prose > .kd-figure:has(+ .kd-heading) {
+  margin-block-end: 0;
+}
+
+/* A SUBSECTION SITS CLOSER TO ITS BODY THAN A SECTION DOES, which is the other half of it
+   taking less air above: an `h3` opens a group inside a section, so the words under it belong
+   to it more tightly than a section's do. The step below the flow gap, spent as the difference
+   between two steps because the gap is the flow's and only this one element departs from it —
+   the page header's own spelling for the same kind of departure. */
+.kd-prose > .kd-heading-3 {
+  margin-block-end: calc(var(--layout-space-4) - var(--layout-space-5));
+}
+
+/* ── Heading anchors ───────────────────────────────────────────────────────────────────────
+   A "#" after the words, shown on hover or focus, so a reader can link to a section. Drawn
+   with `content` so it never enters the heading's text, its copy, or the contents list. */
+.kd-anchor {
+  margin-inline-start: var(--space-2);
+  color: var(--color-text-faint);
+  text-decoration: none;
+  opacity: 0;
+}
+.kd-anchor::before {
+  content: "#";
+}
+.kd-heading:hover .kd-anchor,
+.kd-anchor:focus-visible {
+  opacity: 1;
+}
+.kd-anchor:hover {
+  color: var(--accent-ink);
+}
+
 /* There is deliberately no opt-out here for a page title, because a page title is no longer
    inside this class at all: `PageTitle` used to wrap both of its children in `.kd-prose` and
    now wraps neither, for the reason written above it in `page-frame.tsx`. A measure is

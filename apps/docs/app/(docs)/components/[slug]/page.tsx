@@ -27,19 +27,33 @@
  * scanning surface, where they are a wall (`propSummary`).
  *
  * WHAT IS NOT HERE. `axes` — every axis was a prop of some symbol, and the two texts were the
- * same sentence twice. `What it refuses, and why` stays: it is the one section a generated
+ * same sentence twice. `Not supported` stays: it is the one section a generated
  * table can never carry, and it is what this reference has that Apple's does not.
  */
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Box, Code, Flex, Heading, List, ListItem, Page, Stack, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Text } from "@kookie-ui/react";
+import {
+  Box,
+  Code,
+  Heading,
+  List,
+  ListItem,
+  Page,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Text,
+} from "@kookie-ui/react";
 
 import { CodeSample } from "../../../../blocks/code-sample";
-import { TableOfContents } from "../../../../blocks/table-of-contents";
+import { DocTabs, DocTabsProvider, DocTabsToc } from "../../doc-tabs";
 import { Example } from "../../example";
 import { InlineCode } from "../../../inline-code";
 import { API } from "../api.generated";
-import { EVERYWHERE } from "../../markdown";
 import { PageFrame } from "../../page-frame";
 import { propDescription, propSummary, propType } from "../prop-description";
 import { BY_SLUG, ENTRIES, type Entry } from "../registry";
@@ -59,7 +73,10 @@ export async function generateMetadata({
   const { slug } = await params;
   const entry = BY_SLUG.get(slug);
   return entry
-    ? { title: `${humanLabel(entry.name)} — KookieUI`, description: entry.abstract }
+    ? {
+        title: `${humanLabel(entry.name)} — KookieUI`,
+        description: entry.abstract,
+      }
     : { title: "KookieUI" };
 }
 
@@ -78,8 +95,7 @@ const SECTIONS = {
   examples: "Examples",
   topics: "Topics",
   props: "Props",
-  refusals: "What it refuses, and why",
-  everywhere: "Everywhere",
+  refusals: "Not supported",
 } as const;
 
 /** A symbol's anchor. Lowercased name, so the link a reader copies is the name they searched. */
@@ -95,22 +111,28 @@ export const symbolId = (name: string) => name.toLowerCase();
  * file over.
  */
 export function referenceToc(entry: Entry): TocEntry[] {
-  const at = (title: string, level: 2 | 3): TocEntry => ({ id: slugify(title), title, level });
+  const at = (title: string, level: 2 | 3): TocEntry => ({
+    id: slugify(title),
+    title,
+    level,
+  });
   return [
-    ...(entry.declaration ? [at(SECTIONS.declaration, 2)] : []),
+    at(SECTIONS.declaration, 2),
     at(SECTIONS.overview, 2),
-    ...(entry.variants
-      ? [
-          at(SECTIONS.examples, 2),
-          ...entry.variants.map((variant) => at(variant.title, 3)),
-        ]
-      : [at(SECTIONS.example, 2)]),
     ...(entry.topics
       ? [at(SECTIONS.topics, 2), ...entry.topics.map((topic) => at(topic.title, 3))]
       : [at(SECTIONS.props, 2)]),
     at(SECTIONS.refusals, 2),
-    at(SECTIONS.everywhere, 2),
   ];
+}
+
+/** The Examples tab's contents: the named variants. The default example heads the tab unnamed. */
+export function examplesToc(entry: Entry): TocEntry[] {
+  return (entry.variants ?? []).map((variant) => ({
+    id: slugify(variant.title),
+    title: variant.title,
+    level: 2 as const,
+  }));
 }
 
 /**
@@ -143,8 +165,14 @@ function Section({
         {/* THE ANCHOR IS `slugify(title)`, the same function `referenceToc` calls above. Two
             spellings of one identity is how a contents entry comes to scroll nowhere, which is
             why `slug.ts` exists — and is what six dead links measured here before this line. */}
-        <Heading size="6" render={<h2 id={slugify(title)} />}>
+        <Heading
+          size="6"
+          weight="medium"
+          render={<h2 id={slugify(title)} />}
+          className="kd-heading"
+        >
           {title}
+          <a className="kd-anchor" href={`#${slugify(title)}`} aria-label="Link to this section" />
         </Heading>
         {lead ? (
           <Text size="3" render={<p />}>
@@ -193,7 +221,7 @@ function Props({ name }: { name: string }) {
   }
   return (
     <Stack gap="3">
-      <Table size="3">
+      <Table size="2">
         <TableHeader>
           <TableRow>
             <TableHead>Prop</TableHead>
@@ -245,16 +273,24 @@ function Props({ name }: { name: string }) {
 function Symbol({ name, summary }: { name: string; summary: string }) {
   return (
     <Stack gap="3">
-      <Stack gap="2" className="kd-prose">
+      {/* The name is a heading now, so its summary takes a heading's interval (the chapter's
+          `h3` distance) rather than the tighter one a label took. */}
+      <Stack gap="4" className="kd-prose">
         {/* THE `Flex` IS LOAD-BEARING: a flex column stretches its children, so an atom placed
             directly in a Stack runs wall to wall. */}
-        <Flex>
-          <Heading size="4" render={<h4 id={symbolId(name)} />}>
-            <Code size="3" weight="medium">
-              {name}
-            </Code>
-          </Heading>
-        </Flex>
+        {/* A HEADING, NOT A CHIP. The name is the title of everything under it, and a `Code`
+            atom is priced for a word inside a sentence: at the body step, in a grey pill, it
+            ranked below the section headings it was nested under and a reader scanning for
+            `MenuTrigger` had nothing to catch. */}
+        <Heading
+          size="4"
+          weight="medium"
+          render={<h4 id={symbolId(name)} />}
+          className="kd-heading"
+        >
+          {name}
+          <a className="kd-anchor" href={`#${symbolId(name)}`} aria-label="Link to this symbol" />
+        </Heading>
         <Text size="3" render={<p />}>
           <InlineCode text={summary} />
         </Text>
@@ -274,6 +310,36 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
     ...(entry.parts ?? []).map((part) => [part.part, part.blurb] as const),
   ]);
 
+  /* The Examples tab: the default example with its knobs first, then each named variant. */
+  const examples = (
+    <Stack gap="9">
+      <Example name={entry.slug} />
+      {entry.variants?.map((variant) => (
+        <Stack key={variant.name} gap="4">
+          <Stack gap="4" className="kd-prose">
+            <Heading
+              size="6"
+              weight="medium"
+              render={<h2 id={slugify(variant.title)} />}
+              className="kd-heading"
+            >
+              {variant.title}
+              <a
+                className="kd-anchor"
+                href={`#${slugify(variant.title)}`}
+                aria-label="Link to this section"
+              />
+            </Heading>
+            <Text size="3" render={<p />}>
+              <InlineCode text={variant.why} />
+            </Text>
+          </Stack>
+          <Example name={`${entry.slug}.${variant.name}`} />
+        </Stack>
+      ))}
+    </Stack>
+  );
+
   return (
     /* THE CHAPTER'S FRAME, EXACTLY (2026-09-04, Kushagra: "but we fixed it on other pages,
        should be the same, and it needs ToC too").
@@ -290,98 +356,84 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
        pays the same bill it paid before and the bill was measured first — squeezed to 640 five
        of Command's six tables still fit and one overflows by 12px, which it scrolls, and a
        table that needs more room scrolls at either width. */
-    <Box className="kd-chapter">
-      <PageFrame width="var(--kd-measure)">
-        <Page
-          title={humanLabel(entry.name)}
-          description={<InlineCode text={entry.abstract} />}
-          style={{ minWidth: 0 }}
-        >
-          {entry.declaration ? (
-            <Section title={SECTIONS.declaration}>
-              {await CodeSample({ code: entry.declaration, lang: "tsx" })}
-            </Section>
-          ) : null}
+    <DocTabsProvider exampleIds={examplesToc(entry).map((item) => item.id)}>
+      <Box className="kd-chapter">
+        <PageFrame width="var(--kd-measure)">
+          <Page
+            title={humanLabel(entry.name)}
+            description={<InlineCode text={entry.abstract} />}
+            style={{ minWidth: 0 }}
+          >
+            <DocTabs
+              examples={examples}
+              docs={
+                <Stack gap="8">
+                  <Section title={SECTIONS.declaration}>
+                    {await CodeSample({
+                      code: entry.declaration,
+                      lang: "tsx",
+                    })}
+                  </Section>
 
-          <Section title={SECTIONS.overview}>
-            <Stack gap="4" className="kd-prose">
-              {entry.overview.map((paragraph) => (
-                <Text key={paragraph} size="3" render={<p />}>
-                  <InlineCode text={paragraph} />
-                </Text>
-              ))}
-            </Stack>
-          </Section>
+                  <Section title={SECTIONS.overview}>
+                    <Stack gap="4" className="kd-prose">
+                      {entry.overview.map((paragraph) => (
+                        <Text key={paragraph} size="3" render={<p />}>
+                          <InlineCode text={paragraph} />
+                        </Text>
+                      ))}
+                    </Stack>
+                  </Section>
 
-          {/* THE DEFAULT SITS UNDER THE SECTION'S OWN HEADING and the variants take an `h3`
-              each, because that is what they are: the example, and named departures from it.
-              Giving the default an `h3` of its own would need a word for it — shadcn says
-              "Basic" — and a heading that exists only to balance the ones below it is a label
-              rather than a name.
-
-              The knob panel rides the DEFAULT alone. `controlsFor` is keyed by slug, so a
-              variant resolves no controls and degrades to a plain specimen without a branch —
-              which is right: a variant is a fixed state worth linking to, and a reader who
-              wants to sweep an axis has the knobs one figure up. */}
-          <Section title={entry.variants ? SECTIONS.examples : SECTIONS.example}>
-            <Stack gap="8">
-              <Example name={entry.slug} />
-              {entry.variants?.map((variant) => (
-                <Stack key={variant.name} gap="4">
-                  <Stack gap="2" className="kd-prose">
-                    <Heading size="5" render={<h3 id={slugify(variant.title)} />}>
-                      {variant.title}
-                    </Heading>
-                    <Text size="3" render={<p />}>
-                      <InlineCode text={variant.why} />
-                    </Text>
-                  </Stack>
-                  <Example name={`${entry.slug}.${variant.name}`} />
-                </Stack>
-              ))}
-            </Stack>
-          </Section>
-
-          {entry.topics ? (
-            /* TOPICS IS THE INDEX AND THE REFERENCE AT ONCE, and on one page that is
+                  {entry.topics ? (
+                    /* TOPICS IS THE INDEX AND THE REFERENCE AT ONCE, and on one page that is
                deliberate. Apple's Topics list a symbol and its abstract, and the symbol's own
                page repeats both — which is right when the two are a click apart and is the
                same sentence twice when they are 200px apart. So the group heading introduces
                the symbols directly. */
-            <Section
-              title={SECTIONS.topics}
-              lead="Every symbol this component exports, grouped by the job it does. Each one carries the props it declares; each one has an anchor of its own."
-            >
-              <Stack gap="8">
-                {entry.topics.map((topic) => (
-                  <Stack key={topic.title} gap="6">
-                    <Heading size="5" render={<h3 id={slugify(topic.title)} />}>
-                      {topic.title}
-                    </Heading>
-                    {topic.symbols.map((name) => (
-                      <Symbol key={name} name={name} summary={summaries.get(name) ?? ""} />
-                    ))}
-                  </Stack>
-                ))}
-              </Stack>
-            </Section>
-          ) : (
-            /* ONE SYMBOL, SO NO GROUPING, and the absence is the design: a component with no
+                    <Section
+                      title={SECTIONS.topics}
+                      lead="Every symbol this component exports, grouped by the job it does. Each one carries the props it declares; each one has an anchor of its own."
+                    >
+                      <Stack gap="8">
+                        {entry.topics.map((topic) => (
+                          <Stack key={topic.title} gap="6">
+                            <Heading
+                              size="5"
+                              weight="medium"
+                              render={<h3 id={slugify(topic.title)} />}
+                              className="kd-heading"
+                            >
+                              {topic.title}
+                              <a
+                                className="kd-anchor"
+                                href={`#${slugify(topic.title)}`}
+                                aria-label="Link to this section"
+                              />
+                            </Heading>
+                            {topic.symbols.map((name) => (
+                              <Symbol key={name} name={name} summary={summaries.get(name) ?? ""} />
+                            ))}
+                          </Stack>
+                        ))}
+                      </Stack>
+                    </Section>
+                  ) : (
+                    /* ONE SYMBOL, SO NO GROUPING, and the absence is the design: a component with no
                parts has nothing to group, and a "Topics" heading over a single table would be
                an index of one. */
-            <Section
-              title={SECTIONS.props}
-              lead="Generated from the types. It lists what this component DECLARES: a prop that arrives from a shared type or from the platform is real and is not repeated here."
-            >
-              <Props name={entry.name} />
-            </Section>
-          )}
+                    <Section
+                      title={SECTIONS.props}
+                      lead="Generated from the types. It lists what this component DECLARES: a prop that arrives from a shared type or from the platform is real and is not repeated here."
+                    >
+                      <Props name={entry.name} />
+                    </Section>
+                  )}
 
-          <Section
-            title={SECTIONS.refusals}
-            lead="Each item below is a decision, not an omission. Each one states what to use instead."
-          >
-            {/* A LIST, AND AN UNORDERED ONE (2026-09-04, Kushagra: "shouldn't it be a numbered
+                  <Section
+                    title={SECTIONS.refusals}
+                  >
+                    {/* A LIST, AND AN UNORDERED ONE (2026-09-04, Kushagra: "shouldn't it be a numbered
                 list or something"). It rendered as name-over-paragraph blocks, the same shape
                 the symbols above take, so short items read as more sections rather than as one
                 list. NOT NUMBERED: a number claims a sequence or a rank, and a refusal has
@@ -390,46 +442,32 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
                 `InlineCode` on the NAME because the names are two kinds of thing and the
                 writing knows it: an identifier keeps its code spelling (`modal`, `readOnly`,
                 `FieldControl`), a phrase is capitalised because a list item starts a line. */}
-            <List size="3">
-              {entry.refusals.map((refusal) => (
-                <ListItem key={refusal.name}>
-                  <Text size="3" weight="medium" render={<span />}>
-                    <InlineCode text={refusal.name} />
-                  </Text>
-                  {" — "}
-                  <InlineCode text={refusal.why} />
-                </ListItem>
-              ))}
-            </List>
-          </Section>
+                    <List size="3">
+                      {entry.refusals.map((refusal) => (
+                        <ListItem key={refusal.name}>
+                          <Text size="3" weight="medium" render={<span />}>
+                            <InlineCode text={refusal.name} />
+                          </Text>
+                          {" — "}
+                          <InlineCode text={refusal.why} />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Section>
+                </Stack>
+              }
+            />
+          </Page>
+        </PageFrame>
 
-          <Section title={SECTIONS.everywhere}>
-            <Stack gap="3" className="kd-prose">
-              <Text size="3" render={<p />}>
-                This component inherits the rules below. Every component in the system does.
-              </Text>
-              {/* THE SENTENCES ARE `markdown.ts`'s (2026-09-07). They shipped inline here and
-                  again in the twin, verbatim, under a comment in that file claiming one home —
-                  which is this repo's most-repeated defect wearing the name of its own cure. A
-                  law now reads the rendered list against `EVERYWHERE`, and a second one fails
-                  on any of these sentences appearing as a literal anywhere else. */}
-              <List size="3">
-                {EVERYWHERE.map((line) => (
-                  <ListItem key={line}>{line}</ListItem>
-                ))}
-              </List>
-            </Stack>
-          </Section>
-        </Page>
-      </PageFrame>
-
-      {/* THE GUTTER'S CONTENT IS THE BLOCK, and this file states only the column — the split
+        {/* THE GUTTER'S CONTENT IS THE BLOCK, and this file states only the column — the split
           the chapter renderer already draws, and the block law's own line: a block may not
           decide a distance. `prose.css` carries the reserve, the pin, the width, the
           stickiness and the window where two columns stop fitting. */}
-      <div className="kd-toc-column">
-        <TableOfContents entries={referenceToc(entry)} className="kd-toc" />
-      </div>
-    </Box>
+        <div className="kd-toc-column">
+          <DocTabsToc docs={referenceToc(entry)} examples={examplesToc(entry)} />
+        </div>
+      </Box>
+    </DocTabsProvider>
   );
 }

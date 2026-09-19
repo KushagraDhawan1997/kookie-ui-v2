@@ -38,7 +38,7 @@ import { RULES } from "../builder/review";
  */
 export function ReviewRules() {
   return (
-    <Table size="3">
+    <Table size="2">
       <TableHeader>
         <TableRow>
           <TableHead>Rule</TableHead>

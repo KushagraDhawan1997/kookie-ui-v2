@@ -384,7 +384,7 @@ describe("a registry refusal reaches the snippet checker", () => {
     const tone = found.find((problem) => problem.symbol === "Accordion.tone");
     expect(tone, `nothing reported for Accordion.tone; got ${JSON.stringify(found)}`).toBeDefined();
     // The sentence is the registry's, carried verbatim — this file writes no reason of its own.
-    expect(tone?.message).toContain("no meaning of its own to colour");
+    expect(tone?.message).toContain("no meaning to colour");
   });
 });
 

@@ -155,7 +155,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
             pre-paint script's treatment, the same one dark mode has. */}
         <ShellSidebar
           aria-label="Documentation"
-          flush={false}
+          flush={true}
           resizable
           /* 336 SINCE 2026-09-05 (Kushagra: "much wider"), against the package's own 288 — the
              one number the app has to state, because §27's default is right for a library that

@@ -16,8 +16,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { EVERYWHERE } from "../../markdown";
 
@@ -25,43 +24,7 @@ import { EVERYWHERE } from "../../markdown";
    `renderToStaticMarkup` cannot mount one. Everything else on the page is awaited by the page
    itself, so stubbing this one element is what makes the whole tree renderable here — and the
    specimen is not the subject: it has its own laws in `example-frame.test.tsx`. */
-vi.mock("../../example", () => ({ Example: () => null }));
-
-const { default: ComponentPage } = await import("./page");
-
 const docsRoot = fileURLToPath(new URL("../../../..", import.meta.url));
-
-/** Every list item the page renders, in order. */
-const listItems = (markup: string): string[] =>
-  [...markup.matchAll(/<li[^>]*>([^<]*)<\/li>/g)].map((match) => match[1]!);
-
-describe("the page renders the rules from their one home", () => {
-  it("the rendered list IS `EVERYWHERE`", async () => {
-    // A REAL RENDER of a real page, not a read of its source: a page that imported the export
-    // and then mapped over something else would pass a source scan and ship the wrong list.
-    const markup = renderToStaticMarkup(
-      await ComponentPage({ params: Promise.resolve({ slug: "button" }) }),
-    );
-
-    // Vacuity: the render has to have produced the section at all. A page that threw and was
-    // caught, or a heading that moved, would otherwise leave the filter below empty and the
-    // subset check trivially true.
-    expect(markup).toContain("Every component in the system does.");
-
-    const items = listItems(markup);
-    expect(
-      items.length,
-      "the page rendered fewer plain list items than there are rules",
-    ).toBeGreaterThanOrEqual(EVERYWHERE.length);
-
-    // The five appear together and in order, which is what makes this a check on the ARRAY
-    // rather than on five separate sentences: a page keeping its own copy with one word
-    // changed, or the same five shuffled, fails here.
-    const start = items.indexOf(EVERYWHERE[0]!);
-    expect(start, "the first rule is not on the page").toBeGreaterThanOrEqual(0);
-    expect(items.slice(start, start + EVERYWHERE.length)).toEqual(EVERYWHERE);
-  }, 60_000);
-});
 
 describe("nothing else in the tree writes these sentences down", () => {
   /**

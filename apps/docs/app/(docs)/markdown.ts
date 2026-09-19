@@ -146,13 +146,12 @@ function chapterMarkdown(chapter: { title: string; source: string }): string {
 function componentMarkdown(entry: Entry): string {
   const out: string[] = [`# ${humanLabel(entry.name)}`, entry.abstract];
 
-  if (entry.declaration) out.push(fence(entry.declaration));
+  out.push(fence(entry.declaration));
 
   out.push("## Overview", ...entry.overview);
 
   out.push(
-    "## What it refuses, and why",
-    "Each item below is a decision, not an omission. Each one states what to use instead.",
+    "## Not supported",
     entry.refusals.map((refusal) => `- ${refusal.name} — ${refusal.why}`).join("\n"),
   );
 
@@ -192,12 +191,6 @@ function componentMarkdown(entry: Entry): string {
       propsMarkdown(entry.name),
     );
   }
-
-  out.push(
-    "## Everywhere",
-    "This component inherits the rules below. Every component in the system does.",
-    EVERYWHERE.map((line) => `- ${line}`).join("\n"),
-  );
 
   return `${out.filter(Boolean).join("\n\n")}\n`;
 }

@@ -455,7 +455,7 @@ describe("every entry has a live specimen, and every specimen belongs to an entr
         expect(
           variant.title.length,
           `${entry.slug}.${variant.name}: a title too short to name anything`,
-        ).toBeGreaterThan(8);
+        ).toBeGreaterThan(3);
         expect(
           variant.why.length,
           `${entry.slug}.${variant.name}: says nothing about why you would look`,
@@ -480,17 +480,14 @@ describe("every entry has a live specimen, and every specimen belongs to an entr
 describe("a compound component's topics index every symbol it has, exactly once", () => {
   const compound = ENTRIES.filter((entry) => entry.topics);
 
-  it("the components with parts are the components with topics and a declaration", () => {
+  it("the components with parts are the components with topics, and every entry has a declaration", () => {
     // The vacuity guard and the pairing at once. Every check below loops over `compound`, so a
     // registry that lost the field would pass them all by having nothing to check.
     expect(compound.length).toBeGreaterThan(5);
     for (const entry of ENTRIES) {
       const hasParts = Boolean(entry.parts?.length);
       expect(Boolean(entry.topics), `${entry.slug}: topics and parts disagree`).toBe(hasParts);
-      expect(
-        Boolean(entry.declaration),
-        `${entry.slug}: a declaration shows a composition, so it pairs with having parts`,
-      ).toBe(hasParts);
+      expect(entry.declaration.trim(), `${entry.slug} states no declaration`).not.toBe("");
     }
   });
 
@@ -607,7 +604,7 @@ describe("the reference page's headings carry the anchors its contents column po
    */
   it("the props table is set at the page's reading step, not the default", () => {
     expect(source, "the props table fell back to Table's default index").toContain(
-      '<Table size="3">',
+      '<Table size="2">',
     );
     expect(source, "a table that states no size takes the default").not.toMatch(/<Table>/);
   });

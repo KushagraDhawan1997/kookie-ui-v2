@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { Box, Heading, Page, Stack, Text } from "@kookie-ui/react";
 
 import { Specimen } from "../../../../blocks/specimen";
-import { TableOfContents, type TocEntry } from "../../../../blocks/table-of-contents";
+import { type TocEntry } from "../../../../blocks/table-of-contents";
+import { DocTabs, DocTabsProvider, DocTabsToc } from "../../doc-tabs";
 import { BLOCK_BY_SLUG, BLOCKS, type BlockEntry } from "../../../../blocks";
 import { BLOCK_EXAMPLES } from "../../../../examples/blocks";
 import { isLang } from "../../../../blocks/highlight";
@@ -55,14 +56,14 @@ const SECTIONS = {
  * its structure. Now they sit under one `Examples` heading, which is the shape the component
  * reference already uses for its variants.
  */
-function blockToc(block: BlockEntry): TocEntry[] {
-  const at = (title: string, level: 2 | 3): TocEntry => ({ id: slugify(title), title, level });
-  return [
-    at(SECTIONS.examples, 2),
-    ...block.demos.map((demo) => at(demo.label, 3)),
-    at(SECTIONS.usage, 2),
-    at(SECTIONS.files, 2),
-  ];
+function blockToc(): TocEntry[] {
+  const at = (title: string): TocEntry => ({ id: slugify(title), title, level: 2 });
+  return [at(SECTIONS.usage), at(SECTIONS.files)];
+}
+
+/** The Examples tab's contents: one entry per demo. */
+function blockExamplesToc(block: BlockEntry): TocEntry[] {
+  return block.demos.map((demo) => ({ id: slugify(demo.label), title: demo.label, level: 2 }));
 }
 
 /** A labelled block. The two intervals are the component reference's, for its reason: a lead
@@ -79,8 +80,14 @@ function Section({
   return (
     <Stack gap="6">
       <Stack gap="4" className="kd-prose">
-        <Heading size="6" render={<h2 id={slugify(title)} />}>
+        <Heading
+          size="6"
+          weight="medium"
+          render={<h2 id={slugify(title)} />}
+          className="kd-heading"
+        >
           {title}
+          <a className="kd-anchor" href={`#${slugify(title)}`} aria-label="Link to this section" />
         </Heading>
         {lead ? (
           <Text size="3" render={<p />}>
@@ -93,11 +100,7 @@ function Section({
   );
 }
 
-export default async function BlockPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export default async function BlockPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const block = BLOCK_BY_SLUG.get(slug);
   if (!block) notFound();
@@ -111,13 +114,50 @@ export default async function BlockPage({
     return { name: file, code: readBlockSource(file), lang };
   });
 
+  /* The Examples tab: every demo as a figure carrying the block's files. */
+  const examples = (
+    <Stack gap="9">
+      {await Promise.all(
+        block.demos.map(async (demo) => (
+          <Stack key={demo.label} gap="4">
+            <Heading
+              size="6"
+              weight="medium"
+              render={<h2 id={slugify(demo.label)} />}
+              className="kd-heading"
+            >
+              {demo.label}
+              <a
+                className="kd-anchor"
+                href={`#${slugify(demo.label)}`}
+                aria-label="Link to this section"
+              />
+            </Heading>
+            <Specimen
+              {...(demo.pane === undefined ? {} : { pane: demo.pane })}
+              {...(demo.fill === undefined ? {} : { fill: demo.fill })}
+              sources={files}
+            >
+              {await demo.render()}
+            </Specimen>
+          </Stack>
+        )),
+      )}
+    </Stack>
+  );
+
   return (
     /* The reserve for the contents column, and nothing else — the chapter renderer and the
        component reference both wear this same class, which is where the two distances live. */
-    <Box className="kd-chapter">
-      <PageFrame width="var(--kd-measure)">
-        <Page title={block.title} description={block.blurb} style={{ minWidth: 0 }}>
-          {/* EVERY DEMO IS A SPECIMEN, AND THE FIGURE CARRIES THE FILES (Kushagra: "each footer
+    <DocTabsProvider exampleIds={blockExamplesToc(block).map((item) => item.id)}>
+      <Box className="kd-chapter">
+        <PageFrame width="var(--kd-measure)">
+          <Page title={block.title} description={block.blurb} style={{ minWidth: 0 }}>
+            <DocTabs
+              examples={examples}
+              docs={
+                <Stack gap="8">
+                  {/* EVERY DEMO IS A SPECIMEN, AND THE FIGURE CARRIES THE FILES (Kushagra: "each footer
               should be presented in a specimen component… and each footer will have specimen,
               and actually every block, even code block and specimen, which is it, itself").
 
@@ -138,68 +178,49 @@ export default async function BlockPage({
               ground is a `Surface`, and a ground goes INSIDE the paper, which is the rule the
               Example frame states for a `Surface` example. So nothing here has to know what kind
               of thing each demo is. */}
-          <Section title={SECTIONS.examples}>
-            <Stack gap="9">
-              {await Promise.all(
-                block.demos.map(async (demo) => (
-                  <Stack key={demo.label} gap="4">
-                    {/* A HEADING, NOT A LABEL. It was a `Text` while these were figures inside a
-                        section; they are the section now, and a contents list can only point at
-                        something the document outline actually contains. */}
-                    <Heading size="4" render={<h3 id={slugify(demo.label)} />}>
-                      {demo.label}
-                    </Heading>
-                    <Specimen
-                      {...(demo.pane === undefined ? {} : { pane: demo.pane })}
-                      {...(demo.fill === undefined ? {} : { fill: demo.fill })}
-                      sources={files}
-                    >
-                      {await demo.render()}
-                    </Specimen>
-                  </Stack>
-                )),
-              )}
-            </Stack>
-          </Section>
 
-          {/* THE CALL SITE (Kushagra: "a block page should also have an example specimen of using
+                  {/* THE CALL SITE (Kushagra: "a block page should also have an example specimen of using
               that block").
 
               Everything above shows the block RUNNING and hands over the block's own source; none
               of it shows the six lines a reader writes once they have copied it. This is that,
               and it is a real file — imported and rendered, then read off disk and shown — so the
               picture and the snippet cannot part company and `tsc` checks the snippet. */}
-          <Section
-            title={SECTIONS.usage}
-            lead="What you write once the files are in your app."
-          >
-            <Specimen
-              fill
-              sources={[{ code: readBlockUsageSource(block.slug), lang: "tsx" }]}
-            >
-              {await Usage()}
-            </Specimen>
-          </Section>
+                  <Section
+                    title={SECTIONS.usage}
+                    lead="What you write once the files are in your app."
+                  >
+                    <Specimen
+                      fill
+                      sources={[{ code: readBlockUsageSource(block.slug), lang: "tsx" }]}
+                    >
+                      {await Usage()}
+                    </Specimen>
+                  </Section>
 
-          {/* WHERE THE FILES GO, which the figures no longer say for themselves. A sentence
+                  {/* WHERE THE FILES GO, which the figures no longer say for themselves. A sentence
               rather than a listing: the code is in every figure above, and what a reader still
               needs to be told is that the paths are this site's. */}
-          <Section title={SECTIONS.files}>
-            <Text size="3" emphasis="medium" render={<p />} className="kd-prose">
-              The tabs in every figure above are the files. Copy them into your app — the paths
-              are this site&apos;s, so put them wherever your code lives and fix the imports
-              between them.
-            </Text>
-          </Section>
-        </Page>
-      </PageFrame>
+                  <Section title={SECTIONS.files}>
+                    <Text size="3" emphasis="medium" render={<p />} className="kd-prose">
+                      The file tabs on every figure in Examples are the files. Copy them into your
+                      app — the paths are this site&apos;s, so put them wherever your code lives and
+                      fix the imports between them.
+                    </Text>
+                  </Section>
+                </Stack>
+              }
+            />
+          </Page>
+        </PageFrame>
 
-      {/* THE GUTTER'S CONTENT IS THE BLOCK, and this file states only the column — the split the
+        {/* THE GUTTER'S CONTENT IS THE BLOCK, and this file states only the column — the split the
           chapter renderer and the component reference both draw, and the block law's own line: a
           block may not decide a distance. */}
-      <div className="kd-toc-column">
-        <TableOfContents entries={blockToc(block)} className="kd-toc" />
-      </div>
-    </Box>
+        <div className="kd-toc-column">
+          <DocTabsToc docs={blockToc()} examples={blockExamplesToc(block)} />
+        </div>
+      </Box>
+    </DocTabsProvider>
   );
 }

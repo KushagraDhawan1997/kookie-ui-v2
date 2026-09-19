@@ -83,7 +83,7 @@ const FLOW_GAP = "5";
 
 /** What a figure adds on EACH side, on top of the flow gap. A fence, an example and a table
     are not paragraphs, and the eye needs to be told that before it reads the contents. */
-const FIGURE_MARGIN = "5";
+const FIGURE_MARGIN = "3";
 
 /** A heading that carries its own anchor. The id is what the table of contents links to and
     what a URL fragment lands on, so it is computed from the rendered words through the one
@@ -91,15 +91,17 @@ const FIGURE_MARGIN = "5";
 
     `marginTop` is what the level MEANS, not a decoration on it: composed with `FLOW_GAP` it
     is the break the reader is being asked to take, and the ladder above states each sum. */
-function anchored(level: 2 | 3 | 4, size: TypeSize, marginTop: "3" | "6" | "7") {
+function anchored(level: 2 | 3 | 4, size: TypeSize, marginTop: "3" | "5" | "7") {
   const Component = ({ children }: { children?: React.ReactNode }) => {
     const id = slugify(nodeText(children));
     const element =
       level === 2 ? <h2 id={id} /> : level === 3 ? <h3 id={id} /> : <h4 id={id} />;
     return (
-      <Box mt={marginTop}>
-        <Heading size={size} render={element}>
+      <Box mt={marginTop} className={`kd-heading kd-heading-${level}`}>
+        <Heading size={size} weight="medium" render={element}>
           {children}
+          {/* The "#" is drawn by prose.css, so it never lands in the heading's text. */}
+          <a className="kd-anchor" href={`#${id}`} aria-label="Link to this section" />
         </Heading>
       </Box>
     );
@@ -173,7 +175,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     // was, not louder, because the 48px break above it is what says "new section" — space
     // ranks more cheaply than size, and it does not have to shout over the title to do it.
     h2: anchored(2, "6", "7"),
-    h3: anchored(3, "4", "6"),
+    h3: anchored(3, "4", "5"),
     // Unreachable: a law forbids a chapter from going deeper than `h3`. Mapped anyway, so a
     // stray heading degrades to a small one rather than to an unstyled UA `<h4>`.
     h4: anchored(4, "3", "3"),
@@ -247,7 +249,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     // head and the cell, and a chapter that needs a numeric column writes the JSX.
     table: ({ children }) => (
       <Figure>
-        <Table size="3">{children}</Table>
+        <Table size="2">{children}</Table>
       </Figure>
     ),
     thead: ({ children }) => <TableHeader>{children}</TableHeader>,

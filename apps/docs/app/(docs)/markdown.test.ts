@@ -124,7 +124,7 @@ describe("a chapter's twin is the chapter", () => {
 describe("a component's twin states what it refuses before what it takes", () => {
   it.each(ENTRIES.map((entry) => [entry.slug, entry] as const))("%s", (_slug, entry) => {
     const body = markdownFor(`/components/${entry.slug}`)!;
-    const refusals = body.indexOf("## What it refuses, and why");
+    const refusals = body.indexOf("## Not supported");
     const props = Math.max(body.indexOf("## Props"), body.indexOf("## Topics"));
     const overview = body.indexOf("## Overview");
     expect(refusals).toBeGreaterThan(-1);

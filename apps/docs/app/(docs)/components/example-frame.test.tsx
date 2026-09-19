@@ -34,7 +34,7 @@ const rootIsPane = (name: string): boolean => {
   // that put a ground inside the figure's own ground. A composer is paper by the same reading
   // as the predicate's (§30 — a box that holds full-size controls is a Card), and it wears its
   // own class rather than `kui-card`, so it is named.
-  return /^<[a-z]+[^>]*class="[^"]*\bkui-(card|composer)\b/.test(afterTheme);
+  return /class="[^"]*\bkui-(card|composer)\b/.test(afterTheme);
 };
 
 /** HTML void elements: they open nothing, so they must not move the depth counter. React's

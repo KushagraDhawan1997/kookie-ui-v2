@@ -53,12 +53,10 @@ export type Entry = {
   /**
    * The composition, as code — what a declaration is for a class.
    *
-   * Only a compound component states one, and the absence is the design: a component with no
-   * parts has no shape to show, so `<Button>Save</Button>` would be a worse Example than the
-   * live one already on the page. Apple prints a declaration because a class HAS one; ours is
-   * the arrangement of parts, and a component with a single symbol has none.
+   * Every entry states one, so every page opens the same way. For a compound component it is
+   * the arrangement of parts; for a single one it is the call with its common props.
    */
-  declaration?: string;
+  declaration: string;
   /**
    * The symbols, grouped by the job they do. Apple's Topics: a reader arriving with a task
    * finds the name, and a reader arriving with a name finds the anchor.
@@ -104,7 +102,7 @@ const DECLARED: Entry[] = [
     family: "Control",
     spec: "§11, §21, §37",
         abstract: "Accordion stacks sections that open and close, one under the other.",
-    overview: ["Each heading stands as tall as a Button at the same size, underlines under the pointer and turns its chevron when its panel opens; the panel slides open by height and its words start under the heading's label. One section is open at a time unless you say multiple. It paints no box of its own: put it in a Card when it wants one."],
+    overview: ["An accordion stacks sections under each other. Each section has a heading you press to show or hide its content. Only one section is open at a time. Set `multiple` to let several stay open.","Each heading is as tall as a Button at the same size. Under the pointer, its label underlines. The chevron turns when the panel opens, and the panel slides open by height. The words in a panel start under the heading's label.","Use an accordion when a page has several sections and people need only one or two. Examples are questions and answers, or groups of settings. Use `Tabs` when people switch between views of one thing. Use `NavTree` for navigation with nested levels.","The accordion draws no box of its own. It draws only the thin lines between its sections. Put it in a Card when the sections need an edge. `size` sets the headings and the panel inset, and without a `size` it follows the nearest Theme.","Each heading is a real heading element with a button inside it, so a screen reader lists it with the page headings. Set `headingLevel` to match your page outline. The default is 3.","Press Tab to move between headings, and press Enter or Space to open or close one. The button announces whether its panel is open. Set `hiddenUntilFound` on a panel to let the browser's find-in-page open a closed section."],
     declaration: `<Accordion multiple defaultValue={["shipping"]}>
   <AccordionItem value="shipping">
     <AccordionTrigger>Shipping</AccordionTrigger>
@@ -112,18 +110,23 @@ const DECLARED: Entry[] = [
   </AccordionItem>
 </Accordion>`,
     variants: [
-      { name: "disabled", title: "A section that cannot be opened", why: "`disabled` sits on the item, so one section closes to you while the rest of the list still opens." },
-      { name: "rtl", title: "Right to left", why: "The chevron turns and the panel's inset mirrors. Direction is read off the DOM, so the app states `dir` once and no component takes a prop for it." },
+      {"name":"sizes","title":"Sizes","why":"`size` on the root sets every heading and panel inside it. Each heading is as tall as a Button at the same size, so an accordion lines up with the controls around it."},
+      {"name":"multiple","title":"Several sections open","why":"Set `multiple` to let people open more than one section. List every section that starts open in `defaultValue`, which is an array of item values."},
+      {"name":"controlled","title":"Controlled","why":"Pass `value` and `onValueChange` when your app decides which sections are open. This lets a button such as Expand all open every section at once."},
+      {"name":"in-a-card","title":"In a card","why":"The accordion draws only the lines between its sections. Put it in a Card with a Heading when the sections need an edge and a title."},
+      {"name":"with-controls","title":"A form in a panel","why":"A panel holds any content, such as a field and a button. Plain text in a panel follows the accordion's size. A Text or a layout inside sets its own size."},
+      {"name":"disabled","title":"Disabled","why":"`disabled` sits on the item, so one section closes to you while the rest of the list still opens."},
+      {"name":"rtl","title":"Right to left","why":"The chevron turns and the panel's inset mirrors. Direction is read off the DOM, so the app states `dir` once and no component takes a prop for it."},
     ],
     topics: [
       { title: "Stacking the sections", symbols: ["Accordion", "AccordionItem"] },
       { title: "Opening and closing one", symbols: ["AccordionTrigger", "AccordionPanel"] },
     ],
     refusals: [
-      { name: "A horizontal orientation", why: "Sections side by side are a different thing with a different keyboard, and nothing here has asked for one. The vertical stack is the accordion." },
-      { name: "`tone` and `emphasis`", why: "A list of headings has no meaning of its own to colour and no heading is louder than the next. The words inside a panel can carry a tone through Text." },
-      { name: "An icon slot or a custom chevron", why: "The chevron is the system's disclosure glyph, the same one the Tree turns. A different glyph per accordion would mean two ways to say open." },
-      { name: "A boundary of its own", why: "An accordion is a list of headings in whatever surface it sits in. Give it a Card when it wants an edge; the hairlines between items are all it draws." },
+      { name: "A horizontal orientation", why: "Side-by-side sections need a different keyboard. The accordion is a vertical stack." },
+      { name: "`tone` and `emphasis`", why: "Headings have no meaning to colour and none is louder. Put a tone on Text inside a panel." },
+      { name: "An icon slot or a custom chevron", why: "The chevron is the system's one disclosure glyph. A custom glyph would be a second way to say open." },
+      { name: "A boundary of its own", why: "It draws only the hairlines between items. Put it in a Card if it needs an edge." },
     ],
     parts: [
       { part: "AccordionItem", blurb: "One section: a trigger and its panel, named by value for the root's value array" },
@@ -137,7 +140,7 @@ const DECLARED: Entry[] = [
     family: "Surface",
     spec: "§10, §20, §25",
         abstract: "AlertDialog asks a question with two answers.",
-    overview: ["It holds a title, a description, a cancel button and an action button, and it lays those out itself. It is separate from Dialog because the two do different jobs: a dialog holds work you asked for, and an alert stops you to ask something. It uses `role=alertdialog`, it does not close when you press outside it, and its contents are fixed. The part names follow shadcn/ui's alert-dialog (MIT), with credit, and the behaviour is Base UI's AlertDialog."],
+    overview: ["An alert dialog stops people to ask a question with two answers, such as \"Delete this file?\". It holds a title, a description, a cancel button and an action button. The component lays these parts out for you.","Use an alert dialog before an action that is hard to undo, such as a delete. Use a `Dialog` when the panel holds work, such as a form. If you need any control other than the two buttons, use a `Dialog`.","The title is the question and the accessible name. The description says what going ahead means. Cancel comes first, sits on the start side, and gets focus when the alert opens. Give the action a verb, such as Delete.","The alert does not close when you press outside it, because a stray press must not answer the question. Escape closes it and counts as Cancel. The action closes it too, on the same press.","`size` sets the whole alert: its width, padding, corner, text and buttons. The width is fixed for each size and is narrower than a Dialog. The panel uses the theme's material, and the page behind it dims.","The alert uses `role=\"alertdialog\"`, and a screen reader announces its title and description when it opens. Focus stays inside it until it closes, then returns to the trigger. An alert raised by app state needs no trigger. The part names follow shadcn/ui's alert-dialog (MIT), and the behaviour comes from Base UI."],
     declaration: `<AlertDialog>
   <AlertDialogTrigger render={<Button>Delete\u2026</Button>} />
   <AlertDialogContent>
@@ -147,6 +150,13 @@ const DECLARED: Entry[] = [
     <AlertDialogAction tone="destructive">Delete</AlertDialogAction>
   </AlertDialogContent>
 </AlertDialog>`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"`size` sets the whole alert, including its width, the title, the description and both buttons. Open each one to compare them side by side."},
+      {"name":"tones","title":"Tones","why":"Give `AlertDialogAction` a `tone` only when it carries a meaning. A delete uses `destructive`. A question with no risk, such as publishing, keeps the default tone."},
+      {"name":"controlled","title":"Controlled","why":"An alert raised by your app, such as an expiring session, has no trigger. Pass `open` and `onOpenChange`, and set `open` from your own logic."},
+      {"name":"from-a-menu","title":"Opened from a menu","why":"A menu row cannot hold a trigger, so the row sets `open` in its `onClick`. The menu closes and the alert opens in its place, with the same question."},
+      {"name":"rtl","title":"Right to left","why":"The alert follows the direction around its trigger. In a right-to-left region, Cancel sits on the right and the text starts at the right edge."},
+    ],
     topics: [
       { title: "Asking the question", symbols: ["AlertDialog", "AlertDialogTrigger"] },
       { title: "Presenting the panel", symbols: ["AlertDialogContent"] },
@@ -156,23 +166,23 @@ const DECLARED: Entry[] = [
     refusals: [
       {
         name: "A width prop",
-        why: "The width is fixed per size, and narrower than a dialog at the same index. An alert asks a question. It does not hold work. On a phone the window gutter still wins.",
+        why: "The width is fixed per size and narrower than a Dialog. An alert asks a question; it does not hold work.",
       },
       {
         name: "Closing on an outside press",
-        why: "A stray press must not answer a question about deleting something. Escape still closes it, because a keyboard user saying `not now` is the Cancel action by another route.",
+        why: "A stray press must not answer a destructive question. Escape still closes it, as Cancel.",
       },
       {
         name: "Header and Footer",
-        why: "The component arranges the title, the description and the action row itself, so you never write a Stack. Cancel comes first in the DOM, which places it at the start and gives it initial focus. Document order picks the safest action.",
+        why: "The component lays out the title, description and actions itself. Cancel comes first and gets initial focus.",
       },
       {
         name: "`render` on Cancel and Action",
-        why: "The alert owns the size of its two buttons and the row that splits them. Both are real Kookie Buttons. Action defaults to loud, which is correct here and nowhere else: an alert has exactly one Action, so the one-focal-action rule holds by the anatomy rather than by memory.",
+        why: "The alert sizes its two buttons and their row. Action defaults to loud because there is only one.",
       },
       {
         name: "Arbitrary `children`",
-        why: "A panel that needs any control beyond its two buttons is a Dialog. A type-to-confirm field and a checkbox both cross that line. An alert's only job is choosing.",
+        why: "Any control beyond the two buttons, like a confirm field or checkbox, makes it a Dialog.",
       },
     ],
     parts: [
@@ -189,41 +199,47 @@ const DECLARED: Entry[] = [
     name: "Attachment",
     family: "Surface",
     spec: "§43",
+    declaration: `<Attachment state="uploading" progress={0.62} icon={fileIcon} meta="2.4 MB" onRemove={remove}>
+  quarterly-report.pdf
+</Attachment>`,
         abstract: "Attachment is one file and what is happening to it.",
-    overview: ["It is not part of the composer, because a file about to be sent and a file already sent are the same tile, so the tile cannot belong to the thing that sends. The system draws the state and the app owns the file: every value is a prop you set from state you already have, and the component never sees a File, never starts a timer, and never mints a URL it would have to revoke."],
+    overview: ["An attachment shows one file and what is happening to it: waiting, uploading, being processed, or failed. It shows the file name, a second line such as the size, an optional icon, and an optional remove button.","Use it wherever a file appears: in a Composer before you send, in a message after you send, and under a form field. A file about to be sent and a file already sent use the same tile, so it is not part of the Composer.","Your app keeps the file. The component never reads a File, starts a timer or creates a URL. Set `state`, `progress` and `meta` from the data your upload code already has.","Set `state=\"uploading\"` with `progress` from 0 to 1 to fill the ring. Without `progress`, the ring sweeps. Use `processing` when the server is working on the file. For `error`, write the reason in `meta`, because colour alone is not a message.","The remove button shows only when you pass `onRemove`. Your app then removes the file from its own list. Set `removeLabel` to change the button's name, for example into another language.","`size` sets the padding, corner, icon, remove button and file name. Set `backdrop` when content passes behind the tile, so it uses the theme's material. A screen reader hears the file name as the tile's name, the second line as its description, and a busy state while it uploads. Each remove button is named for its file."],
     variants: [
-      { name: "composer", title: "In a composer, before sending", why: "The strip sits above the text, inside the composer, and every tile has a remove. The list is yours: removing one filters your own array." },
-      { name: "message", title: "In a message, after sending", why: "The same tile with nothing to remove. A file about to be sent and a file already sent are one component, which is why it is not part of the composer." },
-      { name: "form", title: "Under a field, one per line", why: "A field that takes files lists what it has so far. The failed one says why in meta, because the colour alone is not a message." },
+      {"name":"states","title":"Every state","why":"One tile per state. `uploading` with a `progress` fills the ring, and without one it sweeps. `processing` shows a server step. An `error` tile says why in `meta`."},
+      {"name":"sizes","title":"Sizes","why":"`size` sets the whole tile: its padding, its corner, the icon, the remove button and the file name. At size 2 the remove button is as tall as a size 2 Button."},
+      {"name":"live-upload","title":"A live upload","why":"The tile keeps no timer. Your upload code changes `state` and `progress`, and the tile draws what you give it. A timer stands in for a real upload here."},
+      {"name":"composer","title":"In a composer, before sending","why":"The strip sits above the text, inside the composer, and every tile has a remove. The list is yours: removing one filters your own array."},
+      {"name":"message","title":"In a message, after sending","why":"The same tile with nothing to remove. A file about to be sent and a file already sent are one component, which is why it is not part of the composer."},
+      {"name":"form","title":"Under a field, one per line","why":"A field that takes files lists what it has so far. The failed one says why in meta, because the colour alone is not a message."},
     ],
     refusals: [
       {
         name: "A done state",
-        why: "The spec named five and this ships four. A file about to be sent and a file already sent are the same tile, which makes done and idle one appearance, and a value that cannot be told from another is not a value — this system deleted a whole axis for that reason. What separates a pending attachment from a sent one is what you put in the tile: a remove button before, a download after.",
+        why: "Sent and idle look the same. Put a remove button in the tile before sending, a download after.",
       },
       {
         name: "`tone`",
-        why: "The state is the category. An error tile reads destructive because it failed, not because you chose a colour. A second colour axis would let you paint success on a failed upload, which is a sentence the system should not be able to write.",
+        why: "The state sets the colour. A failed tile is already destructive.",
       },
       {
         name: "Holding the file",
-        why: "It never receives a File, reads bytes, or creates an object URL. Version one of this idea did, and revoked the URL one commit after handing it on, so the preview of the message you just sent was already broken. Give it a name, a state, and an icon you drew.",
+        why: "It never reads a file or creates a URL. Give it a name, a state and an icon.",
       },
       {
         name: "A built-in preview",
-        why: "An image goes in the icon slot, already decoded by you. A component that fetched or decoded one would own the file it is not allowed to own.",
+        why: "Decode the image yourself and put it in the icon slot.",
       },
       {
         name: "`emphasis`",
-        why: "A tile is one thing at one volume. Nothing here gets louder or quieter: what changes its weight is the state, and the state is not a preference.",
+        why: "A tile has one volume. Only its state changes how strongly it reads.",
       },
       {
         name: "A shadow",
-        why: "It never casts, in a flat theme or an elevated one. A shadow belongs to a box that is a plane of its own; a tile in a composer's strip is content on that composer's plane, the same reading that keeps a notice flat. On glass it keeps the pool every pane gets, which is what the material has rather than what the app says.",
+        why: "A tile is content on the composer, so it never casts a shadow. On glass it keeps the pane's pool.",
       },
       {
         name: "`render`",
-        why: "There are two elements here, the tile and its name, and neither can move. render would have to silently mean one of them.",
+        why: "It renders two elements, so `render` could only silently mean one of them.",
       },
     ],
   },
@@ -232,15 +248,24 @@ const DECLARED: Entry[] = [
     name: "Avatar",
     family: "Type",
     spec: "§11, §35",
+    declaration: `<Avatar src="/shruti.jpg" alt="Shruti Bhatia" fallback="SB" badge={<Badge>3</Badge>} />`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"Sizes 1 to 4 match the control heights. Sizes 5 to 9 are larger, for a face that stands alone, such as a profile header or a member page."},
+      {"name":"fallbacks","title":"Pictures and fallbacks","why":"A picture shows when it loads. Until then, or when it fails, the `fallback` shows. Without a `fallback`, a generic person glyph shows instead."},
+      {"name":"badges","title":"With a badge","why":"Pass a `Badge` to the `badge` prop to pin it to the top-end corner. A count shows as a pill. A bare dot needs an `aria-label` that says what it means."},
+      {"name":"with-a-name","title":"Beside a name","why":"When the name is written next to the avatar, leave `alt` empty. The picture is then decorative, and a screen reader does not read the name twice."},
+      {"name":"with-controls","title":"In a row of controls","why":"At sizes 1 to 4 an avatar is as tall as a control at the same size. It lines up with a TextField and a Button in one row."},
+      {"name":"in-a-button","title":"As a menu trigger","why":"An avatar does not respond to a press. Put it in an icon-only Button to open an account menu. The avatar fills the button, and the button has the name."},
+    ],
         abstract: "Avatar shows a person, a team or a thing as a small round picture, with initials or a generic figure standing in until the picture loads.",
-    overview: ["Sizes 1 to 4 are the control heights, so an avatar stands level with the button beside it and grows with density and on touch. Sizes 5 to 9 go past them, for a face that stands alone. Without a size it takes the app's size, like a control. A row of overlapped faces is an AvatarGroup, on its own page."],
+    overview: ["An avatar shows a person, a team or a thing as a small round picture. Until the picture loads, or if it fails, the avatar shows its `fallback`, which is usually initials. Without a fallback, it shows a generic person glyph.","Sizes 1 to 4 match the control heights, so an avatar is as tall as a Button at the same size. It grows with density and on touch screens. Sizes 5 to 9 are larger, for a face that stands alone. Without a `size`, it follows its group, then the nearest Theme.","Use `AvatarGroup` for several overlapping avatars. Use a `Chip` for a word, such as a role or a status. An avatar does not respond to a press. For an account menu, put the avatar inside an icon-only Button.","Pass a `Badge` to `badge` to show a count or a dot at the top-end corner. The avatar places the badge and draws a ring around it in the surface colour.","An avatar is a circle at every radius setting, and its fallback is always neutral. Set `backdrop` when content passes behind it, so the fallback uses the theme's material. A picture covers the material.","`alt` is empty by default, so a screen reader skips the avatar. This is correct when the person's name is written beside it. When the avatar is the only thing that names the person, write the name in `alt`. The fallback then uses the same name."],
     refusals: [
-      { name: "A shape prop", why: "A person is a disc on every platform, at every radius level. A square picture is a picture, and you have Card and Box for that. A rounded square for a workspace waits for the screen that needs it." },
-      { name: "`emphasis`", why: "No avatar is louder than the one beside it. Rank in a list of people is order and size, never a heavier face." },
-      { name: "`tone`", why: "It was a prop for a day. Since no family paints a tinted wash, a tone could only colour the initials, which is too faint to be the per-person colour people want from it. A person's colour is their picture." },
-      { name: "A status vocabulary", why: "Online, away and busy are an app's words. Pin a Badge with the badge prop for a count or a named dot, and say a status with a Chip in the row." },
-      { name: "A press", why: "An avatar is inert. A person you can open is an icon-only Button with the avatar inside it: the avatar fills the button, so the two read as one disc, and the press has a name, a ring and a keyboard from the one place those live." },
-      { name: "A max count on the group", why: "How many to show and what the rest reads as is a product decision. The group overlaps whatever you give it, and the rest is an Avatar whose fallback says +3." },
+      { name: "A shape prop", why: "A person is a disc at every radius level. For a square picture, use a Card or Box." },
+      { name: "`emphasis`", why: "No avatar is louder than another. Rank people by order and size." },
+      { name: "`tone`", why: "A tone could only tint the initials, which is too faint. A person's colour is their picture." },
+      { name: "A status vocabulary", why: "Status words belong to the app. Use the badge prop for a count or dot, or a Chip in the row." },
+      { name: "A press", why: "An avatar is inert. For a pressable person, put the avatar inside an icon-only Button." },
+      { name: "A max count on the group", why: "How many to show is a product decision. Make the rest an Avatar whose fallback says +3." },
     ],
   },
   {
@@ -248,11 +273,21 @@ const DECLARED: Entry[] = [
     name: "AvatarGroup",
     family: "Type",
     spec: "§35",
+    declaration: `<AvatarGroup size="3">
+  <Avatar src="/shruti.jpg" alt="Shruti Bhatia" fallback="SB" />
+  <Avatar fallback="KD" />
+  <Avatar fallback="+3" />
+</AvatarGroup>`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"Set `size` once on the group, and every avatar inside that has no size of its own takes it. The overlap and the rings grow with the size."},
+      {"name":"overflow","title":"Counting the rest","why":"The group has no maximum. Decide how many faces to show, then add one more Avatar whose fallback counts the rest and whose `alt` says it in words."},
+      {"name":"with-a-label","title":"Beside a label","why":"A group usually sits next to words that say what it shows, and often next to an action. At sizes 1 to 4 the faces line up with a Button."},
+    ],
         abstract: "AvatarGroup shows several avatars overlapped, each ringed in the surface colour so the discs stay separate.",
-    overview: ["A size on the group reaches every avatar inside that states none, and an avatar that states its own still wins. How many to show is yours, and the rest is an Avatar whose fallback says +3."],
+    overview: ["An avatar group shows several avatars in a row, each one overlapping the one before. A ring in the surface colour goes around each avatar, so the circles stay separate.","Use a group to show who has access to something, who is in a meeting, or who worked on a file. For avatars that do not overlap, put them in a `Flex` instead. The overlap is fixed and has no spacing prop.","Set `size` once on the group. Every avatar inside that has no size of its own takes it. An avatar that sets its own `size` keeps it. At sizes 1 to 4, the group is as tall as a Button at the same size.","The group has no maximum count, because how many faces to show is a decision for your product. Show the number you want, then add one more Avatar whose fallback counts the rest, such as +3.","Each avatar keeps its own `alt`. Leave it empty when names are written beside the group. When the faces are the only way to see who is there, give each avatar a name. Give the count avatar a sentence such as \"3 more members\"."],
     refusals: [
-      { name: "A max count", why: "How many to show and what the rest reads as is a product decision. The group overlaps whatever you give it, and the rest is an Avatar whose fallback says +3." },
-      { name: "A spacing prop", why: "The overlap is one share of a face, stated once in the system. A group that overlapped less would be a row of avatars, which is a Flex." },
+      { name: "A max count", why: "How many to show is a product decision. Make the rest an Avatar whose fallback says +3." },
+      { name: "A spacing prop", why: "The overlap is fixed by the system. For avatars that don't overlap, use a Flex." },
     ],
   },
   {
@@ -260,13 +295,26 @@ const DECLARED: Entry[] = [
     name: "Badge",
     family: "Type",
     spec: "§11, §38",
+    declaration: `<Text>
+  Inbox <Badge>3</Badge>
+</Text>`,
+    variants: [
+      {"name":"counts","title":"Counts in a pill","why":"Put a number in a badge to make it a pill. The badge shows what you give it, so format the number and choose the cut-off, such as 99+, in your app."},
+      {"name":"dots","title":"Named dots","why":"A badge with no content is a dot. A dot is colour alone, so give it an `aria-label` that says what a sighted person understands from it."},
+      {"name":"tones","title":"Tones","why":"`tone` says what the badge means. `accent` means something is here and `destructive` means something needs you. Map your own words to a tone in your app."},
+      {"name":"sizes","title":"Sizes","why":"A badge without a `size` takes a share of the line it sits in, so it grows with the text around it. Set `size` only when the badge stands alone."},
+      {"name":"on-an-avatar","title":"Pinned to an avatar","why":"Pass the badge to an Avatar's `badge` prop. The avatar places it at the top-end corner and draws a ring around it. The badge scales with the avatar."},
+      {"name":"in-tabs","title":"In a tab label","why":"A badge in a tab label counts what waits on the other side of the tab. It takes its size from the tab's text, so it needs no `size`."},
+      {"name":"in-a-list","title":"In a navigation list","why":"In a list of Rows, put each badge in the `trailing` slot. Every count then lines up at the end of its row."},
+      {"name":"conditional","title":"Hidden at zero","why":"Write `{count > 0 && count}` to show the badge only when there is something to count. At zero it has no content and no name, so nothing renders."},
+    ],
         abstract: "Badge is the small mark that waits on a thing until you look: the number on an app icon, the unread dot on a tab.",
-    overview: ["Bare, it is a dot. With a number in it, it is a pill. Both are bold by nature and sized as a share of the line they sit in, so a badge on a tab and one pinned to a large avatar are the same shape at two sizes. Pin one to an Avatar with its badge prop, at the top-end corner."],
+    overview: ["A badge is a small mark that stays on something until you look at it. Examples are the number on an app icon and the unread dot on a tab. With no content, it is a dot. With a number in it, it is a pill.","A badge is always strong in colour, and it has no `emphasis`. Without a `size`, it takes a share of the line it sits in. A badge in a tab and a badge on a large avatar have the same shape at two sizes. Set `size` only when the badge stands alone.","Use a badge to count or to point at something new. Use a `Chip` for a word, such as Paid or Failed, and for a quieter marker. Use a `Notice` when a condition needs a sentence.","`tone` says what the badge means. The default is `accent`, for \"something is here\". Use `destructive` for \"something needs you\". Your app maps its own words onto a tone, for example \"alert\" to `destructive`.","A bare dot is colour alone, so it needs an `aria-label` that says what it means. A count is its own name, and `aria-label` is optional. With no content and no label, the badge renders nothing, so `{count > 0 && count}` hides it at zero.","A badge has no position of its own. Put it in a line of text or in a Row's `trailing` slot. To pin it to the corner of an Avatar, pass it to the `badge` prop."],
     refusals: [
-      { name: "`emphasis`", why: "A badge is loud by nature. A mark that whispers is not a mark, and a quieter one is a Chip with a word." },
-      { name: "A status vocabulary", why: "Online, away and busy are an app's words, and the app decides which tone each one maps to. The badge takes the tone, never the word; if the word must show, it is a Chip." },
-      { name: "An unnamed dot", why: "A bare dot is colour alone. The type requires an accessible name on it, so what a sighted reader infers, the name states." },
-      { name: "A position of its own", why: "The thing it is pinned to owns the corner and the cut-out. Avatar takes a badge prop; nothing here decides where it sits." },
+      { name: "`emphasis`", why: "A badge is always loud. For a quieter marker with a word, use a Chip." },
+      { name: "A status vocabulary", why: "Status words belong to the app, which maps each to a tone. Use a Chip if the word must show." },
+      { name: "An unnamed dot", why: "A bare dot is colour alone, so the type requires an accessible name." },
+      { name: "A position of its own", why: "The element it is pinned to owns the placement. Use the Avatar `badge` prop." },
     ],
   },
   {
@@ -274,28 +322,35 @@ const DECLARED: Entry[] = [
     name: "Chip",
     family: "Type",
     spec: "§11, §15, §38",
+    declaration: `<Chip tone="success">Live</Chip>`,
+    variants: [
+      {"name":"tones","title":"Tones","why":"Pick the tone from what the word means. The letters change colour and the box stays grey, so a row of chips stays calm while each word keeps its meaning."},
+      {"name":"sizes","title":"Sizes","why":"Set `size` only when a chip is not beside other text. Next to text, leave it unset and the chip matches the line."},
+      {"name":"beside-a-heading","title":"Beside a heading and a label","why":"With no `size`, each chip takes the size of the line it sits in. The chip beside the heading is larger than the chip beside the small label, with no size set on either."},
+      {"name":"in-a-table","title":"Status in a table column","why":"A status column is the most common place for a chip. Map each status to one tone in your own code, so the same word always has the same colour."},
+    ],
         abstract: "Chip shows a short word or a count that says what the thing beside it is right now.",
-    overview: ["It is built from the same parts as Code and Kbd: the same fill, the same corner and the same one-line box. What it adds is tone, so that words such as failed, running and done read the same way everywhere in a product."],
+    overview: ["Chip shows a short word or a count that says what state the thing beside it is in, such as Running, Failed or Deployed. It uses the same fill, corner and one-line box as Code and Kbd.","`tone` carries the category. Use `success` for a finished job, `destructive` for a failed one, `warning` for one that needs attention and `info` for one that is running. The tone changes the colour of the letters, and the box stays the same grey for every tone. Use the same tone for the same word everywhere in your product.","Use a chip for status in a list, a table or beside a title. To show a dot or a count on an avatar or an icon, use a Badge. For a chip you can press or remove, use a Button. For a message about a condition, use a Notice.","`size` is optional. When you do not set it, the chip takes the text size of the line it sits in, so a chip beside a large heading is larger than one in a table row. Set `size` only when the chip stands alone. `weight` and `emphasis` work as they do on Text: `emphasis` changes the letters, not the fill.","Set `backdrop` when the chip sits over an image or other content that passes behind it. The chip then uses the material your Theme sets. On plain ground it stays solid.","A chip is plain text, and a screen reader reads its word as part of the line. The colour adds meaning but does not replace it, so write a word that makes sense without the colour. A chip must have content: the type does not allow an empty chip."],
     refusals: [
       {
         name: "A fill scale, or a variant prop",
-        why: "Tone is the category, not the volume. A chip does not come in loud. Two chips of different loudness on one screen say something about importance that neither of them means, and a failed deploy is destructive whether or not it is the most important thing on the page. Ranking is what emphasis does for actions.",
+        why: "Tone is the category, not the volume, so chips have no loud version. Rank actions with emphasis instead.",
       },
       {
         name: "A dismissal",
-        why: "A chip you can remove is a control: it takes focus, it answers a key, and it needs an accessible name for the removal. That is a different component and it is not built. A removable chip today is a Button.",
+        why: "A removable chip is a control and needs focus and a name. Use a Button for now.",
       },
       {
         name: "A count prop",
-        why: "A chip renders what you give it. Formatting a number is the app's job, and where the cut-off sits — 99+, 9+, no cut-off at all — is a product decision that changes per surface.",
+        why: "A chip renders what you give it. Format the number and choose its cut-off in the app.",
       },
       {
         name: "A position",
-        why: "Apple's chip sits on its container: a tab, an app icon, a row. That is a position, and no component here owns its own position. Put a chip in the row beside a title, in a table cell, or over the thing it counts with a Box.",
+        why: "No component owns its own position. Place the chip in a row, a table cell, or a Box.",
       },
       {
         name: "An empty chip",
-        why: "A chip is a word. The dot and the count that wait on a thing are a Badge, which requires a name when it is bare.",
+        why: "A chip is a word. For a dot or a count, use a Badge.",
       },
     ],
   },
@@ -304,16 +359,24 @@ const DECLARED: Entry[] = [
     name: "Blockquote",
     family: "Type",
     spec: "§11, §15",
+    declaration: `<Blockquote>Taste is the last layer.</Blockquote>`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"`size` is a step on the type scale, as on Text, and defaults to 3. The indent grows with the text, so the words stay clear of the line at every size."},
+      {"name":"emphasis","title":"Emphasis","why":"`emphasis` picks the ink colour. A quote rests at `loud`. Use `medium` for a quote that supports the text around it rather than leading it."},
+      {"name":"tones","title":"Tones","why":"`tone` colours the words and leaves the line neutral. When a coloured bar must carry the meaning, such as a warning, use a Notice instead."},
+      {"name":"with-attribution","title":"With an attribution","why":"Put the name in a sibling Text. Use `render` to make the layout a `<figure>` and the name a `<figcaption>`, and pass the source as `cite`."},
+      {"name":"in-an-article","title":"In an article","why":"In running text, the quote sits in the same column as the paragraphs. It adds no margin, so the `gap` of the surrounding Stack sets the space."},
+    ],
         abstract: "Blockquote sets body copy apart with a rule and an indent.",
-    overview: ["How the text reads comes from the shared type layer. What Blockquote adds is the thin line down its leading edge and the indent that keeps the words clear of it."],
+    overview: ["A blockquote sets a passage of body text apart with a thin line down its leading edge and an indent. The indent keeps the words clear of the line.","Use a blockquote for a quoted passage, such as a customer quote in an article or an excerpt from a document. Use a `Notice` when a coloured bar must carry a meaning, such as a warning. Use a `Card` when the content needs a boundary.","The text works like `Text`. `size` is a step on the type scale and defaults to 3. `weight` rests at regular, and `emphasis` rests at `loud`, because a quote is text people read.","`tone` colours the words and leaves the line neutral. The line always uses the same colour as a `Separator`, in light and dark mode.","Blockquote has no attribution slot. Put the name in a sibling `Text`. Use `render` to make the layout a `<figure>` and the name a `<figcaption>`, and pass the source address as `cite`. A blockquote adds no margin of its own, so the layout around it sets the space."],
     refusals: [
       {
         name: "A tinted rule",
-        why: "A chosen tone moves the words, not the bar. The rule sits where a Separator sits and carries no meaning of its own. A quote whose bar has to carry meaning is a different component: use a Notice if a live condition raised it.",
+        why: "A tone colours the words, not the bar. If a live condition needs a coloured bar, use a Notice.",
       },
       {
         name: "An attribution slot",
-        why: "The line under a quote is a sibling Text. The system owns an anatomy only where something non-visual forces one, and nothing here does.",
+        why: "Put the attribution in a sibling Text. Nothing non-visual forces a slot here.",
       },
     ],
   },
@@ -322,20 +385,32 @@ const DECLARED: Entry[] = [
     name: "Box",
     family: "Layout",
     spec: "§2, §3",
+    declaration: `<Box p="4" m="2">
+  \u2026
+</Box>`,
+    variants: [
+      {"name":"padding","title":"Padding steps","why":"`p` sets padding on all four sides. `px` sets the left and right, `py` sets the top and bottom, and `pt`, `pr`, `pb` and `pl` set one side. Each value is a step on the space scale."},
+      {"name":"spacing-a-control","title":"Space around a control","why":"A control never sets the space around itself. When one child needs more room than the gap gives it, wrap that child in a Box with a margin prop."},
+      {"name":"responsive","title":"Responsive values","why":"Any Box prop takes an object with a value for each container size. Here the layout is a column on a narrow container and a row from `md` up."},
+      {"name":"container","title":"Measurable containers","why":"Add `container` to make a Box measurable, so responsive values inside it follow its width. Give it a width, because a container cannot size itself from its content."},
+      {"name":"bleed","title":"Bleeding to the edge","why":"The value `bleed` on a margin prop cancels the padding of the surrounding Card. The picture reaches the top and side edges, and the Card clips its corners."},
+      {"name":"backdrop","title":"A backdrop region","why":"`backdrop` marks a region where content passes behind the controls, such as a toolbar over a picture. Every control inside it then uses the theme's material."},
+      {"name":"render","title":"Choosing the element","why":"Use `render` to give a Box the element the document needs, such as a `<section>` or a `<nav>`. The Box props apply to that element, with no wrapper."},
+    ],
         abstract: "Box is the layout engine every other layout component is built from.",
-    overview: ["Flex, Stack and Grid are all Box with a fixed display and a shorter prop list. Box takes the full set: spacing, width and height, and the props a flex or grid child needs. Every value resolves through a token, and any prop can take a different value at each container size."],
+    overview: ["Box is the layout component that every other layout component is built from. Flex, Stack and Grid are a Box with a fixed `display` and a shorter prop list. Box takes the full set.","Box props cover padding, margin, gap, width and height, position, and the props a flex or grid child needs. Every spacing value is a step on the space scale, not a length. Anything outside the props goes in `style`, which applies last.","Use Flex, Stack or Grid when you know the layout. Use Box when a layout must switch display at a container size, or for one-off spacing. A control never sets the space around itself, so wrap it: `<Box mt=\"4\"><Button/></Box>`.","Any prop takes one value, or an object with a value for each container size: `initial`, `sm`, `md` and `lg`. Sizes follow the nearest Box marked `container`, or the Theme root when there is none.","Set `container` only on a Box whose width comes from the layout or from `width`. A container cannot size itself from its content, so in a plain flex row it collapses to zero width. A development build warns you when this happens.","The value `bleed` on a margin prop cancels the padding of the surrounding Card or Surface, so a picture can reach its edge. `backdrop` marks a region where content passes behind the controls, so they use the theme's material. `render` puts the Box props on an element you choose, such as a `<section>`."],
     refusals: [
       {
         name: "Utility classes",
-        why: "Values travel as inline custom properties into fixed rules, so a token and a raw string cost the same and the stylesheet never grows with the number of values used.",
+        why: "Values pass as inline custom properties, so the stylesheet never grows with the values you use.",
       },
       {
         name: "A bleed prop",
-        why: "It is a value on the margin rows, not a prop of its own. Every per-side and per-tier spelling already exists there, so bleed, bleedX and bleedTop would have meant seven new prop rows and a second mechanism writing margin.",
+        why: "Bleed is a margin value, such as `m=\"bleed\"`. Separate props would duplicate every margin spelling.",
       },
       {
         name: "Containment by default",
-        why: "A measurable box can never size itself around its contents, so a Box that was always a container collapsed to zero width inside a flex row. A plain Box hugs its content like a div. Put `container` on things the layout already sizes: a sidebar with a width, a growing column, a grid cell. A container Box left to shrink-wrap renders zero pixels wide, and a development build warns you.",
+        why: "A container cannot hug its contents, so it collapses in a flex row. Add `container` only where the layout sets the size.",
       },
     ],
   },
@@ -345,7 +420,7 @@ const DECLARED: Entry[] = [
     family: "Type",
     spec: "§11, §39",
         abstract: "Breadcrumb shows the path to where you are: the places above this one, each a way back, ending in the place you are now.",
-    overview: ["It is a navigation landmark holding an ordered list, so a screen reader can find it by name and read it as a path. It draws the chevron between the crumbs itself, so no page has to place them and no two pages can use different ones."],
+    overview: ["Breadcrumb shows the path from the top of your app to the current page. Each crumb before the last is a link back to that place. The last crumb is the current page, and it is plain text.","Use a breadcrumb when your pages sit several levels deep, such as folders, projects or settings sections. Do not use it for the steps of a process or for a history of visited pages. To switch between views at the same level, use Tabs.","Each `BreadcrumbItem` draws the chevron that follows it, and the last item draws none. You never place a separator by hand, so every breadcrumb in your app uses the same chevron.","When the path is too long, keep the first crumb and the last few, and pass the rest to `BreadcrumbEllipsis` as `items`. The ellipsis is a button that opens a menu of those places. Give each item an `href`, a `render` element or an `onClick`. The component does not decide which levels to hide.","`size` sets the text size for the whole path, and the default is `2`. There is no `tone` or `emphasis`. Links use the muted text colour, the current page uses the full text colour, and the chevrons use the faint colour. The theme adjusts all three for dark mode and high contrast.","Breadcrumb renders a `<nav>` landmark that holds an ordered list, so a screen reader can find it in the landmark list and read it as a path. Set `label` to name the landmark in your app's language. The default name is \"Breadcrumb\". The current page carries `aria-current=\"page\"`. Tab moves through the links, and the arrow keys move through the ellipsis menu."],
     declaration: `<Breadcrumb>
   <BreadcrumbItem>
     <BreadcrumbLink href="/">Home</BreadcrumbLink>
@@ -357,6 +432,13 @@ const DECLARED: Entry[] = [
     <BreadcrumbPage>Breadcrumb</BreadcrumbPage>
   </BreadcrumbItem>
 </Breadcrumb>`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"`size` on `Breadcrumb` reaches every crumb and every chevron. Use size 2 in most page headers, and size 3 when the path sits beside a large title."},
+      {"name":"short-path","title":"A path with two levels","why":"A breadcrumb with one link and the current page is still useful. It gives you one clear way back to the list you came from."},
+      {"name":"collapsed-levels","title":"Hidden levels in a menu","why":"Keep the first crumb and the last ones, and pass the middle levels to `BreadcrumbEllipsis`. Each item here uses `onClick`, for places your app opens with code instead of a URL."},
+      {"name":"page-header","title":"Above a page title","why":"Put the breadcrumb above the page heading, with the page actions on the same line as the heading. The last crumb repeats the heading, so you always see where you are."},
+      {"name":"rtl","title":"Right to left","why":"Set `dir=\"rtl\"` on the breadcrumb or on any ancestor. The chevrons point the other way, and the path reads from the right. Name the landmark in the page's language with `label`."},
+    ],
     topics: [
       { title: "Drawing the path", symbols: ["Breadcrumb", "BreadcrumbItem"] },
       { title: "The places above this one", symbols: ["BreadcrumbLink", "BreadcrumbEllipsis"] },
@@ -365,27 +447,27 @@ const DECLARED: Entry[] = [
     refusals: [
       {
         name: "`BreadcrumbSeparator`",
-        why: "shadcn/ui has you place a separator between every pair of crumbs and leave it off the last. That is three things this system does not hand to you: it is layout wearing a part's name, it makes an off-by-one rule yours to keep by hand, and it lets each page pick its own chevron. The item draws its own chevron and the stylesheet hides the last one.",
+        why: "Each item draws its own chevron and the last one is hidden. You never place separators by hand.",
       },
       {
         name: "`BreadcrumbList`",
-        why: "A breadcrumb is always a landmark holding a list, so nothing would ever choose between the two. shadcn/ui splits them because its parts are styling hooks; the layout here is the system's, so the list is inside Breadcrumb and is not yours to dress.",
+        why: "A breadcrumb is always a landmark holding a list, so `Breadcrumb` renders both.",
       },
       {
         name: "`tone` and `emphasis`",
-        why: "A breadcrumb is a location, not a meaning, so it has no family to colour. Its three shades of text — the page you are on, the places you can go back to, and the punctuation between them — are the design, not a scale you pick a level from.",
+        why: "A breadcrumb is a location, not a meaning. Its three text shades are fixed.",
       },
       {
         name: "`maxItems` and any automatic collapse",
-        why: "Which levels to drop depends on the room and on which of them mean anything, and no component here decides what it shows. Render the crumbs you are keeping and hand the rest to a BreadcrumbEllipsis, which opens them.",
+        why: "The component does not decide what to drop. Render the crumbs you keep and pass the rest to BreadcrumbEllipsis.",
       },
       {
         name: "An ellipsis that does nothing",
-        why: "Three dots say there is more here, which is a promise. shadcn/ui ships a static marker and then wraps it in a dropdown in the one example anybody copies, so the dead one stays reachable and is the one a reader presses first. Here the menu is the component and items is required, so a dead ellipsis cannot be written.",
+        why: "Three dots promise more. BreadcrumbEllipsis requires `items`, so it always opens a menu.",
       },
       {
         name: "Role=link and aria-disabled on the current page",
-        why: "shadcn/ui announces the last crumb as a link that has been switched off. Both halves are false: there is nothing to follow, and nothing was disabled. aria-current on plain text is what the ARIA practices example carries.",
+        why: "The current page is not a link and is not disabled. It is plain text with aria-current.",
       },
     ],
     parts: [
@@ -400,17 +482,31 @@ const DECLARED: Entry[] = [
     name: "Button",
     family: "Control",
     spec: "§4, §8, §9, §41",
+    declaration: `<Button tone="accent" emphasis="loud">
+  Save changes
+</Button>`,
+    variants: [
+      {"name":"emphasis","title":"Emphasis","why":"Read a row of actions from loud to quiet. Use one loud button for the main action, medium for other actions, and quiet for actions such as Cancel. A quiet button with `bordered` sits between quiet and medium."},
+      {"name":"tones","title":"Tones","why":"`tone` says what an action does. Use `accent` for your main brand action and `destructive` for an action that deletes. Each tone works at every emphasis level."},
+      {"name":"sizes","title":"Sizes","why":"One `size` sets the height, the padding, the corner, the icon and the text together. Use size 2 on most screens, and match the size of the other controls in the same row."},
+      {"name":"with-icons","title":"With icons","why":"Put an icon before the label with `leading`, or after it with `trailing`. The theme sizes the icon to the button, so you do not set a width or a height."},
+      {"name":"icon-only","title":"Buttons with only an icon","why":"Set `iconOnly` and put the icon in `children`. The type requires an `aria-label` or an `aria-labelledby`, because a screen reader cannot read an icon."},
+      {"name":"states","title":"Loading and disabled","why":"`loading` shows a spinner in the leading slot and blocks the press, while the label stays. `disabled` greys the button and removes it from the tab order."},
+      {"name":"done","title":"A copy button that confirms","why":"Set `done` after the action succeeds, and the icon changes to a tick. Your app holds the state and clears it with a timer. Change the label or `aria-label` too, so a screen reader hears the result."},
+      {"name":"as-link","title":"A button that goes to a page","why":"Use `render={<a href />}` when the action opens another page. The button keeps its appearance, and the browser treats it as a link, so it opens in a new tab on request."},
+      {"name":"in-a-form","title":"In a form","why":"Set `type=\"submit\"` on the main action and `type=\"reset\"` on the quiet one. Enter in a field submits the form through the submit button."},
+    ],
         abstract: "Button is the action control, and the one the shared control layer was built for.",
-    overview: ["Loudness is its only ranking axis. You never set an appearance directly: the theme works it out from `tone`, `emphasis` and `bordered`, over whatever material the Theme says the app is made of."],
+    overview: ["Button starts an action, such as saving a form, opening a dialog or deleting a file. You set what the action means with `tone` and how prominent it is with `emphasis`. The theme turns those two choices into a colour.","`emphasis` ranks the actions on a screen. `loud` fills the button with the tone's solid colour, `medium` gives it a soft fill, and `quiet` has no fill. The default is `medium`, with the `neutral` tone. Give each screen or pane one loud button for its main action. Add `bordered` to put a thin line around a button, which sits between quiet and medium.","Use `tone` for meaning. Use `destructive` for an action that deletes or removes, `accent` for your brand's main action, and `success` for an action that approves. Do not pick a tone to get a colour you like.","`size` sets the height, the side padding, the corner, the icon size and the text size together. The default comes from the nearest `Theme`, which is `2` unless your app sets another value. Controls at the same size line up in a row. On a phone the theme makes every size taller, so the tap target stays large enough.","Put an icon before the label with `leading`, or after it with `trailing`. Set `iconOnly` for a square button that shows only an icon, and give it an `aria-label`. Set `loading` while the action runs: a spinner replaces the leading icon, the label stays, and the press is blocked. Set `done` when the action finishes: the icon changes to a tick for as long as you keep it true.","Use `render` to make a Button look like a button but work as a link, for example `render={<a href=\"/billing\" />}`. For an action with a menu of related actions, use a SplitButton. For several buttons joined into one control, use a ButtonGroup. For an on and off state, use a Toggle. For a link inside a sentence, use a Link.","Button renders a real `<button>`, so Enter and Space press it and it sends a form when `type` is `submit`. There is no `margin` prop: put space around a button with the layout that holds it, or with `<Box m>`. A screen reader reads the label, or the `aria-label` on an icon-only button. When you use `done`, change the label too, for example from \"Copy\" to \"Copied\", because a screen reader does not read the tick."],
     refusals: [
-      { name: "`margin`", why: "A component never sets outer spacing. The distance belongs to the container. The escape is `<Box m>`." },
+      { name: "`margin`", why: "A component never sets outer spacing; its container does. Use `<Box m>`." },
       {
         name: "`variant`",
-        why: "It fuses loudness with meaning, so it cannot express a quiet destructive action. `tone` and `emphasis` are separate props for exactly that reason.",
+        why: "It mixes loudness with meaning, so a quiet destructive action is impossible. Use `tone` and `emphasis`.",
       },
       {
         name: "A shadow prop",
-        why: "There is no elevation axis. Depth is an app identity, set once by Theme depth, and never chosen per component.",
+        why: "There is no elevation prop. Theme `depth` sets shadows for the whole app.",
       },
     ],
   },
@@ -419,24 +515,34 @@ const DECLARED: Entry[] = [
     name: "Surface",
     family: "Surface",
     spec: "§10",
+    declaration: `<Surface size="2">
+  \u2026
+</Surface>`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"`size` sets the padding and the corner, from 1 to 4. The values match a Card at the same size. Use a larger size for a larger region."},
+      {"name":"holding-cards","title":"Holding cards","why":"Put cards on a Surface to group them into one region. The cards keep their own fill, border and shadow. The Surface sits behind them and does not cast a shadow."},
+      {"name":"in-a-card","title":"In a card","why":"Put a Surface inside a Card to set apart a quieter region, such as a key or a code sample. Use a small size so the inner corner is smaller than the card's corner. Do not put a Card inside a Card."},
+      {"name":"as-a-layout","title":"As a layout","why":"Use `render` to make the Surface a layout component, such as a Stack. The result is one element that has the fill and the column layout. You do not need a wrapper."},
+      {"name":"bleed","title":"Bleed to the edge","why":"Set a margin prop to `bleed` to make a child reach the edge of the Surface. Here a Separator runs from edge to edge. Use `mx` for the sides only, or `m` for all four edges."},
+    ],
         abstract: "Surface is a ground: the region that objects sit on.",
-    overview: ["A Card is an object, and a Surface is what holds it. Use it for a bounded region of a page that holds cards, or for a quieter region inside a card, such as a code block or a settings group. Its colour is a stated pair rather than one step down from its parent, because in dark mode a relative step would land lighter than the cards it holds."],
+    overview: ["A Surface is a region that other things sit on. A Card is an object, and a Surface is what holds it. The Surface has a fill one step away from the page, a thin border and a corner.","Use a Surface for a bounded part of a page that holds cards, such as a board or a gallery. Also use it for a quieter region inside a card, such as a code sample, a key or a group of settings. Use a Card for a single object that people read, open or press.","Its colour is a fixed pair of values, one for light mode and one for dark mode. It is not one step down from its parent, because in dark mode a relative step would be lighter than the cards on it. In dark mode the border does most of the work of showing the region.","`size` sets the padding and the corner, and it matches a Card at the same size. The corner is not a size you set. There is no fill, border, tone or emphasis prop, because a second way to change the fill and the edge would make a second kind of Card.","A Surface does not blur what is behind it, and it has no `backdrop` prop. Its fill is solid, so a card on it is solid too. A child that sets its own `backdrop` still gets glass. A Surface clips its content, and a child can reach the edge with `m=\"bleed\"`. It has no keyboard behaviour of its own."],
     refusals: [
       {
         name: "A fill or an edge prop",
-        why: "The ground colour and the hairline are the component. Give it a fill and edge vocabulary and the first thing anyone builds is a fill plus a hairline, which is a second way to make a Card. A ground cannot pass for a card, so it cannot start that drift.",
+        why: "A fill and edge vocabulary would make a second way to build a Card. The ground colour and hairline are fixed.",
       },
       {
         name: "A border toggle",
-        why: "Button's `bordered` ranks: quiet, quiet with a border and medium say three different things about loudness. Two grounds, one lined and one not, would say the same thing. The line is also load-bearing in dark mode, where a ground sits barely above the page — #121213 against #0f0f10, a step of 0.011 in lightness — so the hairline is most of what says the region is there, and there is no palette step between the two colours to fall back on.",
+        why: "Lined and unlined grounds would say the same thing. In dark mode the hairline is what shows the region at all.",
       },
       {
         name: "`material` and `backdrop`",
-        why: "Glass defends a pane against something passing behind it, and a ground's backdrop is its own parent. Inside a glass card a Surface joins the scope already there and opens none of its own. It does CLOSE a backdrop region, because the ground is opaque: a card sitting on one is not over content and resolves solid, exactly as it would on a solid card. A member that states its own backdrop still gets the theme's material.",
+        why: "A ground's backdrop is its own parent, so glass has nothing to defend. A child that states `backdrop` still gets glass.",
       },
       {
         name: "Tone, emphasis and a shadow",
-        why: "Card's refusals, unchanged. A container ranks nothing against its siblings, and a region in the plane throws no shadow.",
+        why: "A container ranks nothing against its siblings, and a region in the page throws no shadow.",
       },
     ],
   },
@@ -445,20 +551,32 @@ const DECLARED: Entry[] = [
     name: "Card",
     family: "Surface",
     spec: "§9, §10",
+    declaration: `<Card size="2">
+  \u2026
+</Card>`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"`size` changes the padding and the corner, and the content sets the height. Use a smaller size for dense content such as stats, and a larger one for a single form."},
+      {"name":"as-a-link","title":"A card that opens a page","why":"Pass `render={<a href />}` and the whole card is one link, with hover, press and focus states. Keep only one link inside it, because a link inside a link is invalid."},
+      {"name":"as-a-button","title":"A card that runs an action","why":"Pass `render={<button />}` when the card runs an action instead of opening a page. Put the handler on the element you pass to `render`."},
+      {"name":"choice","title":"Cards that select one option","why":"Wrap each Radio in `<Card render={<label />}>` inside a RadioGroup. The whole card selects its option, and the chosen card's edge shows the accent colour."},
+      {"name":"disabled","title":"Disabled","why":"A card rendered as a disabled button fades its fill and its text and stops showing a pointer. Say why it is disabled in the card's own text."},
+      {"name":"responsive-grid","title":"Cards in a responsive grid","why":"Pass an object to `columns` on Grid to change the layout as the room grows. Here the cards stack in one column, then move to three columns from the `sm` width."},
+      {"name":"settings","title":"A settings form in a card","why":"A card holds a whole task: a heading, a field and its actions. The one loud button is the card's main action."},
+    ],
         abstract: "Card is an object with its own surface: one solid fill, one corner and one padding, and nothing else.",
-    overview: ["Its size sets the padding and the corner, never a height. What it does depends on the element you give it: render it as a button or a link and it becomes pressable, with the same state colours and motion every control has. Only the press distances differ, because a large box that moved as far as a button would look like the page was bending."],
+    overview: ["Card is an object with its own surface: one solid fill, one corner and one padding. It holds any content you put inside it, such as a title, a form or a list. A card has no title or footer parts, so you arrange its content with Stack and Flex.","Use a Card to separate one object from the rest of the page, such as a project, a plan or a settings group. To make a quiet region that holds several cards, use a Surface. Do not put a card inside another card. For a quiet region inside a card, such as a code sample, use a Surface or a CodeBlock.","`size` sets the padding and the corner. It never sets a height, because the content decides how tall the card is. The theme's `depth` decides whether cards cast a shadow, and there is no shadow prop on the card.","The element you pass to `render` decides what the card does. Render it as an `<a>` or a `<button>` and the whole card presses, with the same hover, press, focus and disabled appearance as other controls. Wrap a Radio or a Checkbox in `<Card render={<label />}>` and the whole card selects that control. When the control is checked, the card's edge shows the accent colour.","A card clips its content to its corner. To make a picture or a band reach the card's edge, put it in a Box with `m=\"bleed\"`, or with `mt=\"bleed\"` and `mx=\"bleed\"` for the top edge only.","Set `backdrop` when an image, a map or a scrolling feed passes behind the card. The card then uses the material your Theme sets. A card on plain ground stays solid. A card is not focusable unless you render it as a link, a button or a label. A screen reader then reads it as that element, so write the card's text so it makes sense read aloud as one name."],
     refusals: [
       {
         name: "A `selected` prop, and an `interactive` one",
-        why: "The element says both instead. `<Card render={<button/>}>` is the pressable card, and `<Card render={<label/>}>` around a `Radio` is the chosen one, so the semantics, the keyboard, the form value and the announcement all belong to the primitive and the system supplies only the edge. A `selected` prop would be a second way to say what the radio already says, with nothing keeping the two in agreement. A disabled card is a disabled button and shows what one shows: the fill recedes, the words dim, the cursor stops promising, and the shadow goes.",
+        why: "Use `<Card render={<button/>}>` to press, or wrap a `Radio` in `<Card render={<label/>}>` to select.",
       },
       {
         name: "A card inside a card",
-        why: "A card is an object with its own plane. Two of them stacked is an object standing on an object, which describes a relationship this system does not have. For a quiet region inside a card, use a Surface. For several objects on one ground, put the cards in a Surface. A development build warns you, the builder cannot express it, and the composition reviewer reports it.",
+        why: "Stacked cards describe no real relationship. Use a Surface for a quiet region, or to hold several cards.",
       },
       {
         name: "A material prop",
-        why: "Material is a Theme value. It answers what the app is made of, which is one answer for a whole scope rather than a per-card choice. A subtree that has to differ uses a nested Theme. Where the glass shows is decided by placement: a component renders glass only where a backdrop exists.",
+        why: "Material is a Theme value for a whole scope. To make one subtree differ, use a nested Theme.",
       },
       {
         name: "Tone, emphasis and bordered",
@@ -466,11 +584,11 @@ const DECLARED: Entry[] = [
       },
       {
         name: "A media or cover slot",
-        why: "A card clips what it holds, and a child says it reaches the edge with `<Box mt=\"bleed\" mx=\"bleed\">`. Every peer solved this with a part of its own, such as Mantine's Card.Section, MUI's CardMedia and Ant's cover. Here the picture is a child that cancels the padding, not a region the card has to know about.",
+        why: "A card clips its children. Make a picture reach the edge with `<Box mt=\"bleed\" mx=\"bleed\">`.",
       },
       {
         name: "Header and footer slots",
-        why: "The system owns an anatomy only where something non-visual forces one, such as a dialog's focus wiring or a notice's status role. A card's regions are a layout, and a layout is something you compose.",
+        why: "Card regions are layout, which you compose. Nothing non-visual forces a header or footer part.",
       },
     ],
   },
@@ -479,20 +597,30 @@ const DECLARED: Entry[] = [
     name: "Checkbox",
     family: "Control",
     spec: "§4, §6, §11",
+    declaration: `<Checkbox id="ship" defaultChecked />
+<Text render={<label htmlFor="ship" />}>Ship it</Text>`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"Each checkbox size matches one line of text at a matching text size. Pair a size 2 checkbox with size 3 text, and go up together."},
+      {"name":"in-a-form","title":"In a form","why":"Put each checkbox in a `FieldItem` with a `FieldLabel` and a `FieldDescription`. The field connects each label and description to its checkbox, so you write no `id`."},
+      {"name":"select-all","title":"Select all with a mixed state","why":"The checkbox above the list shows `indeterminate` when only some files are selected. A press on it selects all files or clears them."},
+      {"name":"disabled","title":"Disabled","why":"`disabled` fades the box and its check and blocks the press. A disabled checkbox keeps its state, so a checked one still shows its tick."},
+      {"name":"controlled","title":"Controlled","why":"Pass `checked` and `onCheckedChange` when other parts of the screen depend on the value. Here the button stays disabled until you accept the terms."},
+      {"name":"in-a-card","title":"In a card","why":"Wrap a checkbox and its text in `<Card render={<label />}>`. The whole card toggles the option, and a checked card's edge shows the accent colour."},
+    ],
         abstract: "Checkbox is a control that is its own mark.",
-    overview: ["Its box is exactly one line of its label's text, so it lines up with the words beside it and grows on a phone without anything being designed twice. Its tappable area extends to the size a Button of the same index would occupy, whether or not you can see that area."],
+    overview: ["Checkbox turns one option on or off. It is off in a neutral colour and on in the accent colour, and it can also show a mixed state for a group where only some options are on.","Use a checkbox for an option that takes effect when you submit a form, or for choosing several items from a list. For a setting that takes effect at once, use a Switch. To pick one option from several, use a RadioGroup. For a pressed state in a toolbar, use a Toggle.","The checkbox is exactly one line tall of the text beside it, so it lines up with its label. Its tappable area extends past the box you can see, to the size a Button of the same size would occupy. When you stack checkboxes in a column, leave at least `gap=\"5\"` between them, so the tappable areas do not overlap.","The label is a separate element, not a child. Inside a form, put each checkbox in a `FieldItem` with a `FieldLabel`, and add a `FieldDescription` when the option needs one. Outside a form, give the checkbox an `id` and render a Text as `<label htmlFor>`. A label that wraps the checkbox also works, such as `<Card render={<label />}>`.","Use `defaultChecked` when the checkbox holds its own state, or `checked` with `onCheckedChange` when your app holds it. Set `indeterminate` for the mixed state. Set `name` to send the value with a form. `size` sets the box size, and the default comes from the nearest Theme. There is no `readOnly`: use `disabled` instead.","Space toggles a focused checkbox, and a click on its label toggles it too. A screen reader reads the label and the state: checked, not checked or mixed. The theme draws a focus ring when you reach the checkbox with the keyboard."],
     refusals: [
       {
         name: "`tone` and `emphasis`",
-        why: "Neutral when off and accent when on is an identity, not an axis. The family has one meaning and one way to show it.",
+        why: "Off is neutral and on is accent, always. A checkbox has one meaning.",
       },
       {
         name: "`children`",
-        why: "A mark sits beside its label. The label is a sibling, and the row sets the distance between them.",
+        why: "The label is a sibling element. The row sets the distance between them.",
       },
       {
         name: "`readOnly`",
-        why: "HTML does not define readonly for a checkbox, and every library that accepts it draws the control exactly like a live one. A state with no appearance is worse than no state.",
+        why: "HTML defines no readonly checkbox, and it would look exactly like a live one.",
       },
     ],
   },
@@ -501,18 +629,25 @@ const DECLARED: Entry[] = [
     name: "Code",
     family: "Type",
     spec: "§11, §15",
-        abstract: "Code shows inline code in the mono font, with a light fill behind it.",
-    overview: [
-      "Its size is optional: leave it unset and it takes the size of the line it sits in, so a value inside small text stays small without you repeating the index.",
+    declaration: `<Text>
+  Run <Code>pnpm run ci</Code> first.
+</Text>`,
+    variants: [
+      {"name":"inherited-size","title":"Size from the surrounding text","why":"With no `size`, the code matches the heading, the body text and the small caption it sits in. You set the size once, on the Text or the Heading."},
+      {"name":"tones","title":"Tones","why":"`tone` changes the fill and the letters. Use it when the value itself carries a meaning, such as a status code or an error name."},
+      {"name":"emphasis","title":"Emphasis","why":"`emphasis` changes only the letters. Use `quiet` for a value that no longer applies, such as an old endpoint."},
+      {"name":"in-a-table","title":"Names in a table column","why":"Put Code in a table cell for names such as environment variables. The code takes the cell's text size."},
     ],
+        abstract: "Code shows inline code in the mono font, with a light fill behind it.",
+    overview: ["Code shows a short piece of code inside a sentence, such as a command, a file name or a value. It uses the mono font with a light fill behind it.","Use Code for code that sits inside a line of text. For code on several lines, use a CodeBlock. For a key or a keyboard shortcut, use a Kbd.","`size` is optional. When you do not set it, the code takes the size of the line it sits in, so code inside small text stays small and code in a heading is large. Set `size` only when the code stands alone.","`emphasis` changes the colour of the letters, the same way it does on Text. Code rests at `loud`, because faded code is harder to read. `tone` changes both the letters and the fill, so use it when the value itself has a meaning, such as an error code or a success status. The default tone is `neutral`.","Code renders a `<code>` element, and a screen reader reads it as ordinary text. Use `render` when the document needs another element, such as `<samp>` for program output."],
     refusals: [
       {
         name: "A fill that gets louder with emphasis",
-        why: "On type, emphasis picks an ink colour. A chip whose fill also climbed would be reading one prop two ways in one element.",
+        why: "Emphasis picks the ink colour. A fill that also changed would read one prop two ways.",
       },
       {
         name: "Block code",
-        why: "A code block owns overflow, wrapping and a scroll container. That is a different component, not a mode of this one.",
+        why: "Block code needs overflow, wrapping and scrolling. Use a CodeBlock.",
       },
     ],
   },
@@ -521,28 +656,36 @@ const DECLARED: Entry[] = [
     name: "CodeBlock",
     family: "Type",
     spec: "§15, §40",
+    declaration: `<CodeBlock size="2">{source}</CodeBlock>`,
+    variants: [
+      {"name":"with-topbar","title":"File name and copy button","why":"Shows the `topbar` slot with a file name on one side and a copy button on the other. The button uses `done` to show a tick after it copies, and `band` keeps the first line of code clear of the row."},
+      {"name":"max-lines","title":"Limited height","why":"Shows `maxLines` on a long file. Six lines show, and the rest scroll inside the pane. Use it when a sample is long but only its start matters on the page."},
+      {"name":"with-footer","title":"Status row at the bottom","why":"Shows the `footer` slot under terminal output. Use a footer for facts about the code above it, such as an exit code or how long a command took."},
+      {"name":"sizes","title":"Sizes","why":"Shows the four sizes one above the other. One `size` changes the padding, the corner and the text together, so a larger block stays in proportion."},
+      {"name":"in-a-card","title":"In a card","why":"Shows a CodeBlock inside a Card with a heading, a description and an action. The code pane sits into the card, so it does not look like a second card."},
+    ],
         abstract: "CodeBlock shows a block of code in a well recessed into the page.",
-    overview: ["Long lines scroll sideways rather than wrapping, because a wrapped line breaks where the language does not. Give it maxLines and the well stops at that many lines and scrolls; nothing is ever clipped away, so every line stays reachable by wheel, keyboard and screen reader. Size sets the pane and the code together. It ships no highlighter, and it does ship the colours one uses: point a highlighter at the --code- variables and every colour it draws is one the system already solved against the surface it sits on."],
+    overview: ["CodeBlock shows a block of code in a pane that is set into the page. Use it for a command to run, a file to copy, or a sample of an API response. For a short literal inside a sentence, such as a prop name or a file path, use `Code` instead.","Long lines wrap only at spaces, so names and paths are never broken. A line with no space scrolls sideways. Set `maxLines` to limit the height to that many lines. The rest of the code scrolls, and nothing is cut off, so every line stays reachable by wheel, keyboard and screen reader.","One `size` sets the padding, the corner and the text size together. The pane uses the same colour as a `Surface`, not a `Card`, because the code is part of the page and not an object placed on it. It follows light and dark mode with the rest of the theme.","CodeBlock does not highlight code. Use any highlighter that has a CSS-variables mode, and point it at the `--code-` variables. Each of those colours is already checked for contrast against the pane in light and dark mode.","Use `topbar` for a row at the top of the pane, such as a file name and a copy button. Set `band` when that row reaches both sides of the pane, so the first line of code starts below it. Use `footer` for a row at the bottom, such as a status line."],
     refusals: [
       {
         name: "Highlighting",
-        why: "Turning code into coloured spans means shipping a grammar for every language, and the choice of tokenizer belongs to whatever builds your pages. The colours are the system's part, and it publishes them as --code- variables that any highlighter's CSS-variables mode can be pointed at.",
+        why: "Pick your own highlighter. Point its CSS-variables mode at the --code- variables the system publishes.",
       },
       {
         name: "A switch for wrapping",
-        why: "It wraps, and only at a space the code already has: `overflow-wrap` is pinned to `normal`, so an identifier, a string or a path is never cut. A line with no space in it still overflows, and the well still scrolls to reach it — so there is one behaviour to learn rather than a toggle to find.",
+        why: "It wraps only at spaces, so names and paths are never cut. A line with no space scrolls.",
       },
       {
         name: "A copy button, line numbers, and a collapse",
-        why: "Those are behaviour and markup, not the well. Line numbers belong to whatever renders the lines, a copy button is a Button you put in the topbar, and hiding lines behind a collapse takes them out of reach. Bounding scrolls, so the lines are still there.",
+        why: "Put a copy Button in the topbar. Line numbers belong to your renderer. Long code scrolls instead of collapsing.",
       },
       {
         name: "`tone` and `emphasis`",
-        why: "Code has no meaning of its own to colour, and no block of it is louder than the next. The colours inside it come from the syntax theme, which reads the same inks as the prose around it.",
+        why: "Code has no meaning to colour and no block is louder. The syntax theme supplies the colours.",
       },
       {
         name: "A Card as the pane",
-        why: "The code is not an object sitting on the page, it is a well recessed into it. So the pane is a Surface, which is what the rest of the page's grounds are.",
+        why: "Code is recessed into the page, not placed on it. So the pane is a Surface.",
       },
     ],
   },
@@ -552,11 +695,7 @@ const DECLARED: Entry[] = [
     family: "Surface",
     spec: "§20, §21, §23, §28, §50",
     abstract: "Combobox is a field you type in to narrow a list of options, and pick one of them.",
-    overview: [
-      "The field is a TextField you type into, with the same fill, border, height and focus behaviour, and the panel is Select's, so the rows, the corner and the tick all match. The panel is never narrower than the field above it. The part names follow shadcn/ui's combobox (MIT), with credit, and the behaviour is Base UI's Combobox.",
-      "What you type narrows the list and never becomes the value: what a form receives is the option you picked. Base UI matches the typed text against each option's label and renders only what survives, which is why `ComboboxList` takes a function instead of children. You write every option once, and the panel decides which of them exist right now.",
-      "Keep the `items` array steady. It reaches the matcher by identity, so an array written inside your component runs the whole filter again on every unrelated render. Put it at module scope, or in a `useMemo`.",
-    ],
+    overview: ["A Combobox is a field you type in to narrow a list of options, and then pick one of them. Use it when the list is too long to scan, such as countries, time zones or team members. For a short list of fewer than about ten options, use `Select`. To run commands instead of picking a value, use `Command`.","The field is a `TextField` you type into, with the same fill, border, height and focus ring. The panel is the same as the panel of `Select`, so the rows, the corner and the tick all match. The panel is never narrower than the field above it. The part names follow shadcn/ui's combobox (MIT), with credit, and the behaviour is Base UI's Combobox.","What you type narrows the list and never becomes the value. A form receives the option you picked. Base UI matches the typed text against the label of each option and renders only the options that match. That is why `ComboboxList` takes a function instead of children: you write every option one time, and the panel decides which of them show.","Keep the `items` array stable. The matcher compares it by reference, so an array written inside your component runs the whole filter again on every render. Put it at module scope, or in a `useMemo`. An option can be a string, or an object with a `value` and a `label`: people search by the label, and the form receives the value.","Set `name`, `required`, `disabled`, `readOnly` and `form` on the `Combobox`, not on `ComboboxInput`. On the input they would act on the typed letters instead of the chosen option. `size` matches a `TextField` or a `Button` at the same size, and inside a `Field` the field sets the size.","The input has the `combobox` role and tells a screen reader when the list is open. The arrow keys move through the options, Enter picks one, and Escape closes the panel. A chosen row is announced as selected, not only shown with a tick. Inside a `Field`, the field label names the input and the list."],
     declaration: `<Combobox items={regions}>
   <ComboboxInput placeholder="Search regions" />
   <ComboboxContent>
@@ -568,6 +707,15 @@ const DECLARED: Entry[] = [
     </ComboboxList>
   </ComboboxContent>
 </Combobox>`,
+    variants: [
+      {"name":"groups","title":"Grouped options","why":"Shows options in sections with `ComboboxGroup` and `ComboboxLabel`. When nothing in a section matches what you type, the section and its heading disappear together."},
+      {"name":"object-options","title":"Values and labels","why":"Shows options as objects with a `value` and a `label`. People search and read the label, and a form receives the value, so London submits as `eu-west-2`."},
+      {"name":"controlled","title":"Controlled","why":"Shows `value` and `onValueChange` driving text elsewhere on the screen. The callback fires when a person picks or clears an option, and it does not fire while they type."},
+      {"name":"in-a-form","title":"In a form","why":"Shows a Combobox inside a Field with a label, a description and an error. `name` and `required` go on the Combobox, and the error shows when a person submits without a choice."},
+      {"name":"disabled","title":"Disabled","why":"Shows a disabled Combobox, a read-only Combobox and a list with one disabled option. Read-only keeps the value visible and submitted, but the list does not open."},
+      {"name":"with-icon","title":"Icon before the text","why":"Shows the `leading` slot with an icon. The chevron always sits at the trailing edge, so an icon goes before the text."},
+      {"name":"sizes","title":"Sizes","why":"Shows the four sizes one above the other. The field, the panel, the rows and the text all change together, and each size matches a TextField or a Button at the same size."},
+    ],
     topics: [
       { title: "Typing and picking", symbols: ["Combobox", "ComboboxInput"] },
       { title: "Presenting the panel", symbols: ["ComboboxContent"] },
@@ -577,33 +725,33 @@ const DECLARED: Entry[] = [
     refusals: [
       {
         name: "Free text with suggestions",
-        why: "A Combobox picks a value that is one of your options, so a form receives the option and never the letters. A field that submits whatever was typed, and treats the list as help, is a different thing: a search box, a tag input, an address line. Command wraps that shape for a palette, and a free-text field with suggestions has not shipped.",
+        why: "A Combobox submits one of your options, never typed text. Use Command for a palette; free-text suggestions have not shipped.",
       },
       {
         name: "`multiple`",
-        why: "Deferred, not refused. A combobox holding several values shows them as chips inside the field, and a chip inside a field is a control hosted in a control that nobody has designed yet. It arrives with its own geometry rather than as a flag on this one.",
+        why: "Deferred. Several values need chips inside the field, and that design does not exist yet.",
       },
       {
         name: "A matcher of your own, a limit, and inline completion",
-        why: "The mode is fixed: the letters filter, and the field never rewrites itself under your caret. Base UI's match over each option's label is the one behaviour, and an app that wants a different one hands in a list it has already narrowed.",
+        why: "The letters filter the list by label. To match differently, pass a list you have already narrowed.",
       },
       {
         name: "`disabled`, `readOnly`, `name`, `required` and `form` on the field",
-        why: "All five belong on the Combobox itself. The value lives in a hidden input and the state lives in the root, so on the visible input each one lands where the fact is not: `name` there submits the letters you typed, `required` passes with no option chosen, and `disabled` paints the field dead while the list still opens and the form still submits.",
+        why: "Set these on the Combobox. On the input they submit the typed letters or leave the list working.",
         on: ["ComboboxInput"],
       },
       {
         name: "A Separator inside the panel",
-        why: "The list is a listbox, and a listbox may hold only options and groups. A separator in it is markup an accessibility scan reports as a violation, from library code you cannot fix. Use a group: it divides the list for a screen reader as well as on screen, and it disappears on its own when nothing in it matches.",
+        why: "A listbox may hold only options and groups, so a separator fails accessibility checks. Use a group.",
       },
       {
         name: "`render` on the field",
-        why: "There are two elements here and neither can move: the wrapper holds a border the input cannot, and the input has to stay an input or the platform wiring goes with it. TextField's sentence, one component over.",
+        why: "It renders two elements, so `render` could only silently mean one of them.",
         on: ["ComboboxInput"],
       },
       {
         name: "A clear button",
-        why: "Open rather than refused. The trailing edge is the chevron's, and a second control there would compete for the one place a combobox has to put one. It ships when its shape beside the chevron has been drawn.",
+        why: "Not yet. The chevron owns the trailing edge, and a clear button beside it is not designed.",
       },
     ],
     parts: [
@@ -623,7 +771,7 @@ const DECLARED: Entry[] = [
     family: "Surface",
     spec: "§21, §22, §42",
         abstract: "ContextMenu is the menu a right-click opens, over the area you right-clicked.",
-    overview: ["On a touch screen a long press opens it instead. It is the same panel and the same rows as Menu, so you build it out of MenuItem and its siblings; what is different is that it is summoned at a point rather than opened by a control, and it grows out of that point instead of out of a button. The part names follow shadcn/ui's context-menu (MIT), with credit, and the behaviour is Base UI's ContextMenu."],
+    overview: ["ContextMenu is the menu that opens when a person right-clicks an area, at the point they clicked. On a touch screen, a long press opens it. Use it for shortcuts to actions a person can also reach another way, such as rename, duplicate or delete on a file. To open a menu from a visible button, use `Menu`.","It uses the same panel and the same rows as `Menu`, so you build it from `MenuItem`, `MenuGroup`, `MenuLabel`, `MenuCheckboxItem`, `MenuRadioGroup`, `MenuSub` and their parts. The panel opens from the point you clicked and grows out of it. The part names follow shadcn/ui's context-menu (MIT), with credit, and the behaviour is Base UI's ContextMenu.","`ContextMenuTrigger` is the area that responds to a right-click. It draws no fill, border or cursor, because a right-click happens over content that is already visible. It stops the browser's own menu from opening. Use `render` to make an element you already have into the area.","The system places the panel. Its corner goes on the point you clicked, and the panel moves to stay inside the window. There are no `side`, `align` or offset props. `size` sets the panel and its rows, and the panel follows the theme inside its portal.","Keyboard and screen-reader behaviour is the same as `Menu`. The arrow keys move through the rows, Enter chooses a row, typing a letter jumps to a row, and Escape closes the panel. Because a right-click is hard to find, do not put an action only in a context menu. Make it available from a button or a `Menu` too."],
     declaration: `<ContextMenu>
   <ContextMenuTrigger>
     <Surface>The area you right-click</Surface>
@@ -633,6 +781,14 @@ const DECLARED: Entry[] = [
     <MenuItem tone="destructive">Delete</MenuItem>
   </ContextMenuContent>
 </ContextMenu>`,
+    variants: [
+      {"name":"groups","title":"Grouped rows","why":"Shows rows in MenuGroup sections with a MenuLabel. The label names the group for a screen reader, and the keyboard skips it."},
+      {"name":"shortcuts","title":"Icons and shortcuts","why":"Shows the `leading` slot with icons and the `trailing` slot with keyboard shortcuts. The labels all start on the same line, with or without an icon."},
+      {"name":"checkable","title":"Checkbox and radio rows","why":"Shows MenuCheckboxItem for settings that turn on and off, and MenuRadioGroup for one choice from several. These rows keep the menu open, so a person can change several settings."},
+      {"name":"submenu","title":"Submenus","why":"Shows MenuSub rows that open a second panel beside the first. Hover the row or press the right arrow key to open it."},
+      {"name":"disabled","title":"Disabled","why":"Shows disabled rows, including a destructive one. A disabled row stays in the menu and is still announced, so a person can see the action exists."},
+      {"name":"per-row","title":"One menu for each item","why":"Shows a list where each row has its own ContextMenu. The menu acts on the row that was right-clicked, and the trigger does not change how the row looks."},
+    ],
     topics: [
       { title: "Catching the right-click", symbols: ["ContextMenu", "ContextMenuTrigger"] },
       { title: "Presenting the panel", symbols: ["ContextMenuContent"] },
@@ -640,19 +796,19 @@ const DECLARED: Entry[] = [
     refusals: [
       {
         name: "A parallel set of parts",
-        why: "shadcn/ui ships ContextMenuItem, ContextMenuLabel, ContextMenuSub and the rest, and every one of them is the menu part under a second name — Base UI re-exports the same components for both. A second name for one thing is the fault, not the fix. Build the rows out of MenuItem, MenuGroup, MenuLabel, MenuCheckboxItem, MenuRadioGroup and MenuSub, which work here because they are the same components.",
+        why: "Those parts are the Menu parts under a second name. Use MenuItem, MenuGroup, MenuSub and the rest directly.",
       },
       {
         name: "Side, align and an offset",
-        why: "Placement belongs to the system for every floating component, and here there is nothing you could usefully say: the panel's corner goes on the point you clicked, and the viewport decides which corner that is.",
+        why: "The panel's corner goes on the point you clicked, and the viewport picks which corner.",
       },
       {
         name: "An appearance for the region",
-        why: "A right-click is a gesture over content you can already see, so the area draws no fill, no border and no cursor of its own. A region that announced itself would be a control, and this is not one.",
+        why: "A right-click happens over visible content, so the region draws no fill, border or cursor.",
       },
       {
         name: "Opening on a left click",
-        why: "That is a Menu with a trigger. Two gestures on one component would mean the same panel appearing for two different reasons, and a reader could not tell which one they had.",
+        why: "That is a Menu with a trigger. One panel opening for two gestures would confuse readers.",
       },
     ],
     parts: [
@@ -666,7 +822,7 @@ const DECLARED: Entry[] = [
     family: "Surface",
     spec: "§10, §20, §24",
         abstract: "Dialog shows a panel over a dimmed app.",
-    overview: ["The panel looks like a Card with a slightly rounder corner, and it casts no shadow of its own, because the dimmed background behind it is what separates it from the page. On a narrow window it slides up from the bottom edge as a sheet instead. The part names follow shadcn/ui's dialog (MIT), with credit, and the behaviour is Base UI's Dialog, including the focus trap and scroll lock."],
+    overview: ["Dialog shows a panel over a dimmed app. Use it for a short task that needs full attention, such as editing settings or renaming a project. To ask a yes-or-no question before a risky action, use `AlertDialog`. For a panel that leaves the page usable, use a `Popover`. For a panel that slides in from an edge, use a `Sheet`.","The panel looks like a `Card` with a slightly rounder corner. It casts no shadow of its own, because the dimmed background behind it separates it from the page. On a narrow window it sits on the bottom edge as a sheet instead. The part names follow shadcn/ui's dialog (MIT), with credit, and the behaviour is Base UI's Dialog, including the focus trap and scroll lock.","`size` sets the width, the padding, the corner, and the size of `DialogTitle` and `DialogDescription`. Everything else you write inside keeps its own size. Write the layout of the panel yourself with `Stack` and `Flex`, and place a `DialogClose` button where the layout needs one. There is no close button in the corner.","The panel grows with its content. To limit its height, set `maxHeight` on `DialogContent` and put a `ScrollArea` inside it. The scroll area scrolls, and the title and the buttons stay in view.","Open a dialog with `DialogTrigger`, or control it with `open` and `onOpenChange`. `onOpenChange` receives the reason for closing, such as `escape-key` or `outside-press`. Call `cancel()` to keep the dialog open, for example when the person has unsaved text.","Focus moves into the panel when it opens and returns to the trigger when it closes. Tab stays inside the panel. Escape and a press outside the panel close it. `DialogTitle` names the panel for a screen reader and `DialogDescription` describes it, so always include a title."],
     declaration: `<Dialog>
   <DialogTrigger render={<Button>Rename project</Button>} />
   <DialogContent>
@@ -675,6 +831,13 @@ const DECLARED: Entry[] = [
     <DialogClose render={<Button emphasis="loud">Save</Button>} />
   </DialogContent>
 </Dialog>`,
+    variants: [
+      {"name":"in-a-form","title":"In a form","why":"Shows fields and actions inside a form element, with `open` controlled by state. Enter submits the form, and the dialog closes only after the save."},
+      {"name":"controlled","title":"Controlled","why":"Shows a dialog with no DialogTrigger, opened by state after a task finishes. Use this when something other than a button opens the dialog."},
+      {"name":"scrolling-content","title":"Scrolling content","why":"Shows `maxHeight` on DialogContent with a ScrollArea inside. The list scrolls, and the title and the action stay in view."},
+      {"name":"unsaved-changes","title":"Protect unsaved text","why":"Shows `onOpenChange` calling `cancel()` for Escape and outside presses while the text area holds a draft. The buttons still close the dialog."},
+      {"name":"from-a-menu","title":"Open from a menu row","why":"Shows a Menu row that opens a dialog. The dialog sits outside the menu and uses state, because the menu closes when the row is chosen."},
+    ],
     topics: [
       { title: "Opening it", symbols: ["Dialog", "DialogTrigger"] },
       { title: "Presenting the panel", symbols: ["DialogContent"] },
@@ -684,31 +847,31 @@ const DECLARED: Entry[] = [
     refusals: [
       {
         name: "Header and Footer",
-        why: "A title, a description and an action row are a Stack you write. Blessing one arrangement deprecates every other. Title and Description are parts here because they carry the panel's accessible name and description, which is a non-visual reason.",
+        why: "Write the header and action row as a Stack. Title and Description exist only for accessible naming.",
       },
       {
         name: "A presentation prop, and a drag",
-        why: "The window class decides whether the panel centres or sits on the bottom edge. It is the same element throughout, so a half-filled form survives the change. A sheet does not drag, because a swipe means JavaScript on every pointer move. An AlertDialog stays centred at every width.",
+        why: "Window width decides centred or bottom sheet, keeping the same element. Dragging would need JavaScript on every pointer move.",
       },
       {
         name: "A height prop",
-        why: "The extent is yours. State a height or a max-height on DialogContent and a ScrollArea inside it becomes the thing that scrolls, with the title and the action row staying put. State nothing and the panel grows, and the dialog's own viewport scrolls it.",
+        why: "Set a height or max-height on DialogContent, and a ScrollArea inside it scrolls. Otherwise the panel grows.",
       },
       {
         name: "A close button in the corner",
-        why: "Escape and an outside press both dismiss. DialogClose puts a real Button wherever the composition wants one, which is also what a screen reader user on a touch device needs in order to leave a trapped panel.",
+        why: "Escape and an outside press dismiss. Place a DialogClose Button wherever the layout needs one.",
       },
       {
         name: "`modal` and `disablePointerDismissal`",
-        why: "An open dialog is the interaction: focus trapped, page scroll locked, the scrim saying so. A panel that leaves the page live is a Popover or a Sheet. A dialog that must not close on an outside press is an AlertDialog.",
+        why: "A dialog always traps focus and locks scroll. Use a Popover for a live page, an AlertDialog to block outside presses.",
       },
       {
         name: "A shadow",
-        why: "A menu casts because a floating pane has to show the coverage nobody else announced. A dialog's coverage is announced by the whole viewport going dark, so a shadow would say it twice. In an elevated app the panel lifts exactly as much as a Card does.",
+        why: "The dark scrim already shows the dialog is on top. In an elevated app it lifts like a Card.",
       },
       {
         name: "A size on the title",
-        why: "The title and description take their type steps from the dialog's own index, and you cannot set them yourself. They are parts the system owns, forced into existence by the accessibility wiring. Everything you wrote inside the panel is untouched, which is what `no surface sizes the type inside it` protects.",
+        why: "The dialog's size sets the title and description. Everything else you write inside keeps its own size.",
       },
     ],
     parts: [
@@ -725,13 +888,22 @@ const DECLARED: Entry[] = [
     family: "Control",
     spec: "§28",
         abstract: "Field is the unit that makes one input make sense.",
-    overview: ["A control on its own is just a box: it cannot carry its own name, say what it is for, or say what went wrong. Field supplies a label, a description and an error message, and wires all three to the control so a screen reader reads them as one thing. What it draws is a column and a gap. The behaviour is Base UI's Field."],
+    overview: ["A Field gives one form control a label, a description and an error message. It connects all three to the control, so a screen reader reads them together. Use a Field around every `TextField`, `TextArea`, `Select`, `Combobox`, `NumberField`, `Checkbox` group and `Radio` group in a form. The behaviour is Base UI's Field.","The parts always come in the same order: label, control, description, error. The label sits on the control it names, and everything about that control is below it. The description says what to enter, and it stays when an error shows. The error says what went wrong.","Every Kookie control connects to the Field around it without extra props. `FieldLabel` is a real `<label>`, so clicking it puts focus in the control. `FieldDescription` is added to the control's `aria-describedby`. `FieldError` shows only while the field is invalid, and a screen reader announces it when it appears.","Show an error in one of three ways. Use `match` with a validity state such as `valueMissing` for browser checks like `required`. Pass a `validate` function to the Field for your own rules. Set `invalid` on the Field when your server rejects a value, and use `match={true}` on the error.","`size` on the Field sets the label, the description, the error and the control together. A control with its own `size` keeps it. `disabled` on the Field turns off the control inside it.","For a group of checkboxes or radios, use one `FieldItem` for each option. The item gives that option its own label and its own description, and clicking the label changes the option. Put 12 pixels or more between options, which is `gap=\"5\"` on a `Stack`."],
     declaration: `<Field>
   <FieldLabel>Email</FieldLabel>
   <TextField type="email" />
   <FieldDescription>We use this for receipts.</FieldDescription>
   <FieldError match={true}>That address is short.</FieldError>
 </Field>`,
+    variants: [
+      {"name":"required","title":"Required field","why":"Shows `required` on the control and a FieldError with `match=\"valueMissing\"`. The message shows when a person submits the form without a value."},
+      {"name":"validation","title":"Custom validation","why":"Shows a `validate` function on the Field that runs when the control loses focus. The function returns a message or `null`, and an empty FieldError shows the message."},
+      {"name":"server-error","title":"Error from your server","why":"Shows `invalid` on the Field with an error message. The description stays next to the error, because it still says what to enter."},
+      {"name":"disabled","title":"Disabled","why":"Shows `disabled` on a Field beside an enabled one. The setting reaches the control inside, so you set it once."},
+      {"name":"checkboxes","title":"A group of checkboxes","why":"Shows a FieldItem for each checkbox, with its own label and description. The Field label names the group, and one option is disabled."},
+      {"name":"with-select","title":"With a Select","why":"Shows a Select inside a Field. The label names the Select trigger and the description is read with it, with no extra props."},
+      {"name":"with-text-area","title":"With a text area","why":"Shows a TextArea inside a Field. A text area works the same way as a text field, and it fills the width of the Field."},
+    ],
     topics: [
       { title: "Naming one input", symbols: ["Field", "FieldLabel"] },
       { title: "Saying more about it", symbols: ["FieldDescription", "FieldError"] },
@@ -740,23 +912,23 @@ const DECLARED: Entry[] = [
     refusals: [
       {
         name: "`FieldControl`",
-        why: "Base UI's is a plain input for callers who have no other input. Every Kookie control already is a Base UI input and reads Field's context by itself, so a control dropped inside a Field wires itself. Re-exporting one would be a second spelling of the control already standing there.",
+        why: "Every Kookie control already reads Field's context, so a control inside a Field wires itself.",
       },
       {
         name: "`orientation`",
-        why: "A horizontal field is not a direction flip. The label has to align to the control's first line, and the error has to sit under the control rather than under the label. That is a designed grid with its own rules, and it ships the day something needs it.",
+        why: "A horizontal field needs its own designed grid, not a direction flip. It ships when something needs it.",
       },
       {
         name: "A choice about where the error goes",
-        why: "The order is fixed: label, control, description, error. The label sits on the control it names, and everything else about that control sits underneath it, so a form of ten fields groups correctly with no border and no rule. Position inside one field is proximity, not sequence: a reader meets a field all at once. GOV.UK puts the description above the control instead, because at high zoom the focused control fills the view and anything under it may be off screen. That cost is real and it is written down. A prop here would make the order a per-call-site opinion, which is what a system exists to prevent.",
+        why: "The order is always label, control, description, error, so forms group without borders or rules.",
       },
       {
         name: "An error that replaces the description",
-        why: "Both show. The description says what to enter and the error says what went wrong. Removing the instruction at the exact moment somebody failed to follow it is the wrong trade.",
+        why: "Both show. The description says what to enter; the error says what went wrong.",
       },
       {
         name: "`Form`",
-        why: "Deferred, not refused. Base UI's Form gives a server error map to fields by name and moves focus to the first invalid one. It is additive and changes nothing here, so it ships when something real has server errors to distribute.",
+        why: "Deferred. It ships when a real form needs server errors mapped to fields.",
       },
     ],
     parts: [
@@ -771,34 +943,60 @@ const DECLARED: Entry[] = [
     name: "Flex",
     family: "Layout",
     spec: "§3",
+    declaration: `<Flex gap="3" align="center" justify="space-between">
+  \u2026
+</Flex>`,
+    variants: [
+      {"name":"space-between","title":"Title and actions","why":"Shows `justify=\"space-between\"` with a title on one side and a group of buttons on the other. A nested Flex groups the buttons with their own gap."},
+      {"name":"wrap","title":"Wrapping to new lines","why":"Shows `wrap=\"wrap\"` with a set of chips. Items move to a new line when the row runs out of room, and `gap` spaces both the items and the lines."},
+      {"name":"grow","title":"A child that fills the space","why":"Shows a search field in a Box with `flexGrow=\"1\"` beside two buttons. The field takes the free space, and the buttons keep their own width."},
+      {"name":"responsive","title":"Column to row","why":"Shows `direction`, `align` and `gap` with a value for each breakpoint. The content stacks in a narrow container and becomes a row from the `md` breakpoint."},
+      {"name":"baseline","title":"Baseline alignment","why":"Shows `align=\"baseline\"` with text at three sizes. The first lines of text line up, which `center` does not do when the sizes differ."},
+      {"name":"inline","title":"Inside a line of text","why":"Shows `display=\"inline-flex\"` inside a sentence. An icon and its words stay together and flow with the text around them."},
+    ],
         abstract: "Flex is Box with `display: flex` and the flex props kept.",
-    overview: ["It ships no CSS of its own. The shorter prop list is the point: `columns` on a Flex does not compile."],
-    refusals: [{ name: "`margin` on children", why: "The distance between siblings is the container's gap, so it is set once and cannot drift." }],
+    overview: ["Flex lays out its children in a row or a column. It is a `Box` with `display: flex`, and it has the props of a flex container: `direction`, `align`, `justify`, `wrap` and `gap`. Use it for a toolbar, a row of buttons, or a title with actions. For a plain column with even spacing, use `Stack`. For rows and columns together, use `Grid`.","Set the space between children with `gap` on the Flex. A child never sets its own margin. The `gap` values are steps on the spacing scale, and the theme's density changes what each step is worth.","Flex has no grid props, so `columns` on a Flex does not compile. It adds no styles of its own beyond what `Box` does. Use `display=\"inline-flex\"` to place a Flex inside a line of text.","Every prop takes one value, or a value for each breakpoint, such as `direction={{ initial: \"column\", md: \"row\" }}`. The breakpoints measure the nearest `Box` with `container`, or the whole app when there is none.","To let one child take the free space, wrap it in a `Box` with `flexGrow=\"1\"`. Flex draws nothing and has no role, so a screen reader reads its children in the order you write them. Keep that order the same as the visual order."],
+    refusals: [{ name: "`margin` on children", why: "Set the space once with the container's `gap`, so sibling spacing cannot drift." }],
   },
   {
     slug: "grid",
     name: "Grid",
     family: "Layout",
     spec: "§3",
-        abstract: "Grid is Box with `display: grid` and the grid props kept.",
-    overview: [
-      "It works the same way Flex does, and adds no CSS of its own.",
+    declaration: `<Grid columns="3" gap="4">
+  \u2026
+</Grid>`,
+    variants: [
+      {"name":"responsive","title":"Responsive columns","why":"Give `columns` a value for each tier. The grid shows one column on a narrow container, two from `sm` and three from `md`."},
+      {"name":"areas","title":"Named areas","why":"Name the regions once with `areas`, then place each child with `gridArea`. Use this for a page frame with a header, a navigation column and a main area."},
+      {"name":"spanning","title":"Spanning columns","why":"Set `gridArea` to `auto / span 2` to make a child two columns wide. A bare `span 2` sets the row span, not the column span."},
+      {"name":"gap-axes","title":"Row and column gaps","why":"`gapX` and `gapY` set the column gap and the row gap separately. Here the wider column gap keeps each term and value together as one line."},
+      {"name":"in-a-form","title":"In a form","why":"Put short fields that belong together in two columns, and let a long field span both. On a narrow container the form drops to one column."},
+      {"name":"container","title":"In a container","why":"Responsive values follow the nearest Box marked `container`, not the window. This narrow panel keeps one column even when the window is wide."},
     ],
-    refusals: [{ name: "Auto-placement helpers", why: "A prop earns its place only if it adds token resolution, tiers or a constraint. Everything else is style." }],
+        abstract: "Grid is Box with `display: grid` and the grid props kept.",
+    overview: ["Grid is Box with `display: grid`. It keeps the grid props `columns`, `rows`, `areas` and `flow`, and the gap props `gap`, `gapX` and `gapY`. It adds no CSS of its own, so it works the same way Flex does.","Use a Grid when children must line up in two directions, such as a set of cards or a form with two columns. Use Flex for one row, and Stack for one column with a gap between items.","`columns`, `rows` and `areas` take CSS template values as strings, such as `repeat(3, minmax(0, 1fr))`. The gap props take a step on the space scale, and the theme density sets what each step is worth. There are no `direction` or `wrap` props, because a grid ignores them, and TypeScript reports an error if you set them.","Every prop accepts one value for each tier: `{ initial, sm, md, lg }`. A tier follows the width of the nearest Box with `container`, or the root Theme when there is no such Box. This lets a grid change its columns inside a narrow panel and a wide page in the same way.","A Grid has no keyboard or screen-reader behaviour of its own. The source order is the reading order and the tab order, so keep it the same as the visual order when you place children with `areas` or `gridArea`."],
+    refusals: [{ name: "Auto-placement helpers", why: "A prop must add tokens, tiers or a constraint. Other placement is plain style." }],
   },
   {
     slug: "heading",
     name: "Heading",
     family: "Type",
     spec: "§15",
-        abstract: "Heading uses the heading font on the same nine-step scale Text uses.",
-    overview: [
-      "How large it looks and where it sits in the document outline are separate choices: `size` picks the step, and `render` picks the element.",
+    declaration: `<Heading size="7" render={<h2 />}>A section</Heading>`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"The steps a composed screen uses: 8 for a page, 7 for a section and 6 for a card title. A smaller step suits a heading inside a card."},
+      {"name":"levels","title":"Outline levels","why":"`render` sets the level and `size` sets the look, so an `h1` can sit at step 7 and an `h2` at step 4. Change the size when you need a smaller look, and keep the levels in order."},
+      {"name":"emphasis","title":"Emphasis","why":"`emphasis` picks the ink colour. Use `medium` for a label above a group, so it does not compete with the headings that name content."},
+      {"name":"tones","title":"Tones","why":"`tone` gives the words a meaning, such as a warning or a destructive action. The theme picks the colour in light mode and in dark mode."},
+      {"name":"in-a-card","title":"In a card","why":"A card title at step 6 with a short description under it and the action at the end of the row. This is the most common place a Heading appears."},
     ],
+        abstract: "Heading uses the heading font on the same nine-step scale Text uses.",
+    overview: ["Heading shows a title in the heading font. It uses the same nine-step type scale as Text, so `size=\"4\"` on a Heading is the same size as `size=\"4\"` on Text.","How large a heading looks and where it sits in the document outline are separate choices. `size` picks the step, and `render` picks the element, such as `render={<h1 />}`. Without `render`, a Heading renders an `<h2>`, and its size is 6, the step for a card title.","On a composed screen, use step 8 for a page title, 7 for a section and 6 for a card title. Use Text for body copy and labels. Use Page when a page title must move into the toolbar as the page scrolls.","The weight is semibold by default, which is the heaviest weight in the system. There is no bold. `emphasis` picks one of the three ink colours, and `tone` gives the words a meaning, such as `destructive`. Leave `tone` unset for most headings, so the words use the text colour of the surface below them.","A screen reader announces the element you render, with its level. Many people move through a page by its headings, so keep the levels in order. If a heading must look smaller, change `size` and keep the level."],
     refusals: [
       {
         name: "A level prop",
-        why: "An h1 is a fact about the document, not about how the text looks. `render={<h1/>}` says it where a reader can see that the two decisions are separate.",
+        why: "Heading level is a document fact, not a look. Use `render={<h1/>}` to set it separately.",
       },
     ],
   },
@@ -807,12 +1005,19 @@ const DECLARED: Entry[] = [
     name: "Kbd",
     family: "Type",
     spec: "§11, §15",
+    declaration: `<Kbd>\u2318K</Kbd>`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"Without `size`, a key matches the text it sits in. The same key appears here in three sizes of text, with no `size` set on it."},
+      {"name":"combinations","title":"Key combinations","why":"Give each key its own Kbd when a shortcut needs keys pressed together. Put joining words, such as \"then\", in the text."},
+      {"name":"in-a-menu","title":"In a menu","why":"Put the shortcut in a menu row's `trailing` slot. The key takes the row's size and sits at the end of the row."},
+      {"name":"shortcut-list","title":"A list of shortcuts","why":"A reference list puts the action first and the key at the end of each row. Use it in a help panel or a settings page."},
+    ],
         abstract: "Kbd shows a key or a shortcut, such as ⌘K.",
-    overview: ["It takes the same fill and tone behaviour as Code, but sets the letters in the body font, because a key names a key rather than quoting code. Its box is exactly one line tall, so it never pushes apart the line it sits in."],
+    overview: ["Kbd shows a key or a shortcut, such as ⌘K. It renders a `<kbd>` element, so a screen reader can identify the text as keyboard input.","It uses the same fill and tone behaviour as Code, but it sets the letters in the body font, because a key names a key and does not quote code. Its box is exactly one line tall, so it never pushes apart the line it sits in.","Without `size`, a key takes the size of the text around it. Set `size` only when the key stands alone. `tone` moves the letters and the fill to a colour family, and the edge stays grey. A key cap always shows slight relief, in a flat theme too.","Use Code for a piece of code, such as a command or a file name. Use Chip for a short label or a status. In a Menu, put a Kbd in the row's `trailing` slot to show the shortcut for that row."],
     refusals: [
       {
         name: "A shadow that follows Theme depth",
-        why: "A key cap always shows relief, in a flat theme as well: a catch of light on the top face and a whisper of drop. A key cap is a picture of a raised physical object, and that reading is the component. What stays refused is the shadow changing with the app's depth setting.",
+        why: "A key cap always shows slight relief, even in a flat theme. It does not follow the depth setting.",
       },
     ],
   },
@@ -821,24 +1026,31 @@ const DECLARED: Entry[] = [
     name: "Link",
     family: "Type",
     spec: "§11, §15",
+    declaration: `<Link href="/plans">the plans on this workspace</Link>`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"Inside a sentence, leave `size` unset and the link matches the text around it. Set `size` only when the link stands on its own line."},
+      {"name":"tones","title":"Tones","why":"A link uses `accent` by default. Set `tone=\"destructive\"` for a link to a destructive action, or `neutral` for a link that must not draw the eye."},
+      {"name":"external","title":"External links","why":"For a page on another site, pass an anchor with `target` and `rel` through `render`. Put an icon after the words to show that the link leaves the app."},
+      {"name":"standalone","title":"Standalone links","why":"A column of links that are not inside a sentence, such as a footer or a help panel. Give each link a size, and put a short label above the group."},
+    ],
         abstract: "Link is the one type component that responds to a pointer.",
-    overview: ["How it reads comes from the shared type layer. What it adds is the underline and the hover and focus states. It is not a control, so it stays selectable, it wraps across lines, and it sits on the same line as the paragraph around it."],
+    overview: ["Link is the one type component that responds to a pointer. It renders an `<a>` with an underline, a hover state and a focus ring. The size, the weight and the font come from the shared type layer, so a link reads the same way Text does.","Use a Link to go to another page or another place. Use a Button to do an action, such as saving or deleting. A Link is not a control: its text stays selectable, it wraps across lines, and it sits on the same line as the paragraph around it.","Without `size` and `weight`, a link matches the sentence it sits in. It uses the `accent` tone by default, so that people can find it in a paragraph. Set `tone` when the destination has a meaning, such as `destructive`. The underline is always there, because colour alone does not identify a link (WCAG 1.4.1). On hover, the colour of the underline changes.","Use `render` to pass your router's link component, or an anchor with `target` and `rel`. Link adds the type, the underline and the states, and the element keeps its own attributes.","Tab moves focus to a link, and Enter follows it. A screen reader announces it as a link and uses its text as its name. Write link text that makes sense on its own, such as \"the plans on this workspace\" and not \"click here\"."],
     refusals: [
       {
         name: "`emphasis`",
-        why: "On type, emphasis picks an ink colour, and the two lower levels sit at or below the reading floor. A link is the one run of text whose job is to be found, so a level that turns its colour down works against the only thing it is for. A link that matters less is a smaller link.",
+        why: "A link's job is to be found, and lower emphasis fades it. Use a smaller link instead.",
       },
       {
         name: "A :visited style",
-        why: "Browsers limit what :visited may paint and make getComputedStyle report the unvisited value, to stop a page reading your history. A rule no test can read is a rule this package does not ship.",
+        why: "Browsers hide :visited styles from tests to protect history, so the package ships no rule it cannot check.",
       },
       {
         name: "A hover-only underline",
-        why: "Colour alone is not enough (WCAG 1.4.1), and a link inside a paragraph is the case that rule is written about. A hover reveal serves no touch screen at all. The underline is always there. What moves under the pointer is its colour.",
+        why: "Colour alone fails WCAG 1.4.1 and touch has no hover. The underline stays; only its colour changes.",
       },
       {
         name: "A target of its own",
-        why: "WCAG 2.2 SC 2.5.8 exempts a target inside a sentence. A checkbox grows its hit area because it has no container. A link's container is the paragraph, and a paragraph may not grow.",
+        why: "WCAG exempts links inside a sentence, and a paragraph cannot grow a larger hit area.",
       },
     ],
   },
@@ -848,10 +1060,7 @@ const DECLARED: Entry[] = [
     family: "Type",
     spec: "§11, §15, §52",
     abstract: "List sets a bulleted or a numbered list of prose.",
-    overview: [
-      "How it reads comes from the shared type layer, so it takes the same steps, weights and ink levels as Text. What it adds is the three things that make copy a list: the room the marker sits in, the distance between items, and the marker's colour. A bullet stays faint, because it is furniture. A number takes the colour the words took, because it is read and cited.",
-      "`ordered` picks the element, and that is the one structural choice a list has: a screen reader announces a numbered list as one, and `start` and `reversed` change what the numbers say. A list placed inside an item indents one level and takes the step it sits at, so a nested list needs no props at all.",
-    ],
+    overview: ["List shows a bulleted or a numbered list of prose. It uses the shared type layer, so it takes the same sizes, weights and ink colours as Text. It adds the space for the marker, the distance between items and the colour of the marker.","A bullet always uses the faint ink colour, so it stays in the background. A number uses the same colour as the words, because people read numbers and refer to them.","`ordered` picks the element: `<ul>` for a set, `<ol>` for steps or a ranking. A screen reader announces a list and the number of items in it. On an ordered list, `start` and `reversed` pass to the `<ol>` and change what the numbers say. A bulleted list does not accept them.","A List placed inside a ListItem indents one level and takes the size of the item, so a nested list needs no props. The indent follows the text size, and the theme density does not change it.","Use List for items of prose. Use Stack for a list without markers, Row for a list of items with icons, and Table for items that each have several values."],
     declaration: `<List>
   <ListItem>Invite your team</ListItem>
   <ListItem>
@@ -861,6 +1070,14 @@ const DECLARED: Entry[] = [
     </List>
   </ListItem>
 </List>`,
+    variants: [
+      {"name":"ordered","title":"Numbered lists","why":"Set `ordered` when the order is information, such as steps to follow. A screen reader then announces a numbered list."},
+      {"name":"resumed","title":"Continued numbering","why":"Use `start` to continue the numbers after a paragraph. Step 3 stays step 3 when a person refers to it."},
+      {"name":"sizes","title":"Sizes","why":"`size` picks a step on the same scale Text uses. The space for the marker and the space between items grow with the step."},
+      {"name":"emphasis","title":"Emphasis","why":"`emphasis=\"medium\"` shows a list of details under a main statement in a quieter colour. Numbers follow the colour of the words, and bullets stay faint."},
+      {"name":"tones","title":"Tones","why":"`tone` moves the words and the markers to a colour family. Use it when the whole list carries one meaning, such as what a delete removes."},
+      {"name":"in-a-card","title":"In a card","why":"A list of plan features between a card's title and its action. The card sets the padding, and a Stack sets the space between the parts."},
+    ],
     topics: [
       { title: "Setting the list", symbols: ["List"] },
       { title: "One item", symbols: ["ListItem"] },
@@ -868,19 +1085,19 @@ const DECLARED: Entry[] = [
     refusals: [
       {
         name: "A marker of your own",
-        why: "The marker belongs to the element: a disc says the items are a set, a number says they are a sequence, and nesting changes the glyph one level down. A chosen glyph is decoration that every place would pick differently. A list with no marker at all is a Stack, and a list of rows led by icons is a Row.",
+        why: "The element sets the marker: discs for sets, numbers for sequences. Use a Stack for no marker, Row for icons.",
       },
       {
         name: "`render`",
-        why: "`ordered` is the element choice. A list that is neither a `<ul>` nor an `<ol>` has nothing to announce, and announcing it is most of what a list is for.",
+        why: "`ordered` picks the element. A list that is neither `<ul>` nor `<ol>` announces nothing.",
       },
       {
         name: "A gap or a density prop",
-        why: "The distance between items is the system's. Two lists on one page spaced two different ways is the drift that a system exists to stop, and the item rhythm is one of the places it shows first.",
+        why: "The system sets item spacing, so two lists on one page never space differently.",
       },
       {
         name: "A description list",
-        why: "`<dl>` is a different structure — terms and the details under them — and it arrives as its own component rather than as a prop that turns this one into it.",
+        why: "A `<dl>` is a different structure of terms and details. It will ship as its own component.",
       },
     ],
     parts: [
@@ -893,7 +1110,7 @@ const DECLARED: Entry[] = [
     family: "Surface",
     spec: "§20, §21, §22",
         abstract: "Menu shows a floating list of actions.",
-    overview: ["Its corner is worked out from the rows inside it, so the outer curve and the row curves nest instead of fighting. In a raised theme it casts the floating shadow; in a flat theme it draws a hairline instead, because a flat theme has no light to cast with. The part names follow shadcn/ui's dropdown-menu (MIT), with credit, and the behaviour is Base UI's Menu."],
+    overview: ["Menu shows a floating list of actions when you press its trigger. Each row is one action, such as Rename or Delete, and choosing a row closes the menu.","Use a Menu for actions. Use Select to choose one value in a form, ContextMenu for actions that open at the pointer on a right-click, and Popover for a floating panel that holds other content, such as a short form.","A row can show an icon in `leading` and a shortcut `<Kbd>` in `trailing`. Checkbox rows and radio rows show state, and a submenu holds a related set of choices. Put a `<Separator>` between groups. A row without an icon lines up with rows that have one, because the leading column is always kept.","`size` on the Menu sets the rows, the icons and the text inside the panel. The panel's corner is calculated from the rows inside it, so the outer curve and the row curves nest. In a raised theme the panel casts a floating shadow. In a flat theme it casts no shadow and shows a hairline edge. When the theme material is glass, the panel uses glass.","Enter or Space on the trigger opens the menu. The arrow keys move between rows, typing moves to the row that starts with those letters, and Escape closes the menu and returns focus to the trigger. The arrow key toward the reading direction opens a submenu. A screen reader announces the menu, each row and the checked state of checkbox and radio rows.","The part names follow shadcn/ui's dropdown-menu (MIT), with credit, and the behaviour is Base UI's Menu."],
     declaration: `<Menu>
   <MenuTrigger render={<Button>Actions</Button>} />
   <MenuContent>
@@ -914,8 +1131,15 @@ const DECLARED: Entry[] = [
   </MenuContent>
 </Menu>`,
     variants: [
-      { name: "disabled", title: "A row you cannot press", why: "A disabled row stays in the list and stays announced — a thing you cannot do now is not the same as a thing that is not there." },
-      { name: "rtl", title: "Right to left", why: "The panel anchors from the other edge and a submenu opens to the left. A menu reads direction off its trigger, the one in-flow node it owns." },
+      {"name":"disabled","title":"Disabled","why":"A disabled row stays in the list and stays announced — a thing you cannot do now is not the same as a thing that is not there."},
+      {"name":"rtl","title":"Right to left","why":"The panel anchors from the other edge and a submenu opens to the left. A menu reads direction off its trigger, the one element it places in the page."},
+      {"name":"sizes","title":"Sizes","why":"Set `size` on the Menu, and give the trigger button the same size. The rows, the icons and the text in the panel all follow it."},
+      {"name":"with-icons","title":"With icons","why":"Put an icon in `leading` and a `<Kbd>` in `trailing`. A row without an icon still lines up with the rows that have one."},
+      {"name":"checkbox-items","title":"Checkbox rows","why":"A checkbox row turns one setting on or off, and the menu stays a list of peers. Pass `checked` and `onCheckedChange` to keep the value in your own state."},
+      {"name":"radio-items","title":"Radio rows","why":"Radio rows choose one value from a set, such as a sort order. Show the current value on the trigger, so a person can see it without opening the menu."},
+      {"name":"submenu","title":"Submenus","why":"Use a submenu for a related set of choices that would make the main list long. It opens on hover, on a press, or with the arrow key."},
+      {"name":"links","title":"Rows that are links","why":"When a row goes to a page, render it as a link with `render`. The row stays one target, and you can pass your router's link component in the same way."},
+      {"name":"placement","title":"Placement","why":"`side` sets the edge of the trigger the panel opens from, and `align` sets where it lines up on that edge. If there is no room, the panel moves to stay on screen."},
     ],
     topics: [
       { title: "Opening the menu", symbols: ["Menu", "MenuTrigger"] },
@@ -928,27 +1152,27 @@ const DECLARED: Entry[] = [
     refusals: [
       {
         name: "`emphasis` on rows",
-        why: "A menu is a list of peers. Emphasis ranks actions, and ranking rows inside a menu says nothing. Quiet is the family's fixed identity.",
+        why: "A menu is a list of peers, so ranking rows means nothing. Rows are always quiet.",
       },
       {
         name: "A Shortcut part",
-        why: "A keyboard hint is the row's trailing slot holding a `<Kbd>`. Both already exist, and a part that renames existing vocabulary earns no row.",
+        why: "Put a `<Kbd>` in the row's trailing slot. A Shortcut part would only rename that.",
       },
       {
         name: "`MenuSeparator`",
-        why: "Base UI's menu separator is a re-export of the standalone one, and ours would be too. Use `<Separator>`. The menu's stylesheet spaces it inside the panel.",
+        why: "Use `<Separator>`. Inside a menu panel, the menu's stylesheet spaces it.",
       },
       {
         name: "An inset prop",
-        why: "Rows without icons lining up with rows that have them is geometry's job, not something a caller has to remember. A checkable row keeps its indicator mounted, so the gutter is always reserved.",
+        why: "Rows without icons align with rows that have them automatically. The indicator gutter is always reserved.",
       },
       {
         name: "`modal` and `openOnHover`",
-        why: "An open menu is modal. A transparent full-screen press catcher is what makes clicking outside close it, and locking page scroll keeps the panel attached to the trigger it is positioned against. There is no visible scrim. A menu opens on press, never on hover; a submenu row opens on hover, which is the platform's own behaviour and the reason the prop is not exposed.",
+        why: "A menu is modal and opens on press. A submenu row opens on hover already, so the prop is not exposed.",
       },
       {
         name: "Arrow, Backdrop, Viewport, LinkItem and collision knobs",
-        why: "Menus do not point at their trigger. Closing on an outside press needs no scrim. A long menu scrolls inside a ScrollArea the system supplies, so the panel keeps its glass, corner and shadow. Navigation rows arrive with the sidebar components. Collision handling is a designed default.",
+        why: "Menus need no arrow or scrim. Long menus scroll in a built-in ScrollArea. Collision handling is a fixed default.",
       },
     ],
     parts: [
@@ -971,7 +1195,7 @@ const DECLARED: Entry[] = [
     family: "Surface",
     spec: "§20, §21, §23",
         abstract: "Select is a form control that holds a choice.",
-    overview: ["Its panel, rows and corner all come from Menu with nothing redesigned. What is new is the trigger: a button shaped like a field, so a Select beside a TextField reads as the same family, with the same fill, border and height, while staying a real button that announces itself as a combobox. Base UI renders a hidden input, so a Select submits with a form like the native element it replaces. The part names follow shadcn/ui's select (MIT), with credit."],
+    overview: ["Select is a form control that lets someone pick one option from a list. The trigger shows the current choice, and a press opens a panel of options. Use it when there are more options than fit on the screen at once.","Use `SegmentedControl` or a `RadioGroup` when there are only a few options, because people can then see them all without opening anything. Use `Combobox` when people need to type to filter a long list. Use `Menu` when the options are actions rather than a value.","The trigger is a button shaped like a field. It has the same fill, border and height as a `TextField`, so a Select beside a TextField reads as the same kind of input. The panel and its rows come from `Menu`, and the panel is never narrower than the trigger.","Pass `items`, a map from each value to its label. The closed trigger uses this map to show the chosen option's label. Without it, the trigger shows the raw value.","Select renders a hidden input, so `name` and `required` work with a form the same way a native select does. Inside a `Field`, the `FieldLabel` names the trigger. A screen reader announces the trigger as a combobox and the panel as a listbox. The arrow keys move through the options, and typing a letter jumps to a matching option.","The part names follow shadcn/ui's select (MIT), with credit."],
     declaration: `<Select defaultValue="banana" items={labels}>
   <SelectTrigger placeholder="Pick one" />
   <SelectContent>
@@ -982,8 +1206,14 @@ const DECLARED: Entry[] = [
   </SelectContent>
 </Select>`,
     variants: [
-      { name: "disabled", title: "An option you cannot pick", why: "It stays in the list, so the set a reader sees is the whole set. `disabled` on the Select itself closes the control instead." },
-      { name: "rtl", title: "Right to left", why: "The caret moves to the other end and the panel anchors from the other edge. Nothing in the markup says which way." },
+      {"name":"disabled","title":"Disabled","why":"It stays in the list, so the set a reader sees is the whole set. `disabled` on the Select itself closes the control instead."},
+      {"name":"rtl","title":"Right to left","why":"The caret moves to the other end and the panel anchors from the other edge. Nothing in the markup says which way."},
+      {"name":"in-a-form","title":"In a form","why":"Inside a Field, the FieldLabel names the trigger. The hidden input makes `name` and `required` work with the form, the same way a native select does."},
+      {"name":"controlled","title":"Controlled","why":"Hold the value in your own state with `value` and `onValueChange`. The callback can receive `null` when the chosen option leaves the list, so handle that case."},
+      {"name":"placeholder","title":"No choice yet","why":"With no `defaultValue`, the trigger shows the `placeholder` in a muted colour until someone picks an option. Use it when no option is a safe default."},
+      {"name":"disabled-control","title":"The whole control disabled","why":"Set `disabled` on the Select to turn off the whole control. The panel cannot open and the value is not sent, so explain why with a FieldDescription."},
+      {"name":"long-list","title":"A long list in groups","why":"A long list scrolls inside the panel, and SelectGroup with SelectLabel divides it into sections. On open, the panel places the chosen option over the trigger."},
+      {"name":"beside-a-text-field","title":"Beside a text field","why":"A SelectTrigger has the same fill, border and height as a TextField. Put the two in one row for an amount and its unit."},
     ],
     topics: [
       { title: "Holding the choice", symbols: ["Select", "SelectTrigger"] },
@@ -994,31 +1224,31 @@ const DECLARED: Entry[] = [
     refusals: [
       {
         name: "`readOnly`",
-        why: "HTML says readonly does not apply to a select, so there is no native appearance to copy and no expectation to meet. A value that must submit but cannot change is a disabled trigger beside a hidden input, or the value rendered as Text.",
+        why: "HTML does not apply readonly to a select. Use a disabled trigger with a hidden input, or show Text.",
       },
       {
         name: "A Separator inside the panel",
-        why: "The panel is the listbox, and a listbox may contain only options and groups. A separator in it is markup an accessibility scan reports as a violation, from library code you cannot fix. Use a group instead: a group divides options in the accessibility tree as well as on screen.",
+        why: "A listbox may only contain options and groups. Use a group to divide options.",
       },
       {
         name: "`emphasis` and `tone` on the trigger",
-        why: "A form control does not rank. Loudness orders actions, and a form where one field is louder than the next is pointing at itself.",
+        why: "Form fields do not rank. Loudness is for ordering actions.",
       },
       {
         name: "SelectValue as a part",
-        why: "A part whose only job is to stand where the value goes earns a prop, not an element. The trigger renders the value itself and takes a placeholder.",
+        why: "The trigger renders the value itself and takes a `placeholder`, so no separate part is needed.",
       },
       {
         name: "`render` and `children` on the trigger",
-        why: "The value is the trigger's content. Re-rooting the trigger would reopen the accessibility question Base UI already answers with a real button that announces role=combobox.",
+        why: "The value is the trigger's content, and the trigger must stay a real button announced as a combobox.",
       },
       {
         name: "The scroll arrows",
-        why: "The panel places the chosen row on top of the value it replaces, in the way macOS does. Base UI pairs that placement with arrows at the top and bottom, and those are refused: they are a mouse-only affordance, the panel already scrolls by wheel, trackpad and keyboard, and an arrow is a control this system has not designed.",
+        why: "The panel already scrolls by wheel, trackpad and keyboard. Arrows would be a mouse-only extra control.",
       },
       {
         name: "`multiple`",
-        why: "A multi-select is a different control wearing the same name: a different way to show the value, a different indicator, and different form behaviour.",
+        why: "A multi-select shows its value, indicator and form data differently. It is a different control.",
       },
     ],
     parts: [
@@ -1043,19 +1273,14 @@ const DECLARED: Entry[] = [
     <CommandEmpty>\u2026</CommandEmpty>
   </CommandContent>
 </Command>`,
-    overview: [
-      "Command is a Dialog. The scrim, the focus trap, the scroll lock, the re-theming inside the portal and the entry motion all arrive with it.",
-      "It is drawn as two blocks, not one. The search bar floats on its own and the results sit in a panel under it, so the bar stays exactly where it is while the list grows and shrinks under your typing. It sits near the top of the window at every size, including a phone, where a panel pinned to the bottom would push the bar up and down on every keystroke.",
-      "The search bar is a panel too, not a text field. It is made of the same stuff as the results under it and takes the same padding and corner, so one size sets both. Its text is set larger than the rows it filters, the way a heading is set above body text.",
-      "Its parts do not all stand at the size you set, and that is the design. A palette is the one object on the screen, so the line you type into is set above the rows it filters and the rows themselves stand one step above the controls in the app behind them. Both steps are worked out from the number you pass, so they can never swap round and there is no size at which the palette reads like a form.",
-      "What it adds is the keyboard model. One row is highlighted from the first frame, the highlight survives each keystroke, and Enter runs the row you are looking at.",
-      "Pass every command to `items`. `CommandList` and `CommandCollection` take a function and call it once for each item that survives the filter, so the array you write is the list of everything and the panel decides what exists right now.",
-      "Hold `items` stable. It crosses to the matcher by identity, so an inline literal re-runs the whole filter pass on every unrelated render. Put it at module scope or in a `useMemo`.",
-      "Open it yourself. Which chord opens a palette is your app\u2019s decision, so `Command` takes `open` and `onOpenChange` and renders no trigger at all when you leave `CommandTrigger` out.",
-      "It is drawn as one panel in both states. The results and the \u201cnothing matches\u201d message are the same box \u2014 the message renders inside the results panel rather than beside it \u2014 so the shape never changes under you, and whichever one arrives fades in out of a blur.",
-      "The panel opens out of the search bar. It falls from the bar\u2019s bottom edge and unfurls under it, on the same clocks a menu uses, because the bar is what it comes out of.",
-      "Running a row closes it. Your row still does its own work \u2014 the palette only stops standing over it. `onOpenChange` reports `item-press` so you can tell a run from an Escape, and `cancel()` refuses it for a row that does not end the interaction.",
+    variants: [
+      {"name":"flat","title":"A list without groups","why":"Shows a short palette with a flat array and no groups. Start here when your app has only a few commands, then add groups when the list grows."},
+      {"name":"keyboard-shortcut","title":"Open with a keyboard shortcut","why":"Shows the palette opening from Command+K or Control+K with no CommandTrigger. Your app listens for the keys and sets `open`, so you choose the shortcut."},
+      {"name":"places","title":"Rows that are links","why":"Shows rows rendered as links with `render`. A row that goes to a page is a real anchor, so it opens in a new tab and a screen reader announces it as a link."},
+      {"name":"app-filtering","title":"Your own search and ranking","why":"Shows `filter={null}` with `onQueryChange`. The app reads the typed text, narrows and sorts its own array, and passes the result to `items`. Use this for a ranked search, such as help articles."},
+      {"name":"stays-open","title":"Keep the palette open","why":"Shows `cancel()` on the `item-press` reason, so the palette stays open after a row runs. Use it when rows toggle settings and a person may change several in one visit."},
     ],
+    overview: ["Command is one search field over the actions and places in your app. A person types a few letters, the list narrows, and Enter runs the highlighted row. Use it for a command palette that opens from a keyboard shortcut. To pick one value for a form, use `Combobox`. For a short list of actions on one object, use `Menu`.","Command is a `Dialog`. The dimmed background, the focus trap, the scroll lock, the theme inside the portal and the opening motion all come with it. An open palette covers the page. For a panel that leaves the page usable, use a `Popover`.","The search bar and the results are two separate panels. The bar stays in the same place while the list under it grows and shrinks as you type. The palette sits near the top of the window at every width, including on a phone. The rows keep the order you wrote, so people can learn where a command is.","One `size` sets the whole palette: the panels, the search field, the rows and the group labels. The text you type is one step larger than the rows, and the rows are one step larger than the controls in the app behind them, so the palette never looks like a form.","Pass every command to `items`, and keep the array stable in module scope or a `useMemo`. `CommandList` and `CommandCollection` take a function and call it for each item that matches. To rank or limit results yourself, set `filter` to `null`, read the text with `onQueryChange`, and pass your own narrowed array.","You open the palette. Your app decides which keys open it, so `Command` takes `open` and `onOpenChange`, and it renders no button when you leave out `CommandTrigger`. Running a row closes the palette, and `onOpenChange` reports the reason `item-press`. Call `cancel()` on that reason to keep it open.","The search field keeps focus while the palette is open. One row is highlighted from the first frame, the arrow keys move the highlight, and Enter runs it. Tab does not move into the list. A row with `render={<a/>}` is a real link, so a screen reader announces it as one and a middle-click opens it in a new tab."],
     topics: [
       { title: "Opening the palette", symbols: ["Command", "CommandTrigger"] },
       { title: "Presenting the panel", symbols: ["CommandContent"] },
@@ -1080,23 +1305,23 @@ const DECLARED: Entry[] = [
     refusals: [
       {
         name: "A footer",
-        why: "Every palette worth copying ships one, so this is a decision. The only thing the system can honestly put there is a legend \u2014 \u201c\u21b5 Run \u00b7 \u2191\u2193 Navigate\u201d \u2014 which explains what a palette is, permanently, to someone who has just opened one. The chord already sits on the row it belongs to, in `trailing`. Anything richer is your product\u2019s vocabulary.",
+        why: "A footer could only hold a key legend. Shortcuts already sit on each row in `trailing`.",
       },
       {
         name: "`modal`",
-        why: "An open palette is the interaction. For a panel that leaves the page live behind it, use a Popover.",
+        why: "An open palette takes over the page. For a panel that leaves the page live, use a Popover.",
       },
       {
         name: "Fuzzy reordering as you type",
-        why: "Rows keep the order you wrote them in. A palette that re-sorts on every keystroke is one nobody can build muscle memory for.",
+        why: "Rows keep the order you wrote. Re-sorting on every keystroke stops people learning where things are.",
       },
       {
         name: "A Separator inside the panel",
-        why: "The list is a listbox, and a listbox may contain only options and groups. A separator in it is markup an accessibility scan reports as a violation, from library code you cannot fix — Select's own refusal, one component over. Use a group: it divides the list in the accessibility tree as well as on screen, and it disappears on its own when nothing in it matches.",
+        why: "A listbox may hold only options and groups, so a separator fails accessibility checks. Use a group.",
       },
       {
         name: "An edge-to-edge panel",
-        why: "The panel pads like every other dialog, so a highlighted row has two ends rather than running under a 40px corner.",
+        why: "The panel pads like every dialog, so a highlighted row ends cleanly inside the corner.",
       },
     ],
     parts: [
@@ -1125,7 +1350,7 @@ const DECLARED: Entry[] = [
       { part: "ComposerSend", blurb: "One button with four meanings, read off status: send, in flight, stop, retry" },
     ],
         abstract: "The box a person types a message into.",
-    overview: ["It is the input half of a conversation and not the conversation: a form holding a text area that grows, a row of controls under it, and one button that sends. It is a surface rather than a control because of what it holds — a text field holds shrunken controls in its slots, and a composer holds full-size buttons at their own size, which is a box containing controls. It works for an AI chat, a support inbox, a team thread or a comment field, because all four are the same shape."],
+    overview: ["A Composer is the box a person types a message into. It holds a text area that grows as you type, a row of controls under it, and one button that sends. Use it for an AI chat, a support inbox, a team thread or a comment field, because all four have the same shape. For one line of text in a form, use `TextField`. For a longer text field in a form, use `TextArea`.","The Composer is a real `<form>`. Enter sends and Shift+Enter adds a new line, like every chat app. Enter does not send while a person confirms Japanese, Chinese or Korean input, and it does not send again while a request is running. `onSubmit` fires when a person sends.","It is a surface, not a control, because it holds full-size buttons at their own size. So it has the padding, corner and shadow of a `Card`. One `size` sets the padding, the corner, the text and every control you put in the row. A control with its own `size` keeps it.","`ComposerSend` is one button with four meanings, set with `status`. `ready` sends, `submitted` shows a spinner, `streaming` becomes Stop and calls `onStop`, and `error` becomes Retry. The button is the loud action by default. Pass your own icons with `icons`, and your own accessible names with `labels` for a language other than English.","The Composer does not show the conversation, and it does not hold files. Add an attach button yourself. Files that people drop or paste reach `onFiles`, and your app keeps them. Use `notices` for a `Notice` or a `Confirmation` above the box, and `context` for quiet facts below it, such as the model or how much context is left.","Set `backdrop` when content scrolls behind the composer, so the theme's material can show. `ComposerInput` needs an `aria-label` or `aria-labelledby`, because a placeholder is not a name. The focus ring shows on the whole box when the text has focus, and not when a button inside it has focus."],
     declaration: `<Composer onSubmit={send}>
   <ComposerInput placeholder="Ask anything" />
   <ComposerRow>
@@ -1133,6 +1358,14 @@ const DECLARED: Entry[] = [
     <ComposerSend status={status} aria-label="Send" />
   </ComposerRow>
 </Composer>`,
+    variants: [
+      {"name":"with-notices","title":"Notices above the box","why":"Shows the `notices` slot with a dismissable warning. Notices sit outside the form in a column above the box, so pressing their buttons never sends the message."},
+      {"name":"confirmation","title":"A question before sending","why":"Shows a Confirmation in the `notices` slot, with `busy` while the work starts. Focus does not move to it, because the person may be in the middle of a sentence."},
+      {"name":"with-context","title":"Context below the box","why":"Shows the `context` slot with quiet facts about the conversation, such as context left and cost per reply. The words are yours, and the Composer places them below the box."},
+      {"name":"request-states","title":"Request states","why":"Shows `status` moving from `submitted` to `streaming` to `error` after a send. Press the button while it streams to stop the request, and press Reset to start again."},
+      {"name":"disabled","title":"Disabled","why":"Shows a disabled input and disabled controls. The text dims to the same colour a disabled TextArea uses, and the box itself stays the same."},
+      {"name":"with-select","title":"Controls in the row","why":"Shows a Select and an attach button in the row at size 3. The composer's size reaches every control in the row, so the text and the controls change size together."},
+    ],
     topics: [
       { title: "The box a message is typed into", symbols: ["Composer", "ComposerInput"] },
       { title: "The controls under it", symbols: ["ComposerRow", "ComposerSend"] },
@@ -1140,31 +1373,31 @@ const DECLARED: Entry[] = [
     refusals: [
       {
         name: "The conversation, and every part of it",
-        why: "A message, a bubble, a branch, a reasoning block and a tool call each encode a data model, and this system has none. The libraries that ship them are chat runtimes with a user interface attached. Compose a thread from ScrollArea, Card and Text, or bring a runtime.",
+        why: "Messages, tool calls and reasoning need a data model the system does not have. Compose from ScrollArea, Card and Text.",
       },
       {
         name: "The scroller",
-        why: "Staying pinned to the bottom, not jumping while a reply streams, and keeping your place when older messages load above are six thousand lines of behaviour in the one library that has done it properly. That is a package, not a component.",
+        why: "Keeping a chat scroll pinned while replies stream is a large package's job. Use MessageScroller or a runtime.",
       },
       {
         name: "An attach button",
-        why: "The button follows whoever owns the files, and the app owns them. It is also a Button with an icon, and the system ships no icon set, so ours would be a Button with a hole in it. Files that land on our own elements are different: drop and paste both reach onFiles.",
+        why: "Your app owns the files, so add a Button with your icon. Dropped and pasted files reach `onFiles`.",
       },
       {
         name: "Owning the files",
-        why: "No File objects, no preview URLs, no validation, no upload. An attachment tile takes its state as a prop you set and draws it. A composer that minted preview URLs would have to destroy them, and it would destroy the one it just handed you.",
+        why: "The composer never holds files, previews or uploads. Set each attachment tile's state as a prop.",
       },
       {
         name: "A row of slots",
-        why: "ComposerRow states the alignment, the split and the rhythm, and stops. Which controls sit left and which sit right is what those controls mean, and that is yours. The previous version shipped five parts for this and every one of them was a layout.",
+        why: "ComposerRow sets alignment and spacing only. Which controls go left or right is your choice.",
       },
       {
         name: "A compact or collapsed mode",
-        why: "Deferred rather than judged. Collapsing only means something when there is something to fold away, and this ships no attachment tray and no queue. When it lands it will follow what you have typed, never whether you clicked into it, because a bar that closes behind your back can strand itself shut.",
+        why: "Deferred. There is nothing to fold away yet. When it ships, it will follow content, not focus.",
       },
       {
         name: "`submitOnEnter`",
-        why: "Enter sends and Shift+Enter breaks the line, with no prop. That is what being a real form buys, and it is what every messaging surface a person has used already does. An Enter that closes a Japanese, Chinese or Korean composition never sends.",
+        why: "Enter sends and Shift+Enter adds a line, like every chat app. Confirming Japanese, Chinese or Korean input never sends.",
       },
     ],
   },
@@ -1174,43 +1407,39 @@ const DECLARED: Entry[] = [
     family: "Surface",
     spec: "§29",
         abstract: "Notice states a condition that is true right now, on the region it is about.",
-    overview: [
-      "The person did not cause it, so it is not a receipt, and it lasts as long as the condition lasts, so it does not disappear on a timer. It takes up layout space and never floats, because a strip that hovered would cover the content it is telling you about. It carries at most one action that fixes the condition, and one dismissal that only acknowledges it.",
-      "A button in the strip takes the strip's tone unless it states its own: \"Try again\" on a failure is part of the failure. A dialog opened from that button is a new plane and does not inherit it.",
-      "Its sibling `Confirmation` shares the strip and asks a question instead. It has two worded answers, a quiet no and a loud yes, and no ✕, because closing a question without answering it is not an answer. It stays until one answer is pressed.",
-    ],
+    overview: ["Use a Notice to tell people about a condition that is true right now, such as an expiring certificate or a failed sync. Put it in the layout, above the region it is about. It takes up space and never floats, so it does not cover the content it describes.","The person did not cause the condition, so a Notice is not a receipt for an action. It stays for as long as the condition is true, and it does not close on a timer. Give it at most one `action` that fixes the condition. Add `onDismiss` to show a ✕ that only acknowledges it.","The dismissal has no internal state. When someone presses the ✕, your `onDismiss` callback runs, and your app removes the Notice. Store the dismissal where it must survive, for example in user settings, so it stays dismissed after a reload.","Use `Confirmation` when you need to ask a question instead. It uses the same strip, with two worded answers: a quiet no and a loud yes. It has no ✕, because closing a question does not answer it. Set `busy` while the work starts, and the yes shows a spinner.","A Notice rests on `neutral`. Set `tone` for the kind of condition, such as `warning` or `destructive`, and the fill, the words and the buttons inside all change with it. A Button in the `action` slot takes the Notice's tone unless you set its own. Use a Card when the message needs a heading and several paragraphs, and use a Dialog when the person must answer before they continue.","A Notice has `role=\"status\"`, so screen readers announce its words when it appears, without moving focus. The icon slot is hidden from screen readers. Set `dismissLabel` to give the ✕ a name in your app's language."],
     refusals: [
       {
         name: "A position, and the name Banner",
-        why: "Placement is yours: in flow above the region it concerns, or handed to the Shell to pin at the top. Atlassian needs both Banner and SectionMessage because their difference is where each one sits. Here a component never owns its position, so there is one component and the parent places it.",
+        why: "The parent places it. Put it in flow above the region, or let the Shell pin it.",
       },
       {
         name: "Toast, and any transient version of this",
-        why: "Refused across the system, not only here. If an action deserves attention it gets that attention before it runs. A toast is important enough to say and too late to act on. Undo belongs in an undo stack, and a copy confirmation belongs on the button that copied.",
+        why: "If an action deserves attention, it gets it before it runs. Put confirmations on the button that acted.",
       },
       {
         name: "A title, a description and any fixed anatomy",
-        why: "Nothing non-visual forces them. The role sits on the root, the symbol is decorative, and the two verbs are slots. A notice that needs a heading and several paragraphs is a Card.",
+        why: "Nothing requires them. A notice that needs a heading and paragraphs is a Card.",
       },
       {
         name: "More than one action",
-        why: "One slot, and it holds the verb that resolves the condition. A strip with two competing actions is a form. A notice offering neither an action nor a dismissal is a Text in a box: write the sentence and delete the box.",
+        why: "One slot holds the action that resolves the condition. Two competing actions make it a form.",
       },
       {
         name: "Remembering its own dismissal",
-        why: "onDismiss is a callback and there is no internal state. A notice that dismissed itself would forget on reload, and a close button the app cannot honour is a close button that lied. Pass nothing and no dismissal renders at all.",
+        why: "`onDismiss` is a callback with no internal state. Your app keeps the dismissal so it survives a reload.",
       },
       {
         name: "A shadow",
-        why: "A notice never casts a shadow, in a flat theme or an elevated one. A shadow belongs to a box that is a plane of its own, which is why a field does not cast one and why a ground does not either. A notice is a marker on a plane: a strip inside a card, or across a page. On glass it keeps the pool the material gives every pane, which is not the same thing as the lift the app says.",
+        why: "A notice is a marker on a surface, not a surface of its own, so it never casts a shadow.",
       },
       {
         name: "An icon set",
-        why: "The package ships no icons. The slot is safe when empty, takes whatever your app draws, and is hidden from assistive technology, because the words are the message.",
+        why: "The package ships no icons. The slot takes whatever your app draws and is hidden from screen readers.",
       },
       {
         name: "A ✕ on a Confirmation",
-        why: "A question waits for an answer. A way to close it without answering leaves the app not knowing what the person wanted, so the no is a worded button like the yes.",
+        why: "A question needs an answer. Give the no a worded button, like the yes.",
       },
     ],
     declaration: `<Notice tone="warning" action={<Button>Renew</Button>}>
@@ -1225,6 +1454,14 @@ const DECLARED: Entry[] = [
 >
   Run 4 nodes for $0.32?
 </Confirmation>`,
+    variants: [
+      {"name":"tones","title":"Tones","why":"Set `tone` for the kind of condition. The fill, the words and a Button in the `action` slot all change together, so you never colour a word yourself."},
+      {"name":"with-icon","title":"With an icon","why":"Pass a glyph from your own icon set to `icon`. It sits before the message at the size of the text, and screen readers skip it, so the words must carry the meaning."},
+      {"name":"dismissible","title":"A dismissal you store yourself","why":"`onDismiss` shows the ✕ and tells you when someone presses it. Your app removes the Notice and keeps that choice, so it can survive a reload."},
+      {"name":"sizes","title":"Sizes","why":"`size` changes the padding, the words, the ✕ and the Button in the `action` slot together. Use the size that matches the region the Notice sits above."},
+      {"name":"confirmation","title":"A question with Confirmation","why":"Use `Confirmation` to ask a yes or no question in the same strip. Set `busy` after the yes, so the yes shows a spinner and the no is disabled while the work starts."},
+      {"name":"above-a-region","title":"Above the region it describes","why":"Put the Notice in the layout, directly above the content it is about. It pushes that content down instead of covering it, and it has no shadow of its own."},
+    ],
     topics: [
       { title: "A condition", symbols: ["Notice"] },
       { title: "A question", symbols: ["Confirmation"] },
@@ -1238,32 +1475,37 @@ const DECLARED: Entry[] = [
     name: "NumberField",
     family: "Control",
     spec: "§4, §11, §28, §51",
-    abstract: "NumberField holds a number, with a step down and a step up beside it.",
-    overview: [
-      "It is a TextField whose two slots are spent on the steppers, so the box, the border, the focus ring, the read-only and disabled states and the material all match the field standing next to it. Base UI owns the number: it parses and formats it in the language your app is running in, keeps it between `min` and `max`, and steps it with `step` on the arrow keys or on a press and hold. A hidden input carries the value into a form.",
-      "The value sits between the two steppers, in figures of one width, so going from 9 to 10 does not move the digits under the caret. A stepper at its limit, or in a read-only field, stays where it is and stops looking pressable. Neither stepper takes a tab stop, because the keyboard already steps from the field itself.",
-      "Inside a Field it takes that unit's size, and a size you state here still wins.",
+    declaration: `<NumberField defaultValue={4} min={1} max={50} />`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"`size` sets the height, the text and the width of the two buttons. Each size matches a TextField and a Button at the same size, so the field sits level in a row."},
+      {"name":"format","title":"Currency, percentages and units","why":"Pass `Intl.NumberFormat` options to `format`. The field shows and parses the value in that format, and screen readers announce the unit with the number."},
+      {"name":"steps","title":"Steps for fine and coarse changes","why":"`step` sets the normal change. `smallStep` applies with Alt and `largeStep` applies with Shift, so a person can make a small or a large change from the keyboard."},
+      {"name":"controlled","title":"Controlled","why":"Pass `value` and `onValueChange` when other parts of the screen depend on the number. The value is `null` when the field is empty, so check for it."},
+      {"name":"states","title":"Read-only, disabled and invalid","why":"A read-only value stays selectable and is still sent with the form. A disabled field takes no input. An invalid field shows its error from the Field around it."},
+      {"name":"in-a-form","title":"In a form","why":"Set `name`, and a hidden input sends the number when the form submits. `required` stops the form from submitting while the field is empty."},
     ],
+    abstract: "NumberField holds a number, with a step down and a step up beside it.",
+    overview: ["Use a NumberField when the value is a number, such as a count of seats, an amount of money or a timeout. It shows the value between a decrease button and an increase button. Use a Slider when an approximate value in a range is enough, and a TextField when the value only looks like a number, such as a postcode.","It matches a TextField in height, border, focus ring and material, so the two sit level in one form. Set `min` and `max` to keep the value in a range, and `step` to set how far each press or arrow key moves it. A button at a limit, or in a read-only field, becomes disabled.","Pass `format` to show the value as currency, a percentage or a unit. The field formats and parses the number in the language your app runs in, so a person can type `1.234,5` in German. Put a unit in `format`, not in a slot, so the unit is part of the value that screen readers announce.","The value is a number or `null`. `null` means an empty field, not zero. Use `value` and `onValueChange` to hold it yourself, or `defaultValue` to let the field hold it. Set `name`, and a hidden input sends the number with the form.","Put it in a Field to give it a label, a description and an error. Inside a Field it uses that Field's size, and a `size` you set on the NumberField still wins.","The arrow keys change the value by `step`. Alt with an arrow key uses `smallStep`, and Shift with an arrow key uses `largeStep`. The two buttons are not tab stops, because the keyboard already changes the value from the field. Set `decrementLabel` and `incrementLabel` to name the buttons in your app's language."],
     refusals: [
       {
         name: "`leading` and `trailing`",
-        why: "The two slots are the steppers. A unit, a currency or a percent goes in `format` instead, so it is written into the value in the same language the number is formatted in, announced as part of the number, and parsed back out when somebody types. Something placed beside the field could do none of those three.",
+        why: "The slots hold the steppers. Put a unit or currency in `format` so it is announced and parsed with the number.",
       },
       {
         name: "`emphasis` and `tone`",
-        why: "Loudness ranks actions, and a form where one field is louder than the next says nothing. Whether the value is acceptable is a state rather than a level: set `aria-invalid`, or put the field in a Field.",
+        why: "Fields do not rank. For an unacceptable value, set `aria-invalid` or put the field in a Field.",
       },
       {
         name: "`render`",
-        why: "There are two elements here and neither can move: the wrapper holds a border the input cannot, and the input has to stay an input or the platform wiring goes with it.",
+        why: "It renders two elements, so `render` could only silently mean one of them.",
       },
       {
         name: "The platform's number input",
-        why: "The input is text with a numeric keyboard. A native number input formats nothing, parses nothing in the language your app is running in, and draws a spinner of its own inside the box, which is three problems for one attribute.",
+        why: "The native number input cannot format or parse in your app's language, and draws its own spinner.",
       },
       {
         name: "Dragging and scrolling to change the value",
-        why: "Deferred, not refused. Dragging a label to scrub a number and rolling a wheel over the field are both a pointer gesture with a cursor of their own, and this system has not drawn one yet.",
+        why: "Deferred. Scrubbing and scroll-to-change need a pointer design that does not exist yet.",
       },
     ],
   },
@@ -1272,32 +1514,37 @@ const DECLARED: Entry[] = [
     name: "Page",
     family: "Layout",
     spec: "§15, §27, §46",
-    abstract: "Page is the screen you navigated to, and the large title that arrives with it.",
-    overview: [
-      "Two things get called a page header, and they have different owners. The pinned row with the navigation toggle, the way back and the tools belongs to the PANE: it stays put while you move from one page to the next, and it is a ShellPaneHeader holding a Toolbar. The large title that arrives and leaves with the content belongs to the page, and that is this.",
-      "It owns three things you were writing by hand. It clears the band floating over it, by reading the reach that band publishes on its pane, so nothing is measured and the same declaration is right whether the band floats or sits in flow. It states the title and its deck at the house steps, with the one interval between them. And it tells the band when its own title has scrolled away, so a ToolbarTitle up there can fade the words in.",
-      "The width is still the frame's. One measure is wrong for two page shapes out of three: a chapter is a reading column with a table of contents beside it, a reference page is prose over wide tables. Put the page in whatever box states your measure.",
+    declaration: `<Page title="Nature Walks" description="Everything collected on the walk.">
+  \u2026
+</Page>`,
+    variants: [
+      {"name":"outside-a-frame","title":"Outside a Shell","why":"A Page works without a Shell. The title and description show in place, and the box around the Page sets the reading width."},
+      {"name":"title-only","title":"A title with no description","why":"Leave out `description` when the title says everything, as on a settings page. The content starts under the title."},
+      {"name":"with-mark","title":"With your app's mark","why":"Pass your logo or a large glyph to `mark`, and it sits above the title. Use it on a front page, not on every screen of the app."},
+      {"name":"band-in-flow","title":"Under a toolbar that does not float","why":"Here the ShellPaneHeader sits in the layout instead of floating. The same Page still leaves the right space, and the `ToolbarTitle` shows the title after it scrolls away."},
     ],
+    abstract: "Page is the screen you navigated to, and the large title that arrives with it.",
+    overview: ["Use a Page for the screen someone moved to, such as a settings page or a report. It shows a large title and an optional description at the top, and it puts your content under them. Set the words with `title` and `description`.","A Page is different from the toolbar above it. The toolbar row, with the navigation button, the back button and the tools, stays in place when the person moves from one page to the next. Build that row with a ShellPaneHeader and a Toolbar. The Page is the part that changes with each screen.","Inside a Shell, the Page leaves room for the toolbar row above it, whether that row floats over the content or sits in the layout. When the large title scrolls up behind the row, a `ToolbarTitle` in the row shows the same words. The `title` is a string for this reason: the same words appear in two places.","A Page has no `size` prop and no width. Every page in an app uses the same title size, so they look like one product. Set the reading width on the box that holds the Page. Outside a Shell, the title shows in place and does not collapse into a toolbar.","The title is the page's one `h1`, and screen readers use it as the name of the screen. Use a Heading at size 6 or 7 for sections inside the Page. Put actions in the toolbar row, not under the title. Use `mark` to show your app's logo above the title on a front page."],
     refusals: [
       {
         name: "A heading level",
-        why: "A page is the document's one h1. A heading that is not the document's subject is a Heading inside the page, at whatever step the outline needs.",
+        why: "A page is the document's one h1. Use a Heading inside the page for other levels.",
       },
       {
         name: "A size",
-        why: "There is one page step in an app. A title that could be four sizes is four apps arguing on one site, and the documentation this came from shipped that prop for an hour before deleting it with the one exception that motivated it.",
+        why: "An app has one page title size. Different sizes on one site look like different apps.",
       },
       {
         name: "Actions beside the title",
-        why: "They go in the toolbar, where every other control in the frame already is. A row of buttons under a large title is a second toolbar with no keyboard and no place of its own.",
+        why: "Put them in the toolbar with the other controls. Buttons under the title make a second toolbar.",
       },
       {
         name: "A width",
-        why: "The measure is the frame's, and it differs per page. Nothing here caps a line length, so a page states its own maximum in the box it sits in.",
+        why: "The page does not cap line length. Set a maximum width on the box that holds it.",
       },
       {
         name: "Collapsing on its own outside a frame",
-        why: "The collapse needs a band pinned over a scrolling region, which is a property of a frame. In a Card there is neither, so the title draws and nothing pretends to happen.",
+        why: "The collapse needs a pinned band over a scrolling region. Outside a frame, the title just draws.",
       },
     ],
   },
@@ -1307,11 +1554,7 @@ const DECLARED: Entry[] = [
     family: "Control",
     spec: "§45",
     abstract: "Toolbar is the row an app's controls live in, and it answers the keyboard as one control.",
-    overview: [
-      "The whole row is one tab stop and the arrow keys move between the controls inside it, which is what every platform toolbar does and what a row of eleven separately reachable icon buttons is not. That behaviour is why this is a component rather than a Flex, and it is Base UI's Toolbar underneath.",
-      "What the row states is the rhythm: its height is one control row at its size, the gap between clusters is the system's, and the controls inside take the row's index unless they state their own. What it does not state is which controls sit at which end, because that is what those controls mean. Group them with a Flex and the row spaces the groups: one cluster starts, two split, three read leading, centre and trailing.",
-      "ToolbarGroup is the capsule for controls that belong together, and it always draws one. It is the segmented control's track with nothing chosen in it, so it stands level with the button beside it and hosts its own by the same subtraction. Clustering without a capsule is a Flex.",
-    ],
+    overview: ["`Toolbar` is the row that holds an app's controls. It is one tab stop, and the arrow keys move between the controls inside it. This is how toolbars work on every platform, and it is why this is a component and not a `Flex`. Base UI's Toolbar supplies the keyboard behaviour.","Put `ToolbarButton` in the row, not `Button`. A plain `Button` cannot join the row's keyboard, so it becomes an extra tab stop that the arrow keys skip. `ToolbarButton` takes every `Button` prop, and `render` makes it a link or a menu trigger.","The row is one control tall at its `size`. With no `size`, a toolbar is one step above the app's default, so size 3 in a default app. Every control in the row takes the row's size unless you give it its own. The row sets the space between clusters. Group controls with a `Flex`: one cluster sits at the start, two split to the ends, and three sit at the start, the centre and the end.","`ToolbarGroup` draws a capsule around controls that belong together, such as bold, italic and underline. The buttons in it are quiet by default. Use a `ToolbarSeparator` to divide loose controls. `ToolbarTitle` names the row, and `ToolbarOverflow` moves the controls that do not fit into a menu.","The row itself paints nothing. It has no `tone`, `emphasis` or `material`. Set `backdrop` on the row when content passes behind it, so that every control in the row shows the theme's material. A `ToolbarGroup` also takes `backdrop` for itself.","Screen readers announce the row as a toolbar. Give it an `aria-label` that says what the tools are for, and give every icon-only `ToolbarButton` an `aria-label` of its own."],
     declaration: `<Toolbar>
   <Flex align="center" gap="2">
     <ToolbarButton iconOnly aria-label="Back">{back}</ToolbarButton>
@@ -1323,6 +1566,14 @@ const DECLARED: Entry[] = [
     <ToolbarButton>Export</ToolbarButton>
   </ToolbarGroup>
 </Toolbar>`,
+    variants: [
+      {"name":"groups","title":"Groups and separators","why":"A `ToolbarGroup` draws one capsule around related controls. A `ToolbarSeparator` draws a thin line between loose controls. Do not put a separator next to a group, because the capsule already shows the boundary."},
+      {"name":"sizes","title":"Sizes","why":"`size` on the row sets the height of the row and of every control in it. The title text grows with the row. A toolbar with no `size` is one step above the app's default."},
+      {"name":"vertical","title":"Vertical","why":"Set `orientation=\"vertical\"` for a column of tools at the edge of a canvas. The up and down arrow keys then move between the controls, and a separator becomes a horizontal line."},
+      {"name":"overflow","title":"Overflow","why":"Put controls in a `ToolbarOverflow` when the row can get too narrow. The controls that do not fit move into a menu behind a more button, starting from the end of the row. Give the menu button a `label`, because it has no visible text."},
+      {"name":"with-menu","title":"Links and menus","why":"Pass `render` to make a `ToolbarButton` into a link. To open a menu, pass a `ToolbarButton` to `MenuTrigger` through `render`. Both keep their place in the row's keyboard order."},
+      {"name":"disabled","title":"Disabled","why":"Set `disabled` on one `ToolbarButton` to stop it. Set `disabled` on a `ToolbarGroup` to turn off every control in the capsule at the same time, for example when nothing is selected."},
+    ],
     topics: [
       { title: "The row", symbols: ["Toolbar"] },
       { title: "What goes in it", symbols: ["ToolbarButton", "ToolbarGroup", "ToolbarSeparator"] },
@@ -1355,19 +1606,19 @@ const DECLARED: Entry[] = [
     refusals: [
       {
         name: "Tone, emphasis and material on the ROW",
-        why: "A toolbar is a row, not a pane. It paints nothing, so there is no fill to rank and nothing to make translucent, and the surface it sits in answers the theme. The group is the one part here that draws a box, so it is the one part that takes backdrop — a material makes a component's own fill translucent, which is only expressible where there is one.",
+        why: "A toolbar paints nothing, so there is nothing to colour or blur. Only the group takes `backdrop`.",
       },
       {
         name: "Leading, centre and trailing parts",
-        why: "Which controls sit at which end is what those controls mean, and that is yours to say. The row states the alignment, the split and the gap; a Flex groups what belongs together. Three named slots would be three ways to say what one split already says.",
+        why: "Which control sits at which end is yours to say. Group them with a Flex; the row sets the split.",
       },
       {
         name: "A size on the group",
-        why: "The group and the controls in it both read the row's index, which is what makes the capsule exactly as tall as the button beside it. A size here would let those two disagree.",
+        why: "The group and its controls read the row's size, so they stay the same height.",
       },
       {
         name: "A gap prop",
-        why: "The distance between clusters is the system's rhythm at the row's index, and inside a cluster it is the Flex you wrote. A row where every call site picks its own spacing is the thing this component exists to end.",
+        why: "The row sets the spacing between clusters, and your Flex sets it within one.",
       },
     ],
   },
@@ -1377,7 +1628,7 @@ const DECLARED: Entry[] = [
     family: "Surface",
     spec: "§20, §22, §31",
         abstract: "Popover shows a panel anchored to a control, with the page still live behind it.",
-    overview: ["It is the one floating component whose contents the system does not design: a menu holds rows and a select holds options, but a popover holds whatever you put in it, such as a form, a summary or a filter panel. The part names follow shadcn/ui's popover (MIT), with credit, and the behaviour is Base UI's Popover."],
+    overview: ["Use a Popover to show a small panel next to the control that opened it, while the rest of the page stays usable. It can hold anything you put in it, such as a short form, a summary of a person or a filter panel.","Choose the right floating component for the job. Use a Menu for a list of actions, and a Select to pick one value. Use a Dialog when the person must finish a task before they continue, and an AlertDialog to ask one question. Use a Tooltip for a short label that names a control.","Put a Button in `PopoverTrigger` through `render`. The panel opens from that Button and stays attached to it. Set `side` and `align` on `PopoverContent` to choose where the panel prefers to open. The panel moves to the other side when it has no room, and it stays on screen.","`size` on `Popover` sets the panel's padding and corner, and the size of `PopoverTitle` and `PopoverDescription`. Your own content keeps the sizes you give it. The panel uses the theme's glass material without a prop, because content is always behind it.","Give every panel a `PopoverTitle`. Screen readers announce the panel by its title, and `PopoverDescription` is announced with it. Escape and a press outside the panel close it, and focus goes back to the trigger. Wrap your own Button in `PopoverClose` for a close or save action. Use `open` and `onOpenChange` to control the panel yourself."],
     declaration: `<Popover>
   <PopoverTrigger render={<Button>Rename</Button>} />
   <PopoverContent>
@@ -1386,6 +1637,13 @@ const DECLARED: Entry[] = [
     <PopoverClose render={<Button emphasis="loud">Save</Button>} />
   </PopoverContent>
 </Popover>`,
+    variants: [
+      {"name":"placement","title":"Choosing a side","why":"Set `side` and `align` on `PopoverContent` to choose where the panel opens. The panel moves to the opposite side when the preferred side has no room."},
+      {"name":"sizes","title":"Sizes","why":"`size` on `Popover` sets the panel's padding and corner, and the size of the title and description. Content that you add keeps its own sizes."},
+      {"name":"filter-panel","title":"A filter panel","why":"A Popover can hold a small form, such as a set of checkboxes. Wrap the Apply and Reset buttons in `PopoverClose` so each one also closes the panel."},
+      {"name":"controlled","title":"Controlled","why":"Use `open` and `onOpenChange` when your code must close the panel, for example after a form submits. Reset the draft value each time the panel opens."},
+      {"name":"details","title":"A summary of a person","why":"A Popover can show details without a form. The title and description name the panel for screen readers, and a Separator divides the header from the details."},
+    ],
     topics: [
       { title: "Opening it", symbols: ["Popover", "PopoverTrigger"] },
       { title: "Presenting the panel", symbols: ["PopoverContent"] },
@@ -1395,23 +1653,23 @@ const DECLARED: Entry[] = [
     refusals: [
       {
         name: "A modal mode",
-        why: "The page staying live is the whole distinction from Dialog. A panel that must be answered before anything else can happen is a Dialog, and one that stops you to ask a single question is an AlertDialog. Those are three different promises, and which component you reach for is how you make one.",
+        why: "A popover leaves the page live. Use a Dialog to block the page, or an AlertDialog to ask one question.",
       },
       {
         name: "An arrow",
-        why: "An arrow is a second boundary on a pane whose boundary is already drawn, and on glass it would need its own tint, ring and lens for a shape the lens cannot describe. What says where the panel came from is that it is anchored to the thing you pressed and grows out of it.",
+        why: "The pane already has a border. Its anchor to the trigger shows where it came from.",
       },
       {
         name: "Free positioning",
-        why: "You choose a side and an alignment, and the system does the rest — flipping when that side has no room, keeping the panel on screen, matching the gap every other floating panel uses. A panel that could be placed anywhere is a panel you would place differently every time.",
+        why: "Choose a side and an alignment. The system flips it and keeps it on screen.",
       },
       {
         name: "A width that matches the trigger",
-        why: "A menu is never narrower than the button that opened it, because its rows are that button's own options. A popover holds a form; tying its width to whatever opened it would make one panel a different shape on every screen.",
+        why: "A popover holds a form, so its width should not change with whatever opened it.",
       },
       {
         name: "A drawn close button",
-        why: "The panel has two other ways out — an outside press and Escape — and a corner glyph on a small pane competes with what the panel is for. Place a PopoverClose around your own Button when a third way out is worth the room.",
+        why: "Outside press and Escape already close it. Wrap your own Button in a `PopoverClose` if you need one.",
       },
     ],
     parts: [
@@ -1427,16 +1685,23 @@ const DECLARED: Entry[] = [
     name: "Progress",
     family: "Indicator",
     spec: "§11, §19",
+    declaration: `<Progress value={35} aria-label="Uploading" />`,
+    variants: [
+      {"name":"labelled","title":"With a visible label","why":"Put a Text above the bar and connect it with `aria-labelledby`. The same words name the bar on screen and for screen readers, so you do not write the label twice."},
+      {"name":"indeterminate","title":"When the amount is unknown","why":"Set `value` to `null` when you do not know how much work is left. The bar shows a moving segment until you give it a number."},
+      {"name":"range","title":"A range other than 0 to 100","why":"Set `min` and `max` to use your own units. Use `getAriaValueText` so screen readers announce the value in the same words that are on screen."},
+      {"name":"in-a-card","title":"In a card","why":"Each file gets its own bar, named by its own label. A finished file shows a full bar, and a file that has not started yet shows a moving segment."},
+    ],
         abstract: "Progress shows how far along a task is.",
-    overview: ["It has no handle, so it takes no focus and needs no tappable area. Give it a number and it shows a fraction. Give it null and it sweeps, to say that something is happening without claiming to know how far along it is."],
+    overview: ["Use Progress to show how far along a task is, such as an upload, an export or a quota. Give `value` a number and the bar fills to that fraction. Give it `null` and the bar shows a moving segment, which says that work is happening without saying how much is left.","Use a Spinner instead when the wait is short and sits inside a control, such as a Button that is saving. Use a Slider when the person sets the value. A Progress bar has no handle, so it takes no focus and has no tappable area.","The bar has one fixed thickness and fills the width of its container. Set a width on the box that holds it. By default the value runs from 0 to 100. Set `min` and `max` to use other units, such as gigabytes.","The bar uses your app's accent colour for the fill, and it has no `tone` or `size` prop. When the person asks the system for less motion, the moving segment slows down but does not stop.","Screen readers announce the bar as a progress bar with its value. Give it a name with `aria-label`, or connect it to a visible Text with `aria-labelledby`. Use `getAriaValueText` when the percentage alone does not say enough, for example “7.2 of 10 gigabytes used”."],
     refusals: [
       {
         name: "`size`",
-        why: "The slider's track scale is a fraction of the slider's own thumb, and a bar has no thumb, so using that scale would size the bar against a box it does not have. It uses one stated thickness instead, and takes its width from the container.",
+        why: "A bar has one fixed thickness and takes its width from its container.",
       },
       {
         name: "`tone`",
-        why: "Left open rather than decided. A failed upload in the destructive family is real vocabulary, but adding an axis on the day a component ships is guessing.",
+        why: "Not decided yet. It is left open rather than guessed.",
       },
     ],
   },
@@ -1445,11 +1710,18 @@ const DECLARED: Entry[] = [
     name: "Radio",
     family: "Control",
     spec: "§4, §6, §11",
+    declaration: `<Radio value="a" id="a" />`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"`size` sets the circle to the height of one line of text at that size. Match the size of the label beside it, so the circle and the words line up."},
+      {"name":"with-descriptions","title":"With a description for each option","why":"Put each Radio in a `FieldItem` with a `FieldLabel` and a `FieldDescription`. The description lines up under the label, and screen readers announce it with the option."},
+      {"name":"disabled","title":"Disabled","why":"Set `disabled` on one Radio to keep it in the list while it is not available. Add a description that says why, so the person knows how to get it."},
+      {"name":"wrapping-label","title":"A label that wraps the radio","why":"Wrap the Radio and its words in a `<label>`, and they connect without an `id`. Pressing anywhere on the label checks the Radio."},
+    ],
         abstract: "Radio lets someone pick one option from a group.",
-    overview: ["Its circle carries the meaning: a square radio reads as a checkbox, so no theme setting can square it off. It is one of only four shapes in the system that stays round whatever the corner setting says."],
+    overview: ["Use a Radio to let someone pick exactly one option from a short list, such as a plan or a backup schedule. Every Radio sits inside a RadioGroup, which holds the chosen value. A Radio is checked when its `value` matches the group's value.","Use a Checkbox when a person can pick several options, or one option on its own. Use a Switch for a setting that takes effect at once. Use a Select when the list is long, and a segmented control when the options are two to five short labels that change a view in place.","A Radio is always a circle, whatever corner setting your theme uses, because a square radio looks like a checkbox. It is off in a neutral colour and on in your app's accent colour. It has no `tone` or `emphasis` prop.","A Radio is exactly as tall as one line of the text beside it, and it is the same size as a Checkbox at the same `size`. Its tappable area extends past the circle to the size of a Button at that size. Inside a Field it uses that Field's size, and a `size` you set on the Radio still wins.","The label is a separate element next to the Radio. Put each Radio and its label in a `FieldItem`, which connects them without an `id`. You can also wrap the Radio in a `<label>`, or give the Radio an `id` and point a label at it with `htmlFor`. Pressing the label checks the Radio."],
     refusals: [
-      { name: "`tone` and `emphasis`", why: "The same as Checkbox: neutral when off and accent when on is an identity, not an axis." },
-      { name: "`readOnly`", why: "The same as Checkbox: HTML does not define readonly for a radio, so there is no appearance to inherit." },
+      { name: "`tone` and `emphasis`", why: "Neutral when off and accent when on is fixed, as on Checkbox." },
+      { name: "`readOnly`", why: "HTML has no read-only radio, so there is no appearance to copy." },
     ],
   },
   {
@@ -1457,37 +1729,58 @@ const DECLARED: Entry[] = [
     name: "RadioGroup",
     family: "Control",
     spec: "§4, §11",
+    declaration: `<RadioGroup defaultValue="yes">
+  <Radio value="yes" />
+  <Radio value="no" />
+</RadioGroup>`,
+    variants: [
+      {"name":"horizontal","title":"Radios in a row","why":"Pass a Flex to `render` to put the radios side by side. Keep the gap wide enough that the tappable area of one Radio does not reach the next."},
+      {"name":"controlled","title":"Controlled","why":"Use `value` and `onValueChange` when other parts of the screen depend on the choice. Here the price under the group changes with the plan."},
+      {"name":"in-a-form","title":"In a form","why":"Set `name` on the group, and the chosen value is sent when the form submits. `required` stops the form from submitting until someone picks an option."},
+      {"name":"disabled","title":"Disabled","why":"Set `disabled` on the group to disable every Radio at once. Say why in a description, because a disabled control does not explain itself."},
+    ],
         abstract: "RadioGroup holds one chosen value among its radios, and stacks them.",
-    overview: ["It exists for the keyboard behaviour and the form value. By default it is a column with enough gap that one radio's click area never reaches the next. Pass `render={<Flex …/>}` for any other layout; yours wins."],
-    refusals: [{ name: "Any visual prop", why: "The group is wiring plus a safe default stack. Any other layout is the one you render it as." }],
+    overview: ["Use a RadioGroup to hold one chosen value for a set of Radio components. It gives the radios one name and one value, and it sends that value with a form. Put every Radio for one question inside the same group.","By default the group is a column, with enough space between the radios that the tappable area of one never covers the next. Pass `render={<Flex gap=\"5\" />}` to lay the radios out in a row, or in any other layout. Your layout replaces the default column.","Use `defaultValue` to let the group hold the value, or `value` and `onValueChange` to hold it yourself. Set `name` to send the value with a form, and `required` to stop the form from submitting until someone picks an option. Set `disabled` on the group to disable every radio in it.","The group has no visual props of its own. It has no `readOnly` prop, because HTML has no read-only radio. To show a value that cannot change, set `disabled` and add a description that says why.","Screen readers announce the group as a radio group. Put it in a Field with a `FieldLabel` to give the group a name, or set `aria-label` on it. The group is one tab stop. The arrow keys move between the radios and check the one they reach."],
+    refusals: [{ name: "Any visual prop", why: "The group is wiring plus a default stack. Render it as any other layout you need." }],
   },
   {
     slug: "row",
     name: "Row",
     family: "Control",
     spec: "§21",
+    declaration: `<Row current trailing={<Text emphasis="quiet">12</Text>}>
+  Environments
+</Row>`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"`size` sets the height, the text and the icon box. A Row matches the height of a Button at the same size, so a list and a toolbar next to it line up."},
+      {"name":"leading-and-trailing","title":"Icons, counts and shortcuts","why":"Put an icon in `leading`, and a count, a size, a shortcut or a chevron in `trailing`. The trailing content sits against the far edge of the Row."},
+      {"name":"links","title":"Rows that go to another page","why":"Pass an anchor to `render` so each Row is a real link. Set `current` on the Row for the page that is open, and screen readers announce it as the current page."},
+      {"name":"highlighted","title":"A highlight moved by the keyboard","why":"Focus stays in the search field while the arrow keys move a highlight through the results. Pass `highlighted` to every Row, so the pointer does not light a second Row."},
+      {"name":"read-only","title":"A list you only read","why":"Pass a `<div>` to `render` when the Rows show information and do nothing when pressed. The Row keeps its layout and has no hover or focus."},
+      {"name":"destructive","title":"An action that deletes","why":"Set `tone=\"destructive\"` on the one Row that deletes something. Use it only for that Row, so it stands out from the actions around it."},
+    ],
         abstract: "Row is one line in a list of things you can pick.",
-    overview: ["It is the same object a menu item and a sidebar item are: the same rest, the same hover, the same content weight. A standing row shares the height scale, so it sits level with a Button at its index; only a menu's rows keep their tighter box, because a panel opened for a second is read denser than a column that is on screen all day. Use it for search results, command lists, settings rows and file lists. Inside a Menu, use MenuItem instead."],
+    overview: ["Use a Row for one line in a list that people pick from, such as search results, a command list, a settings list or a file list. It is the same kind of line as a menu item and a sidebar item, with the same hover and the same text weight. Put Rows in a Stack to make the list.","Inside a Menu, use `MenuItem` instead. To let someone choose one option from several, use a RadioGroup. Use `current` only to mark the page or file that is open now: a Row with `current` announces `aria-current` and is not a form value.","A Row is as tall as a Button at the same `size`, so it sits level with the Buttons around it. Rows in a Menu are shorter, because a menu is open only for a moment. Add an icon, an avatar or a tick with `leading`, and a count, a shortcut or a chevron with `trailing`.","A Row is a button by default. Pass `render={<a href=\"…\" />}` for a Row that goes to another page, and `render={<div />}` for a Row that shows information and cannot be pressed. Set `disabled` to keep a Row in the list while it is not available. Set `tone=\"destructive\"` for an action that deletes something.","No Row is louder than another, so a Row has no `emphasis` prop. When the pointer is the only way to move through the list, the Row lights up on hover. When your list moves a highlight with the arrow keys, pass `highlighted` to every Row: the Row then lights up only when `highlighted` is true, and it stops following the pointer.","A Row has no keyboard model of its own. Your list decides the role, such as `listbox`, `list` or navigation links, because the role depends on what the Rows mean."],
     refusals: [
       {
         name: "`emphasis`",
-        why: "Actions rank; a list of peers ranks nothing. A row that was louder than the row under it would be claiming an importance the list does not have. Quiet is the family's identity and the component states it.",
+        why: "A list of peers ranks nothing, so rows stay quiet. No row is louder than another.",
       },
       {
         name: "A keyboard model",
-        why: "A list that moves a highlight with the arrow keys owns that highlight, because only the list knows what its items are and what Enter should do to them. Pass `highlighted` and the row paints what you tell it — and stops answering the pointer, so the two cursors cannot fight.",
+        why: "The list owns the highlight. Pass `highlighted` and the row paints it and stops following the pointer.",
       },
       {
         name: "A selected prop",
-        why: "Picking one of several is a radio group, and a row that faked it with an attribute would be the shape the segmented control refused. `current` is a different thing and it is here: it announces aria-current, it means the page you are on, and it is not a form value.",
+        why: "Picking one of several is a radio group. Use `current` to mark the page you are on.",
       },
       {
         name: "A List component to put these in",
-        why: "A column with a gap is a Stack, and the role a list needs — list, listbox, menu, none at all — depends on what the rows mean, which is yours to state. A component that wrapped them would have to guess.",
+        why: "Use a Stack for the column. You set the list role, because it depends on what the rows mean.",
       },
       {
         name: "The menu row's tighter box",
-        why: "A menu row's height is its text line plus a small inset — judged on a menu, where a full-height row read sparse. A standing row is on screen all day beside real buttons, so it stands level with them; wanting the menu's density in a permanent list is wanting a menu.",
+        why: "A standing row matches the height of nearby buttons. If you want menu density, use a Menu.",
       },
     ],
   },
@@ -1496,32 +1789,41 @@ const DECLARED: Entry[] = [
     name: "Tree",
     family: "Control",
     spec: "§33",
+    declaration: `<Tree items={files} multiselectable defaultExpandedIds={["src"]} aria-label="Project files" />`,
+    variants: [
+      {"name":"with-icons","title":"With icons","why":"Set `leading` on a node to put an icon before its label. The theme sizes the icon to match the row. Use icons that show the kind of item, such as a folder or a document."},
+      {"name":"single-select","title":"Single selection","why":"Without `multiselectable`, a click selects one row and clears the rest. Use `defaultSelectedIds` to start with a row selected, and `defaultExpandedIds` to start with folders open."},
+      {"name":"controlled","title":"Controlled","why":"Pass `expandedIds` with `onExpandedChange`, and `selectedIds` with `onSelectionChange`, to keep both sets in your own state. Then buttons such as Expand all and Collapse all can change the tree."},
+      {"name":"sizes","title":"Sizes","why":"`size` sets the row height, the text size and the indent. One level of indent is always one icon wide, so the tree keeps its shape at every size."},
+      {"name":"rich-labels","title":"Rich labels","why":"A `label` can hold other components, such as a count in a `Badge`. Set `textValue` on those nodes so that typing a letter still finds the right row."},
+      {"name":"rtl","title":"Right to left","why":"Set `dir=\"rtl\"` on the tree or on any parent. The indent moves to the right side and the disclosure arrow points in the reading direction."},
+    ],
         abstract: "Tree shows hierarchical content the person reveals and hides: a file browser, a layers panel, anything with sub-contents.",
-    overview: ["It is the machine only — disclosure per node, the ARIA tree keyboard (arrows walk visible rows, Right opens and descends, Left closes and ascends, Home, End, typeahead), and selection, single or several at once. The rows are row-family members, the visible nodes render as a flat list with level attributes, and the indent is derived: one level is one icon box, so it answers size and the pointer world with no number of its own. The finished tools built on it — rename, drag, icons per file type — are blocks, not props."],
+    overview: ["`Tree` shows hierarchical content that you open and close: a file browser, a layers panel, or a list of folders with sub-folders. You can select one row, or several rows when you set `multiselectable`.","Give the tree its content as data through `items`. Each `TreeNode` has an `id` and a `label`. A node with `children` shows a disclosure arrow. Add `leading` for an icon, and add `textValue` when the `label` is not a plain string, so that typing a letter can find the row.","Use a `NavTree` when pressing a row opens a page instead of selecting it, such as a documentation sidebar. Use a `Menu` or a `Select` for a short flat list of choices. Renaming, drag-and-drop and icons per file type are your app's work, not props on the tree.","The theme sets the row height and the indent. `size` picks the same steps that controls use, and one level of indent is the width of one icon at that size. So the indent grows with `size` and on touch screens. Selected rows get a soft fill.","Screen readers announce the tree as a tree, with the level, position, open state and selected state of each row. The tree is one tab stop. The up and down arrow keys move between visible rows. The right arrow opens a row or moves to its first child, and the left arrow closes a row or moves to its parent. Home and End go to the first and last rows, and typing a letter moves to the next matching row.","When `multiselectable` is on, Shift with an arrow key or a click selects a range, and Command or Control with a click adds or removes one row."],
     refusals: [
       {
         name: "Drag to reorder",
-        why: "Restructuring by drag is its own pattern — flat lists want it as much as trees — with a genuinely contested accessible answer and drop semantics that belong to your data model. It will land as its own mechanism that composes with Tree; until then it is app code, as the builder's Layers pane shows.",
+        why: "Drag-to-reorder is its own pattern with app-specific drop rules. Build it in app code for now.",
       },
       {
         name: "Cascade selection",
-        why: "Whether choosing a folder chooses its children is a product decision — a checkbox tree's tri-state is one answer among several — and nothing in this system needs one yet. Selection here is exactly the rows you selected.",
+        why: "Whether a folder selects its children is a product decision. Selection is exactly the rows you pick.",
       },
       {
         name: "Async children and loading states",
-        why: "No consumer loads a subtree over the network yet. When one does, the pattern's aria-busy shape is where it lands.",
+        why: "Nothing loads subtrees over the network yet. It will use `aria-busy` when something does.",
       },
       {
         name: "Rename-in-place",
-        why: "Renaming belongs to the tool built on the tree, not to the machine: what a name is, when it commits and what rejects it are the app's facts.",
+        why: "Renaming belongs to your app, which decides what a name is and when it commits.",
       },
       {
         name: "JSX children",
-        why: "The hierarchy is data (`items`), because the visible rows render FLAT with ARIA level attributes — the accessible spelling of nesting — and a nested JSX walk would be the child-scanning the Shell deleted. Your data maps to nodes; the tree renders rows.",
+        why: "Rows render flat with ARIA levels, so the hierarchy is data. Pass it through `items`.",
       },
       {
         name: "An indent prop",
-        why: "One level is one icon box, derived from the designed icon-size scale. A stated indent would be a second number for a distance the system already sets per size and per pointer world.",
+        why: "One level is one icon box, set per size. A stated indent would be a second number for it.",
       },
     ],
   },
@@ -1530,24 +1832,33 @@ const DECLARED: Entry[] = [
     name: "NavTree",
     family: "Control",
     spec: "§33",
+    declaration: `<NavTree items={chapters} currentId={pathname} defaultExpandedIds={["start"]} />`,
+    variants: [
+      {"name":"in-a-sidebar","title":"In a sidebar","why":"Put the NavTree in a `nav` element with a name, so a screen reader lists it with the other landmarks. Top-level pages and sections can sit side by side."},
+      {"name":"sizes","title":"Sizes","why":"`size` sets the row height, the text and the indent together. Rows are size 2 by default."},
+      {"name":"with-icons","title":"With icons","why":"Set `leading` on a node to show an icon after the disclosure arrow. The icon takes the row's size, so you set no size on it."},
+      {"name":"controlled","title":"Controlled","why":"Pass `expandedIds` and `onExpandedChange` to keep the open sections in your own state. Here two buttons open or close every section at once."},
+      {"name":"router-links","title":"Router links","why":"`renderLink` returns the element each page renders as, such as your router's link component. This example updates `currentId` in place of a real navigation."},
+      {"name":"rtl","title":"Right to left","why":"Set `dir=\"rtl\"` on the NavTree or on any ancestor. The indent moves to the right edge and the disclosure arrow points the other way."},
+    ],
         abstract: "NavTree is the tree machine's navigation member: the same data, indent and disclosure as Tree, announced as navigation instead of a tree view — sections are real buttons with aria-expanded, pages are real links, and the page you are on says aria-current.",
-    overview: ["Use it for a sidebar's navigation, a docs chapter list, anything where pressing a row goes somewhere. The docs sidebar you are reading is one. Use Tree when pressing a row selects it."],
+    overview: ["NavTree shows navigation as a tree of sections and pages. It uses the same data, indent and disclosure arrow as Tree. A section is a button that opens and closes its pages, a page is a real link, and the page you are on has `aria-current=\"page\"`.","Use it for a sidebar's navigation, a list of documentation chapters, or anything where pressing a row goes somewhere. The documentation sidebar on this site is one. Use Tree when pressing a row selects it, such as in a file picker.","`items` holds the tree as data. A node with `children` is a section, and a node with `href` is a page. A node with neither renders as plain text, not as a link. `currentId` marks the page you are on in the accent colour. Use `renderLink` to render each page as your router's link component.","Rows are size 2 by default, and each row is as tall as a Button of the same size. The theme density and the pointer type change the row height in the same way they change a Button. One level of indent is the width of one icon, and it follows the size.","Tab moves between sections and pages in the normal order. Enter or Space opens and closes a section, and Enter follows a link. There are no tree roles and no arrow-key navigation, because this is navigation and not a selection. NavTree renders a plain container, so put it inside a `<nav>` element with an `aria-label`."],
     refusals: [
       {
         name: "Role=\"tree\"",
-        why: "The ARIA APG separates disclosure navigation from tree views, and role=\"tree\" on a nav over-claims: it promises a selection model and a roving keyboard that navigation does not have. A section is a button that discloses, a page is a link — the platform's own vocabulary says everything true.",
+        why: "Navigation has no selection model or roving keyboard, so a tree role over-claims. Sections are buttons, pages are links.",
       },
       {
         name: "Selection",
-        why: "A nav has location, not selection. currentId is where you ARE, announced as aria-current; a selectedIds prop here would blur the two meanings §33 keeps apart. If rows are chosen rather than visited, it is a Tree.",
+        why: "A nav has a current location, not a selection. If rows are chosen rather than visited, use a Tree.",
       },
       {
         name: "The tree keyboard",
-        why: "Roving focus, arrow traversal and typeahead belong to the tree view pattern. Links live in the normal tab order and Enter follows them — the keyboard every navigation on the web already has.",
+        why: "It holds links, so Tab moves between them and Enter follows them, like any other navigation.",
       },
       {
         name: "An indent prop",
-        why: "Tree's own refusal, inherited with the machine: one level is one icon box, derived.",
+        why: "One level of indent is one icon box. It is derived, not set.",
       },
     ],
   },
@@ -1557,10 +1868,7 @@ const DECLARED: Entry[] = [
     family: "Surface",
     spec: "§56",
     abstract: "MessageScroller keeps a transcript at its live edge while a reply streams in.",
-    overview: [
-      "A conversation scrolls differently from a page: while you are at the end it follows what arrives, and the moment you scroll up it leaves you alone until you come back. A new turn anchors near the top so a long reply is read from its start, older history can load above without moving what you are reading, and a button brings you back to the latest.",
-      "It brings no scroller of its own. The `ScrollArea` the pane already has becomes its viewport, so the pane keeps its fade, its bars and its floating bands, and a conversation is that pane with the behaviour added. The rows, the words and the counts are yours: the Conversation block draws a turn.",
-    ],
+    overview: ["MessageScroller keeps a conversation at its latest message while a reply streams in. While you are at the end, it follows the new content. When you scroll up, it keeps your place until you come back to the end.","A new turn marked with `scrollAnchor` moves near the top of the view, so you read a long reply from its start. Older history can load above without moving what you are reading, and a button brings you back to the latest message.","It adds no scroll box of its own. The `ScrollArea` in the pane becomes its viewport, so the pane keeps its fade, its scrollbars and its floating bands. The rows, the words and the counts are yours. The Conversation block shows one way to draw a turn.","Use it for a chat, a support thread or a log that grows while people read it. For a list that does not grow, use ScrollArea on its own. `defaultScrollPosition` sets where the transcript opens: at the end (the default), at the start, or at the last marked turn. Set `autoScroll={false}` to stop following new content.","`MessageScrollerContent` is a live region, so a screen reader announces new rows. Name the transcript with `aria-label` on the ScrollArea, and give the jump button a name in your own words. The jump button shows only when there is more below, and it uses the theme's material because content passes behind it.","Call `useMessageScroller`, `useMessageScrollerScrollable` or `useMessageScrollerVisibility` inside a MessageScroller to build your own controls. They move the transcript, tell you whether there is more at each end, and tell you which rows are on screen."],
     declaration: `<MessageScroller>
   <ScrollArea fade aria-label="Transcript">
     <MessageScrollerContent>
@@ -1573,6 +1881,12 @@ const DECLARED: Entry[] = [
     </MessageScrollerButton>
   </ScrollArea>
 </MessageScroller>`,
+    variants: [
+      {"name":"streaming","title":"A streaming reply","why":"Send a question and watch the reply arrive one word at a time. While you stay at the end, the view follows the words. Scroll up and the view stays where you left it."},
+      {"name":"open-at-start","title":"Open at the start","why":"A saved thread opens at its end. Set `defaultScrollPosition=\"start\"` for a log that people read from the top, and `autoScroll={false}` when new rows must not move the view."},
+      {"name":"jump-to-message","title":"Jump to a message","why":"Call `useMessageScroller` inside the MessageScroller to move the transcript from your own controls. It scrolls to the start, to the end, or to one row by its `messageId`."},
+      {"name":"custom-button","title":"Your own jump control","why":"`useMessageScrollerScrollable` tells you whether there is more to scroll to at each end. Use it to build a control of your own, here a button that is off when you are at the end."},
+    ],
     topics: [
       { title: "Following the live edge", symbols: ["MessageScroller", "MessageScrollerContent"] },
       { title: "Rows, anchors and jumping back", symbols: ["MessageScrollerItem", "MessageScrollerButton"] },
@@ -1580,15 +1894,15 @@ const DECLARED: Entry[] = [
     refusals: [
       {
         name: "`size`",
-        why: "It paints nothing but the button. The rows are the app's, and each states its own index.",
+        why: "It paints only the button. Each row in your app states its own size.",
       },
       {
         name: "A viewport of its own",
-        why: "Two scroll boxes in one pane is the failure, not the feature. It composes the pane's `ScrollArea` instead, which is why the fade and the bars still belong to the pane.",
+        why: "Two scroll boxes in one pane fail. It uses the pane's `ScrollArea` instead.",
       },
       {
         name: "English",
-        why: "The button's name is yours, like every other accessible name the system cannot write.",
+        why: "The button's accessible name is yours to write, like every name the system cannot know.",
       },
     ],
     parts: [
@@ -1602,14 +1916,23 @@ const DECLARED: Entry[] = [
     name: "ScrollArea",
     family: "Surface",
     spec: "§10",
+    declaration: `<ScrollArea style={{ height: "10rem" }}>
+  \u2026
+</ScrollArea>`,
+    variants: [
+      {"name":"fade","title":"Faded edges","why":"`fade` fades the content at an edge while more is hidden behind it. An edge with nothing past it does not fade, so the list shows when it continues."},
+      {"name":"horizontal","title":"Sideways scrolling","why":"Content wider than its box scrolls sideways. ScrollArea shows a bar only for the direction that overflows, so there is no orientation prop to set."},
+      {"name":"in-a-card","title":"In a card","why":"When a ScrollArea is the only child of a Card, it reaches the card's edges and puts the padding inside itself. The bar then runs along the card's own edge."},
+      {"name":"named-region","title":"A named scroll region","why":"A ScrollArea is a tab stop. Name it with `aria-labelledby` or `aria-label`, and a screen reader announces it as a region that keyboard users can scroll."},
+    ],
         abstract: "ScrollArea draws custom scrollbars over native scrolling.",
-    overview: ["The browser keeps the scrolling behaviour, and the system draws the bar: a rounded thumb over the content, visible while you scroll or hover, with no visible track and no reserved gutter. It is one export, because the viewport, the bars and the corner are assembly rather than API."],
+    overview: ["ScrollArea draws its own scrollbars over the browser's native scrolling. The browser keeps the wheel, trackpad, touch and keyboard behaviour. The system draws a rounded bar over the content, with no track and no reserved space.","The bar is visible while you scroll or point at the area, and it is hidden at rest. ScrollArea shows a bar only for a direction that has more content, so you do not choose horizontal or vertical.","A ScrollArea needs a limit to scroll. Give it a `height` or `maxHeight` through `style`, or put it in a Shell pane or a panel that sets its height. Without a limit, it grows with its content and never scrolls.","Set `fade` to fade the content out at an edge while more of it is hidden past that edge. When a ScrollArea is the only child of a `Card` or another surface, it reaches the surface's edges and moves the surface's padding inside itself.","A ScrollArea is a tab stop, so a keyboard user can focus it and scroll with the arrow keys. Name it with `aria-label` or `aria-labelledby`, and a screen reader announces it as a region. Set `focusable={false}` only inside a component that already handles keyboard scrolling, such as a menu."],
     refusals: [
-      { name: "`size`", why: "One stated thickness. A scrollbar has no box of its own to index against." },
-      { name: "`tone` and `emphasis`", why: "It ranks nothing and means nothing. It shows you where you are in the content." },
-      { name: "`material`", why: "It draws over content inside a pane, and the pane already answered the theme." },
-      { name: "`render`", why: "The anatomy is Base UI's contract. The parts are assembly you cannot reach." },
-      { name: "`orientation`", why: "Both bars are declared, and Base UI mounts only the ones the content needs, after it measures. Which bars appear is a fact about the content, not a prop." },
+      { name: "`size`", why: "It has one fixed thickness. A scrollbar has no box to size against." },
+      { name: "`tone` and `emphasis`", why: "A scrollbar ranks nothing and means nothing. It only shows where you are." },
+      { name: "`material`", why: "It draws inside a pane, and the pane already answers the theme's material." },
+      { name: "`render`", why: "The parts follow Base UI's structure, which you cannot reach into." },
+      { name: "`orientation`", why: "Base UI shows only the bars the content needs, after measuring. It is not a prop." },
     ],
   },
   {
@@ -1617,12 +1940,18 @@ const DECLARED: Entry[] = [
     name: "Separator",
     family: "Surface",
     spec: "§11",
+    declaration: `<Separator orientation="horizontal" />`,
+    variants: [
+      {"name":"in-a-toolbar","title":"In a toolbar","why":"A vertical Separator stretches to the height of its row. Use it to divide one group of controls from the next, such as text style from text alignment."},
+      {"name":"labelled","title":"A divider with a word","why":"There is no `children` prop. Build an \"or\" divider from two Separators and a Text in a row, with each line in a Box that grows."},
+      {"name":"in-a-card","title":"In a card","why":"Separators between the rows of a summary card. Each line fills the width of its Stack, so you never set a length."},
+    ],
         abstract: "Separator draws a thin dividing line.",
-    overview: ["It has one colour and one thickness, both already decided. Its length comes from whatever contains it, which is the outer-spacing rule applied to size."],
+    overview: ["Separator draws a thin line between two groups of content. It has one colour and one thickness, and the theme sets both. Use it where space alone does not show that two groups are separate.","The line is as long as the container it sits in. A horizontal Separator fills the width of its column, and a vertical one fills the height of its row. There is no length prop, for the same reason no component sets its own outer spacing.","Prefer space before you add a line. A larger `gap` between two groups is often enough. Use a `Card` when a group needs its own surface, and use `Surface` when a region needs a recessed background.","A Separator is a real `role=\"separator\"` element, and `orientation` sets `aria-orientation` for screen readers. A line that must stay hidden from screen readers is decoration, so draw it with a styled `Box` instead."],
     refusals: [
-      { name: "`children`", why: "A labelled divider is a composition: two separators and a Text, not a prop." },
-      { name: "A length prop", why: "The container decides the length, which is the same rule that refuses margin everywhere." },
-      { name: "`decorative`", why: "A rule that has to hide from assistive technology is not a Separator. It is a styled Box." },
+      { name: "`children`", why: "A labelled divider is two Separators and a Text, not a prop." },
+      { name: "A length prop", why: "The container sets the length, the same way it sets spacing everywhere." },
+      { name: "`decorative`", why: "A rule hidden from screen readers is not a Separator. Use a styled Box." },
     ],
   },
   {
@@ -1631,11 +1960,7 @@ const DECLARED: Entry[] = [
     family: "Surface",
     spec: "§10, §20, §24, §49",
     abstract: "Sheet slides a panel in from an edge of the window, over a dimmed app.",
-    overview: [
-      "It takes Dialog's behaviour whole: focus is trapped in the panel, the page behind it stops scrolling, the dimmed background says the page is out of play, and Escape or a press on that background closes it. What it adds is the edge. `side` follows the reading direction — `bottom`, `inline-start` or `inline-end` — so a panel that arrives from the right in English arrives from the left in Arabic, with nothing in your markup saying which. The part names follow shadcn/ui's sheet (MIT), with credit, and the behaviour is Base UI's Drawer.",
-      "A swipe toward the edge closes it, and the panel follows your finger while you drag. It stops short of the far edge so a strip of the dimmed page stays reachable, and the panel's own body scrolls when the content is taller than the room. On a phone it rises above the keyboard rather than under it.",
-      "`size` sets the width, the padding, the corner, and the two parts the system owns: the title and the description. A side sheet takes that width. A bottom sheet takes it as a maximum, so it is the width of the window on a phone and a task-sized panel on a desktop. Nothing you wrote inside is resized.",
-    ],
+    overview: ["Sheet slides a panel in from an edge of the window, over a dimmed app. Use it for a task that needs more room than a `Popover` but that you want to keep beside the page, such as filters, a share panel or navigation on a phone.","Use `Dialog` when the task belongs in the centre of the screen. Use `AlertDialog` for a short question that needs an answer. Use a Shell pane, such as `ShellInspector`, for a panel that stays open while people keep working on the page.","It has the same behaviour as `Dialog`. Focus stays in the panel, the page behind it stops scrolling, and the dimmed background shows that the page is out of use. Escape, a press on the dimmed background, or a swipe toward the edge closes it. `onOpenChange` tells you why it closed.","`side` follows the reading direction: `bottom`, `inline-start` or `inline-end`. A panel that comes from the right in English comes from the left in Arabic, and your markup does not change. The panel follows your finger while you drag it closed, and on a phone it sits above the keyboard.","`size` sets the width, the padding, the corner, and the text size of `SheetTitle` and `SheetDescription`. A side sheet uses that width. A bottom sheet uses it as a maximum, so it fills the window on a phone. The size does not change the content you put inside.","A screen reader announces the panel as a dialog, named by `SheetTitle` and described by `SheetDescription`. The part names follow shadcn/ui's sheet (MIT), with credit, and the behaviour comes from Base UI's Drawer."],
     declaration: `<Sheet side="inline-end">
   <SheetTrigger render={<Button>Filters</Button>} />
   <SheetContent>
@@ -1646,6 +1971,13 @@ const DECLARED: Entry[] = [
     <SheetClose render={<Button>Apply</Button>} />
   </SheetContent>
 </Sheet>`,
+    variants: [
+      {"name":"bottom","title":"From the bottom","why":"`side=\"bottom\"` is the default. On a phone the panel fills the window's width, and on a wider window its width stops at a size that suits one task."},
+      {"name":"inline-start","title":"From the start edge","why":"`side=\"inline-start\"` opens from the side where reading starts, the left in English. It is a common place for navigation on a narrow window."},
+      {"name":"controlled","title":"Controlled","why":"Hold `open` in your own state to open the sheet from anywhere, with no SheetTrigger. `onOpenChange` tells you when a person closes it."},
+      {"name":"long-content","title":"Content taller than the window","why":"When the content is taller than the window, the panel stops at the window's height and its body scrolls. The page behind it does not scroll."},
+      {"name":"rtl","title":"Right to left","why":"`side` follows the reading direction. Under `dir=\"rtl\"`, `inline-end` opens the panel from the left, and a swipe to the left closes it."},
+    ],
     topics: [
       { title: "Opening it", symbols: ["Sheet", "SheetTrigger"] },
       { title: "Presenting the panel", symbols: ["SheetContent"] },
@@ -1655,31 +1987,31 @@ const DECLARED: Entry[] = [
     refusals: [
       {
         name: "A top edge, and a physical left or right",
-        why: "The top of the screen belongs to the platform — the notification shades on iOS and Android, the menu bar on macOS — and to your own toolbar on the web, so a panel arriving from above lands on the chrome people navigate by. Neither iOS nor Material ships a top sheet. A physical left or right is refused because the edge a sheet sits against is the end of the window you read toward, which changes with the language.",
+        why: "The top edge belongs to system and app toolbars. Sides follow reading direction, so physical left and right are out.",
       },
       {
         name: "Header and Footer, and a close button in the corner",
-        why: "A title, a description and a row of actions are a Stack you write, and blessing one arrangement deprecates every other. SheetClose puts a real Button wherever the composition wants one, which is also what somebody using a screen reader on a touch device needs in order to leave a trapped panel, because a swipe is not a gesture that reaches the page.",
+        why: "Write the title and actions in a Stack. Use `SheetClose` to place a real Button where you want it.",
       },
       {
         name: "`modal` and `disablePointerDismissal`",
-        why: "An open sheet is the interaction: focus trapped, the page locked, the dimmed background saying so. A panel that sits beside the page and leaves it live is a Shell pane, not a flag on this component.",
+        why: "An open sheet traps focus and locks the page. A panel that leaves the page live is a Shell pane.",
       },
       {
         name: "Snap points, and a swipe that opens it",
-        why: "A sheet is open or closed. A panel resting at half its height is a third state with its own layout, its own announcement and its own gesture, and a swipe inward from the window's edge fights the browser's own gesture for going back.",
+        why: "A sheet is open or closed. Half-open states and edge swipes conflict with the browser's back gesture.",
       },
       {
         name: "Sheets inside sheets",
-        why: "A second panel over the first leaves nothing of the page to go back to, and two focus traps have no order between them. Change what the open panel shows instead.",
+        why: "Two stacked focus traps have no order. Change what the open sheet shows instead.",
       },
       {
         name: "`tone` and `emphasis`",
-        why: "A panel ranks nothing and carries no meaning of its own. What you put inside it carries both, which is where a destructive action or a loud button belongs.",
+        why: "The panel carries no meaning of its own. Put tone and emphasis on what goes inside it.",
       },
       {
         name: "A shadow",
-        why: "The dimmed page is the separation: the whole window going dark is what says the panel covers the app, so a shadow would say it a second time. In a raised theme the panel lifts exactly as much as a Card does.",
+        why: "The dimmed page already shows the sheet covers the app, so no extra shadow is added.",
       },
     ],
     parts: [
@@ -1696,7 +2028,7 @@ const DECLARED: Entry[] = [
     family: "Layout",
     spec: "§27",
         abstract: "Shell is the app frame: a header, a rail, a sidebar, the content, an inspector and a bottom pane.",
-    overview: ["Each pane places itself in one grid, so Shell never inspects its children and the DOM order stays the reading order. A pane you have not touched rests on auto, and CSS decides what auto means at the current window size, so the first paint is correct with no script. State lives on each pane, in the same controlled pattern Dialog uses."],
+    overview: ["Shell is the frame of an app. It holds a full-width header, a rail of icons, a sidebar, the content, an inspector and a bottom pane. Use it once, at the root of an app, and put your pages inside `ShellContent`.","Each pane places itself in one grid by name, so Shell does not inspect its children, and the order you write them in stays the reading order. Leave out the panes you do not need. Every pane is a real landmark: the header is a `<header>`, the rail and sidebar are `<nav>` elements, the content is `<main>`, and the inspector and bottom pane are `<aside>` elements.","A pane you have not opened or closed follows the window size. The sidebar is open on a wide window and becomes an overlay on a narrow one. CSS makes this choice, so the first paint is correct with no script. A `ShellTrigger` opens and closes a pane by name from anywhere in the frame. Pass `open` and `onOpenChange` to hold a pane's state yourself, in the same pattern `Dialog` uses.","By default the panes join edge to edge, with one line at each join. Set `flush={false}` on a pane to pull it off the frame. The side panes then float over the content, or, when the content itself is not flush, it becomes a separate panel set in from the frame.","`size` on Shell sets the size of the navigation rows, the rail items and the header row in every pane, and any pane can set its own. By default a Shell fills the window. Set `contained` to fill its parent instead, for a Shell inside a card or a demo.","When a pane opens as an overlay on a narrow window, focus moves into it, the rest of the frame cannot be used, and Escape or a press outside closes it."],
     declaration: `<Shell>
   <ShellHeader>\u2026</ShellHeader>
   <ShellRail aria-label="Regions">
@@ -1706,7 +2038,7 @@ const DECLARED: Entry[] = [
   </ShellRail>
   <ShellSidebar aria-label="Sections">
     <ShellPaneHeader float>
-      <ShellTrigger pane="sidebar" action="toggle" />
+      <ShellTrigger target="sidebar" action="toggle" />
     </ShellPaneHeader>
     <ShellScroll fade>
       <ShellNavGroup label="Workspace">
@@ -1719,6 +2051,16 @@ const DECLARED: Entry[] = [
   <ShellInspector aria-label="Details">\u2026</ShellInspector>
   <ShellBottom aria-label="Console">\u2026</ShellBottom>
 </Shell>`,
+    variants: [
+      {"name":"header","title":"A full-width header","why":"ShellHeader is a bar above every column. A ShellTrigger in it opens and closes the sidebar, so people can get the sidebar back after they close it."},
+      {"name":"rail","title":"A rail beside the sidebar","why":"A ShellRail is a narrow column of icons for the top-level areas. The sidebar lists the pages in the chosen area. Give each `<nav>` its own `aria-label`."},
+      {"name":"inspector","title":"A details inspector","why":"ShellInspector is a details column at the end of the frame. It stays closed until a ShellTrigger opens it, or you pass `defaultOpen`."},
+      {"name":"bottom-pane","title":"A bottom pane for logs","why":"ShellBottom is a full-width pane under the columns, for a console or a build log. It stays closed until a ShellTrigger opens it."},
+      {"name":"floating","title":"Floating side panes","why":"Set `flush={false}` on the side panes and leave the content flush. The content fills the whole frame, and the rail and sidebar float over it as separate panels."},
+      {"name":"grounded","title":"Content as its own panel","why":"Set `flush={false}` on ShellContent and leave the other panes flush. The work area becomes its own panel, while the header and sidebar stay joined to the frame."},
+      {"name":"resizable","title":"A resizable sidebar","why":"Set `resizable` to let people drag the sidebar's edge or step it with the arrow keys. `minWidth` and `maxWidth` limit the drag, and `onResize` gives you the width to store."},
+      {"name":"controlled","title":"Controlled","why":"Pass `open` and `onOpenChange` to hold a pane's state yourself, for example to remember it between visits. `onOpenChange` fires only when a person changes it."},
+    ],
     topics: [
       { title: "The frame", symbols: ["Shell"] },
       { title: "The panes", symbols: ["ShellHeader", "ShellSidebar", "ShellContent", "ShellInspector", "ShellBottom"] },
@@ -1731,22 +2073,22 @@ const DECLARED: Entry[] = [
       { title: "Opening and closing a pane", symbols: ["ShellTrigger"] },
     ],
     refusals: [
-      { name: "A gap prop", why: "Floating is the gap. The distance is one layout-space step, so a compact app's frame tightens with the rest of its distances. A per-shell number is how a frame drifts off its own app's rhythm." },
-      { name: "A header position axis", why: "The header is full-width by definition. A header that is not full-width is a header inside ShellContent. One geometry, and the other arrangement is a composition." },
-      { name: "A thin sidebar mode", why: "A thin sidebar is a rail wearing a sidebar's name, which puts the same region in the tree twice. Rail and sidebar are independent columns here, and an app that wants them linked writes three lines." },
-      { name: "A close-cascade between rail and sidebar", why: "It is not universally true. VS Code's columns are independent and Slack's rail cannot close. That makes it an app's opinion, not a frame rule with a conflict protocol." },
-      { name: "`peek`", why: "Deferred until a real screen asks for it. A pane that slides half open costs a context slice, absolute overlays and per-pane CSS, and it carries very little." },
-      { name: "A `ShellRailItem` with a prop for the detached seat", why: "A rail item is a PLACE: it carries current and aria-current, and an action never can, so the prop would refuse half its own type on one branch. The tab bar's search shipped as one for a day and read as a fifth place. ShellRailAction is the part, and it also cannot be a caller's icon-only Button, because its box has to equal the pill's beside it \u2014 the seat's row plus the pill's own air, which an app cannot derive." },
-      { name: "`backdrop` on `ShellContent`", why: "The work area never gets glass. It is not a preference: a pane floats only when the content is underneath it, so the content is the one pane nothing is ever underneath — it is the bottom of the stack, with the app's flat ground behind it. Glass there blurs nothing and mints a lens map for the largest box on screen. A vibrant region inside the work area is still reachable, because a solid surface hosts glass: put a Box backdrop or a Card backdrop in it." },
+      { name: "A gap prop", why: "Floating is the gap: one layout-space step, so it tightens with density. A custom number drifts off rhythm." },
+      { name: "A header position axis", why: "The header is always full-width. For a narrower one, put a header inside `ShellContent`." },
+      { name: "A thin sidebar mode", why: "A thin sidebar is a rail. Rail and sidebar are separate columns you can link yourself." },
+      { name: "A close-cascade between rail and sidebar", why: "It is an app's opinion, not a frame rule. Some apps keep rail and sidebar independent." },
+      { name: "`peek`", why: "Deferred until a real screen needs it. A half-open pane costs a lot and carries little." },
+      { name: "A `ShellRailItem` with a prop for the detached seat", why: "A rail item is a place, and an action is not. Use `ShellRailAction`, which sizes itself to match the pill." },
+      { name: "`backdrop` on `ShellContent`", why: "Nothing ever sits behind the work area, so glass blurs nothing. Put a Box or Card with `backdrop` inside it instead." },
       {
         name: "A tab bar derived from the sidebar",
-        why: "The caller declares what a phone gets. A sidebar holds as many places as an index needs and a bar holds three to five, so deriving one from the other would either invent a rule about which entries are primary or ship a bar it cannot draw. ShellTabBar takes the list you state; a rail becomes a bar on its own, because a rail's items already are the top level.",
+        why: "You declare what a phone gets. A bar holds three to five items, so it cannot be derived from a long sidebar.",
       },
       {
         name: "A tab bar that changes what the sidebar shows",
-        why: "A bar item is a place, and its type says so: it takes an href or a link through render, and no onClick. The bar is the coarse level and the sidebar the fine one, and the two do not need to know about each other — which is why the sidebar never changes shape on a phone. A rail is the other case, and a rail item is a button that has always been free to drive a pane.",
+        why: "A bar item is a place, so it takes a link, not `onClick`. Use a rail to drive a pane.",
       },
-      { name: "A floating or stacked presentation value", why: "A pane over the content and a pane pulled off the frame are one idea, and it is flush={false}. The pane leaves the tiling, and what it becomes is derived from whether the content is underneath it. There is no third presentation to choose." },
+      { name: "A floating or stacked presentation value", why: "Floating and stacked are the same idea, spelled `flush={false}`. The frame derives which one you get." },
     ],
     parts: [
       { part: "ShellHeader", blurb: "The full-width top bar, and a real `<header>` landmark. A header that is not full-width belongs inside ShellContent" },
@@ -1776,13 +2118,22 @@ const DECLARED: Entry[] = [
     name: "Slider",
     family: "Control",
     spec: "§4, §11",
+    declaration: `<Slider defaultValue={40} aria-label="Volume" />`,
+    variants: [
+      {"name":"range","title":"A range with two handles","why":"Pass an array to draw a handle for each value. `minStepsBetweenValues` keeps the two handles apart, and `format` sets how a screen reader speaks the value."},
+      {"name":"controlled","title":"Controlled","why":"Hold the value in your own state to show it elsewhere. `onValueChange` fires during a drag, and `onValueCommitted` fires once when you let go, which suits a save."},
+      {"name":"steps","title":"Steps and limits","why":"`min`, `max` and `step` set the values a handle can land on. `largeStep` sets how far Page Up, Page Down and Shift with an arrow key move it."},
+      {"name":"disabled","title":"Disabled","why":"A disabled Slider keeps its value visible but does not move. The filled part turns grey, so the setting reads as off, and a line of text says why."},
+      {"name":"in-a-form","title":"In a form","why":"Inside a Field, the FieldLabel names the Slider, so it needs no `aria-label`. Give it a `name`, and the value is sent with the form."},
+      {"name":"rtl","title":"Right to left","why":"Under `dir=\"rtl\"` the Slider fills from the right and the right arrow key lowers the value. Nothing in the Slider's own props sets the direction."},
+    ],
         abstract: "Slider lets someone set a value along a length.",
-    overview: ["The whole strip is pressable, and it stands as tall a target as the Button beside it. A range slider is the same component: pass an array and it renders a handle for each entry."],
+    overview: ["Slider lets someone set a number along a length, such as a volume, a price or a timeout. Use it when the exact value matters less than where it sits in the range. Use `NumberField` when people need to type an exact number.","The whole strip responds to a press, and it is as tall a target as the `Button` beside it at the same size. The handle is the same size as a `Checkbox` at that size. The Slider fills the width of its container, so set the width on the container.","Pass an array as the value and the Slider draws a handle for each entry. `min`, `max` and `step` set the values a handle can land on, and `minStepsBetweenValues` keeps two handles apart.","The filled part uses the accent colour and the track is neutral. There is no `tone` or `emphasis`, because a value is not an action. A disabled Slider turns the filled part grey.","Each handle is a real range input, so the arrow keys, Page Up, Page Down, Home and End move it. Name a standalone Slider with `aria-label`. Inside a `Field`, the `FieldLabel` names it. Under `dir=\"rtl\"` the Slider fills from the right, and the arrow keys follow that direction."],
     refusals: [
-      { name: "`tone` and `emphasis`", why: "A value is not an action, and a form where one slider is louder than the next says nothing." },
+      { name: "`tone` and `emphasis`", why: "A value is not an action, and one slider louder than the next says nothing." },
       {
         name: "`orientation`",
-        why: "A vertical slider needs its own designed measurements: how far the thumb travels, how thick the track is, and every cell of both. It ships the day something needs it, rather than as a prop that renders undesigned geometry today.",
+        why: "A vertical slider needs its own designed measurements. It ships when something needs it.",
       },
     ],
   },
@@ -1791,14 +2142,21 @@ const DECLARED: Entry[] = [
     name: "Spinner",
     family: "Indicator",
     spec: "§8",
+    declaration: `<Spinner />`,
+    variants: [
+      {"name":"in-a-button","title":"In a button","why":"Set `loading` on a Button to put a Spinner in the icon's place. The label stays, so the button keeps its width and a screen reader still hears what is running."},
+      {"name":"with-a-label","title":"With a label","why":"A Spinner is hidden from screen readers, so put the state in words beside it. `role=\"status\"` makes a screen reader announce those words when they appear."},
+      {"name":"colour","title":"Colour from the text","why":"A Spinner has no colour prop. It draws in the colour of the text it sits in, so a tone on the surrounding Text also colours the Spinner."},
+      {"name":"sizes","title":"Sizes","why":"Inside a control, the Spinner is the size of that control's icon. This row shows a loading Button at each of the four sizes."},
+    ],
         abstract: "Spinner shows that something is busy.",
-    overview: ["It costs one composited transform and no JavaScript. The spokes are real shapes rather than a gradient, and the wrapper is what rotates rather than the SVG, because this control's one job is to keep moving even when the main thread is busy."],
+    overview: ["Spinner shows that something is busy. It draws eight spokes with a fading trail, and it turns one spoke at a time. Use it for a short wait where you cannot say how much work is left.","Use `Progress` instead when you know how far the work has gone, such as an upload at 40%. Use the `loading` prop on `Button` when the wait belongs to an action, because the button then marks itself busy and keeps its label.","A Spinner draws in the colour of the text around it, so it matches its context in every tone and in light and dark mode. Inside a control it is the size of that control's icon, so you can swap an icon for a Spinner and nothing moves. On its own it uses the icon size of a size 2 control.","The spinning costs one composited transform and no JavaScript. The wrapper element turns, not the SVG, so the Spinner keeps moving even when the main thread is busy. When the operating system asks for reduced motion, the Spinner turns more slowly but does not stop.","A screen reader does not announce a Spinner. Put the state in words next to it, or use a control that marks itself busy, such as a `Button` with `loading`."],
     refusals: [
       {
         name: "A size prop",
-        why: "It occupies the icon box, so swapping a spinner in for an icon shifts nothing. On its own it takes the size-2 box.",
+        why: "It fills the icon box, so swapping it for an icon shifts nothing. Alone, it uses the size-2 box.",
       },
-      { name: "A colour prop", why: "It draws in currentColor, which is correct in every context with no token at all." },
+      { name: "A colour prop", why: "It draws in currentColor, which is correct in every context without a token." },
     ],
   },
   {
@@ -1806,11 +2164,20 @@ const DECLARED: Entry[] = [
     name: "Stack",
     family: "Layout",
     spec: "§3",
-        abstract: "Stack is Box with a column flex preset.",
-    overview: [
-      "It is the most common layout in any app, so it has a name of its own and nobody writes it out again.",
+    declaration: `<Stack gap="3" align="start">
+  \u2026
+</Stack>`,
+    variants: [
+      {"name":"gap","title":"Gaps","why":"`gap` sets the space between every child. A small step suits items that belong together, such as the lines of one address. A larger step suits groups that are separate."},
+      {"name":"alignment","title":"Alignment","why":"`align` sets where each child sits across the column. The default, `stretch`, makes each child as wide as the Stack. Use `flex-start` to keep buttons at their own width."},
+      {"name":"nested-groups","title":"Nested groups","why":"Put a Stack inside a Stack to make groups. Use a smaller gap inside each group and a larger gap between groups. The difference in space shows people which items belong together."},
+      {"name":"with-separators","title":"With separators","why":"Place a `Separator` between items to draw a line. Put each line where you want it, so the first item has no line above it. The Stack gap sets the space on both sides of the line."},
+      {"name":"responsive","title":"Responsive","why":"Give `gap` or `align` an object with a value for each breakpoint. Here the gap grows and the buttons stop stretching on a wider container. The breakpoints measure a container, not the window."},
+      {"name":"render","title":"As a section","why":"Use `render` to make the Stack a real element with a meaning, such as a `section` with a heading. The column and the gap stay the same. Only the element changes."},
     ],
-    refusals: [{ name: "`dividers`", why: "A rule between rows is a Separator you place, not a prop that guesses where you wanted one." }],
+        abstract: "Stack is Box with a column flex preset.",
+    overview: ["Stack puts its children in a column, one under the other, with a gap between them. It is a Box with a column layout already set, so it has no CSS of its own.","Use a Stack for most vertical layouts: a form, a list of settings, a card body, or a group of paragraphs. Use a Flex when the children sit side by side, and a Grid when they sit in rows and columns.","Set the space between children with `gap`. The value is a step on the space scale, not a length, and the theme and the density setting decide what each step is worth. A component inside a Stack never sets its own outer margin, so the Stack decides all the space between them.","Stack has no `direction`, `wrap`, `gapX` or `gapY`, because a single column has one direction and one gap. If you need a row, use Flex. To put a rule between items, place a Separator where you want it. There is no `dividers` prop.","Most props take a responsive value, such as `{ initial: \"3\", md: \"5\" }`. The breakpoints measure the nearest container you mark with `container`, or the whole app if there is none. Use `render` to make the Stack a different element, such as a `section` or a `form`. The layout stays the same."],
+    refusals: [{ name: "`dividers`", why: "Place a Separator where you want a rule, rather than a prop that guesses." }],
   },
   {
     slug: "segmented-control",
@@ -1818,26 +2185,33 @@ const DECLARED: Entry[] = [
     family: "Control",
     spec: "§4, §11, §19, §26",
         abstract: "SegmentedControl shows a few options at once and lets someone pick one.",
-    overview: ["It is built as a radio group rather than a row of toggle buttons, because picking one of several is what a radio group is, and that is what a screen reader announces. The control stands the same height as a Button beside it, and the selected option is marked by a raised tile that slides between positions."],
+    overview: ["SegmentedControl shows a few options side by side and lets someone pick one, such as a list or grid view. Use it for two to five short options that change a setting in place.","Use `Tabs` instead when the choice switches the content below it. Use a `ToggleGroup` of `Toggle`s when people can pick more than one option. Use `Select` when there are too many options to show at once.","It is built as a radio group, not a row of toggle buttons, because picking one of several is what a radio group is. A screen reader announces it as a radio group, and the arrow keys move the choice. Give the control an `aria-label` that names the setting.","The control is as tall as a `Button` beside it at the same size. The selected option sits on a raised tile that slides to the new position when the choice changes. There is no `tone` or `emphasis`, so every segment has the same weight.","Set `backdrop` when content passes behind the control, and it uses the theme's material. A `<Box backdrop>` region does the same for a whole toolbar."],
     declaration: `<SegmentedControl defaultValue="grid" aria-label="View">
   <SegmentedItem value="list">List</SegmentedItem>
   <SegmentedItem value="grid">Grid</SegmentedItem>
 </SegmentedControl>`,
+    variants: [
+      {"name":"with-icons","title":"With icons","why":"A segment can hold an icon beside its label. The icon is the size set for the control, so every segment keeps the same height."},
+      {"name":"icon-only","title":"Icon-only segments","why":"A segment with only an icon needs `aria-label`, so a screen reader can name the option. Use icons that people already know, such as list and grid."},
+      {"name":"controlled","title":"Controlled","why":"Hold the value in your own state with `value` and `onValueChange` when the choice changes something else on the screen, such as a price."},
+      {"name":"disabled","title":"Disabled","why":"Set `disabled` on one SegmentedItem to block that option, or on the SegmentedControl to block the whole control. The options stay visible either way."},
+      {"name":"in-a-toolbar","title":"In a toolbar","why":"At the same size, a SegmentedControl is as tall as the TextField and Button beside it. A row of mixed controls lines up with no extra work."},
+    ],
     topics: [
       { title: "Picking one of a few", symbols: ["SegmentedControl", "SegmentedItem"] },
     ],
     refusals: [
       {
         name: "`tone` and `emphasis`",
-        why: "The family has one tone, as an identity. A segment louder than its neighbours is not a segmented control.",
+        why: "The control has one fixed colour. A segment louder than the others breaks it.",
       },
       {
         name: "An exported thumb",
-        why: "The sliding tile is structure, not API. It is placed for you, and a consumer who has to place it is one who will forget.",
+        why: "The sliding tile is placed for you. Exporting it would make you place it yourself.",
       },
       {
         name: "Multi-select",
-        why: "Two options on at once is a set of toggle buttons, which is a different component: a ToggleGroup of Toggles. A radio group holds exactly one answer.",
+        why: "Choosing several options is a ToggleGroup of Toggles. A segmented control holds one answer.",
       },
       {
         name: "`nativeButton` and `render`",
@@ -1845,9 +2219,9 @@ const DECLARED: Entry[] = [
         // an unscoped refusal reaches the root — where `render` is real and `tsc` accepts it,
         // so the two channels gave opposite verdicts on `<SegmentedControl render={<Stack/>}>`.
         on: ["SegmentedItem"],
-        why: "Set nativeButton on a segment and Space stops selecting it, which is the bug the checkbox closed on this same primitive.",
+        why: "Setting `nativeButton` stops Space from selecting a segment.",
       },
-      { name: "`readOnly`", why: "The same as Radio: HTML has no read-only selection control, so there is no appearance to inherit." },
+      { name: "`readOnly`", why: "HTML has no read-only selection control, so there is no appearance to copy." },
     ],
     parts: [
       { part: "SegmentedItem", blurb: "One segment: a control hosted in the channel, holding its own label and reporting its own checked state" },
@@ -1858,14 +2232,24 @@ const DECLARED: Entry[] = [
     name: "Switch",
     family: "Control",
     spec: "§4, §6, §11, §19",
+    declaration: `<Switch id="notify" defaultChecked />
+<Text render={<label htmlFor="notify" />}>Notifications</Text>`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"`size` sets the track height and width, from 1 to 4. At each size the switch is one step larger than a Checkbox. Use size 2 unless the row around it uses another size."},
+      {"name":"controlled","title":"Controlled","why":"Pass `checked` and `onCheckedChange` to keep the state in your app. Use this when other parts of the screen change with the switch. Leave them out and use `defaultChecked` when nothing else depends on the value."},
+      {"name":"disabled","title":"Disabled","why":"Set `disabled` to stop a switch from changing. The track dims, and the thumb stays visible so people can still see the value. Tell people why, near the switch, when the reason is not clear."},
+      {"name":"with-description","title":"With a description","why":"Put each switch in a `FieldItem` with a `FieldLabel` and a `FieldDescription`. The label and the description connect to the switch for you. The outer `FieldLabel` names the whole group."},
+      {"name":"settings-card","title":"A settings card","why":"Put the label on the start side and the switch on the end side of each row. Use a `Separator` between rows. This is the common layout for a list of account settings."},
+      {"name":"in-a-form","title":"In a form","why":"Give the switch a `name`, and it sends a value with the form. A checked switch sends `on`, and an unchecked switch sends nothing. Use a form when the settings save together."},
+    ],
         abstract: "Switch turns one thing on or off.",
-    overview: ["Its track is slightly larger than a checkbox at the same size, which is the relationship every other design system arrives at by hand. When it is off, the track is a neutral channel with no visible border, so you feel for it rather than reading it as a small panel."],
+    overview: ["A Switch turns one setting on or off. The change applies at once, with no save button. Use a Checkbox when the choice waits for a form to be sent.","The track is one step larger than a Checkbox at the same size, and the width follows the same size. When it is off, the track is a neutral channel with no visible border. When it is on, the track fills with the accent colour. These colours are fixed. There is no `tone` or `emphasis`.","The label is a separate element, not a child. Put a `Text` rendered as a `label` beside it, with `htmlFor` set to the Switch's `id`. Inside a `Field`, use `FieldItem` with `FieldLabel` and `FieldDescription`, and the names connect for you.","A screen reader announces a Switch as a switch that is on or off. Space changes it. A hidden checkbox goes with it, so it sends its `name` and value with a form. Its tappable area extends past the track, to the size a control of the same size would occupy.","`disabled` stops it from changing. There is no `readOnly`, because HTML has no read-only switch. Use `disabled` for that case. Density does not change a Switch. A pointer that is coarse, such as a finger, makes it larger."],
     refusals: [
-      { name: "`tone` and `emphasis`", why: "The same as every mark: neutral when off, accent when on, as an identity rather than an axis." },
-      { name: "`children`", why: "The label is a sibling, as it is for every mark. The row sets the distance between them." },
+      { name: "`tone` and `emphasis`", why: "It is neutral when off and accent when on. That is fixed, not a choice." },
+      { name: "`children`", why: "The label is a sibling, as with every mark. The row sets the distance between them." },
       {
         name: "`readOnly`",
-        why: "The same answer Checkbox gives. A read-only switch is a disabled one with a different name.",
+        why: "A read-only switch is just a disabled one. Use `disabled`, as with Checkbox.",
       },
     ],
   },
@@ -1875,7 +2259,7 @@ const DECLARED: Entry[] = [
     family: "Type",
     spec: "§11, §36",
         abstract: "Table lays data out in rows and columns, as the real table element, inside a box that scrolls sideways when the columns need more room than the page has.",
-    overview: ["It draws the lines between rows, the space inside each cell and the quiet header, and nothing else. Its rows do nothing when you point at them: a row you can select or open is a different component that has not shipped yet."],
+    overview: ["A Table shows data in rows and columns. It renders the real `table` element, so a screen reader can move by row and by column and read the header for each cell.","It draws the lines between rows, the space inside each cell and the header in a muted colour. The last row has no line under it. Its rows do not react to the pointer. A row that people can select or open needs a different component.","The table sits inside a box that scrolls sideways when the columns need more room than the page has. The box can take focus only when it scrolls. Name it with `aria-label` or `aria-labelledby`, and a screen reader announces it as a named region. A `TableCaption` names the table itself.","`size` sets the cell padding and the text size, from 1 to 4. The cell padding also follows the density setting. The outer edge of the first and last columns has no extra padding, so the text lines up with the content around the table.","Use `align` on `TableHead` and `TableCell` to set `start`, `center` or `end`. Put words at the start and numbers at the end. A table has no `tone` or `emphasis`. Put a tone on a `Text` or a `Chip` in a cell instead. For sorting, put a Button in a header cell and sort the rows in your own code."],
     declaration: `<Table aria-label="Invoices">
   <TableCaption>Invoices this month</TableCaption>
   <TableHeader>
@@ -1891,6 +2275,14 @@ const DECLARED: Entry[] = [
     </TableRow>
   </TableBody>
 </Table>`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"`size` sets the cell padding and the text size together. Use size 2 for most tables. Use size 1 for dense data and size 3 or 4 for a short table that needs more space."},
+      {"name":"alignment","title":"Alignment","why":"Set `align` on the header cell and on each body cell in the same column. Put numbers at the end so the digits line up. Use `center` for a short value such as a count."},
+      {"name":"wide","title":"Wide columns","why":"When the columns are wider than the space, the table scrolls sideways inside its own box. The page around it does not get wider. Give the table a name so the scrolling box has a name when it takes focus."},
+      {"name":"labelled-by-heading","title":"Named by a heading","why":"Set `aria-labelledby` to the `id` of a visible heading. A screen reader then uses the heading as the name of the table region. Use `aria-label` when there is no visible heading."},
+      {"name":"with-actions","title":"With actions","why":"Put a Button in a cell for an action on that row. Give each icon-only button an `aria-label` that names the row, such as the file name. The row itself does not react to a press."},
+      {"name":"in-a-card","title":"In a card","why":"Put a table in a Card with a heading above it. Use `Chip` in a cell to show a status with a tone. The table has no fill of its own, so it uses the card's fill."},
+    ],
     topics: [
       { title: "Laying out the table", symbols: ["Table", "TableHeader", "TableBody"] },
       { title: "Rows and cells", symbols: ["TableRow", "TableHead", "TableCell"] },
@@ -1899,12 +2291,12 @@ const DECLARED: Entry[] = [
     refusals: [
       {
         name: "A ScrollArea around it",
-        why: "The wrapper scrolls natively, so the browser makes it keyboard-focusable exactly when the columns overflow — which is the only time that tab stop is worth having. A ScrollArea takes one at all times and needs a height you state. It wears the same thumb, so the two match.",
+        why: "The wrapper scrolls natively and is focusable only when columns overflow. A ScrollArea needs a stated height.",
       },
-      { name: "Hover, selection and a press on rows", why: "A row you can point at, pick or open is an interactive surface with a keyboard and a name. That is the table row in the plan, a member of the row family, and it will ship as its own component rather than as a prop that turns this one into it." },
-      { name: "`tone` and `emphasis`", why: "A table is not louder than the block beside it, and it has no meaning of its own to colour. A cell's words can carry a tone through Text or Chip." },
-      { name: "A sticky header", why: "Pinning the header means the table decides how tall the room around it is, and no component here owns its own position. Put a tall table in a ScrollArea and pin the header there when that pattern is designed." },
-      { name: "Sorting and column controls", why: "Sorting is state and a keyboard, and the header button that carries it is a Button. The table draws what you give it in the order you give it." },
+      { name: "Hover, selection and a press on rows", why: "An interactive row needs a keyboard and a name. It will ship as its own component." },
+      { name: "`tone` and `emphasis`", why: "A table has no meaning of its own to colour. Put a tone on a cell's Text or Chip." },
+      { name: "A sticky header", why: "No component here owns its position. Put a tall table in a ScrollArea and pin the header there." },
+      { name: "Sorting and column controls", why: "Sorting is state and keyboard work. Put a Button in the header; the table draws rows in your order." },
     ],
     parts: [
       { part: "TableHeader", blurb: "The head section. Its cells are TableHeads, set in the muted ink at medium weight, because a column's name is secondary to what it names" },
@@ -1921,7 +2313,7 @@ const DECLARED: Entry[] = [
     family: "Control",
     spec: "§11, §15, §26",
         abstract: "Tabs shows a set of places you can go and marks the one you are on.",
-    overview: ["The active tab is marked by its ink and a rule underneath, never by a louder fill or a heavier label. A fill would make it read as a button among links, and a heavier weight is wider, so the bar would shift every time you switched."],
+    overview: ["Tabs show a set of views and mark the one that is open. A person selects a tab, and the panel for that tab shows under the bar. Only one panel shows at a time.","Use Tabs to switch between views of the same subject, such as the overview, activity and settings of one project. Use a SegmentedControl to choose a value that changes the content in place, such as a list or grid view. Use a Menu for actions.","The active tab has full-strength text and a line under it in the accent colour. The other tabs have muted text. The active tab has no fill and no heavier weight, because a heavier weight is wider and the bar would move each time the tab changes. The line slides to the new tab.","Set `size` on `TabsList`, and every tab in the bar uses it. There is no `tone`, `emphasis` or `material` prop. Tabs are horizontal only.","A screen reader announces a tab list, tabs and tab panels. Tab moves focus into the bar, and the arrow keys move focus between tabs. Enter or Space opens the focused tab. Use `render` on a `TabsTab` to make it a link when each tab is a separate page. Set `disabled` on a tab that people cannot open."],
     declaration: `<Tabs defaultValue="overview">
   <TabsList>
     <TabsTab value="overview">Overview</TabsTab>
@@ -1930,6 +2322,14 @@ const DECLARED: Entry[] = [
   <TabsPanel value="overview">\u2026</TabsPanel>
   <TabsPanel value="activity">\u2026</TabsPanel>
 </Tabs>`,
+    variants: [
+      {"name":"with-panels","title":"With panels","why":"Give each `TabsPanel` the same `value` as its tab. The panel for the active tab shows, and the others are hidden. A panel has no fill or border of its own."},
+      {"name":"sizes","title":"Sizes","why":"Set `size` on `TabsList` to change the height and text of every tab in the bar. Use size 2 in most places. Match the size to the controls that sit near the bar."},
+      {"name":"controlled","title":"Controlled","why":"Pass `value` and `onValueChange` to keep the active tab in your app. Use this when something outside the bar must change the tab, such as a button or the URL. Use `defaultValue` when nothing else depends on it."},
+      {"name":"disabled","title":"Disabled","why":"Set `disabled` on a `TabsTab` to stop people from opening it. The tab dims and the arrow keys skip it. Tell people elsewhere why the view is not available."},
+      {"name":"as-links","title":"As links","why":"Use `render` with an `a` element when each tab is a separate page. Each tab is then a real link with an `href`. Set the active tab from the current page."},
+      {"name":"in-a-card","title":"In a card","why":"Put Tabs in a Card to switch views inside one object. The bar has no fill, so it uses the card's fill. The line under the bar runs the full width of the card's content."},
+    ],
     topics: [
       { title: "Switching between places", symbols: ["Tabs", "TabsList", "TabsTab"] },
       { title: "What a tab reveals", symbols: ["TabsPanel"] },
@@ -1937,17 +2337,17 @@ const DECLARED: Entry[] = [
     refusals: [
       {
         name: "`tone` and `emphasis`",
-        why: "A bar where one tab is louder than the next says nothing. Which tab is active is a state, not a loudness you pick.",
+        why: "Which tab is active is a state, not a loudness you pick.",
       },
       {
         name: "TabsTrigger and TabsContent",
-        why: "These are shadcn's names, and the one place this package does not take them. A trigger here opens a floating layer, and a tab opens nothing. TabsPanel follows the role it announces.",
+        why: "Here a trigger opens a floating layer, and a tab opens nothing. `TabsPanel` matches the role it announces.",
       },
       {
         name: "`material`",
-        why: "A tab bar paints no pane. There is nothing behind it to blur, so glass has nothing to do.",
+        why: "A tab bar paints no pane, so there is nothing for glass to blur.",
       },
-      { name: "An exported indicator", why: "The rule is structure, not API. A consumer who has to place it is one who will forget." },
+      { name: "An exported indicator", why: "The indicator is structure, not API. If you had to place it, you would forget it." },
     ],
     parts: [
       { part: "TabsList", blurb: "The bar, the hairline, and the one place the size is set. It places the rule itself, so nobody has to remember to" },
@@ -1961,20 +2361,30 @@ const DECLARED: Entry[] = [
     family: "Control",
     spec: "§11, §34",
         abstract: "Toggle is a button that stays pressed: bold in a formatting bar, a filter that is on or off, a pane you show or hide.",
-    overview: ["It is a Button in every respect but one. Its loudness is its state: off is quiet and on is the medium wash, the same soft fill a chosen card or a selected tree row rests on. A screen reader hears it as a pressed or unpressed button."],
+    overview: ["`Toggle` is a button that stays pressed. Use it for bold in a formatting bar, a filter that is on or off, or a panel that you show or hide.","It looks and behaves like a `Button`, with one difference: the pressed state sets its emphasis. Off is quiet, and on is the medium fill. So there is no `emphasis` prop. `tone` gives the pressed state a meaning, such as `destructive` for a toggle that blocks something.","Use `ToggleGroup` for several toggles that share one value array, such as bold, italic and underline. Each toggle in the group turns on and off by itself. The group draws nothing, so use `render` to make it a `Flex` or a `Stack`.","Use a `SegmentedControl` when the person must pick exactly one of several options. Use a `Switch` for a setting that is saved, and a `Checkbox` for an option in a form. Use a `Button` for an action that runs and finishes.","A screen reader announces a toggle as a button with a pressed or unpressed state. Space and Enter change the state. In a `ToggleGroup`, the whole group is one tab stop and the arrow keys move focus between the toggles without pressing them. Set `orientation` to `vertical` when the toggles run in a column."],
     declaration: `<ToggleGroup aria-label="Format" defaultValue={["bold"]}>
   <Toggle value="bold" aria-label="Bold">{icon}</Toggle>
   <Toggle value="italic" aria-label="Italic">{icon}</Toggle>
 </ToggleGroup>`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"`size` picks the same four steps that `Button` uses. A toggle and a button at the same `size` are the same height. Use size 2 in most places."},
+      {"name":"icon-only","title":"Icon only","why":"Set `iconOnly` to make the toggle square around one icon. An icon-only toggle must have an `aria-label`, because the icon has no text for a screen reader. This is the usual formatting bar."},
+      {"name":"with-icons","title":"With icons","why":"Put an icon in `leading` or `trailing` beside the label. The theme sizes the icon and the gap between it and the text."},
+      {"name":"tones","title":"Tones","why":"`tone` sets what the pressed state means. The text and the icon take the colour of the tone, and the fill stays grey. Use `destructive` when turning the toggle on blocks or removes something."},
+      {"name":"bordered","title":"Bordered","why":"Set `bordered` to add a thin border around each toggle. The border stays when the toggle is pressed. Use it for a row of filters that must be visible before anyone presses them."},
+      {"name":"controlled","title":"Controlled","why":"Pass `pressed` and `onPressedChange` to keep a single toggle's state in your app. For a group, pass `value` and `onValueChange` with an array of the pressed values."},
+      {"name":"disabled","title":"Disabled","why":"Set `disabled` on a toggle to stop presses and grey it out, in either state. Set `disabled` on a `ToggleGroup` to disable every toggle in it."},
+      {"name":"vertical","title":"Vertical group","why":"Set `orientation=\"vertical\"` on a `ToggleGroup` when the toggles run in a column. The up and down arrow keys then move focus. The layout comes from the `Stack` you pass to `render`."},
+    ],
     topics: [
       { title: "A button that stays pressed", symbols: ["Toggle"] },
       { title: "Sharing one state across several", symbols: ["ToggleGroup"] },
     ],
     refusals: [
-      { name: "`emphasis`", why: "The pressed state IS the emphasis. Off is quiet and on is medium, and if you could pick a loudness, a toggle that is off could look louder than one that is on." },
-      { name: "`loading`", why: "A toggle does not wait for anything. It flips. A control that starts a job and waits for it is a Button, and a switch that persists is a Switch." },
-      { name: "A single-select group", why: "ToggleGroup is always multiple. Pick one of several is a radio group, and this library spells that SegmentedControl, which announces itself as one and moves the value with the arrow keys." },
-      { name: "`render`", on: ["Toggle"], why: "The primitive's pressed state drives the element's attributes, and the emphasis is stamped from that state. Swapping the element would leave the stamp behind. A toggle is a button." },
+      { name: "`emphasis`", why: "The pressed state sets the emphasis: off is quiet, on is medium. A choice could make off look louder." },
+      { name: "`loading`", why: "A toggle flips and never waits. Use a Button for a running job and a Switch for a saved setting." },
+      { name: "A single-select group", why: "Picking one of several is a radio group. Use `SegmentedControl` for that." },
+      { name: "`render`", on: ["Toggle"], why: "The pressed state drives the element's attributes, so swapping the element would lose it. A toggle is a button." },
     ],
     parts: [
       { part: "ToggleGroup", blurb: "The shared state for a set of toggles: one value array, roving arrow keys, a group announcement. It draws nothing, so make it the layout with render" },
@@ -1985,12 +2395,26 @@ const DECLARED: Entry[] = [
     name: "SplitButton",
     family: "Control",
     spec: "§11, §53",
+    declaration: `<SplitButton
+  menuLabel="More merge options"
+  menu={<MenuItem>Squash and merge</MenuItem>}
+>
+  Merge
+</SplitButton>`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"`size` sets the height of both halves together, from 1 to 4. The menu that opens uses the same size. Use size 2 unless the SplitButton sits beside controls of a different size."},
+      {"name":"emphasis","title":"Emphasis","why":"`emphasis` sets how loud the button is: `loud`, `medium` or `quiet`. Use `loud` for the main action on the screen, and only once. Add `bordered` to a quiet SplitButton when it needs a visible edge."},
+      {"name":"tones","title":"Tones","why":"`tone` gives the button a meaning, and both halves get it. Use `destructive` when the common action removes something. Set the same tone on the dangerous menu items, so the menu says the same thing as the button."},
+      {"name":"with-icon","title":"With an icon","why":"Put an icon before the label with `leading`. The icon goes on the action half only. The chevron half always shows the chevron, so it has no icon slot."},
+      {"name":"disabled","title":"Disabled","why":"Set `disabled` to stop both halves at once. Neither half can be pressed, and the menu cannot open. Put the reason next to the button, because a disabled control does not explain itself."},
+      {"name":"menu-groups","title":"Menu groups","why":"`menu` holds anything a `MenuContent` holds. Use `MenuGroup` and `MenuLabel` to sort a long list of alternatives. Give a destructive item its own `tone`."},
+    ],
         abstract: "SplitButton is a button with its alternatives one press away: the label runs the common action, the chevron opens the rest.",
-    overview: ["It is two Buttons drawn as one box. Both halves take the same size, tone and emphasis, so they read as one control, and each half presses on its own. The chevron opens a Menu under the whole button, aligned to its end."],
+    overview: ["A SplitButton runs one common action and keeps the other actions one press away. The label half runs the action. The chevron half opens a Menu with the alternatives.","It is two Buttons drawn as one box. Both halves get the same size, tone and emphasis, so they look like one control. Each half is its own button with its own focus stop, and each one presses on its own.","Use a SplitButton when one action is right most of the time and a few close variants are sometimes right, such as merge, squash and merge, and rebase and merge. If no action is more common than the others, use a Menu on a plain Button. If the actions are not variants of one task, put separate Buttons in a Toolbar.","The chevron half has no words, so you must give it a name with `menuLabel`. A screen reader announces that name, and it tells people that the half opens a menu. The menu opens under the whole button and lines up with its end edge.","The fill changes colour on hover and press, but the shape does not move. Moving one half on its own would break the seam between the halves. The theme sets the colours, the height and the corner, the same as for a Button at the same size."],
     refusals: [
-      { name: "`iconOnly`", why: "The label is the common action. A split button with no words is two icons, and a toolbar spells that as two buttons." },
-      { name: "Travel on hover and press", why: "A button rises and sinks because it sits on the page. Half of one box moving alone would tear the box at the seam, so the fill still lights and presses and the geometry stays put." },
-      { name: "`render`", why: "There are two elements and a menu. Neither half can become a different element without leaving the other behind." },
+      { name: "`iconOnly`", why: "The label is the common action. Without words, use two buttons in a toolbar instead." },
+      { name: "Travel on hover and press", why: "Moving half a button alone would tear it at the seam. The fill still reacts; the shape stays put." },
+      { name: "`render`", why: "It renders two elements and a menu, so neither half can become a different element alone." },
     ],
   },
   {
@@ -1999,7 +2423,7 @@ const DECLARED: Entry[] = [
     family: "Surface",
     spec: "\u00a710, \u00a755",
         abstract: "Carousel is a row that scrolls sideways, settles on its items, and has a button each way.",
-    overview: ["It is the pattern, not the contents: a rail that snaps, a previous and a next, and those buttons going dead when there is nothing more that way. What sits inside is yours \u2014 cards, covers, frames, a row of anything \u2014 and the component states no width, no gap and no aspect for it. The scrolling is the browser\u2019s own, so the wheel, the trackpad, touch and the keyboard all keep working, and a press only asks the rail to move by one item. No scrollbar is drawn: the buttons and the fade already say where you are."],
+    overview: ["Carousel is a row of items that scrolls sideways and stops on each item. It has a previous button and a next button, and each button is disabled when there is nothing more in its direction. What you put inside is yours: cards, covers, frames or a row of anything.","Use a carousel for a long row of peers that you browse, such as templates, recent projects or covers. When every item fits in the space, use a Grid or a Flex instead. For a vertical list that scrolls, use a ScrollArea. The carousel does not play on its own or loop.","Put `CarouselRail` inside `Carousel`, and mark each stopping point with `CarouselItem`. The component sets no width, gap or aspect ratio for the items. Set the item width yourself, and put the items in a Flex to set the gap. Give the rail a bounded width, and set `fade` when it runs to the edge of a pane.","Place `CarouselPrevious` and `CarouselNext` anywhere inside `Carousel`: in a row above the rail, or at each end of it. Put an arrow icon in each button. No scrollbar is drawn, because the buttons and the fade already show that there is more.","The scrolling is the browser's own, so the wheel, the trackpad, touch and the keyboard all work. A button press moves the rail by one item. The rail scrolls smoothly unless the person asks their system to reduce motion.","Carousel renders a group with the role description \"carousel\". Give it a name with `aria-label`, or point `aria-labelledby` at the heading above it. The buttons are named \"Previous\" and \"Next\" by default, and each one says which rail it moves. A button at the end of the rail stays focusable, so keyboard focus does not jump away. In a right-to-left page the rail starts on the right."],
     declaration: `<Carousel aria-label="Covers">
   <CarouselRail fade>
     <Flex gap="4">
@@ -2010,18 +2434,24 @@ const DECLARED: Entry[] = [
   <CarouselPrevious>‹</CarouselPrevious>
   <CarouselNext>›</CarouselNext>
 </Carousel>`,
+    variants: [
+      {"name":"with-icons","title":"With icons","why":"The package ships no icons, so put your own arrows in `CarouselPrevious` and `CarouselNext`. Set `aria-label` when \"Previous\" and \"Next\" are not specific enough."},
+      {"name":"labelled-by-heading","title":"Named by the heading above it","why":"Point `aria-labelledby` at the heading's `id`, so the name a screen reader hears is the text you already show. Here each item is a Card rendered as a link."},
+      {"name":"buttons-at-the-ends","title":"Buttons at each end of the rail","why":"Put the buttons on each side of the rail in a Flex. Wrap the rail in a Box with `flexGrow=\"1\"` and `minWidth=\"0\"`, so it takes the space between them and can scroll."},
+      {"name":"rtl","title":"Right to left","why":"Set `dir=\"rtl\"` on any ancestor. The rail starts on the right, and Previous still moves back toward the first item. Point the arrows in the reading direction."},
+    ],
     topics: [
       { title: "Naming the whole thing", symbols: ["Carousel"] },
       { title: "What scrolls", symbols: ["CarouselRail", "CarouselItem"] },
       { title: "Moving it", symbols: ["CarouselPrevious", "CarouselNext"] },
     ],
     refusals: [
-      { name: "Autoplay", why: "Content that moves on a timer is content you can lose your place in, and the accepted answer to it is a pause button almost nobody presses. A rail moves when a person moves it." },
-      { name: "Looping", why: "A loop is either cloned items or a scroll position that lies about where you are. The ends are real, which is what lets the buttons tell you there is nothing more that way." },
-      { name: "Drag to scroll", why: "Touch and trackpad already drag, and on a mouse the same gesture selects text and drags images. Adding a third meaning would take those away." },
-      { name: "A width, a gap or an aspect for the items", why: "What scrolls is yours. The component marks where scrolling settles and nothing else, so one carousel can hold wide covers and another a row of small tiles." },
-      { name: "`orientation`", why: "A rail is a row, and previous and next are its two directions. A column of items that scrolls is a ScrollArea with a fade." },
-      { name: "Dots under the rail", why: "They are a second way to say the same thing, they need a name per item, and past a handful of items they stop being countable. The rail already shows where you are." },
+      { name: "Autoplay", why: "Content that moves on a timer loses your place. The rail moves only when a person moves it." },
+      { name: "Looping", why: "A loop needs cloned items or a false scroll position. Real ends let the buttons show there is no more." },
+      { name: "Drag to scroll", why: "Touch and trackpad already drag. On a mouse, dragging would break text selection and image drag." },
+      { name: "A width, a gap or an aspect for the items", why: "Size and space the items yourself. The component only marks where scrolling settles." },
+      { name: "`orientation`", why: "A carousel is a horizontal rail. For a vertical list that scrolls, use a ScrollArea." },
+      { name: "Dots under the rail", why: "Dots repeat what the rail shows, need a name per item, and stop being countable past a few." },
     ],
     parts: [
       { part: "CarouselRail", blurb: "What scrolls: a ScrollArea that settles on items. Give it a bounded box, and `fade` if it runs to the edge of a pane" },
@@ -2035,12 +2465,23 @@ const DECLARED: Entry[] = [
     name: "ButtonGroup",
     family: "Control",
     spec: "§11, §54",
+    declaration: `<ButtonGroup aria-label="Range">
+  <Button>Day</Button>
+  <Button>Week</Button>
+  <Button>Month</Button>
+</ButtonGroup>`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"`size` on the group sizes every button inside it. A button that sets its own `size` keeps its own value, but mixed sizes in one group rarely look intended."},
+      {"name":"icon-only","title":"A group of icon buttons","why":"Icon-only buttons make a compact set of formatting actions. Give each button an `aria-label`, and give the group its own label as well."},
+      {"name":"bordered","title":"Quiet buttons with a border","why":"Quiet buttons with `bordered` make a light group that suits secondary actions. The borders of two neighbouring buttons meet on one shared line."},
+      {"name":"pagination","title":"Previous and next pages","why":"Disable the button that has nowhere to go. A disabled member keeps its place in the group, so the shape of the group stays the same on every page."},
+    ],
         abstract: "ButtonGroup draws a set of related Buttons as one control.",
-    overview: ["Put Buttons inside. The group squares the inner corners, draws a faint line between each pair, and sizes every member that does not state its own size. Each member presses on its own."],
+    overview: ["ButtonGroup joins a set of related Buttons into one control. The outer corners stay round, the inner corners become square, and a thin line separates each pair of buttons. Each button still presses on its own.","Use a ButtonGroup for a small set of actions on the same object, such as text styles or page navigation. To let people pick one value from a set, use a SegmentedControl. For buttons that stay pressed, use a ToggleGroup. For one main action with a menu of related actions, use a SplitButton.","Put Buttons as direct children of the group. Set `size` on the group to size every button that does not set its own size. Each Button sets its own `tone`, `emphasis` and `bordered`. Bordered buttons share one line where they meet.","The buttons in a group do not move when you hover or press them, because one button moving alone would break the shape of the group. The fill still changes on hover and press.","ButtonGroup renders an element with `role=\"group\"`. Give it an `aria-label`, so a screen reader can say what the buttons do together. Tab moves to each button in turn. If you want the arrow keys to move between buttons instead, put the buttons in a Toolbar."],
     refusals: [
-      { name: "A separator part", why: "The group draws the line between each pair itself. A separator you place by hand is an off-by-one rule kept at every call site." },
-      { name: "Travel on hover and press", why: "A button rises and sinks because it sits on the page. One member of one box moving alone would tear the box at the seam, so the fill still lights and presses and the geometry stays put." },
-      { name: "`tone` and `emphasis` on the group", why: "Each Button states its own. The group only joins them." },
+      { name: "A separator part", why: "The group draws the line between buttons itself, so you never place separators by hand." },
+      { name: "Travel on hover and press", why: "One button moving alone would tear the group apart. The fill still changes; the geometry stays put." },
+      { name: "`tone` and `emphasis` on the group", why: "Each Button sets its own `tone` and `emphasis`. The group only joins them." },
     ],
   },
   {
@@ -2049,13 +2490,20 @@ const DECLARED: Entry[] = [
     family: "Surface",
     spec: "§11, §20, §32",
         abstract: "Tooltip shows the name of a control when a pointer rests on it.",
-    overview: ["It may only repeat what the control already announces, because a tooltip has no keyboard route, no touch route and no reading order, so anything that appears only here is lost to everybody else. It is inverted: dark on a light page and light on a dark one. The part names follow shadcn/ui's tooltip (MIT), with credit, and the behaviour is Base UI's Tooltip."],
+    overview: ["`Tooltip` shows the name of a control when a pointer rests on it or when the control gets keyboard focus. Use it to name an icon-only button, and to show its keyboard shortcut.","A tooltip must only repeat what the control already says. A tooltip has no touch route and no place in the reading order, so information that appears only in a tooltip is lost to many people. Screen readers do not announce the tooltip. Give the control an `aria-label` with the same name.","Use a `Popover` when the panel holds more than one line of text, a form or a link. Use a `FieldDescription` or a `Notice` for a hint that touch users must also see. `TooltipContent` takes a string only, so write a shortcut as text, for example `Undo ⌘Z`.","The tooltip uses inverted colours: dark on a light page and light on a dark page. It has no `size`, `tone` or `material`. Set `side` and `align` to choose where it opens. It moves to the other side when there is no room.","Put one `TooltipProvider` near the root of your app. It sets the delay, and it groups the tooltips inside it, so that after the first tooltip opens, the next ones open immediately as the pointer moves along a row. The part names follow shadcn/ui's tooltip (MIT), and Base UI's Tooltip supplies the behaviour."],
     declaration: `<TooltipProvider>
   <Tooltip>
     <TooltipTrigger render={<Button aria-label="Undo" />} />
     <TooltipContent>Undo</TooltipContent>
   </Tooltip>
 </TooltipProvider>`,
+    variants: [
+      {"name":"icon-buttons","title":"Icon buttons","why":"Name each icon-only button with an `aria-label`, and repeat the same name in the tooltip. Pass your `Button` to `TooltipTrigger` through `render`. The `TooltipProvider` makes the tooltips open quickly one after another."},
+      {"name":"shortcuts","title":"Keyboard shortcuts","why":"Write the shortcut into the tooltip text after the name. Also set `aria-keyshortcuts` on the button, because screen readers do not announce the tooltip."},
+      {"name":"sides","title":"Sides","why":"`side` sets where the tooltip prefers to open: `top`, `right`, `bottom` or `left`. If that side has no room, the tooltip opens on the opposite side."},
+      {"name":"in-a-toolbar","title":"In a toolbar","why":"Pass a `ToolbarButton` to `TooltipTrigger` so that the button stays part of the toolbar's keyboard. Put the `TooltipProvider` around the whole toolbar so that the tooltips open quickly along the row."},
+      {"name":"controlled","title":"Controlled","why":"Pass `open` and `onOpenChange` to control the tooltip from your own state. Use this only for a demonstration or a guided tour. In most apps, let the pointer and focus open it."},
+    ],
     topics: [
       { title: "Naming a control", symbols: ["Tooltip", "TooltipTrigger", "TooltipContent"] },
       { title: "Timing, stated once near the root", symbols: ["TooltipProvider"] },
@@ -2063,31 +2511,31 @@ const DECLARED: Entry[] = [
     refusals: [
       {
         name: "Content that is not a string",
-        why: "A tooltip holds a sentence, not a small composition. An inverted panel cannot invert an arbitrary subtree: anything that carries its own colour re-states it on its own element and wins, so a key cap inside a tooltip keeps the page's ink and its own pale fill and disappears on a dark panel. Write the shortcut into the sentence. Anything that genuinely needs a chip in it is a Popover.",
+        why: "An inverted panel cannot invert other components. Write shortcuts into the sentence, or use a Popover.",
       },
       {
         name: "A size",
-        why: "The only index a tooltip could take is the one belonging to the control it names, which it cannot see — and reading it would make one label two sizes depending on which button it sat under. A tooltip is one thing at one size.",
+        why: "It cannot see the control it names, so it has one size everywhere.",
       },
       {
         name: "`tone` and `emphasis`",
-        why: "A tooltip has a job, not a volume. There is nothing for a colour family to mean on a label that restates a name.",
+        why: "A tooltip restates a name, so there is nothing for a colour to mean.",
       },
       {
         name: "A delay you set per tooltip",
-        why: "Timing is a property of a region of the interface, not of one label — a delay you set per tooltip would make one product feel like several. Wrap your app in a TooltipProvider once and every tooltip inside it shares both the timing and the group, so the first one in a toolbar waits and the rest appear as the pointer travels.",
+        why: "Timing belongs to a region, not a label. Wrap your app in one `TooltipProvider` instead.",
       },
       {
         name: "A touch story",
-        why: "There is no hover on a phone, so nothing opens — and because a tooltip never carries anything of its own, nothing is missing. A hint a touch user genuinely needs belongs in a FieldDescription, a Notice, or on the screen.",
+        why: "Phones have no hover, so nothing opens. Put hints touch users need in a `FieldDescription` or Notice.",
       },
       {
         name: "A material",
-        why: "A tooltip defends its words by INVERTING — it is the highest contrast the palette has — and that is the stronger answer than glass. Two defences on one 28px chip is a doubled edge, so the panel stays solid whatever the app is made of.",
+        why: "It already inverts, the strongest contrast available. Glass on top would add a second edge.",
       },
       {
         name: "An arrow",
-        why: "An arrow is a second boundary on a panel whose boundary is already the strongest contrast on the screen. What says where it came from is that it is anchored to the thing you are pointing at.",
+        why: "Its edge is already the strongest contrast on screen. Anchoring to the trigger shows where it came from.",
       },
     ],
     parts: [
@@ -2101,12 +2549,21 @@ const DECLARED: Entry[] = [
     name: "Text",
     family: "Type",
     spec: "§15",
+    declaration: `<Text size="3" emphasis="medium">Supporting copy.</Text>`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"`size` goes from 1 to 9. Steps 2 and 3 are for reading and labels, and the larger steps are for display text. Each step sets the font size, line height and letter spacing together."},
+      {"name":"weights","title":"Weights","why":"`weight` is `regular`, `medium` or `semibold`. Use `medium` for a label or a short title in a row. There is no bold, so use a larger size when you need more importance."},
+      {"name":"emphasis","title":"Emphasis","why":"`emphasis` sets how strong the ink is. Use `loud` for the main text, `medium` for supporting details and `quiet` for a short line that matters little. Do not use `quiet` for a full sentence people must read."},
+      {"name":"tones","title":"Tones","why":"`tone` gives the text a meaning, such as `success`, `warning` or `destructive`. The emphasis levels still work inside a tone. Use a tone for its meaning, not to decorate the text."},
+      {"name":"paragraphs","title":"Paragraphs","why":"Use `render={<p />}` to make each block of text a real paragraph. Text has no margin, so put the paragraphs in a Stack and set the space with `gap`."},
+      {"name":"inline-elements","title":"Inline elements","why":"Put `Code`, `Kbd` and `Link` inside a Text. They take the size of the text around them. Use them for a value to type, a key to press and a link."},
+    ],
         abstract: "Text sets body copy.",
-    overview: ["One size index sets three things at once: the font size, the line height and the letter spacing. It renders a span, because laying out a block is the container's job, so write a paragraph as `render={<p/>}`."],
+    overview: ["Text shows body copy, labels and short lines of information. One `size` value sets the font size, the line height and the letter spacing together, so the text always has a line height that suits its size.","Use Text for everything that is not a heading. Use `Heading` for the title of a page, a section or a card. Use `Code` for a value people type, `Kbd` for a key, and `Link` for a link inside a sentence.","`size` goes from 1 to 9 and defaults to 3, the body size. Use 3 for reading and 2 for labels and details. Do not use size 1 on a composed screen. `weight` is `regular`, `medium` or `semibold`. There is no bold. Show the order of importance with size and colour instead.","`emphasis` sets the ink colour: `loud` is full contrast, `medium` is muted and `quiet` is faint. Quiet is below the contrast needed for reading, so use it only for a short line that matters little. `tone` sets a meaning, such as `success` or `destructive`, and the three emphasis levels use that tone's inks.","Without a `tone`, Text uses the ink colour of the surface it is on, so it is correct in light mode, dark mode and on a loud fill. It renders a `span` and has no margin. Use `render` to make it a paragraph or a label, such as `render={<p />}`. Density does not change text size. A coarse pointer, such as a finger, makes the reading sizes larger."],
     refusals: [
-      { name: "A colour prop", why: "tone says the meaning and the theme resolves the colour. A raw colour goes through style, where a reviewer can see it." },
-      { name: "`margin`", why: "Type owns no outer spacing. The margin is zeroed whatever element render names." },
-      { name: "`bold` (700)", why: "Semibold is the heaviest weight, and every heading rests there. Hierarchy is size and the ink colours, both already designed. The token is deleted too, so nothing can reach it by hand." },
+      { name: "A colour prop", why: "`tone` states the meaning and the theme picks the colour. Put a raw colour in `style`." },
+      { name: "`margin`", why: "Type owns no outer spacing. The margin is zero whatever element `render` names." },
+      { name: "`bold` (700)", why: "Semibold is the heaviest weight. Show hierarchy with size and ink colour instead." },
     ],
   },
   {
@@ -2114,18 +2571,27 @@ const DECLARED: Entry[] = [
     name: "TextArea",
     family: "Control",
     spec: "§4, §11",
+    declaration: `<TextArea rows={3} aria-label="Notes" />`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"`size` sets the text size and the padding, from 1 to 4. The height comes from `rows`, not from the size. Use size 2 unless the form around it uses another size."},
+      {"name":"in-a-form","title":"In a form","why":"Put the TextArea in a `Field` with a `FieldLabel` and a `FieldDescription`. The label and the description connect to the textarea for you. Give it a `name` so it sends its value with the form."},
+      {"name":"controlled","title":"Controlled","why":"Pass `value` and `onChange` to keep the text in your app. Here the description shows how many characters are left. `maxLength` stops typing at the limit."},
+      {"name":"invalid","title":"Invalid","why":"Set `aria-invalid` to show that the value is wrong. The border and the focus ring change to the error colour. Put the message in a `FieldError` so a screen reader announces it."},
+      {"name":"disabled-and-read-only","title":"Disabled and read-only","why":"Use `disabled` when people cannot change the text and the value does not matter now. Use `readOnly` when people must see and copy the text but not change it. A read-only value still goes with the form."},
+      {"name":"resize","title":"Resize","why":"People can drag the corner to make a TextArea taller. Set `resize: \"none\"` in `style` to keep the height fixed. Do this only when the layout cannot move."},
+    ],
         abstract: "A multi-line text input.",
-    overview: ["The visible control is a wrapper around the textarea, which is what lets it carry a border and a background while the text scrolls inside it. It has no icon slots, because an icon floating over a scrolling paragraph has nowhere sensible to sit. Its padding above and below matches the plain side padding, so at every radius level but `full` all four sides are equal; at `full` the sides take the pill correction and the block inset does not, because the corner only cuts into text running sideways. `ref` reaches the textarea, and `className` and `style` dress the wrapper."],
+    overview: ["A TextArea lets people type text that runs over several lines, such as a description, a note or a message. Use a TextField for a single line, such as a name or an email address.","The visible control is a wrapper around the `textarea` element. The wrapper has the border and the fill, and the text scrolls inside it. `ref` goes to the `textarea`. `className` and `style` go to the wrapper. All other props, such as `name`, `value` and `maxLength`, go to the `textarea`.","`rows` sets the starting height in lines. People can drag the corner to make it taller, but not wider. To stop the resize, set `resize: \"none\"` in `style`. The width comes from the container, so there is no `cols` prop. At the `full` radius, the sides get a little more padding than the top and bottom.","A TextArea has no `tone`, `emphasis` or icon slots, because every field in a form should look the same. Put it in a `Field` with a `FieldLabel` so it has a name. Set `aria-invalid` to show an error, and put the message in a `FieldError`.","`disabled` stops typing and dims the text. `readOnly` keeps the text selectable and sends it with the form, and it removes the fill. The focus ring shows when the cursor is inside, however people got there. Set `backdrop` when the TextArea sits over an image or other content, and it becomes glass."],
     refusals: [
-      { name: "`emphasis` and `tone`", why: "A form where one field is louder than the next says nothing. The same argument as TextField." },
-      { name: "`resize`", why: "It would rename raw CSS. Vertical-only is the shipped behaviour, and style on the wrapper is the escape — the handle inherits it." },
+      { name: "`emphasis` and `tone`", why: "A form where one field is louder than the next says nothing." },
+      { name: "`resize`", why: "It is vertical-only by default. Set `resize` in `style` on the wrapper to change it." },
       {
         name: "`cols`",
-        why: "The container sets the width. A textarea sized in characters uses a unit the type scale does not use, so an 80-column box is a different width at every size step and every density.",
+        why: "The container sets the width. A width in characters changes at every size and density.",
       },
       {
         name: "`render`",
-        why: "TextField's sentence: there are two elements and neither can move — the wrapper holds the paint a textarea cannot, and the inner element must stay a textarea or the platform wiring goes with it.",
+        why: "It renders two elements, and neither can change without breaking the border or the input.",
       },
     ],
   },
@@ -2134,13 +2600,23 @@ const DECLARED: Entry[] = [
     name: "TextField",
     family: "Control",
     spec: "§4, §9, §11",
+    declaration: `<TextField placeholder="Search" aria-label="Search" />`,
+    variants: [
+      {"name":"sizes","title":"Sizes","why":"`size` picks one of four steps. Each step sets the height, the padding, the corner and the text size. Use the same `size` as the buttons in the same row, so that the field and the buttons line up."},
+      {"name":"with-icons","title":"With icons","why":"Put an icon, a unit or a short hint in `leading` or `trailing`. A click on the adornment puts the caret in the input. The slots are empty by default, so a field without them has no extra space."},
+      {"name":"password","title":"Password with a reveal button","why":"A `trailing` slot can hold a real `Button`. The button keeps its own focus and click, and the theme makes it fit inside the field. Change `type` between `password` and `text` to show or hide the value."},
+      {"name":"controlled","title":"Controlled","why":"Pass `value` and `onChange` to keep the text in your own state, as with a native input. This example filters a list as you type and shows a clear button only when the field has text."},
+      {"name":"in-a-form","title":"In a form","why":"Wrap each field in a `Field` with a `FieldLabel`, and add a `FieldDescription` when the person needs more information. Native props such as `name`, `type` and `required` go to the input, so the form submits the value as usual."},
+      {"name":"invalid","title":"Invalid","why":"Set `aria-invalid` to show the error border. Inside a `Field`, add a `FieldError` to say what is wrong. The screen reader announces the error text when it appears."},
+      {"name":"disabled","title":"Disabled","why":"Set `disabled` on a `Field` or on the field to stop all input and grey out the control. Use `readOnly` when the value must stay selectable and still submit with the form."},
+    ],
         abstract: "TextField is a single-line text input.",
-    overview: ["The visible control is a wrapper around the input, which is what makes its icon slots real: a field that holds an icon inside its border cannot keep that border on the input itself. `ref` goes to the input, and `className` and `style` dress the wrapper."],
+    overview: ["`TextField` is a single-line text input. Use it for a name, an email address, a search query or any other short value that you type on one line.","Use a `TextArea` when the value can run to several lines, such as a comment or a description. Use a `NumberField` for a number with steppers, and a `Select` or `Combobox` when the value comes from a fixed list.","The visible control is a wrapper around a native `<input>`. The wrapper draws the border, so the field can hold an icon or a button inside it through the `leading` and `trailing` slots. `ref` goes to the input, so `.focus()` and `.select()` work as usual. `className` and `style` go to the wrapper, so a `width` sizes the whole field.","Put a `TextField` inside a `Field` to give it a label, a description and an error message. The `Field` connects them to the input for screen readers and sets one `size` for the whole group. A field has no `tone` or `emphasis`, because one field in a form is never more important than the next.","The theme sets the height, the corner and the padding. `size` picks a step on the same scale that `Button` uses, so a field and the button beside it are the same height. Set `aria-invalid` or place it in an invalid `Field` to show an error border, and set `disabled` or `readOnly` to stop edits.","The input is a real `<input>`, so the keyboard, autofill, form submission and screen readers behave as they do for any native field. On a touch screen, the text is never smaller than 16 pixels, so the browser does not zoom in when you tap the field."],
     refusals: [
-      { name: "`emphasis` and `tone`", why: "Loudness ranks actions. A form where one field is louder than the next says nothing." },
+      { name: "`emphasis` and `tone`", why: "Loudness ranks actions, and one field louder than the next says nothing." },
       {
         name: "`render`",
-        why: "Everywhere else render swaps the one element that is the component. Here there are two, and neither can move: the wrapper holds a border the input cannot, and the input has to stay an input or the platform wiring goes with it.",
+        why: "It renders two elements, so `render` could only silently mean one of them.",
       },
     ],
   },
@@ -2149,24 +2625,36 @@ const DECLARED: Entry[] = [
     name: "Theme",
     family: "Layout",
     spec: "§5, §7, §12, §19",
+    declaration: `<Theme appearance="inherit" density="default" radius="full" depth="elevated">
+  \u2026
+</Theme>`,
+    variants: [
+      {"name":"appearance","title":"Light and dark","why":"`appearance` sets light or dark for everything inside the theme. Use `inherit` at the root when a script sets the mode on `<html>` before the first paint. Set `light` or `dark` to fix one section against the rest of the page."},
+      {"name":"density","title":"Density","why":"`density` sets how much space the controls and layouts get. `compact` makes controls shorter and gaps smaller, and `comfortable` makes them larger. Text and icons keep their size."},
+      {"name":"radius","title":"Radius","why":"`radius` sets the corners for the whole app, from square `none` to round `full`. Each level has its own values for each kind of component. Radios, switch thumbs and slider thumbs keep their round shape at every level."},
+      {"name":"depth","title":"Depth","why":"`depth` sets whether cards and raised buttons cast a shadow. `elevated` is the default, and `flat` removes the shadows. There is no shadow prop on a component, so set this one time for the app."},
+      {"name":"contrast","title":"High contrast","why":"`contrast=\"high\"` makes borders, fills and quiet text darker so that they meet the contrast minimums. Set `appearance` on the same `Theme`. Compare the field border, the checkbox and the quiet caption in the two columns."},
+      {"name":"size","title":"Default size","why":"`size` on a `Theme` sets the step every control uses when it has no `size` of its own. A `size` on a single control still wins, as the last button shows. Text components keep their own scale."},
+      {"name":"nested","title":"Nested themes","why":"A nested `Theme` changes only the settings you give it. Here a dark, compact panel with small corners sits inside the default theme. Put a `Surface` inside the nested theme so that the panel gets its own background colour."},
+    ],
         abstract: "Theme is where an app sets its identity.",
-    overview: ["It has eight settings, and each one changes the tokens for everything inside it. Themes nest, so one section can override the page around it. Every setting answers a question once, at the root, so that individual screens are not left answering it one at a time.", "`size` is the newest of them and the one with a limit worth knowing. It sets the step every component rests at when it states no size of its own, so an app whose controls are size 3 says so once instead of on every call. It does not reach text: `Text` and `Heading` read a scale that runs to nine rather than four, and `Code`, `Kbd`, `Badge`, `Avatar` and `Chip` take the size of the line they sit in on purpose."],
+    overview: ["`Theme` holds the settings that every component in your app uses. It has eight settings: `appearance`, `density`, `radius`, `contrast`, `pointer`, `depth`, `material` and `size`. Each setting changes the tokens for everything inside the theme.","Put one `Theme` at the root of your app. Every setting answers a question once, at the root, so that each screen does not have to answer it again. The default values are suitable for most apps, so set only the ones you want to change.","Themes nest. A `Theme` inside another one changes only the settings you give it, and it keeps the rest from the theme around it. Use a nested theme for a dark panel inside a light page, or for a compact data table inside a default app.","`size` sets the step every component uses when you give it no size of its own, so an app whose controls are size 3 says so one time. A `size` on a component still wins. It does not change text: `Text` and `Heading` use a scale with nine steps, not four, and `Code`, `Kbd`, `Badge` and `Chip` take the size of the line they sit in.","`contrast=\"high\"` is an accessibility setting. It raises the contrast of borders, fills and text so that they meet the contrast minimums. Put it on the same element as an `appearance` that is not `inherit`. If you leave `contrast` unset, the theme follows the operating system setting `prefers-contrast: more`.","A `Theme` renders a `<div>` to carry its settings. Use `render` to put the theme on an element you already have. Never put the root theme on `<body>` or `<html>`, because floating panels such as menus and dialogs attach to the body."],
     refusals: [
       {
         name: "An `accentColor` prop",
-        why: "Accent is written as a hue in the config and baked by the generator, so it is one app-wide identity rather than a per-subtree choice. A runtime prop would mean shipping every family's whole colour scale for every subtree.",
+        why: "Accent is one app-wide hue set in the config. A runtime prop would ship every colour scale.",
       },
       {
         name: "A scale prop",
-        why: "The factor is wired and the prop is deferred. It reopens the day a real need names the steps, and it will ship as designed steps rather than a free multiplier.",
+        why: "The factor exists but the prop is deferred. It will ship as designed steps when a real need appears.",
       },
       {
         name: "An elevation axis",
-        why: "Deleted. Nothing ever varied it per component, so it was a component fact wearing an axis's clothes. depth is what survived of it.",
+        why: "Deleted, because nothing varied it per component. Use `depth` instead.",
       },
       {
         name: "A look axis",
-        why: "Deleted. Its two control values had converged on one appearance, and its second surface value was never used: the borderless pane is the one surface identity. A tinted surface can return as a Theme value the day a real app wants one.",
+        why: "Deleted, because its values converged and the rest went unused. There is now one surface appearance.",
       },
     ],
   },
