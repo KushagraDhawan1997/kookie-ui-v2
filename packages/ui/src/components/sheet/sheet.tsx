@@ -2,7 +2,7 @@
 
 /**
  * Sheet (§10, §11 "Sheet / Drawer", §20, §24) — the overlay family's third member: a MODAL panel
- * that slides in from an edge of the window over the scrim.
+ * that stands against an edge of the window over the scrim.
  *
  * The part vocabulary is Dialog's, and through it shadcn/ui's sheet (https://ui.shadcn.com —
  * MIT), adopted with credit: Root/Trigger/Content/Title/Description/Close. Behavior is Base UI's
@@ -62,7 +62,7 @@ import { useAppSize } from "../../system/size.ts";
 /* ── The edge ────────────────────────────────────────────────────────────────────────────── */
 
 /**
- * The edge a sheet enters from. LOGICAL, because the thing a sheet sits beside is the reading
+ * The edge a sheet stands against. LOGICAL, because the thing a sheet sits beside is the reading
  * direction's end of the window, not a side of the glass: an inspector that opens on the right
  * in English opens on the left in Arabic, and a call site that wrote `right` would be wrong in
  * one of them. `left` and `right` are refused for that reason.
@@ -293,7 +293,7 @@ function popupProps(size: Size, side: SheetSide, material: SurfaceMaterial, clas
  * Portal → PortalScope → Backdrop → VirtualKeyboardProvider → Viewport → Popup → Content, in one
  * part.
  *
- * The Backdrop is the SCRIM, Dialog's recipe on the drawer's clock. The Viewport is Base UI's
+ * The Backdrop is the SCRIM, Dialog's recipe. The Viewport is Base UI's
  * swipe surface and positioning container. The keyboard provider is Base UI's answer to a phone
  * keyboard rising over a field in the panel; it does nothing where there is no soft keyboard.
  */
@@ -349,7 +349,7 @@ function SheetPopup({
 
      `true` means Base UI's own default: the first tabbable element, falling back to the popup
      when there is none. The touch arm is the half that must NOT change — focusing a field on
-     touch raises the soft keyboard over the panel that just slid up, which is why Dialog carves
+     touch raises the soft keyboard over the panel that just opened, which is why Dialog carves
      it out and why this is a function rather than a flag.
 
      Written out rather than imported: Base UI's `createDefaultInitialFocus` is internal. The

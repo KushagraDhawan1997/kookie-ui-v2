@@ -316,20 +316,12 @@ function DialogPopup({
       {...(style !== undefined ? { style } : {})}
       ref={setPopup}
     >
-            {/**
-              * The body exists for ONE reason and holds one channel: the content comes into
-              * focus with the plane it is printed on (§24's entry — depth of field is a
-              * property of the mass), and you cannot blur children without a box holding
-              * them. That is §10's mechanically-forced sanction, the same one Spinner's span
-              * and the floating body have, and it is invisible to the API.
-              *
-              * What it deliberately does NOT do is carry the alert's runner. This entry has
-              * no measurement, no pose and no release clock — it rides Base UI's own
-              * transition stamps, so a dialog's whole motion is CSS. The alert needs the
-              * runner because its box BECOMES, which means animating to a length CSS cannot
-              * interpolate to; a dialog only steps forward in z, and scale needs no
-              * measuring.
-              */}
+      {/**
+        * The body is the one box between the pane and the caller's children. On a narrow
+        * window it is the box that scrolls (dialog.css), and a ScrollArea placed directly in
+        * it bleeds and pins as it does in any pane (surfaces.css). It is invisible to the API.
+        * Motion was removed 2026-09-20; docs/archive/motion-v1.md records it.
+        */}
       <div className="kui-dialog-body" role="presentation">
         <GlassScope material={material}>{children}</GlassScope>
       </div>

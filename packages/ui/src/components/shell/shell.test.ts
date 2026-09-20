@@ -94,35 +94,28 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     // Both directions are the law working: an @media in this sheet is a decision, and the sheet
     // has no business holding a hover rule now that the family has one home for it.
     //
-    // IT IS FOUR SINCE 2026-09-01, and both new forms arrived with the resize handle, which is
-    // the first thing this sheet draws that a person operates. `(hover: hover)` is REQUIRED of
-    // it by the recipes law — an unguarded `:hover` sticks after a tap on a touch screen — and
-    // `(prefers-reduced-motion: reduce)` is required by §8's stand-down law, because the
-    // handle's line fades in. Two laws in other files oblige these two blocks, so the choice
-    // here is not whether to allow them but whether the handle should draw at all; it should,
-    // and the alternative (a boundary visible at rest) draws a second line beside the seam
-    // hairline that already marks it.
-    // The FORMS, deduplicated (2026-09-06): the drawer's own stand-down is a second
-    // `prefers-reduced-motion` block, declared beside the rules it stands down rather than
-    // bolted onto the handle's — which is §8's own doctrine after the 2026-08-10 finding, and
-    // the reason this law asks which queries exist rather than how many.
+    // `(hover: hover)` came back with the resize handle (2026-09-01), which is the first thing
+    // this sheet draws that a person operates: the recipes law REQUIRES it, because an
+    // unguarded `:hover` sticks after a tap on a touch screen. The choice here is not whether
+    // to allow it but whether the handle should draw at all; it should, and the alternative (a
+    // boundary visible at rest) draws a second line beside the seam hairline that already
+    // marks it. The FORMS are deduplicated, which is why this law asks which queries exist
+    // rather than how many.
     const queries = [
       ...new Set((css.match(/@media[^{]+/g) ?? []).map((q) => q.replace(/\s+/g, " ").trim())),
     ];
-    // IT IS FIVE SINCE 2026-09-11, and the fifth is the phone's page scroll (§27). It is the
-    // narrow boundary AND `(pointer: coarse)` together, because the two facts it needs are
-    // "this window is phone-shaped" and "this is a phone" — a squeezed desktop window keeps
-    // its own scroller, and a tablet in portrait is not narrow. Stating it as one query rather
-    // than nesting the pointer test inside the narrow block is what keeps the narrow block
-    // about layout alone; the alternative would have put a posture rule inside a width rule and
-    // left neither readable.
+    // The phone's page scroll (§27, 2026-09-11) is the narrow boundary AND `(pointer: coarse)`
+    // together, because the two facts it needs are "this window is phone-shaped" and "this is
+    // a phone" — a squeezed desktop window keeps its own scroller, and a tablet in portrait is
+    // not narrow. Stating it as one query rather than nesting the pointer test inside the
+    // narrow block is what keeps the narrow block about layout alone; the alternative would
+    // have put a posture rule inside a width rule and left neither readable.
     expect(queries.sort()).toEqual(
       [
         `@media ${narrowMedia}`,
         `@media ${narrowMedia} and (pointer: coarse)`,
         "@media (prefers-reduced-transparency: reduce)",
         "@media (hover: hover)",
-        "@media (prefers-reduced-motion: reduce)",
       ].sort(),
     );
   });
@@ -297,9 +290,9 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
     // A FIFTH IS SANCTIONED (2026-09-01): the resize handle. It is the first thing this sheet
     // draws that a person operates, and a boundary that paints nothing at all cannot be found.
     // Bounded by VALUE exactly as the stand-downs are — it may name no colour, only `none` and
-    // the tone indirection under the accent it stamps, and its one clock must ride the motion
-    // tokens. A bed cannot hide inside that, and neither can a cast: `box-shadow` stays banned
-    // outright, so the handle has no way to become a raised strip.
+    // the tone indirection under the accent it stamps. A bed cannot hide inside that, and
+    // neither can a cast: `box-shadow` stays banned outright, so the handle has no way to
+    // become a raised strip.
     const handleRules = css.match(/\.kui-shell-resize[^{]*\{[^}]*\}/g) ?? [];
     expect(handleRules.length, "the handle's rules vanished — this arm reads nothing").toBeGreaterThan(3);
     for (const rule of handleRules) {
@@ -311,11 +304,6 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
       for (const decl of rule.match(/(?:background|border[a-z-]*color|outline[a-z-]*|[^-\w]color|fill)\s*:[^;]*/g) ?? []) {
         expect(decl.trim().replace(/^[^a-z]/, ""), "the handle may not name a colour of its own").toMatch(
           /^(background:\s*(none|var\(--tone-solid\))|outline(-offset)?:\s*var\(--focus-ring[a-z-]*\)(\s+solid\s+var\(--focus-ring\))?)$/,
-        );
-      }
-      for (const decl of rule.match(/[^-\w]transition\s*:[^;]*/g) ?? []) {
-        expect(decl.trim(), "the handle has one clock, riding the motion tokens, plus its stillness stand-down").toMatch(
-          /^transition:\s*(opacity var\(--motion-duration\) var\(--motion-easing\)|none)$/,
         );
       }
     }
@@ -381,54 +369,11 @@ describe("the shell's viewport boundary is config's, verbatim (§18, §27)", () 
       .replace(standDowns[1]!, " ");
     expect(sanctioned).not.toMatch(/background/);
     expect(css).not.toMatch(/box-shadow/);
-    // THE TRANSITION BAN STAYS ON THE WHOLE SHEET MINUS THE HANDLE (audit 2026-09-02). Moving
-    // it to `sanctioned` — which also strips the scrim, the nav row and both flush stand-downs
-    // — widened it far past the one rule that needed the exemption, so the shell could have
-    // animated its scrim with the suite green. `sanctioned` is the right corpus for
-    // `background`, because each of those rules is a sanctioned PAINT; it is the wrong corpus
-    // for a clock, because none of them is a sanctioned clock.
-    /* THE SHELL MOVES ONE THING SINCE 2026-09-06, and the ban becomes a BOUND rather than an
-       absence. §27 had recorded the exit in writing — "the spring entry is the recorded
-       follow-up, and a node law asserts the absence" — and the drawer is it: the pane slides,
-       the frame recedes under it, and the well and the scrim take the frame's inverse.
-
-       Bounded by VALUE, exactly as the handle's clock is, and by three separate readers rather
-       than by this list: every duration must resolve to a motion token and every geometry
-       channel to a spring (recipes.test.ts), and every clock declared here must be stood down
-       under reduced motion (the same file). What this arm keeps is the part those cannot see —
-       WHICH rules in this sheet are allowed to carry a clock at all, so a scrim that started
-       fading on its own account, or a pane that gained a hover travel, still fails here. */
-    const clocked = [
-      /\.kui-shell-resize[^{]*\{[^}]*\}/g,
-      /\.kui-shell\s*\{[^}]*\}/g,
-      /\.kui-shell[^{]*::before\s*\{[^}]*\}/g,
-      /\.kui-shell::after\s*\{[^}]*\}/g,
-      /\.kui-shell-scrim\s*\{[^}]*\}/g,
-      /\.kui-shell-pane\[data-presentation="(?:overlay|auto)"\]\s*\{[^}]*\}/g,
-      // The bottom pane's live arm carried the frame's recession and its clip, and it LEFT with
-      // the recession (2026-09-11): the pane pushes now, so the frame's own clock is the root
-      // rule's above and the travel is the children's below. Its licence is deleted rather than
-      // left standing, because every entry here is checked to match something — a licence for a
-      // rule that does not exist is a hole with a comment on it.
-      // THE PUSH (2026-09-09): a side pane slides the whole frame rather than covering it, so
-      // the frame's children carry the travel — the pane itself is excluded, since the open one
-      // slides the same distance on the same clock and a parked one is off the frame either way.
-      /:where\(\.kui-shell > :not\(\.kui-shell-rail\[data-presentation="auto"\]\)[^{]*\)\s*\{[^}]*\}/g,
-      // And the tab bar's thumb, both direction arms — the travelling grip, self-keyed from the
-      // segmented control, whose lead and trail clocks are the asymmetry.
-      // A DESCENDANT since 2026-09-10, the third reader in this file with the same slip: the
-      // grip lives inside the pill now, so a `>` here left its two clocks unlicensed and the
-      // sheet-wide motion ban failed on the rule it was written to permit.
-      /\.kui-shell-rail\[data-presentation="bar"\] \.kui-shell-rail-thumb\[data-activation-direction="(?:right|left)"\]\s*\{[^}]*\}/g,
-      /@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\n\s*\}\n\s*\}/g,
-    ];
-    const unclocked = clocked.reduce((acc, re) => acc.replace(re, " "), css);
-    expect(unclocked, "a rule in this sheet moves that was not licensed to").not.toMatch(
-      /[^-\w]transition\s*:/,
-    );
-    // And the licence is not a blank one: each of those rules must really be there, or this
-    // arm is a list of holes rather than a list of exemptions.
-    for (const re of clocked) expect(css.match(re)?.length ?? 0, String(re)).toBeGreaterThan(0);
+    // THE TRANSITION BAN IS ON THE WHOLE SHEET. `sanctioned` is the right corpus for
+    // `background`, because each rule it strips is a sanctioned PAINT; it is the wrong corpus
+    // for a clock, because none of them is a sanctioned clock. Nothing in the shell moves:
+    // motion was removed 2026-09-20, and docs/archive/motion-v1.md records it.
+    expect(css, "a rule in this sheet moves").not.toMatch(/[^-\w]transition\s*:/);
   });
 });
 

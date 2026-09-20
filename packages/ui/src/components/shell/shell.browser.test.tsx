@@ -47,7 +47,6 @@ import {
   SIZES,
   colorOn,
   computed,
-  inMotion,
   mounted,
   render,
   tokenOn,
@@ -101,9 +100,8 @@ function fixture(props: {
 }
 
 /** IS THIS PANE ON SCREEN? Not `display === "none"` any more (2026-09-06): an OVERLAYING pane
-    parks at `visibility: hidden` so that its arrival and its exit can be transitioned at all —
-    `display` cannot be — and both spellings mean the same three things: nothing painted,
-    nothing focusable, nothing hit-testable. `checkVisibility` is the browser's own answer to
+    parks at `visibility: hidden` rather than `display: none`, and both spellings mean the same
+    three things: nothing painted, nothing focusable, nothing hit-testable. `checkVisibility` is the browser's own answer to
     that question, which is why it replaces the string comparison rather than gaining a second
     arm beside it. Its default options answer TRUE for `visibility: hidden`, so the flag is the
     whole of the call. */
@@ -862,7 +860,7 @@ describe("a side drawer PUSHES the frame; it does not cover it (§27, 2026-09-09
    *
    * What stood here read the drawer's dress against a pane the app had pulled OFF the frame,
    * because a covering pane took the surface identity back — its fill, its corner, its four
-   * edges. Under the push there is no covering pane: the frame slides aside and the drawer that
+   * edges. Under the push there is no covering pane: the frame moves aside and the drawer that
    * comes into view is the DESKTOP pane, so the agreement to hold is against the same pane at a
    * wide window. That is a different claim about a different thing, and rewriting the old law's
    * expectations in place would have left its name and its comment arguing for the reverse.
@@ -933,10 +931,8 @@ describe("a side drawer PUSHES the frame; it does not cover it (§27, 2026-09-09
   /**
    * THE PUSH ITSELF, read as the one thing that makes it a push rather than a cover: the
    * drawer's trailing edge and the content's leading edge are the SAME line. Two distances
-   * ride one clock — the frame's translate and the pane's own — so if either is wrong by a
-   * pixel the seam opens, and a seam that opens mid-flight is exactly what the first spelling
-   * of the park distance did (measured 2px at 120ms, with the landed state correct, which is
-   * the shape no landed-state law can see).
+   * meet there — the frame's translate and the pane's own box — so if either is wrong by a
+   * pixel the seam opens.
    *
    * Falsified: parking a flush pane at `calc(-100% - var(--shell-gap))` — the pre-push value,
    * which is one gap further out than the push carries — fails at
@@ -1055,7 +1051,7 @@ describe("a side drawer PUSHES the frame; it does not cover it (§27, 2026-09-09
     await userEvent.click(within(side, ".kui-shell-header button"));
     await expect.poll(() => within(side, ".kui-shell-sidebar").dataset.state).toBe("open");
     await expect.poll(() => computed(side, "transform")).toBe("none");
-    /* AND THE PUSH IS REAL, on the INLINE axis: the frame's children slide by the pane's width,
+    /* AND THE PUSH IS REAL, on the INLINE axis: the frame's children move by the pane's width,
        so the work area starts where it would have started plus that distance. At rest it starts
        at the frame's own leading edge, which is what makes a positive delta the push's
        signature rather than ordinary layout. */
@@ -1166,12 +1162,12 @@ describe("a side drawer PUSHES the frame; it does not cover it (§27, 2026-09-09
 
 describe("a parked drawer is off the frame, not merely invisible (§27, §8, 2026-09-06)", () => {
   /**
-   * THE LAW THE MOTION WORK SHIPPED WITHOUT, and a person found the defect instead (Kushagra:
-   * "there's no slide in and out"). Every drawer law in this file reads a LANDED pane — its
-   * dress, its cap, its span, its scrim — and the parked pose is the half none of them touch,
-   * so 2,634 laws were green over a drawer that did not travel at all.
+   * A person found this defect before any law did (2026-09-06). Every other drawer law in this
+   * file reads an OPEN pane — its dress, its cap, its span, its scrim — and the parked position
+   * is the half none of them touch, so 2,634 laws were green over a drawer parked where it
+   * lands.
    *
-   * The defect was one character. The slide was published as a single hook holding both axes
+   * The defect was one character. The park offset was published as a single hook holding both axes
    * (`calc(-100% - gap) 0`) and `translate()` separates its arguments with a comma, so the
    * substitution was unparseable — invalid at computed-value time, which drops the WHOLE
    * declaration rather than the one argument. A parked drawer computed `transform: none` and
@@ -1205,8 +1201,8 @@ describe("a parked drawer is off the frame, not merely invisible (§27, §8, 202
     expect(computed(pane, "display"), "the drawer left the box model").not.toBe("none");
     expect(onScreen(pane), "the drawer was not parked at all").toBe(false);
     const { gap, width } = parkedClearOf(shell, pane);
-    expect(width, "the parked drawer has no box to travel").toBeGreaterThan(100);
-    expect(gap, "the parked drawer sits inside the frame it is supposed to fly in from").
+    expect(width, "the parked drawer has no box").toBeGreaterThan(100);
+    expect(gap, "the parked drawer sits inside the frame it is parked outside of").
       toBeGreaterThanOrEqual(0);
   });
 
@@ -1222,72 +1218,9 @@ describe("a parked drawer is off the frame, not merely invisible (§27, §8, 202
     expect(pane.dataset.presentation, "resolved by CSS, not restamped").toBe("auto");
     expect(onScreen(pane), "the drawer was not parked at all").toBe(false);
     const { gap, width } = parkedClearOf(shell, pane);
-    expect(width, "the parked drawer has no box to travel").toBeGreaterThan(100);
-    expect(gap, "the parked drawer sits inside the frame it is supposed to fly in from").
+    expect(width, "the parked drawer has no box").toBeGreaterThan(100);
+    expect(gap, "the parked drawer sits inside the frame it is parked outside of").
       toBeGreaterThanOrEqual(0);
-  });
-
-  /**
-   * AND IT ARRIVES ON THE FRAME'S OWN CLOCK. The whole point of the recession is that the
-   * drawer's travel and the frame's shrink are ONE event, so a mid-flight reading must catch
-   * both moving and neither finished — which is also the only reading that can tell a real
-   * transition from a one-frame snap. `inMotion()` because the harness stands transitions
-   * down by default (2026-08-20), and this is a claim about a clock.
-   *
-   * THE MID-FLIGHT MOMENT IS SEIZED, NEVER RACED (the 2026-08-20 rule, and this law earned it
-   * the honest way: the first spelling read one rAF after the press, passed alone in three
-   * consecutive runs and failed inside the full parallel suite, because a loaded machine can
-   * put that callback past the whole 420ms). Both transitions are paused and their clocks set
-   * to the same instant, so what the law reads does not depend on when it looked.
-   *
-   * Falsified: with the single-hook spelling restored, the drawer has no transition to seize
-   * at all — it is at its landed position from the first frame.
-   *
-   * REWRITTEN 2026-09-09, and what it reads changed with the gesture: a side pane pushes rather
-   * than covering, so the second half of the event is the frame's CHILDREN travelling, not its
-   * scale. The claim is unchanged and is the reason the law exists — the two distances are one
-   * event, and mid-flight both are moving and neither is finished. A seam that opens mid-flight
-   * is what a landed-state law cannot see, and it is the defect the park distance shipped with
-   * (measured 2px at 120ms, correct at rest).
-   */
-  it("the drawer and the page it pushed travel on one clock, in lockstep", async () => {
-    inMotion();
-    await narrow();
-    const shell = mountShell();
-    const pane = within(shell, ".kui-shell-sidebar");
-    const content = within(shell, ".kui-shell-content");
-    const parked = pane.getBoundingClientRect().left;
-    const moving = (el: HTMLElement, property: string) =>
-      el.getAnimations().filter((a) => (a as CSSTransition).transitionProperty === property);
-
-    await userEvent.click(within(shell, ".kui-shell-header button"));
-    await expect.poll(() => pane.dataset.state).toBe("open");
-    // The premise, and the thing a defect here deletes: both boxes really are in flight.
-    await expect
-      .poll(() => moving(pane, "transform").length > 0 && moving(content, "translate").length > 0)
-      .toBe(true);
-
-    // Halfway, by the clock rather than by the wall.
-    for (const [el, property] of [
-      [pane, "transform"],
-      [content, "translate"],
-    ] as const) {
-      for (const a of moving(el, property)) {
-        a.pause();
-        a.currentTime = 250;
-      }
-    }
-    await new Promise<void>((r) => requestAnimationFrame(() => r()));
-
-    const edge = pane.getBoundingClientRect().right;
-    const page = content.getBoundingClientRect().left;
-    expect(edge, "the drawer arrived in one frame, or never parked outside").toBeLessThan(
-      pane.offsetWidth,
-    );
-    expect(pane.getBoundingClientRect().left, "the drawer never left its park").toBeGreaterThan(parked);
-    expect(page, "the page never moved").toBeGreaterThan(0);
-    // The whole of it: mid-flight the seam is still a seam.
-    expect(page, "daylight opened between the drawer and the page").toBeCloseTo(edge, 0);
   });
 });
 
@@ -1317,9 +1250,6 @@ describe("a live drawer is not cut, and neither is the scrim over it (§27, §8,
     const shell = mountShell({ bottom: { defaultOpen: true } });
     const pane = within(shell, ".kui-shell-bottom");
     await expect.poll(() => computed(pane, "position")).toBe("absolute");
-    await expect
-      .poll(() => (pane.closest(".kui-shell") as HTMLElement).getAnimations().length === 0)
-      .toBe(true);
     return { shell, pane };
   };
 
@@ -1328,10 +1258,6 @@ describe("a live drawer is not cut, and neither is the scrim over it (§27, §8,
     const shell = mountShell({ sidebar: { defaultOpen: true } });
     const pane = within(shell, ".kui-shell-sidebar");
     await expect.poll(() => computed(pane, "position")).toBe("absolute");
-    // Settle the entry: this reads a landed frame, never a moment inside the flight.
-    await expect
-      .poll(() => (pane.closest(".kui-shell") as HTMLElement).getAnimations().length === 0)
-      .toBe(true);
     return { shell, pane };
   };
 
@@ -1358,7 +1284,7 @@ describe("a live drawer is not cut, and neither is the scrim over it (§27, §8,
    *
    * The CONCERN outlives the mechanism exactly. A bright band beside a dimmed app inverts the
    * depth a scrim is for, and a push can open one just as a clipped recession could — the scrim
-   * rides the frame's CHILDREN, so it travels with the page and away from the edge the pane
+   * rides the frame's CHILDREN, so it moves with the page and away from the edge the pane
    * arrived at. What holds is that the pane and the scrim cover the frame's box BETWEEN them.
    *
    * Read by hit-testing, which is how the original defect was found at all: a rect reports a
@@ -1371,7 +1297,7 @@ describe("a live drawer is not cut, and neither is the scrim over it (§27, §8,
    *
    * Falsified: deleting the sheet's push (`--kui-shell-push-y`) leaves the scrim over the whole
    * frame and fails the seam at `expected 600 to be close to 400`; stopping the scrim
-   * travelling with the frame's children fails it from the other side.
+   * moving with the frame's children fails it from the other side.
    */
   for (const gesture of ["sheet", "side"] as const) {
     it(`the scrim and the live ${gesture} cover the frame between them`, async () => {
@@ -1409,8 +1335,7 @@ describe("a live drawer is not cut, and neither is the scrim over it (§27, §8,
       expect(hits.some(isPane), "the pane covers none of the frame").toBe(true);
       /* AND THE SEAM IS EXACT, which is the push's own signature: the dimmed page ends precisely
          where the pane begins, because the scrim rides the frame and the frame moved by the
-         pane's own extent. Two distances on one curve — the shape the park distance got wrong by
-         2px and no landed-state law could see. */
+         pane's own extent. */
       const s = scrim.getBoundingClientRect();
       const p = pane.getBoundingClientRect();
       if (gesture === "sheet") {
@@ -1438,52 +1363,6 @@ describe("a live drawer is not cut, and neither is the scrim over it (§27, §8,
      a property of the selector rather than of a state no drawer can produce. If a pane ever
      recedes the frame again, this law comes back WITH it; it is not a check anyone should
      re-derive from a passing suite. */
-  /**
-   * AND THE SCRIM LEAVES WITH THE DRAWER, NOT BEFORE IT (Kushagra: "When I dismiss it, the bg
-   * loses its blur instantly making it look weird"). It was `display: none` at rest and
-   * `display: block` while a drawer was live, and `display` cannot be transitioned — so the
-   * instant a drawer was dismissed the scrim's pigment AND its defocus vanished in one frame
-   * while the pane still had its whole travel left. The app snapped back to full contrast and
-   * full sharpness with something still sliding across it, which reads as two events rather
-   * than one.
-   *
-   * The moment is SEIZED rather than raced, the 2026-08-20 rule: the exit's own clocks are
-   * paused and set to the same instant, so what this reads does not depend on when it looked.
-   *
-   * Falsified: with the `display` spelling restored, the scrim is off screen on the first
-   * frame of the exit and there is no animation to seize at all.
-   */
-  it("the scrim fades out on the drawer's clock, not in one frame", async () => {
-    inMotion();
-    await narrow();
-    const shell = mountShell({ sidebar: { defaultOpen: true } });
-    const scrim = within(shell, ".kui-shell-scrim");
-    const pane = within(shell, ".kui-shell-sidebar");
-    await expect.poll(() => onScreen(scrim)).toBe(true);
-    // The premise: it really is defocusing something, or "loses its blur" names nothing here.
-    // Its PIGMENT, since 2026-09-09: the scrim dims and does not blur, so what has to be there
-    // before the exit can be read is the fill (its own law states the absence of the defocus).
-    expect(computed(scrim, "background-color"), "the scrim dims nothing").not.toBe("rgba(0, 0, 0, 0)");
-
-    pressEscape(pane);
-    await expect.poll(() => pane.dataset.state).toBe("closed");
-    const fading = () =>
-      scrim.getAnimations().filter((a) => (a as CSSTransition).transitionProperty === "opacity");
-    await expect.poll(() => fading().length > 0).toBe(true);
-    for (const a of fading()) {
-      a.pause();
-      a.currentTime = 210;
-    }
-    await new Promise<void>((r) => requestAnimationFrame(() => r()));
-
-    const half = Number(computed(scrim, "opacity"));
-    expect(half, "the scrim was gone before the drawer was").toBeGreaterThan(0);
-    expect(half, "the scrim never started leaving").toBeLessThan(1);
-    // And it is still on screen doing its job while the pane travels.
-    expect(onScreen(scrim), "the scrim left the screen mid-exit").toBe(true);
-    expect(computed(scrim, "background-color"), "the dim went in one frame").not.toBe("rgba(0, 0, 0, 0)");
-  });
-
   /* THE FRAME NO LONGER RECEDES, SO THIS LAW HAS NO SUBJECT EITHER (2026-09-12, the ship pass).
 
      What stood here was "the frame rounds while it recedes, at the corner a card wears": it read
@@ -4866,11 +4745,11 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
               </ShellRailItem>
               {/* THE LONGEST WORD SITS INSIDE, and it has to (2026-09-10). The grip may
                   overextend past a seat's share, and at an END seat the pill's padding is a WALL
-                  it squashes against — so with the longest label last, "the width holds wherever
-                  it lands" and "the wall is real" contradict each other and each becomes the
-                  other's excuse. Measured: the grip asked for 88.02 on the end seat and painted
-                  80.34, and the law read that as the FLIGHT resizing it. Four tabs, so there are
-                  two interior seats to fly between. */}
+                  that clamps it — so with the longest label last, "the width holds wherever it
+                  lands" and "the wall is real" contradict each other and each becomes the other's
+                  excuse. Measured: the grip asked for 88.02 on the end seat and painted 80.34,
+                  and the law read that as the choice resizing it. Four tabs, so there are two
+                  interior seats to move between. */}
               <ShellRailItem label="Responsiveness" render={<a href="#three" />}>
                 <svg viewBox="0 0 16 16" />
               </ShellRailItem>
@@ -5255,7 +5134,8 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
   /**
    * ONE THUMB WIDTH, WHEREVER IT LANDS (Kushagra: "thumb should always take the same width, but
    * it can take a larger width than a simple grid calc will allow"). It is measured from the
-   * WIDEST label in the bar rather than the current one, so it does not resize as it flies; and
+   * WIDEST label in the bar rather than the current one, so it does not resize when the choice
+   * moves; and
    * being out of flow it may be wider than a seat's share, which is what lets the seats stay
    * equal and the words keep their ellipsis unchanged.
    *
@@ -5273,14 +5153,14 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
     await page.viewport(320, 700);
     const shell = bars({ only: true });
     /* THE HARNESS'S VIEWPORT CHANGE IS NOT SYNCHRONOUS WITH LAYOUT (2026-09-10), and this law
-       read a width from before the reflow. It reported "the thumb resized as it flew" at
+       read a width from before the reflow. It reported a changed width at
        `expected 80.34 to be close to 88.02` — and 88.02 is exactly the grip's width at the
        harness's own default width, so the first reading was the OLD viewport's and the second
        the settled one. The mechanism was never wrong: in a real browser the grip goes 88 → 69
        within 50ms of a resize, with no mutation to prompt it.
        So the layout is waited for by its own width rather than by a timer, and only then is
-       anything measured. Every claim below is about the FLIGHT, which cannot be read against a
-       box that is still catching up. */
+       anything measured. Every claim below is about the placed thumb, which cannot be read
+       against a box that is still catching up. */
     await expect.poll(() => Math.round(shell.getBoundingClientRect().width)).toBeLessThanOrEqual(320);
     const thumb = within(shell, ".kui-shell-rail-thumb");
     /* THE PILL'S OWN SEATS (2026-09-09). The detached action is a `.kui-shell-rail-item` too —
@@ -5290,9 +5170,9 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
     const pill = within(shell, ".kui-shell-rail-list");
     const seats = [...pill.querySelectorAll<HTMLElement>(".kui-shell-rail-item")];
     await expect.poll(() => thumb.hidden).toBe(false);
-    /* AN INTERIOR SEAT FOR THE CENTRE, because at an END seat the bar's padding is a WALL the
-       overextension squashes against (the segmented control's own rule, one component over), so
-       the centre legitimately moves inward there — measured 2px on the first seat. Both claims
+    /* AN INTERIOR SEAT FOR THE CENTRE, because at an END seat the bar's padding is a WALL that
+       clamps the overextension (the segmented control's own rule, one component over), so the
+       centre legitimately moves inward there — measured 2px on the first seat. Both claims
        are real; asserting them on one seat would make each the other's excuse. */
     seats[0]!.removeAttribute("aria-current");
     seats[2]!.setAttribute("aria-current", "page");
@@ -5325,7 +5205,7 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
       toBeGreaterThanOrEqual(widest);
 
     /* AND IT DOES NOT RESIZE WHEN THE CHOICE MOVES TO THE SEAT THAT OWNS THAT LONGEST WORD —
-       flown between two INTERIOR seats, because the wall legitimately squashes an overextending
+       moved between two INTERIOR seats, because the wall legitimately clamps an overextending
        grip at either end (the fixture's own note above). */
     const longest = seats[words.indexOf(widest)]!;
     for (const end of [seats[0], seats[seats.length - 1]])
@@ -5335,7 +5215,7 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
     await expect
       .poll(() => Math.round(thumb.getBoundingClientRect().left))
       .not.toBe(Math.round(first.left));
-    expect(thumb.getBoundingClientRect().width, "the thumb resized as it flew").toBeCloseTo(
+    expect(thumb.getBoundingClientRect().width, "the thumb changed width with the choice").toBeCloseTo(
       first.width,
       1,
     );
@@ -5357,8 +5237,8 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
     await expect.poll(() => Math.round(shell.getBoundingClientRect().width)).toBeLessThanOrEqual(320);
     const thumb = within(shell, ".kui-shell-rail-thumb");
     /* THE PILL IS THE CHANNEL (2026-09-09): the grip's insets resolve against its padding box,
-       so the wall its overshoot squashes into is the pill's air and not the row's, which has
-       none. Read off the pill for the same reason the placement is. */
+       so the wall that holds it in is the pill's air and not the row's, which has none. Read off
+       the pill for the same reason the placement is. */
     const bar = within(shell, ".kui-shell-rail-list");
     await expect.poll(() => thumb.hidden).toBe(false);
     const seats = [...bar.querySelectorAll<HTMLElement>(".kui-shell-rail-item")];
@@ -5501,7 +5381,7 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
   });
 
   /**
-   * AND THE BAR RIDES THE PUSH. It is a pane, so it would sit still while the frame slid out
+   * AND THE BAR RIDES THE PUSH. It is a pane, so it would sit still while the frame moved out
    * from under it unless it were one of the children the push moves — which is why the push's
    * exclusion names the two DRAWER postures rather than the rail as such.
    *
@@ -5521,7 +5401,7 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
       .toBeGreaterThan(10);
     expect(
       bar.getBoundingClientRect().left - before,
-      "the bar did not travel with the page",
+      "the bar did not move with the page",
     ).toBeCloseTo(content.getBoundingClientRect().left, 0);
   });
 });

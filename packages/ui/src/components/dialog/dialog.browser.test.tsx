@@ -7,11 +7,6 @@
  * overlay CORNER, and the box (a maximum width the window can win). The family mechanisms —
  * the portal wrapper's re-stamping, the surface rungs, the material recipes — are law-tested
  * where they live; what is asserted here is that this component wears them.
- *
- * Motion LEFT this file 2026-08-16 (LOG, the dialog/alert split): the materialization was
- * judged to be the alert's gesture, so the recipe, the runner and its laws moved to
- * AlertDialog whole. A dialog opens with no entry until its own large-mass entry lands —
- * the follow-up commit — which is a sequencing fact, not a design one.
  */
 import * as React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -45,10 +40,7 @@ import { Text } from "../text/text.tsx";
 import { Theme, type ThemeProps } from "../../theme/theme.tsx";
 import {
   DEPTHS,
-  asksForStillness,
-  inMotion,
   render,
-  settleAll,
   computed,
   colorOn,
   probeIn,
@@ -92,7 +84,6 @@ function openDialog(theme: ThemeProps, opts: { size?: Size; material?: "thin" | 
   if (!backdrop) throw new Error("the backdrop never mounted");
   const viewport = popup.parentElement;
   if (!viewport?.classList.contains("kui-dialog-viewport")) throw new Error("the viewport is not the panel's parent");
-  settleAll();
   return { popup, backdrop, viewport };
 }
 
@@ -423,7 +414,6 @@ describe("a dialog does not float", () => {
         </Menu>
       </Theme>,
     );
-    settleAll();
     const menus = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
     const menu = menus[menus.length - 1]!;
     const menuCast = computed(menu, "box-shadow");
@@ -609,203 +599,6 @@ describe("what the index prices, and what it leaves alone (§24)", () => {
   });
 });
 
-describe("the panel comes into focus, not into view (§24)", () => {
-  const curveOn = (el: HTMLElement, name: string) => getComputedStyle(el).getPropertyValue(name).trim();
-  const samples = (curve: string) =>
-    curve
-      .slice(curve.indexOf("(") + 1, curve.lastIndexOf(")"))
-      .split(",")
-      .map((stop) => stop.trim().split(/\s+/)[0]!);
-  const tokenPx = (el: HTMLElement, name: string) => parseFloat(getComputedStyle(el).getPropertyValue(name));
-
-  /** Open by CLICK — the path Base UI transitions — and hand back the arriving popup. */
-  async function openByClick() {
-    render(
-      <Theme>
-        <Dialog>
-          <DialogTrigger render={<Button>Open</Button>} />
-          <DialogContent>
-            <DialogTitle>Delete workspace</DialogTitle>
-            <DialogDescription>This cannot be undone.</DialogDescription>
-          </DialogContent>
-        </Dialog>
-      </Theme>,
-    );
-    inMotion();
-    await userEvent.click(document.querySelector<HTMLElement>(".kui-button")!);
-    await until(() => !!document.querySelector(".kui-dialog-popup"));
-    const popup = document.querySelector<HTMLElement>(".kui-dialog-popup");
-    if (!popup) throw new Error("the panel never mounted");
-    return popup;
-  }
-
-  const channels = (el: HTMLElement) =>
-    computed(el, "transition-property")
-      .split(",")
-      .map((p) => p.trim());
-
-  it("starts a step back in DEPTH with its content out of focus, and travels nowhere", async () => {
-    const popup = await openByClick();
-    const body = popup.querySelector<HTMLElement>(".kui-dialog-body")!;
-    // Base UI's starting stamp is the pose, and it lives one frame — read it by hand so the
-    // claim is about the values rather than about catching the frame.
-    popup.setAttribute("data-starting-style", "");
-    popup.style.setProperty("transition", "none", "important");
-    body.style.setProperty("transition", "none", "important");
-
-    // DEPTH: a scale, and the one config states.
-    expect(parseFloat(computed(popup, "scale"))).toBeCloseTo(
-      parseFloat(getComputedStyle(popup).getPropertyValue("--dialog-depth")),
-      3,
-    );
-    // NOT DISTANCE: the panel does not travel, in either axis. This is the whole split from
-    // the alert's materialization, and it is asserted as an absence because that is what it is.
-    expect(["none", "0px", "0px 0px"], "a summoned surface has nowhere to travel from").toContain(
-      computed(popup, "translate"),
-    );
-    expect(computed(popup, "opacity"), "presence is paint").toBe("0");
-    // And the content is out of focus by exactly the designed distance — sharing the plane's
-    // arrival, because depth of field is a property of the mass.
-    expect(computed(body, "filter")).toBe(`blur(${tokenPx(popup, "--print-blur")}px)`);
-  });
-
-  it("moves no size channel at all — the absence IS the design", async () => {
-    const popup = await openByClick();
-    const listed = channels(popup);
-    // The materialization animates the BOX (block-size, inline-size, border-radius, padding,
-    // translate) because an alert arrives. A dialog does not, and if any of these ever appear
-    // here the split has quietly been undone — which would not show up in any law about what
-    // the entry DOES.
-    for (const forbidden of [
-      "block-size",
-      "inline-size",
-      "width",
-      "height",
-      "padding",
-      "border-radius",
-      "border-top-left-radius",
-      "translate",
-    ]) {
-      expect(listed, `${forbidden} is the alert's gesture, not this one`).not.toContain(forbidden);
-    }
-    // Vacuity guard: the law must be reading a real list, not an empty one.
-    expect(listed).toContain("scale");
-    expect(listed).toContain("opacity");
-  });
-
-  it("rides the heavy plane's spring: one slight crossing, never a bounce", async () => {
-    const popup = await openByClick();
-    const listed = channels(popup);
-    const easings = computed(popup, "transition-timing-function").split(/,(?![^(]*\))/);
-    const poised = curveOn(popup, "--motion-spring-poised");
-    expect(samples(easings[listed.indexOf("scale")]!.trim()), "geometry is physics").toEqual(
-      samples(poised),
-    );
-    // Read off the CURVE, not off its name: mass forbids overshoot, so the arrival crosses its
-    // target once and barely — the whole of damping's allowance spent on the approach.
-    const values = samples(poised).map(Number);
-    expect(Math.max(...values), "a heavy plane does not bounce").toBeLessThan(1.03);
-    expect(Math.max(...values), "but it is alive — it does cross").toBeGreaterThan(1);
-    // Paint is signal: the fade eases and never springs.
-    expect(easings[listed.indexOf("opacity")]!, "presence eases").not.toContain("linear(");
-  });
-
-  it("two clocks, one mass: the content focuses WITH the box, and is never printed", async () => {
-    const popup = await openByClick();
-    const body = popup.querySelector<HTMLElement>(".kui-dialog-body")!;
-    const listed = channels(popup);
-    const durations = computed(popup, "transition-duration").split(",").map((d) => parseFloat(d) * 1000);
-    const settle = parseFloat(getComputedStyle(popup).getPropertyValue("--dialog-settle"));
-    const reveal = parseFloat(getComputedStyle(popup).getPropertyValue("--dialog-reveal"));
-    expect(durations[listed.indexOf("scale")]).toBeCloseTo(settle, 0);
-    expect(durations[listed.indexOf("opacity")]).toBeCloseTo(reveal, 0);
-
-    // The content is part of the mass, so it takes the BOX's clock, not a print clock.
-    expect(parseFloat(computed(body, "transition-duration")) * 1000).toBeCloseTo(settle, 0);
-    // And it is NOT printed: one channel, and it is focus. A dialog's content is the
-    // consumer's — the system may not animate an arrangement it does not own.
-    expect(channels(body), "blur is the only thing the system may honestly do here").toEqual([
-      "filter",
-    ]);
-    expect(computed(body, "transition-delay"), "and it arrives with the box, not after it")
-      .toBe("0s");
-  });
-
-  it("the exit dissolves, and a dismissal mid-arrival RETARGETS rather than snapping", async () => {
-    const popup = await openByClick();
-    popup.setAttribute("data-ending-style", "");
-    const listed = channels(popup);
-    // `scale` stays listed, which is what lets a running arrival be retargeted instead of
-    // cancelled — dropping a property from the list kills its transition mid-flight.
-    expect(listed, "the arrival's own channel survives the dismissal").toContain("scale");
-    const easings = computed(popup, "transition-timing-function").split(/,(?![^(]*\))/);
-    expect(samples(easings[listed.indexOf("scale")]!.trim())).toEqual(
-      samples(curveOn(popup, "--motion-spring-stiff")),
-    );
-    popup.style.setProperty("transition", "none", "important");
-    expect(computed(popup, "opacity")).toBe("0");
-    // Settling back a hair, not retracing the arrival: leaving answers nothing.
-    expect(computed(popup, "scale")).toBe("0.99");
-  });
-
-  it("suppression is total: under reduced motion the panel is simply there (§8)", async () => {
-    await asksForStillness();
-    const popup = await openByClick();
-    const body = popup.querySelector<HTMLElement>(".kui-dialog-body")!;
-    for (const el of [popup, body]) {
-      expect(
-        computed(el, "transition-duration").split(",").every((d) => parseFloat(d) === 0),
-        "no clock survives",
-      ).toBe(true);
-    }
-    // And the pose itself is stood down, which here is reachable in a way it is not for the
-    // alert: Base UI stamps the starting style regardless of what the user asked their OS for.
-    popup.setAttribute("data-starting-style", "");
-    expect(computed(popup, "opacity")).toBe("1");
-    expect(["none", "1"]).toContain(computed(popup, "scale"));
-    expect(computed(body, "filter"), "and its content is legible").toBe("none");
-  });
-
-  it("suppression does not MOVE the panel — at either stamp (§8, §24)", async () => {
-    /**
-     * The guard used to declare `margin: 0` (2026-08-22 audit), and it stood down nothing: the
-     * only auto margins in the poses are `margin-inline: auto` on the BODY elements, which the
-     * guard's popup selectors never reach. What it did reach is the `margin: auto` that CENTRES
-     * this panel inside Base UI's scrollable viewport — one specificity step against four — and
-     * losing a cross-axis auto margin releases the stretch with it. Measured: a dialog open at
-     * `360,351 560x98` became `24,24 560x752` at full opacity the frame the ending stamp landed,
-     * and the exit's own clock (which the guard also failed to reach, one attribute heavier) held
-     * it there for ~130ms. The setting that exists to remove motion produced the largest
-     * movement in the family.
-     *
-     * The law that stood here read `opacity`, `scale` and the body's `filter`. The guard writes
-     * five properties; three were read, and the two that were not are the two that were wrong.
-     * So this one reads the BOX, which is the only thing "nothing moves" can mean, at BOTH
-     * stamps — the entry's and the exit's — because the defect was on the arm nobody looked at.
-     */
-    await asksForStillness();
-    const popup = await openByClick();
-    const centred = popup.getBoundingClientRect();
-    // The premise: this panel is genuinely centred, so an un-centring has somewhere to move TO.
-    // Against a panel already at the viewport's edge the assertion below would hold either way.
-    expect(centred.left, "the fixture's panel must be centred to catch an un-centring").toBeGreaterThan(40);
-    expect(centred.height, "and short enough that a stretch would show").toBeLessThan(window.innerHeight / 2);
-
-    for (const stamp of ["data-starting-style", "data-ending-style"] as const) {
-      popup.setAttribute(stamp, "");
-      const box = popup.getBoundingClientRect();
-      expect(box.left, `${stamp} moved the panel sideways`).toBeCloseTo(centred.left, 0);
-      expect(box.top, `${stamp} moved the panel down the page`).toBeCloseTo(centred.top, 0);
-      expect(box.height, `${stamp} stretched the panel`).toBeCloseTo(centred.height, 0);
-      expect(
-        computed(popup, "transition-duration").split(",").every((d) => parseFloat(d) === 0),
-        `${stamp} kept a clock, so whatever it moved stays on screen`,
-      ).toBe(true);
-      popup.removeAttribute(stamp);
-    }
-  });
-});
-
 /* ── A scroll region inside the panel (§3, §10, 2026-08-21) ───────────────────────────── */
 
 describe("a scroll region inside the panel", () => {
@@ -830,7 +623,6 @@ describe("a scroll region inside the panel", () => {
         </Dialog>
       </Theme>,
     );
-    settleAll();
     const popups = document.querySelectorAll<HTMLElement>(".kui-dialog-popup");
     const popup = popups[popups.length - 1];
     if (!popup) throw new Error("the panel never mounted");
@@ -843,9 +635,8 @@ describe("a scroll region inside the panel", () => {
     // Measured broken 2026-08-21, under BOTH spellings — a 400px panel holding a 1440px
     // viewport that was never a scroll container, with the Save button at y=1705 and
     // `overflow: clip` removing it from the page. The cause is one box: `.kui-dialog-body`
-    // exists only so the entry can blur the content (§24) and it stands between the pane and
-    // the caller's children, so every rule in the surface layer's scroll block — each of
-    // which asks about a DIRECT child — stopped at it.
+    // stands between the pane and the caller's children, so every rule in the surface layer's
+    // scroll block — each of which asks about a DIRECT child — stopped at it.
     for (const [name, style] of [
       ["height", { height: "25rem" }],
       ["max-height", { maxHeight: "60dvh" }],
@@ -925,7 +716,6 @@ describe("what the call site can say to a dialog", () => {
       spy.mock.calls.map((c) => String(c[0])).filter((m) => m.includes(needle)).length;
     try {
       run();
-      settleAll();
       const deadline = 2000;
       for (let waited = 0; waited < deadline; waited += 16) {
         if (want > 0 && count() >= want) break;
@@ -953,7 +743,6 @@ describe("what the call site can say to a dialog", () => {
         </Dialog>
       </Theme>,
     );
-    settleAll();
     const p = lastPopup();
     expect(p.getAttribute("aria-label"), "aria-label reaches the element").toBe("Rename");
     expect(p.id, "so does id — what a `label for` needs, and every other component takes").toBe("rename-panel");
@@ -1024,7 +813,6 @@ describe("what the call site can say to a dialog", () => {
         </Dialog>
       </Theme>,
     );
-    settleAll();
 
     await userEvent.keyboard("{Escape}");
     expect(seen[0], "Escape is reported as Escape").toBe("false:escape-key");
@@ -1037,11 +825,10 @@ describe("what the call site can say to a dialog", () => {
     if (!close) throw new Error("the close button never mounted");
     await userEvent.click(close);
     expect(seen[1], "a close button is a different reason").toBe("false:close-press");
-    // UNMOUNTED is a STATE, not the statement after the click (2026-08-21, CI on main). A
-    // popup that is not refused leaves on its exit's own clock — Base UI unmounts it when the
-    // animations' `finished` promises settle — so reading the count here asserts the close is
-    // INSTANTANEOUS, which is a claim about the machine. A close that is genuinely refused
-    // never reaches zero and expires the deadline into the same assertion.
+    // UNMOUNTED is a STATE, not the statement after the click (2026-08-21, CI on main): Base
+    // UI unmounts a closing popup a frame after the press, so the law waits for it. A close
+    // that is genuinely refused never reaches zero and expires the deadline into the same
+    // assertion.
     await until(() => document.querySelectorAll(".kui-dialog-popup").length === 0, 3000);
     expect(
       document.querySelectorAll(".kui-dialog-popup").length,
@@ -1111,7 +898,6 @@ describe("on a narrow window a dialog is a sheet", () => {
         </Dialog>
       </Theme>,
     );
-    settleAll();
     const ps = document.querySelectorAll<HTMLElement>(".kui-dialog-popup");
     const p = ps[ps.length - 1];
     if (!p) throw new Error("the panel never mounted");
@@ -1194,7 +980,6 @@ describe("on a narrow window a dialog is a sheet", () => {
         </AlertDialog>
       </Theme>,
     );
-    settleAll();
     const ps = document.querySelectorAll<HTMLElement>(".kui-alert-popup");
     const alert = ps[ps.length - 1];
     if (!alert) throw new Error("the alert never mounted");
@@ -1227,7 +1012,6 @@ describe("on a narrow window a dialog is a sheet", () => {
         </Dialog>
       </Theme>,
     );
-    settleAll();
     const ps = document.querySelectorAll<HTMLElement>(".kui-dialog-popup");
     const p = ps[ps.length - 1];
     if (!p) throw new Error("the panel never mounted");
@@ -1236,7 +1020,6 @@ describe("on a narrow window a dialog is a sheet", () => {
     const input = p.querySelector<HTMLInputElement>("input");
     if (!body || !field || !input) throw new Error("the field never mounted");
     input.focus();
-    settleAll();
 
     // The ring's real reach, read off the browser rather than rebuilt from tokens.
     const reach =
@@ -1257,112 +1040,6 @@ describe("on a narrow window a dialog is a sheet", () => {
       pad + parseFloat(computed(p, "border-left-width")),
       0,
     );
-  });
-
-  it("carries NO motion — the dialog's entry is wrong for a sheet, and none is honest", async () => {
-    // Kushagra, 2026-08-21: "we will design a separate motion system for sheet, so what it has
-    // right now is wrong". §24's entry is depth-not-distance, and every word of that argument
-    // is about a CENTRED panel at modal mass — a 3% scale on a box already resting on the
-    // bottom edge reads as the wrong gesture rather than a small one. Menu's precedent:
-    // shipped instant, moved the next day.
-    //
-    // THE FIXTURE IS THE LAW. `defaultOpen` cannot answer this: Base UI writes
-    // `transition: none !important` INLINE on a dialog that opens on mount, so both windows
-    // read "no motion" and a sabotage of the stand-down survives. Measured, and it survived —
-    // this opens from the keyboard, which is a real open, and reads the starting frame.
-    inMotion();
-
-    const openByPress = async () => {
-      render(
-        <Theme>
-          <Dialog size="3">
-            <DialogTrigger render={<Button>Open</Button>} />
-            <DialogContent>
-              <DialogTitle>Rename</DialogTitle>
-            </DialogContent>
-          </Dialog>
-        </Theme>,
-      );
-      settleAll();
-      const buttons = document.querySelectorAll<HTMLElement>("button");
-      const trigger = buttons[buttons.length - 1];
-      if (!trigger) throw new Error("the trigger never mounted");
-      const before = document.querySelectorAll(".kui-dialog-popup").length;
-      trigger.focus();
-      await userEvent.keyboard("{Enter}");
-      // WAIT for the panel, never assume the gesture resolving means React has committed
-      // (settling.test.ts, 2026-08-21). A state that never arrives expires the deadline into
-      // the same failure, with the same message.
-      await until(() => document.querySelectorAll(".kui-dialog-popup").length > before);
-      const ps = document.querySelectorAll<HTMLElement>(".kui-dialog-popup");
-      const p = ps[ps.length - 1];
-      if (!p) throw new Error("the panel never opened");
-      const b = p.querySelector<HTMLElement>(".kui-dialog-body");
-      if (!b) throw new Error("the body never mounted");
-      return { panel: p, body: b };
-    };
-
-    // WIDE first, and it is not a control for politeness: it is what makes the narrow reading
-    // mean anything. Both halves in one law, because the claim is a difference.
-    const wide = await openByPress();
-    expect(computed(wide.panel, "transition-property"), "a centred dialog still comes into focus")
-      .toBe("scale, opacity");
-    expect(computed(wide.panel, "scale"), "…from a step back in z").not.toBe("none");
-    expect(computed(wide.body, "transition-property"), "…with its content sharpening").toBe("filter");
-
-    await page.viewport(PHONE.width, PHONE.height);
-    const sheet = await openByPress();
-    expect(computed(sheet.panel, "transition-property"), "a sheet moves nothing").toBe("none");
-    expect(computed(sheet.body, "transition-property"), "…and its content has no clock either")
-      .toBe("none");
-  });
-
-  it("…and it does not flash the dialog's POSE for a frame either", async () => {
-    // The half the law above cannot see, and its sabotage pass is what said so: with the clock
-    // stood down, `data-starting-style` is gone by the time any read lands, so deleting the
-    // pose stand-downs left the suite green. The pose still matters — with no transition the
-    // browser paints one frame at the starting values before the attribute is removed, which
-    // is a 3%-smaller blurred panel popping into place.
-    //
-    // So the attribute is SET rather than waited for. That is not a workaround: the claim here
-    // is about what the starting pose resolves to, which is a question about the cascade and
-    // not about time — and a law that raced the frame would be the timing shape this repo has
-    // already removed five times (`watchesFrames`, 2026-08-20).
-    const poseOf = async (viewport: { width: number; height: number }) => {
-      await page.viewport(viewport.width, viewport.height);
-      render(
-        <Theme>
-          <Dialog defaultOpen size="3">
-            <DialogContent>
-              <DialogTitle>Rename</DialogTitle>
-            </DialogContent>
-          </Dialog>
-        </Theme>,
-      );
-      settleAll();
-      const ps = document.querySelectorAll<HTMLElement>(".kui-dialog-popup");
-      const p = ps[ps.length - 1];
-      if (!p) throw new Error("the panel never mounted");
-      const b = p.querySelector<HTMLElement>(".kui-dialog-body");
-      if (!b) throw new Error("the body never mounted");
-      // Read against the panel's OWN resting pose rather than against a literal. `scale: none`
-      // and `scale: 1` are the same picture and different strings, and the first spelling of
-      // this law asserted the string — it failed on correct code, which is the cheapest kind
-      // of instrument bug to find and the easiest to have shipped as a "fix".
-      const rest = { scale: computed(p, "scale"), blur: computed(b, "filter") };
-      p.setAttribute("data-starting-style", "");
-      const start = { scale: computed(p, "scale"), blur: computed(b, "filter") };
-      p.removeAttribute("data-starting-style");
-      return { rest, start };
-    };
-
-    const wide = await poseOf(VIEWPORT);
-    expect(wide.start.scale, "a centred dialog starts a step back in z").not.toBe(wide.rest.scale);
-    expect(wide.start.blur, "…with its content out of focus").not.toBe(wide.rest.blur);
-
-    const sheet = await poseOf(PHONE);
-    expect(sheet.start.scale, "a sheet starts exactly where it lands").toBe(sheet.rest.scale);
-    expect(sheet.start.blur, "…and its content is never blurred").toBe(sheet.rest.blur);
   });
 
   it("a window one pixel wider is the centred panel, unchanged", async () => {

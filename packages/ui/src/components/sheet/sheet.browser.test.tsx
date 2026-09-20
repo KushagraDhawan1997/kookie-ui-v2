@@ -41,12 +41,9 @@ import {
   APPEARANCES,
   DEPTHS,
   SIZES,
-  asksForStillness,
   computed,
-  inMotion,
   probeIn,
   render,
-  settleAll,
   tokenOn,
   until,
 } from "../../test/browser.tsx";
@@ -103,7 +100,6 @@ function openSheet(
     throw new Error("the viewport is not the panel's parent");
   const body = popup.querySelector<HTMLElement>(".kui-sheet-body");
   if (!body) throw new Error("the body never mounted");
-  settleAll();
   return { popup, backdrop, viewport, body };
 }
 
@@ -125,7 +121,6 @@ function openDialog(theme: ThemeProps, opts: { material?: "thin" | "regular" | "
   const backdrops = document.querySelectorAll<HTMLElement>(".kui-dialog-backdrop");
   const backdrop = backdrops[backdrops.length - 1];
   if (!backdrop) throw new Error("the dialog's scrim never mounted");
-  settleAll();
   return { popup, backdrop };
 }
 
@@ -449,8 +444,7 @@ describe("it is an overlay, exactly as a dialog is", () => {
   it("covers the window with the SAME scrim a dialog draws, in both appearances", () => {
     // An equality rather than "it has a backdrop": the scrim is the app going back, it is a
     // family fact, and a sheet that quietly picked its own alpha would pass every reasonable
-    // "is there a scrim" law. What is deliberately NOT compared is the CLOCK — a sheet's dim
-    // rides the SLIDE (§27's drawer sentence) where a dialog's is a quick reveal.
+    // "is there a scrim" law.
     for (const appearance of APPEARANCES) {
       const sheet = openSheet({ appearance });
       const dialog = openDialog({ appearance });
@@ -522,7 +516,6 @@ describe("it is an overlay, exactly as a dialog is", () => {
         </Menu>
       </Theme>,
     );
-    settleAll();
     const menus = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
     const menuCast = computed(menus[menus.length - 1]!, "box-shadow");
     const { popup: lifted } = openSheet({ depth: "elevated" });
@@ -591,15 +584,14 @@ describe("a sheet takes Dialog's a11y whole", () => {
         <Button data-testid="outside">Page</Button>
       </Theme>,
     );
-    settleAll();
     const popups = document.querySelectorAll<HTMLElement>(".kui-sheet-popup");
     const popup = popups[popups.length - 1]!;
     const outside = document.querySelector<HTMLElement>('[data-testid="outside"]')!;
     expect(outside.tabIndex, "the outside control must be reachable, or there is no leak to catch").toBeGreaterThanOrEqual(0);
     const last = [...popup.querySelectorAll<HTMLElement>("button")].at(-1)!;
     // THE PANEL FOCUSES ITSELF FIRST, AND IT ATE THIS LAW'S SETUP (2026-09-12, ship). The sheet
-    // lands focus on its first control one effect AFTER the mount that `settleAll()` returns
-    // from, so a bare `last.focus()` here was undone before the keystroke ever arrived: probed,
+    // lands focus on its first control one effect AFTER the mount returns, so a bare
+    // `last.focus()` here was undone before the keystroke ever arrived: probed,
     // the Tab's own keydown reported `target=INPUT.kui-field-input`. The law was therefore
     // tabbing from the FIRST control to the last — a move that never reaches the panel's edge,
     // which is the only place a trap does anything — and it passed identically against a
@@ -694,7 +686,6 @@ describe("a sheet takes Dialog's a11y whole", () => {
         </Sheet>
       </Theme>,
     );
-    settleAll();
     const popups = document.querySelectorAll<HTMLElement>(".kui-sheet-popup");
     const popup = popups[popups.length - 1]!;
     // The press lands on the VIEWPORT's empty corner: the backdrop sits underneath it and can
@@ -957,174 +948,5 @@ describe("the reserve is the unsafe band PLUS a target", () => {
         0,
       );
     });
-  });
-});
-
-/* ── The slide (§8) ──────────────────────────────────────────────────────────────────── */
-
-describe("the slide, and the setting that removes it", () => {
-  /** Open by a real keyboard press — `defaultOpen` is not a real open for a motion law, because
-      Base UI writes `transition: none` inline on a panel that opens on mount, so both windows
-      read "no motion" and a sabotage of the stand-down survives (Dialog's own 2026-08-21
-      fixture finding). The POSE is then hand-stamped rather than raced: what the starting style
-      resolves to is a question about the cascade, not about time. */
-  async function openByPress() {
-    render(
-      <Theme>
-        <Sheet size="2">
-          <SheetTrigger render={<Button>Filters</Button>} />
-          <SheetContent>
-            <SheetTitle>Filters</SheetTitle>
-          </SheetContent>
-        </Sheet>
-      </Theme>,
-    );
-    const buttons = document.querySelectorAll<HTMLElement>(".kui-button");
-    const trigger = buttons[buttons.length - 1]!;
-    const before = document.querySelectorAll(".kui-sheet-popup").length;
-    trigger.focus();
-    await userEvent.keyboard("{Enter}");
-    await until(() => document.querySelectorAll(".kui-sheet-popup").length > before, 3000);
-    const popups = document.querySelectorAll<HTMLElement>(".kui-sheet-popup");
-    const popup = popups[popups.length - 1];
-    if (!popup) throw new Error("the panel never opened");
-    const backdrops = document.querySelectorAll<HTMLElement>(".kui-sheet-backdrop");
-    return { popup, backdrop: backdrops[backdrops.length - 1]! };
-  }
-
-  /**
-   * A transform that moves the box NOWHERE, whichever of the two spellings produced it.
-   *
-   * The resting rule translates by Base UI's swipe offset, which is zero at rest and computes
-   * `matrix(1, 0, 0, 1, 0, 0)`; the reduced-motion guard writes `transform: none`. Same picture,
-   * different strings — and comparing the two strings is the instrument bug Dialog's own pose law
-   * records having shipped once ("it failed on correct code, which is the cheapest kind to find
-   * and the easiest to have shipped as a fix"). This one failed the same way on its first run.
-   */
-  const isIdentity = (t: string) => t === "none" || t === "matrix(1, 0, 0, 1, 0, 0)";
-
-  /**
-   * The pose the starting stamp resolves to, and the resting value beside it.
-   *
-   * HAND-STAMPED ON A STILL PANEL, never raced. What a starting style resolves to is a question
-   * about the cascade, not about time — and the first spelling of this read `transform` off a
-   * panel with a live 500ms slide running, which reported `matrix(1, 0, 0, 1, 0, 94)` for a box
-   * it had just called "resting". That is the 2026-08-20 rule walked into by its own author: a
-   * premise that is a window is seized or edge-anchored, never raced. The CLOCK is a separate
-   * law, because a transition list persists and a frame does not.
-   */
-  function poseOf(popup: HTMLElement, backdrop: HTMLElement) {
-    const rest = { transform: computed(popup, "transform"), dim: computed(backdrop, "opacity") };
-    popup.setAttribute("data-starting-style", "");
-    backdrop.setAttribute("data-starting-style", "");
-    const start = { transform: computed(popup, "transform"), dim: computed(backdrop, "opacity") };
-    popup.removeAttribute("data-starting-style");
-    backdrop.removeAttribute("data-starting-style");
-    return { rest, start };
-  }
-
-  it("each edge parks its panel behind the edge it comes from — one of its own boxes away", () => {
-    // Its own box IS the distance, a length CSS already has, so the component measures nothing
-    // and needs no runner (the Shell drawer's reading). Read as the panel's OWN box at each of
-    // the three edges: one cell cannot tell "parked behind the edge it comes from" from "parked
-    // below", which is the sentence this law's title makes.
-    const cells = [
-      { side: "bottom", x: 0, y: 1 },
-      { side: "inline-start", x: -1, y: 0 },
-      { side: "inline-end", x: 1, y: 0 },
-    ] as const;
-    for (const cell of cells) {
-      const { popup, backdrop } = openSheet({}, { size: "2", side: cell.side });
-      const { rest, start } = poseOf(popup, backdrop);
-      expect(isIdentity(rest.transform), `${cell.side}: at rest it sits where it lands — ${rest.transform}`).toBe(true);
-      const posed = start.transform.match(/matrix\(1, 0, 0, 1, (-?[\d.]+), (-?[\d.]+)\)/);
-      expect(posed, `${cell.side}: the starting pose does not translate — ${start.transform}`).toBeTruthy();
-      const box = popup.getBoundingClientRect();
-      expect(parseFloat(posed![1]!), `${cell.side}: parked one box away on the inline axis`).toBeCloseTo(
-        cell.x * box.width,
-        0,
-      );
-      expect(parseFloat(posed![2]!), `${cell.side}: parked one box away on the block axis`).toBeCloseTo(
-        cell.y * box.height,
-        0,
-      );
-      expect(start.dim, `${cell.side}: the scrim starts undimmed`).toBe("0");
-    }
-  });
-
-  it("the slide and its scrim are ONE clock — the drawer's, not the dialog's quick reveal", async () => {
-    /**
-     * The CLOCK, read as DECLARATIONS off a really-opened panel: a transition list, its duration
-     * and its easing persist, so they are as true on a starved machine as on an idle one, which
-     * is what keeps this law off `watchesFrames` while the claim stays real.
-     *
-     * `defaultOpen` cannot answer it — Base UI writes `transition: none` inline on a panel that
-     * opens on mount, so a sabotage of the clock would survive (Dialog's own 2026-08-21 fixture
-     * finding) — and `inMotion()` is what lets any clock exist at all, since the harness pins
-     * every transition still by default.
-     */
-    inMotion();
-    const { popup, backdrop } = await openByPress();
-    expect(computed(popup, "transition-property"), "the slide is a transform").toContain("transform");
-    // DERIVED from the drawer token rather than pinned at 500ms: the CSS multiplies it by Base
-    // UI's release strength, which rests at 1, so this is the whole expression at rest.
-    expect(parseFloat(computed(popup, "transition-duration")) * 1000, "the drawer's clock").toBeCloseTo(
-      parseFloat(computed(popup, "--motion-drawer")),
-      0,
-    );
-    // §27's drawer sentence, measured: "one clock for the slide, the recession and the scrim".
-    // The app going back and the panel coming in are one progress, which is the whole reason
-    // this scrim does not take the dialog's quick reveal.
-    expect(parseFloat(computed(backdrop, "transition-duration")), "the scrim rides the slide").toBeCloseTo(
-      parseFloat(computed(popup, "transition-duration")),
-      3,
-    );
-    // And the curve is the carried spring — an equality against the token, never a pasted
-    // `linear()`: critically damped from rest, so a panel a screen's height long gathers and
-    // settles rather than snapping to the middle and creeping.
-    //
-    // Compared by its STOPS rather than as a string, which is the family's own idiom (dialog,
-    // alert) and which this law needed on its first run: Chrome normalises the opening `0` of a
-    // `linear()` to `0 0%`, so a whitespace-stripped comparison failed on a curve that was
-    // character-for-character the token it came from.
-    const samples = (curve: string) =>
-      curve
-        .slice(curve.indexOf("(") + 1, curve.lastIndexOf(")"))
-        .split(",")
-        .map((stop) => stop.trim().split(/\s+/)[0]!);
-    const easing = computed(popup, "transition-timing-function");
-    expect(easing.startsWith("linear("), `geometry is physics, and a spring is a baked curve: ${easing}`).toBe(true);
-    expect(samples(easing)).toEqual(samples(computed(popup, "--motion-spring-carried")));
-  });
-
-  it("under reduced motion it is simply there — no clock, and no pose to flash either", async () => {
-    /**
-     * BOTH halves, because either alone is satisfiable by the wrong code. With the clock stood
-     * down the starting stamp is gone before any read can land, so deleting the POSE stand-down
-     * leaves a duration-only law green — while the browser still paints one frame of a panel a
-     * whole screen below where it belongs. And a pose-only law passes against a panel that never
-     * moved because the harness was holding it still.
-     *
-     * `inMotion()` is what makes the first half real: the harness pins `transition: none` on
-     * everything by default, so without it every duration reads 0 whatever the stylesheet says.
-     * The positive control is the pair of laws above, which read a real clock and a real pose on
-     * this same component with the setting off.
-     */
-    await asksForStillness();
-    inMotion();
-    const { popup, backdrop } = await openByPress();
-    for (const el of [popup, backdrop]) {
-      expect(
-        computed(el, "transition-duration").split(",").every((d) => parseFloat(d) === 0),
-        "no clock survives",
-      ).toBe(true);
-    }
-    const { rest, start } = poseOf(popup, backdrop);
-    expect(isIdentity(rest.transform), `at rest — ${rest.transform}`).toBe(true);
-    expect(
-      isIdentity(start.transform),
-      `a sheet under stillness starts exactly where it lands — ${start.transform}`,
-    ).toBe(true);
-    expect(start.dim, "…and the app is already dimmed behind it").toBe("1");
   });
 });

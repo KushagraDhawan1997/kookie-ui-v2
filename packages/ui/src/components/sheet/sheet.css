@@ -1,7 +1,7 @@
 /* Sheet (§10, §11, §24). The panel is a surface — fill, edge, glass, padding and the overlay
    band's corner all arrive from surfaces.css through `kui-surface kui-overlay`, exactly as a
-   dialog's do. What is left for this sheet is what an EDGE panel owns: the scrim on the drawer's
-   clock, where the panel stands, which corners it keeps, the safe areas it pads, and the slide.
+   dialog's do. What is left for this sheet is what an EDGE panel owns: the scrim, where the
+   panel stands, which corners it keeps, and the safe areas it pads.
 
    Like Dialog it declares no shadow: the scrim is the separation, and the world's ordinary
    surface chrome reaches the panel by inheritance. Per-size spellings live in the shared overlay
@@ -9,25 +9,14 @@
 
 /* ── The scrim ────────────────────────────────────────────────────────────────────────────
    Dialog's recipe (dialog.css), self-keyed: the same fill, the same filter, the same stand-down
-   under reduced transparency. Its clock is the SLIDE's rather than the dialog's quick reveal,
-   because the app going back and the panel coming in are one progress (§27's drawer sentence:
-   "one clock for the slide, the recession and the scrim"). While a finger drags the panel, Base
-   UI publishes how far it has gone as `--drawer-swipe-progress`, and the dim follows the finger
-   with no clock at all. */
+   under reduced transparency. While a finger drags the panel, Base UI publishes how far it has
+   gone as `--drawer-swipe-progress`, and the dim follows the finger. */
 .kui-sheet-backdrop {
   position: fixed;
   inset: 0;
   background-color: var(--scrim-fill);
   backdrop-filter: var(--scrim-filter, none);
   opacity: calc(1 - var(--drawer-swipe-progress, 0));
-  transition: opacity var(--motion-drawer) var(--motion-easing);
-}
-.kui-sheet-backdrop[data-swiping] {
-  transition-duration: 0s;
-}
-.kui-sheet-backdrop[data-starting-style],
-.kui-sheet-backdrop[data-ending-style] {
-  opacity: 0;
 }
 
 @media (prefers-reduced-transparency: reduce) {
@@ -50,19 +39,14 @@
 
 /* ── The panel ────────────────────────────────────────────────────────────────────────────
    A column whose body scrolls (see the body below), resting at Base UI's swipe offset. The
-   offset is zero at rest; while a finger drags, Base UI writes an inline transform that beats
-   this declaration, and on release it hands back the offset for the spring to settle from. */
+   offset is zero at rest and follows the finger while it drags; on release the panel is back
+   at rest, or gone, at once. */
 .kui-sheet-popup {
   display: flex;
   flex-direction: column;
   /* A panel holding focus is a mode; its controls carry the ring (Dialog's sentence). */
   outline: none;
   transform: translate(var(--drawer-swipe-movement-x, 0), var(--drawer-swipe-movement-y, 0));
-  /* The drawer's own clock and curve (§27, `shellDrawer` and `carried`): critically damped from
-     rest, so a panel a screen's height long gathers and settles rather than snapping to the
-     middle and creeping. Base UI scales the duration by how hard a swipe was released. */
-  transition: transform calc(var(--motion-drawer) * var(--drawer-swipe-strength, 1))
-    var(--motion-spring-carried);
 }
 .kui-sheet-popup[data-swiping] {
   user-select: none;
@@ -143,31 +127,6 @@
   padding-left: max(var(--kui-sf-p), env(safe-area-inset-left));
 }
 
-/* ── The slide: in from the edge it was parked behind ─────────────────────────────────────
-   Its own box is the distance, a length CSS already has, so this measures nothing and needs no
-   runner — the Shell drawer's reading. Keyed on the physical direction for the reason the safe
-   areas are: a translate is physical. Leaving is the same distance on the same clock, which is
-   also where a swipe-dismissed panel continues from wherever the finger let it go. */
-.kui-sheet-popup[data-swipe-direction="down"][data-starting-style],
-.kui-sheet-popup[data-swipe-direction="down"][data-ending-style] {
-  transform: translateY(100%);
-}
-.kui-sheet-popup[data-swipe-direction="right"][data-starting-style],
-.kui-sheet-popup[data-swipe-direction="right"][data-ending-style] {
-  transform: translateX(100%);
-}
-.kui-sheet-popup[data-swipe-direction="left"][data-starting-style],
-.kui-sheet-popup[data-swipe-direction="left"][data-ending-style] {
-  transform: translateX(-100%);
-}
-
-/* A leaving panel and its scrim are not targets (the overlay family's 2026-08-22 stand-down,
-   stated for this family's own classes). */
-.kui-sheet-popup[data-ending-style],
-.kui-sheet-backdrop[data-ending-style] {
-  pointer-events: none;
-}
-
 /* ── The narrow window (§18): a bottom sheet is the window's width ───────────────────────
    The overlay width is a reading-measure cap for a roomy window; on a phone a centred sheet
    narrower than the glass would read as a card that fell. The boundary is the system's one
@@ -175,23 +134,5 @@
 @media (max-width: 48rem) {
   .kui-sheet-popup[data-side="bottom"] {
     max-inline-size: none;
-  }
-}
-
-/* ── Reduced motion: present and gone ────────────────────────────────────────────────────
-   Weighed at each recipe's own specificity, the stand-down's rule (surfaces.css). A drag still
-   follows the finger — that is direct manipulation, not motion the system adds. */
-@media (prefers-reduced-motion: reduce) {
-  .kui-sheet-popup,
-  .kui-sheet-backdrop {
-    transition: none;
-  }
-  .kui-sheet-popup[data-swipe-direction][data-starting-style],
-  .kui-sheet-popup[data-swipe-direction][data-ending-style] {
-    transform: none;
-  }
-  .kui-sheet-backdrop[data-starting-style],
-  .kui-sheet-backdrop[data-ending-style] {
-    opacity: 1;
   }
 }

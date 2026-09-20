@@ -954,10 +954,9 @@ function usePane(
   // and cost the render path.
   // CHANGES
   // 2026-08-26 — was "this package ships no useLayoutEffect". False on both halves and
-  //   read as a ban: segmented-control.tsx measures its travelling thumb in one, because a
-  //   measurement that must land before paint is exactly what the hook is for. Stating the
-  //   criterion instead, so the next measurement is not pushed onto useEffect + rAF — which
-  //   buys a painted frame at the old position.
+  //   read as a ban: a measurement that must land before paint is exactly what the hook is
+  //   for. Stating the criterion instead, so the next measurement is not pushed onto
+  //   useEffect + rAF — which buys a painted frame at the old position.
   const latest = React.useRef({ expanded, controlled, onOpenChange: props.onOpenChange });
   React.useEffect(() => {
     latest.current = { expanded, controlled, onOpenChange: props.onOpenChange };
@@ -1066,12 +1065,12 @@ const paneToken: Partial<Record<ShellPaneTarget, string>> = {
 /* ── Resize (§27, 2026-09-01): the pane's extent, moved by hand ─────────────────────────── */
 
 /**
- * A DRAG IS THE FIFTH BOUNDED EXCEPTION TO "no JS at interaction time", and it is a different
- * KIND of exception from the four before it.
+ * A DRAG IS A BOUNDED EXCEPTION TO "no JS at interaction time", and it is a different KIND of
+ * exception from the others.
  *
- * The flight's measurement, the lens, Tabs' indicator and the segmented thumb are all
- * measure-once-at-a-seam: they read geometry when something has finished happening. This one
- * runs while a finger is moving, which no seam can defer. The non-negotiable's purpose is that
+ * The lens, Tabs' indicator and the segmented thumb are all measure-once-at-a-seam: they read
+ * geometry when something has finished happening. This one runs while a finger is moving,
+ * which no seam can defer. The non-negotiable's purpose is that
  * STATE styling costs no frames — hover, press and focus are data-attributes and CSS — and a
  * resize is not a state: the gesture IS the value, and there is no CSS that can express "this
  * boundary is where the pointer is". Every system with resizable panes runs script here.
@@ -1080,10 +1079,10 @@ const paneToken: Partial<Record<ShellPaneTarget, string>> = {
  * than as what reads well (corrected by the audit 2026-09-02). Nothing runs unless a pointer
  * is down on the handle. The move writes ONE custom property directly on the pane element and
  * sets no React state, so there is no re-render PER FRAME and the lens never re-mints its map
- * (2026-08-22's finding, where an animating pane minted 27 filters) — there are exactly two
- * re-renders per gesture, at its two ends, from the `dragging` flag the stylesheet reads; the
- * first spelling of this paragraph said "no React state" while the hook plainly calls
- * `useState`, which is a comment describing an intention rather than a mechanism. The
+ * mid-gesture (2026-08-22's finding: a pane resized every frame minted 27 filters) — there are
+ * exactly two re-renders per gesture, at its two ends, from the `dragging` flag the stylesheet
+ * reads; the first spelling of this paragraph said "no React state" while the hook plainly
+ * calls `useState`, which is a comment describing an intention rather than a mechanism. The
  * listeners live on the handle via pointer capture, are pinned to the pointer that opened the
  * gesture, and leave with it. And `onResize` fires ONCE, at the end, because the app's job is
  * to remember the number rather than to watch it move.
@@ -1457,7 +1456,7 @@ function SidePane({
   const composedRef = useMergedRefs(ref, pane.paneRef, ownRef);
   // A SIDE PANE PUSHES, IT DOES NOT COVER (2026-09-08, Kushagra: "the content is pushed to
   // right, so sidebar always stays compliant with how desktop works"). Under the push the
-  // frame slides aside and the pane is the desktop pane revealed, with the page behind it
+  // frame moves aside and the pane is the desktop pane revealed, with the page behind it
   // exactly as on a wide window — so the covering-panel rule in `usePaneDress` does not
   // apply, and only `backdrop` (or an ambient region) states its material. The bottom pane
   // pushes too since 2026-09-11.
@@ -1615,19 +1614,18 @@ export type ShellRailProps = ComponentRefusals & Omit<
     nothing excludes anything, because nothing overlaps (§27 deleted v1's thin mode, the
     exclusivity rule and the close-cascade in one renaming). Renders `<nav>`; when two nav
     landmarks are present, give each an `aria-label`. */
-/** THE BAR'S THUMB, placed by measurement (2026-09-09) — the segmented control's
-    `useTravelingThumb`, self-keyed as its second member: it watches `aria-current` instead of
+/** THE BAR'S THUMB, placed by measurement (2026-09-09) — the segmented control's own
+    mechanism, self-keyed as its second member: it watches `aria-current` instead of
     `data-checked`, writes `--kui-bar-*`, and its seats are wherever the items sit (the list is
-    `display: contents` in the bar). The same visual-scale division, for the same reason: a bar
-    inside anything that scales as it opens would be measured mid-entry. */
+    `display: contents` in the bar). The measurement is divided by the visual scale, so a bar
+    inside a scaled ancestor is placed in its own coordinates. */
 function useBarThumb(rail: React.RefObject<HTMLElement | null>) {
-  const previousLeft = React.useRef<number | null>(null);
   React.useLayoutEffect(() => {
     const el = rail.current;
     if (!el) return;
     // THE PILL, NOT THE BAR (2026-09-09). The rail element is a bare row of panes now, so
     // every box this measurement is about — the containing block the thumb's insets resolve
-    // against, the wall its overshoot squashes into, the seats it lands on — belongs to the
+    // against, the wall that keeps it inside the bar, the seats it lands on — belongs to the
     // LIST. Falls back to the rail for the postures where the list is layout and the rail is
     // still the pill (`presentation="auto"` at narrow; see `ShellBarContext`).
     const pill = el.querySelector<HTMLElement>(".kui-shell-rail-list") ?? el;
@@ -1644,11 +1642,10 @@ function useBarThumb(rail: React.RefObject<HTMLElement | null>) {
             parseFloat(edges.borderRightWidth);
       return layout > 0 ? box.width / layout : 1;
     };
-    const place = (flying: boolean) => {
+    const place = () => {
       const chosen = pill.querySelector<HTMLElement>(".kui-shell-rail-item[aria-current]");
       if (!chosen) {
         thumb.hidden = true;
-        previousLeft.current = null;
         return;
       }
       const box = pill.getBoundingClientRect();
@@ -1658,11 +1655,10 @@ function useBarThumb(rail: React.RefObject<HTMLElement | null>) {
       // ONE WIDTH, AND IT MAY OVEREXTEND (2026-09-09, Kushagra: "thumb should always take the
       // same width, but it can take a larger width than a simple grid calc will allow"). The
       // width is read from the WIDEST label in the bar, not from the current one, so the thumb
-      // is the same size wherever it lands — a thumb that resized as it flew would be a second
-      // motion nobody asked for. Being out of flow it can be wider than a seat's share without
-      // moving anything, which is the whole reason the seats can stay equal; the walls in CSS
-      // keep it inside the bar's padding at the two ends. `scrollWidth` is the untruncated
-      // word, so an ellipsed label still contributes its real width.
+      // is the same size wherever it lands. Being out of flow it can be wider than a seat's
+      // share without moving anything, which is the whole reason the seats can stay equal; the
+      // walls in CSS keep it inside the bar's padding at the two ends. `scrollWidth` is the
+      // untruncated word, so an ellipsed label still contributes its real width.
       // THE AIR IS THE SEAT'S OWN PADDING PLUS THE CURVE (2026-09-09, Kushagra: "each selected
       // tab bar item should have some padding because its rounded… when rounded padding should
       // increase we know that and have precedent with buttons etc"). §4 pads a control wider at
@@ -1687,18 +1683,14 @@ function useBarThumb(rail: React.RefObject<HTMLElement | null>) {
       const centre = (seat.left + seat.right) / 2;
       const left = (centre - width / 2 - box.left) / scale - parseFloat(edges.borderLeftWidth);
       const right = (box.right - (centre + width / 2)) / scale - parseFloat(edges.borderRightWidth);
-      const from = previousLeft.current;
       thumb.hidden = false;
-      thumb.dataset.activationDirection =
-        !flying || from === null || from === left ? "none" : left > from ? "right" : "left";
       thumb.style.setProperty("--kui-bar-left", `${left}px`);
       thumb.style.setProperty("--kui-bar-right", `${right}px`);
-      previousLeft.current = left;
     };
-    place(false);
-    const selection = new MutationObserver(() => place(true));
+    place();
+    const selection = new MutationObserver(place);
     selection.observe(el, { subtree: true, attributes: true, attributeFilter: ["aria-current"] });
-    const size = new ResizeObserver(() => place(false));
+    const size = new ResizeObserver(place);
     size.observe(el);
     // AND THE PILL, because the bar's own box is pinned to the window (`inset-inline`) while
     // the pill's is what the seats share: a detached action changing width moves every seat
@@ -1741,7 +1733,7 @@ export function ShellRail({ presentation = "auto", ...props }: ShellRailProps) {
   const mapped: ShellPresentation = presentation === "rail" ? "auto" : presentation === "overlay" ? "overlay" : "bar";
   const bar = presentation === "auto" ? "auto" : presentation === "bar" ? "only" : undefined;
   const stamps = (bar ? { "data-bar": bar } : {}) as Record<string, string>;
-  // THE THUMB BELONGS TO THE LIST IT TRAVELS IN (2026-09-09). It was a direct child of the
+  // THE THUMB BELONGS TO THE LIST IT SITS IN (2026-09-09). It was a direct child of the
   // rail while the rail was the pill; the pill is `ShellRailList` now, and the thumb's insets
   // resolve against its containing block, so the box it is placed against and the box it
   // resolves against have to be the same one — the segmented control's own sentence. So the

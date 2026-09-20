@@ -1,5 +1,5 @@
 /* AlertDialog (§10, §25). The panel is a surface and an overlay-family member — fill, edge,
-   dress, glass, corner, padding and the entry all arrive from the shared layers — so what is
+   dress, glass, corner and padding all arrive from the shared layers — so what is
    left here is the alert's own facts: its scrim and viewport (the second member SELF-KEYS,
    TextArea's rule: these repeat dialog.css's facts under the alert's own names, and the
    third overlay member promotes them), its FIXED width, and the layout it owns.
@@ -14,21 +14,6 @@
   background-color: var(--scrim-fill);
   /* Unprefixed only — Lightning owns prefixing (the 2026-08-10 finding; the build asserts it). */
   backdrop-filter: var(--scrim-filter, none);
-  /* Pure signal (§8): no box to become, one fade on the paint clock. */
-  transition: opacity var(--overlay-reveal) ease-out;
-}
-.kui-alert-backdrop[data-starting-style],
-.kui-alert-backdrop[data-ending-style] {
-  opacity: 0;
-}
-@media (prefers-reduced-motion: reduce) {
-  .kui-alert-backdrop {
-    transition: none;
-  }
-  .kui-alert-backdrop[data-starting-style],
-  .kui-alert-backdrop[data-ending-style] {
-    opacity: 1;
-  }
 }
 @media (prefers-reduced-transparency: reduce) {
   .kui-alert-backdrop {

@@ -16,9 +16,8 @@
    All the narrow-window rules live in the single media block at the bottom so the literal
    exists ONCE here.
 
-   No motion yet, on Menu's own precedent (shipped instant, moved the next day): the panes'
-   spring entry is the recorded follow-up, and shipping zero transitions means the reduced-
-   motion laws have nothing here to stand down yet. */
+   Nothing in the frame moves: a pane opens, closes and pushes the frame at once. Motion was
+   removed 2026-09-20; docs/archive/motion-v1.md records it. */
 
 /* The pane extents must NOT inherit — the `--kui-h` trap, one family over (§12, LOG
    2026-08-05, raised again by the 2026-08-16 audit). A custom property inherits by default,
@@ -172,9 +171,8 @@
    two extents above are — a pane's margin is not its children's, and a Shell composed inside
    a pane would otherwise size its own caps from the outer pane's spacing. */
 /* The recession, the well and the drawer's counter all read ONE number, so they cannot
-   disagree about how far back the frame has gone (2026-09-06). Registered so it interpolates
-   as a NUMBER — an unregistered property animates as a token stream, which is to say it does
-   not animate at all, and the frame would jump between its two scales.
+   disagree about how far back the frame has gone (2026-09-06). Registered as a NUMBER whose
+   initial value is the frame at rest.
 
    `inherits: true`, which is the opposite of what the two extents above take, and the reason
    is that here the readers are DESCENDANTS: the well and the drawer both undo exactly what the
@@ -245,34 +243,12 @@
   block-size: 100%;
   position: relative;
   isolation: isolate;
-  /* AND IT CLIPS WHILE NOTHING IS FLYING, WHICH IS THE WHOLE OF THE RULE (2026-09-06,
-     corrected the same day). A drawer is no longer deleted when it is closed — it waits one
-     pane-width outside the frame so its arrival can be transitioned — and a parked pane on
-     the trailing or bottom edge is scrollable overflow: measured, a 375px window reported a
-     690px document. `clip` rather than `hidden` for §3's reason: a hidden box is a scroll
-     container, and this one is the app's whole frame.
-
-     THE CORRECTION IS THAT IT MUST STOP CLIPPING WHILE A DRAWER IS LIVE (Kushagra: "the
-     sidebar is also cut"), and the reason is a coordinate space. `overflow` clips descendants
-     in the element's OWN box, before the element's transform — and while a drawer is live
-     this element is scaled to 0.925, so the three things that take its inverse are all larger
-     than the box doing the clipping. Measured on a 375x700 frame: the drawer paints
-     26.25→673.75 where its box is 8→692, cut by 18px at the head and the foot; the scrim and
-     the well both stop at x=347, so the trailing 28px of the frame showed raw page. Every one
-     of those lands EXACTLY on the frame's own box once it is on screen — the overflow is real
-     in the frame's space and imaginary in the viewer's, which is the sense in which clipping
-     here was measuring the wrong thing.
-
-     So the clip is a property of the RESTING frame, and it comes back only once the last
-     drawer has finished leaving. `transition-behavior: allow-discrete` is what makes that
-     expressible without JS: `overflow` is a discrete property, so it flips at the END of a
-     zero-duration transition whose delay is the drawer's own clock. Going the other way the
-     live arm restates the delay at zero, so the clip is gone on the first frame of an entry
-     and no arrival is ever cut.
-
-     The clock itself is declared with the frame's own transform, in the drawer region below,
-     so this element has exactly one `transition` and neither half can silently reset the
-     other — which the first spelling did, the shorthand in that rule dropping this one. */
+  /* AND IT CLIPS (2026-09-06). A drawer is not deleted when it is closed — it is parked one
+     pane-width outside the frame — and a parked pane on the trailing or bottom edge is
+     scrollable overflow: measured, a 375px window reported a 690px document. `clip` rather
+     than `hidden` for §3's reason: a hidden box is a scroll container, and this one is the
+     app's whole frame. It clips while a drawer is open too, because the push moves the
+     frame's children and never the root (the drawer region below). */
   overflow: clip;
 }
 
@@ -555,16 +531,12 @@
 }
 
 
-/* ── THE DRAWER'S ARRIVAL, AND THE FRAME'S RECESSION UNDER IT (§27, §8, 2026-09-06) ────────
+/* ── THE DRAWER, AND THE FRAME'S RECESSION UNDER IT (§27, 2026-09-06) ──────────────────────
    Kushagra, against his own Physics reference: the background "should scale down".
 
-   A DRAWER IS NONE OF THE THREE ENTRANCES THIS PACKAGE ALREADY HAS. It is not a menu — a menu
-   flies out of the thing you pressed (§22), and a drawer is anchored to the window's edge
-   rather than to its trigger. It is not a dialog — a dialog barely travels, because the scrim
-   IS its arrival and it comes toward you rather than in from the side (§24). It slides in from
-   the edge it was parked behind, which is also the cheapest reading in the package: the
-   distance is its own width, a length CSS already has, so this is the ONE entrance here that
-   measures nothing and needs no runner.
+   A DRAWER IS ANCHORED TO THE WINDOW'S EDGE rather than to its trigger, and while closed it is
+   parked one of its own boxes behind that edge — a length CSS already has, so nothing here
+   measures anything.
 
    WHAT ONLY A SHELL CAN ADD is the second half. Every drawer library portals to the body, so
    the page is not theirs to move and the recession has to be asked of the app. The Shell owns
@@ -593,11 +565,12 @@
 /* A SIDE PANE PUSHES THE FRAME; ONLY A SHEET FROM BELOW RECEDES (2026-09-08, Kushagra:
    "Treating a left drawer like an iOS sheet which comes from below is different. Just because
    they're all sheets doesn't mean they're treated the same… The content is pushed to right,
-   so sidebar always stays compliant with how desktop works"). The whole frame slides by the
-   pane's width and the pane rides in with it as one object — Discord's and Claude's answer —
-   so the sidebar on a phone is the desktop sidebar revealed, not a second surface covering the
-   page. Flush pushes by the width and seams against the content; not flush pushes by the
-   width plus its gap on both sides and floats in it, exactly what it does on a wide window.
+   so sidebar always stays compliant with how desktop works"). The whole frame moves over by
+   the pane's width and the pane stands beside it as one object — Discord's and Claude's
+   answer — so the sidebar on a phone is the desktop sidebar revealed, not a second surface
+   covering the page. Flush pushes by the width and seams against the content; not flush pushes
+   by the width plus its gap on both sides and floats in it, exactly what it does on a wide
+   window.
    Capped so a strip of scrim always remains to dismiss on, the pane's own cap in the same
    terms. The recession stays 1, so every inverse below is a no-op here. */
 .kui-shell:has(> :where(.kui-shell-rail, .kui-shell-sidebar)[data-flush][data-state="open"][data-presentation="overlay"]) {
@@ -616,9 +589,9 @@
 /* THE BOTTOM PANE PUSHES TOO (2026-09-11, Kushagra: "The bottom sheet in a shell is different
    from a dialog sheet. Just like sidebar pushes content side, shell bottom should also push
    content up, not appear like modal"). It was the one drawer that receded the frame, which is a
-   dialog's arrival — the page set back behind something that covers it. A Shell's bottom pane is
-   part of the app the way its sidebar is, so it arrives the way the sidebar does: the frame moves
-   up by the pane's height and the pane rides in beneath it. Nothing scales. Capped against the
+   dialog's posture — the page set back behind something that covers it. A Shell's bottom pane is
+   part of the app the way its sidebar is, so it sits the way the sidebar does: the frame moves
+   up by the pane's height and the pane stands beneath it. Nothing scales. Capped against the
    window in `dvh` rather than `%`, for the reason the registration above gives. */
 .kui-shell:has(> .kui-shell-bottom[data-flush][data-state="open"][data-presentation="overlay"]) {
   --kui-shell-push-y: calc(-1 * min(var(--kui-shell-bottom-h, var(--shell-bottom-h)), calc(100dvh - var(--touch-target-min))));
@@ -629,13 +602,6 @@
 
 .kui-shell {
   transform-origin: var(--kui-shell-recede-origin, 50% 50%);
-  /* ONE `transition` FOR THIS ELEMENT, and the second channel is the clip (see the frame rule
-     at the head of this file for why the frame stops clipping while a drawer is live). It
-     rides here rather than up there because a `transition` shorthand in either place resets
-     the other's, which is how the first spelling lost the recession's own clock. */
-  transition:
-    transform var(--motion-drawer) var(--motion-spring-carried),
-    overflow 0s var(--motion-drawer) allow-discrete;
 }
 
 /* THE FRAME'S CHILDREN CARRY THE PUSH, NOT THE ROOT (2026-09-08, Kushagra: "when sidebar opens
@@ -644,8 +610,8 @@
    grew a horizontal scroll range the width of the drawer. Pushing every child inside a root
    that keeps its clip moves the same pixels and overflows nothing — the pushed frame is cut at
    the window's edge, which is what Discord shows too. The side panes are excluded: the open
-   one slides itself the same distance on the same spring (below), and a parked one is off the
-   frame either way. `translate` rather than `transform`, so it composes with whatever a child
+   one already stands in the room the push makes (below), and a parked one is off the frame
+   either way. `translate` rather than `transform`, so it composes with whatever a child
    already declares. */
 .kui-shell:has(> :where(.kui-shell-rail, .kui-shell-sidebar, .kui-shell-inspector)[data-state="open"][data-presentation="overlay"])
   > :not(.kui-shell-rail[data-presentation="auto"]):not(.kui-shell-rail[data-presentation="overlay"]):not(.kui-shell-sidebar):not(.kui-shell-inspector) {
@@ -656,13 +622,6 @@
    column standing in the frame goes up with the frame. */
 .kui-shell:has(> .kui-shell-bottom[data-state="open"][data-presentation="overlay"]) > :not(.kui-shell-bottom) {
   translate: var(--kui-shell-push-x) var(--kui-shell-push-y);
-}
-/* Zero weight on purpose: three `:not()`s put the bare selector at (0,4,0), which REPLACED the
-   scrim's own transition list (its opacity stopped fading — measured 1 at 120ms) and would have
-   taken the bottom sheet's slide the same way. A child that states its own list keeps it and
-   adds this channel there (the scrim does); the rest take it from here. */
-:where(.kui-shell > :not(.kui-shell-rail[data-presentation="auto"]):not(.kui-shell-rail[data-presentation="overlay"]):not(.kui-shell-sidebar):not(.kui-shell-inspector)) {
-  transition: translate var(--motion-drawer) var(--motion-spring-carried);
 }
 
 /* THE WELL: what the receding frame goes back INTO. A pseudo-element rather than a background
@@ -679,9 +638,6 @@
   background-color: transparent;
   transform-origin: inherit;
   transform: scale(calc(1 / var(--kui-shell-recede)));
-  transition:
-    background-color var(--motion-drawer) var(--motion-easing),
-    transform var(--motion-drawer) var(--motion-spring-carried);
 }
 
 /* No drawer paints the well any more (2026-09-11): the bottom pane was the last one that
@@ -725,29 +681,25 @@
      system have corners (Kushagra: "when the bg scales down, it should have corner radius
      too"). It rides the frame's own scale like the rest of this element, so the painted corner
      is the stated one times the recession — which is what makes it read as the same object
-     moving away rather than a second one appearing.
+     set back rather than a second one appearing.
 
      The bare token and NOT `var(--kui-sf-radius, …)`, which is what a pane and the drawer both
      read: that hook INHERITS, so a Shell composed inside a Card would take the card's corner
      — §27's own reason for pinning a pane's corner before the panes could stamp their size,
      and the frame has no `data-size` of its own to spend the way they did. */
   border-radius: 0;
-  transition:
-    background-color var(--motion-drawer) var(--motion-easing),
-    border-radius var(--motion-drawer) var(--motion-spring-carried);
 }
 
 
 
-/* THE DRAWER ITSELF: the exact inverse of the frame's scale, and then its own slide. Written
-   as one `transform` so the ORDER is stated rather than left to the property model — the slide
-   applies first and the inverse scale wraps it, which is what makes the pair compose to a pure
-   translation in page space.
+/* THE DRAWER ITSELF: the exact inverse of the frame's scale, and then its own park offset.
+   Written as one `transform` so the ORDER is stated rather than left to the property model —
+   the offset applies first and the inverse scale wraps it, which is what makes the pair compose
+   to a pure translation in page space.
 
-   ONE HOOK PER AXIS, and the first spelling's single hook is why (2026-09-06, Kushagra:
-   "there's no slide in and out"). It held the whole pair — `calc(-100% - gap) 0` — and
-   `translate()` separates its arguments with a COMMA, so every parked drawer substituted a
-   value the function could not parse. That is invalid at computed-value time, which takes the
+   ONE HOOK PER AXIS, and the first spelling's single hook is why (2026-09-06). It held the
+   whole pair — `calc(-100% - gap) 0` — and `translate()` separates its arguments with a
+   COMMA, so every parked drawer substituted a value the function could not parse. That is invalid at computed-value time, which takes the
    WHOLE declaration rather than the one argument: a parked drawer computed `transform: none`,
    sat at its landed position behind `visibility: hidden`, and appeared. The open state was
    correct throughout — the hook is unset there, so the `0` fallback parses — which is exactly
@@ -757,9 +709,6 @@
   transform-origin: var(--kui-shell-drawer-origin);
   transform: scale(calc(1 / var(--kui-shell-recede)))
     translate(var(--kui-shell-drawer-x, 0), var(--kui-shell-drawer-y, 0));
-  transition:
-    transform var(--motion-drawer) var(--motion-spring-carried),
-    visibility var(--motion-drawer);
 }
 
 .kui-shell-rail[data-presentation="overlay"],
@@ -775,12 +724,10 @@
   --kui-shell-drawer-origin: 50% 100%;
 }
 
-/* CLOSED IS PARKED, NOT DELETED — for an OVERLAYING pane only. `display: none` cannot be
-   transitioned, so a drawer hidden that way arrives and leaves in one frame. `visibility` can:
-   it flips at the end of the exit and at the start of the entry, it takes the pane out of the
-   tab order and out of hit-testing exactly as `display` did, and an out-of-flow pane costs no
-   layout either way. Keyed above the four hides at (0,4,0), which is the same
-   out-rank-rather-than-out-order call the hides themselves record. */
+/* CLOSED IS PARKED, NOT DELETED — for an OVERLAYING pane only. `visibility: hidden` takes the
+   pane out of the tab order and out of hit-testing exactly as `display: none` does, and an
+   out-of-flow pane costs no layout either way. Keyed above the four hides at (0,4,0), which is
+   the same out-rank-rather-than-out-order call the hides themselves record. */
 .kui-surface.kui-shell-pane[data-state="closed"][data-presentation="overlay"],
 .kui-surface.kui-shell-rail[data-state="auto"][data-presentation="overlay"],
 .kui-surface.kui-shell-sidebar[data-state="auto"][data-presentation="overlay"],
@@ -790,35 +737,26 @@
   visibility: hidden;
 }
 
-/* AND A DRAWER THAT IS NOT THE LIVE ONE LEAVES ENTIRELY WHILE ANOTHER IS FLYING. Parking is
-   affordable because the frame clips; the frame stops clipping while a drawer is live, and at
-   that moment every OTHER parked pane is real scrollable overflow — measured on a frame with a
-   sidebar, an inspector and a bottom pane, a 375x700 window reported 663x874 with the sidebar
-   open, and the page gained two scrollbars onto blank space. So a pane that is neither open
-   nor the one leaving goes back to `display: none`, which is what it was before parking
-   existed. `position: fixed` was measured first and does nothing here: a transformed ancestor
+/* AND A DRAWER THAT IS NOT THE OPEN ONE LEAVES ENTIRELY WHILE ANOTHER IS OPEN. Parking is
+   affordable only because the frame clips: every OTHER parked pane is overflow the clip has to
+   contain — measured on 2026-09-06, when the frame briefly stopped clipping under a live drawer,
+   a frame with a sidebar, an inspector and a bottom pane in a 375x700 window reported 663x874
+   with the sidebar open, and the page gained two scrollbars onto blank space. So a pane that is
+   not open goes back to `display: none`, which is what it was before parking existed. `position: fixed` was measured first and does nothing here: a transformed ancestor
    is a containing block for fixed descendants, so the pane stays contained by the frame and
    goes on contributing.
 
    It out-RANKS the parking rule rather than out-ordering it — (0,8,0) against (0,4,0), the
    `:has()` argument's own weight deliberately spent (§27's 2026-08-29 note is about a guard
-   that raised a rule by accident; this one is counted).
-
-   THE ONE THING IT GETS WRONG, stated rather than hidden: swapping straight from one drawer to
-   another in a single frame gives the arriving one no starting box, so it appears rather than
-   flies. Nothing in this repo builds that trigger, and the alternative — parking the siblings
-   at zero offset instead — buys the same case a slideless entry anyway. */
+   that raised a rule by accident; this one is counted). */
 .kui-shell:has(> .kui-shell-pane[data-state="open"][data-presentation="overlay"])
   > .kui-surface.kui-shell-pane[data-presentation="overlay"]:not([data-state="open"]) {
   display: none;
 }
 
-/* PARKED EXACTLY ONE PUSH AWAY (2026-09-08): the drawer's own slide and the frame's push are
-   two clocks on one curve, so the two distances have to be equal or daylight opens between
-   drawer and content mid-flight (measured 2px at 120ms with the old one-gap park). Flush
-   parks one width out and the push is one width; not flush parks a width and two gaps out —
-   its margin is the first gap — and the push is a width and two gaps. Both sit wholly outside
-   the frame, which the root's clip hides. */
+/* PARKED EXACTLY ONE PUSH AWAY (2026-09-08). Flush parks one width out and the push is one
+   width; not flush parks a width and two gaps out — its margin is the first gap — and the push
+   is a width and two gaps. Both sit wholly outside the frame, which the root's clip hides. */
 .kui-shell-rail[data-presentation="overlay"]:where([data-state="closed"], [data-state="auto"]),
 .kui-shell-sidebar[data-presentation="overlay"]:where([data-state="closed"], [data-state="auto"]) {
   --kui-shell-drawer-x: calc(-100% - 2 * var(--shell-gap));
@@ -842,38 +780,17 @@
   --kui-shell-drawer-y: 100%;
 }
 
-/* Stillness (§8): the frame does not recede, the drawer does not travel, the well does not
-   fade. Stated on the declaring selectors so the stand-down wins by rank and by order at once,
-   which is this file's doctrine since the 2026-08-10 reduced-motion finding. */
-/* Stillness for the drawer lives at the FOOT of this file, with the resize handle's, and the
-   move is the point: a stand-down stated here would sit BEFORE the narrow media block, and the
-   arms it has to beat are declared in there. Equal rank settled by the wrong order is not a
-   stand-down at all — the 2026-08-10 finding, whose law asked only whether a selector was
-   present in the guarded block and never whether it WON. */
-
 /* The scrim: root-owned, always mounted, shown exactly when a pane overlays. Under the
    panes (z 1 against their 2), over everything in flow. Dialog's scrim recipe (§24), same
    tokens, same reduced-transparency answer — more pigment, no defocus. */
-/* AND IT LEAVES ON THE DRAWER'S OWN CLOCK (2026-09-06, Kushagra: "When I dismiss it, the bg
-   loses its blur instantly making it look weird"). It was `display: none` until a drawer was
-   live and `display: block` while one was, and `display` cannot be transitioned — so the
-   instant a drawer was dismissed the scrim's pigment AND its defocus vanished in one frame
-   while the drawer itself had 420ms of travel left. The app snapped back to full contrast and
-   full sharpness with a pane still sliding over it, which reads as two different events.
-
-   Parked the way the drawer is parked, and for the drawer's reason: `opacity` carries the
-   fade, `visibility` takes it out of the tab order and out of hit-testing at both ends and
-   flips at the far end of its own transition, and neither costs a frame of layout. This is
-   also why the scrim can now be present at rest without being reachable — the thing
-   `display: none` was buying. */
+/* AND IT IS PARKED THE WAY THE DRAWER IS PARKED (2026-09-06): present at rest, at `opacity: 0`
+   and `visibility: hidden`. `visibility` takes it out of the tab order and out of hit-testing
+   exactly as `display: none` did, and costs no layout — so the scrim can be present at rest
+   without being reachable. */
 .kui-shell-scrim {
   display: block;
   opacity: 0;
   visibility: hidden;
-  transition:
-    opacity var(--motion-drawer) var(--motion-easing),
-    translate var(--motion-drawer) var(--motion-spring-carried),
-    visibility var(--motion-drawer);
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -1076,7 +993,7 @@
 
    `:where()` AROUND THE `:has()`, AND IT IS THE WHOLE OF THE DRAWER'S SAFETY. `:has()` takes
    its most specific argument's weight, so unwrapped these would be (0,5,0) — enough to beat
-   the overlay exception below and zero one border of a drawer sliding over a grounded
+   the overlay exception below and zero one border of a drawer lying over a grounded
    content, which is the same weight mistake that sank the floating rule into the scrim's band
    in the 2026-08-16 audit. Wrapped, each rule is its subject's own (0,2,0), and the exception
    at (0,3,0) outranks it BY RANK rather than by source order, exactly as it already outranks
@@ -1702,13 +1619,17 @@
   display: none;
 }
 
-/* THE BAR'S THUMB (2026-09-09, Kushagra: "the motion of the thumb going back and forth should
-   copy segmented control, it should move with same physics"). One element the rail always
-   renders and only the bar shows, placed by measurement onto the current seat — the segmented
-   control's own mechanism (`useTravelingThumb`), self-keyed here as its second member: two
-   registered insets, the edge facing the destination on the shorter clock, both on the calm
-   spring, and the bar's padding as the wall the overshoot squashes against. The current seat
-   gives its fill up to it, exactly as the chosen segment did. */
+/* THE BAR'S THUMB (2026-09-09). One element the rail always renders and only the bar shows,
+   placed by measurement onto the current seat — the segmented control's own mechanism,
+   self-keyed here as its second member: two registered insets read bare, with the bar's padding
+   as the wall that keeps an overextending thumb inside the bar. The current seat gives its fill
+   up to it, exactly as the chosen segment does.
+
+   The registration is not decoration and it is not left over from the travel (removed
+   2026-09-20): the reads below have NO fallback arm, so the initial 0px is what makes them
+   resolve before the first measurement, and `inherits: false` keeps a length private to one
+   thumb out of anything nested inside it. Both members state it, and segmented-control.css
+   carries the full argument. */
 @property --kui-bar-left {
   syntax: "<length>";
   inherits: false;
@@ -2102,18 +2023,6 @@
   .kui-shell-rail[data-presentation="bar"] .kui-shell-rail-thumb[hidden] {
     display: none;
   }
-  .kui-shell-rail[data-presentation="bar"] .kui-shell-rail-thumb[data-activation-direction="right"] {
-    transition:
-      --kui-bar-right var(--motion-travel-lead) var(--motion-spring),
-      --kui-bar-left var(--motion-travel-trail) var(--motion-spring);
-  }
-  .kui-shell-rail[data-presentation="bar"] .kui-shell-rail-thumb[data-activation-direction="left"] {
-    transition:
-      --kui-bar-left var(--motion-travel-lead) var(--motion-spring),
-      --kui-bar-right var(--motion-travel-trail) var(--motion-spring);
-  }
-  /* Its stillness is at the foot of this file with every other clock's, because that is where
-     the law reads them and a second block is a second home. */
   /* The bar's reach, published on the CONTENT pane the way every other band's is (the header's
      and the bottom pane's insets above), because that is where `--kui-shell-row` lives — a
      first spelling put it on the root, where the row is empty and the whole length fell to its
@@ -2157,9 +2066,6 @@
     transform-origin: var(--kui-shell-drawer-origin);
     transform: scale(calc(1 / var(--kui-shell-recede)))
     translate(var(--kui-shell-drawer-x, 0), var(--kui-shell-drawer-y, 0));
-    transition:
-      transform var(--motion-drawer) var(--motion-spring-carried),
-      visibility var(--motion-drawer);
   }
 
   .kui-shell-rail[data-presentation="auto"],
@@ -2188,12 +2094,10 @@
     display: none;
   }
 
-  /* PARKED EXACTLY ONE PUSH AWAY (2026-09-08): the drawer's own slide and the frame's push are
-     two clocks on one curve, so the two distances have to be equal or daylight opens between
-     drawer and content mid-flight (measured 2px at 120ms with the old one-gap park). Flush
-     parks one width out and the push is one width; not flush parks a width and two gaps out —
-     its margin is the first gap — and the push is a width and two gaps. Both sit wholly outside
-     the frame, which the root's clip hides. */
+  /* PARKED EXACTLY ONE PUSH AWAY (2026-09-08). Flush parks one width out and the push is one
+     width; not flush parks a width and two gaps out — its margin is the first gap — and the
+     push is a width and two gaps. Both sit wholly outside the frame, which the root's clip
+     hides. */
   .kui-shell-rail[data-presentation="auto"]:where([data-state="closed"], [data-state="auto"]),
   .kui-shell-sidebar[data-presentation="auto"]:where([data-state="closed"], [data-state="auto"]) {
     --kui-shell-drawer-x: calc(-100% - 2 * var(--shell-gap));
@@ -2663,7 +2567,6 @@
   position: absolute;
   background: var(--tone-solid);
   opacity: 0;
-  transition: opacity var(--motion-duration) var(--motion-easing);
 }
 
 .kui-shell-resize[data-axis="inline"]::after {
@@ -2703,7 +2606,7 @@
   }
 }
 
-/* The ring is the skeleton's, so a keyboard user sees the same arrival every other focusable
+/* The ring is the skeleton's, so a keyboard user sees the same ring every other focusable
    thing in this system gives them. */
 .kui-shell-resize:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring);
@@ -2717,36 +2620,4 @@
 .kui-shell-resize[data-state="closed"],
 .kui-shell-resize[data-presentation="overlay"] {
   display: none;
-}
-
-
-/* Stillness (§8): the same selector as the arrival above, later in the file, so the stand-down
-   wins by order and not by arithmetic. The boundary still appears under the pointer and under
-   focus — it has to, or a person who asked their OS for stillness cannot see what they are
-   about to drag. What goes is the fade, not the information. */
-/* Stillness (§8): the frame does not recede, the drawer does not travel, the well does not
-   fade, and the boundary does not come forward. Every selector is restated verbatim from the
-   rule that declares the clock, so the stand-down ties on rank and wins on order — and it sits
-   at the foot of the file because two of those rules live inside the narrow media block above.
-   The two `:has()` arms are here for a reason a shorter list would hide: they carry the
-   frame's own transition as well as the clip's, so leaving them out leaves the recession
-   moving for a reader who asked their system for stillness. */
-@media (prefers-reduced-motion: reduce) {
-  .kui-shell,
-  .kui-shell::before,
-  .kui-shell::after,
-  .kui-shell-scrim,
-  .kui-shell-pane[data-presentation="overlay"],
-  .kui-shell-pane[data-presentation="auto"],
-  .kui-shell:has(> .kui-shell-bottom[data-state="open"][data-presentation="overlay"]),
-  .kui-shell:has(> .kui-shell-bottom[data-state="open"][data-presentation="auto"]),
-  /* The push (2026-09-09): the frame's children carry it, so they carry its stand-down. */
-  :where(.kui-shell > :not(.kui-shell-rail[data-presentation="auto"]):not(.kui-shell-rail[data-presentation="overlay"]):not(.kui-shell-sidebar):not(.kui-shell-inspector)),
-  /* And the tab bar's thumb, the segmented control's own stand-down one component over —
-     BOTH direction arms, because those are the rules that carry the clock. */
-  .kui-shell-rail[data-presentation="bar"] .kui-shell-rail-thumb[data-activation-direction="right"],
-  .kui-shell-rail[data-presentation="bar"] .kui-shell-rail-thumb[data-activation-direction="left"],
-  .kui-shell-resize::after {
-    transition: none;
-  }
 }

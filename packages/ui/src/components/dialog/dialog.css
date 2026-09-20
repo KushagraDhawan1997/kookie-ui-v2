@@ -35,23 +35,6 @@
      ignores, so the scrim never blurred in the app while every law read the committed
      source and stayed green. The build assertion covers the artifact path now. */
   backdrop-filter: var(--scrim-filter, none);
-  /* The scrim is pure SIGNAL (§8's two clocks, §24): it has no box to become, so its whole
-     entry and exit are one fade on the paint clock. The panel's own recipe lives in the
-     shared layer's overlay motion block. */
-  transition: opacity var(--overlay-reveal) ease-out;
-}
-.kui-dialog-backdrop[data-starting-style],
-.kui-dialog-backdrop[data-ending-style] {
-  opacity: 0;
-}
-@media (prefers-reduced-motion: reduce) {
-  .kui-dialog-backdrop {
-    transition: none;
-  }
-  .kui-dialog-backdrop[data-starting-style],
-  .kui-dialog-backdrop[data-ending-style] {
-    opacity: 1;
-  }
 }
 
 /* Reduced transparency takes the same answer contrast="high" takes — more pigment, no
@@ -223,39 +206,5 @@
        environment value in the package, and it is here because without it the component is
        wrong on exactly the device it exists for. */
     padding-block-end: max(var(--kui-sf-p), env(safe-area-inset-bottom));
-  }
-
-  /* ── NO MOTION, on purpose (Kushagra, 2026-08-21: "we will design a separate motion system
-     for sheet, so what it has right now is wrong") ───────────────────────────────────────
-     §24's entry is DEPTH, NOT DISTANCE, and every word of that argument is about a centred
-     panel at modal mass: the scrim pushing the app back is the arrival, so the panel need only
-     step forward in z. A sheet does not arrive that way — it comes from the bottom edge, and a
-     3% scale on a box already resting on that edge reads as the wrong gesture rather than as a
-     small one. Standing it down until the sheet's own motion is designed is Menu's precedent
-     (shipped instant, moved the next day): a motion that is wrong is worse than none, and an
-     absence is honest about being unfinished in a way a borrowed recipe is not.
-
-     The SCRIM keeps its fade, and that is not an exception — the backdrop's recipe is about
-     the app going back, not about how the panel arrives, and it is right either way.
-
-     Selectors match the shared layer's weight exactly ((0,4,0) and (0,2,0)): a media query
-     adds no specificity, so a lighter stand-down here would simply lose to surfaces.css. */
-  .kui-surface.kui-overlay.kui-dialog-popup {
-    transition: none;
-  }
-  .kui-surface.kui-overlay.kui-dialog-popup[data-starting-style],
-  .kui-surface.kui-overlay.kui-dialog-popup[data-ending-style] {
-    opacity: 1;
-    /* `none` and not `1` — the same picture, and only one of them says what is meant. It is
-       also the resting value, which is what lets the law compare the starting pose against the
-       resting one instead of against a literal (the law's first spelling asserted the string
-       and failed on correct code). */
-    scale: none;
-  }
-  .kui-dialog-popup .kui-dialog-body {
-    transition: none;
-  }
-  .kui-dialog-popup[data-starting-style] .kui-dialog-body {
-    filter: none;
   }
 }

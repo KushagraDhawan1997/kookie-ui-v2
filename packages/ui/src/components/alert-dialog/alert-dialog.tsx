@@ -4,8 +4,7 @@
  * AlertDialog (§10, §20, §25) — the overlay family's second member, split from Dialog on
  * 2026-08-16 (LOG): the two are semantically different, and the difference is the point. A
  * dialog is SUMMONED — opened by the user's own hand, holding the consumer's work — while an
- * alert comes AT you and stops you, which is why the family's arrival entry (the
- * materialization) is this component's gesture and why Base UI ships the pair as separate
+ * alert comes AT you and stops you, which is why Base UI ships the pair as separate
  * components (`role="alertdialog"`, no outside-press dismissal).
  *
  * The part vocabulary follows shadcn/ui's alert-dialog (https://ui.shadcn.com — MIT),
@@ -13,12 +12,11 @@
  * Footer are refused — because here the COMPONENT owns the layout, they have no job: Content
  * arranges title, description and the action row itself, and the caller never writes a Stack.
  *
- * The fixed anatomy is licensed by three forcers stacking (§10's criterion, which Card and
- * Dialog each failed differently): the role wires a name and description; the behavior
- * forbids outside-press dismissal, so actions must EXIST and focus must land on the safest
- * one; and the entry animates the content itself, which the system may only do to content it
- * owns. The cascade is the design: role → closed content → closed box → owned motion. If the
- * slots are ever opened up, the content animation must leave with them.
+ * The fixed anatomy is licensed by forcers stacking (§10's criterion, which Card and Dialog
+ * each failed differently): the role wires a name and description, and the behavior forbids
+ * outside-press dismissal, so actions must EXIST and focus must land on the safest one. The
+ * cascade is the design: role → closed content → closed box. (The owned entry was a third
+ * forcer; motion was removed 2026-09-20, and docs/archive/motion-v1.md records it.)
  *
  * Because the content is closed, `size` prices EVERYTHING — box, corner, padding, the
  * title's and description's type steps, the buttons — where Dialog's size stops at the box.
@@ -195,7 +193,7 @@ export type AlertDialogContentProps = ComponentRefusals & Omit<
 };
 
 /**
- * Portal → PortalScope → Backdrop → Viewport → Popup → the entry's body, exactly Dialog's
+ * Portal → PortalScope → Backdrop → Viewport → Popup → the body, exactly Dialog's
  * fold — and then one thing Dialog refuses: the LAYOUT. The body is a two-column grid the
  * component's stylesheet owns; title and description span it, the actions take a column
  * each, so the caller writes parts in order and never writes a Flex. Cancel comes first in
@@ -244,11 +242,7 @@ function AlertPopup({
   const nameRef = useNameWarning("AlertDialog");
   /* NO CLIP WARNING (2026-08-22 audit). `system/clip.tsx` states as a fact that it is "called
      by the panes that hold content the CALL SITE wrote — Card, Surface, Dialog. Menu, Select
-     and AlertDialog own what is inside them, so there is nobody to warn", and this file called
-     it anyway. Worse than redundant: the effect runs at mount, which is when the popup is held
-     at its 64px seed, so a plain "Delete file?" alert warned that its content was "208px wider
-     than it is… not reachable" while its settled `scrollWidth === clientWidth`. A dev warning
-     that fires on every ordinary open is a dev warning nobody reads on the day it is true. */
+     and AlertDialog own what is inside them, so there is nobody to warn". */
   const identity = "kui-surface kui-overlay kui-alert-popup";
   const setPopup = useMergedRefs(lensRef, nameRef);
   return (
