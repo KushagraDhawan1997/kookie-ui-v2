@@ -11,9 +11,9 @@ import { describe, expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
 
 import { Theme } from "../../theme/theme.tsx";
-import { density, material } from "../../tokens/config.ts";
+import { density } from "../../tokens/config.ts";
 import {
-  GLASS_MATERIALS, APPEARANCES, SIZES, colorOn, computed, mounted, render, until } from "../../test/browser.tsx";
+  GLASS_MATERIALS, APPEARANCES, SIZES, colorOn, computed, mounted, probeIn, render, until } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
@@ -604,10 +604,11 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
   it("material re-derives the seal as glass, with no CSS of its own (§10)", () => {
     const glass = mounted(<TextField backdrop />, { theme: { material: "regular" } });
     // Derived, not restated: the radius is config's to move (2026-08-16).
-    expect(computed(glass, "backdrop-filter")).toContain(
-      // The CONTROL cell's blur, not the pane's (control-scale material, lab port
-      // 2026-08-17): a 40px box re-prices the ladder — half the blur, a leaner veil.
-      `blur(${material.light.regular.control.filter.match(/blur\(([\d.]+)px\)/)![1]}px)`,
+    // The CONTROL cell's row under the lens (control-scale material, lab port 2026-08-17).
+    // It named the row's `blur()` until 2026-09-21; the blur is inside the lens now, so the
+    // chain is read whole against the token, lens stripped.
+    expect(computed(glass, "backdrop-filter").replace(/url\("[^"]*"\)\s*/, "")).toBe(
+      probeIn(glass, (el) => (el.style.backdropFilter = "var(--material-regular-control-filter)"), (s) => s.backdropFilter),
     );
     // The veil is the field's OWN fill made translucent — the fill-modifier model, reached
     // through the shared control layer without text-field.css naming material once.

@@ -13,7 +13,8 @@
 import { describe, expect, it } from "vitest";
 
 import { GLASS_MATERIALS } from "./axes.ts";
-import { bendAt, fitLens, lens, type LensParams, type LensThickness } from "./refraction.tsx";
+import { LIP_SHARE, bendAt, fitLens, floatingFrost, lens, type LensParams, type LensThickness } from "./refraction.tsx";
+import { scrim } from "../tokens/config.ts";
 
 /**
  * The ladder in the axis's own order, never restated here — §12 gives every axis value list
@@ -142,7 +143,7 @@ describe("the bezel profile: a band of glass, not a line at the lip (§10)", () 
 });
 
 describe("a clamped lip takes its depth with it (§10)", () => {
-  // Half the short side is all the room a lip has, so a small control clamps. What must
+  // `LIP_SHARE` of the short side is all the room a lip is given, so a small control clamps. What must
   // survive the clamp is the SLOPE — the lens has to stay the same lens at every box size.
   const SMALL = 24;
 
@@ -168,7 +169,7 @@ describe("a clamped lip takes its depth with it (§10)", () => {
     // The fixture shrank with the ladder (2026-08-27): at bezels 3/4.5/6.5 a 24px box no
     // longer clamps ANY rung — the premise assertion below failed on every one, which is the
     // degenerate-fixture rule doing its job. 8px is the largest box where all three rungs
-    // still clamp (cap = floor(8/2) - 2 = 2), and the three ratios it produces differ per
+    // still clamp (cap = floor(8 x LIP_SHARE) = 2), and the three ratios it produces differ per
     // rung, so the fixture still tells a right implementation from a broken one.
     const CLAMPED = 8;
     for (const r of LADDER) {
@@ -180,9 +181,83 @@ describe("a clamped lip takes its depth with it (§10)", () => {
   });
 
   it("gives a box with no room no lens at all, rather than an inverted one", () => {
-    // `- 2` in the clamp goes negative on a tiny box; a negative bezel would flip every
-    // normal and bend the backdrop outward.
+    // Under 2px there is no lip to draw — the map's own 3px softening is wider than the band —
+    // and a zero or negative bezel would divide the depth by nothing.
     expect(fitLens(lens.regular, 4)).toBeNull();
     expect(fitLens(lens.regular, 0)).toBeNull();
+  });
+});
+
+/**
+ * THE MIRROR PASS (§10, 2026-09-21, Kushagra: "See how it bends in apple's liquid glass?").
+ *
+ * The bend now peaks at `boost` LIPS inward, more than the lip is wide, so the rim shows a
+ * squeezed, mirrored copy of what sits just inside it. That is only safe while two things hold,
+ * and neither is visible in a screenshot of a big card: the sample must stay inside the box
+ * (past it the backdrop is transparent, the 2026-08-25 blue band), and the lip must leave a
+ * flat middle (a 110px card at the old half-box bound was ALL lip and warped its whole body).
+ */
+describe("the lip is capped to a share of its box (§10)", () => {
+  // Every box from a small control to a wide pane. 9px is the smallest box that fits a lip at
+  // all; the fixture must include boxes that CLAMP (small) and boxes that do not (large), or
+  // the law reads one branch of `fitLens` and calls it both.
+  const BOXES = [9, 16, 24, 32, 44, 64, 110, 160, 240, 480];
+
+  it("an edge pixel never samples past the far edge of its own box", () => {
+    let clamped = 0;
+    let free = 0;
+    for (const r of LADDER) {
+      for (const box of BOXES) {
+        const fit = fitLens(lens[r], box);
+        if (!fit) continue;
+        if (fit.bezel < lens[r].bezel) clamped += 1;
+        else free += 1;
+        // The map clamps the bend at the fitted lip and `boost` multiplies it afterwards, so
+        // the furthest any pixel reads is boost lips inward.
+        expect(fit.bezel * lens[r].boost, `${r} at ${box}px reads past its own box`).toBeLessThan(box);
+      }
+    }
+    expect(clamped, "no box in the fixture clamps").toBeGreaterThan(0);
+    expect(free, "every box in the fixture clamps").toBeGreaterThan(0);
+  });
+
+  it("and leaves the middle of the box unbent", () => {
+    for (const r of LADDER) {
+      for (const box of BOXES) {
+        const fit = fitLens(lens[r], box);
+        if (!fit) continue;
+        expect(2 * fit.bezel, `${r} at ${box}px is all lip`).toBeLessThanOrEqual(box * 2 * LIP_SHARE);
+      }
+    }
+    // The share itself: under a third a side, or "a flat middle" is a sliver.
+    expect(LIP_SHARE).toBeLessThan(1 / 3);
+  });
+
+  it("the bend really does pass the lip — the mirror is the point, not an accident", () => {
+    for (const r of LADDER) expect(lens[r].boost, `${r} no longer mirrors at its rim`).toBeGreaterThan(1.5);
+  });
+});
+
+describe("the blur lives in the lens, and it is a ladder (§10)", () => {
+  const rises = (xs: readonly number[]) => {
+    for (let i = 1; i < xs.length; i += 1) expect(xs[i]!).toBeGreaterThan(xs[i - 1]!);
+  };
+
+  it("rises with thickness, on the rung and on what a floating pane adds", () => {
+    rises(LADDER.map((r) => lens[r].blur));
+    rises(LADDER.map((r) => floatingFrost[r]));
+    rises(LADDER.map((r) => lens[r].blur + floatingFrost[r]));
+  });
+
+  it("a floating pane never out-blurs the scrim it stands in for", () => {
+    // The addition exists because a menu has no scrim; its ceiling is the scrim's own blur,
+    // read off the scrim's row rather than restated here.
+    // Every row of the scrim that carries a filter — one per appearance, found not listed.
+    const rows = Object.values(scrim).filter((row): row is { filter: string } & typeof row => typeof row === "object" && "filter" in row);
+    expect(rows.length, "the scrim has no filter rows to read").toBeGreaterThan(0);
+    for (const row of rows) {
+      const scrimBlur = Number(row.filter.match(/blur\(([\d.]+)px/)![1]!);
+      for (const r of LADDER) expect(floatingFrost[r], `${r} adds more than the scrim blurs`).toBeLessThanOrEqual(scrimBlur);
+    }
   });
 });

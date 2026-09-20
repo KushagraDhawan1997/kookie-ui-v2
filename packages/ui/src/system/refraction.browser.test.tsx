@@ -25,8 +25,9 @@ import { cdp } from "vitest/browser";
 import { Chip } from "../components/chip/chip.tsx";
 import { Button } from "../components/button/button.tsx";
 import { Card } from "../components/card/card.tsx";
+import { Popover, PopoverContent, PopoverTrigger } from "../components/popover/popover.tsx";
 import { Theme } from "../theme/theme.tsx";
-import { render, until } from "../test/browser.tsx";
+import { GLASS_MATERIALS, lensBlurOf, render, until } from "../test/browser.tsx";
 import { glint } from "../tokens/config.ts";
 import {
   __genPaths,
@@ -35,6 +36,7 @@ import {
   glintMap,
   lens,
   cornerExponent,
+  floatingFrost,
   physicalMap,
   type LensParams,
   type LensThickness,
@@ -595,5 +597,79 @@ describe("the corner exponent is read off any spelling of corner-shape", () => {
     for (const odd of ["scoop", "superellipse(-1)", "superellipse(nonsense)", "notch"]) {
       expect(cornerExponent(odd), `${odd} bent the generator somewhere it cannot go`).toBe(2);
     }
+  });
+});
+
+/**
+ * A FLOATING PANE CARRIES THE SCRIM'S BLUR ITSELF (§10, 2026-09-21, Kushagra: dialogs and the
+ * command palette "get the perfect look" because of the blurry scrim; "menus and popover should
+ * have that. Buttons and controls are good as they are").
+ *
+ * Both halves in one fixture, under one Theme, on boxes big enough that neither lip clamps —
+ * so the two filters differ in the ONE thing the law is about. The card is the negative
+ * control: a rule that added the frost to every pane passes the first assertion and fails the
+ * second.
+ */
+describe("a floating pane adds the scrim's blur to its lens, and nothing else does (§10)", () => {
+  const blurOf = lensBlurOf;
+
+  for (const material of GLASS_MATERIALS) {
+    it(`${material}: the popover's lens blurs by the rung plus the frost, the card's by the rung`, async () => {
+      const box = { inlineSize: "24rem", blockSize: "16rem" };
+      render(
+        <Theme material={material}>
+          <Card backdrop data-t="card" style={box}>
+            pane
+          </Card>
+          <Popover defaultOpen>
+            <PopoverTrigger render={<Button>Open</Button>} />
+            <PopoverContent>
+              <div style={box}>panel</div>
+            </PopoverContent>
+          </Popover>
+        </Theme>,
+      );
+      const card = document.querySelector<HTMLElement>('[data-t="card"]')!;
+      const popups = document.querySelectorAll<HTMLElement>(".kui-popover-popup");
+      const popup = popups[popups.length - 1]!;
+      const lensed = (el: Element) => /url\(/.test(getComputedStyle(el).backdropFilter);
+      expect(await until(() => lensed(card) && lensed(popup)), "a pane never took its lens").toBe(true);
+      // The premise: this really is a floating pane and that really is not.
+      expect(popup.classList.contains("kui-floating")).toBe(true);
+      expect(card.classList.contains("kui-floating")).toBe(false);
+
+      expect(blurOf(card)).toBeCloseTo(lens[material].blur, 5);
+      expect(blurOf(popup)).toBeCloseTo(lens[material].blur + floatingFrost[material], 5);
+    });
+  }
+
+  it("a small surface blurs like a large one, and a control blurs less than either", async () => {
+    // The command palette's search pill beside its results pane (2026-09-21, "rn it seems 50%
+    // of it"): two panes of one material, one 50px tall. The fixture's small card is short
+    // enough that its lip CLAMPS — on a box where it did not, scaling the blur by the fitted
+    // lip and not scaling it give the same number, and the law could not tell them apart.
+    render(
+      <Theme material="regular">
+        <Card backdrop data-t="big" style={{ inlineSize: "24rem", blockSize: "16rem" }}>
+          pane
+        </Card>
+        <Card backdrop size="1" data-t="small" style={{ inlineSize: "24rem", blockSize: "3rem" }}>
+          pill
+        </Card>
+        <Button backdrop data-t="ctl">
+          Save
+        </Button>
+      </Theme>,
+    );
+    const at = (t: string) => document.querySelector<HTMLElement>(`[data-t="${t}"]`)!;
+    const lensed = (el: Element) => /url\(/.test(getComputedStyle(el).backdropFilter);
+    expect(await until(() => ["big", "small", "ctl"].every((t) => lensed(at(t)))), "a member never took its lens").toBe(true);
+    // The premise: the small card's lip really is clamped by its box.
+    const short = at("small").getBoundingClientRect().height;
+    expect(fitLens(lens.regular, short)!.bezel, "the fixture's small pane does not clamp").toBeLessThan(lens.regular.bezel);
+
+    expect(blurOf(at("small"))).toBeCloseTo(blurOf(at("big")), 5);
+    expect(blurOf(at("ctl"))).toBeLessThan(blurOf(at("big")));
+    expect(blurOf(at("ctl"))).toBeGreaterThan(0);
   });
 });

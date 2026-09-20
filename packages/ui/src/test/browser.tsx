@@ -494,6 +494,25 @@ export function probeIn<T>(
 }
 
 /** A length/keyword token as the scope resolves it. */
+/**
+ * The px a glass element's LENS blurs its backdrop by — read off the mounted filter's own graph.
+ *
+ * Since 2026-09-21 a lensed pane's `backdrop-filter` carries no `blur()`: the chain runs the lens
+ * first, so a stylesheet blur lands after the displacement and erases the bend. The blur is a
+ * primitive inside the filter, on the source, and this is where a law about "how much does this
+ * glass blur" has to look. Throws rather than answering 0: an element with no lens, or a lens
+ * that does not blur its source, is an error in the fixture or the package, never a number.
+ */
+export function lensBlurOf(el: Element): number {
+  const id = getComputedStyle(el).backdropFilter.match(/url\("?#([^")]+)/)?.[1];
+  if (!id) throw new Error(`no lens on .${el.className}: ${getComputedStyle(el).backdropFilter}`);
+  const soften = [...(document.getElementById(id)?.children ?? [])].find(
+    (n) => n.tagName === "feGaussianBlur" && n.getAttribute("in") === "SourceGraphic",
+  );
+  if (!soften) throw new Error(`the lens on .${el.className} does not blur its source`);
+  return Number(soften.getAttribute("stdDeviation"));
+}
+
 export const tokenOn = (scope: Element, name: string): string =>
   probeIn(scope, (el) => (el.style.width = `var(${name})`), (s) => s.width);
 

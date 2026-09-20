@@ -271,7 +271,8 @@ describe("a notice does not cast, and it does answer the material (§5, §10)", 
 
     const glass = mounted(<Notice backdrop>x</Notice>, { theme: { material: "regular" } });
     expect(glass.getAttribute("data-material")).toBe("regular");
-    expect(computed(glass, "backdrop-filter")).toContain("blur");
+    // `saturate`: a lensed row carries no `blur()` since 2026-09-21 (it is inside the lens).
+    expect(computed(glass, "backdrop-filter")).toContain("saturate");
   });
 
   it("an ordinary re-render does not rebuild the map (§10, 2026-08-26)", async () => {
@@ -329,7 +330,7 @@ describe("a notice does not cast, and it does answer the material (§5, §10)", 
       { theme: { material: "regular" }, select: ".kui-notice" },
     );
     const action = within(el, "button");
-    expect(computed(el, "backdrop-filter")).toContain("blur");
+    expect(computed(el, "backdrop-filter")).toContain("saturate");
     expect(computed(action, "backdrop-filter")).toBe("none");
   });
 });

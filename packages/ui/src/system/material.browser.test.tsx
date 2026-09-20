@@ -18,12 +18,14 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { APPEARANCES, GLASS_MATERIALS, asksForContrast, asksForSolidity, colorOn, computed, mounted } from "../test/browser.tsx";
+import { APPEARANCES, GLASS_MATERIALS, asksForContrast, asksForSolidity, colorOn, computed, mounted, until } from "../test/browser.tsx";
 import { Card } from "../components/card/card.tsx";
 import { Button } from "../components/button/button.tsx";
 import { Row } from "../components/row/row.tsx";
 import { TextArea } from "../components/text-area/text-area.tsx";
 import { TextField } from "../components/text-field/text-field.tsx";
+import { SegmentedControl, SegmentedItem } from "../components/segmented-control/segmented-control.tsx";
+import { Toolbar, ToolbarButton, ToolbarGroup } from "../components/toolbar/toolbar.tsx";
 
 /** sRGB channels 0-1 plus alpha, from any computed colour the engine hands back.
  *
@@ -306,7 +308,7 @@ describe("the glint band exists, wears the mode's ring, and stands down with it 
  * the pane's ring VERBATIM (emitted from the same source), so the claim is a per-mode pair:
  * light equal, dark stronger.
  */
-describe("a dark glass control's ring is the lab's doubled row (§10)", () => {
+describe("a dark glass control's ring is its own row, never dimmer than the pane's (§10)", () => {
   const rings = () => {
     const root = mounted(
       <div>
@@ -327,14 +329,16 @@ describe("a dark glass control's ring is the lab's doubled row (§10)", () => {
     const btnRing = imageOn(btn, getComputedStyle(btn, "::after").backgroundImage);
     const cardRing = imageOn(card, getComputedStyle(card, "::after").backgroundImage);
     expect(btnRing, "the control ring is the pane's — the lab's doubled row is lost again").not.toBe(cardRing);
-    // Brighter, not merely different: the catch stop's alpha roughly doubles (0.34 → 0.72).
+    // Never DIMMER than the pane's. This read "roughly doubles (0.34 → 0.72)" until 2026-09-21,
+    // when the pane's own dark lip went to 0.7 (the mirror pass: a thick slab needs a lit rim)
+    // and the controls were judged "good as they are" the same day. What survives is the
+    // reason the row exists — a small dark pane's rim is most of its evidence — so the control's
+    // catch may meet the pane's and may not fall under it.
     const alphaOf = (img: string) => {
       const stops = [...img.matchAll(/(?:rgba?|color)\([^)]*\)/g)].map((m) => rgba(m[0]));
       return Math.max(...stops.map((s) => s.a));
     };
-    expect(alphaOf(btnRing), "dark control catch is not stronger than the pane's").toBeGreaterThan(
-      alphaOf(cardRing) * 1.5,
-    );
+    expect(alphaOf(btnRing), "dark control catch fell under the pane's").toBeGreaterThanOrEqual(alphaOf(cardRing));
   });
 
   it("light: the two are byte-identical — the lab never split light, and the emission shares the source", () => {
@@ -586,31 +590,48 @@ describe("the filter row forks on the lens, and the default is the defended one 
 
   for (const appearance of APPEARANCES) {
     for (const material of GLASS_MATERIALS) {
-      it(`${appearance}/${material}: unstamped is frost, stamped is the clear row, and frost blurs harder`, () => {
-        const card = mounted(<Card backdrop>pane</Card>, { theme: { appearance, material } });
+      // RE-KEYED 2026-09-21 (the mirror pass). This asserted that the stamped chain carries a
+      // CSS `blur()` smaller than frost's. It no longer carries one at all: the stylesheet's
+      // chain is `lens, then filter`, so a CSS blur lands AFTER the displacement and erases the
+      // bend (measured: a 12px bend under blur(4px) drew no visible lip). The lensed blur is
+      // inside the filter, BEFORE the bend — so the law reads it there, off the mounted filter's
+      // own graph, and the ordering "frost defends harder" is kept against that number.
+      it(`${appearance}/${material}: unstamped is frost, stamped is the lens row, and frost blurs harder`, async () => {
+        const card = mounted(<Card backdrop style={{ inlineSize: "20rem", blockSize: "12rem" }}>pane</Card>, { theme: { appearance, material } });
         const blurOf = (chain: string): number => {
           const m = chain.match(/blur\(([\d.]+)px\)/);
           if (!m?.[1]) throw new Error(`no blur in ${chain}`);
           return Number(m[1]);
         };
 
+        setStamp(true);
+        await until(() => /url\(/.test(getComputedStyle(card).backdropFilter));
+        const clear = getComputedStyle(card).backdropFilter;
         setStamp(false);
         const frost = getComputedStyle(card).backdropFilter;
-        setStamp(true);
-        const clear = getComputedStyle(card).backdropFilter;
         restore();
 
         // Both are real chains — a fork that resolved to nothing on one side would read as a
         // pass on every "is there a filter" law in the suite.
         expect(frost, `${material} unstamped chain`).toContain("blur(");
-        expect(clear, `${material} stamped chain`).toContain("blur(");
+        expect(clear, `${material} stamped chain carries no lens`).toMatch(/^url\(/);
+        // The lens row carries NO stylesheet blur: one after the lens softens the bend.
+        expect(clear, `${material} stamped chain blurs AFTER the bend`).not.toContain("blur(");
+        // The blur is in the filter, and it runs on the SOURCE, before any displacement.
+        const id = clear.match(/url\("?#([^")]+)/)![1]!;
+        const graph = [...document.getElementById(id)!.children];
+        const soften = graph.findIndex((n) => n.tagName === "feGaussianBlur" && n.getAttribute("in") === "SourceGraphic");
+        const bend = graph.findIndex((n) => n.tagName === "feDisplacementMap");
+        expect(soften, `${material} lens does not blur its source`).toBeGreaterThanOrEqual(0);
+        expect(soften, `${material} lens blurs after it bends`).toBeLessThan(bend);
+        expect(graph[bend]!.getAttribute("in"), `${material} bends the unblurred source`).toBe(graph[soften]!.getAttribute("result"));
+        const lensed = Number(graph[soften]!.getAttribute("stdDeviation"));
+        expect(lensed, `${material} lens blur is zero`).toBeGreaterThan(0);
         // The whole point: the engine that cannot bend light hides more instead.
-        expect(blurOf(frost), `${material} frost does not defend harder than the clear row`).toBeGreaterThan(
-          blurOf(clear),
-        );
+        expect(blurOf(frost), `${material} frost does not defend harder than the lens row`).toBeGreaterThan(lensed);
         // And ONLY the blur moves — saturation and brightness are the judged values in both,
         // so this is one lever changing rather than a second material appearing.
-        const rest = (chain: string) => chain.replace(/blur\([\d.]+px\)\s*/, "");
+        const rest = (chain: string) => chain.replace(/blur\([\d.]+px\)\s*/, "").replace(/url\([^)]*\)\s*/, "");
         expect(rest(frost), `${material} frost changed more than the blur`).toBe(rest(clear));
       });
     }
@@ -624,7 +645,8 @@ describe("the filter row forks on the lens, and the default is the defended one 
     const clear = getComputedStyle(btn).backdropFilter;
     restore();
     const blur = (c: string) => Number(c.match(/blur\(([\d.]+)px\)/)?.[1] ?? 0);
-    expect(blur(frost), "a glass control never took the frost row").toBeGreaterThan(blur(clear));
+    expect(blur(frost), "a glass control never took the frost row").toBeGreaterThan(0);
+    expect(clear, "a lensed control blurs after its bend").not.toContain("blur(");
   });
 });
 
@@ -649,8 +671,10 @@ describe("the seal outranks the filter fork, in both branches (§10)", () => {
 
       // The calibration half: both are LIVE before the preference, or an assertion that they
       // carry no filter afterwards cannot tell a seal from a fork that resolved to nothing.
-      expect(getComputedStyle(card).backdropFilter, "the pane had no filter to seal").toContain("blur(");
-      expect(getComputedStyle(btn).backdropFilter, "the control had no filter to seal").toContain("blur(");
+      // `saturate(`, not `blur(`: since 2026-09-21 the lens row carries no stylesheet blur (it
+      // is inside the lens), and saturation is the term BOTH rows have.
+      expect(getComputedStyle(card).backdropFilter, "the pane had no filter to seal").toContain("saturate(");
+      expect(getComputedStyle(btn).backdropFilter, "the control had no filter to seal").toContain("saturate(");
 
       await asksForSolidity();
 
@@ -767,4 +791,56 @@ describe("a highlighted row answers the platform's contrast signal, not only the
       colorOn(lit, "var(--tone-solid)"),
     );
   });
+});
+
+/**
+ * THE TRACKS HAVE MATTER TOO (§10, 2026-09-21, Kushagra, the day the pool became a bevel: "it
+ * didn't reach the toolbar buttons, the groups I mean"). Measured: a glass toolbar group computed
+ * `box-shadow: none` beside a glass Button carrying all five pool layers. §10's contract makes
+ * matter a part every glass pane resolves; the two tracks had joined the ring and rim lists and
+ * were left off this one.
+ *
+ * Stated as an AGREEMENT with the field family — the other glass member that takes the pool
+ * alone, with no lift — so a respelled pool fails here as loudly as a missing one, and the
+ * solid half is the negative control: a rule that shadowed every track would pass the first
+ * assertion and fail the second.
+ */
+describe("a glass track carries the pool, and a solid one carries nothing (§10)", () => {
+  const tracks = (backdrop: boolean, appearance: (typeof APPEARANCES)[number]) => {
+    const root = mounted(
+      <div>
+        <TextField data-t="field" aria-label="f" {...(backdrop ? { backdrop } : {})} />
+        <Toolbar aria-label="t">
+          <ToolbarGroup data-t="group" {...(backdrop ? { backdrop } : {})}>
+            <ToolbarButton>Save</ToolbarButton>
+          </ToolbarGroup>
+        </Toolbar>
+        <SegmentedControl data-t="seg" aria-label="s" defaultValue="a" {...(backdrop ? { backdrop } : {})}>
+          <SegmentedItem value="a">A</SegmentedItem>
+          <SegmentedItem value="b">B</SegmentedItem>
+        </SegmentedControl>
+      </div>,
+      { theme: { appearance, material: "regular" } },
+    );
+    const group = root.querySelector<HTMLElement>(".kui-toolbar-group")!;
+    const seg = root.querySelector<HTMLElement>(".kui-segmented")!;
+    const field = root.querySelector<HTMLElement>(".kui-field")!;
+    return { group, seg, field };
+  };
+
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: both tracks paint the field family's pool on glass, and no shadow when solid`, () => {
+      const glass = tracks(true, appearance);
+      // The premise: all three really are glass.
+      for (const el of Object.values(glass)) expect(el.dataset.material, `${el.className} is not glass`).toBe("regular");
+      const pool = computed(glass.field, "box-shadow");
+      expect(pool, "the field family paints no pool to agree with").toContain("inset");
+      expect(computed(glass.group, "box-shadow"), "a glass toolbar group has no matter").toBe(pool);
+      expect(computed(glass.seg, "box-shadow"), "a glass segmented track has no matter").toBe(pool);
+
+      const solid = tracks(false, appearance);
+      expect(computed(solid.group, "box-shadow"), "a solid group casts").toBe("none");
+      expect(computed(solid.seg, "box-shadow"), "a solid track casts").toBe("none");
+    });
+  }
 });

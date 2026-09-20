@@ -831,6 +831,21 @@ export const glint = {
 } as const;
 
 export const material = {
+  // THE MIRROR PASS (2026-09-21, Kushagra: "this doesn't look glass ... Thick glass with a lot
+  // of refraction + blur"). SUPERSEDES the clear pass below on every number it names:
+  //   - The BLUR LEFT THESE ROWS. `filter` carries saturation and brightness only; the blur is
+  //     `lens.<rung>.blur` in refraction.tsx and runs INSIDE the lens filter, BEFORE the bend.
+  //     The stylesheet's chain is `lens, then filter`, so a CSS blur here lands after the
+  //     displacement and erases the bend it paid for — measured: a 12px bend under blur(4px)
+  //     drew no visible lip at all. `frost` is the lens-less engines' row and keeps its blur,
+  //     at the values judged for those engines (8/16/24, controls 4/8/13.7, regions 12/20/28).
+  //   - Veil 12/16/22% light and 20/28/36% dark (states +6), saturation 150/165/180%,
+  //     brightness 1.06 light and 1.02 dark. Judged over the photograph, countryside and
+  //     pattern beds and the docs' own theme popover, both appearances.
+  //   - A REGION'S ×1.5 BLUR MOVED WITH IT: `regionBlur` in refraction.tsx. It lived in the CSS
+  //     row; dropping it on the way would have been a silent change to the shell panes, the
+  //     sheet and the composer, which nobody judged that day.
+  //
   // THE CLEAR PASS (2026-09-17, Kushagra: "its not glass, its a fancy blur. I want glass,
   // clear, clean thick transparent glass"). The veil, the blur and the saturation were what
   // read as frost, so all three came down and the LIP took the thickness (refraction.tsx):
@@ -930,17 +945,18 @@ export const material = {
      Members stamp `kui-region`: the shell panes, Sheet, Composer. DERIVED, not judged: the
      alpha is the pane's own top rung (its pressed value), so a resting region is as dense as
      a pressed pane and the ladder reads control < pane < region with no invented number; the
-     blur is the pane's × 1.5 and the frost the pane's + 4. Every one of those is a first cut
+     frost is the pane's + 4, and the lensed blur is the pane's × 1.5 (`regionBlur` in
+     refraction.tsx since 2026-09-21, when the blur moved into the lens — THE MIRROR PASS above). Every one of those is a first cut
      for the bench. */
   light: {
-    thin: { alpha: [2, 8, 14], alphaHigh: [72, 77, 82], filter: "blur(3px) saturate(115%) brightness(1.12)", frost: "blur(8px) saturate(115%) brightness(1.12)", sheen: 6, control: { alpha: 4, filter: "blur(1.5px) saturate(115%) brightness(1.12)", frost: "blur(4px) saturate(115%) brightness(1.12)", filterHover: "blur(1.5px) saturate(115%) brightness(1.07)", filterLoud: "blur(1.5px) saturate(160%) brightness(1.08)" }, region: { alpha: 14, filter: "blur(4.5px) saturate(115%) brightness(1.12)", frost: "blur(12px) saturate(115%) brightness(1.12)" } },
-    regular: { alpha: [4, 10, 16], alphaHigh: [80, 84, 88], filter: "blur(4px) saturate(120%) brightness(1.13)", frost: "blur(16px) saturate(120%) brightness(1.13)", sheen: 9, control: { alpha: 6, filter: "blur(2px) saturate(120%) brightness(1.13)", frost: "blur(8px) saturate(120%) brightness(1.13)", filterHover: "blur(2px) saturate(120%) brightness(1.08)", filterLoud: "blur(2px) saturate(160%) brightness(1.09)" }, region: { alpha: 16, filter: "blur(6px) saturate(120%) brightness(1.13)", frost: "blur(20px) saturate(120%) brightness(1.13)" } },
-    thick: { alpha: [6, 12, 18], alphaHigh: [86, 89, 92], filter: "blur(5px) saturate(125%) brightness(1.14)", frost: "blur(24px) saturate(125%) brightness(1.14)", sheen: 12, control: { alpha: 8, filter: "blur(2.5px) saturate(125%) brightness(1.14)", frost: "blur(13.7px) saturate(125%) brightness(1.14)", filterHover: "blur(2.5px) saturate(125%) brightness(1.09)", filterLoud: "blur(2.5px) saturate(160%) brightness(1.12)" }, region: { alpha: 18, filter: "blur(7.5px) saturate(125%) brightness(1.14)", frost: "blur(28px) saturate(125%) brightness(1.14)" } },
+    thin: { alpha: [12, 18, 24], alphaHigh: [72, 77, 82], filter: "saturate(150%) brightness(1.06)", frost: "blur(8px) saturate(150%) brightness(1.06)", sheen: 6, control: { alpha: 14, filter: "saturate(150%) brightness(1.06)", frost: "blur(4px) saturate(150%) brightness(1.06)", filterHover: "saturate(150%) brightness(1.02)", filterLoud: "saturate(190%) brightness(1.04)" }, region: { alpha: 24, filter: "saturate(150%) brightness(1.06)", frost: "blur(12px) saturate(150%) brightness(1.06)" } },
+    regular: { alpha: [16, 22, 28], alphaHigh: [80, 84, 88], filter: "saturate(165%) brightness(1.06)", frost: "blur(16px) saturate(165%) brightness(1.06)", sheen: 9, control: { alpha: 18, filter: "saturate(165%) brightness(1.06)", frost: "blur(8px) saturate(165%) brightness(1.06)", filterHover: "saturate(165%) brightness(1.02)", filterLoud: "saturate(190%) brightness(1.04)" }, region: { alpha: 28, filter: "saturate(165%) brightness(1.06)", frost: "blur(20px) saturate(165%) brightness(1.06)" } },
+    thick: { alpha: [22, 28, 34], alphaHigh: [86, 89, 92], filter: "saturate(180%) brightness(1.06)", frost: "blur(24px) saturate(180%) brightness(1.06)", sheen: 12, control: { alpha: 24, filter: "saturate(180%) brightness(1.06)", frost: "blur(13.7px) saturate(180%) brightness(1.06)", filterHover: "saturate(180%) brightness(1.02)", filterLoud: "saturate(190%) brightness(1.04)" }, region: { alpha: 34, filter: "saturate(180%) brightness(1.06)", frost: "blur(28px) saturate(180%) brightness(1.06)" } },
   },
   dark: {
-    thin: { alpha: [8, 16, 24], alphaHigh: [76, 80, 84], filter: "blur(3px) saturate(115%) brightness(1.06)", frost: "blur(8px) saturate(115%) brightness(1.06)", sheen: 2, control: { alpha: 10, filter: "blur(1.5px) saturate(115%) brightness(1.06)", frost: "blur(4px) saturate(115%) brightness(1.06)", filterHover: "blur(1.5px) saturate(115%) brightness(1.12)", filterLoud: "blur(1.5px) saturate(150%) brightness(1)" }, region: { alpha: 24, filter: "blur(4.5px) saturate(115%) brightness(1.06)", frost: "blur(12px) saturate(115%) brightness(1.06)" } },
-    regular: { alpha: [12, 20, 28], alphaHigh: [84, 87, 90], filter: "blur(4px) saturate(120%) brightness(1.05)", frost: "blur(16px) saturate(120%) brightness(1.05)", sheen: 3, control: { alpha: 14, filter: "blur(2px) saturate(120%) brightness(1.05)", frost: "blur(8px) saturate(120%) brightness(1.05)", filterHover: "blur(2px) saturate(120%) brightness(1.02)", filterLoud: "blur(2px) saturate(150%) brightness(1)" }, region: { alpha: 28, filter: "blur(6px) saturate(120%) brightness(1.05)", frost: "blur(20px) saturate(120%) brightness(1.05)" } },
-    thick: { alpha: [16, 24, 32], alphaHigh: [90, 92, 94], filter: "blur(5px) saturate(125%) brightness(1.04)", frost: "blur(24px) saturate(125%) brightness(1.04)", sheen: 4, control: { alpha: 18, filter: "blur(2.5px) saturate(125%) brightness(1.04)", frost: "blur(13.7px) saturate(125%) brightness(1.04)", filterHover: "blur(2.5px) saturate(125%) brightness(1.02)", filterLoud: "blur(2.5px) saturate(150%) brightness(1)" }, region: { alpha: 32, filter: "blur(7.5px) saturate(125%) brightness(1.04)", frost: "blur(28px) saturate(125%) brightness(1.04)" } },
+    thin: { alpha: [20, 28, 36], alphaHigh: [76, 80, 84], filter: "saturate(150%) brightness(1.02)", frost: "blur(8px) saturate(150%) brightness(1.02)", sheen: 2, control: { alpha: 22, filter: "saturate(150%) brightness(1.02)", frost: "blur(4px) saturate(150%) brightness(1.02)", filterHover: "saturate(150%) brightness(1.08)", filterLoud: "saturate(180%) brightness(1)" }, region: { alpha: 36, filter: "saturate(150%) brightness(1.02)", frost: "blur(12px) saturate(150%) brightness(1.02)" } },
+    regular: { alpha: [28, 36, 44], alphaHigh: [84, 87, 90], filter: "saturate(165%) brightness(1.02)", frost: "blur(16px) saturate(165%) brightness(1.02)", sheen: 3, control: { alpha: 30, filter: "saturate(165%) brightness(1.02)", frost: "blur(8px) saturate(165%) brightness(1.02)", filterHover: "saturate(165%) brightness(1.08)", filterLoud: "saturate(180%) brightness(1)" }, region: { alpha: 44, filter: "saturate(165%) brightness(1.02)", frost: "blur(20px) saturate(165%) brightness(1.02)" } },
+    thick: { alpha: [36, 44, 52], alphaHigh: [90, 92, 94], filter: "saturate(180%) brightness(1.02)", frost: "blur(24px) saturate(180%) brightness(1.02)", sheen: 4, control: { alpha: 38, filter: "saturate(180%) brightness(1.02)", frost: "blur(13.7px) saturate(180%) brightness(1.02)", filterHover: "saturate(180%) brightness(1.08)", filterLoud: "saturate(180%) brightness(1)" }, region: { alpha: 52, filter: "saturate(180%) brightness(1.02)", frost: "blur(28px) saturate(180%) brightness(1.02)" } },
   },
   /** How much of the app's shadow a pane lets survive (§10's transmission seam): glass
       passes light, so its cast is the surface row FADED — thin passes most, thick least.
@@ -982,7 +998,7 @@ export const material = {
        composites over the pane's own veil, so the dark arc reads whatever the backdrop is
        doing behind it. */
     light: { a: "rgb(255 255 255 / 0.95)", b: "rgb(0 0 0 / 0.07)", c: "rgb(0 0 0 / 0.15)", d: "rgb(10 5 0 / 0.11)", opacity: 1 },
-    dark: { a: "rgb(255 255 255 / 0.34)", b: "rgb(210 230 255 / 0.1)", c: "rgb(255 255 255 / 0.04)", d: "rgb(255 245 235 / 0.08)", opacity: 1 },
+    dark: { a: "rgb(255 255 255 / 0.7)", b: "rgb(210 230 255 / 0.16)", c: "rgb(255 255 255 / 0.3)", d: "rgb(255 245 235 / 0.14)", opacity: 1 },
   },
   /* The SPECTRAL FOLD IS GONE (2026-08-25, Kushagra — three verdicts in one day: rim-saturate
      off, "dont like this blue band", "text field isnt fixed still"). Thick's ring used to fold
@@ -998,10 +1014,22 @@ export const material = {
      lip. The lab's judged answer: roughly double the card's dark peaks, still under light's.
      LIGHT has no row here on purpose — a light control's lip is the pane's, the lab never
      split them, and the generator emits the shared value so the two cannot drift. One row for
-     all three thicknesses, the lab's own shape (its dark buttons overrode a/b/c/d once). */
+     all three thicknesses, the lab's own shape (its dark buttons overrode a/b/c/d once).
+     NO LONGER DOUBLE (2026-09-21): the pane's dark lip went to 0.7 in the mirror pass — a
+     thick slab needs a lit rim, and its shade side catches light too (0.3) — and the controls
+     were judged "good as they are" the same day. The law holds what is left of the rule: a
+     control's catch is never dimmer than the pane's. */
   ringControlDark: { a: "rgb(255 255 255 / 0.72)", b: "rgb(210 230 255 / 0.22)", c: "rgb(255 255 255 / 0.08)", d: "rgb(255 245 235 / 0.2)" },
 
-  /* THE POOL is three layers since 2026-09-17 (the clear pass): the bottom shade, a soft inner
+  /* THE POOL IS A BEVEL since 2026-09-21 (the mirror pass, Kushagra: "glass doesn't feel
+     'thick', it should feel thick"). Five layers, in list order: a crisp 1px catch on the top
+     edge, a fainter 1px bounce on the bottom edge, a soft glow under the top edge, the bottom
+     shade, and a wide inner rim glow. Two lit edges with shade between them is what reads as
+     a slab with depth; the three-layer pool below read as a film. Controls take the same five
+     at half the reach. LIGHT HAS FOUR: its bottom shade was judged out the same day ("it looks
+     dirty at the bottom in light mode, that gray gradient there is not good") — on a light
+     pane a black wash is dirt, where on a dark one it is depth, so dark keeps it. The history below describes the pool this replaced.
+     THE POOL was three layers from 2026-09-17 (the clear pass): the bottom shade, a soft inner
      rim glow (22px on panes, 10px on controls), and a 1px top catch. With the veil gone the
      glass had nothing left saying it has a body; the glow gathers light at the rim so the
      centre can stay clear. An all-edges DARK shade was tried in its place and reverted the
@@ -1017,8 +1045,8 @@ export const material = {
     // The lab's .l2-solid does carry it, but at the app's card sizes the two never merge the
     // way they do on the lab's 340px specimen, and the doubled edge is worse than the lost
     // seat. The GLASS pools stay: soft inner washes, not lines.
-    light: { surface: "inset 0 -14px 24px -14px rgb(0 0 0 / 0.1), inset 0 0 22px -6px rgb(255 255 255 / 0.35), inset 0 1px 2px 0 rgb(255 255 255 / 0.6)", control: "inset 0 -8px 14px -10px rgb(0 0 0 / 0.1), inset 0 0 10px -3px rgb(255 255 255 / 0.3), inset 0 1px 1px 0 rgb(255 255 255 / 0.6)", solid: "0 0 0 0 transparent" },
-    dark: { surface: "inset 0 -14px 24px -14px rgb(0 0 0 / 0.3), inset 0 0 22px -6px rgb(255 255 255 / 0.07), inset 0 1px 2px 0 rgb(255 255 255 / 0.12)", control: "inset 0 -8px 14px -10px rgb(0 0 0 / 0.3), inset 0 0 10px -3px rgb(255 255 255 / 0.05), inset 0 1px 1px 0 rgb(255 255 255 / 0.12)", solid: "0 0 0 0 transparent" },
+    light: { surface: "inset 0 2px 1px -1px rgb(255 255 255 / 0.95), inset 0 -2px 1px -1px rgb(255 255 255 / 0.6), inset 0 6px 10px -4px rgb(255 255 255 / 0.5), inset 0 0 18px 2px rgb(255 255 255 / 0.22)", control: "inset 0 2px 1px -1px rgb(255 255 255 / 0.95), inset 0 -2px 1px -1px rgb(255 255 255 / 0.6), inset 0 3px 5px -2px rgb(255 255 255 / 0.5), inset 0 0 8px 1px rgb(255 255 255 / 0.22)", solid: "0 0 0 0 transparent" },
+    dark: { surface: "inset 0 2px 1px -1px rgb(255 255 255 / 0.45), inset 0 -2px 1px -1px rgb(255 255 255 / 0.2), inset 0 6px 10px -4px rgb(255 255 255 / 0.1), inset 0 -16px 24px -14px rgb(0 0 0 / 0.4), inset 0 0 18px 2px rgb(255 255 255 / 0.06)", control: "inset 0 2px 1px -1px rgb(255 255 255 / 0.45), inset 0 -2px 1px -1px rgb(255 255 255 / 0.2), inset 0 3px 5px -2px rgb(255 255 255 / 0.1), inset 0 -8px 12px -8px rgb(0 0 0 / 0.4), inset 0 0 8px 1px rgb(255 255 255 / 0.06)", solid: "0 0 0 0 transparent" },
   },
   /** §10 — the SOLID pane's own lighting (2026-08-17, measured off the lab's .l2-solid):
       matte per the lock — grain plus ONE sheen washing down to 55%, no bloom, no 1px top

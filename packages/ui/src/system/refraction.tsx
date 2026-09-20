@@ -7,6 +7,10 @@
  * lens is what left §10's stated defence floor unmet at every rung, and it is the gap this
  * closes.
  *
+ * SINCE 2026-09-21 THE LENS CARRIES THE BLUR TOO (the mirror pass — see the note above `lens`).
+ * The stylesheet's chain runs this filter FIRST, so any blur written after it softens the bend;
+ * the blur is a primitive in here, on the source, in front of the displacement.
+ *
  * THE MODEL (method from kube.io's "Liquid Glass in the Browser", credited; the mathematics
  * re-implemented here, not their code). The bezel is a curved glass surface. Each pixel's
  * bend follows Snell's law across it — air 1.0 into glass, 1.45 to 1.62 by rung — taken on
@@ -193,6 +197,27 @@ export function cornerExponent(value: string): number {
 const PROFILE_P = 2;
 /** The bend points INWARD (2026-09-17) — see the ladder note on `lens`. */
 const CONCAVE = true;
+/**
+ * What a FLOATING pane adds to its rung's blur, in px (2026-09-21, Kushagra: dialogs and the
+ * command palette "get the perfect look" because a blurry scrim sits behind them; "menus and
+ * popover should have that. Buttons and controls are good as they are").
+ *
+ * A menu, select, popover or combobox has no scrim, so nothing softens what is behind it
+ * before its lens bends it. It carries that softening itself. Thick takes the scrim's own 8px;
+ * thin and regular were judged lighter the same day ("on thin, its too thick basically,
+ * regular also"). Keyed on `kui-floating`, the class every anchored panel wears and no dialog,
+ * command panel, card or control does.
+ */
+export const floatingFrost: Record<LensThickness, number> = { thin: 3, regular: 5, thick: 8 };
+/**
+ * The most of a box's short side a lip may take (2026-09-21). The old bound was half the box,
+ * which is all the room there is — and at the bend this ladder now carries, a lip that fills
+ * the box leaves no flat middle: a 110px card at thick (44px lip) warped its whole body.
+ * 0.28 leaves 44% of the short side unbent. It also bounds the sample: the bend peaks at
+ * `boost` lips inward, and 2.2 × 0.28 = 0.62 of the short side, so an edge pixel never reads
+ * past the far edge of its own box (a law holds the product under 1).
+ */
+export const LIP_SHARE = 0.28;
 const PROFILE_Q = 0.25;
 
 function surface(t: number): { height: number; slope: number } {
@@ -241,6 +266,8 @@ export type LensTuning = {
   preBlur: number;
   /** × on the REGION scale's bezel multiplier (`lensScale.region`), over `bezelX`. */
   regionBezelX: number;
+  /** × on each rung's blur (the blur lives in the lens since 2026-09-21, not in the CSS row). */
+  blurX: number;
 };
 let tuning: Partial<LensTuning> | null = null;
 let tuningSerial = 0;
@@ -289,6 +316,11 @@ export type LensParams = {
   fringe: number;
   /** × past the derived strength — taste's one override of the physics. */
   boost: number;
+  /** px of blur, UNIFORM across the pane and applied BEFORE the bend, inside the filter, so the
+      lip stays crisp (2026-09-21, Kushagra: "the blur needs to be uniform, what is on the rim is
+      good amount"). A control takes the share of it that its lip has room for; a surface
+      takes all of it at any size (see `measure`). */
+  blur: number;
 };
 
 /** The rungs that bend. `solid` is not a member — it is the seal, the absence of a
@@ -362,11 +394,32 @@ export type LensThickness = Exclude<Material, "solid">;
  *     the clamp; these are those same rendered bends drawn inside it.
  *
  * `fringe` fell to 1 / 1.5 / 2 the same day: the split read as a rainbow once nothing blurred it.
+ *
+ * THE MIRROR PASS (2026-09-21, Kushagra: "this doesn't look glass ... Thick glass with a lot of
+ * refraction + blur", then, of Apple's corner: "See how it bends"). Three moves, each judged
+ * on the preview's photograph, countryside and pattern beds in both appearances:
+ *
+ *   - THE BEND PASSES THE LIP. `boost` is 2.2 on every rung, so the bend peaks at 2.2 lips
+ *     inward. While the bend was at most one lip, the sample position across the rim moved at
+ *     rate ~0 — every rim pixel read nearly the same backdrop pixel, which draws STREAKS.
+ *     Past one lip the rate goes negative: the rim shows a squeezed, MIRRORED copy of what sits
+ *     just inside it, and that copy wraps the corners. That is the look. The 2026-08-25
+ *     objection to a large boost (sampling past the box, a blue band) was written when the
+ *     bend pointed outward and the filter ran in linearRGB; both are fixed, and `LIP_SHARE`
+ *     now bounds the sample inside the box by law.
+ *   - THE LIP WIDENED to 22 / 32 / 44, depth scaled with it so each rung keeps its share of
+ *     its own clamp (85 / 91 / 97%), and `LIP_SHARE` caps it per box so a small pane keeps a
+ *     flat middle.
+ *   - THE BLUR MOVED INTO THE LENS (`blur`, below). The stylesheet's chain is `lens, then
+ *     filter`, so a CSS blur softened the bend it had just paid for — measured: a 12px bend
+ *     under blur(4px) drew no visible lip. It now runs on the source, before the displacement,
+ *     one amount across the pane ("the blur needs to be uniform, what is on the rim is good
+ *     amount"). A sharp lip over a frosted body was built and judged out the same day.
  */
 export const lens: Record<LensThickness, LensParams> = {
-  thin: { bezel: 12, thickness: 23.1, ior: 1.5, fringe: 1, boost: 1.18 },
-  regular: { bezel: 18, thickness: 33.6, ior: 1.6, fringe: 1.5, boost: 1.27 },
-  thick: { bezel: 26, thickness: 47.6, ior: 1.7, fringe: 2, boost: 1.34 },
+  thin: { bezel: 22, thickness: 42.4, ior: 1.5, fringe: 1, boost: 2.2, blur: 1.2 },
+  regular: { bezel: 32, thickness: 59.7, ior: 1.6, fringe: 1.5, boost: 2.2, blur: 1.9 },
+  thick: { bezel: 44, thickness: 80.6, ior: 1.7, fringe: 2, boost: 2.2, blur: 2.9 },
 };
 
 /**
@@ -377,6 +430,10 @@ export const lens: Record<LensThickness, LensParams> = {
  */
 export type LensScale = "pane" | "region";
 export const lensScale: Record<LensScale, number> = { pane: 1, region: 2 };
+/** × on a REGION's blur. The relationship is the 2026-09-18 region cell's own ("the blur is the
+    pane's × 1.5"); it lived in the CSS row until the blur moved into the lens on 2026-09-21,
+    and it moved with it rather than being dropped on the way. */
+export const regionBlur = 1.5;
 
 /**
  * The rung a material bends at, or null for the two that never do. Asking the ladder is what
@@ -391,6 +448,7 @@ function rung(material: SurfaceMaterial, scale: LensScale = "pane"): LensParams 
   // rather than sitting on its clamp (see the re-solve note above `lens`).
   const x = lensScale[scale] * (scale === "region" ? (tuning?.regionBezelX ?? 1) : 1);
   const base = x === 1 ? at : { ...at, bezel: at.bezel * x, thickness: at.thickness * x };
+  if (scale === "region") base.blur = at.blur * regionBlur;
   if (!tuning) return base;
   // The bench's multipliers, applied over the shipped rung — 1.0 everywhere restores it.
   return {
@@ -398,6 +456,7 @@ function rung(material: SurfaceMaterial, scale: LensScale = "pane"): LensParams 
     bezel: base.bezel * (tuning.bezelX ?? 1),
     thickness: base.thickness * (tuning.thicknessX ?? 1),
     ior: tuning.ior ?? base.ior,
+    blur: base.blur * (tuning.blurX ?? 1),
   };
 }
 
@@ -433,8 +492,9 @@ const GLINT_AREA_CAP = 640 * 640;
  * scale down.
  */
 export function fitLens(p: LensParams, shortSide: number): { bezel: number; thickness: number } | null {
-  const bezel = Math.min(p.bezel, Math.floor(shortSide / 2) - 2);
-  if (bezel <= 0) return null;
+  const bezel = Math.min(p.bezel, Math.floor(shortSide * LIP_SHARE));
+  // Under 2px there is no lip to draw: the map's own 3px softening is wider than the band.
+  if (bezel < 2) return null;
   return { bezel, thickness: p.thickness * (bezel / p.bezel) };
 }
 
@@ -926,7 +986,7 @@ function acquire(
   // The corners are ALL of them, for the reason the exponent is here: two panes of one size
   // whose corners are shaped differently need two maps, and a key that names one corner hands
   // the first map to the second pane.
-  const key = `${w}x${h}r${corners(r).join("_")}k${k}z${fit}b${p.bezel}t${p.thickness}i${p.ior}f${p.fringe}s${p.boost}q${tuningSerial}rs${rim ? rim.sat : 0}`;
+  const key = `${w}x${h}r${corners(r).join("_")}k${k}z${fit}b${p.bezel}t${p.thickness}i${p.ior}f${p.fringe}s${p.boost}u${p.blur}q${tuningSerial}rs${rim ? rim.sat : 0}`;
   const hit = filters.get(key);
   if (hit) {
     hit.users += 1;
@@ -988,18 +1048,21 @@ function acquire(
   });
   filter.appendChild(el("feImage", { href: url, preserveAspectRatio: "none", result: "map" }));
   filter.appendChild(el("feGaussianBlur", { in: "map", stdDeviation: 3, result: "soft" }));
-  /* The bench's pre-blur (kube's own order): frost applied BEFORE the displacement bends it,
-     so the lens's edge stays crisp while the content softens — the stylesheet's chain blurs
-     the bent result instead, softening the bend it paid for. Bench-only, and JUDGED OUT as a
-     shipped default (0.5px shipped for an hour on 2026-08-25 and painted a blue band over a
-     plain ground: a uniform backdrop shows no fringe at any bend, but the blur softens the
-     backdrop's clip boundary into gradients, which the channel split then separates into
-     colour — Kushagra: "still blue, lets go back"). At 0 the source passes through untouched
-     and the shipped chain is byte-identical. */
-  const pre = tuning?.preBlur ?? 0;
+  /* THE BLUR RUNS HERE, BEFORE THE BEND (kube's own order; shipped 2026-09-21). `p.blur` as
+     the hook resolved it for this element (the rung's, scaled down on a control, raised on a
+     floating pane), plus the bench's `preBlur` dial. The stylesheet's lens row carries no blur of its
+     own: written there it lands after the displacement and softens the bend.
+
+     This order was JUDGED OUT once (0.5px, 2026-08-25: a blue band over a plain ground, the
+     blur softening the backdrop's clip boundary into a gradient the channel split then
+     coloured). What changed: the bend points INWARD since 2026-09-17 and peaks at the very
+     edge, so the pixels nearest the clip boundary are exactly the ones no rim pixel samples;
+     and the filter runs in sRGB since 2026-09-11, which removed the constant channel offset
+     that band was mostly made of. */
+  const pre = (tuning?.preBlur ?? 0) + p.blur;
   const source = pre > 0 ? "presoft" : "SourceGraphic";
   if (pre > 0) {
-    filter.appendChild(el("feGaussianBlur", { in: "SourceGraphic", stdDeviation: pre, result: "presoft" }));
+    filter.appendChild(el("feGaussianBlur", { in: "SourceGraphic", stdDeviation: pre, edgeMode: "duplicate", result: "presoft" }));
   }
   // Three displacements at different scales, one per channel, screened back together: the edge
   // splits light. The spread was ~8% when it was written, which kept the body registered as a
@@ -1028,6 +1091,7 @@ function acquire(
   }
   filter.appendChild(el("feBlend", { in: "cR", in2: "cG", mode: "screen", result: "rg" }));
   filter.appendChild(el("feBlend", { in: "rg", in2: "cB", mode: "screen", result: "body" }));
+
   /* THE RIM RE-EMITS THE BACKDROP (§10, 2026-08-24; kube.io's chain, credited): inside the
      glint band the bent backdrop is shown again, hyper-saturated and clipped to the band's own
      mask — so a red photograph's edge catches red, not only white. Over a neutral page the
@@ -1270,8 +1334,24 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
       const measure = () => {
         const box = target();
         if (!box) return;
-        const params = rung(material, box.scale);
-        if (!params) return;
+        const base = rung(material, box.scale);
+        if (!base) return;
+        // A floating pane (menu, select, popover, combobox) has no scrim to soften what is
+        // behind it, so it carries the scrim's blur itself (2026-09-21, Kushagra: dialogs and
+        // command "get the perfect look" because of the blurry scrim; menus and popovers should
+        // have that; controls stay as they are).
+        //
+        // A CONTROL blurs by the share of its lip it has room for; a SURFACE blurs by its rung,
+        // whatever its size (2026-09-21, Kushagra, on the command palette: the search area
+        // "should have same material as content area, rn it seems 50% of it" — measured: a 50px
+        // search pill fitted 14px of a 32px lip and took 44% of the blur of the results pane
+        // under it). Small is not the same as minor: that pill is a pane, and two panes of one
+        // material side by side must be one material. Controls keep the scaling, judged "good
+        // as they are" the same day.
+        const room = node.classList.contains("kui-control") ? fitLens(base, Math.min(box.w, box.h)) : null;
+        const own = room ? base.blur * (room.bezel / base.bezel) : base.blur;
+        const frost = node.classList.contains("kui-floating") ? (floatingFrost[material as LensThickness] ?? 0) : 0;
+        const params = { ...base, blur: own + frost };
         /**
          * ROUNDED BEFORE ANYTHING READS IT (2026-09-11 audit). `getBoundingClientRect` returns
          * sub-pixel floats, and above the cap `scale` is derived from them and then multiplies

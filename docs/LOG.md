@@ -8,6 +8,24 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-21 The mirror pass: the blur was erasing the bend
+
+Kushagra, with Apple's menus beside our popover: *"this doesn't look glass ... Apple has blur too, but it has glass also. Thick glass with a lot of refraction + blur."*
+
+**The finding under every earlier glass round.** The stylesheet's chain was `lens, then blur()`. A blur applied after a displacement softens the displacement. Measured on the shipped glass: a 12px bend under `blur(4px)` drew no visible lip. Every earlier round tuned the veil, the blur amount, the lip width or the boost, and each was judged through a chain that blurred the result. The 2026-08-25 pre-blur experiment had the right order and was reverted for a blue band whose real causes were an outward bend (fixed 2026-09-17) and a linearRGB filter (fixed 2026-09-11).
+
+**What shipped.** The blur runs inside the lens filter, on the source, before the bend. The bend peaks at 2.2 lips inward, so the rim mirrors what sits just inside it instead of streaking. The lip is 22/32/44px, capped at 0.28 of the box. Floating panes add 3/5/8px because they have no scrim. The pool is a bevel. Veil 12/16/22% light and 20/28/36% dark, saturation 150/165/180%.
+
+**Tried the same day and turned down, each by eye:**
+- Blur-then-bend in the CSS chain at 10/16/24px. The interior looked right and the lens had nothing left to bend ("in thin, I barely see glass, it's all a blur").
+- A sharp lip over a frosted body, masked by the map's own deviation. Real refraction, wrong whole: "the blur needs to be uniform, what is on the rim is good amount."
+- The scrim's full 8px on every floating rung: "on thin, its too thick basically, regular also."
+- A black bottom shade in the light pool: "it looks dirty at the bottom in light mode."
+
+**Two defects the new look exposed, both older than it.** A glass toolbar group and a glass segmented track computed `box-shadow: none` — they had joined the ring list and the rim list and were never given the pool, invisible while the pool was faint. And scaling the blur by the fitted lip, written for controls, reached the command palette's search pill and gave it 44% of its own results pane's blur. A control scales; a surface does not.
+
+**Laws.** Seven mounted laws asserted a CSS `blur()` in the lens row and one asserted dark controls out-shine dark panes by half again; all eight encoded the old behaviour and are re-keyed, not deleted. New: the blur precedes the displacement in the mounted filter's own graph; the lens rows state no blur; the sample never leaves the box, over boxes that clamp and boxes that do not; a floating pane adds the frost and a card beside it does not; a clamped small surface blurs like a large one and a control blurs less; both tracks paint the field family's pool on glass and nothing when solid. Twelve sabotage passes, each caught by its own law. CI then found ten more in component files, and one of them was right about the code: the Sheet's "a region is not the pane cell" failed because the region's ×1.5 blur had lived in the CSS row and been dropped with it. It is `regionBlur` in the lens now.
+
 ## 2026-09-20 Motion is removed — every state change is instant again
 
 **What.** Kushagra: *"Lets run an ultracode agent to remove all motion from kookie ui v2. Motion

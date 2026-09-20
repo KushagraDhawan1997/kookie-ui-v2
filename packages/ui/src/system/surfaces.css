@@ -59,7 +59,12 @@
    declaration: `var(--kui-lens, ) blur(…) saturate(…)` is the stylesheet's own chain when
    nothing set the property, which is every browser that cannot render an SVG filter in a
    backdrop-filter (all but Chromium today) and every surface that is not glass. There is no
-   path here that can subtract glass — the lens is only ever prepended. */
+   path here that can subtract glass — the lens is only ever prepended.
+
+   NO BLUR FOLLOWS IT ON A LENS ENGINE (2026-09-21). The chain's order means a `blur()` in the
+   material's row lands after the displacement and erases the bend, so the lens row carries
+   saturation and brightness only and the blur is a primitive INSIDE the filter, in front of
+   the bend. The `-frost` rows, selected where `data-lens` is absent, keep theirs. */
 /* The material SCALE a pane paints at (2026-09-18): `region` on a `kui-region` glass pane,
    unset otherwise. Read by the lens hook off the cascade to widen the bezel. Non-inheriting,
    because a scale is a fact about ONE box. */

@@ -1705,6 +1705,19 @@
     background-image: var(--material-thick-rim-control, none),
       var(--kui-ct-light, none);
   }
+  /* THE TRACKS TAKE THE POOL (§10, 2026-09-21, Kushagra, after the pool became a bevel: "it
+     didn't reach the toolbar buttons, the groups I mean"). Measured: a glass toolbar group
+     computed `box-shadow: none` beside a glass Button carrying all five layers, so the group
+     was a flat disc next to a slab. §10's contract lists MATTER as a part every pane resolves,
+     and the segmented track and the group joined the ring list (2026-08-24) and the rim list
+     (2026-08-26) and were left off this one — the same omission a third time. The pool alone,
+     never a lift: a track is a well, and a well does not rise. Spelled through `--kui-ct-cast`
+     like every other control shadow, so the disabled and sealed stand-downs reach it. */
+  .kui-segmented:where([data-material="thin"], [data-material="regular"], [data-material="thick"]),
+  .kui-toolbar-group:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
+    --kui-ct-cast: var(--kui-ct-pool-glass, none);
+    box-shadow: var(--kui-ct-cast, none);
+  }
 
   /* THE FIELD'S LIP SITS WHERE EVERY OTHER LIP SITS (2026-08-24, then MOVED 2026-09-02).
 

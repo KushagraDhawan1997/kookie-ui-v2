@@ -42,6 +42,7 @@ import {
   DEPTHS,
   SIZES,
   computed,
+  lensBlurOf,
   probeIn,
   render,
   tokenOn,
@@ -538,8 +539,12 @@ describe("it is an overlay, exactly as a dialog is", () => {
     expect(stripLens(computed(sheet.popup, "backdrop-filter")), "the region's filter chain").toBe(
       filterOn(sheet.popup, "--material-regular-region-filter"),
     );
-    expect(stripLens(computed(sheet.popup, "backdrop-filter")), "a region is not the pane cell").not.toBe(
-      stripLens(computed(dialog.popup, "backdrop-filter")),
+    // The two CHAINS agree since 2026-09-21 — saturation and brightness are one material's —
+    // because the blur left the row for the lens. So "a region is not the pane cell" is read
+    // where the difference now lives: the region's lens blurs further, and its veil is denser.
+    expect(lensBlurOf(sheet.popup), "a region blurs no further than a pane").toBeGreaterThan(lensBlurOf(dialog.popup));
+    expect(alphaOf(computed(sheet.popup, "background-color")), "a region's veil is the pane's").toBeGreaterThan(
+      alphaOf(computed(dialog.popup, "background-color")),
     );
     expect(computed(sheet.popup, "backdrop-filter"), "a glass panel wears the lens").toMatch(/^url\(/);
     expect(alphaOf(computed(sheet.popup, "background-color")), "and a glass veil is translucent").toBeLessThan(1);

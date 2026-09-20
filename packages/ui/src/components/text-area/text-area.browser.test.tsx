@@ -10,11 +10,10 @@
 import { describe, expect, it } from "vitest";
 
 import { Theme } from "../../theme/theme.tsx";
-import { APPEARANCES, SIZES, colorOn, computed, mounted, render } from "../../test/browser.tsx";
+import { APPEARANCES, SIZES, colorOn, computed, mounted, probeIn, render } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { TextField } from "../text-field/text-field.tsx";
 import { TextArea } from "./text-area.tsx";
-import { material } from "../../tokens/config.ts";
 
 /** Differs from the harness placement on purpose: a <textarea> renders no children, so the
     probe must sit BESIDE the element — the parent is the nearest scope that can host it. */
@@ -436,10 +435,11 @@ describe("the app's identities reach it without it knowing (§5, §10)", () => {
   it("material re-derives the seal as glass, with no CSS of its own (§10)", () => {
     const glass = mounted(<TextArea backdrop />, { theme: { material: "regular" } });
     // Derived, not restated: the radius is config's to move (2026-08-16).
-    expect(computed(glass, "backdrop-filter")).toContain(
-      // The CONTROL cell's blur, not the pane's (control-scale material, lab port
-      // 2026-08-17): a 40px box re-prices the ladder — half the blur, a leaner veil.
-      `blur(${material.light.regular.control.filter.match(/blur\(([\d.]+)px\)/)![1]}px)`,
+    // The CONTROL cell's row under the lens (control-scale material, lab port 2026-08-17).
+    // It named the row's `blur()` until 2026-09-21; the blur is inside the lens now, so the
+    // chain is read whole against the token, lens stripped.
+    expect(computed(glass, "backdrop-filter").replace(/url\("[^"]*"\)\s*/, "")).toBe(
+      probeIn(glass, (el) => (el.style.backdropFilter = "var(--material-regular-control-filter)"), (s) => s.backdropFilter),
     );
     expect(computed(glass, "background-color")).toBe(
       bgOn(

@@ -2003,7 +2003,34 @@ describe("the material ladder is monotone in every lever (§10)", () => {
       // Fractional radii are real (2026-08-16: the judged ladder runs 2.4 / 4 / 5.6), and this
       // pattern used to be `\d+`, which does not match "2.4px" — so it returned null and the
       // law CRASHED rather than failing, which is a worse outcome than either. Decimals now.
-      rises(THICKNESSES.map((th) => Number(material[mode][th].filter.match(/blur\(([\d.]+)px/)![1]!)));
+      //
+      // `frost`, not `filter` (2026-09-21, the mirror pass). The LENS row carries no blur any
+      // more — it lives in `lens.<rung>.blur` and runs inside the lens filter, before the bend,
+      // where refraction.test.ts holds its own ladder. The stylesheet's blur is the lens-less
+      // engines' row, so that is the row this walks — at all three scales, because the
+      // region and control cells were never walked and a repeated step there is as wrong.
+      const blurOf = (chain: string): number => {
+        const m = chain.match(/blur\(([\d.]+)px/);
+        if (!m?.[1]) throw new Error(`no blur in ${chain}`);
+        return Number(m[1]);
+      };
+      rises(THICKNESSES.map((th) => blurOf(material[mode][th].frost)));
+      rises(THICKNESSES.map((th) => blurOf(material[mode][th].control.frost)));
+      rises(THICKNESSES.map((th) => blurOf(material[mode][th].region.frost)));
+      // And the lens rows state NO blur. The chain is `lens, then filter`: a blur written here
+      // lands after the displacement and erases the bend — the defect the mirror pass fixed.
+      for (const th of THICKNESSES) {
+        const m = material[mode][th];
+        for (const [name, chain] of Object.entries({
+          filter: m.filter,
+          "control.filter": m.control.filter,
+          "control.filterHover": m.control.filterHover,
+          "control.filterLoud": m.control.filterLoud,
+          "region.filter": m.region.filter,
+        })) {
+          expect(chain, `${mode}/${th} ${name} blurs after the bend`).not.toContain("blur(");
+        }
+      }
       // alphaHigh is MORE opaque than normal at every cell and never reaches the seal: past
       // ~.9-and-change you should have used solid, and three thicknesses must stay three.
       for (const th of THICKNESSES) {

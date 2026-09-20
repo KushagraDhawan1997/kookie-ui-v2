@@ -7,10 +7,10 @@ import { flushSync } from "react-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { cdp } from "vitest/browser";
 
-import { material } from "../../tokens/config.ts";
+import { lens as lensLadder } from "../../system/refraction.tsx";
 import { Theme } from "../../theme/theme.tsx";
 import {
-  GLASS_MATERIALS, APPEARANCES, colorOn, computed, holdPress, mounted, render, tokenOn as lengthOn, within, until } from "../../test/browser.tsx";
+  GLASS_MATERIALS, APPEARANCES, colorOn, computed, holdPress, lensBlurOf, mounted, render, tokenOn as lengthOn, within, until } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Box } from "../box/box.tsx";
 import { Spinner } from "../spinner/spinner.tsx";
@@ -338,7 +338,9 @@ describe("material is the THEME's, and one glass per stack is structural (§10, 
     // the page makes hostile — and takes the theme's material exactly as Card used to.
     const glass = mounted(<Card backdrop>B</Card>, { theme: { material: "thick" } });
     expect(glass.dataset["material"]).toBe("thick");
-    expect(computed(glass, "backdrop-filter")).toContain("blur(");
+    // `saturate(`, the term every glass row carries: a lensed row has no `blur()` of its own
+    // since 2026-09-21 (the blur is inside the lens, in front of the bend).
+    expect(computed(glass, "backdrop-filter")).toContain("saturate(");
     // It is never a material CHOICE: over content in a solid app there is still no glass,
     // because the material is the theme's alone.
     const solid = mounted(<Card backdrop>B</Card>, { theme: { material: "solid" } });
@@ -430,9 +432,11 @@ describe("material is backdrop defense, opt-in (§10)", () => {
     // NUMBERS while the thing it is actually about, that the three thicknesses blur in order
     // and the default does not blur at all, was never in question. A law that has to be
     // edited every time taste moves is a law nobody trusts when it goes red.
-    const px = (el: HTMLElement) =>
-      Number(computed(el, "backdrop-filter").match(/blur\(([\d.]+)px\)/)![1]);
-    expect(px(thin)).toBe(Number(material.light.thin.filter.match(/blur\(([\d.]+)px\)/)![1]));
+    //
+    // READ OFF THE LENS since 2026-09-21: the blur left the stylesheet's row for the lens
+    // filter, where it runs before the bend, so that is where the ladder is.
+    const px = lensBlurOf;
+    expect(px(thin)).toBeCloseTo(lensLadder.thin.blur, 5);
     expect(px(regular)).toBeGreaterThan(px(thin));
     expect(px(thick)).toBeGreaterThan(px(regular));
   });
@@ -1074,7 +1078,7 @@ describe("the lens: refraction reaches a real pane (§10, 2026-08-16)", () => {
     // looks identical to success in a computed-style read.
     expect(document.querySelector(id!), "the lens id resolves to no filter").toBeTruthy();
     // And the chain it was prepended to survives underneath it: additive, never a swap.
-    expect(computed(glass, "backdrop-filter")).toMatch(/blur\([\d.]+px\)/);
+    expect(computed(glass, "backdrop-filter")).toMatch(/saturate\([\d.]+\)/);
 
     // The solid half must read the CAUSE, not the effect. Asserting only that a solid card's
     // backdrop-filter carries no url() cannot fail: a solid card declares no backdrop-filter

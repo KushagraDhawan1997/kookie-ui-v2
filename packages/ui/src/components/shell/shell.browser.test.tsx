@@ -4000,7 +4000,8 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
     );
     const pane = within(shell, ".kui-shell-sidebar");
     const filter = computed(pane, "backdrop-filter");
-    expect(filter, "the pane declares no material at all").toContain("blur");
+    // `saturate`: a lensed row carries no `blur()` since 2026-09-21 (it is inside the lens).
+    expect(filter, "the pane declares no material at all").toContain("saturate");
     const id = filter.match(/^url\("([^"]+)"\)/)?.[1];
     expect(id, `the glass pane is defended by blur alone: ${filter}`).toBeTruthy();
     // The map is this box's own — a lens encodes ONE rounded rect, which is why the property
@@ -4243,7 +4244,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
         "a pane IN THE FRAME took glass it never asked for — the control, and the whole point",
       ).toBeUndefined();
       // Stamped is not painted. The lens joins on the same call, so read the chain too.
-      expect(computed(within(shell, ".kui-shell-bottom"), "backdrop-filter")).toContain("blur");
+      expect(computed(within(shell, ".kui-shell-bottom"), "backdrop-filter")).toContain("saturate");
 
       /* AND THE OTHER DIRECTION, which is the half that inverted: an overlaying sheet that says
          nothing is SOLID. It used to be the one pane the shell answered for, and the rule it

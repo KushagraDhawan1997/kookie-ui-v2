@@ -1631,7 +1631,11 @@ describe("the ring and the chrome are designed once, applied wherever they land 
     // rail stops reading as a grip, and in a segmented control the raised segment IS the
     // answer to "which one is chosen". An EIGHTH consumer appearing is a decision, not a
     // drift, and it should fail here first.
-    expect(found).toBe(7);
+    // EIGHT since 2026-09-21: the glass TRACKS (segmented control, toolbar group) take the
+    // pool through `--kui-ct-cast` — one shared rule in recipes.css. §10 lists matter as a part
+    // every glass pane resolves, and the tracks had joined the ring and rim lists without it,
+    // so a glass group sat flat beside a bevelled glass button.
+    expect(found).toBe(8);
     // The control indirection stays honest end-to-end: the cast the button paints is the
     // rung's statement, and a lit rung's cast IS the world chrome — nothing in between may
     // substitute its own value.
