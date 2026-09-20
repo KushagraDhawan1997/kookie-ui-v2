@@ -23,7 +23,6 @@ import {
   typeBands,
   inputFontFloor,
   layoutSpace,
-  springs,
   letterSpacing,
   lineHeight,
   material,
@@ -116,7 +115,7 @@ function ruleSpans(selector: string): { open: number; nested: boolean; body: str
       if (end === -1) throw new Error(`unterminated rule for "${selector}"`);
       // The generator writes top-level rules at column 0 and everything inside an @media or
       // @supports gate indented, so the column is what tells a base rule from a gated one —
-      // which the P3 and reduced-motion copies of these very scopes make a real question.
+      // which the P3 copies of these very scopes make a real question.
       const ruleStart = css.lastIndexOf("\n", open) + 1;
       return { open, nested: /^[ \t]/.test(css.slice(ruleStart)), body: css.slice(open + 1, end) };
     });
@@ -860,8 +859,10 @@ describe("the pointer axis is a second designed geometry (§16)", () => {
         }
       }
     }
-    // PINNED IN BOTH DIRECTIONS, on `src/test/frames.test.ts`'s precedent: this is a recorded
-    // carve-out, not a threshold. Exactly one cell is not carried by the design, and it is
+    // PINNED IN BOTH DIRECTIONS: this is a recorded carve-out, not a threshold. The precedent
+    // it cited was `src/test/frames.test.ts`, deleted with the frame-watching register when
+    // motion was removed (2026-09-20) — so the rule is stated here rather than borrowed, which
+    // is what the six lines below already do. Exactly one cell is not carried by the design, and it is
     // carried instead by the stylesheet — `.kui-floating-rows .kui-row { min-height:
     // var(--target-min) }` (recipes.css, 2026-08-26), which grows the painted box rather than
     // reserving around it. A NEW entry here means a second cell quietly moved onto that floor,
@@ -2178,112 +2179,6 @@ describe("the stacking frame (§20)", () => {
       expect(rule.body).not.toMatch(/(?<![-\w])(?:opacity|transform|filter|will-change|contain)\s*:/);
     }
   });
-});
-
-describe("the springs are physics, and the emitted curve is that physics (§8)", () => {
-  /**
-   * The one thing in the motion system with no law until 2026-08-16 — while DECISIONS §8 and
-   * CLAUDE.md both stated that one existed. `elastic` is the easing of every geometry channel
-   * in both panel families, so a curve that quietly started ringing would change how the whole
-   * system moves with the suite green.
-   *
-   * Two claims, and the second is the one that could not be made by reading config. First,
-   * the EMITTED curve is the physics config states — so editing ζ without regenerating, or
-   * hand-editing tokens.css, fails. Second, each spring's emitted samples satisfy the physical
-   * claim its own comment makes: how far it overshoots, and that it crosses its target ONCE.
-   * "Damping is sacred" (LOG, principle 9) is a sentence in a document until something reads
-   * the numbers and counts the crossings.
-   */
-  const samplesOf = (name: string): number[] => {
-    const line = css.split("\n").find((l) => l.includes(`--${name}:`));
-    if (!line) throw new Error(`no emitted curve for --${name}`);
-    const body = line.slice(line.indexOf("linear(") + "linear(".length, line.lastIndexOf(")"));
-    return body.split(",").map((point) => parseFloat(point.trim().split(/\s+/)[0]!));
-  };
-
-  /** The step response of a damped second-order system, written out here rather than imported
-      from the generator: a law that calls the code under test agrees with it by construction.
-
-      TWO BRANCHES since 2026-09-06, and the second is why this cannot be one expression: at
-      critical damping the damped frequency is zero and the underdamped form divides by it. The
-      launch term `v0` is written into both, so a spring's character and its starting speed stay
-      independent — with `v0 = 0` this is the step-from-rest it has always been. */
-  const stepResponse = (zeta: number, omega: number, t: number, v0 = 0): number => {
-    const decay = Math.exp(-zeta * omega * t);
-    if (zeta === 1) return 1 - decay * (1 + (omega - v0) * t);
-    const damped = omega * Math.sqrt(1 - zeta * zeta);
-    return (
-      1 -
-      decay * (Math.cos(damped * t) + ((zeta * omega - v0) / damped) * Math.sin(damped * t))
-    );
-  };
-
-  const EMITTED: Record<keyof typeof springs, string> = {
-    calm: "motion-spring",
-    lively: "motion-spring-lively",
-    stiff: "motion-spring-stiff",
-    elastic: "motion-spring-elastic",
-    poised: "motion-spring-poised",
-    driven: "motion-spring-driven",
-    carried: "motion-spring-carried",
-  };
-
-  it("every spring in config is emitted, and nothing else claims to be a spring", () => {
-    const emitted = css
-      .split("\n")
-      .filter((l) => l.includes("linear("))
-      .map((l) => l.slice(l.indexOf("--") + 2, l.indexOf(":")));
-    expect(emitted.sort()).toEqual(Object.values(EMITTED).sort());
-  });
-
-  for (const [name, token] of Object.entries(EMITTED) as [keyof typeof springs, string][]) {
-    it(`${name}: the emitted curve is the ζ and ω config states`, () => {
-      const { zeta, omega, steps } = springs[name];
-      const v0 = "v0" in springs[name] ? (springs[name] as { v0: number }).v0 : 0;
-      const points = samplesOf(token);
-      // Endpoints are STATED, not sampled: `linear()` must start at 0 and end at 1, and a
-      // spring's own value at t=1 is merely close to 1.
-      expect(points.length).toBe(steps + 1);
-      expect(points[0]).toBe(0);
-      expect(points.at(-1)).toBe(1);
-      for (let i = 1; i < steps; i++) {
-        expect(points[i], `sample ${i} of ${name}`).toBeCloseTo(stepResponse(zeta, omega, i / steps, v0), 2);
-      }
-    });
-
-    it(`${name}: crosses its target at most once, and the overshoot is the documented one`, () => {
-      const points = samplesOf(token);
-      const peak = Math.max(...points);
-      // Every spring in the vocabulary is under-damped except the exits, and no spring is
-      // allowed a SECOND visible excursion — that is the tell that reads as mechanical
-      // (LOG, principle 9: "when an overshoot is invisible, the fix is more travel").
-      expect(peak, `${name} must not fly past its target`).toBeLessThan(1.16);
-      // Crossings of the target line, counted off the samples themselves.
-      let crossings = 0;
-      for (let i = 1; i < points.length - 1; i++) {
-        const before = points[i - 1]! - 1;
-        const after = points[i]! - 1;
-        if (before < 0 && after > 0) crossings += 1;
-      }
-      expect(crossings, `${name} settles home, it does not ring`).toBeLessThanOrEqual(1);
-      // And the exits genuinely never overshoot at all — an exit that bounces is an object
-      // that did not mean to leave.
-      if (name === "stiff") expect(peak, "an exit never overshoots").toBeLessThanOrEqual(1);
-      /* AND `driven` NEVER OVERSHOOTS EITHER, which is the whole of its claim (2026-09-06):
-         a drawer opened by a press earned no velocity, so it gets no rebound. The bound is
-         not a taste number — at ζ = 1 the curve crosses its target if and only if `v0 > ω`,
-         so this reads the emitted samples for the property the config guarantees. */
-      if (name === "driven") {
-        expect(peak, "a launched spring bounced — v0 has passed omega").toBeLessThanOrEqual(1);
-        expect(crossings, "a critically damped curve cannot cross at all").toBe(0);
-        // And it LAUNCHES: from rest, ω=9 puts the first sample near 0.03; the injected
-        // velocity is what doubles it. Without this the curve could be any monotone rise.
-        expect(points[1]!, "it left from rest — the launch is missing").toBeGreaterThan(0.05);
-      }
-      // Vacuity guard: a curve of all zeros would satisfy every bound above.
-      expect(points.filter((v) => v > 0.5).length, `${name} actually travels`).toBeGreaterThan(4);
-    });
-  }
 });
 
 

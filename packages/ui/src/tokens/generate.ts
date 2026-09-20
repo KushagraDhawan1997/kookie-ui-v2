@@ -49,8 +49,6 @@ import {
   radiusAtom,
   markSteps,
   material,
-  motion,
-  motionSpeed,
   radiusLevels,
   radiusOverlay,
   radiusSurface,
@@ -68,31 +66,16 @@ import {
   glassInk,
   floatingDark,
   shellWidth,
-  shellDrawer,
   shellGap,
   floatingChrome,
   floatingMinWidth,
-  controlMotion,
-  floatingMotion,
-  overlayMotion,
-  overlaySeed,
-  overlayLift,
-  overlayEcho,
-  floatingSeed,
-  floatingEcho,
   panelPadding,
   tooltipPadding,
   tooltipMaxWidth,
-  tooltipMotion,
-  tooltipEntry,
   overlayWidth,
   alertWidth,
   dialogInset,
   scrim,
-  springs,
-  dialogMotion,
-  dialogEntry,
-  printBlur,
   shadow,
   sliderTrack,
   progressTrack,
@@ -116,71 +99,11 @@ import {
   type RadiusLevel,
 } from "./config.ts";
 
-/** A config duration in ms, scaled by the global motion speed. */
-const ms = (n: number) => `${Math.round(n * motionSpeed)}ms`;
-
 const HEADER = `/* GENERATED FILE — do not edit.
    Source: src/tokens/generate.ts from src/tokens/config.ts.
    Hand edits are overwritten by the next build and fail the drift test. */`;
 
 const zoom = (px: number) => `calc(${px}px * var(--scale))`;
-
-/**
- * A damped spring, sampled into a `linear()` easing (§8, 2026-08-09).
- *
- * The step response of a second-order system released from rest at 0 toward 1:
- *
- *     x(t) = 1 − e^(−ζωt) · ( cos(ω_d·t) + (ζω / ω_d)·sin(ω_d·t) ),   ω_d = ω·√(1 − ζ²)
- *
- * `t` is NORMALISED progress, not seconds — which is the whole reason one curve can serve a
- * 480ms panel and a 140ms press. The endpoints are stated rather than sampled: `linear()`
- * must start at 0 and end at 1, and a spring's own value at t=1 is merely close to 1, so
- * sampling the last point would leave a sub-pixel step at the end of every transition.
- *
- * TWO CLOSED FORMS, because the one above is undefined at critical damping (2026-09-06). At
- * ζ = 1 the damped frequency `ω√(1−ζ²)` is zero and the expression divides by it; the critical
- * system has its own solution, and the repeated root makes it a linear term rather than a
- * sinusoid:
- *
- *     x(t) = 1 − e^(−ωt) · ( 1 + (ω − v₀)·t )
- *
- * `v₀` is the launch — the velocity the object already has at t = 0, in units of the travel
- * per unit of normalised time. It is written for both branches (the underdamped form gains the
- * same term) so that a spring's character and its launch are independent knobs rather than one
- * standing in for the other; with v₀ = 0 both collapse to the step-from-rest every curve here
- * used before this was written, which is why no emitted value moved when it landed.
- */
-const springAt = (zeta: number, omega: number, v0: number, t: number): number => {
-  const decay = Math.exp(-zeta * omega * t);
-  if (zeta === 1) return 1 - decay * (1 + (omega - v0) * t);
-  const damped = omega * Math.sqrt(1 - zeta * zeta);
-  return (
-    1 -
-    decay * (Math.cos(damped * t) + ((zeta * omega - v0) / damped) * Math.sin(damped * t))
-  );
-};
-
-/** The sampler itself: `steps` points of the model above, as a `linear()` easing. */
-const springCurve = ({
-  zeta,
-  omega,
-  steps,
-  v0 = 0,
-}: {
-  zeta: number;
-  omega: number;
-  steps: number;
-  v0?: number;
-}) => {
-  const trim = (n: number, places: number) => String(Number(n.toFixed(places)));
-  const points = [`0`];
-  for (let i = 1; i < steps; i++) {
-    const t = i / steps;
-    points.push(`${trim(springAt(zeta, omega, v0, t), 3)} ${trim(t * 100, 2)}%`);
-  }
-  points.push("1 100%");
-  return `linear(${points.join(", ")})`;
-};
 
 export function generateTokens(): string {
   const lines: string[] = [];
@@ -310,9 +233,10 @@ export function generateTokens(): string {
 
   lines.push(
     "",
-    "  /* and the toolbar group's well (§45) — the same subtraction a third time, for controls",
-    "     that never travel: the hosted button is the group minus this on every side. Its own",
-    "     entry for --tab-inset's reason: three facts that agree on a number are not one fact. */",
+    "  /* and the toolbar group's well (§45) — the same subtraction a third time, for plain",
+    "     buttons rather than a grip: the hosted button is the group minus this on every side.",
+    "     Its own entry for --tab-inset's reason: three facts that agree on a number are not one",
+    "     fact. */",
   );
   put("toolbar-group-inset", zoom(toolbarGroupInset));
 
@@ -352,80 +276,6 @@ export function generateTokens(): string {
   put("on-glass-medium-mix-active", `${glassRungs.mediumOnGlass.active}%`);
   put("split-divider-mix", `${dividerMix.splitButton}%`);
   put("loud-seam-mix", `${dividerMix.loudSeam}%`);
-
-  lines.push("", "  /* motion (§8) — two clocks. Signal (colour, opacity) eases and is short; travel");
-  lines.push("     (geometry) rides a baked damped spring, so a state change costs a cubic-bezier and");
-  lines.push("     reads like mass. The curves are SAMPLED from the model in config, never pasted. */");
-  put("motion-duration", ms(parseFloat(motion.duration)));
-  /* The drawer's one clock (§27): the slide, the recession, the well and the scrim all ride
-     it, so the world's depth is a property of where the drawer is rather than a second
-     animation that happens to agree. In the motion family because every duration in this
-     package is — a component that names its own is how a hand-typed 150ms gets in. */
-  put("motion-drawer", ms(shellDrawer.duration));
-  put("motion-easing", motion.easing);
-  put("motion-spring", springCurve(springs.calm));
-  put("motion-hover-in", ms(controlMotion.hoverIn));
-  put("motion-hover-out", ms(controlMotion.hoverOut));
-  put("motion-press", ms(controlMotion.press));
-  put("motion-rise", ms(controlMotion.rise));
-  put("hover-travel", zoom(controlMotion.hoverTravel));
-  put("motion-mark", ms(controlMotion.mark));
-  put("motion-travel", ms(controlMotion.travel));
-  put("motion-travel-lead", ms(controlMotion.travelLead));
-  put("motion-travel-trail", ms(controlMotion.travelTrail));
-  put("motion-ring", ms(controlMotion.ring));
-  put("focus-ring-land", zoom(controlMotion.ringLand));
-  put("press-travel", zoom(controlMotion.pressTravel));
-  put("press-scale", String(controlMotion.pressScale));
-  put("press-squash", String(controlMotion.pressSquash));
-  // The done state's swap — a distance and a defocus, on clocks that already exist (§8).
-  put("done-seed", String(controlMotion.doneSeed));
-  put("done-blur", zoom(controlMotion.doneBlur));
-  // The interactive surface's own two distances — same clocks, same springs, bigger box (§8).
-  put("press-travel-surface", zoom(controlMotion.surfacePressTravel));
-  put("press-scale-surface", String(controlMotion.surfacePressScale));
-  put("thumb-lean", zoom(controlMotion.thumbLean));
-  put("motion-spring-lively", springCurve(springs.lively));
-  put("motion-spring-stiff", springCurve(springs.stiff));
-  put("motion-spring-elastic", springCurve(springs.elastic));
-  put("motion-spring-poised", springCurve(springs.poised));
-  put("motion-spring-driven", springCurve(springs.driven));
-  put("motion-spring-carried", springCurve(springs.carried));
-
-  lines.push("", "  /* the floating family's own motion (§22) — the emergence recipe's channels. Time, so");
-  lines.push("     no --scale: a panel does not unfurl slower because the interface is zoomed. */");
-  put("floating-seed", zoom(floatingSeed));
-  put("floating-echo", zoom(floatingEcho));
-  put("floating-fall", ms(floatingMotion.fall));
-  put("floating-spread", ms(floatingMotion.spread));
-  put("floating-corner", ms(floatingMotion.corner));
-  put("floating-reveal", ms(floatingMotion.reveal));
-  put("floating-paint", ms(floatingMotion.paint));
-  put("floating-reveal-delay", ms(floatingMotion.revealDelay));
-  put("floating-dissolve", ms(floatingMotion.dissolve));
-  put("floating-settle", ms(floatingMotion.settle));
-  put("overlay-seed", zoom(overlaySeed));
-  put("overlay-lift", zoom(overlayLift));
-  put("overlay-hold", ms(overlayMotion.hold));
-  put("overlay-grow", ms(overlayMotion.grow));
-  put("overlay-echo", zoom(overlayEcho));
-  put("overlay-materialize", ms(overlayMotion.materialize));
-  put("overlay-fall", ms(overlayMotion.fall));
-  put("overlay-spread", ms(overlayMotion.spread));
-  put("overlay-reveal", ms(overlayMotion.reveal));
-  put("overlay-reveal-delay", ms(overlayMotion.revealDelay));
-  put("overlay-print", ms(overlayMotion.print));
-  /* §24 — the dialog's own entry: depth, not distance. */
-  put("dialog-settle", ms(dialogMotion.settle));
-  put("dialog-reveal", ms(dialogMotion.reveal));
-  put("dialog-depth", `${dialogEntry.depth}`);
-  put("print-blur", `${printBlur}px`);
-  put("overlay-dissolve", ms(overlayMotion.dissolve));
-  put("overlay-settle", ms(overlayMotion.settle));
-  /* §32 — the tooltip's entry: one geometry clock, one paint clock, and a seed that is a scale. */
-  put("tooltip-form", ms(tooltipMotion.form));
-  put("tooltip-paint", ms(tooltipMotion.paint));
-  put("tooltip-seed", `${tooltipEntry.seed}`);
 
   lines.push("", "  /* §8 — pointer feedback; `button` is the contested one, so it is overridable */");
   put("cursor-button", cursor.button);
@@ -1700,8 +1550,7 @@ function dialogFamily(): string[] {
 function shellFamily(): string[] {
   /* ONE NAME, since 2026-09-12. `--shell-drawer-scale` rode along here for the recession — how
      far back the frame went while a drawer was live — and the last pane that receded the frame
-     now pushes it instead, so nothing read the token. The clock stays (`--motion-drawer`, emitted
-     with the motion family); the depth cue had no consumer left. */
+     now pushes it instead, so nothing read the token; the depth cue had no consumer left. */
   return [decl("shell-gap", `var(--layout-space-${shellGap})`)];
 }
 
