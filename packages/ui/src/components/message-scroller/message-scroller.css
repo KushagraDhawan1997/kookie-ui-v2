@@ -27,11 +27,8 @@
    footer's CONTROLS: the reach the pane publishes includes the pane's own padding under them,
    which the button has no reason to clear, so that padding comes back off.
 
-   THE BUTTON IS PLACED BY LAYOUT, NEVER BY A TRANSFORM (2026-09-17, Kushagra: it "travels a lot
-   when I hover on it"). It was lifted with `translate`, and a Button's own hover and press motion
-   is `translate` and `scale`, so the first hover replaced the lift and threw the button its own
-   height down the transcript. The dock is a zero-height row whose items align to its end, so the
-   button overflows upward on its own and its transforms stay the Button's.
+   THE BUTTON IS PLACED BY LAYOUT, NEVER BY A TRANSFORM. The dock is a zero-height row whose
+   items align to its end, so the button overflows upward on its own.
 
    OUTSIDE A SURFACE both hooks fall to zero (the pane's reach is registered; the surface
    padding takes page.css's fallback), so the dock still sticks. The floor is spelled as
@@ -55,22 +52,8 @@
   flex: none;
 }
 
-/* THE FADE IS THE DOCK'S, NOT THE BUTTON'S. A `transition` on the button ties the Button
-   skeleton's own at (0,1,0) and wins on file order, which replaces its six channels with one
-   and snaps its hover and press (the accordion audit's defect). The dock has no transition of
-   its own to lose, and the primitive already makes an inactive button inert. */
-.kui-message-scroller-dock {
-  transition: opacity var(--motion-hover-out) var(--motion-easing);
-}
-
+/* The dock hides while there is nothing below to jump to, and shows at once when there is. The
+   primitive already makes an inactive button inert. */
 .kui-message-scroller-dock:has(> [data-active="false"]) {
   opacity: 0;
-}
-
-/* The fade is a response to a state change, so it stands down whole (§8): the button is there or
-   it is not. */
-@media (prefers-reduced-motion: reduce) {
-  .kui-message-scroller-dock {
-    transition: none;
-  }
 }

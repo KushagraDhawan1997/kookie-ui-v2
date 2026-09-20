@@ -214,29 +214,13 @@
 }
 
 /* A MIRRORING title is the page's own, said again in the band, so it is silent while that
-   page's large title is still on screen and arrives when it is not. Paint only: the box is
-   there either way, because a title that took its room on arrival would shove the clusters
-   beside it sideways every time somebody scrolled.
-
-   It is the paint clock, which is §8's split read straight — a title appearing is a SIGNAL, and
-   signals ease and are short. Nothing here moves, so there is no geometry clock to pair it
-   with, and `prefers-reduced-motion` has nothing to stand down. */
+   page's large title is still on screen and shows at once when it is not. Paint only: the box
+   is there either way, because a title that took its room on arrival would shove the clusters
+   beside it sideways every time somebody scrolled. */
 .kui-toolbar-title[data-mirror] {
   opacity: 0;
-  transition: opacity var(--motion-duration) var(--motion-easing);
 }
 
 .kui-toolbar-title[data-mirror][data-collapsed] {
   opacity: 1;
-}
-
-/* The stand-down, on the DECLARING selector (§8, the 2026-08-10 rule): recipes.css covers
-   `.kui-control` and `.kui-mark`, and a title is neither, so a clock declared here is a clock
-   nothing else can stop. Same selector later in the file, which settles the tie by source order
-   rather than by arithmetic. The title still ARRIVES — reduced motion asks for stillness, not
-   for information to be withheld. */
-@media (prefers-reduced-motion: reduce) {
-  .kui-toolbar-title[data-mirror] {
-    transition: none;
-  }
 }

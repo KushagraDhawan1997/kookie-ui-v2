@@ -235,7 +235,7 @@ describe("one treatment: the field family's identity (§9, §11)", () => {
     // wrapper anatomy (2026-08-25) `style` dresses the wrapper, so the wrapper STATES the
     // axis and the inner textarea takes it by `resize: inherit` — the handle cannot live on
     // the wrapper itself (resize needs an overflow other than visible, and a scrollable
-    // wrapper is the select flight's own hazard). Both halves law-read: the statement, and
+    // wrapper can be scrolled by a focused child). Both halves law-read: the statement, and
     // the escape reaching the handle through it.
     const plain = render(<TextArea />);
     expect(computed(plain, "resize")).toBe("vertical");

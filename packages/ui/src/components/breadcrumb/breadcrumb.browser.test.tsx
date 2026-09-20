@@ -22,7 +22,6 @@ import {
   computed,
   mounted,
   numberOn,
-  settleAll,
   until,
   tokenOn,
   within,
@@ -153,7 +152,7 @@ describe("it announces a path, and the announcement is what forced every part (Â
     const el = mounted(<Fixture ellipsis />, { theme: {} });
     const trigger = within(el, ".kui-breadcrumb-ellipsis");
     await userEvent.click(trigger);
-    settleAll();
+    await until(() => document.querySelector('[role="menuitem"]') !== null);
     const items = Array.from(document.querySelectorAll<HTMLElement>('[role="menuitem"]'));
     expect(items.map((i) => i.textContent)).toEqual(["Docs", "Foundations", "Patterns"]);
     // A menu of PLACES, so every row is an anchor a reader can open in a new tab â€” which is

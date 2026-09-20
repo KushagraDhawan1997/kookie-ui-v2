@@ -11,7 +11,7 @@
 import { describe, expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
 
-import { SIZES, computed, inMotion, mounted, tokenOn, until } from "../../test/browser.tsx";
+import { SIZES, computed, mounted, tokenOn, until } from "../../test/browser.tsx";
 import { Badge } from "../badge/badge.tsx";
 import { Button } from "../button/button.tsx";
 import { Separator } from "../separator/separator.tsx";
@@ -366,64 +366,6 @@ describe("the machine: one open by default, many with multiple, and the chevron 
     const panel = kept.querySelector<HTMLElement>(".kui-accordion-panel")!;
     expect(panel).not.toBeNull();
     expect(panel.hidden).toBe(true);
-  });
-
-  it("the panel travels by height on the spring, clipped", async () => {
-    // The harness stills every clock by default; this law is about the clock, so it opts in.
-    inMotion();
-    const root = mounted(<Fixture />, { theme: {} });
-    const [a] = triggersOf(root);
-    await userEvent.click(a!);
-    await until(() => root.querySelector(".kui-accordion-panel") !== null);
-    const panel = root.querySelector<HTMLElement>(".kui-accordion-panel")!;
-    expect(computed(panel, "overflow-x")).toBe("clip");
-    expect(computed(panel, "transition-property")).toContain("block-size");
-    expect(computed(panel, "transition-timing-function")).toContain("linear(");
-
-    // AND THE TRAVEL IS ASSERTED, WHICH IT WAS NOT (ultracode audit 2026-09-01). This law
-    // ended in a bare `await until(...)`, and `until` resolves FALSE on timeout — so the one
-    // claim in its title was held by nothing, while its three surviving assertions read
-    // DECLARATIONS that persist whether or not the box ever moves. Demonstrated: with
-    // `block-size: 0 !important` on the panel the law ran green with a rendered height of
-    // `0px`. The same file documents the repair of this exact defect 39 lines above.
-    //
-    // Two heights, sampled, and a growth between them: a snap-open (what a missing
-    // `--accordion-panel-height` produces, since Chrome will not interpolate `0 -> auto`) has
-    // no in-between, and a frozen panel has no growth at all.
-    const heights: number[] = [];
-    for (let i = 0; i < 40; i++) {
-      heights.push(parseFloat(computed(panel, "height")));
-      if (heights.length > 3 && heights.at(-1) === heights.at(-2)) break;
-      await new Promise((r) => requestAnimationFrame(() => r(null)));
-    }
-    const grew = heights.at(-1)! - heights[0]!;
-    expect(grew, "the panel has to actually open").toBeGreaterThan(4);
-    expect(
-      heights.some((h) => h > 0 && h < heights.at(-1)! - 1),
-      "and it has to pass through the middle — a snap is not a travel",
-    ).toBe(true);
-  });
-
-  it("the heading eases on every channel the skeleton does, plus its own underline", () => {
-    // DERIVED FROM A BUTTON'S, never restated here (ultracode audit 2026-09-01, the
-    // exit-channel lesson of 2026-08-16 one layer down). `transition` is a shorthand and this
-    // component states one, so it replaces the skeleton's whole list rather than adding to it:
-    // measured, the trigger computed `text-decoration-color / 0.12s` where a Button computes
-    // five channels — the heading's ink had stopped easing on any state change at all. The law
-    // reads the Button's list and requires every one of its channels here, so a channel dropped
-    // from the copy fails without anyone remembering to update a literal.
-    inMotion();
-    const root = mounted(<Fixture />, { theme: {} });
-    const button = mounted(<Button size="2">x</Button>, { theme: {} });
-    const trigger = triggersOf(root)[0]!;
-    const channels = (el: HTMLElement) =>
-      computed(el, "transition-property")
-        .split(",")
-        .map((c) => c.trim());
-    for (const channel of channels(button)) {
-      expect(channels(trigger), `the heading dropped the skeleton's ${channel}`).toContain(channel);
-    }
-    expect(channels(trigger), "and it adds its own").toContain("text-decoration-color");
   });
 
   it("the type refuses what the machine already owns", () => {

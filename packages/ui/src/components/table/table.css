@@ -3,10 +3,9 @@
  *
  * The wrapper is the scroller: a table is the one block whose content can genuinely exceed
  * its measure, so it scrolls inside its own box rather than making the page scroll sideways.
- * `auto`, and honestly a scroll container — this is the case the flight rules' `clip` argument
- * is NOT about. The type step and the cell inset arrive from the joins (type.css for the step;
- * the table size join in surfaces.css publishes `--kui-tb-py`/`--kui-tb-px` per index, so this
- * file names no index). */
+ * `auto`, and honestly a scroll container. The type step and the cell inset arrive from the
+ * joins (type.css for the step; the table size join in surfaces.css publishes
+ * `--kui-tb-py`/`--kui-tb-px` per index, so this file names no index). */
 .kui-table {
   overflow-x: auto;
   inline-size: 100%;

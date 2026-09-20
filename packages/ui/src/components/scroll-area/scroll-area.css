@@ -140,28 +140,20 @@
   outline-offset: var(--focus-ring-offset);
 }
 
-/* The bar: absolute against the root, inset from the edge, invisible at rest. Paint is a
-   signal (§8): in fast under the hand, out slow after it leaves — the hover rule's own
-   asymmetry, on the one property that is pure paint.
-
-   It is still stood down under reduced motion (below), against this comment's first claim
-   that "reduced motion owes nothing here". Pure paint is not the exemption it sounds like:
-   the floating family's dissolve is opacity too and carries a stand-down, and a fade is the
-   one clock a person who asked for stillness is most likely to notice on a bar that appears
-   under their own hand. The system's answer is one answer, not one per property. */
+/* The bar: absolute against the root, inset from the edge, invisible at rest, and shown at
+   once while the content scrolls or the pointer is over the bar. */
 .kui-scrollbar {
   position: absolute;
   opacity: 0;
-  transition: opacity var(--motion-hover-out) var(--motion-easing);
 }
 /* The inset is a MARGIN, not an inset (2026-08-17, measured while writing the laws): Base UI
    pins the bar to its edges with INLINE `top` / `bottom` / `inset-inline-end`, and an inline
    declaration beats every stylesheet rule, so the first spelling — `inset-block` and
    `inset-inline-end` — resolved to nothing at all and the bar shipped flush against the
-   corner. `!important` would win and is refused for the reason the entry runner refuses it:
-   it wins the cascade and leaves the library's intent unstated. A margin is a channel Base UI
-   does not write, so the two layers compose instead of fighting — the bar keeps the extent
-   the library gives it, minus the room the system asks for. */
+   corner. `!important` would win and is refused: it wins the cascade and leaves the
+   library's intent unstated. A margin is a channel Base UI does not write, so the two layers
+   compose instead of fighting — the bar keeps the extent the library gives it, minus the room
+   the system asks for. */
 .kui-scrollbar[data-orientation="vertical"] {
   margin-block: var(--scrollbar-inset);
   margin-inline-end: var(--scrollbar-inset);
@@ -174,7 +166,6 @@
 }
 .kui-scrollbar:where([data-scrolling], [data-hovering]) {
   opacity: 1;
-  transition-duration: var(--motion-hover-in);
 }
 
 /* The thumb: a capsule on the alpha ramp. Base UI publishes its extent as CSS variables;
@@ -200,16 +191,4 @@
    to meet, so there is nothing to draw. */
 .kui-scroll-corner {
   background: none;
-}
-
-/* Stillness (§8, 2026-08-10's doctrine): the stand-down is declared on the SAME selector as
-   the recipe, so specificity can never separate them. The bar still appears and still goes —
-   it just arrives at once. */
-@media (prefers-reduced-motion: reduce) {
-  .kui-scrollbar {
-    transition: none;
-  }
-  .kui-scrollbar:where([data-scrolling], [data-hovering]) {
-    transition: none;
-  }
 }

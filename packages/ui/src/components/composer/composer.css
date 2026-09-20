@@ -72,9 +72,9 @@
 
 /* ── The ring (§30) ───────────────────────────────────────────────────────────────────────────
    Every interactive-surface rule in surfaces.css sits on `:where(button, a, label:has(...))`,
-   and that selector means PRESSABLE: it carries the pointer cursor, the 1px rise toward the
-   pointer and the press sink along with the ring. A composer must have none of those. You type
-   in a composer, you do not press it.
+   and that selector means PRESSABLE: it carries the pointer cursor and the hover and press
+   fills along with the ring. A composer must have none of those. You type in a composer, you
+   do not press it.
 
    So that selector is doing two jobs — *this surface is pressable* and *this surface can hold
    focus* — and the composer is the first thing to want the second without the first. It is NOT

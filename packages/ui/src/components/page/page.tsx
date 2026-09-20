@@ -45,7 +45,7 @@ export type PageProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<
  *    the larger interval to whatever the page begins with.
  * 3. **The collapse.** A marker sits where the title's block ends, shifted up by the band's own
  *    reach, so it crosses the top of the scroller at exactly the moment the title passes behind
- *    the band. When it does, every `ToolbarTitle` in this pane fades its words in.
+ *    the band. When it does, every `ToolbarTitle` in this pane shows its words.
  *
  * WHAT IT REFUSES:
  *

@@ -150,8 +150,7 @@ export type AccordionPanelProps = ComponentRefusals & Omit<
 };
 
 /**
- * The section's content. It opens and closes by height on the geometry clock (§8 — a box
- * moves on a spring), clipped while it travels, and its words start under the trigger's
+ * The section's content. It opens and closes at once, and its words start under the trigger's
  * label. The content inside is yours: a Text, a Stack, a form.
  */
 export function AccordionPanel({ className, children, ...props }: AccordionPanelProps) {

@@ -9,16 +9,13 @@
  *     one element wearing both libraries' hands, so a pane keeps exactly the anatomy it had. Two
  *     boxes with `overflow: auto` inside one pane is the failure this rules out, and it is the
  *     arrangement anyone writing this the obvious way ends up with.
- *  2. THE BUTTON IS PLACED BY LAYOUT, NEVER BY A TRANSFORM. It was lifted with `translate`, and a
- *     Button's own hover motion is `translate`, so the first hover threw it a button's height down
- *     the transcript (2026-09-17, Kushagra: it "travels a lot when I hover on it"). A law that read
- *     the class would have passed; this reads the computed transform.
+ *  2. THE BUTTON IS PLACED BY LAYOUT, NEVER BY A TRANSFORM. A law that read the class would have
+ *     passed; this reads the computed transform.
  */
 
 import { describe, expect, it } from "vitest";
 
-import { computed, inMotion, mounted, until } from "../../test/browser.tsx";
-import { Button } from "../button/button.tsx";
+import { computed, mounted, until } from "../../test/browser.tsx";
 import { Card } from "../card/card.tsx";
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { Text } from "../text/text.tsx";
@@ -29,10 +26,10 @@ import {
   MessageScrollerItem,
 } from "./message-scroller.tsx";
 
-function transcript(turns = 12, { named = true, nested = false } = {}) {
+function transcript(turns = 12, { named = true, nested = false, autoScroll = true } = {}) {
   return (
     <Card size="3" style={{ height: "12rem" }}>
-      <MessageScroller>
+      <MessageScroller autoScroll={autoScroll}>
         <ScrollArea fade {...(named ? { "aria-label": "Transcript" } : {})}>
           <MessageScrollerContent>
             {Array.from({ length: turns }, (_, i) => (
@@ -133,6 +130,35 @@ describe("the viewport is wired to the primitive", () => {
     expect(computed(dock, "opacity")).toBe("1");
   });
 
+  /* THE JUMP IS INSTANT, and it is the one animation the motion removal missed (2026-09-20).
+     The primitive defaults `behavior` to `"smooth"`, so the button — and only the button, never
+     the hook — animated a ~1.3k-pixel scroll: sampled per frame on the shipped spelling,
+     `0, 2, 10, 25, 49, 88, 148, …` before it settled. Nothing in this package's CSS could show
+     it, which is why every stylesheet sweep came back clean; it has to be pressed.
+
+     The fixture is the load-bearing half. At `autoScroll` (the default) the store follows the
+     live edge and snaps the transcript back before the press can be measured — both halves then
+     read the settled value on frame one and the law passes against the defect. So: the follow is
+     off, the park is a READER's scroll (a wheel, which is how the primitive tells a person from a
+     script), and the press waits for the button to wake. */
+  it("jumps to the end at once — the button's scroll is not animated", async () => {
+    const root = mounted(transcript(40, { autoScroll: false }));
+    const viewport = outerViewport(root);
+    const button = root.querySelector<HTMLElement>(".kui-message-scroller-button");
+    if (!button) throw new Error("no button");
+    viewport.dispatchEvent(new WheelEvent("wheel", { deltaY: -600, bubbles: true }));
+    viewport.scrollTop = 0;
+    expect(await until(() => button.getAttribute("data-active") === "true")).toBe(true);
+    const end = viewport.scrollHeight - viewport.clientHeight;
+    expect(end).toBeGreaterThan(200);
+    button.click();
+    const firstFrame = await new Promise<number>((resolve) => {
+      requestAnimationFrame(() => resolve(viewport.scrollTop));
+    });
+    // Frame one IS the destination. On the shipped spelling this read 0.
+    expect(Math.round(firstFrame)).toBe(Math.round(end));
+  });
+
   it("never names an unnamed transcript in English", () => {
     const root = mounted(transcript(12, { named: false }));
     const label = outerViewport(root).getAttribute("aria-label");
@@ -147,21 +173,6 @@ describe("the viewport is wired to the primitive", () => {
 });
 
 describe("the jump button is placed by layout", () => {
-  it("keeps the Button's own clocks: the fade is the dock's", () => {
-    inMotion();
-    const root = mounted(
-      <div>
-        {transcript()}
-        <Button iconOnly aria-label="Plain" bordered className="plain">↓</Button>
-      </div>,
-    );
-    const jump = root.querySelector<HTMLElement>(".kui-message-scroller-button");
-    const plain = root.querySelector<HTMLElement>(".plain");
-    if (!jump || !plain) throw new Error("no jump button, or no plain twin");
-    expect(computed(plain, "transition-property")).not.toBe("none");
-    expect(computed(jump, "transition-property")).toBe(computed(plain, "transition-property"));
-  });
-
   it("sticks outside a surface too", () => {
     const root = mounted(
       <div style={{ height: "12rem", display: "flex", flexDirection: "column" }}>
@@ -190,10 +201,15 @@ describe("the jump button is placed by layout", () => {
     const button = root.querySelector<HTMLElement>(".kui-message-scroller-button");
     const dock = root.querySelector<HTMLElement>(".kui-message-scroller-dock");
     if (!button || !dock) throw new Error("no button, or no dock");
-    // `transform: none` and a zero `translate` together: the button sits where layout puts it, so
-    // the Button's own hover motion is the only thing that ever moves it.
+    /* NEITHER CHANNEL IS SPOKEN FOR — the button sits exactly where layout puts it.
+       It read "a zero `translate`" until 2026-09-20, because the Button skeleton declared a
+       resting `translate` for its hover to travel from and the computed value was therefore
+       `0px` rather than `none`. With the pointer geometry removed nothing declares either
+       channel, so the settled value is `none` on both — which is the STRONGER assertion, and
+       still the one this law exists for: re-spell the dock's lift as a transform on the button
+       and it fails. */
     expect(computed(button, "transform")).toBe("none");
-    expect(computed(button, "translate").replace(/0px\s*/g, "").trim()).toBe("");
+    expect(computed(button, "translate")).toBe("none");
     // The lift is the dock's: a row of no height whose one item hangs off its end.
     expect(computed(dock, "align-items")).toBe("flex-end");
   });

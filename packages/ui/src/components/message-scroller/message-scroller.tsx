@@ -128,6 +128,14 @@ export function MessageScrollerButton({
     <Primitive.Root className="kui-message-scroller-dock">
       <Primitive.Button
         direction="end"
+        /* The jump is INSTANT (2026-09-20). The primitive defaults `behavior` to `"smooth"`,
+           which is a ~2.6k-pixel animated scroll the package never asked for — the last
+           animation left in shipped code after motion was removed, and the one thing the
+           removal's own sweep missed because it lives in a dependency's default rather than
+           in a stylesheet. The hook path beside it (`scrollToEnd`) has always passed `"auto"`,
+           and so has Carousel; this is the same value said out loud. Scrolling is the
+           browser's, and this package does not change it. */
+        behavior="auto"
         render={
           <Button
             iconOnly

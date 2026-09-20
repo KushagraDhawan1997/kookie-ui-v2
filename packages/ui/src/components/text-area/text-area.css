@@ -63,10 +63,9 @@
      offers height only. The wrapper is the statement and the inner textarea the handle —
      `resize: inherit` below — because `style` dresses the wrapper now and the documented
      `style={{ resize: "none" }}` escape must keep reaching the handle, while the handle
-     itself cannot live here: resize needs an overflow other than visible, and making the
-     wrapper a scroll container is the select flight's own hazard (a focused child scrolls
-     a hidden ancestor). With overflow visible this declaration paints nothing on the
-     wrapper — it exists to be inherited. */
+     itself cannot live here: resize needs an overflow other than visible, and a wrapper that
+     is a scroll container can be scrolled by a focused child. With overflow visible this
+     declaration paints nothing on the wrapper — it exists to be inherited. */
   resize: vertical;
 }
 

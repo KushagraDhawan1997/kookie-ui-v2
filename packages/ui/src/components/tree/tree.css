@@ -1,11 +1,7 @@
 /* Tree (§33). The MACHINE's stylesheet, and deliberately almost nothing: rows are row-family
    members (`kui-control kui-row`), so the box, the paint, the states and the size join all
    arrive from the shared layers. What this sheet states is the two facts only a tree has —
-   the indent, and the disclosure glyph's posture.
-
-   No motion yet, on Menu's own precedent (shipped instant, moved later): the chevron's turn
-   and the reveal's entrance are the recorded follow-up, so the reduced-motion laws have
-   nothing here to stand down. */
+   the indent, and the disclosure glyph's posture. */
 
 /* The level must not inherit — the `--kui-h` trap (§12): every row SETS its own level, but a
    tree composed inside any container that carried the name would hand rows a level they did
@@ -60,8 +56,8 @@
   visibility: hidden;
 }
 
-/* Expanded turns the glyph down. `rotate`, not `transform`, so a future motion pass can
-   spring the channel without restating the pose. */
+/* Expanded turns the glyph down. `rotate`, not `transform`, so the turn composes with the
+   mirror below. */
 .kui-tree-disclosure[data-expanded] {
   rotate: 90deg;
 }

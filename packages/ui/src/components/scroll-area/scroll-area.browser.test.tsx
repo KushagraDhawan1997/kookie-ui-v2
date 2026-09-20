@@ -12,12 +12,10 @@ import { userEvent } from "vitest/browser";
 
 import {
   APPEARANCES,
-  asksForStillness,
   type Cell,
   colorOn,
   computed,
   forEachCell,
-  inMotion,
   mounted,
   tokenOn,
   until,
@@ -470,24 +468,6 @@ describe("the scroll-edge fade (2026-08-29)", () => {
       mounted(<div dir="rtl">{faded}</div>, { theme: {}, select: ".kui-scroll-area" }),
     );
     expect(computed(within(rtl, ".kui-scroll-viewport"), "mask-image")).toContain("to left");
-  });
-});
-
-describe("stillness reaches it too (§8)", () => {
-  it("the fade is stood down when the OS asks — pure paint is not an exemption", async () => {
-    // `inMotion()` first, or the negative control reads the HARNESS's own stillness rather
-    // than the stylesheet's — the suite freezes every page by default, so "0s under reduced
-    // motion" is a value this law would have read whether the guard existed or not.
-    inMotion();
-    const bar = vbar(await laidOut(mounted(overflowing, { theme: {} })));
-    expect(computed(bar, "transition-duration")).not.toBe("0s");
-    await asksForStillness();
-    const still = vbar(await laidOut(mounted(overflowing, { theme: {} })));
-    expect(computed(still, "transition-duration")).toBe("0s");
-    // And in the lit arm too, which restates the duration and would otherwise survive the
-    // guard on source order — the 2026-08-10 `:not()` lesson in its cheapest spelling.
-    still.setAttribute("data-scrolling", "");
-    expect(computed(still, "transition-duration")).toBe("0s");
   });
 });
 

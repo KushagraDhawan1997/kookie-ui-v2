@@ -1,4 +1,4 @@
-/* Accordion adds a hairline, a chevron's turn and a panel that travels by height (§11, §37).
+/* Accordion adds a hairline, a chevron's turn and a panel that opens at once (§11, §37).
  *
  * The trigger wears the control SKELETON — `kui-control` — so its box, its quiet rest, its
  * ring, its size join and its disabled remap all arrive from the shared layer. It is NOT a row
@@ -100,36 +100,13 @@
   --kui-ct-fill-src-active: transparent;
   /* THE HOVER IS THE LABEL'S, NOT THE BOX'S — Link's mechanism verbatim (link.css): the
      underline exists at rest in no colour and takes the ink under the pointer, so the change
-     is a PAINT and eases on the paint clock. The skeleton sets `text-decoration: none`; this
-     rule follows it in the cascade and states the line. The offset is in the glyphs' own em,
-     for the reason link.css and blockquote.css both give. The chevron is an svg, which a text
-     decoration never reaches. */
+     is a PAINT. The skeleton sets `text-decoration: none`; this rule follows it in the cascade
+     and states the line. The offset is in the glyphs' own em, for the reason link.css and
+     blockquote.css both give. The chevron is an svg, which a text decoration never reaches. */
   text-decoration-line: underline;
   text-decoration-thickness: var(--border-width);
   text-decoration-color: transparent;
   text-underline-offset: 0.2em;
-  /* THE WHOLE LIST, RESTATED, AND THE RESTATEMENT IS THE POINT (2026-09-01, ultracode audit).
-     `transition` is a shorthand: this rule ties `.kui-control`'s own at (0,1,0) and wins on
-     file order, so the first spelling — copied verbatim from link.css, where the element is
-     not a control — REPLACED the skeleton's five channels with one. Measured: the trigger
-     computed `text-decoration-color / 0.12s` where a Button at the same index computes
-     `background-color, border-color, color, translate, scale / 0.22s ... 0.55s`, so the
-     heading's ink stopped easing on any state change and the paint clock this file's own
-     comment invokes was not read at all. A channel cannot be appended in CSS, so the list is
-     stated in full with the skeleton's own tokens, and a law derives it from a mounted
-     Button's — the exit-channel lesson (2026-08-16) one layer down. */
-  transition:
-    background-color var(--kui-ct-paint) var(--motion-easing),
-    border-color var(--kui-ct-paint) var(--motion-easing),
-    color var(--kui-ct-paint) var(--motion-easing),
-    text-decoration-color var(--kui-ct-paint) var(--motion-easing),
-    translate var(--kui-ct-move) var(--kui-ct-move-ease),
-    scale var(--kui-ct-move) var(--kui-ct-move-ease),
-    /* The skeleton's width channel, restated because this rule restates the whole list (§8,
-       2026-09-02). Dead here — `--kui-ct-width` is `0s` unless a control asks — and it has to
-       be present anyway: an existing law asserts a heading keeps every channel the Button
-       beside it has, and it caught this file the day the channel was added. */
-    inline-size var(--kui-ct-width) var(--kui-ct-move-ease);
 }
 
 /* THE CHEVRON IS PUSHED, THE REST PACKS (2026-09-01, ultracode audit). `justify-content:
@@ -158,9 +135,8 @@
 }
 
 /* THE UNDERLINE ANSWERS A PRESS TOO, AND THAT ARM IS UNGUARDED (2026-09-01, ultracode audit).
-   The fill triple is pinned transparent and a heading is not a `.kui-button`, so it has no
-   travel either: on a `hover: none` device every channel this control has was inside the hover
-   guard, and press-and-hold produced nothing at all until the panel began to move. `:active`
+   The fill triple is pinned transparent, so on a `hover: none` device every channel this
+   control has was inside the hover guard, and press-and-hold produced nothing at all. `:active`
    is the shared layer's own answer — "unguarded, the only feedback touch has" — and here the
    currency is the label's line rather than a fill. */
 .kui-accordion-trigger:active:not([data-disabled], :disabled) {
@@ -176,8 +152,8 @@
 }
 
 /* The disclosure chevron: the tree's glyph in the row's trailing slot — the slot wrapper
-   already sizes an svg to the icon box the row prices, so nothing is restated here — with a
-   turn on the geometry clock. `rotate`, not `transform`, so the pose composes with the
+   already sizes an svg to the icon box the row prices, so nothing is restated here — turned
+   down while the panel is open. `rotate`, not `transform`, so the pose composes with the
    mirror. */
 .kui-accordion-disclosure {
   display: inline-flex;
@@ -185,7 +161,6 @@
 }
 .kui-accordion-chevron {
   rotate: 0deg;
-  transition: rotate var(--motion-mark) var(--motion-spring);
 }
 .kui-accordion-trigger[data-panel-open] .kui-accordion-chevron {
   rotate: 90deg;
@@ -199,20 +174,16 @@
   rotate: -90deg;
 }
 
-/* THE PANEL TRAVELS BY HEIGHT (§8). Base UI measures the content and publishes it as
-   `--accordion-panel-height`; the panel is that tall when open and zero at the starting and
-   ending styles, and the distance rides the travel clock on the spring — geometry moves on a
-   spring, everywhere. `clip`, never `hidden`: a hidden box is a scroll container, and a focus
-   inside a closing panel would scroll it (the select flight's own hazard). */
+/* The panel opens and closes at once, at its content's own height; it states no size and no
+   clipping. Motion was removed 2026-09-20; docs/archive/motion-v1.md records it.
+
+   It still states its BOX, which the motion did not own: `AccordionPanelProps` admits `style`,
+   so a caller stating a height plus a padding on the panel gets the box every other family in
+   this package gives them (the reset is declared per family here — type.css, recipes.css,
+   surfaces.css — never globally, so an unstated family is the one that differs). Measured with
+   `block-size: 120px; padding: 20px` on the panel: 120px with this declaration, 160px without. */
 .kui-accordion-panel {
   box-sizing: border-box;
-  block-size: var(--accordion-panel-height, auto);
-  overflow: clip;
-  transition: block-size var(--motion-travel) var(--motion-spring);
-}
-.kui-accordion-panel[data-starting-style],
-.kui-accordion-panel[data-ending-style] {
-  block-size: 0;
 }
 
 /* The words start under the trigger's label: the same inline inset the row wears (published
@@ -221,14 +192,4 @@
 .kui-accordion-panel-body {
   padding-inline: var(--kui-ac-px);
   padding-block-end: var(--kui-ac-pb);
-}
-
-/* Stillness (§8): same selectors as the arrivals above, later in the file, so the stand-down
-   wins by order and not by arithmetic. */
-@media (prefers-reduced-motion: reduce) {
-  .kui-accordion-trigger,
-  .kui-accordion-chevron,
-  .kui-accordion-panel {
-    transition: none;
-  }
 }

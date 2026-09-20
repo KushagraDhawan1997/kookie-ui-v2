@@ -392,10 +392,8 @@ describe("the two steppers are ZONES of the field, edge to edge (§4, 2026-09-13
     });
   }
 
-  it("a zone LIGHTS under the pointer and does not travel — it is not a button", async () => {
-    // The redesign's motion half: a zone wears `kui-control` and NOT `kui-button`, so the fill
-    // states arrive and the rise and sink never do. Measured before, the stepper rose 0.989px on
-    // hover and sank 2px on press, carrying its glyph away from the value.
+  it("a zone LIGHTS under the pointer — it is not a button", async () => {
+    // A zone wears `kui-control` and NOT `kui-button`, so the fill states arrive by membership.
     const field = mounted(<NumberField defaultValue={5} />, { theme: {}, select: ".kui-number-field" });
     const inc = incOf(field);
     expect(inc.classList.contains("kui-button")).toBe(false);
@@ -403,7 +401,6 @@ describe("the two steppers are ZONES of the field, edge to edge (§4, 2026-09-13
     await userEvent.hover(inc);
     expect(computed(inc, "background-color"), "the zone does not light").not.toBe(rest);
     expect(computed(inc, "background-color")).toBe(colorOn(inc, "var(--tone-soft)"));
-    expect(computed(inc, "translate"), "the zone rose like a button").toBe("none");
     await userEvent.unhover(inc);
   });
 });

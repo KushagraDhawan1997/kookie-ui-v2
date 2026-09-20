@@ -47,9 +47,9 @@ import * as React from "react";
     item at the edge stays half in view and the eye keeps its place. */
 const PAGE_FRACTION = 0.8;
 
-/** Sub-pixel slack. Fractional scroll positions (zoom, retina, a smooth scroll settling) leave a
-    tenth of a pixel behind, and a button that stays live with 0.4px of travel left is a button
-    that does nothing when pressed. */
+/** Sub-pixel slack. Fractional scroll positions (zoom, retina) leave a tenth of a pixel behind,
+    and a button that stays live with 0.4px of travel left is a button that does nothing when
+    pressed. */
 const EPSILON = 1;
 
 type Reach = { readonly start: boolean; readonly end: boolean };
@@ -194,13 +194,9 @@ function useCarouselStore(railId: string): CarouselStore {
               : [...edges].reverse().find((edge) => edge < -EPSILON);
           if (target !== undefined) distance = Math.abs(target);
         }
-        viewport.scrollBy({
-          left: direction * flip * distance,
-          // A rail that jumps is a rail whose reader loses their place, so the movement is
-          // animated — except where the person has asked the system to stop animating, which is
-          // §8's standing answer and not this component's to re-decide.
-          behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-        });
+        // The rail moves at once. Motion was removed 2026-09-20; docs/archive/motion-v1.md
+        // records it.
+        viewport.scrollBy({ left: direction * flip * distance, behavior: "auto" });
       },
     };
   }, [railId]);

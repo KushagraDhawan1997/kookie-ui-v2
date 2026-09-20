@@ -68,8 +68,8 @@
  * while §8 holds every transition at zero: a transition eases a state CHANGE (hover, press,
  * disable) and is what the motion system was deferred to design; this is motion that IS the
  * content, the same category as the Spinner — a busy indicator whose stillness would be a lie.
- * The zeroed-transition law is untouched, and deliberately so: nothing here reads
- * --motion-duration or --motion-easing, so the motion system still lands on an empty field. */
+ * The zeroed-transition law is untouched, and deliberately so: nothing here reads a motion
+ * token, so a future motion system lands on an empty field. */
 .kui-progress-fill[data-indeterminate] {
   position: absolute;
   inset-block: 0;

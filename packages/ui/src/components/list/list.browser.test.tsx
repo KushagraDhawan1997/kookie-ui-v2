@@ -26,7 +26,6 @@ import {
   computed,
   mounted,
   render,
-  settleAll,
   tokenOn,
 } from "../../test/browser.tsx";
 import { RUNGS, componentAxes } from "../../system/axes.ts";
@@ -524,7 +523,6 @@ describe("L3: a list in a portal is not nested, and one in an <li> still is (§2
         </List>
       </Theme>,
     );
-    settleAll();
     const portalled = document.querySelector<HTMLElement>(".kui-portal .kui-list");
     if (!portalled) throw new Error("no portalled list — the panel did not open");
     return { portalled, outer: host.querySelector<HTMLElement>(".kui-list")! };

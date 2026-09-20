@@ -159,7 +159,7 @@ export type BreadcrumbLinkProps = ComponentRefusals & Omit<
  * hue is the only thing separating it from the words around it. A crumb is not inside prose:
  * it is a whole item in a landmark's list, every item before the last is a link, and the
  * chevrons say so without colour. So the line rests transparent and paints under the pointer,
- * which keeps its metrics constant and lets §8's paint clock carry it.
+ * which keeps its metrics constant.
  */
 export function BreadcrumbLink({
   render,

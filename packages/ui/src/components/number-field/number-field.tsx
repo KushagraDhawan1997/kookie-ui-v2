@@ -210,7 +210,7 @@ function plusGlyph() {
  * and the input inside it is bare, so the field family's dress, states, invalid and disabled
  * arms, focus ring and glass all arrive by wearing `kui-field`. Decrease and increase are ZONES
  * of that box, edge to edge — ( - | 12 | + ) — each one the field's whole end, as wide as the
- * field is tall, lit by the quiet rung and never travelling (see the zone comment below).
+ * field is tall, and lit by the quiet rung (see the zone comment below).
  *
  * Base UI owns the number: parsing and formatting in the user's locale, clamping to
  * `min`/`max`, `step`/`smallStep`/`largeStep` (alt and shift), arrow keys, Home and End,
@@ -358,15 +358,9 @@ export function NumberField({
             they divide is the field's own box. So the field is three zones edge to edge, and the
             hit area is the block rather than a square floating inside it.
 
-            And the MOTION was the same mistake from the other side. `.kui-button` is what
-            travels (button.css): it rises to the pointer and sinks 1px into the page on press,
-            because a button sits ON a surface and pressing it puts it INTO that surface. A zone
-            inside a contained box has nowhere to go — measured, the stepper rose 0.989px on
-            hover and sank 2px on press, carrying its glyph away from the value beside it. The
-            repair is structural rather than an override: these wear `kui-control` and NOT
-            `kui-button`, so the fill states, the disabled remap and the cursor all arrive and
-            the travel never does. That is the segmented control's own arrangement, which is the
-            component this most resembles — segments in a track, lighting without moving. */}
+            These wear `kui-control` and NOT `kui-button`, so the fill states, the disabled remap
+            and the cursor all arrive by membership. That is the segmented control's own
+            arrangement, which is the component this most resembles — segments in a track. */}
         <BaseNumberField.Decrement
           // A render FUNCTION rather than an element: the disabled state lives in Base UI's
           // state (the bound, and read-only), and the zone goes NATIVELY disabled from it, which
