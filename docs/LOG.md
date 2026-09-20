@@ -8,6 +8,82 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-20 Motion is removed — every state change is instant again
+
+**What.** Kushagra: *"Lets run an ultracode agent to remove all motion from kookie ui v2. Motion
+needs to be done properly, what we have is not proper. We can keep a record of it somewhere, in a
+markdown, but lets go back to instant changes."* Every state change in the package is instant: no
+transition, no entry or exit animation, and no geometry that moves in answer to the pointer. A
+hovered or pressed control does not move; only its paint changes, at once. Every other settled
+value — fills, inks, borders, the ring, corners, sizes, casts, placement, an open panel, a pushed
+frame — is what it was at 39f3884. DECISIONS §8's "Motion: none" is the rule now.
+
+**What went, by layer.** Tokens and config: every `--motion-*` clock and spring, the generator code
+that baked springs into `linear()` curves, the pointer distances (hover travel, press travel and
+scale, the mark squash, the thumb lean, the ring's landing), the done swap's seed and blur, and the
+floating, overlay, dialog and tooltip clocks and poses. The control layer: the paint, geometry and
+width clock hooks, the hover rise, the press sink, the squash, the lean, the ring's arrival, the
+tick drawing along its stroke and the radio dot arriving. The floating layer: the flight runner and
+everything it measured and stamped — seeds, poses, the body's squish, the reopen catch,
+`useRestingAnchor`, `useStatedFlight`, `SelectBody`, `ComboboxBody`; an anchored panel sits against
+Base UI's own anchor and its width floor reads Base UI's `--anchor-width`. The overlays and panels:
+the dialog's depth, the alert's materialization, the tooltip's lift, the popover's circle, the
+sheet's slide, the Shell drawer's entrance, the accordion's height travel and the done swap. The
+travelling highlight on Tabs, the segmented control and the Shell tab bar, with the registered
+`<length>` pairs and the walls that kept an overshoot inside a channel; Tabs' rule is plain `left` +
+`inline-size` again. The one bounded exception to "no JS at interaction time" that existed only for
+motion — the floating layer's flight measurement — left the list with it. Smooth scrolling,
+`interpolate-size`, every `prefers-reduced-motion` block that had something left to stand down, and
+every law whose subject was motion.
+
+**The segmented thumb stayed, and that is the one place the rule "a mechanism whose only job was
+motion is deleted" did not hold.** It was built and measured both ways before the call was made: a
+342-state probe (two appearances × three material contexts × rest, hover and press per segment,
+keyboard focus, each chosen position, group- and segment-disabled, no value, `contrast="high"`,
+`depth="flat"`, sizes 1–4, both pointer worlds, four radius levels, both densities, three track
+widths), each state a decoded screenshot over a fixed bed plus seventeen computed properties, with
+the instrument calibrated first — same tree twice, 342/342 byte-identical. The kept thumb is
+342/342 byte-identical to 39f3884. The **revert** is 134/342: 168 states differ by 1/255 at the
+grip's four corners because the box moves 0.015px, 28 by 2–3/255, and **twelve by up to 219/255 over
+~1,300 pixels — every one of them a track squeezed below its own min-content**. The mechanism is
+the floor: `left`/`right` are `max(measured, --segment-inset)`, so a separate box stops at the
+channel wall when a seat leaves it, and a segment cannot, because its paint IS its layout box.
+Measured at 140px with the first segment chosen, the seat runs `-0.469 → 53.437` and the floored
+grip `26.000 → 53.453` — 27.45 wide against a 53.91 seat — so painting the grip on the segment puts
+a white pill out past the track's corner with its label. The neighbour-hover paint order that the
+thumb also fixes is not the reason: that one has a two-declaration answer (`z-index: 1` on
+`.kui-segment`, `0` on `:where([data-checked])`), measured identical in all 342 states. **The
+exception was granted for the TRAVEL and now rests on the wall alone**, which is a change of
+justification rather than of mechanism, so the call to accept the one differing state is
+Kushagra's and it is recorded in DECISIONS' open questions with the revert fully specified. The
+Shell's bar thumb is the same mechanism's second member and stayed with it. Until this day nothing
+read that floor and a full suite was green either way, which is why an earlier pass reported the
+revert safe; it has its own law now (`a seat forced OUT of the channel does not take the grip with
+it`), sabotage-proven in both halves — remove the `max()` and it fails alone, move the fixture above
+min-content and its calibration half fails.
+
+**What stays, and why.** Three loops whose movement IS the information: Spinner's rotation,
+Progress's indeterminate sweep and Attachment's upload sweep. None is a state change and none reads
+a motion token, so the rule does not reach them; each still slows rather than stops under
+`prefers-reduced-motion`, because a busy indicator that stops moving is information lost. The docs
+app keeps its own for the same reason: the conversation block's loading shimmer, the judging bed's
+drift and the lab pages' pans. Elements that motion gave birth to but that now carry resting layout
+stay — the panel body wrappers `.kui-floating-body`, `.kui-overlay-body` and `.kui-dialog-body` —
+and their runner goes.
+
+**Rejected.** Keeping the hover rise and the press sink as instant jumps: that geometry was motion's
+answer to the pointer, not a state. Leaving the flight runner or its measurements in place but
+inert: a mechanism with no job is entropy. And deleting the segmented thumb on that same rule, which
+is the one case the rule lost — not on principle but on a measurement, because it turned out to have
+a second job nothing had ever read.
+
+**Where the record lives.** `docs/archive/motion-v1.md` holds the removed system verbatim: the §8
+spec and every component's motion from DECISIONS, the CLAUDE.md history paragraphs, and the
+ENGINEERING rules that existed only for motion laws. 39f3884 is the last commit with motion; any
+file reads as it was with `git show 39f3884:<path>`.
+
+---
+
 ## 2026-09-20 The 58 red laws on main, and the one real defect among them
 
 **What.** 58 package laws had been red on main for up to a week, spread across six recent
