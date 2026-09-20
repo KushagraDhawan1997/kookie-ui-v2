@@ -10,7 +10,6 @@
 import * as React from "react";
 import { Box, Tabs, TabsList, TabsPanel, TabsTab } from "@kookie-ui/react";
 
-import { PreviewIcon, VocabularyIcon } from "../icons";
 import { TableOfContents, type TocEntry } from "../../blocks/table-of-contents";
 
 type Tab = "docs" | "examples";
@@ -81,11 +80,9 @@ export function DocTabs({ docs, examples }: { docs: React.ReactNode; examples: R
     <Tabs value={tab} onValueChange={(next) => setTab(next === "examples" ? "examples" : "docs")}>
       <TabsList size="3" aria-label="Page">
         <TabsTab value="docs">
-          <VocabularyIcon />
           Documentation
         </TabsTab>
         <TabsTab value="examples">
-          <PreviewIcon />
           Examples
         </TabsTab>
       </TabsList>

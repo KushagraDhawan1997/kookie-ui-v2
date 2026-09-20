@@ -144,7 +144,8 @@ describe("no entry is a placeholder", () => {
      supplies supply controls control decides decide learns learn gets get sees see
      grows grow stops stop starts start ships ship adds add removes remove wraps wrap
      sorts sort styles style explains explain buys buy matters matter happens happen
-     install build write add set use learn read pick choose decide see get`.split(/\s+/),
+     install build write add set use learn read pick choose decide see get
+     prioritises prioritise accepts accept determines determine informs inform`.split(/\s+/),
   );
 
   /** The first sentence, which is where a fragment announces itself. */

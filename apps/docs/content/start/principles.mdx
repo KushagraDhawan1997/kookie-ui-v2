@@ -1,81 +1,104 @@
-Kookie organises its components by what they do. It does not organise them by how they look.
-Two components can look almost the same and do different jobs. When that happens, Kookie keeps
-them separate. Each one gets its own name and its own props. Tabs and SegmentedControl are the
-clearest example.
+Kookie prioritises correctness over ease of adoption. While some interface questions have
+measurable answers, others rely on design judgment. Kookie applies measurements automatically
+and centralises every decision to ensure your screens remain consistent.
 
-## Behaviour comes first
+## Measured limits
 
-A pattern is a structure that occurs again and again. It has a context, a problem, and the shape
-of the solution. A component is a pattern in a package that you can use again. A name is the
-label on the package.
+Decades of research inform interface design. Where a standard measurement exists, Kookie applies
+it automatically, and no prop can override the result.
 
-Kookie decides in that order. It chooses the pattern first, then the component, then the name.
-Some components start from a name and a picture. Those components get their behaviour last, one
-prop at a time.
+- **Fitts's law (1954):** Predicts the time required to move a pointer to a target. This time
+  increases as the target gets smaller or further away.
+- **Tap targets:** A fingertip is about 10 millimetres across, which informs the 44-point
+  minimum on Apple platforms and the 48-pixel minimum on Android. WCAG 2.2 sets a lower baseline
+  of 24 pixels.
+- **Gestalt principles (1923):** Describe how the human eye groups visual elements before
+  reading them. Because distance carries meaning, the space between two elements changes how
+  they are interpreted.
+- **Contrast:** Both WCAG and APCA measure whether text is legible against its background
+  colour.
 
-## Two components that look alike
+## How limits shape components
 
-Tabs and SegmentedControl both draw a row of segments. At a glance, they're hard to tell apart.
-But they do different jobs. Tabs moves you between views, so it replaces the content below it.
-SegmentedControl sets a value in place. The content below it stays in place. Only that content changes to match the value.
+These measurements define the default sizes throughout the system, adapting automatically across
+devices from desktops to phones.
+
+- **Touch screens:** A `Theme` detects whether the pointer is a mouse or a finger. For touch
+  inputs, controls like checkboxes and radio buttons scale up to their touch size, with default
+  controls reaching 44 pixels.
+- **Checkboxes:** A checkbox remains visually small to sit beside a single line of text, but its
+  tappable area extends to the size of a standard `Button`. This ensures usability without
+  disrupting the surrounding layout.
+- **Typography on mobile:** Because you hold a phone closer to your eyes than a desktop screen,
+  small text sizes are increased on handheld devices. Conversely, large display sizes are
+  reduced on narrow windows because fewer characters fit on a single line.
+- **Text fields:** On touch screens, text fields have a minimum font size of 16 pixels. This
+  prevents Safari on iOS from automatically zooming the page when the field is focused.
+- **Round controls:** When you set `radius="full"`, the corners curve inward beside the first
+  and last letters. These controls require wider side padding than those with smaller corner
+  radii.
+
+## Judgments
+
+Beyond measured limits, design decisions become judgments. This category includes corner radius,
+the saturation of a glass panel, accent hues, and the internal spacing of a card.
+
+Kookie strictly separates these two categories. Measured limits are enforced and cannot be
+overridden. Judgments are recorded as single values, meaning one edit updates the value
+everywhere. Kookie never presents a judgment as a measurement, avoiding the attribution of false
+precision to a chosen value.
+
+## Each decision has one place
+
+An inconsistent system conceals its cost initially. Your first and fifth screens may be correct,
+but by the twentieth screen, the same question has been answered differently across a dozen
+files, and no screen reflects the decisions of the others.
+
+Kookie answers each question once, and your screens read that answer rather than restating it.
+This is why components accept a `tone` and an `emphasis` instead of a colour, why there is no
+margin prop, and why the system lacks a `variant` prop.
+
+## Components are organised by what they do
+
+Kookie classifies components by function rather than appearance. Two components can look
+identical but perform different jobs. Kookie separates these components, giving each its own
+name and props.
+
+Tabs and SegmentedControl demonstrate this distinction. Both render a row of segments, but Tabs
+moves you between views and replaces the content below, while a SegmentedControl sets a value
+and leaves the surrounding content in place.
 
 <Example name="principles.lookalikes" quiet />
 
-The two controls above look almost the same. They announce themselves differently. Tabs tells a
-screen reader that it is a tab list, and it gives each panel a name. SegmentedControl tells a
-screen reader that it is a radio group. A screen reader says "3 of 3 selected", and the arrow
-keys change the value. Neither component can give the behaviour of the other.
+These controls also announce themselves differently to screen readers. Tabs reports a tab list
+and names each panel, whereas a SegmentedControl reports a radio group where arrow keys change
+the value. Neither component replicates the other's behaviour, so no prop can convert one into
+the other.
 
-To tell two look-alikes apart, ask what each one does without the other. You can switch views
-without setting a value. You can set a value without switching views. So they are two
-operations, not one operation with two appearances. For this reason, no `variant` prop changes
-one into the other.
+To distinguish between two similar components, consider their function independently. You can
+switch views without setting a value, and you can set a value without switching views. These are
+two separate operations, not one operation with two appearances. The
+[Vocabulary](/start/vocabulary) chapter lists other pairs that share an appearance.
 
 ## Components and patterns
 
-A component contains the things that it owns. A pattern coordinates things that it doesn't
-contain. A button owns its label, its icon and its padding, so it's a component. An app frame
-coordinates the header, the sidebar, the content and the window width, so it's a pattern. You
-build a pattern from components. The [Navigation](/patterns/navigation) chapter shows how to build one
-for each window size.
+A component contains what it owns, while a pattern coordinates what it does not contain. A
+button owns its label, icon, and padding, making it a component. An app frame coordinates the
+header, sidebar, content, and window width, making it a pattern. You assemble patterns from
+components; the [Navigation](/patterns/navigation) chapter demonstrates how to assemble one for
+each window size.
 
-It is easy to tell the two apart, because the children of a component never configure their
-parent. Sometimes a child must change its parent, for example a sidebar that sets the margin of
-the page. Then you have a pattern. Build it in your app. Do not ask one component to hold it.
+The children of a component never configure their parent, which makes the two easy to
+distinguish. If a child must change its parent, such as a sidebar setting the page margin, the
+result is a pattern. You should build this pattern in your application rather than expecting a
+single component to provide it.
 
-## Measurements and judgments
+## The trade-off
 
-Some design questions are a matter of taste. Others have been measured.
+A system that centralises decisions offers fewer overrides than you might expect. When a design
+does not fit, no `variant` prop is available, and Kookie will refuse the input. Each refusal
+states a reason and an alternative, and each component page lists its own refusals. The only
+escape hatch is `style`, which remains highly visible in code reviews.
 
-- Fitts's law, from 1954, predicts the time to move a pointer to a target. It uses the distance
-  to the target and the size of the target.
-- A fingertip is about 10 millimetres across. This is the source of the 44-point minimum tap
-  target on every platform.
-- The Gestalt principles, from 1923, describe how your eye groups things before you read them.
-- WCAG and APCA both measure whether text is readable against its background.
-
-After the measured limits, a decision is a judgment. Examples are the exact corner radius, the
-saturation of a glass panel, and the hue of the accent.
-
-The system keeps the two kinds apart. If something has been measured, the system enforces it, and
-no prop can change it. If something is a judgment, the system writes it down as a single value.
-You change that value with a one-line edit. The system doesn't show a judgment as a measurement.
-
-## Consistency
-
-An inconsistent system doesn't show its cost immediately. The first screen is fine, and the
-fifth screen is fine. By the twentieth screen, the same questions have answers in a dozen
-places. No screen can see what the other screens decided.
-
-Kookie prevents this problem. It makes each decision one time. Each decision is in one place, and
-every screen reads it from there.
-
-## The trade
-
-A system that decides one time gives you fewer ways out than you may expect. When a design
-doesn't fit, there's no `variant` prop to use. Instead, you get refusals. Each refusal has a
-reason and an alternative, and each component page lists its own refusals. The one way out is
-`style`. When you review code, a `style` value is easy to see.
-
-In return, the system stays consistent as your app grows. The system enforces its decisions, so
-nobody has to remember them.
+In return, the system remains consistent as your application grows, enforcing its decisions
+rather than relying on developer memory.

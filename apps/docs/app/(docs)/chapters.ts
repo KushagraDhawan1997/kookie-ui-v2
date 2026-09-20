@@ -126,7 +126,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Principles",
     section: "start",
     blurb:
-      "Kookie organises components by what they do, not by how they look. If two components look alike but do different jobs, they stay separate.",
+      "Kookie prioritises correctness over ease of adoption. While some interface questions have measurable answers, others rely on design judgment. Kookie applies measurements automatically and centralises every decision to ensure your screens remain consistent.",
     spec: [
       "THESIS §1",
       "THESIS §2",
@@ -144,7 +144,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Vocabulary",
     section: "start",
     blurb:
-      "These are the words that Kookie uses for the different kinds of component. The kind of a component decides which props it takes. If a component doesn't have the prop that you expected, its kind is usually the reason.",
+      "Kookie uses a small set of categories to define components. A component's category determines which props it accepts. If a component lacks a prop you expect, its category usually explains why.",
     spec: ["THESIS §2", "THESIS §3", "§9", "§10", "§11"],
     source: "start/vocabulary.mdx",
     Content: Vocabulary,

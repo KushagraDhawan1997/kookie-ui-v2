@@ -103,6 +103,43 @@ This is the rule the whole document broke, and no test can catch it. Every sente
 grammatical, short and active. Every one is also unreadable to a person who did not build the
 system. The fault is register, not grammar.
 
+### Read the reference page first
+
+`content/start/principles.mdx` is the reference for cadence. Read it before you write a
+chapter, and match the way its sentences are built. The rules below tell you what to avoid. The
+reference page shows you what to do, and a sample carries things that no rule states.
+
+The reference page exists because rules alone did not work. Four drafts of that chapter passed
+every rule in this guide and were rejected anyway, and one sample paragraph fixed the register
+in a single pass. When a draft keeps failing on register, add a sample rather than a seventh
+rule.
+
+Copy these habits from it.
+
+- **Subordinate a second fact instead of starting a new sentence.** "A fingertip is about 10
+  millimetres across, which informs the 44-point minimum on Apple platforms." Three sentences
+  that each restart with the same subject read as a chant.
+- **Use ordinary connectives.** because, while, whereas, conversely, rather than. They carry the
+  relation between two facts, so you do not have to state it.
+- **Use a stronger, more precise verb.** Replace "is", "has" and "takes" with a verb that says
+  what the component does. `A Card takes a material` becomes `A Card accepts a material prop`.
+  informs, replicates, conceals, reflects, records, determines, accepts.
+- **Keep a list in parallel structure.** Every item in a list takes the same grammatical shape,
+  which is what makes a list faster to read than a paragraph. `A menu selects an action. A
+  select selects a value` becomes `A menu triggers an action. A select chooses a value`. The
+  same applies to bold labels: three labels that read verb, adjective, adjective are not a list.
+- **Remove the echo.** A word repeated inside one sentence or one paragraph slows a reader
+  down. `The kind of a component decides which props it takes` becomes `A component's category
+  determines which props it accepts`.
+- **Write a bullet as a label and a definition.** `**Tap targets:** A fingertip is about 10
+  millimetres across.` A label scans. A full sentence in bold does not. Use bold labels and
+  bullets consistently inside a section, so a reader sees the relationship between the items
+  without reading them.
+
+Do not write a sentence in the second person only to sound direct. "The space between two
+elements changes how they are interpreted" is correct, and rewriting it around "you" makes it
+worse.
+
 **1. Do not write a verdict.** A sentence that sounds like a conclusion is not teaching.
 
 - Wrong: "A scale with an escape stops being a scale."
@@ -165,7 +202,7 @@ that is a word rather than a shape:
 - a marketing adjective with no measurement behind it: powerful, seamless, robust, elegant,
   intuitive, delightful
 - a marketing phrase: "out of the box", "under the hood", "first-class", "not just a"
-- a chapter that says "you" fewer than five times
+- a chapter that says "you" fewer than two times
 
 It cannot catch a verdict, a riddle, two abstractions equated, or a sentence written at the
 wrong altitude, because those are shapes and not strings. "The mark ladder is the line box" is
@@ -241,6 +278,33 @@ doing this task need it?** A sentence that exists to make the library look good,
 neighbour, or to savour a fact gets deleted whole, not reworded. Most bad sentences in this
 corpus were never badly written — they were unnecessary. "The file stays the same size however
 many components you use" is grammatical, true, and gone.
+
+## Revising a draft, and revising these rules
+
+Four faults appear when somebody revises an existing chapter, or revises the rules and tests
+behind it.
+
+**Compression loses facts, so read a polished draft for meaning as well as for rhythm.** A pass
+that tightens sentences also generalises them, and a generalisation can contradict the list
+beneath it. One revision replaced "the thing you act on" with "interactive elements" in
+`foundations/depth.mdx`, directly above a list of interactive components that cast no shadow.
+Check every claim that got shorter.
+
+**Do not delete a reason while tightening a sentence.** "A smaller thing casts a smaller shadow,
+or it looks swollen" reads long, and the second clause is why the rule exists. A rule with its
+reason removed is a rule a later writer will delete.
+
+**A correction is a fix for one fault, not a law.** "Write flat subject-verb-object sentences"
+was the correct fix for clever, quotable prose. Applied to every sentence it produces three
+short sentences that each restart with the same subject, which reads as a chant. Every
+instruction in this guide has a fault it was written for, and applying it past that fault
+creates a new one.
+
+**Calibrate a test against the fault, not against the corpus.** `prose.test.ts` required a
+chapter to say "you" five times, and five was chosen because five was what the thinnest chapter
+happened to carry. The fault it was written for is a chapter with no reader in it, which a floor
+of two still catches, and the higher floor pushed second person into sentences that read better
+without it. When you add a floor, set it from the smallest value that fails the defect.
 
 ## Register: seven habits that keep coming back
 

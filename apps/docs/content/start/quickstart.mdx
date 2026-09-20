@@ -1,84 +1,84 @@
-You'll build a publish dialog one piece at a time. Each piece runs next to the code that makes it.
-At the end, you'll have written no colours, no pixel values and no breakpoints.
+You'll build a publish dialog one piece at a time, with each piece running next to the code that
+makes it. By the end you will have written no colours, no pixel values and no breakpoints.
 
 ## Choose the containers before the components
 
-The container sets the distance between its children. So the first decision is which container
-controls which spacing.
+The container sets the distance between its children, which makes the first decision a question
+of who controls which spacing.
 
 <Example name="quickstart.containers" />
 
-The two Stacks use different gaps. The outer Stack uses gap 6, which separates whole sections.
-The inner Stack uses gap 2, which keeps the heading near the sentence below it.
+The two Stacks use different gaps. The outer Stack takes gap 6, which separates whole sections,
+while the inner Stack takes gap 2, which keeps the heading near the sentence below it.
 
-Keep related elements closer together than unrelated elements. If a screen uses the same gap
-everywhere, it looks like one long list.
+Keep related elements closer together than unrelated ones, because a screen that uses the same
+gap everywhere reads as one long list.
 
-Nothing in that file sets a margin. No component sets its own outer spacing. So each distance on
-the screen comes from a container that you can see.
+Nothing in that file sets a margin, since no component sets its own outer spacing, so every
+distance on the screen comes from a container you can see.
 
 ## Put a checkbox beside its label
 
 <Example name="quickstart.group" />
 
-These controls are checkboxes, not switches. A switch applies its value immediately when you
-change it. So a screen of switches needs no Save button. A checkbox holds a value that you will
-submit later. These two checkboxes wait for the Publish button.
+These controls are checkboxes rather than switches. A switch applies its value the moment you
+change it, so a screen of switches needs no Save button, whereas a checkbox holds a value that
+you submit later. These two checkboxes wait for the Publish button.
 
-No checkbox or switch takes a `label` prop. A label is text, and `Text` already gives every size,
-weight and colour that text needs. A `label` prop on a checkbox would add a second, smaller text
+No checkbox or switch accepts a `label` prop, because a label is text and `Text` already provides
+every size, weight and colour that text needs. A `label` prop would add a second, smaller text
 system inside the checkbox.
 
-`render={<label htmlFor="…" />}` changes the element and keeps the component. You keep the text
-size and colour. The browser gets a real `<label>`, so a click on the words toggles the control.
+`render={<label htmlFor="…" />}` changes the element while keeping the component, so you keep the
+text size and colour and the browser receives a real `<label>`, which makes a click on the words
+toggle the control.
 
-The outer Stack uses gap 5, not gap 4. Stacked checkboxes and switches need 12 real pixels
-between them. The tap target of each control is larger than the mark that you can see. Below 12
-pixels, the targets overlap. Then a click on one row can toggle the row above it.
+The outer Stack takes gap 5 rather than gap 4, because stacked checkboxes and switches need 12
+real pixels between them. Each control's tap target is larger than the mark you can see, so below
+12 pixels the targets overlap and a click on one row can toggle the row above it.
 
 ## Rank the two buttons
 
 <Example name="quickstart.actions" />
 
-Two props do two different jobs here. `emphasis` sets how much attention the button asks for:
-`quiet`, `medium` or `loud`. `tone` sets what the button means. Because the two props are
-separate, no value such as `secondary-outline-destructive` exists. That one string gives three
-answers at the same time. You can't change one answer without a change to the other answers.
+Two props do two different jobs here. `emphasis` sets how much attention the button asks for,
+taking `quiet`, `medium` or `loud`, while `tone` sets what the button means. Keeping the two
+separate is why no value such as `secondary-outline-destructive` exists: that single string
+answers three questions at once, and you cannot change one answer without changing the others.
 
-No button is loud and accent by default. You must choose a second loud button on purpose. So
-most screens have one clear action.
+No button is loud and accent by default, so a second loud button is always a deliberate choice,
+which leaves most screens with one clear action.
 
 ## Put the pieces together
 
-Put `Options` and `Actions` in the place of the comment, inside the outer Stack. The gap of that
-Stack is 6, and it separates the three regions. So no piece had to know about the pieces above
-or below it.
+Put `Options` and `Actions` in place of the comment, inside the outer Stack. That Stack's gap of
+6 separates the three regions, so no piece had to know about the pieces above or below it.
 
 <Example name="quickstart" />
 
 ## What you never had to write
 
-The finished file is about fifty lines. It contains none of the items below.
+The finished file runs to about fifty lines and contains none of the following.
 
-- **No colours.** You selected a tone and an emphasis, and the theme calculated the colours. The
-  result follows dark mode and responds to the high-contrast setting. It stays correct if you
-  change the accent later.
-- **No pixel sizes.** `size` is a step. One number sets the height, the padding, the corner, the
-  icon and the label size together.
-- **No breakpoints.** Targets become larger on a touch screen, and text becomes larger on a
-  phone. Layouts respond to the space that they get, not to the width of the window.
-- **No hover, focus or press styles.** CSS controls every state. So no JavaScript runs when
-  someone points at a control.
-- **No accessibility wiring other than `htmlFor`.** The roles, the keyboard behaviour and the
-  announcements come with the components.
+- **No colours.** You selected a tone and an emphasis, and the theme calculated the colours,
+  which follow dark mode, respond to the high-contrast setting, and stay correct if you change
+  the accent later.
+- **No pixel sizes.** `size` selects a step, and one number sets the height, the padding, the
+  corner, the icon and the label size together.
+- **No breakpoints.** Targets grow on a touch screen and text grows on a phone, while layouts
+  respond to the space they receive rather than to the width of the window.
+- **No hover, focus or press styles.** CSS resolves every state, so no JavaScript runs when
+  somebody points at a control.
+- **No accessibility wiring beyond `htmlFor`.** The roles, the keyboard behaviour and the
+  announcements arrive with the components.
 
 ## Where to go next
 
-Read the [Vocabulary](/start/vocabulary) chapter next. It tells you which component to use in a
-given situation. After that, you'll use the [Colour](/foundations/color) and
+Read the [Vocabulary](/start/vocabulary) chapter next, because it tells you which component to
+use in a given situation. After that, you will reach for the [Colour](/foundations/color) and
 [Layout](/foundations/layout) chapters most often.
 
-The [builder](/builder) is a live editor for these components. Each distance is a token step, and
-each setting comes from a fixed list. So you can express in code everything that you draw. The
-builder exports the React code that a developer would write. It also checks your screen against
-the composition rules while you work.
+The [builder](/builder) is a live editor for these components. Every distance is a token step and
+every setting comes from a fixed list, so anything you draw can be expressed in code. The builder
+exports the React code a developer would write, and it checks your screen against the composition
+rules while you work.

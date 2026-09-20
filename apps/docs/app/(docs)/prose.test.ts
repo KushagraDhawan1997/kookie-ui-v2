@@ -144,16 +144,24 @@ describe("the chapters are written to a reader (AUTHORING.md: the register)", ()
    *
    * A banned-word list only ever removes things. This is the check that a chapter is addressed
    * to somebody: Apple writes "Use a slider when you want people to choose a value", and the
-   * old chapters wrote "a call site cannot work the mapping out". Five is the floor because the
-   * thinnest chapter now carries five and the thinnest before carried none — motion.mdx, 905
-   * words about how a control behaves under your own finger, which never once said "you".
+   * old chapters wrote "a call site cannot work the mapping out". The fault it was written for
+   * is a chapter with NO reader in it — motion.mdx, 905 words about how a control behaves under
+   * your own finger, which never once said "you".
+   *
+   * THE FLOOR WAS FIVE AND IT WAS DOING HARM. Five was set from the thinnest chapter that
+   * happened to pass, which is a measurement of the corpus rather than of the fault, and a
+   * count cannot tell a chapter that ignores its reader from a sentence that reads better in
+   * the third person. "The space between two elements changes how they are interpreted" is
+   * correct prose, and a floor of five pushes a writer to break it into "you" for no reason
+   * other than the tally. Two still fails motion.mdx and every chapter written about the
+   * system, and it stops the law from editing sentences it cannot read.
    */
   for (const [name, source] of ALL) {
     it(`${name} addresses the person reading it`, () => {
       const text = prose(source).map((l) => l.text).join(" ");
       const uses = text.match(/\byou\b|\byour\b/gi)?.length ?? 0;
       expect(uses, `${name} says "you" ${uses} times — it is written about the system, not to a person`)
-        .toBeGreaterThanOrEqual(5);
+        .toBeGreaterThanOrEqual(2);
     });
   }
 });

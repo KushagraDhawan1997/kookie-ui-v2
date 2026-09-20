@@ -1,6 +1,6 @@
-`depth` is a Theme setting with two values. It answers one question: does this app have light
-in it? No component takes a shadow prop, and no screen picks a shadow. Each kind of component
-decides one time whether it casts a shadow.
+The `depth` setting in a Theme answers a single question: does this app contain light? No
+component accepts a shadow prop, and no screen selects a shadow individually. Instead, each
+component category determines its own shadow behaviour.
 
 ## Set depth once, at the root
 
@@ -10,54 +10,53 @@ decides one time whether it casts a shadow.
 </Theme>
 ```
 
-`elevated` is the default. It means that the app has a light source. Cards sit above the page,
-the main action catches light, and handles lift.
+The default `elevated` setting gives the app a light source, allowing cards to sit above the
+page, main actions to catch light, and handles to lift. The `flat` setting removes this light
+source, relying on lines and fills for separation.
 
-`flat` means that the app has no light source. Lines and fills do all the separation.
-
-Depth is a Theme setting because people see light as a property of the room, not of one object.
-Two cards on one screen, one raised and one flat, show two different rooms. So there's no
-`shadow` prop, `elevation` prop or `raised` boolean.
+Depth belongs to the Theme because light is perceived as a property of the environment, not a
+single object. Having both a raised and a flat card on the same screen would suggest two
+different environments. Therefore, Kookie does not provide `shadow`, `elevation`, or `raised`
+props.
 
 ## What casts a shadow
 
 These components cast a shadow:
 
-- `Card`, and the panels that look like a card
-- a **loud** button
-- the handles on sliders and switches
+- `Card` and card-like panels
+- Loud buttons
+- Handles on sliders and switches
 - `Kbd`
 
-These components don't cast a shadow:
+These components do not:
 
 - `Surface`
-- text fields and text areas
-- medium and quiet buttons
-- checkboxes
-- progress bars
-- separators
-- tab bars
+- Text fields and text areas
+- Medium and quiet buttons
+- Checkboxes
+- Progress bars
+- Separators
+- Tab bars
 
-Only two kinds of thing get a shadow: the thing that you act on, and the thing that floats
-above everything else. Three of the refusals change the code that you write.
+Only two kinds of element receive a shadow: the object you pick up, and the element that floats
+above everything else. This rule changes the code you write in three places:
 
-- **A ground casts nothing.** A `Surface` is what objects sit on. It isn't an object itself. To
-  lift something, put a `Card` inside the Surface. The ground under the card stays in place.
-- **A field is recessed, not raised.** To lift a form, put the form in a Card. The fields stay
-  recessed inside the card.
-- **A medium button is flat.** Use `emphasis` to rank two buttons. Don't use depth. The loud
-  button casts a shadow and catches light. The medium button does neither. This difference
-  shows the rank.
+- **Grounds cast nothing:** A `Surface` holds objects rather than being one. To elevate an
+  element, place a `Card` inside the Surface.
+- **Fields stay recessed:** To elevate a form, place it inside a Card. The fields remain
+  recessed.
+- **Medium buttons stay flat:** Rank buttons using `emphasis` rather than depth. A loud button
+  catches light and casts a shadow, while a medium button does neither.
 
-A checked checkbox catches light, but it never casts a shadow. Checking it fills a recess. It
-doesn't lift anything.
+A checked checkbox catches light without casting a shadow, as checking it fills a recess rather
+than lifting the element.
 
-**A disabled card loses its shadow.** A shadow shows that a thing sits above the page and that
-you can pick it up. You can't pick up a disabled card, so it goes back down to the page.
+A disabled card loses its shadow. A shadow indicates that an element sits above the page and can
+be picked up, which a disabled card cannot, so it returns to the page.
 
 ## Turn off the light for one region
 
-Nest a Theme to remove the light from one region of an elevated app.
+You can nest a Theme to remove the light source from a specific region of an elevated app.
 
 ```tsx
 <Theme depth="elevated">
@@ -79,59 +78,56 @@ Nest a Theme to remove the light from one region of an elevated app.
 </Theme>
 ```
 
-The first card lifts, and its loud button catches light. The second card shows its edge with a
-thin line. Nothing inside the nested Theme casts a shadow. This includes a menu that opens from
-the nested Theme.
+The first card lifts and its loud button catches light, while the second card defines its edge
+with a thin line. Nothing inside the nested Theme casts a shadow, including a menu opened from
+it.
 
 ## Bigger boxes get longer shadows
 
-There are five shadow values. The first value is a recess, and the other four are drops.
+Kookie provides five shadow values: one recess and four drops.
 
-Each drop has the same structure at a different height. A tight contact line under the edge
-keeps the shadow sharp. Softer layers move inward, so the depth falls *under* the element. It
-doesn't spread out to the sides.
+Each drop repeats the same structure at a different height. A tight contact line keeps the
+shadow sharp, while softer layers move inward so the depth falls under the element rather than
+spreading outward.
 
-**A smaller thing casts a smaller shadow.** If it doesn't, it looks swollen. A card is a bigger
-box than a menu, so a card uses a value with a longer reach than a floating panel. This
-relationship is an observation. The exact values are a judgment.
+Larger elements cast larger shadows, and a smaller element that borrows a larger shadow looks
+swollen. A card uses a shadow with a longer reach than a floating panel. This relationship is
+based on observation, while the exact values remain a design judgment.
 
-`--shadow-1` to `--shadow-5` are public. They're a resource, not a setting. Components never
-name them directly. They go through the theme. If you build something that the package doesn't
-ship, use `style`:
+Kookie publishes `--shadow-1` through `--shadow-5` as a resource. Components access these
+through the theme rather than directly. Use `style` for custom implementations:
 
 ```tsx
 <Box style={{ boxShadow: "var(--shadow-3)" }}>Custom pane</Box>
 ```
 
-`Box` has no `shadow` prop, because Box is layout and a shadow is paint.
+`Box` lacks a shadow prop because it is a layout component, and shadows are paint.
 
-## A popup has to show where it ends
+## Popups must show their edges
 
-A popup covers the content under it, so you must be able to see its edge.
+A popup covers the content beneath it, so its edge must remain visible. An elevated app shows
+this edge with a shadow, while a flat app casts nothing at all, including menus and dialogs, and
+draws a thin line instead.
 
-In an elevated app, the shadow shows the edge. In a flat app, nothing casts a shadow, including
-menus and dialogs. So a popup draws a thin line.
-
-A `Dialog` casts no shadow of its own in either app, because **the dimmed background is the
-separation**. The whole window goes dark. This shows what the dialog covers more completely than
-a shadow can. The panel keeps the ordinary card shadow for the current depth setting.
+A `Dialog` casts no shadow of its own in either setting because the dimmed background provides
+the necessary separation. The panel retains the standard card shadow for the current depth
+setting.
 
 ## Handles cast a shadow even in a flat app
 
-These cast a shadow in every app, flat apps included:
+These elements cast a shadow regardless of the app's depth setting:
 
-- the slider handle
-- the switch thumb
-- the selected segment of a segmented control
+- Slider handles
+- Switch thumbs
+- Selected segments of a segmented control
 - `Kbd`
 
-The four shapes that keep their shape at `radius="none"` follow the same idea: the appearance
-carries the meaning. A handle that doesn't sit above its track stops looking like a handle. A
-handle's position *is* the value that it sets, so the control stops working. Every platform
-ships handles with a shadow in every context.
+These are the same four shapes that keep their form at `radius="none"`, because their appearance
+conveys their function. A handle that does not sit above its track stops looking like a handle,
+and since a handle's position is the value it sets, the control stops working.
 
-`Kbd` is the opposite case. A key presses *into* its surface, so its depth is a recess and not a
-lift.
+`Kbd` is an exception, as it represents a key pressing into a surface, making its depth a recess
+rather than a lift.
 
-A disabled handle loses its shadow and dims, but it keeps its colour. A grey handle in a grey
-track is hard to see.
+A disabled handle loses its shadow and dims while retaining its colour, since a grey handle in a
+grey track is hard to see.
