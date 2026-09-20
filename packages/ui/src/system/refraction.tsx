@@ -20,8 +20,7 @@
  * WHY THIS IS NOT "JS AT INTERACTION TIME" (§2's non-negotiable). A displacement map is an
  * image the size of the box it bends, so it cannot be a token: the pipeline emits values, and
  * this needs the element's resolved pixel geometry. The work happens on mount and on resize,
- * never on hover, press, focus or scroll — the same seam the floating layer already measures
- * its box on (`--kui-fly-w/h`). Nothing here runs while a pointer is moving.
+ * never on hover, press, focus or scroll. Nothing here runs while a pointer is moving.
  *
  * WHAT IT COSTS AND HOW THAT IS BOUNDED. One canvas pass per distinct box, memoised by
  * (w, h, radius, params) so a list of same-sized cards mints ONE filter, and the map is
@@ -1146,17 +1145,12 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
     glint: boolean;
     retune: (() => void) | null;
     ro: ResizeObserver | null;
-    flight: MutationObserver | null;
-    /** The target box a flight has already been measured for — see `measureUnlessFlying`. */
-    flightKey: string | null;
   }>({
     node: null,
     id: null,
     glint: false,
     retune: null,
     ro: null,
-    flight: null,
-    flightKey: null,
   });
 
   return React.useCallback(
@@ -1171,9 +1165,6 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
       const detach = () => {
         s.ro?.disconnect();
         s.ro = null;
-        s.flight?.disconnect();
-        s.flight = null;
-        s.flightKey = null;
         if (s.retune) remeasures.delete(s.retune);
         s.retune = null;
         if (s.id) release(s.id);
@@ -1197,17 +1188,7 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
       const lensOK = lensSupported();
       watchSeal();
 
-      /**
-       * The box the map is built for. Normally the element's own, and during a FLIGHT the box
-       * the flight is heading to — which the runner publishes for exactly this reader
-       * (`--kui-fly-w/-h/-r`, system/floating).
-       *
-       * A flying pane's own rect is the wrong box in two ways at once: it is a frame out of
-       * date the moment the map is generated from it, and there are sixty of them. Its corner
-       * is worse — mid-transition between the seed's and the panel's own — which is why the
-       * runner reads that one un-posed and hands it over rather than leaving it to be guessed
-       * from a moving element.
-       */
+      /** The box the map is built for: the element's own. */
       const target = (): { w: number; h: number; r: Corners; k: number; sealed: boolean; ringDown: boolean; glinted: boolean; scale: LensScale } | null => {
         const rect = node.getBoundingClientRect();
         const cs = getComputedStyle(node);
@@ -1238,8 +1219,7 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
         // and BOTH contours must follow the corner the box actually paints — the glint's band,
         // because light detaching from the lip at every corner is what a circular mask over a
         // squircle clip draws, and since 2026-09-05 the lens's bend, for the same reason at a
-        // bigger scale (see `sdSuperRect`). corner-shape does not animate, so this is stable
-        // through a flight.
+        // bigger scale (see `sdSuperRect`).
         const k = cornerExponent(cs.getPropertyValue("corner-shape"));
         /**
          * AND THE SAME GATE FOR THE MASK: IS THERE A LAYER TO PUT IT ON? (2026-08-26, the
@@ -1262,24 +1242,6 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
          * instead, widen this read to both; the law below fails first, by name.
          */
         const glinted = getComputedStyle(node, "::before").content !== "none";
-        const flight = node.closest("[data-unfurling]");
-        // Only when the flying element IS this pane. A lens attached to something INSIDE a
-        // flying panel has its own geometry and none of these numbers describe it.
-        if (flight === node) {
-          const w = parseFloat(node.style.getPropertyValue("--kui-fly-w"));
-          const h = parseFloat(node.style.getPropertyValue("--kui-fly-h"));
-          const r = parseFloat(node.style.getPropertyValue("--kui-fly-r"));
-          if (Number.isFinite(w) && Number.isFinite(h) && w >= 8 && h >= 8) {
-            // The flight publishes ONE corner, because a panel in flight is a panel that rounds
-            // all four the same way — the anchored families' own geometry. A mixed-corner pane
-            // (a sheet) does not fly: it slides, with its box already settled.
-            return { w, h, r: corners(Number.isFinite(r) ? r : 0), k, sealed, ringDown, glinted, scale };
-          }
-          // Published nothing readable — a reduced-motion open bails before writing these, and
-          // a pane can carry the stamp for a frame before they land. Waiting is right: the old
-          // behaviour, one frame later.
-          return null;
-        }
         if (rect.width < 8 || rect.height < 8) return null;
         /* ALL FOUR, since 2026-09-12. This read `borderTopLeftRadius` alone and the two maps
            mirrored it, which is right for every box that rounds uniformly and wrong for the
@@ -1422,89 +1384,26 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
         node.style.setProperty("--kui-lens", `url(#${next})`);
       };
 
-      /**
-       * NOT WHILE THE PANE IS FLYING (2026-08-22 audit) — the one gesture that resizes a pane
-       * continuously.
-       *
-       * `refraction.tsx`'s own opening paragraph says this is built "on mount and resize, never
-       * on hover, press, focus or scroll — the seam the floating layer already uses". That
-       * sentence is true about hover and press and silent about the entry, and the entry
-       * animates `inline-size` and `block-size` on the very element the lens is attached to. So
-       * every frame was a distinct cache key, and every miss ran a per-pixel Snell solve over
-       * up to 320x320, a `toDataURL` PNG encode of ~100k pixels, an eleven-node `<filter>`
-       * grafted in, the previous one torn down and a fresh `--kui-lens` written — synchronously
-       * inside the frame, after layout and before paint. Measured on one glass menu open: 27
-       * distinct filters installed on a single panel. It also cannot look right while it does
-       * it, because each map is generated for frame N's box and applied on frame N+1's, so the
-       * bezel never matches the pane it is bending.
-       *
-       * A flight ends by taking its stamp off, which is a signal rather than a guess — so the
-       * measurement is not skipped, it is DEFERRED to the seam. The `--kui-fly-*` strip at
-       * release usually changes the box and would fire the ResizeObserver anyway; this makes
-       * the one measurement certain in the case where the settled box happens to match.
-       */
-      const flying = () => !!node.closest("[data-unfurling]");
-      /**
-       * A pane that is flying is measured ONCE, from where it is going (see `target`), and the
-       * frames in between are skipped — which is the 2026-08-22 deferral kept, with the wait
-       * removed. That audit found 27 filters minted during one glass menu open, and its repair
-       * was to build nothing until the flight ended; the cost of that was a panel arriving with
-       * no refraction and gaining it in a single frame.
-       *
-       * Both are avoided by the same fact: while the flight runs, the target box does not
-       * change, so the cache key does not either. The guard below is what makes that a promise
-       * rather than a hope — `acquire` would return the same id on every frame anyway, but
-       * reaching it costs a `getComputedStyle` and a map lookup sixty times over, and this file
-       * is under the "no JS at interaction time" rule with the flight measurement as its one
-       * named exception.
-       */
-      const measureUnlessFlying = () => {
-        if (!flying()) {
-          s.flightKey = null;
-          return void measure();
-        }
-        const box = target();
-        if (!box) return;
-        const key = `${box.w}x${box.h}r${box.r.join("_")}`;
-        if (key === s.flightKey) return;
-        s.flightKey = key;
-        measure();
-      };
-
-      measureUnlessFlying();
-      s.retune = measureUnlessFlying;
-      remeasures.add(measureUnlessFlying);
+      measure();
+      s.retune = measure;
+      remeasures.add(measure);
       /**
        * NOT COALESCED BEHIND A rAF, and that was measured before it was refused (2026-09-11).
        * The 2026-09-11 audit called for one measurement per frame on the four gestures that
        * resize a pane continuously — a shell divider drag, a TextArea resize handle, a phone
-       * rotation, a window resize — none of which carries the `[data-unfurling]` stamp the
-       * flight guard reads. The premise is that the observer delivers more often than a frame.
-       * It does not: a ResizeObserver notification is dispatched once per frame, after layout,
-       * and coalesces every size change since the last one. Measured with several synchronous
-       * width and height writes inside each of 40 frames: 40 frames, 40 callbacks, 40 records.
-       * So a rAF in front of this saves nothing and costs the lens a frame of lag.
+       * rotation, a window resize. The premise is that the observer delivers more often than a
+       * frame. It does not: a ResizeObserver notification is dispatched once per frame, after
+       * layout, and coalesces every size change since the last one. Measured with several
+       * synchronous width and height writes inside each of 40 frames: 40 frames, 40 callbacks,
+       * 40 records. So a rAF in front of this saves nothing and costs the lens a frame of lag.
        *
        * What WOULD cut the cost is a settle guard — build nothing until the box has held still
        * for a frame — and that is a different thing with a visible price: the lens would trail
        * a drag instead of tracking it. It is a design call, not a repair, and it is not made
        * here.
        */
-      s.ro = new ResizeObserver(measureUnlessFlying);
+      s.ro = new ResizeObserver(measure);
       s.ro.observe(node);
-      // The seam is still watched, and it is still a signal rather than a guess — but what it
-      // now does is confirm: the settled box is the box the flight published, so this
-      // measurement takes `acquire`'s cache-hit branch and the filter on the element does not
-      // change. It stays because the equality is not guaranteed by construction — a panel whose
-      // content changes size mid-flight would land somewhere else, and that case must not be
-      // left wearing a map for a box it no longer has.
-      s.flight = new MutationObserver(() => {
-        if (!flying()) {
-          s.flightKey = null;
-          measure();
-        }
-      });
-      s.flight.observe(node, { attributes: true, attributeFilter: ["data-unfurling"] });
     },
     [material],
   );

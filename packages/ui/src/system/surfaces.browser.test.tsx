@@ -1,5 +1,5 @@
 /**
- * The surface layer's MOUNTED laws (§10, §22, §24) — added 2026-08-26 out of the audit.
+ * The surface layer's MOUNTED laws (§5, §10) — added 2026-08-26 out of the audit.
  *
  * surfaces.test.ts beside this file reads the emitted declarations, which is the right
  * instrument for "is this stated". Everything here is the other question — "does it WIN" — and
@@ -9,42 +9,25 @@
  *
  * Each law carries the arm that makes its fixture non-degenerate, because in every one of these
  * the obvious fixture cannot tell a working mechanism from an absent one: two identical panes,
- * a pane with no material stamped, a pane whose two axes happen to hold the same number.
+ * or a pane with no material stamped.
  */
-import * as React from "react";
 import { describe, expect, it } from "vitest";
 
 import {
   APPEARANCES,
   GLASS_MATERIALS,
-  asksForStillness,
   colorOn,
   computed,
-  inMotion,
   mounted,
   probeIn,
-  render,
-  sweep,
-  until,
   within,
 } from "../test/browser.tsx";
-import { Theme } from "../theme/theme.tsx";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogTitle,
-} from "../components/alert-dialog/alert-dialog.tsx";
 import { Button } from "../components/button/button.tsx";
 import { Card } from "../components/card/card.tsx";
 import { Checkbox } from "../components/checkbox/checkbox.tsx";
-import { Menu, MenuContent, MenuItem, MenuTrigger } from "../components/menu/menu.tsx";
 import { Notice } from "../components/notice/notice.tsx";
 import { Radio, RadioGroup } from "../components/radio/radio.tsx";
 import { Text } from "../components/text/text.tsx";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../components/tooltip/tooltip.tsx";
 
 /**
  * The alpha of a resolved colour, CALIBRATED before it is used (the 2026-08-08 lesson, and the
@@ -411,277 +394,6 @@ describe("an on-glass member states its lighting, it does not inherit the pane's
     const { pane } = nested("regular");
     expect(computed(pane, "background-image")).not.toBe(computed(solid, "background-image"));
   });
-});
-
-/* ── The entry flight's body pin, per AXIS (§22, 2026-08-26 audit) ─────────────────────────── */
-
-describe("the flight pins the body at the pane's OWN padding, on BOTH axes (§22)", () => {
-  /** Mount airborne and hand back the popup with its body. Read at the mount EDGE: `begin()`
-      runs in the mount commit, so the stamp is there synchronously — the premise below is what
-      turns "it had not started yet" into a failure rather than a pass. */
-  function airborne(ui: React.ReactElement, selector: string) {
-    inMotion();
-    render(<Theme>{ui}</Theme>);
-    const popups = document.querySelectorAll<HTMLElement>(selector);
-    const popup = popups[popups.length - 1]!;
-    expect(popup, `${selector} never mounted`).toBeTruthy();
-    expect(popup.hasAttribute("data-unfurling"), "the premise: the panel is airborne").toBe(true);
-    return { popup, body: within(popup, ".kui-floating-body") };
-  }
-
-  /** The pin, on whichever edge the placement chose — read off the popup's own stamps rather
-      than assumed, so this holds wherever the positioner puts the panel. */
-  function pinned(popup: HTMLElement, body: HTMLElement) {
-    const side = popup.getAttribute("data-side");
-    const align = popup.getAttribute("data-align");
-    expect(side, "the positioner stamped no side — the per-side arms cannot apply").toBeTruthy();
-    // A CENTRED AXIS HAS NO PADDING PIN, and saying so is what keeps this law from going vacuous
-    // (2026-08-29). Both fixtures below state `align="start"` for exactly this reason: on a
-    // centre-aligned panel the body is held by its own middle, so the axis `align` governs is
-    // pinned at 50% and reading a padding there measures nothing. It used to read 12px and pass,
-    // which was the OVER-CONSTRAINT's own output — two insets plus `margin: auto` on a box that
-    // did not fit resolve by dropping the end inset, leaving the start one showing the padding.
-    // The law was reading a defect and calling it the guarantee.
-    expect(align, "a centred axis is pinned by the body's middle, not by a padding").not.toBe(
-      "center",
-    );
-    const blockEnd = side === "top" || align === "end";
-    const inlineEnd = align === "end" && (side === "top" || side === "bottom");
-    return {
-      block: [
-        computed(body, blockEnd ? "inset-block-end" : "inset-block-start"),
-        computed(popup, blockEnd ? "padding-block-end" : "padding-block-start"),
-      ],
-      inline: [
-        computed(body, inlineEnd ? "inset-inline-end" : "inset-inline-start"),
-        computed(popup, inlineEnd ? "padding-inline-end" : "padding-inline-start"),
-      ],
-    } as const;
-  }
-
-  it("a TOOLTIP, whose two axes are priced differently, is pinned right on each of them", () => {
-    const { popup, body } = airborne(
-      <>
-        <div style={{ height: 200 }} />
-        <Tooltip defaultOpen>
-          <TooltipTrigger render={<Button>Undo</Button>} />
-          <TooltipContent align="start">Undo the last change</TooltipContent>
-        </Tooltip>
-      </>,
-      ".kui-tooltip-popup",
-    );
-    const { block, inline } = pinned(popup, body);
-    // THE FIXTURE IS THE LAW HERE. A pane whose two insets hold the same number cannot tell a
-    // per-axis pin from a one-value one — which is exactly why this shipped: the inline axis
-    // coincided at 12 vs 12 and the block axis was 12 against a real 4.
-    expect(block[1], "this pane pads its two axes alike — it cannot see a one-axis failure").not.toBe(
-      inline[1],
-    );
-    expect(block[0], "the flight pins the block axis at some other pane's padding").toBe(block[1]);
-    expect(inline[0], "the flight pins the inline axis at some other pane's padding").toBe(inline[1]);
-  });
-
-  // A MENU since 2026-09-14: the popover's body no longer leaves flow (§31, Dialog's entry).
-  it("and a MENU, whose axes agree, is unmoved by the pair — the control", () => {
-    const { popup, body } = airborne(
-      <>
-        <div style={{ height: 200 }} />
-        <Menu defaultOpen>
-          <MenuTrigger render={<Button>Open</Button>} />
-          <MenuContent align="start">
-            <MenuItem>Menu content here</MenuItem>
-          </MenuContent>
-        </Menu>
-      </>,
-      ".kui-menu-popup",
-    );
-    const { block, inline } = pinned(popup, body);
-    expect(block[0]).toBe(block[1]);
-    expect(inline[0]).toBe(inline[1]);
-    // The pane this one is: an isotropic inset, which is what makes it the control rather than
-    // a second copy of the law above.
-    expect(block[1]).toBe(inline[1]);
-  });
-});
-
-/* ── A CENTRED panel grows out of its trigger from the MIDDLE (§22, 2026-08-31) ───────────── */
-
-/**
- * Kushagra: the popover "for some reason goes left". Measured on a default popover (a narrow
- * trigger, a wide panel): the pane was pinned by its START edge — the base flight rule's
- * default, and the one alignment for which the aim's inline offset is not zero by geometry —
- * so `--kui-from-x` read 182px and rode the FALL clock while the width rode the SPREAD clock.
- * The start edge slammed left in 345ms while the far edge was still opening over 510ms, and
- * the pane's centre swung 442 → 630 → 623 across one unfurl.
- *
- * Read as two numbers the fix writes and one it cannot: the seed's offset (which a start-pinned
- * centre cell writes as the half-difference of the two widths, and a centre-pinned one writes
- * as ~0), and the pane's centre across the width's OWN seized clock, which holds only while both
- * insets and auto margins re-centre the box on every layout of that travel. The overshoot
- * stations are named and excluded rather than tolerated: past the landed width the box is
- * over-constrained, the margins clamp at the start inset and the spill goes one way — the
- * elastic spring's own character, not a pin failure — so the law reads only the stations up to
- * the landed width, where a start-pinned pane is out by up to 90px.
- */
-describe("a centred panel grows out of its trigger symmetrically (§22)", () => {
-  it("the seed's inline offset is ~0 and the pane's centre holds through the width's travel", async () => {
-    inMotion();
-    // A MENU, centred by prop, because the law is about the family's pin and the menu is the
-    // member whose seed is the trigger's silhouette — so `--kui-from-x` is the whole offset.
-    // (Popover was the fixture that found it; its seed is a centred circle since the same day
-    // and carries its own centring term, so the offset alone would no longer tell the story.)
-    render(
-      <Theme>
-        <div style={{ padding: "200px 0 0 400px" }}>
-          <Menu>
-            <MenuTrigger render={<Button emphasis="quiet" bordered>Rename</Button>} />
-            <MenuContent align="center">
-              <MenuItem>This changes the name everywhere it appears in the workspace</MenuItem>
-            </MenuContent>
-          </Menu>
-        </div>
-      </Theme>,
-    );
-    const trigger = document.querySelector<HTMLElement>("button")!;
-    const triggerBox = trigger.getBoundingClientRect();
-    trigger.click();
-    const departed = await until(() => {
-      const p = document.querySelector<HTMLElement>(".kui-menu-popup");
-      return !!p && p.hasAttribute("data-unfurling") && !p.hasAttribute("data-seed");
-    });
-    expect(departed, "the premise: the flight departed").toBe(true);
-    const popup = document.querySelector<HTMLElement>(".kui-menu-popup")!;
-    expect(popup.getAttribute("data-align"), "the premise: the default alignment is centre").toBe("center");
-    const landed = parseFloat(popup.style.getPropertyValue("--kui-fly-w"));
-    // THE CALIBRATION: a start pin and a centre pin coincide when the panel is no wider than
-    // its trigger, so the fixture must hold a panel far wider than the button that opened it.
-    expect(landed - triggerBox.width, "the panel must out-size its trigger to tell the pins apart").toBeGreaterThan(200);
-
-    // The offset is measured from the positioner's MIDDLE (the inset is 50%), so for an
-    // unshifted trigger it is exactly minus half the seed's width — the seed arm adds that
-    // half back to land the silhouette's start on the trigger's. A start-pinned centre cell
-    // measured the half-difference of the two widths here instead: 182px on this fixture.
-    const fromX = parseFloat(popup.style.getPropertyValue("--kui-from-x"));
-    const seedW = parseFloat(popup.style.getPropertyValue("--kui-seed-w"));
-    expect(
-      Math.abs(fromX + seedW / 2),
-      "the seed was measured off an edge the trigger does not share — the start-pinned offset",
-    ).toBeLessThan(2);
-
-    const centre = (triggerBox.left + triggerBox.right) / 2;
-    const series = await sweep(popup, "width", () => {
-      const b = popup.getBoundingClientRect();
-      return { width: b.width, centre: (b.left + b.right) / 2 };
-    }, 20);
-    // EVERY station, the overshoot included (2026-08-31, later the same day): the first
-    // spelling of the pin was auto margins, which centre only while the box fits, so this law
-    // excluded the stations past the landed width and called the 5px step there "the spring's
-    // character". It was the pin's: an over-constrained box clamps at its start inset. The
-    // transform pin cannot be over-constrained, so the calibration is now that the sweep
-    // MUST contain overshoot stations, and the centre must hold on them too.
-    expect(
-      series.filter((s) => s.width > landed + 2).length,
-      "the sweep never overshot — the elastic curve's own excursion is the case this law exists for",
-    ).toBeGreaterThan(0);
-    for (const s of series)
-      expect(s.centre, `at width ${s.width.toFixed(1)} the pane's centre left its trigger's`).toBeCloseTo(centre, 0);
-  });
-});
-
-/* ── Reduced motion reaches the EXITS (§8, 2026-08-26 audit) ───────────────────────────────── */
-
-/**
- * The 2026-08-22 repair added `[data-ending-style]` arms for the floating and the alert families
- * to BOTH reduced-motion blocks, because every exit recipe re-declares `transition` on its own
- * one-attribute-heavier selector and the guard's bare-class arm lost the specificity fight. Only
- * the DIALOG's half of that repair had a mounted law: menu.browser.test.tsx and
- * alert-dialog.browser.test.tsx each read an OPEN panel, which carries no ending stamp, so the
- * arms the audit was written for were invisible to every law in the suite.
- *
- * The two arms are read together on purpose. Block one stands the CLOCK down and block two the
- * POSE, and either alone is inert — deleting only the clock leaves a settled panel with nothing
- * to travel, and deleting only the pose leaves values that never animate. Reading both is what
- * makes the single-arm sabotage fail too.
- */
-describe("suppression is total, and it reaches the way OUT (§8)", () => {
-  function landed(kind: "floating" | "alert") {
-    render(
-      <Theme>
-        {kind === "floating" ? (
-          <Menu defaultOpen>
-            <MenuTrigger render={<Button>Open</Button>} />
-            <MenuContent>
-              <MenuItem>One</MenuItem>
-              <MenuItem>Two</MenuItem>
-            </MenuContent>
-          </Menu>
-        ) : (
-          <AlertDialog defaultOpen>
-            <AlertDialogContent>
-              <AlertDialogTitle>Delete workspace?</AlertDialogTitle>
-              <AlertDialogDescription>This cannot be undone.</AlertDialogDescription>
-              <AlertDialogCancel>Keep it</AlertDialogCancel>
-              <AlertDialogAction>Delete</AlertDialogAction>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
-      </Theme>,
-    );
-    const selector = kind === "floating" ? ".kui-menu-popup" : ".kui-alert-popup";
-    const popups = document.querySelectorAll<HTMLElement>(selector);
-    const popup = popups[popups.length - 1]!;
-    expect(popup, `${selector} never mounted`).toBeTruthy();
-    // LANDED BY HAND, not waited for — the harness's own `settle()` minus its one line that
-    // freezes transitions inline, which would poison the very property this law reads. Under
-    // the setting the runner refuses to fly at all and produces this state itself, so hand-
-    // landing is what makes the two arms below comparable rather than a wall-clock race.
-    for (const attr of ["data-starting-style", "data-seed", "data-unfurling"]) {
-      popup.removeAttribute(attr);
-    }
-    popup.setAttribute("data-ending-style", "");
-    return popup;
-  }
-
-  const clocks = (el: Element) =>
-    computed(el, "transition-duration")
-      .split(",")
-      .map((s) => parseFloat(s));
-
-  for (const kind of ["floating", "alert"] as const) {
-    it(`${kind}: a dismissed panel neither travels nor dissolves under the setting`, async () => {
-      await asksForStillness();
-      inMotion();
-      const popup = landed(kind);
-      const body = within(popup, kind === "floating" ? ".kui-floating-body" : ".kui-overlay-body");
-      for (const [what, el] of [["the panel", popup], ["its body", body]] as const) {
-        for (const seconds of clocks(el)) {
-          expect(seconds, `${what} still runs a clock on the way out`).toBe(0);
-        }
-      }
-      // The POSE, which is the other block and the half that actually moves a panel: an exit
-      // sets `opacity: 0` and a settle scale, and a guard that only killed the clock would let
-      // both land in one frame instead of not at all.
-      expect(computed(popup, "opacity"), "the panel still dissolves").toBe("1");
-      expect(computed(popup, "scale"), "the panel still settles").toBe("1");
-      expect(computed(popup, "translate"), "the panel still travels").toBe("0px");
-    });
-
-    it(`${kind}: the same stamp WITHOUT the setting really does move it — the calibration`, () => {
-      // Without this every assertion above is satisfiable by a fixture that never reached the
-      // exit recipe: a wrong class, a stamp nothing reads, or the harness's own stillness sheet
-      // left on. Here the identical DOM must run a real clock and hold a real pose.
-      inMotion();
-      const popup = landed(kind);
-      const body = within(popup, kind === "floating" ? ".kui-floating-body" : ".kui-overlay-body");
-      expect(
-        Math.max(...clocks(popup), ...clocks(body)),
-        "the fixture never reached an exit recipe — the law above asserts nothing",
-      ).toBeGreaterThan(0);
-      expect(computed(popup, "opacity"), "the exit does not dissolve — nothing to suppress").toBe(
-        "0",
-      );
-    });
-  }
 });
 
 /**

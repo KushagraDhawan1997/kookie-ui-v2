@@ -78,9 +78,9 @@ describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§
     // the element that owns the radius. Flat remains the default and byte-identical to a
     // world where the rule does not exist.
     expect(surfaces).not.toContain("data-elevation");
-    // DECLARATIONS, not mentions (respelled 2026-08-10): the floating entry lists box-shadow
-    // as a transition CHANNEL — the cast fades up as the panel lifts — and a channel name is
-    // not a second place this layer paints a shadow. The colon is what separates them.
+    // DECLARATIONS, not mentions (respelled 2026-08-10): the property's name appearing inside
+    // another declaration's value is not a second place this layer paints a shadow. The colon
+    // is what separates them.
     const occurrences = surfaces.match(/box-shadow\s*:/g) ?? [];
     expect(occurrences).toHaveLength(1);
     // The world scopes declare; .kui-surface paints. Routing it through a custom property is
@@ -155,11 +155,11 @@ describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§
     // and this law would measure the wrong rule's position — the substring trap the loud
     // parser exists for.
     // ANCHORED ON THE DECLARATION, not on the rule's opening (2026-09-09). The comment above
-    // records this trap once and it sprang a second time: THREE rules in this sheet now open
-    // with exactly `.kui-surface.kui-floating {` — the padding re-point, this cast site, and
-    // the flight's seed — and the panel band put the padding one FIRST, so a bare indexOf
-    // measured the position of a rule that carries no cast at all. What identifies this rule is
-    // the thing it declares, so that is what locates it.
+    // records this trap once and it sprang a second time: two rules in this sheet open with
+    // exactly `.kui-surface.kui-floating {` — the padding re-point and this cast site — and the
+    // panel band put the padding one FIRST, so a bare indexOf measured the position of a rule
+    // that carries no cast at all. What identifies this rule is the thing it declares, so that
+    // is what locates it.
     const paint = surfaces.indexOf("--kui-sf-cast: var(--kui-floating-chrome");
     expect(paint, "the floating cast site is not in this sheet").toBeGreaterThan(-1);
     expect(
@@ -562,72 +562,6 @@ describe("a surface sets foreground context (§10)", () => {
   });
 });
 
-describe("the exit keeps every channel the entry moves alive (§8, §22, §24)", () => {
-  /**
-   * The 2026-08-16 audit's structural lesson, made mechanical.
-   *
-   * A running transition is CANCELLED the moment its property drops out of
-   * `transition-property`. Both families' exits therefore restate the entry's channels, so a
-   * panel dismissed mid-flight keeps becoming while it dissolves instead of jumping to its
-   * target under the fade. That restatement is a hand-maintained list, and a hand-maintained
-   * list drifts: the floating exit shipped without `box-shadow` for a day, which is a real
-   * channel of that entry (the seed stands the cast down and the flight fades it up), and a
-   * menu dismissed 35ms in snapped 169 → 303px in two frames.
-   *
-   * So the list is not trusted, it is DERIVED: every property named in the family's base
-   * transition must appear in its ending transition. The two clocks are free to differ —
-   * that is the point of an exit — but the membership is not.
-   */
-  const channels = (list: string): string[] =>
-    list
-      // one entry per comma that is not inside a function (a `linear(…)` easing is full of them)
-      .split(/,(?![^(]*\))/)
-      .map((entry) => entry.trim().split(/\s+/)[0] ?? "")
-      .filter((name) => name.length > 0 && !name.startsWith("/*"));
-
-  /**
-   * The transition declared at `selector` — searching EVERY rule with that selector, not the
-   * first. A family states its identity and its motion in separate blocks under the same
-   * selector, and taking the first one found the identity block and reported "no transition"
-   * on a sheet that plainly has one. A law that cannot find its subject is a law that fails
-   * for the wrong reason, which is the same defect class as one that cannot fail at all.
-   */
-  const transitionOf = (selector: string): string => {
-    for (let at = surfaces.indexOf(selector); at !== -1; at = surfaces.indexOf(selector, at + 1)) {
-      const open = surfaces.indexOf("{", at);
-      const close = surfaces.indexOf("}", open);
-      // comments carry prose full of property names; they are documentation, not declarations
-      const body = surfaces.slice(open + 1, close).replace(/\/\*[\s\S]*?\*\//g, "");
-      const start = body.indexOf("transition:");
-      if (start === -1) continue;
-      return body.slice(start + "transition:".length, body.indexOf(";", start));
-    }
-    throw new Error(`no transition declared at ${selector}`);
-  };
-
-  for (const [family, base, ending] of [
-    ["the floating family", ".kui-surface.kui-floating {", ".kui-surface.kui-floating[data-ending-style]"],
-    ["the overlay family", ".kui-surface.kui-alert-popup {", ".kui-surface.kui-alert-popup[data-ending-style]"],
-  ] as const) {
-    it(`${family}: no channel is dropped on the way out`, () => {
-      const entry = channels(transitionOf(base));
-      const exit = channels(transitionOf(ending));
-      // Vacuity guards: a parser that returned nothing would pass this law silently, and the
-      // entry must genuinely move geometry for the claim to be about anything.
-      // Vacuity guards: a parser that returned nothing would pass this law silently, and the
-      // entry must genuinely move geometry for the claim to be about anything.
-      expect(entry.length, "the entry declares channels").toBeGreaterThan(3);
-      expect(exit.length, "the exit declares channels").toBeGreaterThan(3);
-      expect(entry, "the entry moves geometry, not only paint").toContain("inline-size");
-      for (const channel of entry) {
-        expect(exit, `${channel} is cancelled by the exit unless the exit restates it`).toContain(
-          channel,
-        );
-      }
-    });
-  }
-});
-
 describe("the lens is additive, never subtractive (§10, 2026-08-16)", () => {
   const surfacesCss = raw("system/surfaces.css");
   const recipesCss = raw("system/recipes.css");
@@ -835,78 +769,15 @@ describe("the page is published and never consumed (§10, §13, 2026-08-20)", ()
   });
 });
 
-
 /**
- * THE ENTRY FLIGHT'S BODY PIN READS THE RESOLVED PADDING (§22, added 2026-08-23 from the audit).
- *
- * Nine declarations hold a panel's body against its own padding for the length of the entry.
- * All nine read `--kui-floating-p` BARE — the floating family's padding OVERRIDE, which menus
- * and selects declare and popovers and tooltips do not. On those two the value resolved to
- * nothing, the declaration was invalid at computed-value time, and every inset fell to `auto`.
- *
- * IT IS A NODE LAW BECAUSE A BROWSER ONE CANNOT SEE *THAT* DEFECT. `getComputedStyle` reports
- * the USED value for an inset on a positioned element and can never answer `auto`; with the
- * hook unset the body falls to its static position, which IS one padding from the pane's top,
- * so the used value reads identically under both spellings. A browser law was written, measured
- * against both, found unfalsifiable, and deleted — popover.browser.test.tsx records that. The
- * declaration is the thing that can be wrong there, so the declaration is what this reads.
- *
- * THE NEXT DEFECT IN THE SAME NINE DECLARATIONS WAS THE OPPOSITE SHAPE (2026-08-26 audit): a
- * valid value that is the WRONG number. `--kui-sf-p` is one value and a pane has two axes — a
- * Tooltip pays 4px block against 12px inline and paints them with longhands — so the pin read
- * 12px on an axis whose padding is 4px, which a browser reports plainly. That half is asserted
- * where it can be measured, in system/surfaces.browser.test.tsx, as an AGREEMENT between the
- * pin and the painted padding; what stays here is the pair's spelling and the count.
+ * A PANE OF ROWS CONSULTS ITS COMPONENT'S OWN PADDING FIRST (§22). `--kui-floating-p` is the
+ * floating family's padding OVERRIDE: a pane whose padding is its own says so through it, and the
+ * rows join falls back to the panel band behind it.
  */
-describe("the flight pins a panel's body at padding every panel HAS (§22)", () => {
-  const flight = raw("system/surfaces.css").slice(
-    raw("system/surfaces.css").indexOf(
-      '.kui-surface.kui-floating[data-unfurling] .kui-floating-body {',
-    ),
-  );
-
-  it("no flight rule reads the floating-only override bare", () => {
-    // Bare, meaning with no fallback. The size join above may read it — that is the override
-    // doing its job, and it supplies `var(--surface-p-N)` behind it.
-    expect(flight, "a flight rule reads --kui-floating-p with nothing behind it").not.toContain(
-      "var(--kui-floating-p)",
-    );
-  });
-
-  it("they read the resolved padding PER AXIS, and never the one-value name", () => {
-    // The positive half, and the count: nine declarations were found to be affected, so a
-    // regression that fixed one and left eight fails here rather than passing on the one.
-    // Since 2026-08-26 the nine read a PAIR — an inset is on one axis and a pane may price its
-    // two differently — so the count is over both names together, and each must be reached (a
-    // pair where one name is unused is the one-axis-of-two failure returning under a new
-    // spelling).
-    //
-    // SEVEN since 2026-08-29, and the two that left did not stop being pinned. A CENTRED axis is
-    // held by the body's own middle (`inset: 50%` and a half-body negative margin), because two
-    // insets and an auto margin can only centre a box that fits and the body is held at its
-    // landed size while the pane is still growing into it. So the two centre arms pin by
-    // arithmetic rather than by a padding, and they are law-read as a SKEW in
-    // system/floating.browser.test.tsx instead. The floor is what still catches a mass revert.
-    const bl = [...flight.matchAll(/var\(--kui-sf-p-block\)/g)].length;
-    const inl = [...flight.matchAll(/var\(--kui-sf-p-inline\)/g)].length;
-    expect(bl, "the flight's block-axis pin reads no per-axis padding").toBeGreaterThan(0);
-    expect(inl, "the flight's inline-axis pin reads no per-axis padding").toBeGreaterThan(0);
-    expect(bl + inl, "the flight stopped reading the resolved padding").toBeGreaterThanOrEqual(7);
-    // The one-value name is what the pair replaced; a rule that reads it bare is a pane's block
-    // inset answered with its inline one.
-    expect(flight, "a flight rule still pins an axis with the one-value padding").not.toMatch(
-      /var\(--kui-sf-p\)/,
-    );
-    // …and the pair must have somewhere to come from: the base rule defaults both.
-    const base = raw("system/surfaces.css");
-    expect(base).toContain("--kui-sf-p-block: var(--kui-sf-p)");
-    expect(base).toContain("--kui-sf-p-inline: var(--kui-sf-p)");
-  });
-
-  it("and the size join still DECLARES the override — the two are different jobs", () => {
-    // The guard against over-correcting: `--kui-floating-p` is not dead, it is a menu's way of
-    // saying its padding is not a card's. Deleting it would silently give every menu a card's
-    // inset. This is the law that fails if somebody reads the one above too broadly.
+describe("the rows join consults the component's own padding first (§22)", () => {
+  it("every size arm reads the override before the panel band", () => {
+    // `--kui-floating-p` is not dead, it is a menu's way of saying its padding is not a card's.
+    // Deleting it would silently give every menu a card's inset.
     // THE FALLBACK MOVED, THE HOOK DID NOT (2026-09-09). The panel band gave these panes their
     // own designed inset — `--panel-p-N`, carried through `--kui-panel-p` with the ring
     // clearance folded in — so the join no longer falls back to a CARD's pick. What this law is
@@ -928,55 +799,6 @@ describe("the flight pins a panel's body at padding every panel HAS (§22)", () 
         `size ${size} stopped consulting the component's own padding`,
       ).toContain("var(--kui-floating-p, var(--kui-panel-p))");
     }
-  });
-});
-
-/**
- * THE INSTANT EXEMPTION HAS TWO HOMES AND THEY MUST AGREE (§8, §22 — added 2026-08-29).
- *
- * Base UI stamps `data-instant` when a change "is not a reveal", and this system exempts the
- * values that name an INPUT rather than a change. That set is stated twice, because the two
- * halves do different work in different languages: `FLIES_ANYWAY` in system/floating.tsx decides
- * whether the runner POSES the panel, and the `:not()` chain in surfaces.css decides whether any
- * CLOCK runs. Exempt a value in one home only and you get a panel that is posed and never
- * animates (it sits on its seed until the release timer strips it) or one that animates out of
- * nothing.
- *
- * There was no such law until 2026-08-29 even though the runner's own comment named the
- * obligation, and the coverage that existed was incidental and one-sided per value: three menu
- * laws happen to fail if `dismiss` leaves either home or `click` leaves the runner, and nothing
- * at all watched the stylesheet's `click`.
- *
- * It reads the two SOURCES rather than the two behaviours, which is the shape the fourteen
- * private depth arrays were collapsed with (2026-08-16): a copy that agrees today is the copy
- * that silently disagrees tomorrow, and the only thing that can catch that is reading both.
- */
-describe("the instant exemption is one set stated twice, and the two agree (§8, §22)", () => {
-  const runner = raw("system/floating.tsx");
-  const css = raw("system/surfaces.css");
-
-  it("the runner's set and the stylesheet's guard name the same values", () => {
-    const declared = /const FLIES_ANYWAY = new Set\(\[([^\]]*)\]\)/.exec(runner);
-    if (!declared) throw new Error("FLIES_ANYWAY is gone or renamed — this law reads nothing");
-    const fromRunner = [...declared[1]!.matchAll(/"([^"]+)"/g)].map((m) => m[1]!).sort();
-    expect(fromRunner.length, "the runner exempts nothing").toBeGreaterThan(0);
-
-    // The stylesheet's stand-down: one selector carrying the whole chain, read off the FIRST
-    // arm. The three arms are asserted identical below, so reading one is reading all of them.
-    const stand = /\.kui-surface\.kui-floating\[data-instant\]((?::not\(\[data-instant="[^"]+"\]\))+)/.exec(css);
-    if (!stand) throw new Error("the instant stand-down is gone or respelled — this law reads nothing");
-    const fromCss = [...stand[1]!.matchAll(/data-instant="([^"]+)"/g)].map((m) => m[1]!).sort();
-
-    expect(fromCss, "the stylesheet exempts a different set from the runner").toEqual(fromRunner);
-  });
-
-  it("and every arm of the stand-down carries the whole chain", () => {
-    // A guard that exempts three values on the panel and two on its body is the same defect
-    // one element down: the box would fly and the print inside it would snap.
-    const arms = [...css.matchAll(/\.kui-surface\.kui-floating\[data-instant\]((?::not\(\[data-instant="[^"]+"\]\))+)/g)]
-      .map((m) => m[1]!);
-    expect(arms.length, "the stand-down lost its arms").toBeGreaterThanOrEqual(3);
-    expect(new Set(arms).size, "one arm of the instant stand-down exempts a different set").toBe(1);
   });
 });
 

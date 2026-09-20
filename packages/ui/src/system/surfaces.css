@@ -82,34 +82,6 @@
   inherits: false;
 }
 
-/* The flight's body SINK — how far a bottom-pinned flying body is pushed below its panel's
-   seam so that the rows riding the seam are the RESTING window's rows, not the list's last
-   (2026-08-25, Kushagra: a constrained top-opening menu showed the END of its list through
-   the whole flight and snapped to the top on the release frame — the box was long since
-   fixed, and the CONTENT was the jump). Written by the runner at departure, only where the
-   list overflows its landed viewport; registered so the pin below never goes invalid where
-   no flight has written it, and non-inheriting because a sink encodes ONE body's overflow. */
-@property --kui-body-sink {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: 0px;
-}
-/* The seed's OWN offset from the trigger's box (2026-08-31): the runner measures the seed's
-   top-left onto the trigger's top-left, and a member whose seed is not the trigger's box
-   (a popover's circle) states how far its seed sits inside that box. Zero by registration
-   wherever no member wrote one, non-inheriting for the same reason as every flight hook. */
-@property --kui-seed-dx {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: 0px;
-}
-@property --kui-seed-dy {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: 0px;
-}
-
-
 .kui-surface {
   box-sizing: border-box;
   /* The rungs publish their fills as SOURCES; the painted value reads through this chain so
@@ -149,11 +121,6 @@
   --kui-sf-r: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1));
   border-radius: var(--kui-sf-r);
   padding: var(--kui-sf-p);
-  /* The pane's inset, per AXIS — the pair the entry flight's body pin reads (see it for the
-     whole argument). Defaulted here so every pane answers both names, and re-stated by the one
-     pane that pads anisotropically. */
-  --kui-sf-p-block: var(--kui-sf-p);
-  --kui-sf-p-inline: var(--kui-sf-p);
   /* A pane's corner is its SHAPE, so what it holds obeys it (2026-08-20). Without this a
      surface drew a rounded — since 2026-08-17, a squircled — boundary that nothing was made
      to respect: a picture reaching the edge squared off the corner it sat in, and the pane
@@ -161,13 +128,11 @@
      did not, and had never decided not to. It is the other half of `bleed` (§3): the moment
      a child is allowed to reach the edge, the edge has to be able to hold it.
 
-     `clip` and not `hidden`, for the reason written at length down in the flight rules: a
-     `hidden` box is a SCROLL CONTAINER — scrollable by script and by the browser's own
-     scroll-into-view, just without a scrollbar — which is how a select's panel came to slide
-     its own contents under a growing frame. `clip` is not a scroll container at all, so it
-     takes no offset and unwinds none, and it leaves a sticky child inside a card sticking to
-     the real scrollport rather than to a box that cannot scroll. Those two flight rules used
-     to state this themselves; the fact has one home now.
+     `clip` and not `hidden`: a `hidden` box is a SCROLL CONTAINER — scrollable by script and
+     by the browser's own scroll-into-view, just without a scrollbar — so a focused child can
+     scroll the pane's contents out from under its own frame. `clip` is not a scroll container
+     at all, so it takes no offset, and it leaves a sticky child inside a card sticking to the
+     real scrollport rather than to a box that cannot scroll.
 
      What it costs: an element that deliberately hangs off a pane's corner — a chip, an
      avatar overlapping the edge — cannot, and the escape is `style={{ overflow: "visible" }}`
@@ -290,13 +255,12 @@
    it does not repeat the `.kui-stack` refusal: a hand-written `<Box display="flex">` card is
    excluded because it chose, not because of the class it wears.
 
-   The dialog arm is the same fact reaching through ONE box. `.kui-dialog-body` exists only so
-   the entry can blur the content (§24), and it stands between the pane and the caller's
-   children, so every rule here — each of which asks about a DIRECT child — stopped at it: no
-   ScrollArea in a dialog has ever bled, and none has ever become a scroll container, whatever
-   height the call site stated. Named rather than generalised, because it is the only such box
-   in the library: the menu and the select put their scroller OUTSIDE the flying body, and the
-   alert owns its content and holds no scroller at all. */
+   The dialog arm is the same fact reaching through ONE box. `.kui-dialog-body` stands between
+   the pane and the caller's children, so every rule here — each of which asks about a DIRECT
+   child — stopped at it: no ScrollArea in a dialog had ever bled, and none had ever become a
+   scroll container, whatever height the call site stated. Named rather than generalised,
+   because it is the only such box in the library: the menu and the select put their scroller
+   OUTSIDE their body, and the alert owns its content and holds no scroller at all. */
 .kui-dialog-body:has(> .kui-scroll-area) {
   flex: 1;
   min-block-size: 0;
@@ -653,14 +617,8 @@
    character 427px wide (audit 2026-08-09). Menu stamps it on a top-level panel only; a select and
    a combobox are always anchored and wear it unconditionally.
 
-   THE ANCHOR TERM CONSULTS THE ENTRY'S OWN MEASUREMENT FIRST (2026-08-10): the flight needs this
-   floor inside its measured target, and floating-ui has not written `--anchor-width` yet on a
-   first open — the panel flew to its content width and re-expanded at release. `--kui-anchor-w`
-   is the trigger's LAYOUT box and it OUTLIVES the flight (corrected 2026-08-22): a settled panel
-   used to fall through to floating-ui's own, which is still travelling with the held press —
-   measured, `--anchor-width` walking 400 -> 388 -> 390 over ~350ms while the panel sat at 400,
-   then a 10px snap one frame after the release. The two terms are one number, taken once, for the
-   panel's whole life; the runner's block above `useFlight` carries the measurement.
+   THE ANCHOR TERM IS BASE UI'S OWN `--anchor-width`, the trigger's width as the positioner
+   measured it. The inner fallback keeps the declaration valid where no positioner exists.
 
    AND IT IS CAPPED BY THE ROOM, INSIDE THE `min()` (2026-08-22 audit) — not by the `max-width`
    above, which could never win. In CSS a minimum beats a maximum, so for any trigger wider than
@@ -671,34 +629,14 @@
    by its own long rows rather than by its trigger. The inner `max()` keeps the designed floor from
    being squeezed away when the reported room is absurdly small.
 
-   (0,2,0), which is what the three component copies were and is load-bearing in both directions:
-   it beats `.kui-menu-popup`'s bare `--floating-min-w` at (0,1,0), so a top-level menu takes the
-   anchor floor and a submenu takes the plain one; and it LOSES to the flight's own
-   `min-inline-size: 0` at `.kui-surface.kui-floating[data-unfurling]`, (0,3,0), which is the
-   stand-down that lets a panel be narrower than its trigger while it is still unfurling. That
-   second relationship is stated as specificity rather than as source order on purpose — see the
-   promotion note at the head of the motion block below, where the same tie was got wrong once. */
+   (0,2,0), which is what the three component copies were and is load-bearing: it beats
+   `.kui-menu-popup`'s bare `--floating-min-w` at (0,1,0), so a top-level menu takes the anchor
+   floor and a submenu takes the plain one. */
 .kui-surface.kui-floating-anchored {
   min-width: min(
-    max(var(--floating-min-w), var(--kui-anchor-w, var(--anchor-width, var(--floating-min-w)))),
+    max(var(--floating-min-w), var(--anchor-width, var(--floating-min-w))),
     max(var(--floating-min-w), var(--available-width, 100vw))
   );
-}
-
-/* THE ONE PANE WITH TWO INSETS (§32, 2026-08-26 audit). A tooltip is one line of words priced
-   on its own two axes, and it paints them with `padding-block` / `padding-inline` longhands —
-   which beat this layer's `padding` shorthand on source order, so the pane's real inset and
-   `--kui-sf-p` have never been the same number on the block axis. Nothing read the difference
-   until the entry flight's body pin did (see it, at the bottom of this file): the pin took the
-   surface band's 12px on an axis whose padding is 4px.
-
-   Stated here rather than in tooltip.css because that sheet is not this layer's to write; the
-   two homes are held in agreement by a mounted law that reads the pin and the painted padding
-   off the browser, per axis, on every floating pane. `--tooltip-p-*` has ONE home either way —
-   tokens.css — so this is a second consumer of a value, never a second statement of it. */
-.kui-surface.kui-tooltip-popup {
-  --kui-sf-p-block: var(--tooltip-p-block);
-  --kui-sf-p-inline: var(--tooltip-p-inline);
 }
 
 /* ── The ACCORDION's size join (§37, shipped 2026-08-31) ─────────────────────────────────────
@@ -1325,9 +1263,8 @@
    never to every label: a card labelling something outside itself is not a thing you press.
 
    `:where()` contributes ZERO specificity whatever is inside it, so this list can grow without
-   moving the recipe off (0,1,0) — which is what the reduced-motion stand-down, the disabled arm
-   and the ring hook all weigh themselves against. Widening it was safe for that reason and for
-   no other. */
+   moving the recipe off (0,1,0) — which is what the disabled arm and the focus ring weigh
+   themselves against. Widening it was safe for that reason and for no other. */
 
 .kui-surface:where(button, a, label:has(.kui-control)) {
   cursor: var(--cursor-button);
@@ -1347,27 +1284,18 @@
      covers the box itself; a call site that wants a shrink-wrapped pressable card states a
      width the way it would for any block. */
   display: block;
-  /* THE TWO CLOCKS, one level up (§8, 2026-08-17). This surface had the control layer's state
-     COLOURS since card-as-button shipped on 2026-08-03 and none of its motion, because the
-     motion system landed six days later and was written against `.kui-control` — so the fill
-     stepped white-to-grey with `transition-duration: 0s` and the box never moved at all.
+  /* An interactive surface is its own stacking context, so a glass pane's glint band (the
+     pane's `::before`) paints UNDER a card-as-button that sits inside the pane, never across
+     it — button.css's own sentence, one family over, and §10's "an interactive surface reuses
+     the control state machine" applied to paint order.
 
-     The block is the control layer's verbatim, deliberately: §10 already says an interactive
-     surface reuses the control state machine rather than inventing a surface one, and that has
-     to be as true of how it moves as of what colour it turns. Paint is a signal and eases;
-     geometry is physics and rides the spring; a press zeroes the paint so the colour lands on
-     the first frame of a ~60ms tap. Only the DISTANCES are the surface's own. */
-  --kui-sf-paint: var(--motion-hover-out);
-  --kui-sf-move: var(--motion-rise);
-  --kui-sf-move-ease: var(--motion-spring-lively);
-  translate: 0 0;
-  scale: 1;
-  transition:
-    background-color var(--kui-sf-paint) var(--motion-easing),
-    border-color var(--kui-sf-paint) var(--motion-easing),
-    color var(--kui-sf-paint) var(--motion-easing),
-    translate var(--kui-sf-move) var(--kui-sf-move-ease),
-    scale var(--kui-sf-move) var(--kui-sf-move-ease);
+     STATED, because until 2026-09-20 it was a SIDE EFFECT: the resting `translate: 0 0; scale: 1`
+     this rule declared for the hover to travel from made the stacking context, and the motion
+     removal took it. `.kui-button` had exactly that loss noticed and repaired; this rule is the
+     other half of the pair and was missed. Measured on a bled card-as-button inside a thick
+     glass pane in dark: the band's contribution over the child went from 1,839 pixels at most
+     7/255 to 2,271 at most 36/255 — the band painting across the child instead of under it. */
+  isolation: isolate;
 }
 
 /* Hover only exists where hovering does — same hardware fact as the control layer. The
@@ -1376,54 +1304,27 @@
 @media (hover: hover) {
   .kui-surface:where(button, a, label:has(.kui-control)):hover {
     background-color: var(--kui-sf-fill-hover, var(--color-surface-hover));
-    /* Warming faster than cooling, the control layer's judged asymmetry: arriving is something
-       the user did, leaving is something they stopped doing. */
-    --kui-sf-paint: var(--motion-hover-in);
-    /* And it rises to meet the pointer. `--hover-travel` is shared with the button and not
-       re-designed, because one pixel means the same thing on a card as on a button: it is an
-       absolute distance, not a ratio. */
-    translate: 0 calc(-1 * var(--hover-travel));
   }
 }
 
-/* Press is unguarded and instant: on touch it is the only feedback there is. */
+/* Press is unguarded: on touch it is the only feedback there is. */
 .kui-surface:where(button, a, label:has(.kui-control)):active {
   background-color: var(--kui-sf-fill-active, var(--color-surface-active));
-  --kui-sf-paint: 0s;
-  /* Down hard and fast; the release takes the base clock back because this is restated on the
-     STATE rather than swapped globally. */
-  --kui-sf-move: var(--motion-press);
-  --kui-sf-move-ease: var(--motion-spring-stiff);
-  /* The distances the surface designs for itself, and the scale is the one that could not be
-     shared (config): scale is RELATIVE, so a button's 0.975 moves a 400px card's edge 5px and
-     reads as the page flexing. These are matched on EDGE MOVEMENT, which is what the eye reads.
-     The sink is halved for the same reason a heavier thing moves less under the same push. */
-  translate: 0 var(--press-travel-surface);
-  scale: var(--press-scale-surface);
 }
 
-/* The one ring, shared with every control (§8) — and since 2026-08-17 it LANDS like one. The
-   `kui-ring-land` keyframes live in recipes.css and are the system's one arrival; a card is a
-   click target the eye must find after a Tab exactly as a button is, and it has more room than
-   the 4px floor that rules a field's ring out. Declared as a HOOK for the same reason the
-   control's is: the reduced-motion stand-down then shares this selector and cannot be
-   separated from it by specificity. */
-.kui-surface:where(button, a, label:has(.kui-control)) {
-  --kui-sf-ring: kui-ring-land var(--motion-ring) var(--motion-spring-stiff);
-}
+/* The one ring, shared with every control (§8): a card is a click target the eye must find
+   after a Tab exactly as a button is. */
 .kui-surface:where(button, a, label:has(.kui-control)):focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
-  animation: var(--kui-sf-ring);
 }
 
 /* ── A dead interactive surface (§10, 2026-08-22, Kushagra) ───────────────────────────────────
    Measured before it was written: a `<Card render={<button disabled/>}>` computed BYTE-IDENTICAL
    to a live one — same seal, same ink, and `cursor: pointer`, so a dead card still promised a
    press. Every control in the library has had a disabled appearance since the shared remap
-   shipped; the interactive surface was left out for the same reason it was left out of the
-   motion system until 2026-08-17 — the remap is written against `.kui-control`, and a card is
-   not one.
+   shipped; the interactive surface was left out because the remap is written against
+   `.kui-control`, and a card is not one.
 
    Most of it arrives from that remap, which now names this selector too (recipes.css): the
    cursor, the ink trio and the tone roles. What CANNOT arrive from it is what the mark family
@@ -1435,11 +1336,7 @@
    ink dims, the cursor stops promising, and the cast goes. The cast is the one that is really a
    §5 statement rather than a dimming: elevation says a thing sits above the plane and can be
    picked up, and a dead card cannot be. `0 0 0 0 transparent` and never `none` — a shadow list
-   may not hold `none`, the lesson the material rim cost a rewrite to learn.
-
-   The MOTION stands down on the same selector, which is not optional: a dead card that still
-   rose to the pointer and sank under a press would be contradicting its own appearance in the
-   one channel a person tests it with. */
+   may not hold `none`, the lesson the material rim cost a rewrite to learn. */
 .kui-surface:where(button, a, label:has(.kui-control)):is(
     :disabled,
     [aria-disabled="true"],
@@ -1507,13 +1404,6 @@
   --color-text: var(--disabled-ink);
   --color-text-muted: var(--disabled-ink);
   --color-text-faint: var(--disabled-ink);
-  /* The MOTION stands down here and needs no arms of its own. This rule is (0,2,0), the hover
-     and press rules are (0,2,0), and it sits AFTER them, so it wins the tie on source order —
-     recipes.css's own hover-stand-down mechanism. Moving this block above them would silently
-     give a dead card its rise back, which is why the ordering is stated rather than left to be
-     rediscovered. */
-  translate: 0 0;
-  scale: 1;
 }
 
 /* The PAINT is a different question and needs its own arms, which cost an hour to learn twice
@@ -1526,11 +1416,10 @@
    rest, and the hover colour under the pointer.
 
    These two blocks were written in the first cut, then DELETED as unreachable because a
-   sabotage pass showed the suite still green without them. That pass was reading the motion
-   law, which asserts travel and scale — the axis that was already right. The paint had no law
-   at all, so nothing could see the deletion. It is the degenerate-fixture lesson in its
-   sharpest form: the sabotage did not survive because the code was redundant, it survived
-   because the LAW was one channel short. Both channels are read now.
+   sabotage pass showed the suite still green without them. The paint had no law at all, so
+   nothing could see the deletion. It is the degenerate-fixture lesson in its sharpest form: the
+   sabotage did not survive because the code was redundant, it survived because the LAW was one
+   channel short. The paint is read now.
 
    `:hover` and `:active` still MATCH a disabled element — the browser fires neither event, but
    a selector is not an event, and an anchor with aria-disabled is not disabled to CSS at all.
@@ -2273,7 +2162,7 @@
    the selector because it is also the truth: this thumb exists only in the bar.
 
    KEYED ON THE PILL, not the rail (2026-09-09). The bar became a row of panes, so the element
-   carrying `data-material` is `.kui-shell-rail-list` — the pill the grip travels in — and the
+   carrying `data-material` is `.kui-shell-rail-list` — the pill the grip sits in — and the
    rail element wears no material at all. Read against the rail this matched nothing and the
    grip fell back to a `--tone-soft` that resolves to nothing outside a stamped tone: measured
    `rgba(0, 0, 0, 0)`, a chosen tab with no grip under it. */
@@ -2485,1061 +2374,4 @@
    which behaves as flat, the material rim's own precedent. */
 .kui-surface.kui-floating {
   --kui-sf-cast: var(--kui-floating-chrome, var(--floating-chrome-flat, none));
-}
-
-
-/* ══ The floating family's ENTRY, promoted from menu.css on its second consumer (§8, §22 —
-   2026-08-10, Kushagra: *"can we apply the same animation to select now?"*) ═══════════════
-   
-   Menu shipped this and Select is the second member, which is normally where CSS self-keys a
-   copy and the third member promotes (TextArea's rule). It promotes now instead, and the
-   reason is that there is nothing here to learn from a second spelling: the mechanism was
-   family-named end to end before Select existed — the JS finds its panel with
-   `closest(".kui-surface.kui-floating")`, the measured box is `--kui-fly-w/-h/-bw`, the wrapper is
-   `.kui-floating-body`, the clocks are `--floating-*`, and both members already publish the
-   same `--kui-floating-p`. The only component-level thing about it was the selector, which
-   was an accident of Menu having shipped first. Copying ~130 lines into select.css would have
-   duplicated every seam, pin and precedence decision made on 2026-08-10 into a second file
-   that can drift from the first — and three of that day's bugs were drift.
-   
-   A select's entry being the same GESTURE as a menu's was the open question (§8 recorded it),
-   and it is answered above by the person who asks for it.
-
-   One hazard the move surfaced, and it is the reason every selector below carries
-   `.kui-surface`: the width floor is `.kui-surface.kui-floating-anchored`, two classes, and the
-   seed's stand-down used to TIE with it and win on source order because both lived in one
-   file. Promoted into a sheet that loads earlier, the same tie now goes the other way and the
-   panel opened at its 112px floor instead of its 40px seed. Stated as specificity rather than
-   as order, so the family's entry cannot be silently outranked by a component stating a
-   resting fact.
-*/
-/* ── Motion (§8, §22 — the emergence recipe, judged 2026-08-09 in the motion lab) ─────────
- *
- * A panel does not appear; it BECOMES. It starts as a seed — a circle the size of the
- * trigger it came out of, because at a menu's inception the shape it will take is not known
- * yet — and unfurls into its own box. Four channels on the same spring with four durations,
- * because what makes a moving box read as one object rather than a rigid block is that its
- * parts arrive at different times: give every channel one duration and the panel is a
- * photograph being scaled.
- *
- * Menu is the FIRST member to state this, so the rules key on `.kui-surface.kui-floating` and not on
- * the family — the second member self-keys and the third promotes, the rule TextArea set.
- * What is already the family's is the machinery: the tokens (`--floating-*`), the body
- * element and the measurement (system/floating.tsx).
- *
- * The two lengths are measured, not interpolated to `auto` — `interpolate-size` is Chromium
- * only. `--kui-fly-w/h` are set for the flight and released on arrival, so a settled
- * panel sizes itself again. Both fall back to `auto`, which is what a panel computes under
- * reduced motion and after arrival. */
-.kui-surface.kui-floating {
-  /* The seed's diameter (§22) — one designed constant, and every offset derives from it. It
-     wanted to be the trigger's own height; the positioner publishes that number
-     asynchronously, so on the frame the seed applies it is still unset and every rule reading
-     it takes its INITIAL value instead of the cascaded one (measured: the panel's corner
-     collapsed to 0px). A seed is a system fact, not a photograph of what was pressed. */
-  --kui-seed: var(--floating-seed);
-  inline-size: var(--kui-fly-w, auto);
-  block-size: var(--kui-fly-h, auto);
-  /* The corner the seed occupied — the panel unfurls out of it and settles back toward it on
-     dismissal, rather than toward its own middle. Stated as two halves so `data-side` and
-     `data-align` can each set one. */
-  transform-origin: var(--kui-origin-x, left) var(--kui-origin-y, top);
-  scale: 1;
-  /* The panel's own travel — see the lean block below. Declared here so the seed has
-     somewhere to travel TO. */
-  translate: 0 0;
-  transition:
-    /* No delays: the first frame is the trigger's own opaque silhouette (2026-08-15), so
-       there is no fade to wait out — the body lifts and unfurls at once. */
-    /* the panel FALLS first — the axis that finishes LAST is the one the eye reads as the
-       direction of travel, so a menu drops out of its trigger and then opens sideways */
-    block-size var(--floating-fall) var(--motion-spring-elastic),
-    translate var(--floating-fall) var(--motion-spring-elastic),
-    /* then it SPREADS */
-    inline-size var(--floating-spread) var(--motion-spring-elastic),
-    /* the corner and the settle-scale sit between the two */
-    border-radius var(--floating-corner) var(--motion-spring-elastic),
-    scale var(--floating-corner) var(--motion-spring-elastic),
-    /* paint is signal, not physics: it eases, it does not spring (§8's two clocks). */
-    opacity var(--floating-paint) ease-out,
-    box-shadow var(--floating-reveal) ease-out;
-}
-
-/* The origin's two halves, from the same attributes the positioner uses to choose its edge —
-   so the pane settles back into the corner it grew out of, whichever one that was. Written
-   out rather than folded into `:is()`, which is banned in a component sheet (a selector that
-   borrows its most specific argument's weight can tie with a state remap).
-
-   `left`/`right` are physical, so RTL flips what `start` and `end` mean; `--kui-origin-x`
-   defaults to `left`, which is the LTR start edge, and the RTL arms restate both directions
-   rather than only the one that looks wrong. */
-.kui-surface.kui-floating[data-side="top"] {
-  --kui-origin-y: bottom;
-}
-.kui-surface.kui-floating[data-side="bottom"][data-align="end"],
-.kui-surface.kui-floating[data-side="top"][data-align="end"],
-.kui-surface.kui-floating[data-side="left"],
-.kui-surface.kui-floating[data-side="inline-start"] {
-  --kui-origin-x: right;
-}
-.kui-surface.kui-floating[data-side="bottom"][data-align="center"],
-.kui-surface.kui-floating[data-side="top"][data-align="center"] {
-  --kui-origin-x: center;
-}
-.kui-surface.kui-floating[data-side="right"][data-align="end"],
-.kui-surface.kui-floating[data-side="inline-end"][data-align="end"],
-.kui-surface.kui-floating[data-side="left"][data-align="end"],
-.kui-surface.kui-floating[data-side="inline-start"][data-align="end"] {
-  --kui-origin-y: bottom;
-}
-.kui-surface.kui-floating[data-side="right"][data-align="center"],
-.kui-surface.kui-floating[data-side="inline-end"][data-align="center"],
-.kui-surface.kui-floating[data-side="left"][data-align="center"],
-.kui-surface.kui-floating[data-side="inline-start"][data-align="center"] {
-  --kui-origin-y: center;
-}
-[dir="rtl"] .kui-surface.kui-floating[data-side="bottom"][data-align="start"],
-[dir="rtl"] .kui-surface.kui-floating[data-side="top"][data-align="start"] {
-  --kui-origin-x: right;
-}
-[dir="rtl"] .kui-surface.kui-floating[data-side="bottom"][data-align="end"],
-[dir="rtl"] .kui-surface.kui-floating[data-side="top"][data-align="end"] {
-  --kui-origin-x: left;
-}
-/* …and the SIDE placements, which had no direction arms at all (2026-08-23, the
-   floating-motion audit).
-
-   `transform-origin` has no logical keywords, so this whole table is stated in physical ones —
-   which is fine for `left`/`right`, whose meaning does not move, and wrong for `inline-start`
-   and `inline-end`, whose meaning is the direction. Base UI's `getLogicalSide` maps a rendered
-   physical `right` to `inline-start` under RTL and physical `left` to `inline-end`, so both
-   logical values invert while the origin keyword does not.
-
-   Measured on a settled RTL submenu, exit caught at 60% of its dissolve: the panel is pinned
-   at the seam it shares with its parent and pivots on the edge furthest from it, so the shared
-   seam OPENS by 2.79px on a 164.8px panel while the far edge stays put — the opposite of the
-   stated invariant that a pane settles back into the corner it grew out of. It is not only the
-   flipped case: an ordinary RTL submenu resolves `inline-end`, takes the base default `left`,
-   and is wrong the same way, so this is every RTL submenu rather than only ones near an edge.
-
-   Small — 2% of the panel, seam-adjacent, during a fade — and stated as a rule because the pin
-   one block down already states it and these two must agree. */
-[dir="rtl"] .kui-surface.kui-floating[data-side="inline-start"] {
-  --kui-origin-x: left;
-}
-[dir="rtl"] .kui-surface.kui-floating[data-side="inline-end"] {
-  --kui-origin-x: right;
-}
-
-/* The seed is a SIZE and nothing else — no offset, and that absence is the mechanism.
-   The positioner already holds one edge of the panel (the top under a menu, the start edge
-   beside a submenu, and whichever inline edge `align` names), and it holds that edge at
-   every size. So a panel that simply grows unfurls AWAY from the edge nearest the thing it
-   came out of, in the right direction, for free: down-then-right when it opens to the right,
-   down-then-left when it opens to the left.
-
-   Two spellings were built and thrown away first (2026-08-09, Kushagra: *"the origin has an
-   issue… it seems going direction side first, then down"*). A lateral offset on the seed
-   pointed the same way whichever side the panel opened toward, which is what made a
-   right-aligned menu emerge from its far corner. Holding the outer box constant with margins
-   — slack on the far side so the positioner never needs to re-solve — is the idea that
-   *should* work and cannot: the popup is a block child of a shrink-to-fit absolutely
-   positioned box, so it is over-constrained and the browser drops the end margin outright.
-   Measured, a literal `margin-inline-end: 72px` computed to `0px`.
-
-   `min-inline-size` is stood down for this frame: the width floor means "never narrower than
-   the trigger you pressed", which is a statement about the panel, and the seed is not the
-   panel yet. */
-/* Keyed on the FLIGHT and not on the seed alone, and that is load-bearing (§23, 2026-08-17):
-   a select's panel wears `data-seed` from the frame it opens — the visibility gate — while its
-   placement is still being computed, and Base UI computes that placement from the panel's own
-   box. A pose keyed on the gate alone therefore shrinks the very box the placement is measured
-   from, and the chosen row lands 66px off the trigger it exists to sit on. `data-unfurling` is
-   stamped with the measurement, which is after the placement has settled. */
-.kui-surface.kui-floating[data-unfurling][data-seed] {
-  /* THE SILHOUETTE (2026-08-15, Kushagra: *"make the circle shape of trigger exactly, and
-     make it start from where the trigger is"* — the interim circle and its quadrant were
-     built the same day and reverted on sight). The panel's first frame is the trigger's own
-     box — its width, height and corner, translated to sit exactly on it (`--kui-from-x/y`,
-     measured in system/floating.tsx against the popup's laid-out position, a TRANSLATE and
-     never a margin: a margin is layout and re-sizes the positioner) — and the unfurl grows
-     it straight into the panel's own box, which answers where the panel came from.
-
-     OPAQUE from the first frame (the 2026-08-10 morph's finding, back in force now that the
-     seed overlaps its trigger again): it covers the trigger exactly, so this is the trigger's
-     own body lifting, and a body does not fade in. What still arrives gradually is the LIGHT
-     — the seed is castless, and the floating shadow fades up as the panel lifts. Anchorless
-     panels fall back to the designed-diameter dot in place. */
-  translate: calc(var(--kui-from-x, 0px) + var(--kui-seed-dx)) calc(var(--kui-from-y, 0px) + var(--kui-seed-dy));
-  inline-size: var(--kui-seed-w, var(--kui-seed));
-  block-size: var(--kui-seed-h, var(--kui-seed));
-  min-inline-size: 0;
-  border-radius: var(--kui-seed-r, calc(var(--kui-seed) / 2));
-  --kui-sf-cast: none;
-  /* STATIC while seeded: the aim writes `--kui-from-x/y` after floating-ui places the
-     positioner (a microtask, then a correcting frame — system/floating.tsx), and under a
-     live transition list each write would START a translate transition whose cancellation
-     at seed-release reads as a dismissal (measured: the entry released two frames in and
-     the panel snapped). The seed is a held pose, not a state change; the flight's
-     transitions are the BASE rule's, and they apply the frame this attribute comes off. */
-  transition: none;
-}
-/* Invisible until AIMED: floating-ui can place the positioner after the first paint, and a
-   silhouette painted before the aim sits wherever the last layout left it (measured: one
-   frame at x=2275 before snapping to the trigger). The aim stamps `data-aimed` in the same
-   write as the offsets, so the pose is never seen un-placed — usually that is still before
-   the first paint, and the opaque-from-frame-one rule above is what applies. */
-.kui-surface.kui-floating[data-seed]:not([data-aimed]) {
-  opacity: 0;
-}
-
-/* There are no per-side lean arms: the silhouette's translate is MEASURED (--kui-from-x/y),
-   so every anchor — a menu's button, a select's field — gets the exact overlay for free, in
-   RTL and at every side/align, with no judged distance anywhere.
-
-   A panel that lands BESIDE its trigger is the exception, and it is decided by the placement
-   rather than by the component (system/floating.tsx's `BESIDE`). This block used to claim
-   that the row-shaped seed "grows the short, true distance out" for a submenu; measured on a
-   365px menu it is 366px of travel, from a 353px seed into a 92px panel — the unfurl running
-   backwards, and both numbers the parent panel's width. A silhouette is honest only where the
-   panel LANDS on its trigger; a submenu lands beside the panel its row sits in. So a
-   side-opening panel keeps the row's height and corner, drops the width photograph to the
-   family's designed seed, and starts at x=0 — the positioner is already holding its start
-   edge at the final place, so it simply grows out of the seam. */
-
-/* While the box is deliberately smaller than what it holds, it clips — the base `.kui-surface`
-   rule carries that now (2026-08-20, the corner is a shape), so this block only states the
-   flight's own facts. The argument stays here because this is where it was won. `overflow-y:
-   auto` computes the OTHER axis to `auto` too, so an unclipped flight is two live scrollbars.
-
-   `clip` and not `hidden`, and the difference is the whole point (2026-08-17, Kushagra:
-   *"Select still jumps"*). `hidden` is a SCROLL CONTAINER — scrollable by script and by the
-   browser's own scroll-into-view, only without a scrollbar. Base UI focuses the selected row
-   the moment a select opens, and during the flight the box is deliberately far smaller than
-   the list it holds, so the browser scrolled the PANEL to reveal that row: measured
-   `scrollTop: 57` on an eight-row select with the fifth selected. Nothing settles there —
-   the whole list fits the moment the box finishes growing — so the browser clamped the
-   offset back down frame by frame and the panel's contents visibly slid under a growing
-   frame. `clip` is not a scroll container at all, so there is no offset to take and none to
-   unwind: measured 0 in every frame of the entry.
-
-   The page is the other half of the same reveal and is held in the runner (system/
-   floating.tsx), because a box that cannot scroll sends the browser one step further up. The
-   two are load-bearing together: with `clip` and no hold the page keeps 65px; with `hidden`
-   and the hold the page is still but the contents slide. */
-.kui-surface.kui-floating[data-unfurling] {
-  /* RESTATED, and it is not redundant with the base rule (2026-08-20): a select's panel is the
-     one floating member that scrolls itself, so select.css declares `overflow-y: auto` on this
-     same element and beats the base rule on source order. For the flight the box must not be a
-     scroll container at all — that is the entire finding above — so the flight says so where it
-     can win. Deleting this line was tried and put the jump straight back.
-
-     AND IT DOES NOT REACH A SELECT (2026-08-22 audit). The paragraph above is a menu's truth
-     stated as the family's: Base UI spreads `LIST_FUNCTIONAL_STYLES` — `position: relative`,
-     `max-height: 100%`, `overflow: hidden auto` — as the popup's React `style` prop on the
-     item-aligned path this package ships, and an inline declaration beats every rule here.
-     Measured, same rules, one negative control: a menu's flying box computes `clip` and
-     `absolute`, a select's computes `hidden auto` and `relative`, and the "measured 0 in every
-     frame" above was taken on an eight-row list with no offset to lose. The select's half is
-     won in the runner now (system/floating.tsx). This line still governs every anchored panel
-     that has no inline style of its own, which is why it stays.
-
-     AND THE RUNNER'S HALF IS NO LONGER A CLIP (2026-08-22, Kushagra on a 48-row list: it
-     "jumps the selected item to correct position after opening"). Abolishing the offset ends
-     the sliding and buys a worse thing on a panel where the offset IS the placement: an
-     item-aligned select puts the chosen row on the trigger BECAUSE of that offset, so a flight
-     with no offset runs the whole entry showing the top of the list and the placement arrives
-     in one step at the end — measured 301 at the seed, 0 for ~740ms, 301 again on release, the
-     chosen row 374px adrift and snapping home. The runner now writes the offset WITH the pose
-     on a box that scrolls, and clips only a box that does not. What the entry owes was never
-     "no offset", it is "the offset does not change" — which is what the law reads, per flying
-     frame, and what both failures violate. */
-  overflow: clip;
-  /* And the width FLOOR is stood down for the whole flight, not just the seed frame —
-     which is the bug that made every menu look wrong (Kushagra, playground: *"it starts at a
-     certain width… then it goes down and it shrinks, and then when it reaches the correct
-     vertical position it expands again"*).
-
-     `min-width` is `max(--floating-min-w, --anchor-width)` and it beats an animating `width`
-     outright, so the moment the seed frame ended the panel SNAPPED to 112px and stayed there:
-     the inline channel was declared, listed, sprung — and pinned at its destination from the
-     first visible frame, so what unfurled was a wide bar growing taller. Measured across
-     frames: `w=40 → 112` in one step, then 112 for the rest of the entry.
-
-     The floor means "a settled panel is never narrower than the trigger you pressed". A panel
-     mid-unfurl is deliberately narrower than everything, and is not settled. */
-  min-inline-size: 0;
-}
-
-/* The body unfurls WITH the box. Held static, the panel reads as a shutter opening over a
-   finished page; squished, it reads as one body — judged twice, both directions (LOG). */
-.kui-floating-body {
-  inline-size: var(--kui-fly-bw, auto);
-  /* THE SAME ORIGIN THE PANEL USES, inherited rather than restated (2026-08-23, the
-     floating-motion audit). `--kui-origin-x/-y` are not registered, so they inherit from the
-     popup, and the popup's table already answers exactly this question — which edge the box is
-     held against — for every (side, align, dir) cell. Checked cell by cell before the swap: the
-     panel's origin and the body's pin agree in all of them.
-
-     What was here was `top left` plus one blanket `[dir="rtl"]` arm and one `[data-side="top"]`
-     pair, so `align` never reached the body's origin at all. Measured on an ordinary LTR
-     `align="end"` menu — the "…" button near a right edge, which is most of them — the body is
-     pinned `inset-inline-end` and pivoted on its LEFT edge, so the gap from the panel's right
-     edge ran 15.10 → 4.19 → 5.00 across the flight, ~2.6px of it at opacity ≥ 0.29: the printed
-     content sliding sideways onto the edge it is pinned to. The RTL blanket arm had the mirror,
-     forcing `top right` for an RTL `align="end"` panel pinned on the left. */
-  transform-origin: var(--kui-origin-x, left) var(--kui-origin-y, top);
-  /* The content's stretch rides the FAMILY's own scale clock (`--floating-corner`, the one
-     the box's own `scale` channel uses), not the control layer's `--motion-rise`.
-
-     It was `--motion-rise` from 2026-08-14 until 2026-08-23, and that is a borrow rather than
-     a decision: config describes `rise` as "everything a control's geometry does that is NOT a
-     press — the hover rise, the settle back down". Every other channel on this element is on a
-     `--floating-*` clock, so the family's clocks could be retuned and this one would not move.
-
-     Invisible at the shipped numbers and loud the moment they change, which is how it was
-     found (2026-08-23, Kushagra, judging a shortened entry: *"it doesnt work proportionally to
-     how content animates"*). At 550 against a 680 `spread` the box still finished last, which
-     is the order §22 designed; cut the family's clocks by a quarter and the box lands at 510
-     while the content is still stretching at 550, so the content finishes last and the entry
-     reads inside-out.
-
-     The older note this replaces is still worth keeping: the name must be one that EXISTS.
-     `--floating-rise` never did, and a dangling var invalidates the whole declaration — the
-     body snapped to full size on frame one from the day it shipped (the lab, 2026-08-14: "the
-     container moves nicely, but the text doesn't move or stretch with it"). The dangling-var
-     law in recipes.test.ts is that finding's other half. */
-  transition:
-    scale var(--floating-corner) var(--motion-spring-elastic),
-    /* the content ARRIVES, echoing the box's own travel — the family's shared sentence
-       (2026-08-16): a small rise as it prints, on the family spring */
-    translate var(--floating-fall) var(--motion-spring-elastic) var(--floating-reveal-delay),
-    /* THE CONTENT IS THE BODY, held as one unit (2026-08-15, Kushagra: "blurred out, empty
-       content that shows up as the circle takes the shape of the container"): invisible and
-       molten while the box is becoming, printing as one piece when the shape lands. One
-       subject instead of per-row holds — fewer rules, one clock, one claim. */
-    opacity var(--floating-reveal) ease-out var(--floating-reveal-delay),
-    filter var(--floating-corner) ease-out var(--floating-reveal-delay);
-}
-.kui-surface.kui-floating[data-unfurling][data-seed] .kui-floating-body {
-  opacity: 0;
-  filter: blur(var(--print-blur));
-  /* PLUS THE SINK (2026-08-25): the flight's resting translate carries the sink (the shared
-     rule below), so the seed must carry it additively or the echo's ~8px arrival becomes a
-     several-hundred-pixel translate ANIMATION of the whole list — the sink is geometry, the
-     echo is the only motion. Sink is 0px by registration wherever no runner wrote one. */
-  translate: 0 calc(var(--floating-echo) + var(--kui-body-sink));
-}
-
-/* And it is PINNED TO THE EDGE THE BOX IS NOT GROWING FROM (§22, 2026-08-10, Kushagra: *"why
-   does a menu that opens to the left look and perform so different to the one that opens
-   bottom"*).
-
-   This is the whole difference, and it was never about the direction of travel. A block child
-   lays out from its container's inline-start, so the body's origin IS the panel's left edge.
-   When the panel is start-aligned, the left edge is the one standing still and the right edge
-   does the growing: the words sit where they will end up and the box opens around them.
-   When the panel is END-aligned — every `...` button near a right edge, which is most of them
-   — the growing edge and the content's origin are the same edge, so every row travels the
-   panel's whole width on the way in. Measured, at a 209px panel: the body's left edge moved
-   21px start-aligned and 175px end-aligned. One reads as a panel opening; the other reads as
-   the text being dragged in sideways, which is exactly what it is.
-
-   Pinned by absolute positioning rather than an auto margin, because the same fault exists on
-   the block axis (a `top`-side panel grows upward, so its rows would slide vertically) and an
-   auto margin does not resolve in block flow. Only during the flight: the settled panel is
-   sized BY this body, so it must be in normal flow the moment the box stops being driven.
-   The popup is already a containing block — it declares `scale`, and any non-`none` transform
-   value makes one — but `position: relative` is stated rather than inherited from a side
-   effect two rules up. */
-/* And the PANEL is pinned to its anchored corner inside that held box (§22, 2026-08-10). The
-   positioner keeps the panel's final size for the whole flight so the collision question is
-   asked once — see system/floating.tsx — which means the panel is now smaller than its own
-   container while it opens, and a block child would grow from the container's top-left
-   whatever the positioner decided. Same sentence as the body one rule down, one level up:
-   pinned to the edge the box is NOT growing from, and `pointer-events` re-enabled here because
-   the held box stands them down for the transparent region around the panel. */
-/* The held box is bigger than the panel for the whole flight, so the difference is a
-   transparent region over the page that would otherwise swallow a click. Stood down by the
-   STATE rather than by JS (corrected 2026-08-10): the first spelling set it in the same
-   callback that pins the size and cleared it on `transitionend`, so a panel landed any other
-   way — a law pinning transitions, a cancelled entry — kept a dead region over the page
-   forever. Select's click law found it by timing out. A rule keyed on the attribute goes away
-   exactly when the attribute does. */
-.kui-portal :has(> .kui-surface.kui-floating[data-unfurling]) {
-  pointer-events: none;
-}
-.kui-surface.kui-floating[data-unfurling] {
-  position: absolute;
-  /* AUTO, and the reversal is the record (2026-08-10, both by Kushagra within the hour:
-     *"pointer events none in beginning so that cursor doesnt change"*, then *"we need to
-     cancel pointer events, it annoys"*). The none was built and the stated trade bit
-     immediately: an eager click inside the flight dismissed instead of selecting, and a row
-     the pointer was already resting on could not light as the panel arrived under it. The
-     cursor's brief flip over the trigger — the original complaint — is the lesser annoyance,
-     accepted. This declaration is load-bearing either way: the HELD BOX around the flying
-     panel stands pointer events down (the :has rule above), and the panel must punch back
-     through it or the whole flight is a dead region. */
-  pointer-events: auto;
-  inset-block-start: 0;
-  inset-inline-start: 0;
-}
-/* WHICH EDGE THE BOX IS HELD BY, and the case analysis is the transform-origin block's, 230
-   lines above, restated (2026-08-22 audit). The two had drifted, inside one file, on a
-   mechanism where they have to agree: the origin says which corner the panel grows OUT OF and
-   this says which edge it is pinned BY, so a disagreement grows a panel away from the corner
-   it is supposed to emerge from.
-
-   Two faults, both here. `[data-side="inline-start"]` was absent — Base UI's `getLogicalSide`
-   returns the logical pair whenever the side is logical, and a submenu defaults to `inline-end`,
-   so a FLIPPED submenu (a menu in the right half of the window) is `inline-start`, a spelling
-   this block did not contain while the origin block did. And `[data-align="end"]` fired bare:
-   on a bottom or top panel `align` is the INLINE axis and the rule is right, but on a side
-   placement it is the BLOCK axis, so the rule moved an axis the alignment says nothing about
-   and left the one it governs unpinned. Measured on a flipped submenu: seed `l=719 r=775`
-   growing to `l=719 r=878` with the seam at 878 — the panel growing sideways back INTO the
-   menu it came out of, which is the "unfurl running backwards" the 2026-08-17 BESIDE change
-   removed for the un-mirrored placement and left live for this one. */
-.kui-surface.kui-floating[data-unfurling][data-side="bottom"][data-align="end"],
-.kui-surface.kui-floating[data-unfurling][data-side="top"][data-align="end"],
-.kui-surface.kui-floating[data-unfurling][data-side="left"],
-.kui-surface.kui-floating[data-unfurling][data-side="inline-start"] {
-  inset-inline-start: auto;
-  inset-inline-end: 0;
-}
-/* PHYSICAL side names need a direction arm; LOGICAL ones do not (2026-08-23, the
-   floating-motion audit).
-
-   Every rule above states the trigger-adjacent edge with a LOGICAL property, which is right,
-   and selects on a mix of logical and physical side names, which is not. `inline-start` and
-   `inline-end` are direction-relative by definition, so `[data-side="inline-start"]` paired
-   with `inset-inline-end` holds in both directions by construction. `left` and `right` are
-   not: `[data-side="left"]` means "the panel is physically left of its trigger, so pin its
-   physical RIGHT edge", and under RTL `inset-inline-end` resolves to physical LEFT — the
-   opposite one.
-
-   Measured on a menu at x=1041 in an RTL document with `side="left"`: the positioner lands
-   correctly at 896–1037 and the seed paints at 896–952, pinned 85px from the trigger and
-   growing back toward the button that opened it. `side="right"` is the mirror. That is the
-   unfurl running backwards — the same defect the 2026-08-22 audit removed for `inline-start`
-   and left live here, because `MenuContentProps.side` is physical-only and every explicitly
-   sided menu in an RTL app takes this path. The LTR cell measures correctly in both. */
-[dir="rtl"] .kui-surface.kui-floating[data-unfurling][data-side="left"] {
-  inset-inline-start: 0;
-  inset-inline-end: auto;
-}
-[dir="rtl"] .kui-surface.kui-floating[data-unfurling][data-side="right"] {
-  inset-inline-start: auto;
-  inset-inline-end: 0;
-}
-.kui-surface.kui-floating[data-unfurling][data-side="top"],
-.kui-surface.kui-floating[data-unfurling][data-side="right"][data-align="end"],
-.kui-surface.kui-floating[data-unfurling][data-side="inline-end"][data-align="end"],
-.kui-surface.kui-floating[data-unfurling][data-side="left"][data-align="end"],
-.kui-surface.kui-floating[data-unfurling][data-side="inline-start"][data-align="end"] {
-  inset-block-start: auto;
-  inset-block-end: 0;
-}
-/* A CENTRED bottom or top panel is held by its own middle too (2026-08-31, Kushagra: the
-   popover "for some reason goes left"). It was pinned by its START edge — the base rule's
-   default, with no arm for this cell — and the aim then measured the seed's offset from
-   that edge: 182px on a default popover, the only alignment for which the offset is not
-   zero by geometry (a start-pinned panel's seed sits AT its start, an end-pinned one's at
-   its end). That offset rides `translate` on the FALL clock (345ms) while the width rides
-   the SPREAD clock (510ms), so the start edge slammed left in the fall's time while the far
-   edge was still opening — the panel's centre swung 442 → 630 → 623, measured — which is
-   the "falls first, then spreads" ordering carrying an inline distance it was designed
-   never to carry.
-
-   Held at the positioner's middle by an inset and pulled back half its OWN width by
-   `transform`, and both halves of that spelling are load-bearing. Auto margins were the
-   first spelling and they centre only while the box FITS: past the landed width — every
-   elastic overshoot — an over-constrained box clamps at its start inset and the spill goes
-   one way, so the pane's centre (and the body held at it) stepped 5px sideways and back on
-   every open. A percentage translate is of the box's own width and cannot be
-   over-constrained. It is `transform`, not `translate`, because `translate` is the
-   flight's animated channel: a `-50%` there would start a half-width slide the frame the
-   pin comes off at release, where `transform` — in no transition list — snaps with the
-   inset it belongs to, on the same pixels. The seed's x then measures the trigger's
-   distance from the positioner's MIDDLE (offsetLeft is the inset; a transform never moves
-   it), so the seed arm below adds half the seed's width to land the silhouette's start on
-   the trigger's — and a member whose seed is narrower than the box it measured (the
-   popover's circle) lands centred by the same term, with no offset of its own. ~0 for an
-   unshifted trigger; a shifted panel (a viewport edge) keeps the offset it really has. */
-.kui-surface.kui-floating[data-unfurling][data-side="bottom"][data-align="center"],
-.kui-surface.kui-floating[data-unfurling][data-side="top"][data-align="center"] {
-  inset-inline-start: 50%;
-  inset-inline-end: auto;
-  transform: translateX(-50%);
-}
-[dir="rtl"] .kui-surface.kui-floating[data-unfurling][data-side="bottom"][data-align="center"],
-[dir="rtl"] .kui-surface.kui-floating[data-unfurling][data-side="top"][data-align="center"] {
-  transform: translateX(50%);
-}
-.kui-surface.kui-floating[data-unfurling][data-seed][data-side="bottom"][data-align="center"],
-.kui-surface.kui-floating[data-unfurling][data-seed][data-side="top"][data-align="center"] {
-  translate: calc(var(--kui-from-x, 0px) + var(--kui-seed-w, var(--kui-seed)) / 2) calc(var(--kui-from-y, 0px) + var(--kui-seed-dy));
-}
-/* A side placement centred on its row is held by its own middle, the same sentence the body's
-   `[data-align="center"]` arm already made for the inline axis on a bottom or top panel. */
-.kui-surface.kui-floating[data-unfurling][data-side="right"][data-align="center"],
-.kui-surface.kui-floating[data-unfurling][data-side="inline-end"][data-align="center"],
-.kui-surface.kui-floating[data-unfurling][data-side="left"][data-align="center"],
-.kui-surface.kui-floating[data-unfurling][data-side="inline-start"][data-align="center"] {
-  inset-block: 0;
-  margin-block: auto;
-}
-/* Inset by the panel's OWN padding, never by zero (fixed 2026-08-10, Kushagra: *"the inside of
-   the menu jumps after animation finishes"* — and it was in my own probe output an hour
-   earlier, three pixels, while I was reading the column beside it).
-
-   An absolutely positioned box resolves its insets against its containing block's PADDING box,
-   so `inset: 0` lands the body inside the border and OUTSIDE the padding — where normal flow
-   would have put it one padding in. Every row therefore sat a few pixels off for the whole
-   flight and snapped into place on the frame the panel released. Which is the same defect the
-   checkbox target had in 2026-08-06 (an inset resolved against the padding box, short by its
-   border) — an inset is measured from a box, and the box is never the one you were picturing.
-
-   Stated as the pad the panel actually uses rather than the designed token: menu.css widens it
-   to keep a focused row's ring inside the pane, so reading `--floating-p` here would be right
-   in most cells and wrong in the compact ones. */
-/* And the flight OWNS the box those insets resolve against (2026-08-17, Kushagra: *"whenever
-   menu opens to the top, the content doesnt load, it comes after animation completes"*).
-   
-   The pin above was written when the body was a direct child of the panel. ScrollArea landed
-   between them the same day, and its root is `position: relative` — so the body's containing
-   block became the scroll area, and the scroll area is sized by content the pin has just taken
-   OUT of flow. Measured mid-flight: it collapses to 8px, its own padding and nothing else.
-
-   Bottom-opening panels survived that by luck. The collapsed box sits at the panel's top, and
-   `inset-block-start` measured from the top of an 8px box lands where a panel growing downward
-   was going to put the rows anyway. A TOP-opening panel resolves `inset-block-end` from the
-   bottom of that same 8px box — four pixels below the panel's TOP edge — so the whole body sat
-   above the pane and was clipped for the entire entry: measured 0px of it inside the panel for
-   the first two-thirds of the flight and 8px of 92 at the end. The rows then appeared all at
-   once when the flight released and the body returned to flow, which is exactly what "the
-   content doesn't load, it comes after animation completes" describes.
-
-   Stretching the scroll area for the duration is what makes the family's own pin mean what it
-   says, rather than compensating for it one component over: the flight takes the body out of
-   flow, so the flight owes it a containing block that is still the panel. At rest this rule
-   does not exist, so the scroll area is sized by its content as ScrollArea intends.
-
-   HEIGHT rather than position, and that is forced rather than chosen: Base UI writes
-   `position: relative` INLINE on ScrollArea.Root, so a stylesheet cannot make the root
-   absolute without `!important` — refused here for the reason Select's borrowed height
-   records (it wins the cascade and leaves the library's intent unstated). Nothing needs to be
-   won: a relative box is already a containing block, and the only thing wrong with it was its
-   SIZE. The panel has a definite `block-size` for the whole flight (`--kui-fly-h`, the
-   measurement), so a percentage resolves against it. */
-.kui-surface.kui-floating[data-unfurling] .kui-scroll-area {
-  block-size: 100%;
-}
-
-/* THE BODY IS PINNED AT THE PANE'S OWN PADDING, read through `--kui-sf-p` (2026-08-23,
-   ultracode audit — these nine declarations named `--kui-floating-p` and it is UNSET on two of
-   the four panels).
-
-   `--kui-floating-p` is the floating family's padding OVERRIDE: menus and selects declare it,
-   and the size join above consumes it WITH a fallback (`var(--kui-floating-p, var(--surface-p-N))`).
-   These rules read it bare, so on a Popover or a Tooltip — the first floating panes that are
-   neither menu nor select — it resolved to nothing, the whole declaration was invalid at
-   computed-value time, and every inset fell back to `auto`: the body took its static position
-   for the length of the entry, on the opposite edge from the one the rule names.
-
-   `--kui-sf-p` is the RESOLVED padding of whatever pane this is, which is the value all nine
-   wanted in the first place: on a menu it resolves through `--kui-floating-p` by the join
-   above, and on a popover it is the surface band. It inherits on purpose (§3 — it is how
-   `m="bleed"` finds its surface), which is what lets a child read it at all.
-
-   AND IT IS ONE VALUE, WHERE A PANE HAS TWO AXES (2026-08-26 audit). "Correct on all four" was
-   true of three: a Tooltip is priced on its own two axes (§32) and paints them with LONGHANDS,
-   which beat `.kui-surface`'s `padding` shorthand on source order, so the pin read the surface
-   band's 12px on an axis whose real padding is 4px. Measured on a default tooltip: the pin's
-   `inset-block-end` computed `12px` against `padding-block-end: 4px` — 8px off its resting line
-   for the whole flight and an 8px snap on the release frame, which is verbatim the two reports
-   this pin exists to close (2026-08-10, 2026-08-17). The INLINE axis coincided at 12 vs 12,
-   which is why nothing saw it: a one-axis-of-two failure is invisible to any check that reads
-   one number.
-
-   So the pin reads a PAIR, defaulting to `--kui-sf-p` on the base rule below, and a pane whose
-   inset is anisotropic states both. Nothing here is registered: the pin is on a CHILD, so these
-   must inherit exactly as `--kui-sf-p` does — an `inherits: false` registration would hand the
-   body the guaranteed-invalid value and silently put the fallback (and the defect) straight
-   back. What keeps the pair and the painted padding in agreement is a mounted law that reads
-   both off the browser, per axis, on every floating pane — the TextArea/TextField parity
-   pattern: an approximation law can only measure distance, an agreement law makes it zero. */
-.kui-surface.kui-floating[data-unfurling] .kui-floating-body {
-  position: absolute;
-  inset-block-start: var(--kui-sf-p-block);
-  inset-inline-start: var(--kui-sf-p-inline);
-  /* The sink's carrier (2026-08-25, see the [data-side="top"] arm below): a constant
-     post-scale translate, non-zero only where the runner measured an overflowing
-     bottom-pinned body, 0px by registration everywhere else — so this computes `0 0px` and
-     paints nothing on every other flight. Declared HERE, on the (0,4,1) rule, because the
-     seed's own translate (echo + sink, the (0,5,1) rule above) must keep outranking it while
-     seeded: the transition then travels exactly the echo, never the sink. */
-  translate: 0 var(--kui-body-sink);
-}
-/* The body is held against the same edge as its box — the case analysis above, restated for
-   the element inside it (2026-08-22 audit). It carried the same two faults and for the same
-   reason: `inline-start` missing, and `align` read on the inline axis for placements where it
-   is the block one. */
-.kui-surface.kui-floating[data-unfurling][data-side="bottom"][data-align="end"] .kui-floating-body,
-.kui-surface.kui-floating[data-unfurling][data-side="top"][data-align="end"] .kui-floating-body,
-.kui-surface.kui-floating[data-unfurling][data-side="left"] .kui-floating-body,
-.kui-surface.kui-floating[data-unfurling][data-side="inline-start"] .kui-floating-body {
-  inset-inline-start: auto;
-  inset-inline-end: var(--kui-sf-p-inline);
-}
-/* The body's own direction arms — the physical/logical mix above, restated for the element
-   inside the box, exactly as the pin itself is. */
-[dir="rtl"] .kui-surface.kui-floating[data-unfurling][data-side="left"] .kui-floating-body {
-  inset-inline-start: var(--kui-sf-p-inline);
-  inset-inline-end: auto;
-}
-[dir="rtl"] .kui-surface.kui-floating[data-unfurling][data-side="right"] .kui-floating-body {
-  inset-inline-start: auto;
-  inset-inline-end: var(--kui-sf-p-inline);
-}
-/* A CENTRED BODY IS PINNED BY ITS OWN CENTRE, and never by two insets and an auto margin
-   (2026-08-29, Kushagra: a tooltip's *"content inside is in wrong pos, it jumps after
-   animation has finished"*).
-
-   Auto margins can only centre a box that FITS. The body is held at its LANDED size for the
-   whole flight — `--kui-fly-bw`, so its text cannot re-break mid-air — while the pane is still
-   growing into that size, so for the opening half of every entry the box is wider than the
-   space between the two insets. That is an over-constrained equation, and the cascade resolves
-   it by dropping the end inset: the body sits hard against its start edge and hangs off the
-   other one. Measured on the shipped default tooltip out of an icon button, at 30% opacity: the
-   words 13.4px from the pane's left edge and 7.4px PAST its right one on an 88.9px pane, then
-   sliding to 13/13 as the box caught up. Nothing was wrong at rest, which is why every law
-   comparing the last flight frame with the settled panel read zero.
-
-   `inset-inline-start: 50%` plus a half-body negative margin says the same thing and cannot be
-   over-constrained — one inset, one margin, no equation to balance. It also matches what the
-   origin table already claims for exactly these cells (`--kui-origin-x: center`): the body
-   scales about its own middle, so it must be HELD by its own middle too.
-
-   Percentage margins are not the cheaper spelling: they resolve against the containing block's
-   INLINE size on both axes, so the block arm below would centre by a fraction of the panel's
-   width. Hence `--kui-fly-bh`, measured in the same window as the width it sits beside. */
-.kui-surface.kui-floating[data-unfurling][data-side="bottom"][data-align="center"] .kui-floating-body,
-.kui-surface.kui-floating[data-unfurling][data-side="top"][data-align="center"] .kui-floating-body {
-  inset-inline-start: 50%;
-  inset-inline-end: auto;
-  margin-inline-start: calc(var(--kui-fly-bw, 0px) / -2);
-}
-.kui-surface.kui-floating[data-unfurling][data-side="right"][data-align="end"] .kui-floating-body,
-.kui-surface.kui-floating[data-unfurling][data-side="inline-end"][data-align="end"] .kui-floating-body,
-.kui-surface.kui-floating[data-unfurling][data-side="left"][data-align="end"] .kui-floating-body,
-.kui-surface.kui-floating[data-unfurling][data-side="inline-start"][data-align="end"] .kui-floating-body {
-  inset-block-start: auto;
-  inset-block-end: var(--kui-sf-p-block);
-  /* The sink's origin — see the [data-side="top"] arm below for the whole argument. */
-  transform-origin: var(--kui-origin-x, left) calc(100% - var(--kui-body-sink));
-}
-/* The same sentence on the block axis, for a panel that lands BESIDE its trigger — and here
-   the old spelling failed a second way as well. The body's height is `auto`, so two block
-   insets did not over-constrain, they SQUEEZED: the box was forced to the growing pane's
-   padding box and its own content overflowed it. Measured on a two-line tooltip at 30%
-   opacity: 56px of body holding 60px of words. */
-.kui-surface.kui-floating[data-unfurling][data-side="right"][data-align="center"] .kui-floating-body,
-.kui-surface.kui-floating[data-unfurling][data-side="inline-end"][data-align="center"] .kui-floating-body,
-.kui-surface.kui-floating[data-unfurling][data-side="left"][data-align="center"] .kui-floating-body,
-.kui-surface.kui-floating[data-unfurling][data-side="inline-start"][data-align="center"] .kui-floating-body {
-  inset-block-start: 50%;
-  inset-block-end: auto;
-  margin-block-start: calc(var(--kui-fly-bh, 0px) / -2);
-}
-.kui-surface.kui-floating[data-unfurling][data-side="top"] .kui-floating-body {
-  inset-block-start: auto;
-  inset-block-end: var(--kui-sf-p-block);
-  /* THE SINK'S ORIGIN (2026-08-25): a bottom-pinned body puts the list's LAST row at the
-     seam, and on a list taller than its landed viewport that is not what rest shows — rest
-     is scrollTop 0, the list's TOP window — so the flight ended on one set of rows and the
-     release frame teleported to another, by exactly the overflow (measured: the first row at
-     -113 through the flight and 41 at rest — Kushagra's two screenshots side by side). The
-     repair holds the RESTING window's last row at the seam for every frame instead, and it
-     takes both of these declarations plus the `translate` on the shared rule above, because
-     the squish is a scale: an inset sink is unscaled and lands the window somewhere new at
-     every squish factor (measured — the first spelling showed a blank panel that slid into
-     place). Scaling about the resting window's own end (`100% - sink`) keeps that line fixed
-     under any factor, and the constant post-scale translate carries it from its layout
-     position to the seam. Sink 0 makes the origin `100%` — exactly the `bottom` the panel's
-     `--kui-origin-y` table already answers for this arm — so every fitting list is
-     byte-identical.
-
-     The 2026-08-17 note this extends still holds: the squish collapses toward the edge the
-     body is pinned to; what the sink adds is WHICH content line that edge carries. */
-  transform-origin: var(--kui-origin-x, left) calc(100% - var(--kui-body-sink));
-}
-.kui-surface.kui-floating[data-unfurling][data-seed] .kui-floating-body {
-  scale: 0.95 0.5;
-}
-
-/* The per-row hold left 2026-08-15: the BODY is the held unit now (its rule above) — one
-   subject, one clock, and the content genuinely reads as "empty, then printed" instead of
-   rows fading over a visible panel. */
-
-/* The exit is NOT the entry reversed (chosen 2026-08-09 from three built side by side —
-   fold, mirror, dissolve). The pane holds its geometry, settles back a hair toward the
-   anchor and dissolves. An entry answers "where did this come from"; an exit answers
-   nothing, because the viewer is already looking at the thing they dismissed. Decelerating
-   on the stiff spring and never `ease-in`, which ends at maximum velocity and slams. */
-.kui-surface.kui-floating[data-ending-style] {
-  opacity: 0;
-  scale: 0.98;
-  /* EVERY channel the entry moves is restated, so a mid-flight dismissal keeps becoming while
-     it dissolves: dropping a property from the list CANCELS its running transition, and the
-     cancelled channel then jumps to its target under the fade. Settled exits start nothing
-     here, because none of these values change on a panel that has already arrived.
-     `box-shadow` was the one channel the first spelling missed (2026-08-16 audit, measured: a
-     menu dismissed 35ms into its entry snapped 169 → 303px, because the cast's cancellation
-     was read as a dismissal and retired the whole flight). The completeness of this list is
-     asserted by law — surfaces.test.ts, "the exit keeps every channel the entry moves alive". */
-  transition:
-    block-size var(--floating-fall) var(--motion-spring-elastic),
-    translate var(--floating-fall) var(--motion-spring-elastic),
-    inline-size var(--floating-spread) var(--motion-spring-elastic),
-    border-radius var(--floating-corner) var(--motion-spring-elastic),
-    box-shadow var(--floating-reveal) ease-out,
-    opacity var(--floating-dissolve) ease-in,
-    scale var(--floating-settle) var(--motion-spring-stiff);
-}
-
-/* Base UI asks for instant when the change is not a reveal — reopening into an already-open
-   group, a sibling opening under the pointer, a panel that MOVED between triggers rather than
-   being revealed. THREE values are exempt, and all three exemptions are the same sentence.
-
-   `click` (2026-08-19): Base UI 1.7 stamps instantType "click" for any trigger press with
-   nativeEvent.detail === 0, which is every keyboard Enter/Space — so a keyboard user lost the
-   entry flight entirely, a decision this system never made (audit 2026-08-18).
-
-   `dismiss` (2026-08-22, measured): Menu's own store sets it when `reason === escapeKey || reason
-   == null` (`menu/root/MenuRoot.js`), so it means A KEYBOARD DISMISSAL, or an imperative one —
-   and this rule then deleted the exit outright. Measured on one menu: Escape went opacity 1 to
-   0 in a single frame and was gone in 29ms, while the same menu dismissed by an outside press
-   or by choosing a row dissolved over ~220ms, and Select, Dialog and AlertDialog all dissolved
-   on Escape. The comment that stood here described `dismiss` as "a dismissal the pointer
-   already committed to" — that is POPOVER's store, not Menu's, and it had the two backwards:
-   the pointer's dismissal is the one that keeps its dissolve, the keyboard's was the one
-   erased.
-
-   `focus` (2026-08-29, the ultracode audit): the last input-class stamp Base UI has, written on
-   two opposite gestures that are both reveals. The shared open-change path stamps it for a
-   `triggerFocus` OPEN (`utils/popups/popupStoreUtils`), which is every keyboard-focused TOOLTIP
-   — the one member whose keyboard route this is — and `PopoverStore.setOpen` stamps it for a
-   `focusOut` CLOSE, which is the ordinary way a keyboard leaves a non-modal panel. Measured: a
-   tabbed-out popover went to opacity 0 in one frame against ~135ms for an outside press, and a
-   focus-opened tooltip did not fly at all. It carries `dismiss`'s third defect too — a
-   CONTROLLED popover never runs `setOpen`, so one focus-out left the stamp on the popup and
-   every later state-driven open was instant for the life of the page.
-
-   What stays instant is what is NOT about the input: `delay` (the group is already warm — a
-   toolbar's second tooltip, which every platform shows at once), `trigger-change` (the panel
-   moved), `tracking-cursor` (it is following the pointer).
-
-   So: an open is an open and a close is a close, with the same physics for every input.
-   Reduced motion is the stand-down for stillness, and it is the only one.
-
-   The RUNNER states the same set (`FLIES_ANYWAY`, system/floating.tsx) and must: this rule
-   decides whether a clock runs and that guard decides whether the panel is posed at all, so a
-   value exempt in one home and not the other is a posed panel that never animates. A law reads
-   both sources and requires them to agree (system/surfaces.test.ts). */
-.kui-surface.kui-floating[data-instant]:not([data-instant="click"]):not([data-instant="dismiss"]):not([data-instant="focus"]),
-.kui-surface.kui-floating[data-instant]:not([data-instant="click"]):not([data-instant="dismiss"]):not([data-instant="focus"]) .kui-floating-body,
-.kui-surface.kui-floating[data-instant]:not([data-instant="click"]):not([data-instant="dismiss"]):not([data-instant="focus"]) :where(.kui-row, .kui-separator) {
-  transition: none;
-}
-
-/* ── The MATERIALIZATION — the ALERT's gesture (§8, §25; re-keyed 2026-08-16 with the
-   dialog/alert split, LOG): built as the dialog's entry and judged at alert mass to be an
-   ARRIVAL — an interruption announcing itself — which is correct for the component that
-   comes AT you and wrong at modal mass, where the same inertia reads as the room moving.
-   So the recipe keys on the alert's own popup, whole and unchanged: the box BECOMES (the
-   circle of surface rising and unfurling on the spring), presence is PAINT, and the content
-   is one molten unit printing as the box lands — which the system may animate HERE because
-   an alert's content is its own (title, description, two actions), the license a dialog's
-   consumer-owned content can never grant. Dialog is entry-less until its large-mass entry
-   lands (the follow-up commit; the lab's depth-not-distance direction). The runner is
-   system/floating.tsx's OverlayBody; the scrim's half lives in alert-dialog.css. */
-.kui-surface.kui-alert-popup {
-  translate: 0 0;
-  transition:
-    /* GEOMETRY WAITS FOR THE CIRCLE TO BE SEEN (the hold): a dialog fades in — it has no
-       source to lift from — so growth departing on frame one meant every visible frame was
-       already "a smaller dialog". The blurred circle comes up first; the growth leaves
-       from a shape the eye has met. */
-    /* the axes are OUT OF PHASE (the floating family's grammar): one clock over the
-       dialog's asymmetric travel made the width read as a slide while the height sprang —
-       the vertical leads, the width trails, and both read as the same spring */
-    /* the GROWTH waits longer than the rise: the circle must be seen TRAVELING as a
-       circle — it surfaces first, then unfurls */
-    block-size var(--overlay-fall) var(--motion-spring-elastic) var(--overlay-grow),
-    inline-size var(--overlay-spread) var(--motion-spring-elastic) var(--overlay-grow),
-    border-radius var(--overlay-materialize) var(--motion-spring-elastic) var(--overlay-grow),
-    /* the padding rides with the box: at the seed it is zero (a 40px circle cannot hold
-       50px of padding — border-box floors at the padding sum, measured: the "circle"
-       posed 50px wide) and it grows back with the shape */
-    padding var(--overlay-materialize) var(--motion-spring-elastic) var(--overlay-grow),
-    /* the RISE: the circle forms below the card's own footprint and surfaces into it —
-       the dialog's answer to "where did this come from" */
-    translate var(--overlay-fall) var(--motion-spring-elastic) var(--overlay-hold),
-    opacity var(--overlay-reveal) ease-out;
-}
-/* The flight arrangement: for as long as the entry drives the box, the panel is its
-   MEASURED size (the entry writes `--kui-fly-w/h` at open — system/floating's runner measures its own
-   natural box, the floating machinery's mechanism without its anchor). A box deliberately
-   smaller than what it holds must not scroll or spill, and the clipping that guarantees it is
-   the base surface rule's since 2026-08-20. Removed at release, so a settled dialog sizes
-   itself again. */
-.kui-surface.kui-alert-popup[data-unfurling] {
-  inline-size: var(--kui-fly-w, auto);
-  block-size: var(--kui-fly-h, auto);
-}
-/* The body LEAVES THE FLOW for the flight (the floating body's own mechanism): in flow,
-   the growing box and its morphing padding PUSH the content every frame — measured as the
-   content "moving with" the container. Absolutely centered, the box grows and rises AROUND
-   content that holds its own place; and the seam is exact by arithmetic: the settled panel's
-   height is body + two paddings, so auto-margin centering lands on the same pixel normal
-   flow returns to at release. The width pin keeps its text from re-breaking; centering also
-   kills the left-to-right read a start-anchored child had under a widening box. */
-.kui-surface.kui-alert-popup[data-unfurling] .kui-overlay-body {
-  position: absolute;
-  /* Pinned where the flow will PUT it, not centered (2026-08-16, the big-dialog seam):
-     "centered equals flow" is arithmetic only while the panel's height is content plus
-     padding — a min-height panel is taller, its flow position is the top, and a centered
-     flight snapped upward at release. The inset reads the padding TOKEN, which is the
-     final value from frame one, while the padding property itself is still animating in. The
-     per-axis pair since 2026-08-26 — the overlay family prices its two axes the same today, so
-     this is byte-identical, and it is spelled this way because "which axis is this inset on" is
-     the question the floating pin got wrong (see it) and no rule should have to be asked twice. */
-  inset-block-start: var(--kui-sf-p-block);
-  /* Pinned by its own centre rather than by two insets and an auto margin — the floating
-     family's 2026-08-29 finding, and the same defect for the same reason: the body is held at
-     `--kui-fly-bw` while the card is still growing out of its circle, so the auto margins had
-     nothing to distribute and the print sat against its start edge. */
-  inset-inline-start: 50%;
-  inset-inline-end: auto;
-  margin-inline-start: calc(var(--kui-fly-bw, 0px) / -2);
-  inline-size: var(--kui-fly-bw, auto);
-}
-/* THE CIRCLE (2026-08-15, Kushagra: "the dialog container itself expanding from a circle in
-   center" — a clip was tried first and judged out on sight: a clip only opens a window
-   INSIDE the panel's rectangle, so the growing circle flattened against the box edges
-   instead of BEING the box). The pose is a real box: seed wide, seed tall, half-seed
-   corner, centered where the viewport's auto margins already hold it — and the unfurl
-   springs the box itself into the measured card, the shape genuinely morphing the way the
-   menu's does. A static pose (the seed rule's own lesson): the flight's transitions are
-   the base rule's, applying the frame this attribute comes off. */
-.kui-surface.kui-alert-popup[data-seed] {
-  inline-size: var(--overlay-seed);
-  block-size: var(--overlay-seed);
-  /* 50%, not half-the-seed in px: a fixed radius is a circle for exactly one frame and a
-     rounded square every frame after — a percentage keeps the box CURVY as it opens, so
-     the circle melts into the card instead of squaring off. */
-  border-radius: 50%;
-  corner-shape: round;
-  padding: 0;
-  /* The ORIGIN: fully below the card's own footprint — half the measured height clears
-     the bottom edge, the lift is the designed gap past it — closed as the box rises. A
-     dialog is summoned, and it surfaces. The fallback only lives before the runner's
-     measurement lands (same tick, pre-paint). */
-  translate: 0 calc(var(--kui-fly-h, var(--overlay-seed)) / 2 + var(--overlay-lift));
-  opacity: 0;
-  transition: none;
-}
-/* The content is the BODY, held as one molten unit — empty and out of focus while the box
-   is becoming, printing as it lands (the floating body's grammar; the wrapper is §10's
-   mechanically-forced sanction, invisible to the API). */
-.kui-overlay-body {
-  transition:
-    opacity var(--overlay-reveal) ease-out var(--overlay-reveal-delay),
-    /* the content's channels run at the PRINT pace — the box clocks are speed-matched to
-       a journey the content does not take */
-    filter var(--overlay-print) ease-out var(--overlay-reveal-delay),
-    /* the content ARRIVES TOP-DOWN, echoing the container's own origin: a small rise as
-       it prints, on the spring — it is geometry, however small */
-    translate var(--overlay-print) var(--motion-spring-elastic) var(--overlay-reveal-delay);
-}
-.kui-surface.kui-alert-popup[data-seed] .kui-overlay-body {
-  opacity: 0;
-  filter: blur(var(--print-blur));
-  translate: 0 var(--overlay-echo);
-}
-/* The exit is the family grammar's dissolve — leaving is never the entry reversed: the box
-   holds its size, settles a hair and dissolves, content aboard. */
-.kui-surface.kui-alert-popup[data-ending-style] {
-  opacity: 0;
-  scale: 0.99;
-  /* The geometry channels are RESTATED, and the restatement is the mechanism (2026-08-16,
-     measured: Escape mid-flight snapped the box 125 → 560 in one frame at dissolve opacity
-     ~0.4): a running transition is cancelled the moment its property drops out of
-     `transition-property`, so an ending list of only opacity+scale killed the flight's
-     springs and the box jumped to its pinned target under the fading panel. Restated
-     identically, a mid-flight becoming CONTINUES while it dissolves; on a settled exit the
-     geometry has no value change and these channels start nothing. */
-  transition:
-    block-size var(--overlay-fall) var(--motion-spring-elastic),
-    inline-size var(--overlay-spread) var(--motion-spring-elastic),
-    border-radius var(--overlay-materialize) var(--motion-spring-elastic),
-    padding var(--overlay-materialize) var(--motion-spring-elastic),
-    translate var(--overlay-fall) var(--motion-spring-elastic),
-    opacity var(--overlay-dissolve) ease-in,
-    scale var(--overlay-settle) var(--motion-spring-stiff);
-}
-
-/* A LEAVING PANEL TAKES NO CLICKS (2026-08-22 audit).
-
-   A dismissal mid-entry leaves the ENTRY's transitions running — the exit restates those
-   channels with unchanged values, so nothing retargets and they run to their own length, up to
-   `--overlay-spread`'s 800ms. Base UI unmounts a closing popup when
-   `Promise.all(getAnimations().map((a) => a.finished))` settles and `getAnimations()` counts
-   them, so the mechanism added to stop a mid-flight snap is also the unmount gate: measured, an
-   alert dismissed 120ms into its entry was invisible at ~158ms and still in the document at
-   686ms. For that whole window its scrim covered the viewport and answered the hit test —
-   `elementFromPoint(30, 20)`, an ordinary page corner, returned `DIV.kui-alert-backdrop`, so a
-   click on the page underneath did nothing. "I closed the alert and the app was frozen for half
-   a second."
-
-   The lifetime is not what is repaired here, and the reason is a measurement: shortening the
-   restated channels to the exit's own clock changes nothing, because no VALUE changes on them
-   at the exit and an unretargeted transition keeps its original duration. It was built,
-   measured as a no-op, and reverted rather than left in as a plausible-looking fix — the
-   restatement's recorded reasoning (a mid-flight becoming CONTINUES while it dissolves) is
-   still exactly right.
-
-   What is repaired is the harm. A panel at opacity 0 is still hit-tested, and there was no
-   stand-down anywhere in the package: the only two `pointer-events` rules in this file are
-   keyed on the flight attribute and are long gone by the time an exit begins. Once the box is
-   leaving it is not a target, whatever its clocks are doing. Measured after: the same page
-   corner answers the trigger button. */
-.kui-surface.kui-floating[data-ending-style],
-.kui-surface.kui-alert-popup[data-ending-style],
-.kui-surface.kui-overlay.kui-dialog-popup[data-ending-style],
-.kui-alert-backdrop[data-ending-style],
-.kui-dialog-backdrop[data-ending-style] {
-  pointer-events: none;
-}
-
-/* ── The DIALOG's entry (§24, 2026-08-16): DEPTH, NOT DISTANCE ────────────────────────────
-   The alert's materialization is one family class up, and this is deliberately not it. That
-   entry travels, overshoots and rises from a point — an ARRIVAL, an interruption announcing
-   itself — which is right at alert mass and wrong here: on a pane carrying half the screen
-   the same inertia reads as the room moving rather than as a thing arriving. A dialog is
-   SUMMONED; it comes into focus, not into view.
-
-   So the scrim pushing the app back IS the arrival (§10 has said so since elevation was
-   deleted), and the panel only steps forward: 3% in z on the poised spring, zero travel in x
-   or y, presence as paint. No size channels, no measurement and no runner — this entry rides
-   Base UI's own stamps and there is no JS in it at all. The absence of those channels is
-   asserted by law, because it IS the design. */
-.kui-surface.kui-overlay.kui-dialog-popup {
-  transition:
-    scale var(--dialog-settle) var(--motion-spring-poised),
-    opacity var(--dialog-reveal) ease-out;
-}
-.kui-surface.kui-overlay.kui-dialog-popup[data-starting-style] {
-  opacity: 0;
-  scale: var(--dialog-depth);
-}
-/* The content shares the container's coming-into-focus, and ONLY that (Kushagra 2026-08-16).
-   Depth of field is a property of the mass — a page does not come into focus after the page
-   does — so what is printed on the plane focuses WITH the plane, on the box's own clock. No
-   travel, no print, no independent fade: the arrangement inside is the CONSUMER's, unlike the
-   alert's fixed anatomy, and blur is the one channel that presumes nothing about it. */
-.kui-dialog-popup .kui-dialog-body {
-  transition: filter var(--dialog-settle) ease-out;
-}
-.kui-dialog-popup[data-starting-style] .kui-dialog-body {
-  filter: blur(var(--print-blur));
-}
-/* Leaving is never the entry reversed: the panel settles a hair and dissolves. `scale` stays
-   in the list so a dismissal mid-arrival RETARGETS the running spring rather than cancelling
-   it — the 2026-08-16 finding, which the completeness law now enforces for every family. */
-.kui-surface.kui-overlay.kui-dialog-popup[data-ending-style] {
-  opacity: 0;
-  scale: 0.99;
-  transition:
-    scale var(--overlay-settle) var(--motion-spring-stiff),
-    opacity var(--overlay-dissolve) ease-in;
-}
-
-/* Suppression is total (§8): no travel, no reveal, no dissolve — the panel is simply there
-   and then simply gone. The measurement is skipped too, so both lengths fall back to auto. */
-@media (prefers-reduced-motion: reduce) {
-  .kui-surface.kui-floating,
-  .kui-floating-body,
-  .kui-surface.kui-floating :where(.kui-row, .kui-separator),
-  .kui-surface.kui-alert-popup,
-  .kui-overlay-body,
-  /* At the RECIPE's own weight, never lighter (2026-08-16, caught by the mounted law the
-     hour it was written — the 2026-08-10 `:not()` lesson in a different spelling): the entry
-     is stated at `.kui-surface.kui-overlay.kui-dialog-popup` and its body at
-     `.kui-dialog-popup .kui-dialog-body`, so a guard written one class lighter loses the tie
-     and every clock survives the setting. A stand-down must weigh what it stands down. */
-  .kui-surface.kui-overlay.kui-dialog-popup,
-  .kui-dialog-popup .kui-dialog-body,
-  /* The interactive surface's two clocks (2026-08-17), spelled at the recipe's own weight for
-     the reason stated just above — the recipe is `.kui-surface:where(button, a, label:has(.kui-control))`, and `:where`
-     contributes nothing, so this ties on specificity and wins on source order. */
-  .kui-surface:where(button, a, label:has(.kui-control)),
-  /* AND THE EXITS, which the list above cannot reach (2026-08-22 audit): every exit recipe
-     re-declares `transition` on its own `[data-ending-style]` selector, one attribute heavier
-     than the bare class here, so the guard lost on specificity and the full seven-channel clock
-     list survived under reduced motion — measured `block-size 0.46s, translate 0.46s,
-     inline-size 0.68s, border-radius 0.56s, box-shadow 0.26s, opacity 0.14s, scale 0.16s`. That
-     surviving clock is what held the mis-placed slab of the fixed above on screen for ~130ms
-     rather than one frame; the two halves compounded and both are closed here. Spelled out
-     rather than folded into `:is()`, which borrows its most specific argument's weight. */
-  .kui-surface.kui-floating[data-ending-style],
-  .kui-surface.kui-alert-popup[data-ending-style],
-  .kui-surface.kui-overlay.kui-dialog-popup[data-ending-style] {
-    transition: none;
-  }
-  /* And its ring hook, the `--kui-ct-ring` doctrine one layer up: the stand-down is declared on
-     the same selector as the recipe, so specificity can never separate them. */
-  .kui-surface:where(button, a, label:has(.kui-control)) {
-    --kui-sf-ring: none;
-  }
-  /* The POSES are not stood down here, and that is the decision rather than an omission
-     (2026-08-16). A pose is stamped by the runner, and the runner returns before stamping
-     anything under reduced motion — so the only way one can exist inside this guard is the
-     setting being turned on mid-flight, and the runner's own next frame takes it off again.
-     Undoing it here meant maintaining an inverse of every pose declaration, and a maintained
-     inverse drifts: within ten minutes of the first mounted law being written it had missed
-     the aim gate (a posed panel stayed invisible, because `:not([data-aimed])` outweighed the
-     stand-down) and `min-inline-size` (a posed panel lost its width floor and measured 77px
-     against its own 112). What the guard owes is that nothing MOVES and nothing is measured;
-     both are asserted by mounted law, in the menu and alert suites. */
-  /* NO `margin: 0` HERE, and its removal is the fix rather than a tidy-up (2026-08-22 audit).
-     It stood down nothing: the only auto margins in the poses are `margin-inline: auto` on the
-     BODY elements (`.kui-floating-body`, `.kui-overlay-body`), which none of these popup
-     selectors reach. What it DID reach is the `margin: auto` that CENTRES a dialog and an alert
-     inside Base UI's scrollable viewport (dialog.css, alert-dialog.css) — one specificity step
-     against four, so the guard won outright, and losing a cross-axis auto margin releases the
-     stretch with it. Measured, 1280x800 with the setting on: a dialog open at `360,351 560x98`
-     became `24,24 560x752` at full opacity on the frame the ending stamp landed, and sat there
-     for eight frames before vanishing. The setting that exists to remove motion was producing
-     the largest movement in the family, and on a phone-width window it took the sheet arm with
-     it, flashing at the top of the screen instead of rising from the bottom. */
-  .kui-surface.kui-floating[data-ending-style],
-  .kui-surface.kui-alert-popup[data-ending-style],
-  .kui-surface.kui-overlay.kui-dialog-popup[data-starting-style],
-  .kui-surface.kui-overlay.kui-dialog-popup[data-ending-style] {
-    translate: 0 0;
-    scale: 1;
-    opacity: 1;
-    filter: none;
-  }
-  /* The dialog's pose IS stood down, and the asymmetry with the paragraph above is the point:
-     that one is stamped by the runner, which refuses under this setting, while this one is
-     Base UI's `data-starting-style` — stamped on every open whatever the user asked their OS
-     for. So the entry that owns no JS is the entry whose pose must be undone in CSS, and the
-     content's focus is part of it: a blurred body is unreadable, which is a worse failure than
-     any of the motion this guard exists to remove. */
-  .kui-surface.kui-overlay.kui-dialog-popup[data-starting-style] .kui-dialog-body {
-    filter: none;
-  }
 }

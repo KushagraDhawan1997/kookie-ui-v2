@@ -18,8 +18,8 @@
  *
  * A warning and not a repair, because there is no repair to make. The two axes cannot be
  * spelled differently — CSS resolves `overflow-x: auto` beside a clipped `overflow-y` to
- * `hidden`, which is a scroll container, which is the thing the flight rules spent two days
- * keeping panes out of. So the pane keeps its clip and the author is told.
+ * `hidden`, which is a scroll container, which is the thing surfaces.css keeps every pane out
+ * of. So the pane keeps its clip and the author is told.
  *
  * Called by the panes that hold content the CALL SITE wrote — Card, Surface, Dialog. Menu,
  * Select and AlertDialog own what is inside them, so there is nobody to warn.
