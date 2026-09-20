@@ -1294,44 +1294,14 @@ function DynamicRefraction({ params, on }: { params: LensParams; on: boolean }) 
     // popup is INSERTED — still 0-sized — and no further mutations ever come, so a
     // one-shot dress never ran (hot reload "fixed" it only because HMR floods the page
     // with mutations while the menu sits open). A popup is therefore dressed by a
-    // frame-loop that retries until it has a size, then waits out its animations.
-    // The unfurl ANIMATES the popup's width and height (the motion system's design), so a
-    // nonzero size is not a final size — the first probe caught an 87×74 box mid-growth.
-    // Dress only at a STABLE size: animations drained, two consecutive frames agreeing.
+    // frame-loop that retries until it has a size, and only at a STABLE one: two
+    // consecutive frames agreeing.
     const frame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
     const tryDress = async (el: HTMLElement) => {
-      // The motion system measures the popup's FINAL box on mount into
-      // --kui-fly-w/-h (the unfurl animates toward it) — so the true geometry is
-      // knowable on frame one, and the refraction can ride the whole animation instead
-      // of popping in after it.
-      //
-      // RENAMED 2026-08-16: the package collapsed its two entry runners into one and the
-      // measured box became `--kui-fly-*`. This read still said `--kui-floating-*`, which
-      // no longer resolves — getPropertyValue returns "", parseFloat gives NaN, and
-      // `NaN >= 60` is false, so the fast path was dead for all ten frames and every menu
-      // fell through to the settle-and-measure fallback below. Measured before the fix: the
-      // panel finished growing at ~370ms and refraction landed at ~856ms. It was invisible
-      // until the blur fix the same day — an undressed menu used to be frosted 2.8x harder,
-      // which looked like glass, so nobody saw it arrive late.
-      for (let i = 0; i < 10 && el.isConnected; i++) {
-        const cs = getComputedStyle(el);
-        const w = Math.round(parseFloat(cs.getPropertyValue("--kui-fly-w")));
-        const h = Math.round(parseFloat(cs.getPropertyValue("--kui-fly-h")));
-        if (w >= 60 && h >= 60) {
-          const key = `${w}x${h}`;
-          let id = cache.get(key);
-          if (!id) {
-            id = `l2-refract-menu-${key}`;
-            const m = physicalMap(w, h, Math.min(40, Math.floor(h / 2) - 2), params);
-            makeFilter(id, m.url, m.max * params.boost, w, h);
-            cache.set(key, id);
-          }
-          el.dataset["l2Refract"] = id;
-          return;
-        }
-        await frame();
-      }
-      // Fallback: no measured vars (e.g. reduced motion released them) — settle-and-measure.
+      // Settle and measure. This used to be the FALLBACK behind a fast path that read the
+      // entry's measured box out of --kui-fly-w/-h; motion was removed 2026-09-20, nothing
+      // writes those names any more, and a panel now arrives at its final box — so the two
+      // frames below agree immediately and the fast path was ten dead frames of latency.
       for (let i = 0; i < 240 && el.isConnected; i++) {
         const anims = el.getAnimations();
         if (anims.length > 0) {

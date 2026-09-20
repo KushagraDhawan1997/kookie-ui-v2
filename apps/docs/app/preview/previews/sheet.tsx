@@ -6,9 +6,9 @@
  * asked once per side. Where that bites, the demo says so rather than faking a row with a static
  * pane.
  *
- * What is genuinely Sheet's own, and therefore what these sections are for: the edge it enters
- * from, the corners it keeps and drops, the slide on the drawer's clock, swipe-to-dismiss, the
- * cap that leaves a strip of scrim, and a body that scrolls inside the cap. The seal, the glass
+ * What is genuinely Sheet's own, and therefore what these sections are for: the edge it stands
+ * against, the corners it keeps and drops, swipe-to-dismiss, the cap that leaves a strip of
+ * scrim, and a body that scrolls inside the cap. The seal, the glass
  * ladder, the overlay width ladder and the overlay corner band all arrived from the surface layer
  * already judged on Card and Dialog.
  */
@@ -141,10 +141,10 @@ function Sizes() {
 function States() {
   return (
     <Stack gap="6">
-      {/* A sheet's states are closed, arriving, open, being dragged, and leaving. The four routes
-          out must read as one gesture: Escape, a press on the scrim, a swipe toward the edge
-          (touch, or a mouse drag outside the content), and the Close button. */}
-      <Demo label="Arrival and every way out — Escape, the scrim, a swipe, and Reset">
+      {/* A sheet's states are closed, open and being dragged. The four routes out must read as
+          one gesture: Escape, a press on the scrim, a swipe toward the edge (touch, or a mouse
+          drag outside the content), and the Close button. */}
+      <Demo label="Open, and every way out — Escape, the scrim, a swipe, and Reset">
         <Flex gap="3" align="center" wrap="wrap">
           {SIDES.map((side) => (
             <Sheet key={side} side={side}>
@@ -515,7 +515,7 @@ function InUse() {
           </Stack>
         </Card>
       </Demo>
-      {/* A phone-shaped task from the bottom: sharing, where the sheet rises over the thing being
+      {/* A phone-shaped task from the bottom: sharing, where the sheet stands over the thing being
           shared and the page stays visible above it. */}
       <Demo label="Share from the bottom — drag the window narrow to see it take the whole width">
         <Sheet>

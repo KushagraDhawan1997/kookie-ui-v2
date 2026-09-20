@@ -35,8 +35,8 @@
    reader who has learnt that blue means "you are here" for a chapter should not have to learn a
    second vocabulary for a section of it.
 
-   It CHANGES colour rather than appearing, so the rail's metrics never move and §8's paint clock
-   has something to carry — Link's underline mechanism, rotated ninety degrees. */
+   It CHANGES colour rather than appearing, so the rail's metrics never move — Link's underline
+   mechanism, rotated ninety degrees. */
 .kb-toc-item[data-current] {
   border-inline-start-color: var(--tone-glyph);
 }
@@ -59,8 +59,7 @@
   padding-inline-start: var(--layout-space-4);
 
   /* The underline rests TRANSPARENT rather than absent, so the line's metrics never move and the
-     paint clock has a colour to carry — a `text-decoration-line` appearing is a discrete change
-     and would arrive in one frame. Resting invisible is `Breadcrumb`'s carve-out from Link's
+     pointer changes only its colour. Resting invisible is `Breadcrumb`'s carve-out from Link's
      unconditional underline rather than a drift from it: WCAG 1.4.1's technique F73 is about a
      link INSIDE A BLOCK OF TEXT, where hue is the only thing separating it from the words. This
      is a list of whole items in their own column, and the rail says what they are. */
@@ -70,10 +69,6 @@
   /* Relative to the entry's own type, for the reason link.css and blockquote.css both state: the
      distance between a rule and the glyphs above it is a property of the glyphs. */
   text-underline-offset: 0.2em;
-
-  transition:
-    color var(--motion-duration) var(--motion-easing),
-    text-decoration-color var(--motion-duration) var(--motion-easing);
 }
 
 /* A SUB-HEADING IS TOLD BY WHERE IT STARTS, not by a third ink. `Tree`'s indent argument: one
@@ -105,20 +100,8 @@
 
 /* One ring, and it is the system's — the tokens rather than a second designed value. Drawn here
    for Link's reason: nothing in this file is a `.kui-control`, so it never meets `recipes.css`'s
-   rule. No `kui-ring-land` arrival, for Link's measured reason: §8 bounds ring travel below at
-   about four pixels because Chrome resolves `outline-offset` to whole pixels, and a ring this
-   close to its glyphs does not have that travel. */
+   rule. */
 .kb-toc-link:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
-}
-
-/* The stand-down, on the DECLARING selector (§8): the shared block in recipes.css covers
-   `.kui-control` and `.kui-mark`, and none of this is either — so a clock declared here is a
-   clock nothing else can stop, and a reader who asked their system for stillness keeps getting
-   motion. Same selector, later in the file, so the tie goes to source order by construction. */
-@media (prefers-reduced-motion: reduce) {
-  .kb-toc-link {
-    transition: none;
-  }
 }

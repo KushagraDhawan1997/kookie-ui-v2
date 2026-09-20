@@ -777,11 +777,9 @@ function BlockquoteSection() {
   );
 }
 
-/* THE DONE STATE, judged live (§29's obligation, 2026-09-02). A demo rather than a table,
-   because the thing to judge is the crossing and a still frame cannot show it: press either
-   button and the glyph scales out under a blur while the tick scales in, and the labelled one
-   travels its width from "Copy" to "Copied". What to look at is whether the blur earns its
-   place at 16px — it is one config line and it goes to zero if it does not. */
+/* THE DONE STATE (§29's obligation, 2026-09-02). Press either button and the tick takes the
+   glyph's place; the labelled one also says "Copied". The state and its two-second timer
+   belong to the demo, as they belong to an app. */
 function DoneDemo() {
   const [labelled, setLabelled] = React.useState(false);
   const [bare, setBare] = React.useState(false);
@@ -790,7 +788,7 @@ function DoneDemo() {
     setTimeout(() => set(false), 2000);
   };
   return (
-    <Demo label="Press one — the glyph crosses, the width travels">
+    <Demo label="Press one — the tick takes the glyph's place">
       <Flex gap="3" align="center">
         <Button leading={<CopyGlyph />} done={labelled} onClick={() => clear(setLabelled)}>
           {labelled ? "Copied" : "Copy"}
@@ -939,13 +937,10 @@ function CheckboxSection() {
 function ContextMenuSection() {
   return (
     <Stack gap="6">
-      {/* THE POINT. Right-click at different places in the canvas — the panel's corner lands on
-          the cursor every time, and it grows OUT of that corner. If it ever appears to start
-          from the canvas's own box, the entry has fallen back to the family's silhouette,
-          which is the one thing this component had to replace. Try the corners too: the
-          viewport decides which way the panel opens, and that is the positioner's answer
-          rather than anything a call site said. */}
-      <Demo label="Right-click anywhere — the panel flies out of the point, not the region (and its submenu out of its row)">
+      {/* THE POINT. Right-click at different places in the canvas — the panel's corner sits on
+          the cursor every time. Try the corners too: the viewport decides which way the panel
+          opens, and that is the positioner's answer rather than anything a call site said. */}
+      <Demo label="Right-click anywhere — the panel opens at the point, not at the region (and its submenu beside its row)">
         <ContextMenu size="2">
           <ContextMenuTrigger>
             <Surface size="3" style={{ minBlockSize: 260, display: "grid", placeItems: "center" }}>
@@ -1199,10 +1194,10 @@ const PALETTE: PaletteSection[] = [
 function CommandSection() {
   return (
     <Stack gap="6">
-      {/* The claim to judge first: this is a Dialog. The corner, the scrim, the cast and the
-          entry are the overlay family's, and the palette adds an arrangement — a padded pane
-          holding two objects, a bounded field and a list of bands, with an interval between
-          them rather than a hairline (§44, reversed 2026-09-04). Judge the ends of a lit row
+      {/* The claim to judge first: this is a Dialog. The corner, the scrim and the cast are the
+          overlay family's, and the palette adds an arrangement — a padded pane holding two
+          objects, a bounded field and a list of bands, with an interval between them rather
+          than a hairline (§44, reversed 2026-09-04). Judge the ends of a lit row
           against the pane's corner: that relationship is what the edge-to-edge version could
           not get right. Then empty the field — the empty region takes whatever the app puts in
           it, and what an app should put in it is an empty state, not a sentence in a strip. */}
@@ -2208,7 +2203,7 @@ function ShellSection() {
                   <Text size="2" emphasis="medium">
                     The bar floats over the work area and publishes its reach, so the page
                     scrolls under it and the last line of a page still clears it. The chosen
-                    tab is a grip that travels on the segmented control's own physics.
+                    tab sits on a grip.
                   </Text>
                 </Stack>
               </ShellScroll>

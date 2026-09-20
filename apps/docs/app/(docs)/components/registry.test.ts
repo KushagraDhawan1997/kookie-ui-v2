@@ -318,14 +318,19 @@ describe("a claim about the code is checked against the code", () => {
     ).toMatch(/submenu[^.]*opens? on hover/i);
   });
 
-  it("the segmented control SHIPS a travelling thumb, so its entry may not refuse one", () => {
+  it("the segmented control SHIPS a thumb element, so its entry may not refuse one", () => {
     // The evidence: the component renders and measures the tile. The refusal that stood here
     // said the opposite in the one section that exists to tell a deliberate refusal from an
     // unbuilt gap — and said it two lines under a blurb describing the tile.
+    //
+    // RE-KEYED 2026-09-20 (the motion removal's audit). The law had a third arm asserting the
+    // overview says the tile "slides", which died with the travel — the thumb no longer moves,
+    // it is placed. The two arms that survive are the ones about the ELEMENT, and they are the
+    // ones that matter while the thumb's survival is an open question: if it is later deleted,
+    // the evidence arm fails and names the registry sentence that has to move with it.
     const source = pkg("components/segmented-control/segmented-control.tsx");
     expect(source).toContain("kui-segment-thumb");
     const entry = ENTRIES.find((e) => e.slug === "segmented-control")!;
-    expect(entry.overview.join(" ")).toMatch(/slides/);
     for (const refusal of entry.refusals) {
       expect(
         `${refusal.name} ${refusal.why}`,

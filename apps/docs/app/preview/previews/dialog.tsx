@@ -9,8 +9,8 @@
  * would be a costume, and this file does not use one).
  *
  * What is genuinely Dialog's own, and therefore what these sections are for: the scrim, the
- * overlay width ladder, the corner one step rounder than a card's, the entry, and what
- * happens when the content is taller than the window. The seal, the glass ladder, the
+ * overlay width ladder, the corner one step rounder than a card's, and what happens when the
+ * content is taller than the window. The seal, the glass ladder, the
  * hairline and the radius band all arrived from the surface layer already judged on Card.
  */
 import * as React from "react";
@@ -176,11 +176,9 @@ function Sizes() {
 function States() {
   return (
     <Stack gap="6">
-      {/* A dialog's states are not a control's. What it can be is closed, arriving, open, and
-          leaving — so the states worth judging are the ENTRY (§24: depth, not distance — 3%
-          in z on the poised spring, the content sharing one blur channel) and the two
-          dismissal routes, which must feel like the same gesture from either direction. */}
-      <Demo label="Arrival and dismissal — open it, then leave by Escape, by the scrim, and by Cancel">
+      {/* A dialog's states are not a control's. It is closed or open, so the states worth
+          judging are the open panel and the three ways out of it. */}
+      <Demo label="Open and close — open it, then leave by Escape, by the scrim, and by Cancel">
         <Flex gap="3" align="center" wrap="wrap">
           <Dialog>
             <DialogTrigger render={<Button emphasis="medium">Open</Button>} />
@@ -314,7 +312,7 @@ function Materials() {
   return (
     <Stack gap="6">
       {/* The scrim is what a dialog is separated BY — the panel casts nothing of its own
-          (§24), so the whole viewport going dark is the arrival. Read the panel against its
+          (§24), so the whole viewport going dark is the separation. Read the panel against its
           own scrim first, on the ordinary page. */}
       <Demo label="Solid beside every thickness — over the page">
         <Flex gap="3" align="center" wrap="wrap">
@@ -612,7 +610,7 @@ function InUse() {
         </Card>
       </Demo>
       {/* …and the same component over media, where the scrim has the most work to do: the
-          page behind is busy, and the panel has to arrive as the only thing being asked
+          page behind is busy, and the panel has to read as the only thing being asked
           about. */}
       <Demo label="Raised from a media page — the scrim has to clear a busy ground">
         <BedSurface bed={bed("bloom")} minHeight="280px">

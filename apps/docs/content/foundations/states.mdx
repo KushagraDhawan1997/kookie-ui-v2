@@ -12,8 +12,7 @@ control.
 gets the focus ring and its own hover, but no control box.
 
 **A `Card` rendered as a button or a label** has the shape of a control, so it gets all of the
-control states. It uses the same colour steps, the same ring and the same timing. Only its
-press distances are different.
+control states. It uses the same colour steps and the same ring.
 
 ## Hover and press are steps on one scale
 
@@ -93,12 +92,9 @@ readable, *and* they show clearly that it is off.
 
 ## A pressable card behaves like a button
 
-A `Card` rendered as a button or a link gets all of the control states. Its fill moves on hover
-and on press. The ring appears in the same way. The card moves on the same timing as a button.
-
-Only the distances are different. A card moves down one pixel and shrinks to 0.995. A button
-shrinks to 0.975. Scale is relative. On a 400-pixel card, the button factor moves every edge
-five pixels, and the page then seems to bend.
+A `Card` rendered as a button or a link gets all of the control states. Its fill changes on
+hover and on press, and the ring appears in the same way as on a button. The card itself
+doesn't move.
 
 **A disabled card shows exactly what a disabled button shows.** The fill becomes lighter, the
 words become dim, the cursor becomes an ordinary arrow and the shadow goes. A shadow tells you

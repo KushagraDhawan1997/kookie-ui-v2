@@ -26,6 +26,11 @@ There is no elevation, shadow, or `color` prop either, and no component takes a 
 Spacing between siblings belongs to the container: set `gap` on the `Flex`, `Stack` or
 `Grid` around them, or wrap the child in `<Box m="4">`.
 
+Nothing animates. Every state change is instant: no component takes a duration, easing or
+animation prop, and a transition you write in `style` or `className` is fighting the system.
+The only movement that ships is a loop that IS the content — the Spinner's turn, Progress's
+indeterminate sweep, Attachment's upload sweep — and each one slows for reduced motion.
+
 Do not reach for `className` to get past a refusal. Utility classes are not shipped and
 there is nothing for them to hook onto. If a value you need has no index, that is a finding
 for the system, not a decision for the call site.
@@ -98,7 +103,7 @@ system wrong. The reason each one was refused is on the component's own page —
 - **Box** — Utility classes; A bleed prop; Containment by default
 - **Breadcrumb** — `BreadcrumbSeparator`; `BreadcrumbList`; `tone` and `emphasis`; `maxItems` and any automatic collapse; An ellipsis that does nothing; Role=link and aria-disabled on the current page
 - **Button** — `margin`; `variant`; A shadow prop
-- **ButtonGroup** — A separator part; Travel on hover and press; `tone` and `emphasis` on the group
+- **ButtonGroup** — A separator part; `tone` and `emphasis` on the group
 - **Card** — A `selected` prop, and an `interactive` one; A card inside a card; A material prop; Tone, emphasis and bordered; A media or cover slot; Header and footer slots
 - **Carousel** — Autoplay; Looping; Drag to scroll; A width, a gap or an aspect for the items; `orientation`; Dots under the rail
 - **Checkbox** — `tone` and `emphasis`; `children`; `readOnly`
@@ -136,7 +141,7 @@ system wrong. The reason each one was refused is on the component's own page —
 - **Shell** — A gap prop; A header position axis; A thin sidebar mode; A close-cascade between rail and sidebar; `peek`; A `ShellRailItem` with a prop for the detached seat; `backdrop` on `ShellContent`; A tab bar derived from the sidebar; A tab bar that changes what the sidebar shows; A floating or stacked presentation value
 - **Slider** — `tone` and `emphasis`; `orientation`
 - **Spinner** — A size prop; A colour prop
-- **SplitButton** — `iconOnly`; Travel on hover and press; `render`
+- **SplitButton** — `iconOnly`; `render`
 - **Stack** — `dividers`
 - **Surface** — A fill or an edge prop; A border toggle; `material` and `backdrop`; Tone, emphasis and a shadow
 - **Switch** — `tone` and `emphasis`; `children`; `readOnly`

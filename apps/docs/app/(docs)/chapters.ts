@@ -271,7 +271,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Motion",
     section: "foundations",
     blurb:
-      "Motion uses two clocks. A colour change shows on the first frame, and anything that moves follows a spring.",
+      "When you hover, press or open something, the change shows at once, with no animation. Only three busy indicators move, and they slow down if you ask your system for reduced motion.",
     spec: ["§8"],
     source: "foundations/motion.mdx",
     Content: Motion,

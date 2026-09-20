@@ -216,6 +216,14 @@ export function generatedText(): string {
     "Spacing between siblings belongs to the container: set `gap` on the `Flex`, `Stack` or",
     "`Grid` around them, or wrap the child in `<Box m=\"4\">`.",
     "",
+    // ADDED 2026-09-20, with the motion removal. This file states every other absolute by name,
+    // and an agent that does not read it here will reach for `style={{ transition }}` — the one
+    // escape the system has no hook against, since nothing it would be fighting is declared.
+    "Nothing animates. Every state change is instant: no component takes a duration, easing or",
+    "animation prop, and a transition you write in `style` or `className` is fighting the system.",
+    "The only movement that ships is a loop that IS the content — the Spinner's turn, Progress's",
+    "indeterminate sweep, Attachment's upload sweep — and each one slows for reduced motion.",
+    "",
     "Do not reach for `className` to get past a refusal. Utility classes are not shipped and",
     "there is nothing for them to hook onto. If a value you need has no index, that is a finding",
     "for the system, not a decision for the call site.",

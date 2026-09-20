@@ -40,8 +40,8 @@
  *    where it starts and not by a third ink. Alignment by geometry, never by per-node judgement.
  *
  * NOTHING MOVES. The rail exists at rest in the quiet colour and CHANGES colour when its item
- * becomes current, which is Link's underline mechanism rotated ninety degrees: a border appearing
- * is a discrete change that arrives in one frame, and a border changing colour is a paint (§8).
+ * becomes current, which is Link's underline mechanism rotated ninety degrees: the rail's
+ * metrics never change, only its paint.
  *
  * REFUSED, each for a reason the system already states:
  *
@@ -54,7 +54,7 @@
  *    summary; what to hand over is the caller's call, which is `Breadcrumb`'s `maxItems` refusal
  *    (§3) one component over.
  *  - **Smooth scrolling on click.** That is `scroll-behavior` on the document, a decision about
- *    the whole page, and a reader who asked their system for stillness must not be given it.
+ *    the whole page. A click jumps to its heading at once.
  *  - **`size` and `tone`.** A block is not a component with an API to grow — the steps are stated
  *    once, below, and another step is an edit to your copy.
  */

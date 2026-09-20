@@ -23,10 +23,10 @@
  *             what beats the same element's own token declarations while a nested Theme's
  *             proximity would beat any inline override on the root.
  *
- * Honest the way the motion bench is: every dial is a multiplier OVER what the package ships,
- * read off the shipped tokens themselves (per mode, from probe elements, so a light snapshot
- * is never pushed through dark), and 1.0x everywhere restores the package byte-for-byte.
- * Nothing persists. The readout is the diff for config.ts and refraction.tsx.
+ * Honest: every dial is a multiplier OVER what the package ships, read off the shipped tokens
+ * themselves (per mode, from probe elements, so a light snapshot is never pushed through dark),
+ * and 1.0x everywhere restores the package byte-for-byte. Nothing persists. The readout is the
+ * diff for config.ts and refraction.tsx.
  */
 import * as React from "react";
 import { __retuneLens, Button, Card, Flex, Heading, Stack, Text } from "@kookie-ui/react";
@@ -185,9 +185,9 @@ function Slider({
           {suffix}
         </Text>
       </Flex>
-      {/* A native range, for the reason its twin in the motion bench states: the package's own
-          Slider is a judged specimen on this page, and driving the bench with the thing under
-          test makes a change to it read as a change to the bench. */}
+      {/* A NATIVE range, deliberately: the package's own Slider is a judged specimen on this
+          page, and driving the bench with the thing under test makes a change to it read as a
+          change to the bench. */}
       <input
         id={id}
         type="range"

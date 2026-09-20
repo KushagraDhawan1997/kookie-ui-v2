@@ -28,11 +28,11 @@ function Controls() {
   const { scrollToStart, scrollToEnd, scrollToMessage } = useMessageScroller();
   return (
     <Flex gap="2" wrap="wrap">
-      <Button onClick={() => scrollToStart({ behavior: "smooth" })}>First message</Button>
-      <Button onClick={() => scrollToMessage("m6", { behavior: "smooth", align: "start" })}>
+      <Button onClick={() => scrollToStart()}>First message</Button>
+      <Button onClick={() => scrollToMessage("m6", { align: "start" })}>
         Question 4
       </Button>
-      <Button onClick={() => scrollToEnd({ behavior: "smooth" })}>Latest</Button>
+      <Button onClick={() => scrollToEnd()}>Latest</Button>
     </Flex>
   );
 }

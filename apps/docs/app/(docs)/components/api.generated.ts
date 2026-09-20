@@ -828,7 +828,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "done",
         "type": "boolean",
         "optional": true,
-        "doc": "Shows a tick in place of the icon to say that the action finished. Use it for actions with no other visible result, such as copy. You hold the value and clear it yourself. Unlike `loading`, it doesn't block the press. Also change the label or `aria-label` (for example, `Copy` to `Copied`), because screen readers don't announce the tick."
+        "doc": "Shows a tick in place of the icon to say that the action finished. The tick replaces the icon at once, in the same box, and the icon comes back as soon as `done` is false again. Use it for actions with no other visible result, such as copy. You hold the value and clear it yourself. Unlike `loading`, it doesn't block the press. Also change the label or `aria-label` (for example, `Copy` to `Copied`), because screen readers don't announce the tick."
       },
       {
         "name": "emphasis",
@@ -5948,7 +5948,7 @@ export const API: Record<string, ApiEntry> = {
         "name": "done",
         "type": "boolean",
         "optional": true,
-        "doc": "Shows a tick in place of the icon to say that the action finished. Use it for actions with no other visible result, such as copy. You hold the value and clear it yourself. Unlike `loading`, it doesn't block the press. Also change the label or `aria-label` (for example, `Copy` to `Copied`), because screen readers don't announce the tick."
+        "doc": "Shows a tick in place of the icon to say that the action finished. The tick replaces the icon at once, in the same box, and the icon comes back as soon as `done` is false again. Use it for actions with no other visible result, such as copy. You hold the value and clear it yourself. Unlike `loading`, it doesn't block the press. Also change the label or `aria-label` (for example, `Copy` to `Copied`), because screen readers don't announce the tick."
       },
       {
         "name": "emphasis",

@@ -29,9 +29,8 @@
    not had: the role says the rest, and this file says only what happens when a pointer
    arrives.
 
-   The underline rests TRANSPARENT rather than absent, so the metrics never move and §8's paint
-   clock has a colour to carry — an appearing `text-decoration-line` is a discrete change that
-   would arrive in one frame. Resting invisible is a carve-out from `Link`'s unconditional
+   The underline rests TRANSPARENT rather than absent, so the metrics never move and the pointer
+   changes only its colour. Resting invisible is a carve-out from `Link`'s unconditional
    underline and not a drift from it: WCAG 1.4.1's technique F73 is about a link INSIDE A BLOCK
    OF TEXT, where hue is all that separates it from the words around it. Nothing here is inside
    prose — every item in the column is a link, and the column is what says so. */
@@ -44,10 +43,6 @@
   /* Relative to the link's own type, for the reason link.css and blockquote.css both state:
      the distance between a rule and the glyphs above it is a property of the glyphs. */
   text-underline-offset: 0.2em;
-
-  transition:
-    color var(--motion-duration) var(--motion-easing),
-    text-decoration-color var(--motion-duration) var(--motion-easing);
 }
 
 /* Guarded like every hover rule in the system (§8): a touch device synthesises hover on tap and
@@ -69,20 +64,10 @@
 /* The system's ring, in the system's tokens — never a second designed value. Drawn here for
    `Link`'s own reason: a footer link is not a `.kui-control`, so it never meets the shared
    layer's rule, and a link that cannot be seen when it is focused is a link a keyboard cannot
-   use. No arrival animation: §8 bounds ring travel below at about four pixels and an inline
-   ring sits closer to its glyphs than that. */
+   use. */
 .kb-footer-link:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
-}
-
-/* The stand-down on the DECLARING selector (§8): the shared block in the
-   package covers `.kui-control` and `.kui-mark`, and this is neither — so a clock declared here
-   is a clock nothing else can stop. */
-@media (prefers-reduced-motion: reduce) {
-  .kb-footer-link {
-    transition: none;
-  }
 }
 
 /* ── The columns ───────────────────────────────────────────────────────────────────────────

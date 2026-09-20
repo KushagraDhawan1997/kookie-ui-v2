@@ -5,12 +5,12 @@
  * could not show is most of what a menu is. A menu is the row family's first member and the
  * floating family's first member at once, so it carries two sets of decisions that only
  * appear while it is open — the row's states (highlighted is not hover, checked is a tick and
- * not a louder label, disabled keeps its gutter) and the panel's (it flies out of its
- * trigger, it never scrolls itself, it lands beside a sub-trigger rather than under it).
+ * not a louder label, disabled keeps its gutter) and the panel's (it never scrolls itself, it
+ * opens beside a sub-trigger rather than under it).
  *
  * Everything below is arranged so those two sets can be read separately. A row's states are
- * judged in one open panel; the panel's are judged by opening and closing it repeatedly, and
- * by making it too tall or too close to an edge.
+ * judged in one open panel; the panel's are judged by opening it, and by making it too tall or
+ * too close to an edge.
  */
 import * as React from "react";
 import {
@@ -104,7 +104,7 @@ function FileMenu() {
 }
 
 /** A short menu, for the demos where a fifteen-row panel would be the subject rather than the
-    axis — placement, materials, the entry. */
+    axis — placement, materials, the width floor. */
 function ShortMenu() {
   return (
     <>
@@ -233,13 +233,10 @@ function States() {
           </Menu>
         </Flex>
       </Demo>
-      {/* THE ENTRY: the panel does not fade in, it flies out of the thing that was pressed —
-          the trigger's own silhouette, photographed on the mount frame, unfurling into the
-          panel's real box (§22). Open and close this a few times. What must not happen is a
-          box that starts somewhere the trigger never was, or a second press mid-dissolve
-          replaying the flight from the trigger again (2026-08-20: a reopen is CAUGHT, not
-          replayed — the panel is already on screen and already placed). */}
-      <Demo label="Open, dismiss, and press again before it has faded — the second press must catch it">
+      {/* THE WIDTH FLOOR: a panel is never narrower than the trigger that opened it. Under the
+          narrow trigger the panel takes its own width; under the wide one it matches the
+          trigger. */}
+      <Demo label="A narrow trigger and a wide one — the panel is never narrower than its trigger">
         <Flex gap="3" align="center" wrap="wrap">
           <Menu>
             <MenuTrigger render={<Button emphasis="medium">Narrow trigger</Button>} />
@@ -251,7 +248,7 @@ function States() {
             <MenuTrigger
               render={
                 <Button emphasis="quiet" bordered style={{ minWidth: 320 }}>
-                  A much wider trigger, so the flight has further to go
+                  A much wider trigger, and the panel matches it
                 </Button>
               }
             />
@@ -296,8 +293,7 @@ function States() {
       {/* PLACEMENT is the only positioning vocabulary that is public (§22): side, align, and
           a designed sideOffset. Everything else — collision handling, the width floor, what
           happens near an edge — is the system's. Open all four and then scroll the page so one
-          of them has no room on its preferred side: it must flip, and the flight must start
-          from the trigger on the side it actually landed. */}
+          of them has no room on its preferred side: it must flip to the side that has room. */}
       <Demo label="The four sides — and scroll the page so one has no room">
         <Flex gap="3" align="center" wrap="wrap">
           {(["bottom", "top", "left", "right"] as const).map((side) => (
@@ -465,11 +461,10 @@ function Nesting() {
     <Stack gap="6">
       {/* SELF-NESTING is the one place in this system where the verdict is YES, and it is the
           component's own designed case rather than a tolerated one. Two things to read: the
-          child panel lands BESIDE its trigger, not under it — so it flies from the SEAM, not
-          from the whole row (2026-08-17: photographing the row started a 92px panel from 353px
-          away and the unfurl ran backwards) — and the sub-trigger stays LIT for as long as its
-          child is open, because the parent row is still the path you are standing on. */}
-      <Demo label="A submenu three deep — each child flies from the seam, each parent stays lit">
+          child panel opens BESIDE its trigger, not under it, and the sub-trigger stays LIT for
+          as long as its child is open, because the parent row is still the path you are
+          standing on. */}
+      <Demo label="A submenu three deep — each child opens beside its row, each parent stays lit">
         <Flex gap="3" align="center">
           <Menu>
             <MenuTrigger render={<Button emphasis="medium">Insert</Button>} />

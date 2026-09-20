@@ -238,10 +238,8 @@ function States() {
       </Demo>
       {/* …and the same placement with nowhere to go: put a select near the bottom of the
           window and open it. The panel must stay inside the viewport rather than aligning the
-          row off-screen, and the entry must still be the family's unfurl — the placement
-          changes where the flight lands, never what the flight is (§23, the curtain that was
-          built, judged and deleted). */}
-      <Demo label="Scroll this to the window's edge and open it — the placement gives way, the entry does not">
+          row off-screen. */}
+      <Demo label="Scroll this to the window's edge and open it — the placement gives way, the panel stays in the window">
         <Flex gap="4" align="center">
           <Select defaultValue="nrt" items={REGION_ITEMS}>
             <SelectTrigger placeholder="Pick a region" aria-label="Near an edge" />
@@ -254,9 +252,7 @@ function States() {
       {/* A LIST TALLER THAN THE WINDOW. The panel scrolls, and the scroll ARROWS Base UI pairs
           with item alignment are refused (§23): they are a mouse-only affordance, and wheel,
           trackpad and keyboard already move the list. Open it and scroll — and check that
-          opening it did not move the PAGE, which is the defect this shape kept producing
-          (2026-08-17: the browser answers a focus by scrolling it into view, and both doors
-          are now shut). */}
+          opening it did not move the PAGE. */}
       <Demo label="A long list — it scrolls, there are no arrows, and the page must not move">
         <Flex gap="4" align="center">
           <Select

@@ -80,8 +80,7 @@ body {
    watch, and a loop that cuts back to its start would be the one event on the page that
    draws the eye.
 
-   `prefers-reduced-motion` stands it down whole (§8's own guard, and the honest reading of
-   it here: the motion is not content, it is a test rig). */
+   `prefers-reduced-motion` stops it whole: the motion is not content, it is a test rig. */
 @keyframes kb-bed-drift {
   from {
     scale: 1.18;

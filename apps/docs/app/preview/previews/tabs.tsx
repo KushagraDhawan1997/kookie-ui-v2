@@ -1,17 +1,12 @@
 /**
- * Tabs' preview spec — Tabs shipped 2026-08-18 (§26) and grew its travelling highlight
- * 2026-08-23, which is what this page mostly exists to make judgeable.
+ * Tabs' preview spec — Tabs shipped 2026-08-18 (§26).
  *
- * A specimen table cannot show the thing this component is about. The rule under the active
- * tab is ONE object drawn by its two inline edges, and the edge facing the destination takes
- * the shorter clock — 320ms against 480 — so it stretches toward the tab you picked and
- * gathers itself as the far edge catches up. Over a two-tab hop that stretch is a few pixels
- * and reads as a photograph being slid; it is only legible over a LONG jump, which is why
- * several bars below are deliberately wide and one of them has eight tabs. Everything on this
- * page that says "click" is asking to be clicked.
+ * The rule under the active tab is one designed thickness at every index, and it sits exactly
+ * under the tab you picked. Several bars below are deliberately wide and one of them has eight
+ * tabs, so the rule is judged on a bar that fits and on one that overflows.
  *
- * The second thing it has to answer is the confusion the component lives inside (§26's own
- * opening sentence): a tab bar switches what is UNDER it, a segmented control sets a value in
+ * The other thing this page has to answer is the confusion the component lives inside (§26's
+ * own opening sentence): a tab bar switches what is UNDER it, a segmented control sets a value in
  * place, and reaching for the wrong one is the actual mistake. They stand together twice —
  * in Sizes, where the two boxes must agree, and In use, where each does its own job.
  */
@@ -50,11 +45,10 @@ import type { ComponentPreview } from "./types";
     re-points, which is judged in Nesting. */
 const glassMaterials = () => themeAxes.material.filter((m) => m !== "solid");
 
-/** A workspace's real sections, and what is actually under each one. Eight of them, so a jump
-    from the first to the last is a long travel — the only distance at which the stretch is
-    visible. The third entry is there because a tab bar is only half a specimen: what a bar is
-    FOR is the thing that changes underneath it, and a panel reading "Billing lives here" would
-    be the demo declining to show that. */
+/** A workspace's real sections, and what is actually under each one. Eight of them, so the bar
+    is wide enough to overflow a narrow column. The third entry is there because a tab bar is
+    only half a specimen: what a bar is FOR is the thing that changes underneath it, and a panel
+    reading "Billing lives here" would be the demo declining to show that. */
 const WORKSPACE: readonly (readonly [string, string, string])[] = [
   ["overview", "Overview", "Nine services across two environments, all healthy."],
   ["activity", "Activity", "Shruti merged the audit findings an hour ago. Dan opened two issues."],
@@ -180,40 +174,6 @@ function States() {
         </Box>
       </Demo>
 
-      {/* THE HEADLINE. Click Overview, then Danger zone, and watch the rule: the edge facing
-          where it is going leaves first on 320ms and the far edge follows on 480, so the object
-          pours across the bar and collects itself on arrival rather than sliding as a rigid
-          photograph. Then go back the other way — the two clocks swap, because the leading edge
-          is whichever one faces the destination. Both edges ride the same spring; the whole
-          asymmetry is the two durations.
-
-          Direction is the one fact a stylesheet cannot work out for itself — CSS knows the value
-          a property is animating TO and never the value it left — and Base UI publishes it as
-          `data-activation-direction` on the indicator, which is why Tabs needed no JavaScript of
-          its own for any of this. */}
-      <Demo label="The long travel — click Overview, then Danger zone, then back">
-        <WideBar />
-      </Demo>
-
-      {/* Its `none` is exactly the first paint: no previous tab, so no direction, so neither
-          transition rule matches and the rule is PLACED where it belongs instead of flying in
-          from the bar's start. Reload the page and watch this bar: the rule is already under
-          Billing, and it has not moved to get there. */}
-      <Demo label="First paint is placed, not flown — reload the page and nothing flies in">
-        <WideBar defaultValue="billing" />
-      </Demo>
-
-      {/* The keyboard is NOT exempted, and the stylesheet is the evidence: the transitions are
-          keyed on `data-activation-direction` alone, and nothing in the file asks how the
-          selection was made. Arrow keys move focus without selecting here (Base UI's
-          `activateOnFocus` defaults to false), so Enter or Space is what commits — and the rule
-          travels exactly as it does under a click. Focus a tab, arrow to the far end, press
-          Enter. Its sibling one component over selects as the arrows move, which is the
-          behavioural difference between a tab bar and a radio group. */}
-      <Demo label="Focus the first tab, arrow to the last, press Enter — the same travel, from the keyboard">
-        <WideBar />
-      </Demo>
-
       {/* Disabled, on one tab rather than the whole bar, because that is the shape it occurs in:
           a section this workspace has not enabled. The dead dress is the shared control layer's,
           not this component's — a tab is a `.kui-control` and inherits the remap. */}
@@ -281,32 +241,11 @@ function States() {
 function Permutations() {
   return (
     <Stack gap="6">
-      {/* Travel × size. The rule is one designed thickness at every index while the bar is not,
-          so the ratio of mark to box changes across the ladder — the cross to hunt for is a
-          rung where the rule reads as a different weight of statement. Jump each of these from
-          one end to the other; a stretch that is right at size 2 and wrong at size 4 shows here
-          and nowhere else. */}
-      <Demo label="The same jump at every index — click the first tab, then the last, in each bar">
-        <Stack gap="6">
-          {SIZES.map((size) => (
-            <Stack key={size} gap="2">
-              <Text size="2" emphasis="quiet">
-                size {size}
-              </Text>
-              <WideBar size={size} />
-            </Stack>
-          ))}
-        </Stack>
-      </Demo>
-
-      {/* Travel × OVERFLOW, which is the cell the both-edges spelling was reverted over and
-          then returned on. The rule is drawn from `--active-tab-left` and `--active-tab-width`
-          — the pair Base UI computes in ONE coordinate space — with the second edge DERIVED as
-          `calc(100% - left - width)`. Drawn instead from Base UI's own `--active-tab-right`,
-          which is `scrollWidth − left − width` in the list's SCROLL space while CSS resolves
-          `right` against the containing block's PADDING box, it collapsed to zero width the
-          moment the bar stopped fitting (audit 2026-08-19; measured on a bar overflowing by
-          61px, the derived spelling spans 91.69 against a 91.67 tab where the old one drew 0).
+      {/* OVERFLOW. The rule is positioned from `--active-tab-left` and `--active-tab-width`, the
+          pair Base UI computes in ONE coordinate space. Base UI's own `--active-tab-right` is
+          `scrollWidth − left − width` in the list's SCROLL space, while CSS resolves `right`
+          against the containing block's PADDING box, so a rule drawn from it collapses to zero
+          width the moment the bar stops fitting.
 
           The narrow twin puts the list's own box at 22rem with more tabs than that, which is
           the regime where the two coordinate spaces disagree — and it is the ordinary
@@ -331,16 +270,6 @@ function Permutations() {
             </Box>
           </Stack>
         </Stack>
-      </Demo>
-
-      {/* Travel × the OS's stillness setting, which is a cross nothing on this page can flip for
-          you. Turn Reduce Motion on and click through this bar: the rule places itself under the
-          new tab with no flight at all. The guard is spelled as the same elements at the same
-          specificity later in the file, so it wins by source order rather than by arithmetic
-          anyone has to redo — and the shared control stand-down cannot reach it, because the
-          rule is a sibling of the tabs rather than a thing inside one. */}
-      <Demo label="With Reduce Motion on, the rule is placed rather than flown — turn it on in the OS and click through">
-        <WideBar />
       </Demo>
     </Stack>
   );
@@ -613,8 +542,7 @@ function InUse() {
       {/* A settings screen, which is the bar's most ordinary job and the one that genuinely
           needs eight sections. One focal action on the pane, and it belongs to the section
           showing rather than to the frame — click along the bar and the button stays where the
-          work is. This is also the composition the travel was designed against: Overview to
-          Danger zone is the long jump. */}
+          work is. */}
       <Demo label="A settings screen — eight sections, one action, and the switch is the only chrome">
         <Box maxWidth="52rem">
           <Surface size="3" render={<Stack gap="5" />}>
@@ -719,7 +647,7 @@ export const tabsPreview: ComponentPreview = {
     nesting: { body: <Nesting /> },
     tones: {
       absent:
-        "Refused (§11, §26): a bar where one tab is a different family names nothing, and the tab that matters is already marked — by ink and the rule, which is a state rather than a rung a call site picks. The labels read the TONE-LESS foreground roles (--color-text active against --color-text-muted at rest) rather than the ink trio, so a bar dropped onto a tone-forward surface follows that surface exactly as Text does. Each tab stamps data-tone=\"neutral\", and the stamp is load-bearing rather than decorative: the roles inherit, so an unstamped bar inside a destructive section hovered red. The one family in the component is the accent on the RULE, which is the system's identity for a selected thing and is judged in States with the travel.",
+        "Refused (§11, §26): a bar where one tab is a different family names nothing, and the tab that matters is already marked — by ink and the rule, which is a state rather than a rung a call site picks. The labels read the TONE-LESS foreground roles (--color-text active against --color-text-muted at rest) rather than the ink trio, so a bar dropped onto a tone-forward surface follows that surface exactly as Text does. Each tab stamps data-tone=\"neutral\", and the stamp is load-bearing rather than decorative: the roles inherit, so an unstamped bar inside a destructive section hovered red. The one family in the component is the accent on the RULE, which is the system's identity for a selected thing and is judged in States.",
     },
     inUse: { body: <InUse /> },
   },

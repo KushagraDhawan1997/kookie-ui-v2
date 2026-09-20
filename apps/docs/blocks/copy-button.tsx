@@ -7,8 +7,7 @@
  *
  * The confirmation is the BUTTON ITSELF saying so, not a toast: a toast is a floating layer
  * announcing something the thing you just pressed can say itself, and this system has no toast
- * anyway (§11 lists one; it has never shipped). It reverts on a timer, which is state, not
- * motion — nothing here reads a motion token.
+ * anyway (§11 lists one; it has never shipped). It reverts on a timer, which is state.
  *
  * WHAT SAYS IT depends on what the button has. A labelled button changes its label; an
  * icon-only one changes its GLYPH to a check, and its accessible name with it, so a screen
@@ -66,12 +65,8 @@ export function CopyButton({
   const timer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   React.useEffect(() => () => clearTimeout(timer.current), []);
 
-  /* THE GLYPH IS THE RESTING ONE, ALWAYS. Writing `copied ? <CheckIcon/> : ...` would swap
-     the element and therefore swap it in one frame — React unmounts the outgoing glyph, and
-     an unmounted element cannot leave.
-
-     `done` is the button's own state, and it draws the confirmation: it mounts the system's tick
-     beside this glyph, stacked in one cell, and CSS crosses them. The tick is the same
+  /* THE GLYPH IS THE RESTING ONE, ALWAYS. `done` is the button's own state, and it draws the
+     confirmation: the button shows the system's tick in place of this glyph. The tick is the same
      drawing a checkbox's mark is. What stays here is the STATE and its timer, which is the
      rule §29 states one component over — a control that ran its own clock would decide, for
      every app, how long "just now" lasts.

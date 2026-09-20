@@ -18,8 +18,8 @@
  *      two are told apart by the FILL, so Permutations puts them side by side over one bed.
  *
  * The old section in specimens.tsx had two demos: a size table and one toolbar row. Both
- * survive here, and everything the component gained since — the travelling grip, the glass
- * cases, the disabled stand-down, the Field supplying its index — has somewhere to be read.
+ * survive here, and everything the component gained since — the glass cases, the disabled
+ * stand-down, the Field supplying its index — has somewhere to be read.
  */
 import * as React from "react";
 import {
@@ -64,7 +64,7 @@ const glassMaterials = () => themeAxes.material.filter((m) => m !== "solid");
 
 /** The specimen used everywhere the CONTENT is not the variable — three real words, one real
     accessible name, so a cell only ever differs by the axis under judgment. Three segments
-    rather than two because the travelling grip has to have somewhere in the middle to pass. */
+    rather than two, so the chosen one sits between two neighbours. */
 function Range({
   "aria-label": label = "Date range",
   ...props
@@ -121,9 +121,8 @@ function Sizes() {
       </Demo>
 
       {/* How many segments there are is the caller's, and the channel divides between them:
-          each segment takes an equal share of the track until its own label's minimum binds,
-          which is the case the travelling grip MEASURES rather than divides. Two, three and
-          five at one index, so the divide is the only thing changing. */}
+          each segment takes an equal share of the track until its own label's minimum binds.
+          Two, three and five at one index, so the divide is the only thing changing. */}
       <Demo label="Two, three, five — the channel divides between them">
         <Flex gap="5" align="center" wrap="wrap">
           <SegmentedControl defaultValue="list" aria-label="Layout">
@@ -180,52 +179,18 @@ function States() {
         </Grid>
       </Demo>
 
-      {/* THE GRIP TRAVELS (2026-08-23). One object drawn by its two inline edges, and the edge
-          FACING the destination takes the shorter clock — 320ms against 480, both on one spring,
-          so the whole asymmetry lives in the two durations. The grip therefore stretches toward
-          where it is going and gathers itself as the far edge catches up.
-
-          The track is stated WIDE on purpose: the recipe only reads over a long journey, so the
-          demo to run is the far segment from the far segment. The width lands on the TRACK and
-          not on a Box around it, because `.kui-segmented` is an inline-flex box that hugs its
-          segments — a wider parent gives it nothing to fill.
-
-          THE KEYBOARD IS NOT EXEMPTED, and that is visible in the mechanism rather than claimed:
-          the measurement watches Base UI's `data-checked` stamp and never asks how the selection
-          was made, so an arrow key flies the grip exactly as a click does. Tab in and hold an
-          arrow — selection follows focus, which is the radio group's own behaviour and the whole
-          reason this component is one. */}
-      <Demo label="The grip travels — click the far segment, then arrow back through it">
-        <SegmentedControl
-          defaultValue="overview"
-          aria-label="Report section"
-          style={{ inlineSize: "34rem" }}
-        >
-          <SegmentedItem value="overview">Overview</SegmentedItem>
-          <SegmentedItem value="traffic">Traffic</SegmentedItem>
-          <SegmentedItem value="revenue">Revenue</SegmentedItem>
-          <SegmentedItem value="retention">Retention</SegmentedItem>
-        </SegmentedControl>
-      </Demo>
-
-      {/* HOVER, and the half that is a PIN rather than an absence (2026-08-23, Kushagra,
-          watching a real click: the hover fill "is on top, so as I click on a segment, and it
-          animates, the hover continues to stay… making it look very weird"). The segments paint
-          above the grip — that is what puts a label over it — so a chosen segment that still
-          answered the pointer left a static wash sitting exactly where the grip was travelling
-          to. The chosen segment now paints nothing in any state: hovering the thing you already
-          picked promises something a click cannot deliver. */}
+      {/* HOVER, and the half that is a PIN rather than an absence. The chosen segment IS the
+          grip, and it paints the same fill in every state: hovering the thing you already picked
+          promises something a click cannot deliver. */}
       <Demo label="Hover an unchosen segment, then the chosen one — only one of them answers">
         <Flex gap="5" align="center" wrap="wrap">
           <Range aria-label="Chart range" />
         </Flex>
       </Demo>
 
-      {/* The two states with nothing to fly between. A group with no value paints NO grip — it
-          is hidden rather than parked at the start of the track — and the first choice is then
-          PLACED rather than flown, because there is no seat it came from. Pick one in the left
-          control and watch it arrive without travelling. */}
-      <Demo label="No value, no grip — and the first choice is placed, never flown">
+      {/* A group with no value paints NO grip, because no segment is chosen. Pick one in the
+          left control and that segment becomes the grip. */}
+      <Demo label="No value, no grip — pick one and that segment becomes the grip">
         <Flex gap="5" align="center" wrap="wrap">
           <SegmentedControl aria-label="Unset range">
             <SegmentedItem value="day">Day</SegmentedItem>

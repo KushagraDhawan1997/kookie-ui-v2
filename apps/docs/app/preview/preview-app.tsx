@@ -31,7 +31,6 @@ import {
 } from "@kookie-ui/react";
 
 import { setContrast, useAppearance, type ContrastChoice } from "../appearance";
-import { MotionPanel } from "./motion-panel";
 import { LensBench } from "./lens-bench";
 import { StandaloneLink } from "./component-preview";
 import { Showcase } from "./showcase";
@@ -235,15 +234,10 @@ function EnvPanel({ env, onChange }: { env: Env; onChange: (next: Env) => void }
           </Flex>
         </Stack>
       </Card>
-      {/* The motion bench sits BESIDE the axis card, not inside it: the axes above are the
-          system's public vocabulary and this is the workbench those numbers are judged on.
-          It writes to <html> rather than to the canvas Theme, because the panels it exists to
-          judge are portalled out of the canvas (see motion-panel.tsx). */}
+      {/* The material bench sits BESIDE the axis card, not inside it: the axes above are the
+          system's public vocabulary and this is the workbench those numbers are judged on. */}
       <Box style={{ marginBlockStart: "var(--layout-space-4)" }}>
-        <Stack gap="3">
-          <MotionPanel />
-          <LensBench />
-        </Stack>
+        <LensBench />
       </Box>
     </Box>
   );

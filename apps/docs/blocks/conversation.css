@@ -162,7 +162,6 @@
   inline-size: 1em;
   block-size: 1em;
   color: var(--color-text-muted);
-  transition: rotate var(--motion-hover-out) var(--motion-easing);
 }
 
 .kb-steps-chevron[data-open] {

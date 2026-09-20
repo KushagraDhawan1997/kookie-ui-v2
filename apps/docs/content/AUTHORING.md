@@ -22,9 +22,9 @@ noun phrases. If you read it aloud and it does not finish a thought, it is not a
   before the first paint.`
 - Right: `Add the package to your app, import one stylesheet, and wrap your app in a Theme. You
   also add a small script so dark mode is correct on the first paint.`
-- Wrong: `Two clocks.`
-- Right: `Motion runs on two clocks. A colour change lands on the very first frame, and
-  anything that moves follows a spring.`
+- Wrong: `No motion.`
+- Right: `When you hover, press or open something, the change shows at once, with no
+  animation.`
 
 A verbless opener fails a test. A fragment whose verb hides in a subordinate clause does not —
 no test can catch that one, so it is on you.

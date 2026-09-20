@@ -51,9 +51,10 @@ beforeEach(() => {
  * attribute. The tags are what the claim is about, so they are what this collects.
  *
  *
- * THE CLASS BOUNDARY IS EXACT. A plain `\b` after `kui-button` matches inside
- * `kui-button-swap` — the done state's two stacked glyphs (§41) — so the first run collected
- * four extra elements and reported the ranks missing on all of them.
+ * THE CLASS BOUNDARY IS EXACT. A plain `\b` after `kui-button` matches inside the done state's
+ * own glyph class (§41) — `kui-button-swap` when this was written, `kui-button-tick` since
+ * motion was removed — so the first run collected four extra elements and reported the ranks
+ * missing on all of them.
  */
 const controls = (markup: string) => {
   const tags = [...markup.matchAll(/<[a-z]+\b[^>]*class="[^"]*\bkui-button(?![-\w])[^"]*"[^>]*>/g)].map(
@@ -191,11 +192,12 @@ describe("the control draws what it promises", () => {
     );
   });
 
-  it("and the done state is mounted before it is needed", () => {
-    // §41: both glyphs are mounted always, because React would unmount the outgoing one and an
-    // unmounted element cannot leave. A tick that only appears on success has no entry.
-    expect(markup).toContain("kui-button-swap-to");
-  });
+  // "and the done state is mounted before it is needed" stood here until 2026-09-20. It read
+  // `kui-button-swap-to` out of the server render, and what it was really asserting was that
+  // BOTH glyphs are mounted at all times — which was true only because the swap had to animate,
+  // and React would have unmounted the outgoing one. With motion gone, Button renders only the
+  // glyph that is showing, that class does not exist, and the claim has nothing left to be about
+  // (§8, §41; docs/archive/motion-v1.md).
 });
 
 /**

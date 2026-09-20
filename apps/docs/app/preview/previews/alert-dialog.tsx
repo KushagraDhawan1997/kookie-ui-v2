@@ -311,37 +311,6 @@ function States() {
           </Dialog>
         </Flex>
       </Demo>
-      {/* THE ARRIVAL is the alert's own gesture and not the dialog's (§25, the split's whole
-          cause): a circle rising from below into a measured box on the elastic spring, with
-          the content printing and echoing on the family's clocks — legal here because the
-          content is the system's. A dialog's entry is depth instead: 3% in z, no travel.
-          Open both, twice each. */}
-      <Demo label="The two entries, back to back — the alert materialises, the dialog deepens">
-        <Flex gap="3" align="center" wrap="wrap">
-          <AlertDialog>
-            <AlertDialogTrigger render={<Button emphasis="medium">Alert entry</Button>} />
-            <AlertDialogContent>
-              <DeleteQuestion />
-            </AlertDialogContent>
-          </AlertDialog>
-          <Dialog>
-            <DialogTrigger render={<Button emphasis="quiet" bordered>Dialog entry</Button>} />
-            <DialogContent>
-              <Stack gap="6">
-                <Stack gap="2">
-                  <DialogTitle>Deployment settings</DialogTitle>
-                  <DialogDescription>Applied to the next build.</DialogDescription>
-                </Stack>
-                <TextField placeholder="Build command" aria-label="Build command" />
-                <Flex gap="3" justify="flex-end">
-                  <DialogClose render={<Button emphasis="quiet" bordered>Cancel</Button>} />
-                  <DialogClose render={<Button tone="accent" emphasis="loud">Save</Button>} />
-                </Flex>
-              </Stack>
-            </DialogContent>
-          </Dialog>
-        </Flex>
-      </Demo>
     </Stack>
   );
 }
@@ -500,7 +469,7 @@ function Nesting() {
             <Text size="2" emphasis="medium">
               Title, description, Cancel, Action. Add one control — a field to type the name
               into, a checkbox that says stop asking — and the thing is a Dialog. That is what
-              lets the system own the layout here and animate the words on arrival.
+              lets the system own the layout here.
             </Text>
           </Stack>
         </Card>

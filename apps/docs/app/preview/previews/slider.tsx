@@ -154,28 +154,6 @@ function States() {
           <Slider size="3" defaultValue={40} aria-label="Playback position" />
         </Strip>
       </Demo>
-
-      {/* The drag, which is the state no still image has. Two facts to look for, both §8:
-          the grip SQUASHES while held — stamped from the first pointerdown frame, so a grab
-          anywhere on the strip squashes it too, and it survives the pointer leaving the strip
-          mid-drag — and the TRAVEL is never sprung. During a drag the pointer IS the physics:
-          Base UI writes the position inline, and a spring between finger and grip would read
-          as lag on a direct manipulation. Scale is the grip's one clock; released, it stands
-          back up on the long recovery clock.
-
-          On a RANGE both grips squash while either is held — the stamp is root state. Recorded
-          and judged here, which is why the range specimen is in this demo rather than only in
-          the ladder above. */}
-      <Demo label="Drag one, then drag a range — the grip squashes, the travel does not spring">
-        <Stack gap="5">
-          <Strip width="22rem">
-            <Slider size="4" defaultValue={45} aria-label="Brush size" />
-          </Strip>
-          <Strip width="22rem">
-            <Slider size="4" defaultValue={[25, 70]} aria-label="Trim" />
-          </Strip>
-        </Stack>
-      </Demo>
     </Stack>
   );
 }

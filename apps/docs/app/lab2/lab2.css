@@ -67,12 +67,6 @@
   width: 340px;
   min-height: 210px;
   flex: none;
-  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-@media (hover: hover) {
-  .l2-card:hover {
-    transform: translateY(-2px);
-  }
 }
 
 /* Continuous-curvature corners where supported: the difference between a rounded box and
@@ -189,7 +183,6 @@
   mask-composite: exclude;
   pointer-events: none;
   opacity: var(--l2-spec, 0.92);
-  transition: opacity 240ms ease;
 }
 @media (hover: hover) {
   .l2-glass:hover::after {
@@ -806,53 +799,6 @@
   );
 }
 
-/* ── "More" motion for the lab menus (2026-08-14): the shipped mechanism untouched — only
-   the TIMES and the SPRING move. Longer fall and spread, and a livelier curve (lower
-   damping: ~9% overshoot with a second visible settle, vs the shipped one-crossing
-   spring). Judged here first; if it wins, the values move to config's motion block. */
-.l2-menu.l2-menu {
-  /* The seed's height only — the panel starts as a sliver and falls open; width unchanged. */
-  --kui-seed-h: 10px;
-  --floating-fall: 460ms;
-  --floating-spread: 680ms;
-  --floating-corner: 560ms;
-  --floating-reveal: 260ms;
-  --floating-reveal-delay: 60ms;
-  --motion-spring: linear(
-    0,
-    0.058 3.33%,
-    0.21 6.67%,
-    0.412 10%,
-    0.622 13.33%,
-    0.812 16.67%,
-    0.965 20%,
-    1.077 23.33%,
-    1.148 26.67%,
-    1.184 30%,
-    1.19 33.33%,
-    1.174 36.67%,
-    1.143 40%,
-    1.103 43.33%,
-    1.061 46.67%,
-    1.022 50%,
-    0.989 53.33%,
-    0.965 56.67%,
-    0.951 60%,
-    0.945 63.33%,
-    0.948 66.67%,
-    0.957 70%,
-    0.969 73.33%,
-    0.982 76.67%,
-    0.994 80%,
-    1.003 83.33%,
-    1.008 86.67%,
-    1.01 90%,
-    1.007 93.33%,
-    1.003 96.67%,
-    1 100%
-  );
-}
-
 /* ── Buttons: the Lit rung (2026-08-14) ──────────────────────────────────────────────────────
    Rung 2 is not a new look for Button — it is the SAME world switch the package already
    ships (--kui-control-chrome / --kui-control-light, what Theme depth=elevated declares),
@@ -1371,13 +1317,6 @@
   .l2-track {
     animation: none;
   }
-  .l2-card,
-  .l2-glass::after {
-    transition: none;
-  }
-  .l2-card:hover {
-    transform: none;
-  }
 }
 
 /* The scrim ladder — keyed off the open pane via :has() on the portal's theme wrapper
@@ -1416,13 +1355,6 @@
   .l2-hero,
   .l2-track {
     animation: none;
-  }
-  .l2-card,
-  .l2-glass::after {
-    transition: none;
-  }
-  .l2-card:hover {
-    transform: none;
   }
 }
 

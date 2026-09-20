@@ -15,10 +15,8 @@
  * 5 alike and the switch stands level with the checkbox at its own number) — both directions
  * are law-asserted, so both are drawn. The grip has to survive every state that dims the
  * channel around it, because its POSITION is the control's state and a melted grip erases
- * the state along with the colour. And the crossing has to be watched, not tabulated: the
- * thumb is drawn by both its inline edges on one clock, which is what lets it lean toward
- * where it is going while it is held — so the live demos are several switches at several
- * sizes, with real labels on them.
+ * the state along with the colour. The live demo is several switches at several sizes, with
+ * real labels on them.
  */
 import {
   Box,
@@ -188,13 +186,9 @@ function States() {
         }))}
       />
 
-      {/* LIVE, and the only way to judge the movement (§8). The thumb is drawn by BOTH its
-          inline edges on one clock: `inset-inline-end: auto` cannot be animated to, so a
-          thumb pinned by one edge could only teleport — and because the lean uses the same
-          two properties as the crossing, the grip stretches toward where it is going instead
-          of collapsing first and then travelling. Hold one down before letting go. Tab
-          through them too: the ring is the shared layer's, and it is absent at rest. */}
-      <Demo label="Toggle these — and hold one down to see the grip lean before it goes">
+      {/* LIVE: real labels at every size. Toggle them, and tab through them too: the ring is
+          the shared layer's, and it is absent at rest. */}
+      <Demo label="Toggle these, and tab through them for the ring">
         <Flex gap="6" wrap="wrap" align="center">
           {(
             [
@@ -355,33 +349,6 @@ function Permutations() {
           ))}
         </BedSurface>
       </Demo>
-
-      {/* The crossing, on glass. The travel is the same two edges on the same clock whatever
-          the pane is made of — press and hold one here, then one on the solid card above, and
-          the movement has to read identically. What legitimately differs is only the lift. */}
-      <Demo label="Toggle these on glass — the movement must not change with the pane">
-        <BedSurface bed={bed("country")}>
-          <Theme material="regular">
-            <Card size="3" style={{ width: "260px" }}>
-              <Stack gap="4">
-                {(
-                  [
-                    ["sw-glass-1", "Live preview", true],
-                    ["sw-glass-2", "Snap to grid", false],
-                  ] as const
-                ).map(([id, label, on]) => (
-                  <Flex key={id} gap="5" align="center" justify="space-between">
-                    <Text size="3" render={<label htmlFor={id} />}>
-                      {label}
-                    </Text>
-                    <Switch id={id} defaultChecked={on} />
-                  </Flex>
-                ))}
-              </Stack>
-            </Card>
-          </Theme>
-        </BedSurface>
-      </Demo>
     </Stack>
   );
 }
@@ -416,7 +383,7 @@ function Nesting() {
           turned it into something else. The shared hosted floor sets BOTH axes of a mark to
           one square expression, which is right for the three members that ARE squares and
           renders a checkbox with a thumb in it here. The switch gives up its grown target and
-          keeps its TRAVEL instead: whatever the slot takes off the height it takes off the
+          keeps its SHAPE instead: whatever the slot takes off the height it takes off the
           width, so a tighter slot shortens the channel without stretching its aspect. The
           thumb needs no rule at all — its diameter derives from the box it sits in, so it
           cannot overflow a floored cell. */}

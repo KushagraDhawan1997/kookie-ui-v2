@@ -351,14 +351,12 @@ export const CONTEXT_COMMANDS = [
 
 /**
  * The rows a right-click offers. The PANEL is the package's since 2026-09-02 (§42): the point
- * it opens at, the platform menu it suppresses, the long press that stands in for a
- * right-click on touch and the flight out of that point are all the system's, and what is
- * left here is the only part that is the editor's — which commands, in which order, and what
- * the grammar will let you insert.
+ * it opens at, the platform menu it suppresses and the long press that stands in for a
+ * right-click on touch are all the system's, and what is left here is the only part that is
+ * the editor's — which commands, in which order, and what the grammar will let you insert.
  *
  * It used to be a `Menu` anchored to a one-pixel `<span>` parked where the pointer was: the
- * standard virtual-anchor shape, and the workaround this placement exists to remove. That
- * span was also the box the entry flew out of, so the panel unfurled from one pixel. Deleted
+ * standard virtual-anchor shape, and the workaround this placement exists to remove. Deleted
  * with the swap — the trigger is the canvas itself now (builder-app.tsx).
  */
 export function CanvasMenu({

@@ -21,7 +21,7 @@ function NewMessages() {
   const { scrollToEnd } = useMessageScroller();
   return (
     <Flex justify="flex-end">
-      <Button disabled={!scrollable.end} onClick={() => scrollToEnd({ behavior: "smooth" })}>
+      <Button disabled={!scrollable.end} onClick={() => scrollToEnd()}>
         Show new messages
       </Button>
     </Flex>

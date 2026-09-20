@@ -126,8 +126,7 @@ function States() {
   <Stack gap="6">
     {/* A card's states exist only when it IS something interactive (§10: render a button and
         the surface notices). Static, button and link at every size — hover, press and
-        keyboard-focus the interactive rows; since 2026-08-17 they move like controls, at the
-        surface's own distances. */}
+        keyboard-focus the interactive rows. */}
     <Demo label="Static, pressable, link — every size; hover, press and focus the last two">
       <Grid columns="repeat(4, minmax(0, 1fr))" gapX="5" gapY="5">
         {SIZES.map((size) => (
@@ -137,12 +136,12 @@ function States() {
         ))}
         {SIZES.map((size) => (
           <Card key={size} size={size} render={<button type="button" />} style={{ textAlign: "left" }}>
-            <Blurb title={`Button ${size}`} body="Sinks 1px, shrinks to 0.995." />
+            <Blurb title={`Button ${size}`} body="The fill answers hover and press." />
           </Card>
         ))}
         {SIZES.map((size) => (
           <Card key={size} size={size} render={<a href="#card" />} style={{ textDecoration: "none" }}>
-            <Blurb title={`Link ${size}`} body="No underline; the ring lands." />
+            <Blurb title={`Link ${size}`} body="No underline; the ring on focus." />
           </Card>
         ))}
       </Grid>
@@ -152,14 +151,14 @@ function States() {
         of them: the fill recedes to the dead step, the words dim, the cursor stops promising,
         and the cast goes. That last one is a §5 statement rather than a dimming — elevation
         says a thing can be picked up, and this one cannot. Hover both: only the live one
-        rises. */}
+        answers. */}
     <Demo label="Live beside dead — press the first, then try the second">
       <Grid columns="repeat(2, minmax(0, 1fr))" gapX="5" gapY="5">
         <Card size="3" render={<button type="button" />} style={{ textAlign: "left" }}>
-          <Blurb title="Live" body="Rises to the pointer, sinks under a press." />
+          <Blurb title="Live" body="The fill answers hover and press." />
         </Card>
         <Card size="3" render={<button type="button" disabled />} style={{ textAlign: "left" }}>
-          <Blurb title="Disabled" body="Receded, dimmed, and it does not move." />
+          <Blurb title="Disabled" body="Receded, dimmed, and it does not answer." />
         </Card>
       </Grid>
     </Demo>
@@ -273,8 +272,8 @@ function Permutations() {
         </Grid>
       </BedSurface>
     </Demo>
-    {/* Pressable × material × ground: the press physics must read on glass as on solid, on a
-        calm ground as over the pattern. Press these. */}
+    {/* Pressable × material × ground: the press must read on glass as on solid, on a calm
+        ground as over the pattern. Press these. */}
     <Demo label="Pressable × material — calm ground; press them">
       <BedSurface bed={BEDS[0]!}>
         {(["solid", ...GLASS] as const).map((m) => (

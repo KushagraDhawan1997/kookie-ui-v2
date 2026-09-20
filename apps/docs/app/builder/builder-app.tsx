@@ -823,10 +823,8 @@ export function BuilderApp() {
       setAlsoRings([]);
       return;
     }
-    // The element does not hold still — the hover rise, the press spring, a reflow — so
-    // the instrument tracks it per frame while selected, committing state only on change.
-    // Measured before this: a click-time measurement went 1px stale the moment the hover
-    // travel landed.
+    // The element does not hold still — a reflow, a resize, a scroll — so the instrument
+    // tracks it per frame while selected, committing state only on change.
     let raf = 0;
     const tick = () => {
       const stamped = wrap.querySelector(`[data-b-id="${selection}"]`);
@@ -1639,9 +1637,9 @@ export function BuilderApp() {
         >
           {/* THE RIGHT-CLICK IS THE SYSTEM'S (§42, 2026-09-02). The trigger is the canvas
               itself, which is the whole point of the placement: it used to be a `Menu`
-              anchored to a one-pixel `<span>` parked at the pointer, so the panel unfurled
-              out of one pixel and the editor carried the platform menu's suppression, the
-              touch long press and the point by hand. All three are the component's now.
+              anchored to a one-pixel `<span>` parked at the pointer, and the editor carried
+              the platform menu's suppression, the touch long press and the point by hand.
+              All three are the component's now.
 
               `render` puts the trigger INTO the canvas rather than around it: a wrapper
               element would sit between the grid parent and the box it stretches (the
@@ -2182,7 +2180,7 @@ export function BuilderApp() {
 
               THE PADDING GOES ON THE ROW, NEVER ON THE LIST, and that is not a preference:
               tabs.css states it outright — `--active-tab-left` is measured from the list's
-              BORDER box while the travelling rule resolves its insets against the PADDING
+              BORDER box while the active tab's rule resolves its insets against the PADDING
               box, so inline padding on the list would silently shift every rule by its own
               width. Nothing is put back at all: a tab's own control padding is 14px against
               the pane's 16, so the labels land within two pixels of the body's column with

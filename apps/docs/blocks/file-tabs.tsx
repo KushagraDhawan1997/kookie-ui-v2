@@ -6,7 +6,7 @@
  * TABS, NOT A SEGMENTED CONTROL, and §26 settles it in one sentence: a tab bar switches what is
  * under it and a segmented control sets a value in place. Picking `footer.css` over `footer.tsx`
  * replaces the thing below the bar, so it is a tab bar — and the package's own `Tabs` already
- * carries the roles, the arrow keys and the travelling rule, so this file states none of them.
+ * carries the roles, the arrow keys and the active rule, so this file states none of them.
  *
  * THE BAR SITS ON THE CODE, NOT IN THE FIGURE'S CHROME ROW. The figure's row is at the top,
  * above the live specimen, which would put the tabs a demo's height away from what they switch

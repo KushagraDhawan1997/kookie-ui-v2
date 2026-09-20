@@ -45,7 +45,6 @@ const CSS = `
   translate: 0 calc(-1 * var(--i) * var(--sc-peek));
   scale: calc(1 - var(--i) * 0.04);
   z-index: calc(10 - var(--i));
-  transition: translate 300ms var(--motion-easing), scale 300ms var(--motion-easing), opacity 200ms;
 }
 .sc-stack > [data-i-hidden] { opacity: 0; pointer-events: none; }
 /* Behind cards show no content: only their edge is meant to be read. */
