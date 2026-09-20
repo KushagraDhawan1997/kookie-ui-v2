@@ -106,8 +106,7 @@ export function Radio({ size: sizeProp, className, ref, ...props }: RadioProps) 
       {...props}
     >
       {/* keepMounted, for the reason Checkbox records: the resting state must have a glyph to
-          hide, motion needs something to animate when it lands, and the DOM keeps one shape
-          in every state for a law to assert against. */}
+          hide, and the DOM keeps one shape in every state for a law to assert against. */}
       <BaseRadio.Indicator
         keepMounted
         render={

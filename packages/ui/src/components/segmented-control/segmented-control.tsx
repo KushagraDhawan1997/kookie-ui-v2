@@ -54,22 +54,16 @@ export type SegmentedItemProps = ComponentRefusals & Omit<
 };
 
 /**
- * THE TRAVELING THUMB's measurement (§8, §26, 2026-08-23) — the "measuring hook" the component
- * shipped without and named in advance.
+ * THE THUMB's measurement (§26). Base UI's Tabs measures its active tab for you and
+ * `RadioGroup` does not, so this component measures the chosen segment itself and writes the two
+ * lengths the stylesheet places the grip with.
  *
- * The absence of an indicator was the design for as long as no motion wanted one: Base UI's
- * Tabs measures its active tab for you and `RadioGroup` does not, so a gliding thumb here meant
- * writing a measurement whose only consumer would have been a motion nobody had designed — the
- * curtain's lesson (deleted 2026-08-17). That premise is spent. Kushagra designed the motion in
- * the "Clip vs Physics" bench and asked for it, so the measurement now has the consumer it was
- * waiting for, and this is the door the file's own comment left open rather than a reversal.
- *
- * **It is JS, and it is the FOURTH bounded exception to §8's "no JS at interaction time"** —
- * beside the flight's measurement, the lens, and Tabs' own re-measure. Bounded the same way:
- * it runs when the SELECTION changes and when a BOX RESIZES — the track's or any seat's, which
- * are two different events (2026-08-26) — never on hover, press, focus or scroll, and it writes
- * two lengths rather than driving a frame loop. The sibling gets this
- * free because Base UI already does it; nothing about a radio group offers to.
+ * **It is JS, and it is a bounded exception to §8's "no JS at interaction time"** — beside the
+ * lens, and Tabs' own re-measure. Bounded the same way: it runs when the SELECTION changes and
+ * when a BOX RESIZES — the track's or any seat's, which are two different events (2026-08-26) —
+ * never on hover, press, focus or scroll, and it writes two lengths rather than driving a frame
+ * loop. The sibling gets this free because Base UI already does it; nothing about a radio group
+ * offers to.
  *
  * **Arithmetic over an index was the alternative and it is wrong, measured.** `flex: 1 1 0`
  * gives every segment an identical share while the track sizes itself — three labels of three
@@ -85,34 +79,23 @@ export type SegmentedItemProps = ComponentRefusals & Omit<
  * those two properties describe. `offsetLeft` agrees today only because the track's border is
  * stood down to zero — reading it would be one silent dependency on a declaration made for an
  * unrelated reason (audit 2026-08-19, D2, is that dependency going the other way).
- *
- * Direction wears Base UI's own vocabulary, `data-activation-direction`, so both traveling
- * highlights in this package are keyed and read identically; `none` means "place it, do not
- * fly it" and covers the first paint, a resize and a selection that did not move.
  */
-function useTravelingThumb(track: React.RefObject<HTMLDivElement | null>) {
-  const previousLeft = React.useRef<number | null>(null);
+function useThumb(track: React.RefObject<HTMLDivElement | null>) {
   React.useLayoutEffect(() => {
     const el = track.current;
     if (!el) return;
     const thumb = el.querySelector<HTMLElement>(":scope > .kui-segment-thumb");
     if (!thumb) return;
 
-    /* A BOX MID-FLIGHT IS NOT ITS OWN SIZE (2026-09-01, Kushagra: "when opening it for the first
-       time, theres an overlap between two values, but once I click something, then it corrects").
+    /* A SCALED BOX IS NOT ITS OWN SIZE (2026-09-01, Kushagra: "theres an overlap between two
+       values").
 
        `getBoundingClientRect` reports the VISUAL box, so a scaled ancestor scales every number
        read here — and this control's two lengths are written back as LAYOUT insets, where they
-       mean something the browser never scales. Every overlay in this system scales as it opens,
-       so a segmented control inside a popover, dialog or alert was measured mid-entry and kept
-       those numbers: measured on the docs' props popover, a seat's true insets are 40.078 /
-       78.156 and the first open wrote 38.074 / 74.248 — the same values times 0.95, the entry's
-       own scale, leaving the grip 5.9px wider than its seat and lapping its neighbour until a
-       click re-measured it at rest.
-
-       The resize observers cannot see it and are right not to: nothing resized. Layout width
-       held at 156 for every frame of the entry while the rect went 148.5 → 156.3, which is the
-       whole distinction — one is the box, the other is a picture of it.
+       mean something the browser never scales. Measured inside an ancestor at 0.95, the insets
+       came out at 0.95 of their true values and the grip sat 5.9px wider than its seat, lapping
+       its neighbour. The resize observers cannot see it and are right not to: a scale resizes
+       nothing — one is the box, the other is a picture of it.
 
        So the scale is measured and divided back out, and the measurement is EXACT rather than
        toleranced. `offsetWidth` was the first spelling and it is an integer: on a track whose
@@ -137,14 +120,11 @@ function useTravelingThumb(track: React.RefObject<HTMLDivElement | null>) {
       return layout > 0 ? box.width / layout : 1;
     };
 
-    const place = (flying: boolean) => {
+    const place = () => {
       const chosen = el.querySelector<HTMLElement>(".kui-segment[data-checked]");
       if (!chosen) {
-        // Nothing chosen: no thumb. Hidden rather than left at a stale position, and the
-        // remembered edge is cleared so the next choice PLACES instead of flying out of a box
-        // that has not been on screen.
+        // Nothing chosen: no thumb. Hidden rather than left at a stale position.
         thumb.hidden = true;
-        previousLeft.current = null;
         return;
       }
       // Both edges measured in FRACTIONAL space, against the track's padding box, which is what
@@ -160,20 +140,12 @@ function useTravelingThumb(track: React.RefObject<HTMLDivElement | null>) {
       const scale = visualScale(box, edges);
       const left = (seat.left - box.left) / scale - parseFloat(edges.borderLeftWidth);
       const right = (box.right - seat.right) / scale - parseFloat(edges.borderRightWidth);
-      const from = previousLeft.current;
       thumb.hidden = false;
-      thumb.dataset.activationDirection =
-        !flying || from === null || from === left
-          ? "none"
-          : left > from
-            ? "right"
-            : "left";
       thumb.style.setProperty("--kui-seg-left", `${left}px`);
       thumb.style.setProperty("--kui-seg-right", `${right}px`);
-      previousLeft.current = left;
     };
 
-    place(false);
+    place();
 
     /* THE SELECTION IS WATCHED, NOT RE-RENDERED INTO (measured, 2026-08-23).
      *
@@ -188,33 +160,16 @@ function useTravelingThumb(track: React.RefObject<HTMLDivElement | null>) {
      * groups, uncontrolled groups and a value changed from outside alike. A MutationObserver's
      * callback runs at the microtask checkpoint, before paint, so the placement lands on the
      * same frame the stamp did and nothing flashes at the old seat. */
-    const selection = new MutationObserver(() => place(true));
+    const selection = new MutationObserver(() => place());
     selection.observe(el, {
       subtree: true,
       attributes: true,
       attributeFilter: ["data-checked"],
     });
 
-    /* A resize re-places without flying: the box moved, the choice did not, and a thumb that
-       glided to a new width because a window was dragged would be reporting a change nobody
-       made.
-    
-       IT CARRIES NO GUARD, and that is a decision with a scar behind it. The first spelling of
-       this hook re-ran on every render, so it re-observed on every render, and `ResizeObserver`
-       fires the moment you observe — the free callback landed one frame after every selection
-       change and rewrote the direction to `none`, which removes the transition. Measured, the
-       thumb teleported: 56.9 → 68.4px in a single frame, flat across six samples, with the
-       whole recipe correct behind it. A width comparison was added to tell the free callback
-       from a real resize, and it worked.
-    
-       Then the effect stopped being keyed on renders at all (the MutationObserver above), which
-       fixed the same defect at its cause — and the guard became something no law could
-       distinguish from its absence. Three sabotage passes tried: deleting it changed nothing in
-       38 laws, and the one case that would have separated them (an observer firing without a
-       width change) could not be constructed, because a padding change does not move the
-       content box the observer watches. So it is gone rather than kept as a comfort. Every case
-       that remains is one where re-placing is simply correct: at mount it writes what is
-       already there, and on a real resize the seat genuinely moved. */
+    /* A resize re-places the thumb: the box moved, the choice did not. At mount the observer's
+       free callback writes what is already there, and on a real resize the seat genuinely
+       moved, so re-placing is correct in every case and the callback carries no guard. */
     /* AND IT WATCHES THE SEATS, NOT ONLY THE TRACK (2026-08-26, audit). Observing the track
        alone answers "the control changed size", and that is not the only way a seat moves: the
        segments are `flex: 1 1 0` with a `min-width: auto` floor, so inside a track whose width
@@ -227,12 +182,10 @@ function useTravelingThumb(track: React.RefObject<HTMLDivElement | null>) {
        over; this is that answer, on the element that has no primitive to give it.
 
        One observer for both, because both mean the same thing here — the box moved, the choice
-       did not — so both PLACE rather than fly. The observer fires once per newly observed
-       element by design, and at mount that free callback writes what is already there; the
-       WeakSet is what keeps a later childList sync from re-observing a seat it already holds,
-       which WOULD re-fire and rewrite a live flight's direction to `none` (the scar the
-       comment above records, from the other side). */
-    const size = new ResizeObserver(() => place(false));
+       did not. The observer fires once per newly observed element by design, and at mount that
+       free callback writes what is already there; the WeakSet keeps a later childList sync
+       from re-observing a seat it already holds. */
+    const size = new ResizeObserver(() => place());
     size.observe(el);
     const watched = new WeakSet<Element>();
     const watchSeats = () => {
@@ -306,7 +259,7 @@ export function SegmentedControl({
     [ref],
   );
   const lensRef = useLensRef<HTMLDivElement>(material, compose);
-  useTravelingThumb(track);
+  useThumb(track);
   return (
     <BaseRadioGroup
       ref={lensRef}
@@ -333,8 +286,8 @@ export function SegmentedControl({
       data-tone="neutral"
       {...props}
     >
-      {/* THE THUMB — one object gliding between homes (§26, §8). Rendered FIRST, but that is
-          NOT what puts it under the labels: an absolutely positioned box paints after every
+      {/* THE THUMB — the grip, placed under the chosen segment (§26). Rendered FIRST, but that
+          is NOT what puts it under the labels: an absolutely positioned box paints after every
           static sibling whatever the document order says, and the first spelling of this
           shipped a chosen label painted white on the white grip (measured with
           `elementFromPoint`, 2026-08-23). What orders the two is `position: relative` on the
@@ -343,11 +296,8 @@ export function SegmentedControl({
 
           `hidden` until the first measurement, so a group with no value paints no thumb and a
           server-rendered one does not flash at the track's start before the layout effect
-          runs. Since the wall (2026-08-25) this gate is the ONLY guard against an unmeasured
-          paint: the insets are registered with the descriptor's obligatory 0px initial, which
-          the channel-wall max() would floor into a full-channel thumb — the old var()
-          fallbacks that parked it on the first seat are unreachable on a registered property.
-          Not exported and not a part: it is structure, the same call TabsList makes
+          runs. This gate is the only guard against an unmeasured paint. Not exported and not a
+          part: it is structure, the same call TabsList makes
           about its indicator. */}
       <span className="kui-segment-thumb" aria-hidden="true" hidden />
       <GlassScope material={material}>{children}</GlassScope>
@@ -358,13 +308,8 @@ export function SegmentedControl({
 /**
  * One segment (§26) — a control hosted in a control, and the system already has that rule.
  *
- * There is no separate indicator element, and the absence is deliberate. Base UI's Tabs ships
- * one because it measures the active tab for you; RadioGroup ships none, so a gliding thumb
- * here would mean writing the measurement ourselves — a mechanism whose only consumer is a
- * motion that has not been designed yet, which is the entropy this repo keeps paying for (the
- * curtain, deleted 2026-08-17). The selected segment paints its own box: no JS at interaction
- * time, and the honest thing to draw when nothing travels. When the motion pass wants one
- * object gliding between homes, the measuring hook arrives with it and this stays internal.
+ * The grip is not this element: SegmentedControl renders one thumb and places it under the
+ * chosen segment, so a segment paints only its label and, when unchosen, its hover step.
  *
  * `children` is OPEN, where every mark refuses it: a mark sits beside its label and a segment
  * CONTAINS its own, which is the whole difference between the two boxes.

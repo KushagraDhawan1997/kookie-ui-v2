@@ -20,8 +20,6 @@ import {
   colorOn,
   computed,
   forEachCell,
-  inMotion,
-  numberOn,
   render,
   tokenOn,
   within,
@@ -312,6 +310,16 @@ describe("the thumb is the mark family's third member (§4, §6)", () => {
     // tree order rather than by proximity, which is Base UI's call to make.
     const el = slider();
     expect(getComputedStyle(thumbOf(el), "::after").content).toBe("none");
+  });
+
+  it("a resting grip states no transform — it must not be a stacking context (§4)", async () => {
+    // The stacking-rule sentence, asserted on the one mark that spends its life inside another
+    // control's box.
+    const el = slider({}, {});
+    await settled(el);
+    expect(computed(thumbOf(el), "scale"), "resting, the grip must not be a stacking context").toBe(
+      "none",
+    );
   });
 });
 
@@ -630,93 +638,6 @@ describe("the rail is a well, and the radius axis DOES reach it (§6, audit R8)"
     const el = slider({}, { radius: "none" });
     const thumb = px(computed(thumbOf(el), "border-top-left-radius"));
     expect(thumb, "the thumb lost its circle").toBeGreaterThan(0);
-  });
-});
-
-describe("the grip under drag (§8, 2026-08-10)", () => {
-  /**
-   * The first component law to HOLD a real press: the state under test is "grabbed and not
-   * released", which no userEvent verb can leave you in — click is press+release, dragAndDrop
-   * ends released. CDP's mouse is the instrument, and the release lives in `finally` so a
-   * failing assertion cannot strand the next file with a button held down (the pointer-parking
-   * lesson, one input further in).
-   */
-  async function held(thumb: HTMLElement, fn: () => void | Promise<void>): Promise<void> {
-    const { cdp } = await import("vitest/browser");
-    const box = thumb.getBoundingClientRect();
-    const x = box.left + box.width / 2;
-    const y = box.top + box.height / 2;
-    await cdp().send("Input.dispatchMouseEvent", { type: "mouseMoved", x, y });
-    await cdp().send("Input.dispatchMouseEvent", {
-      type: "mousePressed", x, y, button: "left", buttons: 1, clickCount: 1,
-    });
-    try {
-      // Base UI stamps `data-dragging` from the pointerdown handler, but the attribute lands
-      // on React's flush — poll the condition, never guess a frame count (the settled() rule).
-      for (let i = 0; i < 200 && !thumb.hasAttribute("data-dragging"); i++) {
-        await new Promise((r) => requestAnimationFrame(r));
-      }
-      expect(thumb.hasAttribute("data-dragging"), "the grab never stamped").toBe(true);
-      await fn();
-    } finally {
-      await cdp().send("Input.dispatchMouseEvent", {
-        type: "mouseReleased", x, y, button: "left", buttons: 0, clickCount: 1,
-      });
-      for (let i = 0; i < 200 && thumb.hasAttribute("data-dragging"); i++) {
-        await new Promise((r) => requestAnimationFrame(r));
-      }
-    }
-  }
-
-  it("a held grip squashes, holds it for the drag, and stands back up released", async () => {
-    const el = slider({}, {});
-    await settled(el);
-    const thumb = thumbOf(el);
-    // A resting mark states NO transform — the stacking-rule sentence, asserted on the one
-    // mark that spends its life inside another control's box.
-    expect(computed(thumb, "scale"), "resting, the grip must not be a stacking context").toBe("none");
-    const squash = numberOn(thumb, "--press-squash");
-    expect(squash).toBeLessThan(1);
-    await held(thumb, () => {
-      expect(Number(computed(thumb, "scale")), "grabbed, the grip squashes").toBe(squash);
-    });
-    expect(computed(thumb, "scale"), "released, it stands back up").toBe("none");
-  });
-
-  it("the travel is never sprung — scale is the only channel, and the hold swaps its clock", async () => {
-    // "Physics on the travel, no": during a drag the pointer IS the physics, so the position
-    // Base UI writes inline must never appear in the transition list — a spring between finger
-    // and grip is lag on a direct manipulation. Read as the COMPUTED channel list, so a
-    // shorthand, a longhand, or an inherited rule all land in the same assertion.
-    const el = slider({}, {});
-    inMotion();
-    await settled(el);
-    const thumb = thumbOf(el);
-    expect(computed(thumb, "transition-property"), "one channel: the deformation").toBe("scale");
-    // The held clock arrives twice over, and the sabotage pass proved it: with the dragging
-    // rule's own restate deleted this law still passes, because every grab this harness can
-    // drive also lights `:active` on the root — the preventDefault path included, measured —
-    // and the shared press rule's pair reaches the thumb by inheritance. The restate stays in
-    // slider.css anyway, argued not measured: on touch, `:active`'s arrival is not guaranteed
-    // to be the pointerdown frame, and the squash's clock must land on the SAME stamp as the
-    // squash. What this law asserts is the observable — held, the thumb computes the press
-    // pair, by whichever route — and its non-vacuity is proven by pinning a wrong clock on
-    // the dragging state, which fails it.
-    // Time tokens read raw — the width probe tokenOn rides rejects a duration. Authored in
-    // ms, computed in s: one unit before comparing.
-    const seconds = (v: string) => (v.trim().endsWith("ms") ? parseFloat(v) / 1000 : parseFloat(v));
-    const raw = (name: string) => seconds(getComputedStyle(thumb).getPropertyValue(name));
-    const restEase = computed(thumb, "transition-timing-function");
-    expect(seconds(computed(thumb, "transition-duration")), "the recovery clock is the control layer's own").toBe(raw("--motion-rise"));
-    await held(thumb, () => {
-      expect(seconds(computed(thumb, "transition-duration")), "held: the press's clock").toBe(
-        raw("--motion-press"),
-      );
-      // Short and stiff against long and lively — the two-clocks sentence, held relationally
-      // so a re-tuned pair keeps the law without keeping the numbers.
-      expect(raw("--motion-press")).toBeLessThan(raw("--motion-rise"));
-      expect(computed(thumb, "transition-timing-function"), "held: the press's spring").not.toBe(restEase);
-    });
   });
 });
 

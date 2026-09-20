@@ -103,8 +103,8 @@ export function Checkbox({ size: sizeProp, className, ref, ...props }: CheckboxP
     >
       {/* keepMounted, because the alternative is styling an element that is not there: with
           the default the indicator unmounts while unchecked, and the resting box would have
-          no glyph to hide, no glyph to transition from when motion lands, and a different DOM
-          shape in each state for a test to assert against. */}
+          no glyph to hide and a different DOM shape in each state for a test to assert
+          against. */}
       <BaseCheckbox.Indicator
         keepMounted
         render={
@@ -118,9 +118,6 @@ export function Checkbox({ size: sizeProp, className, ref, ...props }: CheckboxP
         <path
           className="kui-checkbox-check"
           d={CHECK_PATH}
-          /* Normalised so CSS can draw the stroke without measuring it (§8): with pathLength
-             1, a dash array of 1 spans the whole glyph whatever the viewBox or the size. */
-          pathLength={1}
           stroke="currentColor"
           strokeWidth={glyphStroke}
           strokeLinecap="round"
@@ -129,7 +126,6 @@ export function Checkbox({ size: sizeProp, className, ref, ...props }: CheckboxP
         <path
           className="kui-checkbox-dash"
           d="M4.25 8h7.5"
-          pathLength={1}
           stroke="currentColor"
           strokeWidth={glyphStroke}
           strokeLinecap="round"

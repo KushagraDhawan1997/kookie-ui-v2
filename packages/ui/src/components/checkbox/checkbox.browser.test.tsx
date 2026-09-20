@@ -25,7 +25,6 @@ import {
   render,
   tokenOn,
   within,
-  inMotion,
 } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { TextField } from "../text-field/text-field.tsx";
@@ -359,6 +358,32 @@ describe("the glyph is the box, not the icon ladder (§4)", () => {
     const mixed = render(<Checkbox indeterminate defaultChecked />);
     expect(getComputedStyle(mixed.querySelector(".kui-checkbox-dash")!).visibility).toBe("visible");
     expect(getComputedStyle(mixed.querySelector(".kui-checkbox-check")!).visibility).toBe("hidden");
+  });
+
+  it("...and it stays the dash if the primitive stamps `data-unchecked` beside it (§8)", () => {
+    // The tri-state's contract with the primitive. In the pinned Base UI (1.7)
+    // `getCheckboxStateAttributesMapping` returns `{}` for `checked` while `indeterminate` is
+    // true, so the indicator carries `data-indeterminate` ALONE (audit 2026-08-26).
+    //
+    // Two halves, because the rendering's value is what happens if that contract moves. The
+    // first pins the contract, so a Base UI bump that changes it fails HERE and names the rule.
+    // The second drives the state such a bump would produce: with `data-unchecked` on an
+    // indeterminate indicator, the dash must still show and the tick must not.
+    const some = mounted(<Checkbox indeterminate />, { theme: {}, select: ".kui-checkbox" });
+    const svg = some.querySelector("svg")!;
+    expect(svg.hasAttribute("data-indeterminate"), "the indicator names its state").toBe(true);
+    expect(svg.hasAttribute("data-unchecked"), "Base UI 1.7 stamps one, not two").toBe(false);
+    expect(svg.hasAttribute("data-checked")).toBe(false);
+
+    svg.setAttribute("data-unchecked", "");
+    expect(
+      getComputedStyle(some.querySelector(".kui-checkbox-dash")!).visibility,
+      "the dash this state exists to draw was hidden",
+    ).toBe("visible");
+    expect(
+      getComputedStyle(some.querySelector(".kui-checkbox-check")!).visibility,
+      "and the tick stays hidden",
+    ).toBe("hidden");
   });
 
   it("indeterminate fills the box like checked does — it is a state, not an absence", () => {
@@ -796,87 +821,12 @@ describe("marks in a stack keep their clicks at twelve pixels (§4, decided 2026
     );
     expect(stolenRows(el)).toBeGreaterThan(0);
   });
-});
 
-/* ── Motion: the tick is drawn, the box takes the press (§8, 2026-08-09) ───────────────── */
-
-describe("the tick is drawn, not switched on (§8)", () => {
-  // `stroke-dashoffset` computes with a unit even though the path is normalised, so the law
-  // reads the number rather than the spelling.
-  const dash = (el: HTMLElement, cls: string) =>
-    parseFloat(computed(el.querySelector<HTMLElement>(cls)!, "stroke-dashoffset"));
-
-  it("unchecked the stroke is fully retracted; checked it is fully out", () => {
-    const off = mounted(<Checkbox />, { theme: {}, select: ".kui-checkbox" });
-    inMotion();
-    // pathLength normalises the glyph to 1, so a full retraction is exactly 1 whatever the
-    // size or the viewBox — the law reads the same number in all 24 cells.
-    expect(dash(off, ".kui-checkbox-check"), "an unchecked tick is not drawn").toBe(1);
-
-    const on = mounted(<Checkbox defaultChecked />, { theme: {}, select: ".kui-checkbox" });
-    inMotion();
-    expect(dash(on, ".kui-checkbox-check"), "a checked tick is drawn whole").toBe(0);
-  });
-
-  it("it draws IN on a spring and returns instantly — un-checking is not the reverse", () => {
-    const on = mounted(<Checkbox defaultChecked />, { theme: {}, select: ".kui-checkbox" });
-    inMotion();
-    const tick = on.querySelector<HTMLElement>(".kui-checkbox-check")!;
-    expect(computed(tick, "transition-property")).toContain("stroke-dashoffset");
-    expect(computed(tick, "transition-timing-function"), "a drawn stroke has mass").toContain("linear(");
-    expect(parseFloat(computed(tick, "transition-duration"))).toBeGreaterThan(0);
-
-    // Nobody watches a tick un-draw: the box is already empty by the time the eye arrives.
-    const off = mounted(<Checkbox />, { theme: {}, select: ".kui-checkbox" });
-    inMotion();
-    const gone = off.querySelector<HTMLElement>(".kui-checkbox-check")!;
-    expect(computed(gone, "transition-duration"), "the return is instant").toBe("0s");
-  });
-
-  it("the indeterminate dash is the tick's own sentence, not a faded check", () => {
-    // `indeterminate` is its own boolean prop, not a value of `checked` — the first spelling
-    // of this law passed one and read a plain checked box, which is the calibration lesson:
-    // an instrument has to be pointed at the state it names.
-    const some = mounted(<Checkbox indeterminate />, { theme: {}, select: ".kui-checkbox" });
-    inMotion();
-    expect(dash(some, ".kui-checkbox-dash"), "the dash draws").toBe(0);
-    expect(dash(some, ".kui-checkbox-check"), "and the tick stays retracted").toBe(1);
-  });
-
-  it("...and it stays the dash if the primitive stamps `data-unchecked` beside it (§8)", () => {
-    // The retraction arm's guard, and why it is defence rather than a description. In the
-    // pinned Base UI (1.7) `getCheckboxStateAttributesMapping` returns `{}` for `checked`
-    // while `indeterminate` is true, so the indicator carries `data-indeterminate` ALONE —
-    // which is why `:not([data-indeterminate])` had no law: nothing shipped could reach it,
-    // and checkbox.css claimed the opposite of the primitive for as long (audit 2026-08-26).
-    //
-    // Two halves, because the guard's whole value is what happens if that contract moves.
-    // The first pins the contract, so a Base UI bump that changes it fails HERE and names the
-    // rule. The second drives the arm through the state such a bump would produce: with
-    // `data-unchecked` on an indeterminate indicator, the dash must still be drawn.
-    const some = mounted(<Checkbox indeterminate />, { theme: {}, select: ".kui-checkbox" });
-    inMotion();
-    const svg = some.querySelector("svg")!;
-    expect(svg.hasAttribute("data-indeterminate"), "the indicator names its state").toBe(true);
-    expect(svg.hasAttribute("data-unchecked"), "Base UI 1.7 stamps one, not two").toBe(false);
-    expect(svg.hasAttribute("data-checked")).toBe(false);
-
-    svg.setAttribute("data-unchecked", "");
-    expect(dash(some, ".kui-checkbox-dash"), "the dash this state exists to draw was retracted")
-      .toBe(0);
-    expect(dash(some, ".kui-checkbox-check"), "and the tick stays retracted").toBe(1);
-  });
-
-  it("held, the mark squashes — it has no depth to sink into (§8)", () => {
+  it("a resting mark states no transform — it must not be a stacking context (§4)", () => {
+    // Any non-`none` transform value makes the mark a stacking context, and a mark's target is
+    // a pseudo-element that paints deliberately outside its own box: a later sibling's reach
+    // would then paint over an earlier sibling's paint, which the laws above exist to prevent.
     const el = mounted(<Checkbox />, { theme: {}, select: ".kui-checkbox" });
-    inMotion();
-    // A resting mark states NO transform: any non-`none` value makes it a stacking context,
-    // and a mark's target paints deliberately outside its own box — five laws caught that.
     expect(computed(el, "scale"), "a resting mark must not be a stacking context").toBe("none");
-    const squash = Number(getComputedStyle(el).getPropertyValue("--press-squash"));
-    expect(squash).toBeLessThan(1);
-    expect(squash).toBeGreaterThan(0.8);
-    const listed = computed(el, "transition-property").split(",").map((p) => p.trim());
-    expect(listed, "and it has a clock to squash on").toContain("scale");
   });
 });

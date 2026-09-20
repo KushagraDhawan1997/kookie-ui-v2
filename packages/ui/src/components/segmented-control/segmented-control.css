@@ -6,9 +6,21 @@
  * segment's resting bareness and its hover step, and the focus ring, cursor and disabled
  * remap are the control layer's. This file never mentions a size.
  *
- * Since 2026-08-23 it also owns the THUMB — one grip travelling between segments rather than a
- * fill switching from one box to another (§8, §26). What that costs is stated where it is
- * paid: a measurement in segmented-control.tsx, because a radio group offers none.
+ * It also owns the THUMB — the grip, one element placed under the chosen segment (§26). What
+ * that costs is stated where it is paid: a measurement in segmented-control.tsx, because a
+ * radio group offers none. Motion was removed 2026-09-20; docs/archive/motion-v1.md records it.
+ *
+ * THE ELEMENT SURVIVED THAT REMOVAL, AND IT SURVIVED ON ONE MEASURED FACT. The measurement is a
+ * bounded exception to §8's "no JS at interaction time" and it was granted for the TRAVEL, so
+ * with the travel gone the honest move is to delete it and paint the grip on the chosen segment
+ * again, as the component shipped on 2026-08-18. That was built and measured on 2026-09-20:
+ * across 342 states the two spellings paint the same pixels everywhere but one, and that one —
+ * a track squeezed below its own min-content, where an end seat leaves the channel — differs by
+ * up to 219/255, because `max(measured, --segment-inset)` keeps a separate box inside the walls
+ * and a segment's paint IS its layout box. The revert also needs the segments to state a
+ * stacking order, or the chosen one's cast lands over a hovered leading neighbour instead of
+ * under it (19/255). Both halves are in segmented-control.browser.test.tsx; the floor has its
+ * own law now, because until 2026-09-20 nothing read it and a full suite was green either way.
  */
 
 /* The TRACK is a well, not a dressed surface — the switch's own argument, verbatim (§11
@@ -149,9 +161,8 @@
   border-radius: calc(max(var(--kui-ct-radius), var(--segment-inset)) - var(--segment-inset));
 }
 
-/* The SELECTED segment keeps its INK and nothing else (§11, §26). Its fill and its cast moved
-   to the thumb on 2026-08-23, when the grip became one object that travels: two boxes painting
-   one grip would mean the old segment's fill blinking out as the thumb glided away from it.
+/* The SELECTED segment keeps its INK and nothing else (§11, §26). Its fill and its cast are
+   the thumb's (below): the grip is one element, so the segment paints no second one.
 
    The ink pairs with the GRIP, not with the page (audit 2026-08-19, D1). `--color-text` was
    measured painting the chosen label in its own fill in dark — `--color-thumb` is neutral-12
@@ -159,24 +170,18 @@
    moving neither. `--color-thumb-label` is stated beside the fill it answers to, per mode, out
    of values the generator had already solved.
 
-   It steps up as the thumb arrives: an unselected segment reads the muted foreground and the
+   It steps up with the choice: an unselected segment reads the muted foreground and the
    chosen one reads full — the tab bar's own sentence, the others are places you could go. The
    TONE-LESS pair, deliberately: the root stamps `accent` so the family resolves for anything
    that needs it, and reading `--tone-ink` here would put accent-coloured text on the grip.
 
-   The ink switches INSTANTLY while the box travels, and that is §8's split rather than an
-   oversight: paint is signal and geometry is physics, so the label you chose is full-strength
-   on the first frame and the grip catches up underneath it.
-
    AND IT PAINTS NO FILL IN ANY STATE, which is a pin rather than an absence (2026-08-23,
-   Kushagra: clicking a segment left "the hover… on top" of the travelling grip, "which doesn't
-   wobble btw, making it look very weird"). The old spelling held all three sources at
-   `--color-thumb` and carried the rule with them — a grip does not fill, it moves, so hover and
-   press must not step it. Moving the fill to the thumb deleted the triple instead of
+   Kushagra: clicking a segment left "the hover… on top" of the grip). The old spelling held all
+   three sources at `--color-thumb` and carried the rule with them — a grip does not fill, so
+   hover and press must not step it. Moving the fill to the thumb deleted the triple instead of
    re-pointing it, and the chosen segment fell back to the QUIET rung, which does have a hover
-   step: measured, the segment under the pointer painted a 6.7% wash on top of the thumb gliding
-   underneath it, a static rectangle sitting exactly where the grip was heading.
-   
+   step: measured, the segment under the pointer painted a 6.7% wash on top of the thumb.
+
    All three, for the field's own reason (§8): a rule that declared only rest would fall back to
    the rung's values the moment a pointer arrived, which is the defect restated. The chosen
    segment can never light up anyway — hovering the thing you already picked promises something
@@ -188,39 +193,34 @@
   --kui-ct-fill-src-active: transparent;
 }
 
-/* THE CHANNEL HAS WALLS (§8, §26, 2026-08-25, Kushagra from the glass preview: the grip "does
-   not leave the container" in the bench, and ours did). The bench's own lean rule — "a lean can
-   never cross a boundary: it always points inward" — holds for the FLIGHT too, and the shipped
-   flight broke it: the calm spring overshoots ~6.8% of travel, which on a full first-to-last
-   jump across a 360px track is ~16px, and the 2px channel inset absorbs almost none of it.
-   Measured: the grip's edge 14.11px OUTSIDE the track at t=170ms — identically in solid and on
-   glass. Only the visibility differed (a white grip over a white page against a grip poking out
-   of a ringed pane over a photo), which is why it was reported as a glass defect.
+/* THE THUMB — the grip, one element placed under the chosen segment (§11, §26).
 
-   The wall is GEOMETRY, not a second spring. The two clocks and the calm character are the
-   judged motion and none of it moves; what changes is that the spring now rides the REGISTERED
-   custom properties the measurement already writes, and the painted inset is that value floored
-   at the channel inset — max() at the point of use. An interior flight never reaches the floor
-   (its inset targets sit a whole seat above it, and 6.8% of a seat cannot cross them), so every
-   interior flight is byte-identical. A flight into an END seat: the leading edge arrives at the
-   wall and holds, the trailing edge is still flying on its own clock, and the overshoot is
-   spent as a SQUASH against the wall instead of an escape through it — which is what a grip
-   with momentum hitting the end of a real channel does.
+   Everything about how it LOOKS is the switch's thumb verbatim, self-keyed rather than
+   promoted: this is the family's second grip-in-a-channel and the second member self-keys (the
+   TextArea rule). Fill routed through the `-src` chain so the shared disabled remap's shape
+   stays the shared one, then painted directly, because this is not a `.kui-control` and the
+   skeleton's rule cannot reach it. No hover and no press step — a grip does not fill, it moves.
 
-   Rejected: `overflow: clip` on the track (pins the visible edge at the BOX, not the channel —
-   the grip would intrude into the 2px frame — and it shaves the grip's cast; it is also the
-   bench's rejected side, by name), and a non-overshooting curve on wall-bound flights (the
-   component would have to know its destination is an end, and §8's "one character, the
-   asymmetry entirely in the durations" dies with a per-destination spring).
+   The corner is the segment's own concentric expression, restated rather than inherited: the
+   thumb is not a segment, so it cannot pick the value up from one, and the two must agree or a
+   grip sits in a differently-rounded seat.
 
-   The registration is what makes the clamp expressible at all: an unregistered custom property
-   transitions DISCRETELY, so a spring can only ride a registered <length>. `inherits: false` is
-   the @property guard's standing reason — a length private to one thumb must not leak into a
-   nested control. The initial-value is the descriptor's obligatory 0px and never paints: the
-   thumb is `[hidden]` until the first measurement writes both edges, and 0px through the max()
-   would otherwise span the whole channel rather than sit on the first seat — the registration
-   retires the old var() fallbacks, whose arms it makes unreachable (the 2026-08-07 rule: a
-   fallback chain is only a mechanism if every arm is reachable). */
+   Placed by the two lengths the measurement writes, floored at the channel inset: a track
+   forced narrower than its labels pushes its seats out of the channel, and the grip stays
+   inside the channel rather than following them out.
+
+   THE TWO INSETS ARE REGISTERED, and the reason is no longer the one it was written for. The
+   registration arrived with the travel, because an unregistered custom property transitions
+   discretely and a spring can only ride a registered `<length>`; motion was removed 2026-09-20
+   and the registration went with it for a day, replaced by a `var()` fallback chain that
+   resolves to the same lengths in every state. It is back because the OTHER two reasons never
+   depended on the travel: `inherits: false` is the @property guard's standing one — a length
+   private to one thumb must not leak into a nested control — and a registered property with an
+   initial value retires a fallback arm the 2026-08-07 rule would otherwise oblige us to keep
+   reachable. The initial 0px never paints: the thumb is `[hidden]` until the first measurement
+   writes both edges. This is one mechanism with two members, and the second is the shell's bar
+   thumb (shell.css), which registers the same pair for the same reasons and reads them the same
+   bare way; they are spelled identically on purpose. */
 @property --kui-seg-left {
   syntax: "<length>";
   inherits: false;
@@ -233,23 +233,6 @@
   initial-value: 0px;
 }
 
-/* THE THUMB — one grip travelling between homes (§8, §11, §26, 2026-08-23, judged in the
-   "Clip vs Physics" bench).
-
-   Everything about how it LOOKS is the switch's thumb verbatim, self-keyed rather than
-   promoted: this is the family's second grip-in-a-channel and the second member self-keys (the
-   TextArea rule). Fill routed through the `-src` chain so the shared disabled remap's shape
-   stays the shared one, then painted directly, because this is not a `.kui-control` and the
-   skeleton's rule cannot reach it. No hover and no press step — a grip does not fill, it moves.
-
-   The corner is the segment's own concentric expression, restated rather than inherited: the
-   thumb is not a segment, so it cannot pick the value up from one, and the two must agree or a
-   grip sits in a differently-rounded seat.
-
-   Placed by the two lengths the measurement writes, floored at the channel wall (the block
-   above). The old var() fallbacks — "an unmeasured thumb lands on the first seat" — are gone
-   because the registration makes them unreachable; the guard against painting unmeasured is
-   the `[hidden]` the thumb wears until the first measurement, and it always was. */
 .kui-segment-thumb {
   position: absolute;
   inset-block: var(--segment-inset);
@@ -274,33 +257,6 @@
 
 .kui-segment-thumb[hidden] {
   display: none;
-}
-
-/* IT STRETCHES TOWARD WHERE IT IS GOING (§8, §26). The edge facing the destination takes the
-   shorter clock, so the grip pours across the channel and gathers itself as the far edge
-   catches up. Both edges ride `calm`: one character, the asymmetry entirely in the durations,
-   which is the only shape that keeps damping sacred (config.ts states why).
-
-   `data-activation-direction` is written by the measurement, in Base UI's own vocabulary, so
-   this file and tabs.css read identically. Its `none` — first paint, a resize, a re-selection
-   of the same segment — matches neither rule, so the thumb simply has no clock and is PLACED.
-   That is what puts every "should not fly" case in one place without a rule of its own —
-   `transition-property: all` never covers a custom property, so the unstamped state cannot
-   accidentally animate the registered pair.
-
-   The clocks ride the REGISTERED insets, not `left`/`right` (2026-08-25, the wall): the spring
-   overshoots on the raw value, and the painted inset is that value floored at the channel wall
-   by the max() above — the character is untouched, the wall is real. */
-.kui-segment-thumb[data-activation-direction="right"] {
-  transition:
-    --kui-seg-right var(--motion-travel-lead) var(--motion-spring),
-    --kui-seg-left var(--motion-travel-trail) var(--motion-spring);
-}
-
-.kui-segment-thumb[data-activation-direction="left"] {
-  transition:
-    --kui-seg-left var(--motion-travel-lead) var(--motion-spring),
-    --kui-seg-right var(--motion-travel-trail) var(--motion-spring);
 }
 
 /* Dead, the grip stops casting but does not melt (§8, the switch's 2026-08-08 correction one
@@ -370,15 +326,4 @@
     var(--color-thumb) var(--disabled-dim),
     transparent
   );
-}
-
-/* Stillness (§8). Spelled the same way as the arrivals above — same elements, same
-   specificity, later in the file — so the stand-down wins by source order rather than by
-   arithmetic anyone has to redo. The shared `.kui-control *` rule in recipes.css cannot do
-   this job: it is (0,1,0) against these (0,2,0), and this file loads after it. */
-@media (prefers-reduced-motion: reduce) {
-  .kui-segment-thumb[data-activation-direction="right"],
-  .kui-segment-thumb[data-activation-direction="left"] {
-    transition: none;
-  }
 }

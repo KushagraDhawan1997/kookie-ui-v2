@@ -93,11 +93,10 @@ export function Tabs(props: TabsProps) {
  * inherits the join's cells through the cascade.
  *
  * It renders Base UI's `Tabs.Indicator` as its LAST child, and that element is deliberately
- * not exported. The indicator is structure, not API: it is what a moving rule needs to exist
- * at all (§8's motion pass owns whether it travels), and a consumer who has to remember to
- * place it is a consumer who will forget. `renderBeforeHydration` is on — without it the
- * rule is absent until React hydrates, which on a server-rendered page is a visible flash of
- * a bar with no active tab.
+ * not exported. The indicator is structure, not API: it is the element the rule is drawn on,
+ * and a consumer who has to remember to place it is a consumer who will forget.
+ * `renderBeforeHydration` is on — without it the rule is absent until React hydrates, which on
+ * a server-rendered page is a visible flash of a bar with no active tab.
  */
 export function TabsList({ size: sizeProp, className, children, ...props }: TabsListProps) {
   const size = useSize(sizeProp);

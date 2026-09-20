@@ -17,10 +17,8 @@ import {
   APPEARANCES,
   DEPTHS,
   SIZES,
-  asksForStillness,
   colorOn,
   computed,
-  inMotion,
   forEachCell,
   mounted,
   render,
@@ -50,11 +48,8 @@ function control(props: Record<string, unknown> = {}, theme = {}) {
 const segments = (root: Element) => [...root.querySelectorAll<HTMLElement>(".kui-segment")];
 const chosen = (root: Element) => within(root, ".kui-segment[data-checked]");
 const other = (root: Element) => within(root, ".kui-segment:not([data-checked])");
-/* THE GRIP is its own element since 2026-08-23 — one thumb that travels, rather than a fill
-   switching from one segment's box to the next (§8, §26). Every guarantee below is the one it
-   always was; what moved is which element carries it, so the laws are re-keyed rather than
-   rewritten, and the ones about the chosen segment's INK still read the segment, because the
-   ink did not move. */
+/* THE GRIP is its own element — one thumb placed under the chosen segment (§26). The laws about
+   the chosen segment's INK still read the segment, because the ink lives there. */
 const grip = (root: Element) => within(root, ".kui-segment-thumb");
 
 describe("the track is the control, and it stands level (§4, §26)", () => {
@@ -152,9 +147,9 @@ describe("the track is a WELL, and the segment is a grip (§11, §19, §26)", ()
       expect(computed(grip(root), "background-color")).not.toBe(
         computed(root, "background-color"),
       );
-      // The chosen SEGMENT paints nothing of its own any more (2026-08-23): the grip is one
-      // travelling object, and a segment that also painted it would blink out from under the
-      // thumb the moment it left. This is the half a re-key can silently lose.
+      // The chosen SEGMENT paints nothing of its own: the grip is one element, and a segment
+      // that also painted it would paint the grip twice. This is the half a re-key can
+      // silently lose.
       expect(computed(chosen(root), "background-color")).toBe("rgba(0, 0, 0, 0)");
     });
 
@@ -271,19 +266,16 @@ describe("the grip casts always, and stands down when dead (§5, §6, §26)", ()
   });
 });
 
-describe("a box mid-flight is not its own size (2026-09-01)", () => {
-  /* THE GRIP LAPPED ITS NEIGHBOUR ON A FIRST OPEN (Kushagra: "when opening it for the first
-     time, theres an overlap between two values, but once I click something, then it corrects
-     the size of each thumb").
+describe("a scaled box is not its own size (2026-09-01)", () => {
+  /* THE GRIP LAPPED ITS NEIGHBOUR INSIDE A SCALED ANCESTOR (Kushagra: "theres an overlap
+     between two values").
 
      `getBoundingClientRect` reports the VISUAL box, and this control writes what it reads back
-     as LAYOUT insets. Every overlay in this system scales as it opens, so a segmented control
-     inside a popover, dialog or alert was measured mid-entry and kept those numbers for the
-     rest of its life — nothing re-measures until the selection changes, and the resize
-     observers are right not to fire, since the layout box never moved. Measured on the docs'
-     props popover: the seat's true insets are 40.078 / 78.156, the first open wrote 38.074 /
-     74.248 — the same numbers times the entry's own 0.95 — and the grip sat 5.9px wider than
-     its seat.
+     as LAYOUT insets. A segmented control measured inside a scaled ancestor kept those numbers
+     until the selection changed, and the resize observers are right not to fire, since the
+     layout box never moved. Measured inside an ancestor at 0.95: the seat's true insets are
+     40.078 / 78.156, the control wrote 38.074 / 74.248 — the same numbers times 0.95 — and the
+     grip sat 5.9px wider than its seat.
 
      AN AGREEMENT, because there is no absolute number to assert: the same control scaled and
      unscaled must write the same two lengths, since the lengths describe a layout that the
@@ -752,29 +744,7 @@ describe("one glass per stack, structurally (§10, §26)", () => {
   });
 });
 
-/**
- * §8, §26 — THE GRIP TRAVELS (2026-08-23, judged in the "Clip vs Physics" bench).
- *
- * One thumb gliding between segments, drawn by its two inline edges, with the edge facing the
- * destination on the shorter clock so it stretches across and gathers itself. Unlike Tabs —
- * which gets its direction and its measurement free from Base UI — everything here is measured
- * by the component, so these laws read the measurement's OUTPUT rather than any declaration
- * that describes it.
- *
- * The flight is SEIZED, never raced: pausing the running transitions and setting `currentTime`
- * puts the box at a chosen point, which keeps these on CI (test/frames.test.ts records what the
- * frame-watching exclusion costs and why it is not reached for here).
- */
-describe("the grip travels between segments (§8, §26)", () => {
-  function seize(el: Element, at: number) {
-    const running = el.getAnimations();
-    for (const a of running) {
-      a.pause();
-      a.currentTime = at;
-    }
-    return running;
-  }
-
+describe("the grip sits on the chosen segment (§26)", () => {
   function three(props: Record<string, unknown> = {}) {
     const root = mounted(
       <SegmentedControl defaultValue="a" {...props}>
@@ -806,11 +776,11 @@ describe("the grip travels between segments (§8, §26)", () => {
          answered 65.3. That divergence is why this component measures at all, so it is the
          input the law is built on.
 
-         THE SQUEEZE STOPS ABOVE MIN-CONTENT (re-cut 2026-08-25, when the channel wall landed).
-         The old 0.55 × natural squeezed below the track's own min-content, which puts the SEATS
-         outside the channel — the flex line overflows and the skeleton centres it, so seg[0]
-         measured 15.5px LEFT of the track's border box — and the wall now correctly refuses to
-         follow a seat out of the channel, so the old fixture asserted the thumb onto a seat the
+         THE SQUEEZE STOPS ABOVE MIN-CONTENT (re-cut 2026-08-25). The old 0.55 × natural
+         squeezed below the track's own min-content, which puts the SEATS outside the channel —
+         the flex line overflows and the skeleton centres it, so seg[0] measured 15.5px LEFT of
+         the track's border box — and the grip, floored at the channel inset, refuses to follow
+         a seat out of the channel, so the old fixture asserted the thumb onto a seat the
          control no longer covers. That geometry is a caller-forced break (a box below its
          min-content overflows its labels with or without a thumb) and not what this law is
          about. The width is derived from the measured floors instead of hand-tuned: at
@@ -838,133 +808,62 @@ describe("the grip travels between segments (§8, §26)", () => {
     });
   }
 
-  for (const [dir, lead, trail, target] of [
-    ["forward", "--kui-seg-right", "--kui-seg-left", 2],
-    ["back", "--kui-seg-left", "--kui-seg-right", 0],
-  ] as const) {
-    it(`${dir}: the edge facing the destination takes the shorter clock`, async () => {
-      inMotion();
-      const { thumb, segs } = three(dir === "back" ? { defaultValue: "c" } : {});
-      const want = dir === "forward" ? "right" : "left";
-      await userEvent.click(segs[target]!);
-      // Waited for, never assumed: the stamp lands when the MutationObserver sees Base UI move
-      // `data-checked`, which a resolved gesture does not promise (test/settling.test.ts).
-      await until(() => thumb.getAttribute("data-activation-direction") === want);
-      // The clocks ride the REGISTERED insets since 2026-08-25 (the channel wall): the spring
-      // runs on the raw value and the painted inset is that value floored at the wall, so the
-      // property list names the custom pair rather than `left`/`right`.
-      const props = computed(thumb, "transition-property").split(", ");
-      const clocks = computed(thumb, "transition-duration").split(", ");
-      const at = (name: string) => clocks[props.indexOf(name)];
-      expect(at(lead), `${dir}: the leading edge is not on the short clock`).toBe(`${parseFloat(computed(thumb, "--motion-travel-lead")) / 1000}s`);
-      expect(at(trail), `${dir}: the trailing edge is not on the long clock`).toBe(`${parseFloat(computed(thumb, "--motion-travel-trail")) / 1000}s`);
-      expect(at(lead)).not.toBe(at(trail));
+  it("a seat forced OUT of the channel does not take the grip with it (2026-09-20)", () => {
+    /* THE FLOOR, AND SINCE THE MOTION WAS REMOVED IT IS THE WHOLE REASON THIS ELEMENT EXISTS.
+       The thumb arrived on 2026-08-23 carrying a measurement, and that measurement is a bounded
+       exception to §8's "no JS at interaction time" which was granted for the TRAVEL. The travel
+       went on 2026-09-20 (docs/archive/motion-v1.md), so the obvious next move is to delete the
+       element and paint the grip on the chosen segment again, the way the component shipped on
+       2026-08-18. It was built and measured: across 342 states — both appearances, solid, a glass
+       track and on-glass, every size, both pointer worlds, every radius level, hover and press on
+       each of three segments, focus, disabled, high contrast, flat — the two spellings paint the
+       same pixels everywhere except HERE, and here they differ by up to 219/255.
+
+       What differs is this: `left`/`right` are `max(measured, --segment-inset)`, so when a seat
+       crosses the channel wall the grip stops at the wall rather than following it out. A
+       segment cannot do that, because a segment's paint IS its layout box. Squeeze the track
+       below its own min-content — a toolbar in a narrow window — and the flex line overflows and
+       is centred, so an end seat sits outside the track; the thumb stays a pill inside the
+       channel and a chosen segment would carry its white box out past the track's own corner.
+
+       No law read this. The size laws above deliberately squeeze only to where every seat stays
+       inside (the 2026-08-25 re-cut, one law up), a full suite is green on both spellings, and
+       the first agent to try the revert measured fifty states and did not reach it. So it is
+       stated here, on the input where the two answers differ, because a law built on an input
+       where they agree is a law about the special case wearing the general one's name.
+
+       Not an assertion about `--kui-seg-left`: that would be agreeing with the arithmetic that
+       wrote it. Two boxes, read off the browser. */
+    const probe = three({ style: { inlineSize: "min-content" } });
+    const minContent = probe.root.getBoundingClientRect().width;
+    const { root, thumb, segs } = three({
+      style: { inlineSize: `${Math.round(minContent * 0.6)}px` },
     });
+    const box = root.getBoundingClientRect();
+    const inset = parseFloat(computed(root, "padding-left"));
+    expect(inset).toBeGreaterThan(0);
 
-    it(`${dir}: and the OS can stop it — the stand-down nothing verified (§8, audit 2026-08-26)`, async () => {
-      /**
-       * The grip's flight is declared on `.kui-segment-thumb[data-activation-direction=…]`,
-       * two attributes heavier than the shared `.kui-control *` stand-down, so this file's own
-       * guarded block is the only thing that can win — and until this law nothing verified that
-       * it does. The node law meant to check it skipped any file carrying a
-       * `prefers-reduced-motion` block ANYWHERE (repaired the same day), and the mounted parts
-       * list in system/motion.browser.test.tsx names five parts, neither of them this one.
-       *
-       * Pointed at the state it names: an unstamped grip has no clock to stand down, so the
-       * direction has to land first — the same wait the clock law above makes.
-       */
-      inMotion();
-      await asksForStillness();
-      const { thumb, segs } = three(dir === "back" ? { defaultValue: "c" } : {});
-      const want = dir === "forward" ? "right" : "left";
-      await userEvent.click(segs[target]!);
-      await until(() => thumb.getAttribute("data-activation-direction") === want);
-      expect(
-        computed(thumb, "transition-duration"),
-        `${dir}: the grip still glides for a user who asked for stillness`,
-      ).toBe("0s");
-    });
-  }
+    // CALIBRATION, and it is the half that makes this a law rather than a tautology: the seat
+    // really did leave the channel. Without it the fixture is just another squeeze, where a grip
+    // that blindly followed its seat would pass.
+    const seat = segs[0]!.getBoundingClientRect();
+    expect(
+      seat.left,
+      "the fixture did not overflow — nothing here is being defended against",
+    ).toBeLessThan(box.left + inset - 1);
 
-  for (const [dir, target] of [
-    ["forward", 2],
-    ["back", 0],
-  ] as const) {
-    it(`${dir}: the flight never crosses the channel wall — overshoot is spent as squash`, async () => {
-      /* THE WALL (§8, §26, 2026-08-25, Kushagra from the glass preview, against the bench's own
-         lean rule: "a lean can never cross a boundary"). The calm spring overshoots ~6.8% of
-         travel, and on a full jump into an end seat that measured the grip's edge 14.11px
-         OUTSIDE the track — in solid and on glass identically; glass only made it visible.
-
-         The flight is SEIZED and swept, so the assertion covers every point of the curve rather
-         than racing one: at no currentTime does the painted box cross the channel inset. The
-         calibration half is what keeps this from passing for the wrong reason: the RAW
-         registered inset must still go past the wall mid-flight — the spring was clamped, not
-         tamed — so a build that quietly swapped calm for a non-overshooting curve fails here
-         instead of shipping a different motion under a green wall. */
-      inMotion();
-      const { root, thumb, segs } = three(dir === "back" ? { defaultValue: "c" } : {});
-      const inset = parseFloat(computed(root, "padding-left"));
-      expect(inset).toBeGreaterThan(0);
-      await userEvent.click(segs[target]!);
-      await until(
-        () =>
-          thumb.getAttribute("data-activation-direction") === (dir === "forward" ? "right" : "left"),
-      );
-      const anims = thumb.getAnimations();
-      expect(anims.length, "no flight started").toBeGreaterThan(0);
-      for (const a of anims) a.pause();
-      const box = root.getBoundingClientRect();
-      const raw = dir === "forward" ? "--kui-seg-right" : "--kui-seg-left";
-      let sprung = false;
-      for (let t = 0; t <= 480; t += 10) {
-        for (const a of anims) a.currentTime = t;
-        const r = thumb.getBoundingClientRect();
-        expect(
-          r.right,
-          `t=${t}ms: the grip's right edge left the channel`,
-        ).toBeLessThanOrEqual(box.right - inset + 0.5);
-        expect(
-          r.left,
-          `t=${t}ms: the grip's left edge left the channel`,
-        ).toBeGreaterThanOrEqual(box.left + inset - 0.5);
-        if (parseFloat(getComputedStyle(thumb).getPropertyValue(raw)) < inset - 4) sprung = true;
-      }
-      expect(
-        sprung,
-        "the raw inset never crossed the wall — the spring was tamed, not clamped",
-      ).toBe(true);
-    });
-  }
-
-  it("STRETCHES on the way — mid-flight it is wider than either end", async () => {
-    inMotion();
-    const { thumb, segs } = three();
-    const from = thumb.getBoundingClientRect().width;
-    await userEvent.click(segs[2]!);
-    const running = seize(thumb, parseFloat(computed(thumb, "--motion-travel-lead")) / 2);
-    expect(running.length, "nothing is animating — the flight never started").toBeGreaterThan(0);
-    const midFlight = thumb.getBoundingClientRect().width;
-    const to = segs[2]!.getBoundingClientRect().width;
-    expect(midFlight, "it did not stretch past where it came from").toBeGreaterThan(from + 8);
-    expect(midFlight, "it did not stretch past where it is going").toBeGreaterThan(to + 8);
+    const grip = thumb.getBoundingClientRect();
+    expect(grip.left, "the grip followed its seat out of the channel").toBeGreaterThanOrEqual(
+      box.left + inset - 0.5,
+    );
+    expect(grip.right, "the grip escaped the far wall").toBeLessThanOrEqual(
+      box.right - inset + 0.5,
+    );
+    expect(grip.width, "the floor collapsed the grip to nothing").toBeGreaterThan(1);
   });
 
-  it("is PLACED on first paint — no previous seat, so no flight", () => {
-    inMotion();
-    const { thumb } = three();
-    expect(thumb.getAttribute("data-activation-direction")).toBe("none");
-    // The clock, not the property list: nothing declares `transition-property` in this state,
-    // so it computes to its initial `all` — which reads like a transition and is not one.
-    expect(computed(thumb, "transition-duration")).toBe("0s");
-  });
-
-  it("a RESIZE re-places it without flying — the box moved, the choice did not", async () => {
-    // The guard whose absence was measured: `ResizeObserver` fires the moment you observe, and
-    // an unguarded callback rewrote the direction to `none` a frame after every selection —
-    // removing the transition and teleporting the thumb. This reads the other half of that
-    // guard: a REAL resize must still re-place, and must not fly while doing it.
-    inMotion();
+  it("a RESIZE re-places it — the box moved, the choice did not", async () => {
+    // A REAL resize must re-place the grip on its seat.
     const root = mounted(
       <div style={{ inlineSize: "420px" }}>
         <SegmentedControl defaultValue="b">
@@ -980,10 +879,6 @@ describe("the grip travels between segments (§8, §26)", () => {
     await until(() => thumb.getBoundingClientRect().width !== before);
     expect(thumb.getBoundingClientRect().width).toBeCloseTo(seat().width, 1);
     expect(thumb.getBoundingClientRect().left).toBeCloseTo(seat().left, 1);
-    expect(
-      thumb.getAttribute("data-activation-direction"),
-      "a resize flew the grip — nobody changed the choice",
-    ).toBe("none");
   });
 
   it("a SEAT that moves at CONSTANT track width takes the grip with it", async () => {
@@ -1038,8 +933,8 @@ describe("the grip travels between segments (§8, §26)", () => {
       1,
     );
     // The calibration: the seat genuinely moved, and it moved without leaving the channel (a
-    // line that overflows puts the seats outside the wall, which is a caller-forced break and
-    // not what this law is about — the 2026-08-25 re-cut, one describe up).
+    // line that overflows puts the seats outside the channel, which is a caller-forced break
+    // and not what this law is about — the 2026-08-25 re-cut in the size laws above).
     expect(Math.abs(seat().left - before.seat), "the label change moved nothing").toBeGreaterThan(1);
     expect(seat().right).toBeLessThanOrEqual(track.getBoundingClientRect().right + 0.5);
     await until(() => Math.abs(thumb.getBoundingClientRect().left - seat().left) < 0.5, 1000);
@@ -1048,40 +943,11 @@ describe("the grip travels between segments (§8, §26)", () => {
     expect(grip.right, "the grip stayed on the seat's old geometry").toBeCloseTo(seat().right, 1);
   });
 
-  it("the flight SURVIVES the observers watching the box", async () => {
-    /* THE LAW THE FIRST SABOTAGE PASS DEMANDED, and it is the one that catches the defect that
-       was actually measured. `ResizeObserver` fires the moment you observe, so an unguarded
-       callback re-places the thumb one frame after every selection change and writes `none` —
-       which removes the transition and teleports the grip (measured 56.9 → 68.4px in a single
-       frame, flat across six samples, with the recipe itself entirely correct).
-    
-       Every other law here reads the flight SYNCHRONOUSLY after the click, before that callback
-       can land, so all five passed against the broken build. This one waits two frames, which
-       is past where any observer callback lands and nowhere near the 480ms the flight lasts —
-       a state with a long life, not a transient being raced, which is why it stays on CI. */
-    inMotion();
-    const { thumb, segs } = three();
-    await userEvent.click(segs[2]!);
-    await until(() => thumb.getAttribute("data-activation-direction") === "right");
-    // …and it is STILL that two frames later, which is past where any observer callback lands
-    // and nowhere near the 480ms the flight lasts.
-    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-    expect(
-      thumb.getAttribute("data-activation-direction"),
-      "something re-placed the grip mid-flight and took its clock away",
-    ).toBe("right");
-    expect(
-      thumb.getAnimations().length,
-      "the flight was cancelled before it could run",
-    ).toBeGreaterThan(0);
-  });
-
   it("the chosen segment paints NOTHING under a pointer — the grip is the only paint", async () => {
-    /* Kushagra, 2026-08-23, watching a real click: the hover fill "is on top, so as I click on a
-       segment, and it animates, the hover continues to stay, which doesn't wobble btw, making
-       it look very weird." Exactly right — the segments paint above the thumb by design (that
-       is what puts the label over the grip), so a chosen segment that still answered hover left
-       a static wash sitting precisely where the grip was travelling to.
+    /* Kushagra, 2026-08-23, watching a real click: the hover fill "is on top… the hover
+       continues to stay". Exactly right — the segments paint above the thumb by design (that is
+       what puts the label over the grip), so a chosen segment that still answered hover left a
+       static wash sitting on top of the grip.
     
        The cause was a re-key that dropped half of what it moved. The chosen segment used to
        hold all three fill sources at `--color-thumb`, which carried BOTH the grip's colour and

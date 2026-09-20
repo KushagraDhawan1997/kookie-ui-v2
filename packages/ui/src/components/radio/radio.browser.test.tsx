@@ -24,7 +24,6 @@ import {
   render,
   tokenOn,
   within,
-  inMotion,
 } from "../../test/browser.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
 import { Flex } from "../flex/flex.tsx";
@@ -461,49 +460,4 @@ describe("the shared invalid wash reaches THIS member too (§8, §11 — audit 2
       );
     });
   }
-});
-
-/* ── Motion: the dot arrives (§8, 2026-08-09) ──────────────────────────────────────────── */
-
-describe("the dot arrives, and never leaves in reverse (§8)", () => {
-  const dot = (el: HTMLElement) => el.querySelector<HTMLElement>("circle")!;
-
-  it("unchosen it has no size; chosen it is whole", () => {
-    const off = mounted(<Radio value="a" />, { theme: {}, select: ".kui-radio" });
-    inMotion();
-    expect(computed(dot(off), "scale"), "an unchosen dot is not there").toBe("0");
-
-    const on = mounted(<RadioGroup defaultValue="a"><Radio value="a" /></RadioGroup>, {
-      theme: {},
-      select: ".kui-radio",
-    });
-    inMotion();
-    expect(computed(dot(on), "scale"), "a chosen dot is whole").toBe("1");
-  });
-
-  it("it grows on a spring and vanishes instantly — the tick's own sentence", () => {
-    const on = mounted(<RadioGroup defaultValue="a"><Radio value="a" /></RadioGroup>, {
-      theme: {},
-      select: ".kui-radio",
-    });
-    inMotion();
-    expect(computed(dot(on), "transition-timing-function"), "arriving has mass").toContain("linear(");
-    expect(parseFloat(computed(dot(on), "transition-duration"))).toBeGreaterThan(0);
-    // Choosing another radio is the ANSWER; watching the old one deflate puts the eye on what
-    // was just abandoned.
-    const off = mounted(<Radio value="a" />, { theme: {}, select: ".kui-radio" });
-    inMotion();
-    expect(computed(dot(off), "transition-duration"), "leaving is instant").toBe("0s");
-  });
-
-  it("it pivots on itself, not on the SVG's origin", () => {
-    const on = mounted(<RadioGroup defaultValue="a"><Radio value="a" /></RadioGroup>, {
-      theme: {},
-      select: ".kui-radio",
-    });
-    inMotion();
-    // Without fill-box the scale pivots on the SVG's user space and the dot slides out of the
-    // mark while it grows — visible, and impossible to see in a static screenshot.
-    expect(computed(dot(on), "transform-box")).toBe("fill-box");
-  });
 });

@@ -12,7 +12,8 @@
 /* The tri-state, decided entirely in CSS: both glyphs ship, and the state attribute picks.
    A checkbox with a dash is not a checkbox with a faded tick — indeterminate is its own
    meaning ("some of the things below this are on"), and the platform carries it on the hidden
-   input, so this is only its rendering. */
+   input, so this is only its rendering. Each glyph shows whole the moment its state is on;
+   motion was removed 2026-09-20, and docs/archive/motion-v1.md records it. */
 .kui-checkbox-dash {
   visibility: hidden;
 }
@@ -21,52 +22,4 @@
 }
 .kui-checkbox > svg[data-indeterminate] > .kui-checkbox-check {
   visibility: hidden;
-}
-
-/* The tick is DRAWN, not switched on (§8, judged 2026-08-09). A checkmark that appears whole
-   is a state being reported; one that draws is the gesture being answered — the stroke starts
-   where the pen would and ends where it stops, which is why the glyph is stroked in the first
-   place (§4).
-
-   It draws IN and never OUT. Un-checking is not the reverse of checking: nobody watches a
-   tick un-draw, and the box is already empty by the time the eye gets there — so the return
-   is instant, and the paint clock's own sentence one layer up (a signal has no mass). */
-.kui-checkbox-check,
-.kui-checkbox-dash {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 0;
-  transition: stroke-dashoffset var(--motion-mark) var(--motion-spring);
-}
-/* Retracted wherever the glyph is not the one the state means.
- *
- * CHANGES 2026-08-26: the `data-unchecked` arm's `:not([data-indeterminate])` is DEFENCE, and
- * the sentence that stood here described it as a fact about the pinned primitive — which it is
- * not. Base UI 1.7's `getCheckboxStateAttributesMapping` returns `{}` for `checked` while
- * `indeterminate` is true, so the indicator carries `data-indeterminate` alone and the guard
- * matches nothing today. It is KEPT rather than deleted because the arm's meaning is "retract
- * the glyph this state does not draw", and the state is spelled in the primitive's own
- * attributes: an indicator carrying both stamps would retract the very dash that state exists
- * to draw, which is the failure the guard was written for. Both halves are read in
- * checkbox.browser.test.tsx — the pinned contract, so a Base UI bump that changes it fails
- * there and names this rule, and the guard's effect under the state that bump would produce. */
-.kui-checkbox > svg[data-unchecked] > .kui-checkbox-check,
-.kui-checkbox > svg[data-unchecked]:not([data-indeterminate]) > .kui-checkbox-dash,
-.kui-checkbox > svg[data-checked] > .kui-checkbox-dash,
-.kui-checkbox > svg[data-indeterminate] > .kui-checkbox-check {
-  stroke-dashoffset: 1;
-  transition-duration: 0s;
-}
-
-/* Stillness for the stroke this sheet sets moving (§8, 2026-08-10). The shared stand-down in
-   recipes.css covers `.kui-control *` at (0,1,0) — a selector in a LATER file ties that and
-   wins on source order, so for six days the tick kept drawing (0.38s, measured) for a user
-   who had asked the OS for stillness. The ring's doctrine, extended to every sheet that
-   declares a clock: the stand-down is spelled on the declaring selector itself, at the end of
-   the file, so the tie goes to the stand-down by construction. The mounted law in
-   system/motion.browser.test.tsx enters the media query and reads the part. */
-@media (prefers-reduced-motion: reduce) {
-  .kui-checkbox-check,
-  .kui-checkbox-dash {
-    transition: none;
-  }
 }
