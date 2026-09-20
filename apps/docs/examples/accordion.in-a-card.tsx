@@ -11,7 +11,7 @@ import {
 // The accordion draws no box of its own. Put it in a Card when the sections need an edge.
 export default function Example() {
   return (
-    <Card style={{ maxWidth: "26rem" }}>
+    <Card style={{ width: "26rem", maxWidth: "100%" }}>
       <Stack gap="3">
         <Heading size="5">Frequently asked questions</Heading>
         <Accordion>

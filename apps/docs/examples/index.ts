@@ -103,7 +103,6 @@ import AccordionSizesExample from "./accordion.sizes";
 import AccordionMultipleExample from "./accordion.multiple";
 import AccordionControlledExample from "./accordion.controlled";
 import AccordionInACardExample from "./accordion.in-a-card";
-import AccordionWithControlsExample from "./accordion.with-controls";
 import AlertDialogSizesExample from "./alert-dialog.sizes";
 import AlertDialogTonesExample from "./alert-dialog.tones";
 import AlertDialogControlledExample from "./alert-dialog.controlled";
@@ -521,7 +520,6 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "accordion.multiple": AccordionMultipleExample,
   "accordion.controlled": AccordionControlledExample,
   "accordion.in-a-card": AccordionInACardExample,
-  "accordion.with-controls": AccordionWithControlsExample,
   "alert-dialog.sizes": AlertDialogSizesExample,
   "alert-dialog.tones": AlertDialogTonesExample,
   "alert-dialog.controlled": AlertDialogControlledExample,

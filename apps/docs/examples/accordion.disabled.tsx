@@ -9,7 +9,7 @@ import {
 // closed to you while the rest of the list still opens.
 export default function Example() {
   return (
-    <Accordion defaultValue={["shipping"]}>
+    <Accordion defaultValue={["shipping"]} style={{ width: "22rem", maxWidth: "100%" }}>
       <AccordionItem value="shipping">
         <AccordionTrigger>Shipping</AccordionTrigger>
         <AccordionPanel>

@@ -10,7 +10,7 @@ import {
 // and the panel's inset mirrors. Most apps state it once, high up.
 export default function Example() {
   return (
-    <Accordion dir="rtl" defaultValue={["shipping"]}>
+    <Accordion dir="rtl" defaultValue={["shipping"]} style={{ width: "22rem", maxWidth: "100%" }}>
       <AccordionItem value="shipping">
         <AccordionTrigger>Shipping</AccordionTrigger>
         <AccordionPanel>

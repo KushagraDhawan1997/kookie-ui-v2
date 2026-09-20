@@ -18,6 +18,7 @@ export default function Example({
       size={size}
       multiple={multiple}
       defaultValue={["shipping"]}
+      style={{ width: "22rem", maxWidth: "100%" }}
     >
       <AccordionItem value="shipping">
         <AccordionTrigger>Shipping</AccordionTrigger>

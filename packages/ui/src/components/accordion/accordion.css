@@ -55,8 +55,7 @@
      the line 3px inside the glyph it is meant to end level with (measured at size 2,
      `radius="full"`: line at x=306, chevron at x=309). The join publishes both, and each end
      is the padding its own side actually wears. */
-  inset-inline-start: var(--kui-ac-px);
-  inset-inline-end: var(--kui-ac-px-end);
+  inset-inline: 0;
   block-size: var(--border-width);
   background-color: var(--color-border);
   pointer-events: none;
@@ -107,6 +106,13 @@
   text-decoration-thickness: var(--border-width);
   text-decoration-color: transparent;
   text-underline-offset: 0.2em;
+}
+
+/* No fill in any state, so an inline inset is air around nothing: it only pushes the label off
+   the edge everything above and below it starts at. Two classes, because the skeleton's
+   slot-aware padding rule is (0,2,0) and this follows it in the cascade. */
+.kui-control.kui-accordion-trigger {
+  padding-inline: 0;
 }
 
 /* THE CHEVRON IS PUSHED, THE REST PACKS (2026-09-01, ultracode audit). `justify-content:
@@ -190,6 +196,5 @@
    by the accordion size join in surfaces.css from the control family's own picks, pill
    correction included), and a layout-space breath below. */
 .kui-accordion-panel-body {
-  padding-inline: var(--kui-ac-px);
   padding-block-end: var(--kui-ac-pb);
 }

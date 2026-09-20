@@ -22,7 +22,7 @@ const sections = [
 export default function Example() {
   const [open, setOpen] = React.useState<string[]>(["general"]);
   return (
-    <Stack gap="4" style={{ minWidth: "22rem" }}>
+    <Stack gap="4" style={{ width: "22rem", maxWidth: "100%" }}>
       <Flex gap="2">
         <Button emphasis="medium" onClick={() => setOpen(sections.map((s) => s.value))}>
           Expand all

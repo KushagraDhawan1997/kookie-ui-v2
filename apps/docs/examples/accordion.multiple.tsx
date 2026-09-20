@@ -9,7 +9,7 @@ import {
 // section that starts open.
 export default function Example() {
   return (
-    <Accordion multiple defaultValue={["email", "push"]} style={{ minWidth: "22rem" }}>
+    <Accordion multiple defaultValue={["email", "push"]} style={{ width: "22rem", maxWidth: "100%" }}>
       <AccordionItem value="email">
         <AccordionTrigger>Email</AccordionTrigger>
         <AccordionPanel>A daily summary of comments and mentions.</AccordionPanel>

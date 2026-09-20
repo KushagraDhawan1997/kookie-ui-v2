@@ -65,6 +65,7 @@ export type ControlValues = Record<string, string | boolean>;
  */
 export const OFFERED: Record<string, readonly string[]> = {
   accordion: ["size", "multiple"],
+  "accordion.sizes": ["size"],
   "alert-dialog": ["size"],
   attachment: ["size", "state", "backdrop"],
   // A VARIANT offers knobs too (2026-09-08, Kushagra: "each example should have a prop
@@ -125,6 +126,7 @@ export const OFFERED: Record<string, readonly string[]> = {
 const CATALOG_KEY: Record<string, string> = {
   breadcrumb: "Breadcrumb",
   accordion: "Accordion",
+  "accordion.sizes": "Accordion",
   "alert-dialog": "AlertDialog",
   attachment: "Attachment",
   "attachment.composer": "Attachment",

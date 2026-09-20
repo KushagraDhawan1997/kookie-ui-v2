@@ -114,7 +114,6 @@ const DECLARED: Entry[] = [
       {"name":"multiple","title":"Several sections open","why":"Set `multiple` to let people open more than one section. List every section that starts open in `defaultValue`, which is an array of item values."},
       {"name":"controlled","title":"Controlled","why":"Pass `value` and `onValueChange` when your app decides which sections are open. This lets a button such as Expand all open every section at once."},
       {"name":"in-a-card","title":"In a card","why":"The accordion draws only the lines between its sections. Put it in a Card with a Heading when the sections need an edge and a title."},
-      {"name":"with-controls","title":"A form in a panel","why":"A panel holds any content, such as a field and a button. Plain text in a panel follows the accordion's size. A Text or a layout inside sets its own size."},
       {"name":"disabled","title":"Disabled","why":"`disabled` sits on the item, so one section closes to you while the rest of the list still opens."},
       {"name":"rtl","title":"Right to left","why":"The chevron turns and the panel's inset mirrors. Direction is read off the DOM, so the app states `dir` once and no component takes a prop for it."},
     ],

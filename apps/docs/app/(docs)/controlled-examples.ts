@@ -22,6 +22,7 @@
 import dynamic from "next/dynamic";
 
 const Accordion = dynamic(() => import("../../examples/accordion"));
+const AccordionSizes = dynamic(() => import("../../examples/accordion.sizes"));
 const AlertDialog = dynamic(() => import("../../examples/alert-dialog"));
 const Attachment = dynamic(() => import("../../examples/attachment"));
 const AttachmentComposer = dynamic(() => import("../../examples/attachment.composer"));
@@ -71,6 +72,7 @@ const Toolbar = dynamic(() => import("../../examples/toolbar"));
    against the catalog's schema before they reach one. */
 export const CONTROLLED: Record<string, React.ComponentType<any>> = {
   "accordion": Accordion,
+  "accordion.sizes": AccordionSizes,
   "alert-dialog": AlertDialog,
   "attachment": Attachment,
   "attachment.composer": AttachmentComposer,
