@@ -17,7 +17,7 @@
  *             bend, so the lens stays crisp).
  *   GLINT     the specular band's width, feather and the rim-saturate stage (the edge
  *             re-emitting the backdrop's own colour) — same seam, same regeneration.
- *   MATERIAL  multiplies the shipped tokens live — veil, blur, saturation, an appended
+ *   MATERIAL  multiplies the shipped tokens live — veil, saturation, an appended
  *             contrast term, the sheen wash and the ring's strength — via one injected
  *             stylesheet that lands on every `.kui-theme` element with `!important`, which is
  *             what beats the same element's own token declarations while a nested Theme's
@@ -109,8 +109,8 @@ function snapshot(): Record<Mode, Map<string, string>> {
   return out;
 }
 
-type MatDials = { veil: number; blur: number; sat: number; contrast: number; sheen: number; edge: number; regionVeil: number; regionBlur: number };
-const MAT_DEFAULT: MatDials = { veil: 1, blur: 1, sat: 1, contrast: 1, sheen: 1, edge: 1, regionVeil: 1, regionBlur: 1 };
+type MatDials = { veil: number; sat: number; contrast: number; sheen: number; edge: number; regionVeil: number };
+const MAT_DEFAULT: MatDials = { veil: 1, sat: 1, contrast: 1, sheen: 1, edge: 1, regionVeil: 1 };
 
 const scaleNum = (v: number, x: number) => Number((v * x).toFixed(3));
 
@@ -121,7 +121,9 @@ function retoken(name: string, value: string, d: MatDials): string {
   // against the pane it holds rather than moving with it.
   if (name.includes("-region-")) {
     const shared = retoken(name.replace("-region-", "-"), value, d);
-    if (name.endsWith("-filter")) return shared.replace(/blur\(([0-9.]+)px\)/, (_, b: string) => `blur(${scaleNum(parseFloat(b), d.regionBlur)}px)`);
+    // A region's filter row carries no blur since 2026-09-21 (it is in the lens), so the
+    // shared dials are the whole of its filter.
+    if (name.endsWith("-filter")) return shared;
     return shared.replace(/([0-9.]+)%/, (_, a: string) => `${Math.min(100, scaleNum(parseFloat(a), d.regionVeil))}%`);
   }
   if (name.includes("-ring") || name.includes("-glint")) {
@@ -131,9 +133,7 @@ function retoken(name: string, value: string, d: MatDials): string {
     return value.replace(/\/ ([0-9.]+)%/g, (_, a: string) => `/ ${Math.min(100, scaleNum(parseFloat(a), d.sheen))}%`);
   }
   if (name.includes("-filter")) {
-    let next = value
-      .replace(/blur\(([0-9.]+)px\)/, (_, b: string) => `blur(${scaleNum(parseFloat(b), d.blur)}px)`)
-      .replace(/saturate\(([0-9.]+)%\)/, (_, s: string) => `saturate(${scaleNum(parseFloat(s), d.sat)}%)`);
+    let next = value.replace(/saturate\(([0-9.]+)%\)/, (_, s: string) => `saturate(${scaleNum(parseFloat(s), d.sat)}%)`);
     if (d.contrast !== 1) next = `${next} contrast(${d.contrast})`;
     return next;
   }
@@ -202,7 +202,7 @@ function Slider({
   );
 }
 
-const LENS_DEFAULT = { bezelX: 1, thicknessX: 1, ior: 0, profileP: 2, concave: true, preBlur: 0, regionBezelX: 1 };
+const LENS_DEFAULT = { bezelX: 1, thicknessX: 1, ior: 0, profileP: 2, concave: true, preBlur: 0, regionBezelX: 1, blurX: 1 };
 const GLINT_DEFAULT = { glintBandX: 1, glintFalloff: 4, rimSaturate: 0 };
 
 export function LensBench() {
@@ -223,7 +223,7 @@ export function LensBench() {
   React.useEffect(() => {
     if (!open) return;
     const lensAtRest =
-      lensD.bezelX === 1 && lensD.thicknessX === 1 && lensD.ior === 0 && lensD.profileP === 2 && lensD.concave && lensD.preBlur === 0 && lensD.regionBezelX === 1;
+      lensD.bezelX === 1 && lensD.thicknessX === 1 && lensD.ior === 0 && lensD.profileP === 2 && lensD.concave && lensD.preBlur === 0 && lensD.regionBezelX === 1 && lensD.blurX === 1;
     const glintAtRest = glintD.glintBandX === 1 && glintD.glintFalloff === 4 && glintD.rimSaturate === 0;
     if (lensAtRest && glintAtRest) {
       __retuneLens(null);
@@ -237,6 +237,7 @@ export function LensBench() {
       concave: lensD.concave,
       preBlur: lensD.preBlur,
       regionBezelX: lensD.regionBezelX,
+      blurX: lensD.blurX,
       glintBandX: glintD.glintBandX,
       glintFalloff: glintD.glintFalloff,
       rimSaturate: glintD.rimSaturate,
@@ -326,13 +327,13 @@ export function LensBench() {
       "// The material bench's settings — each line is one config lever.",
       "// packages/ui/src/system/refraction.tsx:",
       `//   lens ladder: bezel x${lensD.bezelX}, thickness x${lensD.thicknessX}, ior ${lensD.ior === 0 ? "(ladder's own)" : lensD.ior}`,
-      `//   PROFILE_P ${lensD.profileP}${lensD.concave ? "" : " CONVEX"}, pre-blur ${lensD.preBlur}px`,
+      `//   PROFILE_P ${lensD.profileP}${lensD.concave ? "" : " CONVEX"}, lens blur x${lensD.blurX} +${lensD.preBlur}px`,
       `//   glint: band x${glintD.glintBandX}, falloff ${glintD.glintFalloff}, rimSaturate ${glintD.rimSaturate}`,
       `//   bend x${bend} (boost), fringe x${fringe}`,
       "// packages/ui/src/tokens/config.ts (material):",
-      `//   veil x${mat.veil}, blur x${mat.blur}, saturate x${mat.sat}, contrast ${mat.contrast === 1 ? "(none)" : `+contrast(${mat.contrast})`}`,
+      `//   veil x${mat.veil}, saturate x${mat.sat}, contrast ${mat.contrast === 1 ? "(none)" : `+contrast(${mat.contrast})`}`,
       `//   sheen x${mat.sheen}, ring alphas x${mat.edge}`,
-      `//   region: veil x${mat.regionVeil}, blur x${mat.regionBlur}, bezel x${lensD.regionBezelX} (over lensScale.region)`,
+      `//   region: veil x${mat.regionVeil}, bezel x${lensD.regionBezelX} (over lensScale.region)`,
     ].join("\n");
 
   if (!open) {
@@ -367,7 +368,11 @@ export function LensBench() {
         <Slider label="glass depth" value={lensD.thicknessX} min={0.25} max={8} step={0.25} suffix="×" onChange={(v) => setLensD({ ...lensD, thicknessX: v })} />
         <Slider label="refraction index (0 = ladder)" value={lensD.ior} min={0} max={2.6} step={0.05} suffix="" onChange={(v) => setLensD({ ...lensD, ior: v < 1.1 ? 0 : v })} />
         <Slider label="profile exponent" value={lensD.profileP} min={1} max={6} step={0.5} suffix="" onChange={(v) => setLensD({ ...lensD, profileP: v })} />
-        <Slider label="pre-blur (frost before the bend)" value={lensD.preBlur} min={0} max={4} step={0.25} suffix="px" onChange={(v) => setLensD({ ...lensD, preBlur: v })} />
+        {/* The glass's blur lives in the LENS since 2026-09-21 (before the bend, so the lip stays
+            crisp), so these two are where it is judged; the MATERIAL group lost its blur dials
+            the same day, having nothing left to move. */}
+        <Slider label="blur (the rung's own, before the bend)" value={lensD.blurX} min={0} max={6} step={0.1} suffix="×" onChange={(v) => setLensD({ ...lensD, blurX: v })} />
+        <Slider label="added blur" value={lensD.preBlur} min={0} max={12} step={0.25} suffix="px" onChange={(v) => setLensD({ ...lensD, preBlur: v })} />
         <Flex gap="2" align="center">
           <Button size="1" emphasis={lensD.concave ? "loud" : "quiet"} bordered onClick={() => setLensD({ ...lensD, concave: !lensD.concave })}>
             Concave (the lab&rsquo;s diamond)
@@ -387,7 +392,6 @@ export function LensBench() {
           Material
         </Heading>
         <Slider label="veil" value={mat.veil} min={0.25} max={1.5} step={0.05} suffix="×" onChange={(v) => setMat({ ...mat, veil: v })} />
-        <Slider label="blur" value={mat.blur} min={0} max={3} step={0.1} suffix="×" onChange={(v) => setMat({ ...mat, blur: v })} />
         <Slider label="saturation" value={mat.sat} min={0.5} max={2} step={0.05} suffix="×" onChange={(v) => setMat({ ...mat, sat: v })} />
         <Slider label="contrast term" value={mat.contrast} min={0.7} max={1.4} step={0.05} suffix="" onChange={(v) => setMat({ ...mat, contrast: v })} />
         <Slider label="sheen" value={mat.sheen} min={0} max={2} step={0.1} suffix="×" onChange={(v) => setMat({ ...mat, sheen: v })} />
@@ -400,7 +404,6 @@ export function LensBench() {
           The shell panes, a sheet and the composer — over the pane cell they already carry.
         </Text>
         <Slider label="region veil" value={mat.regionVeil} min={0.5} max={1.5} step={0.05} suffix="×" onChange={(v) => setMat({ ...mat, regionVeil: v })} />
-        <Slider label="region blur" value={mat.regionBlur} min={0} max={3} step={0.1} suffix="×" onChange={(v) => setMat({ ...mat, regionBlur: v })} />
         <Slider label="region bezel" value={lensD.regionBezelX} min={0.25} max={4} step={0.25} suffix="×" onChange={(v) => setLensD({ ...lensD, regionBezelX: v })} />
 
         <Text size="1" emphasis="quiet">
