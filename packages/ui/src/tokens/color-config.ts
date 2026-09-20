@@ -185,34 +185,37 @@ export const solidPinBounds = { min: 0.42, max: 0.92 } as const;
  * pre-shipped.
  */
 /**
- * The user's brand colour, and it is BLUE (Kushagra, 2026-08-29) — hue 250 at full
- * vividness, which is `blue`'s own recipe one row down, reversing the 2026-08-28 move to
- * grey. The two costs that move was written to accept are what it reverses, and they are
- * kept here because they are the reason a low-chroma brand is a real decision rather than
- * an oversight:
+ * The user's brand colour, and it is GREY (Kushagra, 2026-09-19) — hue 250 at vividness 0.04,
+ * reversing the 2026-08-29 move to blue. CONFIRMED AS THE DECISION 2026-09-21, after this
+ * comment was found still describing the blue it had been changed away from; the commit moved
+ * the value and left every sentence around it, which is the drift rule catching this file.
  *
- * `lowChromaThreshold` (0.18) routes a desaturated `--accent-solid` to step 12 instead of
- * step 9, so a grey brand's primary button is near-black in light and near-white in dark —
- * the same branch neutral's own solid takes. At full vividness accent is nowhere near that
- * branch, so the primary action is pigment again and carries through a translucent veil
- * instead of arriving as smoke. `undilutedTones` (2026-08-26, below) is untouched: accent's
- * WASHED rungs still point at neutral, so a brand never paints a faded background.
+ * The low-chroma branch is the whole of what a grey brand means, so it is stated rather than
+ * assumed. `lowChromaThreshold` (0.18) routes a desaturated `--accent-solid` to step 12 instead
+ * of step 9, so the primary button is near-black in light and near-white in dark: the same
+ * branch neutral's own solid takes, and the emitted `--accent-solid` is byte-identical to
+ * `--neutral-12` in both modes. `undilutedTones` (2026-08-26, below) is untouched, so accent's
+ * WASHED rungs still point at neutral and a brand never paints a faded background.
  *
- * `accent ≡ blue` STILL DOES NOT HOLD, and that is worth saying now that the recipes agree
- * again. The two resolve identically at the pigment rungs by construction — same hue, same
- * vividness, same generator — and differ at exactly the roles `undilutedTones` withholds
- * from accent: the washes, `a3` and the faded inks. That is why `blue` remains this file's
- * control family in the laws rather than being folded into accent.
+ * THE COST, kept because it is the argument the blue move was written on and it still stands:
+ * a fill under glass is the component's own colour mixed toward transparent, so saturation is
+ * what survives the mix, and a brand with no chroma arrives as smoke on a translucent surface
+ * while the categorical families beside it still read. That is the trade a grey brand makes.
  *
- * ONE LAW ASSERTED THE OPPOSITE AND IS UPDATED IN THE SAME COMMIT
- * (`system/tones.browser.test.tsx`): "a LOUD accent button is neutral's own solid now" was
- * true only while the low-chroma branch collapsed both onto step 12, and reads the other way
- * again.
+ * `accent ≡ blue` DOES NOT HOLD, and at this vividness the two do not even share a recipe:
+ * blue keeps full vividness, so they differ at every pigment rung as well as at the roles
+ * `undilutedTones` withholds from accent — the washes, `a3` and the faded inks. That is why
+ * `blue` remains this file's control family in the laws rather than being folded into accent.
  *
- * Every direction is one line: `{ hue: 295, vividness: 1 }` is VIOLET, judged live
- * 2026-08-26 against a day of alternatives; `{ hue: 295, vividness: 0.04 }` is the grey that
- * was here yesterday. A hex pin loses the `.hue` field neutral derives from below, and the
- * `tsc` error that causes is deliberate.
+ * THE LAW READS THE BRANCH, not the brand (`system/tones.browser.test.tsx`): "a LOUD accent
+ * button paints the brand's solid, whatever the brand is" has been reversed three times by
+ * hand, and now asserts each consequence against `lowChromaThreshold`, so a brand change moves
+ * one line here and none there.
+ *
+ * Every direction is one line: `{ hue: 250, vividness: 1 }` is BLUE, `blue`'s own recipe one
+ * row down; `{ hue: 295, vividness: 1 }` is VIOLET, judged live 2026-08-26 against a day of
+ * alternatives. A hex pin loses the `.hue` field neutral derives from below, and the `tsc`
+ * error that causes is deliberate.
  *
  * A named const rather than a row, because neutral DERIVES from it — so the greys' lean
  * moved from 295 to 250 with this line, which is the mechanism working rather than a second
