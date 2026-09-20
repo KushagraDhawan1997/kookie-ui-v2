@@ -18,7 +18,7 @@ import { Select as BaseSelect } from "@base-ui/react/select";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
 import {
-  SelectBody,
+  FloatingBody,
   FloatingDirectionContext,
   PortalScope,
   SIDE_OFFSET,
@@ -272,21 +272,13 @@ function popupProps(size: Size, material: SurfaceMaterial, className?: string) {
  * and below the trigger depending on the item's position"*).
  *
  * `alignItemWithTrigger` was pinned FALSE on 2026-08-09 and is now Base UI's own default
- * again, which is the macOS and Radix placement. The reversal is not a taste swing: the
- * item-aligned panel is what makes a select's entry HONEST. Our panel animates, and the
- * browser reveals the selected row the instant the select opens — so a panel that is still
- * travelling is a panel whose row is somewhere it will not stay, and the page moved to follow
- * it (see LOG 2026-08-17). Welded to the trigger, the row is already where it ends up and
- * there is nothing for the reveal to chase.
+ * again, which is the macOS and Radix placement: the panel opens with the chosen row already
+ * on the value it replaces.
  *
  * Base UI falls back to the ordinary side placement by itself — for keyboard opens, and when
  * the row cannot reach the trigger near a viewport edge — and it stamps `data-side="none"`
- * when the overlap is live.
- *
- * The ENTRY is the family's, unchanged: the panel still flies out of the trigger's own box the
- * way a menu does (§22). What the overlap costs is an ORDERING — Base UI computes it from the
- * panel's real box, so the panel must be placed before it is posed (`placedByContent` in
- * system/floating.tsx).
+ * when the overlap is live. The panel appears at once, already placed. Motion was removed
+ * 2026-09-20; docs/archive/motion-v1.md records it.
  *
  * Still refused, and still recorded in the registry: the scroll ARROW parts. They are the
  * mouse-only affordance for a list taller than its panel; the panel scrolls by wheel, trackpad
@@ -326,9 +318,9 @@ function SelectPopup({
           own scroller's position and its height, so an interposed viewport moves the very
           thing the placement is computed from. That is a measurement, not an assumption:
           measure the overlap against a ScrollArea viewport before adopting. */}
-      <SelectBody>
+      <FloatingBody>
         <GlassScope material={material}>{children}</GlassScope>
-      </SelectBody>
+      </FloatingBody>
     </BaseSelect.Popup>
   );
 }

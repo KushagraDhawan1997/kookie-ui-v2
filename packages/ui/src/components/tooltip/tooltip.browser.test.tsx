@@ -13,23 +13,11 @@
  * disappears. That is invisible to any law that reads only the pane.
  */
 import { describe, expect, it } from "vitest";
-import { userEvent } from "vitest/browser";
 
 import { Theme, type ThemeProps } from "../../theme/theme.tsx";
-import {
-  APPEARANCES,
-  colorOn,
-  computed,
-  inMotion,
-  render,
-  settleAll,
-  sweep,
-  tokenOn,
-  until,
-} from "../../test/browser.tsx";
+import { APPEARANCES, colorOn, computed, render, tokenOn } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "../dialog/dialog.tsx";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "../menu/menu.tsx";
 import { Text } from "../text/text.tsx";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip.tsx";
@@ -47,7 +35,6 @@ function openTooltip(theme: ThemeProps, body?: string) {
   const popups = document.querySelectorAll<HTMLElement>(".kui-tooltip-popup");
   const popup = popups[popups.length - 1];
   if (!popup) throw new Error("the tooltip never mounted — every law below would assert nothing");
-  settleAll();
   const body_ = popup.querySelector<HTMLElement>(".kui-floating-body");
   if (!body_) throw new Error("no floating body — the inversion has nowhere to live");
   return { popup, body: body_ };
@@ -186,7 +173,6 @@ describe("it is INVERTED, and it mints nothing to be (§11, §32)", () => {
     );
     const menus = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
     const menu = menus[menus.length - 1]!;
-    settleAll();
     expect(
       computed(menu, "border-top-color"),
       "no pane draws an edge in a flat world — this law's control is gone",
@@ -252,7 +238,6 @@ describe("the box is one line of words (§32)", () => {
     );
     const menus = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
     const menu = menus[menus.length - 1]!;
-    settleAll();
     expect(computed(popup, "border-top-left-radius")).toBe(
       computed(card, "border-top-left-radius"),
     );
@@ -278,14 +263,12 @@ describe("the box is one line of words (§32)", () => {
   });
 });
 
-describe("it knows its direction and its anchor (§20, §22)", () => {
+describe("it knows its direction (§20)", () => {
   /**
-   * `PortalScope` stamps `dir` on the portal wrapper out of `FloatingDirectionContext`, and
-   * the entry flight reads its anchor from the same object. Tooltip provided NEITHER, so both
-   * took the context's default — a hard-coded `ltr` and no anchor — and an unprovided context
-   * resolves to the nearest ENCLOSING provider rather than to its default, so a tooltip inside
-   * a Dialog flew out of the dialog's trigger (audit 2026-08-26). Popover's own pair of laws,
-   * one family member over, and the defect was identical in both.
+   * `PortalScope` stamps `dir` on the portal wrapper out of `FloatingDirectionContext`. Tooltip
+   * once provided none, so it took the context's default — a hard-coded `ltr` (audit
+   * 2026-08-26). Popover's own law, one family member over, and the defect was identical in
+   * both.
    */
   function inDocumentDirection<T>(dir: string, run: () => T): T {
     const had = document.documentElement.getAttribute("dir");
@@ -322,66 +305,6 @@ describe("it knows its direction and its anchor (§20, §22)", () => {
     expect(ltr.stamp).toBe("ltr");
     expect(ltr.dir).toBe("ltr");
   });
-
-  it("the flight's anchor is the tooltip's OWN trigger, inside a dialog as much as alone", async () => {
-    /**
-     * `--kui-anchor-w` is the persistent half of the runner's `if (trigger)` block — the one
-     * flight var the release keeps — written from the very node the seed silhouette is
-     * photographed off, so it answers both questions at once: is there an anchor, and is it
-     * the right one. With no provider it is never written (measured: the empty string); inside
-     * a Dialog it was written from the DIALOG's trigger.
-     *
-     * The two triggers are deliberately different widths, which is what makes "the wrong
-     * anchor" a different number from "the right anchor" rather than the same one twice.
-     */
-    const host = render(
-      <Theme>
-        <Tooltip defaultOpen>
-          <TooltipTrigger render={<Button style={{ inlineSize: "300px" }}>Undo</Button>} />
-          <TooltipContent>Undo</TooltipContent>
-        </Tooltip>
-      </Theme>,
-    );
-    const alone = document.querySelectorAll<HTMLElement>(".kui-tooltip-popup");
-    const alonePopup = alone[alone.length - 1]!;
-    const aloneTrigger = host.querySelector<HTMLElement>("button")!;
-    // SEIZED, NOT RACED: the runner writes this on its own frame, so the law waits for the
-    // value to EXIST. A tooltip with no anchor never writes it, and the wait runs out.
-    await until(() => computed(alonePopup, "--kui-anchor-w") !== "", 3000);
-    expect(
-      computed(alonePopup, "--kui-anchor-w"),
-      "the flight has no anchor at all — the chip grows out of the anchorless seed",
-    ).not.toBe("");
-    // `offsetWidth` and not the painted box: a flight reads the trigger's resting layout box.
-    expect(parseFloat(computed(alonePopup, "--kui-anchor-w"))).toBeCloseTo(
-      aloneTrigger.offsetWidth,
-      0,
-    );
-
-    render(
-      <Theme>
-        <Dialog defaultOpen>
-          <DialogTrigger render={<Button style={{ inlineSize: "500px" }}>Settings…</Button>} />
-          <DialogContent>
-            <DialogTitle>Settings</DialogTitle>
-            <Tooltip defaultOpen>
-              <TooltipTrigger render={<Button style={{ inlineSize: "70px" }}>Undo</Button>} />
-              <TooltipContent>Undo</TooltipContent>
-            </Tooltip>
-          </DialogContent>
-        </Dialog>
-      </Theme>,
-    );
-    const nestedAll = document.querySelectorAll<HTMLElement>(".kui-tooltip-popup");
-    const nested = nestedAll[nestedAll.length - 1]!;
-    const inner = document.querySelector<HTMLElement>(".kui-dialog-popup button");
-    if (!inner) throw new Error("the nested trigger never mounted");
-    await until(() => computed(nested, "--kui-anchor-w") !== "", 3000);
-    expect(
-      parseFloat(computed(nested, "--kui-anchor-w")),
-      "the tooltip flew out of the DIALOG's trigger — it read the enclosing direction context",
-    ).toBeCloseTo(inner.offsetWidth, 0);
-  });
 });
 
 describe("it names a control, and it takes nothing from it (§32)", () => {
@@ -399,7 +322,6 @@ describe("it names a control, and it takes nothing from it (§32)", () => {
         </Tooltip>
       </Theme>,
     );
-    settleAll();
     const popups = document.querySelectorAll<HTMLElement>(".kui-tooltip-popup");
     const popup = popups[popups.length - 1]!;
     const trigger = document.querySelector<HTMLElement>("button.kui-control")!;
@@ -420,7 +342,6 @@ describe("it names a control, and it takes nothing from it (§32)", () => {
         </Tooltip>
       </Theme>,
     );
-    settleAll();
     const popups = document.querySelectorAll<HTMLElement>(".kui-tooltip-popup");
     const popup = popups[popups.length - 1]!;
     expect(popup.contains(document.activeElement), "the tooltip took focus").toBe(false);
@@ -429,84 +350,6 @@ describe("it names a control, and it takes nothing from it (§32)", () => {
     // than on the attribute's absence, which is what the first spelling got wrong.
     const tabindex = popup.getAttribute("tabindex");
     expect(tabindex === null || Number(tabindex) < 0, "the tooltip is a tab stop").toBe(true);
-  });
-});
-
-/**
- * A KEYBOARD-FOCUSED TOOLTIP FLIES (§8, §22, §32 — added 2026-08-29, the ultracode audit).
- *
- * Base UI's shared open-change path stamps `data-instant="focus"` for a `triggerFocus` open, and
- * the family's instant stand-down exempted only `click` and `dismiss` — so a keyboard user got a
- * chip that snapped into existence and vanished with no clock, where a pointer user got the
- * trigger's own silhouette unfurling. The tooltip is the member this reaches, because focus is
- * its ONLY keyboard route: it opens on hover for a pointer and on focus for everything else.
- *
- * It is the third instance of one defect. `click` was the same sentence in 2026-08-18 (every
- * keyboard Enter and Space lost the entry) and `dismiss` in 2026-08-22 (every keyboard Escape
- * lost the exit). An open is an open, with the same physics for every input.
- *
- * NOT A TIMING LAW, deliberately: it reads the stand-down's own outcome — a clock and a pose —
- * off a mounted popup, which is a static computed-value read and safe on any machine. The
- * `data-instant` assertion is the PREMISE, and without it the law would pass on a package where
- * Base UI had simply stopped stamping the attribute.
- */
-describe("a keyboard-focused tooltip flies like a hovered one (§8, §32)", () => {
-  it("the pose is on and the clocks run, on the one route a keyboard has", async () => {
-    inMotion();
-    // Scoped to THIS mount, and the panel taken as the LAST: mounts accumulate across the file,
-    // so a bare `querySelector` reads a settled tooltip from an earlier law — the stale-popup
-    // trap that has cost this suite three separate instrument bugs.
-    const host = render(
-      <Theme>
-        <div style={{ padding: 200 }}>
-          <button type="button">somewhere else</button>
-          <Tooltip>
-            <TooltipTrigger render={<Button>Undo</Button>} />
-            <TooltipContent>Undo the last change</TooltipContent>
-          </Tooltip>
-        </div>
-      </Theme>,
-    );
-    // A real Tab, not `.focus()`: Base UI's reason is `triggerFocus` only for input it trusts,
-    // and a programmatic focus would stamp something else and make this law about nothing.
-    host.querySelector<HTMLElement>("button")!.focus();
-    await userEvent.keyboard("{Tab}");
-    // Selected by its OWN words. Earlier laws in this file leave settled tooltips mounted, so
-    // neither "the first" nor "the last" identifies this one — the stale-popup trap that has
-    // cost this suite three separate instrument bugs.
-    const mine = () =>
-      [...document.querySelectorAll<HTMLElement>(".kui-tooltip-popup")].find((el) =>
-        el.textContent?.includes("Undo the last change"),
-      );
-    if (!(await until(() => !!mine())))
-      throw new Error("focus opened no tooltip — the law would assert nothing");
-    const popup = mine()!;
-
-    // THE PREMISE: this really is the stamped path. Without it the law passes on a Base UI that
-    // stopped stamping, which is the case it exists to survive.
-    expect(popup.getAttribute("data-instant"), "Base UI no longer stamps a focus open").toBe(
-      "focus",
-    );
-    // The runner POSED it — a stand-down that returns before posing leaves no attribute at all.
-    expect(
-      popup.hasAttribute("data-unfurling"),
-      "the runner stood down: a focus-opened tooltip is never posed, so it cannot fly",
-    ).toBe(true);
-    // …and there is a clock for the pose to run on. READ AFTER THE SEED COMES OFF, which is not
-    // hygiene: `[data-unfurling][data-seed]` declares `transition: none` deliberately — the pose
-    // is a HELD one, and the flight's transitions are the base rule's, applying the frame the
-    // seed is released. A statement landing inside the seeded window therefore reads zero on a
-    // correct package, which is what one run in three did before this line. Waited for by the
-    // attribute rather than by a frame count, so no clock of the host's is involved.
-    if (!(await until(() => !popup.hasAttribute("data-seed"))))
-      throw new Error("the seed never came off — the flight never departed");
-    const clocks = computed(popup, "transition-duration")
-      .split(",")
-      .map((d) => parseFloat(d));
-    expect(
-      Math.max(...clocks),
-      "every clock is zero: the stylesheet still reads a focus open as instant",
-    ).toBeGreaterThan(0);
   });
 });
 
@@ -598,240 +441,5 @@ describe("the agreement law: portalled ≡ in-flow (§20, §32)", () => {
     const twinEl = twin({ ...HOSTILE, contrast: "high" }, identity);
     expect(facts(popup)).toEqual(facts(twinEl));
     expect(facts(twin(HOSTILE, identity))).not.toEqual(facts(twinEl));
-  });
-});
-
-/**
- * THE ENTRY IS A LIFT, NOT A SILHOUETTE (§32, 2026-08-31 — Kushagra: the family's unfurl is
- * "way too much, especially when it's on a larger surface"; the Clip-vs-Physics bench's
- * "Physics" tooltip is the reference).
- *
- * Three claims, each read off a SEIZED clock rather than raced: the chip's box never moves
- * (no size or travel channel is running — only scale and paint), the seed is the landed box
- * scaled toward the trigger's edge (station 0 of the scale sweep is the pose itself), and the
- * words ride with the chip rather than printing into it (no blur, no fade of their own).
- *
- * THE FIXTURE IS THE LAW: the trigger is far WIDER than the chip. On a button-sized trigger the
- * silhouette and the landed chip are nearly one box, so a pose that photographed the trigger
- * would pass every assertion below — which is the degenerate-fixture rule, and the exact case
- * the complaint names. A Menu on an identical trigger is the negative control: its width DOES
- * fly, so if the tooltip's box also flew the tooltip's rule reached nothing.
- */
-describe("the entry is a LIFT, not a silhouette (§32, 2026-08-31)", () => {
-  const WIDE = 420;
-  function mountWide() {
-    inMotion();
-    render(
-      <Theme>
-        <div style={{ padding: "200px 0 0 200px" }}>
-          <Tooltip defaultOpen>
-            <TooltipTrigger
-              render={
-                <Button emphasis="quiet" bordered style={{ width: WIDE }}>
-                  A whole card-width trigger
-                </Button>
-              }
-            />
-            <TooltipContent>Open this</TooltipContent>
-          </Tooltip>
-          <Menu>
-            <MenuTrigger
-              render={
-                <Button emphasis="quiet" bordered style={{ width: WIDE }}>
-                  The same trigger, a menu
-                </Button>
-              }
-            />
-            <MenuContent align="center">
-              <MenuItem>Rename</MenuItem>
-            </MenuContent>
-          </Menu>
-        </div>
-      </Theme>,
-    );
-    const popups = document.querySelectorAll<HTMLElement>(".kui-tooltip-popup");
-    const popup = popups[popups.length - 1];
-    if (!popup) throw new Error("the tooltip never mounted — the law would read nothing");
-    const [trigger, menuTrigger] = [...document.querySelectorAll<HTMLElement>("button")];
-    return { popup, trigger: trigger!, menuTrigger: menuTrigger! };
-  }
-  const channels = (el: Element) =>
-    el.getAnimations().map((a) => (a as CSSTransition).transitionProperty);
-
-  it("only scale and paint move: no size, no travel, no corner — the box is its landed box from frame one", async () => {
-    const { popup, trigger, menuTrigger } = mountWide();
-    // The flight must DEPART — the runner's laid-out guard reads the posed rect against the
-    // natural one, and a pose the same size as its box would be read as "not laid out yet" and
-    // bail without flying. A scaled rect measures narrower, which is what lets it pass; this
-    // line is where that would fail.
-    if (!(await until(() => channels(popup).includes("scale"))))
-      throw new Error("the entry never departed on the scale channel — the guard bailed, or the pose is gone");
-    const running = channels(popup);
-    for (const still of ["width", "height", "translate", "border-top-left-radius"])
-      expect(running, `${still} is flying — the tooltip's box is not its landed box`).not.toContain(still);
-    expect(running, "the chip paints in on its own clock").toContain("opacity");
-
-    // Calibration: the trigger out-sizes the chip by a wide margin, or a silhouette and a lift
-    // are the same box.
-    const landed = popup.getBoundingClientRect();
-    expect(trigger.getBoundingClientRect().width, "the trigger must dwarf the chip").toBeGreaterThan(
-      landed.width + 100,
-    );
-
-    // The negative control: the family's size channel is alive on the same trigger. HEIGHT,
-    // because a menu's floor is its trigger's width and its silhouette IS that box, so on a wide
-    // trigger the width never changes — the first run of this law waited for a width clock that
-    // a correct menu never starts.
-    menuTrigger.click();
-    const menu = () => {
-      const all = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
-      return all[all.length - 1];
-    };
-    if (!(await until(() => !!menu() && channels(menu()!).includes("height"))))
-      throw new Error("the menu's height never flew — the control proves nothing");
-  });
-
-  it("the seed is the landed box scaled toward the trigger's edge, faint — and the centre and that edge never move", async () => {
-    const { popup, trigger } = mountWide();
-    if (!(await until(() => channels(popup).includes("scale"))))
-      throw new Error("the entry never departed on the scale channel");
-    // LAYOUT width, not the rect: the rect is already scaled by the flight this line is
-    // standing inside (measured 79.8 against an 88px chip on the first run of this law).
-    const landedWidth = popup.offsetWidth;
-    const seedScale = parseFloat(computed(popup, "--tooltip-seed"));
-    expect(seedScale, "the seed scale token resolves").toBeGreaterThan(0.5);
-    expect(seedScale, "…and is a seed, not full size").toBeLessThan(1);
-
-    // Station 0 of the seized clock IS the pose. Read as a rect, which includes the scale.
-    const series = await sweep(popup, "scale", () => {
-      const r = popup.getBoundingClientRect();
-      return { w: r.width, cx: (r.left + r.right) / 2, bottom: r.bottom, opacity: computed(popup, "opacity") };
-    });
-    const first = series[0]!;
-    // The last station is scale 1 — the landed geometry, read the same way as every other.
-    const last = series[series.length - 1]!;
-    expect(first.w, "the seed is the chip's own box, scaled — not the trigger's width").toBeCloseTo(
-      landedWidth * seedScale,
-      0,
-    );
-    expect(first.w, "…and nowhere near the trigger").toBeLessThan(trigger.getBoundingClientRect().width / 2);
-    expect(last.w, "and it lands at full size").toBeCloseTo(landedWidth, 0);
-    // The chip lifts from the edge facing its trigger (a tooltip above its trigger grows up
-    // from its bottom edge) and stays centred: at EVERY station the centre and that edge hold.
-    for (const s of series) {
-      expect(Math.abs(s.cx - last.cx), `the centre drifted at w=${s.w.toFixed(1)}`).toBeLessThan(1);
-      expect(Math.abs(s.bottom - last.bottom), `the trigger-facing edge moved at w=${s.w.toFixed(1)}`).toBeLessThan(1);
-    }
-    // Vacuity guard: the sweep genuinely passed through sizes.
-    expect(Math.max(...series.map((s) => s.w)) - first.w, "the scale never opened").toBeGreaterThan(2);
-
-    // Faint at the seed, on the PAINT channel — read on its own seized clock.
-    const paint = await sweep(popup, "opacity", () => computed(popup, "opacity"), 4);
-    expect(paint[0], "the chip arrives faint, not opaque like a silhouette").toBe("0");
-    expect(paint[paint.length - 1], "…and paints in").toBe("1");
-  });
-
-  it("the words ride WITH the chip: no print of their own, and no clock for one", async () => {
-    const { popup } = mountWide();
-    if (!(await until(() => channels(popup).includes("scale"))))
-      throw new Error("the entry never departed on the scale channel");
-    const body = popup.querySelector<HTMLElement>(".kui-floating-body")!;
-    // Nothing on the body is animating: the family's molten print (blur, fade, echo, squish)
-    // is stood down whole, so the body has no changed channel to run.
-    expect(channels(body), "the body is printing on its own — it should be part of the chip").toEqual([]);
-    expect(computed(body, "filter"), "the words are not blurred").toBe("none");
-    expect(computed(body, "opacity"), "the words carry no fade of their own").toBe("1");
-    expect(computed(body, "scale"), "the words are not squished").toBe("none");
-  });
-
-  it("the curve is the CALM spring on the tooltip's own clock — the bench's physics, not the family's elastic", async () => {
-    const { popup, trigger } = mountWide();
-    if (!(await until(() => channels(popup).includes("scale"))))
-      throw new Error("the entry never departed on the scale channel");
-    const scale = popup.getAnimations().find((a) => (a as CSSTransition).transitionProperty === "scale")!;
-    const timing = scale.effect!.getComputedTiming();
-    // The curve's SAMPLES, one per stop: the browser re-serializes `linear()` (the first stop
-    // comes back as `0 0%`), so the strings never agree and the values are what identify a
-    // curve. The bench's `--spring` IS this package's `--motion-spring` — same samples — and
-    // the family's channel rides `--motion-spring-elastic`, which is what this law tells apart.
-    const samples = (v: string) =>
-      v
-        .replace(/^linear\(|\)$/g, "")
-        .split(",")
-        .map((stop) => stop.trim().split(/\s+/)[0] ?? "")
-        .join(",");
-    expect(samples(timing.easing ?? ""), "the scale rides the elastic spring, not the calm one").toBe(
-      samples(computed(popup, "--motion-spring")),
-    );
-    expect(samples(computed(popup, "--motion-spring")), "calibration: the two curves differ").not.toBe(
-      samples(computed(popup, "--motion-spring-elastic")),
-    );
-    expect(timing.duration, "the scale is on the tooltip's own clock").toBe(parseFloat(computed(popup, "--tooltip-form")));
-    const paint = popup.getAnimations().find((a) => (a as CSSTransition).transitionProperty === "opacity")!;
-    expect(paint.effect!.getComputedTiming().duration).toBe(parseFloat(computed(popup, "--tooltip-paint")));
-    // Calibration: the family's clocks differ, so the list is the tooltip's and not a borrow.
-    expect(computed(trigger, "--floating-corner")).not.toBe(computed(trigger, "--tooltip-form"));
-    // And the flight RELEASES on that clock: the runner reads the longest declared clock off
-    // the element, so left on the family's list a chip landed at 300 sat posed past the 510
-    // spread. Bounded well under that and well over the tooltip's own.
-    /* AND THE FLIGHT RELEASES ON THAT CLOCK — read where the runner reads it, never timed
-       (2026-09-10). `floating.tsx` sets its release deadline from the longest `duration +
-       delay` on the un-posed popup, so that maximum IS the release, and this asserts it
-       directly. It used to run a stopwatch across the release and require under `form + 200`,
-       which is a 210ms wall-clock discrimination between the tooltip's 300 and the family's
-       510 — measured on CI at 580.8ms against a 500 bound, with the declared maximum correct
-       the whole time: a `setTimeout(release, 350)` firing late on a starved runner, timed by a
-       law that could not tell that from the defect. */
-    const form = parseFloat(computed(popup, "--tooltip-form"));
-    const delays = computed(popup, "transition-delay").split(",");
-    const spans = computed(popup, "transition-duration")
-      .split(",")
-      .map((d, i) => (parseFloat(d) + parseFloat(delays[i % delays.length] ?? "0")) * 1000);
-    expect(
-      Math.max(...spans),
-      `the release deadline is ${Math.max(...spans)}ms, not the tooltip's ${form}ms`,
-    ).toBe(form);
-    // Calibration: the family's own spread is longer, so `=== form` is a real discrimination
-    // and not a bound every clock in the building would satisfy.
-    expect(
-      parseFloat(computed(popup, "--floating-spread")),
-      "calibration: the family's clock is no longer than the tooltip's, so this tells nothing apart",
-    ).toBeGreaterThan(form);
-  });
-
-  it("the exit returns to the seed, not the family's 2% settle", async () => {
-    inMotion();
-    render(
-      <Theme>
-        <div style={{ padding: 200 }}>
-          <Tooltip defaultOpen>
-            <TooltipTrigger render={<Button emphasis="quiet" bordered>Undo</Button>} />
-            <TooltipContent>Undo the last change</TooltipContent>
-          </Tooltip>
-        </div>
-      </Theme>,
-    );
-    const mine = () =>
-      [...document.querySelectorAll<HTMLElement>(".kui-tooltip-popup")].find((el) =>
-        el.textContent?.includes("Undo the last change"),
-      )!;
-    if (!(await until(() => !!mine() && !mine().hasAttribute("data-unfurling"))))
-      throw new Error("the tooltip never landed");
-    const popup = mine();
-    const trigger = [...document.querySelectorAll<HTMLElement>("button")].find((b) => b.textContent === "Undo")!;
-    // A real leave: the pointer arrives and departs, which is the only way a tooltip closes.
-    await userEvent.hover(trigger);
-    await userEvent.unhover(trigger);
-    if (!(await until(() => popup.hasAttribute("data-ending-style"))))
-      throw new Error("the tooltip never began to close");
-    // The TARGET, read off the running transition's keyframes — the computed value mid-exit
-    // is wherever the clock has got to, and would pass on the family's 0.98 for a frame.
-    const scale = popup.getAnimations().find((a) => (a as CSSTransition).transitionProperty === "scale");
-    if (!scale) throw new Error("no scale transition on the exit — the exit is not moving");
-    const frames = (scale.effect as KeyframeEffect).getKeyframes() as { scale?: string }[];
-    expect(parseFloat(frames[frames.length - 1]!.scale ?? ""), "the exit settles somewhere other than the seed").toBeCloseTo(
-      parseFloat(computed(popup, "--tooltip-seed")),
-      3,
-    );
   });
 });

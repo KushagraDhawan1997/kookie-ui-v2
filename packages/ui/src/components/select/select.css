@@ -48,6 +48,16 @@
   cursor: var(--cursor-button);
   -webkit-user-select: none;
   user-select: none;
+  /* The trigger is its own stacking context, so a glass pane's glint band (the pane's
+     `::before`) paints UNDER it, never across it — button.css's sentence, and the trigger is a
+     button. It is stated here because the trigger is a `.kui-field`, not a `.kui-button` and
+     not a `.kui-surface`, so neither of the other two homes reaches it.
+
+     STATED, because until 2026-09-20 it was a SIDE EFFECT of the resting `scale: 1` the press
+     travelled from; the motion removal took that and left this the only member of the pressable
+     three with no replacement. Measured on a bled trigger inside a thick glass pane in dark: the
+     band's contribution over it went from 766 pixels at most 10/255 to 1,037 at most 16/255. */
+  isolation: isolate;
   /* The WHOLE triple, including the resting source this rule does not change — the control
      contract's own law, and it is right to insist: these three are registered inherits:false,
      so a rule that re-points two of them leaves the third resolving no source at all and the
@@ -65,32 +75,9 @@
      alpha in both modes (audit 2026-08-18). The shared layer's chain is the right one now. */
 }
 
-/* The open state moved to the shared layer 2026-08-10 — the menu trigger was the third
-   control saying "in use, not hovered", and the third member promotes. What stays here is
-   what only this trigger has: the BUTTON'S GESTURE. It wears field dress, and §8's "a field
-   does nothing" is about the box the eye rests INSIDE — a trigger is pressed, so it rises to
-   the pointer and sinks under it exactly as a Button does (Kushagra: *"its also an onclick
-   trigger"*), on the skeleton's own clocks. Distances are the button family's tokens, so a
-   re-judged press reaches both files from config. */
-.kui-select-trigger {
-  translate: 0 0;
-  scale: 1;
-}
-@media (hover: hover) {
-  .kui-select-trigger:hover:not([data-disabled], [data-popup-open]) {
-    translate: 0 calc(-1 * var(--hover-travel));
-  }
-}
-.kui-select-trigger:active:not([data-disabled], [data-popup-open]) {
-  translate: 0 var(--press-travel);
-  scale: var(--press-scale);
-}
-/* An open trigger HOLDS THE PRESS — the button family's sentence verbatim (button.css
-   carries the why: latching, and the panel hangs from this box). */
-.kui-select-trigger[data-popup-open] {
-  translate: 0 var(--press-travel);
-  scale: var(--press-scale);
-}
+/* The open state's paint lives in the shared layer since 2026-08-10 — the menu trigger was the
+   third control saying "in use, not hovered", and the third member promotes. Hover, press and
+   open change only the trigger's paint, and at once. */
 
 /* The value is one line reporting one choice, and it ellipsizes WHEREVER SOMETHING BOUNDS
    THE WIDTH — a column, a grid cell, an explicit width. Where nothing does, the trigger grows
@@ -144,8 +131,8 @@
      (audit C10). This panel, the menu's and the combobox's each spelled the same three
      declarations, and menu.css carried the note that the third member wanting them is what
      promotes them; surfaces.css now states the floor and the two bounds once, with the whole
-     argument — the anchor term, the entry's own measurement, and the clamp stated INSIDE the
-     min() because a minimum beats a maximum in CSS. No value differs.
+     argument — the anchor term, and the clamp stated INSIDE the min() because a minimum beats
+     a maximum in CSS. No value differs.
 
      (The floor does not put option TEXT on the value's vertical, and this comment used to say
      it did: every option reserves the tick's gutter, which is 20/24/28/36px of lead the value
@@ -154,7 +141,7 @@
      What stays here is the one thing only this panel does: it SCROLLS ITSELF. A select is the
      floating member that is item-aligned, so the offset is the placement and there is no
      interposed viewport — which is why `overflow-y` is declared on the pane rather than on a
-     ScrollArea, and why the flight has to restate its own `overflow: clip` to beat it. */
+     ScrollArea. */
   overflow-y: auto;
 }
 

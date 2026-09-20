@@ -15,27 +15,14 @@
 import { describe, expect, it, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
 import * as React from "react";
-import { flushSync } from "react-dom";
 
 import { Theme, type ThemeProps } from "../../theme/theme.tsx";
-import {
-  SIZES,
-  catchDissolve,
-  computed,
-  inMotion,
-  mounted,
-  render,
-  settleAll,
-  sweep,
-  tokenOn,
-  until,
-} from "../../test/browser.tsx";
+import { SIZES, computed, mounted, render, tokenOn } from "../../test/browser.tsx";
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "../dialog/dialog.tsx";
+import { Dialog, DialogContent, DialogTrigger } from "../dialog/dialog.tsx";
 import { Menu, MenuContent, MenuItem, MenuTrigger } from "../menu/menu.tsx";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../tooltip/tooltip.tsx";
 import {
   Popover,
   PopoverClose,
@@ -75,7 +62,6 @@ function openPopover(theme: ThemeProps, size?: (typeof SIZES)[number], body?: Re
   const popups = document.querySelectorAll<HTMLElement>(".kui-popover-popup");
   const popup = popups[popups.length - 1];
   if (!popup) throw new Error("the panel never mounted — every law below would assert nothing");
-  settleAll();
   return { host, popup };
 }
 
@@ -150,7 +136,6 @@ describe("the pane is a CARD that floats (§10, §31)", () => {
     void host;
     const menus = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
     const menu = menus[menus.length - 1]!;
-    settleAll();
     expect(
       computed(menu, "border-top-left-radius"),
       "the menu lost its concentric corner",
@@ -194,7 +179,6 @@ describe("the pane is a CARD that floats (§10, §31)", () => {
     render(wide);
     const popups = document.querySelectorAll<HTMLElement>(".kui-popover-popup");
     const popup = popups[popups.length - 1]!;
-    settleAll();
     expect(
       popup.getBoundingClientRect().width,
       "the panel took the trigger's width — it is floored at the anchor",
@@ -231,7 +215,6 @@ describe("the page stays live — the line between this and a Dialog (§24, §31
         {panel}
       </Theme>,
     );
-    settleAll();
     const marker = host.querySelector<HTMLElement>('[data-t="outside"]');
     if (!marker) throw new Error("the marker never mounted — the law would assert nothing");
     const box = marker.getBoundingClientRect();
@@ -288,8 +271,8 @@ describe("the page stays live — the line between this and a Dialog (§24, §31
     const { popup } = openPopover({}, "2");
     expect(document.body.contains(popup)).toBe(true);
     await userEvent.click(document.body);
-    // Base UI unmounts on the exit animation's own promise, so the panel is gone or on its way:
-    // what the law asserts is that the press was HEARD, which the closed stamp says.
+    // Base UI unmounts a closed panel, so the panel is gone or its open stamp is: what the law
+    // asserts is that the press was HEARD, which the closed stamp says.
     expect(
       popup.getAttribute("data-open") === null || !document.body.contains(popup),
       "an outside press did not dismiss the panel",
@@ -310,7 +293,6 @@ describe("the page stays live — the line between this and a Dialog (§24, §31
     );
     const popups = document.querySelectorAll<HTMLElement>(".kui-popover-popup");
     const popup = popups[popups.length - 1]!;
-    settleAll();
     const close = popup.querySelector<HTMLElement>("button");
     if (!close) throw new Error("no close button mounted");
     await userEvent.click(close);
@@ -354,7 +336,6 @@ describe("the parts exist because the wiring forces them (§10, §31)", () => {
         spy.mock.calls.map((c) => String(c[0])).filter((m) => m.includes("<Popover>")).length;
       try {
         run();
-        settleAll();
         for (let waited = 0; waited < 2000; waited += 16) {
           if (want > 0 && count() >= want) break;
           await new Promise((r) => setTimeout(r, 16));
@@ -480,19 +461,13 @@ describe("the agreement law: portalled ≡ in-flow (§20, ENGINEERING §2.1)", (
 
 
 /**
- * THE ROOT'S DIRECTION CONTEXT (§20, §22, added 2026-08-26 from the ultracode audit).
+ * THE ROOT'S DIRECTION CONTEXT (§20, added 2026-08-26 from the ultracode audit).
  *
- * `PortalScope` stamps `dir` on the portal wrapper from this context, and the entry flight
- * reads its anchor out of the same object — so a component that never provides it takes the
- * context's DEFAULT for both, and the default is a hard-coded `ltr` with no anchor at all.
+ * `PortalScope` stamps `dir` on the portal wrapper from this context — so a component that
+ * never provides it takes the context's DEFAULT, and the default was a hard-coded `ltr`.
  * Popover shipped without the provider that Menu, Select, Dialog and AlertDialog all render.
- *
- * The two laws below read the two halves, and the second reads it TWICE, because an
- * unprovided React context does not resolve to its default when there is an enclosing
- * provider — it resolves to that one. So a popover standing alone got no anchor and a popover
- * inside a Dialog got the DIALOG's, which is a different node somewhere else on the page.
  */
-describe("the panel knows its direction and its anchor (§20, §22)", () => {
+describe("the panel knows its direction (§20)", () => {
   /** The document's own `dir` — an app spells this on `<html>`, and the portal lands under
       `document.body`, so this is the ancestor a portalled panel would otherwise inherit. */
   function inDocumentDirection<T>(dir: string, run: () => T): T {
@@ -530,175 +505,6 @@ describe("the panel knows its direction and its anchor (§20, §22)", () => {
     });
     expect(ltr.stamp).toBe("ltr");
     expect(ltr.computed).toBe("ltr");
-  });
-
-  /**
-   * THE ENTRY IS DIALOG'S (§31, 2026-09-14, Kushagra: "Popover should animate like dialog,
-   * because it can be huge"). The landed box from frame one, 3% in z on the poised spring,
-   * presence as paint, the content coming into focus. The negative control is a Menu on the
-   * same trigger, whose silhouette flight still runs a size channel.
-   */
-  const WIDE = 420;
-  function mountWide() {
-    inMotion();
-    render(
-      <Theme>
-        <div style={{ padding: "200px 0 0 200px" }}>
-          <Popover>
-            <PopoverTrigger render={<Button emphasis="quiet" bordered style={{ width: WIDE }}>Rename the project</Button>} />
-            <PopoverContent aria-label="Rename">
-              <p style={{ margin: 0 }}>This changes the name everywhere it appears in the workspace.</p>
-            </PopoverContent>
-          </Popover>
-          <Menu>
-            <MenuTrigger render={<Button emphasis="quiet" bordered style={{ width: WIDE }}>The same trigger, a menu</Button>} />
-            <MenuContent align="center">
-              <MenuItem>Rename</MenuItem>
-            </MenuContent>
-          </Menu>
-        </div>
-      </Theme>,
-    );
-    const [trigger, menuTrigger] = [...document.querySelectorAll<HTMLElement>("button")];
-    trigger!.click();
-    const popup = () => {
-      const all = document.querySelectorAll<HTMLElement>(".kui-popover-popup");
-      return all[all.length - 1];
-    };
-    return { popup, trigger: trigger!, menuTrigger: menuTrigger! };
-  }
-  const channels = (el: Element) =>
-    el.getAnimations().map((a) => (a as CSSTransition).transitionProperty);
-  const samples = (v: string) =>
-    v
-      .replace(/^linear\(|\)$/g, "")
-      .split(",")
-      .map((stop) => stop.trim().split(/\s+/)[0] ?? "")
-      .join(",");
-
-  it("only depth and paint move — no size, no travel, no corner — on the dialog's clocks (§31, 2026-09-14)", async () => {
-    const { popup, trigger, menuTrigger } = mountWide();
-    if (!(await until(() => !!popup() && channels(popup()!).includes("scale"))))
-      throw new Error("the entry never departed on the scale channel — the pose is gone");
-    const pane = popup()!;
-    const running = channels(pane);
-    for (const still of ["width", "height", "translate", "border-top-left-radius"])
-      expect(running, `${still} is flying — the popover is not its landed box`).not.toContain(still);
-    expect(running, "the pane paints in on its own clock").toContain("opacity");
-
-    const scale = pane.getAnimations().find((a) => (a as CSSTransition).transitionProperty === "scale")!;
-    const timing = scale.effect!.getComputedTiming();
-    expect(timing.duration, "the depth rides the dialog's settle").toBe(parseFloat(computed(pane, "--dialog-settle")));
-    expect(samples(timing.easing ?? ""), "the depth rides the poised spring").toBe(
-      samples(computed(pane, "--motion-spring-poised")),
-    );
-    expect(samples(computed(pane, "--motion-spring-poised")), "calibration: the family's elastic differs").not.toBe(
-      samples(computed(pane, "--motion-spring-elastic")),
-    );
-    const paint = pane.getAnimations().find((a) => (a as CSSTransition).transitionProperty === "opacity")!;
-    expect(paint.effect!.getComputedTiming().duration, "paint rides the dialog's reveal").toBe(
-      parseFloat(computed(pane, "--dialog-reveal")),
-    );
-    // Calibration: the trigger dwarfs nothing it would share with a silhouette.
-    expect(trigger.getBoundingClientRect().width).toBeGreaterThan(pane.offsetWidth - 1 > WIDE ? 0 : 100);
-
-    // The negative control: the family's size channel is alive on the same trigger.
-    await userEvent.keyboard("{Escape}");
-    menuTrigger.click();
-    const menu = () => {
-      const all = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
-      return all[all.length - 1];
-    };
-    if (!(await until(() => !!menu() && channels(menu()!).includes("height"))))
-      throw new Error("the menu's height never flew — the control proves nothing");
-  });
-
-  it("the seed is the landed box at the dialog's depth, faint; the words stay in flow and come into focus", async () => {
-    const { popup } = mountWide();
-    if (!(await until(() => !!popup() && channels(popup()!).includes("scale"))))
-      throw new Error("the entry never departed on the scale channel");
-    const pane = popup()!;
-    const body = pane.querySelector<HTMLElement>(".kui-floating-body")!;
-    // The body does not leave flow for the flight, and nothing on it runs but its focus.
-    expect(computed(body, "position"), "the body was lifted out of flow for a box that never grows").toBe("static");
-    expect(channels(body), "the body runs a channel other than its focus").toEqual(["filter"]);
-
-    const depth = parseFloat(computed(pane, "--dialog-depth"));
-    expect(depth, "the depth token resolves to a seed, not full size").toBeLessThan(1);
-    const landedWidth = pane.offsetWidth;
-    const series = await sweep(pane, "scale", () => pane.getBoundingClientRect().width);
-    expect(series[0]!, "the seed is the landed box at the dialog's depth").toBeCloseTo(landedWidth * depth, 0);
-    expect(series[series.length - 1]!, "and it lands at full size").toBeCloseTo(landedWidth, 0);
-    const paint = await sweep(pane, "opacity", () => computed(pane, "opacity"), 4);
-    expect(paint[0], "the pane arrives faint").toBe("0");
-    expect(paint[paint.length - 1], "and paints in").toBe("1");
-  });
-
-  it("the flight's anchor is the popover's OWN trigger, standing alone and inside a dialog", async () => {
-    /**
-     * `--kui-anchor-w` is the persistent half of the runner's `if (trigger)` block — the one
-     * flight var the release keeps — and it is written from the very node the seed silhouette
-     * is photographed off. So it answers both questions at once: is there an anchor, and is it
-     * the right one. With no provider it is never written at all (measured: the empty string),
-     * and inside a Dialog it was written from the DIALOG's trigger.
-     *
-     * The two triggers are deliberately different widths, which is what makes "the wrong
-     * anchor" and "the right anchor" different answers rather than the same number twice.
-     */
-    const standalone = render(
-      <Theme>
-        <Popover defaultOpen>
-          <PopoverTrigger render={<Button style={{ inlineSize: "420px" }}>Wide trigger</Button>} />
-          <PopoverContent>
-            <PopoverTitle>Filters</PopoverTitle>
-          </PopoverContent>
-        </Popover>
-      </Theme>,
-    );
-    // SEIZED, NOT RACED (the 2026-08-20 rule): the runner writes this on its own frame, so
-    // the law waits for the value to EXIST rather than for a fixed number of milliseconds. A
-    // component with no anchor never writes it, so the wait runs its whole deadline out and
-    // the assertion below is what reports the failure.
-    const alonePopups = document.querySelectorAll<HTMLElement>(".kui-popover-popup");
-    const alonePopup = alonePopups[alonePopups.length - 1]!;
-    const aloneTrigger = standalone.querySelector<HTMLElement>("button")!;
-    await until(() => computed(alonePopup, "--kui-anchor-w") !== "", 3000);
-    expect(
-      computed(alonePopup, "--kui-anchor-w"),
-      "the flight has no anchor at all — the panel grows out of the anchorless seed",
-    ).not.toBe("");
-    // `offsetWidth`, not the bounding box: an open trigger holds its press (§8), so its
-    // painted box is the scaled one and the anchor is the resting layout box.
-    expect(parseFloat(computed(alonePopup, "--kui-anchor-w"))).toBeCloseTo(
-      aloneTrigger.offsetWidth,
-      0,
-    );
-
-    render(
-      <Theme>
-        <Dialog defaultOpen>
-          <DialogTrigger render={<Button style={{ inlineSize: "500px" }}>Settings…</Button>} />
-          <DialogContent>
-            <DialogTitle>Settings</DialogTitle>
-            <Popover defaultOpen>
-              <PopoverTrigger render={<Button style={{ inlineSize: "90px" }}>Filters</Button>} />
-              <PopoverContent>
-                <PopoverTitle>Filters</PopoverTitle>
-              </PopoverContent>
-            </Popover>
-          </DialogContent>
-        </Dialog>
-      </Theme>,
-    );
-    const nestedPopups = document.querySelectorAll<HTMLElement>(".kui-popover-popup");
-    const nested = nestedPopups[nestedPopups.length - 1]!;
-    const inner = document.querySelector<HTMLElement>(".kui-dialog-popup button");
-    if (!inner) throw new Error("the nested trigger never mounted");
-    await until(() => computed(nested, "--kui-anchor-w") !== "", 3000);
-    expect(
-      parseFloat(computed(nested, "--kui-anchor-w")),
-      "the popover flew out of the DIALOG's trigger — it read the enclosing direction context",
-    ).toBeCloseTo(inner.offsetWidth, 0);
   });
 });
 
@@ -823,7 +629,6 @@ describe("an overlong panel scrolls its content, not itself (§22)", () => {
         </Popover>
       </Theme>,
     );
-    settleAll();
     const popup = document.querySelector<HTMLElement>(".kui-popover-popup");
     if (!popup) throw new Error("no popup — the law would assert nothing");
     const viewport = popup.querySelector<HTMLElement>(".kui-scroll-viewport");
@@ -873,7 +678,6 @@ describe("an overlong panel scrolls its content, not itself (§22)", () => {
         </Menu>
       </Theme>,
     );
-    settleAll();
     const pv = document.querySelector<HTMLElement>(".kui-popover-popup .kui-scroll-viewport");
     const mv = document.querySelector<HTMLElement>(".kui-menu-popup .kui-scroll-viewport");
     if (!pv || !mv) throw new Error("a viewport is missing — the comparison would assert nothing");
@@ -896,7 +700,7 @@ describe("an overlong panel scrolls its content, not itself (§22)", () => {
      *
      * Both halves in one fixture, because the direct-child spelling and the descendant one
      * agree perfectly about the popup's own viewport — the caller's is the one that tells them
-     * apart. Same shape as the reopen-reset law below, and the same `:scope >` reach.
+     * apart.
      */
     await page.viewport(600, 320);
     render(
@@ -914,7 +718,6 @@ describe("an overlong panel scrolls its content, not itself (§22)", () => {
         </Popover>
       </Theme>,
     );
-    settleAll();
     const popup = document.querySelector<HTMLElement>(".kui-popover-popup");
     if (!popup) throw new Error("no popup — the law would assert nothing");
     const own = popup.querySelector<HTMLElement>(
@@ -943,337 +746,6 @@ describe("an overlong panel scrolls its content, not itself (§22)", () => {
       computed(own, "max-block-size"),
       "the popup's own viewport lost its bound on the room the positioner reports",
     ).not.toBe("none");
-  });
-
-  it("a caught reopen resets the popup's OWN viewport and never a scroller the caller composed (§22, 2026-08-25)", async () => {
-    /**
-     * The runner resets a caught reopen's browsing scroll so a quick second press shows the
-     * same panel a fresh mount would (the menu's finding, its law in menu.browser.test.tsx).
-     * The reach of that reset is what THIS law pins: it is scoped to the popup's own anatomy
-     * — the direct-child chain `:scope > .kui-scroll-area > .kui-scroll-viewport` — because a
-     * popover's content is the CALLER'S, and a ScrollArea they composed keeps whatever
-     * position they gave it. Both sides in one fixture, because a widened spelling
-     * (`querySelectorAll(".kui-scroll-viewport")`, reset them all) satisfies the first half
-     * perfectly — the second is the one that catches it.
-     */
-    await page.viewport(600, 320);
-    inMotion();
-    let setOpen!: (v: boolean) => void;
-    function Host() {
-      const [open, set] = React.useState(false);
-      setOpen = set;
-      return (
-        <Theme>
-          <Popover open={open} onOpenChange={set}>
-            <PopoverTrigger render={<Button>Open</Button>} />
-            <PopoverContent>
-              <ScrollArea style={{ height: 80 }}>
-                {Array.from({ length: 30 }, (_, i) => (
-                  <p key={i} style={{ margin: 0 }}>{`inner ${i}`}</p>
-                ))}
-              </ScrollArea>
-              {Array.from({ length: 40 }, (_, i) => (
-                <p key={i} style={{ margin: 0 }}>{`row ${i}`}</p>
-              ))}
-            </PopoverContent>
-          </Popover>
-        </Theme>
-      );
-    }
-    render(<Host />);
-    flushSync(() => setOpen(true));
-    const popup = document.querySelector<HTMLElement>(".kui-popover-popup")!;
-    // Landed, not merely mounted: a scroll written into a posed box is clamped by the pose.
-    await until(
-      () =>
-        !popup.hasAttribute("data-seed") &&
-        !popup.hasAttribute("data-unfurling") &&
-        parseFloat(computed(popup, "opacity")) === 1,
-      3000,
-    );
-
-    const own = popup.querySelector<HTMLElement>(":scope > .kui-scroll-area > .kui-scroll-viewport")!;
-    const theirs = own.querySelector<HTMLElement>(".kui-scroll-viewport")!;
-    expect(theirs, "the premise: the caller's scroller is INSIDE the system one").not.toBeNull();
-
-    // CALIBRATION on both: a scroller that cannot scroll makes every spelling pass.
-    own.scrollTop = 200;
-    theirs.scrollTop = 40;
-    expect(own.scrollTop, "the premise: the popup's own viewport scrolls").toBeGreaterThan(60);
-    expect(theirs.scrollTop, "the premise: the caller's scroller scrolls").toBeGreaterThan(20);
-    const kept = theirs.scrollTop;
-
-    const seized = catchDissolve(popup);
-    flushSync(() => setOpen(false));
-    const { fading, release } = await seized;
-    expect(popup.isConnected, "the premise: the exit is still running").toBe(true);
-    expect(fading, "the premise: the panel is visibly mid-dissolve").toBeLessThan(0.9);
-
-    flushSync(() => setOpen(true)); // the quick reopen
-    release();
-    await until(() => !popup.hasAttribute("data-ending-style"), 3000);
-    expect(popup.isConnected, "the premise: the panel is the one that was dissolving").toBe(true);
-
-    // The system viewport presents from the top — the menu's rule, family-wide.
-    expect(own.scrollTop, "the popup's own browsing scroll must reset").toBe(0);
-    // And the caller's scroller is not the runner's to touch.
-    expect(
-      theirs.scrollTop,
-      "the reset reached INTO the caller's content — the :scope guard is the fix",
-    ).toBe(kept);
-  });
-});
-
-
-/**
- * THE FLIGHT'S PADDING HOOK RESOLVES ON EVERY PANEL (§22, added 2026-08-23 from the audit).
- *
- * Nine declarations pin a panel's body against its own padding for the length of the entry
- * flight, and all nine read `--kui-floating-p` bare. That hook is the floating family's
- * padding OVERRIDE — menus and selects declare it, popovers and tooltips do not — so on the
- * two panels this branch added it resolved to nothing, the declarations were invalid at
- * computed-value time, and every inset fell to `auto`.
- *
- * The law reads the value the rules read NOW, on every panel at once, because the claim is that
- * one name serves them all. The MENU is the load-bearing member: it proves the switch cost
- * nothing where the hook was already live.
- *
- * TWO CORRECTIONS, 2026-08-29 (the ultracode audit). Its title and its docstring said "all three
- * panels" and "tooltip" and it mounted two — `.kui-tooltip-popup` appeared nowhere in the file —
- * which is a law claiming coverage it does not have, and the reason the real coverage was
- * assumed rather than looked for. The tooltip is now mounted, and it is the member that MATTERS
- * here: it is the one pane in the family whose two axes are priced differently, which is the
- * case the pair below exists for.
- *
- * And the NAME it reads was superseded on 2026-08-26: the nine flight pins read
- * `--kui-sf-p-block` / `--kui-sf-p-inline`, and surfaces.test.ts asserts that no flight rule
- * reads the one-value `--kui-sf-p` at all. So this law was reading a name the flight had stopped
- * using — true of the pane, and no longer a statement about the flight. It reads the PAIR now.
- */
-describe("the padding hook the entry flight reads is set on every floating panel (§22)", () => {
-  it("popover, tooltip and menu all resolve it — and the menu's value did not move", () => {
-    render(
-      <Theme>
-        <Popover defaultOpen>
-          <PopoverTrigger render={<Button>p</Button>} />
-          <PopoverContent>body</PopoverContent>
-        </Popover>
-        <Menu defaultOpen>
-          <MenuTrigger render={<Button>m</Button>} />
-          <MenuContent><MenuItem>Alpha</MenuItem></MenuContent>
-        </Menu>
-        <Tooltip defaultOpen>
-          <TooltipTrigger render={<Button>t</Button>} />
-          <TooltipContent>t</TooltipContent>
-        </Tooltip>
-      </Theme>,
-    );
-    settleAll();
-    for (const sel of [".kui-popover-popup", ".kui-menu-popup", ".kui-tooltip-popup"]) {
-      const pane = document.querySelector<HTMLElement>(sel);
-      if (!pane) throw new Error(`${sel} never mounted — the law would assert nothing`);
-      const body = pane.querySelector<HTMLElement>(".kui-floating-body");
-      if (!body) throw new Error(`${sel} has no floating body`);
-      // The BODY is what the flight rules land on, so the value has to reach it — the hook
-      // inherits, which is the mechanism, and reading it on the pane alone would not prove it.
-      // PER AXIS, because a pane may price its two differently and the tooltip does: reading one
-      // number is the one-axis-of-two failure this pair was minted to end.
-      for (const axis of ["--kui-sf-p-block", "--kui-sf-p-inline"] as const) {
-        expect(computed(body, axis), `${sel}: the body cannot see its pane's ${axis}`).not.toBe("");
-        expect(computed(body, axis), `${sel}: ${axis}`).toBe(computed(pane, axis));
-      }
-    }
-    // …and the tooltip's two axes really do DISAGREE, or the per-axis read above is a per-axis
-    // read of one number and this law is back to what it was.
-    const tip = document.querySelector<HTMLElement>(".kui-tooltip-popup")!;
-    expect(
-      computed(tip, "--kui-sf-p-block"),
-      "the tooltip pads its two axes alike — the pair has nothing to prove here",
-    ).not.toBe(computed(tip, "--kui-sf-p-inline"));
-    /* THE MENU RESOLVES THROUGH THE BAND SINCE 2026-09-07, and the override survives for the one
-       pane that needs it. The rows join reads `var(--kui-floating-p, var(--kui-panel-p))`, so a
-       menu — which declares no override — gets the band, and Command, which stamps its rows one
-       index under the pane's, is the pane that still supplies its own. Asserting the menu
-       DECLARES the hook would now be asserting the old behaviour. */
-    const menu = document.querySelector<HTMLElement>(".kui-menu-popup")!;
-    expect(computed(menu, "--kui-sf-p"), "the menu's padding is unset").not.toBe("");
-    expect(computed(menu, "--kui-sf-p"), "the menu left the panel band").toBe(
-      computed(menu, "--kui-panel-p"),
-    );
-    // And the popover genuinely has no `--kui-floating-p` — the condition that made the old
-    // spelling dead. Without this the law would pass on a package where every panel declared it.
-    const pop = document.querySelector<HTMLElement>(".kui-popover-popup")!;
-    expect(computed(pop, "--kui-floating-p"), "a popover now declares the override too").toBe("");
-    expect(computed(pop, "--kui-sf-p"), "and its own padding is unset").not.toBe("");
-  });
-
-  /**
-   * THE MISSING HALF LIVES IN A NODE LAW, and why is worth recording.
-   *
-   * A browser law here cannot distinguish the fix from the defect. `getComputedStyle` reports
-   * the USED value for an inset on a positioned element, never `auto` — the same trap a prior
-   * audit recorded when "drawn by both edges" passed against `translate` + `width`. With the
-   * hook unset the body falls to its static position, and its static position IS one padding
-   * from the pane's top, so the used value reads the same 16px under both spellings. Measured:
-   * reverting the nine declarations changed nothing this file could see, while sabotaging one
-   * to `99px` showed immediately — the instrument works, the property just cannot answer.
-   *
-   * So the declaration is asserted where a declaration can be read: `surfaces.test.ts`.
-   */
-});
-
-/**
- * TABBING OUT IS A DISMISSAL, AND A DISMISSAL DISSOLVES (§8, §22, §31 — 2026-08-29, the
- * ultracode audit).
- *
- * `PopoverStore.setOpen` stamps `data-instant="focus"` whenever the close reason is `focusOut`,
- * and the family's instant stand-down exempted only `click` and `dismiss` — so the ordinary
- * keyboard way to leave a non-modal panel computed `transition: none` on the ending frame and
- * the panel blinked out, while an outside press (no stamp) and Escape (`dismiss`, exempted
- * 2026-08-22) both dissolved over the family's clocks. The same input-class asymmetry the Escape
- * finding closed, on the gesture that finding did not reach.
- *
- * A CLOCK, not a duration: the law reads whether the exit has one at all. What that clock is
- * worth is the shared layer's to state and is asserted there; what may never happen is a keyboard
- * gesture silently getting a different exit from a pointer one.
- */
-describe("a popover dismissed by tabbing out dissolves (§8, §31)", () => {
-  it("the ending frame carries the family's clocks, not zero", async () => {
-    inMotion();
-    render(
-      <Theme>
-        <div style={{ padding: 200 }}>
-          <Popover defaultOpen>
-            <PopoverTrigger render={<Button>Open</Button>} />
-            <PopoverContent>
-              <PopoverTitle>Filters</PopoverTitle>
-              <Button>the last stop inside</Button>
-            </PopoverContent>
-          </Popover>
-          <button type="button">the next stop outside</button>
-        </div>
-      </Theme>,
-    );
-    if (!(await until(() => !!document.querySelector(".kui-popover-popup"))))
-      throw new Error("the popover never mounted");
-    const popup = document.querySelector<HTMLElement>(".kui-popover-popup")!;
-    // THE ENTRY IS WAITED OUT BY ITS OWN ATTRIBUTE, and both halves of that are instrument
-    // lessons this law learned the hard way. Not `settleAll()`, which lands a panel by writing
-    // `transition: none !important` INLINE on the popup and everything inside it — the exact
-    // thing this law is asking about, so the first spelling read zero on a correct package. And
-    // not "straight away" either: while the panel is still seeded, `[data-unfurling][data-seed]`
-    // declares `transition: none` deliberately (the pose is HELD; the flight's clocks are the
-    // base rule's and apply the frame the seed comes off), so an exit stamped during the entry
-    // reads zero too — which is what made the second spelling fail one run in two.
-    if (!(await until(() => !popup.hasAttribute("data-unfurling"))))
-      throw new Error("the entry never landed — an exit measured mid-flight reads the pose");
-    const inside = [...document.querySelectorAll<HTMLElement>(".kui-popover-popup button")].pop();
-    if (!inside) throw new Error("nothing focusable inside — there is no tab to take");
-
-    // ARMED BEFORE THE GESTURE, and read at the ENDING STAMP rather than after it. A CDP
-    // keystroke takes many frames to come back, and the whole dissolve — 135ms with the fix,
-    // one frame without it — is over by then: the first spelling of this law read a detached
-    // node and got `NaN`, which is the instrument failing rather than the subject. The observer
-    // fires the microtask the attribute lands, and `getComputedStyle` there forces the recalc,
-    // so what it reads is the ending rule's own clock. No wall clock is involved, which is what
-    // makes it CI-safe.
-    //
-    // `catchDissolve` is the wrong instrument here and the reason is worth keeping: it seizes
-    // running ANIMATIONS, and a transition does not exist until the style change is computed —
-    // one style flush after the microtask it arms in. It rejected on correct code.
-    const atTheStamp = new Promise<{ clock: number; instant: string | null }>((resolve) => {
-      const seen = () => {
-        if (!popup.hasAttribute("data-ending-style")) return false;
-        watch.disconnect();
-        resolve({
-          clock: Math.max(
-            ...getComputedStyle(popup)
-              .transitionDuration.split(",")
-              .map((d) => parseFloat(d)),
-          ),
-          instant: popup.getAttribute("data-instant"),
-        });
-        return true;
-      };
-      const watch = new MutationObserver(seen);
-      watch.observe(popup, { attributes: true });
-      seen();
-    });
-    inside.focus();
-    await userEvent.keyboard("{Tab}");
-    const exit = await atTheStamp;
-
-    // THE PREMISE: this is the stamped path. Without it the law passes on a Base UI that stopped
-    // stamping, or on a fixture where the tab never left the panel.
-    expect(exit.instant, "tabbing out no longer stamps a focus close").toBe("focus");
-    expect(
-      exit.clock,
-      "every clock is zero: a keyboard exit still blinks where a pointer's dissolves",
-    ).toBeGreaterThan(0);
-  });
-});
-
-/**
- * …AND A CONTROLLED POPOVER KEEPS ITS ENTRY AFTERWARDS (§22, §31 — 2026-08-29, the same audit).
- *
- * The third and worst consequence of the same stamp, and it is `dismiss`'s 2026-08-22 defect
- * arriving on a second value. `setOpen` is the only writer of `instantType`, and a CONTROLLED
- * `<Popover open>` syncs its state through `useControlledProp`, which never runs it — so the
- * stamp from one focus-out is still on the popup at the next state-driven open, and the runner
- * and the stylesheet both read it as instant. A filter panel toggled from a toolbar silently and
- * permanently stopped animating once the user had tabbed out of it, which from their side looks
- * like the component broke.
- *
- * The law drives the component the way the defect is reachable — state, not a press — because
- * every other popover law opens by pressing the trigger, and a press CLEARS the stamp. That is
- * why the defect was invisible to twenty-three green laws.
- */
-describe("a controlled popover still flies after a focus-out (§22, §31)", () => {
-  it("the second state-driven open is posed, like the first", async () => {
-    inMotion();
-    function Harness() {
-      const [open, setOpen] = React.useState(true);
-      return (
-        <Theme>
-          <div style={{ padding: 200 }}>
-            <button type="button" onClick={() => setOpen((o) => !o)}>
-              toggle
-            </button>
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger render={<Button>Open</Button>} />
-              <PopoverContent>
-                <PopoverTitle>Filters</PopoverTitle>
-                <Button>the last stop inside</Button>
-              </PopoverContent>
-            </Popover>
-            <button type="button">the next stop outside</button>
-          </div>
-        </Theme>
-      );
-    }
-    render(<Harness />);
-    if (!(await until(() => !!document.querySelector(".kui-popover-popup"))))
-      throw new Error("the popover never mounted");
-    settleAll();
-
-    // Leave it the way a keyboard does, which is what writes the stamp.
-    const inside = [...document.querySelectorAll<HTMLElement>(".kui-popover-popup button")].pop()!;
-    inside.focus();
-    await userEvent.keyboard("{Tab}");
-    if (!(await until(() => !document.querySelector(".kui-popover-popup"))))
-      throw new Error("tabbing out did not close it — the premise never happened");
-
-    // …and open it again from STATE. A press would clear `instantType` and the law would be
-    // about a case the defect never reached.
-    const toggle = document.querySelector<HTMLElement>("button")!;
-    toggle.click();
-    if (!(await until(() => !!document.querySelector(".kui-popover-popup"))))
-      throw new Error("state did not reopen it");
-    const again = document.querySelector<HTMLElement>(".kui-popover-popup")!;
-    expect(
-      again.hasAttribute("data-unfurling"),
-      "a stale focus stamp survived the close and the reopen never flew",
-    ).toBe(true);
   });
 });
 

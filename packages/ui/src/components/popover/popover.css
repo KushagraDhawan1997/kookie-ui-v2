@@ -1,6 +1,7 @@
 /* Popover (§31). The pane is a surface — its fill, edge, corner, dress, cast and material are
-   all the surface layer's, and its entry is the floating family's — so what is left for this
-   sheet is the three facts that are about a panel holding CONTENT the system did not design.
+   all the surface layer's — so what is left for this sheet is the facts that are about a panel
+   holding CONTENT the system did not design. It appears and leaves at once. Motion was removed
+   2026-09-20; docs/archive/motion-v1.md records it.
  *
  * It deliberately does NOT wear `kui-floating-rows`, which is what carries the concentric
  * corner (§6, §22): that arithmetic is a pane's corner derived from the corner of the rows
@@ -41,109 +42,7 @@
    one member of this family whose content is explicitly the CALLER'S, and `ScrollArea`'s own
    JSDoc tells them to state a height on it — so a descendant selector reached into a scroller
    they composed and capped it at the whole room the positioner reported, overruling the height
-   they had just been instructed to give it. The direct-child chain is the same reach the entry
-   runner's scroll reset already uses (`:scope > .kui-scroll-area > .kui-scroll-viewport`), and
-   for the same reason. */
+   they had just been instructed to give it. */
 .kui-popover-popup > .kui-scroll-area > .kui-scroll-viewport {
   max-block-size: calc(var(--available-height, 100vh) - 2 * var(--border-width));
-}
-
-/* THE ENTRY IS THE ALERT'S, at the floating family's origin (2026-08-31, Kushagra: the entry
-   should "feel like alert dialog's… in how it expands, in how content appears" — chosen over
-   the alert's recipe verbatim, which rises from below the panel's own footprint and forgets
-   the trigger, and over a fade alone).
-
-   §22's silhouette is honest where the panel IS the thing pressed, lifting: a menu is its
-   button's own list, a select straddles its field. A popover is a CARD that floats (§31) —
-   its content is the caller's and has no shape in common with the button that summoned it —
-   so a pill the width of the trigger swelling into a form read as the button inflating.
-   What the panel shares with its trigger is a POINT, and the alert's materialization is the
-   family's other grammar for exactly that: a circle, faint, becoming the box. So it takes
-   three things from the alert and keeps the floating family's origin.
-
-   THE SEED: the family's designed circle, `50%` rather than a length so it stays curvy as it
-   opens (the alert's own finding), sitting on the trigger's centre. The runner still measures
-   the trigger's box and offsets (`--kui-seed-w/h`, `--kui-from-x/y` — the seed's top-left
-   onto the trigger's top-left, read off the box THIS pose lays out); the hooks say how far
-   inside that box the circle sits, and the family's pose adds them. On a centred placement
-   the family's own arm lands the seed by its middle and the inline hook is not consulted.
-   NOT `corner-shape: round` (Kushagra's screenshot, "a second much more circular corner
-   radius border inside"): the glint's mask reads `corner-shape` off the element on the
-   premise that it never changes during a flight, and a seed that flips it got a circular
-   band built over a squircle box.
-
-   THE PAINT: a circle is not a body lifting, so it does not arrive opaque.
-
-   THE CLOCKS: the alert's, re-pointed token for token on this element — the box's fall,
-   spread and becoming, and the content's reveal, its delay and its print — so a popover and
-   an alert are ONE pace and one arrival, and a retune of the overlay's clocks reaches both.
-   The family's own clocks are speed-matched to a menu's drop; a popover covers a card's
-   distance and was arriving before its circle could be seen (measured: 175 × 153 at 90%
-   opacity by 60ms on an 80ms fade). The exit keeps the family's dissolve and settle, which
-   the alert shares anyway. Self-keyed, the family's second-member rule; one specificity step
-   over the base pose, which is also what makes it win regardless of sheet order. */
-/* SUPERSEDED 2026-09-14 (Kushagra: "Popover should animate like dialog, because it can be huge
-   and that animation doesnt work for that big a container"). A circle growing into a panel
-   half the window tall is the room moving. The entry is now DIALOG's — 3% in z on the poised
-   spring, presence as paint, the content coming into focus with the plane — carried by the
-   tooltip's mechanism: the landed box from the first frame, no travel, a scale about the
-   trigger-facing origin the family's table already answers. */
-.kui-surface.kui-floating.kui-popover-popup {
-  transition:
-    scale var(--dialog-settle) var(--motion-spring-poised),
-    opacity var(--dialog-reveal) ease-out,
-    box-shadow var(--dialog-reveal) ease-out;
-}
-.kui-surface.kui-floating.kui-popover-popup[data-ending-style] {
-  opacity: 0;
-  scale: 0.99;
-  transition:
-    scale var(--overlay-settle) var(--motion-spring-stiff),
-    opacity var(--overlay-dissolve) ease-in,
-    box-shadow var(--overlay-dissolve) ease-in;
-}
-.kui-surface.kui-floating.kui-popover-popup[role][data-unfurling][data-seed][data-side][data-align] {
-  inline-size: var(--kui-fly-w, auto);
-  block-size: var(--kui-fly-h, auto);
-  border-radius: var(--kui-fly-r, var(--kui-sf-radius));
-  translate: 0 0;
-  scale: var(--dialog-depth);
-  opacity: 0;
-}
-/* The centred pin drifts under a scale (tooltip.css states the arithmetic); a landed box needs
-   no pin. */
-.kui-surface.kui-floating.kui-popover-popup[role][data-unfurling][data-side][data-align] {
-  inset-block-start: 0;
-  inset-block-end: auto;
-  inset-inline-start: 0;
-  inset-inline-end: auto;
-  transform: none;
-}
-/* The content focuses with the plane and does nothing else: no print, no echo, no squish. */
-.kui-surface.kui-floating.kui-popover-popup .kui-floating-body {
-  transition: filter var(--dialog-settle) ease-out;
-}
-/* The family lifts the body out of flow for a flight (absolute, pinned, sunk) so its words
-   cannot re-break while the box grows. This box never grows, and on a panel taller than its
-   room the pin and the sink moved the content by most of the panel for the whole entry. The
-   body stays in flow. `[role]` is for rank over the family's (0,5,1) seed arm. */
-.kui-surface.kui-floating.kui-popover-popup[role][data-unfurling] .kui-floating-body {
-  position: static;
-  /* The family's centred arm holds the body by its middle with a half-body negative margin,
-     and a margin survives `position: static`. */
-  inset: auto;
-  margin: 0;
-  opacity: 1;
-  scale: none;
-  translate: none;
-}
-.kui-surface.kui-floating.kui-popover-popup[role][data-unfurling][data-seed] .kui-floating-body {
-  filter: blur(var(--print-blur));
-}
-@media (prefers-reduced-motion: reduce) {
-  .kui-surface.kui-floating.kui-popover-popup,
-  .kui-surface.kui-floating.kui-popover-popup[data-ending-style],
-  .kui-surface.kui-floating.kui-popover-popup .kui-floating-body {
-    transition: none;
-  }
 }

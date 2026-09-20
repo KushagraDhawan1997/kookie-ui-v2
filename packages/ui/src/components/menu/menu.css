@@ -30,9 +30,7 @@
 
      The clipping itself is the base surface rule's since 2026-08-20 — a pane holds what it
      contains — and this rule's own `overflow: hidden` is deleted rather than kept: `hidden`
-     is a scroll container, `clip` is not, and this panel wants the second one. It said the
-     right word in prose and the wrong one in CSS for three days, which cost nothing only
-     because the flight rule was overriding it for the frames where it would have shown. */
+     is a scroll container, `clip` is not, and this panel wants the second one. */
   /* The two BOUNDS and the outline moved to the shared layer 2026-09-12 (audit C10) — they were
      written out here, in select.css and in combobox.css byte-identically, and the sentence
      below about the third member promoting applies to them as much as to the floor. The
@@ -109,10 +107,9 @@
    nesting depth. Named rather than descendant-wide, because a Separator inside a call site's
    own Box is that Box's business.
 
-   The depth is stated through the BODY (2026-08-09, with motion): the panel's children hang
-   off `.kui-floating-body` now — the element that squishes while the box unfurls — so the
-   child combinator that meant "a row of this panel" has to name it or the rule stops
-   matching. Same anatomy, one element deeper. */
+   The depth is stated through the BODY: the panel's children hang off `.kui-floating-body`,
+   so the child combinator that means "a row of this panel" has to name it or the rule stops
+   matching. */
 .kui-floating-body > .kui-separator,
 .kui-floating-body > [role="group"] > .kui-separator {
   margin-block: var(--kui-panel-p);

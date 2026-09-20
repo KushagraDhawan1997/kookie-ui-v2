@@ -4,8 +4,9 @@
    Select's facts self-keyed — and since 2026-09-12 the ones that were genuinely one fact in three
    files are the SHARED LAYER's (audit C10): this is the third floating member hugging option rows
    with a width floor, which is the promotion menu.css had been asking for in writing. What is
-   this file's own: the chevron is a button, the panel's seed is a line rather than the field's
-   body, its height follows the list, and the empty message takes room only when it speaks. */
+   this file's own: the chevron is a button, and the empty message takes room only when it
+   speaks. The panel appears at once and its height changes at once as the list narrows. Motion
+   was removed 2026-09-20; docs/archive/motion-v1.md records it. */
 
 /* ── The chevron: Base UI's trigger rendered AS the trailing slot ─────────────────────────
    A `<button>` carries the platform's chrome, and the slot must look exactly like Select's
@@ -49,46 +50,7 @@
    width floor is the one to move it." This is the third. The popup wears `kui-floating-anchored`
    and `kui-floating-rows`, and surfaces.css states both facts once. No value differs.
 
-   What is left below is exactly what a combobox's panel has and the others do not.
-
-   THE HEIGHT FOLLOWS THE LIST, at rest as well as in flight (audit 2026-09-12, C9). A settled
-   panel's height is `auto`, and `auto` does not interpolate without this — so every filter change
-   snapped the box in one frame (measured 234 → 162 → 234 with nothing in between) while Command,
-   which this component takes its filtering from, animates the identical change. The flight's own
-   half is the runner's (`followsContent`); this is the same claim for the panel after it lands,
-   and the channel it rides is the family's own `block-size` transition, already declared.
-
-   It INHERITS, which is why it is scoped to this pane and not declared wider — §41's note, and
-   Command's. Where an engine does not have it the height snaps, which is exactly today. */
-.kui-surface.kui-combobox-popup {
-  interpolate-size: allow-keywords;
-}
-
-/* THE SEED IS A LINE AT THE FIELD'S BOTTOM EDGE, not the field's own body (audit 2026-09-12, C7).
-
-   §22's silhouette is the trigger's opaque box lifting, and it is honest wherever the panel LANDS
-   on the thing it came out of — a menu's button, a select's field, which the panel straddles. A
-   combobox's field is the one trigger you are still USING while its panel opens: the seed covered
-   it for 60-100ms of every open, so the caret and the letter just typed were behind a blank white
-   capsule (measured, `elementFromPoint` at the input's text midline returning the popup from
-   t=86 to t=140 while `input.value` became "L"). An opaque photograph of a box the user is typing
-   into is the one case the morph cannot be.
-
-   So the seed keeps the field's WIDTH and corner — the edge they share is real, and the panel
-   does hang from exactly that line — and gives up its height, starting as a zero-tall line at the
-   field's bottom edge and unfurling down. That is Command's zero-height seed (§44), which reached
-   the same answer from the other direction: its pane's top edge is already its bar's bottom edge,
-   so there is nothing to photograph.
-
-   `--kui-seed-h` is the runner's measurement of the trigger, so reading it as the offset IS "the
-   field's bottom edge" with no number stated anywhere. And the seed FADES, where the family's is
-   opaque from frame one: that rule's own reason is that it covers the trigger exactly, and a line
-   with no height covers nothing. (0,5,0) over the family's (0,4,0). */
-.kui-surface.kui-floating.kui-combobox-popup[data-unfurling][data-seed] {
-  block-size: 0;
-  --kui-seed-dy: var(--kui-seed-h, 0px);
-  opacity: 0;
-}
+   What is left below is exactly what a combobox's panel has and the others do not. */
 
 /* The list scrolls inside a ScrollArea viewport (Menu's arrangement): the popup's height bound
    restated for the element that actually scrolls, minus the popup's own border. `100vh` keeps

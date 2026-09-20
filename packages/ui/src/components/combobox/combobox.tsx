@@ -30,10 +30,7 @@
  * survivors through a collection.
  *
  * FOCUS STAYS IN THE FIELD while the panel is open — Base UI's combobox keeps the caret in the
- * input and moves only the highlight — which is the one thing that differs from Select for the
- * floating runner. The runner already copes: it poses from the anchor it measured (the field
- * wrapper), its page-scroll hold is armed only for a focus that moves into the panel, and a
- * combobox never moves it there.
+ * input and moves only the highlight.
  */
 import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
@@ -41,7 +38,7 @@ import { Combobox as BaseCombobox } from "@base-ui/react/combobox";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
 import {
-  ComboboxBody,
+  FloatingBody,
   FloatingDirectionContext,
   PortalScope,
   SIDE_OFFSET,
@@ -360,8 +357,7 @@ export function ComboboxInput({
   // scopes its slot, exactly as TextField does.
   const material = useMaterial(backdrop === undefined ? undefined : { backdrop });
   const lensRef = useLensRef<HTMLDivElement>(material, undefined);
-  // The wrapper is the one in-flow node a combobox owns — where ambient direction is read, and
-  // what the entry flies out of (§20, §22).
+  // The wrapper is the one in-flow node a combobox owns — where ambient direction is read (§20).
   const { measure } = React.use(FloatingDirectionContext);
   const setWrapper = useMergedRefs<HTMLDivElement>(measure, lensRef);
 
@@ -512,20 +508,12 @@ function ComboboxPopup({
           leaves nothing for an interposed viewport to break. `focusable={false}` for Menu's
           reason: a presentation wrapper that takes focus is a generic node inside a listbox. */}
       <ScrollArea focusable={false}>
-        {/* The anchored family's plan, not Select's: a combobox panel is placed against its
-            field and nothing inside it, so it is posed on the mount frame like a menu.
-
-            Its own body rather than the family's, for the one thing that IS this member's
-            (audit 2026-09-12, C3): the flight pins a measured height, and a combobox is the
-            first member whose content changes WHILE it flies — you open it by typing into it.
-            `ComboboxBody` is `FloatingBody` with `followsContent`, which re-aims that one
-            number at the list's real height. Everything else about the entry is the family's. */}
-        <ComboboxBody>
+        <FloatingBody>
           {/* A panel boundary resets the group question (Menu's 2026-08-26 audit sentence). */}
           <ComboboxInGroupContext.Provider value={false}>
             <GlassScope material={material}>{children}</GlassScope>
           </ComboboxInGroupContext.Provider>
-        </ComboboxBody>
+        </FloatingBody>
       </ScrollArea>
     </BaseCombobox.Popup>
   );

@@ -9,13 +9,12 @@
  * written as AGREEMENTS with a mounted sibling (a TextField, a Select, a Menu) rather than as
  * pinned numbers: a pinned number goes stale the day the family moves and then fails on correct
  * code, which is this repo's own recorded fixture defect (2026-08-23). What is Combobox's own —
- * the filter, the empty message, the value-keyed comparator, the zero-height seed, the panel that
- * follows its list while it flies — is read directly.
+ * the filter, the empty message, the value-keyed comparator — is read directly.
  *
  * It also carries the §20 AGREEMENT LAW every portalling component owes (ENGINEERING §2.1).
  */
 import * as React from "react";
-import { describe, expect, it, onTestFinished } from "vitest";
+import { describe, expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
 
 import {
@@ -45,14 +44,10 @@ import { Field, FieldLabel } from "../field/field.tsx";
 import { Text } from "../text/text.tsx";
 import { Theme, type ThemeProps } from "../../theme/theme.tsx";
 import {
-  render as mount,
-  renderSettled as render,
-  asksForStillness,
+  render,
   computed,
   colorOn,
-  inMotion,
   probeIn,
-  settleAll,
   tokenOn,
   until,
   SIZES,
@@ -83,7 +78,7 @@ function lastPopup(): HTMLElement {
   return popup;
 }
 
-/** An OPEN combobox under a themed root, landed. */
+/** An OPEN combobox under a themed root. */
 function openCombobox(
   theme: ThemeProps = {},
   opts: { size?: "1" | "2" | "3" | "4"; items?: readonly string[]; label?: string } = {},
@@ -109,11 +104,9 @@ function openCombobox(
     </Theme>,
   );
   const popup = lastPopup();
-  settleAll();
   return {
     host,
     popup,
-    field: host.querySelector<HTMLElement>(".kui-combobox-field")!,
     input: host.querySelector<HTMLInputElement>(".kui-field-input")!,
     items: () => [...popup.querySelectorAll<HTMLElement>(".kui-combobox-item")],
   };
@@ -160,7 +153,7 @@ describe("the agreement law: portalled ≡ in-flow (§20, §23)", () => {
     const identity = identities();
     let popupTwin: HTMLElement | null = null;
     let rowTwin: HTMLElement | null = null;
-    mount(
+    render(
       <Theme {...theme}>
         <div
           ref={(n: HTMLDivElement | null) => void (popupTwin = n)}
@@ -200,7 +193,7 @@ describe("the agreement law: portalled ≡ in-flow (§20, §23)", () => {
   });
 
   it("agrees under RTL — the wrapper carries dir, and the panel mirrors with the app (§20)", async () => {
-    mount(
+    render(
       <div dir="rtl">
         <Theme>
           <Combobox items={REGIONS} defaultOpen>
@@ -355,7 +348,7 @@ describe("the panel is the floating-rows family's (§22, §23)", () => {
     // the stylesheet while a component quietly re-points a token.
     const { popup } = openCombobox({}, { size: "3" });
     await settled();
-    mount(
+    render(
       <Theme>
         <Select defaultOpen size="3">
           <SelectTrigger placeholder="Pick one" />
@@ -365,7 +358,6 @@ describe("the panel is the floating-rows family's (§22, §23)", () => {
         </Select>
       </Theme>,
     );
-    settleAll();
     await settled();
     const select = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop()!;
     expect(popup.getAttribute("data-size"), "the panel stamps the index its rows answer").toBe("3");
@@ -392,14 +384,14 @@ describe("the panel is the floating-rows family's (§22, §23)", () => {
    *
    * A promotion's whole claim is that nothing moved, and the only way to say that is to read
    * the three panels against each other under one set of inputs. The floor is a `min()` over
-   * `--kui-anchor-w` and `--available-width`, so the inputs are written onto each panel and the
+   * `--anchor-width` and `--available-width`, so the inputs are written onto each panel and the
    * resolved `min-width` compared — which also exercises the CAP, the half that had no law at
    * all until Select's 2026-08-26 audit (in CSS a minimum beats a maximum, so a trigger wider
    * than the room used to win outright).
    */
   it("menu, select and combobox resolve ONE floor — and a submenu still takes none", async () => {
     const { popup: combobox } = openCombobox();
-    mount(
+    render(
       <Theme>
         <Select defaultOpen>
           <SelectTrigger placeholder="Pick one" />
@@ -420,7 +412,6 @@ describe("the panel is the floating-rows family's (§22, §23)", () => {
         </Menu>
       </Theme>,
     );
-    settleAll();
     await settled();
     const select = [...document.querySelectorAll<HTMLElement>(".kui-select-popup")].pop()!;
     const menus = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")];
@@ -429,7 +420,7 @@ describe("the panel is the floating-rows family's (§22, §23)", () => {
     if (!parent || !sub) throw new Error("the submenu never mounted — by anatomy, not by index");
 
     const floorOf = (el: HTMLElement, anchor: string, room: string) => {
-      el.style.setProperty("--kui-anchor-w", anchor);
+      el.style.setProperty("--anchor-width", anchor);
       el.style.setProperty("--available-width", room);
       return computed(el, "min-width");
     };
@@ -539,7 +530,6 @@ describe("the letters narrow the list and never become the value", () => {
         </Combobox>
       </Theme>,
     );
-    settleAll();
     const input = host.querySelector<HTMLInputElement>(".kui-field-input")!;
     input.focus();
     await userEvent.keyboard("zzz");
@@ -644,7 +634,6 @@ describe("the letters narrow the list and never become the value", () => {
           </Combobox>
         </Theme>,
       );
-      settleAll();
       await settled();
       const popup = lastPopup();
       const rows = [...popup.querySelectorAll<HTMLElement>(".kui-combobox-item")];
@@ -693,7 +682,6 @@ describe("the letters narrow the list and never become the value", () => {
         </Combobox>
       </Theme>,
     );
-    settleAll();
     const popup = lastPopup();
     const labels = () =>
       [...popup.querySelectorAll<HTMLElement>(".kui-combobox-label")].map((l) => l.textContent);
@@ -811,7 +799,6 @@ describe("what a screen reader is told", () => {
         </Field>
       </Theme>,
     );
-    settleAll();
     await settled();
     const input = host.querySelector<HTMLInputElement>(".kui-field-input")!;
     const list = lastPopup().querySelector<HTMLElement>(".kui-combobox-list")!;
@@ -843,7 +830,6 @@ describe("what a screen reader is told", () => {
         </Combobox>
       </Theme>,
     );
-    settleAll();
     await settled();
     const list = lastPopup().querySelector<HTMLElement>(".kui-combobox-list")!;
     expect(list.getAttribute("aria-label")).toBe("Matching regions");
@@ -867,7 +853,6 @@ describe("what a screen reader is told", () => {
         </Combobox>
       </Theme>,
     );
-    settleAll();
     await settled();
     const rows = [...lastPopup().querySelectorAll<HTMLElement>(".kui-combobox-item")];
     const chosen = rows.filter((r) => r.getAttribute("aria-selected") === "true");
@@ -1024,7 +1009,6 @@ describe("the root is the only home for the state and the form", () => {
         </Combobox>
       </Theme>,
     );
-    settleAll();
     await settled();
     const rows = [...lastPopup().querySelectorAll<HTMLElement>(".kui-combobox-item")];
     const selected = rows.filter((r) => r.getAttribute("aria-selected") === "true");
@@ -1034,241 +1018,5 @@ describe("the root is the only home for the state and the form", () => {
     const tick = selected[0]!.querySelector<HTMLElement>('[data-slot="leading"]')!;
     expect(computed(tick, "visibility"), "and the tick says so").toBe("visible");
     expect(host).toBeDefined();
-  });
-});
-
-/* ── The entry (§8, §22, §23) ─────────────────────────────────────────────────────────── */
-
-describe("the entry: a panel that hangs below the field you are typing into", () => {
-  /**
-   * THE SEED IS A LINE AT THE FIELD'S BOTTOM EDGE, not the field's own body (audit C7).
-   *
-   * §22's silhouette is the trigger's opaque box lifting, which is honest wherever the panel
-   * LANDS on the thing it came out of. A combobox's field is the one trigger you are still USING
-   * while its panel opens, so the family's seed covered it for 60-100ms of every open — measured,
-   * `elementFromPoint` at the input's text midline returning the popup while `input.value` became
-   * "L", a blank capsule over the caret and the letter just typed.
-   *
-   * READ OFF THE SHIPPED RULE ON A REAL PANEL, by stamping the two attributes the runner stamps,
-   * rather than by hunting the real first frame. The pose lasts about two frames and the repo has
-   * been bitten repeatedly by laws that raced it (a premise that is a window is seized or
-   * edge-anchored, never raced — 2026-08-20). Stamping is the seizure: the element, the cascade
-   * and the tokens are all real, and the only thing the instrument supplies is the moment.
-   *
-   * The MENU beside it is the negative control, and it is what makes this a law about Combobox:
-   * the family's seed is the trigger's own height, so a rule that leaked to the family would
-   * zero a menu's seed too and this would still pass on the combobox alone.
-   */
-  it("poses as a zero-height line, where the family poses as its trigger's box (C7)", async () => {
-    const { popup, field } = openCombobox();
-    mount(
-      <Theme>
-        <Menu defaultOpen>
-          <MenuTrigger render={<Button>Open</Button>} />
-          <MenuContent>
-            <MenuItem>Alpha</MenuItem>
-          </MenuContent>
-        </Menu>
-      </Theme>,
-    );
-    settleAll();
-    const menu = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop()!;
-
-    /** Pose a panel the way the runner does — its two stamps, plus the seed height the runner
-        measures off the trigger — and read what the shipped rule renders. */
-    const pose = (el: HTMLElement, seedHeight: string) => {
-      el.style.setProperty("--kui-seed-h", seedHeight);
-      el.setAttribute("data-unfurling", "");
-      el.setAttribute("data-seed", "");
-      const read = {
-        height: el.getBoundingClientRect().height,
-        opacity: computed(el, "opacity"),
-        dy: computed(el, "--kui-seed-dy").trim(),
-      };
-      el.removeAttribute("data-unfurling");
-      el.removeAttribute("data-seed");
-      el.style.removeProperty("--kui-seed-h");
-      return read;
-    };
-
-    /**
-     * READ AS A RESPONSE TO THE TRIGGER'S HEIGHT, not as a pinned number — which is both the
-     * sharper claim and the one that survives the box model. `block-size: 0` is a CONTENT
-     * height, so a posed panel still paints its own padding and border and measures ~26px
-     * rather than 0; this law's first spelling asserted 0 and failed on a correct package,
-     * which is a law reading one indirection to the side of the thing it is about.
-     *
-     * What the two families actually differ in is whether the seed's height IS the trigger's:
-     * the family's is `block-size: var(--kui-seed-h)`, so doubling the trigger doubles the seed,
-     * and a combobox's is the line, so nothing the trigger does can change it.
-     */
-    const short = pose(popup, "40px");
-    const tall = pose(popup, "200px");
-    expect(
-      tall.height,
-      `the panel's seed grew with the field (${short.height} → ${tall.height}) — it is photographing the box the caret is in`,
-    ).toBeCloseTo(short.height, 1);
-    // …and what is left is only the panel's own padding and border: no content height at all.
-    const chrome =
-      parseFloat(computed(popup, "padding-top")) +
-      parseFloat(computed(popup, "padding-bottom")) +
-      parseFloat(computed(popup, "border-top-width")) +
-      parseFloat(computed(popup, "border-bottom-width"));
-    expect(short.height, "the seed is a LINE — it holds nothing").toBeCloseTo(chrome, 1);
-    // It starts AT the field's bottom edge, and the offset is the runner's own measurement of
-    // the trigger rather than a number stated anywhere.
-    expect(short.dy).toBe("40px");
-    // …and it fades, where the family's seed is opaque from frame one — that rule's reason is
-    // that it covers the trigger exactly, and a line with no height covers nothing.
-    expect(parseFloat(short.opacity)).toBe(0);
-
-    // THE NEGATIVE CONTROL, and it is what makes this a law about Combobox: the family's seed
-    // IS the trigger's box, so a rule that leaked would zero a menu's seed too and everything
-    // above would still pass on the combobox alone.
-    const menuShort = pose(menu, "40px");
-    const menuTall = pose(menu, "200px");
-    expect(
-      menuTall.height - menuShort.height,
-      "the zero-height seed leaked to the family — a menu must still fly from its trigger's box",
-    ).toBeCloseTo(160, 0);
-    expect(field).toBeDefined();
-  });
-
-  /**
-   * THE PANEL FOLLOWS ITS LIST WHILE IT FLIES (audit C3).
-   *
-   * The flight animates to a MEASURED length, because CSS cannot interpolate to `auto` outside
-   * Chromium — correct for every member that existed, since a menu, a select, a popover and a
-   * dialog all hold whatever they were rendered with. A combobox is opened BY TYPING into it, so
-   * its list narrows under a box travelling toward a height that describes a list that is no
-   * longer there: measured at 130ms per key, typing "par" left one row inside an 86px box which
-   * then snapped 86 → 56 when the flight released, and backspacing left NINE rows inside a 146px
-   * box whose viewport reported `clientHeight === scrollHeight`, so the extra rows could not be
-   * reached at all until the entry ended.
-   *
-   * THE WINDOW IS MADE, NOT RACED. The claim is about a state that exists only while the panel
-   * is flying, and the flight's release is a `setTimeout` read off the computed transition list
-   * at departure — so the law lengthens the family's own clocks to six seconds before opening.
-   * That is an instrument rather than a bound: it changes WHEN the flight ends and nothing about
-   * the mechanism under test, and six seconds is past any stall this suite has ever recorded, so
-   * the law does not depend on the machine and does not need the `watchesFrames` exclusion. The
-   * tokens are restored by `onTestFinished`.
-   */
-  it("re-aims its measured height when the list narrows mid-flight (C3)", async () => {
-    const root = document.documentElement;
-    const CLOCKS = ["--floating-fall", "--floating-spread", "--floating-corner", "--floating-paint", "--floating-reveal"];
-    const held = CLOCKS.map((name) => root.style.getPropertyValue(name));
-    for (const name of CLOCKS) root.style.setProperty(name, "6s");
-    onTestFinished(() => {
-      CLOCKS.forEach((name, i) => {
-        if (held[i]) root.style.setProperty(name, held[i]!);
-        else root.style.removeProperty(name);
-      });
-    });
-
-    inMotion();
-    const host = mount(
-      <Theme>
-        <Combobox items={REGIONS} defaultOpen>
-          <ComboboxInput aria-label="Region" />
-          <ComboboxContent>
-            <ComboboxList>
-              {(item: string) => (
-                <ComboboxItem key={item} value={item}>
-                  {item}
-                </ComboboxItem>
-              )}
-            </ComboboxList>
-          </ComboboxContent>
-        </Combobox>
-      </Theme>,
-    );
-    const popup = lastPopup();
-    // Departed: the pose is off and the flight is running, which is the only window in which a
-    // flight var exists at all.
-    expect(
-      await until(() => popup.hasAttribute("data-unfurling") && !popup.hasAttribute("data-seed")),
-      "the entry never departed — there is no flight for the list to move under",
-    ).toBe(true);
-    const before = parseFloat(popup.style.getPropertyValue("--kui-fly-h"));
-    expect(before, "the flight published no measured height").toBeGreaterThan(0);
-
-    const input = host.querySelector<HTMLInputElement>(".kui-field-input")!;
-    input.focus();
-    await userEvent.keyboard("par");
-    await until(() => document.querySelectorAll(".kui-combobox-item").length === 1);
-    // THE PREMISE: the panel is still flying. Without it a released flight (which strips the
-    // var) would be reported as a failure of the mechanism rather than of the fixture.
-    expect(popup.hasAttribute("data-unfurling"), "the flight ended before the list moved").toBe(true);
-
-    const after = await until(() => {
-      const now = parseFloat(popup.style.getPropertyValue("--kui-fly-h"));
-      return Number.isFinite(now) && Math.abs(now - before) > 1;
-    });
-    const now = parseFloat(popup.style.getPropertyValue("--kui-fly-h"));
-    expect(
-      after,
-      `the flight is still aimed at ${before}px for a list that is now one row — the box lands on a height describing a list that is not there, then snaps when it releases (now ${now}px)`,
-    ).toBe(true);
-    expect(now, "a narrower list means a shorter panel").toBeLessThan(before);
-    // And the box really is following: the panel's own target is within a row of the content it
-    // now holds, rather than merely having moved.
-    const body = popup.querySelector<HTMLElement>(".kui-floating-body")!;
-    const pad = 2 * parseFloat(computed(popup, "padding-top"));
-    expect(Math.abs(now - (body.getBoundingClientRect().height + pad))).toBeLessThan(8);
-  });
-
-  it("a SETTLED panel animates the same change rather than snapping (C9)", () => {
-    // The flight's half is the runner's; this is the same claim for the panel after it lands,
-    // and it rides the family's own `block-size` transition, which is already declared. The
-    // channel is only reachable because the pane opts into `interpolate-size`, which INHERITS —
-    // hence scoped to this pane rather than declared wider.
-    const { popup } = openCombobox();
-    expect(computed(popup, "interpolate-size")).toBe("allow-keywords");
-    // The negative control: the family does not opt in, so this is Combobox's own fact and not
-    // something every floating pane happens to have.
-    mount(
-      <Theme>
-        <Menu defaultOpen>
-          <MenuTrigger render={<Button>Open</Button>} />
-          <MenuContent>
-            <MenuItem>Alpha</MenuItem>
-          </MenuContent>
-        </Menu>
-      </Theme>,
-    );
-    settleAll();
-    const menu = [...document.querySelectorAll<HTMLElement>(".kui-menu-popup")].pop()!;
-    expect(computed(menu, "interpolate-size")).not.toBe("allow-keywords");
-  });
-
-  it("under REDUCED MOTION the panel is simply there (§8)", async () => {
-    await asksForStillness();
-    inMotion();
-    mount(
-      <Theme>
-        <Combobox items={REGIONS} defaultOpen>
-          <ComboboxInput aria-label="Region" />
-          <ComboboxContent>
-            <ComboboxList>
-              {(item: string) => (
-                <ComboboxItem key={item} value={item}>
-                  {item}
-                </ComboboxItem>
-              )}
-            </ComboboxList>
-          </ComboboxContent>
-        </Combobox>
-      </Theme>,
-    );
-    const popup = lastPopup();
-    await settled();
-    // Suppression is TOTAL: the pose is not stamped and the measurement that only serves the
-    // animation is not taken either, so the guard owes "nothing moves, nothing is measured"
-    // rather than an inverse of every pose (the 2026-08-16 reshaping of this guarantee).
-    expect(popup.hasAttribute("data-seed"), "a posed panel under reduced motion").toBe(false);
-    expect(popup.hasAttribute("data-unfurling"), "a flying panel under reduced motion").toBe(false);
-    expect(popup.style.getPropertyValue("--kui-fly-h"), "a measurement taken for an animation that is not running").toBe("");
-    expect(popup.getBoundingClientRect().height, "and it is a real panel").toBeGreaterThan(20);
   });
 });

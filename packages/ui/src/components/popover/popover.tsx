@@ -14,7 +14,6 @@ import {
   SIDE_OFFSET,
   useAmbientDirection,
   useNameWarning,
-  useRestingAnchor,
 } from "../../system/floating.tsx";
 import { useLensRef } from "../../system/refraction.tsx";
 import {
@@ -79,16 +78,11 @@ export type PopoverProps = ComponentRefusals & {
 export function Popover({ size: sizeProp, children, ...props }: PopoverProps) {
   const size = useSize(sizeProp);
   // THE DIRECTION CONTEXT IS NOT OPTIONAL WIRING (§20, added 2026-08-26, ultracode audit).
-  // It carries two facts and this component provided NEITHER, so both took the context's
-  // default: `direction` — which `PortalScope` STAMPS on the portal wrapper unconditionally,
-  // so an `<html dir="rtl">` app opened a panel stamped `dir="ltr"`, the stale-stamp failure
-  // of 2026-08-09 reached by a third road — and `anchor`, which is the node the entry flight
-  // photographs for its seed, so a standalone popover grew out of the anchorless square
-  // instead of lifting off its trigger.
-  //
-  // Worse than either alone: an unprovided context RESOLVES TO THE NEAREST ENCLOSING ONE, so
-  // a popover inside a Dialog took the DIALOG's anchor and flew out of the dialog's trigger,
-  // which is somewhere else on the page entirely.
+  // This component once provided none, so it took the context's default: a `direction` that
+  // `PortalScope` STAMPS on the portal wrapper unconditionally, so an `<html dir="rtl">` app
+  // opened a panel stamped `dir="ltr"` — the stale-stamp failure of 2026-08-09 reached by a
+  // third road. And an unprovided context RESOLVES TO THE NEAREST ENCLOSING ONE, so a popover
+  // inside a Dialog read the dialog's context rather than its own.
   const dir = useAmbientDirection();
 
   return (
@@ -127,8 +121,8 @@ export type PopoverTriggerProps = ComponentRefusals & Omit<
  */
 export function PopoverTrigger({ render, nativeButton, ref, ...props }: PopoverTriggerProps) {
   // The trigger is the one node a popover owns that stands in ordinary flow, so it is where
-  // the ambient direction is read and the flight's seed is photographed (§20, §22 — Menu's
-  // own sentence). Both refs get the node: the caller's is not spent.
+  // the ambient direction is read (§20 — Menu's own sentence). Both refs get the node: the
+  // caller's is not spent.
   const { measure } = React.use(FloatingDirectionContext);
   // `nativeButton` INFERRED, not defaulted (added 2026-08-23, ultracode audit). Base UI
   // branches its whole a11y contract on it and defaults it to true, so this component shipped
@@ -197,24 +191,10 @@ export function PopoverContent({
   ref,
   ...props
 }: PopoverContentProps) {
-  /* The placement's anchor is the trigger's RESTING box (§8, §22 — Menu's 2026-08-25 fix,
-     applied here 2026-08-29 by the ultracode audit). A popover opens on a PRESS, and an open
-     trigger holds that press: `scale: 0.975` and a 2px sink, arriving over ~150ms of spring.
-     floating-ui's tracking watches resize and layout shift and never re-solves for a transform,
-     so the placement froze mid-spring and the release's one late re-solve popped the panel by
-     the difference, a frame after the entry had visibly finished — the same "theres a small
-     jump still" the menu fix was written for, and a `--available-height` cap solved against a
-     box 2.5% smaller than the trigger's real one.
-
-     TOOLTIP DELIBERATELY DOES NOT TAKE THIS, and the difference is the gesture: a tooltip's
-     trigger is HOVERED for the whole life of the panel, so its 1px rise is a static fact rather
-     than a spring in flight, and anchoring to the resting box would place the tooltip 1px off
-     the button a person is looking at. A press springs back; a hover does not. */
-  const anchor = useRestingAnchor();
   return (
     <BasePopover.Portal>
       <PortalScope>
-        <BasePopover.Positioner side={side} align={align} sideOffset={sideOffset} anchor={anchor}>
+        <BasePopover.Positioner side={side} align={align} sideOffset={sideOffset}>
           <PopoverPopup className={className} style={style} ref={ref} {...props}>
             {children}
           </PopoverPopup>

@@ -19,7 +19,6 @@ import {
 } from "../dialog/dialog.tsx";
 import { ScrollArea } from "../scroll-area/scroll-area.tsx";
 import { useLensRef } from "../../system/refraction.tsx";
-import { useStatedFlight } from "../../system/floating.tsx";
 import { GlassScope, useMaterial, themeDefaults } from "../../theme/theme.tsx";
 import { Text, type TypeSize } from "../text/text.tsx";
 import { useAppSize } from "../../system/size.ts";
@@ -175,10 +174,9 @@ export type CommandProps = ComponentRefusals & {
  * **It is a Dialog, and that is the whole architecture.** A palette covers the app, traps
  * focus, locks the page behind it and leaves on Escape — which is the definition of the
  * component this system already shipped, so `Command` composes `Dialog` rather than growing a
- * second overlay. The scrim, the focus trap, the scroll lock, the portal re-theming (§20), the
- * entry motion and the stacking frame all arrive by membership, and this component adds no
- * floating mechanism of its own. That is also why there is no `modal` prop: an open palette IS
- * the interaction.
+ * second overlay. The scrim, the focus trap, the scroll lock, the portal re-theming (§20) and
+ * the stacking frame all arrive by membership, and this component adds no floating mechanism
+ * of its own. That is also why there is no `modal` prop: an open palette IS the interaction.
  *
  * **The machine is the package's, the list is the app's** — Tree's sentence one component
  * over. What a palette owes and an app should never rewrite is the keyboard model: the roving
@@ -340,7 +338,7 @@ function QueryReset({ report }: { report: ((query: string) => void) | undefined 
  * results block, this is our stable element… this search block doesnt need a dialog container").
  *
  * It is still a `DialogContent`, because what a dialog carries that nothing else does is the
- * scrim, the focus trap, the scroll lock and the entry — and none of those are the pane. What it
+ * scrim, the focus trap and the scroll lock — and none of those are the pane. What it
  * no longer does is PAINT: `command.css` stands the surface identity down on this element and the
  * two children each become a pane in their own right, with real air between them.
  *
@@ -431,8 +429,8 @@ export type CommandInputProps = ComponentRefusals & Omit<
  *
  * NO FOCUS RING, and it is a refusal rather than an omission. §8's ring tells a focused control
  * from the unfocused ones around it, and there is exactly one focusable thing here: the palette
- * opens with the caret in this bar and nothing else in the panel takes focus. The scrim, the
- * flight and the caret are the announcement. Every palette worth copying draws none.
+ * opens with the caret in this bar and nothing else in the panel takes focus. The scrim and the
+ * caret are the announcement. Every palette worth copying draws none.
  */
 export function CommandInput({ leading, className, ...props }: CommandInputProps) {
   const size = React.use(CommandSizeContext);
@@ -522,18 +520,7 @@ export type CommandListProps<T> = ComponentRefusals & {
 export function CommandList<T>({ children, className }: CommandListProps<T>) {
   const size = React.use(CommandSizeContext);
   const seat = React.use(CommandSlotContext);
-  const paneRef = React.useRef<HTMLDivElement | null>(null);
-  const material = useMaterial({ backdrop: true });
-  const ref = useLensRef<HTMLDivElement>(material, paneRef);
-
-  /* IT TELLS THE LENS WHERE IT IS GOING (§10, §22 — 2026-09-05, Kushagra: "the big issue is that
-     after animation completes, the bg changes and gets thicker in a jump"). That jump is the
-     refraction arriving late: the lens mints a map on mount and on resize, and this pane's height
-     is what the entry animates, so without an announcement it minted one per frame — each built
-     for the previous frame's box, none of them right until after the flight. The mechanism is the
-     family's and it lives in `system/floating.tsx` beside the runner's own measurement, because
-     the flight measurement has one home. */
-  useStatedFlight(paneRef);
+  const { material, ref } = usePane();
   return (
     <div
       ref={ref}

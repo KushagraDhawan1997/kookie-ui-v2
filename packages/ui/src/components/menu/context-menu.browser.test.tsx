@@ -4,23 +4,12 @@
  * The component is deliberately three exports over the menu family's own parts, so most of
  * what it inherits is proven by AGREEMENT with a Menu rather than re-measured: the panel, the
  * rows, the glass, the portal contract. What is genuinely its own is where the panel comes
- * from — a point rather than a control — and that shows up in two places: the placement, and
- * the entry, which cannot be the family's silhouette because a region has no silhouette worth
- * flying out of.
+ * from — a point rather than a control — and that shows up in the placement.
  */
 import * as React from "react";
 import { describe, expect, it } from "vitest";
-import { cdp } from "vitest/browser";
 
-import {
-  APPEARANCES,
-  computed,
-  render as mount,
-  settle,
-  inMotion,
-  until,
-} from "../../test/browser.tsx";
-import { SIDE_OFFSET } from "../../system/floating.tsx";
+import { APPEARANCES, computed, render as mount, until } from "../../test/browser.tsx";
 import { Theme, type ThemeProps } from "../../theme/theme.tsx";
 import type { Size } from "../../system/axes.ts";
 import { Box } from "../box/box.tsx";
@@ -32,9 +21,6 @@ import {
   Menu,
   MenuContent,
   MenuItem,
-  MenuSub,
-  MenuSubContent,
-  MenuSubTrigger,
   MenuTrigger,
 } from "./menu.tsx";
 
@@ -53,22 +39,6 @@ const HOSTILE: ThemeProps = {
 };
 
 const AT = { x: 220, y: 180 };
-
-/** The box a panel comes to REST in — the flight poses the popup, so a rect read mid-unfurl is
-    the silhouette's and not the panel's (10px tall, measured, on this file's own first run). */
-async function restingBox(popup: HTMLElement): Promise<DOMRect> {
-  await until(() => !popup.hasAttribute("data-unfurling"), 2000);
-  settle(popup);
-  return popup.getBoundingClientRect();
-}
-
-/** A right-click the way a person makes one: through the browser's own hit-testing, so what is
-    pressed is whatever is really on top — which is the whole question once a panel is open. */
-async function realRightClick(x: number, y: number): Promise<void> {
-  const at = { x, y, button: "right" as const, clickCount: 1 };
-  await cdp().send("Input.dispatchMouseEvent", { type: "mousePressed", buttons: 2, ...at });
-  await cdp().send("Input.dispatchMouseEvent", { type: "mouseReleased", buttons: 0, ...at });
-}
 
 /** What the theme axes reach on the panel itself — fill, edge, corner, air, lift, direction. */
 function paneFacts(el: HTMLElement) {
@@ -117,14 +87,10 @@ function rightClick(el: Element, at = AT) {
     clientX: at.x,
     clientY: at.y,
     button: 2,
-    /* NO `detail`, AND THAT IS THE REALISTIC SPELLING (corrected by the audit 2026-09-02).
-       It shipped as `detail: 1` under a comment claiming a zero `detail` "opens a panel that
-       never animates" — false twice over. `data-instant="click"` has not zeroed a clock since
-       2026-08-19: `FLIES_ANYWAY` exempts it in the runner and surfaces.css excludes it in the
-       stylesheet, held in agreement by a law. And a REAL right-click's `contextmenu` carries
-       `detail: 0` (measured in the pinned Chromium: the mousedown is 1, the contextmenu is 0),
-       so `detail: 1` produced a state no person can produce and took the shipped one — the
-       `data-instant` stamp every real context panel wears — out of every law in this file. */
+    /* NO `detail`, AND THAT IS THE REALISTIC SPELLING (corrected by the audit 2026-09-02): a REAL
+       right-click's `contextmenu` carries `detail: 0` (measured in the pinned Chromium: the
+       mousedown is 1, the contextmenu is 0), so a `detail: 1` would produce a state no person can
+       produce. */
   });
   el.dispatchEvent(event);
   return event;
@@ -139,7 +105,7 @@ async function openContext(
   theme: ThemeProps = {},
   ui?: React.ReactNode,
   at = AT,
-  { settled = true, size }: { settled?: boolean; size?: Size } = {},
+  { size }: { size?: Size } = {},
 ) {
   const host = mount(
     <Theme {...theme}>
@@ -164,7 +130,6 @@ async function openContext(
   const popups = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
   const popup = popups[popups.length - 1];
   if (!popup) throw new Error("the panel never mounted — every law below would assert nothing");
-  if (settled) settle(popup);
   return {
     host,
     trigger,
@@ -260,7 +225,6 @@ describe("it is placed at the POINT, not against the region (§42)", () => {
     });
     const popups = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
     const moved = popups[popups.length - 1]!;
-    settle(moved);
     const second = moved.getBoundingClientRect();
     expect(Math.abs(second.left - first.left) + Math.abs(second.top - first.top)).toBeGreaterThan(
       100,
@@ -308,7 +272,6 @@ describe("it is the menu family's panel, not a second one", () => {
       await until(() => document.querySelectorAll(".kui-menu-popup").length > 0);
       const panels = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
       const other = panels[panels.length - 1]!;
-      settle(other);
       for (const prop of [
         "background-color",
         "border-radius",
@@ -420,271 +383,15 @@ describe("it is the menu family's panel, not a second one", () => {
        PortalScope fails it on the row's own box. "No rule paints the panel red" is a different
        claim and belongs to the sheet's own laws, not to this one. */
   });
-});
-
-describe("it flies from the POINT — the menu's own entry, with the right box (§42, §22)", () => {
-  it("the seed is a zero-size box at the cursor, not the region", async () => {
-    /* THE COMPONENT'S ONE REAL MOTION DECISION, and its first spelling got it wrong: I gave the
-       panel a pose of its own — the landed box breathing from 0.92 — on the argument that a
-       region has no silhouette worth flying out of. Half right. The region is the wrong box;
-       the answer is to give the flight the RIGHT one, not to take the flight away. A context
-       menu is a menu, so it unfurls out of what summoned it, and what summoned it is a point.
-
-       Read as what the runner WROTE. `--kui-seed-w/h` are the silhouette the panel grows from,
-       so a zero width and height ARE "this came out of a point" — where the region would put
-       600 and 400 there. Both, because a seed that were merely small would still be a box. */
-    const { popup } = await openContext({}, undefined, AT, { settled: false });
-    await until(() => popup.style.getPropertyValue("--kui-seed-w") !== "");
-    expect(popup.style.getPropertyValue("--kui-seed-w"), "a point has no width").toBe("0px");
-    expect(popup.style.getPropertyValue("--kui-seed-h"), "a point has no height").toBe("0px");
-    expect(popup.style.getPropertyValue("--kui-seed-r"), "and no corner").toBe("0px");
-    /* AND IT SITS ON THE CURSOR. This asserted the literal `0px` on both axes until the audit
-       2026-09-02 — true here only because an unshifted panel's corner IS the point, which made
-       it a law that would have FAILED on the correct value in every cell where the panel has to
-       move. Stated as the thing it always meant: the seed's resting place is the click. The
-       shifted cell is the law below. */
-    const fromX = Number.parseFloat(popup.style.getPropertyValue("--kui-from-x"));
-    const fromY = Number.parseFloat(popup.style.getPropertyValue("--kui-from-y"));
-    /* Read against the LANDED box, and the two moments are both facts: the offset is written
-       once, at the aim, and the box it is an offset FROM is where the panel comes to rest. A
-       rect taken mid-unfurl is the silhouette's — measured 10px tall — which is the instrument
-       error this law made on its first run. `SIDE_OFFSET` is the designed gap the family keeps
-       between a panel and what it came out of, so the seed sits that far off the pixel. */
-    const landed = await restingBox(popup);
-    expect(
-      Math.abs(landed.left + fromX - AT.x),
-      `seed at ${landed.left + fromX}, cursor at ${AT.x}`,
-    ).toBeLessThanOrEqual(SIDE_OFFSET);
-    expect(
-      Math.abs(landed.top + fromY - AT.y),
-      `seed at ${landed.top + fromY}, cursor at ${AT.y}`,
-    ).toBeLessThanOrEqual(SIDE_OFFSET);
-  });
-
-  it("and it lands ON the cursor when the panel has to shift up the window", async () => {
-    /* THE DEGENERATE-FIXTURE HALF, and it was hiding a real defect (audit 2026-09-02). Every
-       other law here opens at (220, 180) in a pinned 1280x800 window, where the panel fits
-       below the point and no shift can occur — the one place the general case and the special
-       case give the same answer, so `--kui-from-y: 0px` read as a guarantee while it was a
-       coincidence.
-
-       A context menu's positioner runs `shift({ crossAxis })` with `flip.mainAxis` DISABLED, so
-       a panel that would overflow the bottom slides UP while `data-side` stays `bottom` and
-       nothing in the placement attributes says it moved. Measured in the builder before the
-       fix: a click 408px down an 800px window put the panel's top at 301 — 107px above the
-       pointer — with the seed painted at the panel's own corner, so it grew out of a point a
-       third of its own height away from the cursor, at full opacity.
-
-       Read as the seed's own resting place: `top + from-y` must land on the click. The fixture
-       clicks low enough that a six-row panel cannot fit under it, which is what makes the two
-       spellings disagree — sabotage `summonedOriginY` back to a literal 0 and this fails by the
-       whole shift. */
-    const tall = (
-      <>
-        <MenuItem>Cut</MenuItem>
-        <MenuItem>Copy</MenuItem>
-        <MenuItem>Paste</MenuItem>
-        <MenuItem>Duplicate</MenuItem>
-        <MenuItem>Rename</MenuItem>
-        <MenuItem>Delete</MenuItem>
-      </>
-    );
-    const low = { x: 220, y: window.innerHeight - 60 };
-    const { popup } = await openContext({}, tall, low, { settled: false });
-    await until(() => popup.style.getPropertyValue("--kui-seed-w") !== "");
-    const fromY = Number.parseFloat(popup.style.getPropertyValue("--kui-from-y"));
-    const landed = await restingBox(popup);
-    // The fixture must actually produce the state it is about: a panel that fit under the
-    // cursor would make the assertion below true of the broken spelling too.
-    expect(low.y - landed.top, "the panel must really have been shifted up").toBeGreaterThan(40);
-    expect(
-      Math.abs(landed.top + fromY - low.y),
-      `panel top ${landed.top}, from-y ${fromY}, click ${low.y}`,
-    ).toBeLessThanOrEqual(SIDE_OFFSET);
-  });
-
-  it("and a Menu beside it still flies from its trigger", async () => {
-    /* The vacuity guard, and it is doing real work: the assertion above passes on a panel that
-       publishes no seed at all — which is exactly what the first design did, and what a broken
-       `anchorBox` would do again. An anchored menu in the same document must still photograph
-       the button it came out of. */
-    mount(
-      <Theme>
-        <Menu defaultOpen>
-          <MenuTrigger render={<Button>Open</Button>} />
-          <MenuContent>
-            <MenuItem>Cut</MenuItem>
-          </MenuContent>
-        </Menu>
-      </Theme>,
-    );
-    const panels = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
-    const anchored = panels[panels.length - 1]!;
-    await until(() => anchored.style.getPropertyValue("--kui-seed-w") !== "");
-    expect(
-      Number.parseFloat(anchored.style.getPropertyValue("--kui-seed-w")),
-      "a button-opened menu must fly from the button",
-    ).toBeGreaterThan(0);
-  });
 
   it("it invents no recipe of its own — the panel is the family's, unchanged", async () => {
-    /* THE POINT OF THE REWRITE, stated as a law so the invented pose cannot come back. A
-       context menu's panel must be spelled exactly as a submenu's: the family's classes, no
-       mark of its own, and therefore the family's entry with nothing self-keyed. `kui-menu-
-       anchored` is off for the same reason it is off on a submenu — the width floor means
-       "never narrower than the trigger you pressed", and a point has no width. */
+    /* A context menu's panel is spelled exactly as a submenu's: the family's classes and no mark
+       of its own. `kui-floating-anchored` is off for the same reason it is off on a submenu — the
+       width floor means "never narrower than the trigger you pressed", and a point has no width. */
     const { popup } = await openContext();
     expect([...popup.classList].sort()).toEqual(
       ["kui-surface", "kui-floating", "kui-floating-rows", "kui-menu-popup"].sort(),
     );
-    const rules = [...document.styleSheets]
-      .flatMap((sheet) => [...(sheet.cssRules ?? [])])
-      .map((r) => r.cssText)
-      .join("\n");
-    expect(rules, "no self-keyed pose may return").not.toContain("kui-menu-point");
-  });
-
-  it("its clocks are the family's own, because they ARE the family's", async () => {
-    /* Read on a landed panel against a landed Menu: same transition list, same easings. An
-       agreement rather than a measurement, which is what "copy paste menu" means when it is
-       true. Not settled, and waiting for the flight, because `settle()` writes
-       `transition: none !important` inline and the seed frame declares `transition: none`
-       deliberately — two instrument findings that each produce `none` on a correct package. */
-    const { popup } = await openContext({}, undefined, AT, { settled: false });
-    inMotion();
-    await until(() => !popup.hasAttribute("data-unfurling"));
-
-    mount(
-      <Theme>
-        <Menu defaultOpen>
-          <MenuTrigger render={<Button>Open</Button>} />
-          <MenuContent>
-            <MenuItem>Cut</MenuItem>
-          </MenuContent>
-        </Menu>
-      </Theme>,
-    );
-    const panels = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
-    const menu = panels[panels.length - 1]!;
-    inMotion();
-    await until(() => !menu.hasAttribute("data-unfurling"));
-    expect(computed(popup, "transition-property")).toBe(computed(menu, "transition-property"));
-    expect(computed(popup, "transition-duration")).toBe(computed(menu, "transition-duration"));
-    expect(computed(popup, "transition-timing-function")).toBe(
-      computed(menu, "transition-timing-function"),
-    );
-    // Calibration: the family really does declare clocks here, so the agreement above is not
-    // two panels agreeing on `none`.
-    expect(computed(menu, "transition-property")).not.toBe("none");
-  });
-});
-
-describe("what a summoned panel does NOT hand down, and what it re-does (audit 2026-09-02)", () => {
-  it("a submenu inside it still flies from its own row", async () => {
-    /* `seedSize` MEANS "THIS PANEL WAS SUMMONED", and it was read by every descendant flight.
-       `MenuSub` builds its context by spreading the parent's (`{ ...parentDir, anchor }`), so
-       the flag crossed into every submenu of a context menu and the runner posed it as
-       summoned: measured, the sub wrote `--kui-seed-h: 0px` and `--kui-seed-r: 0px` where the
-       identical markup under a plain Menu writes its trigger ROW's own 15px box and corner, and
-       `--kui-seed-dy` then translated that flat sliver half a seed ABOVE the row it was
-       supposed to come out of. §22 says the opposite in as many words: a side-opening panel
-       keeps the row's height and corner, because that shared edge is real.
-
-       Read as an AGREEMENT with the same submenu under a plain Menu, rather than against a
-       number: the sub-trigger row is the same row in both, so the two must photograph the same
-       box, and a number would go stale the day the row ladder moves. */
-    const sub = (
-      <>
-        <MenuItem>Cut</MenuItem>
-        <MenuSub>
-          <MenuSubTrigger>Move to</MenuSubTrigger>
-          <MenuSubContent>
-            <MenuItem>Drafts</MenuItem>
-          </MenuSubContent>
-        </MenuSub>
-      </>
-    );
-
-    const seedOf = async (root: HTMLElement) => {
-      const trigger = root.querySelector<HTMLElement>(".kui-menu-item[aria-haspopup]")!;
-      const before = document.querySelectorAll(".kui-menu-popup").length;
-      trigger.dispatchEvent(new PointerEvent("pointerenter", { bubbles: true }));
-      trigger.dispatchEvent(new PointerEvent("pointermove", { bubbles: true }));
-      trigger.click();
-      await until(() => document.querySelectorAll(".kui-menu-popup").length > before);
-      const panels = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
-      const child = panels[panels.length - 1]!;
-      await until(() => child.style.getPropertyValue("--kui-seed-h") !== "");
-      return {
-        height: child.style.getPropertyValue("--kui-seed-h"),
-        radius: child.style.getPropertyValue("--kui-seed-r"),
-        row: trigger.getBoundingClientRect(),
-      };
-    };
-
-    const ctx = await openContext({}, sub, AT, { settled: false });
-    const summoned = await seedOf(ctx.popup);
-
-    mount(
-      <Theme>
-        <Menu defaultOpen>
-          <MenuTrigger render={<Button>Open</Button>} />
-          <MenuContent>{sub}</MenuContent>
-        </Menu>
-      </Theme>,
-    );
-    const panels = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
-    const anchoredPanel = panels[panels.length - 1]!;
-    const anchoredSeed = await seedOf(anchoredPanel);
-
-    // The fixture's own premise: the two sub-trigger rows are the same box, so a disagreement
-    // below is about the seed and never about the row.
-    expect(summoned.row.height).toBeCloseTo(anchoredSeed.row.height, 0);
-    expect(summoned.height, "a submenu photographs its row, wherever it was summoned from").toBe(
-      anchoredSeed.height,
-    );
-    expect(summoned.radius, "and its row's corner").toBe(anchoredSeed.radius);
-    // Calibration: the row is a real box, so this is not two panels agreeing on zero.
-    expect(Number.parseFloat(anchoredSeed.height)).toBeGreaterThan(0);
-  });
-
-  it("a second right-click while it is open flies again, it does not teleport", async () => {
-    /* THE CATCH'S PREMISE DIES HERE (2026-08-20, re-argued 2026-09-02). A reopen that lands
-       mid-dissolve is CAUGHT rather than replayed, because the panel "is already on screen,
-       already at its natural box, already placed" — true of every member the branch was written
-       for, since a menu, a select and a popover all reopen on the same anchor. A summoned panel
-       is the family's first member whose second gesture carries a NEW place, so "already
-       placed" is false and the catch produced exactly what the 2026-08-20 reversal was made to
-       stop: measured with a real right-click, the same popup element moved 289px inline and
-       155px block between two frames, at full opacity, with no seed and no unfurl.
-
-       Read as the STAMPS, not the distance: the shipped "moves it there" law calls `settle()`
-       and asserts the settled box moved, which is identical for a flight and a teleport. What
-       tells them apart is whether the runner started a flight at all. */
-    const { popup } = await openContext();
-    inMotion();
-    await until(() => !popup.hasAttribute("data-unfurling"));
-    expect(popup.hasAttribute("data-unfurling"), "the first flight has landed").toBe(false);
-
-    let flew = false;
-    const watch = new MutationObserver((records) => {
-      for (const record of records) if (record.attributeName === "data-unfurling") flew = true;
-    });
-    watch.observe(document.body, {
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["data-unfurling"],
-    });
-    /* A REAL right-click, through CDP, and the gesture is the law's subject rather than its
-       convenience: a synthetic `contextmenu` dispatched straight at the region does not make
-       Base UI take the popup down and put it back, so `data-open` never leaves and the arrival
-       this law is about never happens. The real press does — measured stream, `data-open` null,
-       `data-ending-style` on, `data-open` back — which is the close-and-reopen the catch reads.
-       It also goes through hit-testing, so it is pressing whatever is really on top. */
-    await realRightClick(480, 320);
-    await until(() => flew, 600);
-    watch.disconnect();
-    expect(flew, "a fresh summon is an arrival, so it flies").toBe(true);
   });
 });
 

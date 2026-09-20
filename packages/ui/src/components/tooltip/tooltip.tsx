@@ -90,9 +90,8 @@ export function Tooltip({ children, ...props }: TooltipProps) {
   // Popover's sentence, one family member over, and the failure is identical. It carries the
   // direction `PortalScope` STAMPS on the wrapper (unprovided, a tooltip in an
   // `<html dir="rtl">` app opened stamped `dir="ltr"`, which OVERRIDES the direction the
-  // portal would otherwise have inherited) and the trigger the entry flight photographs for
-  // its seed. And an unprovided context resolves to the nearest ENCLOSING one, so a tooltip
-  // inside a Dialog flew out of the dialog's trigger.
+  // portal would otherwise have inherited). And an unprovided context resolves to the nearest
+  // ENCLOSING one, so a tooltip inside a Dialog read the dialog's context rather than its own.
   const dir = useAmbientDirection();
 
   return (
@@ -123,9 +122,7 @@ export type TooltipTriggerProps = ComponentRefusals & Omit<
  */
 export function TooltipTrigger({ ref, ...props }: TooltipTriggerProps) {
   // The one node a tooltip owns that stands in ordinary flow: the ambient direction is read
-  // here, and the entry's origin is measured off it (§20, §22 — Menu's sentence; since
-  // 2026-08-31 the chip lifts at its own size and only the trigger's POSITION is read, §32). Both refs
-  // get the node, so the caller's is not spent.
+  // here (§20 — Menu's sentence). Both refs get the node, so the caller's is not spent.
   const { measure } = React.use(FloatingDirectionContext);
   const setTrigger = useMergedRefs(ref, measure);
   return <BaseTooltip.Trigger {...props} ref={setTrigger} />;

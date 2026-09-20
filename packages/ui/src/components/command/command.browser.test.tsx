@@ -13,7 +13,7 @@ import * as React from "react";
 import { afterEach, describe, expect, it } from "vitest";
 import { page, userEvent } from "vitest/browser";
 
-import { APPEARANCES, asksForStillness, catchDissolve, computed, inMotion, render, settle, settleAll, tokenOn, until, within } from "../../test/browser.tsx";
+import { APPEARANCES, computed, render, tokenOn, until, within } from "../../test/browser.tsx";
 import { VIEWPORT } from "../../test/viewport.ts";
 import { Theme } from "../../theme/theme.tsx";
 import { Dialog, DialogContent, DialogTitle } from "../dialog/dialog.tsx";
@@ -70,7 +70,6 @@ function open(opts: { theme?: Record<string, unknown>; size?: "1" | "2" | "3" | 
   const popups = document.querySelectorAll<HTMLElement>(".kui-command");
   const popup = popups[popups.length - 1];
   if (!popup) throw new Error("the palette never mounted — every law below would assert nothing");
-  settleAll();
   const input = popup.querySelector<HTMLInputElement>(".kui-command-input");
   if (!input) throw new Error("the field never mounted");
   const field = popup.querySelector<HTMLElement>(".kui-command-search");
@@ -92,7 +91,7 @@ function open(opts: { theme?: Record<string, unknown>; size?: "1" | "2" | "3" | 
     A HASH href, and that is the harness rather than the subject: a real path navigates the test
     iframe out from under the run (measured — "Cannot connect to the iframe"). What these laws read
     is focusability and the ring, and an anchor is focusable by having an href at all. */
-function openLinks(opts: { settle?: boolean } = {}) {
+function openLinks() {
   render(
     <Theme>
       <Command items={FLAT} defaultOpen size="2">
@@ -109,35 +108,11 @@ function openLinks(opts: { settle?: boolean } = {}) {
       </Command>
     </Theme>,
   );
-  if (opts.settle !== false) settleAll();
   const popups = document.querySelectorAll<HTMLElement>(".kui-command");
   const popup = popups[popups.length - 1]!;
   const input = popup.querySelector<HTMLInputElement>(".kui-command-input");
   if (!input) throw new Error("the field never mounted");
   return { popup, input, rows: () => [...popup.querySelectorAll<HTMLElement>(".kui-command-item")] };
-}
-
-/** A palette that has NOT been settled: `settle()` writes `transition: none !important` on every
-    element in the popup, which is exactly what the motion laws below are about. */
-function unsettled() {
-  render(
-    <Theme>
-      <Command items={FLAT} defaultOpen size="2">
-        <CommandContent aria-label="Command palette">
-          <CommandInput aria-label="Search commands" />
-          <CommandList>
-            {(item: Cmd) => <CommandItem key={item.value} value={item}>{item.label}</CommandItem>}
-          </CommandList>
-          <CommandEmpty>No commands match.</CommandEmpty>
-        </CommandContent>
-      </Command>
-    </Theme>,
-  );
-  const popups = document.querySelectorAll<HTMLElement>(".kui-command");
-  const popup = popups[popups.length - 1]!;
-  const pane = popup.querySelector<HTMLElement>(".kui-command-panel");
-  if (!pane) throw new Error("the results pane never mounted");
-  return { popup, pane };
 }
 
 describe("a palette IS a Dialog, so every overlay guarantee arrives by membership (§44, §24)", () => {
@@ -175,7 +150,6 @@ describe("a palette IS a Dialog, so every overlay guarantee arrives by membershi
           </Menu>
         </Theme>,
       );
-      settleAll();
       const menus = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
       const menu = menus[menus.length - 1]!;
       const results = panel()!;
@@ -231,7 +205,6 @@ describe("a palette IS a Dialog, so every overlay guarantee arrives by membershi
         </Dialog>
       </Theme>,
     );
-    settleAll();
     const plains = document.querySelectorAll<HTMLElement>(".kui-dialog-popup:not(.kui-command)");
     const plain = plains[plains.length - 1]!;
     expect(parseFloat(computed(plain, "padding-left")), "a plain dialog pads").toBeGreaterThan(0);
@@ -274,7 +247,6 @@ describe("a palette IS a Dialog, so every overlay guarantee arrives by membershi
         </Dialog>
       </Theme>,
     );
-    settleAll();
     const plains = document.querySelectorAll<HTMLElement>(".kui-dialog-popup:not(.kui-command)");
     const plain = plains[plains.length - 1]!;
     const results = panel()!;
@@ -432,8 +404,8 @@ describe("the machine is the package's, the list is the app's (§44, §33)", () 
        to where a trap lands. It is worth its place for the same reason the §20 agreement laws
        are: the behaviour is borrowed, and borrowed is exactly what stops without telling you.
 
-       IT ARRIVES ON A LATER TICK. The first spelling read it straight after `settleAll()` and
-       found `<body>`, which looked like a defect and is not: a trap focuses in an effect. The
+       IT ARRIVES ON A LATER TICK. The first spelling read it straight after mounting and found
+       `<body>`, which looked like a defect and is not: a trap focuses in an effect. The
        wait is swallowed so the assertion below produces the failure message rather than a
        timeout that says nothing about what was focused instead. */
     const { input } = open();
@@ -465,33 +437,6 @@ describe("the machine is the package's, the list is the app's (§44, §33)", () 
       landed.classList.contains("kui-command-item"),
       `Tab walked into the list and landed on ${landed.tagName}.${landed.className}`,
     ).toBe(false);
-  });
-
-  it("running a row with ENTER does not ring it on the way out", async () => {
-    /* 2026-09-06, Kushagra: "Ring still appears briefly on return key press, is that correct?"
-       Measured across the exit's frames before anything moved — the row was `activeElement` and
-       drew a solid ring for every frame of the dissolve. Base UI commits the highlighted row by
-       clicking its element, a click on an anchor focuses it, and a keyboard activation makes it
-       `:focus-visible`; with ordinary rows nothing is focusable, so the fixture must use links.
-
-       READ ON A SEIZED EXIT, never sampled. `catchDissolve` pauses the exit's own clocks, so the
-       ending stamp is held on a mounted popup and the read is an EDGE rather than a race — which
-       is what keeps this law on CI. Both halves are asserted: focus really is on the row (without
-       it the law passes on a palette that simply moved focus away, which is a different repair),
-       and the row draws no ring while that is true. */
-    inMotion();
-    const { input, rows, popup } = openLinks({ settle: false });
-    input.focus();
-    await userEvent.keyboard("{Enter}");
-    const held = await catchDissolve(popup);
-    const row = rows()[0];
-    expect(row, "the popup unmounted before the exit could be caught").toBeTruthy();
-    expect(
-      document.activeElement,
-      "focus never reached the row, so this law is about a state the component no longer has",
-    ).toBe(row);
-    expect(computed(row!, "outline-style"), "the leaving row drew its focus ring").toBe("none");
-    held.release();
   });
 
   it("…and the arrow keys still move the highlight, which is the stop Tab gave up", async () => {
@@ -533,7 +478,6 @@ describe("the machine is the package's, the list is the app's (§44, §33)", () 
         </Command>
       </Theme>,
     );
-    settleAll();
     const popup = [...document.querySelectorAll<HTMLElement>(".kui-command")].pop()!;
     const input = popup.querySelector<HTMLInputElement>(".kui-command-input")!;
 
@@ -572,7 +516,6 @@ describe("the machine is the package's, the list is the app's (§44, §33)", () 
         </Command>
       </Theme>,
     );
-    settleAll();
     const popup = [...document.querySelectorAll<HTMLElement>(".kui-command")].pop()!;
     const row = popup.querySelector<HTMLElement>(".kui-command-item")!;
     expect(row.tagName, "the row is not the anchor").toBe("A");
@@ -647,7 +590,6 @@ describe("the machine is the package's, the list is the app's (§44, §33)", () 
         </Command>
       </Theme>,
     );
-    settleAll();
     const popup = [...document.querySelectorAll<HTMLElement>(".kui-command")].pop()!;
     const input = popup.querySelector<HTMLInputElement>(".kui-command-input")!;
     await userEvent.fill(input, "appearance");
@@ -703,7 +645,6 @@ describe("the machine is the package's, the list is the app's (§44, §33)", () 
       );
     }
     render(<Ranked />);
-    settleAll();
     const popup = [...document.querySelectorAll<HTMLElement>(".kui-command")].pop()!;
     const input = popup.querySelector<HTMLInputElement>(".kui-command-input")!;
     await userEvent.fill(input, "e");
@@ -773,7 +714,6 @@ describe("the machine is the package's, the list is the app's (§44, §33)", () 
         </Command>
       </Theme>,
     );
-    settleAll();
     const tallCol = [...document.querySelectorAll<HTMLElement>(".kui-command")].pop()!;
     const tall = tallCol.querySelector<HTMLElement>(".kui-command-panel")!;
     const tallBox = tall.getBoundingClientRect();
@@ -832,7 +772,6 @@ describe("the machine is the package's, the list is the app's (§44, §33)", () 
         </Command>
       </Theme>,
     );
-    settleAll();
     const popup = [...document.querySelectorAll<HTMLElement>(".kui-command")].pop()!;
     const field = within(popup, ".kui-command-search");
 
@@ -845,7 +784,6 @@ describe("the machine is the package's, the list is the app's (§44, §33)", () 
         </Box>
       </Theme>,
     );
-    settleAll();
     const twin = within(bar, ".kui-card");
     // The vacuity guard: a theme whose glass filtered nothing would make every clause true of a
     // bare field as well.
@@ -899,14 +837,12 @@ describe("the machine is the package's, the list is the app's (§44, §33)", () 
         </Command>
       </Theme>,
     );
-    settleAll();
     const popup = [...document.querySelectorAll<HTMLElement>(".kui-command")].pop()!;
     const viewport = within(popup, ".kui-scroll-viewport");
     const field = within(popup, ".kui-command-search");
 
     viewport.scrollTop = 120;
     await until(() => viewport.scrollTop > 0);
-    settleAll();
     // The vacuity guard: the list must really be scrolled, or no row could reach anything.
     expect(viewport.scrollTop).toBeGreaterThan(100);
 
@@ -988,7 +924,6 @@ describe("the machine is the package's, the list is the app's (§44, §33)", () 
         </Command>
       </Theme>,
     );
-    settleAll();
     const grouped = [...document.querySelectorAll<HTMLElement>(".kui-command")].pop()!;
     const captionPad = parseFloat(computed(within(grouped, ".kui-command-group-label"), "padding-top"));
 
@@ -1022,7 +957,6 @@ describe("the machine is the package's, the list is the app's (§44, §33)", () 
         </Command>
       </Theme>,
     );
-    settleAll();
     const popups = document.querySelectorAll<HTMLElement>(".kui-command");
     const popup = popups[popups.length - 1]!;
     const labels = () => [...popup.querySelectorAll(".kui-command-group-label")].map((l) => l.textContent);
@@ -1062,7 +996,6 @@ describe("a command is a row, and the field is not a field (§21, §44)", () => 
         </Menu>
       </Theme>,
     );
-    settleAll();
     const menuRows = document.querySelectorAll<HTMLElement>(".kui-menu-item");
     const menuRow = menuRows[menuRows.length - 1]!;
     expect(computed(row, "block-size")).toBe(computed(menuRow, "block-size"));
@@ -1072,7 +1005,6 @@ describe("a command is a row, and the field is not a field (§21, §44)", () => 
         <Button size={ROW_STEP["2"]}>Level</Button>
       </Theme>,
     );
-    settleAll();
     expect(computed(row, "block-size")).not.toBe(computed(within(bar, ".kui-button"), "block-size"));
   });
 
@@ -1149,7 +1081,6 @@ describe("a command is a row, and the field is not a field (§21, §44)", () => 
       </Theme>,
     );
     void squared;
-    settleAll();
     const none = [...document.querySelectorAll<HTMLElement>(".kui-command-search")].pop()!;
     expect(parseFloat(computed(none, "border-top-left-radius")), "the kill switch does not reach it").toBe(0);
   });
@@ -1266,7 +1197,6 @@ describe("size prices what four documents say it prices (audit 2026-09-02)", () 
           </Command>
         </Theme>,
       );
-      settleAll();
       const popup = [...document.querySelectorAll<HTMLElement>(".kui-command")].pop()!;
       const input = within(popup, ".kui-command-input");
       const slot = within(popup, ".kui-command-search-slot");
@@ -1324,7 +1254,6 @@ describe("size prices what four documents say it prices (audit 2026-09-02)", () 
             </Menu>
           </Theme>,
         );
-        settleAll();
         const all = document.querySelectorAll<HTMLElement>(".kui-menu-item");
         return all[all.length - 1]!;
       };
@@ -1366,7 +1295,6 @@ describe("size prices what four documents say it prices (audit 2026-09-02)", () 
           </Command>
         </Theme>,
       );
-      settleAll();
       const popup = [...document.querySelectorAll<HTMLElement>(".kui-command")].pop()!;
       const caption = popup.querySelector<HTMLElement>(".kui-command-group-label .kui-type")!;
       const row = popup.querySelector<HTMLElement>(".kui-command-item")!;
@@ -1394,7 +1322,6 @@ describe("the escapes and the dismissal are real (audit 2026-09-02)", () => {
         </Command>
       </Theme>,
     );
-    settleAll();
     const popup = [...document.querySelectorAll<HTMLElement>(".kui-command")].pop()!;
     // A QUERY FIRST. With an empty field there is nothing to match against, so every row shows
     // whatever the matcher says — which is correct, and which made the first spelling of this
@@ -1448,7 +1375,6 @@ describe("the agreement law: portalled ≡ in-flow (§20, §44)", () => {
         </Command>
       </Theme>,
     );
-    settleAll();
     const popup = [...document.querySelectorAll<HTMLElement>(".kui-command")].pop()!;
 
     /* THE TWIN TAKES ITS IDENTITY FROM THE PANEL IT COMPARES AGAINST — Menu's and Select's own
@@ -1628,7 +1554,6 @@ describe("running a row closes the palette (§44, 2026-09-05)", () => {
         {...(opts.refuseEscape ? { refuseEscape: true } : {})}
       />,
     );
-    settleAll();
     const rows = () => [...document.querySelectorAll<HTMLElement>(".kui-command-item")];
     if (rows().length !== PLACES.length)
       throw new Error("the palette never mounted its rows — every law below would assert nothing");
@@ -1763,7 +1688,6 @@ describe("the results pane nests its rows at every count (§6, §44, 2026-09-05)
         </Menu>
       </Theme>,
     );
-    settleAll();
     const menus = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
     const menu = menus[menus.length - 1]!;
     expect(computed(pane, "corner-shape")).toBe(computed(menu, "corner-shape"));
@@ -1799,7 +1723,6 @@ describe("the results pane nests its rows at every count (§6, §44, 2026-09-05)
           </Command>
         </Theme>,
       );
-      settleAll();
       const all = document.querySelectorAll<HTMLElement>(".kui-command");
       const pop = all[all.length - 1]!;
       const field = pop.querySelector<HTMLInputElement>(".kui-command-input")!;
@@ -1818,71 +1741,6 @@ describe("the results pane nests its rows at every count (§6, §44, 2026-09-05)
     }
   });
 
-});
-
-describe("the results pane opens out of the search bar (§8, §22, §44 — 2026-09-05)", () => {
-  /* Kushagra: "Can it also open like a menu? Or a popover, as far as motion goes, with the search
-     bar being the trigger?" It can, and the reason it is honest here is the reason Popover's seed
-     had to become a circle instead: §22's silhouette is only true where the panel lands ON the
-     thing it came out of, and this pane sits directly under the bar at the bar's own width. So
-     there is no spread to fly — the whole flight is the FALL.
-
-     Every law below is STATIC. The pose is read by stamping the attribute Base UI applies for one
-     frame and asking the cascade, and the clocks are read off the resting rule — no wall time, so
-     none of this belongs to the excluded set `frames.test.ts` keeps. */
-
-
-  it("the seed is the bar's own bottom edge: no rows tall, pulled up, transparent", () => {
-    const { popup, pane } = unsettled();
-    const landed = pane.getBoundingClientRect().height;
-    expect(landed, "a pane with no height makes every clause below vacuous").toBeGreaterThan(100);
-
-    popup.setAttribute("data-starting-style", "");
-    const seed = pane.getBoundingClientRect().height;
-    expect(seed, "the pane did not open out of anything — it was already its own size").toBeLessThan(
-      landed / 4,
-    );
-    expect(computed(pane, "opacity")).toBe("0");
-    // Pulled UP into the bar rather than sideways: the fall is the only axis, because the pane is
-    // already the bar's width and there is nothing to spread.
-    const [x, y] = computed(pane, "translate").split(" ");
-    expect(x).toBe("0px");
-    expect(parseFloat(y ?? "0"), "it does not come from under the bar").toBeLessThan(0);
-    popup.removeAttribute("data-starting-style");
-  });
-
-  it("and it flies on the FLOATING family's clocks, never a second set of numbers", () => {
-    inMotion();
-    /* The claim is membership, not a duration: this component invents no motion, it takes the
-       family's. Read as the agreement with the tokens rather than against literals, so a retuned
-       family moves this with it. */
-    const { pane } = unsettled();
-    const props = computed(pane, "transition-property").split(", ");
-    const times = computed(pane, "transition-duration").split(", ");
-    const clock = (name: string) => times[props.indexOf(name)];
-    /* Normalised to seconds, which is what `transition-duration` computes to — the token is
-       authored in milliseconds and comparing the two strings raw is how this law read `345s`. */
-    const secs = (v: string) => (v.trim().endsWith("ms") ? parseFloat(v) / 1000 : parseFloat(v));
-    const token = (name: string) => secs(computed(pane, name));
-
-    expect(props, "the height channel is what unfurls it").toContain("height");
-    expect(secs(clock("height") ?? "")).toBeCloseTo(token("--floating-fall"), 5);
-    expect(secs(clock("translate") ?? "")).toBeCloseTo(token("--floating-fall"), 5);
-    // Paint is signal and geometry is physics (§8's two clocks), so they may not share a number.
-    expect(secs(clock("opacity") ?? "")).toBeCloseTo(token("--floating-paint"), 5);
-    expect(clock("opacity")).not.toBe(clock("height"));
-  });
-
-  it("reduced motion: it is simply there", async () => {
-    inMotion();
-    await asksForStillness();
-    const { popup, pane } = unsettled();
-    popup.setAttribute("data-starting-style", "");
-    expect(computed(pane, "opacity"), "the seed survived a request for stillness").toBe("1");
-    expect(computed(pane, "translate")).toBe("none");
-    expect(computed(pane, "transition-duration")).toMatch(/^0s(, 0s)*$/);
-    popup.removeAttribute("data-starting-style");
-  });
 });
 
 describe("the empty state is what the results pane shows, not a pane beside it (§44, 2026-09-05)", () => {
@@ -1935,164 +1793,51 @@ describe("the empty state is what the results pane shows, not a pane beside it (
         </Command>
       </Theme>,
     );
-    settleAll();
     const popups = document.querySelectorAll<HTMLElement>(".kui-command");
     const bare = popups[popups.length - 1]!.querySelector<HTMLElement>(".kui-command-panel")!;
     expect(computed(bare, "display")).toBe("none");
   });
 
-  it("the message arrives out of a BLUR, and the list does the same coming back", async () => {
-    /* Kushagra: "add motion to how the list goes from wherever it is to empty state, preferably
-       blur fade in and out that we use." Read statically at both ends of the state change, which is
-       also the shape of the mechanism: neither element is ever inserted — the live region exists on
-       every frame and the list never leaves — so `@starting-style` fires on neither and what runs is
-       a transition declared on both sides of a selector change. Built the other way first and
-       measured: the message arrived at full opacity with `blur(0px)`. */
-    inMotion();
-    /* Unsettled on purpose: `settle()` writes `transition: none !important` on every element in the
-       popup, which is the declaration this law is about. */
-    const { popup } = unsettled();
-    const input = popup.querySelector<HTMLInputElement>(".kui-command-input")!;
+  it("the list stands down while the message speaks, and the message while the list has rows", async () => {
+    /* Only one of the two is ever shown. Neither element is ever inserted — the live region exists
+       on every frame and the list never leaves — so what switches is which selector matches, and
+       the switch is instant. Read at both ends of the state change. */
+    const { popup, input } = open({ size: "2" });
     input.focus();
     await userEvent.keyboard("zzzzzz");
     await until(() => popup.querySelectorAll(".kui-command-item").length === 0);
     const empty = popup.querySelector<HTMLElement>(".kui-command-empty")!;
     await until(() => computed(empty, "opacity") === "1");
-    expect(computed(empty, "filter")).toBe("blur(0px)");
-    expect(computed(empty, "transition-property")).toContain("filter");
+    expect(computed(empty, "opacity"), "the message is not shown when nothing matched").toBe("1");
 
     const list = popup.querySelector<HTMLElement>(".kui-command-list")!;
-    const blurred = computed(list, "filter");
-    expect(blurred, "the list is not stood down while the message speaks").not.toBe("blur(0px)");
-    expect(computed(list, "opacity")).toBe("0");
+    expect(computed(list, "opacity"), "the list is not stood down while the message speaks").toBe("0");
 
     // …and the other end of the same declaration, on a palette that still has rows.
-    const { popup: full } = unsettled();
+    const { popup: full } = open({ size: "2" });
     const shown = full.querySelector<HTMLElement>(".kui-command-list")!;
     expect(computed(shown, "opacity")).toBe("1");
-    expect(computed(shown, "filter")).toBe("blur(0px)");
     const hidden = full.querySelector<HTMLElement>(".kui-command-empty")!;
     expect(computed(hidden, "opacity")).toBe("0");
   });
 });
 
-describe("the pane tells the LENS where it is going (§10, §22 — 2026-09-05)", () => {
-  /* Kushagra: "the big issue is that after animation completes, the bg changes and gets thicker in
-     a jump." That jump is the refraction arriving late, and it is the 2026-08-22 audit's finding
-     reached from the other side: the lens mints a pane's displacement map on mount and on resize,
-     and a flight resizes a pane on every frame. Measured on this pane before the repair: no lens at
-     all for the first ~130ms and then four maps in a row, each built for the previous frame's box.
-     The family's answer is to publish the box the flight is HEADING TO and mark the flight, so the
-     map is built once, up front, for the box it will actually bend — and this pane speaks that
-     vocabulary even though it has no positioner and no runner. */
-
-  it("on open it publishes the box it is heading to, and marks itself in flight", () => {
-    const { pane } = unsettled();
-    expect(pane.hasAttribute("data-unfurling"), "the lens is left to chase a moving box").toBe(true);
-    const published = parseFloat(pane.style.getPropertyValue("--kui-fly-h"));
-    expect(published, "nothing was published, so the mark says only 'wait'").toBeGreaterThan(0);
-    expect(published).toBe(pane.offsetHeight);
-    expect(parseFloat(pane.style.getPropertyValue("--kui-fly-w"))).toBe(pane.offsetWidth);
-  });
-
-  /** Opened the way a person opens it — by pressing the trigger — which is the only arrangement
-      where the popup is already posed when this component's own effect runs. `defaultOpen` mounts
-      everything in one commit and React runs a child's layout effects before its parent's, so the
-      popup has not been stamped yet and the pane is standing at its full height with no scale on
-      it. Two sabotages survived a `defaultOpen` fixture and both were about exactly that gap. */
-  async function openedByPress() {
-    inMotion();
-    render(
-      <Theme>
-        <Command items={FLAT} size="2">
-          <CommandTrigger render={<Button>open</Button>} />
-          <CommandContent aria-label="Command palette">
-            <CommandInput aria-label="Search commands" />
-            <CommandList>
-              {(item: Cmd) => <CommandItem key={item.value} value={item}>{item.label}</CommandItem>}
-            </CommandList>
-            <CommandEmpty>No commands match.</CommandEmpty>
-          </CommandContent>
-        </Command>
-      </Theme>,
-    );
-    const trigger = [...document.querySelectorAll<HTMLElement>("button")].filter((b) => b.textContent === "open").at(-1)!;
-    trigger.click();
-    await until(() => !!document.querySelector(".kui-command-panel"));
-    const popups = document.querySelectorAll<HTMLElement>(".kui-command");
-    const popup = popups[popups.length - 1]!;
-    const pane = popup.querySelector<HTMLElement>(".kui-command-panel")!;
-    return { popup, pane };
-  }
-
-  it("it is the LAYOUT box, never the painted one", async () => {
-    /* A dialog's entry steps the whole popup 3% back in z, so a rect taken through it is the
-       scaled box: the first spelling published 303.61px for a pane that lands at 313, and the lens
-       re-minted once on arrival — the pop this mechanism exists to remove, made smaller. The
-       family's own width-floor defect (2026-08-22) is this mistake one component over. */
-    const { popup, pane } = await openedByPress();
-    const published = parseFloat(pane.style.getPropertyValue("--kui-fly-h"));
-    expect(published, "nothing was published, so this law is the first one again").toBeGreaterThan(0);
-    /* Read against where it LANDS, which is the only box the published one is a claim about — the
-       pane's own height while it is still flying is neither. LANDED BY `settle`, never by waiting
-       out the mark: `data-unfurling` comes off on `transitionend` OR on a guard timer 200ms past
-       the fall, and the guard is there precisely for the mounts where nothing flew, so its firing
-       says nothing about the height having arrived. On a starved runner it fires first and the
-       law read a mid-flight box — 174 against a landing of 196 (CI 2026-09-10), and 26 under
-       `KUI_STALL=20`, which is a seed. The claim is not about the flight's path anyway: what it
-       compares is a LAYOUT height against a layout height, which is what catches the defect it
-       was written for, since `getBoundingClientRect()` would carry the popup's 3% scale and
-       `offsetHeight` does not. */
-    settle(popup);
-    const landed = pane.offsetHeight;
-    expect(landed, "it never opened, so the comparison below is two seeds").toBeGreaterThan(100);
-    expect(published, "the box was measured through the popup's own 3% pose").toBe(landed);
-  });
-
-  it("and the mark comes off, or the lens would never measure again", async () => {
-    /* Left on, `flying()` is true forever and the pane keeps its arrival map for the rest of its
-       life — which is wrong the moment it holds the message instead of the list, a different box.
-       There is a clock behind this and it is a guard rather than the mechanism: an ordinary open
-       lands on the height's own `transitionend`. */
-    /* ONE SABOTAGE SURVIVES THIS FILE AND IS RECORDED RATHER THAN PAPERED OVER: deleting the
-       `transition: none` the effect writes around its own measurement leaves every law here green.
-       That defect is real and was measured in a real browser — lifting the height starts a
-       transition on the channel this effect watches and restoring it cancels one, so
-       `transitioncancel` landed the flight before it began and the mark never survived a single
-       frame. A mount cannot reproduce it: the harness commits the palette in one pass and React
-       runs a child's layout effects before its parent's, so the popup is not posed yet and the
-       pane's height does not change when it is lifted — no transition starts, so none can be
-       cancelled. The falsification that does belong here is the one below. */
-    const { pane } = await openedByPress();
-    expect(pane.hasAttribute("data-unfurling"), "it never marked the flight at all").toBe(true);
-    expect(await until(() => !pane.hasAttribute("data-unfurling")), "it never landed").toBe(true);
-    expect(pane.style.getPropertyValue("--kui-fly-h"), "the box outlived the flight").toBe("");
-  });
-});
-
 describe("nothing above a pane may carry a FILTER (§10, §24 — 2026-09-05)", () => {
   it("because a filter is a backdrop root, and the glass under one samples nothing", () => {
-    /* The second half of "the bg gets thicker in a jump", and the half that was actually visible.
-       §24 blurs `.kui-dialog-body` on the way in so the print comes into focus with the plane — a
-       channel chosen because it presumes nothing about content the system does not own. It presumes
-       one thing after all: that the content is not GLASS. A `filter` makes an element a backdrop
-       root, so every `backdrop-filter` beneath it stops sampling the page. Measured frame by frame:
-       for the whole entry the two panes drew their blur, saturation and lens on an empty backdrop,
-       and the instant the body's filter reached `none` the page appeared behind them.
-
-       Until 2026-09-05 the palette had ONE pane and it was the popup, so the body's filter sat
-       inside the glass rather than over it and this could not happen. Read as a walk from the pane
-       to the popup rather than as one selector, because what is wrong is any filter anywhere on
-       that chain — the rule is about the chain, not about the element that happened to break it. */
-    const { popup, pane } = unsettled();
+    /* A `filter` makes an element a backdrop root, so every `backdrop-filter` beneath it stops
+       sampling the page: a filter anywhere between the two panes and the popup would leave their
+       blur, saturation and lens drawing on an empty backdrop. The palette has two panes under the
+       dialog's body, so the body and the popup are that chain. Read as a walk from the pane to the
+       popup rather than as one selector, because what is wrong is any filter anywhere on that
+       chain — the rule is about the chain, not about the element that happened to break it. */
+    const { popup, panel } = open({ size: "2" });
+    const pane = panel()!;
     // A glass palette, or there is no backdrop to lose and the law is about nothing.
     render(<Theme material="regular" />);
-    popup.setAttribute("data-starting-style", "");
     const filters: string[] = [];
     for (let el: HTMLElement | null = pane; el && el !== popup.parentElement; el = el.parentElement) {
       if (el !== pane) filters.push(computed(el, "filter"));
     }
-    popup.removeAttribute("data-starting-style");
     expect(filters.length, "the walk found no ancestors, so it asserted nothing").toBeGreaterThan(1);
     expect(filters, "a filter over the palette's panes empties the backdrop their glass samples").toEqual(
       filters.map(() => "none"),
@@ -2113,7 +1858,6 @@ describe("nothing above a pane may carry a FILTER (§10, §24 — 2026-09-05)", 
         </Command>
       </Theme>,
     );
-    settleAll();
     const popups = document.querySelectorAll<HTMLElement>(".kui-command");
     const popup = popups[popups.length - 1]!;
     for (const sel of [".kui-command-search", ".kui-command-panel"]) {

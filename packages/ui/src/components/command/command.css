@@ -13,7 +13,7 @@
  * So the popup stops being a pane and becomes a COLUMN: a floating field, an interval, and a pane
  * of results under it. The field is anchored to the top at every width and nothing a result count
  * does can reach it. What the popup still is, and the only reason it is still a `DialogContent`,
- * is the scrim, the focus trap, the scroll lock and the entry.
+ * is the scrim, the focus trap and the scroll lock.
  *
  * WHAT THIS COST, STATED RATHER THAN QUIETLY DROPPED: rows no longer scroll BEHIND the field
  * (2026-09-04, the same person's earlier call). Two panes with real air between them cannot have
@@ -72,11 +72,10 @@
 }
 
 /* THE COLUMN IS THE DIALOG'S BODY, not the popup (2026-09-05, found by dumping the tree rather
-   than by reading the JSX). `DialogContent` wraps its children in `.kui-dialog-body` — the
-   wrapper §24 mints to hold the entry's blur, and the one element between the popup and
-   everything a caller writes — so a flex column declared on the popup has exactly ONE item and
-   the gap lands nowhere. Measured: the field's bottom and the results pane's top were the same
-   pixel, on a popup whose computed `gap` read 8px. */
+   than by reading the JSX). `DialogContent` wraps its children in `.kui-dialog-body` — the one
+   element between the popup and everything a caller writes — so a flex column declared on the
+   popup has exactly ONE item and the gap lands nowhere. Measured: the field's bottom and the
+   results pane's top were the same pixel, on a popup whose computed `gap` read 8px. */
 .kui-command > .kui-dialog-body {
   /* AND IT DOES NOT BLEED. The surface layer gives a pane's only child a negative margin so it
      can reach the walls, keyed on the pane's own inset hook — and `--kui-sf-p` INHERITS by
@@ -91,12 +90,8 @@
      is what the 2026-08-21 shell round already said about this pair. */
   margin: 0;
   padding: 0;
-  /* A BLOCK, not a flex column, and that is a motion decision (2026-09-05). Two blocks stacked is
-     what block layout is, so flex was buying only `gap` — and it was costing the results pane its
-     height channel: `interpolate-size` does not reach a FLEX ITEM. Measured in isolation, a block
-     child interpolates 0 → auto (69.3px at 35% of its clock) and a flex item in a column snaps
-     straight to 200. So the interval is stated as the pane's own top margin instead, which is the
-     same distance and leaves the pane an ordinary block whose height can move.
+  /* A BLOCK, not a flex column: two blocks stacked is what block layout is, so the interval is
+     stated as the second pane's own top margin (below) rather than as a `gap`.
 
      The SURFACE rhythm, not the list's: what it separates is two objects in a column, which is the
      same question a card standing beside a card asks. */
@@ -247,8 +242,8 @@
   /* THE RING IS REFUSED, and it is stated on the resting rule rather than on a `:focus` arm
      (§8). Two reasons, and the second is why the spelling matters. A palette opens with the
      caret in this bar and nothing else in the panel takes focus, so there is no other control
-     to tell it apart from — the scrim, the flight and the caret are the announcement, and every
-     palette worth copying draws none. And a `:focus { outline: none }` would be a rule that
+     to tell it apart from — the scrim and the caret are the announcement, and every palette
+     worth copying draws none. And a `:focus { outline: none }` would be a rule that
      RINGS with something other than the designed value, which the ring law reads literally and
      is right to; what is true here is stronger than "not while focused": this element never
      draws an outline at all. The UA's own default is what is being removed. */
@@ -416,168 +411,16 @@
   padding: 0;
 }
 
-/* ── The arrivals (§8, §22, §44 — 2026-09-05) ──────────────────────────────────────────────
-   THE RESULTS PANE OPENS OUT OF THE SEARCH BAR, and the bar is the trigger (Kushagra: "Can it also
-   open like a menu? Or a popover, as far as motion goes, with the search bar being the trigger?").
-
-   The palette is a Dialog, so the COLUMN keeps §24's entry whole: the scrim pushing the app back is
-   the arrival and the box only steps forward in z. What that recipe has nothing to say about is the
-   relationship between the two blocks inside it, and the relationship is a menu's — the pane sits
-   directly under the bar, at the bar's own width, held at its top edge. §22's silhouette is honest
-   exactly where a panel lands ON the thing it came out of, which is the case here in a way it was
-   not for Popover (whose seed became a circle because the panel shared no shape with its trigger).
-   The pane already IS the bar's width, so there is no spread to fly: the whole flight is the FALL,
-   which is the axis the family says the eye reads as the direction of travel anyway.
-
-   NO RUNNER AND NO MEASUREMENT. The family's runner exists to photograph a trigger whose box is
-   only known at runtime; here the seed is the bar's bottom edge, which is where this pane's top edge
-   already is, so the flight is a pure state change on Base UI's own stamps — Tooltip's 2026-08-31
-   precedent, which self-keys a pose over the family's clocks rather than asking for a second
-   mechanism.
-
-   `interpolate-size` is what makes the height expressible, and it is the same reach §41 made for the
-   Button's travelling label: a pane's height is `auto` and `auto` does not interpolate without it.
-   Where an engine does not have it the height snaps and everything else still runs, so this is
-   additive and the fallback is exactly today's behaviour. It buys the LIST-TO-MESSAGE change below
-   in the same channel, which a `grid-template-rows` unfurl could not: that value does not change
-   when the content does, so the track re-resolves and the box snaps. Built that way first and
-   measured — 304.5px of pane at a track reading 0.32fr, because the system makes a pane holding a
-   scroller a flex column at (0,3,0) and a tie settled by file order is not a rule either.
-
-   It is scoped to this pane and the scoping matters twice, which is §41's own note: the property
-   INHERITS, so declaring it wider changes how `auto` behaves for everything inside. */
-.kui-surface.kui-command-panel {
-  interpolate-size: allow-keywords;
-  height: auto;
-  transition:
-    /* the pane FALLS out of the bar and opens under it */
-    height var(--floating-fall) var(--motion-spring-elastic),
-    translate var(--floating-fall) var(--motion-spring-elastic),
-    /* the corner sits between the flight and the paint, as it does in the family */
-    border-radius var(--floating-corner) var(--motion-spring-elastic),
-    /* paint is signal, not physics: it eases, it does not spring (§8's two clocks) */
-    opacity var(--floating-paint) ease-out;
-}
-
-/* The seed. Zero tall, pulled up under the bar, transparent — the pane's own top edge, which is
-   already the bar's bottom edge, so there is nothing to place and nothing to measure. */
-.kui-dialog-popup.kui-command[data-starting-style] .kui-surface.kui-command-panel {
-  height: 0;
-  translate: 0 calc(-1 * var(--floating-echo));
-  opacity: 0;
-}
-
-/* Leaving is never the entry reversed (§8): it does not fold back into the bar, it settles and
-   dissolves with the column it stands in. */
-.kui-dialog-popup.kui-command[data-ending-style] .kui-surface.kui-command-panel {
-  opacity: 0;
-  transition: opacity var(--floating-dissolve) ease-in;
-}
-
-/* AND NOTHING RINGS ON THE WAY OUT (§8 — 2026-09-06, Kushagra: "Ring still appears briefly on
-   return key press, is that correct?" It is not).
-
-   Measured across the exit's frames: the moment Enter runs a row, `document.activeElement` is that
-   row and it draws the ring for every frame of the dissolve, because a keyboard activation makes a
-   focusable element `:focus-visible` and a row rendered as an `<a href>` is focusable by nature —
-   which is also why this is invisible with ordinary rows and why it predates the tab-stop repair
-   rather than being caused by it. Base UI commits the highlighted row by clicking its element, and
-   a click on an anchor is what puts focus there.
-
-   THE RING IS RIGHT AND THE MOMENT IS WRONG, so this stands it down by the moment. §8's ring says
-   *keyboard focus is here*; on a panel that is leaving, focus being anywhere is bookkeeping rather
-   than a state anybody needs told. It is scoped to the ending stamp for exactly that reason — a row
-   that really is focused in a standing palette still rings, and the pane still pads for the reach,
-   which is what the clearance law reads. Neither an `outline: none` on the row (it deletes a state
-   that is sometimes real, and the clearance law fails on it) nor a blur at the click (JS fighting
-   the browser for focus mid-activation, on the one gesture that is also a navigation).
-
-   AND IT IS NOT KEYED ON `:focus-visible`, which the first spelling was and a shipped law refused:
-   a rule naming that pseudo-class must ring with the designed tokens, so writing `outline: none`
-   inside one is a focus rule that rings with something else. The bar's own refusal was pushed to
-   its resting rule by the same law and for the same reason. What is true here is not "not while
-   focused" — it is that nothing in a leaving palette draws an outline at all, which is a claim
-   about the EXIT and belongs on a rule about the exit. */
-.kui-dialog-popup.kui-command[data-ending-style] .kui-command-item {
-  outline: none;
-}
-
-/* NO BLUR OVER THE PANES, AND THAT IS WHAT THE "JUMP" WAS (§10, §24 — 2026-09-05, Kushagra:
-   "after animation completes, the bg changes and gets thicker in a jump", twice).
-
-   §24 blurs `.kui-dialog-body` on the way in so the print comes into focus with the plane — the one
-   channel that presumes nothing about content the system does not own. It presumes one thing after
-   all: that the content is not GLASS. A `filter` makes an element a BACKDROP ROOT, so every
-   `backdrop-filter` beneath it stops sampling the page and samples the root instead — which is
-   nothing. Measured frame by frame: for the whole entry the two panes' blur, saturation and lens
-   drew on an empty backdrop, and the instant the body's filter reached `none` the real page
-   appeared behind them. The glass switching ON at the end of the arrival is exactly "gets thicker
-   in a jump", and it is not a timing problem — the lens was already correct by then.
-
-   Until 2026-09-05 the palette had one pane and it WAS the popup, so the body's filter sat inside
-   the glass rather than over it and the conflict could not arise. The two-block shape puts the
-   panes under the body, so the recipe has to stand down here.
-
-   Nothing is lost that this component had a use for: a dialog blurs its body because its arrival is
-   pure depth and it owns no content of its own, and this palette's blocks arrive on their own
-   clocks — the bar with the column, the pane falling out of it. A blur over both is a second
-   arrival on top of the ones already designed. */
-.kui-command > .kui-dialog-body,
-.kui-dialog-popup.kui-command[data-starting-style] > .kui-dialog-body {
-  filter: none;
-}
-
-/* ── The list becomes the message, and back (§8, §41 — 2026-09-05) ─────────────────────────
-   Kushagra: "add motion to how the list goes from wherever it is to empty state, preferably blur
-   fade in and out that we use."
-
-   The arriving content fades in OUT OF a blur and the leaving one fades out into one — the Button
-   done state's swap (§41), on the mark clock, and deliberately not the floating family's print,
-   which is licensed by MASS and there is none here.
-
-   IT IS KEYED ON THE PANE'S OWN STATE, not on `@starting-style`, and that is the whole mechanism.
-   Neither element is ever inserted: `Autocomplete.Empty` is a live region that exists on every
-   frame and only gains children when nothing matched, and the list is always in the pane. So
-   nothing is "starting" — what changes is which selector matches, and a transition declared on both
-   sides of that change is what runs. Built the other way first and measured: `@starting-style` fired
-   on neither, the message arriving at full opacity with `blur(0px)`.
-
-   The pane's HEIGHT is not animated with them, and that is a refusal rather than an omission. A
-   content-driven height change is `auto` to `auto` — no computed value moves, so no transition can
-   fire — and the only way to animate it is to measure and write a length on every keystroke, which
-   is JS at interaction time (§8's standing rule) in the one component where the keystroke IS the
-   interaction. `interpolate-size` buys the arrival, where the value really does go from `0`, and
-   cannot buy this. */
+/* ── The list or the message, one at a time (§44) ─────────────────────────────────────────
+   Whichever of the two is not speaking stands at opacity 0: the message while the list has rows,
+   the list while nothing matched. The switch is instant. Motion was removed 2026-09-20;
+   docs/archive/motion-v1.md records it. */
 .kui-command-empty,
 .kui-command-panel:not(:has(.kui-command-item)) .kui-command-list {
   opacity: 0;
-  filter: blur(var(--done-blur));
 }
 
 .kui-command-empty:not(:empty),
 .kui-command-panel:has(.kui-command-item) .kui-command-list {
   opacity: 1;
-  filter: blur(0);
-}
-
-.kui-command-empty,
-.kui-command-list {
-  transition:
-    opacity var(--motion-mark) ease-out,
-    filter var(--motion-mark) ease-out;
-}
-
-/* Suppression is total (§8). The pane is simply there, and the message is simply the message. */
-@media (prefers-reduced-motion: reduce) {
-  .kui-surface.kui-command-panel,
-  .kui-dialog-popup.kui-command[data-ending-style] .kui-surface.kui-command-panel,
-  .kui-command-empty,
-  .kui-command-list {
-    transition: none;
-  }
-  .kui-dialog-popup.kui-command[data-starting-style] .kui-surface.kui-command-panel {
-    block-size: auto;
-    translate: none;
-    opacity: 1;
-  }
 }
