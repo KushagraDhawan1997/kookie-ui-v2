@@ -48,7 +48,6 @@ import {
   Code,
   CodeBlock,
   type Size,
-  Stack,
   Surface,
   Toolbar,
   ToolbarGroup,
@@ -405,24 +404,23 @@ A TOOLBAR, NOT A `Flex`. The row was stating the alignment, the split and the ai
 
   return (
     <Surface size={size} className="kd-figure">
+      {/* THE NAME RIDES THE CHROME ROW. Under it, the label sat a chrome's height below the
+          figure's top wall, with a band of nothing between the wall and the word naming the
+          code. The row already reaches that wall and already holds a control at its end, so the
+          label takes the start the row was leaving empty: one row, the name at one end and the
+          copy at the other, and the code directly under the thing that names it. */}
       <Box className="kd-figure-chrome">
         <Toolbar size="3">
-          <span />
+          {/* THE ATOM HUGS ITS WORD, so it is not stretched by the row it sits in. */}
+          <Box>
+            <Code size={size}>{name}</Code>
+          </Box>
           <ToolbarGroup backdrop>
             <CopyButton code={copyText} size="3" iconOnly />
           </ToolbarGroup>
         </Toolbar>
       </Box>
-      {/* Close to what it names (§15): the label and its code are one group, so the interval
-          is the tight one rather than the step that separates parts of a figure. */}
-      <Stack gap="3">
-        {/* THE ATOM HUGS ITS WORD. A `Stack` is a flex column, so it stretches what it holds —
-            and an atom with a fill stretched to the pane's width is a band, not a label. */}
-        <Box>
-          <Code size={size}>{name}</Code>
-        </Box>
-        {well}
-      </Stack>
+      {well}
     </Surface>
   );
 }

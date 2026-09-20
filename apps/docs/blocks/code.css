@@ -185,7 +185,8 @@
    a floating control over content that passes behind it. */
 .kd-figure-chrome {
   padding: var(--kd-chrome-p);
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline: 0;
+  /* In flow above the paper (iteration, 2026-09-20): reaches the ground's top and side walls,
+     keeps its own padding as the gap to the card below. */
+  margin-block-start: calc(-1 * var(--kui-sf-p));
+  margin-inline: calc(-1 * var(--kui-sf-p));
 }
