@@ -20,8 +20,8 @@ import {
   SIZES,
   colorOn,
   computed,
+  holdPress,
   mounted,
-  settle,
   until,
   within,
   MARKER,
@@ -34,15 +34,11 @@ import { Stack } from "../stack/stack.tsx";
 import { Row } from "./row.tsx";
 
 /**
- * A menu, open and SETTLED, with its first row extracted — the family member this one is
- * measured against.
+ * A menu, open, with its first row extracted — the family member this one is measured against.
  *
- * Two instrument facts, both learned the hard way in the menu suite and both re-learned here
- * on the first run. Mounts accumulate within one test, so "the popup" is the LAST one, not the
- * first — reading the first made four of these laws compare a row against a row from a
- * previous mount. And a panel FLIES: the entry poses it at the trigger's silhouette and grows
- * it, so a box read on the mount frame is a box mid-flight, which is why size 3 first measured
- * 89px against the row's real 34.
+ * One instrument fact, learned the hard way in the menu suite and re-learned here on the first
+ * run: mounts accumulate within one test, so "the popup" is the LAST one, not the first —
+ * reading the first made four of these laws compare a row against a row from a previous mount.
  */
 function menuRow(size: (typeof SIZES)[number] = "2"): HTMLElement {
   mounted(
@@ -58,7 +54,6 @@ function menuRow(size: (typeof SIZES)[number] = "2"): HTMLElement {
   const popups = document.querySelectorAll<HTMLElement>(".kui-menu-popup");
   const popup = popups[popups.length - 1];
   if (!popup) throw new Error("the popup never mounted — the law below would assert nothing");
-  settle(popup);
   const row = popup.querySelector<HTMLElement>(".kui-menu-item");
   if (!row) throw new Error("no menu row mounted");
   return row;
@@ -675,5 +670,60 @@ describe("the shared row rules, audited 2026-08-26 (§10, §21)", () => {
 
     expect(liveLit, "the calibration: a live row must still answer the pointer").not.toBe(liveRest);
     expect(deadLit, "a dead row answered the pointer").toBe(deadRest);
+  });
+});
+
+/**
+ * A PRESS IS THE LAST WORD ON A ROW'S FILL (§8, §21, ultracode audit 2026-09-01).
+ *
+ * RE-HOMED 2026-09-20 from `system/motion.browser.test.tsx`, which was deleted with the motion
+ * system. These two laws were never about motion — the press they read is a settled state and
+ * the value they read is its paint — so they move to the family whose fill they measure. The
+ * third subject of the same finding, the Toggle's own half-step, is in
+ * `toggle.browser.test.tsx`; the three fail independently, which is why there are three.
+ *
+ * Three rules that light a control were each written to beat the shared hover at (0,3,0), and
+ * `:not()` takes the specificity of its most specific ARGUMENT rather than summing its list — so
+ * all three landed at (0,4,0) and beat the shared PRESS as well. Measured before the fix: a plain
+ * `<Row>` went rest -> hover -> press all `oklab(0 0 0 / 0.03575)` with `:active` true, and an
+ * unpressed `<Toggle>` held under a real pointer painted its hover fill while the quiet Button
+ * beside it moved `0.055` -> `0.078` — so the one press a toggle exists for was the only press in
+ * the control family with no colour. Nobody who wrote those guards was reasoning about the press.
+ *
+ * IT IS A MEASUREMENT, NOT ARITHMETIC. The repair is a specificity one and could have been
+ * asserted by reading selectors, which is the indirection this repo keeps being caught by: a
+ * selector that is present still has to WIN. So each subject is held down with a real pointer and
+ * its PAINTED fill has to leave the lit value. `recipes.test.ts`'s "the press rule outranks every
+ * lit rule" pins the spelling and names these as the measurement behind it.
+ */
+describe("a press outranks every rule that lights a row (audit 2026-09-01)", () => {
+  const litThenPressed = async (el: HTMLElement, lit: () => Promise<void>) => {
+    const rest = computed(el, "background-color");
+    await lit();
+    const litFill = computed(el, "background-color");
+    const release = await holdPress(el);
+    const pressed = computed(el, "background-color");
+    await release();
+    await userEvent.unhover(el);
+    return { rest, litFill, pressed };
+  };
+
+  it("a row's pointer light: pressing a lit row paints something else", async () => {
+    const el = mounted(<Row>Item</Row>, { theme: {} });
+    const seen = await litThenPressed(el, () => userEvent.hover(el));
+    expect(seen.litFill, "a Row lights under the pointer").not.toBe(seen.rest);
+    expect(seen.pressed, "a held row paints its own press, not its hover").not.toBe(seen.litFill);
+  });
+
+  it("a highlighted row: the press wins over the highlight, on touch too", async () => {
+    // `data-highlighted` is stamped, not hovered, and its rule sits OUTSIDE the hover guard —
+    // which is why this arm's failure was the one that reached a finger.
+    const el = mounted(<Row highlighted>Item</Row>, { theme: {} });
+    const litFill = computed(el, "background-color");
+    const release = await holdPress(el);
+    const pressed = computed(el, "background-color");
+    await release();
+    await userEvent.unhover(el);
+    expect(pressed, "a held highlighted row paints its press, not its highlight").not.toBe(litFill);
   });
 });

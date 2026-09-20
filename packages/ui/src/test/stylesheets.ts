@@ -34,19 +34,24 @@ export const stripped = (css: string): string => css.replace(/\/\*[\s\S]*?\*\//g
 export const sheet = (path: string): string => stripped(raw(path));
 
 /** The generated sheets, exempt from the hand-authored walks: they are where palette
-    references and literals legitimately bottom out. */
-export const GENERATED = ["tokens.css", "layout.css"];
+    references and literals legitimately bottom out. Named by src-relative PATH and never by
+    basename — 2026-09-20: the exclusion matched `entry.name`, so any sheet ANYWHERE under
+    `src/` called `layout.css` or `tokens.css` was invisible to every law that walks. Measured:
+    a `components/button/layout.css` holding `transition`, `animation` and a `@keyframes` block
+    passed the whole node project, 678/678; renamed to `sabotage.css`, byte-identical, three
+    laws fail and name it. The hole reached ~30 laws, not just the stillness one — the
+    tokens-only law, the `:is()` ban and the shadow-name law all read this walk. */
+export const GENERATED = ["tokens/tokens.css", "system/layout.css"];
 
 /** Every file under `dir` (src-relative) with `ext`, walked — never listed. The walk is what
-    lets a law claim "all of them" and stay true tomorrow (audit D14). */
+    lets a law claim "all of them" and stay true tomorrow (audit D14). `exclude` holds
+    src-relative PATHS, matched against what the walk returns. */
 export function walkFiles(dir: string, ext: string, exclude: string[] = []): string[] {
-  return readdirSync(join(src, dir), { withFileTypes: true }).flatMap((entry) =>
-    entry.isDirectory()
-      ? walkFiles(join(dir, entry.name), ext, exclude)
-      : entry.name.endsWith(ext) && !exclude.includes(entry.name)
-        ? [join(dir, entry.name)]
-        : [],
-  );
+  return readdirSync(join(src, dir), { withFileTypes: true }).flatMap((entry) => {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) return walkFiles(path, ext, exclude);
+    return entry.name.endsWith(ext) && !exclude.includes(path) ? [path] : [];
+  });
 }
 
 /** Every hand-authored stylesheet the package ships. `dir` narrows the walk (e.g. "components"). */

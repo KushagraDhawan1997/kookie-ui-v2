@@ -79,21 +79,17 @@ export default defineConfig({
           ],
         },
         /**
-         * THE TWO FACTS A BROWSER LAW CANNOT ASK FOR ITSELF (2026-08-20).
+         * NO COMPILED-IN CLOCK FACTS (2026-09-20).
          *
-         * Browser mode runs the laws in a real page: there is no `process`, and Vite's
-         * `import.meta.env` carries only its own five keys (measured). So the two facts that
-         * decide whether this machine's clock can be trusted have to be compiled IN.
-         *
-         * `__KUI_CI__` is what `watchesFrames` reads (test/browser.tsx carries the criterion
-         * and the reason). `__KUI_STALL__` is the CPU throttle the stall audit sets, which is
-         * how that set is DERIVED rather than guessed — `KUI_STALL=20 pnpm test` makes a fast
-         * machine reproduce a starved one on demand.
+         * Two used to be defined here — `__KUI_CI__` and `__KUI_STALL__` — because browser mode
+         * runs the laws in a real page where there is no `process` to ask, and a law whose claim
+         * depended on WHEN it looked had to know whether this machine's clock could be trusted.
+         * Both existed only to serve the frame-watching register, and the register existed only
+         * to serve motion. With the motion system removed, no law in this suite makes a claim
+         * about a moment: the three content loops are asserted by their declarations, and every
+         * other state is settled the instant it is stamped. A mechanism whose one job is gone is
+         * deleted rather than left inert, so these are not kept "in case".
          */
-        define: {
-          __KUI_CI__: JSON.stringify(Boolean(process.env.CI)),
-          __KUI_STALL__: JSON.stringify(Number(process.env.KUI_STALL ?? 0)),
-        },
         test: {
           name: "browser",
           include: ["src/**/*.browser.test.tsx"],

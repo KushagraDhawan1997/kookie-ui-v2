@@ -16,7 +16,7 @@
  */
 import type { CSSProperties, ReactElement, ReactNode } from "react";
 import { cdp } from "vitest/browser";
-import { afterEach, beforeAll, it } from "vitest";
+import { afterEach } from "vitest";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 
@@ -154,75 +154,20 @@ export function installStyles(): void {
   installed = true;
 }
 
-declare const __KUI_CI__: boolean;
-declare const __KUI_STALL__: number;
-
-/** Compiled in by vitest.config.ts — a page has no `process` to ask (measured 2026-08-20). */
-export const onCI: boolean = __KUI_CI__;
-
 /**
- * A LAW THAT MUST CATCH A MOMENT DOES NOT RUN WHERE THE CLOCK IS NOT OURS (2026-08-20,
- * Kushagra: *"lets remove the core cause, dont test animations on ci machine"*).
+ * STILLNESS, and why it is the default — now that the package itself is still (2026-09-20).
  *
- * THE CRITERION, and it is narrow on purpose: a law wears this marker when its claim depends
- * on WHEN it looks — a transient state it has to be looking at while it exists (a pose, a
- * mid-flight box, a plateau), or a series it samples as the animation runs. It is NOT "the
- * subject animates": 47 laws call `inMotion()` and almost all of them read DECLARATIONS —
- * the transition list, the spring's baked curve, which clock a channel is on — which persist
- * and are as true on a starved machine as on an idle one. Those stay on CI, where they
- * belong.
+ * The motion system was removed: no stylesheet transitions, no entry or exit animation, no
+ * pointer geometry. Three loops survive because each IS the content rather than a response to
+ * a state change — the Spinner's rotation, the indeterminate Progress sweep and the
+ * Attachment's upload sweep — and those three are the only things left on this page that can
+ * be caught mid-flight.
  *
- * Three mechanisms already move a law from the second kind to the first, and they are tried
- * BEFORE this marker is reached for: seize the animation's own clock and step it (`sweep`,
- * `catchDissolve`, `seizeFlight`), read a DELIVERED event rather than a sampled frame (a
- * MutationObserver armed before the gesture cannot miss what it watches for), or make the
- * claim against the setup instead (recipes.test.ts fails a hand-typed duration exactly, with
- * no frames at all). What is left after those three is a residue whose subject genuinely is
- * wall time — floating-ui converges in it, and a release timer fires in it — and no
- * instrument can make an observation of wall time deterministic on a machine that stalls for
- * 340ms at a stretch (measured, CI's own printed frame gaps).
- *
- * Keeping them on CI was the expensive option, and it was measured: 15 of 21 runs red while
- * the components were correct every time, which does not protect the code — it teaches
- * everyone to read a red run as noise, and that is how a real defect walks in.
- *
- * WHAT THIS IS NOT ALLOWED TO BECOME. "Did not run" is this repo's own favourite way of not
- * failing (the `docs:test` cache hit, 2026-08-08; turbo's filtered env starving the browser
- * project, 2026-08-20). So the exclusion is loud rather than quiet: it is per-law at the call
- * site, vitest reports every one as skipped with a count on the CI run itself, the set is
- * pinned by a node law (test/frames.test.ts) that fails until a new opt-out is recorded with
- * its reason, and every one of them still runs in the `pnpm run ci` a human owes before
- * pushing — which is where this suite's own contributing rule already puts the gate.
- */
-export const watchesFrames = it.skipIf(onCI);
-
-/**
- * THE STALL AUDIT — `KUI_STALL=20 pnpm test` (2026-08-20).
- *
- * The set above is DERIVED, not judged: CDP throttles the renderer, so a fast machine
- * reproduces a starved one on demand and every law whose claim depends on the machine says
- * so by failing. It is how the marked set was chosen, and it is how the next person can check
- * that it is still the right set instead of trusting this comment.
- */
-if (__KUI_STALL__ > 1) {
-  beforeAll(async () => {
-    await cdp().send("Emulation.setCPUThrottlingRate", { rate: __KUI_STALL__ });
-  });
-}
-
-/**
- * STILLNESS, and why it is the default (added 2026-08-09, when motion reached the control
- * layer).
- *
- * Almost every law in this suite asks what a control LOOKS like in some state: the invalid
- * remap's colour, the disabled fill, the ring's extent. The moment those states became eased,
- * six of them started reading the first frame of a transition instead of the value they name
- * — the colour a hover is leaving, not the one it is arriving at. Nothing about those laws was
- * wrong; they were simply reading a moving thing at a moment they never chose.
- *
- * So the harness holds the page still, and a law that is ABOUT motion says so by calling
- * `inMotion()`. That is the honest default: appearance laws get a settled control without
- * having to know that motion exists, and the ones that do know announce it.
+ * So the harness still holds the page still by default, and it is still the honest default: an
+ * appearance law reads a settled control without having to know that anything anywhere moves,
+ * and the handful of laws that are ABOUT one of the three loops announce it by calling
+ * `inMotion()`. That call is also their negative control — a loop asserted to be running has
+ * to be let run first, or the assertion is vacuous.
  */
 let stillness: HTMLStyleElement | null = null;
 let wantsMotion = false;
@@ -263,11 +208,12 @@ function holdStill(): void {
 /**
  * Wait for a STATE, never for a duration (2026-08-17).
  *
- * Every motion law that sleeps to a computed instant and reads once is measuring the machine.
- * `setTimeout` is a minimum, and a loaded runner overshoots it — so a law that sleeps into a
- * window ("mid-dissolve", "between the two deadlines") wakes up after the window has closed
- * and reports a defect that is not there. Three such laws failed on CI in one morning and
- * none of them could be reproduced here, idle or under full load.
+ * A law that sleeps to a computed instant and reads once is measuring the machine. `setTimeout`
+ * is a minimum, and a loaded runner overshoots it — so a law that sleeps into a window wakes up
+ * after the window has closed and reports a defect that is not there. Three such laws failed on
+ * CI in one morning and none of them could be reproduced here, idle or under full load. What
+ * still needs waiting on is asynchronous STATE the package does not control the timing of: a
+ * scroller reaching its end, a popup mounting, a driver gesture the browser has not settled yet.
  *
  * Sampling inverts the failure direction, which is the whole point: a slow runner samples LESS
  * often, so an observation lands later, and later can only make "has it happened yet" easier
@@ -285,135 +231,6 @@ export async function until(condition: () => boolean, ms = 3000): Promise<boolea
   while (!condition() && performance.now() < deadline)
     await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
   return condition();
-}
-
-/**
- * One turn of the microtask queue — the entry runner fully armed (2026-08-16).
- *
- * The unified runner stamps the pose synchronously and measures in a microtask, because a ref
- * callback runs before the commit's layout effects and a panel measured that early can be a
- * half-laid-out sliver. Every law that reads a flight's numbers — its measured box, its
- * silhouette, its aimed position — must therefore let that microtask run first, or it reads a
- * pose with nothing written into it and measures NaN. Named rather than spelled inline, so a
- * law says what it is waiting for instead of awaiting a bare promise for reasons a reader has
- * to reconstruct.
- */
-export async function flushFlight(): Promise<void> {
-  await Promise.resolve();
-}
-
-/**
- * SWEEP AN ARRIVAL BY ITS OWN CLOCK, not by the host's frames (2026-08-20).
- *
- * Every law in this suite that asked "does this actually move?" sampled the rendered box once
- * per `requestAnimationFrame` and then made a claim about the series. All of them are claims
- * about the MACHINE. A loaded runner hands the loop two frames where an idle one hands it
- * thirty, so a perfectly smooth arrival reports the same two values a frozen one does — and
- * those are opposite bugs whose repairs pull in opposite directions, which is why every new
- * bound bought one more week and then went red again (menu: three metrics in one day; the
- * focus ring: "expected 2 to be greater than 2").
- *
- * A running transition or animation is an object with a clock of its own. Pause it, put its
- * clock where you want it, and read what the engine RENDERS there — the whole curve, at a
- * resolution the host cannot change, in one synchronous block that no dropped frame can
- * interrupt. Sabotaging the thing under test moves the numbers; loading the runner does not.
- *
- * `property` is the PHYSICAL name the engine transitions (`height`, not `block-size` — the
- * logical property is resolved before the transition is created), or a keyframe animation's
- * name. The subject is left playing from where it was, so a law may go on watching it.
- */
-export async function sweep<T>(
-  el: Element,
-  property: string,
-  read: () => T,
-  stations = 40,
-): Promise<T[]> {
-  const named = (a: Animation) =>
-    (a as CSSTransition).transitionProperty === property ||
-    (a as CSSAnimation).animationName === property;
-  const arrival = el.getAnimations().find(named);
-  if (!arrival)
-    throw new Error(
-      `nothing is arriving on ${property} — running: ` +
-        el
-          .getAnimations()
-          .map((a) => (a as CSSTransition).transitionProperty ?? (a as CSSAnimation).animationName)
-          .join(", "),
-    );
-  const clock = Number(arrival.effect!.getComputedTiming().activeDuration);
-  if (!(clock > 0)) throw new Error(`${property} has no clock to step through`);
-  const was = arrival.currentTime;
-  arrival.pause();
-  const series: T[] = [];
-  for (let station = 0; station <= stations; station++) {
-    arrival.currentTime = (clock * station) / stations;
-    series.push(read());
-  }
-  arrival.currentTime = was;
-  arrival.play();
-  return series;
-}
-
-/**
- * CATCH A DISSOLVE MID-AIR, by seizing its own clock (2026-08-20).
- *
- * The "a reopen that lands mid-dissolve is CAUGHT" laws need a panel that is visibly half-gone
- * and still mounted — a real-time window about 200ms wide. Polling into it is the `until`
- * lesson inverted: the window is wall clock, so a runner that stalls past it finds the popup
- * already unmounted and the law fails on its own premise (CI: "the premise: the exit is still
- * running: expected false to be true").
- *
- * So the window is not raced, it is HELD OPEN — `sweep`'s lesson pointed at a window instead
- * of a series. Armed BEFORE the close; the microtask the ending stamp lands, every exit
- * animation is paused and its clock is set 60% in, which is also what holds the popup mounted
- * BY MECHANISM rather than by scheduling luck: Base UI unmounts a closing popup when
- * `Promise.all(getAnimations().map((a) => a.finished))` settles, and a paused animation's
- * `finished` never does. The revocation the law then performs retargets the paused
- * transitions — the browser cancels them and travels back from the held value, exactly as it
- * does to a live dissolve; TIME is the only thing the instrument changed.
- *
- * Resolves with the box and opacity rendered at the held instant, and a `release()` the caller
- * MUST call once it has taken the dismissal back. Holding a clock is borrowing it: a paused
- * transition keeps rendering its held value, so a panel whose exit was seized can sit at
- * `scale: 0.99` for good if the browser's retarget does not displace it — measured on CI as a
- * recovered panel 3.1px narrow, which is exactly 1% of its 311px box. `release()` cancels the
- * seized animations so the reopen's own transitions are unencumbered.
- *
- * Rejects if the stamp lands with no clock to seize — an exit with no running dissolve cannot
- * be caught mid-dissolve, and that premise failure deserves its own message rather than
- * whichever assertion trips downstream of it.
- */
-export function catchDissolve(
-  popup: HTMLElement,
-): Promise<{ box: DOMRect; fading: number; release: () => void }> {
-  return new Promise((resolve, reject) => {
-    const seize = () => {
-      const exits = popup.getAnimations({ subtree: true });
-      if (exits.length === 0)
-        return reject(new Error("the ending stamp landed with no running exit to catch"));
-      for (const exit of exits) {
-        exit.pause();
-        const timing = exit.effect?.getComputedTiming();
-        const span = Number(timing?.activeDuration ?? 0);
-        if (Number.isFinite(span) && span > 0)
-          exit.currentTime = Number(timing?.delay ?? 0) + span * 0.6;
-      }
-      resolve({
-        box: popup.getBoundingClientRect(),
-        fading: parseFloat(getComputedStyle(popup).opacity),
-        release: () => {
-          for (const exit of exits) exit.cancel();
-        },
-      });
-    };
-    if (popup.hasAttribute("data-ending-style")) return seize();
-    const watch = new MutationObserver(() => {
-      if (!popup.hasAttribute("data-ending-style")) return;
-      watch.disconnect();
-      seize();
-    });
-    watch.observe(popup, { attributes: true, attributeFilter: ["data-ending-style"] });
-  });
 }
 
 /**
@@ -445,10 +262,13 @@ export async function holdPress(el: Element): Promise<() => Promise<void>> {
 }
 
 /**
- * Let this test's subject move. Order-free on purpose — it sets a flag the harness honours on
- * every render for the rest of the test, rather than a switch a later `render` would flip back:
- * the first spelling was position-dependent, and calling it one line too early silently gave
- * three laws a frozen page again.
+ * Let this test's subject move — which, since 2026-09-20, means one of the three content loops
+ * (the Spinner's rotation, the indeterminate Progress sweep, the Attachment's upload sweep).
+ *
+ * Order-free on purpose: it sets a flag the harness honours on every render for the rest of the
+ * test, rather than a switch a later `render` would flip back. The first spelling was
+ * position-dependent, and calling it one line too early silently gave three laws a frozen page
+ * again.
  */
 export function inMotion(): void {
   wantsMotion = true;
@@ -463,12 +283,18 @@ export function inMotion(): void {
  * genuinely match, so the shipped `@media` block is the thing under test rather than a block of
  * CSS nobody has ever executed.
  *
- * It is worth the CDP round trip because that is exactly what happened. The suppression was
+ * It is worth the CDP round trip because that is exactly what happened once: a suppression was
  * asserted by reading the stylesheet for a `prefers-reduced-motion` rule and checking which
- * selectors appeared inside it — every character of which was correct while the focus ring went
- * on landing, because a selector present in the block still has to WIN, and that one lost by
- * one specificity point to the rule it was written to stand down. A media query the suite
+ * selectors appeared inside it, every character of which was correct while the thing it named
+ * went on moving — a selector present in a block still has to WIN. A media query the suite
  * cannot enter is a media query the suite cannot check.
+ *
+ * SINCE 2026-09-20 IT HAS EXACTLY THREE SUBJECTS. The package answers this preference in three
+ * stylesheets and nowhere else, because three loops are all that is left moving: the Spinner,
+ * the indeterminate Progress bar and the Attachment's upload sweep. Each SLOWS rather than
+ * stopping — a busy indicator that freezes is information lost — so what a law reads here is a
+ * longer duration, never `none`. Everything else is instant at every setting, which
+ * `system/stillness.test.ts` holds structurally.
  *
  * Reset by the afterEach below, so a law that asks for stillness cannot leave the next file
  * running in it.
@@ -521,49 +347,6 @@ export async function asksForSolidity(): Promise<void> {
   await cdp().send("Emulation.setEmulatedMedia", {
     features: [{ name: "prefers-reduced-transparency", value: "reduce" }],
   });
-}
-
-/**
- * LANDING a floating panel (promoted from menu.browser.test.tsx 2026-08-10, on its second
- * consumer — Select).
- *
- * Every law about a panel's corner, its rows' geometry or what the portal carried is about a
- * panel that HAS ARRIVED. A synchronous mount reads the entry's first frame instead: Base UI
- * renders `data-starting-style` in the initial commit and drops it a frame later, so the popup
- * such a law grabs is a 40px seed. Menu learned this when motion landed (a row measured 68px
- * against its 42px cell); Select's laws reported it the moment the same entry reached them —
- * seven of them at once, reading a mid-flight corner and a mid-flight width.
- *
- * It does by hand exactly what the shipped reduced-motion block does — drop the seed, pin the
- * transitions — rather than waiting out the entry in twenty-four cells. Laws that are ABOUT
- * the entry use the plain `render` and never come through here.
- */
-export function settle(popup: HTMLElement): void {
-  popup.removeAttribute("data-starting-style");
-  popup.removeAttribute("data-seed");
-  popup.removeAttribute("data-unfurling");
-  popup.style.removeProperty("--kui-fly-w");
-  popup.style.removeProperty("--kui-fly-h");
-  popup.style.removeProperty("--kui-fly-bw");
-  for (const el of [popup, ...popup.querySelectorAll<HTMLElement>("*")]) {
-    el.style.setProperty("transition", "none", "important");
-  }
-}
-
-/** Every panel on the page with a flight in progress, including ones opened after the initial
-    render: the anchored families and the overlay ones run one shared runner, so both stamp the
-    same attributes and an unsettled panel of either kind is its seed, not its box. (The
-    materialization is AlertDialog's since 2026-08-16 — a Dialog has no entry until its own
-    large-mass one lands, so this reaches the alert, not the dialog.) */
-export function settleAll(): void {
-  for (const popup of document.querySelectorAll<HTMLElement>(".kui-floating, .kui-surface.kui-overlay")) settle(popup);
-}
-
-/** Mount, then land whatever floated. The shape both law files had reinvented. */
-export function renderSettled(ui: ReactElement): HTMLElement {
-  const host = render(ui);
-  settleAll();
-  return host;
 }
 
 /** Live roots, unmounted after each test. Mounts made inside ONE test coexist (laws compare

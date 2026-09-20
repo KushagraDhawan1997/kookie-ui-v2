@@ -16,7 +16,7 @@
 import { describe, expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
 
-import { APPEARANCES, SIZES, computed, mounted, until } from "../../test/browser.tsx";
+import { APPEARANCES, SIZES, computed, holdPress, mounted, until } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Flex } from "../flex/flex.tsx";
 import { Toggle, ToggleGroup } from "./toggle.tsx";
@@ -224,5 +224,47 @@ describe("a toggle group is independent toggles with one keyboard (§34)", () =>
     expect(root.classList.contains("kui-box")).toBe(true);
     expect(computed(root, "display")).toBe("flex");
     expect(root.getAttribute("role")).toBe("group");
+  });
+});
+
+/**
+ * A PRESS IS THE LAST WORD ON A TOGGLE'S FILL (§8, §34, ultracode audit 2026-09-01).
+ *
+ * RE-HOMED 2026-09-20 from `system/motion.browser.test.tsx`, which was deleted with the motion
+ * system. This law was never about motion — the press it reads is a settled state and the value
+ * it reads is its paint — so it moves to the component whose half-step it measures. The other
+ * two subjects of the same finding, a `data-hover-lit` row and a `data-highlighted` one, are in
+ * `row.browser.test.tsx`; the three fail independently, which is why there are three.
+ *
+ * Three rules that light a control were each written to beat the shared hover at (0,3,0), and
+ * `:not()` takes the specificity of its most specific ARGUMENT rather than summing its list — so
+ * all three landed at (0,4,0) and beat the shared PRESS as well. Measured before the fix: an
+ * unpressed `<Toggle>` held under a real pointer painted its hover fill while the quiet Button
+ * beside it moved `0.055` -> `0.078` — so the one press a toggle exists for was the only press in
+ * the control family with no colour. Nobody who wrote those guards was reasoning about the press.
+ *
+ * IT IS A MEASUREMENT, NOT ARITHMETIC. The repair is a specificity one and could have been
+ * asserted by reading selectors, which is the indirection this repo keeps being caught by: a
+ * selector that is present still has to WIN. So the subject is held down with a real pointer and
+ * its PAINTED fill has to leave the lit value. `recipes.test.ts`'s "the press rule outranks every
+ * lit rule" pins the spelling and names this as the measurement behind it.
+ */
+describe("a press outranks the toggle's own half-step (audit 2026-09-01)", () => {
+  const litThenPressed = async (el: HTMLElement, lit: () => Promise<void>) => {
+    const rest = computed(el, "background-color");
+    await lit();
+    const litFill = computed(el, "background-color");
+    const release = await holdPress(el);
+    const pressed = computed(el, "background-color");
+    await release();
+    await userEvent.unhover(el);
+    return { rest, litFill, pressed };
+  };
+
+  it("a toggle's half-step: pressing an unpressed toggle paints something else", async () => {
+    const toggle = mounted(<Toggle>Bold</Toggle>, { theme: {} });
+    const seen = await litThenPressed(toggle, () => userEvent.hover(toggle));
+    expect(seen.litFill, "the hover half-step must actually light it").not.toBe(seen.rest);
+    expect(seen.pressed, "a held toggle paints its own press, not its hover").not.toBe(seen.litFill);
   });
 });

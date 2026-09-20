@@ -10,7 +10,17 @@
 import * as React from "react";
 import { describe, expect, it } from "vitest";
 
-import { APPEARANCES, DEPTHS, GLASS_MATERIALS, colorOn, computed, mounted, within } from "../../test/browser.tsx";
+import {
+  APPEARANCES,
+  DEPTHS,
+  GLASS_MATERIALS,
+  asksForStillness,
+  colorOn,
+  computed,
+  inMotion,
+  mounted,
+  within,
+} from "../../test/browser.tsx";
 import { Box } from "../box/box.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
@@ -350,5 +360,54 @@ describe("size prices what its own doc says it prices (audit 2026-09-02)", () =>
     const meta = computed(within(el, ".kui-attachment-meta"), "color");
     expect(meta).not.toBe(name);
     expect(meta).toBe(colorOn(el, "var(--color-text-muted)"));
+  });
+
+  it("stillness SLOWS the sweep and never stops it — and the law enters the query (§8)", async () => {
+    /**
+     * THE THIRD CONTENT LOOP, which is the one that had no mounted reader (audit 2026-09-20).
+     *
+     * The package's three loops are the only motion left after the removal, and the criterion
+     * they are kept by is that each one IS the content: a sweep that freezes has stopped saying
+     * "still going", which is the whole of what it says. Spinner and Progress each hold that
+     * with a law that enters the media query and reads a mounted element; this file held it
+     * with nothing, so the Attachment's own guarantee was carried entirely by a node law
+     * reading strings in a file — and that law was satisfied, measured, by a sabotage that
+     * stood the upload sweep down to `animation: none` and left a duration elsewhere in the
+     * sheet. Thirty-seven laws here and 678 in the node project were green over a stopped ring.
+     *
+     * `inMotion()` first, and it is the negative control as much as the setup: the harness
+     * freezes every page by default, so a duration read without it is the HARNESS's stillness
+     * and would read the same whether the guard existed or not.
+     *
+     * Every channel, because a duration alone passes for the wrong reason — `animation: none`
+     * leaves the longhand duration behind, and `animation-play-state: paused` is a freeze that
+     * keeps its duration. DECLARATIONS rather than frames, so nothing here depends on when it
+     * looks (the frame-watching rule).
+     */
+    inMotion();
+    const sweeping = within(
+      mounted(<Attachment state="processing">{NAME}</Attachment>, { theme: {} }),
+      ".kui-attachment-ring-fill",
+    );
+    const running = parseFloat(computed(sweeping, "animation-duration"));
+    expect(running, "the ring is not sweeping — this law would measure nothing").toBeGreaterThan(0);
+
+    await asksForStillness();
+    expect(window.matchMedia("(prefers-reduced-motion: reduce)").matches).toBe(true);
+    const still = within(
+      mounted(<Attachment state="processing">{NAME}</Attachment>, { theme: {} }),
+      ".kui-attachment-ring-fill",
+    );
+    expect(
+      parseFloat(computed(still, "animation-duration")),
+      "stillness never reached the sweep",
+    ).toBeGreaterThan(running);
+    expect(computed(still, "animation-name"), "the sweep was removed, not slowed").toBe(
+      "kui-attachment-sweep",
+    );
+    expect(computed(still, "animation-play-state"), "the sweep was paused, not slowed").toBe(
+      "running",
+    );
+    expect(computed(still, "animation-iteration-count")).toBe("infinite");
   });
 });

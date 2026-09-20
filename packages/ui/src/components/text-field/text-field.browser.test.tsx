@@ -8,14 +8,16 @@
  * element that actually holds the state — lives entirely inside that gap.
  */
 import { describe, expect, it } from "vitest";
+import { userEvent } from "vitest/browser";
 
 import { Theme } from "../../theme/theme.tsx";
 import { density, material } from "../../tokens/config.ts";
 import {
-  GLASS_MATERIALS, APPEARANCES, SIZES, colorOn, computed, mounted, render } from "../../test/browser.tsx";
+  GLASS_MATERIALS, APPEARANCES, SIZES, colorOn, computed, mounted, render, until } from "../../test/browser.tsx";
 import { Button } from "../button/button.tsx";
 import { Card } from "../card/card.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
+import { TextArea } from "../text-area/text-area.tsx";
 import { TextField } from "./text-field.tsx";
 
 const px = (v: string) => parseFloat(v);
@@ -228,6 +230,82 @@ describe("one treatment: a field has no loudness (§9, §11)", () => {
     expect(computed(el, "user-select")).not.toBe("none");
     expect(computed(inputOf(el), "user-select")).not.toBe("none");
   });
+});
+
+/**
+ * HOVER REACHES EVERY FAMILY, INCLUDING THE TWO WITH NO FILL TO STEP (§8).
+ *
+ * RE-HOMED 2026-09-20 from `system/motion.browser.test.tsx`, which was deleted with the motion
+ * system. This law was never about motion: hover is a SETTLED state, and what it reads is the
+ * paint of that state and the paint of the boundary beside it. Only its third sibling in that
+ * file — "and it steps on the paint clock, not on a spring" — was about a clock, and that one
+ * died with the clocks.
+ *
+ * It lives here because this is the file that owns the field family and already asserts its
+ * hover step one describe up ("the fill is the well, and it steps when you point at it") — by
+ * RESOLVING the chain the hover rule will read. That is one indirection short of the thing that
+ * can be wrong: a chain that resolves to a real step still has to be what the element PAINTS
+ * when a pointer is on it. This holds a real pointer, and it keeps all three subjects, because
+ * the claim is about the relationship BETWEEN the families and not about any one of them.
+ *
+ * Kushagra, on the playground: *"there's no hover darkening of border on text field or
+ * checkbox"*. There was not, and it was structural rather than a tuning miss: the shared
+ * hover rule steps the FILL, and these are exactly the families whose fill is held still —
+ * a field's by an invariant it has carried since 2026-08-04, a mark's because its seal barely
+ * moves. Measured before the fix, a hovered field computed byte-identical to its resting
+ * self, which is what "no hover state at all" looks like in numbers.
+ */
+describe("hover reaches every family, including the two with no fill to step (§8)", () => {
+  for (const appearance of APPEARANCES) {
+    it(`hover is one step in one currency, under a real pointer — ${appearance}`, async () => {
+      const root = render(
+        <Theme appearance={appearance}>
+          <TextField placeholder="a" />
+          <TextArea rows={2} />
+          <Checkbox />
+        </Theme>,
+      );
+      const subjects: [string, HTMLElement][] = [
+        ["field", root.querySelector<HTMLElement>(".kui-field")!],
+        ["textarea", root.querySelector<HTMLElement>(".kui-textarea")!],
+        ["checkbox", root.querySelector<HTMLElement>(".kui-checkbox")!],
+      ];
+      // THE CURRENCY CHANGED 2026-08-17, and with it this law's subject property.
+      //
+      // It was written (2026-08-10) for exactly the two families whose FILL was held still: a
+      // field pinned to the seal, a mark stepping invisibly inside it. With no fill to move,
+      // their hover had to be carried by the boundary, so the shared layer stepped the border
+      // toward the family's ink. The fill-first flip gave both families a dress fill with
+      // designed hover and active slots, so the ordinary fill rule reaches them — and keeping
+      // the border mix as well made a hovered field move in TWO currencies at once, which is
+      // what Kushagra saw as "hover too aggressive". The boundary rule was deleted.
+      //
+      // What survives is the principle, and it is the stronger claim: hover is ONE step, in
+      // the one currency the control's identity is made of. So this asserts the fill moves AND
+      // that the border does not — a law that only checked the fill would go green again the
+      // day someone re-adds a second channel.
+      for (const [name, el] of subjects) {
+        const restFill = computed(el, "background-color");
+        const restEdge = computed(el, "border-color");
+        await userEvent.hover(el);
+        // A STATE, not the statement after the gesture (2026-08-21, the sweep after CI's
+        // "the click must have opened it"): a driver gesture resolving is not the browser
+        // having settled what the gesture causes. If it never settles, the deadline expires
+        // into the same assertion, with the same value in the message.
+        await until(() => el.matches(":hover"), 2000);
+        expect(el.matches(":hover"), `${name}: the harness must really be hovering`).toBe(true);
+        expect(
+          computed(el, "background-color"),
+          `${name} does not answer the pointer`,
+        ).not.toBe(restFill);
+        expect(
+          computed(el, "border-color"),
+          `${name} moves in two currencies at once`,
+        ).toBe(restEdge);
+        await userEvent.unhover(el);
+      }
+    });
+  }
 });
 
 describe("focus is a mode, not a keyboard affordance (§8)", () => {
