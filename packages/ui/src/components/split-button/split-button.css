@@ -19,11 +19,3 @@
   /* The divider: the label's own ink, faint, so it reads on every emphasis and tone. */
   border-inline-start-color: color-mix(in oklab, currentColor var(--split-divider-mix), transparent);
 }
-
-/* The halves do not travel. A button rises and sinks because it sits on the page; half of one
-   moving alone would tear the box at the seam. The fill still lights and presses. Same weight
-   as button.css's hover and press rules, and later in the bundle. */
-.kui-split-button > .kui-button.kui-button {
-  translate: 0 0;
-  scale: 1;
-}

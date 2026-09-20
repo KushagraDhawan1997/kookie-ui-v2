@@ -43,7 +43,8 @@ type ButtonBase = Omit<
    *  `iconOnly` button, the spinner replaces the icon. */
   loading?: boolean;
   /**
-   * Shows a tick in place of the icon to say that the action finished.
+   * Shows a tick in place of the icon to say that the action finished. The tick replaces the
+   * icon at once, in the same box, and the icon comes back as soon as `done` is false again.
    * Use it for actions with no other visible result, such as copy. You hold the value and clear
    * it yourself. Unlike `loading`, it doesn't block the press. Also change the label or
    * `aria-label` (for example, `Copy` to `Copied`), because screen readers don't announce the tick.
@@ -102,37 +103,32 @@ export type IconOnly =
 export type ButtonProps = ComponentRefusals & ButtonBase & (IconOnly | { iconOnly?: false | undefined });
 
 /**
- * The done state's two glyphs, stacked in one cell.
+ * The tick the done state shows in place of the button's own glyph (§29).
  *
- * BOTH ARE MOUNTED, ALWAYS, and that is the whole mechanism. React would unmount the outgoing
- * glyph the moment `done` flips, and an unmounted element cannot leave — so the exit would not
- * exist and the tick would appear in one frame. Stacked, the swap is entirely CSS keyed on
- * `data-done`, which also means no JS runs at interaction time (§9) and reduced motion stands
- * it down through the shared hook like every other recipe.
- *
- * A grid with one cell, so the two occupy the same box and nothing reflows around them —
- * `loading`'s own "same box, zero shift" sentence, one state over. The tick is `aria-hidden`
- * because a drawing is not a name: what a screen reader hears is the label the call site
- * changed, which is why the prop's doc asks for one.
+ * Only the glyph that is showing is rendered: the tick while done, the caller's glyph
+ * otherwise. It sits where that glyph sits and takes the same icon box through the shared
+ * layer's slot rule, so the swap is instant and nothing reflows around it — `loading`'s own
+ * "same box, zero shift" sentence, one state over. `aria-hidden` because a drawing is not a
+ * name: what a screen reader hears is the label the call site changed, which is why the prop's
+ * doc asks for one.
  */
-function DoneSwap({ children }: { children: React.ReactNode }) {
+function Tick() {
   return (
-    <span className="kui-button-swap">
-      <span className="kui-button-swap-from" data-glyph>
-        {children}
-      </span>
-      <span className="kui-button-swap-to" data-glyph aria-hidden>
-        <svg viewBox={GLYPH_VIEWBOX} fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d={CHECK_PATH}
-            stroke="currentColor"
-            strokeWidth={glyphStroke}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </span>
-    </span>
+    <svg
+      className="kui-button-tick"
+      viewBox={GLYPH_VIEWBOX}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <path
+        d={CHECK_PATH}
+        stroke="currentColor"
+        strokeWidth={glyphStroke}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
@@ -218,8 +214,8 @@ export function Button({
   const leading =
     loading && !iconOnly
       ? <Spinner />
-      : done !== undefined && !iconOnly
-        ? <DoneSwap>{leadingSlot}</DoneSwap>
+      : done && !iconOnly
+        ? <Tick />
         : leadingSlot;
   // AN ICON-ONLY BUTTON'S GLYPH IS `children`, so the Spinner has to replace THAT (2026-08-26
   // audit). Substituting only the leading slot put the Spinner BESIDE the glyph inside a box
@@ -229,8 +225,8 @@ export function Button({
   const content =
     loading && iconOnly
       ? <Spinner />
-      : done !== undefined && iconOnly
-        ? <DoneSwap>{children}</DoneSwap>
+      : done && iconOnly
+        ? <Tick />
         : children;
 
   // Slots wear the system's adornment wrapper (`data-slot`, ENGINEERING §3) since 2026-08-05.
@@ -262,9 +258,7 @@ export function Button({
       // Solid is the absence of a material, so it writes no attribute (§10).
       data-material={material === "solid" ? undefined : material}
       data-loading={loading || undefined}
-      // The swap is CSS's, keyed here: both glyphs are mounted and stacked, and this picks
-      // which one is up. No JS runs when the state flips, which is what lets the outgoing
-      // glyph have an exit at all — an unmounted element cannot leave (§8).
+      // The state, stamped like every other one, so the page reads its own decisions.
       data-done={done || undefined}
       className={className ? `kui-control kui-button ${className}` : "kui-control kui-button"}
       {...props}

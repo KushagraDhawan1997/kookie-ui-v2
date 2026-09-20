@@ -57,11 +57,11 @@ export type ToggleProps = ComponentRefusals & ToggleBase & (IconOnly | { iconOnl
  * toolbar, a filter that is on or off — one control, two states, `aria-pressed` from the
  * primitive.
  *
- * It wears Button's identity whole (`kui-button`: the size join, the press travel, the ring,
- * the disabled remap) and adds exactly one fact: its emphasis is its STATE. Off is the quiet
- * rung, on is the medium rung of its own tone — the same soft wash a chosen Card or a selected
- * tree row rests on, so "this is on" is spelled once across the library. That is why there is
- * no `emphasis` prop: loudness is what the toggle is saying, so nobody else may say it.
+ * It wears Button's identity whole (`kui-button`: the size join, the ring, the disabled remap)
+ * and adds exactly one fact: its emphasis is its STATE. Off is the quiet rung, on is the
+ * medium rung of its own tone — the same soft wash a chosen Card or a selected tree row rests
+ * on, so "this is on" is spelled once across the library. That is why there is no `emphasis`
+ * prop: loudness is what the toggle is saying, so nobody else may say it.
  *
  * Picking ONE of several is a `SegmentedControl` (a radio group); a set of independent
  * on/off switches in a row is a `ToggleGroup` of these.

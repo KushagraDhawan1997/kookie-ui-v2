@@ -1,12 +1,12 @@
 /* Toggle adds one rule, and it is a RANKING (§10's fifth clause, §34).
  *
  * Everything else is Button's: a toggle wears `kui-button`, so the skeleton, the size join, the
- * emphasis rungs, the press travel, the ring, the material and the disabled remap all arrive by
- * membership. What a toggle has that a button does not is a PERSISTENT state painted in the
- * quiet rung's own hover currency — pressed rests on the medium rung, `--tone-soft`, and an
- * unpressed toggle's hover is `--tone-soft` too. Measured before this rule existed, a pressed
- * Bold and a hovered Italic were byte-identical, which is the segmented control's 2026-08-24
- * finding and the tree's 2026-08-26 finding a third time.
+ * emphasis rungs, the ring, the material and the disabled remap all arrive by membership. What
+ * a toggle has that a button does not is a PERSISTENT state painted in the quiet rung's own
+ * hover currency — pressed rests on the medium rung, `--tone-soft`, and an unpressed toggle's
+ * hover is `--tone-soft` too. Measured before this rule existed, a pressed Bold and a hovered
+ * Italic were byte-identical, which is the segmented control's 2026-08-24 finding and the
+ * tree's 2026-08-26 finding a third time.
  *
  * The answer is the row family's: the transient light is a half-step, so pressed (soft) >
  * hovered (soft at --kui-ct-lit-mix) everywhere toggles exist, and a pressed toggle under the

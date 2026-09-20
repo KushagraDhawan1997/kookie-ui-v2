@@ -34,9 +34,3 @@
   position: relative;
   z-index: 1;
 }
-
-/* The buttons do not travel: one moving alone would tear the box at the seam. */
-.kui-button-group > .kui-button.kui-button {
-  translate: 0 0;
-  scale: 1;
-}

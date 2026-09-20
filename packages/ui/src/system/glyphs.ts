@@ -8,9 +8,9 @@
  * adjust one of them.
  *
  * PATH DATA, NOT COMPONENTS. Each consumer wraps it differently — a checkbox's tick is a
- * `<path>` inside Base UI's Indicator carrying the tri-state's class and the draw-in dash, a
- * button's done glyph is its own `<svg>` in the leading slot — so a shared component would have
- * to grow a prop for every difference. The drawing is the fact they share; the wrapping is not.
+ * `<path>` inside Base UI's Indicator carrying the tri-state's class, a button's done glyph is
+ * its own `<svg>` in the leading slot — so a shared component would have to grow a prop for
+ * every difference. The drawing is the fact they share; the wrapping is not.
  *
  * Every one is drawn on the 16 viewBox the package uses for its own glyphs, at `glyphStroke`,
  * which is `iconStroke` re-derived for that grid (2026-08-23: a stroke is stated in viewBox

@@ -127,21 +127,4 @@ describe("the halves press as two (§53)", () => {
     expect(merged, "the chevron ran the action").toBe(1);
     await userEvent.keyboard("{Escape}");
   });
-
-  it("neither half travels under the pointer — half a box moving alone tears the seam", async () => {
-    const root = mounted(
-      <SplitButton menuLabel="More" menu={menu}>
-        Merge
-      </SplitButton>,
-      { theme: {}, select: ".kui-split-button" },
-    );
-    const lone = mounted(<Button>Merge</Button>, { theme: {} });
-    const { action } = halves(root);
-    await userEvent.hover(lone);
-    // Calibration: a lone Button does rise, so a `none` below is a stand-down and not a no-op.
-    expect(computed(lone, "translate"), "calibration: a hovered Button rises").not.toMatch(/^(none|0px)$/);
-    await userEvent.hover(action);
-    expect(computed(action, "translate")).toMatch(/^(none|0px( 0px)?)$/);
-    await userEvent.unhover(action);
-  });
 });

@@ -21,7 +21,6 @@ import {
   ownColor,
   probeIn,
   render,
-  until,
   within,
 } from "../../test/browser.tsx";
 import { Theme } from "../../theme/theme.tsx";
@@ -1203,141 +1202,7 @@ describe("a bare pill edge pads wider, per side (§4, §6, decided 2026-08-05)",
   });
 });
 
-/* ── Motion: the press travels and the paint does not (§8, 2026-08-09) ─────────────────── */
-
-describe("the press travels, and its colour does not wait (§8)", () => {
-  it("held, the button sinks and shrinks", () => {
-    const el = mounted(<Button>Press</Button>, { theme: {} });
-    inMotion();
-    // A resting button states the identity, which is what gives the press somewhere to travel
-    // FROM: without it the first press interpolates out of `none` and the spring has no start.
-    expect(computed(el, "translate")).toBe("0px");
-    expect(computed(el, "scale")).toBe("1");
-    // `:active` cannot be forced from script, so the pressed values are read where the
-    // stylesheet keeps them — resolved on this element, in this cascade.
-    const travel = parseFloat(probeIn(el, (p) => (p.style.width = "var(--press-travel)"), (cs) => cs.width));
-    const shrink = Number(getComputedStyle(el).getPropertyValue("--press-scale"));
-    expect(travel, "a button with nowhere to go is not pressed").toBeGreaterThan(0);
-    // Down AND smaller: only-down reads as sliding, only-smaller reads as receding.
-    expect(shrink).toBeLessThan(1);
-    expect(shrink).toBeGreaterThan(0.9);
-  });
-
-  it("the two clocks: colour eases, the box springs", () => {
-    const el = mounted(<Button>Press</Button>, { theme: {} });
-    inMotion();
-    const listed = computed(el, "transition-property").split(",").map((p) => p.trim());
-    const easings = computed(el, "transition-timing-function").split(/,(?![^(]*\))/);
-    const durations = computed(el, "transition-duration").split(",").map((d) => d.trim());
-    for (const paint of ["background-color", "border-color", "color"]) {
-      const at = listed.indexOf(paint);
-      expect(at, `${paint} must have a clock`).toBeGreaterThan(-1);
-      expect(easings[at], `${paint} is a signal`).not.toContain("linear(");
-    }
-    for (const geometry of ["translate", "scale"]) {
-      const at = listed.indexOf(geometry);
-      expect(at, `${geometry} must have a clock`).toBeGreaterThan(-1);
-      expect(easings[at], `${geometry} has mass`).toContain("linear(");
-    }
-    /* And the paint's clock is ONE variable, so hover can shorten it and press can zero it
-       without any rule restating which properties are paint.
-
-       READ BY NAME, NOT BY POSITION (2026-09-02). This was `durations.slice(0, 3)`, which is a
-       claim about where the paint channels sit in the list rather than about them sharing a
-       clock — so appending a channel to the skeleton's transition failed it, and the law was
-       right to fail for the wrong reason. Positional reading is the degenerate-fixture rule in
-       an assertion: it agrees with the truth only while one incidental fact holds. */
-    const paintClocks = new Set(
-      ["background-color", "border-color", "color"].map((p) => durations[listed.indexOf(p)]),
-    );
-    expect(paintClocks.size, "the paint channels share a clock").toBe(1);
-  });
-
-  it("it RISES to meet the pointer, and the rise is not the press's clock (§8)", () => {
-    const el = mounted(<Button>Press</Button>, { theme: {} });
-    inMotion();
-    const raw = (name: string) => getComputedStyle(el).getPropertyValue(name);
-    // Up on hover, down on press: a button that only ever sinks has no resting relationship
-    // with the pointer, which is what separated the judged Key button from the first cut.
-    expect(parseFloat(probeIn(el, (p) => (p.style.width = "var(--hover-travel)"), (cs) => cs.width))).toBeGreaterThan(0);
-    // The rise is long and lively, the press short and stiff — one clock for both flattens
-    // the strike and the recovery into the same gesture.
-    expect(parseFloat(raw("--motion-rise"))).toBeGreaterThan(parseFloat(raw("--motion-press")));
-    // The hook is read RESOLVED, not as the name it was written with — a custom property
-    // computes to its substituted value, which is the thing that has to be right.
-    expect(raw("--kui-ct-move").trim(), "at rest the geometry recovers, it does not strike").toBe(
-      raw("--motion-rise").trim(),
-    );
-    expect(raw("--kui-ct-move-ease").trim()).toBe(raw("--motion-spring-lively").trim());
-    // And the lively curve is a real spring that crosses its target exactly once — more life
-    // than calm, never a ring (§8: damping is the one number never loosened).
-    const lively = raw("--motion-spring-lively").trim();
-    const samples = lively
-      .slice(lively.indexOf("(") + 1, lively.lastIndexOf(")"))
-      .split(",")
-      .map((stop) => Number(stop.trim().split(/\s+/)[0]));
-    // Measured as an AMPLITUDE, not as a crossing count. Lively does return under its target
-    // after the peak — by about 1% — and counting crossings would call that a ring when what
-    // makes a ring read mechanical is a second excursion the eye can SEE. Over this curve's
-    // real travel (a one-pixel hover rise) 1% is a hundredth of a pixel. So the law bounds the
-    // rebound instead: overshoot enough to have life, come back close enough to have none.
-    const peak = samples.indexOf(Math.max(...samples));
-    const rebound = Math.min(...samples.slice(peak));
-    expect(Math.max(...samples), "lively must overshoot — that is its whole job").toBeGreaterThan(1.05);
-    expect(Math.max(...samples), "and never wildly").toBeLessThan(1.2);
-    expect(rebound, `a visible second excursion is a ring: ${rebound}`).toBeGreaterThan(0.98);
-  });
-
-  it("under a real pointer it actually rises (§8)", async () => {
-    // Deliberately NOT `inMotion()`: the rise takes 550ms, so reading it the instant the
-    // pointer lands returns the animated value — about zero. This law asks WHETHER it rises,
-    // which is a question about the resting relationship, not about the clock. (Third time
-    // this trap has been walked into in one session, twice by me.)
-    const el = mounted(<Button>Press</Button>, { theme: {} });
-    const { userEvent } = await import("vitest/browser");
-    expect(computed(el, "translate"), "at rest it sits on the page").toBe("0px");
-    // A REAL hover, not a stamped attribute: `:hover` is the one interaction state this
-    // harness can genuinely produce, and every other law here reads a declaration. The
-    // sabotage that removed the rise walked past all of them.
-    await userEvent.hover(el);
-    // A STATE, not the statement after the gesture (2026-08-21, the sweep after CI's
-    // "the click must have opened it"): a driver gesture resolving is not the browser
-    // having settled what the gesture causes. If it never settles, the deadline expires
-    // into the same assertion, with the same value in the message.
-    await until(() => el.matches(":hover"), 2000);
-    expect(el.matches(":hover"), "the harness must really be hovering").toBe(true);
-    const [, y] = computed(el, "translate").split(" ");
-    expect(parseFloat(y ?? "0"), "it must rise toward the pointer, not sink").toBeLessThan(0);
-  });
-
-  it("hover warms faster than it cools (§8)", () => {
-    const el = mounted(<Button>Press</Button>, { theme: {} });
-    inMotion();
-    // Read raw: `tokenOn` resolves through a width probe and answers `0px` for a duration.
-    const raw = (name: string) => parseFloat(getComputedStyle(el).getPropertyValue(name));
-    const cool = raw("--motion-hover-out");
-    const warm = raw("--motion-hover-in");
-    expect(warm, "arriving is something the user did").toBeLessThan(cool);
-    expect(computed(el, "transition-duration").startsWith(`${cool / 1000}s`)).toBe(true);
-  });
-
-  it("the ring LANDS on a button and never on a text input (§8)", () => {
-    const el = mounted(<Button>Press</Button>, { theme: {} });
-    inMotion();
-    el.focus();
-    expect(el.matches(":focus-visible"), "a focused button is keyboard-focused").toBe(true);
-    expect(computed(el, "animation-name")).toBe("kui-ring-land");
-    // The landing answers "where did focus go", which only a keyboard move asks. Browsers
-    // match `:focus-visible` on a text input even for a click, so those are named out — the
-    // rule that earned it: when the viewer already knows, the change is instant.
-    const field = mounted(<input className="kui-control" />, { theme: {} });
-    inMotion();
-    field.focus();
-    expect(computed(field, "animation-name")).toBe("none");
-  });
-});
-
-describe("glass keeps its matter on every rung, and a press still travels (§10, 2026-08-19)", () => {
+describe("glass keeps its matter on every rung (§10, 2026-08-19)", () => {
   it("a quiet glass button seats in the pane exactly as the medium beside it", () => {
     // Quiet's cast was a literal `none`, written before the pool existed and never re-read —
     // so a quiet glass button was a full pane (blur, ring, veil) and the ONE glass control
@@ -1360,7 +1225,7 @@ describe("glass keeps its matter on every rung, and a press still travels (§10,
     expect(computed(solid, "box-shadow")).toBe("none");
   });
 
-  it("a pressed loud glass button has a TIGHTER blast to travel to", () => {
+  it("a pressed loud glass button has a TIGHTER blast", () => {
     // The press rule's chain consulted --kui-ct-cast-glass first, which resolves on every
     // glass control, so the active variant behind it was unreachable there: a pressed loud
     // glass button computed its resting cast byte-identical while the solid one beside it
@@ -1571,144 +1436,54 @@ describe("a dead glass button catches no light at all (§10, §19)", () => {
 });
 
 describe("the done state reports an outcome in place (§8, §29)", () => {
-  const swap = (el: HTMLElement) => ({
-    from: within(el, ".kui-button-swap-from"),
-    to: within(el, ".kui-button-swap-to"),
-  });
+  /** The glyph showing in the leading slot of a labelled button. */
+  const glyphOf = (el: HTMLElement) => within(el, '[data-slot="leading"] > svg');
 
   it("a button with no done state renders exactly as it always has", () => {
-    /* THE PROP'S PRESENCE IS WHAT MOUNTS THE TICK, because an unmounted element cannot leave
-       and the exit is half the motion. So the cost has to be zero for every button that does
-       not ask — read as the ABSENCE of the anatomy, not as a class name, since a renamed class
-       would pass a membership check while the spans still shipped. */
+    /* The cost has to be zero for every button that does not ask — read as the ABSENCE of the
+       tick, not as a class name alone, since a renamed class would pass a membership check. */
     const plain = mounted(<Button leading={<svg />}>Copy</Button>, { theme: {} });
-    expect(plain.querySelector(".kui-button-swap")).toBeNull();
+    expect(plain.querySelector(".kui-button-tick")).toBeNull();
     expect(plain.hasAttribute("data-done")).toBe(false);
-    // The calibration half: the same button WITH the prop does grow it, so the assertion above
-    // is about the prop rather than about this fixture never having a swap at all.
-    const armed = mounted(<Button leading={<svg />} done={false}>Copy</Button>, { theme: {} });
-    expect(armed.querySelector(".kui-button-swap")).not.toBeNull();
+    // The calibration half: the same button in its done state does render the tick, so the
+    // assertion above is about the prop rather than about a selector that matches nothing.
+    const done = mounted(<Button leading={<svg />} done>Copy</Button>, { theme: {} });
+    expect(done.querySelector(".kui-button-tick")).not.toBeNull();
   });
 
-  it("both glyphs are mounted and share one cell, in both states", () => {
-    /* The mechanism, and the reason it is CSS: React would unmount the outgoing glyph the
-       instant `done` flips, which would delete the exit. Stacked in one grid cell they also
-       cannot reflow around each other — `loading`'s "same box, zero shift" one state over.
-       Read as overlapping BOXES rather than as `grid-area`, because two elements can carry the
-       same grid-area string and still be laid out apart if the parent is not a grid. */
-    for (const done of [false, true]) {
-      const el = mounted(<Button leading={<svg />} done={done}>Copy</Button>, { theme: {} });
-      const { from, to } = swap(el);
-      const a = from.getBoundingClientRect();
-      const b = to.getBoundingClientRect();
-      expect(a.width, `done=${done}`).toBeGreaterThan(0);
-      expect(b.width, `done=${done}`).toBeGreaterThan(0);
-      /* CENTRES, not edges. The first spelling compared `left` and failed on correct markup:
-         the cell centres its items, so two glyphs of different widths legitimately start at
-         different x — which is a fact about the fixture, not about the layout. It also hid the
-         defect underneath: the caller's own glyph had fallen out of the shared icon-box rule
-         and was rendering at the 300x150 replaced-element default, so the two were different
-         widths at all. Comparing centres states the claim (one cell) and comparing widths
-         states the other one (one box). */
-      expect(Math.abs((a.left + a.right) / 2 - (b.left + b.right) / 2), `done=${done}: not one cell`).toBeLessThan(1);
-      expect(Math.abs((a.top + a.bottom) / 2 - (b.top + b.bottom) / 2), `done=${done}: not one cell`).toBeLessThan(1);
-      /* The BOX is `offsetWidth`, not the painted rect: the waiting glyph rests under
-         `--done-seed`, and a bounding rect includes that transform, so a rect comparison here
-         would be asserting that the seed does not exist. The centres above are transform-safe
-         because a scale about the centre keeps it. */
-      expect(from.offsetWidth, `done=${done}: the two glyphs must share one box`).toBe(
-        to.offsetWidth,
-      );
-    }
+  it("the tick and the button's own glyph share one box, in both states", () => {
+    /* Only the glyph that is showing is rendered, and it takes the slot the icon already had —
+       `loading`'s "same box, zero shift" one state over. Read as the painted box of each state's
+       glyph, so a tick that fell out of the shared icon box (and rendered at CSS's 300x150
+       replaced-element default) fails here. */
+    const off = mounted(<Button leading={<svg />} done={false}>Copy</Button>, { theme: {} });
+    const on = mounted(<Button leading={<svg />} done>Copy</Button>, { theme: {} });
+    const a = glyphOf(off).getBoundingClientRect();
+    const b = glyphOf(on).getBoundingClientRect();
+    expect(a.width, "the icon has no box").toBeGreaterThan(0);
+    expect(b.width, "the tick must take the icon's box").toBe(a.width);
+    expect(b.height, "the tick must take the icon's box").toBe(a.height);
   });
 
   it("the tick is up when done and the button's own glyph is up when it is not", () => {
-    // The visible half, read as painted opacity in both directions. One arm alone passes with
-    // the rule inverted, which is why both are here.
-    const off = mounted(<Button leading={<svg />} done={false}>Copy</Button>, { theme: {} });
-    expect(Number(computed(swap(off).from, "opacity"))).toBe(1);
-    expect(Number(computed(swap(off).to, "opacity"))).toBe(0);
-    const on = mounted(<Button leading={<svg />} done>Copied</Button>, { theme: {} });
-    expect(Number(computed(swap(on).from, "opacity"))).toBe(0);
-    expect(Number(computed(swap(on).to, "opacity"))).toBe(1);
+    // Both directions, read as what is RENDERED. One arm alone passes with the rule inverted,
+    // which is why both are here.
+    const off = mounted(<Button leading={<svg data-original />} done={false}>Copy</Button>, { theme: {} });
+    expect(glyphOf(off).hasAttribute("data-original"), "not done: the button's own glyph").toBe(true);
+    expect(off.querySelector(".kui-button-tick"), "not done: no tick").toBeNull();
+    const on = mounted(<Button leading={<svg data-original />} done>Copied</Button>, { theme: {} });
+    expect(glyphOf(on).classList.contains("kui-button-tick"), "done: the tick").toBe(true);
+    expect(on.querySelector("[data-original]"), "done: the button's own glyph is gone").toBeNull();
   });
 
-  it("the waiting glyph sits under a seed and out of focus, and the arriving one does not", () => {
-    /* Kushagra's own description of the motion: a small scale down, a blur, and appear. Read as
-       the RESTING pose of each end rather than as a frame mid-flight, so no clock is raced —
-       the transition is what carries the box between these two, and the two are what the
-       transition is about. */
-    const el = mounted(<Button leading={<svg />} done={false}>Copy</Button>, { theme: {} });
-    const { from, to } = swap(el);
-    expect(computed(to, "scale")).not.toBe("none");
-    expect(Number(computed(to, "scale"))).toBeLessThan(1);
-    expect(computed(to, "filter")).toContain("blur");
-    expect(computed(from, "scale")).toBe("none");
-    expect(computed(from, "filter")).toBe("none");
-  });
-
-  it("the fade is paint and the scale is geometry — §8's two clocks, no new ones", () => {
-    /* The system's whole motion rule, applied here rather than restated: a signal eases and
-       is short, a thing with mass rides a spring. What this catches is the swap inventing a
-       third clock or putting the fade on a spring. */
-    const el = mounted(<Button leading={<svg />} done={false}>Copy</Button>, { theme: {} });
-    inMotion();
-    const to = swap(el).to;
-    const listed = computed(to, "transition-property").split(",").map((p) => p.trim());
-    const easings = computed(to, "transition-timing-function").split(/,(?![^(]*\))/);
-    const durations = computed(to, "transition-duration").split(",").map((d) => d.trim());
-    const opacity = listed.indexOf("opacity");
-    const scale = listed.indexOf("scale");
-    expect(opacity, "the fade must have a clock").toBeGreaterThan(-1);
-    expect(scale, "the scale must have a clock").toBeGreaterThan(-1);
-    expect(easings[opacity], "a fade is a signal").not.toContain("linear(");
-    expect(easings[scale], "a scale has mass").toContain("linear(");
-    // And the exit is the SHORT one. `stiff` is the system's exit spring by name, so the
-    // claim that can be read here is that leaving takes less time than arriving.
-    const done = mounted(<Button leading={<svg />} done>Copied</Button>, { theme: {} });
-    inMotion();
-    const arriving = computed(swap(done).to, "transition-duration").split(",").map((d) => d.trim());
-    const at = computed(swap(done).to, "transition-property").split(",").map((p) => p.trim()).indexOf("scale");
-    expect(
-      Number.parseFloat(arriving[at]!),
-      `arriving ${arriving[at]} must outlast leaving ${durations[scale]}`,
-    ).toBeGreaterThan(Number.parseFloat(durations[scale]!));
-  });
-
-  it("the box does not move, because the press already owns it", () => {
-    /* A done state lands milliseconds after a press, and the press owns the sink and the
-       0.975 scale. A second geometry channel on the same box would make the two
-       indistinguishable — so the ONLY thing that may differ between done and not-done is the
-       width, which is the label's own change. */
+  it("the box does not move — only the glyph and the label change", () => {
+    /* The ONLY thing that may differ between done and not-done is the width, which is the
+       label's own change. */
     const off = mounted(<Button leading={<svg />} done={false}>Copy</Button>, { theme: {} });
     const on = mounted(<Button leading={<svg />} done>Copy</Button>, { theme: {} });
     expect(computed(on, "translate")).toBe(computed(off, "translate"));
     expect(computed(on, "scale")).toBe(computed(off, "scale"));
     expect(computed(on, "block-size")).toBe(computed(off, "block-size"));
-  });
-
-  it("the width travels, and only for a button that has a done state", () => {
-    /* Kushagra's call (2026-09-02), asked as a choice: travel the width or reserve the wider
-       word. Travelling means the width is a real geometry change on the geometry clock — and
-       `interpolate-size` is what makes an intrinsic width interpolable at all.
-
-       BOTH ARMS. An ordinary button must keep a dead width channel, because putting a live one
-       in the shared layer would animate the width of every field, select trigger and segmented
-       track in the system — which is what the first spelling did, and two of the skeleton's own
-       clock laws caught it. */
-    const armed = mounted(<Button leading={<svg />} done={false}>Copy</Button>, { theme: {} });
-    inMotion();
-    const clock = (el: HTMLElement) => {
-      const listed = computed(el, "transition-property").split(",").map((p) => p.trim());
-      const durations = computed(el, "transition-duration").split(",").map((d) => d.trim());
-      const at = listed.indexOf("inline-size");
-      expect(at, "the width channel must be in the skeleton's list").toBeGreaterThan(-1);
-      return Number.parseFloat(durations[at]!);
-    };
-    expect(clock(armed), "a done-capable button travels its width").toBeGreaterThan(0);
-    const plain = mounted(<Button leading={<svg />}>Copy</Button>, { theme: {} });
-    inMotion();
-    expect(clock(plain), "every other control keeps a dead width channel").toBe(0);
   });
 
   it("done does not block the press, where loading does", () => {
@@ -1733,7 +1508,7 @@ describe("the done state reports an outcome in place (§8, §29)", () => {
        is what a shared constant is FOR — comparing the two sources would only prove they both
        import something. */
     const button = mounted(<Button done>Copied</Button>, { theme: {} });
-    const tick = within(button, ".kui-button-swap-to path");
+    const tick = within(button, ".kui-button-tick path");
     const box = mounted(<Checkbox checked />, { theme: {} });
     const mark = within(box, ".kui-checkbox-check");
     expect(tick.getAttribute("d")).toBe(mark.getAttribute("d"));
@@ -1747,10 +1522,10 @@ describe("the done state reports an outcome in place (§8, §29)", () => {
        doc asks for one. An announced tick beside an unchanged label would say the opposite of
        what happened on an icon-only button.
 
-       Read on the SPAN that wraps it, because that is where the attribute is written and an
-       svg with no role is not automatically silent. */
+       Read on the svg itself, because that is where the attribute is written and an svg with no
+       role is not automatically silent. */
     const el = mounted(<Button leading={<svg />} done>Copied</Button>, { theme: {} });
-    expect(within(el, ".kui-button-swap-to").getAttribute("aria-hidden")).toBe("true");
+    expect(within(el, ".kui-button-tick").getAttribute("aria-hidden")).toBe("true");
   });
 
   it("an icon-only button swaps its CHILD, because there the glyph IS the label", () => {
@@ -1764,7 +1539,8 @@ describe("the done state reports an outcome in place (§8, §29)", () => {
       </Button>,
       { theme: {} },
     );
-    expect(el.querySelectorAll(".kui-button-swap").length, "exactly one swap").toBe(1);
-    expect(within(el, ".kui-button-swap-from svg").hasAttribute("data-original")).toBe(true);
+    expect(el.querySelectorAll(".kui-button-tick").length, "exactly one tick").toBe(1);
+    expect(el.querySelectorAll(":scope > .kui-button-tick").length, "the tick replaced the child").toBe(1);
+    expect(el.querySelector("[data-original]"), "the child is still beside the tick").toBeNull();
   });
 });

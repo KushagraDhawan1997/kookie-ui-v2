@@ -970,9 +970,9 @@ describe("material on a control: backdrop defense, three environments (§10)", (
 
    SO THIS IS AN ALLOWLIST, NOT A BAN. Four raw scrollers are legitimate and each is named with
    the reason it is not a ScrollArea; a fifth fails here until someone writes down why. That is
-   the same shape as the box-shadow count and the animation-timing opt-outs, and it is the only
-   shape that answers "why does this keep coming back": a rule nothing reads is a rule that gets
-   re-broken by the next person who has not read it.
+   the same shape as the box-shadow count, and it is the only shape that answers "why does this
+   keep coming back": a rule nothing reads is a rule that gets re-broken by the next person who
+   has not read it.
 
    BOTH DIRECTIONS, because an allowlist that is only checked one way rots into a list of things
    that used to be true: an entry naming a rule no stylesheet has any more is a stale exemption,
@@ -980,16 +980,11 @@ describe("material on a control: backdrop defense, three environments (§10)", (
 describe("a raw scroll container is named, or it is a defect (§3, 2026-09-04)", () => {
   const ALLOWED: Record<string, string> = {
     // The one box in a dialog the reader must be able to reach the overflow of, and it PADS
-    // itself for the ring's reach (2026-08-21, "focus is being cut"). It cannot be a ScrollArea:
-    // it is the box the entry blurs, so the flight owns its geometry.
+    // itself for the ring's reach (2026-08-21, "focus is being cut").
     ".kui-dialog-viewport": "the viewport a sheet scrolls in — Base UI's own box",
     ".kui-dialog-popup .kui-dialog-body": "the sheet's body, which bleeds and re-pads by hand",
     ".kui-alert-viewport": "the alert's viewport, the dialog's own arrangement",
-    // §11 — and NOT the dialog body's reason one line up, which is why it is written out. A
-    // sheet has no flight and no blur: there is no entry that owns this box's geometry, so
-    // "the flight owns it" would be an exemption taken on a premise that is false here.
-    //
-    // The reason it cannot be a ScrollArea is that it is not ours. The sheet's body IS Base
+    // §11. The reason it cannot be a ScrollArea is that it is not ours. The sheet's body IS Base
     // UI's `Drawer.Content`, and the element carries the gesture contract: `data-drawer-content`
     // is what refuses a MOUSE drag inside it, so text in a sheet stays selectable while a touch
     // still swipes the panel away (DrawerViewport's `isDrawerContentTarget`, which reads
@@ -1069,16 +1064,15 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     // AND IT COULD NOT SEE AN OBSERVER (audit 2026-08-26). The regex read React pointer props
     // and four listener names and nothing else — so `new ResizeObserver(() => { …
     // getBoundingClientRect(); el.style.setProperty(…) })`, which is per-frame measurement
-    // during a drag or a resize, passed it untouched. That is not an obscure shape: it is how
-    // ALL FOUR of the bounded exceptions the doctrine names are implemented (the lens, the
-    // entry flight, the segmented thumb, the Tabs indicator), so the law's blind spot was
-    // exactly the class of thing its own doctrine had to carve out — "a law narrower than the
-    // rule it enforces", which this repo already counts as a finding.
+    // during a drag or a resize, passed it untouched. That is not an obscure shape: it was how
+    // every bounded exception the doctrine named at the time was implemented, so the law's
+    // blind spot was exactly the class of thing its own doctrine had to carve out — "a law
+    // narrower than the rule it enforces", which this repo already counts as a finding.
     //
-    // The exemptions are per-file AND per-mechanism, and the two `addEventListener` entries are
+    // The exemptions are per-file AND per-mechanism, and the `addEventListener` entries are
     // narrowed with them: written as the bare stem they matched every hit of that arm, since
-    // every hit literally begins with `addEventListener(` — so a `mousemove` listener added to
-    // floating.tsx would have passed under a comment saying "never per-frame pointer tracking".
+    // every hit literally begins with `addEventListener(` — so a `mousemove` listener would
+    // have passed under a comment saying "never per-frame pointer tracking".
     const EXEMPT: Record<string, readonly string[]> = {
       // The caret-on-click contract (§4): a click on the wrapper's padding must focus the
       // input. That is a POINTER-DOWN commitment, not per-frame interaction work.
@@ -1103,70 +1097,31 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
       // One pointer-down commitment each, no per-frame work.
       "components/combobox/combobox.tsx": ["onMouseDown"],
       "components/number-field/number-field.tsx": ["onMouseDown"],
-      // The floating layer's seam (§20/§22): the entry runner holds the page during the
-      // opening frames and observes its own transitions — mount/flight machinery, the seam
-      // the doctrine names, never per-frame pointer tracking. THE FLIGHT MEASUREMENT is the
-      // first of the doctrine's four bounded exceptions (DECISIONS §22): the panel's box is
-      // measured on the mount frame and the pose is stamped from it.
-      "system/floating.tsx": [
-        'addEventListener("scroll',
-        "new MutationObserver",
-        "requestAnimationFrame",
-        // The flight measurement itself. The panel's box is read on the mount frame and the
-        // pose is stamped from it; the entry is what these reads serve, start to finish.
-        "getBoundingClientRect",
-        "getComputedStyle",
-        /**
-         * THE FLIGHT'S CONTENT WATCHER (§23, audit 2026-09-12, C3) — the same bounded
-         * exception as the measurement above, on the one member whose content moves inside it.
-         *
-         * The entry animates to a MEASURED length, because CSS cannot interpolate to `auto`
-         * outside Chromium, and every member until Combobox holds whatever it was rendered
-         * with — so one measurement was the whole truth. A combobox is opened BY TYPING into
-         * it, so its list narrows while the box is still travelling toward a height that
-         * describes a list that is no longer there: measured at 130ms per key, "par" left one
-         * row inside an 86px box which snapped 86 → 56 at release, and backspacing left nine
-         * rows inside a 146px box whose viewport reported `clientHeight === scrollHeight`, so
-         * the rows could not be reached at all until the flight ended.
-         *
-         * WHY IT IS NOT WHAT THE RULE FORBIDS. The doctrine is that STATE styling costs no
-         * frames — hover, press and focus are served by the stylesheet so they stay instant
-         * while the main thread is busy — and this paints nothing and answers no state. It is
-         * a `ResizeObserver`, so it is LAYOUT reporting rather than an event being handled:
-         * there is no keystroke handler, no pointer handler and no polling, and a keystroke
-         * that does not change the list's box produces no callback at all. It is armed at
-         * DEPARTURE and disconnected at RELEASE (`followContent` / `release` in this file), so
-         * it cannot exist outside the ~700ms of one entry, and it is confined behind
-         * `FlightPlan.followsContent` so every other member is byte-identical by construction.
-         * What it writes is one custom property — the flight's own target — never a paint.
-         *
-         * Stated honestly: it CAN fire on a keystroke, and that is the thing it exists to do.
-         * The alternative is the `interpolate-size` channel the settled panel already uses
-         * (combobox.css), which the flight cannot reach because the flight's destination is a
-         * measured length for the engines that lack it.
-         */
-        "new ResizeObserver",
-      ],
-      // THE LENS (DECISIONS §10, the second bounded exception): built on mount and on resize,
-      // never on hover, press, focus or scroll — and never while a pane is flying (2026-08-22).
-      // Its only listener is `change` on a MediaQueryList, which this regex does not ban at
-      // all, so it needs no listener exemption; what it needs is the two observers.
+      // The floating layer (§20): a portalled panel takes its author's direction, so the
+      // ambient direction is READ off the trigger (or the document) and a MutationObserver on
+      // the document element catches a language switch that changes `dir` with no React render.
+      // Neither runs on hover, press, focus or scroll. The frame is the DEV-ONLY accessible-name
+      // warning, which waits one frame for Base UI's `aria-labelledby` and writes no style.
+      "system/floating.tsx": ["new MutationObserver", "requestAnimationFrame", "getComputedStyle"],
+      // THE LENS (DECISIONS §10, a bounded exception): built on mount and on resize, never on
+      // hover, press, focus or scroll. Its only listener is `change` on a MediaQueryList, which
+      // this regex does not ban at all, so it needs no listener exemption; what it needs is the
+      // observer.
       "system/refraction.tsx": [
         "new ResizeObserver",
-        "new MutationObserver",
         // The pane's box and corner, which is WHAT a displacement map is computed from.
         "getBoundingClientRect",
         "getComputedStyle",
       ],
-      // THE SEGMENTED THUMB (DECISIONS §26, the fourth bounded exception): the selection is
-      // watched through `data-checked` because an uncontrolled RadioGroup never re-renders the
+      // THE SEGMENTED THUMB (DECISIONS §26, a bounded exception): the selection is watched
+      // through `data-checked` because an uncontrolled RadioGroup never re-renders the
       // component, and the seats are measured because a squeezed track's segments are NOT
       // equal (measured 62/62/72 at 200px where arithmetic answers 65.3).
       "components/segmented-control/segmented-control.tsx": [
         "new MutationObserver",
         "new ResizeObserver",
-        // The seats, which are NOT equal on a squeezed track (measured 62/62/72 at 200px where
-        // arithmetic answers 65.3) — the measurement the exception was granted for.
+        // The seats, which are NOT equal on a squeezed track — the measurement the exception
+        // was granted for.
         "getBoundingClientRect",
         "getComputedStyle",
       ],
@@ -1259,7 +1214,7 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
         "getComputedStyle",
       ],
       "components/shell/shell.tsx": [
-        // ── The tab bar's thumb (§27, 2026-09-09): the segmented control's `useTravelingThumb`,
+        // ── The tab bar's thumb (§27, 2026-09-09): the segmented control's thumb measurement,
         // self-keyed as its second member, and its exception with it. Seats are equal only
         // while the row sizes itself, so index arithmetic answers the wrong question (that
         // component's own 2026-08-23 measurement); the current seat is watched through
@@ -1447,13 +1402,12 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     // asserted is that no :hover declaration exists outside a guard.
     //
     // IT WALKS NOW (audit 2026-08-26). The claim is package-wide (DECISIONS §8) and the law
-    // read `recipes` — ONE file — so three component guards were asserted by nothing at all:
-    // button.css's 1px hover rise, select.css's and link.css's. Deleting any of those three
-    // `@media (hover: hover)` wrappers left the whole suite green while every button pressed on
-    // a phone stayed hanging above the page, which is verbatim the failure this law's own first
-    // sentence describes. Same shape as the box-shadow count, the focus-ring count and audit
-    // D14: an "every X" claim guarded by a law that reads one file. `allStylesheets()` is the
-    // mechanism eight laws in this file already use.
+    // read `recipes` — ONE file — so three component guards were asserted by nothing at all
+    // (button.css's, select.css's and link.css's at the time). Deleting any of those
+    // `@media (hover: hover)` wrappers left the whole suite green, which is verbatim the
+    // failure this law's own first sentence describes. Same shape as the box-shadow count, the
+    // focus-ring count and audit D14: an "every X" claim guarded by a law that reads one file.
+    // `allStylesheets()` is the mechanism eight laws in this file already use.
     const sheets = allStylesheets();
     expect(sheets.length, "the walk must find the stylesheets").toBeGreaterThan(2);
     let guarded = 0;
@@ -1474,232 +1428,31 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     expect(unguarded(recipes)).toContain(":active");
   });
 
-  it("the press keeps its colour instant — the 2026-08-03 finding, in CSS (§8)", () => {
-    // The finding that zeroed every transition for six days: a tap lasts about 60ms, so an
-    // eased press never reaches its colour and the control reads dead on a phone. Motion did
-    // not overturn it, it separated it — the paint clock is one variable, and press sets it to
-    // zero while the geometry keeps its spring. If that variable ever stops being zeroed here,
-    // every control in the library goes soft under the thumb.
+  it("the press rule outranks every lit rule — its selector is split on purpose (§8)", () => {
     // The selector is SPLIT into two `:not()`s on purpose (2026-09-01): `:not()` takes the
     // specificity of its most specific argument rather than summing its list, so the one-list
     // spelling sat at (0,3,0) and lost to three lit rules that had reached (0,4,0) by the same
-    // accident. Pinning the spelling here is what makes that deliberate rather than a typo.
+    // accident. Pinning the spelling here is what makes that deliberate rather than a typo; the
+    // mounted laws that hold a real press are the measurement — one per lit rule, because the
+    // three fail independently: `row.browser.test.tsx` ("a press outranks every rule that lights
+    // a row") holds a `data-hover-lit` row and a `data-highlighted` one, and
+    // `toggle.browser.test.tsx` ("a press outranks the toggle's own half-step") holds the third.
+    // They are NAMED here because they used to live in `system/motion.browser.test.tsx` and went
+    // with it when motion was removed (2026-09-20), leaving this sentence true of nothing.
     const press = block(sheet("system/recipes.css"), ".kui-control:active:not([data-disabled]):not([data-loading])");
-    expect(press).toMatch(/--kui-ct-paint:\s*0s/);
-    const hover = block(sheet("system/recipes.css"), ".kui-control:hover:not([data-disabled], [data-loading], :disabled)");
-    expect(hover).toContain("var(--motion-hover-in)");
-    // And the press swaps the GEOMETRY clock with it: down hard and fast, up long and lively.
-    // Deleting this pair leaves a press that recovers as abruptly as it strikes, which is one
-    // gesture where there should be two — and no mounted law can see it, because `:active` is
-    // the one interaction state a headless harness cannot genuinely produce.
-    expect(press, "a press strikes on its own clock").toContain("--kui-ct-move: var(--motion-press)");
-    expect(press).toContain("--kui-ct-move-ease: var(--motion-spring-stiff)");
-  });
-
-  it("a press belongs to the family that owns it (§8, 2026-08-09)", () => {
-    const recipes = sheet("system/recipes.css");
-    // The switch is a mark by FAMILY — it rides the mark ladder — and its press is not the
-    // family's. A checkbox and a radio ARE their glyph's box, so a press has nowhere to go but
-    // into the box; a switch is a channel with a grip in it, and squashing the channel moves
-    // the very thing the thumb is crossing (Kushagra, 2026-08-09).
-    // Found by what the rule DECLARES, not by the first selector that looks like it: the mark
-    // family opens with the target expander, which wears the same `:where(:not(…))` shape, and
-    // matching on that read a rule with nothing to do with pressing.
-    const squash = recipes.split("}").find((rule) => rule.includes("--press-squash"));
-    expect(squash, "the squash rule must exist at all").toBeDefined();
-    expect(
-      squash!.slice(squash!.lastIndexOf("*/") + 2, squash!.lastIndexOf("{")),
-      "the switch must be named out of the squash",
-    ).toContain(".kui-switch");
-
-    // The select trigger takes the BUTTON's distances (2026-08-10, Kushagra: "its also an
-    // onclick trigger") — a button in field dress, so its press states the same two tokens
-    // button.css states and invents no number of its own. Structural because `:active`
-    // cannot be produced headlessly; the rise half has a real-pointer law in the select
-    // browser suite.
-    const selectCss = sheet("components/select/select.css");
-    const triggerPress = selectCss
-      .split("}")
-      .find((rule) => rule.includes(".kui-select-trigger:active"));
-    expect(triggerPress, "the trigger must press like a button").toBeDefined();
-    expect(triggerPress!).toContain("var(--press-travel)");
-    expect(triggerPress!).toContain("var(--press-scale)");
-    expect(selectCss).toContain("calc(-1 * var(--hover-travel))");
-
-    // And the switch's own lean hangs off the ROOT, never off the thumb: `:active` matches the
-    // activated element and its ANCESTORS, never its descendants, so a thumb-keyed rule fires
-    // only when the pointer happens to land on the grip.
-    const switchCss = sheet("components/switch/switch.css");
-    expect(switchCss).toContain(".kui-switch:active");
-    for (const rule of switchCss.split("}")) {
-      if (!rule.includes("--thumb-lean")) continue;
-      const selector = rule.slice(rule.lastIndexOf("*/") + 2, rule.lastIndexOf("{"));
-      expect(selector, "the lean must be reached from the switch").toContain(".kui-switch:active");
-    }
-  });
-
-  /**
-   * Resolve the control layer's own hooks before judging a channel (§8).
-   *
-   * `--kui-ct-move` and `--kui-ct-paint` exist so a STATE can restate a clock without
-   * restating which properties it governs — press swaps both, hover swaps one. A law that
-   * stopped at the hook would be checking the indirection instead of the value behind it, so
-   * this substitutes EVERY declaration the sheet gives a hook and requires all of them to
-   * hold: a single arm pointing somewhere it should not is what this is for.
-   */
-  /**
-   * BOTH private stems, not just the control layer's (widened 2026-08-17). This was written
-   * when `.kui-control` was the only thing in the package that moved, so it knew `--kui-ct-`
-   * and nothing else. The day the interactive surface got its two clocks, its channels read
-   * `var(--kui-sf-move)` — a hook this could not follow — and the two laws below reported a
-   * correctly-sprung translate as unsprung and a correctly-tokenised duration as hand-typed.
-   * They were right to fail: an unresolvable hook is indistinguishable from a made-up one.
-   * The stems are the layers' own (`ct` control, `sf` surface, §12's namespace rule), so a
-   * third layer that starts moving joins here rather than getting a law of its own.
-   */
-  /**
-   * A component may READ the layer's hooks, so the layer's declarations count (2026-09-01).
-   *
-   * `--kui-ct-paint` and `--kui-ct-move` are declared once, on `.kui-control` in recipes.css,
-   * and a component that wears that class reads them by membership — the same mechanism the
-   * segmented control uses for `--kui-ct-h`. Resolving a component's channel against its own
-   * file alone therefore reports a correctly-tokenised clock as undeclared, which is what
-   * happened the moment the accordion's heading had to restate the skeleton's transition list
-   * to add a channel to it. The stems still have to resolve SOMEWHERE, which is the half of
-   * this that catches an invented hook.
-   */
-  /**
-   * A TRANSITION LIST IS SPLIT AT ITS TOP-LEVEL COMMAS, never at every comma (2026-09-12, the
-   * ship audit — the defect was in the law).
-   *
-   * Both laws below walk a `transition` shorthand channel by channel, and both took
-   * `body.split(",")`. That is right until a channel carries a function with arguments, and the
-   * package's own grammar guarantees one eventually will: a var() with a fallback is how every
-   * hook in this system is written. Sheet is where it arrived — `transform
-   * calc(var(--motion-drawer) * var(--drawer-swipe-strength, 1)) var(--motion-spring-carried)`
-   * is ONE channel, and the naive split cut it into two at the fallback's comma, handing the
-   * second law a fragment with no property and the first a duration with no easing. The
-   * stylesheet was correct and the sibling motion-token law passed on the same declaration,
-   * which is the tell: two laws reading one string disagreed, so the disagreement was the
-   * instrument's.
-   *
-   * Depth-counted rather than regex'd, because the nesting is real (`calc(var(…, 1))`) and a
-   * regex that balances parentheses is a parser wearing a pattern's name.
-   */
-  function channels(body: string): string[] {
-    const out: string[] = [];
-    let depth = 0;
-    let start = 0;
-    for (let i = 0; i < body.length; i++) {
-      const c = body[i];
-      if (c === "(") depth += 1;
-      else if (c === ")") depth -= 1;
-      else if (c === "," && depth === 0) {
-        out.push(body.slice(start, i));
-        start = i + 1;
-      }
-    }
-    out.push(body.slice(start));
-    return out;
-  }
-
-  const withLayers = (file: string): string =>
-    file.startsWith("system/")
-      ? sheet(file)
-      : `${sheet(file)}\n${sheet("system/recipes.css")}\n${sheet("system/surfaces.css")}`;
-
-  function resolveHooks(sheetBody: string, channel: string): string {
-    return channel.replace(/var\((--kui-(?:ct|sf)-[\w-]+)\)/g, (_, name: string) => {
-      const declared = [...sheetBody.matchAll(new RegExp(`${name}:\\s*([^;]+);`, "g"))].map(
-        (m) => m[1]!.trim(),
-      );
-      expect(declared.length, `${name} is used but never declared`).toBeGreaterThan(0);
-      return declared.join(" ");
-    });
-  }
-
-  it("every transition in the package rides a motion token (§8)", () => {
-    // The guard against accretion, and it replaces the whitelist it grew out of. While one
-    // stylesheet moved, naming that sheet was the whole law; now that the control layer moves,
-    // what keeps motion from being invented one component at a time is that a duration cannot
-    // be typed in. A raw `150ms` because it "felt right" fails here.
-    for (const file of allStylesheets()) {
-      for (const declaration of [...sheet(file).matchAll(/[^-\w]transition\s*:([^;]+);/g)]) {
-        const body = declaration[1]!;
-        if (body.trim() === "none") continue;
-        for (const raw of channels(body)) {
-          const channel = resolveHooks(withLayers(file), raw);
-          // The var() references are STRIPPED before the check, which is the whole law: the
-          // first spelling asked whether the channel mentioned a motion token anywhere, and
-          // every channel does — its easing is one. So `scale 150ms var(--motion-spring-stiff)`
-          // passed while carrying exactly the hand-typed duration this exists to forbid.
-          for (const literal of channel.replace(/var\([^)]*\)/g, "").match(/\d*\.?\d+m?s/g) ?? []) {
-            expect(literal, `${file}: ${raw.trim()} — hand-typed duration`).toBe("0s");
-          }
-          // Five clock families: the control clocks (--motion-*), the floating panes'
-          // (--floating-*), the alert's materialization (--overlay-*, §24/§25), the
-          // dialog's own entry (--dialog-*, 2026-08-16 — depth, not distance) and the
-          // tooltip's lift (--tooltip-*, 2026-08-31, §32 — one geometry clock and one paint
-          // clock, its own because a label's entry shares the family's spring and nothing
-          // else). A family shares the grammar, never the token home; `alert` is listed
-          // against the day its prefix is renamed to match the component that owns those
-          // clocks.
-          expect(channel, `${file}: ${raw.trim()}`).toMatch(/var\(--(motion|floating|overlay|alert|dialog|tooltip)-[\w-]+\)|\b0s\b/);
-        }
-      }
-    }
-  });
-
-  it("geometry rides a spring, paint eases — the two clocks, everywhere (§8)", () => {
-    // Widened from the one moving sheet to all of them (2026-08-09). A colour on a spring
-    // reads as a wobble and a box on a bezier reads as a slideshow; the split is what makes
-    // the system read as physical rather than as a set of tastefully chosen curves.
-    // box-shadow is LIGHT, not mass (added 2026-08-10, the morph's opaque seed): the floating
-    // cast fades up as the panel lifts, and light on a spring would wobble.
-    // `filter` joined 2026-08-14 with the molten pass: blur is FOCUS, a property of the
-    // viewer's read, not of the box — a signal, so it eases like the rest of the paint.
-    // `text-decoration-color` joined 2026-08-21 with Link, and it is the same category as
-    // `border-color` one property over: a colour, on a line the component already draws.
-    // It was absent only because nothing in the package had ever moved an underline.
-    // `visibility` joined 2026-09-06 with the shell's drawer, and it is neither of the two —
-    // which is why it needs stating rather than defaulting to the geometry arm. It is a
-    // DISCRETE property: it does not interpolate, it flips once, at the start of an entry and
-    // at the end of an exit. A spring on it is meaningless (there is nothing to overshoot) and
-    // an easing on it means only "flip at the far end", which is exactly the job — it is what
-    // keeps a closing drawer on screen for the length of its own exit. Grouped with paint
-    // because paint is where the timing-function is a signal rather than a physics.
-    const PAINT = new Set(["background-color", "border-color", "color", "opacity", "fill", "stroke", "box-shadow", "filter", "text-decoration-color", "visibility"]);
-    for (const file of allStylesheets()) {
-      for (const declaration of [...sheet(file).matchAll(/[^-\w]transition\s*:([^;]+);/g)]) {
-        const body = declaration[1]!;
-        if (body.trim() === "none") continue;
-        for (const raw of channels(body)) {
-          const [property] = raw.trim().split(/\s+/);
-          if (!property) continue;
-          const channel = resolveHooks(withLayers(file), raw);
-          if (channel.includes("0s") && !channel.includes("--motion-spring")) continue;
-          if (PAINT.has(property)) {
-            expect(channel, `${file}: ${property} is a signal, it must not spring`).not.toContain("--motion-spring");
-          } else {
-            expect(channel, `${file}: ${property} moves a box, it must spring`).toMatch(
-              /var\(--motion-spring(-driven|-carried|-stiff|-lively|-elastic|-poised)?\)/,
-            );
-          }
-        }
-      }
-    }
+    expect(press).toContain("background-color: var(--kui-ct-fill-active, var(--kui-ct-fill-src-active))");
   });
 
   it("a var() without a fallback resolves SOMEWHERE — a dangling name is a disarmed declaration (2026-08-14)", () => {
     /**
-     * The floating body's counter-squish shipped reading `var(--floating-rise)` — a token
-     * that never existed — and because a dangling var() invalidates its whole declaration at
-     * computed-value time, the transition was silently absent from the day it shipped while
-     * every law read the rules around it (found by Kushagra in the lab: "the text doesn't
-     * move or stretch with it"). Nothing walked the sheets for names that resolve nowhere;
-     * this is that walk. A var() WITH a fallback is a hook — deliberately undeclared names
-     * are how the world tokens, the JS-written measurements and the per-state hooks all
-     * work — so the law binds only the fallback-less form, which has no second answer.
+     * A rule once shipped reading `var(--floating-rise)` — a token that never existed — and
+     * because a dangling var() invalidates its whole declaration at computed-value time, the
+     * declaration was silently absent from the day it shipped while every law read the rules
+     * around it (found by Kushagra in the lab). Nothing walked the sheets for names that
+     * resolve nowhere; this is that walk. A var() WITH a fallback is a hook — deliberately
+     * undeclared names are how the world tokens, the JS-written measurements and the
+     * per-state hooks all work — so the law binds only the fallback-less form, which has no
+     * second answer.
      */
     const declared = new Set<string>();
     const declaration = /(?:^|[{;\s])(--[\w-]+)\s*:/g;
@@ -1714,22 +1467,17 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     }
     // Names only the runtime writes, read without a fallback on purpose (each is set before
     // the rule that reads it can match). Additions here need the same sentence.
-    // --kui-anchor-w: the entry's synchronous width floor, written in begin() before the
-    //   floor chains consult it.
     // (--kui-floating-gap left this list 2026-08-22: it was written by MenuContent and
     //   SelectContent and read by NOTHING — four references in the whole tree, two writers and
-    //   this allowlist, whose own sentence vouched for a read that did not exist. Both source
-    //   comments said "the entry reads it as a var"; the lean became a measured translate on
-    //   2026-08-15 and the var was never taken out. An allowlist entry is a promise that a name
-    //   is read somewhere the law cannot see, so an entry for a name nobody reads is the one
-    //   thing it must never contain.)
+    //   this allowlist, whose own sentence vouched for a read that did not exist. An allowlist
+    //   entry is a promise that a name is read somewhere the law cannot see, so an entry for a
+    //   name nobody reads is the one thing it must never contain.)
     // --scroll-area-thumb-height/-width: Base UI's OWN published measurements, written onto
     //   the thumb it renders (2026-08-17). They are the one case here the library does not
     //   write itself, and they take no fallback on purpose: there is no honest default extent
     //   for a thumb — a guessed one would paint a wrong-length bar on the frame before the
     //   measurement lands, which is worse than the rule not matching at all.
     const runtime = new Set([
-      "--kui-anchor-w",
       "--scroll-area-thumb-height",
       "--scroll-area-thumb-width",
     ]);
@@ -1750,187 +1498,22 @@ describe("interaction is stylesheet work, checkably (ENGINEERING §1.5)", () => 
     expect(reads, "the walk read nothing — the regex broke, not the sheets").toBeGreaterThan(200);
   });
 
-  it("nothing moves that is not stood down under reduced motion (§8)", () => {
-    // Coverage, not the existence of a block: the cheapest way to satisfy "has a
-    // prefers-reduced-motion rule" is one that stands down something else. This law's own
-    // first comment claimed the shared `.kui-control *` block covered every moving part a
-    // control owns — false by cascade (2026-08-10): a part declared in a later file ties or
-    // outruns it, so each sheet that declares a clock now carries its own stand-down on the
-    // declaring selector, and the `continue` below is that obligation's shape — a file with
-    // transitions either wears the guarded block or declares only inside the shared scope.
-    // The PROOF is mounted (motion.browser.test.tsx enters the media query and reads the
-    // parts); this law keeps the shape.
-    //
-    // AND IT ASKS THE QUESTION NOW (audit 2026-08-26). The spelling above was two `continue`s:
-    // any file containing the string `@media (prefers-reduced-motion: reduce)` ANYWHERE was
-    // skipped whole, so the per-selector check that is this law's entire stated obligation was
-    // never reached for the files that carry a guard — which is every file that has anything to
-    // stand down. tabs.css and segmented-control.css are the exposed pair: the travelling
-    // highlight is the ONE moving part `.kui-control *` cannot reach (the tab rule is a child
-    // of `.kui-tabs-list`, which wears no control class) and the segment thumb's declaring
-    // rules outrank it, so each one's local stand-down is the only defence — and renaming,
-    // narrowing or re-ordering that stand-down's selector left all ~1,900 laws green. The check
-    // is per RULE now: a selector that declares a clock must either be inside the shared scope
-    // or appear in a guarded block.
-    //
-    // Coverage is allowed to be CROSS-FILE, because the system deliberately uses it: dialog.css
-    // declares the panel's clocks and surfaces.css stands them down, and surfaces.css states
-    // why in so many words — "a stand-down must weigh what it stands down", so the guard is
-    // written where the recipe's own weight is. The union of every guarded block in the package
-    // is therefore the right denominator; what this law forbids is a clock NO block anywhere
-    // names.
-    //
-    // `transition: none` is not a clock, and saying so needs care: the old test
-    // `/transition\s*:\s*(?!none)/` matches `transition: none` — `\s*` backtracks to zero
-    // width and the lookahead then sees " none" rather than "none" — so every stand-down in the
-    // package counted as a declaration. The value is read and compared instead.
-    const GUARD = "@media (prefers-reduced-motion: reduce)";
-    const shared = sheet("system/recipes.css");
-    const sharedGuard = shared.indexOf(GUARD);
-    expect(sharedGuard, "the shared layer must stand its own motion down").toBeGreaterThan(-1);
-    for (const covered of [".kui-control", ".kui-control *", ".kui-mark"]) {
-      expect(shared.slice(sharedGuard), covered).toContain(covered);
-    }
-
-    /** Every `@media (prefers-reduced-motion: reduce)` block in a sheet, brace-matched — EVERY
-        one, not the first, and its body separately from its span so the scan below can remove
-        the region and still read what it covered. */
-    const guardsIn = (css: string): { start: number; end: number; body: string }[] => {
-      const found: { start: number; end: number; body: string }[] = [];
-      let start = css.indexOf(GUARD);
-      while (start !== -1) {
-        const open = css.indexOf("{", start);
-        let depth = 0;
-        let i = open;
-        for (; i < css.length; i += 1) {
-          if (css[i] === "{") depth += 1;
-          else if (css[i] === "}") {
-            depth -= 1;
-            if (depth === 0) break;
-          }
-        }
-        found.push({ start, end: i, body: css.slice(open + 1, i) });
-        start = css.indexOf(GUARD, i);
-      }
-      return found;
-    };
-
-    const files = allStylesheets();
-    const bodies = new Map(files.map((f) => [f, sheet(f)]));
-    const standDowns = files
-      .flatMap((f) => guardsIn(bodies.get(f)!).map((g) => g.body))
-      .join("\n");
-    expect(standDowns.length, "no sheet stands anything down — the walk found nothing").toBeGreaterThan(200);
-
-    const COVERED = /\.kui-(control|mark|button|checkbox|radio|switch|field|textarea|slider|row)\b/;
-    const DECLARES = /[^-\w]transition\s*:([^;}]*)/g;
-    let checked = 0;
-    for (const file of files) {
-      // The guarded regions themselves are removed: a stand-down is not a clock, and a guarded
-      // block may legitimately carry a SLOWED one (the spinner's motion-as-content answer).
-      let outside = bodies.get(file)!;
-      for (const g of guardsIn(outside).reverse()) {
-        outside = outside.slice(0, g.start) + outside.slice(g.end + 1);
-      }
-      for (const rule of outside.split("}")) {
-        const clocks = [...rule.matchAll(DECLARES)]
-          .map((m) => m[1]!.trim())
-          .filter((v) => v !== "" && v !== "none");
-        if (clocks.length === 0) continue;
-        const selector = rule.slice(rule.lastIndexOf("*/") + 2, rule.lastIndexOf("{")).trim();
-        if (!selector) continue;
-        checked += 1;
-        if (COVERED.test(selector)) continue;
-        // Every selector in the list must be named by SOME guarded block, verbatim — a
-        // narrowed stand-down (one of two directions, say) leaves the other one unnamed and
-        // fails here, which is exactly what the blanket `continue` could not see.
-        for (const part of selector.split(",").map((x) => x.trim()).filter(Boolean)) {
-          expect(
-            standDowns,
-            `${file}: \`${part}\` declares a clock (${clocks.join("; ")}) that no reduced-motion block stands down`,
-          ).toContain(part);
-        }
-      }
-    }
-    // VACUITY. A parse that found no declaring rules — a renamed property, a split that ate the
-    // selectors — satisfies every assertion above by making none of them. 20 is well under
-    // today's count and well over zero.
-    expect(checked, "the scan found no clocks at all").toBeGreaterThan(20);
-  });
-
-  it("and an ANIMATION is stood down too — the half this law was missing (§8, 2026-08-10)", () => {
-    // This law walked `transition` and nothing else, so the focus ring — an `animation`, because
-    // there is no previous outline-offset to travel from — was never in its scope at all. It went
-    // on landing under `prefers-reduced-motion: reduce` for six days. The mounted law in
-    // system/motion.browser.test.tsx is what actually proves the suppression now (it enters the
-    // media query and reads the computed value); this one keeps the SHAPE, so a new animation
-    // cannot be added without joining one of the two answers the system has.
+  it("every animation in the package has a reduced-motion answer (§8)", () => {
+    // Every animation in the package is motion that IS the content — the Spinner, the
+    // indeterminate Progress bar, the Attachment's upload sweep — and each keeps its own
+    // answer under `prefers-reduced-motion: reduce`: slowed, never stopped, because an
+    // indicator that stops moving is information lost. So a sheet that declares an animation
+    // owns a guarded block.
     for (const file of allStylesheets()) {
       const body = sheet(file);
       for (const declaration of [...body.matchAll(/[^-\w]animation\s*:([^;]+);/g)]) {
         const value = declaration[1]!.trim();
         if (value === "none") continue;
-        // Answer one: it reads the arrival hook, which the shared layer stands down below.
-        if (value.includes("var(--kui-ct-ring)")) continue;
-        // Answer two: it is motion that IS the content (a spinner, an indeterminate bar), which
-        // keeps its own answer — slowed, never stopped — and therefore owns a guarded block.
         expect(
           body,
-          `${file}: \`${value}\` neither reads the hook nor stands itself down`,
+          `${file}: \`${value}\` has no reduced-motion answer`,
         ).toContain("@media (prefers-reduced-motion: reduce)");
       }
-    }
-  });
-
-  it("every selector that declares an arrival is a selector that stands it down (§8)", () => {
-    // The agreement the specificity bug needed. Standing the HOOK down rather than the rules
-    // that read it means the recipe and its stand-down share a selector — so the tie goes to
-    // source order and can never again be lost by one point of arithmetic nobody redid. That
-    // only holds while the two lists MATCH, which is what this reads.
-    const guard = recipes.indexOf("@media (prefers-reduced-motion: reduce)");
-    expect(guard).toBeGreaterThan(-1);
-    const declarers = (region: string) =>
-      [...region.matchAll(/([^{}]+)\{[^{}]*--kui-ct-ring\s*:[^{}]*\}/g)]
-        .flatMap((m) => m[1]!.split(","))
-        .map((s) => s.slice(s.lastIndexOf("*/") + 2).trim())
-        .filter(Boolean)
-        .sort();
-    const declared = declarers(recipes.slice(0, guard));
-    const suppressed = declarers(recipes.slice(guard));
-    expect(declared.length, "the arrivals must be declared somewhere").toBeGreaterThan(0);
-    expect(suppressed, `declared on ${declared.join(" / ")}`).toEqual(declared);
-  });
-
-  it("the panel families are inside the reduced-motion guard at all (§8)", () => {
-    /**
-     * Narrowed 2026-08-16, and the narrowing is the point. This law used to scan the guarded
-     * region for the WORDS the stand-down was expected to contain — margin, translate, scale,
-     * opacity, inline-size, block-size, filter — which never asked which selector carried
-     * them, whether that selector won, or whether the rule was reachable at all. It was green
-     * through the whole life of the two defects the mounted laws found in an afternoon (an
-     * aim gate that outweighed its own stand-down; a width floor released by a pose nothing
-     * restored), and it went red on the day those undo rules were correctly DELETED — a law
-     * that fails on the fix and passes on the defect is worse than no law.
-     *
-     * What a text scan can honestly claim is membership: both panel families, their bodies
-     * and a menu's rows are named inside the guard, and the guard turns their clocks off. What
-     * they then COMPUTE is asserted where it can be measured — menu.browser.test.tsx and
-     * alert-dialog.browser.test.tsx, "suppression is total", both falsified against the
-     * shipped code.
-     */
-    const body = sheet("system/surfaces.css");
-    const guard = body.indexOf("@media (prefers-reduced-motion: reduce)");
-    expect(guard, "the guard exists").toBeGreaterThan(-1);
-    const suppressed = body.slice(guard);
-    expect(suppressed).toMatch(/transition:\s*none/);
-    for (const member of [
-      ".kui-surface.kui-floating",
-      ".kui-floating-body",
-      ".kui-surface.kui-alert-popup",
-      ".kui-overlay-body",
-      ".kui-row",
-    ]) {
-      expect(suppressed, `${member} is inside the guard`).toContain(member);
     }
   });
 
@@ -2090,11 +1673,10 @@ describe("tokens only: no raw length literals in a hand-authored stylesheet (non
     withoutObligatoryDescriptors(sheet(file))
       // …and a `var()` FALLBACK of zero is the same descriptor by another spelling (2026-08-29).
       // The exemption above says a registered <length> "must declare the value it computes to
-      // when the cascade gives it nothing, and that is 0px by definition"; a name the RUNNER
-      // writes cannot be registered — `--kui-fly-bw` is read as `var(--kui-fly-bw, auto)` on the
-      // body, and an `initial-value` would make that fallback unreachable and size every settled
-      // floating body at zero — so the same declaration is made at the reader instead. Matched
-      // STRUCTURALLY, by position inside a `var()`, so a real literal anywhere else still fails.
+      // when the cascade gives it nothing, and that is 0px by definition"; a hook another
+      // element or the runtime writes is left unregistered, so the same declaration is made at
+      // the reader instead. Matched STRUCTURALLY, by position inside a `var()`, so a real
+      // literal anywhere else still fails.
       .replace(/var\(\s*--[\w-]+\s*,\s*0px\s*\)/g, "var(--zero)")
       // At-rule PRELUDES are not declarations. `@supports (backdrop-filter: blur(1px))` asks
       // the engine a question; it is the one place a length is a feature-detection token and
@@ -2116,11 +1698,8 @@ describe("tokens only: no raw length literals in a hand-authored stylesheet (non
 
   /**
    * EMPTY, and it stays empty (2026-08-26). The two live violations the old lookbehind was
-   * hiding were both the entry pose's content blur — the floating family's seed and the
-   * overlay family's — written as a raw `blur(6px)` while the identical number sat one rule
-   * over as a token. They were REPAIRED rather than exempted: the number left `dialogEntry`
-   * (whose name was true of its first consumer and of nothing else) and became `printBlur`,
-   * emitted as `--print-blur`, read by all three sites. The third consumer promotes.
+   * hiding were both a raw `blur(6px)` written while the identical number sat one rule over as
+   * a token. They were REPAIRED rather than exempted, by reading the token.
    *
    * The table is kept, exact in both directions, because an exemption list that has to be
    * re-created to be used is one nobody adds to casually — and because the law below fails

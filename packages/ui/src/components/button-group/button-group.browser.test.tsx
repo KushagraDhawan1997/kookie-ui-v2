@@ -157,21 +157,4 @@ describe("one box, several controls (§54)", () => {
     expect(Number(computed(middle, "z-index")), "the focused member is not lifted").toBeGreaterThan(0);
     expect(computed(last, "z-index"), "a member at rest is lifted too").toBe("auto");
   });
-
-  it("no member travels under the pointer — one moving alone tears the seam", async () => {
-    const root = mounted(
-      <ButtonGroup>
-        <Button>Day</Button>
-        <Button>Week</Button>
-      </ButtonGroup>,
-      { theme: {}, select: ".kui-button-group" },
-    );
-    const lone = mounted(<Button>Day</Button>, { theme: {} });
-    await userEvent.hover(lone);
-    expect(computed(lone, "translate"), "calibration: a hovered Button rises").not.toMatch(/^(none|0px)$/);
-    const first = members(root)[0]!;
-    await userEvent.hover(first);
-    expect(computed(first, "translate")).toMatch(/^(none|0px( 0px)?)$/);
-    await userEvent.unhover(first);
-  });
 });
