@@ -79,7 +79,7 @@ function surfaceFacts(el: HTMLElement) {
 
 describe("the pane is a CARD that floats (§10, §31)", () => {
   for (const size of SIZES) {
-    it(`size ${size}: the corner is the card's, and the padding is the PANEL band's`, () => {
+    it(`size ${size}: the corner and the padding are both the card's`, () => {
       // THE MEASUREMENT THIS COMPONENT'S FIRST HOUR TURNED ON. The concentric corner (§6, §22)
       // is a pane's corner derived from the corner of the ROWS inside it — row corner plus the
       // panel's own padding — and it was keyed on `.kui-floating`, which says where a pane sits
@@ -88,14 +88,14 @@ describe("the pane is a CARD that floats (§10, §31)", () => {
       // 42 / 54.25 / 71.75 / 89.25px against a Card's 38.7 / 51.6 / 64.5 / 77.4, rounder than a
       // card at every index. The arm is keyed on `kui-floating-rows` now, and this is the
       // equality that says so.
-      /* THE PADDING LEFT THE CARD BAND 2026-09-07, and the corner did not (Kushagra: "we need a
-         spacing scale for surfaces that are smaller than cards… command seems to need more, and
-         popover seems to need less"). A floating pane is a surface SMALLER than a card, so it
-         has its own inset — 8/12/16/24 at the resting density, the command palette's own search
-         bar promoted rather than re-invented. What is still a card's is the CORNER, which is the
-         claim this law was minted for: a popover holds content the system did not design, so
-         there are no rows and no concentric term to add. The two halves are read against
-         different sources on purpose, because they now come from different bands. */
+      /* THE PADDING LEFT THE CARD BAND ON 2026-09-07 AND CAME BACK ON 2026-09-22 (Kushagra: "we
+         gave Popover the same padding as Dropdown Menu, I feel that was a mistake — it probably
+         needs more, same as cards like it was before"). It spent those two weeks on the panel
+         band, which measured its inset onto the MENU's number exactly, and the criterion that
+         settled the corner settles the inset the same way: a pane hugging rows derives its
+         geometry from the rows, and a pane holding content the system did not design has nothing
+         to derive from. So both halves of the box are read against ONE source again, which is
+         what this law says — and the menu law below carries the negative half for both. */
       const { popup } = openPopover({}, size);
       const card = mounted(<Card size={size}>x</Card>, { theme: {} });
       expect(
@@ -104,12 +104,8 @@ describe("the pane is a CARD that floats (§10, §31)", () => {
       ).toBe(computed(card, "border-top-left-radius"));
       expect(
         computed(popup, "padding-top"),
-        `size ${size}: the popover left the panel band`,
-      ).toBe(tokenOn(popup, "--kui-panel-p"));
-      expect(
-        computed(popup, "padding-top"),
-        `size ${size}: the panel band collapsed onto the card's`,
-      ).not.toBe(computed(card, "padding-top"));
+        `size ${size}: the popover's inset left the card's`,
+      ).toBe(computed(card, "padding-top"));
     });
   }
 
@@ -118,10 +114,11 @@ describe("the pane is a CARD that floats (§10, §31)", () => {
     // menu and a popover had all quietly collapsed onto one corner. A menu hugs rows and must
     // keep its concentric arithmetic.
     //
-    // THE PADDING IS NOW SHARED, DELIBERATELY (2026-09-07): both panes are on the panel band,
-    // which is the whole point of minting one — a menu and a popover are the same KIND of
-    // surface, and only what they hold differs. So the padding half of this control becomes an
-    // equality, and the corner half carries the whole negative claim.
+    // AND IT IS NOT THE MENU'S INSET EITHER (2026-09-22). The padding half of this control was
+    // an EQUALITY for two weeks, while both panes sat on the panel band — which is the shape of
+    // the defect Kushagra read off the screen, a popover padded like the dropdown beside it. It
+    // is a negative control again, and it is the law that fails first if the band's
+    // `.kui-floating` arm comes back: 12px against the card band's 24 at this index.
     const { popup } = openPopover({}, "2");
     const host = render(
       <Theme>
@@ -142,8 +139,8 @@ describe("the pane is a CARD that floats (§10, §31)", () => {
     ).not.toBe(computed(popup, "border-top-left-radius"));
     expect(
       computed(menu, "padding-top"),
-      "the menu and the popover left the one panel band they were put on",
-    ).toBe(computed(popup, "padding-top"));
+      "the popover took the menu's inset — it is a card, and the menu is a pane of rows",
+    ).not.toBe(computed(popup, "padding-top"));
   });
 
   it("but the COVERAGE is the floating family's — it casts what a menu casts, not what a card does", () => {

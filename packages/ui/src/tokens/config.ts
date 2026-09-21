@@ -1174,9 +1174,15 @@ export const surfacePadding = [5, 6, 7, 8] as const;
  * IT REPLACES `floatingPadding`, one flat pick, on 2026-09-07 (Kushagra: "we need a spacing
  * scale for surfaces that are smaller than cards — popover uses card, command uses menu, command
  * seems to need more and popover seems to need less"). Measured, the library had exactly two
- * answers and nothing between them: a card's 16/24/32/40 and a flat 4. So a popover — a small
- * panel holding one thought — was padded like a document, and a palette standing alone over a
- * dimmed app was padded like a menu item's neighbour.
+ * answers and nothing between them: a card's 16/24/32/40 and a flat 4, so a palette standing
+ * alone over a dimmed app was padded like a menu item's neighbour.
+ *
+ * THE POPOVER HALF WAS REVERSED ON 2026-09-22 (Kushagra: "we gave Popover the same padding as
+ * Dropdown Menu, I feel that was a mistake — it probably needs more, same as cards like it was
+ * before"). Measured, the band had put a popover's inset on the MENU's number exactly, and the
+ * criterion the corner already used decides the inset the same way: a pane that hugs rows derives
+ * its geometry from the rows, and a pane holding content the system did not design has nothing to
+ * derive from, so it is a card. The band is unchanged and so is every other pane on it.
  *
  * THE VALUES ARE NOT NEW, and that is the argument for them: they are the command palette's own
  * search bar, designed and judged by eye on 2026-09-05 when that bar became a pane and needed an
@@ -1185,10 +1191,9 @@ export const surfacePadding = [5, 6, 7, 8] as const;
  * judged against it.
  *
  * INDEXED, which reverses `floatingPadding`'s own sentence — "one value and not a size-indexed
- * family: the panel's rows answer the size axis, its breathing room does not". That held while
- * every consumer was a pane hugging rows, where the row's inset does the breathing. It stopped
- * holding the day a popover joined the family: a popover holds CONTENT, its rows are nobody's,
- * and a pane whose whole interior is the caller's has nothing else to answer the index with.
+ * family: the panel's rows answer the size axis, its breathing room does not". The index survived
+ * the popover leaving, on the consumers that were never panes of rows: an attachment tile, a
+ * composer and a notice all hold content, so the band answers the index for them.
  */
 export const panelPadding = [3, 4, 5, 6] as const;
 

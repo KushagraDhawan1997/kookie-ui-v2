@@ -8,6 +8,22 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-22 A popover is a card again, padding included
+
+Kushagra, looking at one beside a dropdown: *"We gave Popover the same padding etc as Dropdown Menu, I feel that was a mistake. It probably needs more, I think same as cards like it was before."*
+
+**He was right about the measurement, not only the feeling.** The panel band (2026-09-07 — the inset for a surface smaller than a card, 8 / 12 / 16 / 24 at the resting density) reached a popover through a `.kui-floating` arm, and a menu reaches the same band as the fallback behind its own hook. Measured, the two panes computed **12px against 12px** at the resting index: not similar, identical. So "the same padding as the dropdown menu" was literally what shipped, and the band had quietly become one answer for two kinds of pane.
+
+**What the reversal costs is one deleted rule**, because the criterion was already written in this file's own §31 for the CORNER, two weeks earlier: a pane that hugs rows derives its geometry from the rows (row corner plus the panel's padding), and a pane holding content the system did not design has nothing to derive from, so it falls through to the base surface join and is a card. The padding had been split off that criterion and given to the band; putting it back means both halves of the box are read off one source again — 16 / 24 / 32 / 40 beside the card's own corner.
+
+**Measured after:** 16 / 24 / 32 / 40 against the band's 8 / 12 / 16 / 24, and the menu beside it unmoved at 12.
+
+**The `.kui-floating` arm is gone rather than narrowed.** The two panes wearing that class without `-rows` are a popover, which is a card, and a tooltip, which states its own designed pair — so an arm keyed on "floating" had no live consumer left, and leaving it would have declared `--kui-panel-p` on panes that never read it. The band itself is untouched and so is every other consumer: the palettes and menus that hug rows, the attachment tile, the composer, the notice.
+
+**Rejected:** keeping the band and tuning its top rungs up (it would move the attachment tile and the composer, which were judged on those numbers and are not this complaint), and a `--kui-floating-p` re-point in `popover.css` (a component saying its padding is not a card's, when the finding is that it *is* a card's — the hook exists for a pane whose inset is genuinely its own).
+
+**Laws.** Five encoded the old behaviour and are re-keyed, not deleted: the four size cells now read the card's padding beside the card's corner from ONE mounted Card, and the menu control — which the panel band had turned from a negative control into an equality — is a negative control again on both halves. Sabotaged by restoring the deleted rule: the size-2 cell reproduces the defect to the pixel (`expected '12px' to be '24px'`) and the menu law fails with `expected '12px' not to be '12px'`.
+
 ## 2026-09-21 The mirror pass: the blur was erasing the bend
 
 Kushagra, with Apple's menus beside our popover: *"this doesn't look glass ... Apple has blur too, but it has glass also. Thick glass with a lot of refraction + blur."*
