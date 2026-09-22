@@ -693,6 +693,15 @@ describe("continuous curvature (§6, ported 2026-08-16)", () => {
       expect(arc, `${family} arc knob is not a compensation`).toBeGreaterThan(0);
       expect(squircle, `${family} squircle knob is not a compensation`).toBeGreaterThan(arc);
     }
+    // And ONE conversion for both families (2026-09-23). The arc knob is the squircle knob over
+    // the bite match, so moving one branch without the other draws a different menu on the engines
+    // without corner-shape — the menu's bump went 1.75 → 2.25 that day, and its arc knob had to
+    // follow it from 0.950 to 1.222.
+    const ratio = (family: string) => Number(knob(guard, family)) / Number(knob(outside, family));
+    expect(ratio(".kui-surface.kui-floating-rows {"), "the menu converts arc to squircle by its own ratio").toBeCloseTo(
+      ratio(".kui-surface {"),
+      2,
+    );
     // And the shell's receded frame reads the same hook, so it needs the same pair or it stops
     // matching the drawer beside it — the reason it joined the guard in the first place.
     expect(outside, "the shell frame lost its arc knob").toContain(".kui-shell::after");
