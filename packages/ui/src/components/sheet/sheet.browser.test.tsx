@@ -42,7 +42,6 @@ import {
   DEPTHS,
   SIZES,
   computed,
-  lensBlurOf,
   probeIn,
   render,
   tokenOn,
@@ -539,10 +538,36 @@ describe("it is an overlay, exactly as a dialog is", () => {
     expect(stripLens(computed(sheet.popup, "backdrop-filter")), "the region's filter chain").toBe(
       filterOn(sheet.popup, "--material-regular-region-filter"),
     );
-    // The two CHAINS agree since 2026-09-21 — saturation and brightness are one material's —
-    // because the blur left the row for the lens. So "a region is not the pane cell" is read
-    // where the difference now lives: the region's lens blurs further, and its veil is denser.
-    expect(lensBlurOf(sheet.popup), "a region blurs no further than a pane").toBeGreaterThan(lensBlurOf(dialog.popup));
+    // The two CHAINS agree since 2026-09-21 — saturation and brightness are one material's. So
+    // "a region is not the pane cell" is read where the difference lives: its LENS reaches further
+    // (the region family's lip is twice a pane's — read off the filter's own base scale, the
+    // unsplit G channel), and its veil is denser. It read the region's BLUR until 2026-09-23, when
+    // only a floating pane's lens kept one.
+    //
+    // THE LENS TWIN IS A CARD OF THE SHEET'S OWN SIZE, not the dialog: a lip is capped by its box,
+    // and the dialog is small enough that its cap alone made it reach less — a sabotage giving the
+    // region a pane's lip survived that comparison. On one box only the family differs.
+    const reach = (el: HTMLElement) => {
+      const id = computed(el, "backdrop-filter").match(/url\("?#([^")]+)/)![1]!;
+      return parseFloat(document.getElementById(id)!.querySelector('[result="dG"]')!.getAttribute("scale")!);
+    };
+    // A SIDE sheet, opened for this comparison alone: the fixture's default is a bottom sheet
+    // 112px tall, where BOTH families' lips cap at floor(112 × 0.28) = 31px, so the two lenses are
+    // one lens there. A side sheet is tall and wide enough that neither lip is capped.
+    const side = openSheet({ appearance: "light" }, { material: "regular", side: "inline-end" });
+    const rect = side.popup.getBoundingClientRect();
+    expect(Math.min(rect.width, rect.height) * 0.28, "the side sheet still caps a region's lip").toBeGreaterThan(72);
+    render(
+      <Theme appearance="light" material="regular">
+        <Card backdrop data-t="twin" style={{ inlineSize: `${rect.width}px`, blockSize: `${rect.height}px` }}>
+          pane
+        </Card>
+      </Theme>,
+    );
+    const twin = document.querySelector<HTMLElement>('[data-t="twin"]')!;
+    // By a MARGIN: the region's lip is twice a pane's, and two lenses of one shape still differ by
+    // a few thousandths of a pixel through their corners — which is what a bare `>` measured.
+    expect(reach(side.popup) / reach(twin), "a region's lens reaches no further than a pane's on the same box").toBeGreaterThan(1.5);
     expect(alphaOf(computed(sheet.popup, "background-color")), "a region's veil is the pane's").toBeGreaterThan(
       alphaOf(computed(dialog.popup, "background-color")),
     );

@@ -2064,9 +2064,9 @@
 .kui-surface:where([data-material="thick"])::before {
   background: var(--material-thick-glint);
 }
-/* The floating trim, mirrored: a menu's glint dims exactly as its ring does. */
+/* The floating trim, mirrored: a menu's glint is trimmed exactly as its ring is. */
 .kui-surface.kui-floating:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before {
-  opacity: calc(var(--material-ring-opacity, 1) * var(--kui-glint-on, 0) * 0.6);
+  opacity: calc(var(--material-ring-opacity, 1) * var(--kui-glint-on, 0) * var(--material-floating-trim, 1));
 }
 
 /* ── QUIET PAINT ON GLASS IS ALPHA, NOT PIGMENT (§10, lab 2026-08-15, ported 2026-08-17) ──
@@ -2350,10 +2350,11 @@
     --kui-sf-fill: var(--material-thick-fill-floating);
   }
 }
-/* A menu is small and dense — the pane's full flare reads as costume on it (lab
-   2026-08-14). Same ring, at 60%: jewelry, not headline. */
+/* The floating trim, per MODE (config `floatingTrim`): dark keeps the lab's 60% — a menu is
+   small and dense, and the pane's full flare read as costume on it — and light takes the whole
+   lip, which has to work against a near-white pane. */
 .kui-surface.kui-floating:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after {
-  opacity: calc(var(--material-ring-opacity, 1) * 0.6);
+  opacity: calc(var(--material-ring-opacity, 1) * var(--material-floating-trim, 1));
 }
 
 /* The reduced-transparency seal, restated at the floating fills' own weight (audit

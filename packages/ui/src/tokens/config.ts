@@ -830,7 +830,99 @@ export const glint = {
   rimSaturate: 0,
 } as const;
 
+/**
+ * §10 — THE VEIL MODEL (2026-09-23, Kushagra: "The thin/regular/thick should decide the veil, how
+ * much background is let through, not how much glass is thick. Its material thickness, not glass
+ * thickness."). A material has two axes and only one of them is the theme's:
+ *
+ *   - The RUNG is how much of the backdrop comes through: the veil, and with it the blur a pane
+ *     carries in place of a scrim (`floatingFrost` in refraction.tsx) and the lens-less engines'
+ *     frost. The grey, the saturation, the sheen and the LENS do not move with it — the lens is the
+ *     shape of the piece of glass, and that belongs to the component (`lensFamily`, refraction.tsx).
+ *   - The FAMILY multiplies the rung's THICKNESS, so a veil compounds: a menu is 3.5 layers of the
+ *     rung's glass, `1 - (1 - veil)^3.5` ("a menu needs thicker veil so that content behind is
+ *     hidden and readable"). Compounding is the spelling because it can never reach opaque and
+ *     keeps every family's order at every rung — a linear ×2 was the first cut, and at thick in
+ *     dark it asked for 104%.
+ *
+ * The ladder was judged on menus over the swirl and photograph beds, both modes, in three moves
+ * the same day: `regular` took the old `thick` (22 / 36) on "the current thick material setting
+ * is good and should be default"; then the whole ladder moved down one rung ("current regular
+ * should be the thick, current thin being regular, and we need a new thin, much more
+ * transparent"); then thin came up a touch ("very very slightly increase the veil and blur on
+ * thin").
+ */
+export const veil = {
+  rung: {
+    light: { thin: 6, regular: 12, thick: 22 },
+    dark: { thin: 10, regular: 20, thick: 36 },
+  },
+  /** What an interactive pane's hover and press add to its rest, per mode (§8's +1/+2 steps,
+      translated to the one ramp glass has). */
+  step: { light: 6, dark: 8 },
+  /** Layers of the rung's glass per family. A control is a hair denser than a pane; a region holds
+      paragraphs over passing content; a floating pane holds rows of text over whatever it covers. */
+  family: { pane: 1, control: 1.1, region: 1.5, floating: 3.5 },
+} as const;
+export type VeilRung = keyof typeof veil.rung.light;
+export type VeilFamily = keyof typeof veil.family;
+/** A family's veil at a rung, in percent: the rung's transmission raised to the family's layers. */
+export function veilAt(mode: "light" | "dark", rung: VeilRung, family: VeilFamily): number {
+  const through = 1 - veil.rung[mode][rung] / 100;
+  return Math.round(100 * (1 - Math.pow(through, veil.family[family])));
+}
+/**
+ * The glass FILTER — one per mode, the same at every rung. Thick's saturation, with the grey pulled
+ * back (Kushagra: "the graying is a little too much ... We need graying too but not as much"):
+ * contrast 0.65 → 0.8, and the brightness that compensated for it came down with it. `hover` is the
+ * brightness a glass control's hover moves to (on glass, hover is light; the veil holds).
+ */
+export const glassFilter = {
+  light: { saturate: 180, contrast: 0.8, brightness: 1.08, hover: 1.04 },
+  dark: { saturate: 180, contrast: 0.8, brightness: 0.96, hover: 1.02 },
+} as const;
+/**
+ * The FROST — the blur the lens-less engines (WebKit, Gecko) paint in place of the bend, per family
+ * and per rung. These are the values judged for those engines before the mirror pass, and they stay
+ * a ladder because the blur is part of what the rung moves. An iteration zeroed them on 2026-09-22
+ * while the bend was judged in Chromium, where this row never applies; shipped at zero, an iPhone
+ * would have shown a 6% veil over whatever passed behind with nothing defocusing it.
+ */
+const glassFrost = {
+  pane: { thin: 8, regular: 16, thick: 24 },
+  control: { thin: 4, regular: 8, thick: 13.7 },
+  region: { thin: 12, regular: 20, thick: 28 },
+} as const;
+/** The rim's sheen — the same at every rung for the same reason as the filter (thick's, judged). */
+const glassSheen = { light: 12, dark: 4 } as const;
+function glassRow(mode: "light" | "dark", rung: VeilRung, alphaHigh: readonly [number, number, number]) {
+  const f = glassFilter[mode];
+  const filter = `saturate(${f.saturate}%) contrast(${f.contrast}) brightness(${f.brightness})`;
+  const frost = (family: keyof typeof glassFrost) => `blur(${glassFrost[family][rung]}px) ${filter}`;
+  const a = veilAt(mode, rung, "pane");
+  const s = veil.step[mode];
+  return {
+    alpha: [a, a + s, a + 2 * s] as const,
+    alphaHigh,
+    filter,
+    frost: frost("pane"),
+    sheen: glassSheen[mode],
+    control: {
+      alpha: veilAt(mode, rung, "control"),
+      filter,
+      frost: frost("control"),
+      filterHover: `saturate(${f.saturate}%) contrast(${f.contrast}) brightness(${f.hover})`,
+      filterLoud: mode === "light" ? "saturate(190%) brightness(1.04)" : "saturate(180%) brightness(1)",
+    },
+    region: { alpha: veilAt(mode, rung, "region"), filter, frost: frost("region") },
+  };
+}
+
 export const material = {
+  // THE VEIL MODEL (2026-09-23, above) SUPERSEDES the passes below on the veil, the filter, the
+  // sheen and the frost: the rows are BUILT by `glassRow`, and the rung moves the alphas and the
+  // frost and nothing else. What survives of the paragraphs below is the reasoning, not the numbers.
+  //
   // THE MIRROR PASS (2026-09-21, Kushagra: "this doesn't look glass ... Thick glass with a lot
   // of refraction + blur"). SUPERSEDES the clear pass below on every number it names:
   //   - The BLUR LEFT THESE ROWS. `filter` carries saturation and brightness only; the blur is
@@ -948,15 +1040,16 @@ export const material = {
      frost is the pane's + 4, and the lensed blur is the pane's × 1.5 (`regionBlur` in
      refraction.tsx since 2026-09-21, when the blur moved into the lens — THE MIRROR PASS above). Every one of those is a first cut
      for the bench. */
+  // Built by `glassRow` from the veil model above. `alphaHigh` is contrast="high"'s floor, per rung.
   light: {
-    thin: { alpha: [12, 18, 24], alphaHigh: [72, 77, 82], filter: "saturate(150%) brightness(1.06)", frost: "blur(8px) saturate(150%) brightness(1.06)", sheen: 6, control: { alpha: 14, filter: "saturate(150%) brightness(1.06)", frost: "blur(4px) saturate(150%) brightness(1.06)", filterHover: "saturate(150%) brightness(1.02)", filterLoud: "saturate(190%) brightness(1.04)" }, region: { alpha: 24, filter: "saturate(150%) brightness(1.06)", frost: "blur(12px) saturate(150%) brightness(1.06)" } },
-    regular: { alpha: [16, 22, 28], alphaHigh: [80, 84, 88], filter: "saturate(165%) brightness(1.06)", frost: "blur(16px) saturate(165%) brightness(1.06)", sheen: 9, control: { alpha: 18, filter: "saturate(165%) brightness(1.06)", frost: "blur(8px) saturate(165%) brightness(1.06)", filterHover: "saturate(165%) brightness(1.02)", filterLoud: "saturate(190%) brightness(1.04)" }, region: { alpha: 28, filter: "saturate(165%) brightness(1.06)", frost: "blur(20px) saturate(165%) brightness(1.06)" } },
-    thick: { alpha: [22, 28, 34], alphaHigh: [86, 89, 92], filter: "saturate(180%) brightness(1.06)", frost: "blur(24px) saturate(180%) brightness(1.06)", sheen: 12, control: { alpha: 24, filter: "saturate(180%) brightness(1.06)", frost: "blur(13.7px) saturate(180%) brightness(1.06)", filterHover: "saturate(180%) brightness(1.02)", filterLoud: "saturate(190%) brightness(1.04)" }, region: { alpha: 34, filter: "saturate(180%) brightness(1.06)", frost: "blur(28px) saturate(180%) brightness(1.06)" } },
+    thin: glassRow("light", "thin", [72, 77, 82]),
+    regular: glassRow("light", "regular", [80, 84, 88]),
+    thick: glassRow("light", "thick", [86, 89, 92]),
   },
   dark: {
-    thin: { alpha: [20, 28, 36], alphaHigh: [76, 80, 84], filter: "saturate(150%) brightness(1.02)", frost: "blur(8px) saturate(150%) brightness(1.02)", sheen: 2, control: { alpha: 22, filter: "saturate(150%) brightness(1.02)", frost: "blur(4px) saturate(150%) brightness(1.02)", filterHover: "saturate(150%) brightness(1.08)", filterLoud: "saturate(180%) brightness(1)" }, region: { alpha: 36, filter: "saturate(150%) brightness(1.02)", frost: "blur(12px) saturate(150%) brightness(1.02)" } },
-    regular: { alpha: [28, 36, 44], alphaHigh: [84, 87, 90], filter: "saturate(165%) brightness(1.02)", frost: "blur(16px) saturate(165%) brightness(1.02)", sheen: 3, control: { alpha: 30, filter: "saturate(165%) brightness(1.02)", frost: "blur(8px) saturate(165%) brightness(1.02)", filterHover: "saturate(165%) brightness(1.08)", filterLoud: "saturate(180%) brightness(1)" }, region: { alpha: 44, filter: "saturate(165%) brightness(1.02)", frost: "blur(20px) saturate(165%) brightness(1.02)" } },
-    thick: { alpha: [36, 44, 52], alphaHigh: [90, 92, 94], filter: "saturate(180%) brightness(1.02)", frost: "blur(24px) saturate(180%) brightness(1.02)", sheen: 4, control: { alpha: 38, filter: "saturate(180%) brightness(1.02)", frost: "blur(13.7px) saturate(180%) brightness(1.02)", filterHover: "saturate(180%) brightness(1.08)", filterLoud: "saturate(180%) brightness(1)" }, region: { alpha: 52, filter: "saturate(180%) brightness(1.02)", frost: "blur(28px) saturate(180%) brightness(1.02)" } },
+    thin: glassRow("dark", "thin", [76, 80, 84]),
+    regular: glassRow("dark", "regular", [84, 87, 90]),
+    thick: glassRow("dark", "thick", [90, 92, 94]),
   },
   /** How much of the app's shadow a pane lets survive (§10's transmission seam): glass
       passes light, so its cast is the surface row FADED — thin passes most, thick least.
@@ -1337,11 +1430,36 @@ export const glassInk = {
 /**
  * §10 — dark FLOATING panes LIGHTEN, they never subtract (lab 2026-08-15, ported
  * 2026-08-17; the system's own "in dark, height is lightness", and macOS dark menus do the
- * same): the veil lifts toward white instead of sinking toward black. Light floating veils
- * are the in-flow veils — only dark splits. `base` is the percent of surface mixed toward
- * white before the alpha mix; alphas per thickness.
+ * same): the veil lifts toward white instead of sinking toward black. Light split too on
+ * 2026-09-21 — `floatingLight`, below. `base` is the percent of surface mixed toward white
+ * before the alpha mix. The alphas are the veil model's floating family (2026-09-23): 3.5 layers
+ * of the rung, so a menu is denser than a card at every rung by the same compounding.
  */
-export const floatingDark = { base: 88, alpha: { thin: 46, regular: 62, thick: 78 } } as const;
+export const floatingDark = {
+  base: 88,
+  alpha: { thin: veilAt("dark", "thin", "floating"), regular: veilAt("dark", "regular", "floating"), thick: veilAt("dark", "thick", "floating") },
+} as const;
+/**
+ * §10 — and light FLOATING panes DIM (2026-09-21, Kushagra: the glint a dialog shows is "still
+ * not visible on light because they both use the same color - its close to white"). A dialog's
+ * glint reads because its scrim greys the backdrop under a white catch; a menu over a white page
+ * is white under white. So a light floating pane carries the scrim's dim the way it carries the
+ * scrim's blur: the veil mixes toward black. Each mode moves away from its own ground.
+ * `base` is the percent of surface kept before the alpha mix — 66 was judged "a little too gray"
+ * and 80 shipped. It went to 88 and then 92 on 2026-09-23 as the veil got denser ("make the gray
+ * shade a bit lighter still"): the menu now hides more of what passes behind it and greys a white
+ * page less than the old 26% at 80 did.
+ *
+ * `floatingTrim` is the ring and glint's strength on a floating pane, PER MODE. It was one 60%
+ * for both (lab 2026-08-14: "jewelry, not headline"), was removed whole for an hour ("I need
+ * that [glint] on menus too"), and came back for dark alone: "Dark mode was fine ... its the
+ * light mode that is issue."
+ */
+export const floatingLight = {
+  base: 92,
+  alpha: { thin: veilAt("light", "thin", "floating"), regular: veilAt("light", "regular", "floating"), thick: veilAt("light", "thick", "floating") },
+} as const;
+export const floatingTrim = { light: 1, dark: 0.6 } as const;
 
 /**
  * §24 — the OVERLAY pane's width, one designed raw-px ladder on the size index (the switchW

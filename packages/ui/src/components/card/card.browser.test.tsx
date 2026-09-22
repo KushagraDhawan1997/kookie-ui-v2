@@ -7,7 +7,6 @@ import { flushSync } from "react-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { cdp } from "vitest/browser";
 
-import { lens as lensLadder } from "../../system/refraction.tsx";
 import { Theme } from "../../theme/theme.tsx";
 import {
   GLASS_MATERIALS, APPEARANCES, colorOn, computed, holdPress, lensBlurOf, mounted, render, tokenOn as lengthOn, within, until } from "../../test/browser.tsx";
@@ -421,24 +420,24 @@ describe("material is the THEME's, and one glass per stack is structural (§10, 
 });
 
 describe("material is backdrop defense, opt-in (§10)", () => {
-  it("three thicknesses blur in order; the default never does", () => {
-    // `backdrop` since the lab port (2026-08-17): an in-flow card is solid by selectivity,
-    // so a law about the glass ladder must state the placement that expresses it.
+  it("three thicknesses are three veils, and a card's lens blurs at none of them (§10)", async () => {
+    // THE RUNG IS THE VEIL (2026-09-23, Kushagra: "The thin/regular/thick should decide the veil,
+    // how much background is let through, not how much glass is thick"). This law held the three
+    // rungs to three BLURS until then — first in the stylesheet's row, then in the lens — and the
+    // model it held is the one that was replaced: the veil rises with the rung, and a card blurs
+    // at no rung (only a floating pane carries a blur, standing in for the scrim it lacks).
+    //
+    // `backdrop` since the lab port (2026-08-17): an in-flow card is solid by selectivity, so a law
+    // about the glass ladder must state the placement that expresses it.
     const thin = mounted(<Card backdrop>B</Card>, { theme: { material: "thin" } });
     const regular = mounted(<Card backdrop>B</Card>, { theme: { material: "regular" } });
     const thick = mounted(<Card backdrop>B</Card>, { theme: { material: "thick" } });
-    // DERIVED from config, not restated (2026-08-16). These were three hardcoded radii, so
-    // the day the judged ladder replaced them — 5/16/32 to 2.4/4/5.6 — the law failed on the
-    // NUMBERS while the thing it is actually about, that the three thicknesses blur in order
-    // and the default does not blur at all, was never in question. A law that has to be
-    // edited every time taste moves is a law nobody trusts when it goes red.
-    //
-    // READ OFF THE LENS since 2026-09-21: the blur left the stylesheet's row for the lens
-    // filter, where it runs before the bend, so that is where the ladder is.
-    const px = lensBlurOf;
-    expect(px(thin)).toBeCloseTo(lensLadder.thin.blur, 5);
-    expect(px(regular)).toBeGreaterThan(px(thin));
-    expect(px(thick)).toBeGreaterThan(px(regular));
+    const alpha = (el: HTMLElement) => Number(computed(el, "background-color").match(/\/\s*([\d.]+)\)/)?.[1] ?? 1);
+    expect(alpha(thin)).toBeLessThan(alpha(regular));
+    expect(alpha(regular)).toBeLessThan(alpha(thick));
+    const lensed = (el: Element) => /url\(/.test(getComputedStyle(el).backdropFilter);
+    expect(await until(() => [thin, regular, thick].every(lensed)), "a card never took its lens").toBe(true);
+    for (const card of [thin, regular, thick]) expect(lensBlurOf(card), "a card's lens blurs its backdrop").toBe(0);
   });
 
   it("a material fill is the shell's own seal made translucent — the modifier, applied (§10)", () => {
@@ -1203,40 +1202,10 @@ describe("the lens: refraction reaches a real pane (§10, 2026-08-16)", () => {
     ).toBeCloseTo(strength(small), 1);
   });
 
-  it("each thickness is its own piece of glass (§10, 2026-08-23)", () => {
-    /**
-     * The lens was ONE constant until 2026-08-23: thin, regular and thick differed in blur, in
-     * saturation and in veil alpha, and bent their backdrop by exactly the same amount — the
-     * one axis where glass most obviously owes a difference was the one axis the lens could
-     * not see. `refraction.test.ts` pins the ladder's SHAPE; this is the half only a mount can
-     * make, because a lens that bends the wrong amount still bends and every other law in this
-     * file asserts only that a glass pane HAS one.
-     */
-    // ONE box for all three. A map is built for the box it is attached to, so a difference in
-    // size would answer this law by itself — and under the cap, so no generation scale sits
-    // between these numbers and the judged ones.
-    const box = { width: "300px", height: "200px" } as const;
-    const pane = (m: (typeof GLASS_MATERIALS)[number]) =>
-      document.querySelector(lens(mounted(<Card backdrop style={box} />, { theme: { material: m } }))!)!;
-    // From the axis's one home, in its own order — the thicknesses are never spelled here.
-    const [thin, regular, thick] = GLASS_MATERIALS.map(pane) as [Element, Element, Element];
-    // The G channel is the underived base — R and B are that same scale plus and minus the
-    // fringe, so this is the bend itself rather than the bend plus a split.
-    const bend = (f: Element) => parseFloat(f.querySelector('[result="dG"]')!.getAttribute("scale")!);
-
-    expect(bend(thin), "thin bends as hard as regular: the ladder does not reach the filter").toBeLessThan(bend(regular));
-    expect(bend(regular), "regular bends as hard as thick: the ladder does not reach the filter").toBeLessThan(bend(thick));
-
-    // And the SPLIT widens as it climbs: deep glass splits light, which is the sentence
-    // `ringSpectral` already writes for thick's edge one mechanism over.
-    const split = (f: Element) =>
-      parseFloat(f.querySelector('[result="dR"]')!.getAttribute("scale")!) -
-      parseFloat(f.querySelector('[result="dB"]')!.getAttribute("scale")!);
-    // The premise first: a ladder of zeroes would order nothing against nothing and pass.
-    expect(split(thin), "thin does not split light at all").toBeGreaterThan(0);
-    expect(split(thin)).toBeLessThan(split(regular));
-    expect(split(regular)).toBeLessThan(split(thick));
-  });
+  // "Each thickness is its own piece of glass" (2026-08-23) stood here, reading three bends in
+  // order off three mounted cards. The veil model reversed it on 2026-09-23 — the lens is the
+  // component's shape and the rung never reaches it — and its replacement is the mounted law in
+  // refraction.browser.test.tsx: a thin and a thick card of one size wear ONE filter.
 
   it("an unmounted glass pane leaves no filter behind (§10, 2026-08-22)", async () => {
     /**

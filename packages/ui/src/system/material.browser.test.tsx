@@ -18,7 +18,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { APPEARANCES, GLASS_MATERIALS, asksForContrast, asksForSolidity, colorOn, computed, mounted, until } from "../test/browser.tsx";
+import { APPEARANCES, GLASS_MATERIALS, asksForContrast, asksForSolidity, colorOn, computed, mounted, render, until } from "../test/browser.tsx";
 import { Card } from "../components/card/card.tsx";
 import { Button } from "../components/button/button.tsx";
 import { Row } from "../components/row/row.tsx";
@@ -26,6 +26,8 @@ import { TextArea } from "../components/text-area/text-area.tsx";
 import { TextField } from "../components/text-field/text-field.tsx";
 import { SegmentedControl, SegmentedItem } from "../components/segmented-control/segmented-control.tsx";
 import { Toolbar, ToolbarButton, ToolbarGroup } from "../components/toolbar/toolbar.tsx";
+import { Popover, PopoverContent, PopoverTrigger } from "../components/popover/popover.tsx";
+import { Theme } from "../theme/theme.tsx";
 
 /** sRGB channels 0-1 plus alpha, from any computed colour the engine hands back.
  *
@@ -596,7 +598,7 @@ describe("the filter row forks on the lens, and the default is the defended one 
       // bend (measured: a 12px bend under blur(4px) drew no visible lip). The lensed blur is
       // inside the filter, BEFORE the bend — so the law reads it there, off the mounted filter's
       // own graph, and the ordering "frost defends harder" is kept against that number.
-      it(`${appearance}/${material}: unstamped is frost, stamped is the lens row, and frost blurs harder`, async () => {
+      it(`${appearance}/${material}: unstamped is frost, stamped is the lens row, and only frost blurs`, async () => {
         const card = mounted(<Card backdrop style={{ inlineSize: "20rem", blockSize: "12rem" }}>pane</Card>, { theme: { appearance, material } });
         const blurOf = (chain: string): number => {
           const m = chain.match(/blur\(([\d.]+)px\)/);
@@ -617,18 +619,16 @@ describe("the filter row forks on the lens, and the default is the defended one 
         expect(clear, `${material} stamped chain carries no lens`).toMatch(/^url\(/);
         // The lens row carries NO stylesheet blur: one after the lens softens the bend.
         expect(clear, `${material} stamped chain blurs AFTER the bend`).not.toContain("blur(");
-        // The blur is in the filter, and it runs on the SOURCE, before any displacement.
+        // And a CARD's lens blurs nothing of its own since 2026-09-23: the rung is the veil, and
+        // the one blur a lens applies is a floating pane's, standing in for the scrim it lacks —
+        // refraction.browser.test.tsx reads that one, and the order it runs in.
         const id = clear.match(/url\("?#([^")]+)/)![1]!;
         const graph = [...document.getElementById(id)!.children];
         const soften = graph.findIndex((n) => n.tagName === "feGaussianBlur" && n.getAttribute("in") === "SourceGraphic");
-        const bend = graph.findIndex((n) => n.tagName === "feDisplacementMap");
-        expect(soften, `${material} lens does not blur its source`).toBeGreaterThanOrEqual(0);
-        expect(soften, `${material} lens blurs after it bends`).toBeLessThan(bend);
-        expect(graph[bend]!.getAttribute("in"), `${material} bends the unblurred source`).toBe(graph[soften]!.getAttribute("result"));
-        const lensed = Number(graph[soften]!.getAttribute("stdDeviation"));
-        expect(lensed, `${material} lens blur is zero`).toBeGreaterThan(0);
+        expect(graph.some((n) => n.tagName === "feDisplacementMap"), `${material}: the stamped chain's lens bends nothing`).toBe(true);
+        expect(soften, `${material}: a card's lens blurs its source`).toBe(-1);
         // The whole point: the engine that cannot bend light hides more instead.
-        expect(blurOf(frost), `${material} frost does not defend harder than the lens row`).toBeGreaterThan(lensed);
+        expect(blurOf(frost), `${material} frost does not defend`).toBeGreaterThan(0);
         // And ONLY the blur moves — saturation and brightness are the judged values in both,
         // so this is one lever changing rather than a second material appearing.
         const rest = (chain: string) => chain.replace(/blur\([\d.]+px\)\s*/, "").replace(/url\([^)]*\)\s*/, "");
@@ -843,4 +843,150 @@ describe("a glass track carries the pool, and a solid one carries nothing (§10)
       expect(computed(solid.seg, "box-shadow"), "a solid track casts").toBe("none");
     });
   }
+});
+
+/**
+ * A GLASS CONTROL IS OVER CONTENT, SO IT CASTS (§10, §5, 2026-09-23, Kushagra: "I also think that
+ * floating items should cast shadow, such as toolbar groups"). Selectivity is what made a control
+ * glass — something passes behind it — so every rung, every field and both tracks take the pool
+ * AND the transmitted control row. Until then the rungs that no longer elevate (medium, quiet),
+ * the field family (a well is carved in) and the tracks (a well does not rise) kept the pool alone,
+ * which is right of a control ON a plane and wrong of one floating over a photograph.
+ *
+ * Two negative controls, each able to fail a rule that merely cast everywhere: a flat world casts
+ * nothing (the world's no-op layer), and a control inside a glass pane is on-glass — the pane is
+ * the raised thing, one lift per stack.
+ */
+describe("a glass control casts, over content and nowhere else (§10)", () => {
+  /** The top-level layers of a computed box-shadow — commas inside a colour are not separators. */
+  const layers = (shadow: string): string[] => {
+    const out: string[] = [];
+    let depth = 0;
+    let at = 0;
+    for (let i = 0; i < shadow.length; i += 1) {
+      if (shadow[i] === "(") depth += 1;
+      else if (shadow[i] === ")") depth -= 1;
+      else if (shadow[i] === "," && depth === 0) {
+        out.push(shadow.slice(at, i).trim());
+        at = i + 1;
+      }
+    }
+    out.push(shadow.slice(at).trim());
+    return out.filter((l) => l && l !== "none");
+  };
+  /** A DROP: an outer layer that paints something — not inset, not the no-op transparent layer. */
+  const drops = (el: Element) =>
+    layers(getComputedStyle(el).boxShadow).filter((l) => !/\binset\b/.test(l) && !/rgba\(0, 0, 0, 0\)|transparent/.test(l));
+
+  const members = (props: { backdrop?: boolean }) => (
+    <div>
+      <Button data-t="quiet" emphasis="quiet" {...props}>
+        Quiet
+      </Button>
+      <Button data-t="medium" emphasis="medium" {...props}>
+        Medium
+      </Button>
+      <TextField data-t="field" aria-label="f" {...props} />
+      <Toolbar aria-label="t">
+        <ToolbarGroup data-t="group" {...props}>
+          <ToolbarButton>Save</ToolbarButton>
+        </ToolbarGroup>
+      </Toolbar>
+      <SegmentedControl data-t="seg" aria-label="s" defaultValue="a" {...props}>
+        <SegmentedItem value="a">A</SegmentedItem>
+        <SegmentedItem value="b">B</SegmentedItem>
+      </SegmentedControl>
+    </div>
+  );
+  const pick = (root: Element) => ({
+    quiet: root.querySelector<HTMLElement>('[data-t="quiet"]')!,
+    medium: root.querySelector<HTMLElement>('[data-t="medium"]')!,
+    field: root.querySelector<HTMLElement>(".kui-field")!,
+    group: root.querySelector<HTMLElement>(".kui-toolbar-group")!,
+    seg: root.querySelector<HTMLElement>(".kui-segmented")!,
+  });
+
+  for (const appearance of APPEARANCES) {
+    it(`${appearance}: every glass rung, field and track casts in an elevated world`, () => {
+      const glass = pick(mounted(members({ backdrop: true }), { theme: { appearance, material: "regular", depth: "elevated" } }));
+      for (const [name, el] of Object.entries(glass)) {
+        expect(el.dataset.material, `${name} is not glass — the fixture proves nothing`).toBe("regular");
+        expect(drops(el).length, `a glass ${name} casts nothing: ${getComputedStyle(el).boxShadow}`).toBeGreaterThan(0);
+      }
+    });
+
+    it(`${appearance}: a flat world casts nothing, and a control on a glass pane casts nothing`, () => {
+      const flat = pick(mounted(members({ backdrop: true }), { theme: { appearance, material: "regular", depth: "flat" } }));
+      for (const [name, el] of Object.entries(flat)) {
+        expect(el.dataset.material, `${name} is not glass`).toBe("regular");
+        expect(drops(el), `a glass ${name} casts in a flat world`).toEqual([]);
+      }
+      const onPane = pick(
+        mounted(<Card backdrop>{members({})}</Card>, { theme: { appearance, material: "regular", depth: "elevated" } }),
+      );
+      for (const [name, el] of Object.entries(onPane)) {
+        expect(drops(el), `a ${name} on a glass pane casts — two lifts in one stack`).toEqual([]);
+      }
+    });
+  }
+});
+
+/**
+ * A FLOATING PANE'S LIP IS TRIMMED PER MODE, AND ITS VEIL LEAVES ITS MODE'S GROUND (§10,
+ * 2026-09-21). Kushagra, on a dialog's top glint: "I need that on menus too" — then, with the
+ * lab's 60% trim removed in both modes: "Dark mode was fine ... its the light mode that is
+ * issue. And its still not visible on light because they both use the same color - its close to
+ * white so glint doesnt appear."
+ *
+ * Two facts, both read off a mounted popover beside a mounted card — the card is the negative
+ * control for each: a trim that reached every pane, or a dim that reached every veil, fails on
+ * the card's half.
+ */
+describe("a floating pane trims its lip per mode and leaves its mode's ground (§10)", () => {
+  const panes = (appearance: (typeof APPEARANCES)[number]) => {
+    render(
+      <Theme appearance={appearance} material="regular">
+        <Card backdrop data-t="card">
+          pane
+        </Card>
+        <Popover defaultOpen>
+          <PopoverTrigger render={<Button>Open</Button>} />
+          <PopoverContent>panel</PopoverContent>
+        </Popover>
+      </Theme>,
+    );
+    const cards = document.querySelectorAll<HTMLElement>('[data-t="card"]');
+    const popups = document.querySelectorAll<HTMLElement>(".kui-popover-popup");
+    return { card: cards[cards.length - 1]!, popup: popups[popups.length - 1]! };
+  };
+  /** Mean of the three colour channels of a computed `color(srgb r g b / a)` or `rgba()`. */
+  const lightness = (color: string): number => {
+    const nums = [...color.matchAll(/(?<![\w.-])\d*\.?\d+/g)].map((m) => Number(m[0]));
+    const [r, g, b] = color.startsWith("rgb") ? nums.map((n) => n / 255) : nums;
+    return (r! + g! + b!) / 3;
+  };
+
+  it("dark keeps the trimmed lip, light takes the whole one, and a card is never trimmed", () => {
+    const ring = (el: Element) => Number(getComputedStyle(el, "::after").opacity);
+    const dark = panes("dark");
+    expect(ring(dark.card), "a dark card's lip is trimmed").toBe(1);
+    expect(ring(dark.popup), "a dark menu wears the pane's full flare").toBeLessThan(1);
+    expect(ring(dark.popup)).toBeGreaterThan(0);
+    const light = panes("light");
+    expect(ring(light.card)).toBe(1);
+    expect(ring(light.popup), "a light menu's lip is trimmed — it has a near-white pane to read against").toBe(1);
+  });
+
+  it("the floating veil is darker than the in-flow veil in light, and lighter in dark", () => {
+    // Calibrated on a known answer first: the light card's veil is the seal, which is white.
+    const light = panes("light");
+    expect(lightness(computed(light.card, "background-color")), "the instrument misreads a white veil").toBeCloseTo(1, 2);
+    expect(lightness(computed(light.popup, "background-color")), "a light floating veil does not dim").toBeLessThan(
+      lightness(computed(light.card, "background-color")),
+    );
+    const dark = panes("dark");
+    expect(lightness(computed(dark.popup, "background-color")), "a dark floating veil does not lift").toBeGreaterThan(
+      lightness(computed(dark.card, "background-color")),
+    );
+  });
 });

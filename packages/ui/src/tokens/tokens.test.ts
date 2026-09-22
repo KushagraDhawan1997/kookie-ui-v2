@@ -26,6 +26,8 @@ import {
   letterSpacing,
   lineHeight,
   material,
+  floatingDark,
+  floatingLight,
   radiusLevels,
   radiusOverlay,
   radiusSurface,
@@ -1838,23 +1840,54 @@ describe("the look axis is DELETED; the dress and the surface edge survive it (�
     );
   });
 
-  it("dark's floating veil is reachable by contrast=high — its alpha is a token, not a literal", () => {
+  it("a floating veil is reachable by contrast=high in BOTH modes — its alpha is a token, not a literal", () => {
     // Audit 2026-08-18: the dark floating fill baked floatingDark.alpha as a literal, so HC
     // strengthened every in-flow pane and left the one actually covering live content at its
     // standard alpha — measured identical at both contrasts while the cards beside it moved.
-    const dark = block('[data-appearance="dark"]');
-    const darkHigh = block('[data-appearance="dark"][data-contrast="high"]');
-    for (const t of GLASS_MATERIALS) {
-      expect(dark, `--material-${t}-alpha-floating exists`).toMatch(
-        new RegExp(`--material-${t}-alpha-floating: [\\d.]+%;`),
-      );
-      expect(dark, `${t}: the floating fill reads the token`).toContain(
-        `var(--material-${t}-alpha-floating)`,
-      );
-      expect(darkHigh, `${t}: HC re-declares the floating alpha`).toMatch(
-        new RegExp(`--material-${t}-alpha-floating: [\\d.]+%;`),
-      );
+    //
+    // LIGHT JOINED 2026-09-21. Its floating veil read `--material-<t>-alpha` verbatim until it
+    // took a dim of its own, and the first spelling of that dim baked the alpha as a literal —
+    // the 2026-08-18 defect, one mode over, caught at ship. The HIGH value must also be MORE
+    // than the standard one: a token that exists and is re-declared to the same number passes
+    // every other assertion here.
+    const pct = (css: string, name: string): number => {
+      const m = css.match(new RegExp(`--${name}: ([\\d.]+)%;`));
+      if (!m?.[1]) throw new Error(`--${name} is not a percentage here`);
+      return Number(m[1]);
+    };
+    for (const mode of Object.keys(material) as (keyof typeof material)[]) {
+      if (mode !== "light" && mode !== "dark") continue;
+      const standard = block(`[data-appearance="${mode}"]`);
+      const high = block(`[data-appearance="${mode}"][data-contrast="high"]`);
+      for (const t of GLASS_MATERIALS) {
+        expect(standard, `${mode}/${t}: the floating fill reads the token`).toContain(`var(--material-${t}-alpha-floating)`);
+        expect(pct(high, `material-${t}-alpha-floating`), `${mode}/${t}: HC does not strengthen the floating veil`).toBeGreaterThan(
+          pct(standard, `material-${t}-alpha-floating`),
+        );
+      }
     }
+  });
+
+  it("a floating pane moves away from its mode's ground, and the trim is per mode (§10, 2026-09-21)", () => {
+    // Dark lifts its floating veil toward white (lab 2026-08-15); light dims its toward black,
+    // because a white glint over a white veil over a white page is nothing — a dialog's glint
+    // reads only because its scrim greys the backdrop, and a menu has no scrim. Read off the
+    // emitted fill, so a respelled mix is read as the browser reads it.
+    const fill = (mode: string) => inScope(`[data-appearance="${mode}"]`, "material-regular-fill-floating")!;
+    // The AMOUNT, not only the spelling: the first cut matched `…%, black)` and its own sabotage
+    // survived, because `100%, black` — no dim at all — is spelled the same way.
+    const kept = (mode: string, toward: string): number => {
+      const m = fill(mode).match(new RegExp(`var\\(--color-surface\\) ([\\d.]+)%, ${toward}\\)`));
+      if (!m?.[1]) throw new Error(`${mode}'s floating veil does not mix toward ${toward}: ${fill(mode)}`);
+      return Number(m[1]);
+    };
+    expect(kept("light", "black"), "light's floating veil does not dim").toBeLessThan(100);
+    expect(kept("dark", "white"), "dark's floating veil does not lift").toBeLessThan(100);
+    // The trim: dark keeps the lab's trimmed lip, light takes the whole one.
+    const trim = (mode: string) => Number(inScope(`[data-appearance="${mode}"]`, "material-floating-trim"));
+    expect(trim("light")).toBe(1);
+    expect(trim("dark")).toBeGreaterThan(0);
+    expect(trim("dark")).toBeLessThan(trim("light"));
   });
 
   it("the dead palette recedes from live in BOTH modes — per-mode steps, one config home", () => {
@@ -1984,22 +2017,20 @@ describe("the material ladder is monotone in every lever (§10)", () => {
         }
         for (const th of THICKNESSES) rises(material[mode][th][key]);
       }
-      // The pane's own light: the rim's SHEEN rises with thickness (thicker glass catches
-      // more), and the blur radius rises — thickness is one dimension in the filter too.
-      //
-      // `sheen`, not `rim` (2026-08-26 audit). This walked `rim` for nine days after `rim`
-      // stopped reaching any output: the 2026-08-17 ring port deleted the 1px top edge layer
-      // that consumed it, and `--material-<t>-rim` has been built from `sheen` ever since
-      // (`rim(m[name].sheen)`, generate.ts). So the ladder was held monotone on a number
-      // nobody could see, while the number the rim is actually made of was held by nothing —
-      // a law one indirection short of the value that could be wrong, on the value's own
-      // shadow. The dead row is deleted; this walks what the generator reads.
-      //
-      // `edge` left the same way on 2026-09-02 — the flat hairline was the field family's
-      // fallback for engines without `background-clip: border-area`, and the fork went when
-      // the family's lip moved onto the annulus every other glass member already wore.
-      // Measured before deleting it: zero elements painted it, in either appearance.
-      rises(THICKNESSES.map((th) => material[mode][th].sheen));
+      // THE RUNG MOVES THE VEIL AND THE FROST, AND NOTHING ELSE (2026-09-23, Kushagra: "The
+      // thin/regular/thick should decide the veil, how much background is let through, not how
+      // much glass is thick"). This walked the SHEEN rising with thickness until then — "thicker
+      // glass catches more light" — which is the model the veil model replaced: the grey, the
+      // saturation, the brightness and the rim's sheen are one value per mode, and a rung that
+      // moved any of them would be a second axis riding the first.
+      const same = (label: string, values: readonly (string | number)[]) =>
+        expect(new Set(values).size, `${mode}: the rung moves ${label} (${values.join(" | ")})`).toBe(1);
+      same("the sheen", THICKNESSES.map((th) => material[mode][th].sheen));
+      same("the pane filter", THICKNESSES.map((th) => material[mode][th].filter));
+      same("the control filter", THICKNESSES.map((th) => material[mode][th].control.filter));
+      same("the control hover", THICKNESSES.map((th) => material[mode][th].control.filterHover));
+      same("the loud filter", THICKNESSES.map((th) => material[mode][th].control.filterLoud));
+      same("the region filter", THICKNESSES.map((th) => material[mode][th].region.filter));
       // Fractional radii are real (2026-08-16: the judged ladder runs 2.4 / 4 / 5.6), and this
       // pattern used to be `\d+`, which does not match "2.4px" — so it returned null and the
       // law CRASHED rather than failing, which is a worse outcome than either. Decimals now.
@@ -2038,6 +2069,47 @@ describe("the material ladder is monotone in every lever (§10)", () => {
           expect(material[mode][th].alphaHigh[i]!).toBeGreaterThan(a);
         });
         expect(material[mode][th].alphaHigh[2]!).toBeLessThan(100);
+      }
+    });
+  }
+});
+
+/**
+ * THE FAMILY MULTIPLIES THE RUNG'S THICKNESS (§10, 2026-09-23). A menu holds rows of text over
+ * whatever passes behind it, so it is denser than a card at every rung ("a menu needs thicker veil
+ * so that content behind is hidden and readable"); a region holds paragraphs; a control is a hair
+ * denser than a pane. Read off the EMITTED alphas of each family, so a family whose row was typed by
+ * hand instead of built from the model is read as the browser reads it.
+ */
+describe("every family's veil rises with the rung and keeps its order (§10)", () => {
+  for (const mode of ["light", "dark"] as const) {
+    const floating = mode === "light" ? floatingLight : floatingDark;
+    const families = (th: (typeof GLASS_MATERIALS)[number]) => {
+      const t = th as keyof typeof floating.alpha;
+      return {
+        pane: material[mode][t].alpha[0],
+        control: material[mode][t].control.alpha,
+        region: material[mode][t].region.alpha,
+        floating: floating.alpha[t],
+      };
+    };
+    it(`${mode}: pane ≤ control < region < floating at every rung, and none reaches opaque`, () => {
+      for (const th of GLASS_MATERIALS) {
+        const f = families(th);
+        expect(f.control, `${mode}/${th}: a control is thinner than a pane`).toBeGreaterThanOrEqual(f.pane);
+        expect(f.region, `${mode}/${th}: a region is not denser than a control`).toBeGreaterThan(f.control);
+        expect(f.floating, `${mode}/${th}: a menu is not the densest glass`).toBeGreaterThan(f.region);
+        // The multiplier compounds a THICKNESS, so it approaches opaque and never arrives. The
+        // first cut multiplied the alpha instead, and at thick in dark it asked for 104%.
+        for (const [name, a] of Object.entries(f)) expect(a, `${mode}/${th}: ${name} is opaque`).toBeLessThan(100);
+      }
+    });
+    it(`${mode}: each family rises with the rung`, () => {
+      for (const name of ["pane", "control", "region", "floating"] as const) {
+        const ladder = GLASS_MATERIALS.map((th) => families(th)[name]);
+        for (let i = 1; i < ladder.length; i += 1) {
+          expect(ladder[i], `${mode}: ${name} ${ladder.join(" / ")} does not rise`).toBeGreaterThan(ladder[i - 1]!);
+        }
       }
     });
   }
