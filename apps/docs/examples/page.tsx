@@ -13,7 +13,7 @@ import {
   Toolbar,
   ToolbarButton,
   ToolbarTitle,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import { CopyIcon, MoreIcon, PanelLeftIcon, SearchIcon } from "../app/icons";
 

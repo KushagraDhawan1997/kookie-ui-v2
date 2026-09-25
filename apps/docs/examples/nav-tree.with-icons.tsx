@@ -6,7 +6,7 @@ import {
   PaintBrush01Icon,
   Rocket01Icon,
 } from "@hugeicons/core-free-icons";
-import { Box, NavTree, iconStroke, type TreeNode } from "@kookie-ui/react";
+import { Box, NavTree, iconStroke, type TreeNode } from "@kushagradhawan/kookie-ui-react";
 
 const icon = (glyph: typeof Home01Icon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />

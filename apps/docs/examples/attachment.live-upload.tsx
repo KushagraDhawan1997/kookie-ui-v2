@@ -3,7 +3,7 @@
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FileZipIcon } from "@hugeicons/core-free-icons";
-import { Attachment, Button, Stack, iconStroke, type AttachmentState } from "@kookie-ui/react";
+import { Attachment, Button, Stack, iconStroke, type AttachmentState } from "@kushagradhawan/kookie-ui-react";
 
 // The tile keeps no timer and holds no file. Your upload code updates `state` and `progress`,
 // and the tile draws what you give it. A timer stands in for the upload here.

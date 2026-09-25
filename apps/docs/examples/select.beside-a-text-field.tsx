@@ -5,7 +5,7 @@ import {
   SelectItem,
   SelectTrigger,
   TextField,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const UNITS = { gb: "GB", tb: "TB" };
 

@@ -7,7 +7,7 @@
  */
 import * as React from "react";
 import Link from "next/link";
-import { Button, Flex, Heading, Stack } from "@kookie-ui/react";
+import { Button, Flex, Heading, Stack } from "@kushagradhawan/kookie-ui-react";
 
 import { PreviewShell } from "../preview-app";
 import { ComponentPreviewBody, SectionNav } from "../component-preview";

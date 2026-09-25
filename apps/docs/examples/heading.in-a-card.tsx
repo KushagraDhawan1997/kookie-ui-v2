@@ -1,4 +1,4 @@
-import { Button, Card, Flex, Heading, Stack, Text } from "@kookie-ui/react";
+import { Button, Card, Flex, Heading, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // A card title uses step 6, with a short description under it at step 3.
 // The action sits at the end of the same row.

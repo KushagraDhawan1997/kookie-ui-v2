@@ -119,7 +119,7 @@ const accent = { hue: 265, vividness: 1 } as const;
 Then run the generator, which rewrites `src/tokens/tokens.css`:
 
 ```bash
-pnpm --filter @kookie-ui/react run tokens
+pnpm --filter @kushagradhawan/kookie-ui-react run tokens
 ```
 
 From those two numbers the generator calculates twelve steps and twelve transparent steps, in
@@ -144,7 +144,7 @@ Components receive the settings through CSS, so most code never reads them. Two 
 cases that CSS cannot handle.
 
 ```tsx
-import { useMaterial, useWindowClass } from "@kookie-ui/react";
+import { useMaterial, useWindowClass } from "@kushagradhawan/kookie-ui-react";
 
 // Your own panel, made of whatever the app is made of.
 function Pane({ children }: { children: React.ReactNode }) {

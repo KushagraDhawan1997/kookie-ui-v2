@@ -13,7 +13,7 @@ import {
   Stack,
   Text,
   TextField,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   const [open, setOpen] = React.useState(false);

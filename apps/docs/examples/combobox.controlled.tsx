@@ -10,7 +10,7 @@ import {
   ComboboxList,
   Stack,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const TIMEZONES = ["Asia/Kolkata", "Europe/Berlin", "Europe/London", "America/New_York", "Australia/Sydney"];
 

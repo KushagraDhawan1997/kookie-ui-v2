@@ -7,7 +7,7 @@ import {
   FieldLabel,
   Stack,
   TextField,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // Put `required` on the control. FieldError with `match="valueMissing"`
 // shows its message only when the browser reports that the value is missing.

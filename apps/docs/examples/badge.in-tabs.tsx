@@ -1,4 +1,4 @@
-import { Badge, Tabs, TabsList, TabsTab } from "@kookie-ui/react";
+import { Badge, Tabs, TabsList, TabsTab } from "@kushagradhawan/kookie-ui-react";
 
 // A badge in a tab label counts what waits on the other side of the tab.
 export default function Example() {

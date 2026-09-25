@@ -24,7 +24,7 @@ import { EmptyState } from "./empty-state";
 import { Footer } from "./footer";
 import { Specimen } from "./specimen";
 import { TableOfContents } from "./table-of-contents";
-import { Button, Grid, Stack, iconStroke } from "@kookie-ui/react";
+import { Button, Grid, Stack, iconStroke } from "@kushagradhawan/kookie-ui-react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FolderLibraryIcon, NoInternetIcon } from "@hugeicons/core-free-icons";
 import { Wordmark } from "../app/(docs)/wordmark";
@@ -116,7 +116,7 @@ export function Submit() {
 /** The specimen block's own demo source — the code shown IS the code rendered beside it, which
     is the figure's whole claim. Written out rather than read off disk: a block may not reach
     for the filesystem, which is the line that kept this pairing out of the registry until now. */
-const SPECIMEN = `import { Button, Grid } from "@kookie-ui/react";
+const SPECIMEN = `import { Button, Grid } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

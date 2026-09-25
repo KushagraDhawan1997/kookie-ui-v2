@@ -3,7 +3,7 @@
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon, Search01Icon } from "@hugeicons/core-free-icons";
-import { Button, Stack, Text, TextField, iconStroke } from "@kookie-ui/react";
+import { Button, Stack, Text, TextField, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 const FILES = ["Invoice March.pdf", "Invoice April.pdf", "Brand guide.pdf", "Roadmap.key"];
 

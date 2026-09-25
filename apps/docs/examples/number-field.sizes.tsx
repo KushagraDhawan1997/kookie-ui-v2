@@ -1,4 +1,4 @@
-import { NumberField, Stack } from "@kookie-ui/react";
+import { NumberField, Stack } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

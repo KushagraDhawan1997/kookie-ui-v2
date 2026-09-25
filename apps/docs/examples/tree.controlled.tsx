@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Button, Flex, Stack, Text, Tree, type TreeNode } from "@kookie-ui/react";
+import { Button, Flex, Stack, Text, Tree, type TreeNode } from "@kushagradhawan/kookie-ui-react";
 
 const teams: readonly TreeNode[] = [
   {

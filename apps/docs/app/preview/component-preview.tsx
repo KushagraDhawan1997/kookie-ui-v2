@@ -12,7 +12,7 @@
  */
 import * as React from "react";
 import Link from "next/link";
-import { Button, Flex, Heading, Stack, Text } from "@kookie-ui/react";
+import { Button, Flex, Heading, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 import { SECTION_ORDER, type ComponentPreview } from "./previews/types";
 

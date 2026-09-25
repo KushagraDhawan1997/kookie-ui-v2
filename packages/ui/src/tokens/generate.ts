@@ -1734,7 +1734,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const drifted = artifacts.filter((a) => readFileSync(a.path, "utf8") !== a.content);
     for (const a of drifted) console.error(`${a.name}: DRIFT — committed file does not match the generator`);
     if (drifted.length) {
-      console.error("Run `pnpm --filter @kookie-ui/react run tokens` and commit the result.");
+      console.error("Run `pnpm --filter @kushagradhawan/kookie-ui-react run tokens` and commit the result.");
       process.exit(1);
     }
     console.log(`generated files in sync: ${artifacts.map((a) => a.name).join(", ")}`);

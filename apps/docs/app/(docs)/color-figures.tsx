@@ -1,6 +1,6 @@
 import * as React from "react";
 
-import { Button, Card, Flex, Grid, Stack, Surface, Text, Theme, componentAxes } from "@kookie-ui/react";
+import { Button, Card, Flex, Grid, Stack, Surface, Text, Theme, componentAxes } from "@kushagradhawan/kookie-ui-react";
 
 /**
  * The colour chapter's figures (2026-09-14, Kushagra: "shouldnt the color page in docs show

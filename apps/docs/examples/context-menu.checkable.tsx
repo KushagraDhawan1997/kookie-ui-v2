@@ -9,7 +9,7 @@ import {
   MenuRadioItem,
   Surface,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // A checkbox row turns one option on or off. A radio group picks one
 // option from several. Both keep the menu open, so a person can change

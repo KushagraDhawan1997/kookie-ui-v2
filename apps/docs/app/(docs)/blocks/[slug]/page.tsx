@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Box, Heading, Page, Stack, Text } from "@kookie-ui/react";
+import { Box, Heading, Page, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 import { Specimen } from "../../../../blocks/specimen";
 import { type TocEntry } from "../../../../blocks/table-of-contents";

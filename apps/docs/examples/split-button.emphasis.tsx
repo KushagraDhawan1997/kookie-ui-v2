@@ -1,4 +1,4 @@
-import { Flex, MenuItem, SplitButton } from "@kookie-ui/react";
+import { Flex, MenuItem, SplitButton } from "@kushagradhawan/kookie-ui-react";
 
 const menu = (
   <>

@@ -48,7 +48,7 @@ import {
   TooltipTrigger,
   componentAxes,
   themeAxes,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import { PlusIcon, XIcon } from "../icons";
 import { ENTRIES } from "../(docs)/components/registry";

@@ -1,4 +1,4 @@
-import { Avatar, Badge, type AvatarSize } from "@kookie-ui/react";
+import { Avatar, Badge, type AvatarSize } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({
   size = "4",

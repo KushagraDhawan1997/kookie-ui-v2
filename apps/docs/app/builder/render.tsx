@@ -15,7 +15,7 @@
 
 import * as React from "react";
 
-import * as Kookie from "@kookie-ui/react";
+import * as Kookie from "@kushagradhawan/kookie-ui-react";
 
 import { CATALOG, slotsFor } from "./catalog";
 import { flowChildren, slottedChild, type BuilderNode } from "./model";
@@ -25,7 +25,7 @@ export type RenderMode = "canvas" | "export";
 
 const impl = (type: string): React.ComponentType<Record<string, unknown>> => {
   const component = (Kookie as unknown as Record<string, unknown>)[type];
-  if (!component) throw new Error(`"${type}" is not an export of @kookie-ui/react.`);
+  if (!component) throw new Error(`"${type}" is not an export of @kushagradhawan/kookie-ui-react.`);
   return component as React.ComponentType<Record<string, unknown>>;
 };
 

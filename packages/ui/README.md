@@ -1,11 +1,11 @@
-# @kookie-ui/react
+# @kushagradhawan/kookie-ui-react
 
 A React design system. Base UI primitives behind a Kookie-owned API, colour generated in OKLCH,
 token-only styling, and a CSS budget that CI enforces.
 
 **Pre-release.** This package is not on npm yet. Build it from the
 [workspace](https://github.com/KushagraDhawan1997/kookie-ui-v2) and depend on it with
-`"@kookie-ui/react": "workspace:*"`.
+`"@kushagradhawan/kookie-ui-react": "workspace:*"`.
 
 Peer dependencies are React 19 and React DOM 19.
 
@@ -14,8 +14,8 @@ Peer dependencies are React 19 and React DOM 19.
 Two lines. Import the stylesheet one time, and put a `Theme` at the root of the tree.
 
 ```tsx
-import "@kookie-ui/react/styles.css";
-import { Theme } from "@kookie-ui/react";
+import "@kushagradhawan/kookie-ui-react/styles.css";
+import { Theme } from "@kushagradhawan/kookie-ui-react";
 
 export default function App({ children }: { children: React.ReactNode }) {
   return <Theme>{children}</Theme>;
@@ -32,7 +32,7 @@ pointer, depth and material. Everything inside reads them through CSS inheritanc
 ## An example
 
 ```tsx
-import { Button, Card, Checkbox, Flex, Heading, Stack, Text, TextField } from "@kookie-ui/react";
+import { Button, Card, Checkbox, Flex, Heading, Stack, Text, TextField } from "@kushagradhawan/kookie-ui-react";
 
 export function NewProject() {
   return (

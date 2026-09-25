@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Box, NavTree, Stack, Text, type TreeNode } from "@kookie-ui/react";
+import { Box, NavTree, Stack, Text, type TreeNode } from "@kushagradhawan/kookie-ui-react";
 
 const pages: readonly TreeNode[] = [
   {

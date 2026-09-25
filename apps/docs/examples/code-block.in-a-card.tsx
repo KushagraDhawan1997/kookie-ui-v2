@@ -1,4 +1,4 @@
-import { Button, Card, CodeBlock, Flex, Heading, Stack, Text } from "@kookie-ui/react";
+import { Button, Card, CodeBlock, Flex, Heading, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const SOURCE = `curl https://api.example.com/v1/projects \\
   -H "Authorization: Bearer $API_KEY"`;

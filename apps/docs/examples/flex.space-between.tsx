@@ -1,4 +1,4 @@
-import { Button, Flex, Heading, Text, Stack } from "@kookie-ui/react";
+import { Button, Flex, Heading, Text, Stack } from "@kushagradhawan/kookie-ui-react";
 
 // `justify="space-between"` puts the title at one edge and the actions at
 // the other. A nested Flex groups the actions with their own gap.

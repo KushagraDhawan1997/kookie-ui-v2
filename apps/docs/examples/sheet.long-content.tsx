@@ -9,7 +9,7 @@ import {
   SheetTrigger,
   Stack,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const EVENTS = Array.from({ length: 24 }, (_, i) => ({
   id: i,

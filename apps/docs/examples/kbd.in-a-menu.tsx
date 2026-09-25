@@ -1,4 +1,4 @@
-import { Button, Kbd, Menu, MenuContent, MenuItem, MenuTrigger } from "@kookie-ui/react";
+import { Button, Kbd, Menu, MenuContent, MenuItem, MenuTrigger } from "@kushagradhawan/kookie-ui-react";
 
 // Put the shortcut in the row's `trailing` slot. The key takes the row's size,
 // and the words stay the part that a person reads first.

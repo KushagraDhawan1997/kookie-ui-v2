@@ -6,7 +6,7 @@ import {
   Heading,
   Stack,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 export default function Publish() {
   return (

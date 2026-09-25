@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Copy01Icon, Delete02Icon, Download01Icon, Undo02Icon } from "@hugeicons/core-free-icons";
-import { Flex, Toolbar, ToolbarButton, ToolbarGroup, ToolbarTitle, iconStroke } from "@kookie-ui/react";
+import { Flex, Toolbar, ToolbarButton, ToolbarGroup, ToolbarTitle, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 const icon = (glyph: typeof Undo02Icon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />

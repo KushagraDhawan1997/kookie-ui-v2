@@ -1,4 +1,4 @@
-import { Badge, Row, Stack } from "@kookie-ui/react";
+import { Badge, Row, Stack } from "@kushagradhawan/kookie-ui-react";
 
 // In a navigation list, put the badge in the row's `trailing` slot so every count lines up at
 // the end.

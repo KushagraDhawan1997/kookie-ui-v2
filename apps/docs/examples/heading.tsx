@@ -1,5 +1,5 @@
-import { Heading, Stack } from "@kookie-ui/react";
-import type { Tone, Weight } from "@kookie-ui/react";
+import { Heading, Stack } from "@kushagradhawan/kookie-ui-react";
+import type { Tone, Weight } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({
   weight = "medium",

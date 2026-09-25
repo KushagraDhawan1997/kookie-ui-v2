@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import {  } from "@kookie-ui/react";
+import {  } from "@kushagradhawan/kookie-ui-react";
 
 import { Specimen } from "../../blocks/specimen";
 import { tokenize } from "../../blocks/highlight";

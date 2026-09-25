@@ -1,4 +1,4 @@
-import { CodeBlock, Flex, Text } from "@kookie-ui/react";
+import { CodeBlock, Flex, Text } from "@kushagradhawan/kookie-ui-react";
 
 const SOURCE = `$ pnpm install
 Packages: +412

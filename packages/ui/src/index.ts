@@ -1,4 +1,4 @@
-// Public surface of @kookie-ui/react. Every export here is a decision (ENGINEERING.md §1.6).
+// Public surface of @kushagradhawan/kookie-ui-react. Every export here is a decision (ENGINEERING.md §1.6).
 export { Accordion, AccordionItem, AccordionTrigger, AccordionPanel, type AccordionProps, type AccordionItemProps, type AccordionTriggerProps, type AccordionPanelProps } from "./components/accordion/accordion.tsx";
 export { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction, type AlertDialogProps, type AlertDialogTriggerProps, type AlertDialogContentProps, type AlertDialogTitleProps, type AlertDialogDescriptionProps, type AlertDialogCancelProps, type AlertDialogActionProps } from "./components/alert-dialog/alert-dialog.tsx";
 export { Avatar, AvatarGroup, type AvatarProps, type AvatarGroupProps, type AvatarSize } from "./components/avatar/avatar.tsx";

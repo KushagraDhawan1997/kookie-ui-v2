@@ -1,4 +1,4 @@
-import { Box, Button, Card, Grid, Heading, Stack, Text } from "@kookie-ui/react";
+import { Box, Button, Card, Grid, Heading, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // Name the regions once with `areas`, then place each child with `gridArea`.
 // The source order stays the reading order, whatever the layout draws.

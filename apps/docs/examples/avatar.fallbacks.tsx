@@ -1,4 +1,4 @@
-import { Avatar, Flex } from "@kookie-ui/react";
+import { Avatar, Flex } from "@kushagradhawan/kookie-ui-react";
 
 // With a picture, the picture shows. Until it loads, or if it fails, the `fallback` shows
 // instead. Without a `fallback`, a generic person glyph shows.

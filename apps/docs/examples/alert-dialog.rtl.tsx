@@ -8,7 +8,7 @@ import {
   AlertDialogTrigger,
   Box,
   Button,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // The alert follows the direction around its trigger. In a right-to-left region, Cancel sits
 // on the right and the text aligns to the right edge. No prop is needed.

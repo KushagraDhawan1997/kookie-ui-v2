@@ -10,7 +10,7 @@ import {
   ToolbarButton,
   ToolbarTitle,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

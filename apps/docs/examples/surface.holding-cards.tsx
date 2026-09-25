@@ -1,4 +1,4 @@
-import { Card, Grid, Stack, Surface, Text } from "@kookie-ui/react";
+import { Card, Grid, Stack, Surface, Text } from "@kushagradhawan/kookie-ui-react";
 
 const projects = [
   ["Website redesign", "Due Friday"],

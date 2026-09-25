@@ -33,7 +33,7 @@
  * re-reviews the whole document and refuses any finding the original did not have.
  */
 
-import { componentAxes } from "@kookie-ui/react";
+import { componentAxes } from "@kushagradhawan/kookie-ui-react";
 
 import { CATALOG, type PropSchema } from "./catalog";
 import {

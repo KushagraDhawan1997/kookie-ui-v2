@@ -1,6 +1,6 @@
 /**
  * Document → JSX (2026-08-19). The bar is that a reader of the exported code cannot tell a
- * builder produced it: real imports from @kookie-ui/react, no wrapper divs, no builder
+ * builder produced it: real imports from @kushagradhawan/kookie-ui-react, no wrapper divs, no builder
  * runtime, only the props the user actually stated — and a Theme wrapper only when the
  * document's identity differs from the system's defaults, stating only the axes that differ.
  *
@@ -14,7 +14,7 @@
  * both sides read ONE derivation of "what props does this node state".
  */
 
-import { themeDefaults } from "@kookie-ui/react";
+import { themeDefaults } from "@kushagradhawan/kookie-ui-react";
 
 import { CATALOG, slotsFor } from "./catalog";
 import { TIER_KEYS, flowChildren, slottedChild, type PropValue, type ResponsiveValue } from "./model";
@@ -195,7 +195,7 @@ export const serializeDocument = (doc: BuilderDoc, exportName = "BuiltScreen"): 
   }
 
   return [
-    `import { ${imports.join(", ")} } from "@kookie-ui/react";`,
+    `import { ${imports.join(", ")} } from "@kushagradhawan/kookie-ui-react";`,
     "",
     `export function ${exportName}() {`,
     "  return (",
@@ -283,7 +283,7 @@ export const serializeBlock = (name: string, root: BuilderNode, params?: BlockPa
 
   return [
     ...(list.length ? ['import type * as React from "react";'] : []),
-    `import { ${imports.join(", ")} } from "@kookie-ui/react";`,
+    `import { ${imports.join(", ")} } from "@kushagradhawan/kookie-ui-react";`,
     "",
     `export function ${toComponentName(name)}(${signature}) {`,
     "  return (",

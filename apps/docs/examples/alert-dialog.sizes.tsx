@@ -8,7 +8,7 @@ import {
   AlertDialogTrigger,
   Button,
   Flex,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const sizes = ["1", "2", "3", "4"] as const;
 

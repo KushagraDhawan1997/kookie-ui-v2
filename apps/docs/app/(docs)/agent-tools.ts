@@ -1,5 +1,5 @@
-import * as Kookie from "@kookie-ui/react";
-import { componentAxes, themeAxes } from "@kookie-ui/react";
+import * as Kookie from "@kushagradhawan/kookie-ui-react";
+import { componentAxes, themeAxes } from "@kushagradhawan/kookie-ui-react";
 import {
   checkUsage,
   webToolName,
@@ -8,8 +8,8 @@ import {
   refusedPropsOf,
   typeRefusalsFor,
   type SnippetData,
-} from "@kookie-ui/react/agent";
-import { rules as lintRules } from "@kookie-ui/react/eslint-plugin";
+} from "@kushagradhawan/kookie-ui-react/agent";
+import { rules as lintRules } from "@kushagradhawan/kookie-ui-react/eslint-plugin";
 
 import { API } from "./components/api.generated";
 import { ENTRIES } from "./components/registry";
@@ -219,7 +219,7 @@ export type SnippetProblem = { symbol: string; message: string };
  * read them stayed behind for a while with nothing calling them. `snippet.ts` states what a
  * scanner can and cannot see; this file no longer says it a second time.
  */
-const NAMED_IMPORT = /import\s*\{([^}]*)\}\s*from\s*['"]@kookie-ui\/react['"]/g;
+const NAMED_IMPORT = /import\s*\{([^}]*)\}\s*from\s*['"]@kushagradhawan\/kookie-ui-react['"]/g;
 const ANY_IMPORT = /import\s+([^;]*?)\s+from\s+['"]([^'"]+)['"]/g;
 
 /**
@@ -235,7 +235,7 @@ const ANY_IMPORT = /import\s+([^;]*?)\s+from\s+['"]([^'"]+)['"]/g;
 function importedElsewhere(code: string): ReadonlySet<string> {
   const names = new Set<string>();
   for (const match of code.matchAll(ANY_IMPORT)) {
-    if (match[2] === "@kookie-ui/react") continue;
+    if (match[2] === "@kushagradhawan/kookie-ui-react") continue;
     // Braces become separators so one pass reads `X`, `{ A, B }` and `* as Ns` alike; the
     // LOCAL name is what a tag is written with, which is the tail of any `as`.
     for (const raw of (match[1] ?? "").replace(/[{}]/g, ",").split(",")) {
@@ -256,7 +256,7 @@ function importedElsewhere(code: string): ReadonlySet<string> {
 /**
  * THE FACTS THIS PAGE CAN SEE, in the shape the package's checker asks for.
  *
- * The RULES are `@kookie-ui/react/agent`'s and are shared with the stdio MCP server. Only the
+ * The RULES are `@kushagradhawan/kookie-ui-react/agent`'s and are shared with the stdio MCP server. Only the
  * facts differ: the server reads a snapshot built from this registry, and this file reads the
  * registry itself, in the same process the page renders from. Before the checker was shared,
  * these two surfaces each had their own scanner checking a DIFFERENT set of rules under the
@@ -342,7 +342,7 @@ export function checkSnippet(code: string): SnippetProblem[] {
       if (!EXPORTS.has(name)) {
         problems.push({
           symbol: name,
-          message: `@kookie-ui/react does not export ${name}. Call ${webToolName("list")} for what it does export.`,
+          message: `@kushagradhawan/kookie-ui-react does not export ${name}. Call ${webToolName("list")} for what it does export.`,
         });
       }
     }

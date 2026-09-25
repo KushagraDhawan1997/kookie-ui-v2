@@ -1,4 +1,4 @@
-import { Grid, Tree, type TreeNode } from "@kookie-ui/react";
+import { Grid, Tree, type TreeNode } from "@kushagradhawan/kookie-ui-react";
 
 const items: readonly TreeNode[] = [
   {

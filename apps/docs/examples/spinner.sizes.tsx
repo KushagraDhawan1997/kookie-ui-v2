@@ -1,4 +1,4 @@
-import { Button, Flex } from "@kookie-ui/react";
+import { Button, Flex } from "@kushagradhawan/kookie-ui-react";
 
 // Inside a control, the Spinner takes the icon size for that control's size. Swap an icon
 // for a Spinner and nothing moves.

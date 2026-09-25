@@ -8,7 +8,7 @@ import {
   ComboboxItem,
   ComboboxList,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // Hold the options steady. They reach the matcher by identity, so an array written
 // inside the component runs the whole filter again on every render.

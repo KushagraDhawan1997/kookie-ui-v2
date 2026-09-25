@@ -12,7 +12,7 @@ import {
   Stack,
   Text,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const ITEMS = ["الفواتير", "المشاريع", "الأعضاء", "التقارير", "الإعدادات"];
 

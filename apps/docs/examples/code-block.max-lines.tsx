@@ -1,4 +1,4 @@
-import { CodeBlock } from "@kookie-ui/react";
+import { CodeBlock } from "@kushagradhawan/kookie-ui-react";
 
 const SOURCE = `{
   "name": "billing-service",

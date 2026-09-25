@@ -1,6 +1,6 @@
 "use client";
 
-import { Field, FieldDescription, FieldError, FieldLabel, TextField } from "@kookie-ui/react";
+import { Field, FieldDescription, FieldError, FieldLabel, TextField } from "@kushagradhawan/kookie-ui-react";
 
 // Pass a `validate` function to the Field. It returns an error message, or
 // `null` when the value is valid. A FieldError with no `match` shows that

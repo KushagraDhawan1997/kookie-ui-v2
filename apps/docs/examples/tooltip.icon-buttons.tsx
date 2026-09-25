@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const ACTIONS = [
   { label: "Share", glyph: Share08Icon },

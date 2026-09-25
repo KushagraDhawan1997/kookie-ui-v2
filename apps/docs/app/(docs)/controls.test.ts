@@ -10,7 +10,7 @@ import { describe, expect, it } from "vitest";
 
 import { renderToStaticMarkup } from "react-dom/server";
 import * as React from "react";
-import { Theme } from "@kookie-ui/react";
+import { Theme } from "@kushagradhawan/kookie-ui-react";
 
 import { CONTROLLED } from "./controlled-examples";
 import { ENTRIES } from "./components/registry";

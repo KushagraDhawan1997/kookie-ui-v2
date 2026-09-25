@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Clock01Icon, Comment01Icon, ListViewIcon } from "@hugeicons/core-free-icons";
-import { Stack, Toggle, ToggleGroup, iconStroke } from "@kookie-ui/react";
+import { Stack, Toggle, ToggleGroup, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

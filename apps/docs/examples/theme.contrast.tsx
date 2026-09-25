@@ -1,4 +1,4 @@
-import { Checkbox, Flex, Grid, Stack, Text, TextField, Theme } from "@kookie-ui/react";
+import { Checkbox, Flex, Grid, Stack, Text, TextField, Theme } from "@kushagradhawan/kookie-ui-react";
 
 const CONTRASTS = ["normal", "high"] as const;
 

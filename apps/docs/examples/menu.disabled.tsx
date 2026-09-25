@@ -4,7 +4,7 @@ import {
   MenuContent,
   MenuItem,
   MenuTrigger,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // A disabled row stays in the list and stays announced: it is a
 // thing you cannot do right now, which is not the same as a thing

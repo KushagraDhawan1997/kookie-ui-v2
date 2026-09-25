@@ -5,7 +5,7 @@
 
 # KookieUI, for coding agents
 
-Rules for writing `@kookie-ui/react`. Read this before writing a component; it is short
+Rules for writing `@kushagradhawan/kookie-ui-react`. Read this before writing a component; it is short
 because it only carries what a lookup cannot tell you.
 
 ## Every component obeys these
@@ -79,7 +79,7 @@ answer how much room the component has, not how wide the window is.
 ## The components (176)
 
 This list is closed. There are no deep imports — every symbol comes from
-`@kookie-ui/react`. If what you want is not here, it is not there, and the answer is
+`@kushagradhawan/kookie-ui-react`. If what you want is not here, it is not there, and the answer is
 composition rather than a wrapper that re-implements it.
 
 `Accordion` · `AccordionItem` · `AccordionTrigger` · `AccordionPanel` · `AlertDialog` · `AlertDialogTrigger` · `AlertDialogContent` · `AlertDialogTitle` · `AlertDialogDescription` · `AlertDialogCancel` · `AlertDialogAction` · `Avatar` · `AvatarGroup` · `Attachment` · `Badge` · `Chip` · `Breadcrumb` · `BreadcrumbItem` · `BreadcrumbLink` · `BreadcrumbPage` · `BreadcrumbEllipsis` · `Blockquote` · `Box` · `Button` · `Card` · `Carousel` · `CarouselRail` · `CarouselItem` · `CarouselPrevious` · `CarouselNext` · `Checkbox` · `Code` · `CodeBlock` · `Field` · `FieldItem` · `FieldLabel` · `FieldDescription` · `FieldError` · `Combobox` · `ComboboxInput` · `ComboboxContent` · `ComboboxList` · `ComboboxCollection` · `ComboboxItem` · `ComboboxGroup` · `ComboboxLabel` · `ComboboxEmpty` · `Command` · `CommandTrigger` · `CommandContent` · `CommandInput` · `CommandList` · `CommandGroup` · `CommandGroupLabel` · `CommandCollection` · `CommandItem` · `CommandEmpty` · `Dialog` · `DialogTrigger` · `DialogContent` · `DialogTitle` · `DialogDescription` · `DialogClose` · `Heading` · `Kbd` · `Link` · `List` · `ListItem` · `ContextMenu` · `ContextMenuTrigger` · `ContextMenuContent` · `Menu` · `MenuTrigger` · `MenuContent` · `MenuItem` · `MenuGroup` · `MenuLabel` · `MenuCheckboxItem` · `MenuRadioGroup` · `MenuRadioItem` · `MenuSub` · `MenuSubTrigger` · `MenuSubContent` · `Select` · `SelectTrigger` · `SelectContent` · `SelectItem` · `SelectGroup` · `SelectLabel` · `Composer` · `ComposerInput` · `ComposerRow` · `ComposerSend` · `Confirmation` · `Notice` · `NumberField` · `Page` · `Toolbar` · `ToolbarGroup` · `ToolbarButton` · `ToolbarOverflow` · `ToolbarSeparator` · `ToolbarTitle` · `Popover` · `PopoverTrigger` · `PopoverContent` · `PopoverTitle` · `PopoverDescription` · `PopoverClose` · `Progress` · `MessageScroller` · `MessageScrollerContent` · `MessageScrollerItem` · `MessageScrollerButton` · `Radio` · `RadioGroup` · `Separator` · `Sheet` · `SheetTrigger` · `SheetContent` · `SheetTitle` · `SheetDescription` · `SheetClose` · `SegmentedControl` · `SegmentedItem` · `Row` · `Tree` · `NavTree` · `ScrollArea` · `Shell` · `ShellHeader` · `ShellRail` · `ShellTabBar` · `ShellSidebar` · `ShellContent` · `ShellInspector` · `ShellBottom` · `ShellScroll` · `ShellPaneHeader` · `ShellPaneFooter` · `ShellRailAction` · `ShellRailItem` · `ShellRailList` · `ShellNavGroup` · `ShellNavItem` · `ShellTrigger` · `Slider` · `Switch` · `Table` · `TableHeader` · `TableBody` · `TableRow` · `TableHead` · `TableCell` · `TableCaption` · `Tabs` · `TabsList` · `TabsTab` · `TabsPanel` · `Toggle` · `ToggleGroup` · `ButtonGroup` · `SplitButton` · `Tooltip` · `TooltipProvider` · `TooltipTrigger` · `TooltipContent` · `Text` · `TextArea` · `TextField` · `Spinner` · `Surface` · `Flex` · `Grid` · `Stack` · `Theme`
@@ -173,4 +173,4 @@ and `/components/dialog.md`. The roots are the names above with no parent listed
 them; asking the MCP server resolves either kind.
 
 The types are the other reference and they need no network: every exported symbol in
-`node_modules/@kookie-ui/react/dist/**/*.d.ts` carries the reasoning on the declaration.
+`node_modules/@kushagradhawan/kookie-ui-react/dist/**/*.d.ts` carries the reasoning on the declaration.

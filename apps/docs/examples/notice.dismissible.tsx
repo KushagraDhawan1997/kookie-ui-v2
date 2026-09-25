@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Button, Notice, Stack, Text } from "@kookie-ui/react";
+import { Button, Notice, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   // The dismissal is your state. Store it wherever it must survive: here, for the session.

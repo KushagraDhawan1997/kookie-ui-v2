@@ -7,7 +7,7 @@ import {
   PopoverTitle,
   PopoverTrigger,
   Stack,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

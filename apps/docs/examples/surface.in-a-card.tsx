@@ -1,4 +1,4 @@
-import { Button, Card, Code, Flex, Heading, Stack, Surface, Text } from "@kookie-ui/react";
+import { Button, Card, Code, Flex, Heading, Stack, Surface, Text } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

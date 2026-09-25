@@ -13,7 +13,7 @@ import {
   Stack,
   Text,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // ShellBottom is a full-width pane under the columns, for a console or a log. It stays
 // closed until a ShellTrigger opens it.

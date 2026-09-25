@@ -1,4 +1,4 @@
-import { Box, Button, Stack, Text } from "@kookie-ui/react";
+import { Box, Button, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // A control never sets the space around itself. When one child needs more room than the gap
 // gives it, wrap that child in a Box with a margin prop.

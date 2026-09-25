@@ -6,7 +6,7 @@ import {
   TextItalicIcon,
   TextUnderlineIcon,
 } from "@hugeicons/core-free-icons";
-import { Button, Flex, Separator, iconStroke } from "@kookie-ui/react";
+import { Button, Flex, Separator, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 const icon = (glyph: typeof TextBoldIcon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />

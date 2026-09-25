@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   Stack,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const REGIONS = { fra: "Frankfurt", iad: "Washington, D.C.", sin: "Singapore" };
 type Region = keyof typeof REGIONS;

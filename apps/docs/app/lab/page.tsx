@@ -13,7 +13,7 @@
  */
 
 import { useState } from "react";
-import { Button, Flex, Heading, Slider, Stack, Text, Theme } from "@kookie-ui/react";
+import { Button, Flex, Heading, Slider, Stack, Text, Theme } from "@kushagradhawan/kookie-ui-react";
 
 import "./lab.css";
 

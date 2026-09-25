@@ -1,14 +1,14 @@
 /**
  * The server's adapter onto the package's snippet checker.
  *
- * The rules used to live here. They now live in `@kookie-ui/react/agent`, because the
+ * The rules used to live here. They now live in `@kushagradhawan/kookie-ui-react/agent`, because the
  * documentation site exposes the same tool and had written its own scanner — two
  * implementations of "is this snippet inside the system", under one tool name, giving
  * different answers. What is left in this file is the only part that was ever the server's:
  * binding the package's rules to the SNAPSHOT this package builds, and the start-up probe
  * that reads the exported symbols out of it.
  */
-import { checkUsage as check, type CheckResult, type Finding, type SnippetData } from "@kookie-ui/react/agent";
+import { checkUsage as check, type CheckResult, type Finding, type SnippetData } from "@kushagradhawan/kookie-ui-react/agent";
 
 import { data, isKookie, legalValues, refusalsFor } from "./data.ts";
 

@@ -1,4 +1,4 @@
-import { Card, Stack, Text, type Size } from "@kookie-ui/react";
+import { Card, Stack, Text, type Size } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({
   size = "3",

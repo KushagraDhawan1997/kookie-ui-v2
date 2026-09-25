@@ -8,7 +8,7 @@ import {
   ShellSidebar,
   Stack,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // Set `resizable` to let people drag the sidebar's edge, or step it with the arrow keys.
 // `minWidth` and `maxWidth` limit the drag. Store the width from `onResize` to keep it.

@@ -8,7 +8,7 @@ import {
   SelectItem,
   SelectTrigger,
   Stack,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const ROLES = { viewer: "Viewer", editor: "Editor", admin: "Admin" };
 

@@ -1,4 +1,4 @@
-import { Box, Grid, Stack, Surface, Text } from "@kookie-ui/react";
+import { Box, Grid, Stack, Surface, Text } from "@kushagradhawan/kookie-ui-react";
 
 // Add `container` to make a Box measurable. Responsive values inside it then follow the Box's
 // width, not the window's. A container cannot size itself from its content, so give it a

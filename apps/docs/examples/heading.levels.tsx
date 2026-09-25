@@ -1,4 +1,4 @@
-import { Heading, Stack, Text } from "@kookie-ui/react";
+import { Heading, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // `render` sets the outline level and `size` sets the look. Here an `h1`
 // sits at step 7, and an `h2` below it sits at step 4.

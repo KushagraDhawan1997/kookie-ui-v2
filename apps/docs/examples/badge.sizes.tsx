@@ -1,4 +1,4 @@
-import { Badge, Flex, Text } from "@kookie-ui/react";
+import { Badge, Flex, Text } from "@kushagradhawan/kookie-ui-react";
 
 const sizes = ["2", "3", "5", "7"] as const;
 

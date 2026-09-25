@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Heading, SegmentedControl, SegmentedItem, Stack, Text } from "@kookie-ui/react";
+import { Heading, SegmentedControl, SegmentedItem, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const PRICES = { monthly: "$12 per month", yearly: "$120 per year" } as const;
 type Period = keyof typeof PRICES;

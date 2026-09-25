@@ -9,7 +9,7 @@
  * pressable × material × size on both calm and hostile ground.
  */
 import * as React from "react";
-import { Box, Button, Card, Checkbox, Flex, Grid, Heading, Radio, RadioGroup, ScrollArea, Separator, Stack, Text, TextField, Theme, themeAxes } from "@kookie-ui/react";
+import { Box, Button, Card, Checkbox, Flex, Grid, Heading, Radio, RadioGroup, ScrollArea, Separator, Stack, Text, TextField, Theme, themeAxes } from "@kushagradhawan/kookie-ui-react";
 
 import { BEDS, BedSurface, bed } from "../beds";
 import { Demo, SIZES, cap } from "../pieces";

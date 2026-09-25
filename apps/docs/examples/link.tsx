@@ -1,5 +1,5 @@
-import { Link, Text } from "@kookie-ui/react";
-import type { Tone, Weight } from "@kookie-ui/react";
+import { Link, Text } from "@kushagradhawan/kookie-ui-react";
+import type { Tone, Weight } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({
   weight = "regular",

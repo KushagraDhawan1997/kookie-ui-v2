@@ -11,7 +11,7 @@
  *
  * WHY IT MATTERS MORE THAN IT LOOKS. A person reads the reference site. A coding agent writing
  * against this package in someone else's repository usually does not: it resolves
- * `node_modules/@kookie-ui/react/dist/**.d.ts` and reads what is there. That file is the one
+ * `node_modules/@kushagradhawan/kookie-ui-react/dist/**.d.ts` and reads what is there. That file is the one
  * documentation surface which needs no network, no fetch and no adoption — so a sentence that
  * does not reach it is, for that reader, a sentence nobody wrote.
  */

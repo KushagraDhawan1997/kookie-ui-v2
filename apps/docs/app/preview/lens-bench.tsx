@@ -29,7 +29,7 @@
  * diff for config.ts and refraction.tsx.
  */
 import * as React from "react";
-import { __retuneLens, Button, Card, Flex, Heading, Stack, Text } from "@kookie-ui/react";
+import { __retuneLens, Button, Card, Flex, Heading, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 /* ── bend/fringe: live attribute edits on mounted filters (the 2026-08-23 half) ──────────── */
 

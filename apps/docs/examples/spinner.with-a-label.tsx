@@ -1,4 +1,4 @@
-import { Flex, Spinner, Text } from "@kookie-ui/react";
+import { Flex, Spinner, Text } from "@kushagradhawan/kookie-ui-react";
 
 // A Spinner is hidden from screen readers, so the words beside it carry the state.
 // `role="status"` makes a screen reader announce those words when they appear.

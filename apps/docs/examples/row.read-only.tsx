@@ -1,4 +1,4 @@
-import { Card, Heading, Row, Stack, Text } from "@kookie-ui/react";
+import { Card, Heading, Row, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const DETAILS = [
   { label: "Plan", value: "Team" },

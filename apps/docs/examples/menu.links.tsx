@@ -8,7 +8,7 @@ import {
   MenuTrigger,
   Separator,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const icon = (glyph: typeof UserIcon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />

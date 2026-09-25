@@ -48,7 +48,7 @@ describe("the refusal rule and the shipped declarations agree", () => {
   it("dist exists, so this law is reading the package rather than air", () => {
     expect(
       existsSync(path.join(DIST, "index.d.ts")),
-      "no dist — run `pnpm --filter @kookie-ui/react build` (turbo's `test` task depends on `build` for this reason)",
+      "no dist — run `pnpm --filter @kushagradhawan/kookie-ui-react build` (turbo's `test` task depends on `build` for this reason)",
     ).toBe(true);
   });
 

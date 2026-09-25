@@ -6,7 +6,7 @@ import {
   Card,
   Heading,
   Stack,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // The accordion draws no box of its own. Put it in a Card when the sections need an edge.
 export default function Example() {

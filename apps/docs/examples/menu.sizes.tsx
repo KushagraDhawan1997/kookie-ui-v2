@@ -1,5 +1,5 @@
-import { Button, Flex, Menu, MenuContent, MenuItem, MenuTrigger } from "@kookie-ui/react";
-import type { Size } from "@kookie-ui/react";
+import { Button, Flex, Menu, MenuContent, MenuItem, MenuTrigger } from "@kushagradhawan/kookie-ui-react";
+import type { Size } from "@kushagradhawan/kookie-ui-react";
 
 const sizes: Size[] = ["1", "2", "3", "4"];
 

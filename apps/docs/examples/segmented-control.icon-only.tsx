@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { GridViewIcon, ListViewIcon } from "@hugeicons/core-free-icons";
-import { SegmentedControl, SegmentedItem, iconStroke } from "@kookie-ui/react";
+import { SegmentedControl, SegmentedItem, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 // A segment with only an icon needs `aria-label`, so a screen reader can name the option.
 export default function Example() {

@@ -1,4 +1,4 @@
-import { Flex, Radio, RadioGroup, Text } from "@kookie-ui/react";
+import { Flex, Radio, RadioGroup, Text } from "@kushagradhawan/kookie-ui-react";
 
 const PERIODS = [
   { value: "monthly", label: "Monthly" },

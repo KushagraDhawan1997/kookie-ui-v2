@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { TextBoldIcon, TextItalicIcon, TextUnderlineIcon } from "@hugeicons/core-free-icons";
-import { Flex, Toggle, ToggleGroup, iconStroke } from "@kookie-ui/react";
+import { Flex, Toggle, ToggleGroup, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

@@ -1,5 +1,5 @@
-import { TextArea } from "@kookie-ui/react";
-import type { Size } from "@kookie-ui/react";
+import { TextArea } from "@kushagradhawan/kookie-ui-react";
+import type { Size } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({
   size = "2",

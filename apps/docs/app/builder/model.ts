@@ -10,7 +10,7 @@
  * into the exported code, and the round-trip law is what proves that.
  */
 
-import { themeDefaults, tierNames, type ThemeProps } from "@kookie-ui/react";
+import { themeDefaults, tierNames, type ThemeProps } from "@kushagradhawan/kookie-ui-react";
 
 /** The tier vocabulary a responsive value may speak, DERIVED from the package's own table
     (2026-08-19): `initial` plus the container tiers, in resolution order. The serializer

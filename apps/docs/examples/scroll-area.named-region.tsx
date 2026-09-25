@@ -1,4 +1,4 @@
-import { Heading, ScrollArea, Stack, Text } from "@kookie-ui/react";
+import { Heading, ScrollArea, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // A ScrollArea is a tab stop, so keyboard users can scroll it with the arrow keys. Name it
 // with `aria-labelledby` or `aria-label`, and a screen reader announces it as a region.

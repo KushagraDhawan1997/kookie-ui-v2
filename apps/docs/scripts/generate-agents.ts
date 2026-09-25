@@ -53,7 +53,7 @@ import ts from "typescript";
  * and `MATERIALS`/`SIZES` need no exception: `componentAxes` holds both, so the private names
  * were a second way of saying what the public one already says.
  */
-import type { componentAxes as ComponentAxes, tiers as Tiers } from "@kookie-ui/react";
+import type { componentAxes as ComponentAxes, tiers as Tiers } from "@kushagradhawan/kookie-ui-react";
 import type * as RegistryModule from "../app/(docs)/components/registry";
 import type * as ExportsModule from "../app/package-exports";
 
@@ -195,7 +195,7 @@ export function generatedText(): string {
     "",
     "# KookieUI, for coding agents",
     "",
-    "Rules for writing `@kookie-ui/react`. Read this before writing a component; it is short",
+    "Rules for writing `@kushagradhawan/kookie-ui-react`. Read this before writing a component; it is short",
     "because it only carries what a lookup cannot tell you.",
     "",
     "## Every component obeys these",
@@ -266,7 +266,7 @@ export function generatedText(): string {
     `## The components (${f.components.length})`,
     "",
     "This list is closed. There are no deep imports — every symbol comes from",
-    "`@kookie-ui/react`. If what you want is not here, it is not there, and the answer is",
+    "`@kushagradhawan/kookie-ui-react`. If what you want is not here, it is not there, and the answer is",
     "composition rather than a wrapper that re-implements it.",
     "",
     f.components.map((name) => `\`${name}\``).join(" · "),
@@ -305,7 +305,7 @@ export function generatedText(): string {
     "them; asking the MCP server resolves either kind.",
     "",
     "The types are the other reference and they need no network: every exported symbol in",
-    "`node_modules/@kookie-ui/react/dist/**/*.d.ts` carries the reasoning on the declaration.",
+    "`node_modules/@kushagradhawan/kookie-ui-react/dist/**/*.d.ts` carries the reasoning on the declaration.",
     "",
   );
 

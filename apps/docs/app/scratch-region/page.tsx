@@ -1,7 +1,7 @@
 "use client";
 // SCRATCH — deleted at ship. The three scales of one material over the photograph.
 import * as React from "react";
-import { Theme, Card, Button, Composer, ComposerInput, ComposerRow, ComposerSend, Shell, ShellSidebar, ShellContent, Stack, Flex, Text, Heading, Box, Popover, PopoverTrigger, PopoverContent, Menu, MenuTrigger, MenuContent, MenuItem } from "@kookie-ui/react";
+import { Theme, Card, Button, Composer, ComposerInput, ComposerRow, ComposerSend, Shell, ShellSidebar, ShellContent, Stack, Flex, Text, Heading, Box, Popover, PopoverTrigger, PopoverContent, Menu, MenuTrigger, MenuContent, MenuItem } from "@kushagradhawan/kookie-ui-react";
 import { BedSurface, PHOTO_BED } from "../preview/beds";
 
 function Scene({ appearance }: { appearance: "light" | "dark" }) {

@@ -5,7 +5,7 @@
  * so the lock and the free-reign recipe are judged on identical ground. SCRATCH.
  */
 
-import { Button, Flex, Heading, Stack, Text, Theme } from "@kookie-ui/react";
+import { Button, Flex, Heading, Stack, Text, Theme } from "@kushagradhawan/kookie-ui-react";
 
 import "./lab3.css";
 

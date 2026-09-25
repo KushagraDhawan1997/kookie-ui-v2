@@ -1,4 +1,4 @@
-import { Kbd, Stack, Text } from "@kookie-ui/react";
+import { Kbd, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // Without `size`, a key takes the size of the text around it.
 // Set `size` only when the key stands on its own.

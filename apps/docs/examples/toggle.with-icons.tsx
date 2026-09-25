@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FilterIcon, StarIcon } from "@hugeicons/core-free-icons";
-import { Flex, Toggle, iconStroke } from "@kookie-ui/react";
+import { Flex, Toggle, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

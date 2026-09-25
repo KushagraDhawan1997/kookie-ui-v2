@@ -15,7 +15,7 @@ import {
   Flex,
   Stack,
   TextField,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // Control `open` so the dialog closes only after the form is saved. The
 // form element wraps the fields and the actions, so Enter submits it.

@@ -1,4 +1,4 @@
-import { Heading, Stack } from "@kookie-ui/react";
+import { Heading, Stack } from "@kushagradhawan/kookie-ui-react";
 
 // `tone` gives the words a meaning, and the theme picks the colour.
 // Use it sparingly: most headings stay neutral.

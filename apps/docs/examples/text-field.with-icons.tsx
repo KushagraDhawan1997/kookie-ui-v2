@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Mail01Icon, Search01Icon } from "@hugeicons/core-free-icons";
-import { Field, FieldLabel, Kbd, Stack, TextField, iconStroke } from "@kookie-ui/react";
+import { Field, FieldLabel, Kbd, Stack, TextField, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

@@ -10,7 +10,7 @@ import {
   ComposerSend,
   Confirmation,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // A Confirmation asks a question and waits for the answer. Focus does not
 // move to it, because the person may be in the middle of a sentence.

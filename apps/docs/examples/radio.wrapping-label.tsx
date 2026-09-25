@@ -1,4 +1,4 @@
-import { Flex, Radio, RadioGroup, Text } from "@kookie-ui/react";
+import { Flex, Radio, RadioGroup, Text } from "@kushagradhawan/kookie-ui-react";
 
 const OPTIONS = [
   { value: "light", label: "Light" },

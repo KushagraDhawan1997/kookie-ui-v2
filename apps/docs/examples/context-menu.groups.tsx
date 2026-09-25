@@ -7,7 +7,7 @@ import {
   MenuLabel,
   Surface,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // Put related rows in a MenuGroup with a MenuLabel. The label names the
 // group for a screen reader, and the keyboard skips it.

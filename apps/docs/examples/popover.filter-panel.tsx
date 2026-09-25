@@ -14,7 +14,7 @@ import {
   PopoverTrigger,
   Stack,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const STATUSES = ["Queued", "Running", "Failed", "Finished"];
 

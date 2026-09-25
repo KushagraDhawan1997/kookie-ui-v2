@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Flex, Slider, Stack, Text } from "@kookie-ui/react";
+import { Flex, Slider, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // Hold the value in your own state to show it or use it elsewhere. `onValueChange` fires
 // while you drag. `onValueCommitted` fires once, when you let go.

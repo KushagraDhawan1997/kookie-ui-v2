@@ -1,4 +1,4 @@
-import { Field, FieldDescription, FieldLabel, Slider } from "@kookie-ui/react";
+import { Field, FieldDescription, FieldLabel, Slider } from "@kushagradhawan/kookie-ui-react";
 
 // Pass an array and the Slider draws a handle for each value. `minStepsBetweenValues`
 // keeps the two handles at least that many steps apart.

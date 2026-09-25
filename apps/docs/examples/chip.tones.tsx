@@ -1,4 +1,4 @@
-import { Chip, Flex } from "@kookie-ui/react";
+import { Chip, Flex } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

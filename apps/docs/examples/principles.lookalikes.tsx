@@ -6,7 +6,7 @@ import {
   Tabs,
   TabsList,
   TabsTab,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 export default function Lookalikes() {
   return (

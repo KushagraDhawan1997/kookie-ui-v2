@@ -155,7 +155,7 @@ import {
   SelectTrigger,
   SelectContent,
   SelectItem,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import {
   ArrowDownIcon,

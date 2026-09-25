@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Badge, Button, Flex, Text } from "@kookie-ui/react";
+import { Badge, Button, Flex, Text } from "@kushagradhawan/kookie-ui-react";
 
 // Write `{count > 0 && count}` to show the badge only when there is something to count. At
 // zero, the badge has no content and no name, so nothing renders.

@@ -3,7 +3,7 @@ import {
   AccordionItem,
   AccordionPanel,
   AccordionTrigger,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // `dir` is the platform's attribute, not a prop this component
 // invented: put it here or on any ancestor and the chevron turns

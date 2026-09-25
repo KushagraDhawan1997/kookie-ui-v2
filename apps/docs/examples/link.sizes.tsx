@@ -1,4 +1,4 @@
-import { Link, Stack, Text } from "@kookie-ui/react";
+import { Link, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // Inside a sentence, leave `size` unset: the link matches the text around it.
 // Set `size` only when the link stands on its own line.

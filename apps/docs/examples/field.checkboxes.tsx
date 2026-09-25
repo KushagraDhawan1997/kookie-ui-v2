@@ -5,7 +5,7 @@ import {
   FieldItem,
   FieldLabel,
   Stack,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // Use a FieldItem for each option. The item gives the checkbox its own
 // label and its own description, and clicking the label toggles it.

@@ -1,4 +1,4 @@
-import { Box, Grid, Surface, Text } from "@kookie-ui/react";
+import { Box, Grid, Surface, Text } from "@kushagradhawan/kookie-ui-react";
 
 const steps = ["2", "4", "6"] as const;
 

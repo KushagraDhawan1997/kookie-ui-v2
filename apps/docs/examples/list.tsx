@@ -1,4 +1,4 @@
-import { List, ListItem } from "@kookie-ui/react";
+import { List, ListItem } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

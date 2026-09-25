@@ -1,4 +1,4 @@
-import { Badge, Flex, Text } from "@kookie-ui/react";
+import { Badge, Flex, Text } from "@kushagradhawan/kookie-ui-react";
 
 // `tone` says what the badge means. The default `accent` means something is here.
 // `destructive` means something needs you. Map your own words to a tone in your app.

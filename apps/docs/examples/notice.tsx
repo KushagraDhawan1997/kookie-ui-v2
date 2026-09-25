@@ -1,7 +1,7 @@
 "use client";
 
-import { Button, Notice, Stack, Text } from "@kookie-ui/react";
-import type { Size, Tone } from "@kookie-ui/react";
+import { Button, Notice, Stack, Text } from "@kushagradhawan/kookie-ui-react";
+import type { Size, Tone } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({
   size = "2",

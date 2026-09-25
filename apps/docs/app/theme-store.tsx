@@ -15,7 +15,7 @@
  * stored choice arrives after hydration — the window-class hook's own honesty.
  */
 import * as React from "react";
-import { Theme, themeAxes, themeDefaults } from "@kookie-ui/react";
+import { Theme, themeAxes, themeDefaults } from "@kushagradhawan/kookie-ui-react";
 
 export type ThemeAxisKey = "density" | "radius" | "depth" | "material" | "size" | "pointer";
 export type ThemeChoice = { [K in ThemeAxisKey]: (typeof themeAxes)[K][number] };

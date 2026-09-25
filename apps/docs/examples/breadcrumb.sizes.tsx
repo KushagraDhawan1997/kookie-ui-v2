@@ -4,7 +4,7 @@ import {
   BreadcrumbLink,
   BreadcrumbPage,
   Stack,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const SIZES = ["1", "2", "3"] as const;
 

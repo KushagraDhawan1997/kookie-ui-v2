@@ -1,4 +1,4 @@
-import { Box, Tree, type TreeNode } from "@kookie-ui/react";
+import { Box, Tree, type TreeNode } from "@kushagradhawan/kookie-ui-react";
 
 const files: readonly TreeNode[] = [
   {

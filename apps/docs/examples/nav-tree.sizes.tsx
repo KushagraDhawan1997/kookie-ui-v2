@@ -1,5 +1,5 @@
-import { Box, Grid, NavTree, type TreeNode } from "@kookie-ui/react";
-import type { Size } from "@kookie-ui/react";
+import { Box, Grid, NavTree, type TreeNode } from "@kushagradhawan/kookie-ui-react";
+import type { Size } from "@kushagradhawan/kookie-ui-react";
 
 const pages: readonly TreeNode[] = [
   {

@@ -26,8 +26,8 @@ import * as reactJsx from "react/jsx-runtime";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import * as Kookie from "@kookie-ui/react";
-import { Theme, componentAxes } from "@kookie-ui/react";
+import * as Kookie from "@kushagradhawan/kookie-ui-react";
+import { Theme, componentAxes } from "@kushagradhawan/kookie-ui-react";
 
 import { CATALOG, EXCLUDED, SLOT_ACCEPTS, canContain, canSit, gapStepsFor, sanitizeNode, seatVocabularyFor, sizeStepsFor, slotsFor } from "./catalog";
 import {
@@ -277,7 +277,7 @@ const normalizeGeneratedIds = (html: string): string => {
 const compileExport = (code: string): React.ComponentType => {
   const js = transformSync(code, { loader: "tsx", format: "cjs", jsx: "automatic" }).code;
   const require = (spec: string) => {
-    if (spec === "@kookie-ui/react") return Kookie;
+    if (spec === "@kushagradhawan/kookie-ui-react") return Kookie;
     if (spec === "react") return React;
     if (spec === "react/jsx-runtime") return { Fragment: React.Fragment, jsx: reactJsx.jsx, jsxs: reactJsx.jsxs };
     throw new Error(`the exported code imports "${spec}" — it may only need React and the package`);
@@ -533,7 +533,7 @@ describe("every catalog entry survives the round trip it was added for", () => {
       const code = serializeDocument(doc);
       expect(code, `${type} exported nothing that names it`).toContain(`<${type}`);
       expect(code, `${type} is missing from the import line`).toMatch(
-        new RegExp(`import \\{[^}]*\\b${type}\\b[^}]*\\} from "@kookie-ui/react"`),
+        new RegExp(`import \\{[^}]*\\b${type}\\b[^}]*\\} from "@kushagradhawan/kookie-ui-react"`),
       );
     }
   });

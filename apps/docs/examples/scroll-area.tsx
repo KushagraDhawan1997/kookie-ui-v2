@@ -1,4 +1,4 @@
-import { ScrollArea, Stack, Text } from "@kookie-ui/react";
+import { ScrollArea, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

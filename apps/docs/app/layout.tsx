@@ -1,4 +1,4 @@
-import "@kookie-ui/react/styles.css";
+import "@kushagradhawan/kookie-ui-react/styles.css";
 import "@fontsource-variable/inter/wght.css";
 import "@fontsource-variable/inter/wght-italic.css";
 import "@fontsource-variable/inter-tight/wght.css";
@@ -6,7 +6,7 @@ import "./fonts.css";
 import "./globals.css";
 
 import type { Metadata } from "next";
-import { TooltipProvider } from "@kookie-ui/react";
+import { TooltipProvider } from "@kushagradhawan/kookie-ui-react";
 
 import { appearanceScript } from "./appearance-script";
 import { DevOutlineGate } from "./dev-outline";

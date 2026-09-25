@@ -9,7 +9,7 @@
 
 import * as React from "react";
 
-import { Box, Button, Tree, type TreeNode } from "@kookie-ui/react";
+import { Box, Button, Tree, type TreeNode } from "@kushagradhawan/kookie-ui-react";
 
 import { EmptyState } from "../../blocks/empty-state";
 import { CATALOG } from "./catalog";

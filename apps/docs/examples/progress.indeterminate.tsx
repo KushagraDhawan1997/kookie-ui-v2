@@ -1,4 +1,4 @@
-import { Progress, Stack, Text } from "@kookie-ui/react";
+import { Progress, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

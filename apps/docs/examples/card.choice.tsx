@@ -1,4 +1,4 @@
-import { Card, Flex, Radio, RadioGroup, Stack, Text } from "@kookie-ui/react";
+import { Card, Flex, Radio, RadioGroup, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const PLANS = [
   { value: "starter", name: "Starter", detail: "Up to 3 projects and 5 GB of storage." },

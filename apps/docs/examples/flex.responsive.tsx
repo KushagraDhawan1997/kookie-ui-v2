@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Heading, Stack, Text } from "@kookie-ui/react";
+import { Box, Button, Flex, Heading, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // Every Flex prop takes a value per breakpoint. This row stacks in a
 // narrow container and becomes a row from the `md` breakpoint. The

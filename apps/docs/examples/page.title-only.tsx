@@ -1,4 +1,4 @@
-import { Box, Page, Row, Stack } from "@kookie-ui/react";
+import { Box, Page, Row, Stack } from "@kushagradhawan/kookie-ui-react";
 
 // A title that says everything needs no description.
 export default function Example() {

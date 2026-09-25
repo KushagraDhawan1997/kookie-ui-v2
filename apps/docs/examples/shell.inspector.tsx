@@ -12,7 +12,7 @@ import {
   Stack,
   Text,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // ShellInspector is a details column at the end of the frame. It stays closed until a
 // ShellTrigger opens it. Pass `defaultOpen` to start it open.

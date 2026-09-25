@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Button, Flex, Stack, Switch, Text } from "@kookie-ui/react";
+import { Button, Flex, Stack, Switch, Text } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   const [saved, setSaved] = React.useState<string | null>(null);

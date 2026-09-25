@@ -4,8 +4,8 @@ import {
   ToolbarGroup,
   ToolbarTitle,
   Flex,
-} from "@kookie-ui/react";
-import type { Size } from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
+import type { Size } from "@kushagradhawan/kookie-ui-react";
 
 import { CopyIcon, LockIcon, MoreIcon, PanelLeftIcon, SearchIcon } from "../app/icons";
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Link as KookieLink, Page, Stack } from "@kookie-ui/react";
+import { Link as KookieLink, Page, Stack } from "@kushagradhawan/kookie-ui-react";
 
 import { PageFrame } from "../page-frame";
 import { BLOCKS } from "../../../blocks";

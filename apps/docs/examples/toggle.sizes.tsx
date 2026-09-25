@@ -1,4 +1,4 @@
-import { Flex, Toggle } from "@kookie-ui/react";
+import { Flex, Toggle } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

@@ -1,4 +1,4 @@
-import { Blockquote, Stack } from "@kookie-ui/react";
+import { Blockquote, Stack } from "@kushagradhawan/kookie-ui-react";
 
 const sizes = ["2", "3", "4", "5"] as const;
 

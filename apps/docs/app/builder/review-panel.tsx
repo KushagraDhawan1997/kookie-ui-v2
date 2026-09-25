@@ -10,7 +10,7 @@
 
 import * as React from "react";
 
-import { Box, Button, Flex, Separator, Stack, Text } from "@kookie-ui/react";
+import { Box, Button, Flex, Separator, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 import { EmptyState } from "../../blocks/empty-state";
 import { CheckIcon } from "../icons";

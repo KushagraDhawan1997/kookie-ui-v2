@@ -42,7 +42,7 @@ import {
   Stack,
   Text,
   Theme,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import "./lab2.css";
 

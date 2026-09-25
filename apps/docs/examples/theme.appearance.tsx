@@ -1,4 +1,4 @@
-import { Button, Flex, Grid, Stack, Surface, Switch, Text, Theme } from "@kookie-ui/react";
+import { Button, Flex, Grid, Stack, Surface, Switch, Text, Theme } from "@kushagradhawan/kookie-ui-react";
 
 const APPEARANCES = ["light", "dark"] as const;
 

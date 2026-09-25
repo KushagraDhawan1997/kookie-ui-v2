@@ -12,7 +12,7 @@
 // fixture would typecheck or not depending on whether the build had run.
 // Nothing imports this file: the law reads it as text and hands it to ESLint under a virtual
 // filename, so it never enters the module graph or the build.
-import { Card } from "@kookie-ui/react";
+import { Card } from "@kushagradhawan/kookie-ui-react";
 
 export function Wrong() {
   return (

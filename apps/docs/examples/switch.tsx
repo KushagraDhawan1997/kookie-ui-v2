@@ -1,4 +1,4 @@
-import { Flex, Switch, Text, type Size } from "@kookie-ui/react";
+import { Flex, Switch, Text, type Size } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({ size = "2" }: { size?: Size }) {
   return (

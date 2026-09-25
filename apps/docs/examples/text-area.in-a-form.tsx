@@ -1,4 +1,4 @@
-import { Button, Field, FieldDescription, FieldLabel, Flex, Stack, TextArea } from "@kookie-ui/react";
+import { Button, Field, FieldDescription, FieldLabel, Flex, Stack, TextArea } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

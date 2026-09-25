@@ -1,4 +1,4 @@
-import { Field, FieldDescription, FieldItem, FieldLabel, Radio, RadioGroup } from "@kookie-ui/react";
+import { Field, FieldDescription, FieldItem, FieldLabel, Radio, RadioGroup } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

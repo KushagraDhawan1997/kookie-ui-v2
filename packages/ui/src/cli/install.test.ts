@@ -1,5 +1,5 @@
 /**
- * `npx @kookie-ui/react init` may not write a file nobody asked for.
+ * `npx @kushagradhawan/kookie-ui-react init` may not write a file nobody asked for.
  *
  * The load-bearing law is the CONSENT one, and it reads the filesystem rather than the code: a
  * default run must leave the directory byte-identical. This repo has the opposite behaviour on
@@ -69,6 +69,13 @@ describe("the plan", () => {
 });
 
 describe("the block", () => {
+  it("upgrades rules installed under the previous package name in place", () => {
+    const old = "# Mine\n<!-- BEGIN @kookie-ui/react — generated, replaced by `npx @kookie-ui/react init` -->\nOLD\n<!-- END @kookie-ui/react -->\nTail\n";
+    const next = cli.spliceBlock(old, cli.wrap("NEW"));
+    expect(next).toBe(`# Mine\n${cli.wrap("NEW")}\nTail\n`);
+    expect(cli.spliceBlock(next, cli.wrap("NEW"))).toBe(next);
+  });
+
   it("appends below what is already there, keeping it", () => {
     const out = cli.spliceBlock("# My rules\n\nUse tabs.\n", cli.wrap("RULES"));
     expect(out).toContain("Use tabs.");
@@ -80,7 +87,7 @@ describe("the block", () => {
     const twice = cli.spliceBlock(once, cli.wrap("NEW"));
     expect(twice).toContain("NEW");
     expect(twice).not.toContain("OLD");
-    expect(twice.match(/BEGIN @kookie-ui\/react/g)).toHaveLength(1);
+    expect(twice.match(/BEGIN @kushagradhawan\/kookie-ui-react/g)).toHaveLength(1);
     expect(twice).toContain("# My rules");
   });
 
@@ -148,7 +155,7 @@ describe("consent", () => {
     const written = readFileSync(join(root, "AGENTS.md"), "utf8");
     expect(cli.rulesText()).toContain("pnpm --filter docs run agents");
     expect(written).not.toContain("pnpm --filter docs run agents");
-    expect(written).toContain("npx @kookie-ui/react init");
+    expect(written).toContain("npx @kushagradhawan/kookie-ui-react init");
   });
 
   it("gives a Cursor rule the frontmatter Cursor loads it by", () => {

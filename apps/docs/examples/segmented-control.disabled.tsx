@@ -1,4 +1,4 @@
-import { SegmentedControl, SegmentedItem, Stack } from "@kookie-ui/react";
+import { SegmentedControl, SegmentedItem, Stack } from "@kushagradhawan/kookie-ui-react";
 
 // Set `disabled` on one SegmentedItem to block that option. Set it on the SegmentedControl
 // to block the whole control.

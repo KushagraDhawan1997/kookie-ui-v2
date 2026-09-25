@@ -1,4 +1,4 @@
-import { Avatar, Button, Flex, Menu, MenuContent, MenuItem, MenuTrigger, Separator } from "@kookie-ui/react";
+import { Avatar, Button, Flex, Menu, MenuContent, MenuItem, MenuTrigger, Separator } from "@kushagradhawan/kookie-ui-react";
 
 // An avatar does not respond to a press. For an account menu, put the avatar in an icon-only
 // Button. The avatar fills the button, and the button carries the accessible name.

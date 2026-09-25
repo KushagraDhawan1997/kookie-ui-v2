@@ -1,4 +1,4 @@
-import { Avatar, AvatarGroup } from "@kookie-ui/react";
+import { Avatar, AvatarGroup } from "@kushagradhawan/kookie-ui-react";
 
 const members = [
   { name: "Shruti Bhatia", initials: "SB" },

@@ -1,4 +1,4 @@
-import { Button, Stack } from "@kookie-ui/react";
+import { Button, Stack } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({
   gap = "3",

@@ -12,7 +12,7 @@
  */
 
 /** The one specifier a consumer imports from. Flat exports, so there are no deep subpaths. */
-export const PACKAGE = "@kookie-ui/react";
+export const PACKAGE = "@kushagradhawan/kookie-ui-react";
 
 export type SymbolTracker = {
   /** Local names bound to a named or default import — `Card`, or `Pane` after a rename. */

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Notice, Stack } from "@kookie-ui/react";
+import { Button, Notice, Stack } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

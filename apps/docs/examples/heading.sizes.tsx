@@ -1,4 +1,4 @@
-import { Heading, Stack } from "@kookie-ui/react";
+import { Heading, Stack } from "@kushagradhawan/kookie-ui-react";
 
 // `size` picks a step on the same nine-step scale Text uses.
 // The screen headings in this system use step 8 for a page, 7 for a section and 6 for a card.

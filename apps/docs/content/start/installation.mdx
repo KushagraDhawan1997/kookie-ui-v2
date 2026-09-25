@@ -4,7 +4,7 @@ value beforehand and ships it as a CSS custom property.
 
 ## Add the package
 
-`@kookie-ui/react` is pre-release and not yet published to npm, so build it from the repository
+`@kushagradhawan/kookie-ui-react` is pre-release and not yet published to npm, so build it from the repository
 for now:
 
 ```bash
@@ -19,18 +19,18 @@ Then add it as a dependency of an app in the same workspace:
 ```json title="package.json"
 {
   "dependencies": {
-    "@kookie-ui/react": "workspace:*"
+    "@kushagradhawan/kookie-ui-react": "workspace:*"
   }
 }
 ```
 
-Once the package reaches npm you will install it with `pnpm add @kookie-ui/react`, and the
+Once the package reaches npm you will install it with `pnpm add @kushagradhawan/kookie-ui-react`, and the
 other setup steps stay the same. Kookie requires React 19 and React DOM 19.
 
 ## Import the stylesheet once
 
 ```tsx
-import "@kookie-ui/react/styles.css";
+import "@kushagradhawan/kookie-ui-react/styles.css";
 ```
 
 Import it at the root of your app, since this single file contains every style:
@@ -42,8 +42,8 @@ Import it at the root of your app, since this single file contains every style:
 ## Wrap your app in a Theme
 
 ```tsx
-import "@kookie-ui/react/styles.css";
-import { Theme } from "@kookie-ui/react";
+import "@kushagradhawan/kookie-ui-react/styles.css";
+import { Theme } from "@kushagradhawan/kookie-ui-react";
 
 export default function App({ children }: { children: React.ReactNode }) {
   return <Theme>{children}</Theme>;
@@ -141,7 +141,7 @@ The tokens fall back to the system fonts if you leave them unset.
 ## Check that it worked
 
 ```tsx
-import { Button, Card, Stack, Text } from "@kookie-ui/react";
+import { Button, Card, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 export function Smoke() {
   return (

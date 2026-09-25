@@ -1,4 +1,4 @@
-import { Code, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@kookie-ui/react";
+import { Code, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@kushagradhawan/kookie-ui-react";
 
 const VARIABLES = [
   { name: "DATABASE_URL", purpose: "Connection string for the main database" },

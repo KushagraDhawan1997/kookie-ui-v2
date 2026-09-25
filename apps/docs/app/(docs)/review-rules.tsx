@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import { InlineCode } from "../inline-code";
 import { RULES } from "../builder/review";

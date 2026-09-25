@@ -1,4 +1,4 @@
-import { Box, NavTree, type TreeNode } from "@kookie-ui/react";
+import { Box, NavTree, type TreeNode } from "@kushagradhawan/kookie-ui-react";
 
 const pages: readonly TreeNode[] = [
   {

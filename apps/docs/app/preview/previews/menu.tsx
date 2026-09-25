@@ -43,7 +43,7 @@ import {
   Text,
   Theme,
   themeAxes,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import { CopyIcon, FolderIcon, MoreIcon, SettingsIcon, TrashIcon, UsersIcon } from "../../icons";
 import { BedSurface, bed } from "../beds";

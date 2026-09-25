@@ -66,7 +66,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import { CodeSample } from "./blocks/code-sample";
 import { parseMeta } from "./blocks/highlight";
@@ -74,7 +74,7 @@ import { Example } from "./app/(docs)/example";
 import { ReviewRules } from "./app/(docs)/review-rules";
 import { ColorGrounds, ColorInks, ColorScales } from "./app/(docs)/color-figures";
 import { nodeText, slugify } from "./app/(docs)/slug";
-import type { TypeSize } from "@kookie-ui/react";
+import type { TypeSize } from "@kushagradhawan/kookie-ui-react";
 
 /** The distance between two ordinary siblings, and the only one this file states twice — it
     is also the distance under a heading, because those are the same relationship seen from

@@ -1,4 +1,4 @@
-import { List, ListItem, Stack } from "@kookie-ui/react";
+import { List, ListItem, Stack } from "@kushagradhawan/kookie-ui-react";
 
 // `size` picks a step on the same scale Text uses. The room for the marker
 // and the space between items grow with the step.

@@ -34,7 +34,7 @@ import {
   Switch,
   Text,
   ToolbarButton,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import { CodeSampleView } from "../../blocks/code-sample";
 import { CopyButton } from "../../blocks/copy-button";

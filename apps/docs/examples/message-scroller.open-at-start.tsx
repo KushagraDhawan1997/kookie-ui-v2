@@ -6,7 +6,7 @@ import {
   ScrollArea,
   Stack,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const entries = [
   "Shruti Bhatia created the project.",

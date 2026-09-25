@@ -14,7 +14,7 @@ import { fileURLToPath } from "node:url";
 import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import * as Kookie from "@kookie-ui/react";
+import * as Kookie from "@kushagradhawan/kookie-ui-react";
 
 import { Specimen, SpecimenView } from "../../../blocks/specimen";
 
@@ -913,7 +913,7 @@ describe("the well is the package's, and the block owns none of it", () => {
     );
     for (const file of ["code-sample.tsx", "expandable.tsx"]) {
       expect(source(file), `${file} must take the well from the package`).toMatch(
-        /import \{[^}]*\bCodeBlock\b[^}]*\} from "@kookie-ui\/react"/s,
+        /import \{[^}]*\bCodeBlock\b[^}]*\} from "@kushagradhawan\/kookie-ui-react"/s,
       );
       expect(source(file), `${file} must not re-grow a local well`).not.toContain(
         'from "./code-block"',

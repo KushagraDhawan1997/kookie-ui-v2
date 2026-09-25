@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Folder01Icon } from "@hugeicons/core-free-icons";
-import { Box, Page, Text, iconStroke } from "@kookie-ui/react";
+import { Box, Page, Text, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 // `mark` sits above the title. Use it for your app's own logo on a front page.
 export default function Example() {

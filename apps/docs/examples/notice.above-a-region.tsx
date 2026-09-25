@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card, Heading, Notice, Row, Stack } from "@kookie-ui/react";
+import { Button, Card, Heading, Notice, Row, Stack } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

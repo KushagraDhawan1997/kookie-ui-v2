@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ComputerIcon, Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons";
-import { SegmentedControl, SegmentedItem, iconStroke } from "@kookie-ui/react";
+import { SegmentedControl, SegmentedItem, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 const icon = (glyph: typeof Sun03Icon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />

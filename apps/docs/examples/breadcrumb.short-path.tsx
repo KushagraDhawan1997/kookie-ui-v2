@@ -1,4 +1,4 @@
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@kookie-ui/react";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

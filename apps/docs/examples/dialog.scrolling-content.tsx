@@ -10,7 +10,7 @@ import {
   ScrollArea,
   Stack,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const CHANGES = [
   "Projects can now have a custom domain.",

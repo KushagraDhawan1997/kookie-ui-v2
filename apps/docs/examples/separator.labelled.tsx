@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Separator, Stack, Text } from "@kookie-ui/react";
+import { Box, Button, Flex, Separator, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // A divider with a word in it is two Separators and a Text in a row. Each Separator sits
 // in a Box that grows, so the two lines share the space left over.

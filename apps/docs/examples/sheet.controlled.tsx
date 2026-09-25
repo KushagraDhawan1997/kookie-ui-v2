@@ -10,7 +10,7 @@ import {
   SheetTitle,
   Stack,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // Hold `open` in your own state to open the sheet from anywhere, with no SheetTrigger.
 // `onOpenChange` tells you when a person closes it with Escape, a swipe or a press outside.

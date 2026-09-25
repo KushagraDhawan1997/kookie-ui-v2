@@ -1,5 +1,5 @@
-import { Blockquote, Stack, Text } from "@kookie-ui/react";
-import type { Emphasis, Tone, TypeSize } from "@kookie-ui/react";
+import { Blockquote, Stack, Text } from "@kushagradhawan/kookie-ui-react";
+import type { Emphasis, Tone, TypeSize } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({
   size = "3",

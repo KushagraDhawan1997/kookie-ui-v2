@@ -1,4 +1,4 @@
-import { Tabs, TabsList, TabsTab } from "@kookie-ui/react";
+import { Tabs, TabsList, TabsTab } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

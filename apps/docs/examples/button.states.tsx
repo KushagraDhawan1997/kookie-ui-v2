@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Upload01Icon } from "@hugeicons/core-free-icons";
-import { Button, Flex, iconStroke } from "@kookie-ui/react";
+import { Button, Flex, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

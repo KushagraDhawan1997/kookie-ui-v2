@@ -7,7 +7,7 @@ import {
   iconStroke,
   type AttachmentState,
   type Size,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // The state is yours to set from what your upload already knows. `progress` is read only
 // while uploading; the other states ignore it, so it can stay written.

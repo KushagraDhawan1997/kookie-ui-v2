@@ -8,7 +8,7 @@ import {
   MenuSubContent,
   MenuSubTrigger,
   MenuTrigger,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // A menu reads direction off its trigger — the one in-flow node
 // it owns — so the panel anchors from the other edge and the

@@ -5,7 +5,7 @@ import {
   MenuItem,
   Surface,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // A disabled row stays in the menu and a screen reader still announces
 // it. It shows an action exists but is not available right now.

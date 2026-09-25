@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Share08Icon, SidebarLeftIcon } from "@hugeicons/core-free-icons";
-import { Flex, Stack, Toolbar, ToolbarButton, ToolbarTitle, iconStroke } from "@kookie-ui/react";
+import { Flex, Stack, Toolbar, ToolbarButton, ToolbarTitle, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 const SIZES = ["1", "2", "3", "4"] as const;
 

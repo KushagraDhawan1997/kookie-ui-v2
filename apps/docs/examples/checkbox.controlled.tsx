@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Button, Checkbox, Flex, Stack, Text } from "@kookie-ui/react";
+import { Button, Checkbox, Flex, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   const [agreed, setAgreed] = React.useState(false);

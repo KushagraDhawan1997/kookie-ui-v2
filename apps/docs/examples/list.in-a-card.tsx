@@ -1,4 +1,4 @@
-import { Button, Card, Heading, List, ListItem, Stack, Text } from "@kookie-ui/react";
+import { Button, Card, Heading, List, ListItem, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // A list inside a card, between the title and the action. The card sets
 // the padding, and the Stack sets the space between the parts.

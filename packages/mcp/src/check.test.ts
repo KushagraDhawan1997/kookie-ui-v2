@@ -10,7 +10,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { CONFORMANCE_CASES } from "@kookie-ui/react/agent";
+import { CONFORMANCE_CASES } from "@kushagradhawan/kookie-ui-react/agent";
 import { describe, expect, it } from "vitest";
 
 import { checkUsage } from "./check.ts";
@@ -142,11 +142,11 @@ describe("the detectors have one home", () => {
   const source = readFileSync(new URL("./check.ts", import.meta.url), "utf8");
 
   it("calls the package's checker rather than carrying a second one", () => {
-    // The rules moved to `@kookie-ui/react/agent` when the documentation site turned out to
+    // The rules moved to `@kushagradhawan/kookie-ui-react/agent` when the documentation site turned out to
     // have its own scanner. What has to stay true here is that this file never grows them
     // back: it binds the snapshot and delegates, and a re-implemented rule would show up as
     // this file reading a detector directly again.
-    expect(source).toContain('from "@kookie-ui/react/agent"');
+    expect(source).toContain('from "@kushagradhawan/kookie-ui-react/agent"');
     for (const module of ["utility-classes", "raw-values", "owned-properties"]) {
       expect(source, module).not.toContain(`lint/${module}.ts`);
     }

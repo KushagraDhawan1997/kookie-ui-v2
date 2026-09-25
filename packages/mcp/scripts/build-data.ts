@@ -19,7 +19,7 @@
  * imported for a side effect that only exists in a browser.
  *
  * HOW IT REACHES INTO THE PACKAGE. Everything it needs is now a public export of
- * `@kookie-ui/react` or `@kookie-ui/react/agent` and is imported: the axes, the layout scales,
+ * `@kushagradhawan/kookie-ui-react` or `@kushagradhawan/kookie-ui-react/agent` and is imported: the axes, the layout scales,
  * the refusal sentences and the rule for who takes them. It was three ways for a day, the third
  * being a regex over `system/refused.ts` — whose messages were string literal TYPES with no
  * value to import — and that spelling is what left the documentation site, which runs in a
@@ -126,10 +126,10 @@ async function loadSources(): Promise<{
    `system/refusal-sets.ts`, so both surfaces read one home and the scrape is gone. */
 
 
-/* `refusedPropsOf` moved to `@kookie-ui/react/agent` on 2026-09-07: the documentation site
+/* `refusedPropsOf` moved to `@kushagradhawan/kookie-ui-react/agent` on 2026-09-07: the documentation site
    needs the same rule at runtime, and a second copy there was dead on arrival. Re-exported so
    this module's own callers and its laws are unchanged. */
-import { REFUSAL_SETS, layoutScales, refusalSetsFor, refusedPropsOf } from "@kookie-ui/react/agent";
+import { REFUSAL_SETS, layoutScales, refusalSetsFor, refusedPropsOf } from "@kushagradhawan/kookie-ui-react/agent";
 
 export { refusedPropsOf };
 
@@ -231,7 +231,7 @@ export async function buildData(): Promise<Data> {
   if (!refusedAttributeMessage) {
     throw new Error("no-refused-attribute states no `refused` message: the sentence has moved");
   }
-  const { componentAxes, themeAxes } = await import("@kookie-ui/react");
+  const { componentAxes, themeAxes } = await import("@kushagradhawan/kookie-ui-react");
 
   const markdown: Record<string, string> = {};
   for (const entry of ENTRIES) {

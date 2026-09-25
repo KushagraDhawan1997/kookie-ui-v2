@@ -1,4 +1,4 @@
-import { Card, Flex, ScrollArea, Stack, Text } from "@kookie-ui/react";
+import { Card, Flex, ScrollArea, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const PROJECTS = ["Website", "Mobile app", "Brand kit", "Docs", "Onboarding", "Billing", "Analytics"];
 

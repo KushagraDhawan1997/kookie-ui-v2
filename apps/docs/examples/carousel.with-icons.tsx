@@ -11,7 +11,7 @@ import {
   Stack,
   Text,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const TEMPLATES = ["Invoice", "Project brief", "Meeting notes", "Release plan", "Weekly report", "Budget"];
 

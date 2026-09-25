@@ -7,7 +7,7 @@ import {
   ComboboxItem,
   ComboboxList,
   Stack,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const LANGUAGES = ["English", "Deutsch", "Español", "Français", "हिन्दी", "日本語"];
 

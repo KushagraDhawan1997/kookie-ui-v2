@@ -9,7 +9,7 @@ import {
   MenuRadioGroup,
   MenuRadioItem,
   MenuTrigger,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const orders = { name: "Name", updated: "Last updated", size: "File size" } as const;
 type Order = keyof typeof orders;

@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
-import { Link, Text, iconStroke } from "@kookie-ui/react";
+import { Link, Text, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 // For a page on another site, pass an anchor with `target` and `rel` through `render`.
 // Link adds the type, the underline and the states. The anchor keeps its own attributes.

@@ -1,4 +1,4 @@
-import { Box, Slider } from "@kookie-ui/react";
+import { Box, Slider } from "@kushagradhawan/kookie-ui-react";
 
 // Under `dir="rtl"` the Slider fills from the right. The right arrow key lowers the value,
 // because it moves the handle toward the start.

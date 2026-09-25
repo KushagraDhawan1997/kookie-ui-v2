@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Button, Confirmation, Stack, Text } from "@kookie-ui/react";
+import { Button, Confirmation, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 type Step = "asking" | "busy" | "done";
 

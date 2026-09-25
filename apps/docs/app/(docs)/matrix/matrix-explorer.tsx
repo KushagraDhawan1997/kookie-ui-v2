@@ -32,7 +32,7 @@ import {
   type Tone,
   themeAxes,
   themeDefaults,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import { setContrast, useAppearance, type ContrastChoice } from "../../appearance";
 import { PlusIcon, SearchIcon, XIcon } from "../../icons";

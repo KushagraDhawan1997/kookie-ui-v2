@@ -9,7 +9,7 @@ import {
   Flex,
   Text,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // `context` holds quiet facts about the conversation, such as how much
 // context is left or what a reply costs. It sits below the composer.

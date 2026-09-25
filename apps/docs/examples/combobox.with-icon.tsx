@@ -11,7 +11,7 @@ import {
   ComboboxList,
   Text,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const MEMBERS = ["Shruti Bhatia", "Design team", "Engineering team", "Finance team", "Support team"];
 

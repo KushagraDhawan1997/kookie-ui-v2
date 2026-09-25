@@ -26,7 +26,7 @@ import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { Theme } from "@kookie-ui/react";
+import { Theme } from "@kushagradhawan/kookie-ui-react";
 
 import { EXAMPLES } from "../../../examples";
 import RootLayout from "../../layout";

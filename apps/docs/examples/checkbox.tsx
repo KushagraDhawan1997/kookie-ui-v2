@@ -1,5 +1,5 @@
-import { Checkbox, Flex, Stack, Text } from "@kookie-ui/react";
-import type { Size } from "@kookie-ui/react";
+import { Checkbox, Flex, Stack, Text } from "@kushagradhawan/kookie-ui-react";
+import type { Size } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({ size = "2" }: { size?: Size }) {
   return (

@@ -11,7 +11,7 @@ import {
   ComboboxLabel,
   ComboboxList,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 type Section = { value: string; items: string[] };
 

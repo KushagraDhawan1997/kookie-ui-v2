@@ -1,4 +1,4 @@
-import { Field, FieldDescription, FieldLabel, Stack, TextField } from "@kookie-ui/react";
+import { Field, FieldDescription, FieldLabel, Stack, TextField } from "@kushagradhawan/kookie-ui-react";
 
 // `disabled` on the Field reaches the control inside it. You do not need
 // to set it twice.

@@ -1,4 +1,4 @@
-import { Box, Text } from "@kookie-ui/react";
+import { Box, Text } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({ p = "5" }: { p?: string }) {
   return (

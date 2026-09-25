@@ -5,7 +5,7 @@ import {
   Link01Icon,
   TextBoldIcon,
 } from "@hugeicons/core-free-icons";
-import { Toolbar, ToolbarButton, ToolbarSeparator, iconStroke } from "@kookie-ui/react";
+import { Toolbar, ToolbarButton, ToolbarSeparator, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 const icon = (glyph: typeof Image01Icon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />

@@ -1,5 +1,5 @@
-import { Flex, Toggle, ToggleGroup } from "@kookie-ui/react";
-import type { Size, Tone } from "@kookie-ui/react";
+import { Flex, Toggle, ToggleGroup } from "@kushagradhawan/kookie-ui-react";
+import type { Size, Tone } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({
   size = "2",

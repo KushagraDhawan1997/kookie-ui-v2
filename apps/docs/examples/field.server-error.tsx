@@ -1,4 +1,4 @@
-import { Field, FieldDescription, FieldError, FieldLabel, TextField } from "@kookie-ui/react";
+import { Field, FieldDescription, FieldError, FieldLabel, TextField } from "@kushagradhawan/kookie-ui-react";
 
 // Set `invalid` on the Field when your server rejects a value. The
 // description stays, because it says what to enter. The error adds what

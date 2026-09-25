@@ -18,7 +18,7 @@ import {
   Notice,
   Stack,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import {
   Conversation,

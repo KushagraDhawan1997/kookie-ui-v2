@@ -8,7 +8,7 @@ import {
   SheetTitle,
   SheetTrigger,
   Stack,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // `side="bottom"` is the default. On a phone the panel is the full width of the window.
 // On a wider window its width stops at a size that suits one task.

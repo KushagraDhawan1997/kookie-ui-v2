@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FilterIcon } from "@hugeicons/core-free-icons";
-import { Button, Flex, SegmentedControl, SegmentedItem, TextField, iconStroke } from "@kookie-ui/react";
+import { Button, Flex, SegmentedControl, SegmentedItem, TextField, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 // At the same size, a SegmentedControl is as tall as the Button and TextField beside it.
 // A row of mixed controls lines up with no extra work.

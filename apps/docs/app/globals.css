@@ -1,5 +1,5 @@
 /* Docs-app base — consumer CSS, deliberately this small. The page paints --color-page and
-   reads the foreground context. Everything visible beyond this file is @kookie-ui/react —
+   reads the foreground context. Everything visible beyond this file is @kushagradhawan/kookie-ui-react —
    the docs are the first real consumer, and the stance is that they use nothing else.
 
    It said `--neutral-1` until 2026-08-20, and that was the whole argument for naming the

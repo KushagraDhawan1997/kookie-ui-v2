@@ -1,4 +1,4 @@
-import { Flex, Stack, Switch, Text } from "@kookie-ui/react";
+import { Flex, Stack, Switch, Text } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

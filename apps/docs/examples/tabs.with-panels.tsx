@@ -1,4 +1,4 @@
-import { Stack, Tabs, TabsList, TabsPanel, TabsTab, Text } from "@kookie-ui/react";
+import { Stack, Tabs, TabsList, TabsPanel, TabsTab, Text } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

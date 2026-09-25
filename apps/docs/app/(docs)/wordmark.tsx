@@ -1,4 +1,4 @@
-import { Heading } from "@kookie-ui/react";
+import { Heading } from "@kushagradhawan/kookie-ui-react";
 
 /**
  * The mark (2026-08-29; the word 2026-09-01; the face under it Chomsky, then PP Playground,

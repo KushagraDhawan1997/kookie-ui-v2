@@ -10,7 +10,7 @@ import {
   FieldDescription,
   FieldLabel,
   Stack,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const PLANS = ["Hobby", "Pro", "Team", "Enterprise"];
 const OWNERS = ["Shruti Bhatia", "Billing team", "Platform team"];

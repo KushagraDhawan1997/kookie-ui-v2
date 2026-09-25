@@ -9,7 +9,7 @@ import {
   Text,
   iconStroke,
   type Size,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // After sending: the same tile, in the message, with no remove. Nothing about it changed
 // except what the app put in it. A picture file shows its own picture. The card is the pane,

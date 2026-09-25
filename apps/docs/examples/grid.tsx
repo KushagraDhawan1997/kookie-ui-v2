@@ -1,4 +1,4 @@
-import { Button, Grid } from "@kookie-ui/react";
+import { Button, Grid } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({
   columns = "repeat(3, minmax(0, 1fr))",

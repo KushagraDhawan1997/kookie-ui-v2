@@ -1,4 +1,4 @@
-import { Avatar, AvatarGroup, Button, Flex, Text } from "@kookie-ui/react";
+import { Avatar, AvatarGroup, Button, Flex, Text } from "@kushagradhawan/kookie-ui-react";
 
 // A group usually sits beside words that say what it shows. At sizes 1 to 4 the faces line up
 // with a Button at the same size.

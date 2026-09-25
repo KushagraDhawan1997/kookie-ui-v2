@@ -20,7 +20,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { typeRefusalsFor } from "@kookie-ui/react/agent";
+import { typeRefusalsFor } from "@kushagradhawan/kookie-ui-react/agent";
 import { describe, expect, it } from "vitest";
 
 // THE PACKAGE'S BUILD, which is a seam worth naming. The artifact under test is generated
@@ -31,7 +31,7 @@ import { describe, expect, it } from "vitest";
 // task depends on `^build`, so `dist` is rebuilt from that same source before this runs. A
 // bare `npx vitest` against a stale `dist` is reading yesterday's axis, which is true of every
 // law in this app that imports the package.
-import { componentAxes, themeAxes } from "@kookie-ui/react";
+import { componentAxes, themeAxes } from "@kushagradhawan/kookie-ui-react";
 
 import { API } from "./api.generated";
 import { propDescription } from "./prop-description";

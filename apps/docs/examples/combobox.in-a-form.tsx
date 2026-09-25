@@ -14,7 +14,7 @@ import {
   FieldLabel,
   Stack,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const COUNTRIES = ["Australia", "Canada", "Germany", "India", "Japan", "United Kingdom", "United States"];
 

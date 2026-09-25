@@ -16,7 +16,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { Theme } from "@kookie-ui/react";
+import { Theme } from "@kushagradhawan/kookie-ui-react";
 
 import { InlineCode } from "./inline-code";
 import { API } from "./(docs)/components/api.generated";
