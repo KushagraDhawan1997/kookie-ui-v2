@@ -1,4 +1,4 @@
-import { Button, Flex, Menu, MenuContent, MenuItem, MenuTrigger } from "@kookie-ui/react";
+import { Button, Flex, Menu, MenuContent, MenuItem, MenuTrigger } from "@kushagradhawan/kookie-ui-react";
 
 // `side` sets the edge of the trigger the panel opens from, and `align` sets
 // where it lines up on that edge. The panel moves if there is no room.

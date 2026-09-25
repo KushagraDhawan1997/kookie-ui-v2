@@ -1,4 +1,4 @@
-import { Code } from "@kookie-ui/react";
+import { Code } from "@kushagradhawan/kookie-ui-react";
 
 /**
  * Render backticked spans in system prose as real `<Code>`.

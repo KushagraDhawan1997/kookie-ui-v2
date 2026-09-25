@@ -17,7 +17,7 @@ import {
   MenuTrigger,
   Stack,
   TextField,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // A menu row can open a dialog. Keep the dialog outside the menu and
 // control it with state, because the menu closes when the row is chosen.

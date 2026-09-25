@@ -1,4 +1,4 @@
-import { Avatar, Button, Flex, TextField } from "@kookie-ui/react";
+import { Avatar, Button, Flex, TextField } from "@kushagradhawan/kookie-ui-react";
 
 // At sizes 1 to 4 an avatar is as tall as a control at the same size, so it lines up in a
 // row of buttons and fields.

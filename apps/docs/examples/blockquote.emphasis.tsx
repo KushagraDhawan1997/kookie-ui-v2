@@ -1,4 +1,4 @@
-import { Blockquote, Stack } from "@kookie-ui/react";
+import { Blockquote, Stack } from "@kushagradhawan/kookie-ui-react";
 
 // `emphasis` picks the ink colour. A quote rests at `loud`, like all body text. Use `medium`
 // for a quote that supports the text around it. Keep `quiet` for text people can skip.

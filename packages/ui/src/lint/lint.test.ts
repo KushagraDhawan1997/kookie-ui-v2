@@ -44,7 +44,7 @@ const tester = new RuleTester({ languageOptions });
 
 /** Every fixture imports the package, because a rule that fired without one would fire on
     a consumer's own components — which is the line both rules are drawn on. */
-const withImport = (jsx: string) => `import { Box, Button, Card, Stack } from "@kookie-ui/react";\nconst x = ${jsx};\n`;
+const withImport = (jsx: string) => `import { Box, Button, Card, Stack } from "@kushagradhawan/kookie-ui-react";\nconst x = ${jsx};\n`;
 
 describe("no-refused-attribute — the hole TSX leaves open (§9, §12)", () => {
   it("the attribute set IS the axis union, not a copy that agrees today", () => {
@@ -82,11 +82,11 @@ describe("no-refused-attribute — the hole TSX leaves open (§9, §12)", () => 
         },
         {
           // A renamed import is still ours; source only ever says the local name.
-          code: `import { Card as Pane } from "@kookie-ui/react";\nconst x = <Pane data-size="4" />;\n`,
+          code: `import { Card as Pane } from "@kushagradhawan/kookie-ui-react";\nconst x = <Pane data-size="4" />;\n`,
           errors: [{ messageId: "refused" }],
         },
         {
-          code: `import * as Kui from "@kookie-ui/react";\nconst x = <Kui.Card data-material="thin" />;\n`,
+          code: `import * as Kui from "@kushagradhawan/kookie-ui-react";\nconst x = <Kui.Card data-material="thin" />;\n`,
           errors: [{ messageId: "refused" }],
         },
       ],
@@ -401,7 +401,7 @@ describe("the recommended config, as a consumer gets it", () => {
       "a.jsx",
       // The import is load-bearing: both rules only speak about symbols this package exports,
       // so a fixture without one measures a rule that correctly declined to fire.
-      'import { Button } from "@kookie-ui/react";\nexport const A = <Button data-tone="destructive" />;\n',
+      'import { Button } from "@kushagradhawan/kookie-ui-react";\nexport const A = <Button data-tone="destructive" />;\n',
     );
     expect(messages.map((m) => m.message).join("\n")).not.toContain("Parsing error");
     expect(messages.map((m) => m.ruleId)).toContain("kookie/no-refused-attribute");
@@ -410,7 +410,7 @@ describe("the recommended config, as a consumer gets it", () => {
   it("matches a .js file too, which is what CRA and Next's pages router write JSX in", async () => {
     const messages = await run(
       "a.js",
-      'import { Button } from "@kookie-ui/react";\nexport const A = <Button color="red" />;\n',
+      'import { Button } from "@kushagradhawan/kookie-ui-react";\nexport const A = <Button color="red" />;\n',
     );
     expect(messages.map((m) => m.ruleId)).toContain("kookie/no-refused-prop");
   });
@@ -425,7 +425,7 @@ describe("the recommended config, as a consumer gets it", () => {
    * plugin's findings. A type annotation is one character of fixture and the whole difference.
    */
   const TYPESCRIPT =
-    'import { Button } from "@kookie-ui/react";\n' +
+    'import { Button } from "@kushagradhawan/kookie-ui-react";\n' +
     "type Props = { title: string };\n" +
     'export const A = ({ title }: Props) => <Button data-tone="destructive">{title}</Button>;\n';
 
@@ -458,7 +458,7 @@ describe("the recommended config, as a consumer gets it", () => {
   it("says nothing about code that uses the escapes correctly", async () => {
     const messages = await run(
       "b.tsx",
-      'import { Card } from "@kookie-ui/react";\nexport const B = <Card className="dashboard-header" style={{ height: "160px" }} />;\n',
+      'import { Card } from "@kushagradhawan/kookie-ui-react";\nexport const B = <Card className="dashboard-header" style={{ height: "160px" }} />;\n',
       await withTsParser(),
     );
     expect(messages).toEqual([]);

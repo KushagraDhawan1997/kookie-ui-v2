@@ -1,5 +1,5 @@
-import { CodeBlock } from "@kookie-ui/react";
-import type { Size } from "@kookie-ui/react";
+import { CodeBlock } from "@kushagradhawan/kookie-ui-react";
+import type { Size } from "@kushagradhawan/kookie-ui-react";
 
 const SOURCE = `export function App() {
   return (

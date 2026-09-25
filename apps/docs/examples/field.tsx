@@ -8,8 +8,8 @@ import {
   RadioGroup,
   Stack,
   TextField,
-} from "@kookie-ui/react";
-import type { Size } from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
+import type { Size } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({ size = "2" }: { size?: Size }) {
   return (

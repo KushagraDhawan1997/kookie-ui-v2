@@ -1,4 +1,4 @@
-import { Box, Card, Grid, Heading, Stack, Text } from "@kookie-ui/react";
+import { Box, Card, Grid, Heading, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // A child spans more than one track with `gridArea`. Write `auto / span 2`:
 // a bare `span 2` sets the row span, not the column span.

@@ -6,7 +6,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const columns = ["Project", "Owner", "Status", "Started", "Due", "Budget", "Spent", "Region"];
 const rows = [

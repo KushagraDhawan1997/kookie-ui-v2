@@ -202,7 +202,7 @@ export const isPaddingProp = (def: PropDef): boolean =>
 /**
  * Every layout prop and the scale it resolves through, or `null` where it takes raw CSS.
  *
- * Derived from `boxProps` rather than listed, and exported through `@kookie-ui/react/agent`
+ * Derived from `boxProps` rather than listed, and exported through `@kushagradhawan/kookie-ui-react/agent`
  * because both agent surfaces ask the same two questions of it: which props the shared layout
  * table carries (the generated API does not repeat them on each component), and which of those
  * close an index list while staying open to raw CSS. Before it existed the stdio server read

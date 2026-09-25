@@ -8,7 +8,7 @@
  * into the other panel switches to it first.
  */
 import * as React from "react";
-import { Box, Tabs, TabsList, TabsPanel, TabsTab } from "@kookie-ui/react";
+import { Box, Tabs, TabsList, TabsPanel, TabsTab } from "@kushagradhawan/kookie-ui-react";
 
 import { TableOfContents, type TocEntry } from "../../blocks/table-of-contents";
 

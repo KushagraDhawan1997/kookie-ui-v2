@@ -19,7 +19,7 @@ import {
   iconStroke,
   type ComposerStatus,
   type Size,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // The package ships no icon set, so the glyphs are yours. `iconStroke` is the weight the
 // system draws its own chevrons at, so your set matches them. No size: the control sizes the

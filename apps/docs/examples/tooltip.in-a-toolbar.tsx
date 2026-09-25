@@ -9,7 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const TOOLS = [
   { label: "Bold", shortcut: "⌘B", glyph: TextBoldIcon },

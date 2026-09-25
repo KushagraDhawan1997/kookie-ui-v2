@@ -1,4 +1,4 @@
-import { Avatar, AvatarGroup, type AvatarSize } from "@kookie-ui/react";
+import { Avatar, AvatarGroup, type AvatarSize } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({
   size = "3",

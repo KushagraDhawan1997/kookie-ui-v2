@@ -36,7 +36,7 @@ import {
   Toolbar,
   ToolbarButton,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // Your logo and your appearance store, not the package's: KookieUI ships no mark, the same
 // way it ships no icon set, and which appearance a person chose is app state the app has to

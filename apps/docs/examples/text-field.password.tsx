@@ -3,7 +3,7 @@
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ViewIcon, ViewOffSlashIcon } from "@hugeicons/core-free-icons";
-import { Button, Field, FieldLabel, TextField, iconStroke } from "@kookie-ui/react";
+import { Button, Field, FieldLabel, TextField, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   const [visible, setVisible] = React.useState(false);

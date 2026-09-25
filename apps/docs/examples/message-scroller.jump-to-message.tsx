@@ -11,7 +11,7 @@ import {
   Stack,
   Text,
   useMessageScroller,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const turns = Array.from({ length: 12 }, (_, i) => ({
   id: `m${i}`,

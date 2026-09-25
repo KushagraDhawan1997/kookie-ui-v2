@@ -14,7 +14,7 @@ import {
   CommandTrigger,
   Text,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 type Place = { value: string; label: string; href: string; glyph: typeof Home01Icon };
 

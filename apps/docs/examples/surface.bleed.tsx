@@ -1,4 +1,4 @@
-import { Box, Separator, Stack, Surface, Text } from "@kookie-ui/react";
+import { Box, Separator, Stack, Surface, Text } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

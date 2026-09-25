@@ -1,4 +1,4 @@
-import { Button } from "@kookie-ui/react";
+import { Button } from "@kushagradhawan/kookie-ui-react";
 
 import { EmptyState } from "../../blocks/empty-state";
 

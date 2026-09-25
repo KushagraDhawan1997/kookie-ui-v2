@@ -3,7 +3,7 @@
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Copy01Icon } from "@hugeicons/core-free-icons";
-import { Button, Flex, iconStroke } from "@kookie-ui/react";
+import { Button, Flex, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   const [copied, setCopied] = React.useState(false);

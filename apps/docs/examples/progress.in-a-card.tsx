@@ -1,4 +1,4 @@
-import { Card, Flex, Heading, Progress, Stack, Text } from "@kookie-ui/react";
+import { Card, Flex, Heading, Progress, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const FILES = [
   { name: "brand-guidelines.pdf", value: 100, note: "Done" },

@@ -1,4 +1,4 @@
-import { Chip, Flex } from "@kookie-ui/react";
+import { Chip, Flex } from "@kushagradhawan/kookie-ui-react";
 
 const TAGS = ["Billing", "Onboarding", "API", "Security", "Mobile", "Integrations", "Reporting", "Accessibility"];
 

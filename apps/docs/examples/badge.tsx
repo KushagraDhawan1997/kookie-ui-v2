@@ -1,4 +1,4 @@
-import { Avatar, Badge, Flex, Text, type TypeSize } from "@kookie-ui/react";
+import { Avatar, Badge, Flex, Text, type TypeSize } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({ size = "3" }: { size?: TypeSize }) {
   return (

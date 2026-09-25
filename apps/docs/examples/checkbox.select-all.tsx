@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Checkbox, Flex, Stack, Text } from "@kookie-ui/react";
+import { Checkbox, Flex, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const FILES = ["brief.pdf", "hero-final.png", "walkthrough.mp4"];
 

@@ -3,7 +3,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const LABELS = { apple: "Apple", banana: "Banana", leek: "Leek" };
 

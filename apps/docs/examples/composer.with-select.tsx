@@ -12,7 +12,7 @@ import {
   SelectItem,
   SelectTrigger,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const MODELS = { opus: "Opus 5", sonnet: "Sonnet 5", haiku: "Haiku 5" };
 

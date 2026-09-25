@@ -15,7 +15,7 @@ import {
   MenuItem,
   MenuTrigger,
   Separator,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // A menu row cannot hold a trigger, so the row sets `open` instead. The menu closes, and the
 // alert opens in its place.

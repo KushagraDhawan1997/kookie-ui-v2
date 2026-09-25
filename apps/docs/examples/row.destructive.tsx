@@ -2,7 +2,7 @@
 
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Copy01Icon, Delete02Icon, Share08Icon } from "@hugeicons/core-free-icons";
-import { Row, Separator, Stack, iconStroke } from "@kookie-ui/react";
+import { Row, Separator, Stack, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 const icon = (glyph: typeof Copy01Icon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />

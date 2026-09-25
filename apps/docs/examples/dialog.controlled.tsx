@@ -11,7 +11,7 @@ import {
   Flex,
   Stack,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // A dialog does not need a DialogTrigger. Open it from your own state,
 // for example after a request finishes or from a keyboard shortcut.

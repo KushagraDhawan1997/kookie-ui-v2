@@ -1,4 +1,4 @@
-import { Avatar, Badge, Flex } from "@kookie-ui/react";
+import { Avatar, Badge, Flex } from "@kushagradhawan/kookie-ui-react";
 
 // Pass the badge to the Avatar's `badge` prop. The avatar places it at the top-end corner and
 // cuts a ring around it. The badge scales with the avatar.

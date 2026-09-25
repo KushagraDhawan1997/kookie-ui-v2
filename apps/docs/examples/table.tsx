@@ -7,8 +7,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@kookie-ui/react";
-import type { Size } from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
+import type { Size } from "@kushagradhawan/kookie-ui-react";
 
 const ROWS = [
   ["INV-0041", "Acme Studio", "Paid", "$1,250.00"],

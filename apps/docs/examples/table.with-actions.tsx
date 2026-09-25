@@ -9,7 +9,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const files = [
   ["Q3 budget.xlsx", "2.4 MB"],

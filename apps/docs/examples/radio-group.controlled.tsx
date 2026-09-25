@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Field, FieldItem, FieldLabel, Radio, RadioGroup, Stack, Text } from "@kookie-ui/react";
+import { Field, FieldItem, FieldLabel, Radio, RadioGroup, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const PLANS = { starter: "$0", team: "$24", business: "$96" } as const;
 type Plan = keyof typeof PLANS;

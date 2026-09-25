@@ -1,4 +1,4 @@
-import { Carousel, CarouselItem, CarouselNext, CarouselPrevious, CarouselRail, Flex, Stack, Text } from "@kookie-ui/react";
+import { Carousel, CarouselItem, CarouselNext, CarouselPrevious, CarouselRail, Flex, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const COVERS = ["Wan Image to Video", "GPT Image", "Clarity Upscaler", "BiRefNet", "Flux Kontext"];
 

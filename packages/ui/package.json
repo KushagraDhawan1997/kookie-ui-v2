@@ -1,5 +1,5 @@
 {
-  "name": "@kookie-ui/react",
+  "name": "@kushagradhawan/kookie-ui-react",
   "version": "0.0.0",
   "description": "KookieUI v2. Base UI primitives behind a Kookie-owned API, generated OKLCH color, token-only styling.",
   "license": "MIT",

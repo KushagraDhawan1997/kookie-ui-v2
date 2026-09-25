@@ -1,4 +1,4 @@
-import { Link, Stack, Text } from "@kookie-ui/react";
+import { Link, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // A link uses the accent tone when you set nothing. Set `tone` when the
 // destination has a meaning, such as a destructive action.

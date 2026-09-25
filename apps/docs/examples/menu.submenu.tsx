@@ -7,7 +7,7 @@ import {
   MenuSubContent,
   MenuSubTrigger,
   MenuTrigger,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // Use a submenu for a related set of choices that would make the main list long.
 // The submenu opens on hover, on a press, or with the arrow key.

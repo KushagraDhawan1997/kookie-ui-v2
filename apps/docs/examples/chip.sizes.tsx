@@ -1,4 +1,4 @@
-import { Chip, Flex } from "@kookie-ui/react";
+import { Chip, Flex } from "@kushagradhawan/kookie-ui-react";
 
 const SIZES = ["1", "2", "3", "4"] as const;
 

@@ -1,14 +1,14 @@
 "use client";
 
 /**
- * The builder (2026-08-19): a constrained composition editor over @kookie-ui/react. Not a
+ * The builder (2026-08-19): a constrained composition editor over @kushagradhawan/kookie-ui-react. Not a
  * freeform canvas — the canvas is a LIVE render of the real component tree inside a real
  * <Theme>, and every gesture is tree surgery: insert into a container, reorder, retune an
  * axis. Nothing here can state a value the system would refuse, because the palette, the
  * inspector and the drop rules all derive from the catalog, and the catalog derives from
  * the package.
  *
- * The chrome is @kookie-ui/react end to end (the docs' own stance: a builder for the
+ * The chrome is @kushagradhawan/kookie-ui-react end to end (the docs' own stance: a builder for the
  * system not built from the system argues against itself). The two exceptions are editor
  * instruments, not UI: the selection ring (a token-coloured overlay) and the tree indent
  * (a per-depth inset), both stated in `style` — §13's escape, spelled where review sees it.
@@ -58,7 +58,7 @@ import {
   ToolbarButton,
   tiers,
   useWindowClass,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import { AppearanceToggle } from "../appearance-toggle";
 import { Wordmark } from "../(docs)/wordmark";

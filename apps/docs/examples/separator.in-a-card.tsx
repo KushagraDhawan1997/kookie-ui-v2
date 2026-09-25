@@ -1,4 +1,4 @@
-import { Card, Flex, Separator, Stack, Text } from "@kookie-ui/react";
+import { Card, Flex, Separator, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const ROWS = [
   { label: "Plan", value: "Team" },

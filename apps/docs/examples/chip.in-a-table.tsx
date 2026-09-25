@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
   type Tone,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const JOBS: { name: string; status: string; tone: Tone }[] = [
   { name: "Build web app", status: "Deployed", tone: "success" },

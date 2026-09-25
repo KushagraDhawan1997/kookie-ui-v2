@@ -1,4 +1,4 @@
-import { Badge, Flex, Text } from "@kookie-ui/react";
+import { Badge, Flex, Text } from "@kushagradhawan/kookie-ui-react";
 
 // Put a number in a badge to make it a pill. The badge shows what you give it, so format the
 // number and choose the cut-off, such as 99+, in your app.

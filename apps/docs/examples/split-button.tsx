@@ -1,4 +1,4 @@
-import { MenuItem, SplitButton } from "@kookie-ui/react";
+import { MenuItem, SplitButton } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

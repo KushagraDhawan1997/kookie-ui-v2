@@ -30,7 +30,7 @@
  * shown is what the reader would write to get what they are looking at.
  */
 import { CATALOG } from "../builder/catalog";
-import { componentAxes } from "@kookie-ui/react";
+import { componentAxes } from "@kushagradhawan/kookie-ui-react";
 
 /** A knob, resolved: what to call it, what it can be, and what the example starts at. */
 export type Control =

@@ -4,8 +4,8 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbPage,
-} from "@kookie-ui/react";
-import type { TypeSize } from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
+import type { TypeSize } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({ size = "2" }: { size?: TypeSize }) {
   return (

@@ -1,4 +1,4 @@
-import { Stack, TextField } from "@kookie-ui/react";
+import { Stack, TextField } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

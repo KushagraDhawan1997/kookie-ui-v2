@@ -1,4 +1,4 @@
-import { Button, ButtonGroup, Stack } from "@kookie-ui/react";
+import { Button, ButtonGroup, Stack } from "@kushagradhawan/kookie-ui-react";
 
 const SIZES = ["1", "2", "3", "4"] as const;
 

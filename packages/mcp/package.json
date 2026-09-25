@@ -48,7 +48,7 @@
     "zod": "^4.6.2"
   },
   "devDependencies": {
-    "@kookie-ui/react": "workspace:*",
+    "@kushagradhawan/kookie-ui-react": "workspace:*",
     "@types/node": "^26.5.1",
     "esbuild": "^0.28.2",
     "eslint": "^10.10.0",

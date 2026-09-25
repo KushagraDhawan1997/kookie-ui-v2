@@ -1,4 +1,4 @@
-import { Card, Heading, Stack, Text } from "@kookie-ui/react";
+import { Card, Heading, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 export default function Publish() {
   return (

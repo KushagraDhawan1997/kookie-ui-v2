@@ -67,7 +67,7 @@ import {
   TextArea,
   TextField,
   windowClassQueries,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import {
   ArrowUpIcon,

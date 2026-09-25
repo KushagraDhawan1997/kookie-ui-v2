@@ -1,4 +1,4 @@
-import { Card, Flex, Separator, Stack, Switch, Text } from "@kookie-ui/react";
+import { Card, Flex, Separator, Stack, Switch, Text } from "@kushagradhawan/kookie-ui-react";
 
 const settings = [
   ["public-profile", "Public profile", "Anyone with the link can see your work.", true],

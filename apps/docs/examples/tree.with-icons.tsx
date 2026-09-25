@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { File01Icon, Folder01Icon, Image01Icon, Pdf01Icon } from "@hugeicons/core-free-icons";
-import { Box, Tree, iconStroke, type TreeNode } from "@kookie-ui/react";
+import { Box, Tree, iconStroke, type TreeNode } from "@kushagradhawan/kookie-ui-react";
 
 const icon = (glyph: typeof Folder01Icon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />

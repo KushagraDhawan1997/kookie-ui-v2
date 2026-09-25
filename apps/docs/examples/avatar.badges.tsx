@@ -1,4 +1,4 @@
-import { Avatar, Badge, Flex } from "@kookie-ui/react";
+import { Avatar, Badge, Flex } from "@kushagradhawan/kookie-ui-react";
 
 // Pass a `Badge` to `badge` to pin it to the top-end corner. A count shows as a pill. A bare
 // badge is a dot, and it needs an `aria-label`.

@@ -1,4 +1,4 @@
-import { List, ListItem, Stack, Text } from "@kookie-ui/react";
+import { List, ListItem, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // `tone` moves the words and the markers to that colour family.
 // Use it when the whole list carries one meaning, such as what a delete removes.

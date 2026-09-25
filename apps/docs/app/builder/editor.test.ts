@@ -923,7 +923,7 @@ describe("a seat is a fact about the PARENT, and the tree is held to that", () =
     let s = start(...moveNodeTo([stack], spinner.id, stack.id, 1));
     s = reducer(s, { type: "edit", roots: activeDoc(s).roots });
     const code = serializeDocument({ theme: defaultDocTheme(), roots: activeDoc(s).roots });
-    const imported = /import \{([^}]*)\} from "@kookie-ui\/react"/.exec(code)![1]!;
+    const imported = /import \{([^}]*)\} from "@kushagradhawan\/kookie-ui-react"/.exec(code)![1]!;
     for (const name of imported.split(",").map((x) => x.trim())) {
       expect(code.includes(`<${name}`)).toBe(true);
     }

@@ -1,4 +1,4 @@
-import { Button, Flex, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@kookie-ui/react";
+import { Button, Flex, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@kushagradhawan/kookie-ui-react";
 
 const ACTIONS = ["Undo", "Redo", "Comment"] as const;
 

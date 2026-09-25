@@ -1,4 +1,4 @@
-import { TextField, type Size } from "@kookie-ui/react";
+import { TextField, type Size } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({
   size = "2",

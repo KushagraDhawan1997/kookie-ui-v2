@@ -1,4 +1,4 @@
-import { Badge, Flex, Text } from "@kookie-ui/react";
+import { Badge, Flex, Text } from "@kushagradhawan/kookie-ui-react";
 
 // A badge with no content is a dot. A dot is colour alone, so give it an `aria-label` that
 // says what a sighted person understands from it.

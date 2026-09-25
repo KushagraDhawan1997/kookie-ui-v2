@@ -1,4 +1,4 @@
-import { Flex, Stack, Text } from "@kookie-ui/react";
+import { Flex, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const steps = ["2", "4", "6"] as const;
 

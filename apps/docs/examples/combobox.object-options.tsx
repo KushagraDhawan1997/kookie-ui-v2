@@ -8,7 +8,7 @@ import {
   ComboboxItem,
   ComboboxList,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 type Region = { value: string; label: string };
 

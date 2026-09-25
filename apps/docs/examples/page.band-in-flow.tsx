@@ -15,7 +15,7 @@ import {
   ToolbarButton,
   ToolbarTitle,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const icon = (glyph: typeof Share08Icon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />

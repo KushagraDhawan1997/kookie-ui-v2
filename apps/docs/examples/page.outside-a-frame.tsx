@@ -1,4 +1,4 @@
-import { Box, Page, Stack, Text } from "@kookie-ui/react";
+import { Box, Page, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // Outside a Shell there is no band to clear, so the title draws in place and does not collapse.
 // The box around the page sets the reading width.

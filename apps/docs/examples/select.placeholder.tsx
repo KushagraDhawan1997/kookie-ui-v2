@@ -3,7 +3,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const SIZES = { s: "Small", m: "Medium", l: "Large" };
 

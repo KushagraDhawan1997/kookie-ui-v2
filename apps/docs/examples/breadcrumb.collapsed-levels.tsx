@@ -9,7 +9,7 @@ import {
   BreadcrumbPage,
   Stack,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const HIDDEN = ["Clients", "Northwind", "2026", "Quarterly reports"];
 

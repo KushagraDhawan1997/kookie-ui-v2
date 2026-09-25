@@ -14,7 +14,7 @@ import {
   RadioGroup,
   Stack,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   const [sent, setSent] = React.useState<string | null>(null);

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Copy01Icon } from "@hugeicons/core-free-icons";
-import { Code, CodeBlock, Toolbar, ToolbarButton, iconStroke } from "@kookie-ui/react";
+import { Code, CodeBlock, Toolbar, ToolbarButton, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 const SOURCE = `export async function archiveProject(id: string) {
   const project = await db.projects.find(id);

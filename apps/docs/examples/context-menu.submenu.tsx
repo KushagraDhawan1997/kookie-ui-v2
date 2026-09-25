@@ -8,7 +8,7 @@ import {
   MenuSubTrigger,
   Surface,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // A MenuSub opens a second panel beside its row. Hover the row or press
 // the right arrow key to open it.

@@ -19,7 +19,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import { themeDefaults } from "@kookie-ui/react";
+import { themeDefaults } from "@kushagradhawan/kookie-ui-react";
 
 import { parsePackageExports, readPackageExports } from "../package-exports";
 import { COMPONENT_PREVIEWS } from "./previews";

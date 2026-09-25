@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * `npx @kookie-ui/react init` — put the rules where a coding agent will actually read them.
+ * `npx @kushagradhawan/kookie-ui-react init` — put the rules where a coding agent will actually read them.
  *
  * WHY THIS EXISTS AT ALL. `agents/AGENTS.md` ships inside the tarball, and a file in
  * `node_modules` is read by nothing: every agent's file search honours `.gitignore`, and
@@ -27,8 +27,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-export const BEGIN = "<!-- BEGIN @kookie-ui/react — generated, replaced by `npx @kookie-ui/react init` -->";
-export const END = "<!-- END @kookie-ui/react -->";
+export const BEGIN = "<!-- BEGIN @kushagradhawan/kookie-ui-react — generated, replaced by `npx @kushagradhawan/kookie-ui-react init` -->";
+export const END = "<!-- END @kushagradhawan/kookie-ui-react -->";
 
 /**
  * The rules, wrapped so a later run can find them again.
@@ -47,11 +47,16 @@ export const wrap = (rules) => `${BEGIN}\n\n${rules.trim()}\n\n${END}`;
  * which is the failure this function exists to prevent.
  */
 export function spliceBlock(existing, block) {
-  const start = existing.indexOf(BEGIN);
-  const end = existing.indexOf(END);
+  // Update rules installed under the previous package name in place.
+  const legacyBegin = "<!-- BEGIN @kookie-ui/react — generated, replaced by `npx @kookie-ui/react init` -->";
+  const legacyEnd = "<!-- END @kookie-ui/react -->";
+  const current = existing.includes(BEGIN);
+  const start = existing.indexOf(current ? BEGIN : legacyBegin);
+  const endMarker = current ? END : legacyEnd;
+  const end = existing.indexOf(endMarker, start);
   if (start !== -1 && end > start) {
     const head = existing.slice(0, start);
-    const tail = existing.slice(end + END.length);
+    const tail = existing.slice(end + endMarker.length);
     return `${head}${block}${tail}`;
   }
   if (!existing.trim()) return `${block}\n`;
@@ -100,7 +105,7 @@ export const rulesText = () =>
  * that regenerates it — `pnpm --filter docs run agents`, which does not exist in the repo this
  * is being copied into. Leaving it in would put an instruction in front of the reader that
  * they cannot follow. The BEGIN marker already carries the sentence that IS true there: this
- * block is generated, and `npx @kookie-ui/react init` replaces it.
+ * block is generated, and `npx @kushagradhawan/kookie-ui-react init` replaces it.
  */
 export const consumerRules = () => rulesText().replace(/^<!--[\s\S]*?-->\s*/, "");
 
@@ -163,7 +168,7 @@ const invokedDirectly =
 if (invokedDirectly) {
   const argv = process.argv.slice(2);
   if (argv[0] !== "init") {
-    console.error("Usage: npx @kookie-ui/react init [--write] [--dir <path>]");
+    console.error("Usage: npx @kushagradhawan/kookie-ui-react init [--write] [--dir <path>]");
     process.exit(1);
   }
   run(argv, process.cwd(), (line) => console.log(line));

@@ -2,7 +2,7 @@
 
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Pdf01Icon } from "@hugeicons/core-free-icons";
-import { Attachment, Stack, iconStroke } from "@kookie-ui/react";
+import { Attachment, Stack, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 const sizes = ["1", "2", "3", "4"] as const;
 

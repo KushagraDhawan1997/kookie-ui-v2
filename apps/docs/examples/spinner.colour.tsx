@@ -1,4 +1,4 @@
-import { Spinner, Stack, Text } from "@kookie-ui/react";
+import { Spinner, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // A Spinner draws in the colour of the text around it. Set a tone on the text, and the
 // Spinner inside it follows.

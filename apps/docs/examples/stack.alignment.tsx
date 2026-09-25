@@ -1,4 +1,4 @@
-import { Button, Flex, Stack, Text } from "@kookie-ui/react";
+import { Button, Flex, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const aligns = ["flex-start", "center", "flex-end", "stretch"] as const;
 

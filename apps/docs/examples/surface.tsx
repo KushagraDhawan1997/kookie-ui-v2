@@ -1,5 +1,5 @@
-import { Stack, Surface, Text } from "@kookie-ui/react";
-import type { Size } from "@kookie-ui/react";
+import { Stack, Surface, Text } from "@kushagradhawan/kookie-ui-react";
+import type { Size } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({ size = "3" }: { size?: Size }) {
   return (

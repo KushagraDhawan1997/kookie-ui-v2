@@ -1,4 +1,4 @@
-import { Box, Button, Stack, Text } from "@kookie-ui/react";
+import { Box, Button, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // Any Box prop takes an object with a value per container size: `initial`, `sm`, `md` and
 // `lg`. Here the layout is a column on a narrow container and a row from `md` up.

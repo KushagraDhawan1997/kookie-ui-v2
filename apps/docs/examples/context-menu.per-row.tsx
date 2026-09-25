@@ -7,7 +7,7 @@ import {
   Stack,
   Surface,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const FILES = [
   { name: "Q3 revenue.xlsx", size: "84 KB" },

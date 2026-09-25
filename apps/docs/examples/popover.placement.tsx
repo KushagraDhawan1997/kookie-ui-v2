@@ -6,7 +6,7 @@ import {
   PopoverDescription,
   PopoverTitle,
   PopoverTrigger,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const SIDES = ["top", "right", "bottom", "left"] as const;
 

@@ -12,8 +12,8 @@
  */
 import { readFileSync } from "node:fs";
 
-import { componentAxes } from "@kookie-ui/react";
-import { CONFORMANCE_CASES, TOOL_NAMES, WEB_TOOL_PREFIX, webToolName } from "@kookie-ui/react/agent";
+import { componentAxes } from "@kushagradhawan/kookie-ui-react";
+import { CONFORMANCE_CASES, TOOL_NAMES, WEB_TOOL_PREFIX, webToolName } from "@kushagradhawan/kookie-ui-react/agent";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -141,7 +141,7 @@ describe("checking a snippet", () => {
   it("finds nothing wrong with correct code", () => {
     expect(
       checkSnippet(
-        `import { Button, Card } from "@kookie-ui/react";
+        `import { Button, Card } from "@kushagradhawan/kookie-ui-react";
          <Card size="3"><Button size="2" tone="destructive" emphasis="loud">Delete</Button></Card>`,
       ),
     ).toEqual([]);
@@ -153,7 +153,7 @@ describe("checking a snippet", () => {
     // real export now — so the law asserted a message about the wrong thing and failed on
     // correct code. A fixture whose premise is "this does not exist" has to name something
     // nothing will ever be called; `get` one describe up already uses this one.
-    const found = checkSnippet(`import { Button, Stack, Frobnicator } from "@kookie-ui/react";`);
+    const found = checkSnippet(`import { Button, Stack, Frobnicator } from "@kushagradhawan/kookie-ui-react";`);
     expect(only(found).message).toContain("does not export Frobnicator");
     expect(found[0]!.symbol).toBe("Frobnicator");
   });
@@ -199,7 +199,7 @@ describe("checking a snippet", () => {
      deleting the tag check whole would pass. */
   it("does not name a tag the snippet imports from another module", () => {
     const imported = `import { HugeiconsIcon } from "@hugeicons/react";
-         import { Button } from "@kookie-ui/react";
+         import { Button } from "@kushagradhawan/kookie-ui-react";
          <Button leading={<HugeiconsIcon/>}>Save</Button>`;
     expect(checkSnippet(imported)).toEqual([]);
     expect(snippetNotes(imported)).toEqual([]);
@@ -341,7 +341,7 @@ describe("registering", () => {
  * have a scanner each, checking DIFFERENT rules under the same name — this one read imports,
  * tags and values; the server's read refused props, refused `data-` axes, utility classes and
  * raw values — so the same snippet got two verdicts depending on which surface an agent
- * reached. The rules now live in `@kookie-ui/react/agent` and both callers inject their own
+ * reached. The rules now live in `@kushagradhawan/kookie-ui-react/agent` and both callers inject their own
  * facts.
  *
  * The law reads the SOURCE, because behaviour cannot say this: a re-grown local copy would
@@ -352,7 +352,7 @@ describe("the snippet checker has one home", () => {
   const source = readFileSync(new URL("./agent-tools.ts", import.meta.url), "utf8");
 
   it("calls the package's checker", () => {
-    expect(source).toContain('from "@kookie-ui/react/agent"');
+    expect(source).toContain('from "@kushagradhawan/kookie-ui-react/agent"');
     expect(source).toContain("checkUsage(code, LIVE)");
   });
 
@@ -443,7 +443,7 @@ describe("foreign tags and spreads are notes", () => {
   });
 
   it("says a name imported from this package but not exported ONCE, as a problem", () => {
-    const code = `import { Toast } from "@kookie-ui/react";\n<Toast />`;
+    const code = `import { Toast } from "@kushagradhawan/kookie-ui-react";\n<Toast />`;
     const problems = checkSnippet(code).map((problem) => problem.symbol);
     expect(problems).toEqual(["Toast"]);
     // Not repeated as a foreign tag, which is what the second message used to do.

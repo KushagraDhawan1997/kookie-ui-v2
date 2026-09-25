@@ -13,7 +13,7 @@ import {
   Stack,
   Switch,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // Pass `open` and `onOpenChange` to hold a pane's state yourself, for example to remember
 // it between visits. `onOpenChange` fires only when a person opens or closes the pane.

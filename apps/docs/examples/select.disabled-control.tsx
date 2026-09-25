@@ -6,7 +6,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const PLANS = { free: "Free", team: "Team", enterprise: "Enterprise" };
 

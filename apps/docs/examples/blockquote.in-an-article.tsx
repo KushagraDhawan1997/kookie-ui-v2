@@ -1,4 +1,4 @@
-import { Blockquote, Heading, Stack, Text } from "@kookie-ui/react";
+import { Blockquote, Heading, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // In running text, the quote sits in the same column as the paragraphs. The layout around it
 // sets the space above and below. Blockquote adds no margin of its own.

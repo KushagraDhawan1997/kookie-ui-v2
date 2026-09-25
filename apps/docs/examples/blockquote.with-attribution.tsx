@@ -1,4 +1,4 @@
-import { Blockquote, Stack, Text } from "@kookie-ui/react";
+import { Blockquote, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // Blockquote has no attribution slot. Put the name in a sibling Text, and use `render` to make
 // the stack a `<figure>` and the name a `<figcaption>`. Pass the source address as `cite`.

@@ -1,4 +1,4 @@
-import { Box, Card, Stack, Text } from "@kookie-ui/react";
+import { Box, Card, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // The value `bleed` on a margin prop cancels the padding of the surrounding Card. Here the
 // picture reaches the top and side edges, and the Card clips it to its corners.

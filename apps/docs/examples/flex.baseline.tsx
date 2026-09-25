@@ -1,4 +1,4 @@
-import { Flex, Heading, Text } from "@kookie-ui/react";
+import { Flex, Heading, Text } from "@kushagradhawan/kookie-ui-react";
 
 // `align="baseline"` lines up the first line of text in each item, even
 // when the items use different type sizes.

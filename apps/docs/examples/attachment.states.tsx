@@ -2,7 +2,7 @@
 
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FileZipIcon, Image01Icon, Pdf01Icon } from "@hugeicons/core-free-icons";
-import { Attachment, Stack, iconStroke } from "@kookie-ui/react";
+import { Attachment, Stack, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 const icon = (glyph: typeof Pdf01Icon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />

@@ -8,7 +8,7 @@ import {
   Flex,
   Stack,
   TextField,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

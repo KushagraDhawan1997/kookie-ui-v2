@@ -1,4 +1,4 @@
-import { Slider, Stack, Text } from "@kookie-ui/react";
+import { Slider, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // A disabled Slider keeps its value in view but does not move. The filled part turns
 // grey, so the setting reads as off.

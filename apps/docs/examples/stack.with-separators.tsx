@@ -1,4 +1,4 @@
-import { Flex, Separator, Stack, Text } from "@kookie-ui/react";
+import { Flex, Separator, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const rows = [
   ["Plan", "Team"],

@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Copy01Icon, Download01Icon, Share01Icon } from "@hugeicons/core-free-icons";
-import { Button, ButtonGroup, iconStroke } from "@kookie-ui/react";
+import { Button, ButtonGroup, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

@@ -66,7 +66,7 @@ const calls = [
   [
     "check_usage",
     {
-      code: `import { Button, Card, Flex, Text } from "@kookie-ui/react";
+      code: `import { Button, Card, Flex, Text } from "@kushagradhawan/kookie-ui-react";
 
 export function Bad() {
   return (

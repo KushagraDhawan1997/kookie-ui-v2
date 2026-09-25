@@ -9,7 +9,7 @@ import {
   Button,
   Flex,
   Stack,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const sections = [
   { value: "general", title: "General", body: "Project name, slug and default branch." },

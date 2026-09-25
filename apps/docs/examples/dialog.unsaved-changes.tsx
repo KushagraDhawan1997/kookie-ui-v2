@@ -15,7 +15,7 @@ import {
   Flex,
   Stack,
   TextArea,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // `onOpenChange` tells you why the dialog is closing. Call `cancel()` to
 // keep it open, for example when Escape or an outside press would lose

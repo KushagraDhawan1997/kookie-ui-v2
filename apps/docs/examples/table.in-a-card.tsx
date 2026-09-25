@@ -9,7 +9,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const members = [
   ["Shruti Bhatia", "Owner", "Active"],

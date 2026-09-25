@@ -33,7 +33,7 @@ import {
   Text,
   Theme,
   themeAxes,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import { BEDS, BedSurface } from "../beds";
 import { Demo, SIZES, cap } from "../pieces";

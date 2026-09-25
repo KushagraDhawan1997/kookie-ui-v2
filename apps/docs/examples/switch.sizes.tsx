@@ -1,4 +1,4 @@
-import { Flex, Switch, Text } from "@kookie-ui/react";
+import { Flex, Switch, Text } from "@kushagradhawan/kookie-ui-react";
 
 const sizes = ["1", "2", "3", "4"] as const;
 

@@ -1,4 +1,4 @@
-import { Button, Card, Grid, Stack, Surface, Text, Theme } from "@kookie-ui/react";
+import { Button, Card, Grid, Stack, Surface, Text, Theme } from "@kushagradhawan/kookie-ui-react";
 
 const DEPTHS = ["flat", "elevated"] as const;
 

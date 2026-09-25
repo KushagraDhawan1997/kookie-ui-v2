@@ -39,7 +39,7 @@ const SEVERITY: Readonly<Record<keyof typeof rules, Linter.RuleSeverity>> = {
 };
 
 const plugin: ESLint.Plugin = {
-  meta: { name: "@kookie-ui/react/eslint-plugin" },
+  meta: { name: "@kushagradhawan/kookie-ui-react/eslint-plugin" },
   rules: rules as unknown as ESLint.Plugin["rules"],
 };
 

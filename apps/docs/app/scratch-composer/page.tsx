@@ -15,7 +15,7 @@ import {
   Text,
   Heading,
   Box,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 import { BedSurface, PHOTO_BED } from "../preview/beds";
 import { ArrowUpIcon, PaperclipIcon } from "../icons";
 

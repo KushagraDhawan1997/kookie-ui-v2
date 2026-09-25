@@ -1,4 +1,4 @@
-import { Card, Checkbox, Flex, Stack, Text } from "@kookie-ui/react";
+import { Card, Checkbox, Flex, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const ADDONS = [
   { name: "Priority support", detail: "Replies within 4 hours, every day." },

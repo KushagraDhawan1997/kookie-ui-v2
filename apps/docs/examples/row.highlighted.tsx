@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Field, FieldLabel, Row, Stack, TextField } from "@kookie-ui/react";
+import { Field, FieldLabel, Row, Stack, TextField } from "@kushagradhawan/kookie-ui-react";
 
 const COMMANDS = ["Create project", "Invite a member", "Open billing", "Rotate API key", "Sign out"];
 

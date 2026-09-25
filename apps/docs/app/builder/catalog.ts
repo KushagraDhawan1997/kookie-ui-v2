@@ -20,7 +20,7 @@
  *    the tree and the palette all ask `canContain` — one rule, three surfaces.
  */
 
-import { componentAxes, themeAxes } from "@kookie-ui/react";
+import { componentAxes, themeAxes } from "@kushagradhawan/kookie-ui-react";
 
 import { node, type BuilderNode } from "./model";
 

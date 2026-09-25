@@ -10,7 +10,7 @@ You need pnpm 12 and Node 24.
 
 ```bash
 pnpm install
-pnpm --filter @kookie-ui/react exec playwright install --with-deps chromium
+pnpm --filter @kushagradhawan/kookie-ui-react exec playwright install --with-deps chromium
 pnpm run build
 ```
 

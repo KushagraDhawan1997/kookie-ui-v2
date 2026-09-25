@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Flex, Stack, Text, Toggle, ToggleGroup } from "@kookie-ui/react";
+import { Flex, Stack, Text, Toggle, ToggleGroup } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   const [muted, setMuted] = React.useState(false);

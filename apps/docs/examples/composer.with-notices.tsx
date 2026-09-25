@@ -11,7 +11,7 @@ import {
   ComposerSend,
   Notice,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // `notices` holds messages that need attention before the next message.
 // They sit in a column above the composer, outside the form, so their

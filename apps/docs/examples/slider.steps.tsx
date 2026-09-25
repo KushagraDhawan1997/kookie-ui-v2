@@ -1,4 +1,4 @@
-import { Slider, Stack, Text } from "@kookie-ui/react";
+import { Slider, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // `min`, `max` and `step` set the values a handle can land on. `largeStep` is how far
 // Page Up, Page Down and Shift with an arrow key move it.

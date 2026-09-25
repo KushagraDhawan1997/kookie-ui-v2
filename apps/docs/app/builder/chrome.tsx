@@ -2,7 +2,7 @@
 
 /**
  * The editor's own chrome (2026-08-20): the document bar, the jump bar, the shortcut sheet
- * and the toast. Every one of them is @kookie-ui/react — a builder for the system that is
+ * and the toast. Every one of them is @kushagradhawan/kookie-ui-react — a builder for the system that is
  * not built from the system argues against itself, and the argument does not get weaker for
  * the parts that are "just editor UI".
  */
@@ -42,7 +42,7 @@ import {
   Stack,
   Text,
   TextField,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import { MoreIcon } from "../icons";
 import { COMMANDS, chordLabel, type CommandGroup } from "./commands";

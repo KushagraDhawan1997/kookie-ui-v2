@@ -28,7 +28,7 @@ import {
   PopoverTrigger,
   Stack,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import { Demo, SpecTable } from "../pieces";
 import type { ComponentPreview } from "./types";

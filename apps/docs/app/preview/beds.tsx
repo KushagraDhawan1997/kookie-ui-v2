@@ -25,7 +25,7 @@
  */
 import * as React from "react";
 import Image from "next/image";
-import { Flex } from "@kookie-ui/react";
+import { Flex } from "@kushagradhawan/kookie-ui-react";
 
 export type Bed = {
   id: string;

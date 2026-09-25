@@ -1,4 +1,4 @@
-import { Button, type Emphasis, type Size, type Tone } from "@kookie-ui/react";
+import { Button, type Emphasis, type Size, type Tone } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({
   size = "2",

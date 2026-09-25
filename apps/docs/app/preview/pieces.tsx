@@ -6,7 +6,7 @@
  * this whole structure exists to kill.
  */
 import * as React from "react";
-import { Grid, Stack, Text, componentAxes } from "@kookie-ui/react";
+import { Grid, Stack, Text, componentAxes } from "@kushagradhawan/kookie-ui-react";
 
 // DERIVED since componentAxes shipped (2026-08-19, forced by the builder) — this was the
 // literal the old comment on the tone list apologised for.

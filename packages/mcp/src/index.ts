@@ -26,7 +26,7 @@
 /* The four names have one home in the package, so the browser surface and this one cannot
    drift apart under a sentence claiming they are "the same four tools" (§48, the 2026-09-07
    audit). The prefix a page adds is stated there too. */
-import { TOOL_NAMES } from "@kookie-ui/react/agent";
+import { TOOL_NAMES } from "@kushagradhawan/kookie-ui-react/agent";
 import { McpServer } from "@modelcontextprotocol/server";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import * as z from "zod/v4";

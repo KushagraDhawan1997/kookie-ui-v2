@@ -1,4 +1,4 @@
-import { Avatar, AvatarGroup, Stack } from "@kookie-ui/react";
+import { Avatar, AvatarGroup, Stack } from "@kushagradhawan/kookie-ui-react";
 
 const sizes = ["1", "2", "3", "4", "5"] as const;
 

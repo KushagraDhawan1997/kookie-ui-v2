@@ -1,4 +1,4 @@
-import { Avatar, Flex } from "@kookie-ui/react";
+import { Avatar, Flex } from "@kushagradhawan/kookie-ui-react";
 
 const sizes = ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
 

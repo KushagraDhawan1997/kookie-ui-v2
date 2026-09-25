@@ -1,4 +1,4 @@
-import { Flex, Surface, Text } from "@kookie-ui/react";
+import { Flex, Surface, Text } from "@kushagradhawan/kookie-ui-react";
 
 const sizes = ["1", "2", "3", "4"] as const;
 

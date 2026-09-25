@@ -1,4 +1,4 @@
-import { Box, Heading, Stack, Text } from "@kookie-ui/react";
+import { Box, Heading, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // Use `render` to give a Box the element the document needs, such as a `<section>` or a
 // `<nav>`. The Box props apply to that element, and no wrapper is added.

@@ -1,4 +1,4 @@
-import { Flex, Kbd, Text } from "@kookie-ui/react";
+import { Flex, Kbd, Text } from "@kushagradhawan/kookie-ui-react";
 
 // Give each key its own Kbd when a shortcut needs keys pressed together.
 // Put the words that join them in the text, not in the key.

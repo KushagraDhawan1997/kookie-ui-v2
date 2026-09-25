@@ -1,4 +1,4 @@
-import { Button, Flex, Stack, Text, TextField, Theme } from "@kookie-ui/react";
+import { Button, Flex, Stack, Text, TextField, Theme } from "@kushagradhawan/kookie-ui-react";
 
 const SIZES = ["2", "3"] as const;
 

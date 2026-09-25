@@ -1,4 +1,4 @@
-import { Blockquote, Stack } from "@kookie-ui/react";
+import { Blockquote, Stack } from "@kushagradhawan/kookie-ui-react";
 
 // `tone` colours the words and leaves the rule neutral. When the coloured bar must carry the
 // meaning, such as a warning, use a Notice instead.

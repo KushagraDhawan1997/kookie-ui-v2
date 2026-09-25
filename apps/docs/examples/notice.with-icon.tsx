@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Alert02Icon, InformationCircleIcon, WifiDisconnected01Icon } from "@hugeicons/core-free-icons";
-import { Notice, Stack, iconStroke } from "@kookie-ui/react";
+import { Notice, Stack, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 const icon = (glyph: typeof Alert02Icon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />

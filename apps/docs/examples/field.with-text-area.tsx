@@ -1,4 +1,4 @@
-import { Field, FieldDescription, FieldLabel, TextArea } from "@kookie-ui/react";
+import { Field, FieldDescription, FieldLabel, TextArea } from "@kushagradhawan/kookie-ui-react";
 
 // A TextArea works in a Field the same way a TextField does. The control
 // fills the width of the Field.

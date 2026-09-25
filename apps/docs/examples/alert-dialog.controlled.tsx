@@ -11,7 +11,7 @@ import {
   Button,
   Stack,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // An alert raised by app state has no trigger. Pass `open` and `onOpenChange`, and set `open`
 // from your own logic. Here a button stands in for a session timer.

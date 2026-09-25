@@ -1,4 +1,4 @@
-import { Box, Button, Flex } from "@kookie-ui/react";
+import { Box, Button, Flex } from "@kushagradhawan/kookie-ui-react";
 
 // `backdrop` marks a region where content passes behind the controls, such as a toolbar over a
 // picture. Every control inside it then uses the theme's material. Set it once on the region.

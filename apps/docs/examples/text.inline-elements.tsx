@@ -1,4 +1,4 @@
-import { Code, Kbd, Link, Stack, Text } from "@kookie-ui/react";
+import { Code, Kbd, Link, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

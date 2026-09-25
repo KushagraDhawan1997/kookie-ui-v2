@@ -1,4 +1,4 @@
-import { Button, Field, FieldDescription, FieldLabel, Slider, Stack } from "@kookie-ui/react";
+import { Button, Field, FieldDescription, FieldLabel, Slider, Stack } from "@kushagradhawan/kookie-ui-react";
 
 // Inside a Field, the FieldLabel names the Slider, so it needs no `aria-label`. Give it a
 // `name` and the value is sent with the form.

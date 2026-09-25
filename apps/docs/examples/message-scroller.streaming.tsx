@@ -14,7 +14,7 @@ import {
   Stack,
   Text,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 type Turn = { id: string; role: "question" | "answer"; text: string };
 

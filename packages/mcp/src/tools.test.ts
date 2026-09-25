@@ -10,7 +10,7 @@
  */
 import { readFileSync } from "node:fs";
 
-import { TOOL_NAMES, WEB_TOOL_PREFIX } from "@kookie-ui/react/agent";
+import { TOOL_NAMES, WEB_TOOL_PREFIX } from "@kushagradhawan/kookie-ui-react/agent";
 import { describe, expect, it } from "vitest";
 
 import { data } from "./data.ts";

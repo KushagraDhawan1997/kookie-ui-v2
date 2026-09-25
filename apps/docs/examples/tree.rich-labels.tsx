@@ -1,4 +1,4 @@
-import { Badge, Box, Flex, Text, Tree, type TreeNode } from "@kookie-ui/react";
+import { Badge, Box, Flex, Text, Tree, type TreeNode } from "@kushagradhawan/kookie-ui-react";
 
 const label = (name: string, count: number) => (
   <Flex gap="2" align="center" justify="space-between" style={{ width: "100%" }}>

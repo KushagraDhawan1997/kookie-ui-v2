@@ -28,7 +28,7 @@ import {
   type ThemeProps,
   themeAxes,
   themeDefaults,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import { setContrast, useAppearance, type ContrastChoice } from "../appearance";
 import { LensBench } from "./lens-bench";

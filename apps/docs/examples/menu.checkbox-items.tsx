@@ -9,7 +9,7 @@ import {
   MenuGroup,
   MenuLabel,
   MenuTrigger,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // A checkbox row turns one setting on or off. Pass `checked` and
 // `onCheckedChange` to keep the value in your own state.

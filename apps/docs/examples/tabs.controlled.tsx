@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Button, Flex, Stack, Tabs, TabsList, TabsPanel, TabsTab, Text } from "@kookie-ui/react";
+import { Button, Flex, Stack, Tabs, TabsList, TabsPanel, TabsTab, Text } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   const [tab, setTab] = React.useState("monthly");

@@ -14,7 +14,7 @@ import {
   ToolbarSeparator,
   ToolbarTitle,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const icon = (glyph: typeof Undo02Icon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />

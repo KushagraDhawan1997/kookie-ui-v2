@@ -420,7 +420,7 @@ describe("every entry has a live specimen, and every specimen belongs to an entr
   /**
    * AN EXAMPLE PAINTS NOTHING OF ITS OWN (2026-09-05).
    *
-   * This site's stance since 2026-08-05 is that every visible pixel is `@kookie-ui/react` — a
+   * This site's stance since 2026-08-05 is that every visible pixel is `@kushagradhawan/kookie-ui-react` — a
    * design system whose docs are built on someone else's UI argues against itself — and an
    * example rooted in a bare `<div>` is that rule broken in the one place a reader COPIES from.
    *

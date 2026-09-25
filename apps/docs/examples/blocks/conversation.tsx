@@ -1,4 +1,4 @@
-import { Stack } from "@kookie-ui/react";
+import { Stack } from "@kushagradhawan/kookie-ui-react";
 
 import { Conversation, Pictures, Reply, Step, Steps, Turn, UserMessage } from "../../blocks/conversation";
 import { ArrowDownIcon } from "../../app/icons";

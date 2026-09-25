@@ -26,7 +26,7 @@ import {
   Kbd,
   iconStroke,
   type TypeSize,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 import * as React from "react";
 
 import { EmptyState } from "../blocks/empty-state";

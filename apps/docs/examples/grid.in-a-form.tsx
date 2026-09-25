@@ -1,4 +1,4 @@
-import { Box, Button, Field, FieldLabel, Flex, Grid, Stack, TextField } from "@kookie-ui/react";
+import { Box, Button, Field, FieldLabel, Flex, Grid, Stack, TextField } from "@kushagradhawan/kookie-ui-react";
 
 // Two columns for short fields that belong together. The address spans both,
 // and the grid drops to one column when the container is narrow.

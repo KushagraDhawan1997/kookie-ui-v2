@@ -1,4 +1,4 @@
-import { Card, Grid, Stack, Text } from "@kookie-ui/react";
+import { Card, Grid, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const STATS = [
   { label: "Active members", value: "24" },

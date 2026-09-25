@@ -1,4 +1,4 @@
-import { Flex, Kbd, Stack, Text } from "@kookie-ui/react";
+import { Flex, Kbd, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const shortcuts = [
   { action: "Search the workspace", keys: "⌘K" },

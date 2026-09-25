@@ -45,7 +45,7 @@ import {
   CommandItem,
   CommandList,
   Kbd,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import { EmptyState } from "../../blocks/empty-state";
 import { CATALOG, PALETTE_FAMILIES } from "./catalog";

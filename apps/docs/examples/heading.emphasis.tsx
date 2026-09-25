@@ -1,4 +1,4 @@
-import { Heading, Stack } from "@kookie-ui/react";
+import { Heading, Stack } from "@kushagradhawan/kookie-ui-react";
 
 // `emphasis` picks the ink colour. Use `medium` for a label above a group,
 // so it does not compete with the headings that name content.

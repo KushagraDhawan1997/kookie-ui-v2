@@ -8,7 +8,7 @@
  */
 import { readFileSync } from "node:fs";
 
-import { Toolbar } from "@kookie-ui/react";
+import { Toolbar } from "@kushagradhawan/kookie-ui-react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

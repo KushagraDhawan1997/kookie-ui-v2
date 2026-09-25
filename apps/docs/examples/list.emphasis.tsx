@@ -1,4 +1,4 @@
-import { List, ListItem, Stack, Text } from "@kookie-ui/react";
+import { List, ListItem, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // `emphasis` picks the ink colour of the words. Use `medium` for a list of
 // details under a main statement. Numbers take the colour of the words.

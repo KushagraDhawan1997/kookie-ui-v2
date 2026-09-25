@@ -8,7 +8,7 @@ import {
   SheetTitle,
   SheetTrigger,
   Stack,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // `side` follows the reading direction. Under `dir="rtl"`, `inline-end` opens the panel
 // from the left, and a swipe to the left closes it.

@@ -1,4 +1,4 @@
-import { Card, Flex, Stack, Text } from "@kookie-ui/react";
+import { Card, Flex, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const SIZES = ["1", "2", "3", "4"] as const;
 

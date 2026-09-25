@@ -12,7 +12,7 @@ import {
   Flex,
   Kbd,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 type Action = { value: string; label: string };
 

@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { CreditCardIcon, Home01Icon, Settings01Icon, UserIcon } from "@hugeicons/core-free-icons";
-import { Row, Stack, iconStroke } from "@kookie-ui/react";
+import { Row, Stack, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 const icon = (glyph: typeof Home01Icon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />

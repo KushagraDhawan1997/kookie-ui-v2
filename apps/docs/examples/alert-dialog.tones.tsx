@@ -8,7 +8,7 @@ import {
   AlertDialogTrigger,
   Button,
   Flex,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // Give the action a `tone` only when it carries a meaning. A delete is `destructive`. A
 // question with no risk, such as publishing, keeps the default.

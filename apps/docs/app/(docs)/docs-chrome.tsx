@@ -46,7 +46,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import { AppearanceToggle } from "../appearance-toggle";
 import { ThemePanel } from "../theme-panel";

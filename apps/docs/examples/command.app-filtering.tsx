@@ -11,7 +11,7 @@ import {
   CommandList,
   CommandTrigger,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 type Article = { value: string; label: string; body: string };
 

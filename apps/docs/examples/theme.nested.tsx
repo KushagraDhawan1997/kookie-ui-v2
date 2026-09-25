@@ -1,4 +1,4 @@
-import { Button, Flex, Stack, Surface, Text, TextField, Theme } from "@kookie-ui/react";
+import { Button, Flex, Stack, Surface, Text, TextField, Theme } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

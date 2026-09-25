@@ -61,7 +61,7 @@ describe("the missing-stylesheet warning", () => {
       });
       const messages = read();
       expect(messages.length).toBe(1);
-      expect(messages[0]).toContain('import "@kookie-ui/react/styles.css"');
+      expect(messages[0]).toContain('import "@kushagradhawan/kookie-ui-react/styles.css"');
     } finally {
       await act(async () => root.unmount());
       host.remove();

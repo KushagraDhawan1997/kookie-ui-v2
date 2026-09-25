@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Clock01Icon } from "@hugeicons/core-free-icons";
-import { Flex, Text, iconStroke } from "@kookie-ui/react";
+import { Flex, Text, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 // `display="inline-flex"` lets the Flex sit inside a line of text, so an
 // icon and its words can flow with a sentence.

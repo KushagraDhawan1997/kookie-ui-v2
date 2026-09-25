@@ -1,6 +1,6 @@
 ---
 name: kookie-ui
-description: How to write @kookie-ui/react without fighting it — the refusals and what to use instead, the tone/emphasis/material vocabulary, where spacing lives, and how to look a component up. Run this before writing or editing any UI built on KookieUI, and whenever a prop you expected does not exist.
+description: How to write @kushagradhawan/kookie-ui-react without fighting it — the refusals and what to use instead, the tone/emphasis/material vocabulary, where spacing lives, and how to look a component up. Run this before writing or editing any UI built on KookieUI, and whenever a prop you expected does not exist.
 ---
 
 # KookieUI
@@ -83,7 +83,7 @@ component is, what it refuses, and which tokens exist, without a fetch. If no su
 listed, use the markdown twins above.
 
 Offline, the types are the reference: `packages/ui/src/**` in this repo, or
-`node_modules/@kookie-ui/react/dist/**/*.d.ts` in a consumer's. Every exported symbol carries
+`node_modules/@kushagradhawan/kookie-ui-react/dist/**/*.d.ts` in a consumer's. Every exported symbol carries
 its reasoning on the declaration.
 
 ## Working inside this repo

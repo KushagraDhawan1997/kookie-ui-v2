@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Field, FieldDescription, FieldLabel, TextArea } from "@kookie-ui/react";
+import { Field, FieldDescription, FieldLabel, TextArea } from "@kushagradhawan/kookie-ui-react";
 
 const LIMIT = 160;
 

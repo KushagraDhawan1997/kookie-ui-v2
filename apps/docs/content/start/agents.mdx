@@ -37,7 +37,7 @@ entry:
 
 ```js title="eslint.config.mjs"
 import tseslint from "typescript-eslint";
-import kookie from "@kookie-ui/react/eslint-plugin";
+import kookie from "@kushagradhawan/kookie-ui-react/eslint-plugin";
 
 export default [
   { files: ["**/*.tsx"], languageOptions: { parser: tseslint.parser } },
@@ -72,14 +72,14 @@ Agents read an instructions file at the root of your repository, such as `AGENTS
 `CLAUDE.md` or `.cursor/rules`, and the package can write its own section of that file:
 
 ```bash
-npx @kookie-ui/react init
+npx @kushagradhawan/kookie-ui-react init
 ```
 
 The command shows the changes it would make and writes nothing by default. Run it again with the
 write flag to apply them:
 
 ```bash
-npx @kookie-ui/react init --write
+npx @kushagradhawan/kookie-ui-react init --write
 ```
 
 The command adds one block with start and end markers. The block contains:
@@ -156,7 +156,7 @@ When the refused props stop, you will see these mistakes most often. For this re
 site is a guideline, and not only a reference.
 
 ```tsx
-import { Box, Button, Card, Flex, Heading, Text } from "@kookie-ui/react";
+import { Box, Button, Card, Flex, Heading, Text } from "@kushagradhawan/kookie-ui-react";
 
 export function Invite() {
   return (

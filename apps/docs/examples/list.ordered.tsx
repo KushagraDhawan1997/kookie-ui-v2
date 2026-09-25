@@ -1,4 +1,4 @@
-import { List, ListItem } from "@kookie-ui/react";
+import { List, ListItem } from "@kushagradhawan/kookie-ui-react";
 
 // Set `ordered` when the order is information, such as steps to follow.
 // A screen reader then announces a numbered list.

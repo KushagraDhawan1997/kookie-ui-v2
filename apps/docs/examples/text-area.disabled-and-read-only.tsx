@@ -1,4 +1,4 @@
-import { Field, FieldLabel, Stack, TextArea } from "@kookie-ui/react";
+import { Field, FieldLabel, Stack, TextArea } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

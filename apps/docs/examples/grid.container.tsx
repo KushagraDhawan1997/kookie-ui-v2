@@ -1,4 +1,4 @@
-import { Box, Button, Grid, Stack, Text } from "@kookie-ui/react";
+import { Box, Button, Grid, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const actions = ["New project", "Invite members", "Connect a repository", "Open billing"];
 

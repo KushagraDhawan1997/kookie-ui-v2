@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Field, FieldLabel, NumberField, Stack, Text } from "@kookie-ui/react";
+import { Field, FieldLabel, NumberField, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const PRICE_PER_SEAT = 12;
 

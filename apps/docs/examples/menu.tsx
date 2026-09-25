@@ -22,8 +22,8 @@ import {
   MenuTrigger,
   Separator,
   iconStroke,
-} from "@kookie-ui/react";
-import type { Size } from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
+import type { Size } from "@kushagradhawan/kookie-ui-react";
 
 // The package ships no icon set, so the glyphs are yours. `iconStroke` is the weight the system
 // draws its own chevrons at, so your set matches them. No size: the row sizes the slot's svg.

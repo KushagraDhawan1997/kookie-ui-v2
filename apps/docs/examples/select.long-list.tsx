@@ -5,7 +5,7 @@ import {
   SelectItem,
   SelectLabel,
   SelectTrigger,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const ZONES = {
   Europe: ["London", "Paris", "Berlin", "Madrid", "Rome", "Stockholm", "Warsaw", "Athens"],

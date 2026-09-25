@@ -29,7 +29,7 @@ import {
   TextField,
   Theme,
   themeAxes,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import { BEDS, BedSurface, bed } from "../beds";
 import { Demo, SIZES, SpecTable, cap } from "../pieces";

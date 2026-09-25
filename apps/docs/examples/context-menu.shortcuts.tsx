@@ -9,7 +9,7 @@ import {
   Surface,
   Text,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const icon = (glyph: typeof Copy01Icon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />

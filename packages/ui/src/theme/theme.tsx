@@ -203,7 +203,7 @@ const warnOnBodyMount = (node: HTMLElement | null) => {
  * THE ONE FAILURE THAT DRAWS NOTHING (2026-09-07).
  *
  * Every other mistake in this package produces something: a wrong colour, a wrong size, a
- * compile error. Forgetting `import "@kookie-ui/react/styles.css"` produces an unstyled page
+ * compile error. Forgetting `import "@kushagradhawan/kookie-ui-react/styles.css"` produces an unstyled page
  * with no diagnostic anywhere — the markup is right, the props are right, the components
  * mount, and the result is unrecognisable. It is the cheapest mistake to make and the one
  * with the least evidence attached, and until now nothing in the package said a word about it.
@@ -228,7 +228,7 @@ const warnOnMissingStylesheet = (node: HTMLElement) => {
   if (getComputedStyle(node).getPropertyValue("--control-height-2").trim()) return;
   console.warn(
     "[kookie-ui] The stylesheet is missing: no Kookie tokens resolve on this <Theme>, so " +
-      "every component will render unstyled. Add `import \"@kookie-ui/react/styles.css\";` " +
+      "every component will render unstyled. Add `import \"@kushagradhawan/kookie-ui-react/styles.css\";` " +
       "once, at your app's entry point.",
   );
 };

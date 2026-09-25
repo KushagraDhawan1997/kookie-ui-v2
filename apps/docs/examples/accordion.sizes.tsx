@@ -3,8 +3,8 @@ import {
   AccordionItem,
   AccordionPanel,
   AccordionTrigger,
-} from "@kookie-ui/react";
-import type { Size } from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
+import type { Size } from "@kushagradhawan/kookie-ui-react";
 
 // `size` on the root sets every heading and panel inside it. Each heading stands as tall as a
 // Button at the same size.

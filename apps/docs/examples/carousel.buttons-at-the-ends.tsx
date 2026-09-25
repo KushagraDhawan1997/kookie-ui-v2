@@ -11,7 +11,7 @@ import {
   Flex,
   Text,
   iconStroke,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const PLANS = ["Starter", "Team", "Business", "Enterprise", "Education"];
 

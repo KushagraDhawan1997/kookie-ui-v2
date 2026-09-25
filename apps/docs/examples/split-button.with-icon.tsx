@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { GitMergeIcon } from "@hugeicons/core-free-icons";
-import { iconStroke, MenuItem, SplitButton } from "@kookie-ui/react";
+import { iconStroke, MenuItem, SplitButton } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

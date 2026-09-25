@@ -6,7 +6,7 @@ token-only styling, and a CSS budget that CI enforces.
 This is a ground-up rebuild of [Kookie UI](https://github.com/KushagraDhawan1997/kookie-ui). v1
 is a fork of Radix Themes. v2 is its own system.
 
-**Pre-release.** `@kookie-ui/react` is not on npm yet. Build the workspace to use it.
+**Pre-release.** `@kushagradhawan/kookie-ui-react` is not on npm yet. Build the workspace to use it.
 
 ## The rules that shape the API
 
@@ -54,11 +54,11 @@ The library is built so that a coding agent learns it from the package rather th
 - A refused prop is a compile error that names the prop and says what to write instead —
   `variant` points at `tone` and `emphasis`, a margin prop points at `Box`.
 - Every exported component carries its description in the shipped `.d.ts`.
-- `@kookie-ui/react/eslint-plugin` catches the three mistakes the compiler cannot see: a `data-`
+- `@kushagradhawan/kookie-ui-react/eslint-plugin` catches the three mistakes the compiler cannot see: a `data-`
   axis attribute, utility classes or raw values in `className` and `style`, and a refused prop
   inside a spread. It brings no parser, so a TypeScript project puts it after its own parser
   entry.
-- `npx @kookie-ui/react init` writes the library's rules into your `AGENTS.md`, `CLAUDE.md` or
+- `npx @kushagradhawan/kookie-ui-react init` writes the library's rules into your `AGENTS.md`, `CLAUDE.md` or
   `.cursor/rules`. It prints its plan first and changes nothing without `--write`.
 - `@kookie-ui/mcp` is an MCP server with four tools, including `check_usage`, which reports
   every refused prop, attribute, utility class and raw value in a piece of JSX.
@@ -69,7 +69,7 @@ The [AI agents](apps/docs/content/start/agents.mdx) chapter explains each one.
 ## Repository layout
 
 ```text
-packages/ui     @kookie-ui/react: the components, the token generator, the ESLint plugin and the tests
+packages/ui     @kushagradhawan/kookie-ui-react: the components, the token generator, the ESLint plugin and the tests
 packages/mcp    @kookie-ui/mcp: the MCP server, built from the documentation's own data
 apps/docs       the documentation site, the component reference and the builder
 docs/           the governance documents
@@ -90,7 +90,7 @@ Run these from the repository root. They need pnpm 12 and Node 24.
 The token layer is generated. Regenerate it after you change `packages/ui/src/tokens/config.ts`:
 
 ```bash
-pnpm --filter @kookie-ui/react run tokens
+pnpm --filter @kushagradhawan/kookie-ui-react run tokens
 ```
 
 ## The governance documents

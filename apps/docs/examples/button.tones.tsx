@@ -1,4 +1,4 @@
-import { Button, Flex, Stack } from "@kookie-ui/react";
+import { Button, Flex, Stack } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

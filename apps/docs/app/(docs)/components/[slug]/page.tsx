@@ -47,7 +47,7 @@ import {
   TableHeader,
   TableRow,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 import { CodeSample } from "../../../../blocks/code-sample";
 import { DocTabs, DocTabsProvider, DocTabsToc } from "../../doc-tabs";

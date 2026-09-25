@@ -12,7 +12,7 @@ import {
   Text,
   useMessageScroller,
   useMessageScrollerScrollable,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // Use `useMessageScrollerScrollable` to build your own control. It tells you
 // whether there is more to scroll to at each end. Here the button is off at the end.

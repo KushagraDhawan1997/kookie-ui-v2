@@ -1,4 +1,4 @@
-import { List, ListItem, Stack, Text } from "@kookie-ui/react";
+import { List, ListItem, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // Use `start` to continue the numbers after a paragraph. The numbers stay
 // correct when a person copies the steps or cites one of them.

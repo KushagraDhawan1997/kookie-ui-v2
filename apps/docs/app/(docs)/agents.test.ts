@@ -35,7 +35,7 @@ import { describe, expect, it } from "vitest";
 // they are pulled in here as VALUES: a law that checked the artifact against the generator's own
 // parse would agree with a parse that had stopped seeing anything, which is exactly what a
 // sabotage of `objectOfLists` demonstrated (the entire theme-axis section vanished, suite green).
-import { componentAxes, themeAxes, themeDefaults, tiers } from "@kookie-ui/react";
+import { componentAxes, themeAxes, themeDefaults, tiers } from "@kushagradhawan/kookie-ui-react";
 import { ENTRIES } from "./components/registry";
 import { facts, generatedText } from "../../scripts/generate-agents";
 
@@ -69,7 +69,7 @@ const valuesIn = (run: string): string[] => [...run.matchAll(/`([^`]+)`/g)].map(
  * written in.
  *
  * It is matched as a WHOLE line rather than by taking the first backtick, because the prose
- * above each list opens with `` `@kookie-ui/react` `` and would otherwise be read as the list.
+ * above each list opens with `` `@kushagradhawan/kookie-ui-react` `` and would otherwise be read as the list.
  */
 function runAfter(text: string, anchor: string): string[] {
   const at = text.indexOf(anchor);

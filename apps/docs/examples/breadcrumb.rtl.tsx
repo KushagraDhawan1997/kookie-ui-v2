@@ -1,4 +1,4 @@
-import { Box, Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@kookie-ui/react";
+import { Box, Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage } from "@kushagradhawan/kookie-ui-react";
 
 // `dir` is the platform attribute. Set it here or on any ancestor, and the chevrons point
 // the other way.

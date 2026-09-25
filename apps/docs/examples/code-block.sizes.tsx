@@ -1,4 +1,4 @@
-import { CodeBlock, Stack } from "@kookie-ui/react";
+import { CodeBlock, Stack } from "@kushagradhawan/kookie-ui-react";
 
 const SOURCE = `const invoice = await billing.createInvoice({
   customer: "cus_4821",

@@ -9,7 +9,7 @@ import {
   ShellSidebar,
   Stack,
   Text,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // Set `flush={false}` on ShellContent and leave the other panes flush. The work area
 // becomes its own panel, set in from the frame, while the header and sidebar stay joined.

@@ -3,7 +3,7 @@ import {
   AccordionItem,
   AccordionPanel,
   AccordionTrigger,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 // `disabled` sits on the ITEM, not the root: one section can be
 // closed to you while the rest of the list still opens.

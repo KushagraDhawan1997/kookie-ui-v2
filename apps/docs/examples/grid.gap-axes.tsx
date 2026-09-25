@@ -1,4 +1,4 @@
-import { Grid, Text } from "@kookie-ui/react";
+import { Grid, Text } from "@kushagradhawan/kookie-ui-react";
 
 const rows = [
   ["Plan", "Team"],

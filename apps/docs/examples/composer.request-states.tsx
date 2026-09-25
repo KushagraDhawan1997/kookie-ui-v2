@@ -11,7 +11,7 @@ import {
   ComposerSend,
   iconStroke,
   type ComposerStatus,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 const icon = (glyph: typeof ArrowUp02Icon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />

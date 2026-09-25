@@ -6,7 +6,7 @@ import {
   Text,
   TextField,
   Theme,
-} from "@kookie-ui/react";
+} from "@kushagradhawan/kookie-ui-react";
 
 export default function Example({
   density = "default",

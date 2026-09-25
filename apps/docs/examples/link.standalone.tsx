@@ -1,4 +1,4 @@
-import { Link, Stack, Text } from "@kookie-ui/react";
+import { Link, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 // A column of links that are not inside a sentence. Give them a size, and
 // a label above them in the muted ink colour.

@@ -1,4 +1,4 @@
-import { Card, Flex, Stack, Text } from "@kookie-ui/react";
+import { Card, Flex, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Add01Icon } from "@hugeicons/core-free-icons";
-import { Card, Flex, Stack, Text, iconStroke } from "@kookie-ui/react";
+import { Card, Flex, Stack, Text, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   const [count, setCount] = React.useState(0);

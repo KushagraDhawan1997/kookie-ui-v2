@@ -15,7 +15,7 @@ import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { Card, Theme } from "@kookie-ui/react";
+import { Card, Theme } from "@kushagradhawan/kookie-ui-react";
 
 import { readExampleSource, rootsOwnPane } from "../example";
 import { EXAMPLES } from "../../../examples";

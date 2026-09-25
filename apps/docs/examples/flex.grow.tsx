@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Search01Icon } from "@hugeicons/core-free-icons";
-import { Box, Button, Flex, TextField, iconStroke } from "@kookie-ui/react";
+import { Box, Button, Flex, TextField, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 // Wrap the child that should take the free space in a Box with
 // `flexGrow="1"`. The other children keep their own width.
