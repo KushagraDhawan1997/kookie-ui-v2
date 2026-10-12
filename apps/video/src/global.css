@@ -1,0 +1,25 @@
+@import "@kushagradhawan/kookie-ui-react/styles.css";
+@import "@fontsource-variable/inter/wght.css";
+@import "@fontsource-variable/inter-tight/wght.css";
+
+/* The docs' three font slots, so the film reads exactly like the stills page. */
+:root {
+  --kd-font-body: "Inter Variable";
+  --font-body: var(--kd-font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Inter Tight Variable", var(--font-body);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-text);
+}
+
+/* Frame-driven film: nothing may move on the wall clock, or a frame depends on when it was taken.
+   Every change in the film is driven from the frame number instead. */
+*,
+*::before,
+*::after {
+  transition: none !important;
+  animation-play-state: paused !important;
+}

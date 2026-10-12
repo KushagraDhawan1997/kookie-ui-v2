@@ -39,3 +39,6 @@ apps/docs/next-env.d.ts
 *.ttf
 *.eot
 .vitest/
+
+# Remotion render output (films and test stills)
+apps/video/out/
