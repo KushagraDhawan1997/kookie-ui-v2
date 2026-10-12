@@ -1,11 +1,10 @@
 Setting up takes three steps: adding the package, importing one stylesheet, and wrapping your
 app in a `Theme`. There's no config file or build plugin, because the package calculates every
-value beforehand and ships it as a CSS custom property.
+value ahead of time and ships it as a CSS custom property.
 
 ## Add the package
 
-`@kookie-ui/react` is pre-release and not yet published to npm, so build it from the repository
-for now:
+`@kookie-ui/react` isn't published to npm yet, so for now you build it from the repository:
 
 ```bash
 git clone https://github.com/KushagraDhawan1997/kookie-ui-v2
@@ -14,7 +13,8 @@ pnpm install
 pnpm run build
 ```
 
-Then add it as a dependency of an app in the same workspace:
+The repository is a pnpm workspace that includes every folder under `apps/`, so put your app
+there and add the package as a dependency:
 
 ```json title="package.json"
 {
@@ -24,20 +24,18 @@ Then add it as a dependency of an app in the same workspace:
 }
 ```
 
-Once the package reaches npm you will install it with `pnpm add @kookie-ui/react`, and the
-other setup steps stay the same. Kookie requires React 19 and React DOM 19.
+Once the package is on npm, you'll install it with `pnpm add @kookie-ui/react` instead, and the
+rest of this page stays the same. The package needs React 19 and React DOM 19.
 
-## Import the stylesheet once
+## Import the stylesheet
 
 ```tsx
 import "@kookie-ui/react/styles.css";
 ```
 
-Import it at the root of your app, since this single file contains every style:
-
-- the colour and spacing values
-- the shared rules for controls
-- the rules for each component
+Import it once, at the root of your app. This one file contains every style the library uses:
+the colour and spacing values, the rules that all controls share, and the rules for each
+component.
 
 ## Wrap your app in a Theme
 
@@ -50,13 +48,13 @@ export default function App({ children }: { children: React.ReactNode }) {
 }
 ```
 
-`Theme` holds eight settings for your app: appearance, radius, density, depth, material, size,
-contrast, and pointer. Every component inside it reads those settings, and the
-[Theming](/start/theming) chapter explains each one.
+`Theme` holds eight settings that apply to everything inside it: appearance, radius, density,
+depth, material, size, contrast and pointer. Every setting has a default, so a bare `<Theme>`
+works. The [Theming](/start/theming) chapter explains each one.
 
 ## Set the page background
 
-The library paints no background of its own, so set one in your own CSS:
+The library doesn't paint a background for the page, so set one in your own CSS:
 
 ```css
 body {
@@ -68,21 +66,22 @@ body {
 }
 ```
 
-Use `--color-ground` instead when your page holds mostly cards. It sits slightly darker than
-the page in light mode and slightly lighter in dark mode, which gives the cards a background
-that differs from their own fill.
+If your page is mostly cards, use `--color-ground` instead of `--color-page`. It's slightly
+darker than the page in light mode and slightly lighter in dark mode, so the cards stand apart
+from the background behind them.
 
 ## Set dark mode before the page paints
 
-Your server cannot know whether to render light or dark, because a saved preference and the
-operating system setting both live in the browser. A guess produces one of two problems:
+Your server can't know whether to render the page light or dark, because both the saved choice
+and the operating system setting live in the browser. If the server guesses, you get one of two
+problems:
 
-- The page shows the wrong colours for a short time.
-- React reports that the server and the browser disagree.
+- The page shows the wrong colours for a moment.
+- React warns that the server and the browser rendered different markup.
 
-To prevent both, put a small script in your `<head>` that writes the mode onto `<html>` before
-the page paints, then set your root `Theme` to `appearance="inherit"`, which tells the Theme not
-to write an appearance of its own.
+To avoid both, put a small script in your `<head>`. It writes the mode onto `<html>` before the
+page paints. Then set your root `Theme` to `appearance="inherit"`, so it uses the mode the script
+wrote instead of setting its own.
 
 ```html
 <script>
@@ -111,22 +110,23 @@ to write an appearance of its own.
 </html>
 ```
 
-Two details in that script matter, and both are easy to get wrong.
+The script reads the stored choice from the `kui-appearance` and `kui-contrast` keys. Store your
+own light, dark and contrast toggle under the same keys, or change the names in the script to
+match yours. Two more details are easy to get wrong.
 
-**Put the `try` around the read, not around the whole function.** Some browsers throw when you
-read `localStorage`, and Safari throws when a person blocks all cookies. A `try` that wraps the
-whole function also skips the two `setAttribute` calls, which gives a person with a dark
-operating system a light page. The media query never throws, so keep the writes outside the
-`try`.
+**Wrap only the storage read in `try`.** Reading `localStorage` throws in some browsers, for
+example in Safari when someone blocks all cookies. If the `try` wraps the whole function, an
+error also skips the two `setAttribute` calls, and a person whose operating system is set to
+dark gets a light page. `matchMedia` never throws, so keep the writes outside the `try`.
 
-**Write both attributes onto the same element.** The high-contrast colours apply only when
-`data-appearance` and `data-contrast` sit on the same element, so a script that sets the
-appearance must also set the contrast.
+**Write both attributes onto the same element.** High-contrast colours apply only when
+`data-appearance` and `data-contrast` are on the same element. If your script sets the
+appearance, it must set the contrast too.
 
 ## Point the font tokens at your fonts
 
-The library ships no font files, and it reads three font tokens. Point them at the fonts that
-your app serves:
+The library doesn't ship font files. It uses three font tokens, which you can point at the fonts
+your app loads:
 
 ```css
 :root {
@@ -136,9 +136,9 @@ your app serves:
 }
 ```
 
-The tokens fall back to the system fonts if you leave them unset.
+If you don't set them, they use the operating system's fonts.
 
-## Check that it worked
+## Check that it works
 
 ```tsx
 import { Button, Card, Stack, Text } from "@kookie-ui/react";
@@ -147,13 +147,13 @@ export function Smoke() {
   return (
     <Card size="3">
       <Stack gap="3">
-        <Text>The card around this text has a corner, a fill, and a border.</Text>
-        <Button tone="accent" emphasis="loud">Everything is wired up</Button>
+        <Text>This card should have rounded corners and a soft shadow.</Text>
+        <Button tone="accent" emphasis="loud">Everything is set up</Button>
       </Stack>
     </Card>
   );
 }
 ```
 
-The stylesheet and the Theme both work if the card shows rounded corners and the button shows
-your accent colour.
+If the card has rounded corners and a shadow, the stylesheet is loaded. The button should be
+near-black in light mode and near-white in dark mode, because the default accent colour is grey.

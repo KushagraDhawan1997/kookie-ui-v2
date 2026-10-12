@@ -1,22 +1,16 @@
-Navigation answers two questions: where can I go, and where am I now. `Shell` answers the first
-question with a frame of named regions. Some small decisions answer the second question. Most of
-those decisions are about how the app announces the answer, not how it paints it.
+Navigation answers two questions for the people who use your app: where can I go, and where am I
+now? `Shell` answers the first with a frame of named regions around your content. The second is
+answered by a few small decisions, and most of them concern what a screen reader announces as
+much as what the screen shows.
 
-## The frame is a pattern, not a component
+## The app frame
 
-`Shell` arranges things that it does not own. That makes it a pattern. A component contains the
-things that it owns. If a child must reach up and configure its parent, you have built a
-pattern as a component.
-
-Each pane has its own `open` state, the same as `Dialog`. Nothing examines the children, and no
-pane closes a different pane. Only a `ShellTrigger` crosses the frame. It finds a pane by name.
-
-An app frame sets no height. By default, a `Shell` fills the window. On a phone, the page itself
-scrolls, so the browser can make its toolbars smaller. If a `Shell` is inside something else,
-such as a demo in a card, set `contained`. Then the `Shell` gets its height from its parent.
+`Shell` is the frame of an app: a header across the top, navigation columns at the side, the
+work area in the middle, and optional panels for detail. Each of those regions is its own
+component, so you compose only the ones you need.
 
 ```tsx
-<Shell size="2">
+<Shell>
   <ShellHeader>…</ShellHeader>
   <ShellRail aria-label="Sections">…</ShellRail>
   <ShellSidebar aria-label="Pages">…</ShellSidebar>
@@ -25,49 +19,47 @@ such as a demo in a card, set `contained`. Then the `Shell` gets its height from
 </Shell>
 ```
 
-## The panes
+Each pane keeps its own open state, with the same `open`, `defaultOpen` and `onOpenChange` props
+that `Dialog` uses. One pane never closes another, and the frame never inspects its children. To
+open or close a pane from somewhere else, use a `ShellTrigger` with a `target`, such as
+`target="sidebar"`. The trigger finds the pane by that name and sets `aria-expanded` and
+`aria-controls` for you.
 
-The header is always full width. A header that is not full width is a header inside the
-content, and that is a different thing. You can have a sidebar that runs the full height, under
-a header that covers only the content. For this layout, do not write a `ShellHeader`. Put a
-header inside `ShellContent`.
+By default, a `Shell` fills the window. On a narrow touch screen the page itself scrolls, which
+lets the browser hide its toolbars. If you place a `Shell` inside something else, such as a
+demo inside a card, set `contained` so that it fills its parent instead.
 
-The rail and the sidebar are two independent columns:
+### What each pane is for
 
-- The rail is the narrow column of icons. It selects a high-level area.
-- The sidebar is the wide column. It shows the content of the area that the rail selected.
+- **`ShellHeader`:** A row across the full width of the frame. If you want a sidebar that runs
+  the full height, leave out `ShellHeader` and put a header inside `ShellContent` instead.
+- **`ShellRail`:** A narrow column of icons that switches between the main areas of the app.
+- **`ShellSidebar`:** A wider column that lists what is inside the area the rail selected.
+- **`ShellContent`:** The work area. It renders `<main>`, and it's the only pane you need.
+- **`ShellInspector`:** A detail column on the trailing side.
+- **`ShellBottom`:** A drawer along the bottom, for something like a terminal or a log.
 
-The two columns can both be present, and neither one collapses into the other. A sidebar holds
-many items, and a rail holds a few. One column of navigation is a sidebar. A column of icons
-only is a rail. VS Code and Slack use both together.
+The rail and the sidebar are independent, so you can use either one or both. VS Code and Slack
+use both, whereas most apps need only a sidebar. When a page has two navigation landmarks, give
+each one an `aria-label` so that a screen reader can tell them apart.
 
-`ShellContent` renders `<main>`. It is the only pane that you must have. `ShellInspector` is the
-detail column on the right. `ShellBottom` is a drawer for a terminal or a log. These two panes
-are closed at the start, because people ask for detail when they need it.
+`ShellInspector` and `ShellBottom` start closed at every window size, because people open detail
+when they need it. `ShellSidebar`, `ShellInspector` and `ShellBottom` also accept `width`, and
+`resizable` adds a handle that people can drag or move with the arrow keys.
 
-`ShellScroll` marks the one part of a pane that scrolls. Everything else in that column stays
-where it is, because it is a usual child of the pane. So a pinned header and a pinned footer in
-a sidebar are siblings. They are not special parts.
+### Padding inside a pane
 
-## A pane pads its own content
+Every pane has padding, and the `size` on the `Shell` or on the pane sets how much. Don't add
+your own `p` to the first child of a pane, because that doubles the inset.
 
-Each pane is a surface, and it has padding like a surface. Its `size` sets the padding. Do not
-add your own `p` or `px` to the first child of a pane. That adds a second inset to the inset
-that is already there.
+A header's height follows from the same rule: it holds one row of controls at the pane's size,
+inside the pane's padding. Taller content makes the header taller, and shorter content is
+centred in it.
 
-The same rule sets the height of the header. The header holds one row of controls at the size of
-the pane, inside the padding of the pane. So at a given size, a header is exactly as tall as the
-rail is wide. This height is a minimum, not a fixed height. Taller content makes the header
-taller. Shorter content is centred in it.
-
-Two things still go to the edges of the pane. Both do this automatically:
-
-- **A `ShellScroll` goes to the edges without help.** It is a scroll area. A scroll area that is
-  directly inside a surface extends to the edges of that surface. It then adds padding to its
-  own contents again. So a highlighted navigation row can extend across its full column.
-- **For anything else, set `m="bleed"`.** Examples are a picture across the top of the content
-  pane, or a canvas that needs the full box. `m="bleed"` cancels the padding of the pane. Any
-  surface takes the same value.
+Two things still reach the edges of a pane. A `ShellScroll`, which marks the part of a pane that
+scrolls, extends to the edges without help and pads its own contents, so a highlighted row can
+span the full column. For anything else, such as a picture across the top of the work area, set
+`m="bleed"` to cancel the pane's padding.
 
 ```tsx
 <ShellContent>
@@ -77,77 +69,43 @@ Two things still go to the edges of the pane. Both do this automatically:
 </ShellContent>
 ```
 
-## An untouched pane decides for itself
+## How the frame responds to the window
 
-If nobody has touched a pane, its state is `auto`. CSS decides what `auto` means at the current
-window size. So the first paint is correct on the server and in the browser, with no script.
-Both produce the same attribute, so React does not report a difference between them. When a
-person first opens or closes a pane, that choice becomes explicit. It then has priority over
-the window size.
+The window size decides the shape of the navigation. The stylesheet decides this, not a script,
+so the first paint is correct on the server and in the browser.
 
-Nothing in the frame measures anything when it mounts. `useWindowClass()` returns `null` on the
-server. It also returns `null` until the first paint, because it does not guess. Use the hook
-for decisions after mount. Let the stylesheet set the resting layout of the app.
+- **On a narrow window:** The sidebar starts closed and opens over the content with a scrim.
+  The rail becomes a tab bar along the bottom of the window. Set `presentation="rail"` on the
+  rail if it has too many items for a tab bar.
+- **On a wider window:** The rail and the sidebar sit in the layout beside the content.
 
-## Three window sizes, three shapes
+A pane that nobody has touched follows these defaults. Once a person opens or closes it, that
+choice holds even when the window changes size. On a sidebar, inspector or bottom pane, set
+`presentation="fixed"` to keep it in the layout at every size, or `presentation="overlay"` for a
+drawer that always opens over the content.
 
-A window size selects the shape of the navigation. You decide it one time, at the top of the
-app, from the window size. Do not decide it for each container or for each component.
+If your code needs to know the window size, call `useWindowClass()`. It returns `narrow`,
+`regular` or `wide`, and it returns `null` on the server and during the first paint, because it
+can't know the answer until the page has mounted. Use it for decisions after mount, such as
+which menu to open, and leave the layout of the first paint to CSS.
 
-- `narrow` shows one thing at a time. It opens the navigation over the content.
-- `regular` keeps the navigation columns in the layout.
-- `wide` also keeps them in the layout. It has space for a second column, such as an inspector.
+## Show where people are
 
-There are three window sizes because navigation has three shapes. A fourth size would ask how
-much space a pane has. Container sizes already answer that question.
+Set `current` on a `ShellNavItem` or a `ShellRailItem` for the page that is open. The row then
+gets a filled background, and it also gets `aria-current="page"`. The fill alone gives nothing
+to a person who can't see it, whereas the announcement works with a screen reader and in a
+high-contrast setting. In a `NavTree`, set `currentId` to the id of the open page to mark its
+row in the same way.
 
-## Tabs or a segmented control
-
-Both draw a row of choices, and they are two different things. Think about what each one does
-without the other. You can switch views without setting a value. You can set a value without
-switching a view. **Use `Tabs` when the content under the row changes.**
-
-The difference is in the markup, not only in the paint. A segmented control is a real radio
-group. It announces itself as a radio group. Its arrow keys select a value when they move focus.
-Its value is sent with a form. A tab bar announces a tab list, and it owns the panels.
+The current row has a stronger fill than the lighter fill that shows when the pointer is over a
+row, so you can always tell the two apart. A row for a location never takes an emphasis of its
+own, because every location in a list is equally important.
 
 ```tsx
-<SegmentedControl defaultValue="grid" aria-label="Layout">
-  <SegmentedItem value="grid">Grid</SegmentedItem>
-  <SegmentedItem value="list">List</SegmentedItem>
-</SegmentedControl>
-```
-
-Formatting buttons are neither of these. If italic and underline can both be on at the same
-time, you need a set of toggle buttons. That is a third thing. A radio group holds one answer,
-so it cannot show two answers at the same time.
-
-## Menu or select
-
-The same test separates these two. A `Menu` is a list of actions. When you choose an action, it
-runs, and the panel closes. A `Select` is a list of values. When you choose a value, it goes into
-a control that is sent with a form. A select renders a hidden input and announces itself as a
-combobox. A menu with a custom style cannot do that.
-
-This has two results:
-
-- A select puts its panel so that the chosen row is on top of the value that it replaces. So
-  the panel can extend both above and below the trigger.
-- If nobody has opened a select, it needs `items` to change its value into a label. The labels
-  are on options that have not mounted yet.
-
-## Say where you are
-
-Set `current` on a navigation row or on a rail square. It changes the colour of the row. It also
-sets `aria-current="page"`. Both halves are important. Colour alone gives no information to a
-person who cannot see it. The announcement works with a screen reader, with a high-contrast
-setting and on a monochrome display.
-
-```tsx
-<Shell size="2">
+<Shell>
   <ShellHeader>
     <Flex align="center" gap="3">
-      <ShellTrigger target="sidebar" render={<Button size="1" emphasis="quiet" />}>
+      <ShellTrigger target="sidebar" render={<Button emphasis="quiet" />}>
         Menu
       </ShellTrigger>
       <Text size="2" weight="medium">Kookie Studio</Text>
@@ -165,14 +123,60 @@ setting and on a monochrome display.
   </ShellSidebar>
 
   <ShellContent>
-    <ShellScroll>{children}</ShellScroll>
+    <ShellScroll>
+      <Page title="Inbox">{children}</Page>
+    </ShellScroll>
   </ShellContent>
 </Shell>
 ```
 
-The colour comes from a tone and a loudness. It does not come from a louder step on one scale.
-Grey means that your pointer is on the row. Accent means that you are at this location. The two
-states use different colours, so the current row still changes when the pointer is on it.
+`ShellNavGroup` puts a heading over a group of rows and connects the two, so a screen reader
+announces the group by its name.
 
-Rows never rank against each other, because every item in a list of locations has the same
-importance. The component sets "current" as a state. It is not a loudness that you select.
+## Page titles and toolbars
+
+`Page` gives a screen its large title and an optional `description` underneath. When the title
+scrolls out of view, a `ToolbarTitle` with no children in the same pane shows the title instead,
+so people still know which page they're on.
+
+`ShellPaneHeader` is the row that stays at the top of a pane while its content scrolls. Put a
+`Toolbar` in it to hold the pane's controls. A toolbar is one tab stop, and the arrow keys move
+between its `ToolbarButton`s, which is what keyboard users expect from a row of tools.
+
+For deep structures, `NavTree` shows a hierarchy of sections that open and close, with each leaf
+as a link. `Breadcrumb` shows the path from the top of the app to the current page, and
+`BreadcrumbEllipsis` gathers the middle levels into a menu when the path is long.
+
+## Tabs or a segmented control
+
+Both show a row of choices, but they do different jobs. Use `Tabs` when the content under the
+row changes. Use a `SegmentedControl` when the choice sets a value, such as a grid or a list
+layout, and the content stays where it is.
+
+The difference is in what a screen reader hears, not only in what people see. A
+`SegmentedControl` is a real radio group: the arrow keys change its value, and a form submits
+that value. A tab bar is a tab list, and each tab controls a panel.
+
+```tsx
+<SegmentedControl defaultValue="grid" aria-label="Layout">
+  <SegmentedItem value="grid">Grid</SegmentedItem>
+  <SegmentedItem value="list">List</SegmentedItem>
+</SegmentedControl>
+```
+
+Formatting buttons such as bold and italic are neither of these, because both can be on at the
+same time. Use a `ToggleGroup` for them.
+
+## Menu or select
+
+The same test separates these two. A `Menu` holds actions: you choose one, it runs, and the
+panel closes. A `Select` holds values: the value you choose goes into a field that a form
+submits. A select renders a hidden input and announces itself as a combobox, which a styled menu
+can't do.
+
+This has two practical results:
+
+- **Placement:** A select opens so that the chosen option sits on top of the value it replaces,
+  so the list can extend both above and below the trigger.
+- **Labels:** Pass `items` to a `Select` whose option labels differ from their values. Otherwise
+  the trigger can't show the label before the list has opened once.

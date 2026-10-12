@@ -1,104 +1,107 @@
-Kookie prioritises correctness over ease of adoption. While some interface questions have
-measurable answers, others rely on design judgment. Kookie applies measurements automatically
-and centralises every decision to ensure your screens remain consistent.
+Kookie prioritises correctness over ease of adoption. Some interface questions have measured
+answers, and Kookie applies those answers for you. Other questions need design judgment, and
+Kookie makes each of those decisions in one place, so your screens stay consistent as the app
+grows.
 
 ## Measured limits
 
 Decades of research inform interface design. Where a standard measurement exists, Kookie applies
 it automatically, and no prop can override the result.
 
-- **Fitts's law (1954):** Predicts the time required to move a pointer to a target. This time
-  increases as the target gets smaller or further away.
+- **Fitts's law (1954):** The time it takes to move a pointer to a target increases as the
+  target gets smaller or further away.
 - **Tap targets:** A fingertip is about 10 millimetres across, which informs the 44-point
-  minimum on Apple platforms and the 48-pixel minimum on Android. WCAG 2.2 sets a lower baseline
+  minimum on Apple platforms and the 48-pixel minimum on Android. WCAG 2.2 sets a lower minimum
   of 24 pixels.
-- **Gestalt principles (1923):** Describe how the human eye groups visual elements before
-  reading them. Because distance carries meaning, the space between two elements changes how
-  they are interpreted.
-- **Contrast:** Both WCAG and APCA measure whether text is legible against its background
-  colour.
+- **Gestalt principles (1923):** People group visual elements before they read them. Because
+  distance carries meaning, the space between two elements changes how they are interpreted.
+- **Contrast:** WCAG and APCA both measure whether text is legible against its background.
 
-## How limits shape components
+## How the limits shape components
 
-These measurements define the default sizes throughout the system, adapting automatically across
-devices from desktops to phones.
+These measurements set the default sizes throughout the system, and the sizes adapt to the
+device without any work from you.
 
-- **Touch screens:** A `Theme` detects whether the pointer is a mouse or a finger. For touch
-  inputs, controls like checkboxes and radio buttons scale up to their touch size, with default
-  controls reaching 44 pixels.
-- **Checkboxes:** A checkbox remains visually small to sit beside a single line of text, but its
-  tappable area extends to the size of a standard `Button`. This ensures usability without
-  disrupting the surrounding layout.
-- **Typography on mobile:** Because you hold a phone closer to your eyes than a desktop screen,
-  small text sizes are increased on handheld devices. Conversely, large display sizes are
-  reduced on narrow windows because fewer characters fit on a single line.
-- **Text fields:** On touch screens, text fields have a minimum font size of 16 pixels. This
-  prevents Safari on iOS from automatically zooming the page when the field is focused.
-- **Round controls:** When you set `radius="full"`, the corners curve inward beside the first
-  and last letters. These controls require wider side padding than those with smaller corner
-  radii.
+- **Touch screens:** A `Theme` detects whether people use a mouse or a finger. On a touch
+  screen, controls grow to touch sizes, so a size 2 `Button` is 44 pixels tall.
+- **Checkboxes:** A checkbox stays small so that it sits neatly beside one line of text. Its
+  tappable area extends past the visible box, out to the size of a `Button` at the same size.
+- **Type on phones:** You hold a phone closer to your eyes than a desktop screen, so small text
+  sizes increase on touch devices. Large display sizes decrease on narrow windows, because fewer
+  characters fit on a line.
+- **Text fields:** On touch screens, a text field never uses a font smaller than 16 pixels. At
+  smaller sizes, Safari on iOS zooms the page when the field receives focus.
+- **Round controls:** With `radius="full"`, the ends of a control are fully round, so the curve
+  starts close to the first and last letters. These controls get wider side padding, which keeps
+  the label from looking cramped.
 
 ## Judgments
 
-Beyond measured limits, design decisions become judgments. This category includes corner radius,
-the saturation of a glass panel, accent hues, and the internal spacing of a card.
+Where no measurement applies, a decision is a judgment. Corner radius, the accent hue, the
+blur of a glass panel and the padding inside a card are all judgments.
 
-Kookie strictly separates these two categories. Measured limits are enforced and cannot be
-overridden. Judgments are recorded as single values, meaning one edit updates the value
-everywhere. Kookie never presents a judgment as a measurement, avoiding the attribution of false
-precision to a chosen value.
+Kookie keeps the two kinds apart. A measured limit is enforced, and you cannot override it. A
+judgment is stored as one value, so a single edit changes it everywhere. Kookie never presents a
+judgment as if it were a measurement, because a chosen number does not become more correct by
+looking precise.
 
-## Each decision has one place
+## Answer each question once
 
-An inconsistent system conceals its cost initially. Your first and fifth screens may be correct,
-but by the twentieth screen, the same question has been answered differently across a dozen
-files, and no screen reflects the decisions of the others.
+An inconsistent design system hides its cost at first. Your first and fifth screens can look
+right. By the twentieth screen, the same question has been answered differently in a dozen
+files, and the screens no longer agree with each other.
 
-Kookie answers each question once, and your screens read that answer rather than restating it.
-This is why components accept a `tone` and an `emphasis` instead of a colour, why there is no
-margin prop, and why the system lacks a `variant` prop.
+Kookie answers each design question once, and every screen uses that answer. This is why a
+component accepts a `tone` and an `emphasis` instead of a colour, and why there's no `variant`
+prop or margin prop.
+
+```tsx
+// Say what the button means. The theme picks the colour, in light mode and dark.
+<Button tone="destructive" emphasis="loud">
+  Delete project
+</Button>
+```
 
 ## Components are organised by what they do
 
-Kookie classifies components by function rather than appearance. Two components can look
-identical but perform different jobs. Kookie separates these components, giving each its own
-name and props.
+Kookie classifies components by their job rather than their appearance. Two components can
+look almost the same and still do different jobs. When that happens, Kookie keeps them separate,
+and each one gets its own name and props.
 
-Tabs and SegmentedControl demonstrate this distinction. Both render a row of segments, but Tabs
-moves you between views and replaces the content below, while a SegmentedControl sets a value
-and leaves the surrounding content in place.
+`Tabs` and `SegmentedControl` show the difference. Both render a row of segments. `Tabs` moves
+you between views and replaces the content below, whereas a `SegmentedControl` sets a value and
+leaves the surrounding content in place.
 
 <Example name="principles.lookalikes" quiet />
 
-These controls also announce themselves differently to screen readers. Tabs reports a tab list
-and names each panel, whereas a SegmentedControl reports a radio group where arrow keys change
-the value. Neither component replicates the other's behaviour, so no prop can convert one into
-the other.
+The two controls also announce themselves differently to screen readers. `Tabs` reports a tab
+list and names the panel that each tab shows. A `SegmentedControl` reports a radio group, where
+the arrow keys change the value. Because the behaviour differs, no prop converts one into the
+other.
 
-To distinguish between two similar components, consider their function independently. You can
-switch views without setting a value, and you can set a value without switching views. These are
-two separate operations, not one operation with two appearances. The
-[Vocabulary](/start/vocabulary) chapter lists other pairs that share an appearance.
+To choose between two similar components, ask what each one does on its own. You can switch
+views without setting a value, and you can set a value without switching views. The
+[Vocabulary](/start/vocabulary) chapter lists other pairs that look alike.
 
 ## Components and patterns
 
-A component contains what it owns, while a pattern coordinates what it does not contain. A
-button owns its label, icon, and padding, making it a component. An app frame coordinates the
-header, sidebar, content, and window width, making it a pattern. You assemble patterns from
-components; the [Navigation](/patterns/navigation) chapter demonstrates how to assemble one for
-each window size.
+A component is complete on its own: a `Button` includes its label, its icon and its padding. A
+pattern is an arrangement of several components that your app puts together. An app frame is a
+pattern, because the header, the sidebar, the content and the way they respond to the window
+depend on your app. `Shell` arranges the panes, and you decide what goes in them. The
+[Navigation](/patterns/navigation) chapter shows how to build a frame for each window size.
 
-The children of a component never configure their parent, which makes the two easy to
-distinguish. If a child must change its parent, such as a sidebar setting the page margin, the
-result is a pattern. You should build this pattern in your application rather than expecting a
-single component to provide it.
+A child never changes its parent's settings. If you need a child to change its parent, such as a
+sidebar that sets the page margin, you are building a pattern. Build it in your app rather than
+looking for a component that provides it.
 
 ## The trade-off
 
-A system that centralises decisions offers fewer overrides than you might expect. When a design
-does not fit, no `variant` prop is available, and Kookie will refuse the input. Each refusal
-states a reason and an alternative, and each component page lists its own refusals. The only
-escape hatch is `style`, which remains highly visible in code reviews.
+A system that makes its decisions in one place gives you fewer overrides than you may be used
+to. When a design does not fit, there's no `variant` prop to reach for, and TypeScript rejects
+the props that Kookie does not accept. Each component page lists the props it does not accept,
+with the reason and an alternative. `style` and `className` are still available, and both are
+easy to spot in a code review.
 
-In return, the system remains consistent as your application grows, enforcing its decisions
-rather than relying on developer memory.
+In return, the system stays consistent as your app grows, because its decisions are enforced
+rather than left to memory.

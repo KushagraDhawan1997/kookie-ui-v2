@@ -5,7 +5,7 @@ import { Surface } from "@kookie-ui/react";
 import { Footer } from "../../blocks/footer";
 import { CHAPTERS, SECTIONS } from "./chapters";
 import { WebMcp } from "./webmcp";
-import { Wordmark } from "./wordmark";
+import { Logo } from "./logo";
 
 /**
  * This site's own footer, and the footer block's first real consumer (2026-09-01, Kushagra:
@@ -83,7 +83,7 @@ export function SiteFooter() {
                 which sets wider and heavier — most of the column, which is a masthead rather
                 than a sign-off. `8` keeps the mark well above the sidebar's and stops it filling
                 the line it ends on. */}
-            <Wordmark form="full" size="8" />
+            <Logo height="var(--line-height-8)" />
           </Link>
         }
         groups={[

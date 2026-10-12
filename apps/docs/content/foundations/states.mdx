@@ -1,109 +1,102 @@
-Every control reads one set of states: resting, hover, press, focus, disabled and the error
-states. The system defines them once and no component changes them, so a component declares
-which settings it has and never how a state looks.
+Every control shares one set of states: resting, hover, press, focus, disabled and invalid. The
+system defines how each state looks, once, for every control. When you build with a component,
+you choose its settings, such as `tone` and `emphasis`, and the states follow from them.
 
-The reason is arithmetic, because multiplying the components by the loudness levels and by the
-states produces more combinations than a person can keep consistent by hand.
+Each change is instant. A hovered or pressed control doesn't move or animate, and only its
+colours change. CSS handles every state, so no JavaScript runs when you point at, press or
+focus a control.
 
-Two things that are not controls also respond to a pointer, and each behaves differently from
-one.
+This matters because the numbers multiply. Dozens of components, three levels of loudness and six
+states produce more combinations than anyone can keep consistent by hand.
 
-**A `Link` is a run of words rather than a box.** It stays selectable and wraps across lines, so
-it receives the focus ring and its own hover without a control box.
+## Hover and press move one step at a time
 
-**A `Card` rendered as a button or a label** carries the shape of a control, so it receives every
-control state and reads the same colour steps and the same ring.
+Hover moves a control's fill one step along the colour scale, and press moves it one step
+further. Every level of loudness uses the same size of step:
 
-## Hover and press are steps on one scale
+- **Loud:** rests on the family's strong fill, then moves one step on hover and another on press.
+- **Medium:** rests on a light grey fill, then moves one step darker on hover and another on
+  press. In dark mode the steps go lighter.
+- **Quiet:** has no fill at rest. On hover it takes the medium button's resting fill, and on
+  press the medium button's hover fill.
 
-Hover moves the fill one step and press moves it two, and no loudness level carries its own
-amount of feedback.
+The colours differ at each level, but the amount of change is the same, so two controls at the
+same loudness respond in the same way. The colour scale has perceptually even steps, which
+means one step looks like the same amount of change on blue as it does on yellow.
 
-A medium button rests on the third step, moves to the fourth on hover and the fifth on press. A
-loud button rests on its solid colour, moves one step up on hover and one more on press. A quiet
-button holds no fill at rest, so it joins the scale at hover, running transparent, then the third
-step, then the fourth.
+Hover and press always move the fill away from the label colour. If a label is readable at
+rest, it stays readable under the pointer and while you press.
 
-The colours differ at each level while the *amount* of change stays the same, which keeps two
-controls at the same loudness in step with each other.
+## Hover only on devices that can hover
 
-One step also reads as the same amount of change on every hue, because the lightness scale under
-the colours is perceptually even. On an ordinary sRGB palette one step looks larger on blue than
-on yellow, which makes the feedback vary from colour to colour.
+Hover styles apply only when the device has a pointer that can hover, through the
+`(hover: hover)` media query. A touch screen reports a hover when you tap and keeps it until
+your next tap, so without the query a button you tapped would stay in its hover colour.
 
-## A label stays readable in every state
+Press has no such condition, because press is the only feedback a touch screen gives.
 
-A label must meet its contrast target against every background its loudness level reaches,
-because the resting background alone is not enough and a label that reads at rest can fail on
-press.
+## The focus ring
 
-## Hover only applies where a pointer can hover
+One focus ring shows keyboard focus everywhere. It is an outline two pixels wide with a
+two-pixel gap around the control. An outline follows the control's corners, including a fully
+round pill, and it never changes the layout.
 
-Every hover rule sits inside `@media (hover: hover)`, because a touch device reports a false
-hover on tap and keeps it until the next tap. Without the media query, a button you tapped would
-hold its hover colour after your finger leaves.
+The ring uses the accent colour whatever tone the control has, so a destructive button gets the
+same ring as any other. The ring only says where focus is, and that information is the same on
+every control. With the default grey accent, the ring is near-black in light mode and a light
+grey in dark mode.
 
-Press carries no media query, because press is the only feedback a touch device gives you.
+WCAG 2.4.7 and 2.4.13 set the measured limits: at least two pixels wide, with a gap, and 3:1
+contrast against the colour beside it. The ring meets them in both modes, using a different
+shade in each.
 
-## One focus ring
+The one exception is an invalid field, which shows its ring in the error colour.
 
-One ring shows focus across the whole system. It is an outline with a small gap between it and
-the box, and an outline follows the shape of the corner, pills included, without changing the
-layout. A shadow does neither.
+## A field shows its ring while you type in it
 
-The ring reports one thing, the location of focus, and that information stays the same
-everywhere, so the ring reads the accent colour whatever tone the control carries. A destructive
-button receives an accent ring as well.
+You enter a field rather than press it, so a field shows its ring whenever the text cursor is in
+it, not only when you arrive by keyboard. Every native text input behaves this way.
 
-WCAG 2.4.7 and 2.4.13 set the minimum: at least two pixels wide, with a gap, at 3:1 contrast
-against the colour beside it. The ring meets those limits in light mode and in dark mode through
-a different colour in each, because a colour that reads on a white page disappears on a dark one.
+The ring goes on the field as a whole. A button inside the field, such as a clear button, gets
+its own ring when it has focus, so you only ever see one ring at a time.
 
-The error state is the one exception, since an invalid field shows its ring in the error colour.
-An error is not a choice in the way a tone is.
+## Which state wins
 
-## A field shows its ring whenever the caret is in it
+Some states can apply at the same time, and the order between them is fixed:
 
-You do not press a field, you enter it, and the box must show that however you arrived. Every
-native text input behaves this way, so a field shows its ring whenever the caret is in it rather
-than only when you arrive from the keyboard.
+- **Disabled wins over invalid.** A disabled field shows the disabled colours even when its value
+  is invalid.
+- **Invalid wins over checked.** A ticked checkbox that is also invalid shows the error colours.
 
-The ring lands on the input that holds focus and never on the wrapper around it, while a button
-in the field's trailing slot receives its own ring like any other control, which leaves exactly
-one ring visible at a time.
+## Disabled
 
-## A state beats a decoration
+A disabled control does four things:
 
-The tick on a checkbox is a decoration, whereas invalid and disabled are states, and a state
-wins over a decoration. The stylesheet enforces that order, so a ticked checkbox that is also
-invalid shows the invalid border rather than its resting one.
+- Its text, fill and border change to the disabled colours.
+- It stops responding to hover and press.
+- The cursor is an ordinary arrow, not `not-allowed`, because no native platform uses that
+  cursor on a disabled control.
+- It loses its shadow.
 
-Disabled wins over invalid, and the order is fixed.
+Disabled never uses opacity. On a tinted surface, opacity lets the colour underneath show
+through and breaks the contrast the theme calculated. Separate disabled colours keep the control
+readable while showing clearly that it is off.
 
-## Disabled changes colours rather than fading
+A `loading` Button is different. It blocks presses, but it keeps its normal colours and shows a
+busy cursor, because it is still the control you pressed.
 
-Disabled replaces the text, fill and border colours with the disabled palette, stops hover and
-press, and returns the cursor to an ordinary arrow rather than `not-allowed`, which no native
-platform uses.
+## Cards you can press
 
-Disabled never reaches for opacity, because opacity on a tinted surface adds the colour beneath
-it and cancels every contrast guarantee the colour generator made. New colours keep the control
-readable *and* show clearly that it is off.
+A `Card` that you render as a button or a link behaves like a control. Its fill changes on hover
+and press, and it shows the same focus ring as a button.
 
-## A pressable card behaves like a button
+A disabled card looks like a disabled button. The fill lightens, the text dims, the cursor is an
+ordinary arrow and the shadow goes, because a shadow suggests that you can pick the card up.
 
-A `Card` rendered as a button or a link receives every control state, so its fill changes on
-hover and on press and the ring appears exactly as it does on a button, while the card itself
-holds its position.
+## Cards you can select
 
-**A disabled card shows exactly what a disabled button shows.** The fill lightens, the words dim,
-the cursor returns to an ordinary arrow, and the shadow goes, because a shadow says you can pick
-a thing up and you cannot pick up a disabled card. Nothing responds to the pointer after that.
-
-## A selectable card is the label of a radio
-
-There's no `selected` prop, because choosing one of several options is a radio group, which
-makes a selectable card a card that **is** the label of a real radio.
+There's no `selected` prop. To let people choose one of several cards, make each card the label
+of a real `Radio`:
 
 ```tsx
 <RadioGroup defaultValue="pro" aria-label="Plan">
@@ -122,20 +115,20 @@ makes a selectable card a card that **is** the label of a real radio.
 </RadioGroup>
 ```
 
-The whole card is clickable, because that is how a label behaves, and the keyboard behaviour,
-the form value and the announcement all arrive from the radio. The system adds one thing, which
-is that the chosen card's border changes colour. A `selected` prop would be a second way to say
-what the radio already says, and nothing would keep the two values in agreement.
+Because the card is a label, clicking anywhere on it chooses the radio. The keyboard, the form
+value and what a screen reader announces all come from the radio, and the chosen card's border
+changes colour. A `selected` prop would be a second way to say what the radio already says, and
+the two could disagree.
 
-A checkbox behaves the same way, so a board where you choose several cards works identically.
-Put the checkbox or radio wherever the layout needs it, and because chosen and focused read
-different colours, a card can show both at once.
+For a board where people choose several cards, use a `Checkbox` in the same way. Place the radio
+or checkbox wherever the layout needs it. The chosen state and the focus ring use different
+colours, so a card can show both at once.
 
-## Validity comes from your code, not a prop
+## Invalid fields
 
-There's no `invalid` prop, because nothing decides to *look* invalid. The system reads
-`aria-invalid`, and it also reads Base UI's `data-invalid` attribute when a field sits inside a
-`Field`.
+There's no `invalid` prop. Your validation code decides whether a value is invalid, and you say
+so with `aria-invalid`. Inside a `Field`, Base UI sets the matching `data-invalid` attribute for
+you, and the system responds to either.
 
 ```tsx
 <Stack gap="4">
@@ -156,51 +149,40 @@ There's no `invalid` prop, because nothing decides to *look* invalid. The system
 </Stack>
 ```
 
-Your validation sets the state, the border and the ring respond to `aria-invalid`, and you write
-the message as a sibling element.
+An invalid field shows its border and its focus ring in the error colour. The text that the
+person typed stays fully readable, because it is their content.
 
-The text a person typed is content, so it stays fully readable while the box carries the state
-through its border and its ring. WCAG 1.4.1 rules out colour on its own, and the border is the
-part the system supplies while the message is the part you supply. Add error text to any field
-that shows none.
+WCAG 1.4.1 says that colour alone must not carry information, so the red border is not enough.
+Always write an error message beside the field, as in the example.
 
-## The decision is recorded on the element
+## States are attributes on the element
 
-States are stylesheet rules that read data attributes, so the element records every decision,
-where you can read them in the inspector and a lint rule can read them too.
+Every setting is written on the element as a data attribute, and the stylesheet reads those
+attributes. You can see every decision in the browser's inspector:
 
 ```html
 <button type="button" class="kui-control kui-button"
         data-size="2" data-tone="destructive" data-emphasis="quiet">Delete</button>
 ```
 
-None of those values is a colour and no class contains one, because the element carries the
-meaning and the loudness while the theme turns them into a colour.
+None of these values is a colour. The element carries the meaning and the loudness, and the
+theme turns them into colours.
 
-## Use tone for meaning, emphasis for loudness
+## Tone and emphasis
 
-Two independent questions take two independent props, and there's no `variant`. `tone` says what
-an action means, `emphasis` compares it with the actions near it as loud, medium or quiet, and
-`bordered` works at all three levels.
+A button answers two separate questions, so it has two separate props. `tone` says what the
+action means. `emphasis` says how loud it is compared with the actions near it: `loud`,
+`medium` or `quiet`.
 
-A single combined appearance prop mixes the two questions, which is how systems arrive at names
-like `secondary-outline-destructive`. Every combination then needs a new name, the names refuse
-to combine, and the prop stops describing what the button does.
-
-A `primary | secondary | danger` prop also says less than two props can, because it cannot say
-"quiet and destructive", and a delete link is one of the most ordinary things an interface must
-show.
+A single appearance prop such as `variant` mixes the two questions. That is how systems end up
+with names like `secondary-outline-destructive`, where every new combination needs a new name.
+A `primary | secondary | danger` prop also can't say "quiet and destructive", and a quiet delete
+action is one of the most common things an interface shows.
 
 ```tsx
-// One question at a time, and a quiet destructive action is expressible.
 <Button emphasis="loud">Save changes</Button>
 <Button tone="destructive" emphasis="quiet">Delete</Button>
 ```
 
-Use `bordered` as one more step in the loudness sequence rather than as a decoration, running
-quiet, then quiet with a border, then medium. A border on a loud button changes nothing, because
-a hairline has nothing to separate against a solid fill.
-
-The prop is `emphasis` rather than `primary` or `secondary`, because those words mix the two
-questions again. Keeping meaning and loudness separate also lets tools find two loud actions on
-one screen.
+`bordered` adds one more step between quiet and medium: quiet, then quiet with a border, then
+medium. Use it to rank an action, not as decoration.

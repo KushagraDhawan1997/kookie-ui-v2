@@ -59,7 +59,7 @@ import { DocsNav, type NavSection } from "./docs-nav";
 import { DocsSearch } from "./docs-search";
 import { DocsTabBar } from "./docs-tab-bar";
 import { PAGES } from "./markdown";
-import { Wordmark } from "./wordmark";
+import { Logo } from "./logo";
 import { humanLabel } from "./label";
 import { buildSearchIndex } from "./search-index";
 import { ENTRIES } from "./components/registry";
@@ -259,7 +259,11 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
                 className="kd-masthead"
                 style={{ color: "inherit", textDecoration: "none" }}
               >
-                <Wordmark />
+                {/* THE MARK ALONE (2026-09-27, Kushagra). The word sat beside it for an hour and
+                    says the same thing twice in the one row a reader glances at all day; the
+                    footer's long form is where the name is spelled out. Its height is a type
+                    line rather than a raw number, so it stands with the row it sits in. */}
+                <Logo height="var(--line-height-7)" />
               </Link>
               <DocsSearch index={buildSearchIndex()} />
             </Toolbar>
@@ -270,7 +274,11 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
               vertically, lost the bleed re-pad (15px of real x-overflow) and drew a
               horizontal bar over the footer. Measured 2026-08-26. The scroller must be the
               pane's DIRECT child for the pinned-stack and bleed machinery to see it. */}
-          <DocsNav sections={sections} components={components} blocks={blocks} />
+          <DocsNav
+            sections={sections}
+            components={components}
+            blocks={blocks}
+          />
 
           {/* The footer, floating with the header — one posture for the pane's chrome.
 
@@ -342,7 +350,7 @@ export function DocsChrome({ children }: { children: React.ReactNode }) {
             `position: relative` is the trigger's containing block, stated inline because the
             shell root is the nearest positioned ancestor otherwise and the trigger would
             resolve its inset over the sidebar column, not this pane. */}
-        <ShellContent style={{ position: "relative" }} flush={true}>
+        <ShellContent style={{ position: "relative" }} flush={false}>
           {/* The route back to a closed or overlaying sidebar floats in the pane's own safe
               area — `--kui-sf-p` inherits from the pane deliberately (§10, the bleed
               mechanism), so the trigger sits exactly where pinned content would start.

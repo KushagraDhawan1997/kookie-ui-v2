@@ -1,39 +1,37 @@
-An AI coding agent learns this library the way you do, from the types and from these pages, and
-it makes the same mistakes. Most libraries it has read carry a `variant` prop, a `color` prop and
-a margin prop on every component, while this library carries none of them. The tools on this page
-let an agent learn that from the package and the site, so you spend less time correcting its
-output.
+An AI coding agent learns this library the same way you do, from the types and from these pages.
+Most libraries it has seen have a `variant` prop, a `color` prop and a margin prop on every
+component, and this one has none of them. So an agent will reach for those props at first. The
+tools on this page help it learn the library's own API, so you spend less time fixing its code.
 
-None of these tools is required for building with the library, and all of them generate from the
-same source as the reference pages, so no tool can disagree with `/components`.
+You don't need any of these tools to build with the library. They're all generated from the same
+source as the [component pages](/components), so they always agree with them.
 
-## Start with the compiler
+## Start with the type checker
 
-The first tool is the type checker, and you cannot skip it. An agent that writes a refused prop
-receives an error naming that prop and telling it what to write instead. For a `variant` prop the
-message reads: *KookieUI has no variant. Use `tone` for what a thing means and `emphasis` for how
-loud it is.*
+TypeScript is the first tool, and it's already running. When an agent writes a prop the library
+doesn't have, the error names that prop and says what to use instead. For `variant`, the message
+reads: *KookieUI has no `variant`. Use `tone` for what a thing means and `emphasis` for how loud
+it is — so a quiet destructive button is expressible.*
 
-Every refused prop carries its own message, so a margin prop on a button points to `Box` and a
-`color` prop points to `tone`. Most agents run `tsc` while they work, which means they repair the
-code from the message and you see the correct version rather than the mistake.
+Every missing prop has its own message. `asChild` points to `render`, and `highContrast` points
+to `<Theme contrast="high">`. Most agents run `tsc` while they work, so they usually fix the code
+from the message before you see it.
 
-The package's type declarations also carry the documentation, because every exported component
-keeps its description in its `.d.ts` file, which your editor and your agent read from
-`node_modules`. The one-line answer to "what is this" therefore needs no network.
+The type declarations also carry the documentation. Every exported component has its
+description in its `.d.ts` file, which your editor and your agent read from `node_modules`, so
+an agent can look up what a component does without going online.
 
-## Lint what the compiler cannot see
+## Lint what the type checker can't see
 
 Three mistakes compile without an error:
 
-- **A `data-tone` attribute**, because TypeScript does not check attribute names with a hyphen.
-- **A utility class, or a raw pixel value in `style`**, because both carry correct types.
-- **A prop inside a spread**, because TypeScript checks a written attribute and not a spread.
+- **A `data-tone` attribute:** TypeScript doesn't check attribute names that contain a hyphen.
+- **A utility class, or a raw colour or length in `style`:** Both are valid types.
+- **A prop inside a spread:** TypeScript checks attributes you write out, but not the contents
+  of a spread.
 
-The package ships an ESLint plugin that catches all three.
-
-The plugin includes no parser, since a plugin cannot, so place it after your TypeScript parser
-entry:
+The package includes an ESLint plugin that catches all three. A plugin can't include a parser,
+so in a TypeScript project, add your TypeScript parser in its own entry:
 
 ```js title="eslint.config.mjs"
 import tseslint from "typescript-eslint";
@@ -45,68 +43,73 @@ export default [
 ];
 ```
 
-A JavaScript project needs no parser entry, because the plugin sets the JSX flag itself for
-`.js`, `.jsx`, `.mjs` and `.cjs` files.
+A JavaScript project doesn't need the parser entry, because the plugin turns on JSX parsing for
+`.js`, `.jsx`, `.mjs` and `.cjs` files itself.
 
-The plugin ships three rules:
+The recommended config turns on three rules:
 
-- **`no-refused-attribute`** is an error that reports a `data-` attribute naming a theme setting,
-  because such an attribute restores a prop the type refused.
-- **`no-refused-prop`** is an error that reports `color`, the one refusal the type cannot express,
-  since React's own attributes declare `color` and the props type must accept it. The rule also
-  reports every refused prop inside a spread.
-- **`no-escape-abuse`** is a warning that reports a class resembling a utility, such as `p-4`,
-  `gap-3` or `min-w-[20rem]`, along with a raw length in `style` for a property that has a prop.
+- **`no-refused-attribute` (error):** Reports a `data-` attribute that sets a theme setting
+  directly, such as `data-tone`, because it brings back a prop the library left out.
+- **`no-refused-prop` (error):** Reports a `color` prop. TypeScript can't catch this one with a
+  helpful message, because React's own types already declare `color`. The rule also reports
+  missing props inside a spread, when the spread object is written inline or as a `const` in the
+  same file.
+- **`no-escape-abuse` (warning):** Reports a class that looks like a utility class, such as
+  `p-4`, `gap-3` or `min-w-[20rem]`. It also reports a raw colour in `style`, or a raw length on
+  a property that already has a prop, such as `padding`.
 
-Every message names the prop to use, and tells you what to write instead when the component
-refuses that prop as well.
+Every message says what to write instead.
 
-The plugin ignores a class of one word, such as `flex` and `grid`, which may be your own names or
-a utility framework's. It ignores your own class names as well, along with `style` values for
-properties that have no prop, because `style` is the documented route for CSS the library does
-not cover.
+The plugin ignores single-word classes, such as `flex` and `grid`, because they might be your
+own class names. It also ignores your other class names, and `style` values for properties that
+have no prop. `style` is the right place for CSS the library doesn't cover, such as the height of
+a `ScrollArea`.
 
-## Give the agent the rules
+## Give your agent the rules
 
 Agents read an instructions file at the root of your repository, such as `AGENTS.md`,
-`CLAUDE.md` or `.cursor/rules`, and the package can write its own section of that file:
+`CLAUDE.md`, a Cursor rule in `.cursor/rules/` or `.github/copilot-instructions.md`. The package
+includes a command that adds its rules to that file:
 
 ```bash
 npx @kookie-ui/react init
 ```
 
-The command shows the changes it would make and writes nothing by default. Run it again with the
-write flag to apply them:
+By default, the command only prints what it would change and writes nothing. When you're happy
+with the plan, run it again with the write flag:
 
 ```bash
 npx @kookie-ui/react init --write
 ```
 
-The command adds one block with start and end markers. The block contains:
+The command updates whichever of those files already exist. If you have none, it creates
+`AGENTS.md`, which most coding agents read. It only creates the Cursor rule if your repository
+already has a `.cursor/rules/` folder.
 
-- the list of exports
+The command adds one block between start and end markers. The block lists:
+
+- every export
 - each theme setting and its values
-- the refusals
+- the props the library leaves out, and what to use instead
 
-Running the command again replaces that block rather than adding a second one, and because the
-package generates it, the block always matches the version you installed.
+When you run the command again, it replaces that block instead of adding a second one. Run it
+after each upgrade, and the rules will match the version you installed.
 
-The same facts reach Claude Code through a skill named `kookie-ui` in this repository, which
-loads when an agent starts to write UI.
+## Let your agent look things up
 
-## Let the agent look things up
+Every page on this site also has a Markdown version. To get it, add `.md` to the end of the path,
+or request the page with the `Accept: text/markdown` header. The Markdown version of a component
+page includes:
 
-Every page on this site also has a plain-text version, which you reach by adding `.md` to the
-path or by sending `Accept: text/markdown`. The markdown page carries:
-
-- the refusals of the component
-- its props and each permitted value
+- the props it leaves out, and what to use instead
+- its props and their allowed values
 - its examples
 
-`/llms.txt` lists every page with a one-line description, while `/llms-full.txt` holds the whole
+`/llms.txt` lists every page with a one-line description, and `/llms-full.txt` contains the whole
 site in one file. An agent that can fetch a URL needs nothing else.
 
-If an agent supports the Model Context Protocol, it can use the server instead:
+If your agent supports the Model Context Protocol (MCP), you can give it the Kookie MCP server
+instead:
 
 ```json title=".mcp.json"
 {
@@ -121,42 +124,47 @@ If an agent supports the Model Context Protocol, it can use the server instead:
 
 The server has four tools:
 
-- **`list_components`** returns the names and a one-line description for each, grouped the way
-  this site groups them.
-- **`get_component`** returns the page for one component.
-- **`get_tokens`** finds design tokens by name and returns their values.
-- **`check_usage`** takes a piece of JSX and reports every refused prop, refused attribute,
-  utility class and raw value, telling you what to write instead in each case.
+- **`list_components`:** Lists every component with a one-line description, grouped the same way
+  as this site.
+- **`get_component`:** Returns the page for one component.
+- **`get_tokens`:** Finds design tokens by name and returns their values.
+- **`check_usage`:** Checks a piece of JSX and reports every missing prop, `data-` attribute,
+  utility class and raw value, with what to write instead.
 
-`check_usage` is the most useful of the four, because it tells you whether code sits inside the
-system before that code reaches your repository.
+`check_usage` is the most useful of the four, because it tells your agent whether code follows
+the library's rules before that code reaches your repository.
 
-The same four tools run in the browser on every page of this site once you add `?webmcp=1` to the
-URL, which registers them with the WebMCP API so that a browser agent supporting the proposal can
-use them while it reads. Without the flag the page loads nothing extra.
+Like `@kookie-ui/react`, the `@kookie-ui/mcp` package isn't on npm yet, so the `npx` commands on
+this page work once both packages are published.
 
-The browser names start with `kookie_`, such as `kookie_check_usage`, because a page shares its
-namespace with every other script on the document. Nothing else differs.
+### Use the tools in the browser
 
-## What an agent still has to know
+The same four tools are also available on every page of this site. Add `?webmcp=1` to the URL,
+and the page registers them through the WebMCP API, so a browser agent that supports it can use
+them while it reads. Without that parameter, the page loads nothing extra.
 
-The tools report what exists and what is refused, and they say nothing about what a good screen
-looks like. The [Composition](/patterns/composition) chapter holds those rules, and it works as
-the checklist when you review an agent's output. `check_usage` checks a snippet you paste, while
-the builder at `/builder` applies the composition rules as you work, against a document you build
-or open there rather than against pasted JSX.
+In the browser, each tool name starts with `kookie_`, such as `kookie_check_usage`, because a
+page shares its tool names with every other script on it. Otherwise, the tools are the same.
 
-A screen can hold only correct components and still be wrong, for example through:
+## What your agent still needs to learn
+
+These tools tell your agent which props exist and which don't. They don't tell it what a good
+screen looks like. A screen can use every component correctly and still be wrong, for example
+when it has:
 
 - two loud buttons
-- one spacing value for all kinds of gap
-- a heading at the wrong step
+- the same gap between every kind of element
+- a heading at the wrong size
 
-When the refused props stop, you will see these mistakes most often. For this reason, this
-site is a guideline, and not only a reference.
+Once your agent stops writing props that don't exist, these are the mistakes you'll see most.
+The [Composition](/patterns/composition) chapter explains how to avoid them, and it works as a
+checklist when you review an agent's code. The [builder](/builder) checks a screen against the
+same rules while you build it.
+
+Here's what correct output looks like:
 
 ```tsx
-import { Box, Button, Card, Flex, Heading, Text } from "@kookie-ui/react";
+import { Button, Card, Flex, Heading, Text } from "@kookie-ui/react";
 
 export function Invite() {
   return (
@@ -164,7 +172,7 @@ export function Invite() {
       <Flex direction="column" gap="5">
         <Heading size="6">Invite your team</Heading>
         <Text emphasis="medium">Everyone you add can see this project.</Text>
-        <Flex gap="3" justify="end">
+        <Flex gap="3" justify="flex-end">
           <Button emphasis="quiet">Not now</Button>
           <Button tone="accent" emphasis="loud">Send invites</Button>
         </Flex>
@@ -174,8 +182,6 @@ export function Invite() {
 }
 ```
 
-Correct output looks like that example:
-
-- **One loud action** on the screen.
-- **The theme sets every colour.**
-- **The layout sets every distance**, rather than the components inside it.
+- **One loud button:** "Send invites" is the only main action on the screen.
+- **No colours:** The theme calculates every colour from `tone` and `emphasis`.
+- **No margins:** Each `Flex` sets the space between its children.

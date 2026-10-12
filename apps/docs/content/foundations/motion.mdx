@@ -1,59 +1,56 @@
-Kookie shows every change of state at once, with no transitions and no animation when a panel
-opens or closes. Only three busy indicators move, because their movement is the information
-they carry.
+In Kookie, every change of state shows at once. There are no transitions, and panels have no
+animation when they open or close. The only things that move are three busy indicators, because
+their movement is the information they carry.
 
 ## Every change of state shows at once
 
-When you hover, press or focus a control, the change shows on the next frame. Nothing fades
+When you hover, press or focus a control, the new state shows on the next frame. Nothing fades
 between the old state and the new one, and the focus ring appears in its final position.
 
 The states you set behave the same way. A checkbox shows its tick at once, a switch thumb
-arrives at the other end of its track at once, and the line under a tab reaches the selected tab
-at once.
+appears at the other end of its track, and the line under a tab appears under the selected tab.
 
-This is a judgment: a change that shows at once is never late, so you see the result of a press
-immediately.
+This is a judgment. A change that shows at once is never late, so you see the result of a press
+immediately, and nothing on the screen is caught halfway between two states.
 
-## A control stays still under the pointer
+## Controls stay still under the pointer
 
-A control does not move when you hover over it or press it, because hover and press change its
-colours while its size and position stay the same.
-
-This applies to every control, including a `Card` that you render as a button or a link. A
-disabled control also holds its place and changes only its colours.
+A control doesn't move or change size when you hover over it or press it. Only its colours
+change. This applies to every control, including a `Card` that you render as a button or a
+link, and a disabled control also keeps its place.
 
 ## Panels open and close at once
 
-A `Menu`, a `Select`, a `Popover` and a `Tooltip` appear in their final position, while a
-`Dialog`, an `AlertDialog` and a `Sheet` appear together with the dimmed background. Closing any
-of them removes it at once.
+A `Menu`, a `Select` list, a `Popover` and a `Tooltip` appear in their final position. A
+`Dialog`, an `AlertDialog` and a `Sheet` appear together with the dimmed background behind them.
+Closing any of these panels removes it at once.
 
-On a narrow window, a `Shell` pane opens as a drawer beside the content and pushes the content
-aside, appearing and leaving at once as well.
+On a narrow window, a `Shell` panel opens as a drawer that pushes the content aside, and it also
+appears and closes at once.
 
-A tooltip waits a moment before it opens, so that it stays hidden while your pointer merely
-passes over a control. That wait is a delay rather than an animation.
+A tooltip waits a moment before it opens, so it stays hidden while your pointer passes over a
+control on its way somewhere else. This wait is a delay rather than an animation.
 
-## Some elements follow your pointer while you drag
+## Elements you drag follow your pointer
 
 The handle of a `Slider` stays under your pointer while you drag it, and a `Sheet` follows your
-finger while you drag it closed. Neither counts as an animation, because the element moves only
-while you move it.
+finger while you swipe it closed. This isn't animation, because the element moves only while
+you move it.
 
-Scrolling with a wheel, a trackpad or a finger belongs to the browser, and Kookie leaves it
-alone. A `Carousel` button moves its rail at once.
+Scrolling with a wheel, a trackpad or a finger is handled by the browser, and Kookie doesn't
+change it. The buttons of a `Carousel` move its content at once.
 
 ## Three indicators move to show that work continues
 
-These components move without a change of state, because the movement carries their message:
+These components move without any change of state, because the movement is their message:
 
 - `Spinner`, which also shows inside a `Button` that has `loading`
 - `Progress` with `value={null}`
 - `Attachment`, while it works on a file and has no progress value
 
-Use one of these three when you cannot say how much of the work is done. Give `Progress` a
-number once you know the fraction, and the bar then shows that fraction and changes only when
-the number changes.
+Use one of these when you cannot say how much of the work is done. Once you know the fraction,
+give `Progress` a number. The bar then shows that fraction and changes only when the number
+changes.
 
 ```tsx
 <Card size="3">
@@ -73,15 +70,15 @@ In this example, only the bar and the spinner in the Import button move.
 
 ## Reduced motion slows the indicators
 
-A person who asks their operating system for reduced motion receives the three indicators at a
-slower speed. They do not stop, because a busy indicator that stops looks finished, which is a
-judgment.
+If a person turns on reduced motion in their operating system, the three indicators move more
+slowly. They don't stop, because a busy indicator that stops looks as if the work has finished.
+This is a judgment.
 
-Nothing else responds to reduced motion, because nothing else in Kookie moves on its own.
+Nothing else in Kookie responds to the reduced motion setting, because nothing else moves on its
+own.
 
-## No component takes an animation prop
+## No component accepts an animation prop
 
-No component accepts a duration, an easing or an animation prop, so you cannot make one control
-respond more slowly than another, and every screen in your app responds in the same way.
-
-Use `emphasis` or `tone` to make a control stand out, rather than movement.
+No component accepts a duration, an easing or an animation prop. You cannot make one control
+respond more slowly than another, so every screen in your app responds in the same way. To make
+a control stand out, use `emphasis` or `tone`.

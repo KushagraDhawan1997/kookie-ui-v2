@@ -93,52 +93,52 @@ Also exported, and not components:
 These are decisions, not gaps. Asking for one of them is the most common way to write this
 system wrong. The reason each one was refused is on the component's own page — see below.
 
-- **Accordion** — A horizontal orientation; `tone` and `emphasis`; An icon slot or a custom chevron; A boundary of its own
-- **AlertDialog** — A width prop; Closing on an outside press; Header and Footer; `render` on Cancel and Action; Arbitrary `children`
+- **Accordion** — A horizontal orientation; `tone` and `emphasis`; An icon slot or a custom chevron; A border or background of its own
+- **AlertDialog** — A width prop; Closing on an outside press; Header and footer parts; `render` on Cancel and Action; Arbitrary `children`
 - **Attachment** — A done state; `tone`; Holding the file; A built-in preview; `emphasis`; A shadow; `render`
-- **Avatar** — A shape prop; `emphasis`; `tone`; A status vocabulary; A press; A max count on the group
-- **AvatarGroup** — A max count; A spacing prop
-- **Badge** — `emphasis`; A status vocabulary; An unnamed dot; A position of its own
-- **Blockquote** — A tinted rule; An attribution slot
-- **Box** — Utility classes; A bleed prop; Containment by default
+- **Avatar** — A shape prop; `emphasis`; `tone`; Built-in status words; A press; A maximum count on the group
+- **AvatarGroup** — A maximum count; A spacing prop
+- **Badge** — `emphasis`; Built-in status words; An unnamed dot; A position of its own
+- **Blockquote** — A coloured line; An attribution slot
+- **Box** — Utility classes; A separate bleed prop; Containment by default
 - **Breadcrumb** — `BreadcrumbSeparator`; `BreadcrumbList`; `tone` and `emphasis`; `maxItems` and any automatic collapse; An ellipsis that does nothing; Role=link and aria-disabled on the current page
 - **Button** — `margin`; `variant`; A shadow prop
 - **ButtonGroup** — A separator part; `tone` and `emphasis` on the group
 - **Card** — A `selected` prop, and an `interactive` one; A card inside a card; A material prop; Tone, emphasis and bordered; A media or cover slot; Header and footer slots
-- **Carousel** — Autoplay; Looping; Drag to scroll; A width, a gap or an aspect for the items; `orientation`; Dots under the rail
+- **Carousel** — Autoplay; Looping; Drag to scroll; A width, a gap or an aspect ratio for the items; `orientation`; Dots under the rail
 - **Checkbox** — `tone` and `emphasis`; `children`; `readOnly`
-- **Chip** — A fill scale, or a variant prop; A dismissal; A count prop; A position; An empty chip
+- **Chip** — A louder fill, or a `variant` prop; A remove button; A count prop; A position of its own; An empty chip
 - **Code** — A fill that gets louder with emphasis; Block code
-- **CodeBlock** — Highlighting; A switch for wrapping; A copy button, line numbers, and a collapse; `tone` and `emphasis`; A Card as the pane
-- **Combobox** — Free text with suggestions; `multiple`; A matcher of your own, a limit, and inline completion; `disabled`, `readOnly`, `name`, `required` and `form` on the field; A Separator inside the panel; `render` on the field; A clear button
-- **Command** — A footer; `modal`; Fuzzy reordering as you type; A Separator inside the panel; An edge-to-edge panel
-- **Composer** — The conversation, and every part of it; The scroller; An attach button; Owning the files; A row of slots; A compact or collapsed mode; `submitOnEnter`
-- **ContextMenu** — A parallel set of parts; Side, align and an offset; An appearance for the region; Opening on a left click
-- **Dialog** — Header and Footer; A presentation prop, and a drag; A height prop; A close button in the corner; `modal` and `disablePointerDismissal`; A shadow; A size on the title
+- **CodeBlock** — Highlighting; A switch for wrapping; A copy button, line numbers, and a collapse; `tone` and `emphasis`; A Card as the panel
+- **Combobox** — Free text with suggestions; `multiple`; A custom matcher, a result limit and inline completion; `disabled`, `readOnly`, `name`, `required` and `form` on the input; A Separator inside the panel; `render` on the input; A clear button
+- **Command** — A footer; `modal`; Re-sorting results as you type; A Separator inside the panel; An edge-to-edge results panel
+- **Composer** — The conversation; Keeping the conversation scrolled to the bottom; An attach button; Holding the files; Named slots for the start and end of the row; A compact or collapsed mode; `submitOnEnter`
+- **ContextMenu** — `ContextMenuItem` and a second set of parts; `side`, `align` and an offset; A style for the trigger area; Opening on a left click
+- **Dialog** — `DialogHeader` and `DialogFooter`; A prop to choose the presentation, and dragging to close; A height prop; A close button in the corner; `modal` and `disablePointerDismissal`; A shadow of its own; `size` on the title
 - **Field** — `FieldControl`; `orientation`; A choice about where the error goes; An error that replaces the description; `Form`
-- **Flex** — `margin` on children
-- **Grid** — Auto-placement helpers
-- **Heading** — A level prop
-- **Kbd** — A shadow that follows Theme depth
-- **Link** — `emphasis`; A :visited style; A hover-only underline; A target of its own
-- **List** — A marker of your own; `render`; A gap or a density prop; A description list
-- **Menu** — `emphasis` on rows; A Shortcut part; `MenuSeparator`; An inset prop; `modal` and `openOnHover`; Arrow, Backdrop, Viewport, LinkItem and collision knobs
-- **MessageScroller** — `size`; A viewport of its own; English
-- **NavTree** — Role="tree"; Selection; The tree keyboard; An indent prop
-- **Notice** — A position, and the name Banner; Toast, and any transient version of this; A title, a description and any fixed anatomy; More than one action; Remembering its own dismissal; A shadow; An icon set; A ✕ on a Confirmation
-- **NumberField** — `leading` and `trailing`; `emphasis` and `tone`; `render`; The platform's number input; Dragging and scrolling to change the value
-- **Page** — A heading level; A size; Actions beside the title; A width; Collapsing on its own outside a frame
-- **Popover** — A modal mode; An arrow; Free positioning; A width that matches the trigger; A drawn close button
+- **Flex** — `margin` on the children
+- **Grid** — Shortcut props for auto-placement
+- **Heading** — A `level` prop
+- **Kbd** — A shadow that follows `depth`
+- **Link** — `emphasis`; A style for visited links; An underline that shows only on hover; A larger tap area
+- **List** — A custom marker; `render`; A `gap` or density prop; A description list
+- **Menu** — `emphasis` on rows; A Shortcut part; `MenuSeparator`; An `inset` prop; `modal` and `openOnHover`; An arrow, a backdrop, a scroll viewport and collision settings
+- **MessageScroller** — `size`; A viewport of its own; A default label for the jump button
+- **NavTree** — `role="tree"`; Selection; Arrow-key navigation; An `indent` prop
+- **Notice** — A position, and a Banner component; A toast, or any Notice that disappears on its own; A title and description; More than one action; Remembering its own dismissal; A shadow; Built-in icons; A ✕ on a Confirmation
+- **NumberField** — `leading` and `trailing`; `emphasis` and `tone`; `render`; The browser's number input; Dragging or scrolling to change the value
+- **Page** — A heading level; `size`; Actions beside the title; A width; Collapsing into a toolbar outside a Shell
+- **Popover** — A modal mode; An arrow; Free positioning; A width that matches the trigger; A built-in close button
 - **Progress** — `size`; `tone`
 - **Radio** — `tone` and `emphasis`; `readOnly`
-- **RadioGroup** — Any visual prop
-- **Row** — `emphasis`; A keyboard model; A selected prop; A List component to put these in; The menu row's tighter box
+- **RadioGroup** — Visual props; `readOnly`
+- **Row** — `emphasis`; A keyboard model; A `selected` prop; A List component; The shorter height of a menu row
 - **ScrollArea** — `size`; `tone` and `emphasis`; `material`; `render`; `orientation`
-- **SegmentedControl** — `tone` and `emphasis`; An exported thumb; Multi-select; `nativeButton` and `render`; `readOnly`
-- **Select** — `readOnly`; A Separator inside the panel; `emphasis` and `tone` on the trigger; SelectValue as a part; `render` and `children` on the trigger; The scroll arrows; `multiple`
+- **SegmentedControl** — `tone` and `emphasis`; Selecting more than one option; `nativeButton` and `render`; `readOnly`
+- **Select** — `readOnly`; A Separator inside the panel; `emphasis` and `tone` on the trigger; A `SelectValue` part; `render` and `children` on the trigger; Scroll arrows; `multiple`
 - **Separator** — `children`; A length prop; `decorative`
-- **Sheet** — A top edge, and a physical left or right; Header and Footer, and a close button in the corner; `modal` and `disablePointerDismissal`; Snap points, and a swipe that opens it; Sheets inside sheets; `tone` and `emphasis`; A shadow
-- **Shell** — A gap prop; A header position axis; A thin sidebar mode; A close-cascade between rail and sidebar; `peek`; A `ShellRailItem` with a prop for the detached seat; `backdrop` on `ShellContent`; A tab bar derived from the sidebar; A tab bar that changes what the sidebar shows; A floating or stacked presentation value
+- **Sheet** — A top side, and a physical left or right; Header and footer parts, and a close button in the corner; `modal` and `disablePointerDismissal`; Snap points, and a swipe that opens the sheet; A sheet inside a sheet; `tone` and `emphasis`; An extra shadow
+- **Shell** — A `gap` prop; A header position option; A narrow mode for the sidebar; Closing the sidebar together with the rail; A half-open `peek` state; An action on `ShellRailItem`; `backdrop` on `ShellContent`; A tab bar built from the sidebar; A tab bar that changes what the sidebar shows; A `presentation` value for floating panes
 - **Slider** — `tone` and `emphasis`; `orientation`
 - **Spinner** — A size prop; A colour prop
 - **SplitButton** — `iconOnly`; `render`
@@ -146,15 +146,15 @@ system wrong. The reason each one was refused is on the component's own page —
 - **Surface** — A fill or an edge prop; A border toggle; `material` and `backdrop`; Tone, emphasis and a shadow
 - **Switch** — `tone` and `emphasis`; `children`; `readOnly`
 - **Table** — A ScrollArea around it; Hover, selection and a press on rows; `tone` and `emphasis`; A sticky header; Sorting and column controls
-- **Tabs** — `tone` and `emphasis`; TabsTrigger and TabsContent; `material`; An exported indicator
+- **Tabs** — `tone` and `emphasis`; TabsTrigger and TabsContent; `material`; An indicator part
 - **Text** — A colour prop; `margin`; `bold` (700)
 - **TextArea** — `emphasis` and `tone`; `resize`; `cols`; `render`
 - **TextField** — `emphasis` and `tone`; `render`
-- **Theme** — An `accentColor` prop; A scale prop; An elevation axis; A look axis
+- **Theme** — An `accentColor` prop; A `scaling` prop; A shadow or elevation prop on components; An outlined or filled style
 - **Toggle** — `emphasis`; `loading`; A single-select group; `render`
-- **Toolbar** — Tone, emphasis and material on the ROW; Leading, centre and trailing parts; A size on the group; A gap prop
-- **Tooltip** — Content that is not a string; A size; `tone` and `emphasis`; A delay you set per tooltip; A touch story; A material; An arrow
-- **Tree** — Drag to reorder; Cascade selection; Async children and loading states; Rename-in-place; JSX children; An indent prop
+- **Toolbar** — `tone`, `emphasis` and `material` on the row; Leading, centre and trailing parts; `size` on a group; A `gap` prop
+- **Tooltip** — Content that is not a string; A size; `tone` and `emphasis`; A delay you set per tooltip; Support for touch screens; A material; An arrow
+- **Tree** — Drag to reorder; Selecting a folder's children with it; Loading children on demand; Renaming in place; JSX children; An `indent` prop
 
 ## Looking one up
 

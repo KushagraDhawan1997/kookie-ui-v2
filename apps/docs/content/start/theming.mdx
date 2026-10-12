@@ -1,82 +1,108 @@
-A `Theme` sets eight values for your whole app: appearance, density, radius, contrast, pointer,
-depth, material, and size. Every component inside the theme reads those values. All eight are
-optional, and the defaults suit an app that has not made any decisions yet.
+A `Theme` sets eight values for your whole app, and every component inside it uses them. All
+eight settings are optional, and the default values suit an app that has not decided anything
+yet. You set a value once at the root, and you nest another `Theme` when one region needs to be
+different.
 
-## The eight settings
+## Set the theme at the root
+
+Wrap your app in one `Theme` and set only the values you want to change.
 
 ```tsx
-<Theme
-  appearance="inherit" // inherit | light | dark
-  density="default" // compact | default | comfortable
-  radius="full" // none | small | medium | large | full
-  contrast="normal" // normal | high
-  pointer="auto" // fine | coarse | auto
-  depth="elevated" // flat | elevated
-  material="solid" // solid | thin | regular | thick
-  size="2" // 1 | 2 | 3 | 4
->
-  {children}
-</Theme>
+import { Theme } from "@kookie-ui/react";
+
+export function App({ children }: { children: React.ReactNode }) {
+  return (
+    <Theme
+      appearance="inherit" // the script in <head> sets light or dark on <html>
+      radius="medium" // softer corners than the default pill shape
+      depth="flat" // no shadows anywhere
+    >
+      {children}
+    </Theme>
+  );
+}
 ```
+
+These are the eight settings, with their values and defaults.
+
+| Setting      | Values                                         | Default    |
+| ------------ | ---------------------------------------------- | ---------- |
+| `appearance` | `light`, `dark`, `inherit`                     | `light`    |
+| `density`    | `compact`, `default`, `comfortable`            | `default`  |
+| `radius`     | `none`, `small`, `medium`, `large`, `full`     | `full`     |
+| `contrast`   | `normal`, `high`                               | follows the system |
+| `pointer`    | `fine`, `coarse`, `auto`                       | `auto`     |
+| `depth`      | `flat`, `elevated`                             | `elevated` |
+| `material`   | `solid`, `thin`, `regular`, `thick`            | `solid`    |
+| `size`       | `"1"`, `"2"`, `"3"`, `"4"`                     | `"2"`      |
 
 ### Appearance
 
-`appearance` accepts `light`, `dark`, or `inherit`. Use `inherit` at the root, so that the theme
-takes the mode from `<html>`, where the script in the [Installation](/start/installation)
-chapter writes it.
+`appearance` sets light or dark mode. On the root theme, use `inherit`, so the theme takes the
+mode from `<html>`, where the script in the [Installation](/start/installation) chapter writes
+it. That script runs before the first paint, so a server-rendered page never flashes in the
+wrong mode. Set `light` or `dark` on a nested theme to fix the mode of one section.
 
 ### Density
 
-`density` accepts `compact`, `default`, or `comfortable`, and it changes the space between
-elements without making the elements smaller. A compact theme selects smaller gaps from the same
-set of spacing values, while text keeps its size and corners keep their shape.
+`density` changes how much room the app gives its elements. A `compact` theme uses smaller gaps
+and shorter controls with less padding, and a `comfortable` theme uses more of each. Text,
+icons and checkboxes keep their size at every density.
 
 ### Radius
 
-`radius` accepts `none`, `small`, `medium`, `large`, or `full`. The theme calculates a different
-corner for each category of component from that single value, which keeps a button, a card, and
-a menu row in proportion at every setting.
+`radius` sets the corners for the whole app. From that one value, the theme calculates a
+corner for each kind of component, so a button, a card and a menu row stay in proportion at
+every setting. The default `full` gives controls a pill shape, and `none` gives square corners.
+A radio button and the thumbs of a switch and a slider stay round at every value, because their
+shape tells you what they are.
 
 ### Contrast
 
-`contrast` accepts `normal` or `high`. You can select `high` yourself, or leave the default,
-because a person who raises the contrast in their operating system receives high contrast
-automatically.
+`contrast` makes borders, fills and tracks stronger. If you leave it unset, the theme follows
+the operating system, so a person who turns on increased contrast gets high contrast
+automatically. Set `high` to turn it on yourself. Set `normal` only if you need to ignore the
+system setting.
 
 ### Pointer
 
-`pointer` accepts `fine`, `coarse`, or `auto`, and it tells the theme whether people use a mouse
-or a touch screen. `auto` follows the device. Set it yourself to check the touch sizes on your
-laptop.
+`pointer` tells the theme whether people use a mouse or a touch screen. With `auto`, the theme
+follows the device. With `coarse`, controls grow to touch sizes and small text gets larger, as
+on a phone. Set it to `coarse` on your laptop to check how your app looks on touch.
 
 ### Depth
 
-`depth` accepts `flat` or `elevated`, and it determines whether surfaces cast shadows. Set it
-once for the whole app, because no component accepts a shadow prop.
+`depth` determines whether cards and raised controls cast shadows. `elevated` gives them
+shadows, and `flat` removes every shadow. Set it once for the whole app, because no component
+has a shadow prop. The default is a judgment: most apps look better with some depth, so a flat
+app is a choice you make on purpose.
 
 ### Material
 
-`material` accepts `solid`, `thin`, `regular`, or `thick`, and it describes what your app is
-made of. One value covers every panel, because every panel in an app is made of the same
-material.
+`material` sets whether your panels are solid or glass. `solid` lets no light through, and
+`thin`, `regular` and `thick` are glass, from the clearest to the most frosted. One value
+applies to the whole scope, so a menu and a dialog under the same theme use the same glass.
+
+Glass appears only where content passes behind a component. Menus, selects and dialogs always
+float over the page, so they use the theme's glass. A control in the normal flow of the page
+stays solid unless you mark its region with `<Box backdrop>` or set `backdrop` on the component.
+The [Materials](/foundations/materials) chapter explains when to use glass.
 
 ### Size
 
-`size` accepts `1`, `2`, `3`, or `4`, and it sets the default size for controls and surfaces. At
-`3`, every button, field, card, menu, and dialog without its own size moves up one step. The
-setting is a default rather than a limit, so a `size` on a component always wins. A `Field` or a
-`Composer` sets the size of the controls inside it, which lets you size those controls as one
-object.
+`size` sets the default size step for every control and surface in the scope. At `"3"`, every
+button, field, card, menu and dialog without its own `size` moves up one step. A `size` on a
+component always wins. A `Field` or a `Composer` also sets the size of the controls inside it,
+so the parts of one field change size together.
 
-The setting leaves text alone, because `Text` and `Heading` use their own scale of nine steps,
-and one number cannot carry the same meaning on both scales. The
-[Composition](/patterns/composition) chapter shows how to rank your text. `Code`, `Kbd`, `Badge`,
-and `Chip` take the size of the line they sit in, so the setting does not reach them either,
-whereas `Avatar` follows it in the way a control does.
+The setting does not change text. `Text`, `Heading` and `Blockquote` use their own scale of nine
+steps, and the [Composition](/patterns/composition) chapter shows how to choose a step. `Code`,
+`Kbd`, `Badge` and `Chip` take the size of the line they sit in. `Avatar` follows the setting,
+the same way a control does.
 
 ## Nest a Theme to change one region
 
-A Theme inside a Theme changes only the settings it names and inherits the rest.
+A `Theme` inside another `Theme` changes only the settings it names, and it inherits the rest.
 
 ```tsx
 <Theme density="comfortable">
@@ -88,33 +114,33 @@ A Theme inside a Theme changes only the settings it names and inherits the rest.
 </Theme>
 ```
 
-Use a nested Theme when one region must behave differently, such as:
+Use a nested theme when one region must look or behave differently, for example:
 
-- a dark hero on a light page
+- a dark hero section on a light page
 - a compact inspector panel in a comfortable app
 - a glass panel over a photograph
 
-Nesting also keeps menus and dialogs correct, because each floating layer applies the theme
-again inside itself, so a menu opened from a dark section is dark as well.
+Menus and dialogs follow the theme of the place they open from. A menu that opens from a dark
+section is dark as well, even though it renders at the end of the page.
 
-Nesting does not change responsive behaviour. Wrap a component in `<Box container>` to make it
-respond to the width of its container rather than the width of the window.
+A nested theme does not change responsive behaviour. To make a region respond to its own width
+rather than the width of the window, wrap it in `<Box container>`.
 
-## The accent colour
+## Change the accent colour
 
-Kookie generates the accent from two numbers in the colour config rather than from a prop. Set
-them in `packages/ui/src/tokens/color-config.ts`:
+The accent is the colour of your main actions. The default accent is grey, so a loud `Button` is
+near-black in light mode and near-white in dark mode. Kookie generates the accent from two
+numbers in `packages/ui/src/tokens/color-config.ts`, rather than from a prop:
 
 ```ts
 // A violet brand.
 const accent = { hue: 265, vividness: 1 } as const;
 ```
 
-- **`hue`** is an angle in degrees on the OKLCH colour wheel, from 0 to 360.
-- **`vividness`** is the fraction of the available chroma that the family takes at each
-  lightness, from 0 to 1. At 1 the family takes as much colour as the gamut holds. Below 0.18 a
-  scale can no longer carry prominence through saturation, so the solid fill resolves to the
-  darkest step instead of the coloured one, which is how a grey brand works.
+- **`hue`:** An angle in degrees on the OKLCH colour wheel, from 0 to 360.
+- **`vividness`:** How much colour the accent has, from 0 to 1. At 1, the accent is as vivid as
+  the screen can show. Below 0.18, the accent reads as grey, and the loud fill uses the darkest
+  grey step instead of a colour.
 
 Then run the generator, which rewrites `src/tokens/tokens.css`:
 
@@ -122,34 +148,31 @@ Then run the generator, which rewrites `src/tokens/tokens.css`:
 pnpm --filter @kookie-ui/react run tokens
 ```
 
-From those two numbers the generator calculates twelve steps and twelve transparent steps, in
-light mode and dark mode, at normal and high contrast, along with every role that the
-[Colour](/foundations/color) chapter lists: the tints, the fills, the border, the three text
-colours and the readable label on a solid fill. Your neutral greys derive their hue from the
-accent, so the greys lean towards your brand.
+From those two numbers, the generator calculates the accent's fills, border and text colours
+in light and dark mode, at normal and high contrast. It also picks a readable label colour for
+text on a solid accent fill, and it checks every result against the contrast minimums. The
+neutral greys take their hue from the accent, so the greys lean slightly towards your brand.
 
-A prop could only accept a hex value, which gives the generator a single colour. A hex value
-cannot say which fill the button takes under the pointer, which border reads against the page,
-or which text colour clears the contrast floor in dark mode. The generator solves each of those
-from the hue, and it checks the result against the contrast floors.
+A colour prop could only accept one value, such as a hex code. One value cannot tell the
+system which fill to show on hover, which border is visible against the page, or which text
+colour stays readable in dark mode. The generator calculates each of those from the hue.
 
-The generator runs when the package builds, so changing the accent means building Kookie from
-source. An installed copy carries the generated stylesheet.
-
-Therefore an app has one accent, and you cannot give one section a different brand colour.
+The generator runs when the package builds, so a new accent means building Kookie from source.
+Because the accent is part of the generated stylesheet, an app has one accent, and one section
+cannot use a different brand colour.
 
 ## Read the theme in JavaScript
 
-Components receive the settings through CSS, so most code never reads them. Two hooks cover the
-cases that CSS cannot handle.
+Components get the theme's values through CSS, so most of your code never needs to read them.
+Two hooks cover the cases that CSS cannot handle.
 
 ```tsx
 import { useMaterial, useWindowClass } from "@kookie-ui/react";
 
-// Your own panel, made of whatever the app is made of.
+// Your own panel that floats over content, made of the theme's material.
 function Pane({ children }: { children: React.ReactNode }) {
   return (
-    <div className="kui-surface" data-material={useMaterial()}>
+    <div className="kui-surface" data-material={useMaterial({ backdrop: true })}>
       {children}
     </div>
   );
@@ -162,16 +185,10 @@ function Nav() {
 }
 ```
 
-`useWindowClass` returns `null` on the server and until the first paint, because the server
-cannot measure a window, and a guess would make React report that the server and the browser
-disagree. Write the answer in CSS if you need it before the first paint, using
-`windowClassQueries`, which the package exports with the same breakpoints.
+`useMaterial` returns the material that your element should use. Without `{ backdrop: true }`,
+it returns `solid` unless the element is inside a `<Box backdrop>` region.
 
-## Why depth starts elevated and material starts solid
-
-**`depth` starts at `elevated`** because most apps have a light source, which makes a flat app a
-deliberate choice that you set yourself.
-
-**`material` starts at `solid`**, which lets no light through a panel. Glass appears only when
-the theme is glass and something behind the panel can bend, so a control in the normal page flow
-stays solid.
+`useWindowClass` returns `null` on the server and during the first paint, because the server
+cannot measure a window, and a guess would make the server's HTML disagree with the browser's.
+If you need the answer before the first paint, write it in CSS with `windowClassQueries`, which
+the package exports with the same breakpoints.
