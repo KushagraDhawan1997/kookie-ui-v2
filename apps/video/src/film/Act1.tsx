@@ -47,7 +47,7 @@ import {
   StopSquareIcon,
   UsersIcon,
 } from "../../../docs/app/icons";
-import { Kinetic, Pointer, World, W, H, cells, gx, gy, lerp, out, ramp, streamed, track, typed, useSpring, worldPoint } from "./kit";
+import { FOCUS, HOVER, PRESS, Kinetic, Pointer, World, W, H, cells, gx, gy, lerp, out, ramp, streamed, track, typed, useSpring, worldPoint } from "./kit";
 
 /* ── Script (frames at 30fps) ─────────────────────────────────────────────────────────── */
 
@@ -77,14 +77,49 @@ const MODELS = { opus: "Opus 5", sonnet: "Sonnet 5" };
 
 /* ── Screens ──────────────────────────────────────────────────────────────────────────── */
 
+/** The caret is drawn, not native: a film frame has no focused window to blink it. Solid while typing, blinking at rest. */
+const caretOn = (f: number) => {
+  if (f < T.click1 + 2 || f >= T.pan) return false;
+  const typingEnd = T.type + PROMPT.length * 2 + 6;
+  if (f >= T.type && f < typingEnd && f < T.sent) return true;
+  const from = f < T.sent ? (f < T.type ? T.click1 : typingEnd) : T.sent;
+  return Math.floor((f - from) / 16) % 2 === 0;
+};
+
+function Caret({ root, text, on }: { root: React.RefObject<HTMLDivElement | null>; text: string; on: boolean }) {
+  const [box, setBox] = React.useState<{ x: number; y: number; h: number } | null>(null);
+  React.useLayoutEffect(() => {
+    const card = root.current;
+    const input = card?.querySelector<HTMLTextAreaElement>("textarea");
+    if (!card || !input) return;
+    const cs = getComputedStyle(input);
+    const ctx = document.createElement("canvas").getContext("2d")!;
+    ctx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    const a = card.getBoundingClientRect();
+    const b = input.getBoundingClientRect();
+    const k = a.width / card.offsetWidth || 1; // undo the camera's scale
+    const lh = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.4;
+    const next = {
+      x: (b.left - a.left) / k + parseFloat(cs.paddingLeft) + ctx.measureText(text).width,
+      y: (b.top - a.top) / k + parseFloat(cs.paddingTop) + (lh - parseFloat(cs.fontSize) * 1.2) / 2,
+      h: parseFloat(cs.fontSize) * 1.2,
+    };
+    if (!box || Math.abs(box.x - next.x) > 0.1 || Math.abs(box.y - next.y) > 0.1) setBox(next);
+  });
+  if (!box || !on) return null;
+  return <span style={{ position: "absolute", left: box.x, top: box.y, width: 1.5, height: box.h, background: "var(--accent-solid)", borderRadius: 1, zIndex: 2 }} />;
+}
+
 function Chat({ f }: { f: number }) {
+  const card = React.useRef<HTMLDivElement>(null);
   const sent = f >= T.sent;
   const status = !sent ? "ready" : f < T.stepsLive + 6 ? "submitted" : f < T.replyEnd ? "streaming" : "ready";
   const userIn = ramp(f, T.sent, T.sent + 12, out);
   const agentIn = ramp(f, T.stepsLive, T.stepsLive + 10, out);
   const summary = f < T.kit - 10 ? "Finding Kit" : f < T.stepsDone ? "Adding Kit to the team" : "3 steps";
   return (
-    <Card size="3" render={<Stack gap="4" />} style={{ blockSize: cells(10) }}>
+    <Card ref={card} size="3" render={<Stack gap="4" />} style={{ blockSize: cells(10), position: "relative" }}>
+      <Caret root={card} text={sent ? "" : typed(PROMPT, f, T.type)} on={caretOn(f)} />
       <Conversation aria-label="Conversation" jumpLabel="Jump to the latest" jumpIcon={<ArrowDownIcon />}>
         {sent ? (
           <Turn id="u1" from="person">
@@ -104,7 +139,7 @@ function Chat({ f }: { f: number }) {
           </Turn>
         ) : null}
       </Conversation>
-      <Composer size="3">
+      <Composer size="3" style={f >= T.click1 + 2 && f < T.pan ? FOCUS : undefined}>
         <ComposerInput
           data-target="input"
           aria-label="Message"
@@ -124,7 +159,7 @@ function Chat({ f }: { f: number }) {
             </Select>
           </Flex>
           <span data-target="send" style={{ display: "inline-flex", scale: `${1 - 0.06 * pressAt(f, T.send)}` }}>
-            <ComposerSend icons={SEND_ICONS} status={status} />
+            <ComposerSend icons={SEND_ICONS} status={status} style={f >= T.send - 2 && f < T.sent ? PRESS : f >= T.send - 10 ? (f < T.send - 2 ? HOVER : undefined) : undefined} />
           </span>
         </ComposerRow>
       </Composer>
@@ -170,7 +205,7 @@ function PersonRow({ initials, name, email, role, chip, line }: { initials: stri
 function Members({ f }: { f: number }) {
   const kit = ramp(f, T.kit, T.kit + 20, out);
   const chip = useSpring(f, T.kit + 14, { damping: 12, stiffness: 180 });
-  const glow = ramp(f, T.kit, T.kit + 8) * (1 - ramp(f, T.kit + 40, T.kit + 90));
+  const glow = ramp(f, T.kit + 4, T.kit + 20) * (1 - ramp(f, T.kit + 50, T.kit + 95));
   const added = f >= T.kit + 8;
   return (
     <Card size="4" style={{ blockSize: cells(10) }}>
@@ -197,8 +232,10 @@ function Members({ f }: { f: number }) {
             {PEOPLE.map(([i, n, e, r], k) => (
               <PersonRow key={n} initials={i} name={n} email={e} role={r} line={k > 0} />
             ))}
-            <div style={{ maxHeight: 70 * kit, overflow: "clip", opacity: kit }}>
-              <div style={{ borderRadius: "var(--radius-control-3)", background: `color-mix(in oklab, var(--info-soft) ${glow * 100}%, transparent)`, marginInline: -8, paddingInline: 8 }}>
+            <div style={{ maxHeight: 70 * kit, overflowX: "visible", overflowY: "clip", opacity: kit }}>
+              <div style={{ position: "relative", marginInline: -8, paddingInline: 8 }}>
+                <div style={{ position: "absolute", inset: 0, borderRadius: "var(--radius-control-3)", background: "var(--info-soft)", opacity: glow }} />
+                <div style={{ position: "relative" }}>
                 <PersonRow
                   initials="KN"
                   name="Kit Nakamura"
@@ -207,6 +244,7 @@ function Members({ f }: { f: number }) {
                   line
                   chip={<span style={{ display: "inline-flex", scale: `${chip}`, opacity: Math.min(1, chip) }}><Chip tone="info">Invited</Chip></span>}
                 />
+                </div>
               </div>
             </div>
           </Box>
@@ -272,7 +310,7 @@ function Plan({ f }: { f: number }) {
           <Meta label="Renews">1 November</Meta>
         </Stack>
         <span data-target="update" style={{ display: "grid", scale: `${1 - 0.03 * pressAt(f, T.update)}` }}>
-          <Button tone="accent" emphasis="loud" loading={loading} done={done}>
+          <Button tone="accent" emphasis="loud" loading={loading} done={done} style={f >= T.update - 2 && f < T.update + 2 ? PRESS : f >= T.update - 10 && f < T.update - 2 ? HOVER : undefined}>
             {done ? "Plan updated" : "Update plan"}
           </Button>
         </span>
@@ -369,10 +407,12 @@ function camera(f: number) {
   return { x, y, s };
 }
 
-export const ACT1_FRAMES = T.end;
+/** The script is written at a reading pace; the film plays it this much faster. */
+const SPEED = 1.35;
+export const ACT1_FRAMES = Math.ceil(T.end / SPEED);
 
 export function Act1() {
-  const f = useCurrentFrame();
+  const f = useCurrentFrame() * SPEED;
   const cam = camera(f);
   const root = React.useRef<HTMLDivElement>(null);
   const [targets, setTargets] = React.useState<Record<string, { x: number; y: number }>>({});
@@ -432,7 +472,7 @@ export function Act1() {
           </div>
         </div>
       </World>
-      <Pointer x={W / 2 + (px - cam.x) * cam.s} y={H / 2 + (py - cam.y) * cam.s} press={press} opacity={pointerOn} />
+      <Pointer x={W / 2 + (px - cam.x) * cam.s} y={H / 2 + (py - cam.y) * cam.s} press={press} opacity={pointerOn} kind={f >= 26 && f < T.type + PROMPT.length * 2 + 4 ? "text" : "arrow"} />
       <Kinetic text="You give the intent." f={f} inAt={22} outAt={T.send + 6} top={380} />
       <Kinetic text="Kookie UI makes the result." f={f} inAt={214} outAt={T.pan - 4} top={60} />
     </div>

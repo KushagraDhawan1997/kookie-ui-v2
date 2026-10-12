@@ -94,8 +94,22 @@ export function worldPoint(el: HTMLElement, root: HTMLElement) {
 
 /* ── Pointer ──────────────────────────────────────────────────────────────────────────── */
 
-/** A plain arrow pointer. `press` 0..1 pushes it in a little. */
-export function Pointer({ x, y, press = 0, opacity = 1 }: { x: number; y: number; press?: number; opacity?: number }) {
+/** The package's own hover and press paints, stated inline: a film frame has no real pointer to set :hover. */
+export const HOVER: React.CSSProperties = { backgroundColor: "var(--kui-ct-fill-hover, var(--kui-ct-fill-src-hover))" };
+export const PRESS: React.CSSProperties = { backgroundColor: "var(--kui-ct-fill-active, var(--kui-ct-fill-src-active))" };
+/** The package's focus ring, for a field the film shows as focused. */
+export const FOCUS: React.CSSProperties = { outline: "var(--focus-ring-width) solid var(--focus-ring)", outlineOffset: "var(--focus-ring-offset)" };
+
+/** The platform pointer: an arrow, or the text beam over a text field. `press` 0..1 pushes it in a little. */
+export function Pointer({ x, y, press = 0, opacity = 1, kind = "arrow" }: { x: number; y: number; press?: number; opacity?: number; kind?: "arrow" | "text" }) {
+  const shadow = "drop-shadow(0 2px 3px rgb(0 0 0 / 0.22))";
+  if (kind === "text")
+    return (
+      <svg width={14} height={26} viewBox="0 0 14 26" style={{ position: "absolute", left: x - 7, top: y - 13, opacity, zIndex: 20, filter: shadow }}>
+        <path d="M3 2.5 C5.5 2.5 7 3.3 7 5 V21 C7 22.7 5.5 23.5 3 23.5 M11 2.5 C8.5 2.5 7 3.3 7 5 M11 23.5 C8.5 23.5 7 22.7 7 21 M4.5 13 H9.5" fill="none" stroke="#fff" strokeWidth={3.4} strokeLinecap="round" />
+        <path d="M3 2.5 C5.5 2.5 7 3.3 7 5 V21 C7 22.7 5.5 23.5 3 23.5 M11 2.5 C8.5 2.5 7 3.3 7 5 M11 23.5 C8.5 23.5 7 22.7 7 21 M4.5 13 H9.5" fill="none" stroke="#111" strokeWidth={1.4} strokeLinecap="round" />
+      </svg>
+    );
   return (
     <svg
       width={28}
@@ -110,7 +124,7 @@ export function Pointer({ x, y, press = 0, opacity = 1 }: { x: number; y: number
         pointerEvents: "none",
         transformOrigin: "6px 4px",
         transform: `scale(${1 - 0.14 * press})`,
-        filter: "drop-shadow(0 2px 3px rgb(0 0 0 / 0.22))",
+        filter: shadow,
       }}
     >
       <path d="M6 4 L6 22 L10.6 17.6 L13.8 24.6 L16.9 23.2 L13.8 16.4 L20 16.4 Z" fill="#111" stroke="#fff" strokeWidth={1.6} strokeLinejoin="round" />
