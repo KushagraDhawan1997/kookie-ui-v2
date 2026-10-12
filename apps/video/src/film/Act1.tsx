@@ -47,7 +47,7 @@ import {
   StopSquareIcon,
   UsersIcon,
 } from "../../../docs/app/icons";
-import { FOCUS, HOVER, PRESS, Kinetic, Pointer, World, W, H, cells, gx, gy, lerp, out, ramp, streamed, track, typed, useSpring, worldPoint } from "./kit";
+import { HOVER, PRESS, Kinetic, Pointer, World, W, H, cells, gx, gy, lerp, out, ramp, streamed, track, typed, useSpring, worldPoint } from "./kit";
 
 /* ── Script (frames at 30fps) ─────────────────────────────────────────────────────────── */
 
@@ -139,7 +139,7 @@ export function Chat({ f }: { f: number }) {
           </Turn>
         ) : null}
       </Conversation>
-      <Composer size="3" style={f >= T.click1 + 2 && f < T.pan ? FOCUS : undefined}>
+      <Composer size="3" className={f >= T.click1 + 2 && f < T.pan ? "film-focus" : undefined}>
         <ComposerInput
           data-target="input"
           aria-label="Message"

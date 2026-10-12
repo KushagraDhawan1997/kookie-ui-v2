@@ -23,3 +23,10 @@ body {
   transition: none !important;
   animation-play-state: paused !important;
 }
+
+/* A focused composer, for frames the film shows as focused: the package's own ring on the form. The
+   Composer's className lands on its outer frame, so the ring is stated on the form inside it. */
+.film-focus > .kui-composer {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
