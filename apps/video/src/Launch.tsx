@@ -29,7 +29,7 @@ const ramp = (f: number, a: number, b: number, e = ease) =>
   interpolate(f, [a, b], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: e });
 
 /** Hold the frame until fonts and the glass lens have settled after a shot mounts. */
-function Settle({ children }: { children: React.ReactNode }) {
+export function Settle({ children }: { children: React.ReactNode }) {
   const [handle] = React.useState(() => delayRender("settle"));
   React.useEffect(() => {
     let live = true;
