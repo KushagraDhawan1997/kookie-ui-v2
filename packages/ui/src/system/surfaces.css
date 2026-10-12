@@ -477,7 +477,13 @@
   --kui-nest: calc(var(--radius-surface-4) * var(--kui-corner-k, 1) - var(--surface-p-4));
 }
 :is(.kui-card, .kui-ground) :is(.kui-card, .kui-ground) {
-  --kui-sf-r: min(var(--kui-nest), calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1)));
+  /* The fallback is the pane's own corner, so an element in between that states `--kui-nest:
+     initial` — a stage that CENTRES its subject far from every wall, where the concentric
+     premise does not hold — hands the inner pane its own corner back. */
+  --kui-sf-r: min(
+    var(--kui-nest, calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1))),
+    calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1))
+  );
 }
 
 /* ── The FLOATING pane's size join (§22, Kushagra 2026-08-09) ────────────────────────────────
