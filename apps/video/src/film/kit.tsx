@@ -101,8 +101,14 @@ export const PRESS: React.CSSProperties = { backgroundColor: "var(--kui-ct-fill-
 export const FOCUS: React.CSSProperties = { outline: "var(--focus-ring-width) solid var(--focus-ring)", outlineOffset: "var(--focus-ring-offset)" };
 
 /** The platform pointer: an arrow, or the text beam over a text field. `press` 0..1 pushes it in a little. */
-export function Pointer({ x, y, press = 0, opacity = 1, kind = "arrow" }: { x: number; y: number; press?: number; opacity?: number; kind?: "arrow" | "text" }) {
+export function Pointer({ x, y, press = 0, opacity = 1, kind = "arrow" }: { x: number; y: number; press?: number; opacity?: number; kind?: "arrow" | "text" | "resize" }) {
   const shadow = "drop-shadow(0 2px 3px rgb(0 0 0 / 0.22))";
+  if (kind === "resize")
+    return (
+      <svg width={30} height={20} viewBox="0 0 30 20" style={{ position: "absolute", left: x - 15, top: y - 10, opacity, zIndex: 20, filter: shadow }}>
+        <path d="M2 10 L8 4 V8 H22 V4 L28 10 L22 16 V12 H8 V16 Z" fill="#111" stroke="#fff" strokeWidth={1.5} strokeLinejoin="round" />
+      </svg>
+    );
   if (kind === "text")
     return (
       <svg width={14} height={26} viewBox="0 0 14 26" style={{ position: "absolute", left: x - 7, top: y - 13, opacity, zIndex: 20, filter: shadow }}>
@@ -134,17 +140,17 @@ export function Pointer({ x, y, press = 0, opacity = 1, kind = "arrow" }: { x: n
 
 /* ── Captions ─────────────────────────────────────────────────────────────────────────── */
 
-/** A line that arrives word by word and leaves as one piece. Screen space, not world space. */
-export function Kinetic({ text, f, inAt, outAt, top = 64 }: { text: string; f: number; inAt: number; outAt: number; top?: number }) {
-  const words = text.split(" ");
+/** Words that arrive one by one and leave as one piece. Screen space, not world space. "\n" breaks a line. */
+export function Kinetic({ text, f, inAt, outAt, top = 64, left = 96 }: { text: string; f: number; inAt: number; outAt: number; top?: number; left?: number }) {
   const leave = ramp(f, outAt, outAt + 14);
   if (f < inAt || leave >= 1) return null;
+  let n = 0;
   return (
     <Heading
       size="9"
       style={{
         position: "absolute",
-        left: 96,
+        left,
         top,
         zIndex: 30,
         fontSize: 44,
@@ -155,15 +161,29 @@ export function Kinetic({ text, f, inAt, outAt, top = 64 }: { text: string; f: n
         whiteSpace: "nowrap",
       }}
     >
-      {words.map((w, i) => {
-        const k = ramp(f, inAt + i * 3, inAt + i * 3 + 14, out);
-        return (
-          <span key={i} style={{ display: "inline-block", opacity: k, translate: `0 ${(1 - k) * 20}px`, filter: `blur(${(1 - k) * 6}px)` }}>
-            {w}
-            {i < words.length - 1 ? " " : ""}
-          </span>
-        );
-      })}
+      {text.split("\n").map((line, l) => (
+        <span key={l} style={{ display: "block" }}>
+          {line.split(" ").map((w, i, all) => {
+            const k = ramp(f, inAt + n * 3, inAt + n * 3 + 14, out);
+            n++;
+            return (
+              <span key={i} style={{ display: "inline-block", opacity: k, translate: `0 ${(1 - k) * 20}px`, filter: `blur(${(1 - k) * 6}px)` }}>
+                {w}
+                {i < all.length - 1 ? "\u00a0" : ""}
+              </span>
+            );
+          })}
+        </span>
+      ))}
     </Heading>
   );
+}
+
+/** A whip pan: the scene arrives from the right and leaves to the left, blurred, over `k` frames. */
+export function whip(f: number, dur: number, { enter = true, exit = true, k = 9 } = {}): React.CSSProperties {
+  const a = enter ? 1 - ramp(f, 0, k, out) : 0;
+  const b = exit ? ramp(f, dur - k, dur, Easing.bezier(0.5, 0, 0.9, 0.4)) : 0;
+  const x = a * W * 0.5 - b * W * 0.5;
+  const blur = (a + b) * 28;
+  return { position: "absolute", inset: 0, transform: `translateX(${x}px)`, filter: blur > 0.2 ? `blur(${blur}px)` : undefined };
 }

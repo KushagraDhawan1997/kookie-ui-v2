@@ -110,7 +110,7 @@ function Caret({ root, text, on }: { root: React.RefObject<HTMLDivElement | null
   return <span style={{ position: "absolute", left: box.x, top: box.y, width: 1.5, height: box.h, background: "var(--accent-solid)", borderRadius: 1, zIndex: 2 }} />;
 }
 
-function Chat({ f }: { f: number }) {
+export function Chat({ f }: { f: number }) {
   const card = React.useRef<HTMLDivElement>(null);
   const sent = f >= T.sent;
   const status = !sent ? "ready" : f < T.stepsLive + 6 ? "submitted" : f < T.replyEnd ? "streaming" : "ready";
@@ -202,7 +202,7 @@ function PersonRow({ initials, name, email, role, chip, line }: { initials: stri
   );
 }
 
-function Members({ f }: { f: number }) {
+export function Members({ f }: { f: number }) {
   const kit = ramp(f, T.kit, T.kit + 20, out);
   const chip = useSpring(f, T.kit + 14, { damping: 12, stiffness: 180 });
   const glow = ramp(f, T.kit + 4, T.kit + 20) * (1 - ramp(f, T.kit + 50, T.kit + 95));
@@ -269,7 +269,7 @@ const PLANS = [
   ["scale", "Scale", "SSO, audit log, dedicated region.", "$60 / seat"],
 ] as const;
 
-function Plan({ f }: { f: number }) {
+export function Plan({ f }: { f: number }) {
   const seats = lerp(12, 13, ramp(f, T.seats, T.seats + 24, out));
   const shown = Math.round(seats);
   const loading = f >= T.update + 2 && f < T.update + 30;
@@ -319,7 +319,7 @@ function Plan({ f }: { f: number }) {
   );
 }
 
-function Deploy({ f }: { f: number }) {
+export function Deploy({ f }: { f: number }) {
   const started = f >= T.deploy;
   const p = ramp(f, T.deploy + 6, T.live - 6, (t) => t);
   const live = f >= T.live;
@@ -383,6 +383,7 @@ function camera(f: number) {
     [T.deploy + 10, gx(40.5)],
     [T.live - 10, gx(44.5)],
     [T.end, gx(44.8)],
+    [T.end + 60, gx(36.5)],
   ]);
   const y = track(f, [
     [0, 548],
@@ -392,6 +393,7 @@ function camera(f: number) {
     [T.pan + 120, 390],
     [T.live - 10, 380],
     [T.end, 380],
+    [T.end + 60, 405],
   ]);
   const s = track(f, [
     [0, 1.6],
@@ -403,13 +405,14 @@ function camera(f: number) {
     [T.deploy + 10, 1.02],
     [T.live - 10, 1.18],
     [T.end, 1.22],
+    [T.end + 60, 1],
   ]);
   return { x, y, s };
 }
 
 /** The script is written at a reading pace; the film plays it this much faster. */
 const SPEED = 1.35;
-export const ACT1_FRAMES = Math.ceil(T.end / SPEED);
+export const ACT1_FRAMES = Math.ceil((T.end + 60) / SPEED);
 
 export function Act1() {
   const f = useCurrentFrame() * SPEED;
