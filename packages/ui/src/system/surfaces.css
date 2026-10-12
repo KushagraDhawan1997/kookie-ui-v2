@@ -360,10 +360,11 @@
 .kui-shell::after {
   --kui-corner-k: 0.876;
 }
-/* And the row-hugging pane keeps its own relationship: 1.75 / 1.841 = 0.950, the same bite
-   match applied to the bump, so panel and rows stay in the proportion they were judged in. */
+/* And the row-hugging pane keeps its own relationship: the squircle bump over the same 1.841
+   (2.25 / 1.841 = 1.222, the bite match applied to the bump), so a menu on an engine without
+   corner-shape is as much rounder than a card as it is where the squircle paints. */
 .kui-surface.kui-floating-rows {
-  --kui-corner-k: 0.950;
+  --kui-corner-k: 1.222;
 }
 
 @supports (corner-shape: squircle) {
@@ -400,9 +401,13 @@
      and it was written on `.kui-floating`, which says where a pane sits. With the concentric
      arm re-keyed and this one left behind, a popover's corner still came out 42 / 56 / 70 / 84
      against a Card's 38.7 / 51.6 / 64.5 / 77.4 — the same raw band multiplied by 1.75 instead
-     of 1.613. Two facts about rows were riding one class; both now say rows. */
+     of 1.613. Two facts about rows were riding one class; both now say rows.
+
+     2.25 SINCE 2026-09-23 (Kushagra: "menu needs even more squircle corners"): a size-2 menu's
+     corner went 47.25 → 60.75px, next to a size-3 card's 64.5. The first row still clears the
+     curve — at 12px down a 60.75px squircle has come in 7.6px, against a row starting 12px in. */
   .kui-surface.kui-floating-rows {
-    --kui-corner-k: 1.75;
+    --kui-corner-k: 2.25;
   }
 }
 
@@ -472,7 +477,13 @@
   --kui-nest: calc(var(--radius-surface-4) * var(--kui-corner-k, 1) - var(--surface-p-4));
 }
 :is(.kui-card, .kui-ground) :is(.kui-card, .kui-ground) {
-  --kui-sf-r: min(var(--kui-nest), calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1)));
+  /* The fallback is the pane's own corner, so an element in between that states `--kui-nest:
+     initial` — a stage that CENTRES its subject far from every wall, where the concentric
+     premise does not hold — hands the inner pane its own corner back. */
+  --kui-sf-r: min(
+    var(--kui-nest, calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1))),
+    calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1))
+  );
 }
 
 /* ── The FLOATING pane's size join (§22, Kushagra 2026-08-09) ────────────────────────────────
@@ -520,48 +531,57 @@
    same anchor the group label takes (§21). A slotted row's text starts one correction further in
    by design; that is the reserved-gutter fact, not a second alignment. */
 /* ── The PANEL band (§10, §22, §23 — 2026-09-07) ────────────────────────────────────────────
-   A floating pane is a surface SMALLER than a card, and until now the library had no inset that
-   said so: a popover fell through to the card band and padded a small panel like a document
-   (24px at the resting index), while every pane hugging rows took one flat 4. Kushagra: "we need
-   a spacing scale for surfaces that are smaller than cards… command seems to need more, and
-   popover seems to need less." The values are the command palette's own search bar, judged by
-   eye two days earlier and promoted rather than re-invented — 8 / 12 / 16 / 24 at the resting
-   density, between the two answers that already existed.
+   A pane of ROWS is a surface smaller than a card, and until now the library had no inset that
+   said so: every pane hugging rows took one flat 4. Kushagra: "we need a spacing scale for
+   surfaces that are smaller than cards… command seems to need more, and popover seems to need
+   less." The values are the command palette's own search bar, judged by eye two days earlier and
+   promoted rather than re-invented — 8 / 12 / 16 / 24 at the resting density, between the two
+   answers that already existed.
+
+   THE POPOVER HALF OF THAT SENTENCE WAS REVERSED 2026-09-22 (see below); the band is what the
+   other panes on it kept.
 
    `--kui-panel-p` CARRIES THE RING CLEARANCE, so the rule "a clipping pane must pad at least the
    ring's reach" is stated once here instead of in three component sheets that each spelled the
    same `max()` (menu, select, command). Every one of these panes clips, and the smallest rung at
    compact density lands exactly ON the reach, so the floor is live rather than decorative.
 
-   TWO LAYERS, settled by RANK and never by file order. This rule sets the pane's inset for a
-   floating pane that holds CONTENT — a popover; the rows join below is one step more specific and
-   re-points it for a pane that hugs rows, which is also where a component's own hook is consulted.
-   A menu wears both classes, and takes the rows join because it is the more specific claim. */
-.kui-surface.kui-floating {
-  --kui-sf-p: var(--kui-panel-p);
-}
-.kui-surface.kui-floating[data-size="1"],
+   TWO LAYERS, settled by RANK and never by file order. The rows join below is one step more
+   specific and re-points the inset for a pane that hugs rows, which is also where a component's
+   own hook is consulted. A menu wears both classes, and takes the rows join because it is the
+   more specific claim.
+
+   A POPOVER IS NOT ON THIS BAND (2026-09-22, Kushagra: "we gave Popover the same padding as
+   Dropdown Menu, I feel that was a mistake — it probably needs more, same as cards like it was
+   before"). It was on it from 2026-09-07, and measured the band put its inset on the MENU's
+   number exactly — 12px at the resting index for both — which is the thing he read off the
+   screen. The criterion is the one this file already uses for the corner two blocks up: a pane
+   that hugs rows derives its geometry from the rows, and a pane holding CONTENT the system did
+   not design has nothing to derive from, so it is a card. Both halves of its box now come from
+   one place again, the base surface join.
+
+   The band stays for the panes that asked for it: the palettes and menus that hug rows, the
+   attachment tile, the composer and the notice. There is no `.kui-floating` arm left, because
+   the two panes wearing that class without `-rows` are a popover, which is a card, and a
+   tooltip, which states its own pair. */
 .kui-surface.kui-floating-rows[data-size="1"],
 .kui-surface.kui-attachment[data-size="1"],
 .kui-surface.kui-composer[data-size="1"],
 .kui-surface.kui-notice[data-size="1"] {
   --kui-panel-p: max(var(--panel-p-1), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
 }
-.kui-surface.kui-floating[data-size="2"],
 .kui-surface.kui-floating-rows[data-size="2"],
 .kui-surface.kui-attachment[data-size="2"],
 .kui-surface.kui-composer[data-size="2"],
 .kui-surface.kui-notice[data-size="2"] {
   --kui-panel-p: max(var(--panel-p-2), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
 }
-.kui-surface.kui-floating[data-size="3"],
 .kui-surface.kui-floating-rows[data-size="3"],
 .kui-surface.kui-attachment[data-size="3"],
 .kui-surface.kui-composer[data-size="3"],
 .kui-surface.kui-notice[data-size="3"] {
   --kui-panel-p: max(var(--panel-p-3), calc(var(--focus-ring-width) + var(--focus-ring-offset)));
 }
-.kui-surface.kui-floating[data-size="4"],
 .kui-surface.kui-floating-rows[data-size="4"],
 .kui-surface.kui-attachment[data-size="4"],
 .kui-surface.kui-composer[data-size="4"],
@@ -2055,9 +2075,9 @@
 .kui-surface:where([data-material="thick"])::before {
   background: var(--material-thick-glint);
 }
-/* The floating trim, mirrored: a menu's glint dims exactly as its ring does. */
+/* The floating trim, mirrored: a menu's glint is trimmed exactly as its ring is. */
 .kui-surface.kui-floating:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before {
-  opacity: calc(var(--material-ring-opacity, 1) * var(--kui-glint-on, 0) * 0.6);
+  opacity: calc(var(--material-ring-opacity, 1) * var(--kui-glint-on, 0) * var(--material-floating-trim, 1));
 }
 
 /* ── QUIET PAINT ON GLASS IS ALPHA, NOT PIGMENT (§10, lab 2026-08-15, ported 2026-08-17) ──
@@ -2341,10 +2361,11 @@
     --kui-sf-fill: var(--material-thick-fill-floating);
   }
 }
-/* A menu is small and dense — the pane's full flare reads as costume on it (lab
-   2026-08-14). Same ring, at 60%: jewelry, not headline. */
+/* The floating trim, per MODE (config `floatingTrim`): dark keeps the lab's 60% — a menu is
+   small and dense, and the pane's full flare read as costume on it — and light takes the whole
+   lip, which has to work against a near-white pane. */
 .kui-surface.kui-floating:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after {
-  opacity: calc(var(--material-ring-opacity, 1) * 0.6);
+  opacity: calc(var(--material-ring-opacity, 1) * var(--material-floating-trim, 1));
 }
 
 /* The reduced-transparency seal, restated at the floating fills' own weight (audit

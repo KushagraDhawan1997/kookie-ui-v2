@@ -65,7 +65,7 @@ export const SECTIONS: readonly Section[] = [
     id: "foundations",
     title: "Foundations",
     blurb:
-      "These chapters cover colour, type, space, size, material, depth and motion. Every other decision in the system is built from these seven.",
+      "These chapters explain the values that every component is built from, such as colour, type, layout, size, depth and states.",
   },
   {
     id: "patterns",
@@ -126,7 +126,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Principles",
     section: "start",
     blurb:
-      "Kookie prioritises correctness over ease of adoption. While some interface questions have measurable answers, others rely on design judgment. Kookie applies measurements automatically and centralises every decision to ensure your screens remain consistent.",
+      "Kookie applies measured limits for you and makes each design judgment in one place, so your screens stay consistent as your app grows.",
     spec: [
       "THESIS §1",
       "THESIS §2",
@@ -144,7 +144,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Vocabulary",
     section: "start",
     blurb:
-      "Kookie uses a small set of categories to define components. A component's category determines which props it accepts. If a component lacks a prop you expect, its category usually explains why.",
+      "Learn the categories that Kookie sorts its components into. A component's category determines which props it accepts, and it explains why a prop you expect is missing.",
     spec: ["THESIS §2", "THESIS §3", "§9", "§10", "§11"],
     source: "start/vocabulary.mdx",
     Content: Vocabulary,
@@ -164,7 +164,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Theming",
     section: "start",
     blurb:
-      "A Theme sets eight values for your whole app. They control the material of the app, the density of its spacing, and whether its surfaces cast shadows.",
+      "A Theme sets eight values for your whole app, such as light or dark mode, corner radius, spacing and shadows. You can nest a Theme to change one region.",
     spec: ["§5", "§12"],
     source: "start/theming.mdx",
     Content: Theming,
@@ -190,7 +190,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "AI agents",
     section: "start",
     blurb:
-      "An AI agent writes good code with this library when it knows which props and values the library does not accept. Turn on the compiler messages, the lint rules, the rules file and the MCP server. Then check the output of the agent against the composition rules.",
+      "An AI agent writes good code with this library when it knows which props and values the library does not accept. Turn on the tools that tell it, then check its output against the composition rules.",
     spec: ["§47", "§48"],
     source: "start/agents.mdx",
     Content: Agents,
@@ -231,7 +231,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Size",
     section: "foundations",
     blurb:
-      "Every size prop is an index, not a measurement. The same number means different things on a button, a card and a heading.",
+      "Every size prop picks a step, not a measurement. The theme decides what each step is worth on a button, a card or a heading.",
     spec: ["§4", "§16"],
     source: "foundations/size.mdx",
     Content: SizeChapter,
@@ -342,7 +342,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Feedback",
     section: "patterns",
     blurb:
-      "An interface tells you four things about its own work: it is busy, it has made progress, it finished, or it failed. Each one has one correct answer.",
+      "An interface tells you four things about its own work: it is busy, it has made progress, it finished, or it failed. This chapter shows the right way to show each one.",
     spec: ["§11", "§8"],
     source: "patterns/feedback.mdx",
     Content: Feedback,

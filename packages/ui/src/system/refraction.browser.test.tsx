@@ -34,12 +34,12 @@ import {
   bendAt,
   fitLens,
   glintMap,
-  lens,
+  lensFamily,
   cornerExponent,
   floatingFrost,
   physicalMap,
   type LensParams,
-  type LensThickness,
+  type LensScale,
 } from "./refraction.tsx";
 
 /* ── the oracle: the 2026-08-23 generator, frozen ──────────────────────────────────────── */
@@ -81,7 +81,7 @@ function oracleMap(w: number, h: number, r: number, p: LensParams): { url: strin
       const i = y * w + x;
       const inside = -sd(x + 0.5, y + 0.5, w, h, r);
       if (inside < 0 || inside > bezel) continue;
-      const mag = bendAt(inside / bezel, bezel, thickness, p.ior);
+      const mag = bendAt(inside / bezel, bezel, thickness, p.ior, p.profile);
       const gx = sd(x + 1.5, y + 0.5, w, h, r) - sd(x - 0.5, y + 0.5, w, h, r);
       const gy = sd(x + 0.5, y + 1.5, w, h, r) - sd(x + 0.5, y - 0.5, w, h, r);
       const gl = Math.hypot(gx, gy) || 1;
@@ -150,18 +150,18 @@ const BOXES: [number, number, number][] = [
   [319, 317, 60],
   [320, 320, 160],
 ];
-const RUNGS = Object.keys(lens) as LensThickness[];
+const FAMILIES = Object.keys(lensFamily) as LensScale[];
 
 describe("the assembled generator is byte-identical to the frozen 2026-08-23 oracle (§10)", () => {
-  it("the displacement map: every box, every rung, to the last byte", () => {
+  it("the displacement map: every box, every family, to the last byte", () => {
     const before = { a: __genPaths.analytic, b: __genPaths.banded };
     for (const [w, h, r] of BOXES) {
-      for (const rung of RUNGS) {
-        const p = lens[rung];
+      for (const family of FAMILIES) {
+        const p = lensFamily[family];
         const ours = physicalMap(w, h, r, p);
         const ref = oracleMap(w, h, r, p);
-        expect(ours.max, `max diverges at ${w}x${h} r${r} ${rung}`).toBe(ref.max);
-        expect(ours.url === ref.url, `pixels diverge at ${w}x${h} r${r} ${rung}`).toBe(true);
+        expect(ours.max, `max diverges at ${w}x${h} r${r} ${family}`).toBe(ref.max);
+        expect(ours.url === ref.url, `pixels diverge at ${w}x${h} r${r} ${family}`).toBe(true);
       }
     }
     // The coverage guard: a sweep that never left one path proves nothing about the other.
@@ -172,7 +172,7 @@ describe("the assembled generator is byte-identical to the frozen 2026-08-23 ora
   it("the glint mask: every box, both corner exponents, two feathers, to the last byte", () => {
     const before = { a: __genPaths.glintAnalytic, b: __genPaths.glintBanded };
     for (const [w, h, r] of BOXES) {
-      const fit = fitLens(lens.regular, Math.min(w, h));
+      const fit = fitLens(lensFamily.pane, Math.min(w, h));
       if (!fit) continue;
       const band = Math.max(1, fit.bezel * glint.band);
       for (const k of [2, 4]) {
@@ -189,7 +189,7 @@ describe("the assembled generator is byte-identical to the frozen 2026-08-23 ora
 
   it("a box with no room still answers empty, exactly as before", () => {
     // fitLens is null at 5px; the generator must return the empty result, not a degenerate map.
-    expect(physicalMap(5, 5, 0, lens.regular)).toEqual({ url: "", max: 0 });
+    expect(physicalMap(5, 5, 0, lensFamily.pane)).toEqual({ url: "", max: 0 });
   });
 });
 
@@ -206,7 +206,7 @@ describe("the bend points inward (§10)", () => {
   it("every edge of the map samples from inside the pane", async () => {
     const W = 240;
     const H = 160;
-    const { url } = physicalMap(W, H, 16, lens.regular);
+    const { url } = physicalMap(W, H, 16, lensFamily.pane);
     const img = new Image();
     img.src = url;
     await img.decode();
@@ -265,7 +265,7 @@ describe("each corner is built on its own radius, not on the first one", () => {
   it("a scalar and four equal corners are the SAME map — the identity the oracle assumes", () => {
     // The bridge between the oracle's spelling and the one the hook now passes. Without it,
     // "byte-identical" is a claim about a call signature nothing in the package uses any more.
-    const p = lens.regular;
+    const p = lensFamily.pane;
     expect(physicalMap(W, H, 24, p).url).toBe(physicalMap(W, H, [24, 24, 24, 24] as const, p).url);
     expect(glintMap(W, H, 24, BAND, glint.falloff, 2)).toBe(
       glintMap(W, H, [24, 24, 24, 24] as const, BAND, glint.falloff, 2),
@@ -298,7 +298,7 @@ describe("each corner is built on its own radius, not on the first one", () => {
     // The lens half of the same defect. Stated separately because the two maps are two
     // generators: the glint's is an alpha and the displacement's carries a sign, and the repair
     // had to land in both.
-    const p = lens.regular;
+    const p = lensFamily.pane;
     const mixed = physicalMap(W, H, [64, 64, 0, 0] as const, p).url;
     expect(mixed, "the bend mirrored the first corner").not.toBe(physicalMap(W, H, 64, p).url);
     expect(mixed, "the bend mirrored the last corner").not.toBe(physicalMap(W, H, 0, p).url);
@@ -554,7 +554,7 @@ describe("the lens bends the corner the box paints, not a circle standing in for
   it("and the exponent is what makes the two maps differ at all", () => {
     // The vacuity guard the ranking above needs: if the generator answered one map for both
     // corners, every clause up there would be true of a lens that ignores the box entirely.
-    const p = lens.regular;
+    const p = lensFamily.pane;
     const circular = physicalMap(320, 160, 64, p, 2);
     const squircular = physicalMap(320, 160, 64, p, 4);
     expect(circular.url, "the generator answers one map for both corners").not.toBe(squircular.url);
@@ -603,18 +603,17 @@ describe("the corner exponent is read off any spelling of corner-shape", () => {
 /**
  * A FLOATING PANE CARRIES THE SCRIM'S BLUR ITSELF (§10, 2026-09-21, Kushagra: dialogs and the
  * command palette "get the perfect look" because of the blurry scrim; "menus and popover should
- * have that. Buttons and controls are good as they are").
+ * have that"). Since 2026-09-23 it is the ONLY blur a lens applies, and its amount is the rung's
+ * (`floatingFrost`: "Even the blur needs to be less for thin").
  *
- * Both halves in one fixture, under one Theme, on boxes big enough that neither lip clamps —
- * so the two filters differ in the ONE thing the law is about. The card is the negative
- * control: a rule that added the frost to every pane passes the first assertion and fails the
- * second.
+ * Both halves in one fixture, under one Theme. The card is the negative control: a rule that gave
+ * every pane the frost passes the first assertion and fails the second.
  */
-describe("a floating pane adds the scrim's blur to its lens, and nothing else does (§10)", () => {
+describe("a floating pane's lens blurs by the rung's frost, and nothing else blurs (§10)", () => {
   const blurOf = lensBlurOf;
 
   for (const material of GLASS_MATERIALS) {
-    it(`${material}: the popover's lens blurs by the rung plus the frost, the card's by the rung`, async () => {
+    it(`${material}: the popover's lens blurs by the frost, the card's by nothing`, async () => {
       const box = { inlineSize: "24rem", blockSize: "16rem" };
       render(
         <Theme material={material}>
@@ -638,38 +637,59 @@ describe("a floating pane adds the scrim's blur to its lens, and nothing else do
       expect(popup.classList.contains("kui-floating")).toBe(true);
       expect(card.classList.contains("kui-floating")).toBe(false);
 
-      expect(blurOf(card)).toBeCloseTo(lens[material].blur, 5);
-      expect(blurOf(popup)).toBeCloseTo(lens[material].blur + floatingFrost[material], 5);
+      expect(blurOf(card)).toBe(0);
+      expect(blurOf(popup)).toBeCloseTo(floatingFrost[material], 5);
+      // And the blur runs on the SOURCE, BEFORE the bend (the mirror pass, 2026-09-21): the chain
+      // is `lens, then filter`, so a blur after the displacement erases the lip it paid for.
+      const id = getComputedStyle(popup).backdropFilter.match(/url\("?#([^")]+)/)![1]!;
+      const graph = [...document.getElementById(id)!.children];
+      const soften = graph.findIndex((n) => n.tagName === "feGaussianBlur" && n.getAttribute("in") === "SourceGraphic");
+      const bend = graph.findIndex((n) => n.tagName === "feDisplacementMap");
+      expect(soften, "the popover's lens blurs after it bends").toBeLessThan(bend);
+      expect(graph[bend]!.getAttribute("in"), "the popover bends the unblurred source").toBe(graph[soften]!.getAttribute("result"));
     });
   }
+});
 
-  it("a small surface blurs like a large one, and a control blurs less than either", async () => {
-    // The command palette's search pill beside its results pane (2026-09-21, "rn it seems 50%
-    // of it"): two panes of one material, one 50px tall. The fixture's small card is short
-    // enough that its lip CLAMPS — on a box where it did not, scaling the blur by the fitted
-    // lip and not scaling it give the same number, and the law could not tell them apart.
+/**
+ * THE LENS IS THE COMPONENT'S, NOT THE RUNG'S (§10, 2026-09-23, Kushagra: "Controls and components
+ * need different varying of refraction 'distance', not glass thickness"). The rung is how much of
+ * the backdrop comes through; the bend is the shape of the piece of glass. Read on MOUNTED panes:
+ * two cards of one size, one thin and one thick, must wear the same filter — the lens cache mints
+ * one per distinct (box, shape), so a rung that reached the shape would mint a second.
+ *
+ * The calibration is the half that makes it a law: a card of ANOTHER size must get a different
+ * filter, or "the same id" could be true of every pane on the page.
+ */
+describe("a thin and a thick pane bend alike (§10)", () => {
+  it("two cards of one size share one lens across the rungs, and a different box does not", async () => {
+    const box = { inlineSize: "20rem", blockSize: "12rem" };
     render(
-      <Theme material="regular">
-        <Card backdrop data-t="big" style={{ inlineSize: "24rem", blockSize: "16rem" }}>
-          pane
-        </Card>
-        <Card backdrop size="1" data-t="small" style={{ inlineSize: "24rem", blockSize: "3rem" }}>
-          pill
-        </Card>
-        <Button backdrop data-t="ctl">
-          Save
-        </Button>
-      </Theme>,
+      <>
+        <Theme material="thin">
+          <Card backdrop data-t="thin" style={box}>
+            pane
+          </Card>
+        </Theme>
+        <Theme material="thick">
+          <Card backdrop data-t="thick" style={box}>
+            pane
+          </Card>
+          <Card backdrop data-t="other" style={{ inlineSize: "14rem", blockSize: "9rem" }}>
+            pane
+          </Card>
+        </Theme>
+      </>,
     );
     const at = (t: string) => document.querySelector<HTMLElement>(`[data-t="${t}"]`)!;
-    const lensed = (el: Element) => /url\(/.test(getComputedStyle(el).backdropFilter);
-    expect(await until(() => ["big", "small", "ctl"].every((t) => lensed(at(t)))), "a member never took its lens").toBe(true);
-    // The premise: the small card's lip really is clamped by its box.
-    const short = at("small").getBoundingClientRect().height;
-    expect(fitLens(lens.regular, short)!.bezel, "the fixture's small pane does not clamp").toBeLessThan(lens.regular.bezel);
-
-    expect(blurOf(at("small"))).toBeCloseTo(blurOf(at("big")), 5);
-    expect(blurOf(at("ctl"))).toBeLessThan(blurOf(at("big")));
-    expect(blurOf(at("ctl"))).toBeGreaterThan(0);
+    const lensId = (el: Element) => getComputedStyle(el).backdropFilter.match(/url\("?#([^")]+)/)?.[1];
+    expect(await until(() => ["thin", "thick", "other"].every((t) => lensId(at(t)))), "a card never took its lens").toBe(true);
+    // The premise: the two really are different rungs.
+    expect(at("thin").dataset["material"]).toBe("thin");
+    expect(at("thick").dataset["material"]).toBe("thick");
+    expect(lensId(at("thin")), "the rung reached the lens").toBe(lensId(at("thick")));
+    expect(lensId(at("other")), "every pane shares one filter — the instrument cannot tell lenses apart").not.toBe(
+      lensId(at("thick")),
+    );
   });
 });

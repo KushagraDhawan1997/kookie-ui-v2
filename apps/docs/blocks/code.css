@@ -183,6 +183,12 @@
 
    It stays legible over the code because it is GLASS, which is the arrangement §10 exists for:
    a floating control over content that passes behind it. */
+/* The stage centres its subject far from the ground's walls, so the concentric corner (§6) has
+   no corner to be concentric with. Cleared here, a Card or Surface on the stage wears its own. */
+.kd-figure-stage {
+  --kui-nest: initial;
+}
+
 .kd-figure-chrome {
   padding: var(--kd-chrome-p);
   /* In flow above the paper (iteration, 2026-09-20): reaches the ground's top and side walls,

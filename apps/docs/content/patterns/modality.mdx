@@ -1,71 +1,67 @@
-Kookie has five ways to put something in front of a person. You can change it inline, open a
-`Menu`, open a `Popover`, open a `Dialog`, or show an `AlertDialog`. Each one interrupts more
-than the one before it. Use the one that interrupts least and still does the job.
+Kookie gives you several ways to put something in front of a person: change it inline, open a
+`Menu`, open a `Popover`, open a `Dialog` or a `Sheet`, or show an `AlertDialog`. Each one
+interrupts more than the one before it. Pick the one that interrupts the least and still does
+the job.
 
-## The five levels
+## From least to most interrupting
 
-This list starts with the level that interrupts least:
+- **Inline.** Change the thing where it is: an error under the field that caused it, a switch
+  that takes effect straight away, a row that expands. Nothing is covered, and nobody loses their
+  place.
+- **A menu.** Use `Menu` for a short list of actions and `Select` for a list of values. A menu
+  covers a small area next to its trigger and closes on Escape, on a press outside it, or when
+  you choose an item. Everything around it stays readable.
+- **A popover.** A `Popover` also covers a small area next to its trigger, but it holds whatever
+  you put in it, such as a filter form, a date picker or a few lines of detail. **The page stays
+  live.** Nothing dims, focus isn't trapped, and a person can keep working around it.
+- **A dialog or a sheet.** A `Dialog` dims the whole app and traps focus until it closes. Use it
+  for work that needs room away from the page. A `Sheet` behaves the same way, but it stands against
+  the bottom or the side of the window instead of sitting in the middle, and a person can swipe
+  it away on a touch screen.
+- **An alert.** An `AlertDialog` covers the app like a dialog, and a person can't leave it
+  without answering.
 
-- **Inline.** Change the thing where it is. Examples are an error under the field that caused
-  it, a switch that takes effect immediately, and a row that expands. Nothing covers anything,
-  and nobody loses their place.
-- **A menu.** Use `Menu` for a short list of actions. Use `Select` for a list of values. A menu
-  covers a small rectangle. It closes on Escape, on a press outside it, or when you choose an
-  item. Everything under it stays readable.
-- **A popover.** `Popover` covers a small rectangle, like a menu. It holds the content that you
-  put in it: a filter form, a date picker or a short piece of detail. **The page stays live.**
-  Nothing dims, focus is not trapped, and you can continue to work around it. A small form goes
-  in a popover, not in a dialog.
-- **A dialog.** `Dialog` dims the whole app and traps focus. Use it for work that needs space
-  away from the page.
-- **An alert.** `AlertDialog` covers the app in the same way. A person cannot leave it without
-  an answer.
-
-`Tooltip` is not on this list. It interrupts nothing, and it cannot contain anything of its
-own. It repeats the name that a control already announces. It shows only to a pointer that
-rests on the control. Information that shows only in a tooltip never gets to a keyboard user or
-a touch user.
-
-`Sheet` belongs on this list, but it has not shipped yet. Until it ships, use a `Dialog`. Keep
-any temporary replacement that you build in one file. Then you have one place to change when
-`Sheet` ships.
+`Tooltip` isn't on this list, because it interrupts nothing and holds nothing of its own. It
+shows the name of a control when a pointer rests on it, and screen readers never hear it. Touch
+screens have no hover, so a touch user never sees it either. Never put information in a tooltip
+that isn't also somewhere else.
 
 ## Choosing between a popover and a dialog
 
-Both cover a part of the screen, and both hold content that you wrote. The question is not how
-much content you have. The question is whether the rest of the app must continue to work.
+Both hold content you wrote, so the question isn't how much content there is. The question is
+whether the rest of the app needs to keep working while the panel is open.
 
-A popover lets the app continue to work. The page behind it is live. You can read the row that
-opened it, scroll, or click somewhere else to close it. Use a popover when the panel is about
-something on the page. Examples are filters over a list, a picker next to the field that it
-fills, and detail about the item that you pressed.
+With a popover, it does. The page behind it stays live: a person can read the row that opened
+it, scroll, or click somewhere else to close it. Use a popover when the panel is about something
+on the page, such as filters over a list, a picker next to the field it fills, or details about
+the item that was pressed.
 
-A dialog stops the app. It dims everything and traps focus. This is correct when the panel is
-the task and the page behind it is only context. Use a dialog when a person loses work if they
-leave halfway. Also use it when the content needs more space than a panel next to a trigger
-can have.
+A dialog stops the app. It dims everything and traps focus, which is right when the panel is the
+task and the page behind it is only context. Use a dialog when someone would lose work by leaving
+halfway, or when the content needs more room than a panel next to a button can give it.
 
-Sometimes you put a small form in a dialog only because you know the dialog component. In that
-case, use a popover.
+If you're reaching for a dialog only because it's the component you know, and the content is a
+small form, use a popover instead.
 
 ## Choosing between a dialog and an alert
 
-The two panels look almost the same. They are two different things.
+The two panels look almost the same, but they do different jobs.
 
-A dialog holds your work. You opened it. It contains a form, a picker or a document. You can
-leave it the same way that you came in.
+A dialog holds work that a person opened on purpose: a form, a picker or a document. They can
+leave it the same way they came in.
 
-An alert stops you with a question. It possibly has no trigger. Something opened it because a
-decision must happen before anything else can happen.
+An alert stops a person with a question. Something opened it because a decision has to be made
+before anything else can happen, and it may have no trigger at all.
 
-One rule separates them: **if a panel needs any control other than its two buttons, it is a
-Dialog.** A type-to-confirm field, a checkbox or a form of any size makes it a dialog. With
-these controls, the panel holds work and not a choice.
+One rule separates them: **if the panel needs any control besides its two buttons, it's a
+`Dialog`.** A type-to-confirm field, a checkbox or a form of any size turns the panel into work
+rather than a choice.
 
-## An alert owns its own content
+## Writing an alert
 
-The contents of an alert are fixed. It has a title, a description, a cancel button and an
-action button, in that order. The component sets the layout.
+An alert always has the same four parts, in the same order: a title, a description, a cancel
+button and an action button. Put them directly inside `AlertDialogContent`, and the component
+lays them out for you.
 
 ```tsx
 <AlertDialog>
@@ -81,67 +77,55 @@ action button, in that order. The component sets the layout.
 </AlertDialog>
 ```
 
-On an alert, `size` sets everything. It sets the box, the corner, the padding, both text sizes
-and both buttons. The system made all of that content, so the system sets its size.
+Write the cancel button first. That order puts it at the start of the row, flips it correctly in
+right-to-left languages, and gives it focus when the alert opens, because focus goes to the first
+button.
 
-On a `Dialog`, `size` sets the box. It also sets the two parts that the system owns:
-`DialogTitle` and `DialogDescription`. It never changes the content that you wrote. The system
-does not set the size of text that it does not own.
+`AlertDialogAction` is loud by default, because an alert has exactly one action. Put the tone on
+the action button, never on the panel, so the destructive button is the only red thing in the
+alert.
 
-Write the cancel button first. That order decides focus. The cancel button is first in reading
-order and at the start of the row. It also moves correctly for a right-to-left language, with
-no extra work. It gets focus because it is the first item in the tab order. So the document
-order selects the safe answer for you.
+## How size works on each panel
 
-## Why a dialog casts no shadow
+On an `AlertDialog`, `size` sets everything: the width, the padding, the corner, both text sizes
+and both buttons. The system writes all of that content, so it sets all of its sizes.
 
-The dialog panel does not cast a shadow. A floating element must show what it covers. A dialog
-shows this when it darkens the whole window. A shadow under the panel would give the same
-information again.
-
-The panel keeps the usual card appearance for the current depth setting. It is raised in a
-raised theme, and flat in a flat theme.
-
-Under high contrast, and for a person who asks for reduced transparency, the dark background
-changes in one way. It gets more colour and no blur.
-
-## Focus and getting out
-
-Both panels trap focus while they are open. When they close, they return focus to where it came
-from. So keyboard focus never goes out of the layer, and it always has a place to go after it
-closes.
-
-Neither panel takes a prop for initial focus. The content of the panel decides where focus
-goes. For the same reason, the alert puts the cancel button first in its tab order.
-
-A dialog closes on Escape, on a press outside it, and on any `DialogClose` that you add. An
-alert closes on Escape and on its two buttons only. **An alert does not close on a press
-outside it.** A click by accident must not answer a question about a deletion.
-
-Escape still closes an alert. For a keyboard user, Escape is a different way to cancel. Without
-Escape, a keyboard user can leave the panel only if they choose one of the answers.
-
-There is no close button in the corner. This is for the same reason that `Card` has no header
-slot: it is layout, not wiring. `DialogClose` puts a real button where your layout needs one. A
-screen reader user on a touch device needs that button to leave a trapped panel.
+On a `Dialog`, `size` sets the width, the padding and the corner, and the text size of
+`DialogTitle` and `DialogDescription`. It doesn't change anything you put in the dialog yourself,
+so set the size on your own text and controls. `Popover` works the same way, with
+`PopoverTitle` and `PopoverDescription`.
 
 ## Name the consequence
 
-Write what will happen. "Delete project" is better than "OK". If the safe answer has a name,
-"Keep it" is better than "Cancel". The description gives the consequence and its scope in as
-few words as possible.
+Label buttons with what will happen. "Delete project" is clearer than "OK", and when the safe
+answer has a natural name, "Keep it" can be clearer than "Cancel". Use the description to say
+what the action affects, in as few words as you can.
 
-Put the tone on the action button. Never put it on the panel. The alert stays neutral, and the
-destructive action is the only red item in it.
+## Focus and closing
 
-An alert holds exactly one action button. So a loud button is the correct default there. The
-fixed parts of the alert apply the rule of one loud action for you. Nobody has to remember it.
+A dialog, a sheet and an alert all trap focus while they're open, and return focus to where it
+came from when they close. Keyboard focus never escapes the panel, and it always has somewhere to
+go afterwards. None of them has a prop for initial focus: focus usually goes to the first control in
+the panel, which is why the order you write things in matters.
 
-## Anything that covers must show its edge
+A dialog closes on Escape, on a press outside it, and on any `DialogClose` you add. An alert
+closes on Escape and on its two buttons. **An alert doesn't close on a press outside it**,
+because an accidental click shouldn't answer a question about deleting something. Escape still
+works, and it does the same thing as the cancel button, so a keyboard user always has a way out.
 
-An element that covers part of the screen must show where it ends. In a raised theme, a menu
-casts a shadow. In a flat theme, it draws a thin line, because a flat theme draws every edge
-with a line. A dialog shows its edge with the dark background.
+There's no close button in the dialog's corner. Place a `DialogClose` wherever your layout needs
+one, usually as a `Button` in the row of actions. Keep one in every dialog, because a screen
+reader user on a touch device needs a button to leave a panel that traps focus.
 
-You do not make this decision in your code. No component takes a shadow prop. If you know the
-rule, you do not have to look for one.
+## Showing where a covering panel ends
+
+Anything that covers part of the screen has to show where it ends, and the theme handles that for
+you. In an elevated theme a menu or popover casts a shadow, and in a flat theme it draws a thin
+line around its edge instead.
+
+A dialog shows its edge by dimming the whole window behind it, so it adds no shadow of its own.
+The panel looks like an ordinary card: raised in an elevated theme and flat in a flat one. In
+high contrast mode, or when a person asks the system for reduced transparency, the dimmed
+background becomes darker and loses its blur.
+
+No component has a shadow prop, so you never make this decision in your code.

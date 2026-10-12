@@ -367,18 +367,17 @@ describe("an on-glass member states its lighting, it does not inherit the pane's
     return { pane: host, inner };
   }
 
-  it("its rim is the same recipe inside a thin pane and inside a thick one", () => {
+  it("a thin and a thick pane light alike, and so do their members", () => {
     const thin = nested("thin");
     const thick = nested("thick");
-    // THE CALIBRATION FIRST, because it is the whole reason the law can say anything: the two
-    // ANCESTORS must genuinely wear different rims. Pre-fix the inner panes differed by exactly
-    // this amount — a 19.04% bloom and a 13.6% sheen against 35.7% and 25.5% — because the
-    // unregistered `--kui-sf-light` reached them by inheritance and nothing declared it here.
-    expect(
-      computed(thin.pane, "background-image"),
-      "the two ancestor panes light identically — the fixture cannot see a leak",
-    ).not.toBe(computed(thick.pane, "background-image"));
-
+    // RE-KEYED 2026-09-23. The calibration here demanded that the two ANCESTORS wear different
+    // rims — true while the sheen rose with thickness (a 19.04% bloom and a 13.6% sheen against
+    // 35.7% and 25.5%), and exactly what the veil model deleted: the rung moves the veil and
+    // nothing else, so a thin pane and a thick one now light identically, and that is asserted
+    // rather than assumed. The leak this law was written for — the unregistered `--kui-sf-light`
+    // reaching a member by inheritance — is still caught by the law below, whose calibration
+    // holds: the pane there does not wear the solid recipe its member must.
+    expect(computed(thin.pane, "background-image"), "the rung reaches the rim").toBe(computed(thick.pane, "background-image"));
     expect(
       computed(thin.inner, "background-image"),
       "an on-glass member's lighting changes with an ancestor's thickness",

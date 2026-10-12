@@ -500,17 +500,17 @@ export function probeIn<T>(
  * Since 2026-09-21 a lensed pane's `backdrop-filter` carries no `blur()`: the chain runs the lens
  * first, so a stylesheet blur lands after the displacement and erases the bend. The blur is a
  * primitive inside the filter, on the source, and this is where a law about "how much does this
- * glass blur" has to look. Throws rather than answering 0: an element with no lens, or a lens
- * that does not blur its source, is an error in the fixture or the package, never a number.
+ * glass blur" has to look. Throws rather than answering 0 when there is NO LENS: that is an error
+ * in the fixture or the package, never a number. A lens with no source blur answers 0 — since
+ * 2026-09-23 only a floating pane's lens blurs at all, so a card's lens legitimately has none.
  */
 export function lensBlurOf(el: Element): number {
   const id = getComputedStyle(el).backdropFilter.match(/url\("?#([^")]+)/)?.[1];
   if (!id) throw new Error(`no lens on .${el.className}: ${getComputedStyle(el).backdropFilter}`);
-  const soften = [...(document.getElementById(id)?.children ?? [])].find(
-    (n) => n.tagName === "feGaussianBlur" && n.getAttribute("in") === "SourceGraphic",
-  );
-  if (!soften) throw new Error(`the lens on .${el.className} does not blur its source`);
-  return Number(soften.getAttribute("stdDeviation"));
+  const filter = document.getElementById(id);
+  if (!filter) throw new Error(`the lens id on .${el.className} resolves to no filter`);
+  const soften = [...filter.children].find((n) => n.tagName === "feGaussianBlur" && n.getAttribute("in") === "SourceGraphic");
+  return soften ? Number(soften.getAttribute("stdDeviation")) : 0;
 }
 
 export const tokenOn = (scope: Element, name: string): string =>

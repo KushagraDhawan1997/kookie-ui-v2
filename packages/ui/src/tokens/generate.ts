@@ -65,6 +65,8 @@ import {
   glassTransmitRows,
   glassInk,
   floatingDark,
+  floatingLight,
+  floatingTrim,
   shellWidth,
   shellGap,
   floatingChrome,
@@ -494,12 +496,10 @@ export function generateTokens(): string {
         // all paint under high contrast exactly as they do in standard: they are light
         // INSIDE the pane and cannot lower any boundary's contrast, and since 2026-08-24
         // the ring itself carries the pigment arcs that make it a boundary.
-        // Dark floating panes take the same defence as in-flow glass under HC (see the
-        // --material-*-alpha-floating emission).
-        if (mode === "dark") {
-          for (const t of ["thin", "regular", "thick"] as const) {
-            decls.push(decl(`material-${t}-alpha-floating`, `${material[mode][t].alphaHigh[0]}%`));
-          }
+        // Floating panes take the same defence as in-flow glass under HC, in BOTH modes (see
+        // the --material-*-alpha-floating emission).
+        for (const t of ["thin", "regular", "thick"] as const) {
+          decls.push(decl(`material-${t}-alpha-floating`, `${material[mode][t].alphaHigh[0]}%`));
         }
         // The scrim leans the way the glass does (§24): more pigment, and the defocus goes.
         // A blurred backdrop is a legibility AID for the app behind it and a legibility COST
@@ -1163,21 +1163,22 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
       decl(`material-${name}-region-alpha`, `${m[name].region.alpha}%`),
       decl(`material-${name}-region-filter`, m[name].region.filter),
       decl(`material-${name}-region-filter-frost`, m[name].region.frost),
-      // Dark FLOATING panes lighten (lab 2026-08-15): the veil lifts toward white. Light's
-      // floating veil is the in-flow veil verbatim, so the token exists in both modes and
-      // the floating rules stay mode-blind.
+      // FLOATING panes move away from their mode's ground: dark lifts toward white (lab
+      // 2026-08-15), light dims toward black (2026-09-21 — a white glint needs something
+      // under it, and a menu has no scrim to grey its backdrop). The token exists in both
+      // modes, so the floating rules stay mode-blind.
       decl(
         `material-${name}-fill-floating`,
         mode === "dark"
           ? `color-mix(in srgb, color-mix(in srgb, var(--color-surface) ${floatingDark.base}%, white) var(--material-${name}-alpha-floating), transparent)`
-          : `color-mix(in srgb, var(--color-surface) var(--material-${name}-alpha), transparent)`,
+          : `color-mix(in srgb, color-mix(in srgb, var(--color-surface) ${floatingLight.base}%, black) var(--material-${name}-alpha-floating), transparent)`,
       ),
       // Dark's floating alpha is its own token so contrast="high" can REACH it (audit
       // 2026-08-18: the dark floating veil was baked from literals, so HC strengthened
       // every in-flow pane and left the one actually covering live content at its standard
-      // alpha). Light needs no twin — its floating veil already reads --material-*-alpha,
-      // which the HC pass re-declares.
-      ...(mode === "dark" ? [decl(`material-${name}-alpha-floating`, `${floatingDark.alpha[name]}%`)] : []),
+      // alpha). Light has its own since 2026-09-21, for the same reason: its floating veil
+      // stopped reading --material-*-alpha the day it took a dim of its own.
+      decl(`material-${name}-alpha-floating`, `${(mode === "dark" ? floatingDark : floatingLight).alpha[name]}%`),
       // The RING: every thickness builds from the palette — the spectral fold is deleted
       // (2026-08-25; its blue arc read as a coloured hairline at 1px, and the band had
       // refused the same stops as pink haze the day before).
@@ -1243,6 +1244,7 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     decl("material-kbd-edge", glassInk[mode].kbdEdge),
     decl("material-kbd-ink", glassInk[mode].kbdInk),
     decl("material-ring-opacity", `${material.ring[mode].opacity}`),
+    decl("material-floating-trim", `${floatingTrim[mode]}`),
     decl("material-on-glass-alpha", `${material.onGlassAlpha}%`),
     "",
     `  /* the scrim (§10, §24) — the dialog backdrop's dim and blur, and NOT a member of the`,

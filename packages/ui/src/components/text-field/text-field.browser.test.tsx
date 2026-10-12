@@ -655,10 +655,11 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     // Flat: glass never floats — the cast AND the pool are no-op LAYERS (the pool rides the
     // world pointers since 2026-08-17: "flat means flat", so matter stands down with light).
     const noop = document.createElement("div");
-    // ONE no-op layer, not two, since the field left elevation (2026-08-17): the list is the
-    // pool alone now — the transmitted cast went with the flip — and in a flat world that one
-    // layer stands down to its `0 0 0 0 transparent` fallback.
-    noop.style.boxShadow = "0 0 0 0 transparent";
+    // TWO no-op layers again since 2026-09-23: a glass field is over content, so it casts the
+    // transmitted row with its pool (it kept the pool alone from 2026-08-17, when the field left
+    // elevation as a WELL — which a glass field over a photograph is not). In a flat world both
+    // layers stand down to their `0 0 0 0 transparent` fallback.
+    noop.style.boxShadow = "0 0 0 0 transparent, 0 0 0 0 transparent";
     glass.append(noop);
     expect(computed(glass, "box-shadow")).toBe(computed(noop, "box-shadow"));
     noop.remove();
@@ -666,11 +667,10 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     const elevated = mounted(<TextField backdrop />, { theme: { depth: "elevated", material: "thin" } });
     const solid = mounted(<TextField />, { theme: { depth: "elevated" } });
     const probe = document.createElement("div");
-    // The pool leads the transmitted rows in the ONE list (lab port 2026-08-17).
-    // The POOL ALONE (2026-08-17): a glass field keeps the shade settling inside the pane —
-    // matter — and no longer transmits the control row, which was elevation and left with the
-    // fourth flip. The solid twin below is what keeps this honest: it must not cast either.
-    probe.style.boxShadow = "var(--material-pool-control)";
+    // The pool leads the transmitted row in the ONE list (lab port 2026-08-17). The field kept
+    // the pool ALONE from 2026-08-17 to 2026-09-23 and casts again since: over content it is a
+    // small pane, not a well. The solid twin below keeps this honest: it must not cast at all.
+    probe.style.boxShadow = "var(--material-pool-control), var(--control-chrome-thin)";
     elevated.append(probe);
     expect(computed(elevated, "box-shadow")).toBe(computed(probe, "box-shadow"));
     expect(computed(elevated, "box-shadow")).not.toBe("none");
@@ -744,27 +744,18 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
       const dead = mounted(<TextField backdrop disabled />, {
         theme: { depth: "elevated", material },
       });
-      // THE LIVE HALF INVERTED 2026-08-17: the field family left elevation, so a glass field
-      // no longer transmits a cast either — what survives on glass is the POOL, the shade
-      // settling inside the pane, which is matter rather than lift. So `live` is a no-op list
-      // too, and the claim this law still owns is the one it was written for: the disabled arm
-      // must reach the glass path at all, which the flat arm above cannot prove.
-      // A glass field casts NOTHING in either state since the field family left elevation
-      // (2026-08-17) — not the transmitted row, and not the pool either, because the pool
-      // rides the same world tokens the flip stood down. Live and dead therefore agree, which
-      // means this law can no longer prove the disabled arm REACHES the glass path; that
-      // guarantee lives on in button.browser.test.tsx, whose rungs still cast. What is left
-      // here is the flip itself, asserted in both states so a field silently rejoining
-      // elevation fails on the live half.
-      // What a glass field keeps is the POOL — the shade settling inside the pane, which is
-      // matter rather than lift — and what it lost with the fill-first flip is the transmitted
-      // CAST, which was elevation. So live still resolves a real list and dead resolves none,
-      // which is what keeps this law able to prove the disabled arm reaches the glass path.
-      expect(computed(live, "box-shadow"), `${material} glass keeps its pool`).not.toBe("none");
-      // Dead stands the pool down through the same `initial` arm, and with the transmitted
-      // row gone the whole declaration is invalid at computed-value time, so the shadow falls
-      // to the keyword rather than to a no-op layer list.
-      expect(computed(dead, "box-shadow"), `${material} glass must not cast when dead`).toBe("none");
+      // A glass field casts: the pool and the transmitted row (2026-09-23 — over content it is a
+      // small pane, not a well). Dead stands both down through the same `initial` arm, and each
+      // falls to its no-op `0 0 0 0 transparent` layer, so "casts nothing" is read as "paints no
+      // layer" rather than as the keyword — the keyword was the pool-alone list's spelling, whose
+      // one layer had `none` as its fallback.
+      const painted = (el: Element) =>
+        getComputedStyle(el)
+          .boxShadow.split(/,(?![^(]*\))/)
+          .map((l) => l.trim())
+          .filter((l) => l && l !== "none" && !/rgba\(0, 0, 0, 0\)/.test(l));
+      expect(painted(live).length, `${material} glass casts nothing live`).toBeGreaterThan(0);
+      expect(painted(dead), `${material} glass must not cast when dead`).toEqual([]);
       expect(computed(dead, "box-shadow")).not.toBe(computed(live, "box-shadow"));
     },
   );

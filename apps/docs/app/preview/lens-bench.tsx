@@ -202,7 +202,9 @@ function Slider({
   );
 }
 
-const LENS_DEFAULT = { bezelX: 1, thicknessX: 1, ior: 0, profileP: 2, concave: true, preBlur: 0, regionBezelX: 1, blurX: 1 };
+/** `profileP` 0 and `ior` 0 mean "the family's own" — the package's exponents are per family since
+    2026-09-23 (4, and 3 on panes), so any number here would override all four at once. */
+const LENS_DEFAULT = { bezelX: 1, thicknessX: 1, ior: 0, profileP: 0, concave: true, preBlur: 0, regionBezelX: 1 };
 const GLINT_DEFAULT = { glintBandX: 1, glintFalloff: 4, rimSaturate: 0 };
 
 export function LensBench() {
@@ -223,7 +225,7 @@ export function LensBench() {
   React.useEffect(() => {
     if (!open) return;
     const lensAtRest =
-      lensD.bezelX === 1 && lensD.thicknessX === 1 && lensD.ior === 0 && lensD.profileP === 2 && lensD.concave && lensD.preBlur === 0 && lensD.regionBezelX === 1 && lensD.blurX === 1;
+      lensD.bezelX === 1 && lensD.thicknessX === 1 && lensD.ior === 0 && lensD.profileP === 0 && lensD.concave && lensD.preBlur === 0 && lensD.regionBezelX === 1;
     const glintAtRest = glintD.glintBandX === 1 && glintD.glintFalloff === 4 && glintD.rimSaturate === 0;
     if (lensAtRest && glintAtRest) {
       __retuneLens(null);
@@ -233,11 +235,10 @@ export function LensBench() {
       bezelX: lensD.bezelX,
       thicknessX: lensD.thicknessX,
       ior: lensD.ior === 0 ? null : lensD.ior,
-      profileP: lensD.profileP,
+      ...(lensD.profileP === 0 ? {} : { profileP: lensD.profileP }),
       concave: lensD.concave,
       preBlur: lensD.preBlur,
       regionBezelX: lensD.regionBezelX,
-      blurX: lensD.blurX,
       glintBandX: glintD.glintBandX,
       glintFalloff: glintD.glintFalloff,
       rimSaturate: glintD.rimSaturate,
@@ -326,14 +327,14 @@ export function LensBench() {
     [
       "// The material bench's settings — each line is one config lever.",
       "// packages/ui/src/system/refraction.tsx:",
-      `//   lens ladder: bezel x${lensD.bezelX}, thickness x${lensD.thicknessX}, ior ${lensD.ior === 0 ? "(ladder's own)" : lensD.ior}`,
-      `//   PROFILE_P ${lensD.profileP}${lensD.concave ? "" : " CONVEX"}, lens blur x${lensD.blurX} +${lensD.preBlur}px`,
+      `//   lensFamily: bezel x${lensD.bezelX}, thickness x${lensD.thicknessX}, ior ${lensD.ior === 0 ? "(the family's own)" : lensD.ior}`,
+      `//   profile ${lensD.profileP === 0 ? "(the family's own)" : lensD.profileP}${lensD.concave ? "" : " CONVEX"}, blur before the bend +${lensD.preBlur}px`,
       `//   glint: band x${glintD.glintBandX}, falloff ${glintD.glintFalloff}, rimSaturate ${glintD.rimSaturate}`,
       `//   bend x${bend} (boost), fringe x${fringe}`,
       "// packages/ui/src/tokens/config.ts (material):",
       `//   veil x${mat.veil}, saturate x${mat.sat}, contrast ${mat.contrast === 1 ? "(none)" : `+contrast(${mat.contrast})`}`,
       `//   sheen x${mat.sheen}, ring alphas x${mat.edge}`,
-      `//   region: veil x${mat.regionVeil}, bezel x${lensD.regionBezelX} (over lensScale.region)`,
+      `//   region: veil x${mat.regionVeil}, bezel x${lensD.regionBezelX} (over lensFamily.region)`,
     ].join("\n");
 
   if (!open) {
@@ -366,12 +367,12 @@ export function LensBench() {
         </Heading>
         <Slider label="bezel width" value={lensD.bezelX} min={0.25} max={8} step={0.25} suffix="×" onChange={(v) => setLensD({ ...lensD, bezelX: v })} />
         <Slider label="glass depth" value={lensD.thicknessX} min={0.25} max={8} step={0.25} suffix="×" onChange={(v) => setLensD({ ...lensD, thicknessX: v })} />
-        <Slider label="refraction index (0 = ladder)" value={lensD.ior} min={0} max={2.6} step={0.05} suffix="" onChange={(v) => setLensD({ ...lensD, ior: v < 1.1 ? 0 : v })} />
-        <Slider label="profile exponent" value={lensD.profileP} min={1} max={6} step={0.5} suffix="" onChange={(v) => setLensD({ ...lensD, profileP: v })} />
+        <Slider label="refraction index (0 = the family's own)" value={lensD.ior} min={0} max={2.6} step={0.05} suffix="" onChange={(v) => setLensD({ ...lensD, ior: v < 1.1 ? 0 : v })} />
+        <Slider label="profile exponent (0 = the family's own)" value={lensD.profileP} min={0} max={6} step={0.5} suffix="" onChange={(v) => setLensD({ ...lensD, profileP: v < 1 ? 0 : v })} />
         {/* The glass's blur lives in the LENS since 2026-09-21 (before the bend, so the lip stays
-            crisp), so these two are where it is judged; the MATERIAL group lost its blur dials
-            the same day, having nothing left to move. */}
-        <Slider label="blur (the rung's own, before the bend)" value={lensD.blurX} min={0} max={6} step={0.1} suffix="×" onChange={(v) => setLensD({ ...lensD, blurX: v })} />
+            crisp). Since 2026-09-23 the only lens blur is a floating pane's, the rung's own, so the
+            one dial here ADDS blur before the bend on every pane — the per-family multiplier went
+            with the per-family blur. */}
         <Slider label="added blur" value={lensD.preBlur} min={0} max={12} step={0.25} suffix="px" onChange={(v) => setLensD({ ...lensD, preBlur: v })} />
         <Flex gap="2" align="center">
           <Button size="1" emphasis={lensD.concave ? "loud" : "quiet"} bordered onClick={() => setLensD({ ...lensD, concave: !lensD.concave })}>

@@ -54,13 +54,6 @@
   syntax: "*";
   inherits: false;
 }
-/* The pool-only glass value (2026-08-17, elevation went selective): what the rungs that no
-   longer ELEVATE still keep on glass — the inner seat shade is matter. Same non-inheritance
-   lesson as the full chain above. */
-@property --kui-ct-pool-glass {
-  syntax: "*";
-  inherits: false;
-}
 
 /* Registered as a LENGTH, and that is the whole mechanism. An unregistered custom property
    inherits as a token stream, so `var(--kui-ct-h)` inside it would be substituted on the element
@@ -938,11 +931,15 @@
      and the floating"): a medium fill is a wash ON the plane, not an object above it, and
      when it cast beside loud the rank stopped reading — Cancel floated exactly as hard as
      Save. (Its chrome token was deleted outright 2026-08-19 — it had been emitted, declared
-     in three world scopes and stood down in the disabled arm for a value nothing read.) On glass the POOL survives alone: the inner seat shade
-     is what glass IS (matter), while the transmitted cast was elevation and goes with it.
+     in three world scopes and stood down in the disabled arm for a value nothing read.)
+     ON GLASS IT CASTS (2026-09-23, Kushagra: "floating items should cast shadow"): "a wash on
+     the plane" is a fact about a solid control, and a glass control is over content by
+     construction — selectivity is what made it glass — so every rung takes the pool and the
+     transmitted row together through `--kui-ct-cast-glass`, which resolves to nothing on a
+     solid control and to the pool alone inside a flat world.
      And no catch: a white wash over a pastel fill can only read as fog (judged three times
      in the preview, 2026-08-07). */
-  --kui-ct-cast: var(--kui-ct-pool-glass, none);
+  --kui-ct-cast: var(--kui-ct-cast-glass, none);
   --kui-ct-light: none;
 }
 
@@ -956,11 +953,11 @@
   --kui-ct-label-color: var(--tone-ink);
   /* Nothing to light — and declared, not omitted, so a quiet control inside a louder
      surface cannot inherit the ancestor's cast (every rung fully declares its tokens).
-     On GLASS the pool survives (2026-08-19): a quiet glass button is a full pane — blur,
-     ring, veil — and the inner seat shade is what glass IS (matter, not elevation), so
-     writing a literal `none` here made quiet the one glass control with no seat while the
-     medium button beside it, same pane and same ring, had one (audit 2026-08-18). */
-  --kui-ct-cast: var(--kui-ct-pool-glass, none);
+     On GLASS it takes the pool and the transmitted row (the medium rung's sentence, 2026-09-23):
+     a quiet glass button is a full pane — blur, ring, veil — floating over content, and writing
+     a literal `none` here once made quiet the one glass control with no seat while the medium
+     button beside it had one (audit 2026-08-18). */
+  --kui-ct-cast: var(--kui-ct-cast-glass, none);
   --kui-ct-light: none;
 }
 
@@ -1099,10 +1096,10 @@
      (2026-08-17, Kushagra — the lens: a well is carved INTO the plane, not raised off it).
      The 2026-08-07 rejoin was priced on the bordered-box identity, where a field was a
      raised control like its button; now its identity is the well fill, and a raised shadow
-     under a recess is a contradiction the eye reads immediately. On glass the POOL alone
-     survives — a glass field is a small pane and the inner seat shade is matter, not
-     elevation. No catch either — a well has no top face to light. */
-  --kui-ct-cast: var(--kui-ct-pool-glass, none);
+     under a recess is a contradiction the eye reads immediately. A GLASS field is not a
+     recess (2026-09-23): it is a small pane over content, so it casts the transmitted row with
+     its pool like every glass control. No catch either — a well has no top face to light. */
+  --kui-ct-cast: var(--kui-ct-cast-glass, none);
   box-shadow: var(--kui-ct-cast, none);
 }
 
@@ -1545,11 +1542,7 @@
     --kui-ct-cast-glass: var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-control-chrome-thin, 0 0 0 0 transparent);
     --kui-ct-cast-glass-active: var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-control-chrome-active-thin, 0 0 0 0 transparent);
   }
-  /* The pool ALONE, thickness-invariant — for the rungs and the field family that left
-     elevation (2026-08-17) but keep glass's matter. One rule, not three: the pool never
-     varied per thickness, so per-block copies would be three homes for one fact. */
   .kui-control:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
-    --kui-ct-pool-glass: var(--kui-control-pool, none);
     /* AND THE BAND GOES, the way a pane's does (2026-09-11 audit). §10's lock says a member
        may vary WHERE a part is painted and never WHAT it is, and the ring is the glass's one
        edge — but `.kui-control` keeps the skeleton's `border: var(--border-width) solid
@@ -1710,12 +1703,16 @@
      computed `box-shadow: none` beside a glass Button carrying all five layers, so the group
      was a flat disc next to a slab. §10's contract lists MATTER as a part every pane resolves,
      and the segmented track and the group joined the ring list (2026-08-24) and the rim list
-     (2026-08-26) and were left off this one — the same omission a third time. The pool alone,
-     never a lift: a track is a well, and a well does not rise. Spelled through `--kui-ct-cast`
-     like every other control shadow, so the disabled and sealed stand-downs reach it. */
+     (2026-08-26) and were left off this one — the same omission a third time.
+
+     AND THEY CAST since 2026-09-23 (Kushagra: "floating items should cast shadow, such as toolbar
+     groups"). "A track is a well, and a well does not rise" was written for a track carved into a
+     plane; a glass track is over content by construction — selectivity is what made it glass —
+     so it takes the pool and the transmitted row together, like every glass control. Spelled
+     through `--kui-ct-cast`, so the disabled and sealed stand-downs reach it. */
   .kui-segmented:where([data-material="thin"], [data-material="regular"], [data-material="thick"]),
   .kui-toolbar-group:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
-    --kui-ct-cast: var(--kui-ct-pool-glass, none);
+    --kui-ct-cast: var(--kui-ct-cast-glass, none);
     box-shadow: var(--kui-ct-cast, none);
   }
 
@@ -2083,8 +2080,6 @@
        glass control still minted a glint map nothing could see. */
     --material-ring-opacity: 0;
     --kui-ct-cast-glass: initial;
-    /* And the pool with it — a sealed pane has no glass matter to settle (2026-08-17). */
-    --kui-ct-pool-glass: initial;
     /* AND THE BAND COMES BACK (2026-09-11), because glass now takes it away. The @supports
        block zeroes `border-width` so the lip is the control's ONE edge; with the ring stood
        down two lines up, a sealed control that kept `border-width: 0` would have no boundary

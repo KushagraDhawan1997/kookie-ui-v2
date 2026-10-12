@@ -8,6 +8,48 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-09-23 The veil model: the rung is how much comes through, the lens is the component's
+
+Kushagra, after the mirror pass: *"I need a control to be able to add thickness to my materials, enough so that things can be read ... Like control center in iOS which is darker and very glassy ... The thin/regular/thick should decide the veil, how much background is let through, not how much glass is thick. Its material thickness, not glass thickness. Controls and components need different varying of refraction 'distance', not glass thickness."* Then, one at a time: menus need the densest veil, glass controls floating over content should cast, the lens is a dome on an icon button and eases on a card.
+
+**What the rung stopped moving.** Until today every rung was its own piece of glass: its own lip, depth, index and split (the 2026-08-23 ladder), its own saturation and grey, and its own sheen. Now the rung moves the veil and the two blurs that stand in for something (a menu's, for the scrim it lacks; the lens-less engines' frost) and nothing else. The lens moved to the FAMILY (`lensFamily`: control dome, rows, pane, region), and every family's veil is the rung's compounded by the family's layers (`veil` in config: pane 1, control 1.1, region 1.5, menu 3.5).
+
+**Tried and walked back, each by eye the same day:**
+- The family lens on CIRCLES (profile 2) at a lower depth, taking "hemisphere" literally: "The bending was good before, its way too less now?" Measured, it bent about a fifth as far. The lens went back to the thick rung's glass with the spike profile, and the families differ only in where the bend sits.
+- The family multiplier on the ALPHA (a menu ×2): too thin in light at 44%, and at ×3.5 it asked for 104% in dark. It multiplies the thickness now, `1 - (1 - veil)^k`, which approaches opaque and never arrives.
+- A menu lip of 22px ("menus should have a wider lip still"): it is 30.
+- The menu's squircle bump at 1.75 ("menu needs even more squircle corners"): it is 2.25, a size-2 menu's corner 47 → 61px.
+- A constant 2px blur on floating panes ("Even the blur needs to be less for thin, that should be part of what changes with axis"): 0.75 / 2 / 3 by rung.
+- The first ladder, with `regular` at the old `thick`: "current regular should be the thick, current thin being regular, and we need a new thin, much more transparent" — the ladder moved down one rung, then thin came up "very very slightly".
+- The menu grey at 88% of the surface: 92 ("a bit lighter still").
+
+**Found at ship, none of it visible on the page:**
+- **The frost rows were at zero.** The 2026-09-22 iteration zeroed every blur so the bend could be judged alone, and a find-and-replace took the lens-less engines' rows with it. Chromium never applies those rows, so nothing on the bench showed it; an iPhone would have shown a 6% veil over whatever passed behind with nothing defocusing it. Restored to the values judged for those engines, and a law now holds the frost rising with the rung.
+- **The material bench would have flattened every lens.** Its profile dial defaulted to 2 — the shipped exponent until 2026-09-22 — and it hands the dial to the package whenever any lens dial moves, so touching one would have turned every family into the circles that were rejected. It defaults to "the family's own" now.
+- **Every family's own blur was zero**, so the per-family `blur`, the region's ×1.5 and the rule that a control blurs by the share of its lip were a mechanism with no reachable effect. Deleted, with the law that could no longer fail or pass on anything.
+
+**Laws.** Thirty-two encoded the per-rung model or the pool-only glass control. Twenty-three are re-keyed to the new claim, and nine are deleted because their subject is gone — the ladder's per-rung bends before and after `boost`, its keys-cover-the-axis law, the "no rung saturates its clamp" law (control and rows now sit on that clamp by design: their reach is lip × `boost`), the 2026-08-23 share floors that held the profile at exponent 2, the rungs-distinguishable-on-a-control law, the card's per-rung bends, and "a control blurs less than a pane". What replaced them: the lens ladder's monotonicity became the family laws (a control is a dome, the lip widens control → rows → pane → region, a menu keeps the control's gradient, a pane's curve eases, controls reach less far); the card's "each thickness is its own piece of glass" became a mounted law that a thin and a thick card of one size wear ONE filter, with a card of another size as the calibration; the monotone-material law now asserts the rung moves the sheen and the filters by nothing; the rim law's calibration — two rungs must light differently — was the deleted model, and is asserted the other way. New: every family's veil rises with the rung, keeps its order, and never reaches opaque; every glass rung, field and track casts in an elevated world, with a flat world and a glass pane as the negative controls; the menu's arc knob is its squircle knob over the card's own conversion. Nineteen sabotage passes, and **two of them survived a first spelling the same way**: a strict `>` between two quantities that should differ by a lot passed on float noise when they were equal (a pane's eased curve against a menu's; a region's reach against a pane's). Both compare by a margin now. The Sheet's reach law was also on a degenerate fixture — its sheet was a 112px bottom sheet, where both families' lips cap at the same 31px — and reads a side sheet against a same-size card twin instead.
+
+**Rejected:** a per-component-instance veil prop (the family is the unit that carries a veil, and a prop re-opens the one-material-per-scope question 2026-08-16 closed); keeping `blur` on the families at zero as a dial for later (a lever with no effect is the entropy the curtain's rule exists for); moving the grey into the rung (it is what "graying a lot" named).
+
+---
+
+## 2026-09-22 A popover is a card again, padding included
+
+Kushagra, looking at one beside a dropdown: *"We gave Popover the same padding etc as Dropdown Menu, I feel that was a mistake. It probably needs more, I think same as cards like it was before."*
+
+**He was right about the measurement, not only the feeling.** The panel band (2026-09-07 — the inset for a surface smaller than a card, 8 / 12 / 16 / 24 at the resting density) reached a popover through a `.kui-floating` arm, and a menu reaches the same band as the fallback behind its own hook. Measured, the two panes computed **12px against 12px** at the resting index: not similar, identical. So "the same padding as the dropdown menu" was literally what shipped, and the band had quietly become one answer for two kinds of pane.
+
+**What the reversal costs is one deleted rule**, because the criterion was already written in this file's own §31 for the CORNER, two weeks earlier: a pane that hugs rows derives its geometry from the rows (row corner plus the panel's padding), and a pane holding content the system did not design has nothing to derive from, so it falls through to the base surface join and is a card. The padding had been split off that criterion and given to the band; putting it back means both halves of the box are read off one source again — 16 / 24 / 32 / 40 beside the card's own corner.
+
+**Measured after:** 16 / 24 / 32 / 40 against the band's 8 / 12 / 16 / 24, and the menu beside it unmoved at 12.
+
+**The `.kui-floating` arm is gone rather than narrowed.** The two panes wearing that class without `-rows` are a popover, which is a card, and a tooltip, which states its own designed pair — so an arm keyed on "floating" had no live consumer left, and leaving it would have declared `--kui-panel-p` on panes that never read it. The band itself is untouched and so is every other consumer: the palettes and menus that hug rows, the attachment tile, the composer, the notice.
+
+**Rejected:** keeping the band and tuning its top rungs up (it would move the attachment tile and the composer, which were judged on those numbers and are not this complaint), and a `--kui-floating-p` re-point in `popover.css` (a component saying its padding is not a card's, when the finding is that it *is* a card's — the hook exists for a pane whose inset is genuinely its own).
+
+**Laws.** Five encoded the old behaviour and are re-keyed, not deleted: the four size cells now read the card's padding beside the card's corner from ONE mounted Card, and the menu control — which the panel band had turned from a negative control into an equality — is a negative control again on both halves. Sabotaged by restoring the deleted rule: the size-2 cell reproduces the defect to the pixel (`expected '12px' to be '24px'`) and the menu law fails with `expected '12px' not to be '12px'`.
+
 ## 2026-09-21 The mirror pass: the blur was erasing the bend
 
 Kushagra, with Apple's menus beside our popover: *"this doesn't look glass ... Apple has blur too, but it has glass also. Thick glass with a lot of refraction + blur."*
@@ -21,6 +63,8 @@ Kushagra, with Apple's menus beside our popover: *"this doesn't look glass ... A
 - A sharp lip over a frosted body, masked by the map's own deviation. Real refraction, wrong whole: "the blur needs to be uniform, what is on the rim is good amount."
 - The scrim's full 8px on every floating rung: "on thin, its too thick basically, regular also."
 - A black bottom shade in the light pool: "it looks dirty at the bottom in light mode."
+
+**The second ship, the same day, was all by eye on the docs' own menus.** Blur down a quarter (0.9/1.4/2.2, floating +2/4/6). The lip halved to 10/15/22 — "too 'inside', it should be much closer to rim": the mirror reaches 2.2 lips inward, so a wide lip puts it deep in a menu. `fringe` back up to 5/7/9 from the clear pass's 1/1.5/2. And the floating trim, which is the one reversal: the lab's 60% ring-and-glint on menus (2026-08-14) was deleted whole when he asked for a dialog's glint on menus, and put back for dark alone within the hour ("Dark mode was fine"). Light's real problem was not the trim: a white glint on a white veil over a white page has nothing to read against, and a dialog only escapes that because its scrim greys the backdrop. So a light floating pane dims its veil toward black (34% read "a little too gray"; 20% shipped). Its law's first spelling could not fail — it matched `…%, black)` and `100%, black` is spelled the same way — caught by its own sabotage.
 
 **Two defects the new look exposed, both older than it.** A glass toolbar group and a glass segmented track computed `box-shadow: none` — they had joined the ring list and the rim list and were never given the pool, invisible while the pool was faint. And scaling the blur by the fitted lip, written for controls, reached the command palette's search pill and gave it 44% of its own results pane's blur. A control scales; a surface does not.
 

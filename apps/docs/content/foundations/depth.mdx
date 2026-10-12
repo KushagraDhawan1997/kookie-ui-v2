@@ -1,6 +1,6 @@
-The `depth` setting in a Theme answers a single question: does this app contain light? No
-component accepts a shadow prop, and no screen selects a shadow individually. Instead, each
-component category determines its own shadow behaviour.
+The `depth` setting decides whether your app has a light source, and so whether anything in it
+casts a shadow. You set it once on the `Theme`. No component accepts a shadow prop, and each kind
+of component already knows whether it casts one.
 
 ## Set depth once, at the root
 
@@ -10,53 +10,52 @@ component category determines its own shadow behaviour.
 </Theme>
 ```
 
-The default `elevated` setting gives the app a light source, allowing cards to sit above the
-page, main actions to catch light, and handles to lift. The `flat` setting removes this light
-source, relying on lines and fills for separation.
+`depth` accepts two values. `elevated` is the default: cards sit above the page, loud buttons
+catch light, and handles lift off their tracks. `flat` removes the light source, so cards and
+panels separate from the page with a thin line instead of a shadow.
 
-Depth belongs to the Theme because light is perceived as a property of the environment, not a
-single object. Having both a raised and a flat card on the same screen would suggest two
-different environments. Therefore, Kookie does not provide `shadow`, `elevation`, or `raised`
-props.
+Depth belongs to the Theme because light is a property of the whole environment rather than of
+one object. A raised card beside a flat one on the same screen suggests two different light
+sources, which is why there is no `shadow`, `elevation` or `raised` prop. This is a judgment.
 
 ## What casts a shadow
 
-These components cast a shadow:
+A shadow says that something sits above the page and can be picked up, so only a few kinds of
+element cast one:
 
-- `Card` and card-like panels
-- Loud buttons
-- Handles on sliders and switches
-- `Kbd`
+- a `Card`, and a `Dialog` panel, which casts the same shadow as a card
+- a loud `Button`
+- the handle of a `Slider`, the thumb of a `Switch`, and the selected segment of a
+  `SegmentedControl`
+- a `Kbd` key cap
+- a `Menu`, a `Select` list or a `Popover`, because it covers the content under it
 
-These components do not:
+Everything else stays on the page. That includes `Surface`, `TextField`, `TextArea`, medium and
+quiet buttons, checkboxes, `Progress`, `Separator` and the `Tabs` bar.
 
-- `Surface`
-- Text fields and text areas
-- Medium and quiet buttons
-- Checkboxes
-- Progress bars
-- Separators
-- Tab bars
+Glass is the exception. A control shows glass only when content passes behind it, so a glass
+control floats over that content. Every glass button, field, segmented control and toolbar group
+casts a soft shadow for this reason. A control inside a glass card casts nothing, because the card
+is the part that floats.
 
-Only two kinds of element receive a shadow: the object you pick up, and the element that floats
-above everything else. This rule changes the code you write in three places:
+This changes the code you write in three places:
 
-- **Grounds cast nothing:** A `Surface` holds objects rather than being one. To elevate an
-  element, place a `Card` inside the Surface.
-- **Fields stay recessed:** To elevate a form, place it inside a Card. The fields remain
-  recessed.
-- **Medium buttons stay flat:** Rank buttons using `emphasis` rather than depth. A loud button
-  catches light and casts a shadow, while a medium button does neither.
+- **Surfaces:** A `Surface` is a background region that holds other things, so it casts nothing.
+  To raise something above it, place a `Card` inside it.
+- **Fields:** A text field is recessed into the page, so it never casts a shadow. To raise a
+  form, place the form inside a `Card`.
+- **Buttons:** Rank buttons with `emphasis` rather than with depth. A loud button catches light
+  and casts a shadow, while a medium button does neither.
 
-A checked checkbox catches light without casting a shadow, as checking it fills a recess rather
-than lifting the element.
+A checked checkbox catches light, because its fill is as strong as a loud button's, but it casts
+no shadow, because a checkbox fills in place rather than lifting.
 
-A disabled card loses its shadow. A shadow indicates that an element sits above the page and can
-be picked up, which a disabled card cannot, so it returns to the page.
+A disabled `Card` loses its shadow. A shadow says that you can pick the element up, which is no
+longer true, so the card returns to the page.
 
 ## Turn off the light for one region
 
-You can nest a Theme to remove the light source from a specific region of an elevated app.
+Nest a Theme with `depth="flat"` to remove the light source from one region of an elevated app:
 
 ```tsx
 <Theme depth="elevated">
@@ -64,7 +63,7 @@ You can nest a Theme to remove the light source from a specific region of an ele
     <Card size="3">
       <Stack gap="3">
         <Heading size="6">Production</Heading>
-        <Text size="3" emphasis="medium">Deployed 4 minutes ago.</Text>
+        <Text size="3" emphasis="medium">Deployed 4 minutes ago</Text>
         <Button emphasis="loud">Promote build</Button>
       </Stack>
     </Card>
@@ -78,56 +77,54 @@ You can nest a Theme to remove the light source from a specific region of an ele
 </Theme>
 ```
 
-The first card lifts and its loud button catches light, while the second card defines its edge
-with a thin line. Nothing inside the nested Theme casts a shadow, including a menu opened from
-it.
+The first card lifts and its loud button catches light. The second card draws its edge with a
+thin line. Nothing inside the nested Theme casts a shadow, and that includes a menu you open
+from it.
 
-## Bigger boxes get longer shadows
+## Panels that cover content
 
-Kookie provides five shadow values: one recess and four drops.
+A menu, a select list or a popover covers the content under it, so its edge must stay visible.
+In an elevated app, the shadow shows that edge. In a flat app, nothing casts a shadow, so these
+panels draw a thin line around their edge instead.
 
-Each drop repeats the same structure at a different height. A tight contact line keeps the
-shadow sharp, while softer layers move inward so the depth falls under the element rather than
-spreading outward.
+A `Dialog` casts the same shadow as a `Card` rather than a heavier one, because the dimmed
+background behind it already separates it from the page.
 
-Larger elements cast larger shadows, and a smaller element that borrows a larger shadow looks
-swollen. A card uses a shadow with a longer reach than a floating panel. This relationship is
-based on observation, while the exact values remain a design judgment.
+## Handles and keys cast a shadow in every app
 
-Kookie publishes `--shadow-1` through `--shadow-5` as a resource. Components access these
-through the theme rather than directly. Use `style` for custom implementations:
+Four elements cast a small shadow even when `depth` is `flat`:
+
+- the handle of a `Slider`
+- the thumb of a `Switch`
+- the selected segment of a `SegmentedControl`
+- a `Kbd` key cap
+
+A handle has to look as if it sits above its track, because its position is the value you set.
+A flat handle looks like a mark painted on the track, and people stop trying to drag it. A key
+cap looks raised on every keyboard, so a `Kbd` does the same.
+
+These shadows are smaller than a card's, because a small element with a large shadow looks
+swollen. On glass, a handle goes flat, because the glass already shows that it is a separate
+layer.
+
+A disabled handle loses its shadow and dims, but it keeps its colour, because a grey handle in a
+grey track is hard to see.
+
+## Larger elements cast longer shadows
+
+The theme defines five shadow values: `--shadow-1` is a recess, and `--shadow-2` through
+`--shadow-5` are drops of increasing reach. Each drop has a tight contact line directly under
+the edge, which keeps the shadow sharp, and softer layers that pull inward so the shadow falls
+under the element rather than spreading around it.
+
+A larger element casts a longer shadow, which is why a card casts further than a menu. The
+relationship is an observation from the physical world, while the exact values are a judgment.
+
+Components choose these values through the theme, so you never pick one for a component. For
+your own element, use `style`:
 
 ```tsx
-<Box style={{ boxShadow: "var(--shadow-3)" }}>Custom pane</Box>
+<Box style={{ boxShadow: "var(--shadow-3)" }}>Custom panel</Box>
 ```
 
-`Box` lacks a shadow prop because it is a layout component, and shadows are paint.
-
-## Popups must show their edges
-
-A popup covers the content beneath it, so its edge must remain visible. An elevated app shows
-this edge with a shadow, while a flat app casts nothing at all, including menus and dialogs, and
-draws a thin line instead.
-
-A `Dialog` casts no shadow of its own in either setting because the dimmed background provides
-the necessary separation. The panel retains the standard card shadow for the current depth
-setting.
-
-## Handles cast a shadow even in a flat app
-
-These elements cast a shadow regardless of the app's depth setting:
-
-- Slider handles
-- Switch thumbs
-- Selected segments of a segmented control
-- `Kbd`
-
-These are the same four shapes that keep their form at `radius="none"`, because their appearance
-conveys their function. A handle that does not sit above its track stops looking like a handle,
-and since a handle's position is the value it sets, the control stops working.
-
-`Kbd` is an exception, as it represents a key pressing into a surface, making its depth a recess
-rather than a lift.
-
-A disabled handle loses its shadow and dims while retaining its colour, since a grey handle in a
-grey track is hard to see.
+`Box` has no shadow prop, because it is a layout component and a shadow is paint.
