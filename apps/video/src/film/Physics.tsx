@@ -193,7 +193,7 @@ export function Physics() {
     const mass = d && !ph ? 0.6 : d && ph ? 0.8 + (d.h / 80) * 0.25 : 0.9;
     const s = spring({ frame: f - FLICK - lag, fps, config: { mass, damping: 17, stiffness: 140 } });
     // Position settles firmly; size keeps the bounce, so a control grows past its phone size and back.
-    const g = spring({ frame: f - FLICK - lag - 2, fps, config: { mass, damping: 9, stiffness: 150 } });
+    const g = spring({ frame: f - FLICK - lag - 2, fps, config: { mass, damping: 16, stiffness: 150 } });
     return { k, d, ph, s, g };
   });
 
