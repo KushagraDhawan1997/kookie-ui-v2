@@ -99,7 +99,7 @@ const tabsPart = (
 );
 
 const DESK = { x: 150, y: 185, w: 1140, h: 440 };
-const PHONE = { x: 525, y: 22, w: 390, h: 766 };
+const PHONE = { x: 880, y: 22, w: 390, h: 766 };
 
 function Desktop({ p }: { p: Record<string, React.ReactNode> }) {
   return (

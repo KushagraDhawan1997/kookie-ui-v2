@@ -51,8 +51,8 @@ import { HOVER, PRESS, Kinetic, Pointer, World, W, H, cells, gx, gy, lerp, out, 
 
 /* ── Script (frames at 30fps) ─────────────────────────────────────────────────────────── */
 
-const PROMPT = "Add Kit Nakamura to the team";
-const REPLY = "Done. Kit is on the team now, and the plan has one more seat. I started a deploy.";
+const PROMPT = "Add Kookie to the team";
+const REPLY = "Done. Kookie is on the team now, and the plan has one more seat. I started a deploy.";
 
 export const T = {
   click1: 34, // the pointer focuses the composer
@@ -116,7 +116,7 @@ export function Chat({ f }: { f: number }) {
   const status = !sent ? "ready" : f < T.stepsLive + 6 ? "submitted" : f < T.replyEnd ? "streaming" : "ready";
   const userIn = ramp(f, T.sent, T.sent + 12, out);
   const agentIn = ramp(f, T.stepsLive, T.stepsLive + 10, out);
-  const summary = f < T.kit - 10 ? "Finding Kit" : f < T.stepsDone ? "Adding Kit to the team" : "3 steps";
+  const summary = f < T.kit - 10 ? "Finding Kookie" : f < T.stepsDone ? "Adding Kookie to the team" : "3 steps";
   return (
     <Card ref={card} size="3" render={<Stack gap="4" />} style={{ blockSize: cells(10), position: "relative" }}>
       <Caret root={card} text={sent ? "" : typed(PROMPT, f, T.type)} on={caretOn(f)} />
@@ -232,14 +232,14 @@ export function Members({ f }: { f: number }) {
             {PEOPLE.map(([i, n, e, r], k) => (
               <PersonRow key={n} initials={i} name={n} email={e} role={r} line={k > 0} />
             ))}
-            <div style={{ maxHeight: 70 * kit, overflowX: "visible", overflowY: "clip", opacity: kit }}>
+            <div style={{ maxHeight: 70 * kit, overflowX: "visible", overflowY: "clip" }}>
               <div style={{ position: "relative", marginInline: -8, paddingInline: 8 }}>
-                <div style={{ position: "absolute", inset: 0, borderRadius: "var(--radius-control-3)", background: "var(--info-soft)", opacity: glow }} />
+                <div style={{ position: "absolute", inset: 0, borderRadius: "var(--radius-control-3)", background: `color-mix(in oklab, var(--info-soft) ${Math.round(glow * 100)}%, transparent)` }} />
                 <div style={{ position: "relative" }}>
                 <PersonRow
-                  initials="KN"
-                  name="Kit Nakamura"
-                  email="kit@kookie.dev"
+                  initials="K"
+                  name="Kookie"
+                  email="kookie@kookie.dev"
                   role="Member"
                   line
                   chip={<span style={{ display: "inline-flex", scale: `${chip}`, opacity: Math.min(1, chip) }}><Chip tone="info">Invited</Chip></span>}

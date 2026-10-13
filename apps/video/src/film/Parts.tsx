@@ -32,9 +32,9 @@ import {
 } from "@kushagradhawan/kookie-ui-react";
 import { ArrowUpIcon, MailIcon, PaperclipIcon, StopSquareIcon } from "../../../docs/app/icons";
 import { Members } from "./Act1";
-import { HOVER, PRESS, World, W, H, gx, gy, lerp, ramp, typed } from "./kit";
+import { HOVER, PRESS, World, follow, W, H, gx, gy, lerp, ramp, typed } from "./kit";
 
-export const PARTS_FRAMES = 360;
+export const PARTS_FRAMES = 480;
 
 const SPRING = { damping: 18, stiffness: 140, mass: 1 }; // ζ ≈ 0.76
 const TW = 336;
@@ -47,23 +47,11 @@ const ty = (r: number) => WY + r * (TH + GAP);
 const WALL = { x: WX + (4 * TW + 3 * GAP) / 2, y: WY + (3 * TH + 2 * GAP) / 2 };
 
 const APART = 15; // the screen comes apart on the first beat
-const ROW_AT = [60, 135, 210]; // each row's tour starts on a beat
-const actAt = (i: number) => ROW_AT[Math.floor(i / 4)]! + 15 * ((Math.floor(i / 4) % 2 === 0 ? i % 4 : 3 - (i % 4)) + 1) - 3;
-
-/** A spring-driven follower: simulates x'' = k(target - x) - c x' from frame 0, so a stepped target becomes a weighted move. */
-function follow(f: number, target: (t: number) => number, k: number, c: number) {
-  let x = target(0);
-  let v = 0;
-  const dt = 1 / 30;
-  for (let t = 0; t < f; t++) {
-    for (let s = 0; s < 4; s++) {
-      const a = k * (target(t) - x) - c * v;
-      v += (a * dt) / 4;
-      x += (v * dt) / 4;
-    }
-  }
-  return x;
-}
+const ROW_AT = [60, 180, 300]; // each row's tour starts on a beat
+// Each part gets two beats: the camera arrives on the first and settles, the part acts on the second.
+const slotAt = (i: number) => ROW_AT[Math.floor(i / 4)]! + 30 * (Math.floor(i / 4) % 2 === 0 ? i % 4 : 3 - (i % 4));
+const actAt = (i: number) => slotAt(i) + 15;
+const TOUR_END = 420;
 
 const SEND_ICONS = { ready: <ArrowUpIcon />, submitted: <ArrowUpIcon />, streaming: <StopSquareIcon />, error: <ArrowUpIcon /> };
 
@@ -95,7 +83,7 @@ function useParts(f: number, fps: number) {
       </Flex>
     </Tile>,
     <Tile key="1" label="Text field">
-      <TextField size="3" leading={<MailIcon />} placeholder="Email" aria-label="Email" value={typed("kit@kookie.dev", f, actAt(1) - 12, 1)} onChange={() => {}} />
+      <TextField size="3" leading={<MailIcon />} placeholder="Email" aria-label="Email" value={typed("kookie@kookie.dev", f, actAt(1) - 4, 1)} onChange={() => {}} />
     </Tile>,
     <Tile key="2" label="Menu">
       <Card size="1" style={{ padding: 6, display: "flex", flexDirection: "column" }}>
@@ -172,7 +160,7 @@ function useParts(f: number, fps: number) {
     </Tile>,
     <Tile key="10" label="Composer">
       <Composer>
-        <ComposerInput aria-label="Message" placeholder="Ask for a change" value={typed("Make the plan Pro", f, actAt(10) - 12, 1)} onChange={() => {}} />
+        <ComposerInput aria-label="Message" placeholder="Ask for a change" value={typed("Make the plan Pro", f, actAt(10) - 4, 1)} onChange={() => {}} />
         <ComposerRow>
           <Button iconOnly aria-label="Attach"><PaperclipIcon /></Button>
           <ComposerSend icons={SEND_ICONS} status="ready" />
@@ -185,7 +173,7 @@ function useParts(f: number, fps: number) {
           <Avatar fallback="SB" />
           <Avatar fallback="SW" />
           <Avatar fallback="AR" />
-          <span style={{ display: "inline-flex", scale: `${on(11, 0) ? sp(actAt(11)) : 0}` }}><Avatar fallback="KN" /></span>
+          <span style={{ display: "inline-flex", scale: `${on(11, 0) ? sp(actAt(11)) : 0}` }}><Avatar fallback="K" /></span>
         </AvatarGroup>
         {on(11, 4) ? <span style={{ display: "inline-flex", scale: `${sp(actAt(11) + 4)}` }}><Chip tone="info">Joined</Chip></span> : null}
       </Flex>
@@ -200,24 +188,24 @@ export function Parts() {
 
   // Camera target: the wall, then each part as it acts, then the wall again.
   const target = (t: number): [number, number, number] => {
-    if (t < 52) return [WALL.x, WALL.y, 0.92];
-    if (t >= 285) return [WALL.x, WALL.y, 0.86];
+    if (t < ROW_AT[0]!) return [WALL.x, WALL.y, 0.92];
+    if (t >= TOUR_END) return [WALL.x, WALL.y, 0.86];
     let i = 0;
     let best = -Infinity;
-    for (let k = 0; k < 12; k++) if (t >= actAt(k) - 10 && actAt(k) > best) { best = actAt(k); i = k; }
+    for (let k = 0; k < 12; k++) if (t >= slotAt(k) && slotAt(k) > best) { best = slotAt(k); i = k; }
     const c = i % 4;
     const r = Math.floor(i / 4);
     return [tx(c) + TW / 2, ty(r) + TH / 2, 2.1];
   };
   const cam = {
-    x: follow(f, (t) => target(t)[0], 60, 13),
-    y: follow(f, (t) => target(t)[1], 60, 13),
-    s: Math.exp(follow(f, (t) => Math.log(target(t)[2]), 60, 13)),
+    x: follow(f, (t) => target(t)[0], 100, 18),
+    y: follow(f, (t) => target(t)[1], 100, 18),
+    s: Math.exp(follow(f, (t) => Math.log(target(t)[2]), 100, 18)),
   };
 
   const apart = spring({ frame: f - APART, fps, config: SPRING });
-  const words = f >= 292;
-  const veil = ramp(f, 288, 296);
+  const words = f >= TOUR_END + 7;
+  const veil = ramp(f, TOUR_END + 3, TOUR_END + 11);
   return (
     <div style={{ position: "absolute", inset: 0 }}>
       <World cam={cam} width={gx(40)} height={gy(20)}>
@@ -240,7 +228,7 @@ export function Parts() {
       {words ? (
         <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", background: `color-mix(in oklab, var(--neutral-4) ${veil * 82}%, transparent)` }}>
           <Heading size="9" style={{ fontSize: 132, lineHeight: 1.02, letterSpacing: "-0.045em", textAlign: "center", whiteSpace: "nowrap" }}>
-            {[[297, "Every part."], [315, "One system."]].map(([at, w]) =>
+            {[[TOUR_END + 12, "Every part."], [TOUR_END + 30, "One system."]].map(([at, w]) =>
               f >= (at as number) ? (
                 <span key={w as string} style={{ display: "block", scale: `${1.06 - 0.06 * ramp(f, at as number, (at as number) + 4)}` }}>{w}</span>
               ) : null,

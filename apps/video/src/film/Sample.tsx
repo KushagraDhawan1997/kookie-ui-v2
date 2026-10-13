@@ -8,7 +8,7 @@ import { useCurrentFrame } from "remotion";
 import { Heading, Theme } from "@kushagradhawan/kookie-ui-react";
 import { Open } from "../../../docs/app/video/shots";
 import { Chat, Deploy, Members, Plan, T } from "./Act1";
-import { Pointer, World, W, H, gx, gy, out, ramp, track, worldPoint } from "./kit";
+import { Pointer, World, W, H, follow, gx, gy, lerp, out, ramp, track, worldPoint } from "./kit";
 
 const B = 15; // one beat
 export const S = {
@@ -71,33 +71,32 @@ export function Open1({ f }: { f: number }) {
   const input = tg.input ?? { x: 1170, y: 560 };
   const send = tg.send ?? { x: 1350, y: 610 };
 
-  // Macro on the field; the camera follows the words as they type; then the send button; then out.
-  const typedW = 8.6 * Math.max(0, Math.min(28, (a - T.type) / 2));
-  const cx = track(f, [
-    [0, input.x],
-    [S.click - 4, input.x - 20],
-    [S.click, input.x - 90],
-    [S.click + 6, input.x - 90],
-    [S.send - 14, input.x - 160 + typedW],
-    [S.send - 3, send.x - 10],
-    [S.send, send.x - 6],
-    [S.wide, 1224],
-    [S.type1, 1224],
-  ], out);
-  const cy = track(f, [[0, (input.y + send.y) / 2], [S.click - 4, (input.y + send.y) / 2], [S.click, input.y], [S.send - 14, input.y], [S.send - 3, send.y - 6], [S.send, send.y - 4], [S.wide, 400], [S.type1, 396]], out);
-  // Scale: hard ease so the pull-back is a single snap, then a slow drift in.
-  const cs =
+  // Macro on the field. The camera settles once and holds while the words type, so the eye can read them;
+  // a short spring push onto send, then the crash out.
+  const tx = (t: number) => (t < S.click - 4 ? input.x : t < S.send - 8 ? input.x - 70 : send.x - 6);
+  const ty = (t: number) => (t < S.click - 4 ? (input.y + send.y) / 2 : t < S.send - 8 ? input.y : send.y - 4);
+  const ts = (t: number) => Math.log(t < S.click - 4 ? 3.1 : t < S.send - 8 ? 3.5 : 5);
+  const near = (fr: number) => ({
+    x: follow(fr, tx, 110, 19),
+    y: follow(fr, ty, 110, 19),
+    s: Math.exp(follow(fr, ts, 110, 19)),
+  });
+  const atSend = near(S.send);
+  const k = f < S.send ? 0 : out((f - S.send) / (S.wide - S.send));
+  const cam =
     f < S.send
-      ? track(f, [[0, 3.1], [S.click - 4, 3.3], [S.click, 3.9], [S.send - 14, 3.4], [S.send - 3, 4.8], [S.send, 5]], out)
-      : f < S.wide
-        ? Math.exp(Math.log(5) + (Math.log(0.62) - Math.log(5)) * out((f - S.send) / (S.wide - S.send)))
-        : 0.62 + 0.1 * ramp(f, S.wide, S.type1, (t) => t);
+      ? near(f)
+      : {
+          x: f < S.wide ? lerp(atSend.x, 1224, k) : 1224,
+          y: f < S.wide ? lerp(atSend.y, 400, k) : lerp(400, 396, ramp(f, S.wide, S.type1)),
+          // Scale: hard ease so the pull-back is a single snap, then a slow drift in.
+          s: f < S.wide ? Math.exp(Math.log(atSend.s) + (Math.log(0.62) - Math.log(atSend.s)) * k) : 0.62 + 0.1 * ramp(f, S.wide, S.type1, (t) => t),
+        };
   const blur = f >= S.send && f < S.wide + 4 ? 14 * Math.sin(Math.PI * Math.min(1, (f - S.send) / (S.wide + 4 - S.send))) : 0;
-  const cam = { x: cx, y: cy, s: cs };
 
   const pressAt = (at: number) => ramp(f, at - 1, at + 1) * (1 - ramp(f, at + 2, at + 6, out));
   const px = track(f, [[6, input.x + 60], [S.click - 2, input.x - 70], [S.send - 16, input.x - 40], [S.send - 3, send.x + 1], [S.send + 6, send.x + 30]], out);
-  const py = track(f, [[6, input.y + 50], [S.click - 2, input.y - 2], [S.send - 16, input.y + 4], [S.send - 3, send.y + 3], [S.send + 6, send.y + 30]], out);
+  const py = track(f, [[6, input.y + 50], [S.click - 2, input.y - 2], [S.click + 8, input.y + 46], [S.send - 16, input.y + 46], [S.send - 3, send.y + 3], [S.send + 6, send.y + 30]], out);
   const pointerOn = ramp(f, 4, 10) * (1 - ramp(f, S.send + 2, S.send + 6));
 
   return (

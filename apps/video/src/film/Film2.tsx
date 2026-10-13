@@ -8,24 +8,22 @@ import * as React from "react";
 import { Sequence, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { Button, Card, Flex, Heading, Stack, Text, TextField, Theme } from "@kushagradhawan/kookie-ui-react";
 import { Nest, Open } from "../../../docs/app/video/shots";
-import { GlassAct, G } from "./Acts";
+import { GlassScroll } from "./Glass";
 import { Parts, PARTS_FRAMES } from "./Parts";
 import { Physics } from "./Physics";
 import { Burst, Open1, S, Statement } from "./Sample";
 import { World, W, H, gx, lerp, out, ramp, track } from "./kit";
 
-export const F = {
-  intent: 0,
-  parts: 240,
-  touch: 240 + PARTS_FRAMES, // 600
-  glass: 750,
-  nest: 1020,
-  size: 1095,
-  burst: 1245,
-  quiet: 1357,
-  logo: 1373,
-  end: 1440,
-};
+export const F = (() => {
+  const touch = 240 + PARTS_FRAMES; // 720
+  const glass = touch + 150;
+  const nest = glass + 270;
+  const size = nest + 75;
+  const burst = size + 150;
+  const quiet = burst + 112;
+  const logo = quiet + 16;
+  return { intent: 0, parts: 240, touch, glass, nest, size, burst, quiet, logo, end: logo + 67 };
+})();
 export const FILM2_FRAMES = F.end;
 
 const SPRING = { damping: 18, stiffness: 140, mass: 1 };
@@ -57,14 +55,6 @@ function Touch() {
       <Words f={f} top={300} left={96} words={[[90, "Larger"], [97, "where you"], [104, "touch."]]} />
     </>
   );
-}
-
-/* ── Glass and dark: the act's three clicks moved onto beats ─────────────────────────── */
-
-function Glass() {
-  const f = useCurrentFrame();
-  const a = track(f, [[0, 0], [60, G.regular], [120, G.thick], [180, G.dark], [270, G.end]], (t) => t);
-  return <GlassAct f={a} />;
 }
 
 /* ── Corners: a slow push into the nested curves ──────────────────────────────────────── */
@@ -102,9 +92,11 @@ function Size() {
       <div style={{ position: "absolute", left: W / 2 - WIDTHS[i]! / 2, top: H / 2 - 40, width: WIDTHS[i], translate: `0 -50%`, scale: `${scale * lerp(0.9, 1, enter)}`, opacity: Math.min(1, enter * 2) }}>
         <Theme size={SIZES[i]}>
           <Card>
-            <Stack gap={(["2", "3", "4", "5"] as const)[i]}>
-              <Text size={(["2", "3", "4", "5"] as const)[i]} weight="medium">Share project</Text>
-              <TextField placeholder="Add people" aria-label="Add people" />
+            <Stack gap={(["5", "6", "7", "8"] as const)[i]}>
+              <Stack gap={(["2", "3", "4", "5"] as const)[i]}>
+                <Text size={(["2", "3", "4", "5"] as const)[i]} weight="medium">Share project</Text>
+                <TextField placeholder="Add people" aria-label="Add people" />
+              </Stack>
               <Flex gap="2" justify="end">
                 <Button>Cancel</Button>
                 <Button emphasis="loud">Share</Button>
@@ -148,7 +140,7 @@ export function Film2() {
     [F.intent, F.parts, <Intent />],
     [F.parts, F.touch, <Parts />],
     [F.touch, F.glass, <Touch />],
-    [F.glass, F.nest, <Glass />],
+    [F.glass, F.nest, <GlassScroll />],
     [F.nest, F.size, <Corners />],
     [F.size, F.burst, <Size />],
     [F.burst, F.quiet, <BurstPart />],

@@ -191,3 +191,19 @@ export function whip(f: number, dur: number, { enter = true, exit = true, k = 9 
   const blur = (a + b) * 28;
   return { position: "absolute", inset: 0, transform: `translateX(${x}px)`, filter: blur > 0.2 ? `blur(${blur}px)` : undefined };
 }
+
+/** A spring-driven follower: simulates x'' = k(target - x) - c x' from frame 0, so a stepped target becomes a weighted move. */
+export function follow(f: number, target: (t: number) => number, k: number, c: number) {
+  let x = target(0);
+  let v = 0;
+  const dt = 1 / 30;
+  for (let t = 0; t < f; t++) {
+    for (let s = 0; s < 4; s++) {
+      const a = k * (target(t) - x) - c * v;
+      v += (a * dt) / 4;
+      x += (v * dt) / 4;
+    }
+  }
+  return x;
+}
+
