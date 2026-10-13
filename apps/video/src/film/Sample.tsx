@@ -56,7 +56,7 @@ const DEPLOY = { x: gx(41), y: gy(1), w: gx(9) };
 
 /* ── 1–2: cold open and snap out ──────────────────────────────────────────────────────── */
 
-function Open1({ f }: { f: number }) {
+export function Open1({ f }: { f: number }) {
   const a = act(f);
   const root = React.useRef<HTMLDivElement>(null);
   const [tg, setTg] = React.useState<Record<string, { x: number; y: number }>>({});
@@ -137,7 +137,7 @@ const WORDS: [number, string, number][] = [
   [S.type2 + 22, "result.", 1],
 ];
 
-function Statement({ f }: { f: number }) {
+export function Statement({ f }: { f: number }) {
   const second = f >= S.type2;
   const words = WORDS.filter(([at]) => (second ? at >= S.type2 : at < S.type2) && f >= at);
   const from = second ? S.type2 : S.type1;
@@ -190,7 +190,7 @@ const LOOKS: Look[] = [
   { appearance: "light", radius: "none", cam: [gx(22.5), 520, 2.2] },
 ];
 
-function Burst({ f }: { f: number }) {
+export function Burst({ f }: { f: number }) {
   const g = f - S.burst;
   const i = Math.min(LOOKS.length, Math.floor(g / 7.5));
   const look: Look = i < LOOKS.length ? LOOKS[i]! : { appearance: "light", cam: WIDE };

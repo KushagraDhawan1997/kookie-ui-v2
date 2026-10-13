@@ -66,8 +66,12 @@ export function World({ cam, width, height, children }: { cam: Cam; width: numbe
           top: 0,
           width,
           height,
+          // The camera scale is CSS zoom, not a transform: a transform scale lets the compositor reuse
+          // tiles rasterised at another scale, which painted stale, clipped text mid-move. Zoom re-lays
+          // out and re-rasterises every frame. Lengths on a zoomed element are zoomed too, hence the /s.
+          zoom: cam.s,
           transformOrigin: "0 0",
-          transform: `translate(${W / 2}px, ${H / 2}px) scale(${cam.s}) translate(${-cam.x}px, ${-cam.y}px)`,
+          transform: `translate(${W / 2 / cam.s - cam.x}px, ${H / 2 / cam.s - cam.y}px)`,
           backgroundImage: `linear-gradient(to right, ${line} 1px, transparent 1px), linear-gradient(to bottom, ${line} 1px, transparent 1px)`,
           backgroundSize: `${CELL}px ${CELL}px`,
           backgroundPosition: `0px 21px`,
@@ -153,7 +157,7 @@ export function Kinetic({ text, f, inAt, outAt, top = 64, left = 96 }: { text: s
         left,
         top,
         zIndex: 30,
-        fontSize: 44,
+        fontSize: 64,
         lineHeight: 1.1,
         letterSpacing: "-0.02em",
         opacity: 1 - leave,

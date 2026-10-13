@@ -158,8 +158,9 @@ function measure(root: HTMLElement | null): Record<string, Box> {
 
 const FLICK = 24; // the pointer lets go
 
-export function Physics() {
-  const f = useCurrentFrame();
+export function Physics({ f: at }: { f?: number } = {}) {
+  const now = useCurrentFrame();
+  const f = at ?? now;
   const { fps } = useVideoConfig();
   const p = React.useMemo(parts, []);
   const deskRef = React.useRef<HTMLDivElement>(null);

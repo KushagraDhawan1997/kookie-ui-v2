@@ -93,8 +93,9 @@ function GlassLayer({ f, dark, rung, hover }: { f: number; dark: boolean; rung: 
 /** How far the screens have scrolled, in px: a steady drift. */
 const scrollAt = (f: number) => f * 2.6;
 
-export function GlassAct() {
-  const f = useCurrentFrame();
+export function GlassAct({ f: at }: { f?: number } = {}) {
+  const now = useCurrentFrame();
+  const f = at ?? now;
   const root = React.useRef<HTMLDivElement>(null);
   const [pos, setPos] = React.useState<Record<string, { x: number; y: number }>>({});
   React.useLayoutEffect(() => {
@@ -135,8 +136,8 @@ export function GlassAct() {
       ) : null}
       <Pointer x={px} y={py} press={press} opacity={on} />
       <Theme appearance={f >= G.dark + 20 ? "dark" : "light"} style={{ position: "absolute", inset: 0, pointerEvents: "none", background: "transparent", zIndex: 30 }}>
-        <Kinetic text={"Glass shows what\nmoves behind it."} f={f} inAt={30} outAt={G.dark - 20} top={330} />
-        <Kinetic text={"It adapts to\nlight and dark."} f={f} inAt={G.dark + 26} outAt={G.end - 4} top={330} />
+        <Kinetic text={"Glass shows\nwhat moves\nbehind it."} f={f} inAt={30} outAt={G.dark - 20} top={330} />
+        <Kinetic text={"It adapts\nto light\nand dark."} f={f} inAt={G.dark + 26} outAt={G.end - 4} top={330} />
       </Theme>
     </div>
   );
