@@ -172,7 +172,7 @@ export function Physics() {
 
   // The window: dragged a little by the pointer, then flung to the phone on a stiff spring.
   const drag = ramp(f, 14, FLICK, (t) => t * t);
-  const frame = spring({ frame: f - FLICK, fps, config: { mass: 1, damping: 15, stiffness: 120 } });
+  const frame = spring({ frame: f - FLICK, fps, config: { mass: 1, damping: 16.5, stiffness: 120 } });
   const pre: Box = { x: DESK.x + 30 * drag, y: DESK.y + 10 * drag, w: DESK.w - 120 * drag, h: DESK.h - 20 * drag };
   const win: Box = f < FLICK ? pre : { x: lerp(pre.x, PHONE.x, frame), y: lerp(pre.y, PHONE.y, frame), w: lerp(pre.w, PHONE.w, frame), h: lerp(pre.h, PHONE.h, frame) };
   const radius = lerp(24, 52, Math.min(1.2, Math.max(0, frame)));
@@ -191,9 +191,9 @@ export function Physics() {
     // Parts nearer the corner the pointer flung leave first; the far ones lag.
     const lag = d && !ph ? 0 : d ? Math.round((1 - (d.x + d.y) / (DESK.w + DESK.h)) * 4) : 3;
     const mass = d && !ph ? 0.6 : d && ph ? 0.8 + (d.h / 80) * 0.25 : 0.9;
-    const s = spring({ frame: f - FLICK - lag, fps, config: { mass, damping: 17, stiffness: 140 } });
+    const s = spring({ frame: f - FLICK - lag, fps, config: { mass, damping: 18, stiffness: 140 } });
     // Position settles firmly; size keeps the bounce, so a control grows past its phone size and back.
-    const g = spring({ frame: f - FLICK - lag - 2, fps, config: { mass, damping: 16, stiffness: 150 } });
+    const g = spring({ frame: f - FLICK - lag - 2, fps, config: { mass, damping: 18, stiffness: 150 } });
     return { k, d, ph, s, g };
   });
 
