@@ -1,7 +1,6 @@
 /**
- * Glass, then dark. Every screen is glass and scrolls over the line grid, so the lens bends the lines
- * at every edge. The glass thickens on
- * two beats, then dark grows out from the right.
+ * Glass, then dark. Every screen is glass and scrolls over a line grid that holds still, so the lines
+ * slide under the glass. The glass thickens on two beats, then dark grows out from the right.
  *
  * Glass is never zoomed (the lens is built for the box it measures), so this shot holds the camera
  * at scale 1 and moves only by scrolling.
@@ -53,7 +52,8 @@ function Layer({ f, dark, rung }: { f: number; dark: boolean; rung: Rung }) {
           background: "var(--neutral-4)",
           backgroundImage: `linear-gradient(to right, ${line} 1px, transparent 1px), linear-gradient(to bottom, ${line} 1px, transparent 1px)`,
           backgroundSize: `${gx(1)}px ${gy(1) - gy(0)}px`,
-          backgroundPosition: `${X0 % gx(1)}px ${21 - scroll}px`,
+          // The grid holds still while the screens scroll, so the lines slide under the glass.
+          backgroundPosition: `${X0 % gx(1)}px 21px`,
         }}
       >
         <Theme material={rung}>
