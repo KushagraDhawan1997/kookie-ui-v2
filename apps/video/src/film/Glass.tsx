@@ -4,6 +4,10 @@
  *
  * Glass is never zoomed (the lens is built for the box it measures), so this shot holds the camera
  * at scale 1 and moves only by scrolling.
+ *
+ * Render with `--gl=swangle`. Chromium's CPU raster path offsets the lens's displacement by the
+ * pane's own position, so every pane away from the origin draws stretched columns and no lines.
+ * The GPU path (ANGLE on SwiftShader) draws the bend correctly.
  */
 import * as React from "react";
 import { useCurrentFrame } from "remotion";
@@ -57,10 +61,7 @@ function Layer({ f, dark, rung }: { f: number; dark: boolean; rung: Rung }) {
         }}
       >
         <Theme material={rung}>
-          {/* The lens maps rendered as stretched columns in the headless renderer, so the film shows the
-              glass without its bend: the veil and the light on the edge, with the lines clear through it. */}
-          <style>{".kd-film-glass [style*='--kui-lens'] { --kui-lens: none !important; }"}</style>
-          <Box backdrop className="kd-film-glass">
+          <Box backdrop>
             {SCREENS.map(([x, y, w, node], i) => (
               <div key={i} style={{ position: "absolute", left: x, top: y - scroll, width: w }}>{node}</div>
             ))}
