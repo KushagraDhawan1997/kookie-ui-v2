@@ -23,7 +23,7 @@ export const GLASS2_FRAMES = GL.end;
 
 type Rung = "thin" | "regular" | "thick";
 
-const SPEED = 3; // px per frame
+const SPEED = 1.5; // px per frame
 
 // Screen positions on the grid, in px at camera scroll 0. Two columns that never overlap.
 const X0 = 500;

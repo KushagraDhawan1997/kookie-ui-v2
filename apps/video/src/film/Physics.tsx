@@ -241,8 +241,11 @@ export function Physics({ f: at }: { f?: number } = {}) {
           const w = rel.w * startW;
           // Two renders cross over mid-flight: the desktop part grows to the phone height, the phone part grows from the desktop height.
           const tg = f < FLICK ? 0 : g;
-          const sf = lerp(1, ph.h / d.h, tg);
-          const sc = lerp(d.h / ph.h, 1, tg);
+          // A slider re-lays its thumbs whenever its width changes, so a part holding one keeps
+          // its own layout width and only scales; otherwise the bounce slides the thumbs about.
+          const rigid = k === "quiet";
+          const sf = rigid ? w / d.w : lerp(1, ph.h / d.h, tg);
+          const sc = rigid ? w / ph.w : lerp(d.h / ph.h, 1, tg);
           const mix = Math.min(1, Math.max(0, (Math.min(t, tg) - 0.3) / 0.3));
           return (
             <React.Fragment key={k}>
