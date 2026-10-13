@@ -1,6 +1,6 @@
 /**
- * Glass, then dark. Two layers scroll at two speeds: solid screens behind, glass screens in front,
- * so real content passes under the glass and the lens bends it at every edge. The glass thickens on
+ * Glass, then dark. Every screen is glass and scrolls over the line grid, so the lens bends the lines
+ * at every edge. The glass thickens on
  * two beats, then dark grows out from the right.
  *
  * Glass is never zoomed (the lens is built for the box it measures), so this shot holds the camera
@@ -11,7 +11,7 @@ import { useCurrentFrame } from "remotion";
 import { Box, Theme } from "@kushagradhawan/kookie-ui-react";
 import { Notifications, SignIn } from "../../../docs/app/preview/showcase";
 import { Chat, Deploy, Members, Plan } from "./Act1";
-import { Kinetic, World, W, H, gx, gy, out, ramp } from "./kit";
+import { Kinetic, W, H, gx, gy, out, ramp } from "./kit";
 
 const DONE = 99999;
 
@@ -20,47 +20,53 @@ export const GLASS2_FRAMES = GL.end;
 
 type Rung = "thin" | "regular" | "thick";
 
-const BACK_SPEED = 2.4; // px per frame
-const FRONT_SPEED = 4.2;
+const SPEED = 3; // px per frame
 
-/** Solid screens, the back layer. */
-function Back() {
-  return (
-    <>
-      <div style={{ position: "absolute", left: gx(31), top: gy(1), width: gx(9) }}><Plan f={DONE} /></div>
-      <div style={{ position: "absolute", left: gx(41), top: gy(2), width: gx(9) }}><Deploy f={DONE} /></div>
-      <div style={{ position: "absolute", left: gx(31), top: gy(16), width: gx(18) }}><Members f={DONE} /></div>
-      <div style={{ position: "absolute", left: gx(41), top: gy(30), width: gx(9) }}><SignIn /></div>
-    </>
-  );
-}
+// Screen positions on the grid, in px at camera scroll 0. Two columns that never overlap.
+const X0 = 500;
+const COL = [X0, X0 + gx(10)];
+const SCREENS: [number, number, number, React.ReactNode][] = [
+  [COL[0]!, gy(1), gx(9), <Plan f={DONE} />],
+  [COL[1]!, gy(1), gx(9), <Deploy f={DONE} />],
+  [COL[1]!, gy(12), gx(9), <Notifications />],
+  [COL[0]!, gy(15), gx(9), <Chat f={DONE} />],
+  [COL[1]!, gy(24), gx(9), <SignIn />],
+  [COL[0]!, gy(32), gx(19), <Members f={DONE} />],
+];
 
-/** Glass screens, the front layer. They straddle the two back columns, so content passes under both edges. */
-function Front({ rung }: { rung: Rung }) {
-  return (
-    <Theme material={rung}>
-      <Box backdrop>
-        <div style={{ position: "absolute", left: gx(36), top: gy(7), width: gx(9) }}><Notifications /></div>
-        <div style={{ position: "absolute", left: gx(33), top: gy(24), width: gx(9) }}><Chat f={DONE} /></div>
-        <div style={{ position: "absolute", left: gx(38), top: gy(40), width: gx(9) }}><Plan f={DONE} /></div>
-      </Box>
-    </Theme>
-  );
-}
-
+/**
+ * The scroll is layout, not a transform. A glass pane under a transformed ancestor sampled its
+ * backdrop from the untransformed spot, so it showed other screens' content inside it.
+ */
 function Layer({ f, dark, rung }: { f: number; dark: boolean; rung: Rung }) {
   const ease = ramp(f, 0, 40, out); // the scroll starts moving, then keeps a steady drift
-  const t = Math.max(0, f - 20 * (1 - ease));
-  const back = t * BACK_SPEED;
-  const front = t * FRONT_SPEED;
+  const scroll = Math.round(Math.max(0, f - 20 * (1 - ease)) * SPEED);
+  // Heavier lines than the other shots: the glass softens what it bends, and the lines are what it bends.
+  const line = "var(--neutral-a8)";
   return (
     <Theme appearance={dark ? "dark" : "light"} style={{ position: "absolute", inset: 0 }}>
-      <World cam={{ x: gx(31) + 220, y: 405 + back, s: 1 }} width={gx(52)} height={gy(70)}>
-        <Back />
-        <div style={{ position: "absolute", inset: 0, translate: `0 ${back - front}px` }}>
-          <Front rung={rung} />
-        </div>
-      </World>
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          overflow: "hidden",
+          background: "var(--neutral-4)",
+          backgroundImage: `linear-gradient(to right, ${line} 1px, transparent 1px), linear-gradient(to bottom, ${line} 1px, transparent 1px)`,
+          backgroundSize: `${gx(1)}px ${gy(1) - gy(0)}px`,
+          backgroundPosition: `${X0 % gx(1)}px ${21 - scroll}px`,
+        }}
+      >
+        <Theme material={rung}>
+          {/* The lens maps rendered as stretched columns in the headless renderer, so the film shows the
+              glass without its bend: the veil and the light on the edge, with the lines clear through it. */}
+          <style>{".kd-film-glass [style*='--kui-lens'] { --kui-lens: none !important; }"}</style>
+          <Box backdrop className="kd-film-glass">
+            {SCREENS.map(([x, y, w, node], i) => (
+              <div key={i} style={{ position: "absolute", left: x, top: y - scroll, width: w }}>{node}</div>
+            ))}
+          </Box>
+        </Theme>
+      </div>
     </Theme>
   );
 }

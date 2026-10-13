@@ -83,7 +83,7 @@ function useParts(f: number, fps: number) {
       </Flex>
     </Tile>,
     <Tile key="1" label="Text field">
-      <TextField size="3" leading={<MailIcon />} placeholder="Email" aria-label="Email" value={typed("kookie@kookie.dev", f, actAt(1) - 4, 1)} onChange={() => {}} />
+      <TextField size="3" leading={<MailIcon />} placeholder="Email" aria-label="Email" value={typed("hi@kookie.dev", f, actAt(1) - 4, 1)} onChange={() => {}} />
     </Tile>,
     <Tile key="2" label="Menu">
       <Card size="1" style={{ padding: 6, display: "flex", flexDirection: "column" }}>

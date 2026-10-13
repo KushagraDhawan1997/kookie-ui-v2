@@ -66,12 +66,10 @@ export function World({ cam, width, height, children }: { cam: Cam; width: numbe
           top: 0,
           width,
           height,
-          // The camera scale is CSS zoom, not a transform: a transform scale lets the compositor reuse
-          // tiles rasterised at another scale, which painted stale, clipped text mid-move. Zoom re-lays
-          // out and re-rasterises every frame. Lengths on a zoomed element are zoomed too, hence the /s.
-          zoom: cam.s,
+          // The camera is one transform. CSS zoom was tried and re-lays out every frame, which snaps
+          // every box to a whole pixel at each new scale: a slow drift then shakes by a pixel per frame.
           transformOrigin: "0 0",
-          transform: `translate(${W / 2 / cam.s - cam.x}px, ${H / 2 / cam.s - cam.y}px)`,
+          transform: `translate(${W / 2 - cam.x * cam.s}px, ${H / 2 - cam.y * cam.s}px) scale(${cam.s})`,
           backgroundImage: `linear-gradient(to right, ${line} 1px, transparent 1px), linear-gradient(to bottom, ${line} 1px, transparent 1px)`,
           backgroundSize: `${CELL}px ${CELL}px`,
           backgroundPosition: `0px 21px`,
