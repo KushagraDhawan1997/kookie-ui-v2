@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Flex, Grid, Heading, Link as KookieLink, Page, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
@@ -86,6 +87,8 @@ import { BLOCKS } from "../../blocks";
  * count at all. A fixed two columns plus a container query plus an opted-in `<Box container>`
  * were three mechanisms standing in for one that ships in the box.
  */
+export const metadata: Metadata = { alternates: { canonical: "/" } };
+
 export default function Home() {
   return (
     <PageFrame width="48rem">

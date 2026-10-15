@@ -4,7 +4,7 @@ import { Link as KookieLink, Page, Stack } from "@kushagradhawan/kookie-ui-react
 import { PageFrame } from "../page-frame";
 import { BLOCKS } from "../../../blocks";
 
-export const metadata = { title: "Blocks — KookieUI" };
+export const metadata = { title: "Blocks — KookieUI", alternates: { canonical: "/blocks" } };
 
 /**
  * The blocks index. One renderer over the registry, like every index on this site: adding a

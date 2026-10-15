@@ -76,6 +76,7 @@ export async function generateMetadata({
     ? {
         title: `${humanLabel(entry.name)} — KookieUI`,
         description: entry.abstract,
+        alternates: { canonical: `/components/${entry.slug}` },
       }
     : { title: "KookieUI" };
 }

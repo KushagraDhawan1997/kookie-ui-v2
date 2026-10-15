@@ -33,7 +33,11 @@ export async function generateMetadata({
   const { slug } = await params;
   const block = BLOCK_BY_SLUG.get(slug);
   return block
-    ? { title: `${block.title} — Blocks — KookieUI`, description: block.blurb }
+    ? {
+        title: `${block.title} — Blocks — KookieUI`,
+        description: block.blurb,
+        alternates: { canonical: `/blocks/${block.slug}` },
+      }
     : { title: "KookieUI" };
 }
 
