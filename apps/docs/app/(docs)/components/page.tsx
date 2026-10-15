@@ -2,10 +2,8 @@ import Link from "next/link";
 import { Flex, Grid, Heading, Link as KookieLink, Page, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 import { PageFrame } from "../page-frame";
-import { ENTRIES, type Entry } from "./registry";
+import { ENTRIES, JOBS } from "./registry";
 import { humanLabel } from "../label";
-
-const FAMILIES: Entry["family"][] = ["Layout", "Type", "Control", "Surface", "Indicator"];
 
 export const metadata = {
   title: "Components — KookieUI",
@@ -44,38 +42,49 @@ export default function ComponentsIndex() {
     <PageFrame width="48rem">
       <Page
         title="Components"
-        description="This index shows every component in the package, grouped by family. Each page tells you what the component is, which props it takes, and what it does not do and why."
+        description="This index shows every component in the package, grouped by the job a person is doing. Each page tells you what the component is, which props it takes, and what it does not do and why."
       >
         <Grid columns="repeat(auto-fit, minmax(20rem, 1fr))" gapX="7" gapY="9">
-          {FAMILIES.map((family) => {
-            const members = ENTRIES.filter((e) => e.family === family);
+          {JOBS.map(({ job, question }) => {
+            const members = ENTRIES.filter((e) => e.job === job);
             if (members.length === 0) return null;
             return (
-              <Stack key={family} gap="4">
+              <Stack key={job} gap="4">
                 {/* No rule under the heading, and no ground under the list: 48px between
                     families against 16px from a heading to its own list is the asymmetry
                     §15 asks for, and distance is the one mechanism doing the work. */}
-                <Flex gap="3" align="center">
-                  <Heading size="5" render={<h2 />}>
-                    {family}
-                  </Heading>
+                {/* The job's question sits under its name, because the name alone is a verb and
+                    the question is what an agent arriving with a problem matches against. */}
+                <Stack gap="1">
+                  <Flex gap="3" align="center">
+                    <Heading size="5" render={<h2 />}>
+                      {job}
+                    </Heading>
+                    <Text size="2" emphasis="quiet">
+                      {members.length}
+                    </Text>
+                  </Flex>
                   <Text size="2" emphasis="quiet">
-                    {members.length}
+                    {question}
                   </Text>
-                </Flex>
+                </Stack>
                 {/* The list's own column count answers the WINDOW, not this cell — `prose.css`
                     carries the measurement and the reason. `align="start"` went with the
                     Stack: a grid cell does not stretch a link the way a flex column does, and
                     the underline is the tell. */}
                 <div className="kd-family-list">
                   {members.map((entry) => (
-                    <KookieLink
-                      key={entry.slug}
-                      size="3"
-                      render={<Link href={`/components/${entry.slug}`} />}
-                    >
-                      {humanLabel(entry.name)}
-                    </KookieLink>
+                    <Flex key={entry.slug} gap="2" align="baseline">
+                      <KookieLink size="3" render={<Link href={`/components/${entry.slug}`} />}>
+                        {humanLabel(entry.name)}
+                      </KookieLink>
+                      {/* A pattern owns the decisions its job needs; a leaf leaves them to you. */}
+                      {entry.level === "pattern" ? (
+                        <Text size="2" emphasis="quiet">
+                          Pattern
+                        </Text>
+                      ) : null}
+                    </Flex>
                   ))}
                 </div>
               </Stack>

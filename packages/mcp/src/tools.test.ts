@@ -14,7 +14,7 @@ import { TOOL_NAMES, WEB_TOOL_PREFIX } from "@kushagradhawan/kookie-ui-react/age
 import { describe, expect, it } from "vitest";
 
 import { data } from "./data.ts";
-import { families, getComponent, getTokens, listComponents } from "./tools.ts";
+import { getComponent, getTokens, jobs, listComponents } from "./tools.ts";
 
 describe("a miss points somewhere real", () => {
   it("names every head a token name actually begins with, and no other", () => {
@@ -23,7 +23,7 @@ describe("a miss points somewhere real", () => {
       data().tokens.map((token) => token.name.replace(/^--/, "").split("-")[0]!),
     );
     // Both directions. Naming a head that heads nothing sends a reader to an empty answer, and
-    // omitting one hides a whole family — the shipped list did both.
+    // omitting one hides a whole job — the shipped list did both.
     for (const head of heads) expect(message, `${head} is named`).toContain(head);
     const named = message.slice(message.indexOf("one of these: ")).replace("one of these: ", "");
     for (const word of named.replace(/\.$/, "").split(", ")) {
@@ -40,22 +40,22 @@ describe("a miss points somewhere real", () => {
   });
 });
 
-describe("the family filter reaches every family there is", () => {
-  it("offers exactly the families the registry states", () => {
-    // `families()` is what closes the tool's own schema, so a list that fell behind the
-    // registry would make a real family unaskable — and a shorter list is just a shorter walk,
+describe("the job filter reaches every job there is", () => {
+  it("offers exactly the jobs the registry states", () => {
+    // `jobs()` is what closes the tool's own schema, so a list that fell behind the
+    // registry would make a real job unaskable — and a shorter list is just a shorter walk,
     // which is why the sweep below cannot see it. This is the agreement, read from the
     // components rather than from the function under test.
-    expect([...families()].sort()).toEqual(
-      [...new Set(data().components.map((row) => row.family))].sort(),
+    expect([...jobs()].sort()).toEqual(
+      [...new Set(data().components.map((row) => row.job))].sort(),
     );
   });
 
   it("lists something for each one the registry states", () => {
-    // The families are derived from the components, so this cannot go stale by a list falling
+    // The jobs are derived from the components, so this cannot go stale by a list falling
     // behind — what it catches is the filter itself failing to reach one.
-    for (const family of new Set(data().components.map((row) => row.family))) {
-      expect(listComponents({ family }), family).toContain(`## ${family}`);
+    for (const job of new Set(data().components.map((row) => row.job))) {
+      expect(listComponents({ job }), job).toContain(`## ${job}`);
     }
   });
 });

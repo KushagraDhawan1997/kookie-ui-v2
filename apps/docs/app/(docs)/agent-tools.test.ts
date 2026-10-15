@@ -17,7 +17,7 @@ import { CONFORMANCE_CASES, TOOL_NAMES, WEB_TOOL_PREFIX, webToolName } from "@ku
 import { describe, expect, it } from "vitest";
 
 import {
-  FAMILIES,
+  JOB_NAMES,
   buildTools,
   checkSnippet,
   entryFor,
@@ -66,19 +66,19 @@ describe("the catalogue", () => {
   it("lists every component the registry holds", async () => {
     const out = await call(webToolName("list"), {});
     expect(out).toContain(`${ENTRIES.length} of ${ENTRIES.length} components.`);
-    for (const entry of ENTRIES) expect(out).toContain(`${entry.name} — ${entry.family}`);
+    for (const entry of ENTRIES) expect(out).toContain(`${entry.name} — ${entry.job}`);
   });
 
-  it("filters by family, and the families come from the entries", async () => {
-    expect(FAMILIES).toContain("Control");
-    const out = await call(webToolName("list"), { family: "Control" });
-    const controls = ENTRIES.filter((e) => e.family === "Control");
-    expect(out).toContain(`${controls.length} of ${ENTRIES.length}`);
-    // A component from another family must not appear. Surface is the family Card is in, and
-    // a fixture where both families held the same names could not tell filtering from not.
-    const surface = ENTRIES.find((e) => e.family === "Surface");
-    expect(surface).toBeDefined();
-    expect(out).not.toContain(`\n${surface!.name} — `);
+  it("filters by job, and the jobs come from the entries", async () => {
+    expect(JOB_NAMES).toContain("Choose");
+    const out = await call(webToolName("list"), { job: "Choose" });
+    const choosers = ENTRIES.filter((e) => e.job === "Choose");
+    expect(out).toContain(`${choosers.length} of ${ENTRIES.length}`);
+    // A component from another job must not appear. Menu floats like Select and runs actions
+    // instead, which is the split the jobs exist to make.
+    const menu = ENTRIES.find((e) => e.name === "Menu");
+    expect(menu?.job).toBe("Act");
+    expect(out).not.toContain(`\n${menu!.name} — `);
   });
 
   /* THE REFUSALS ARE SEARCHABLE, which is the one thing this list does that a generated API

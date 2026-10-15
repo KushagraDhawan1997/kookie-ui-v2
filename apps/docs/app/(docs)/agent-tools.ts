@@ -110,25 +110,25 @@ const ENTRY_BY_KEY = new Map(
 export const entryFor = (name: string) => ENTRY_BY_KEY.get(name.trim().toLowerCase()) ?? null;
 
 /**
- * The families, from the entries rather than from the type.
+ * The jobs, from the entries rather than from the type.
  *
- * The union in `registry.ts` is the type-level home and this is the value-level one, so the
- * list a tool offers cannot name a family no component is in — which is the direction that
- * would be wrong, since a family with no members is a menu item that returns nothing.
+ * `JOBS` in `registry.ts` is the type-level home and this is the value-level one, so the list a
+ * tool offers cannot name a job no component is in — which is the direction that would be
+ * wrong, since a job with no members is a menu item that returns nothing.
  */
-export const FAMILIES = [...new Set(ENTRIES.map((entry) => entry.family))].sort();
+export const JOB_NAMES = [...new Set(ENTRIES.map((entry) => entry.job))].sort();
 
 /* ── Tool 1: the catalogue ────────────────────────────────────────────────────────────── */
 
 /**
- * One line per component. `name — family — abstract`, which is what `ENTRIES` already carries
+ * One line per component. `name — job — abstract`, which is what `ENTRIES` already carries
  * as the line a reader meets before they have decided to read anything.
  */
-export function listComponents(input: { family?: string; query?: string }): string {
-  const family = input.family?.trim().toLowerCase();
+export function listComponents(input: { job?: string; query?: string }): string {
+  const job = input.job?.trim().toLowerCase();
   const query = input.query?.trim().toLowerCase();
   const rows = ENTRIES.filter((entry) => {
-    if (family && entry.family.toLowerCase() !== family) return false;
+    if (job && entry.job.toLowerCase() !== job) return false;
     if (!query) return true;
     // The refusals are searchable for the reason `search-index.ts` gives: "why can I not set a
     // margin" is a real question, and the answer to it is a refusal rather than a feature.
@@ -138,11 +138,11 @@ export function listComponents(input: { family?: string; query?: string }): stri
   });
 
   if (rows.length === 0) {
-    return `No component matches. Families: ${FAMILIES.join(", ")}.`;
+    return `No component matches. Jobs: ${JOB_NAMES.join(", ")}.`;
   }
 
   const lines = rows.map(
-    (entry) => `${entry.name} — ${entry.family} — ${entry.abstract} — /components/${entry.slug}`,
+    (entry) => `${entry.name} — ${entry.job}${entry.level === "pattern" ? " pattern" : ""} — ${entry.abstract} — /components/${entry.slug}`,
   );
   return [
     `${rows.length} of ${ENTRIES.length} components.`,
@@ -457,7 +457,7 @@ export function matchTokens(names: readonly string[], query: string): string[] {
 
 function lookupToken(env: ToolEnv, input: { query?: unknown }): string {
   const query = typeof input.query === "string" ? input.query : "";
-  if (!query.trim()) return `No query given. Try a family name, a role, or a full token name.`;
+  if (!query.trim()) return `No query given. Try a job name, a role, or a full token name.`;
   const names = matchTokens(env.tokenNames(), query);
   if (names.length === 0) {
     return `No token matches "${query}".`;
@@ -497,11 +497,11 @@ export function buildTools(env: ToolEnv): AgentTool[] {
     {
       name: webToolName("list"),
       description:
-        "List the components KookieUI exports, with a one-line abstract and the page path for each. Filter by family or by a word, which also searches what each component refuses.",
+        "List the components KookieUI exports, with a one-line abstract and the page path for each. Filter by the job a person is doing or by a word, which also searches what each component refuses.",
       inputSchema: {
         type: "object",
         properties: {
-          family: { type: "string", description: `One of: ${FAMILIES.join(", ")}.` },
+          job: { type: "string", description: `One of: ${JOB_NAMES.join(", ")}.` },
           query: {
             type: "string",
             description: "A word to match against names, abstracts and refusals.",
@@ -515,7 +515,7 @@ export function buildTools(env: ToolEnv): AgentTool[] {
          first one. */
       execute: async (input) =>
         listComponents({
-          ...(typeof input.family === "string" ? { family: input.family } : {}),
+          ...(typeof input.job === "string" ? { job: input.job } : {}),
           ...(typeof input.query === "string" ? { query: input.query } : {}),
         }),
     },
