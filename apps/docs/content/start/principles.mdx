@@ -1,59 +1,61 @@
-Kookie prioritises correctness over ease of adoption. Some interface questions have measured
-answers, and Kookie applies those answers for you. Other questions need design judgment, and
-Kookie makes each of those decisions in one place, so your screens stay consistent as the app
-grows.
+Kookie is a set of answers to interface questions that already have good answers. An AI agent
+can build a screen that looks good on its own. It cannot keep fifty screens consistent, because
+it answers each question again on every screen. Kookie answers each question once, and every
+component uses that answer.
+
+## Why Kookie exists
+
+Most interface problems are solved. How to confirm a delete, where navigation goes on a phone,
+and when to show an error all have answers that research and decades of products agree on. An
+agent can find those answers, but finding them takes longer than building something new. So the
+agent builds something new, and each screen gets a slightly different answer.
+
+Kookie puts the answers where an agent already looks: in the component, its types and its
+documentation. Kookie does not teach a visual style. It teaches how to approach a problem: which
+question to ask, which answer follows, and which component carries that answer. The
+[Responsiveness](/foundations/responsiveness) chapter is an example: it starts with three
+questions, and each question leads to one mechanism.
+
+## Learn from Apple
+
+Kookie takes its method from Apple's Human Interface Guidelines, from the 1992 Macintosh
+edition to the current one. Apple gives every rule three parts:
+
+- **The question:** Is this navigation or an action? Can the person undo it?
+- **The reason:** a measured limit, or a judgment that is said to be one.
+- **The default:** a component that already follows the rule, so the right result needs no
+  extra code.
+
+You can override an Apple default, but the override must keep the rule. A custom colour still
+needs a light, a dark and a high-contrast value. Kookie works the same way. Apple can enforce
+its defaults because it makes the operating system. A library cannot, so Kookie enforces its
+rules through types: a prop that Kookie does not accept is a compile error, and the error says
+what to write instead.
 
 ## Measured limits
 
-Decades of research inform interface design. Where a standard measurement exists, Kookie applies
-it automatically, and no prop can override the result.
+Where research gives a measured answer, Kookie applies it, and no prop can override it.
 
-- **Fitts's law (1954):** The time it takes to move a pointer to a target increases as the
-  target gets smaller or further away.
-- **Tap targets:** A fingertip is about 10 millimetres across, which informs the 44-point
-  minimum on Apple platforms and the 48-pixel minimum on Android. WCAG 2.2 sets a lower minimum
-  of 24 pixels.
-- **Gestalt principles (1923):** People group visual elements before they read them. Because
-  distance carries meaning, the space between two elements changes how they are interpreted.
-- **Contrast:** WCAG and APCA both measure whether text is legible against its background.
-
-## How the limits shape components
-
-These measurements set the default sizes throughout the system, and the sizes adapt to the
-device without any work from you.
-
-- **Touch screens:** A `Theme` detects whether people use a mouse or a finger. On a touch
-  screen, controls grow to touch sizes, so a size 2 `Button` is 44 pixels tall.
-- **Checkboxes:** A checkbox stays small so that it sits neatly beside one line of text. Its
-  tappable area extends past the visible box, out to the size of a `Button` at the same size.
-- **Type on phones:** You hold a phone closer to your eyes than a desktop screen, so small text
-  sizes increase on touch devices. Large display sizes decrease on narrow windows, because fewer
-  characters fit on a line.
-- **Text fields:** On touch screens, a text field never uses a font smaller than 16 pixels. At
-  smaller sizes, Safari on iOS zooms the page when the field receives focus.
-- **Round controls:** With `radius="full"`, the ends of a control are fully round, so the curve
-  starts close to the first and last letters. These controls get wider side padding, which keeps
-  the label from looking cramped.
+- **Fitts's law (1954):** A small or distant target takes longer to reach.
+- **Tap targets:** A fingertip is about 10 millimetres across. Apple sets a 44-point minimum,
+  and WCAG 2.2 sets a 24-pixel floor. A size 2 `Button` on a touch screen is 44 pixels tall.
+- **Gestalt principles (1923):** People group elements by distance before they read them, so a
+  gap carries meaning.
+- **Contrast:** WCAG and APCA measure whether text is legible against its background.
 
 ## Judgments
 
-Where no measurement applies, a decision is a judgment. Corner radius, the accent hue, the
-blur of a glass panel and the padding inside a card are all judgments.
-
-Kookie keeps the two kinds apart. A measured limit is enforced, and you cannot override it. A
-judgment is stored as one value, so a single edit changes it everywhere. Kookie never presents a
-judgment as if it were a measurement, because a chosen number does not become more correct by
-looking precise.
+Corner radius, the accent hue and the padding inside a card have no measured answer. Each one is
+a judgment. Kookie stores each judgment as one value, so one edit changes it everywhere. Kookie
+never presents a judgment as a measurement, because a chosen number does not become more correct
+by looking precise.
 
 ## Answer each question once
 
-An inconsistent design system hides its cost at first. Your first and fifth screens can look
-right. By the twentieth screen, the same question has been answered differently in a dozen
-files, and the screens no longer agree with each other.
-
-Kookie answers each design question once, and every screen uses that answer. This is why a
-component accepts a `tone` and an `emphasis` instead of a colour, and why there's no `variant`
-prop or margin prop.
+An inconsistent system hides its cost at first. By the twentieth screen, the same question has
+a dozen answers in a dozen files. Kookie answers each question once. This is why a component
+takes a `tone` and an `emphasis` instead of a colour, and why there is no `variant` prop or
+margin prop.
 
 ```tsx
 // Say what the button means. The theme picks the colour, in light mode and dark.
@@ -62,46 +64,79 @@ prop or margin prop.
 </Button>
 ```
 
-## Components are organised by what they do
+## Choose a component by its job
 
-Kookie classifies components by their job rather than their appearance. Two components can
-look almost the same and still do different jobs. When that happens, Kookie keeps them separate,
-and each one gets its own name and props.
+Kookie groups its components by the job a person is doing, not by how they look. The jobs are
+Act, Choose, Enter, Go, Browse, Read, Know, Focus and Converse. Arrange is the tenth, and it is
+your job rather than the person's. Start with the job, and the job gives you a short list of
+candidates.
 
-`Tabs` and `SegmentedControl` show the difference. Both render a row of segments. `Tabs` moves
-you between views and replaces the content below, whereas a `SegmentedControl` sets a value and
-leaves the surrounding content in place.
+Two components can look almost the same and still do different jobs. `Tabs` and
+`SegmentedControl` both render a row of segments. `Tabs` moves you to another view, which is Go.
+A `SegmentedControl` sets a value and leaves the content in place, which is Choose.
 
 <Example name="principles.lookalikes" quiet />
 
-The two controls also announce themselves differently to screen readers. `Tabs` reports a tab
-list and names the panel that each tab shows. A `SegmentedControl` reports a radio group, where
-the arrow keys change the value. Because the behaviour differs, no prop converts one into the
-other.
+Screen readers announce them differently too: `Tabs` reports a tab list, and a
+`SegmentedControl` reports a radio group. Every component page has a "Use instead" section that
+names the component it is most often confused with, and says when to use each.
 
-To choose between two similar components, ask what each one does on its own. You can switch
-views without setting a value, and you can set a value without switching views. The
-[Vocabulary](/start/vocabulary) chapter lists other pairs that look alike.
+## Undo instead of warning
+
+A warning dialog interrupts the person and teaches them to press OK without reading it. Apple's
+1992 guidelines say a frequent alert is a sign that the design is wrong. If an action can be
+undone, do it at once and offer a way back. Use an `AlertDialog` only for a loss that cannot be
+undone.
+
+```tsx
+<AlertDialog>
+  <AlertDialogTrigger
+    render={<Button tone="destructive" emphasis="medium">Delete workspace…</Button>}
+  />
+  <AlertDialogContent>
+    <AlertDialogTitle>Delete workspace?</AlertDialogTitle>
+    <AlertDialogDescription>
+      Every project, member and API key goes with it. This cannot be undone.
+    </AlertDialogDescription>
+    <AlertDialogCancel>Keep it</AlertDialogCancel>
+    <AlertDialogAction tone="destructive">Delete</AlertDialogAction>
+  </AlertDialogContent>
+</AlertDialog>
+```
+
+The dialog names the object and the loss, and the action button says the verb. Focus starts on
+Cancel, which is the safe answer.
+
+## Keep people oriented
+
+Most of Apple's prohibitions protect one thing: the person's sense of where they are and what
+they can do.
+
+- **Dim, don't hide:** An action that is not available now stays visible and disabled, so people
+  learn where it lives.
+- **One dialog at a time:** A dialog on top of a dialog hides the task that opened it.
+- **No hidden-only commands:** A `ContextMenu` cannot be seen until someone opens it, so every
+  action in it must also be reachable another way.
+- **Same features at every size:** A narrow window shows less at once, but it does not remove
+  features. A sidebar becomes a tab bar, and a dialog becomes a sheet. The
+  [Navigation](/patterns/navigation) chapter shows each shape.
 
 ## Components and patterns
 
-A component is complete on its own: a `Button` includes its label, its icon and its padding. A
-pattern is an arrangement of several components that your app puts together. An app frame is a
-pattern, because the header, the sidebar, the content and the way they respond to the window
-depend on your app. `Shell` arranges the panes, and you decide what goes in them. The
-[Navigation](/patterns/navigation) chapter shows how to build a frame for each window size.
+A component does one thing and is complete on its own: a `Button` includes its label, its icon
+and its padding. A pattern coordinates several parts and makes the decisions that its job always
+needs. `Shell` is a pattern: it arranges the panes of an app and adapts them to the window,
+while you decide what goes in them. The components index marks each pattern.
 
-A child never changes its parent's settings. If you need a child to change its parent, such as a
-sidebar that sets the page margin, you are building a pattern. Build it in your app rather than
-looking for a component that provides it.
+A child never changes its parent's settings. If a child needs to change its parent, such as a
+sidebar that sets the page margin, you are building a pattern. Build it in your app.
 
 ## The trade-off
 
-A system that makes its decisions in one place gives you fewer overrides than you may be used
-to. When a design does not fit, there's no `variant` prop to reach for, and TypeScript rejects
-the props that Kookie does not accept. Each component page lists the props it does not accept,
+Kookie gives you fewer overrides than you may be used to. There is no `variant` prop, and
+TypeScript rejects the props that Kookie does not accept. Each component page lists those props,
 with the reason and an alternative. `style` and `className` are still available, and both are
-easy to spot in a code review.
+easy to find in a code review.
 
 In return, the system stays consistent as your app grows, because its decisions are enforced
 rather than left to memory.
