@@ -97,7 +97,8 @@ describe("the trigger is a heading on the height ladder — a control, not a row
       // The panel body's inline inset IS the row's — read as computed padding on both.
       const body = root.querySelector<HTMLElement>(".kui-accordion-panel-body")!;
       expect(computed(body, "padding-left")).toBe(computed(trigger, "padding-left"));
-      expect(parseFloat(computed(body, "padding-left"))).toBeGreaterThan(0);
+      // Flush (§37): the heading has no fill in any state, so it carries no inline inset.
+      expect(computed(trigger, "padding-left")).toBe("0px");
       expect(parseFloat(computed(body, "padding-bottom"))).toBeGreaterThan(0);
       // THE AIR IS BESIDE A HAIRLINE, AND ONLY THERE (2026-09-01; the assertion rewritten the
       // same day by the ultracode audit). The first spelling read `padding-top === padding-
@@ -205,16 +206,12 @@ describe("the trigger is a heading on the height ladder — a control, not a row
     expect(chevron(dead), "and so does the glyph beside it").not.toBe(chevron(live));
   });
 
-  it("the inset agreement holds at radius=full too, where the row pads for the pill", () => {
+  it("the heading stays flush at radius=full too — no fill, so no pill to pad for", () => {
     const root = mounted(<Fixture size="3" open />, { theme: { radius: "full" } });
-    const medium = mounted(<Fixture size="3" open />, { theme: { radius: "medium" } });
     const body = root.querySelector<HTMLElement>(".kui-accordion-panel-body")!;
     const trigger = triggersOf(root)[0]!;
     expect(computed(body, "padding-left")).toBe(computed(trigger, "padding-left"));
-    // And full really does pad wider — or the agreement above was tested at an identity.
-    expect(parseFloat(computed(trigger, "padding-left"))).toBeGreaterThan(
-      parseFloat(computed(triggersOf(medium)[0]!, "padding-left")),
-    );
+    expect(computed(trigger, "padding-left")).toBe("0px");
   });
 
   it("under the pointer the label underlines and the box does not fill — Link's hover, not a row's", async () => {
@@ -313,11 +310,8 @@ describe("the trigger is a heading on the height ladder — a control, not a row
     // divides the row's CONTENT, so each end is read against the padding that side wears.
     expect(line.left).toBe(computed(trigger, "padding-left"));
     expect(line.right).toBe(computed(trigger, "padding-right"));
-    expect(parseFloat(line.left)).toBeGreaterThan(0);
-    expect(parseFloat(line.right)).toBeGreaterThan(0);
-    // And they really are different numbers at the default radius, or the law above would be
-    // one assertion wearing two.
-    expect(line.right).not.toBe(line.left);
+    // Flush (§37): the heading carries no inline inset, so the line runs edge to edge.
+    expect(line.left).toBe("0px");
   });
 
   it("paints no pane of its own", () => {

@@ -191,7 +191,7 @@
 
 .kd-figure-chrome {
   padding: var(--kd-chrome-p);
-  /* In flow above the paper (iteration, 2026-09-20): reaches the ground's top and side walls,
+  /* In flow above the paper: reaches the ground's top and side walls,
      keeps its own padding as the gap to the card below. */
   margin-block-start: calc(-1 * var(--kui-sf-p));
   margin-inline: calc(-1 * var(--kui-sf-p));

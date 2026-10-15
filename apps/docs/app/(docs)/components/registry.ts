@@ -871,6 +871,7 @@ const DECLARED: Entry[] = [
       {
         name: "`size` on the title",
         why: "The dialog's `size` sets the size of the title and the description, so they always match the panel. Other text that you add keeps its own size.",
+        on: ["DialogTitle", "DialogDescription"],
       },
     ],
     parts: [
@@ -1614,6 +1615,7 @@ const DECLARED: Entry[] = [
       {
         name: "`size` on a group",
         why: "A group and its buttons always use the row's size, so they stay the same height as the controls beside them. Set `size` on the `Toolbar` instead.",
+        on: ["ToolbarGroup"],
       },
       {
         name: "A `gap` prop",
