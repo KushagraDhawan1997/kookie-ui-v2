@@ -424,7 +424,7 @@ describe("a figure hands a region the whole measure", () => {
      spelling — which collapses the two renderings onto each other and fails the first
      assertion. */
   const stageOf = (html: string) => {
-    const match = /<div class="kui-box" style="([^"]*min-block-size[^"]*)"/.exec(html);
+    const match = /<div class="[^"]*kd-figure-stage[^"]*"[^>]*style="([^"]*min-block-size[^"]*)"/.exec(html);
     expect(match, "no stage in the figure — this law now reads nothing").toBeTruthy();
     return match![1]!;
   };
@@ -1317,7 +1317,7 @@ describe("a chrome row is a toolbar", () => {
  * revealed on a pointer, a row with nothing in it still draws its track, and a tabbed figure's
  * copy button ends up somewhere different from every other figure's.
  */
-describe("the figure's chrome floats over the code and is always there", () => {
+describe("the figure's chrome sits above the code and is always there", () => {
   const css = () => source("code.css");
 
   it("nothing hides it, and nothing waits for a pointer", () => {
@@ -1336,12 +1336,13 @@ describe("the figure's chrome floats over the code and is always there", () => {
     expect(css(), "nor the keyboard").not.toMatch(/:focus-within\s+\.kd-\w+-chrome/);
   });
 
-  it("and it reserves no space of its own, because the well already reserves the band", () => {
-    // A row in flow would push the code down by its own height on top of the band the well
-    // already holds for it — the same distance counted twice.
-    expect(css(), "the floating chrome is out of flow").toMatch(
-      /\.kd-figure-chrome\s*\{[^}]*position:\s*absolute/,
-    );
+  it("and it sits in flow above the paper, reaching the ground's walls", () => {
+    // The chrome is a row above the paper, not a float over it: it cancels the ground's padding
+    // on the top and both sides, and keeps its own padding as the gap to the card below.
+    const rule = /\.kd-figure-chrome\s*\{([^}]*)\}/.exec(css())?.[1] ?? "";
+    expect(rule, "the chrome is in flow").not.toMatch(/position:\s*absolute/);
+    expect(rule).toMatch(/margin-block-start:\s*calc\(-1 \* var\(--kui-sf-p\)\)/);
+    expect(rule).toMatch(/margin-inline:\s*calc\(-1 \* var\(--kui-sf-p\)\)/);
   });
 
   it("a row with nothing in it does not draw at all", async () => {
