@@ -144,7 +144,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Vocabulary",
     section: "start",
     blurb:
-      "Learn the categories that Kookie sorts its components into. A component's category determines which props it accepts, and it explains why a prop you expect is missing.",
+      "Kookie groups its components by the job a person is doing. Start with the job to find the right component.",
     spec: ["THESIS §2", "THESIS §3", "§9", "§10", "§11"],
     source: "start/vocabulary.mdx",
     Content: Vocabulary,

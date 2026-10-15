@@ -1,64 +1,32 @@
-Kookie is a set of answers to interface questions that already have good answers. An AI agent
-can build a screen that looks good on its own. It cannot keep fifty screens consistent, because
-it answers each question again on every screen. Kookie answers each question once, and every
-component uses that answer.
-
-## Why Kookie exists
-
-Most interface problems are solved. How to confirm a delete, where navigation goes on a phone,
-and when to show an error all have answers that research and decades of products agree on. An
-agent can find those answers, but finding them takes longer than building something new. So the
-agent builds something new, and each screen gets a slightly different answer.
-
-Kookie puts the answers where an agent already looks: in the component, its types and its
-documentation. Kookie does not teach a visual style. It teaches how to approach a problem: which
-question to ask, which answer follows, and which component carries that answer. The
-[Responsiveness](/foundations/responsiveness) chapter is an example: it starts with three
-questions, and each question leads to one mechanism.
+Most interface problems are already solved. An AI agent can find the answer, but building
+something new is faster, so each screen gets a slightly different answer. Kookie puts the
+answers into the components, so the right one is the one you get without asking.
 
 ## Learn from Apple
 
-Kookie takes its method from Apple's Human Interface Guidelines, from the 1992 Macintosh
-edition to the current one. Apple gives every rule three parts:
+Kookie takes its method from Apple's Human Interface Guidelines. Every rule has three parts:
 
-- **The question:** Is this navigation or an action? Can the person undo it?
-- **The reason:** a measured limit, or a judgment that is said to be one.
-- **The default:** a component that already follows the rule, so the right result needs no
-  extra code.
+- **A question:** Is this navigation or an action? Can the person undo it?
+- **A reason:** a measured limit, or a judgment that is said to be one.
+- **A default:** a component that already follows the rule.
 
-You can override an Apple default, but the override must keep the rule. A custom colour still
-needs a light, a dark and a high-contrast value. Kookie works the same way. Apple can enforce
-its defaults because it makes the operating system. A library cannot, so Kookie enforces its
-rules through types: a prop that Kookie does not accept is a compile error, and the error says
-what to write instead.
+Apple can enforce its defaults because it makes the operating system. Kookie enforces them
+through TypeScript: a prop that Kookie does not accept is a compile error that says what to
+write instead.
 
-## Measured limits
+## Measured limits and judgments
 
-Where research gives a measured answer, Kookie applies it, and no prop can override it.
+Where research gives an answer, Kookie applies it and no prop overrides it. A touch target is
+at least 44 pixels on a touch screen. Text meets WCAG and APCA contrast.
 
-- **Fitts's law (1954):** A small or distant target takes longer to reach.
-- **Tap targets:** A fingertip is about 10 millimetres across. Apple sets a 44-point minimum,
-  and WCAG 2.2 sets a 24-pixel floor. A size 2 `Button` on a touch screen is 44 pixels tall.
-- **Gestalt principles (1923):** People group elements by distance before they read them, so a
-  gap carries meaning.
-- **Contrast:** WCAG and APCA measure whether text is legible against its background.
-
-## Judgments
-
-Corner radius, the accent hue and the padding inside a card have no measured answer. Each one is
-a judgment. Kookie stores each judgment as one value, so one edit changes it everywhere. Kookie
-never presents a judgment as a measurement, because a chosen number does not become more correct
-by looking precise.
+Corner radius, the accent hue and card padding have no measured answer. Each is a judgment,
+stored once, so one edit changes it everywhere.
 
 ## Answer each question once
 
-An inconsistent system hides its cost at first. By the twentieth screen, the same question has
-a dozen answers in a dozen files. Kookie answers each question once. This is why a component
-takes a `tone` and an `emphasis` instead of a colour, and why there is no `variant` prop or
-margin prop.
+A component takes a meaning, not a value. There is no `variant` prop and no margin prop.
 
 ```tsx
-// Say what the button means. The theme picks the colour, in light mode and dark.
 <Button tone="destructive" emphasis="loud">
   Delete project
 </Button>
@@ -66,77 +34,28 @@ margin prop.
 
 ## Choose a component by its job
 
-Kookie groups its components by the job a person is doing, not by how they look. The jobs are
-Act, Choose, Enter, Go, Browse, Read, Know, Focus and Converse. Arrange is the tenth, and it is
-your job rather than the person's. Start with the job, and the job gives you a short list of
-candidates.
-
-Two components can look almost the same and still do different jobs. `Tabs` and
-`SegmentedControl` both render a row of segments. `Tabs` moves you to another view, which is Go.
-A `SegmentedControl` sets a value and leaves the content in place, which is Choose.
+Start with what the person is doing, and the job gives you a short list. The
+[Vocabulary](/start/vocabulary) chapter lists the jobs.
 
 <Example name="principles.lookalikes" quiet />
 
-Screen readers announce them differently too: `Tabs` reports a tab list, and a
-`SegmentedControl` reports a radio group. Every component page has a "Use instead" section that
-names the component it is most often confused with, and says when to use each.
+`Tabs` and `SegmentedControl` look alike. `Tabs` moves you to another view. A
+`SegmentedControl` sets a value and leaves the content in place.
 
 ## Undo instead of warning
 
-A warning dialog interrupts the person and teaches them to press OK without reading it. Apple's
-1992 guidelines say a frequent alert is a sign that the design is wrong. If an action can be
-undone, do it at once and offer a way back. Use an `AlertDialog` only for a loss that cannot be
-undone.
-
-```tsx
-<AlertDialog>
-  <AlertDialogTrigger
-    render={<Button tone="destructive" emphasis="medium">Delete workspace…</Button>}
-  />
-  <AlertDialogContent>
-    <AlertDialogTitle>Delete workspace?</AlertDialogTitle>
-    <AlertDialogDescription>
-      Every project, member and API key goes with it. This cannot be undone.
-    </AlertDialogDescription>
-    <AlertDialogCancel>Keep it</AlertDialogCancel>
-    <AlertDialogAction tone="destructive">Delete</AlertDialogAction>
-  </AlertDialogContent>
-</AlertDialog>
-```
-
-The dialog names the object and the loss, and the action button says the verb. Focus starts on
-Cancel, which is the safe answer.
+If an action can be undone, do it and offer a way back. Use an `AlertDialog` only for a loss
+that cannot be undone. A frequent warning teaches people to press OK without reading.
 
 ## Keep people oriented
 
-Most of Apple's prohibitions protect one thing: the person's sense of where they are and what
-they can do.
-
-- **Dim, don't hide:** An action that is not available now stays visible and disabled, so people
-  learn where it lives.
-- **One dialog at a time:** A dialog on top of a dialog hides the task that opened it.
-- **No hidden-only commands:** A `ContextMenu` cannot be seen until someone opens it, so every
-  action in it must also be reachable another way.
-- **Same features at every size:** A narrow window shows less at once, but it does not remove
-  features. A sidebar becomes a tab bar, and a dialog becomes a sheet. The
-  [Navigation](/patterns/navigation) chapter shows each shape.
-
-## Components and patterns
-
-A component does one thing and is complete on its own: a `Button` includes its label, its icon
-and its padding. A pattern coordinates several parts and makes the decisions that its job always
-needs. `Shell` is a pattern: it arranges the panes of an app and adapts them to the window,
-while you decide what goes in them. The components index marks each pattern.
-
-A child never changes its parent's settings. If a child needs to change its parent, such as a
-sidebar that sets the page margin, you are building a pattern. Build it in your app.
+- **Dim, don't hide:** An unavailable action stays visible and disabled.
+- **One dialog at a time:** A dialog over a dialog hides the task that opened it.
+- **No hidden-only commands:** Every action in a `ContextMenu` must also be reachable another
+  way.
+- **Same features at every size:** A narrow window shows less at once, but removes nothing.
 
 ## The trade-off
 
-Kookie gives you fewer overrides than you may be used to. There is no `variant` prop, and
-TypeScript rejects the props that Kookie does not accept. Each component page lists those props,
-with the reason and an alternative. `style` and `className` are still available, and both are
-easy to find in a code review.
-
-In return, the system stays consistent as your app grows, because its decisions are enforced
-rather than left to memory.
+Kookie gives you fewer overrides. In return, your screens stay consistent as the app grows.
+`style` and `className` remain available, and both are easy to find in a review.
