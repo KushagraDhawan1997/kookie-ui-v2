@@ -116,6 +116,9 @@ export const metadata: Metadata = {
   title: "KookieUI",
   description:
     "Base UI primitives behind a Kookie-owned API, generated OKLCH color, token-only styling.",
+  // Kept out of search until the package is on npm. This line comes off at the first release,
+  // together with the blanket disallow in robots.ts.
+  robots: { index: false, follow: false },
 };
 
 /**
