@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Flex, Grid, Heading, Link as KookieLink, Page, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 import { PageFrame } from "./page-frame";
+import { WipNotice } from "./wip-notice";
 import { SECTIONS, chaptersIn } from "./chapters";
 import { ENTRIES } from "./components/registry";
 import { BLOCKS } from "../../blocks";
@@ -113,6 +114,8 @@ export default function Home() {
           title="Kookie User Interface"
           description="Kookie is a design system for React. It gives you components, the rules for how to use them, and tools that check your screens against those rules. It gives you one way to say what something means. You get fewer choices than you may be used to. Because of this, screens that you build months apart still look like one product."
         />
+
+        <WipNotice />
 
         {/* NO HEADING OVER THIS (2026-08-29, Kushagra: "Do I need 'Everything on this site'
             now?" — no). It read as a section label while the claims were the section above it;
