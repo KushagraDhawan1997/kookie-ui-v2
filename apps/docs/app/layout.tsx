@@ -113,7 +113,7 @@ import { DocsTheme } from "./theme-store";
  */
 
 export const metadata: Metadata = {
-  title: "KookieUI",
+  title: "Kookie UI",
   description:
     "Base UI primitives behind a Kookie-owned API, generated OKLCH color, token-only styling.",
   // Kept out of search until the package is on npm. This line comes off at the first release,
