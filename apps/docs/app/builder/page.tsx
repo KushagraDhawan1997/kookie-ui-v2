@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Builder — KookieUI",
   description:
     "Compose screens and blocks from KookieUI components — every distance a token, every axis a closed union — and export the React code a person would have written.",
+  alternates: { canonical: "/builder" },
 };
 
 export default function BuilderPage() {

@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Judging matrix — KookieUI",
   description:
     "Every shipped control across size × density, under switchable radius, pointer, surfaces and contrast — the eye pass happens here.",
+  alternates: { canonical: "/matrix" },
 };
 
 export default function MatrixPage() {

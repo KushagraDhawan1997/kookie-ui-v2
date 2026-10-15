@@ -7,7 +7,10 @@ import { humanLabel } from "../label";
 
 const FAMILIES: Entry["family"][] = ["Layout", "Type", "Control", "Surface", "Indicator"];
 
-export const metadata = { title: "Components — KookieUI" };
+export const metadata = {
+  title: "Components — KookieUI",
+  alternates: { canonical: "/components" },
+};
 
 /**
  * The component index.
