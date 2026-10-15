@@ -56,7 +56,7 @@ for (const tool of tools.result.tools) {
 }
 
 const calls = [
-  ["list_components", { family: "Indicator" }],
+  ["list_components", { job: "Know" }],
   ["list_components", {}],
   ["get_component", { name: "button" }],
   ["get_component", { name: "Toast" }],

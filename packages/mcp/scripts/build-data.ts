@@ -62,7 +62,7 @@ export const SOURCES = {
 /** One esbuild pass over both graphs, so the docs' twin and the package's internals arrive
     in this process by the same road. */
 async function loadSources(): Promise<{
-  ENTRIES: { name: string; slug: string; family: string; abstract: string; parts?: { part: string }[]; refusals: { name: string; why: string }[] }[];
+  ENTRIES: { name: string; slug: string; job: string; level: string; abstract: string; parts?: { part: string }[]; refusals: { name: string; why: string }[] }[];
   API: Record<string, ApiEntry>;
   markdownFor: (p: string) => string | null;
   REFUSED_ATTRIBUTES: ReadonlySet<string>;
@@ -251,7 +251,8 @@ export async function buildData(): Promise<Data> {
     components: ENTRIES.map((entry) => ({
       name: entry.name,
       slug: entry.slug,
-      family: entry.family,
+      job: entry.job,
+      level: entry.level,
       abstract: entry.abstract,
       symbols: [entry.name, ...(entry.parts ?? []).map((part) => part.part)],
     })),

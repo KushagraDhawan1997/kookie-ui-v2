@@ -26,7 +26,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { readPackageExports } from "../../package-exports";
-import { ENTRIES } from "./registry";
+import { ENTRIES, JOBS, PAIRS, alternativesFor } from "./registry";
 import { EXAMPLES } from "../../../examples";
 import { CHAPTERS } from "../chapters";
 import { humanLabel } from "../label";
@@ -624,5 +624,40 @@ describe("the reference page's headings carry the anchors its contents column po
     // failure that shipped. `slug.ts` states why it is a module rather than two inlined lines.
     expect(source).toContain('import { slugify } from "../../slug"');
     expect(source, "a heading anchor spelled by hand").not.toMatch(/id=\{[^}]*replace\(/);
+  });
+});
+
+/* THE JOBS AND THE PAIRS. A component is filed by the job a person is doing, and the pairs
+   people confuse are written once and printed on both pages. Each law below fails on the one
+   way that data rots: a job nobody is in, a pair naming a component that was renamed, or the
+   same pair written twice with two different answers. */
+describe("jobs and pairs", () => {
+  it("files every component under a listed job, and leaves no job empty", () => {
+    const listed = new Set<string>(JOBS.map((j) => j.job));
+    for (const entry of ENTRIES) expect(listed.has(entry.job), entry.name).toBe(true);
+    for (const { job } of JOBS) {
+      expect(ENTRIES.some((e) => e.job === job), `${job} has no members`).toBe(true);
+    }
+  });
+
+  it("names only real components in a pair, never the same one twice", () => {
+    const names = new Set(ENTRIES.map((e) => e.name));
+    const seen = new Set<string>();
+    for (const pair of PAIRS) {
+      expect(names.has(pair.a), pair.a).toBe(true);
+      expect(names.has(pair.b), pair.b).toBe(true);
+      expect(pair.a, "a component paired with itself").not.toBe(pair.b);
+      const key = [pair.a, pair.b].sort().join("|");
+      expect(seen.has(key), `${key} written twice`).toBe(false);
+      seen.add(key);
+    }
+  });
+
+  it("prints a pair on both sides", () => {
+    // Falsified by `alternativesFor` reading only `a`: Checkbox would then never name Switch.
+    for (const pair of PAIRS) {
+      expect(alternativesFor(pair.a).map((alt) => alt.name)).toContain(pair.b);
+      expect(alternativesFor(pair.b).map((alt) => alt.name)).toContain(pair.a);
+    }
   });
 });

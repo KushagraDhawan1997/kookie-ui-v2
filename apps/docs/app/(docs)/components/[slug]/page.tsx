@@ -31,11 +31,13 @@
  * table can never carry, and it is what this reference has that Apple's does not.
  */
 import type { Metadata } from "next";
+import NextLink from "next/link";
 import { notFound } from "next/navigation";
 import {
   Box,
   Code,
   Heading,
+  Link,
   List,
   ListItem,
   Page,
@@ -56,7 +58,7 @@ import { InlineCode } from "../../../inline-code";
 import { API } from "../api.generated";
 import { PageFrame } from "../../page-frame";
 import { propDescription, propSummary, propType } from "../prop-description";
-import { BY_SLUG, ENTRIES, type Entry } from "../registry";
+import { BY_SLUG, ENTRIES, alternativesFor, type Entry } from "../registry";
 import { humanLabel } from "../../label";
 import { slugify } from "../../slug";
 import type { TocEntry } from "../../toc";
@@ -92,6 +94,7 @@ export async function generateMetadata({
 const SECTIONS = {
   declaration: "Declaration",
   overview: "Overview",
+  instead: "Use instead",
   topics: "Topics",
   props: "Props",
   refusals: "Not supported",
@@ -118,6 +121,7 @@ export function referenceToc(entry: Entry): TocEntry[] {
   return [
     at(SECTIONS.declaration, 2),
     at(SECTIONS.overview, 2),
+    ...(alternativesFor(entry.name).length > 0 ? [at(SECTIONS.instead, 2)] : []),
     ...(entry.topics
       ? [at(SECTIONS.topics, 2), ...entry.topics.map((topic) => at(topic.title, 3))]
       : [at(SECTIONS.props, 2)]),
@@ -383,6 +387,27 @@ export default async function ComponentPage({ params }: { params: Promise<{ slug
                       ))}
                     </Stack>
                   </Section>
+
+                  {alternativesFor(entry.name).length > 0 ? (
+                    /* RIGHT AFTER THE OVERVIEW, because the next question a reader has once they
+               know what this is, is whether it is the right one. Each pair is written once in
+               the registry and printed on both pages, so the two sides cannot disagree. */
+                    <Section title={SECTIONS.instead}>
+                      <List size="3">
+                        {alternativesFor(entry.name).map((alt) => {
+                          const other = ENTRIES.find((e) => e.name === alt.name)!;
+                          return (
+                            <ListItem key={alt.name}>
+                              <Link size="3" render={<NextLink href={`/components/${other.slug}`} />}>
+                                {humanLabel(alt.name)}
+                              </Link>{" "}
+                              when <InlineCode text={alt.when} />
+                            </ListItem>
+                          );
+                        })}
+                      </List>
+                    </Section>
+                  ) : null}
 
                   {entry.topics ? (
                     /* TOPICS IS THE INDEX AND THE REFERENCE AT ONCE, and on one page that is

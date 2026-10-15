@@ -32,7 +32,7 @@ import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import * as z from "zod/v4";
 
 import { exportedSymbols } from "./check.ts";
-import { checkCode, families, getComponent, getTokens, listComponents } from "./tools.ts";
+import { checkCode, getComponent, getTokens, jobs, listComponents } from "./tools.ts";
 
 /** One text result. The tool bodies have already been through the budget. */
 const reply = (text: string) => ({ content: [{ type: "text" as const, text }] });
@@ -48,12 +48,12 @@ export function createServer(): McpServer {
     {
       title: "List KookieUI components",
       description:
-        "Every component KookieUI exports, as a name and one sentence, grouped by family " +
-        `(${families().join(", ")}). Names and abstracts only — call ` +
+        "Every component KookieUI exports, as a name and one sentence, grouped by the job a person is doing " +
+        `(${jobs().join(", ")}). Names and abstracts only — call ` +
         "get_component for the props and the refusals of one. Start here when you do not know " +
         "what this system calls a thing.",
       inputSchema: z.object({
-        family: z.enum(families()).optional().describe("Only this family. Omit for all of them."),
+        job: z.enum(jobs()).optional().describe("Only this job. Omit for all of them."),
         query: z
           .string()
           .optional()

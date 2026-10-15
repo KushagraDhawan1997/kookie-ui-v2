@@ -5,7 +5,7 @@
  * from exactly this, and the failure mode is the bad kind: the answer ends mid-sentence and
  * nothing says it was cut. So the claim this server makes — that no tool can produce one — is
  * checked against every answer it can give rather than against the one a demo happened to ask
- * for. Every component, every family, and a token query that matches everything.
+ * for. Every component, every job, and a token query that matches everything.
  *
  * The budget is in characters because a server cannot tokenize the client's model. Three
  * characters to a token is the pessimistic end for prose with code in it, so the assertion is
@@ -14,7 +14,7 @@
 import { describe, expect, it } from "vitest";
 
 import { data } from "./data.ts";
-import { CEILING, budgeted, checkCode, families, getComponent, getTokens, listComponents } from "./tools.ts";
+import { CEILING, budgeted, checkCode, getComponent, getTokens, jobs, listComponents } from "./tools.ts";
 
 const TOKEN_CAP = 25_000;
 const CHARS_PER_TOKEN = 3;
@@ -43,9 +43,9 @@ describe("no answer this server can give reaches the client's cap", () => {
     );
   });
 
-  it("holds for the whole component list and for every family", () => {
+  it("holds for the whole component list and for every job", () => {
     measure("list_components()", listComponents({}));
-    for (const family of families()) measure(`list_components(${family})`, listComponents({ family }));
+    for (const job of jobs()) measure(`list_components(${job})`, listComponents({ job }));
   });
 
   it("holds for a token query that matches every token at the largest limit", () => {

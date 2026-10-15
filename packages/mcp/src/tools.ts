@@ -4,7 +4,7 @@
  * Separate from `index.ts` so the answers can be MEASURED. The size ceiling is this server's
  * one hard constraint, and a law that proved it by starting a process and calling one tool
  * would be a law about the example it happened to pick; these functions let the law sweep every
- * component, every family and the widest token query there is.
+ * component, every job and the widest token query there is.
  */
 import { checkUsage } from "./check.ts";
 import { data, resolveComponent } from "./data.ts";
@@ -43,35 +43,35 @@ const from = (...keys: string[]): string =>
   `\n\nSource: ${keys.map((key) => data().sources[key] ?? key).join(", ")}`;
 
 /**
- * The families, taken from the components themselves.
+ * The jobs, taken from the components themselves.
  *
- * A LIST HERE WOULD BE A SECOND HOME. The registry states each entry's family and nothing else
- * does; a copy would keep agreeing right up to the day a sixth family lands, which is the day
+ * A LIST HERE WOULD BE A SECOND HOME. The registry states each entry's job and nothing else
+ * does; a copy would keep agreeing right up to the day a new job lands, which is the day
  * the tool's own filter would stop reaching it — and no law would say so, because a shorter
  * list is just a shorter walk. First-seen order, so the enum a client reads is the order
  * `list_components` prints its headings in.
  */
-export const families = (): [string, ...string[]] =>
-  [...new Set(data().components.map((row) => row.family))] as [string, ...string[]];
+export const jobs = (): [string, ...string[]] =>
+  [...new Set(data().components.map((row) => row.job))] as [string, ...string[]];
 
-/** A family name, open at the type level because the values are a runtime derivation; the
+/** A job name, open at the type level because the values are a runtime derivation; the
     tool's schema closes it against the list above, which is the check that cannot go stale. */
-export type Family = string;
+export type Job = string;
 
 export function listComponents({
-  family,
+  job,
   query,
 }: {
   /* `| undefined` written out because `exactOptionalPropertyTypes` is on and zod hands an
      optional field over as exactly that: present, and possibly undefined. */
-  family?: Family | undefined;
+  job?: Job | undefined;
   query?: string | undefined;
 }): string {
   const rows = data().components;
   const want = query?.trim().toLowerCase();
   const matched = rows.filter(
     (row) =>
-      (!family || row.family === family) &&
+      (!job || row.job === job) &&
       (!want || row.name.toLowerCase().includes(want) || row.abstract.toLowerCase().includes(want)),
   );
   if (!matched.length) {
@@ -79,11 +79,11 @@ export function listComponents({
       `Nothing matched. ${rows.length} components exist; call this tool with no arguments to see them all.`,
     );
   }
-  const body = [...new Set(matched.map((row) => row.family))]
+  const body = [...new Set(matched.map((row) => row.job))]
     .map((name) => {
       const listed = matched
-        .filter((row) => row.family === name)
-        .map((row) => `- **${row.name}** — ${row.abstract}`)
+        .filter((row) => row.job === name)
+        .map((row) => `- **${row.name}**${row.level === "pattern" ? " (pattern)" : ""} — ${row.abstract}`)
         .join("\n");
       return `## ${name}\n\n${listed}`;
     })

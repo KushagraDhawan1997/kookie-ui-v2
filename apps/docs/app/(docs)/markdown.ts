@@ -1,6 +1,6 @@
 import { CHAPTERS } from "./chapters";
 import { BLOCKS } from "../../blocks";
-import { ENTRIES } from "./components/registry";
+import { ENTRIES, JOBS, alternativesFor } from "./components/registry";
 import { API, type ApiProp } from "./components/api.generated";
 import { propDescription, propSummary, propType } from "./components/prop-description";
 import { blockLang, readBlockSource } from "./blocks/source";
@@ -51,7 +51,7 @@ export const PAGES: PageRef[] = [
   ...ENTRIES.map((entry) => ({
     path: `/components/${entry.slug}`,
     title: humanLabel(entry.name),
-    context: `${entry.family} component`,
+    context: `${entry.job} ${entry.level === "pattern" ? "pattern" : "component"}`,
     blurb: entry.abstract,
   })),
   ...BLOCKS.map((block) => ({
@@ -152,11 +152,26 @@ function chapterMarkdown(chapter: { title: string; source: string }): string {
  * it takes.
  */
 function componentMarkdown(entry: Entry): string {
-  const out: string[] = [`# ${humanLabel(entry.name)}`, entry.abstract];
+  const job = JOBS.find((j) => j.job === entry.job)!;
+  const out: string[] = [
+    `# ${humanLabel(entry.name)}`,
+    entry.abstract,
+    `Job: ${job.job}. ${job.question} ${entry.level === "pattern" ? "A pattern: it owns the decisions this job needs." : "A leaf: it does one thing."}`,
+  ];
 
   out.push(fence(entry.declaration));
 
   out.push("## Overview", ...entry.overview);
+
+  // Before the refusals: the likeliest mistake after a wrong prop is the wrong component, and a
+  // model deciding between two near-twins needs the split before it reads either API.
+  const alternatives = alternativesFor(entry.name);
+  if (alternatives.length > 0) {
+    out.push(
+      "## Use instead",
+      alternatives.map((alt) => `- \`${alt.name}\` when ${alt.when}`).join("\n"),
+    );
+  }
 
   out.push(
     "## Not supported",

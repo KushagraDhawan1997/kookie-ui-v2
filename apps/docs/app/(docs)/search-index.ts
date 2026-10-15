@@ -12,7 +12,7 @@ import { humanLabel } from "./label";
  * AFTER the build and a place to serve the index from, which in this app means a post-build
  * step writing into a directory the build has already finished with. That is a real amount of
  * machinery for a site of roughly fifty pages whose content we already hold as structured
- * data — the chapters, their headings, and every component with its family and blurb.
+ * data — the chapters, their headings, and every component with its job and blurb.
  *
  * So this is a substring match over titles, headings and blurbs, built here and shipped as
  * JSON. It is honest about what it is: it will not find a word that appears only in the body
@@ -46,7 +46,7 @@ export function buildSearchIndex(): SearchEntry[] {
   for (const entry of ENTRIES) {
     entries.push({
       title: humanLabel(entry.name),
-      context: `${entry.family} component`,
+      context: `${entry.job} ${entry.level === "pattern" ? "pattern" : "component"}`,
       href: `/components/${entry.slug}`,
       // The refusals are in the haystack deliberately: "no margin prop" and "why can't I set
       // a shadow" are real searches, and the answer is a refusal rather than a feature.

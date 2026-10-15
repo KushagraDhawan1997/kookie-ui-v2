@@ -20,8 +20,18 @@ export type Entry = {
   slug: string;
   /** The exported name, and the key the coverage law matches on. */
   name: string;
-  /** Which family it belongs to. */
-  family: "Layout" | "Control" | "Surface" | "Type" | "Indicator";
+  /**
+   * The job the person is doing when this component is on screen. Families are named for the
+   * job, not for how the thing is built: Select floats like a Popover, but picking a value is
+   * Choose and has nothing in common with a panel. An agent arriving with a problem finds the
+   * candidates here before it knows any names.
+   */
+  job: Job;
+  /**
+   * A leaf does one thing. A pattern coordinates several parts and owns the decisions that job
+   * always needs, so the caller doesn't make them again.
+   */
+  level: "leaf" | "pattern";
   /** DECISIONS.md sections this component implements. */
   spec: string;
   /**
@@ -99,7 +109,8 @@ const DECLARED: Entry[] = [
   {
     slug: "accordion",
     name: "Accordion",
-    family: "Control",
+    job: "Read",
+    level: "leaf",
     spec: "§11, §21, §37",
         abstract: "Accordion stacks sections under headings that people press to show or hide the content.",
     overview: ["An accordion stacks sections one under the other. Each section has a heading that people press to show or hide its content. By default only one section is open at a time, and opening another closes it. Set `multiple` to let several sections stay open.","Use an accordion when a page has several sections and people usually need only one or two of them, such as a list of questions and answers or groups of settings. Use `Tabs` when people switch between views of one thing, and use `NavTree` for navigation with nested levels.","Each heading is as tall as a Button of the same size, and its label underlines under the pointer. The chevron points toward the reading direction while the section is closed and turns down while it is open. The text in a panel starts under the heading's label, so the two line up.","The accordion draws only the thin lines between its sections, with no box around them. Put it in a Card when the sections need an edge. `size` sets the headings and the panel text, and if you leave it unset, the accordion uses the size of the nearest Theme.","Each heading is a real heading element with a button inside it, so a screen reader lists the sections with the other headings on the page. Set `headingLevel` to match your page outline; the default is 3. People press Tab to move between headings and Enter or Space to open or close one, and the button announces whether its section is open.","Set `hiddenUntilFound` on a panel if you want the browser's find-in-page to open a closed section that contains a match."],
@@ -136,7 +147,8 @@ const DECLARED: Entry[] = [
   {
     slug: "alert-dialog",
     name: "AlertDialog",
-    family: "Surface",
+    job: "Focus",
+    level: "leaf",
     spec: "§10, §20, §25",
         abstract: "AlertDialog stops people to confirm an action that is hard to undo, such as a delete.",
     overview: ["An alert dialog interrupts people to ask a question with two answers, such as \"Delete this file?\". It holds a title, a description, a cancel button and an action button, and it arranges these parts for you.","Use an alert dialog before an action that is hard to undo. If the panel holds work, such as a form, or needs any control other than the two buttons, use a `Dialog` instead.","Write the question as the title, and say in the description what happens if people go ahead. Give the action a short verb, such as Delete, rather than OK. The two buttons sit side by side while both labels fit on one line, with Cancel on the start side. If a label is too long, the buttons stack with the action on top, so a label never wraps.","A press outside the alert does nothing, because a stray click must not answer the question. Escape closes the alert in the same way as Cancel. Both buttons close the alert when they are pressed.","`size` sets the whole alert: its width, padding, corner, text and buttons. Each size has a fixed width that is narrower than a Dialog of the same size. The page behind the alert dims, and the panel uses the material that your Theme sets.","The alert uses `role=\"alertdialog\"`, so a screen reader announces its title and description when it opens. Focus starts on Cancel, stays inside the alert while it is open, and returns to the trigger when it closes. The part names follow shadcn/ui's alert-dialog (MIT), and the behaviour comes from Base UI."],
@@ -196,7 +208,8 @@ const DECLARED: Entry[] = [
   {
     slug: "attachment",
     name: "Attachment",
-    family: "Surface",
+    job: "Know",
+    level: "leaf",
     spec: "§43",
     declaration: `<Attachment state="uploading" progress={0.62} icon={fileIcon} meta="2.4 MB" onRemove={remove}>
   quarterly-report.pdf
@@ -245,7 +258,8 @@ const DECLARED: Entry[] = [
   {
     slug: "avatar",
     name: "Avatar",
-    family: "Type",
+    job: "Read",
+    level: "leaf",
     spec: "§11, §35",
     declaration: `<Avatar src="/shruti.jpg" alt="Shruti Bhatia" fallback="SB" badge={<Badge>3</Badge>} />`,
     variants: [
@@ -270,7 +284,8 @@ const DECLARED: Entry[] = [
   {
     slug: "avatar-group",
     name: "AvatarGroup",
-    family: "Type",
+    job: "Read",
+    level: "leaf",
     spec: "§35",
     declaration: `<AvatarGroup size="3">
   <Avatar src="/shruti.jpg" alt="Shruti Bhatia" fallback="SB" />
@@ -292,7 +307,8 @@ const DECLARED: Entry[] = [
   {
     slug: "badge",
     name: "Badge",
-    family: "Type",
+    job: "Know",
+    level: "leaf",
     spec: "§11, §38",
     declaration: `<Text>
   Inbox <Badge>3</Badge>
@@ -319,7 +335,8 @@ const DECLARED: Entry[] = [
   {
     slug: "chip",
     name: "Chip",
-    family: "Type",
+    job: "Know",
+    level: "leaf",
     spec: "§11, §15, §38",
     declaration: `<Chip tone="success">Live</Chip>`,
     variants: [
@@ -356,7 +373,8 @@ const DECLARED: Entry[] = [
   {
     slug: "blockquote",
     name: "Blockquote",
-    family: "Type",
+    job: "Read",
+    level: "leaf",
     spec: "§11, §15",
     declaration: `<Blockquote>Taste is the last layer.</Blockquote>`,
     variants: [
@@ -382,7 +400,8 @@ const DECLARED: Entry[] = [
   {
     slug: "box",
     name: "Box",
-    family: "Layout",
+    job: "Arrange",
+    level: "leaf",
     spec: "§2, §3",
     declaration: `<Box p="4" m="2">
   …
@@ -416,7 +435,8 @@ const DECLARED: Entry[] = [
   {
     slug: "breadcrumb",
     name: "Breadcrumb",
-    family: "Type",
+    job: "Go",
+    level: "leaf",
     spec: "§11, §39",
         abstract: "Breadcrumb shows where the current page sits in your app, with a link back to each level above it.",
     overview: ["Breadcrumb shows the path from the top of your app to the current page. Every crumb before the last one links back to that level, and the last crumb names the current page as plain text.","Use a breadcrumb when pages sit several levels deep, such as folders, projects or settings sections. Don't use it for the steps of a process or for a history of pages you visited. To switch between views at the same level, use Tabs.","Each `BreadcrumbItem` draws the chevron that follows it, and the last item draws none, so you never place separators yourself. When a path is too long to show in full, keep the first crumb and the last few, and pass the levels in between to `BreadcrumbEllipsis` as `items`. The ellipsis is a button that opens a menu of those levels. Give each item an `href`, a `render` element or an `onClick`.","`size` sets the text size of the whole path, and the default is `2`. The colours are fixed: links use the muted text colour, the current page uses the full text colour, and the chevrons are fainter still. All three adjust for dark mode and high contrast.","Breadcrumb renders a `<nav>` landmark holding an ordered list, so a screen reader can find it and read it as a path. The landmark is named \"Breadcrumb\" unless you set `label`, which is how you name it in your app's language. The current page carries `aria-current=\"page\"`. Tab moves through the links, and the arrow keys move through the ellipsis menu."],
@@ -479,7 +499,8 @@ const DECLARED: Entry[] = [
   {
     slug: "button",
     name: "Button",
-    family: "Control",
+    job: "Act",
+    level: "leaf",
     spec: "§4, §8, §9, §41",
     declaration: `<Button tone="accent" emphasis="loud">
   Save changes
@@ -512,7 +533,8 @@ const DECLARED: Entry[] = [
   {
     slug: "surface",
     name: "Surface",
-    family: "Surface",
+    job: "Arrange",
+    level: "leaf",
     spec: "§10",
     declaration: `<Surface size="2">
   …
@@ -548,7 +570,8 @@ const DECLARED: Entry[] = [
   {
     slug: "card",
     name: "Card",
-    family: "Surface",
+    job: "Read",
+    level: "leaf",
     spec: "§9, §10",
     declaration: `<Card size="2">
   …
@@ -594,7 +617,8 @@ const DECLARED: Entry[] = [
   {
     slug: "checkbox",
     name: "Checkbox",
-    family: "Control",
+    job: "Choose",
+    level: "leaf",
     spec: "§4, §6, §11",
     declaration: `<Checkbox id="ship" defaultChecked />
 <Text render={<label htmlFor="ship" />}>Ship it</Text>`,
@@ -626,7 +650,8 @@ const DECLARED: Entry[] = [
   {
     slug: "code",
     name: "Code",
-    family: "Type",
+    job: "Read",
+    level: "leaf",
     spec: "§11, §15",
     declaration: `<Text>
   Run <Code>pnpm run ci</Code> first.
@@ -653,7 +678,8 @@ const DECLARED: Entry[] = [
   {
     slug: "code-block",
     name: "CodeBlock",
-    family: "Type",
+    job: "Read",
+    level: "leaf",
     spec: "§15, §40",
     declaration: `<CodeBlock size="2">{source}</CodeBlock>`,
     variants: [
@@ -691,7 +717,8 @@ const DECLARED: Entry[] = [
   {
     slug: "combobox",
     name: "Combobox",
-    family: "Surface",
+    job: "Choose",
+    level: "leaf",
     spec: "§20, §21, §23, §28, §50",
     abstract: "Combobox lets people type to narrow a long list of options and then pick one.",
     overview: ["Use a Combobox when the list of options is too long to scan, such as countries, time zones or team members. The person types a few letters, the list shrinks to the options that match, and they pick one. For a short list of about ten options or fewer, use `Select`. To run commands rather than choose a value, use `Command`.","The typed text only filters the list. It never becomes the value, so a form always receives one of your options. Matching compares the text against each option's label and keeps the options that contain it. For this reason `ComboboxList` accepts a function rather than children: you describe how to render one option, and the list renders only the options that match.","Pass every option in `items`. An option is either a string or an object with a `value` and a `label`, in which case people search and read the label and the form receives the value. Keep the `items` array stable by defining it outside your component or in a `useMemo`, because a new array on every render makes the filter run again.","Set `name`, `required`, `disabled`, `readOnly` and `form` on `Combobox`, because the chosen value belongs to the root. The field looks and behaves like a `TextField`, and the panel matches the panel of a `Select`. `size` sets both, and each size matches a `TextField` or a `Button` of the same size. Inside a `Field`, the field's size applies unless you set one.","The input has the `combobox` role and tells a screen reader whether the list is open. The arrow keys move through the options, Enter picks the highlighted one, and Escape closes the panel. After you type, the first match is highlighted, so a few letters and Enter are enough. The list takes its accessible name from the field, such as a `Field` label or the input's `aria-label`.","The part names follow shadcn/ui's combobox (MIT), and the behaviour comes from Base UI's Combobox."],
@@ -767,7 +794,8 @@ const DECLARED: Entry[] = [
   {
     slug: "context-menu",
     name: "ContextMenu",
-    family: "Surface",
+    job: "Act",
+    level: "leaf",
     spec: "§21, §22, §42",
     abstract: "ContextMenu opens a menu at the pointer when someone right-clicks an area, or long-presses it on a touch screen.",
     overview: ["Use a ContextMenu for shortcuts to actions on the thing under the pointer, such as renaming, duplicating or deleting a file. A right-click is hard to discover, so make every action in a context menu available somewhere else too, such as a button or a `Menu`. To open a menu from a visible button, use `Menu`.","You build the menu from the same parts as a `Menu`: `MenuItem`, `MenuGroup`, `MenuLabel`, `MenuCheckboxItem`, `MenuRadioGroup`, `MenuSub` and their children. The panel and the rows look exactly like a `Menu`.","Wrap the area in `ContextMenuTrigger`. It catches the right-click and the long press, and it stops the browser's own menu from opening. It adds no fill, border or cursor, so the area looks the same as before. To make an existing element the area, pass it to `render`.","The panel opens with its corner at the point you clicked and moves as needed to stay inside the window, so there are no placement props. `size` sets the size of the panel and its rows.","The keyboard works as it does in a `Menu`: the arrow keys move through the rows, Enter chooses a row, typing a letter jumps to a matching row, and Escape closes the panel.","The behaviour comes from Base UI's ContextMenu."],
@@ -818,7 +846,8 @@ const DECLARED: Entry[] = [
   {
     slug: "dialog",
     name: "Dialog",
-    family: "Surface",
+    job: "Focus",
+    level: "leaf",
     spec: "§10, §20, §24",
     abstract: "Dialog shows a panel over a dimmed page for a short task that needs a person's full attention.",
     overview: ["Use a Dialog for a short task that must be finished or cancelled before a person goes back to the page, such as editing settings or renaming a project. To ask a yes-or-no question before a risky action, use `AlertDialog`. For a small panel that leaves the page usable, use `Popover`. For a panel attached to an edge of the window, use `Sheet`.","The panel looks like a `Card` with a slightly rounder corner, and the page behind it is dimmed. In a theme with `depth=\"elevated\"` it has the same shadow as a `Card`, and nothing more, because the dimmed page already shows that the dialog is on top. On a narrow window the panel is attached to the bottom edge of the screen instead of being centred.","Write the layout inside the panel yourself with `Stack` and `Flex`. `size` sets the panel's maximum width, padding and corner, and the text size of `DialogTitle` and `DialogDescription`. Any other text you add keeps its own size. There is no close button in the corner, so put a `DialogClose` button where your layout needs one.","The panel grows with its content. To limit its height, set `maxHeight` in the `style` of `DialogContent` and put a `ScrollArea` inside, so the long content scrolls while the title and the buttons stay in view.","Open a dialog with `DialogTrigger`, or control it with `open` and `onOpenChange`. `onOpenChange` receives the reason for closing, such as `escape-key` or `outside-press`, and you can call `cancel()` to keep the dialog open, for example while a person has unsaved text.","When the dialog opens, focus moves into the panel and Tab stays inside it. Escape or a press outside the panel closes it, and focus then returns to the trigger. A screen reader announces the dialog by its `DialogTitle` and reads the `DialogDescription` with it, so always include a title.","The part names follow shadcn/ui's dialog (MIT), and the behaviour comes from Base UI's Dialog."],
@@ -885,7 +914,8 @@ const DECLARED: Entry[] = [
   {
     slug: "field",
     name: "Field",
-    family: "Control",
+    job: "Enter",
+    level: "pattern",
     spec: "§28",
     abstract: "Field gives one form control a label, a description and an error message, and connects all three to it.",
     overview: ["Put each form control in a Field: a `TextField`, a `TextArea`, a `Select`, a `Combobox`, a `NumberField`, or a group of checkboxes or radios. The Field connects the label, the description and the error to the control, so a screen reader announces them together.","The parts always appear in the same order: label, control, description, error. The label sits directly above the control it names. The description says what to enter, and it stays visible when an error appears. The error says what went wrong.","Every Kookie control connects to the Field around it, so you add no ids or extra props. `FieldLabel` renders a real `<label>`, so clicking it moves focus to the control. `FieldError` shows only while the field is invalid, and a screen reader announces it when it appears.","You can show an error in three ways. For a browser check, set `required` or another constraint on the control and give `FieldError` a `match` such as `valueMissing`. For your own rules, pass a `validate` function to the Field, which returns a message or `null`. When your server rejects a value, set `invalid` on the Field and give `FieldError` the prop `match={true}`.","`size` on the Field sets the size of the label, the description, the error and the control together, although a control with its own `size` keeps it. `disabled` on the Field disables the control inside it.","In a group of checkboxes or radios, wrap each option in a `FieldItem`, which gives that option its own label and description. Leave at least 12 pixels between options so that each one is easy to tap; `gap=\"5\"` on a `Stack` keeps that distance at every density.","The behaviour comes from Base UI's Field."],
@@ -941,7 +971,8 @@ const DECLARED: Entry[] = [
   {
     slug: "flex",
     name: "Flex",
-    family: "Layout",
+    job: "Arrange",
+    level: "leaf",
     spec: "§3",
     declaration: `<Flex gap="3" align="center" justify="space-between">
   …
@@ -961,7 +992,8 @@ const DECLARED: Entry[] = [
   {
     slug: "grid",
     name: "Grid",
-    family: "Layout",
+    job: "Arrange",
+    level: "leaf",
     spec: "§3",
     declaration: `<Grid columns="repeat(3, minmax(0, 1fr))" gap="4">
   …
@@ -981,7 +1013,8 @@ const DECLARED: Entry[] = [
   {
     slug: "heading",
     name: "Heading",
-    family: "Type",
+    job: "Read",
+    level: "leaf",
     spec: "§15",
     declaration: `<Heading size="7" render={<h2 />}>A section</Heading>`,
     variants: [
@@ -1003,7 +1036,8 @@ const DECLARED: Entry[] = [
   {
     slug: "kbd",
     name: "Kbd",
-    family: "Type",
+    job: "Read",
+    level: "leaf",
     spec: "§11, §15",
     declaration: `<Kbd>⌘K</Kbd>`,
     variants: [
@@ -1024,7 +1058,8 @@ const DECLARED: Entry[] = [
   {
     slug: "link",
     name: "Link",
-    family: "Type",
+    job: "Go",
+    level: "leaf",
     spec: "§11, §15",
     declaration: `<Link href="/plans">the plans on this workspace</Link>`,
     variants: [
@@ -1057,7 +1092,8 @@ const DECLARED: Entry[] = [
   {
     slug: "list",
     name: "List",
-    family: "Type",
+    job: "Read",
+    level: "leaf",
     spec: "§11, §15, §52",
     abstract: "List shows items of text as a bulleted list or a numbered list.",
     overview: ["Use a List for items of text, such as the features of a plan or the steps of a task. For items with no markers, use `Stack`. For items with icons or actions, use `Row`. For items that each have several values, use `Table`.","Set `ordered` when the order of the items matters, such as steps to follow or a ranking, and the List renders an `<ol>` with numbers. Otherwise it renders a `<ul>` with bullets. On a numbered list, `start` and `reversed` change what the numbers say. A bulleted list does not accept them.","A List accepts the same `size`, `weight`, `emphasis` and `tone` props as `Text`, and the default size is 3. The space for the markers grows with the text size. Bullets always use the faint text colour, so they stay in the background, while numbers use the same colour as the words, because people read and refer to them.","To nest a list, put a List inside a `ListItem`. It indents one level and takes the text size of the item, so it needs no props.","A screen reader announces a list and the number of items in it."],
@@ -1107,7 +1143,8 @@ const DECLARED: Entry[] = [
   {
     slug: "menu",
     name: "Menu",
-    family: "Surface",
+    job: "Act",
+    level: "leaf",
     spec: "§20, §21, §22",
     abstract: "Menu opens a floating list of actions from a button, such as Rename or Delete for a file.",
     overview: ["A Menu opens a floating list of actions when someone presses its trigger. Each row is one action, and choosing a row runs it and closes the menu. Use a Menu when the choices are things to do. Use a `Select` to choose a value in a form, a `ContextMenu` for actions that open at the pointer on a right-click, and a `Popover` for a floating panel that holds other content, such as a short form.","A row can show an icon in `leading` and a keyboard shortcut in `trailing`, and `tone=\"destructive\"` marks an action that deletes something. Checkbox rows and radio rows show a setting's current state, and a submenu holds a related set of choices. Put a `<Separator>` between groups of rows. Rows without an icon still line up with rows that have one, because the space for the icon is always kept.","Set `size` on the `Menu` to size the rows, icons and text in the panel, and give the trigger button the same size. The panel follows the theme: in a raised theme it casts a shadow, in a flat theme it shows a thin edge instead, and with a glass material it uses glass.","Enter or Space on the trigger opens the menu. The arrow keys move between rows, typing a few letters jumps to the row that starts with them, and Escape closes the menu and returns focus to the trigger. The arrow key that points in the reading direction opens a submenu. Screen readers announce the menu, each row, and whether a checkbox or radio row is checked.","The part names follow shadcn/ui's dropdown menu (MIT), and the behaviour comes from Base UI's Menu."],
@@ -1192,7 +1229,8 @@ const DECLARED: Entry[] = [
   {
     slug: "select",
     name: "Select",
-    family: "Surface",
+    job: "Choose",
+    level: "leaf",
     spec: "§20, §21, §23",
     abstract: "Select is a form control that lets someone choose one option from a list.",
     overview: ["Select lets someone pick one option from a list. The closed trigger shows the current choice, and pressing it opens a panel of options. Use it when there are too many options to show on the screen at once. When there are only a few, use a `SegmentedControl` or a `RadioGroup`, so people can see every option without opening anything. Use a `Combobox` when people need to type to filter a long list, and a `Menu` when the options are actions rather than a value.","The trigger is a button drawn like a field, with the same fill, border and height as a `TextField`, so the two sit side by side as the same kind of input. The panel is never narrower than the trigger, and when it opens, the chosen option sits over the trigger with the rest of the list above and below it.","Pass `items`, an object that maps each value to its label. The closed trigger uses it to show the chosen option's label, because the options themselves aren't rendered while the panel is closed. Without `items`, the trigger shows the raw value.","Select renders a hidden input, so `name` and `required` work in a form just as they do on a native select. Inside a `Field`, the `FieldLabel` names the trigger. Screen readers announce the trigger as a combobox and the panel as a listbox. The arrow keys move through the options, and typing a letter jumps to an option that starts with it.","The part names follow shadcn/ui's select (MIT)."],
@@ -1262,7 +1300,8 @@ const DECLARED: Entry[] = [
   {
     slug: "command",
     name: "Command",
-    family: "Surface",
+    job: "Act",
+    level: "pattern",
     spec: "§44",
     abstract: "Command is a command palette that lets people search for any action or page in your app and run it from the keyboard.",
     declaration: `<Command items={sections} open={open} onOpenChange={setOpen}>
@@ -1339,7 +1378,8 @@ const DECLARED: Entry[] = [
   {
     slug: "composer",
     name: "Composer",
-    family: "Surface",
+    job: "Converse",
+    level: "pattern",
     // CHANGES 2026-08-26: was §31, which is Popover. Composer is §30, and §10 is the surface
     // family decision the section rests on. `registry.test.ts` now resolves every cited § against
     // DECISIONS.md's own headings, so the next renumber fails here instead of misdirecting a reader.
@@ -1404,7 +1444,8 @@ const DECLARED: Entry[] = [
   {
     slug: "notice",
     name: "Notice",
-    family: "Surface",
+    job: "Know",
+    level: "leaf",
     spec: "§29",
     abstract: "Notice tells people about a condition that is true right now, placed above the part of the page it affects.",
     overview: ["Use a Notice to tell people about a condition that is true right now, such as an expiring certificate or a failed sync. Put it in the layout, directly above the region it is about. It takes up space and never floats, so it doesn't cover the content it describes.","A Notice stays for as long as the condition is true and never closes on a timer. It isn't a confirmation of something the person just did, because they didn't cause the condition. Give it at most one `action`, which fixes the condition, and pass `onDismiss` to show a ✕ that lets people acknowledge it.","The Notice keeps no state of its own. When someone presses the ✕, your `onDismiss` callback runs and your app removes the Notice. Store that choice wherever it needs to last, such as in user settings, so the Notice stays dismissed after a reload.","A Notice is `neutral` by default. Set `tone` for the kind of condition, such as `warning` or `destructive`, and the fill, the text and a `Button` in the `action` slot all change colour with it. `size` sets the padding, the corner, the text and the ✕, but a `Button` in `action` keeps its own size, so set it to match.","To ask a question instead, use `Confirmation`. It has the same look, with two answer buttons in words: a quiet no and a loud yes. It has no ✕, because closing a question doesn't answer it. Set `busy` while the work starts, and the yes button shows a spinner.","A Notice has `role=\"status\"`, so screen readers read its words when it appears without moving focus. The icon is hidden from screen readers, so the words must carry the meaning. Set `dismissLabel` to name the ✕ in your app's language. Use a `Card` when the message needs a heading and several paragraphs, and a `Dialog` when the person must answer before they continue."],
@@ -1473,7 +1514,8 @@ const DECLARED: Entry[] = [
   {
     slug: "number-field",
     name: "NumberField",
-    family: "Control",
+    job: "Enter",
+    level: "leaf",
     spec: "§4, §11, §28, §51",
     declaration: `<NumberField defaultValue={4} min={1} max={50} />`,
     variants: [
@@ -1512,7 +1554,8 @@ const DECLARED: Entry[] = [
   {
     slug: "page",
     name: "Page",
-    family: "Layout",
+    job: "Go",
+    level: "pattern",
     spec: "§15, §27, §46",
     declaration: `<Page title="Nature Walks" description="Everything collected on the walk.">
   …
@@ -1551,7 +1594,8 @@ const DECLARED: Entry[] = [
   {
     slug: "toolbar",
     name: "Toolbar",
-    family: "Control",
+    job: "Act",
+    level: "pattern",
     spec: "§45",
     abstract: "Toolbar is a row of app controls that the keyboard reaches as one stop, moving between the controls with the arrow keys.",
     overview: ["A Toolbar is the row that holds an app's controls, such as the buttons at the top of an editor. The whole row is one tab stop, and the arrow keys move between the controls inside it, as toolbars do on every platform. That keyboard behaviour, which comes from Base UI's Toolbar, is the reason to use a Toolbar instead of a `Flex`.","Put `ToolbarButton` in the row, not `Button`. A plain `Button` can't join the row's keyboard group, so it adds its own tab stop and the arrow keys skip it. `ToolbarButton` accepts every `Button` prop, and with `render` it can become a link or a menu trigger.","The row is one control tall at its `size`. With no `size`, a Toolbar is one step above the app's size, which is size 3 in a default app, and every control in the row uses that size unless it sets its own. The row spaces its clusters for you: group controls with a `Flex`, and one cluster sits at the start, two go to the ends, and three sit at the start, the centre and the end.","`ToolbarGroup` draws a capsule around controls that belong together, such as bold, italic and underline, and the buttons inside it are quiet by default. A `ToolbarSeparator` divides loose controls. `ToolbarTitle` names the row, and `ToolbarOverflow` moves the controls that don't fit into a menu.","The row itself is transparent, so it has no `tone`, `emphasis` or `material`. Set `backdrop` on the row when content passes behind it, and every control in the row uses the theme's material. A `ToolbarGroup` also accepts `backdrop` for itself.","Screen readers announce the row as a toolbar. Give it an `aria-label` that says what the tools are for, and give every icon-only `ToolbarButton` its own `aria-label`."],
@@ -1626,7 +1670,8 @@ const DECLARED: Entry[] = [
   {
     slug: "popover",
     name: "Popover",
-    family: "Surface",
+    job: "Focus",
+    level: "leaf",
     spec: "§20, §22, §31",
         abstract: "Popover opens a small panel beside the control that opened it, while the rest of the page stays usable.",
     overview: ["Use a Popover to show a small panel next to a control without blocking the page behind it. It can hold whatever you put in it, such as a short form, a filter panel or a summary of a person.","Each floating component has its own job. A Menu lists actions, and a Select chooses one value. A Dialog holds a task that the person must finish before they continue, and an AlertDialog asks one question. A Tooltip shows a short label for a control.","Pass your own Button to `PopoverTrigger` through `render`, and the panel opens beside it. Set `side` and `align` on `PopoverContent` to choose where the panel prefers to open. When that side has no room, the panel moves to the opposite side, and it always stays on screen.","`size` on `Popover` sets the panel's padding and corner, together with the text size of `PopoverTitle` and `PopoverDescription`. Content that you add keeps the sizes you give it. The panel uses the material that your `Theme` sets, so it is glass when the theme's material is glass and solid otherwise.","Give every panel a `PopoverTitle`, because screen readers announce the panel by its title and read `PopoverDescription` with it. Escape or a press outside the panel closes it and returns focus to the trigger. For a close or save action inside the panel, wrap your own Button in `PopoverClose`. To open and close the panel from your own code, use `open` and `onOpenChange`."],
@@ -1684,7 +1729,8 @@ const DECLARED: Entry[] = [
   {
     slug: "progress",
     name: "Progress",
-    family: "Indicator",
+    job: "Know",
+    level: "leaf",
     spec: "§11, §19",
     declaration: `<Progress value={35} aria-label="Uploading" />`,
     variants: [
@@ -1709,7 +1755,8 @@ const DECLARED: Entry[] = [
   {
     slug: "radio",
     name: "Radio",
-    family: "Control",
+    job: "Choose",
+    level: "leaf",
     spec: "§4, §6, §11",
     declaration: `<Radio value="a" id="a" />`,
     variants: [
@@ -1728,7 +1775,8 @@ const DECLARED: Entry[] = [
   {
     slug: "radio-group",
     name: "RadioGroup",
-    family: "Control",
+    job: "Choose",
+    level: "leaf",
     spec: "§4, §11",
     declaration: `<RadioGroup defaultValue="yes">
   <Radio value="yes" />
@@ -1750,7 +1798,8 @@ const DECLARED: Entry[] = [
   {
     slug: "row",
     name: "Row",
-    family: "Control",
+    job: "Browse",
+    level: "leaf",
     spec: "§21",
     declaration: `<Row current trailing={<Text emphasis="quiet">12</Text>}>
   Environments
@@ -1791,7 +1840,8 @@ const DECLARED: Entry[] = [
   {
     slug: "tree",
     name: "Tree",
-    family: "Control",
+    job: "Browse",
+    level: "leaf",
     spec: "§33",
     declaration: `<Tree items={files} multiselectable defaultExpandedIds={["src"]} aria-label="Project files" />`,
     variants: [
@@ -1834,7 +1884,8 @@ const DECLARED: Entry[] = [
   {
     slug: "nav-tree",
     name: "NavTree",
-    family: "Control",
+    job: "Go",
+    level: "leaf",
     spec: "§33",
     declaration: `<NavTree items={chapters} currentId={pathname} defaultExpandedIds={["start"]} />`,
     variants: [
@@ -1869,7 +1920,8 @@ const DECLARED: Entry[] = [
   {
     slug: "message-scroller",
     name: "MessageScroller",
-    family: "Surface",
+    job: "Converse",
+    level: "pattern",
     spec: "§56",
     abstract: "MessageScroller keeps a conversation at its newest message while a reply arrives, and leaves your place alone when you scroll up.",
     overview: ["Use a MessageScroller for a transcript that grows while people read it, such as a chat, a support thread or a live log. While people are at the end, it follows new content as it arrives. When they scroll up, it keeps their place until they scroll back to the end. For a list that does not grow, use a ScrollArea on its own.","A MessageScroller does not add a scroll box. It uses the `ScrollArea` or `ShellScroll` inside it as its viewport, so the pane keeps its fade, its scrollbars and its floating header. You draw the rows, the words and the counts yourself, and the Conversation block shows one way to lay out a turn.","Put each row in a `MessageScrollerItem` inside `MessageScrollerContent`. When a new row has `scrollAnchor`, it moves near the top of the view, so people start a long reply from its beginning. Older history can load above the view without moving what people are looking at.","`defaultScrollPosition` sets where the transcript opens: at the end, which is the default, at the start, or at the last row marked with `scrollAnchor`. Set `autoScroll={false}` to stop following new content.","`MessageScrollerButton` returns people to the latest message. It appears only while there is more content below, and it uses the theme's material because the transcript passes behind it. Give it an `aria-label` in your own words.","`MessageScrollerContent` is a live region, so screen readers announce new rows. Name the transcript with `aria-label` on the ScrollArea. To build your own controls, call `useMessageScroller`, `useMessageScrollerScrollable` or `useMessageScrollerVisibility` inside the MessageScroller. They move the transcript, tell you whether there is more to scroll at each end, and tell you which rows are on screen."],
@@ -1918,7 +1970,8 @@ const DECLARED: Entry[] = [
   {
     slug: "scroll-area",
     name: "ScrollArea",
-    family: "Surface",
+    job: "Arrange",
+    level: "leaf",
     spec: "§10",
     declaration: `<ScrollArea style={{ height: "10rem" }}>
   …
@@ -1942,7 +1995,8 @@ const DECLARED: Entry[] = [
   {
     slug: "separator",
     name: "Separator",
-    family: "Surface",
+    job: "Arrange",
+    level: "leaf",
     spec: "§11",
     declaration: `<Separator orientation="horizontal" />`,
     variants: [
@@ -1961,7 +2015,8 @@ const DECLARED: Entry[] = [
   {
     slug: "sheet",
     name: "Sheet",
-    family: "Surface",
+    job: "Focus",
+    level: "leaf",
     spec: "§10, §20, §24, §49",
     abstract: "Sheet slides a panel in from an edge of the window and dims the app behind it until the task is done.",
     overview: ["Use a Sheet for a task that needs more room than a `Popover` but belongs beside the page rather than in the middle of it, such as filters, a share panel or navigation on a phone. The panel sits against an edge of the window and dims the app behind it.","For a task that belongs in the centre of the screen, use a `Dialog`, and for a short question that needs an answer, use an `AlertDialog`. For a panel that stays open while people keep working on the page, use a Shell pane such as `ShellInspector`.","A Sheet behaves like a `Dialog`. Focus stays inside the panel, the page behind it stops scrolling, and the dimmed background shows that the page is not available. Escape, a press on the dimmed background or a swipe toward the edge closes it, and `onOpenChange` tells you what closed it.","`side` can be `bottom`, which is the default, `inline-start` or `inline-end`. The inline sides follow the reading direction, so a panel that opens from the right in English opens from the left in Arabic without any change to your markup. While a person drags the panel toward its edge, it follows their finger, and on a phone a bottom sheet stays above the on-screen keyboard.","`size` sets the panel's width, padding and corner, together with the text size of `SheetTitle` and `SheetDescription`. A side sheet uses that width exactly, while a bottom sheet uses it as a maximum, so it fills a phone's width. Content that you add keeps its own sizes.","Screen readers announce the panel as a dialog, named by `SheetTitle` and described by `SheetDescription`. The part names follow shadcn/ui's sheet (MIT), and the behaviour comes from Base UI's Drawer."],
@@ -2029,7 +2084,8 @@ const DECLARED: Entry[] = [
   {
     slug: "shell",
     name: "Shell",
-    family: "Layout",
+    job: "Go",
+    level: "pattern",
     spec: "§27",
         abstract: "Shell is the frame of an app, with a header, a rail, a sidebar, the content, an inspector and a bottom pane.",
     overview: ["Use a Shell once, at the root of an app, to hold its frame: a full-width header, a narrow rail of icons, a sidebar, the main content, an inspector and a bottom pane. Include only the panes you need, and put your pages inside `ShellContent`.","Each pane places itself in the frame by its type, so you can write the panes in any order and that order stays the reading order. Every pane is a landmark: the header is a `<header>`, the rail and the sidebar are `<nav>` elements, the content is `<main>`, and the inspector and the bottom pane are `<aside>` elements.","Until someone opens or closes it, a pane follows the window size. The sidebar is open on a wide window and opens as an overlay on a narrow one, while the rail becomes a tab bar along the bottom. The inspector and the bottom pane start closed. CSS makes these choices, so the first paint is right before any script runs.","A `ShellTrigger` opens or closes a pane by name from anywhere in the frame. To hold a pane's state yourself, pass `open` and `onOpenChange`. Set `resizable` on the sidebar or the inspector to let people drag its edge to a new width.","By default the panes join edge to edge, with a single line between them. Set `flush={false}` on the side panes to float them over the content as separate panels, or on `ShellContent` to set the work area in from the frame as its own panel.","`size` on the Shell sets the size of the navigation rows, the rail items, the header rows and the padding in every pane, and each pane can set its own. A Shell fills the window by default, and `contained` makes it fill its parent instead, such as a card or a demo.","When a pane opens as an overlay, focus moves into it and the rest of the frame is unavailable until Escape, a press outside the pane or a `ShellTrigger` closes it."],
@@ -2120,7 +2176,8 @@ const DECLARED: Entry[] = [
   {
     slug: "slider",
     name: "Slider",
-    family: "Control",
+    job: "Choose",
+    level: "leaf",
     spec: "§4, §11",
     declaration: `<Slider defaultValue={40} aria-label="Volume" />`,
     variants: [
@@ -2144,7 +2201,8 @@ const DECLARED: Entry[] = [
   {
     slug: "spinner",
     name: "Spinner",
-    family: "Indicator",
+    job: "Know",
+    level: "leaf",
     spec: "§8",
     declaration: `<Spinner />`,
     variants: [
@@ -2166,7 +2224,8 @@ const DECLARED: Entry[] = [
   {
     slug: "stack",
     name: "Stack",
-    family: "Layout",
+    job: "Arrange",
+    level: "leaf",
     spec: "§3",
     declaration: `<Stack gap="3" align="start">
   …
@@ -2186,7 +2245,8 @@ const DECLARED: Entry[] = [
   {
     slug: "segmented-control",
     name: "SegmentedControl",
-    family: "Control",
+    job: "Choose",
+    level: "leaf",
     spec: "§4, §11, §19, §26",
         abstract: "SegmentedControl shows a few options side by side and lets someone pick one of them.",
     overview: ["Use a SegmentedControl for two to five short options that change a setting in place, such as a list or grid view. When the choice switches the content below it, use `Tabs`. When people can pick more than one option, use a `ToggleGroup` of `Toggle`s, and when there are too many options to show at once, use a `Select`.","The chosen option sits on a raised tile, and the control is as tall as a `Button` of the same size, so it lines up in a toolbar. Every segment has the same weight, and you set the size once on the control rather than on each segment.","Set `backdrop` when content passes behind the control, such as an image, and it uses the theme's glass material. A `<Box backdrop>` around a whole toolbar does the same for every control inside it.","A screen reader announces the control as a radio group, because picking one of several options is what a radio group does. The arrow keys move the choice from one segment to the next. Give the control an `aria-label` that names the setting."],
@@ -2230,7 +2290,8 @@ const DECLARED: Entry[] = [
   {
     slug: "switch",
     name: "Switch",
-    family: "Control",
+    job: "Choose",
+    level: "leaf",
     spec: "§4, §6, §11, §19",
     declaration: `<Switch id="notify" defaultChecked />
 <Text render={<label htmlFor="notify" />}>Notifications</Text>`,
@@ -2256,7 +2317,8 @@ const DECLARED: Entry[] = [
   {
     slug: "table",
     name: "Table",
-    family: "Type",
+    job: "Browse",
+    level: "leaf",
     spec: "§11, §36",
         abstract: "Table shows data in rows and columns, and it scrolls sideways when the columns need more room than the page has.",
     overview: ["Use a Table for data that people compare across rows and columns, such as invoices or members. It renders a real `table` element, so a screen reader can move by row and by column and read out the header for each cell.","The Table draws the lines between rows, the space inside each cell and a header row in a muted colour, and nothing else. Its rows don't react to hover or presses. For sorting, put a `Button` in a header cell and sort the rows in your own code.","When the columns need more room than the page has, the Table scrolls sideways inside its own box rather than widening the page. That box can take keyboard focus only while it scrolls. Name it with `aria-label` or `aria-labelledby` so a screen reader announces it as a named region, and add a `TableCaption` to name the table itself.","`size` sets the cell padding and the text size together, from 1 to 4, and the padding also follows the density setting. The first and last columns have no padding on their outer edge, so the text lines up with the content around the table.","Use `align` on `TableHead` and `TableCell` to set `start`, `center` or `end`, and set the same value for every cell in a column. Put words at the start and numbers at the end so the digits line up."],
@@ -2310,7 +2372,8 @@ const DECLARED: Entry[] = [
   {
     slug: "tabs",
     name: "Tabs",
-    family: "Control",
+    job: "Go",
+    level: "leaf",
     spec: "§11, §15, §26",
         abstract: "Tabs lets people switch between several views of the same subject and shows which view is open.",
     overview: ["Use Tabs to switch between views of one subject, such as the overview, activity and settings of a project. Selecting a tab shows its panel under the bar, and only one panel shows at a time. To choose a value that changes content in place, such as a list or grid view, use a `SegmentedControl`. For actions, use a `Menu`.","The open tab has full-strength text and a line under it in the accent colour, and the other tabs have muted text. The open tab doesn't get a fill or a heavier weight, because heavier text is wider and the bar would shift each time the tab changed.","Set `size` on `TabsList`, and every tab in the bar uses it. Tabs are always horizontal. To make each tab a link to a separate page, use `render` on `TabsTab`.","A screen reader announces a tab list, its tabs and their panels. Tab moves focus into the bar, the arrow keys move focus between tabs, and Enter or Space opens the focused tab. A disabled tab can still receive focus, but it can't be opened."],
@@ -2358,7 +2421,8 @@ const DECLARED: Entry[] = [
   {
     slug: "toggle",
     name: "Toggle",
-    family: "Control",
+    job: "Act",
+    level: "leaf",
     spec: "§11, §34",
         abstract: "Toggle is a button that stays pressed until you press it again, for things like bold text or a filter.",
     overview: ["Use a `Toggle` for something that is on or off while you work, such as bold in a formatting bar, a filter, or a panel that you show or hide. When the person must pick exactly one of several options, use a `SegmentedControl`. Use a `Switch` for a saved setting, a `Checkbox` for an option in a form, and a `Button` for an action that runs and finishes.","A Toggle looks and behaves like a `Button`, except that its state sets its style. It is quiet when off and gets a soft fill when pressed, so it has no `emphasis` prop. `tone` gives the toggle a meaning, such as `destructive` when turning it on blocks something.","Use a `ToggleGroup` for several toggles that share one array of pressed values, such as bold, italic and underline. Each toggle in the group still turns on and off by itself. The group has no layout of its own, so use `render` to make it a `Flex` or a `Stack`.","A screen reader announces a Toggle as a button that is pressed or not pressed, and Space or Enter changes it. In a `ToggleGroup`, the whole group is one tab stop, and the arrow keys move focus between the toggles without pressing them. Set `orientation` to `vertical` when the toggles run in a column."],
@@ -2393,7 +2457,8 @@ const DECLARED: Entry[] = [
   {
     slug: "split-button",
     name: "SplitButton",
-    family: "Control",
+    job: "Act",
+    level: "leaf",
     spec: "§11, §53",
     declaration: `<SplitButton
   menuLabel="More merge options"
@@ -2419,7 +2484,8 @@ const DECLARED: Entry[] = [
   {
     slug: "carousel",
     name: "Carousel",
-    family: "Surface",
+    job: "Browse",
+    level: "leaf",
     spec: "§10, §55",
         abstract: "Carousel lets people browse a long row of items that scrolls sideways, with a button at each end.",
     overview: ["A Carousel shows a row of items that scrolls sideways and comes to rest on an item each time. Use it for a long row of peers that people browse, such as templates, recent projects or covers. When every item fits in the space, use a Grid or a Flex, and for a vertical list that scrolls, use a ScrollArea.","Put a `CarouselRail` inside the `Carousel`, and wrap each item the rail should stop on in a `CarouselItem`. The component doesn't set a width, a gap or an aspect ratio for the items, so set the item width yourself and place the items in a Flex to space them. Give the rail a bounded width, and set `fade` when it runs to the edge of a pane.","Place `CarouselPrevious` and `CarouselNext` anywhere inside the `Carousel`, either in a row above the rail or on each side of it. The package ships no icons, so put your own arrows in the buttons. No scrollbar is drawn, because the buttons and the fade already show that there is more to see.","Scrolling is the browser's own, so the mouse wheel, the trackpad, touch and the keyboard all work as usual. Each button press moves the rail by one item, and a button is disabled when there is nothing more in its direction. The carousel never plays on its own and never loops.","A Carousel renders a group that screen readers announce as a carousel. Name it with `aria-label`, or point `aria-labelledby` at the heading above it. The buttons are named \"Previous\" and \"Next\" by default and tell assistive technology which rail they move. A disabled button stays focusable, so keyboard focus isn't lost when the rail reaches an end. On a right-to-left page, the rail starts on the right."],
@@ -2462,7 +2528,8 @@ const DECLARED: Entry[] = [
   {
     slug: "button-group",
     name: "ButtonGroup",
-    family: "Control",
+    job: "Act",
+    level: "leaf",
     spec: "§11, §54",
     declaration: `<ButtonGroup aria-label="Range">
   <Button>Day</Button>
@@ -2485,7 +2552,8 @@ const DECLARED: Entry[] = [
   {
     slug: "tooltip",
     name: "Tooltip",
-    family: "Surface",
+    job: "Know",
+    level: "leaf",
     spec: "§11, §20, §32",
         abstract: "Tooltip shows the name of a control when the pointer rests on it or the control receives keyboard focus.",
     overview: ["A Tooltip shows a short label when the pointer rests on a control or the control receives keyboard focus. Use it to name an icon-only button and to show its keyboard shortcut.","A tooltip should only repeat what the control already says. Touch screens have no hover, so tooltips never open there, and screen readers don't announce them. Give the control an `aria-label` with the same name, so everyone gets the information whether or not they see the tooltip.","When the panel needs more than one line of text, a form or a link, use a `Popover`. For a hint that touch users also need, use a `FieldDescription` or a `Notice`. `TooltipContent` accepts only a string, so write a shortcut as text, for example `Undo ⌘Z`.","A tooltip uses inverted colours, dark on a light page and light on a dark page. It opens above the control by default. Use `side` and `align` on `TooltipContent` to change that, and the tooltip moves to the opposite side when there isn't enough room.","Put one `TooltipProvider` near the root of your app. It sets the delay for every tooltip inside it and groups them, so once one tooltip has opened, the next ones open straight away as the pointer moves along a row of buttons. Base UI's Tooltip provides the behaviour, and the part names follow shadcn/ui."],
@@ -2545,7 +2613,8 @@ const DECLARED: Entry[] = [
   {
     slug: "text",
     name: "Text",
-    family: "Type",
+    job: "Read",
+    level: "leaf",
     spec: "§15",
     declaration: `<Text size="3" emphasis="medium">Supporting copy.</Text>`,
     variants: [
@@ -2567,7 +2636,8 @@ const DECLARED: Entry[] = [
   {
     slug: "text-area",
     name: "TextArea",
-    family: "Control",
+    job: "Enter",
+    level: "leaf",
     spec: "§4, §11",
     declaration: `<TextArea rows={3} aria-label="Notes" />`,
     variants: [
@@ -2596,7 +2666,8 @@ const DECLARED: Entry[] = [
   {
     slug: "text-field",
     name: "TextField",
-    family: "Control",
+    job: "Enter",
+    level: "leaf",
     spec: "§4, §9, §11",
     declaration: `<TextField placeholder="Search" aria-label="Search" />`,
     variants: [
@@ -2621,7 +2692,8 @@ const DECLARED: Entry[] = [
   {
     slug: "theme",
     name: "Theme",
-    family: "Layout",
+    job: "Arrange",
+    level: "leaf",
     spec: "§5, §7, §12, §19",
     declaration: `<Theme appearance="inherit" density="default" radius="full" depth="elevated">
   …
@@ -2675,5 +2747,134 @@ const DECLARED: Entry[] = [
  * the URL is, and a reader scanning the sidebar is reading the first.
  */
 export const ENTRIES: Entry[] = [...DECLARED].sort((a, b) => a.name.localeCompare(b.name));
+
+/**
+ * The jobs, in the order a reader meets them, each with the question it answers. The index
+ * groups by this list, so a job with no members, or a member with no job here, fails the law.
+ */
+export const JOBS = [
+  { job: "Act", question: "Make something happen." },
+  { job: "Choose", question: "Pick from options you can see or list." },
+  { job: "Enter", question: "Supply a value by typing it." },
+  { job: "Go", question: "Move to another place in the app." },
+  { job: "Browse", question: "Scan a collection and find one item." },
+  { job: "Read", question: "Take in content." },
+  { job: "Know", question: "Learn the state of something." },
+  { job: "Focus", question: "Deal with one thing before going on." },
+  { job: "Converse", question: "Talk back and forth." },
+  { job: "Arrange", question: "Place things on the page. This is your job, not the person's." },
+] as const;
+
+export type Job = (typeof JOBS)[number]["job"];
+
+/**
+ * THE PAIRS PEOPLE CONFUSE, each written once and printed on both pages. Two components that
+ * look alike and do different jobs are the system's most useful teaching, and an agent picking
+ * between them needs the split in one sentence. `a` and `b` are export names; `useA` says when
+ * the first is right, `useB` when the second is.
+ */
+export const PAIRS: { a: string; b: string; useA: string; useB: string }[] = [
+  {
+    a: "Switch",
+    b: "Checkbox",
+    useA: "the setting takes effect the moment it changes.",
+    useB: "the choice waits for a submit, or is one item in a list of options.",
+  },
+  {
+    a: "Switch",
+    b: "Toggle",
+    useA: "it is a setting that stays on or off.",
+    useB: "it is a tool or a format that stays pressed, such as bold text or a filter.",
+  },
+  {
+    a: "Tabs",
+    b: "SegmentedControl",
+    useA: "each option is a different view, with its own content.",
+    useB: "the options filter or change one view that stays on screen.",
+  },
+  {
+    a: "Tabs",
+    b: "Accordion",
+    useA: "people look at one section at a time.",
+    useB: "people may want several sections open, stacked on one page.",
+  },
+  {
+    a: "Menu",
+    b: "Select",
+    useA: "each item runs an action, and nothing stays chosen.",
+    useB: "the person picks a value, and the value stays shown.",
+  },
+  {
+    a: "Menu",
+    b: "ContextMenu",
+    useA: "the actions open from a visible button.",
+    useB: "the actions open from a right-click or long press on an area. Every action in it must also be reachable another way, because nobody can see that it exists.",
+  },
+  {
+    a: "Select",
+    b: "Combobox",
+    useA: "the list is short enough to scan.",
+    useB: "the list is long enough that people need to type to narrow it.",
+  },
+  {
+    a: "RadioGroup",
+    b: "Select",
+    useA: "there are only a few options and showing them all helps people compare.",
+    useB: "there are many options, or there is no room to show them.",
+  },
+  {
+    a: "Popover",
+    b: "Dialog",
+    useA: "the task is small and the page should stay usable around it.",
+    useB: "the task needs the person's full attention and room away from the page.",
+  },
+  {
+    a: "Dialog",
+    b: "AlertDialog",
+    useA: "the person is doing a task.",
+    useB: "the person must answer before going on, such as confirming a loss that cannot be undone. If the action can be undone, do it and offer undo instead of asking.",
+  },
+  {
+    a: "Tooltip",
+    b: "Popover",
+    useA: "the text only names a control, and nobody needs it to finish their task.",
+    useB: "the panel holds content or controls people need.",
+  },
+  {
+    a: "Badge",
+    b: "Chip",
+    useA: "the mark stays until the person looks, such as an unread count.",
+    useB: "the label states the current state of the thing beside it, such as Draft.",
+  },
+  {
+    a: "Card",
+    b: "Surface",
+    useA: "one object needs to stand apart, such as a project or a plan.",
+    useB: "a quiet region holds several things without making any one of them an object.",
+  },
+  {
+    a: "Link",
+    b: "Button",
+    useA: "pressing it takes people to another place.",
+    useB: "pressing it does something where they are.",
+  },
+  {
+    a: "Progress",
+    b: "Spinner",
+    useA: "you know how far along the work is.",
+    useB: "you do not know how long it will take.",
+  },
+];
+
+/** Every pair this component is in, from its side: the other name, and when to use the other. */
+export function alternativesFor(name: string): { name: string; when: string }[] {
+  return PAIRS.flatMap((pair) =>
+    pair.a === name
+      ? [{ name: pair.b, when: pair.useB }]
+      : pair.b === name
+        ? [{ name: pair.a, when: pair.useA }]
+        : [],
+  );
+}
 
 export const BY_SLUG = new Map(ENTRIES.map((e) => [e.slug, e]));
