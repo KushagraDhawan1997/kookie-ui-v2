@@ -2,7 +2,7 @@ Most interface problems are already solved. An AI agent can find the answer, but
 something new is faster, so each screen gets a slightly different answer. Kookie puts the
 answers into the components, so the right one is the one you get without asking.
 
-## Learn from Apple
+## How Kookie decides
 
 Kookie takes its method from Apple's Human Interface Guidelines. Every rule has three parts:
 
@@ -42,13 +42,10 @@ Start with what the person is doing, and the job gives you a short list. The
 `Tabs` and `SegmentedControl` look alike. `Tabs` moves you to another view. A
 `SegmentedControl` sets a value and leaves the content in place.
 
-## Undo instead of warning
-
-If an action can be undone, do it and offer a way back. Use an `AlertDialog` only for a loss
-that cannot be undone. A frequent warning teaches people to press OK without reading.
-
 ## Keep people oriented
 
+- **Interrupt only when you must:** Prefer undo to a warning. The
+  [Modality](/patterns/modality) chapter shows when an alert is right.
 - **Dim, don't hide:** An unavailable action stays visible and disabled.
 - **One dialog at a time:** A dialog over a dialog hides the task that opened it.
 - **No hidden-only commands:** Every action in a `ContextMenu` must also be reachable another

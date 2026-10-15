@@ -57,6 +57,11 @@ One rule separates them: **if the panel needs any control besides its two button
 `Dialog`.** A type-to-confirm field, a checkbox or a form of any size turns the panel into work
 rather than a choice.
 
+## Undo instead of an alert
+
+If an action can be undone, do it and offer a way back. Use an `AlertDialog` only for a loss
+that cannot be undone. A frequent alert teaches people to press the button without reading.
+
 ## Writing an alert
 
 An alert always has the same four parts, in the same order: a title, a description, a cancel
