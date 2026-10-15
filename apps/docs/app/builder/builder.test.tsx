@@ -984,10 +984,10 @@ describe("a pane's chrome is a pane part", () => {
      read straight through the box.
 
      RENDERED UNDER THE APP'S OWN THEME, and that is the load-bearing half of the fixture. A
-     bare render resolves the default `material: "solid"`, so the stamp would read solid
+     bare render resolves the default `material: "9"`, so the stamp would read solid
      whether the prop were there or not and the law would pass over a deleted `backdrop`.
-     `layout.tsx` wraps the site in `material="regular"`, so these render what the app
-     renders — demonstrated rather than asserted: swapping the fixture to `material="solid"`
+     `layout.tsx` wraps the site in `material="3"`, so these render what the app
+     renders — demonstrated rather than asserted: swapping the fixture to `material="9"`
      fails the law, which is what says the environment is doing work.
 
      ONE FIELD for both regions since 2026-09-15 (the Add filter is `LayersFilter` with other
@@ -996,7 +996,7 @@ describe("a pane's chrome is a pane part", () => {
      the prop. */
   it("the Layers filter states its backdrop", () => {
     const themed = renderToStaticMarkup(
-      <Theme material="regular">
+      <Theme material="3">
         <LayersFilter value="" onChange={() => {}} inputRef={null} />
       </Theme>,
     );

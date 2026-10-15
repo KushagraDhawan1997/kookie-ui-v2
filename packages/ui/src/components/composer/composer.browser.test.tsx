@@ -563,19 +563,19 @@ describe("glass stops at the pane (§10, §30)", () => {
         </Composer>
         <Button backdrop>Beside</Button>
       </Box>,
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     );
     const inside = within(within(el, ".kui-composer"), "button");
     const beside = Array.from(el.querySelectorAll("button")).find((b) => b !== inside)!;
     const composer = within(el, ".kui-composer");
 
     // The pane is the glass.
-    expect(composer.getAttribute("data-material")).toBe("regular");
+    expect(composer.getAttribute("data-material")).toBe("g3");
     // Its subtree is not — one glass per stack, structurally rather than by call-site care.
-    expect(inside.getAttribute("data-material")).not.toBe("regular");
+    expect(inside.getAttribute("data-material")).not.toBe("g3");
     // And the vacuity guard: an identical button outside the pane DOES take the material, so
     // the fixture can tell a working scope from a deleted one.
-    expect(beside.getAttribute("data-material")).toBe("regular");
+    expect(beside.getAttribute("data-material")).toBe("g3");
   });
 });
 

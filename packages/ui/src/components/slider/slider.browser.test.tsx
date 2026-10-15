@@ -576,7 +576,7 @@ describe("the API's closed edges (§3)", () => {
     // @ts-expect-error — the fill's family is an identity, not an axis (§11)
     void (<Slider tone="destructive" />);
     // @ts-expect-error — a 5px line of blur is a 5px line (§10)
-    void (<Slider material="thin" />);
+    void (<Slider material="2" />);
     // @ts-expect-error — no margin prop on any control (first non-negotiable)
     void (<Slider m="4" />);
   });
@@ -650,7 +650,7 @@ describe("a grip in a glass pane goes flat — one lift (§5, §10, 2026-08-24)"
       // handle flat, retiring the "every platform" claim). The stand-down arrives through
       // the --kui-grip-cast hook set by the pane rule in surfaces.css.
       const host = render(
-        <Theme appearance={appearance} material="regular">
+        <Theme appearance={appearance} material="3">
           <Card backdrop>
             <Slider aria-label="In pane" defaultValue={40} />
           </Card>

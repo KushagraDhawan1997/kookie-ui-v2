@@ -454,7 +454,7 @@ function AvatarSection() {
           button, so the two read as one disc — and over content the button's glass is the
           avatar's glass. Beside it, an inert avatar stating `backdrop` on its own. */}
       <Demo label="As a button, and on glass — the press machine is Button's">
-        <Theme material="regular">
+        <Theme material="3">
           <BedSurface bed={PHOTO_BED} minHeight="160px">
           <Flex gap="4" align="center">
             <Button iconOnly emphasis="quiet" aria-label="Kushagra Dhawan">
@@ -871,11 +871,11 @@ function ButtonSection() {
         }))}
       />
       <HostileBed>
-        <Theme material="thin"><Button tone="accent" emphasis="loud">Thin</Button></Theme>
-        <Theme material="regular"><Button tone="accent" emphasis="loud">Regular</Button></Theme>
-        <Theme material="thick"><Button tone="accent" emphasis="loud">Thick</Button></Theme>
-        <Theme material="regular"><Button emphasis="medium">Neutral</Button></Theme>
-        <Theme material="regular"><Button emphasis="quiet">Quiet</Button></Theme>
+        <Theme material="2"><Button tone="accent" emphasis="loud">Thin</Button></Theme>
+        <Theme material="3"><Button tone="accent" emphasis="loud">Regular</Button></Theme>
+        <Theme material="5"><Button tone="accent" emphasis="loud">Thick</Button></Theme>
+        <Theme material="3"><Button emphasis="medium">Neutral</Button></Theme>
+        <Theme material="3"><Button emphasis="quiet">Quiet</Button></Theme>
       </HostileBed>
     </Stack>
   );
@@ -2845,9 +2845,9 @@ function TooltipSection() {
 
 function ThicknessLadder() {
   const RUNGS = [
-    { m: "thin", title: "Thin", line: "Structure ghosts through. Chrome that should not compete with what it sits on." },
-    { m: "regular", title: "Regular", line: "The default rung, and the one the approved lens was judged at." },
-    { m: "thick", title: "Thick", line: "The widest lip and the hardest split, for a pane that covers content." },
+    { m: "2", title: "Step 2", line: "Structure ghosts through. Chrome that should not compete with what it sits on." },
+    { m: "3", title: "Step 3", line: "The docs' default, and the step the approved lens was judged at." },
+    { m: "5", title: "Step 5", line: "The widest lip and the hardest split, for a pane that covers content." },
   ] as const;
   return (
     <BedSurface bed={bed("pattern")} minHeight="280px">
@@ -2876,7 +2876,7 @@ function MaterialsSection() {
     // Pinned to `regular` so the story reads at the page's default theme: the section is
     // about WHERE material expresses, and the environment panel's material chip still
     // governs every other section.
-    <Theme material="regular">
+    <Theme material="3">
       <Stack gap="6">
         <Flex gap="3" align="center">
           <Switch checked={expressed} onCheckedChange={setExpressed} id="pg-mat-backdrop" />

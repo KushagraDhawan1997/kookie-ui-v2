@@ -357,7 +357,9 @@ describe("nothing moves (2026-09-20)", () => {
     // VACUITY. Every assertion in the loop is an absence, and an absence is satisfied perfectly
     // by a rule walk that finds no `:hover` rule at all — a broken splitter, a renamed
     // pseudo-class, a stripper that ate the file.
-    expect(scanned, "the walk found no hover or press rule — this law is reading nothing").toBeGreaterThan(20);
+    // The floor moved 20 → 15 on 2026-10-15, when the material scale collapsed three per-
+    // thickness glass hover rules into one; it still sits under the walk's real count (19).
+    expect(scanned, "the walk found no hover or press rule — this law is reading nothing").toBeGreaterThan(15);
   });
 
   it("tokens.css emits no motion token, and no sheet reads one", () => {

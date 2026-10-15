@@ -43,7 +43,7 @@ import type { ComponentPreview } from "./types";
 /** The glass rungs, DERIVED from the axis — solid is the rung where light stops and gets its
     own cell. A function, not a module const: this module is imported on the server for its
     slug, and `themeAxes` is client data (card.tsx carries the same note and the same reason). */
-const glassMaterials = () => themeAxes.material.filter((m) => m !== "solid");
+const glassMaterials = () => themeAxes.material.filter((m) => m !== "9");
 
 /** §8 ships no icon set, so the glyphs are the app's. One button, four meanings, so the
     drawing follows the meaning; `submitted` states none — Button's own spinner is what in
@@ -240,7 +240,7 @@ function Materials() {
         <Demo key={b.id} label={b.name}>
           <BedSurface bed={b} minHeight="auto">
             <Stack gap="5" style={{ width: "100%" }}>
-              <Theme material="solid">
+              <Theme material="9">
                 <Stack gap="2">
                   <Text size="2" emphasis="quiet">Solid</Text>
                   <Composer backdrop>
@@ -300,13 +300,13 @@ function Permutations() {
       <Demo label="A glass pane scopes its row solid — the buttons must read the same on both">
         <BedSurface bed={BEDS.find((b) => b.id === "bloom")!} minHeight="auto">
           <Stack gap="5" style={{ width: "100%" }}>
-            <Theme material="regular">
+            <Theme material="3">
               <Composer backdrop>
                 <ComposerInput aria-label="Glass pane" defaultValue="Glass pane" />
                 <Row />
               </Composer>
             </Theme>
-            <Theme material="solid">
+            <Theme material="9">
               <Composer backdrop>
                 <ComposerInput aria-label="Solid pane" defaultValue="Solid pane" />
                 <Row />

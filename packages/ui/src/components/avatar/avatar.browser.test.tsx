@@ -282,10 +282,10 @@ describe("a badge pinned to the disc (§38)", () => {
 
 describe("glass, and the avatar that is a button (§10, §35)", () => {
   it("backdrop puts the theme's material on the fallback face — Chip's wiring, law-equal to a Chip's veil", () => {
-    const avatar = mounted(<Avatar size="6" fallback="KD" backdrop />, { theme: { material: "regular" } });
-    const chip = mounted(<Chip size="6" backdrop>x</Chip>, { theme: { material: "regular" } });
-    const plain = mounted(<Avatar size="6" fallback="KD" />, { theme: { material: "regular" } });
-    expect(avatar.getAttribute("data-material")).toBe("regular");
+    const avatar = mounted(<Avatar size="6" fallback="KD" backdrop />, { theme: { material: "3" } });
+    const chip = mounted(<Chip size="6" backdrop>x</Chip>, { theme: { material: "3" } });
+    const plain = mounted(<Avatar size="6" fallback="KD" />, { theme: { material: "3" } });
+    expect(avatar.getAttribute("data-material")).toBe("g3");
     // The lens map is per box (`url(#kui-lens-N)`), so the agreement is read with the id
     // stripped — what must match is the material, not the map.
     const lensless = (v: string) => v.replace(/url\("#kui-lens-\d+"\)/g, "url(lens)");

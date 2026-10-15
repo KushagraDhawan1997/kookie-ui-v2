@@ -157,7 +157,7 @@ export default function RootLayout({
             outside this axis by design, so the chapters are unmoved. */}
         {/* THE AXES COME FROM A STORE SINCE 2026-09-08 (theme-store.tsx): the sidebar's Theme
             panel writes them and this root reads them. Its resting values are what was written
-            here — `material="regular"`, `size="2"`. */}
+            here — `material="3"`, `size="2"`. */}
         <DocsTheme>
           {/* THE SITE'S TOOLTIP TIMING, ONCE (2026-09-06, Kushagra: "Why no tooltip?" — and
               there were tooltips; what was missing is this).

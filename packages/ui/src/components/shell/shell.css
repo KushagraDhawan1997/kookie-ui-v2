@@ -1396,7 +1396,7 @@
 .kui-pane-footer[data-float] {
   position: absolute;
   inset-inline: 0;
-  padding: var(--kui-sf-p);
+  padding: calc(var(--kui-sf-p) + var(--kui-sf-band, 0px));
   z-index: 1;
   /* A floating row paints nothing, so it must CATCH nothing (2026-08-30, found on the docs
      content pane): the part spans the pane's full inline axis, and without this the empty

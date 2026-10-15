@@ -4,7 +4,7 @@
  * §12's multiplier table — never rendered values. No snapshots.
  */
 import { readFileSync } from "node:fs";
-import { GLASS_MATERIALS } from "../system/axes.ts";
+import { GLASS_STEPS as GLASS_MATERIALS, MATERIALS, glassStep } from "../system/axes.ts";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -26,6 +26,9 @@ import {
   letterSpacing,
   lineHeight,
   material,
+  veil,
+  veilAt,
+  sheetsAt,
   floatingDark,
   floatingLight,
   radiusLevels,
@@ -1828,7 +1831,7 @@ describe("the look axis is DELETED; the dress and the surface edge survive it (�
       '[data-appearance="dark"][data-contrast="high"]',
     ]) {
       expect(block(scope), `${scope}/ring`).not.toContain("--material-ring-opacity");
-      expect(block(scope), `${scope}/control-edge`).not.toContain("--material-thin-edge: initial;");
+      expect(block(scope), `${scope}/control-edge`).not.toContain("--material-g2-edge: initial;");
     }
     expect(css, "the substitute-edge arm is gone").not.toContain("--kui-glass-hc-edge");
     // Calibration: the ring opacity still EXISTS as a standard token, or the assertion
@@ -1873,7 +1876,7 @@ describe("the look axis is DELETED; the dress and the surface edge survive it (�
     // because a white glint over a white veil over a white page is nothing — a dialog's glint
     // reads only because its scrim greys the backdrop, and a menu has no scrim. Read off the
     // emitted fill, so a respelled mix is read as the browser reads it.
-    const fill = (mode: string) => inScope(`[data-appearance="${mode}"]`, "material-regular-fill-floating")!;
+    const fill = (mode: string) => inScope(`[data-appearance="${mode}"]`, "material-g3-fill-floating")!;
     // The AMOUNT, not only the spelling: the first cut matched `…%, black)` and its own sabotage
     // survived, because `100%, black` — no dim at all — is spelled the same way.
     const kept = (mode: string, toward: string): number => {
@@ -1998,6 +2001,51 @@ describe("every material lever is READ — a config value no machinery reads is 
     });
     expect(dead, `the generator reads none of these: ${dead.join(", ")}`).toEqual([]);
   });
+});
+
+describe("the material is a SCALE, and each step is one more sheet of the same glass (§10, 2026-10-15)", () => {
+  it("1 is clear, 9 is solid, and every step between stamps its own glass", () => {
+    // Text's ladder length, so the system keeps two index lengths (1-4 and 1-9) and no third.
+    expect(MATERIALS.length).toBe(9);
+    MATERIALS.forEach((m, i) => expect(m, "the scale skips or starts at 0").toBe(String(i + 1)));
+    expect(glassStep("9")).toBe("solid");
+    // The stamp carries a prefix so ONE selector, `[data-material^="g"]`, reaches every step;
+    // a bare digit would leave "9" and "solid" two spellings of one fact on the element.
+    const stamps = MATERIALS.filter((m) => m !== "9").map(glassStep);
+    expect(stamps).toEqual([...GLASS_MATERIALS]);
+  });
+
+  for (const mode of ["light", "dark"] as const) {
+    it(`${mode}: the veil is n - 1 sheets of one base glass, so no step is hand-typed`, () => {
+      // The AGREEMENT with the formula, read off the config the generator emits from — so a
+      // re-typed step (the 0-6 iteration's hand ladder, 0 / 6 / 12 / 17 / 22 / 30) fails here.
+      const sheet = veil.rung[mode][GLASS_MATERIALS[1]!];
+      expect(sheet, "one sheet is no glass at all").toBeGreaterThan(0);
+      for (const t of GLASS_MATERIALS) {
+        const expected = 100 * (1 - Math.pow(1 - sheet / 100, sheetsAt(t)));
+        expect(veil.rung[mode][t], `${mode}/${t}`).toBeCloseTo(expected, 6);
+      }
+      expect(veil.rung[mode][GLASS_MATERIALS[0]!], "step 1 is clear").toBe(0);
+      // And the steps stay apart: a rung nobody can tell from its neighbour is not a rung.
+      for (let i = 1; i < GLASS_MATERIALS.length; i++) {
+        const gap = veil.rung[mode][GLASS_MATERIALS[i]!] - veil.rung[mode][GLASS_MATERIALS[i - 1]!];
+        expect(gap, `${mode}: steps ${i} and ${i + 1} are one rung`).toBeGreaterThan(3);
+      }
+    });
+
+    it(`${mode}: clear is clear on a pane, and a floating pane keeps its floor at every step`, () => {
+      // Apple ships `.clear` only over media, with a dim. A menu or a select holds rows of text
+      // over whatever it covers, so step 1 cannot leave its words on raw content.
+      expect(veilAt(mode, GLASS_MATERIALS[0]!, "pane"), "a clear pane wears a veil").toBe(0);
+      expect(veil.floor[mode].floating, "the floating floor is zero").toBeGreaterThan(0);
+      for (const t of GLASS_MATERIALS) {
+        expect(veilAt(mode, t, "floating"), `${mode}/${t}`).toBeGreaterThanOrEqual(veil.floor[mode].floating);
+      }
+      // The floor binds at the bottom and lets go above it, or it is a second ladder.
+      const top = GLASS_MATERIALS.at(-1)!;
+      expect(veilAt(mode, top, "floating")).toBeGreaterThan(veil.floor[mode].floating);
+    });
+  }
 });
 
 describe("the material ladder is monotone in every lever (§10)", () => {

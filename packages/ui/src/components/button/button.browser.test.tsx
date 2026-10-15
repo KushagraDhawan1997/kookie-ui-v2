@@ -279,27 +279,27 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
   it("solid is the absence of a material — the default writes no attribute", () => {
     expect(render(<Button>Label</Button>).dataset.material).toBeUndefined();
     expect(
-      mounted(<Button backdrop>Label</Button>, { theme: { material: "solid" } }).dataset.material,
+      mounted(<Button backdrop>Label</Button>, { theme: { material: "9" } }).dataset.material,
     ).toBeUndefined();
     expect(
-      mounted(<Button backdrop>Label</Button>, { theme: { material: "regular" } }).dataset.material,
-    ).toBe("regular");
+      mounted(<Button backdrop>Label</Button>, { theme: { material: "3" } }).dataset.material,
+    ).toBe("g3");
   });
 
   it("the veil is the rung's fill at the CONTROL alpha, over a real blur", () => {
     // Lab port 2026-08-17 (CONTROL-SCALE MATERIAL): a 40px control is not a 210px card, so a
-    // standalone glass control mixes at its OWN alpha — --material-thin-control-alpha, never
-    // the pane's --material-thin-alpha this law used to pin. The specimen moved to MEDIUM the
+    // standalone glass control mixes at its OWN alpha — --material-g2-control-alpha, never
+    // the pane's --material-g2-alpha this law used to pin. The specimen moved to MEDIUM the
     // same day: loud left the mix entirely (its own law, next), so it stopped being evidence
     // for the generic veil.
     const el = mounted(
       <Button backdrop emphasis="medium" tone="accent">
         Label
       </Button>,
-      { theme: { material: "thin" } },
+      { theme: { material: "2" } },
     );
     expect(computed(el, "background-color")).toBe(
-      colorOn(el, "color-mix(in srgb, var(--tone-soft) var(--material-thin-control-alpha), transparent)"),
+      colorOn(el, "color-mix(in srgb, var(--tone-soft) var(--material-g2-control-alpha), transparent)"),
     );
     expect(computed(el, "backdrop-filter")).not.toBe("none");
   });
@@ -314,18 +314,18 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
       <Button backdrop emphasis="loud" tone="accent">
         Label
       </Button>,
-      { theme: { material: "thin" } },
+      { theme: { material: "2" } },
     );
     expect(computed(el, "background-color")).toBe(
       colorOn(el, "oklch(from var(--tone-solid) calc(l * 1.04) calc(c * 1.6) h / 0.8)"),
     );
-    // Loud's filter runs hot too (--material-thin-control-filter-loud: saturate 220%,
+    // Loud's filter runs hot too (--material-g2-control-filter-loud: saturate 220%,
     // brightness 1.1, the cell's own blur). Containment rather than equality because the
     // lens url() is prepended in Chromium and its id is box-dependent; the token half is
     // resolved through a probe so the law never restates the generated value.
     const hot = probeIn(
       el,
-      (p) => (p.style.backdropFilter = "var(--material-thin-control-filter-loud)"),
+      (p) => (p.style.backdropFilter = "var(--material-g2-control-filter-loud)"),
       (s) => s.backdropFilter,
     );
     expect(hot).not.toBe("none"); // the vacuity guard: an unresolved token reads none
@@ -371,7 +371,7 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
           <Button backdrop tone={tone} emphasis={emphasis}>
             Label
           </Button>,
-          { theme: { material: "thick" } },
+          { theme: { material: "5" } },
         ),
         "background-color",
       );
@@ -384,7 +384,7 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
       <Button backdrop emphasis="quiet">
         Label
       </Button>,
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     );
     // Mixing transparent toward transparent serialises as color(srgb …/0), not rgba(0,0,0,0);
     // the law is the alpha channel, not the spelling.
@@ -393,7 +393,7 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
   });
 
   it("interaction moves the SOURCE, never the alpha: one veil alpha for every state (§8, lab port 2026-08-17)", () => {
-    // Pre-port, hover stepped the MIX (--material-thin-alpha-hover) and laid an opaque
+    // Pre-port, hover stepped the MIX (--material-g2-alpha-hover) and laid an opaque
     // pastel over the pane ("hover mode looks weird"). Control-scale material holds ONE
     // alpha across rest/hover/active — the state still reads because the -src chain moves
     // to the tone's own hover/active solids, and on glass the rest of hover is LIGHT
@@ -402,13 +402,13 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
       <Button backdrop emphasis="medium">
         Label
       </Button>,
-      { theme: { material: "thin" } },
+      { theme: { material: "2" } },
     );
     expect(ownColor(el, "--kui-ct-fill-hover")).toBe(
-      colorOn(el, "color-mix(in srgb, var(--tone-soft-hover) var(--material-thin-control-alpha), transparent)"),
+      colorOn(el, "color-mix(in srgb, var(--tone-soft-hover) var(--material-g2-control-alpha), transparent)"),
     );
     expect(ownColor(el, "--kui-ct-fill-active")).toBe(
-      colorOn(el, "color-mix(in srgb, var(--tone-soft-active) var(--material-thin-control-alpha), transparent)"),
+      colorOn(el, "color-mix(in srgb, var(--tone-soft-active) var(--material-g2-control-alpha), transparent)"),
     );
     // The vacuity guard: one alpha must not mean one colour — the source really moves.
     expect(ownColor(el, "--kui-ct-fill-hover")).not.toBe(ownColor(el, "--kui-ct-fill"));
@@ -416,8 +416,8 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
     // variant shares the cell's blur and moves only brightness. Resolved through a probe
     // (both are inherited theme tokens), asserted distinct so the bump cannot silently
     // collapse into the resting filter.
-    const restFilter = probeIn(el, (p) => (p.style.backdropFilter = "var(--material-thin-control-filter)"), (s) => s.backdropFilter);
-    const hoverFilter = probeIn(el, (p) => (p.style.backdropFilter = "var(--material-thin-control-filter-hover)"), (s) => s.backdropFilter);
+    const restFilter = probeIn(el, (p) => (p.style.backdropFilter = "var(--material-g2-control-filter)"), (s) => s.backdropFilter);
+    const hoverFilter = probeIn(el, (p) => (p.style.backdropFilter = "var(--material-g2-control-filter-hover)"), (s) => s.backdropFilter);
     expect(restFilter).not.toBe("none");
     expect(hoverFilter).not.toBe(restFilter);
   });
@@ -433,14 +433,14 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
       <Button backdrop tone="accent" emphasis="loud">
         Label
       </Button>,
-      { theme: { material: "thick" } },
+      { theme: { material: "5" } },
     );
     expect(computed(loud, "color")).toBe(tokenOn(loud, "--tone-contrast"));
     const medium = mounted(
       <Button backdrop tone="accent" emphasis="medium">
         Label
       </Button>,
-      { theme: { material: "thick" } },
+      { theme: { material: "5" } },
     );
     expect(computed(medium, "color")).toBe(tokenOn(medium, "--tone-ink"));
   });
@@ -450,7 +450,7 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
       <Button backdrop emphasis="loud">
         Label
       </Button>,
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     );
     const plain = render(<Button emphasis="loud">Label</Button>);
     expect(computed(plain, "background-color")).toBe(tokenOn(plain, "--tone-solid"));
@@ -481,9 +481,9 @@ describe("material is a fill modifier: the rung's own fill, made translucent (§
           Deploy
         </Button>
       </Box>,
-      { theme: { material: "regular" }, select: ".kui-button" },
+      { theme: { material: "3" }, select: ".kui-button" },
     );
-    expect(host.dataset["material"], "the host is not glass, so this proves nothing").toBe("regular");
+    expect(host.dataset["material"], "the host is not glass, so this proves nothing").toBe("g3");
     expect(computed(host, "backdrop-filter")).not.toBe("none");
     for (const which of ["leading", "trailing"] as const) {
       const hosted = within(host, `[data-slot="${which}"] .kui-button`);
@@ -683,12 +683,12 @@ describe("the boundary (§3, §13)", () => {
           Marked
         </Button>
       </Card>,
-      { theme: { depth: "elevated", material: "thin" } },
+      { theme: { depth: "elevated", material: "2" } },
     );
     const [solidMember, markedMember] = inFlow.querySelectorAll("button");
     expect(solidMember!.dataset.material, "an unmarked member of a solid pane is solid").toBeUndefined();
     expect(computed(solidMember!, "box-shadow")).not.toBe("none");
-    expect(markedMember!.dataset.material, "a solid surface HOSTS glass on request").toBe("thin");
+    expect(markedMember!.dataset.material, "a solid surface HOSTS glass on request").toBe("g2");
 
     // Inside a REAL pane (`backdrop`) the member stamps on-glass. The cast stands down by
     // RESOLUTION, not by a `none` declaration on the button: the pane sets the inherited
@@ -703,7 +703,7 @@ describe("the boundary (§3, §13)", () => {
           Label
         </Button>
       </Card>,
-      { theme: { depth: "elevated", material: "thin" } },
+      { theme: { depth: "elevated", material: "2" } },
     );
     const button = pane.querySelector("button")!;
     expect(button.dataset.material).toBe("on-glass");
@@ -1208,7 +1208,7 @@ describe("glass keeps its matter on every rung (§10, 2026-08-19)", () => {
     // so a quiet glass button was a full pane (blur, ring, veil) and the ONE glass control
     // with no inner seat shade, floating beside a medium that had one (audit 2026-08-18).
     const host = render(
-      <Theme depth="elevated" material="regular">
+      <Theme depth="elevated" material="3">
         <Box backdrop>
           <Button emphasis="quiet">Q</Button>
           <Button emphasis="medium">M</Button>
@@ -1235,7 +1235,7 @@ describe("glass keeps its matter on every rung (§10, 2026-08-19)", () => {
     // values it needs are registered `inherits: false`, so it reads them where the stylesheet
     // keeps them, resolved on THIS element, and the node law pins the press rule's consumption.
     const host = render(
-      <Theme depth="elevated" material="regular">
+      <Theme depth="elevated" material="3">
         <Box backdrop>
           <Button emphasis="loud">Save</Button>
         </Box>
@@ -1249,14 +1249,14 @@ describe("glass keeps its matter on every rung (§10, 2026-08-19)", () => {
     // (with the pool in front), which ties the chain to the element.
     const resolve = (name: string) =>
       probeIn(el, (p) => (p.style.boxShadow = `var(${name}, none)`), (cs) => cs.boxShadow);
-    const restRow = resolve("--kui-control-chrome-regular");
-    const pressRow = resolve("--kui-control-chrome-active-regular");
+    const restRow = resolve("--kui-control-chrome-g3");
+    const pressRow = resolve("--kui-control-chrome-active-g3");
     expect(restRow, "the transmitted rest row must resolve").not.toBe("none");
     expect(pressRow, "the transmitted press row must resolve").not.toBe("none");
     expect(pressRow, "the press must have somewhere to travel").not.toBe(restRow);
     const restCast = probeIn(
       el,
-      (p) => (p.style.boxShadow = "var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-control-chrome-regular, 0 0 0 0 transparent)"),
+      (p) => (p.style.boxShadow = "var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-control-chrome-g3, 0 0 0 0 transparent)"),
       (cs) => cs.boxShadow,
     );
     expect(computed(el, "box-shadow"), "the chain must be the thing the button paints").toBe(restCast);
@@ -1285,7 +1285,7 @@ describe("the shared layer's glass, audited 2026-08-26 (§5, §10)", () => {
     // asymmetry the 2026-08-24 lock exists to forbid.
     await emulate([{ name: "prefers-reduced-transparency", value: "reduce" }]);
     const host = render(
-      <Theme material="thin">
+      <Theme material="2">
         <Box backdrop>
           <Card backdrop>pane</Card>
           <Button backdrop>Save</Button>
@@ -1328,7 +1328,7 @@ describe("the shared layer's glass, audited 2026-08-26 (§5, §10)", () => {
     // color(display-p3 0.8507 0.8495 0.8567) at 1px with the conic ::after one pixel inside
     // it, while the plain glass button beside it correctly computed rgba(0, 0, 0, 0).
     const host = render(
-      <Theme material="regular">
+      <Theme material="3">
         <Box backdrop>
           <Button bordered backdrop>Filter</Button>
           <Button backdrop>Plain</Button>
@@ -1360,7 +1360,7 @@ describe("the shared layer's glass, audited 2026-08-26 (§5, §10)", () => {
     // resolved `radial-gradient(130% 80% at 16% -12%, rgb(255 255 255 / 14%), …)`,
     // byte-identical to its live twin, while the solid dead button beside it resolved `none`.
     const host = render(
-      <Theme material="thin">
+      <Theme material="2">
         <Box backdrop>
           <Button backdrop emphasis="loud" disabled>Dead</Button>
           <Button backdrop emphasis="loud">Live</Button>

@@ -43,7 +43,7 @@ import type { ComponentPreview } from "./types";
     module-scope element tree. Tabs paint no material of their own (see the Materials section);
     this list is here because a bar dropped INSIDE a glass pane inherits two roles that pane
     re-points, which is judged in Nesting. */
-const glassMaterials = () => themeAxes.material.filter((m) => m !== "solid");
+const glassMaterials = () => themeAxes.material.filter((m) => m !== "9");
 
 /** A workspace's real sections, and what is actually under each one. Eight of them, so the bar
     is wide enough to overflow a narrow column. The third entry is there because a tab bar is

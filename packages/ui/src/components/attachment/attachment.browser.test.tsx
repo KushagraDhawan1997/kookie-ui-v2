@@ -202,13 +202,13 @@ describe("the state is the category, so there is no second colour axis (§43, §
 describe("an attachment does not cast (§5, §10)", () => {
   /* GLASS IS IN THE WALK NOW (audit 2026-09-02). The stylesheet's whole (0,2,0) argument is
      about beating the material's transmitted cast, which is declared at
-     `.kui-surface[data-material="thin"]` — and every cell here was `solid`, the one world where
+     `.kui-surface[data-material="g2"]` — and every cell here was `solid`, the one world where
      that rule does not apply. So the rank the comment is written around was unasserted, and
      weakening the selector to `.kui-attachment` left all fifteen laws green while a glass tile
      cast three real layers. */
   for (const appearance of APPEARANCES) {
     for (const depth of DEPTHS) {
-      for (const material of ["solid", ...GLASS_MATERIALS] as const) {
+      for (const material of ["9", ...GLASS_MATERIALS] as const) {
       it(`${appearance}/${depth}/${material}: it throws no shadow where a Card does`, () => {
         const el = mounted(<Attachment backdrop>{NAME}</Attachment>, { theme: { appearance, depth, material } });
         /* EVERY layer, not "a layer somewhere is zero". The first spelling of this law tested
@@ -220,7 +220,7 @@ describe("an attachment does not cast (§5, §10)", () => {
         for (const layer of layers) {
           // The material's own POOL is what a glass pane HAS, not lift the app says (§10), so
           // it is allowed through — what must not survive is a real drop.
-          if (material !== "solid" && /inset/.test(layer)) continue;
+          if (material !== "9" && /inset/.test(layer)) continue;
           expect(layer.trim(), `a real cast survived: ${shadow}`).toMatch(
             /rgba?\([^)]*,\s*0\)\s*0px 0px 0px 0px|inset/,
           );
@@ -275,20 +275,20 @@ describe("the glass path has a reader (audit 2026-09-02)", () => {
      deleted and every law stayed green — four mechanisms with no reader, which is exactly the
      shape this repo found in Popover a week earlier. */
   it("a tile states its backdrop, or takes the region's, and a plain one pays nothing", () => {
-    const stated = mounted(<Attachment backdrop>{NAME}</Attachment>, { theme: { material: "regular" } });
-    expect(stated.getAttribute("data-material")).toBe("regular");
+    const stated = mounted(<Attachment backdrop>{NAME}</Attachment>, { theme: { material: "3" } });
+    expect(stated.getAttribute("data-material")).toBe("g3");
     expect(computed(stated, "backdrop-filter")).not.toBe("none");
 
     const ambient = mounted(
       <Box backdrop>
         <Attachment>{NAME}</Attachment>
       </Box>,
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     );
-    expect(within(ambient, ".kui-attachment").getAttribute("data-material")).toBe("regular");
+    expect(within(ambient, ".kui-attachment").getAttribute("data-material")).toBe("g3");
 
     // Selectivity (§10): an unmarked in-flow tile resolves solid and costs nothing.
-    const plain = mounted(<Attachment>{NAME}</Attachment>, { theme: { material: "regular" } });
+    const plain = mounted(<Attachment>{NAME}</Attachment>, { theme: { material: "3" } });
     expect(plain.getAttribute("data-material")).toBe(null);
     expect(computed(plain, "backdrop-filter")).toBe("none");
   });
@@ -304,7 +304,7 @@ describe("the glass path has a reader (audit 2026-09-02)", () => {
       <Box backdrop>
         <Attachment onRemove={() => {}}>{NAME}</Attachment>
       </Box>,
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     );
     const tile = within(inRegion, ".kui-attachment");
     expect(computed(tile, "backdrop-filter"), "the tile itself is the pane").not.toBe("none");

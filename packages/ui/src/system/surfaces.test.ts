@@ -10,9 +10,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import { GLASS_MATERIALS, RUNGS } from "./axes.ts";
+import { GLASS_STEPS as GLASS_MATERIALS, RUNGS } from "./axes.ts";
 
 import { tones } from "../tokens/color-config.ts";
+import { material } from "../tokens/config.ts";
 import { allStylesheets, block, from, raw, sheet, stripped } from "../test/stylesheets.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -167,7 +168,7 @@ describe("no elevation axis; the elevated WORLD is the one sanctioned shadow (§
       "the cast site is no longer the floating pane's own rule",
     ).toBeGreaterThan(-1);
     expect(paint).toBeGreaterThan(surfaces.indexOf("prefers-reduced-transparency"));
-    expect(paint).toBeGreaterThan(surfaces.lastIndexOf('[data-material="thick"]'));
+    expect(paint).toBeGreaterThan(surfaces.lastIndexOf('[data-material^="g"]'));
     const body = surfaces.slice(paint, surfaces.indexOf("}", paint));
     // A re-point of --kui-sf-cast, never a second box-shadow — the count itself lives in the
     // package-wide law in recipes.test.ts and is deliberately not restated here (this comment
@@ -424,7 +425,8 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
         expect(sourceAlphas.length, `${rowName} has alphas to fade`).toBeGreaterThan(0);
 
         const perThickness: number[][] = [];
-        for (const [t, factor] of [["thin", 0.6], ["regular", 0.8], ["thick", 0.9]] as const) {
+        for (const t of GLASS_MATERIALS) {
+          const factor = material.transmission[t];
           const derived = valueOf(body, `--${chrome}-${t}`);
           expect(derived, `${scope} ${chrome}-${t} is the unfaded row`).not.toBe(source);
 
@@ -447,11 +449,17 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
           perThickness.push(got);
         }
 
-        const [thin, regular, thick] = perThickness;
-        thin!.forEach((_, i) => {
-          expect(thin![i]!, `${scope} ${chrome} thin < regular`).toBeLessThan(regular![i]!);
-          expect(regular![i]!, `${scope} ${chrome} regular < thick`).toBeLessThan(thick![i]!);
-          expect(thick![i]!, `${scope} ${chrome} thick < solid`).toBeLessThan(sourceAlphas[i]!);
+        // Every step casts at least as much as the one below it, and the heaviest glass still
+        // less than solid. Non-strict between steps because a 0.025 transmission gap rounds to
+        // the same three-place alpha on the faintest layers; the ends are strict.
+        for (let s = 1; s < perThickness.length; s++) {
+          perThickness[s]!.forEach((a, i) => {
+            expect(perThickness[s - 1]![i]!, `${scope} ${chrome} step ${s} cast less than step ${s + 1}`).toBeLessThanOrEqual(a);
+          });
+        }
+        perThickness.at(-1)!.forEach((a, i) => {
+          expect(perThickness[0]![i]!, `${scope} ${chrome} the ladder is flat`).toBeLessThan(a);
+          expect(a, `${scope} ${chrome} the heaviest glass casts as much as solid`).toBeLessThan(sourceAlphas[i]!);
         });
       }
     }
@@ -498,10 +506,10 @@ describe("the shadow palette is a resource, not an axis (§13)", () => {
     // veil, so this law now sweeps EVERY light part: nothing glass-lit may be emptied by
     // the conformance surface.
     expect(tokens, "the rim is emptied again — the 2026-08-20 reversal is undone").not.toContain(
-      "--material-thin-rim: initial",
+      "--material-g2-rim: initial",
     );
-    expect(tokens).not.toContain("--material-regular-rim: initial");
-    expect(tokens).not.toContain("--material-thick-rim: initial");
+    expect(tokens).not.toContain("--material-g3-rim: initial");
+    expect(tokens).not.toContain("--material-g5-rim: initial");
     // The lifted variant stays dead: this is the resting rim surviving, not the glint back.
     expect(tokens).not.toContain("rim-lifted");
     // The ring stays lit and the control hairline stays translucent — the 2026-08-26
@@ -585,12 +593,12 @@ describe("the lens is additive, never subtractive (§10, 2026-08-16)", () => {
         // mentions a material. A condition is not a declaration; the brace is what tells
         // them apart. (This law's first run failed on exactly that and not on the code.)
         if (value.includes("{")) continue;
-        if (!value.includes("--material-")) continue; // `none` in the reduced-transparency arm
+        if (!/--(kui-m-)?material-/.test(value)) continue; // `none` in the reduced-transparency arm
         found += 1;
         expect(value, "a glass chain that does not prepend the lens").toContain("var(--kui-lens, )");
         expect(value.indexOf("var(--kui-lens, )"), "the lens must come FIRST — it bends the\
  backdrop, then the blur softens what it bent; the other order blurs away what there was to bend")
-          .toBeLessThan(value.indexOf("--material-"));
+          .toBeLessThan(value.indexOf("material-"));
       }
     }
     // Re-structured 2026-08-19 from a hand-bumped 15: the vacuity guard stays (some chains
@@ -650,8 +658,8 @@ describe("the pane's own lighting is three layers, and the ring is the edge (§1
         expect(bloom, "bloom sits over sheen").toBeLessThan(sheen);
       }
     }
-    // Two scopes x three thicknesses; a shorter walk is a law that stopped looking.
-    expect(checked, "the rim walk covered nothing").toBe(6);
+    // Two scopes x every glass step; a shorter walk is a law that stopped looking.
+    expect(checked, "the rim walk covered nothing").toBe(2 * GLASS_MATERIALS.length);
   });
 
 });

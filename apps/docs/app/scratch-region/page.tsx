@@ -6,7 +6,7 @@ import { BedSurface, PHOTO_BED } from "../preview/beds";
 
 function Scene({ appearance }: { appearance: "light" | "dark" }) {
   return (
-    <Theme appearance={appearance} material="regular">
+    <Theme appearance={appearance} material="3">
       <BedSurface bed={PHOTO_BED} backdrop>
         <Stack gap="4" p="4">
           <Flex gap="4" align="start">

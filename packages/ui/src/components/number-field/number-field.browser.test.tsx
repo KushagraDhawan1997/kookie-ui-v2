@@ -267,7 +267,7 @@ describe("the states are the family's too, and each one is read against the twin
 describe("the glass is the family's, part for part (§10)", () => {
   it("a glass NumberField resolves byte-identically to a glass TextField holding two controls", () => {
     const { field, twin: reference } = pair(<NumberField backdrop />, twin({ backdrop: true }), {
-      material: "regular",
+      material: "3",
     });
     // The lens is minted PER BOX (its map encodes one width and height), and the two boxes are
     // different widths — so the id is stripped and its presence asserted separately.
@@ -294,10 +294,10 @@ describe("the glass is the family's, part for part (§10)", () => {
     // A zone is a DIVISION of the glass field, not a control sitting on it: it states no material
     // and draws no filter, so the veil and the lens are the field's alone.
     const field = mounted(<NumberField backdrop />, {
-      theme: { material: "regular" },
+      theme: { material: "3" },
       select: ".kui-number-field",
     });
-    expect(field.dataset["material"]).toBe("regular");
+    expect(field.dataset["material"]).toBe("g3");
     for (const zone of [decOf(field), incOf(field)]) {
       expect(zone.dataset["material"]).toBeUndefined();
       expect(computed(zone, "backdrop-filter")).toBe("none");
@@ -306,7 +306,7 @@ describe("the glass is the family's, part for part (§10)", () => {
 
   it("state outranks glass: an invalid glass field wears the state's border, ring stood down", () => {
     const invalid = mounted(<NumberField backdrop aria-invalid="true" />, {
-      theme: { material: "thin" },
+      theme: { material: "2" },
       select: ".kui-number-field",
     });
     expect(computed(invalid, "border-top-color")).toBe(colorOn(invalid, "var(--invalid-edge)"));

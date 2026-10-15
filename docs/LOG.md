@@ -8,6 +8,28 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-10-15 The material is a scale, and the glass in dark got quieter
+
+Kushagra, after a deep dive on how Apple hands material to developers: Liquid Glass removed the per-view thickness knob (`.glassEffect(.regular | .clear)` and nothing finer), which is the stance this system already took by making material a Theme value. What he wanted instead of three names was a slider: *"Thin is good for clear but one step away ... I'd like to say material's glass as a slider."*
+
+**What shipped.** `material` is `"1"`–`"9"`: 1 clear, 9 solid, and step n is n − 1 sheets of one base glass (`1 − (1 − sheet)^(n − 1)`, the sheet being the old thin). The old names land on 2, 3 and 5 and are deleted rather than aliased. Each family keeps a floor, so a menu at step 1 still has a veil (15% light, 25% dark). The docs' theme popover drives it with a stepped Slider. DECISIONS §10, THE MATERIAL SCALE, carries the mechanism.
+
+**Turned down on the way, each by Kushagra the same hour:**
+- 0–6 with hand-typed veils (0 / 6 / 12 / 17 / 22 / 30). "Why only 0-6?" — the range came from his own sketch, and nothing else justified it.
+- Starting at 0. Every index the system exposes starts at 1; clear is a named state at one end the way solid is at the other.
+- 1–7. "7 is too arbitrary." 1–9 reuses Text's ladder, so the system has two index lengths and no third.
+- A label beside the slider showing the step, then `solid` at 9: the word changed the popover's width. Then the label went entirely.
+
+**Found by the slider, not by a law.** Glass stands the pane's border down by width (2026-08-27), recorded then as one pixel of content inset left uncompensated "because the two are rarely adjacent". A slider makes them adjacent: stepping 8 → 9 moved every pane's contents by a pixel and resized the popover by two. The band comes back as padding through a registered non-inheriting `--kui-sf-band`; the first spelling also added it to the bleed children's re-pad, which over-corrected by a pixel, and a measurement over 165 elements at 8 and 9 is what settled it at zero movement.
+
+**Mistakes worth keeping.** A sed meant for call sites (`material="thin"` → `"2"`) also matched `data-material="g1"` inside `surfaces.css`, because `material="` is a substring of `data-material="`, and stripped the stamp prefix from every indirection block — 183 laws failed on it and the cause read as a mystery for one run. A pattern over a substring of an attribute name is a pattern over the attribute too.
+
+**The same session, before the scale, all in dark mode and all judged by eye:** the lens's colour split went 9% → 3% on every family ("this glass shouldnt split RGB as much"); the dark ring's catch went 0.7 → 0.28 on panes and 0.72 → 0.42 on controls, its shade side 0.3 → 0.08; the pool's inner top catch 0.45 → 0.3; and a floating pane's trim 0.6 → 0.4 ("a little too bright on the menu"). The law that a control's catch is never dimmer than the pane's still holds. The docs work area is flush.
+
+**Cost, stated.** +3.9 KB gzipped: every glass token now exists eight times. Computing the veil in CSS from the step with `pow()` would remove most of it and is the recorded next move.
+
+---
+
 ## 2026-09-23 The veil model: the rung is how much comes through, the lens is the component's
 
 Kushagra, after the mirror pass: *"I need a control to be able to add thickness to my materials, enough so that things can be read ... Like control center in iOS which is darker and very glassy ... The thin/regular/thick should decide the veil, how much background is let through, not how much glass is thick. Its material thickness, not glass thickness. Controls and components need different varying of refraction 'distance', not glass thickness."* Then, one at a time: menus need the densest veil, glass controls floating over content should cast, the lens is a dome on an icon button and eases on a card.

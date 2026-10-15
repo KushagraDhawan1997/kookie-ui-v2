@@ -344,10 +344,10 @@ describe("Chip `backdrop` — the floating chip takes the theme's material (§10
       // The stamp, the veil and the filter in one experiment, against the solid twin in the
       // SAME theme — so what is measured is the prop, not the theme.
       const glass = mounted(<Chip backdrop>Live</Chip>, {
-        theme: { appearance, material: "thin" },
+        theme: { appearance, material: "2" },
       });
-      const solid = mounted(<Chip>Live</Chip>, { theme: { appearance, material: "thin" } });
-      expect(glass.getAttribute("data-material")).toBe("thin");
+      const solid = mounted(<Chip>Live</Chip>, { theme: { appearance, material: "2" } });
+      expect(glass.getAttribute("data-material")).toBe("g2");
       expect(solid.getAttribute("data-material")).toBeNull();
       expect(computed(glass, "background-color")).not.toBe(computed(solid, "background-color"));
       expect(computed(glass, "backdrop-filter")).not.toBe("none");
@@ -376,9 +376,9 @@ describe("Chip `backdrop` — the floating chip takes the theme's material (§10
       <Chip backdrop>
         <Card backdrop>x</Card>
       </Chip>,
-      { theme: { material: "thin" } },
+      { theme: { material: "2" } },
     );
-    expect(chip.getAttribute("data-material")).toBe("thin");
+    expect(chip.getAttribute("data-material")).toBe("g2");
     expect(chip.querySelector(".kui-surface")?.getAttribute("data-material")).toBe("on-glass");
   });
 });

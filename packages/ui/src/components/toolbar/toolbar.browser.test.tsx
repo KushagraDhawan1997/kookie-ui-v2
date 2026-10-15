@@ -553,14 +553,14 @@ describe("the group is the pane, and the row is not (§10, §45)", () => {
           </ToolbarButton>
         </ToolbarGroup>
       </Toolbar>,
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     );
     const group = root.querySelector(".kui-toolbar-group")!;
     // The ROOT is the toolbar — `querySelector` searches descendants, and a `.kui-toolbar`
     // query on it has never matched anything (the 2026-08-08 `within()` finding, reproduced
     // here by its own author on the first run).
     const row = root;
-    expect(group.getAttribute("data-material")).toBe("regular");
+    expect(group.getAttribute("data-material")).toBe("g3");
     // The pane is the group; the row is a row. It states no material even inside a glass theme,
     // which is the half a `data-material` on the wrong element would quietly break.
     expect(row.getAttribute("data-material")).toBeNull();
@@ -582,7 +582,7 @@ describe("the group is the pane, and the row is not (§10, §45)", () => {
           </ToolbarButton>
         </ToolbarGroup>
       </Toolbar>,
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     ).querySelector(".kui-toolbar-group")!;
     const ring = getComputedStyle(group, "::after");
     const glint = getComputedStyle(group, "::before");
@@ -610,13 +610,13 @@ describe("the group is the pane, and the row is not (§10, §45)", () => {
           </ToolbarButton>
         </ToolbarGroup>
       </Toolbar>,
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     ).querySelector(".kui-toolbar-group")!;
     const track = mounted(
       <SegmentedControl backdrop defaultValue="a" aria-label="View">
         <SegmentedItem value="a">A</SegmentedItem>
       </SegmentedControl>,
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     );
     for (const part of ["::after", "::before"] as const) {
       expect(getComputedStyle(group, part).background, `${part} agrees`).toBe(
@@ -635,13 +635,13 @@ describe("the group is the pane, and the row is not (§10, §45)", () => {
           </ToolbarButton>
         </ToolbarGroup>
       </Toolbar>,
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     ).querySelector(".kui-toolbar-group")!;
     const track = mounted(
       <SegmentedControl backdrop defaultValue="a" aria-label="View">
         <SegmentedItem value="a">A</SegmentedItem>
       </SegmentedControl>,
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     );
     // The LENS is per-box — each pane mints its own displacement map and references it by id —
     // so the filter strings differ in exactly one term by construction. The agreement is about
@@ -664,7 +664,7 @@ describe("the group is the pane, and the row is not (§10, §45)", () => {
           </ToolbarButton>
         </ToolbarGroup>
       </Toolbar>,
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     );
     const button = root.querySelector(".kui-toolbar-group .kui-control")!;
     expect(button.getAttribute("data-material")).toBe("on-glass");
@@ -686,13 +686,13 @@ describe("the group is the pane, and the row is not (§10, §45)", () => {
           </ToolbarButton>
         </ToolbarGroup>
       </Toolbar>,
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     );
     const loose = root.querySelector(":scope > .kui-control:not(.kui-toolbar-group)")!;
     const group = root.querySelector(".kui-toolbar-group")!;
     // The loose control and the group both take the region, with neither stating a prop.
-    expect(loose.getAttribute("data-material")).toBe("regular");
-    expect(group.getAttribute("data-material")).toBe("regular");
+    expect(loose.getAttribute("data-material")).toBe("g3");
+    expect(group.getAttribute("data-material")).toBe("g3");
     // And the ROW is still not a pane: it marks the space, it does not paint in it.
     expect(root.getAttribute("data-material")).toBeNull();
     expect(computed(root, "backdrop-filter")).toBe("none");
@@ -707,7 +707,7 @@ describe("the group is the pane, and the row is not (§10, §45)", () => {
           <svg />
         </ToolbarButton>
       </Toolbar>,
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     );
     const button = root.querySelector(".kui-control")!;
     expect(button.getAttribute("data-material")).toBeNull();
@@ -723,7 +723,7 @@ describe("the group is the pane, and the row is not (§10, §45)", () => {
           </ToolbarButton>
         </ToolbarGroup>
       </Toolbar>,
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     );
     const group = root.querySelector(".kui-toolbar-group")!;
     expect(group.getAttribute("data-material")).toBeNull();
@@ -738,7 +738,7 @@ describe("what the row refuses (§45)", () => {
     // @ts-expect-error — same.
     void (<Toolbar emphasis="loud" />);
     // @ts-expect-error — the pane it sits in states the backdrop (§10).
-    void (<Toolbar material="thin" />);
+    void (<Toolbar material="2" />);
     // @ts-expect-error — the group and its buttons both read the ROW's index.
     void (<ToolbarGroup size="3" />);
     expect(true).toBe(true);

@@ -11,7 +11,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { GLASS_MATERIALS } from "./axes.ts";
+import { GLASS_STEPS as GLASS_MATERIALS } from "./axes.ts";
 import { LIP_SHARE, bendAt, fitLens, floatingFrost, lensFamily, type LensParams, type LensScale } from "./refraction.tsx";
 import { scrim } from "../tokens/config.ts";
 

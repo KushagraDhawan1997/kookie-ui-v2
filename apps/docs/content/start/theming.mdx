@@ -33,7 +33,7 @@ These are the eight settings, with their values and defaults.
 | `contrast`   | `normal`, `high`                               | follows the system |
 | `pointer`    | `fine`, `coarse`, `auto`                       | `auto`     |
 | `depth`      | `flat`, `elevated`                             | `elevated` |
-| `material`   | `solid`, `thin`, `regular`, `thick`            | `solid`    |
+| `material`   | `"1"` to `"9"`                                 | `"9"`      |
 | `size`       | `"1"`, `"2"`, `"3"`, `"4"`                     | `"2"`      |
 
 ### Appearance
@@ -79,9 +79,10 @@ app is a choice you make on purpose.
 
 ### Material
 
-`material` sets whether your panels are solid or glass. `solid` lets no light through, and
-`thin`, `regular` and `thick` are glass, from the clearest to the most frosted. One value
-applies to the whole scope, so a menu and a dialog under the same theme use the same glass.
+`material` sets whether your panels are solid or glass. It is a scale from `"1"` to `"9"`.
+`"1"` is clear glass, and each step adds one more layer of the same glass, so less of the
+content behind it shows through. `"9"` is solid and lets no light through. One value applies to
+the whole scope, so a menu and a dialog under the same theme use the same glass.
 
 Glass appears only where content passes behind a component. Menus, selects and dialogs always
 float over the page, so they use the theme's glass. A control in the normal flow of the page

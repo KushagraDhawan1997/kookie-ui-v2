@@ -60,7 +60,7 @@ import type { ComponentPreview } from "./types";
     evaluation. Deferred into render it only ever runs on the client, which is also why every
     section below is a component rather than a module-scope element tree. card.tsx carries the
     same note and the same reason. */
-const glassMaterials = () => themeAxes.material.filter((m) => m !== "solid");
+const glassMaterials = () => themeAxes.material.filter((m) => m !== "9");
 
 /** The specimen used everywhere the CONTENT is not the variable — three real words, one real
     accessible name, so a cell only ever differs by the axis under judgment. Three segments
@@ -249,7 +249,7 @@ function Materials() {
       {BEDS.map((b) => (
         <Demo key={b.id} label={`${b.name} — ${order}, left to right`}>
           <BedSurface bed={b}>
-            <Theme material="solid">
+            <Theme material="9">
               <Range aria-label={`${b.name}, solid`} />
             </Theme>
             {GLASS.map((m) => (
@@ -275,7 +275,7 @@ function Permutations() {
       <Demo label="Size × material — over the pattern">
         <BedSurface bed={bed("pattern")} minHeight="560px">
           <Grid columns="repeat(4, minmax(0, max-content))" gapX="5" gapY="5">
-            {(["solid", ...GLASS] as const).map((m) =>
+            {(["9", ...GLASS] as const).map((m) =>
               SIZES.map((size) => (
                 <Theme key={`${m}-${size}`} material={m}>
                   <Range size={size} aria-label={`${m}, size ${size}`} />
@@ -306,10 +306,10 @@ function Permutations() {
           label={`${b.name} — the track IS the pane, beside the same control inside one`}
         >
           <BedSurface bed={b}>
-            <Theme material="regular">
+            <Theme material="3">
               <Range aria-label={`${b.name}, glass track`} />
             </Theme>
-            <Theme material="regular">
+            <Theme material="3">
               <Card size="3">
                 <Stack gap="3">
                   <Text size="2" emphasis="medium">
@@ -331,12 +331,12 @@ function Permutations() {
       <Demo label="Live × dead × material — the grip has to stay findable in both">
         <BedSurface bed={bed("country")} minHeight="300px">
           <Grid columns="repeat(4, minmax(0, max-content))" gapX="5" gapY="5">
-            {(["solid", ...GLASS] as const).map((m) => (
+            {(["9", ...GLASS] as const).map((m) => (
               <Theme key={`live-${m}`} material={m}>
                 <Range aria-label={`${m}, live`} />
               </Theme>
             ))}
-            {(["solid", ...GLASS] as const).map((m) => (
+            {(["9", ...GLASS] as const).map((m) => (
               <Theme key={`dead-${m}`} material={m}>
                 <Range disabled aria-label={`${m}, disabled`} />
               </Theme>
@@ -493,7 +493,7 @@ function InUse() {
           the theme states the thickness. */}
       <Demo label="A toolbar over content — the track is the pane, so the grip is the pane's wash">
         <BedSurface bed={bed("country")}>
-          <Theme material="regular">
+          <Theme material="3">
             <Flex gap="3" align="center" wrap="wrap">
               <SegmentedControl defaultValue="map" aria-label="Map style">
                 <SegmentedItem value="map">Map</SegmentedItem>

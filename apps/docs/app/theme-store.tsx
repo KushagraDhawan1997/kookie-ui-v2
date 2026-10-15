@@ -10,7 +10,7 @@
  * appearance store: the session's truth is memory, storage is persistence, and a write that
  * cannot persist must never stop the change from being applied.
  *
- * The server snapshot is the site's own resting choice (`material="regular"`, `size="2"`, the
+ * The server snapshot is the site's own resting choice (`material="3"`, `size="2"`, the
  * package defaults for the rest), so the first paint is what layout.tsx always rendered and a
  * stored choice arrives after hydration — the window-class hook's own honesty.
  */
@@ -27,7 +27,7 @@ export const SITE_THEME: ThemeChoice = {
   density: themeDefaults.density,
   radius: themeDefaults.radius,
   depth: themeDefaults.depth,
-  material: "regular",
+  material: "3",
   size: "2",
   pointer: themeDefaults.pointer,
 };

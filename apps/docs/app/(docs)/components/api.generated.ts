@@ -5725,13 +5725,18 @@ export const API: Record<string, ApiEntry> = {
         "name": "material",
         "type": "Material",
         "values": [
-          "solid",
-          "thin",
-          "regular",
-          "thick"
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9"
         ],
         "optional": true,
-        "doc": "Sets the material for every component in this scope. The values are `solid`, `thin`, `regular` and `thick`. The default is `solid`, which lets no light through. The other three are glass, from the clearest to the most frosted. One value applies to the whole scope, so a menu and a dialog in the same theme use the same glass. Glass shows only where something sits over other content. Mark a region with `<Box backdrop>`, or set `backdrop` on one component. Other controls stay solid."
+        "doc": "Sets the material for every component in this scope. The values are `\"1\"` to `\"9\"`. `\"1\"` is clear glass, and each step adds one more layer of the same glass, so less of the content behind it shows through. `\"9\"` is solid and lets no light through, and it is the default. One value applies to the whole scope, so a menu and a dialog in the same theme use the same glass. Glass shows only where something sits over other content. Mark a region with `<Box backdrop>`, or set `backdrop` on one component. Other controls stay solid."
       },
       {
         "name": "pointer",

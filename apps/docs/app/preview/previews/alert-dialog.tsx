@@ -50,7 +50,7 @@ import type { ComponentPreview } from "./types";
 
 /** Functions, not module consts: the standalone route imports this module on the SERVER for
     its slug, and a module-scope read of client data fails the build (card.tsx's own note). */
-const glassMaterials = () => themeAxes.material.filter((m) => m !== "solid");
+const glassMaterials = () => themeAxes.material.filter((m) => m !== "9");
 const tones = () => componentAxes.tone;
 
 type Size = "1" | "2" | "3" | "4";
@@ -554,7 +554,7 @@ function Nesting() {
           judgment is whether the loud Action still reads as the loud one once both buttons
           sit on a translucent pane. */}
       <Demo label="A glass panel's two buttons — the loud one must still be the loud one">
-        <Theme material="regular">
+        <Theme material="3">
           <Flex gap="3" align="center">
             <AlertDialog size="2">
               <AlertDialogTrigger render={<Button emphasis="medium">Glass alert</Button>} />

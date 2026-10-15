@@ -23,6 +23,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
+  Slider,
   Text,
   ToolbarButton,
   themeAxes,
@@ -67,7 +68,18 @@ function Row({
       <Text size={PANEL_SIZE} emphasis="medium" id={id} style={{ justifySelf: "start" }}>
         {LABEL[name as ThemeAxisKey | "contrast"]}
       </Text>
-      {laidOut(values) ? (
+      {name === "material" ? (
+        <Slider
+          size={PANEL_SIZE}
+          aria-labelledby={id}
+          min={1}
+          max={values.length}
+          step={1}
+          value={Number(value)}
+          onValueChange={(next) => onChange(String(Array.isArray(next) ? next[0] : next))}
+          style={{ inlineSize: 160 }}
+        />
+      ) : laidOut(values) ? (
         <SegmentedControl size={PANEL_SIZE} aria-labelledby={id} value={value} onValueChange={(next) => onChange(String(next))}>
           {values.map((v) => (
             <SegmentedItem key={v} value={v}>

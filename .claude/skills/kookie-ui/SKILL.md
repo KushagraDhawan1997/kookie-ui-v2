@@ -25,7 +25,7 @@ Appearance is three independent axes, never one `variant`:
 | --- | --- | --- |
 | `tone` | what does this MEAN | a closed set of families — `neutral`, the brand, the semantic ones, and the categorical ones. The rules file lists them; a component never names a colour |
 | `emphasis` | how LOUD is it | `loud` · `medium` · `quiet` |
-| `material` | what is it made OF | `solid` · `thin` · `regular` · `thick` |
+| `material` | what is it made OF | `1` · `2` · `3` · `4` · `5` · `6` · `7` · `8` · `9` (1 clear glass → 9 solid) |
 
 `size` is an index (`"1"`–`"4"` on controls, `"1"`–`"9"` on type), stated as a string. Text
 weight is `regular` · `medium` · `semibold`; there is no bold, and asking for one is a system

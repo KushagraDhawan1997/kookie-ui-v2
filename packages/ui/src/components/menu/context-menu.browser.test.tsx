@@ -31,7 +31,7 @@ const HOSTILE: ThemeProps = {
   radius: "small",
   pointer: "coarse",
   depth: "flat",
-  material: "regular",
+  material: "3",
   // `contrast: "high"` is named by ENGINEERING as part of the owed set and was missing (audit
   // 2026-09-02) — it is the axis that re-declares the whole ink and border palette, so a
   // portal that dropped it would look right in every other cell.

@@ -86,7 +86,7 @@ describe("no-refused-attribute — the hole TSX leaves open (§9, §12)", () => 
           errors: [{ messageId: "refused" }],
         },
         {
-          code: `import * as Kui from "@kushagradhawan/kookie-ui-react";\nconst x = <Kui.Card data-material="thin" />;\n`,
+          code: `import * as Kui from "@kushagradhawan/kookie-ui-react";\nconst x = <Kui.Card data-material="g2" />;\n`,
           errors: [{ messageId: "refused" }],
         },
       ],

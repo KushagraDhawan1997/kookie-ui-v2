@@ -44,6 +44,15 @@
    value and consulted FIRST — exactly the shape the control layer already uses for the same
    problem (--kui-ct-cast-glass in recipes.css). A surface that is not glass never declares
    it, so it falls through to the world's value. */
+/* The band a glass pane stands its border down by (§10), handed back as padding so a pane's
+   content sits where it does on solid — stepping the material from glass to solid moved every
+   pane's contents by the border's width (2026-10-15). Registered non-inheriting: a band is one
+   pane's fact, and a pane inside it must not pad for its parent's missing border. */
+@property --kui-sf-band {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
 @property --kui-sf-cast {
   syntax: "*";
   inherits: false;
@@ -102,7 +111,7 @@
      glass converge over a calm bed by construction rather than by tuning: the only thing
      material changes is the fill's alpha and the backdrop-filter, which are exactly the two
      things that do nothing when there is nothing behind the pane. */
-  background-image: var(--kui-sf-light, var(--material-regular-rim, none));
+  background-image: var(--kui-sf-light, var(--material-g3-rim, none));
   /* The lighting's positioning area is the BORDER box, at every material including solid
      (2026-08-30; the glass block stated this for its three rungs on 2026-08-07 — Kushagra:
      "why am I seeing this thicker top border" — and solid never inherited the fix). The
@@ -125,7 +134,7 @@
      corner rather than re-deriving it from the band. */
   --kui-sf-r: calc(var(--kui-sf-radius, var(--radius-surface-3)) * var(--kui-corner-k, 1));
   border-radius: var(--kui-sf-r);
-  padding: var(--kui-sf-p);
+  padding: calc(var(--kui-sf-p) + var(--kui-sf-band, 0px));
   /* A pane's corner is its SHAPE, so what it holds obeys it (2026-08-20). Without this a
      surface drew a rounded — since 2026-08-17, a squircled — boundary that nothing was made
      to respect: a picture reaching the edge squared off the corner it sat in, and the pane
@@ -1394,7 +1403,7 @@
      2026-08-07 finding, arriving one layer up). The two stand-downs above name the pane-local
      hooks, which the glass thickness arms re-declare at the same (0,2,0) three hundred lines
      later: a tie settled by source order, and the glass declaration wins. Measured, light,
-     `material="regular" depth="elevated"`: a `<Card backdrop render={<button disabled/>}>`
+     `material="3" depth="elevated"`: a `<Card backdrop render={<button disabled/>}>`
      computed `rgba(0,0,0,.06) 0 -10px 20px -14px inset, rgba(0,0,0,.08) 0 1px 2px, rgba(0,0,0,.086) 0 12px 32px -8px, rgba(0,0,0,.08) 0 32px 80px -16px`
      — byte-identical to its live twin, while fill, ink and cursor had all correctly receded. So
      a dead glass card still sat above the plane and still offered to be picked up.
@@ -1408,9 +1417,14 @@
      No-op LAYERS, never `none`: a shadow list may not hold `none`, which is the rule the two
      lines above already state. */
   --kui-surface-chrome: 0 0 0 0 transparent;
-  --kui-surface-chrome-thin: 0 0 0 0 transparent;
-  --kui-surface-chrome-regular: 0 0 0 0 transparent;
-  --kui-surface-chrome-thick: 0 0 0 0 transparent;
+  --kui-surface-chrome-g1: 0 0 0 0 transparent;
+  --kui-surface-chrome-g2: 0 0 0 0 transparent;
+  --kui-surface-chrome-g3: 0 0 0 0 transparent;
+  --kui-surface-chrome-g4: 0 0 0 0 transparent;
+  --kui-surface-chrome-g5: 0 0 0 0 transparent;
+  --kui-surface-chrome-g6: 0 0 0 0 transparent;
+  --kui-surface-chrome-g7: 0 0 0 0 transparent;
+  --kui-surface-chrome-g8: 0 0 0 0 transparent;
   --kui-surface-pool: 0 0 0 0 transparent;
   /* THE CURSOR. The shared remap (recipes.css) states it for the whole arm above and keys on
      the same element test, so it reaches the button and the anchor and cannot reach a label
@@ -1575,15 +1589,30 @@
      stamps data-appearance, whose scope re-declares the generated name at the element. Where
      appearance is inherited — apps/docs' own root, so every Theme under it — nothing
      re-declared it and the brighter line survived into the flat scope. */
-  --kui-surface-chrome-thin: var(--surface-chrome-thin);
-  --kui-surface-chrome-regular: var(--surface-chrome-regular);
-  --kui-surface-chrome-thick: var(--surface-chrome-thick);
-  --kui-control-chrome-thin: var(--control-chrome-thin);
-  --kui-control-chrome-active-thin: var(--control-chrome-active-thin);
-  --kui-control-chrome-regular: var(--control-chrome-regular);
-  --kui-control-chrome-active-regular: var(--control-chrome-active-regular);
-  --kui-control-chrome-thick: var(--control-chrome-thick);
-  --kui-control-chrome-active-thick: var(--control-chrome-active-thick);
+  --kui-surface-chrome-g1: var(--surface-chrome-g1);
+  --kui-surface-chrome-g2: var(--surface-chrome-g2);
+  --kui-surface-chrome-g3: var(--surface-chrome-g3);
+  --kui-surface-chrome-g4: var(--surface-chrome-g4);
+  --kui-surface-chrome-g5: var(--surface-chrome-g5);
+  --kui-surface-chrome-g6: var(--surface-chrome-g6);
+  --kui-surface-chrome-g7: var(--surface-chrome-g7);
+  --kui-surface-chrome-g8: var(--surface-chrome-g8);
+  --kui-control-chrome-g1: var(--control-chrome-g1);
+  --kui-control-chrome-g2: var(--control-chrome-g2);
+  --kui-control-chrome-g3: var(--control-chrome-g3);
+  --kui-control-chrome-g4: var(--control-chrome-g4);
+  --kui-control-chrome-g5: var(--control-chrome-g5);
+  --kui-control-chrome-g6: var(--control-chrome-g6);
+  --kui-control-chrome-g7: var(--control-chrome-g7);
+  --kui-control-chrome-g8: var(--control-chrome-g8);
+  --kui-control-chrome-active-g1: var(--control-chrome-active-g1);
+  --kui-control-chrome-active-g2: var(--control-chrome-active-g2);
+  --kui-control-chrome-active-g3: var(--control-chrome-active-g3);
+  --kui-control-chrome-active-g4: var(--control-chrome-active-g4);
+  --kui-control-chrome-active-g5: var(--control-chrome-active-g5);
+  --kui-control-chrome-active-g6: var(--control-chrome-active-g6);
+  --kui-control-chrome-active-g7: var(--control-chrome-active-g7);
+  --kui-control-chrome-active-g8: var(--control-chrome-active-g8);
   /* The SOLID pane's lighting is its own matte recipe (2026-08-17, the lab's .l2-solid):
      grain + one sheen, no bloom, no catch — and no lifted variant, because a matte slab has
      no glint to catch. It borrowed the regular GLASS rim here for a day, which is where the
@@ -1610,15 +1639,30 @@
   --kui-control-pool: 0 0 0 0 transparent;
   --kui-surface-pool: 0 0 0 0 transparent;
   --kui-control-light: none;
-  --kui-surface-chrome-thin: 0 0 0 0 transparent;
-  --kui-surface-chrome-regular: 0 0 0 0 transparent;
-  --kui-surface-chrome-thick: 0 0 0 0 transparent;
-  --kui-control-chrome-thin: 0 0 0 0 transparent;
-  --kui-control-chrome-active-thin: 0 0 0 0 transparent;
-  --kui-control-chrome-regular: 0 0 0 0 transparent;
-  --kui-control-chrome-active-regular: 0 0 0 0 transparent;
-  --kui-control-chrome-thick: 0 0 0 0 transparent;
-  --kui-control-chrome-active-thick: 0 0 0 0 transparent;
+  --kui-surface-chrome-g1: 0 0 0 0 transparent;
+  --kui-surface-chrome-g2: 0 0 0 0 transparent;
+  --kui-surface-chrome-g3: 0 0 0 0 transparent;
+  --kui-surface-chrome-g4: 0 0 0 0 transparent;
+  --kui-surface-chrome-g5: 0 0 0 0 transparent;
+  --kui-surface-chrome-g6: 0 0 0 0 transparent;
+  --kui-surface-chrome-g7: 0 0 0 0 transparent;
+  --kui-surface-chrome-g8: 0 0 0 0 transparent;
+  --kui-control-chrome-g1: 0 0 0 0 transparent;
+  --kui-control-chrome-g2: 0 0 0 0 transparent;
+  --kui-control-chrome-g3: 0 0 0 0 transparent;
+  --kui-control-chrome-g4: 0 0 0 0 transparent;
+  --kui-control-chrome-g5: 0 0 0 0 transparent;
+  --kui-control-chrome-g6: 0 0 0 0 transparent;
+  --kui-control-chrome-g7: 0 0 0 0 transparent;
+  --kui-control-chrome-g8: 0 0 0 0 transparent;
+  --kui-control-chrome-active-g1: 0 0 0 0 transparent;
+  --kui-control-chrome-active-g2: 0 0 0 0 transparent;
+  --kui-control-chrome-active-g3: 0 0 0 0 transparent;
+  --kui-control-chrome-active-g4: 0 0 0 0 transparent;
+  --kui-control-chrome-active-g5: 0 0 0 0 transparent;
+  --kui-control-chrome-active-g6: 0 0 0 0 transparent;
+  --kui-control-chrome-active-g7: 0 0 0 0 transparent;
+  --kui-control-chrome-active-g8: 0 0 0 0 transparent;
   /* Not `none`: a flat world's glass keeps its edge and its glint and loses only the lift
      (the weld was built and reversed 2026-08-05). So flat RESTS the rim rather than removing
      it — the resting value is what the appearance scope generated, and contrast="high" empties
@@ -1666,9 +1710,7 @@
    backdrop-filter, the @supports block is the real recipe, and reduced-transparency wins last
    because it is an accessibility requirement and a performance escape in one. */
 
-.kui-surface[data-material="thin"],
-.kui-surface[data-material="regular"],
-.kui-surface[data-material="thick"] {
+.kui-surface[data-material^="g"]{
   /* The rim sits UNDER the translucent edge, not beside it (Kushagra, 2026-08-07: "why am I
      seeing this thicker top border") — that used to be this block's own `background-origin:
      border-box`, and since 2026-08-30 the base rule states it for every material, because
@@ -1685,12 +1727,12 @@
   --kui-control-chrome: none;
   --kui-control-chrome-active: none;
   --kui-control-pool: none;
-  --kui-control-chrome-thin: none;
-  --kui-control-chrome-active-thin: none;
-  --kui-control-chrome-regular: none;
-  --kui-control-chrome-active-regular: none;
-  --kui-control-chrome-thick: none;
-  --kui-control-chrome-active-thick: none;
+  --kui-m-kui-control-chrome: none;
+  --kui-m-kui-control-chrome-active: none;
+  --kui-m-kui-control-chrome: none;
+  --kui-m-kui-control-chrome-active: none;
+  --kui-m-kui-control-chrome: none;
+  --kui-m-kui-control-chrome-active: none;
   --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-opaque-alpha), transparent);
   --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-opaque-alpha), transparent);
   --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-opaque-alpha), transparent);
@@ -1702,7 +1744,7 @@
    percentage IS the veil — so an alpha source multiplies. The rungs' own sources are opaque
    (`--color-surface`, `--tone-solid`) and so are every hover/active source, but the DEAD fill
    is not: `--disabled-fill` is one ramp step, light `#000 3.1%`. Measured, light,
-   `material="regular"`: a dead glass card painted `color(srgb 0 0 0 / 0.01519)` — 3.1% × 49% —
+   `material="3"`: a dead glass card painted `color(srgb 0 0 0 / 0.01519)` — 3.1% × 49% —
    where the judged ladder is 49% of the dead step. `aN` over the seal IS step N, which is what
    `--disabled-fill-solid` already holds, so this restores exactly the colour that was judged.
 
@@ -1759,11 +1801,11 @@
 }
 
 @supports (backdrop-filter: blur(1px)) {
-  .kui-surface[data-material="thin"] {
-    --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-thin-alpha), transparent);
-    --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-thin-alpha-hover), transparent);
-    --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-thin-alpha-active), transparent);
-    --kui-sf-glass-filter: var(--material-thin-filter);
+  .kui-surface[data-material^="g"] {
+    --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--kui-m-material-alpha), transparent);
+    --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--kui-m-material-alpha-hover), transparent);
+    --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--kui-m-material-alpha-active), transparent);
+    --kui-sf-glass-filter: var(--kui-m-material-filter);
     backdrop-filter: var(--kui-lens, ) var(--kui-sf-glass-filter);
     /* The pane's own edge and lighting (§10, 2026-08-05): the tone border on glass read as a
        sticker — pigment on a pane of light. The edge is the material's, a translucent
@@ -1811,96 +1853,18 @@
        takes the outermost pixel), and clipping the fill to the padding box only dims the rim
        to 246 and leaves both lines standing. Only the width answers it.
 
-       WHAT IT COSTS is one pixel of content inset: with `box-sizing: border-box` the pane's
-       outer size does not move, but its content box grows by the band, so a glass pane's
-       contents sit a pixel nearer its edge than a solid pane's. Left uncompensated on purpose
-       — padding here is 16px and up, the two are rarely adjacent (material is a Theme
-       property), and compensating means re-declaring `--kui-sf-p`, which `m="bleed"` reads. */
+       WHAT IT COST was one pixel of content inset, left uncompensated while material was three
+       far-apart names. The 2026-10-15 scale made it a slider, and stepping 8 → 9 moved every
+       pane's contents by the band, so the band comes back as PADDING through `--kui-sf-band`
+       (registered non-inheriting at the head). Not by re-declaring `--kui-sf-p`, which
+       `m="bleed"` reads: a bleeding child still lands one band inside the edge, exactly where
+       it lands on solid, inside the border. */
     border-width: 0;
+    --kui-sf-band: var(--border-width);
     --kui-sf-pool: var(--kui-surface-pool, 0 0 0 0 transparent);
 
 
-    --kui-sf-cast: var(--kui-surface-chrome-thin, none);
-  }
-  .kui-surface[data-material="regular"] {
-    --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-regular-alpha), transparent);
-    --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-regular-alpha-hover), transparent);
-    --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-regular-alpha-active), transparent);
-    --kui-sf-glass-filter: var(--material-regular-filter);
-    backdrop-filter: var(--kui-lens, ) var(--kui-sf-glass-filter);
-    /* Edge, rim and transmitted cast — see the thin block (§10). */
-    /* The edge is the RING (lab port 2026-08-17): a 1px conic light painted by the ::after
-       rule below, not a pigment hairline — the border stands down so the ring is the only
-       edge, at EVERY contrast. The HC trade (ring zeroed, --kui-glass-hc-edge handing
-       pigment back) lived here 2026-08-19 → 2026-08-26 and is deleted: its premise ("the
-       ring is white, 1.000:1 on every side", audit 2026-08-18) died on 2026-08-24 when the
-       ring took pigment through its shade arc and a mounted law made it VISIBLE against
-       the page — high contrast's one glass lever is the veil (Kushagra: "we increased
-       veil, why should there any other difference"). */
-    --kui-border-color: transparent;
-    /* AND THE BAND GOES WITH THE COLOUR (§10, 2026-08-27, Kushagra: "this 1px border on glass,
-       only glass, bothers me"). Standing the colour down left the WIDTH, and a transparent
-       border still reserves a band the fill paints into — so a glass pane drew its veil for one
-       pixel OUTSIDE the ring, and the ring, sitting on the padding box, became a second line
-       inboard of it. Measured across a thick pane's left edge in device pixels: page 232, veil
-       252, ring 223, veil 245 — a lit rim and then a dark one, which is the doubled edge this
-       material has been read as having. At width 0 the padding box IS the border box and the
-       sequence is page 232, ring 223, veil 245: the ring is the boundary, with nothing outside
-       it, which is what §10 has claimed since the lab port.
-
-       Two alternatives were built and measured first. Moving the pseudos out to the border box
-       deletes the ring instead of moving it (the arc reads 244 against 223 — `overflow: clip`
-       takes the outermost pixel), and clipping the fill to the padding box only dims the rim
-       to 246 and leaves both lines standing. Only the width answers it.
-
-       WHAT IT COSTS is one pixel of content inset: with `box-sizing: border-box` the pane's
-       outer size does not move, but its content box grows by the band, so a glass pane's
-       contents sit a pixel nearer its edge than a solid pane's. Left uncompensated on purpose
-       — padding here is 16px and up, the two are rarely adjacent (material is a Theme
-       property), and compensating means re-declaring `--kui-sf-p`, which `m="bleed"` reads. */
-    border-width: 0;
-    --kui-sf-pool: var(--kui-surface-pool, 0 0 0 0 transparent);
-    --kui-sf-cast: var(--kui-surface-chrome-regular, none);
-  }
-  .kui-surface[data-material="thick"] {
-    --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-thick-alpha), transparent);
-    --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-thick-alpha-hover), transparent);
-    --kui-sf-fill-active: color-mix(in srgb, var(--color-surface-active) var(--material-thick-alpha-active), transparent);
-    --kui-sf-glass-filter: var(--material-thick-filter);
-    backdrop-filter: var(--kui-lens, ) var(--kui-sf-glass-filter);
-    /* Edge, rim and transmitted cast — see the thin block (§10). */
-    /* The edge is the RING (lab port 2026-08-17): a 1px conic light painted by the ::after
-       rule below, not a pigment hairline — the border stands down so the ring is the only
-       edge, at EVERY contrast. The HC trade (ring zeroed, --kui-glass-hc-edge handing
-       pigment back) lived here 2026-08-19 → 2026-08-26 and is deleted: its premise ("the
-       ring is white, 1.000:1 on every side", audit 2026-08-18) died on 2026-08-24 when the
-       ring took pigment through its shade arc and a mounted law made it VISIBLE against
-       the page — high contrast's one glass lever is the veil (Kushagra: "we increased
-       veil, why should there any other difference"). */
-    --kui-border-color: transparent;
-    /* AND THE BAND GOES WITH THE COLOUR (§10, 2026-08-27, Kushagra: "this 1px border on glass,
-       only glass, bothers me"). Standing the colour down left the WIDTH, and a transparent
-       border still reserves a band the fill paints into — so a glass pane drew its veil for one
-       pixel OUTSIDE the ring, and the ring, sitting on the padding box, became a second line
-       inboard of it. Measured across a thick pane's left edge in device pixels: page 232, veil
-       252, ring 223, veil 245 — a lit rim and then a dark one, which is the doubled edge this
-       material has been read as having. At width 0 the padding box IS the border box and the
-       sequence is page 232, ring 223, veil 245: the ring is the boundary, with nothing outside
-       it, which is what §10 has claimed since the lab port.
-
-       Two alternatives were built and measured first. Moving the pseudos out to the border box
-       deletes the ring instead of moving it (the arc reads 244 against 223 — `overflow: clip`
-       takes the outermost pixel), and clipping the fill to the padding box only dims the rim
-       to 246 and leaves both lines standing. Only the width answers it.
-
-       WHAT IT COSTS is one pixel of content inset: with `box-sizing: border-box` the pane's
-       outer size does not move, but its content box grows by the band, so a glass pane's
-       contents sit a pixel nearer its edge than a solid pane's. Left uncompensated on purpose
-       — padding here is 16px and up, the two are rarely adjacent (material is a Theme
-       property), and compensating means re-declaring `--kui-sf-p`, which `m="bleed"` reads. */
-    border-width: 0;
-    --kui-sf-pool: var(--kui-surface-pool, 0 0 0 0 transparent);
-    --kui-sf-cast: var(--kui-surface-chrome-thick, none);
+    --kui-sf-cast: var(--kui-m-kui-surface-chrome, none);
   }
 
   /* WHICH ROW A PANE TAKES, and the default is the DEFENDED one (2026-09-11).
@@ -1927,38 +1891,16 @@
      wider lip (the lens reads the scale off `--kui-material-scale`). (0,3,0) beats the pane
      block above by weight — which is why the reduced-transparency seal below carries a region
      arm at the same weight: its (0,2,0) seal would otherwise lose the fill to this rule. */
-  .kui-surface.kui-region[data-material="thin"] {
+  .kui-surface.kui-region[data-material^="g"] {
     --kui-material-scale: region;
-    --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-thin-region-alpha), transparent);
-    --kui-sf-glass-filter: var(--material-thin-region-filter);
+    --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--kui-m-material-region-alpha), transparent);
+    --kui-sf-glass-filter: var(--kui-m-material-region-filter);
   }
-  .kui-surface.kui-region[data-material="regular"] {
-    --kui-material-scale: region;
-    --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-regular-region-alpha), transparent);
-    --kui-sf-glass-filter: var(--material-regular-region-filter);
+  :root:not([data-lens="on"]) .kui-surface.kui-region[data-material^="g"] {
+    --kui-sf-glass-filter: var(--kui-m-material-region-filter-frost);
   }
-  .kui-surface.kui-region[data-material="thick"] {
-    --kui-material-scale: region;
-    --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-thick-region-alpha), transparent);
-    --kui-sf-glass-filter: var(--material-thick-region-filter);
-  }
-  :root:not([data-lens="on"]) .kui-surface.kui-region[data-material="thin"] {
-    --kui-sf-glass-filter: var(--material-thin-region-filter-frost);
-  }
-  :root:not([data-lens="on"]) .kui-surface.kui-region[data-material="regular"] {
-    --kui-sf-glass-filter: var(--material-regular-region-filter-frost);
-  }
-  :root:not([data-lens="on"]) .kui-surface.kui-region[data-material="thick"] {
-    --kui-sf-glass-filter: var(--material-thick-region-filter-frost);
-  }
-  :root:not([data-lens="on"]) .kui-surface[data-material="thin"] {
-    --kui-sf-glass-filter: var(--material-thin-filter-frost);
-  }
-  :root:not([data-lens="on"]) .kui-surface[data-material="regular"] {
-    --kui-sf-glass-filter: var(--material-regular-filter-frost);
-  }
-  :root:not([data-lens="on"]) .kui-surface[data-material="thick"] {
-    --kui-sf-glass-filter: var(--material-thick-filter-frost);
+  :root:not([data-lens="on"]) .kui-surface[data-material^="g"] {
+    --kui-sf-glass-filter: var(--kui-m-material-filter-frost);
   }
 }
 
@@ -1997,10 +1939,10 @@
    and this is where the next person will come looking. `overflow: clip` was measured on the
    way and does not bear on it either way: Chromium's clip edge for `clip` is the border box,
    so a pseudo at -1px does paint in the band. It simply should not. */
-.kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
+.kui-surface:where([data-material^="g"]) {
   position: relative;
 }
-.kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after {
+.kui-surface:where([data-material^="g"])::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -2022,14 +1964,8 @@
    a registered non-inheriting property cannot reach the element's own ::after (pseudo-
    elements take custom properties by INHERITANCE, which inherits:false blocks — measured:
    the ring computed `none` through the hop and paints through the direct read). */
-.kui-surface:where([data-material="thin"])::after {
-  background: var(--material-thin-ring);
-}
-.kui-surface:where([data-material="regular"])::after {
-  background: var(--material-regular-ring);
-}
-.kui-surface:where([data-material="thick"])::after {
-  background: var(--material-thick-ring);
+.kui-surface:where([data-material^="g"])::after {
+  background: var(--kui-m-material-ring);
 }
 
 /* ── The GLINT: the ring's band (§10, 2026-08-24) ─────────────────────────────────────────
@@ -2046,7 +1982,7 @@
    detached hook or a box too small for a bezel all keep exactly the 1px ring. Every ring
    stand-down reaches it through the same `--material-ring-opacity` the ::after reads: high
    contrast, reduced transparency and the floating trim need no second arm. */
-.kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before {
+.kui-surface:where([data-material^="g"])::before {
   content: "";
   position: absolute;
   /* The padding box, in step with the ring above — the band and the lip are one bezel in two
@@ -2066,17 +2002,11 @@
   mask-repeat: no-repeat;
   opacity: calc(var(--material-ring-opacity, 1) * var(--kui-glint-on, 0));
 }
-.kui-surface:where([data-material="thin"])::before {
-  background: var(--material-thin-glint);
-}
-.kui-surface:where([data-material="regular"])::before {
-  background: var(--material-regular-glint);
-}
-.kui-surface:where([data-material="thick"])::before {
-  background: var(--material-thick-glint);
+.kui-surface:where([data-material^="g"])::before {
+  background: var(--kui-m-material-glint);
 }
 /* The floating trim, mirrored: a menu's glint is trimmed exactly as its ring is. */
-.kui-surface.kui-floating:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before {
+.kui-surface.kui-floating:where([data-material^="g"])::before {
   opacity: calc(var(--material-ring-opacity, 1) * var(--kui-glint-on, 0) * var(--material-floating-trim, 1));
 }
 
@@ -2087,7 +2017,7 @@
    as a ROLE REMAP on the pane — rows, labels, separators, keycaps and plain Text inherit the
    corrected role with no rule of their own, the system's own pattern for disabled and
    invalid. Solid keeps the pigments: on an opaque panel they are right. */
-.kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
+.kui-surface:where([data-material^="g"]) {
   /* The pane's own lighting, PER THICKNESS (2026-08-17): the base rule's --kui-sf-light is
      the SOLID matte recipe since the seal got its own — a glass pane re-points to its own
      bloom+sheen through the depth-scoped pointer, so an elevated pane still glints brighter
@@ -2097,36 +2027,30 @@
   --color-text-faint: var(--material-ink-faint);
   --color-border: var(--material-glass-border);
 }
-.kui-surface:where([data-material="thin"]) {
-  --kui-sf-light: var(--material-thin-rim, none);
-}
-.kui-surface:where([data-material="regular"]) {
-  --kui-sf-light: var(--material-regular-rim, none);
-}
-.kui-surface:where([data-material="thick"]) {
-  --kui-sf-light: var(--material-thick-rim, none);
+.kui-surface:where([data-material^="g"]) {
+  --kui-sf-light: var(--kui-m-material-rim, none);
 }
 /* Disabled is a STATE, and the shared layer paints it from its own role — so it is named
    here rather than inherited, on glass only (the lab's own carve-out). */
-.kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-row[data-disabled] {
+.kui-surface:where([data-material^="g"]) .kui-row[data-disabled] {
   color: var(--material-ink-disabled);
 }
 /* The hover wash is a FILL, not an ink — on a translucent world it is the ink at low alpha,
    so touching a row lets MORE light through rather than laying an opaque pastel on the pane. */
-.kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-row[data-highlighted]:not([data-disabled]),
-.kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-row[data-popup-open]:not([data-disabled]) {
+.kui-surface:where([data-material^="g"]) .kui-row[data-highlighted]:not([data-disabled]),
+.kui-surface:where([data-material^="g"]) .kui-row[data-popup-open]:not([data-disabled]) {
   background-color: var(--material-row-wash);
 }
 /* The lit row is a SIGNAL, and the conformance surface must reach it on glass too (§19,
    2026-08-26). The wash rule above ties recipes.css's high-contrast arm at (0,4,0) and wins
-   on source order — measured in the docs chrome (Theme material="thin", contrast="high"):
+   on source order — measured in the docs chrome (Theme material="2", contrast="high"):
    the fill stayed the wash while the label followed the HC arm to --tone-contrast, a
    near-white word on a faint wash. So the glass world restates the signal at (0,5,0). The
    VALUE's home is recipes.css's arm ("the lit row goes solid"); this rule only re-wins the
    tie the pane created — the glass contract's own sentence, a pane may vary where a part is
    painted, never what a signal is worth. */
-[data-contrast="high"] .kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-row[data-highlighted]:not([data-disabled]),
-[data-contrast="high"] .kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-row[data-popup-open]:not([data-disabled]) {
+[data-contrast="high"] .kui-surface:where([data-material^="g"]) .kui-row[data-highlighted]:not([data-disabled]),
+[data-contrast="high"] .kui-surface:where([data-material^="g"]) .kui-row[data-popup-open]:not([data-disabled]) {
   background-color: var(--tone-solid);
 }
 
@@ -2134,14 +2058,14 @@
    lit row is the one signal a person navigating by keyboard has, and it was reachable only by
    an app that set the prop. */
 @media (prefers-contrast: more) {
-  :root:not([data-contrast="normal"]) .kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-row[data-highlighted]:not([data-disabled]),
-  :root:not([data-contrast="normal"]) .kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-row[data-popup-open]:not([data-disabled]) {
+  :root:not([data-contrast="normal"]) .kui-surface:where([data-material^="g"]) .kui-row[data-highlighted]:not([data-disabled]),
+  :root:not([data-contrast="normal"]) .kui-surface:where([data-material^="g"]) .kui-row[data-popup-open]:not([data-disabled]) {
     background-color: var(--tone-solid);
   }
 }
 /* The keycap is a small filled box, so it takes the treatment too: relief IN the pane, not a
    sticker on it — fill, edge and ink all alpha, and no cast. */
-.kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) .kui-kbd {
+.kui-surface:where([data-material^="g"]) .kui-kbd {
   background-color: var(--material-kbd-fill);
   border-color: var(--material-kbd-edge);
   color: var(--material-kbd-ink);
@@ -2154,7 +2078,7 @@
    handle's "always is about the world" lesson arriving from the other side, with MATERIAL
    as the third axis "always" was never about. The hook is consulted before the role in all
    three grip sheets — the keycap's own mechanism, one rule up. */
-.kui-surface:where([data-material="thin"], [data-material="regular"], [data-material="thick"])
+.kui-surface:where([data-material^="g"])
   :where(.kui-segment-thumb, .kui-switch-thumb, .kui-slider-thumb) {
   --kui-grip-cast: none;
 }
@@ -2278,14 +2202,10 @@
    light away. */
 @media (prefers-reduced-transparency: reduce), print, (forced-colors: active) {
   /* The region arm restates the seal at the region rule's own (0,3,0) — see that rule. */
-  .kui-surface.kui-region[data-material="thin"],
-  .kui-surface.kui-region[data-material="regular"],
-  .kui-surface.kui-region[data-material="thick"] {
+  .kui-surface.kui-region[data-material^="g"]{
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-opaque-alpha), transparent);
   }
-  .kui-surface[data-material="thin"],
-  .kui-surface[data-material="regular"],
-  .kui-surface[data-material="thick"],
+  .kui-surface[data-material^="g"],
   .kui-surface[data-material="on-glass"] {
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-opaque-alpha), transparent);
     --kui-sf-fill-hover: color-mix(in srgb, var(--color-surface-hover) var(--material-opaque-alpha), transparent);
@@ -2345,26 +2265,19 @@
 
    The reduced-transparency arm below already knew these selectors needed a seal — it restates
    exactly this declaration for exactly this list. The @supports fallback never got one. */
-.kui-surface.kui-floating[data-material="thin"],
-.kui-surface.kui-floating[data-material="regular"],
-.kui-surface.kui-floating[data-material="thick"] {
+.kui-surface.kui-floating[data-material^="g"]{
   --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-opaque-alpha), transparent);
 }
 @supports (backdrop-filter: blur(1px)) {
-  .kui-surface.kui-floating[data-material="thin"] {
-    --kui-sf-fill: var(--material-thin-fill-floating);
-  }
-  .kui-surface.kui-floating[data-material="regular"] {
-    --kui-sf-fill: var(--material-regular-fill-floating);
-  }
-  .kui-surface.kui-floating[data-material="thick"] {
-    --kui-sf-fill: var(--material-thick-fill-floating);
+  .kui-surface.kui-floating[data-material^="g"] {
+    --kui-sf-fill: var(--kui-m-material-fill-floating);
   }
 }
-/* The floating trim, per MODE (config `floatingTrim`): dark keeps the lab's 60% — a menu is
-   small and dense, and the pane's full flare read as costume on it — and light takes the whole
-   lip, which has to work against a near-white pane. */
-.kui-surface.kui-floating:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after {
+/* The floating trim, per MODE (config `floatingTrim`): dark takes 40% (the lab's 60% until
+   2026-10-15, "a little too bright on the menu") — a menu is small and dense, and the pane's
+   full flare read as costume on it — and light takes the whole lip, which has to work against
+   a near-white pane. */
+.kui-surface.kui-floating:where([data-material^="g"])::after {
   opacity: calc(var(--material-ring-opacity, 1) * var(--material-floating-trim, 1));
 }
 
@@ -2377,9 +2290,7 @@
 /* Three conditions, one answer — see the surface arm in surfaces.css for why print and
    forced-colors want exactly the sealed pane this arm already describes. */
 @media (prefers-reduced-transparency: reduce), print, (forced-colors: active) {
-  .kui-surface.kui-floating[data-material="thin"],
-  .kui-surface.kui-floating[data-material="regular"],
-  .kui-surface.kui-floating[data-material="thick"],
+  .kui-surface.kui-floating[data-material^="g"],
   .kui-surface.kui-floating[data-material="on-glass"] {
     --kui-sf-fill: color-mix(in srgb, var(--kui-sf-fill-src) var(--material-opaque-alpha), transparent);
   }
@@ -2400,4 +2311,208 @@
    which behaves as flat, the material rim's own precedent. */
 .kui-surface.kui-floating {
   --kui-sf-cast: var(--kui-floating-chrome, var(--floating-chrome-flat, none));
+}
+
+
+/* THE GLASS STEP (2026-10-15): every glass rule reads its rung through `--kui-m-*`, and the
+   step an element stamps points those names at its own row of generated tokens. */
+[data-material="g1"] {
+  --kui-m-kui-control-chrome: var(--kui-control-chrome-g1);
+  --kui-m-kui-control-chrome-active: var(--kui-control-chrome-active-g1);
+  --kui-m-kui-surface-chrome: var(--kui-surface-chrome-g1);
+  --kui-m-material-alpha: var(--material-g1-alpha);
+  --kui-m-material-alpha-active: var(--material-g1-alpha-active);
+  --kui-m-material-alpha-hover: var(--material-g1-alpha-hover);
+  --kui-m-material-control-alpha: var(--material-g1-control-alpha);
+  --kui-m-material-control-filter: var(--material-g1-control-filter);
+  --kui-m-material-control-filter-frost: var(--material-g1-control-filter-frost);
+  --kui-m-material-control-filter-hover: var(--material-g1-control-filter-hover);
+  --kui-m-material-control-filter-loud: var(--material-g1-control-filter-loud);
+  --kui-m-material-fill-floating: var(--material-g1-fill-floating);
+  --kui-m-material-filter: var(--material-g1-filter);
+  --kui-m-material-filter-frost: var(--material-g1-filter-frost);
+  --kui-m-material-glint: var(--material-g1-glint);
+  --kui-m-material-glint-control: var(--material-g1-glint-control);
+  --kui-m-material-region-alpha: var(--material-g1-region-alpha);
+  --kui-m-material-region-filter: var(--material-g1-region-filter);
+  --kui-m-material-region-filter-frost: var(--material-g1-region-filter-frost);
+  --kui-m-material-rim: var(--material-g1-rim);
+  --kui-m-material-rim-control: var(--material-g1-rim-control);
+  --kui-m-material-ring: var(--material-g1-ring);
+  --kui-m-material-ring-control: var(--material-g1-ring-control);
+}
+[data-material="g2"] {
+  --kui-m-kui-control-chrome: var(--kui-control-chrome-g2);
+  --kui-m-kui-control-chrome-active: var(--kui-control-chrome-active-g2);
+  --kui-m-kui-surface-chrome: var(--kui-surface-chrome-g2);
+  --kui-m-material-alpha: var(--material-g2-alpha);
+  --kui-m-material-alpha-active: var(--material-g2-alpha-active);
+  --kui-m-material-alpha-hover: var(--material-g2-alpha-hover);
+  --kui-m-material-control-alpha: var(--material-g2-control-alpha);
+  --kui-m-material-control-filter: var(--material-g2-control-filter);
+  --kui-m-material-control-filter-frost: var(--material-g2-control-filter-frost);
+  --kui-m-material-control-filter-hover: var(--material-g2-control-filter-hover);
+  --kui-m-material-control-filter-loud: var(--material-g2-control-filter-loud);
+  --kui-m-material-fill-floating: var(--material-g2-fill-floating);
+  --kui-m-material-filter: var(--material-g2-filter);
+  --kui-m-material-filter-frost: var(--material-g2-filter-frost);
+  --kui-m-material-glint: var(--material-g2-glint);
+  --kui-m-material-glint-control: var(--material-g2-glint-control);
+  --kui-m-material-region-alpha: var(--material-g2-region-alpha);
+  --kui-m-material-region-filter: var(--material-g2-region-filter);
+  --kui-m-material-region-filter-frost: var(--material-g2-region-filter-frost);
+  --kui-m-material-rim: var(--material-g2-rim);
+  --kui-m-material-rim-control: var(--material-g2-rim-control);
+  --kui-m-material-ring: var(--material-g2-ring);
+  --kui-m-material-ring-control: var(--material-g2-ring-control);
+}
+[data-material="g3"] {
+  --kui-m-kui-control-chrome: var(--kui-control-chrome-g3);
+  --kui-m-kui-control-chrome-active: var(--kui-control-chrome-active-g3);
+  --kui-m-kui-surface-chrome: var(--kui-surface-chrome-g3);
+  --kui-m-material-alpha: var(--material-g3-alpha);
+  --kui-m-material-alpha-active: var(--material-g3-alpha-active);
+  --kui-m-material-alpha-hover: var(--material-g3-alpha-hover);
+  --kui-m-material-control-alpha: var(--material-g3-control-alpha);
+  --kui-m-material-control-filter: var(--material-g3-control-filter);
+  --kui-m-material-control-filter-frost: var(--material-g3-control-filter-frost);
+  --kui-m-material-control-filter-hover: var(--material-g3-control-filter-hover);
+  --kui-m-material-control-filter-loud: var(--material-g3-control-filter-loud);
+  --kui-m-material-fill-floating: var(--material-g3-fill-floating);
+  --kui-m-material-filter: var(--material-g3-filter);
+  --kui-m-material-filter-frost: var(--material-g3-filter-frost);
+  --kui-m-material-glint: var(--material-g3-glint);
+  --kui-m-material-glint-control: var(--material-g3-glint-control);
+  --kui-m-material-region-alpha: var(--material-g3-region-alpha);
+  --kui-m-material-region-filter: var(--material-g3-region-filter);
+  --kui-m-material-region-filter-frost: var(--material-g3-region-filter-frost);
+  --kui-m-material-rim: var(--material-g3-rim);
+  --kui-m-material-rim-control: var(--material-g3-rim-control);
+  --kui-m-material-ring: var(--material-g3-ring);
+  --kui-m-material-ring-control: var(--material-g3-ring-control);
+}
+[data-material="g4"] {
+  --kui-m-kui-control-chrome: var(--kui-control-chrome-g4);
+  --kui-m-kui-control-chrome-active: var(--kui-control-chrome-active-g4);
+  --kui-m-kui-surface-chrome: var(--kui-surface-chrome-g4);
+  --kui-m-material-alpha: var(--material-g4-alpha);
+  --kui-m-material-alpha-active: var(--material-g4-alpha-active);
+  --kui-m-material-alpha-hover: var(--material-g4-alpha-hover);
+  --kui-m-material-control-alpha: var(--material-g4-control-alpha);
+  --kui-m-material-control-filter: var(--material-g4-control-filter);
+  --kui-m-material-control-filter-frost: var(--material-g4-control-filter-frost);
+  --kui-m-material-control-filter-hover: var(--material-g4-control-filter-hover);
+  --kui-m-material-control-filter-loud: var(--material-g4-control-filter-loud);
+  --kui-m-material-fill-floating: var(--material-g4-fill-floating);
+  --kui-m-material-filter: var(--material-g4-filter);
+  --kui-m-material-filter-frost: var(--material-g4-filter-frost);
+  --kui-m-material-glint: var(--material-g4-glint);
+  --kui-m-material-glint-control: var(--material-g4-glint-control);
+  --kui-m-material-region-alpha: var(--material-g4-region-alpha);
+  --kui-m-material-region-filter: var(--material-g4-region-filter);
+  --kui-m-material-region-filter-frost: var(--material-g4-region-filter-frost);
+  --kui-m-material-rim: var(--material-g4-rim);
+  --kui-m-material-rim-control: var(--material-g4-rim-control);
+  --kui-m-material-ring: var(--material-g4-ring);
+  --kui-m-material-ring-control: var(--material-g4-ring-control);
+}
+[data-material="g5"] {
+  --kui-m-kui-control-chrome: var(--kui-control-chrome-g5);
+  --kui-m-kui-control-chrome-active: var(--kui-control-chrome-active-g5);
+  --kui-m-kui-surface-chrome: var(--kui-surface-chrome-g5);
+  --kui-m-material-alpha: var(--material-g5-alpha);
+  --kui-m-material-alpha-active: var(--material-g5-alpha-active);
+  --kui-m-material-alpha-hover: var(--material-g5-alpha-hover);
+  --kui-m-material-control-alpha: var(--material-g5-control-alpha);
+  --kui-m-material-control-filter: var(--material-g5-control-filter);
+  --kui-m-material-control-filter-frost: var(--material-g5-control-filter-frost);
+  --kui-m-material-control-filter-hover: var(--material-g5-control-filter-hover);
+  --kui-m-material-control-filter-loud: var(--material-g5-control-filter-loud);
+  --kui-m-material-fill-floating: var(--material-g5-fill-floating);
+  --kui-m-material-filter: var(--material-g5-filter);
+  --kui-m-material-filter-frost: var(--material-g5-filter-frost);
+  --kui-m-material-glint: var(--material-g5-glint);
+  --kui-m-material-glint-control: var(--material-g5-glint-control);
+  --kui-m-material-region-alpha: var(--material-g5-region-alpha);
+  --kui-m-material-region-filter: var(--material-g5-region-filter);
+  --kui-m-material-region-filter-frost: var(--material-g5-region-filter-frost);
+  --kui-m-material-rim: var(--material-g5-rim);
+  --kui-m-material-rim-control: var(--material-g5-rim-control);
+  --kui-m-material-ring: var(--material-g5-ring);
+  --kui-m-material-ring-control: var(--material-g5-ring-control);
+}
+[data-material="g6"] {
+  --kui-m-kui-control-chrome: var(--kui-control-chrome-g6);
+  --kui-m-kui-control-chrome-active: var(--kui-control-chrome-active-g6);
+  --kui-m-kui-surface-chrome: var(--kui-surface-chrome-g6);
+  --kui-m-material-alpha: var(--material-g6-alpha);
+  --kui-m-material-alpha-active: var(--material-g6-alpha-active);
+  --kui-m-material-alpha-hover: var(--material-g6-alpha-hover);
+  --kui-m-material-control-alpha: var(--material-g6-control-alpha);
+  --kui-m-material-control-filter: var(--material-g6-control-filter);
+  --kui-m-material-control-filter-frost: var(--material-g6-control-filter-frost);
+  --kui-m-material-control-filter-hover: var(--material-g6-control-filter-hover);
+  --kui-m-material-control-filter-loud: var(--material-g6-control-filter-loud);
+  --kui-m-material-fill-floating: var(--material-g6-fill-floating);
+  --kui-m-material-filter: var(--material-g6-filter);
+  --kui-m-material-filter-frost: var(--material-g6-filter-frost);
+  --kui-m-material-glint: var(--material-g6-glint);
+  --kui-m-material-glint-control: var(--material-g6-glint-control);
+  --kui-m-material-region-alpha: var(--material-g6-region-alpha);
+  --kui-m-material-region-filter: var(--material-g6-region-filter);
+  --kui-m-material-region-filter-frost: var(--material-g6-region-filter-frost);
+  --kui-m-material-rim: var(--material-g6-rim);
+  --kui-m-material-rim-control: var(--material-g6-rim-control);
+  --kui-m-material-ring: var(--material-g6-ring);
+  --kui-m-material-ring-control: var(--material-g6-ring-control);
+}
+[data-material="g7"] {
+  --kui-m-kui-control-chrome: var(--kui-control-chrome-g7);
+  --kui-m-kui-control-chrome-active: var(--kui-control-chrome-active-g7);
+  --kui-m-kui-surface-chrome: var(--kui-surface-chrome-g7);
+  --kui-m-material-alpha: var(--material-g7-alpha);
+  --kui-m-material-alpha-active: var(--material-g7-alpha-active);
+  --kui-m-material-alpha-hover: var(--material-g7-alpha-hover);
+  --kui-m-material-control-alpha: var(--material-g7-control-alpha);
+  --kui-m-material-control-filter: var(--material-g7-control-filter);
+  --kui-m-material-control-filter-frost: var(--material-g7-control-filter-frost);
+  --kui-m-material-control-filter-hover: var(--material-g7-control-filter-hover);
+  --kui-m-material-control-filter-loud: var(--material-g7-control-filter-loud);
+  --kui-m-material-fill-floating: var(--material-g7-fill-floating);
+  --kui-m-material-filter: var(--material-g7-filter);
+  --kui-m-material-filter-frost: var(--material-g7-filter-frost);
+  --kui-m-material-glint: var(--material-g7-glint);
+  --kui-m-material-glint-control: var(--material-g7-glint-control);
+  --kui-m-material-region-alpha: var(--material-g7-region-alpha);
+  --kui-m-material-region-filter: var(--material-g7-region-filter);
+  --kui-m-material-region-filter-frost: var(--material-g7-region-filter-frost);
+  --kui-m-material-rim: var(--material-g7-rim);
+  --kui-m-material-rim-control: var(--material-g7-rim-control);
+  --kui-m-material-ring: var(--material-g7-ring);
+  --kui-m-material-ring-control: var(--material-g7-ring-control);
+}
+[data-material="g8"] {
+  --kui-m-kui-control-chrome: var(--kui-control-chrome-g8);
+  --kui-m-kui-control-chrome-active: var(--kui-control-chrome-active-g8);
+  --kui-m-kui-surface-chrome: var(--kui-surface-chrome-g8);
+  --kui-m-material-alpha: var(--material-g8-alpha);
+  --kui-m-material-alpha-active: var(--material-g8-alpha-active);
+  --kui-m-material-alpha-hover: var(--material-g8-alpha-hover);
+  --kui-m-material-control-alpha: var(--material-g8-control-alpha);
+  --kui-m-material-control-filter: var(--material-g8-control-filter);
+  --kui-m-material-control-filter-frost: var(--material-g8-control-filter-frost);
+  --kui-m-material-control-filter-hover: var(--material-g8-control-filter-hover);
+  --kui-m-material-control-filter-loud: var(--material-g8-control-filter-loud);
+  --kui-m-material-fill-floating: var(--material-g8-fill-floating);
+  --kui-m-material-filter: var(--material-g8-filter);
+  --kui-m-material-filter-frost: var(--material-g8-filter-frost);
+  --kui-m-material-glint: var(--material-g8-glint);
+  --kui-m-material-glint-control: var(--material-g8-glint-control);
+  --kui-m-material-region-alpha: var(--material-g8-region-alpha);
+  --kui-m-material-region-filter: var(--material-g8-region-filter);
+  --kui-m-material-region-filter-frost: var(--material-g8-region-filter-frost);
+  --kui-m-material-rim: var(--material-g8-rim);
+  --kui-m-material-rim-control: var(--material-g8-rim-control);
+  --kui-m-material-ring: var(--material-g8-ring);
+  --kui-m-material-ring-control: var(--material-g8-ring-control);
 }

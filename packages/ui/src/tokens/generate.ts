@@ -67,6 +67,8 @@ import {
   floatingDark,
   floatingLight,
   floatingTrim,
+  GLASS_STEPS,
+  type GlassStep,
   shellWidth,
   shellGap,
   floatingChrome,
@@ -425,7 +427,7 @@ export function generateTokens(): string {
       // var(--tone-border) fallback that resolves AT THE ELEMENT, which is what a scope-level
       // override here could never do. srgb pass only: none of this varies by gamut.
       if (gamut === "srgb") {
-        for (const t of ["thin", "regular", "thick"] as const) {
+        for (const t of GLASS_STEPS) {
           decls.push(
             ...materialAlpha(t, material[mode][t].alphaHigh),
             // THE RIM STAYS (2026-08-20, Kushagra: high contrast made glass look "cheap and
@@ -463,7 +465,7 @@ export function generateTokens(): string {
             // (glyphStroke's rule), so re-judging either designed row moves this with it.
             decl(
               `material-${t}-control-alpha`,
-              `${material[mode][t].alphaHigh[0] + (material[mode][t].control.alpha - material[mode][t].alpha[0])}%`,
+              `${Math.min(98, material[mode][t].alphaHigh[0] + (material[mode][t].control.alpha - material[mode][t].alpha[0]))}%`,
             ),
             // And the REGION cell, by the same derivation, capped where the offset would
             // carry it past opaque (2026-09-18).
@@ -498,7 +500,7 @@ export function generateTokens(): string {
         // the ring itself carries the pigment arcs that make it a boundary.
         // Floating panes take the same defence as in-flow glass under HC, in BOTH modes (see
         // the --material-*-alpha-floating emission).
-        for (const t of ["thin", "regular", "thick"] as const) {
+        for (const t of GLASS_STEPS) {
           decls.push(decl(`material-${t}-alpha-floating`, `${material[mode][t].alphaHigh[0]}%`));
         }
         // The scrim leans the way the glass does (§24): more pigment, and the defocus goes.
@@ -1100,7 +1102,7 @@ const glintControlBg = (mode: "light" | "dark"): string =>
 
 function surfaceWorld(mode: "light" | "dark"): string[] {
   const m = material[mode];
-  const glass = (name: "thin" | "regular" | "thick") => {
+  const glass = (name: GlassStep) => {
     return [
       ...materialAlpha(name, m[name].alpha),
       decl(`material-${name}-filter`, m[name].filter),
@@ -1217,9 +1219,7 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     `     and loudness ride into the veil for free. hover/active are §8's steps on glass's`,
     `     one ramp — read by controls and interactive surfaces; a static surface reads the`,
     `     rest alpha alone. */`,
-    ...glass("thin"),
-    ...glass("regular"),
-    ...glass("thick"),
+    ...GLASS_STEPS.flatMap((t) => glass(t)),
     decl("material-opaque-alpha", `${material.fallbackAlpha}%`),
     // The POOL (§10, ported 2026-08-17): the shade settling at a pane's bottom INSIDE it —
     // matter, not elevation, so it joins the cast in both depth worlds. Solid's is its seat
@@ -1365,18 +1365,18 @@ function surfaceWorld(mode: "light" | "dark"): string[] {
     `     through glass: the surface row faded per thickness, DERIVED from the palette so`,
     `     there is exactly one source of shadow truth. Consumed only where the elevated`,
     `     scope hands it to a material surface; flat declares none. */`,
-    ...(["thin", "regular", "thick"] as const).map((t) =>
+    ...GLASS_STEPS.map((t) =>
       decl(`surface-chrome-${t}`, fadeShadow(shadow[mode][surfaceRow()]!, material.transmission[t])),
     ),
     `  /* and the CONTROL row transmitted, for glass controls — a glass field or button casts`,
     `     fainter for the same reason a pane does (§10, 2026-08-07). */`,
-    ...(["thin", "regular", "thick"] as const).map((t) =>
+    ...GLASS_STEPS.map((t) =>
       decl(`control-chrome-${t}`, fadeShadow(shadow[mode][controlRow()]!, material.transmission[t])),
     ),
     `  /* and the PRESS tighten transmitted (2026-08-19): a pressed loud glass control was the`,
     `     one caster whose blast never moved — the glass chain resolved before the active`,
     `     variant could be consulted (audit 2026-08-18). Faded like everything glass casts. */`,
-    ...(["thin", "regular", "thick"] as const).map((t) =>
+    ...GLASS_STEPS.map((t) =>
       decl(`control-chrome-active-${t}`, fadeShadow(controlChromeActive[mode], material.transmission[t])),
     ),
     `  /* the FLOATING chrome (§22) — what a popup casts. Both variants emitted per appearance`,

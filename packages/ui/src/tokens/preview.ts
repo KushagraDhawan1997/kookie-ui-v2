@@ -364,7 +364,7 @@ function fieldSection(mode: Mode): string {
           "Material — the same seal, made glass, with no CSS of its own <code>\u00a710</code>",
           `<div style="background: url('backdrop.jpg') center / cover no-repeat, linear-gradient(115deg, #841e57, #144e68 55%, #1db954); border-radius: var(--radius-surface-3);">${kuiBox(
             { display: "flex", gap: "5", wrap: "wrap", p: "7" },
-            ["thin", "regular", "thick"]
+            ["g2", "g3", "g5"]
               .map((m) => field({ material: m, leading: GLYPH, placeholder: cap(m) }))
               .join(""),
           )}</div>`,
@@ -432,7 +432,7 @@ function textAreaSection(mode: Mode): string {
           "Material — the seal made glass, no CSS of its own <code>§10</code>",
           `<div style="background: url('backdrop.jpg') center / cover no-repeat, linear-gradient(115deg, #841e57, #144e68 55%, #1db954); border-radius: var(--radius-surface-3);">${kuiBox(
             { display: "flex", gap: "5", wrap: "wrap", p: "7" },
-            ["thin", "regular", "thick"].map((m) => textarea({ material: m, rows: 3, placeholder: cap(m) })).join(""),
+            ["g2", "g3", "g5"].map((m) => textarea({ material: m, rows: 3, placeholder: cap(m) })).join(""),
           )}</div>`,
         ),
     )}
@@ -724,7 +724,7 @@ function surfaceSection(mode: Mode): string {
   const sizes = ["1", "2", "3", "4"]
     .map((n) => card(`Size ${n}`, "flex: 1", undefined, n))
     .join("");
-  const materials = ["solid", "thin", "regular", "thick"]
+  const materials = ["solid", "g2", "g3", "g5"]
     .map((m) =>
       card(
         cardBody(
@@ -809,17 +809,17 @@ function surfaceSection(mode: Mode): string {
             { display: "flex", direction: "column", gap: "4", align: "flex-start", p: "7" },
             kuiBox(
               { display: "flex", gap: "3", wrap: "wrap" },
-              ["solid", "thin", "regular", "thick"]
+              ["solid", "g2", "g3", "g5"]
                 .map((m) => button(m === "solid" ? {} : { material: m }, cap(m)))
                 .join(""),
             ) +
               kuiBox(
                 { display: "flex", gap: "3", wrap: "wrap" },
-                button({ material: "regular", tone: "accent", emphasis: "loud" }, "Loud accent") +
-                  button({ material: "regular", tone: "destructive", emphasis: "loud" }, "Loud destructive") +
-                  button({ material: "regular", tone: "accent" }, "Medium accent") +
-                  button({ material: "regular", emphasis: "quiet" }, "Quiet — bare blur") +
-                  button({ material: "regular", bordered: true }, "Bordered"),
+                button({ material: "3", tone: "accent", emphasis: "loud" }, "Loud accent") +
+                  button({ material: "3", tone: "destructive", emphasis: "loud" }, "Loud destructive") +
+                  button({ material: "3", tone: "accent" }, "Medium accent") +
+                  button({ material: "3", emphasis: "quiet" }, "Quiet — bare blur") +
+                  button({ material: "3", bordered: true }, "Bordered"),
               ),
           )}</div>`,
         ),

@@ -770,7 +770,7 @@ describe("a popover is made of what the app is made of (§10, §31)", () => {
     // `useMaterial({ backdrop: true })` says — so the absence of the prop here is the law.
     let panel: HTMLElement | null = null;
     const host = render(
-      <Theme material="regular">
+      <Theme material="3">
         <Card id="plain-card" />
         <Popover defaultOpen>
           <PopoverTrigger render={<Button>Open</Button>} />
@@ -782,7 +782,7 @@ describe("a popover is made of what the app is made of (§10, §31)", () => {
     );
     if (!panel) throw new Error("the panel never mounted — the law would assert nothing");
     const p = panel as HTMLElement;
-    expect(p.dataset["material"], "the panel did not take the theme's material").toBe("regular");
+    expect(p.dataset["material"], "the panel did not take the theme's material").toBe("g3");
     expect(computed(p, "backdrop-filter"), "the panel declares glass and paints none").not.toBe(
       "none",
     );
@@ -801,7 +801,7 @@ describe("a popover is made of what the app is made of (§10, §31)", () => {
     // is the negative control: without it, an app switched wholly to solid would satisfy this.
     let panel: HTMLElement | null = null;
     const host = render(
-      <Theme material="regular">
+      <Theme material="3">
         <Card id="glass-host" backdrop>
           <Popover defaultOpen>
             <PopoverTrigger render={<Button>Open</Button>} />
@@ -812,9 +812,9 @@ describe("a popover is made of what the app is made of (§10, §31)", () => {
         </Card>
       </Theme>,
     );
-    expect(host.querySelector<HTMLElement>("#glass-host")!.dataset["material"]).toBe("regular");
+    expect(host.querySelector<HTMLElement>("#glass-host")!.dataset["material"]).toBe("g3");
     if (!panel) throw new Error("the panel never mounted");
-    expect((panel as HTMLElement).dataset["material"]).toBe("regular");
+    expect((panel as HTMLElement).dataset["material"]).toBe("g3");
   });
 
   it("but a card composed INSIDE it is solid — one glass per stack, structurally", () => {
@@ -823,7 +823,7 @@ describe("a popover is made of what the app is made of (§10, §31)", () => {
     // site — which is what makes "never glass on glass" a guarantee instead of a guideline.
     let panel: HTMLElement | null = null;
     const host = render(
-      <Theme material="regular">
+      <Theme material="3">
         <Popover defaultOpen>
           <PopoverTrigger render={<Button>Open</Button>} />
           <PopoverContent ref={(n: HTMLDivElement | null) => void (panel = n)}>
@@ -835,7 +835,7 @@ describe("a popover is made of what the app is made of (§10, §31)", () => {
     );
     if (!panel) throw new Error("the panel never mounted");
     // The pane itself IS glass — without this the law passes on an app that lost glass entirely.
-    expect((panel as HTMLElement).dataset["material"]).toBe("regular");
+    expect((panel as HTMLElement).dataset["material"]).toBe("g3");
     const inner = host.ownerDocument.querySelector<HTMLElement>("#inner")!;
     expect(inner, "the inner card never rendered").toBeTruthy();
     // `on-glass`, not `solid` (2026-08-19): a glass pane scopes its subtree ON-GLASS, so the

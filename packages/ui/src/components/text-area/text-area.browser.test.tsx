@@ -412,8 +412,8 @@ describe("the app's identities reach it without it knowing (§5, §10)", () => {
     //
     // Agreement with a glass Button's own ring, not a token name: the resolved conic a
     // Button's ::after paints must be the conic this element's ::after paints.
-    const glass = mounted(<TextArea backdrop aria-label="glass" />, { theme: { material: "thin" } });
-    const glassBtn = mounted(<Button backdrop>b</Button>, { theme: { material: "thin" } });
+    const glass = mounted(<TextArea backdrop aria-label="glass" />, { theme: { material: "2" } });
+    const glassBtn = mounted(<Button backdrop>b</Button>, { theme: { material: "2" } });
     const ring = getComputedStyle(glassBtn, "::after").backgroundImage;
     expect(ring).toContain("gradient(");
     expect(getComputedStyle(glass, "::after").content, "the wrapper grew no annulus").not.toBe("none");
@@ -433,13 +433,13 @@ describe("the app's identities reach it without it knowing (§5, §10)", () => {
   });
 
   it("material re-derives the seal as glass, with no CSS of its own (§10)", () => {
-    const glass = mounted(<TextArea backdrop />, { theme: { material: "regular" } });
+    const glass = mounted(<TextArea backdrop />, { theme: { material: "3" } });
     // Derived, not restated: the radius is config's to move (2026-08-16).
     // The CONTROL cell's row under the lens (control-scale material, lab port 2026-08-17).
     // It named the row's `blur()` until 2026-09-21; the blur is inside the lens now, so the
     // chain is read whole against the token, lens stripped.
     expect(computed(glass, "backdrop-filter").replace(/url\("[^"]*"\)\s*/, "")).toBe(
-      probeIn(glass, (el) => (el.style.backdropFilter = "var(--material-regular-control-filter)"), (s) => s.backdropFilter),
+      probeIn(glass, (el) => (el.style.backdropFilter = "var(--material-g3-control-filter)"), (s) => s.backdropFilter),
     );
     expect(computed(glass, "background-color")).toBe(
       bgOn(
@@ -447,7 +447,7 @@ describe("the app's identities reach it without it knowing (§5, §10)", () => {
         // The OPAQUE twin, not the alpha dress (2026-08-19): the veil multiplies an alpha
         // source, so the glass scopes re-point the sources to the same rung said opaquely —
         // a glass field's designed veil measured 4.1% before (audit 2026-08-18).
-        "color-mix(in srgb, var(--dress-field-fill-solid) var(--material-regular-control-alpha), transparent)",
+        "color-mix(in srgb, var(--dress-field-fill-solid) var(--material-g3-control-alpha), transparent)",
       ),
     );
     // And on glass the veil's ALPHA holds while the SOURCE under it steps (2026-08-17):
