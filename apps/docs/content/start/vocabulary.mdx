@@ -1,103 +1,35 @@
-Kookie sorts its components into a few categories: grounds, cards, controls, rows, type and
-layout. A component's category determines which props it accepts, so when a prop you expect is
-missing, the category usually explains why.
+Kookie groups its components by the job a person is doing. Start with the job, and you have a
+short list of components to choose from.
 
-For example, a `Card` accepts `backdrop`, because a card is a panel that can be made of glass.
-A `Checkbox` does not, because a checkbox is too small to show what passes behind it. A `Button`
-accepts `emphasis`, because actions on a screen rank against each other, whereas a `MenuItem`
-does not, because the items in a menu carry equal weight. Each component page also lists the
-props that the component does not accept, with the reason and an alternative.
+## The jobs
 
-## The page, grounds and cards
+- **Act:** Make something happen. `Button`, `Menu`, `Toolbar`, `Command`.
+- **Choose:** Pick from options. `Checkbox`, `Switch`, `RadioGroup`, `SegmentedControl`,
+  `Select`, `Combobox`, `Slider`.
+- **Enter:** Type a value. `TextField`, `TextArea`, `NumberField`, `Field`.
+- **Go:** Move to another place. `Shell`, `Page`, `Tabs`, `NavTree`, `Breadcrumb`, `Link`.
+- **Browse:** Find one item in a collection. `Table`, `Tree`, `Row`, `Carousel`.
+- **Read:** Take in content. `Text`, `Heading`, `Card`, `CodeBlock`, `Accordion`.
+- **Know:** Learn the state of something. `Notice`, `Badge`, `Chip`, `Progress`, `Tooltip`.
+- **Focus:** Deal with one thing first. `Popover`, `Dialog`, `Sheet`, `AlertDialog`.
+- **Converse:** Talk back and forth. `Composer`, `MessageScroller`.
+- **Arrange:** Place things on the page. `Box`, `Flex`, `Stack`, `Grid`, `Surface`.
 
-A screen has three levels, from the bottom up.
+Arrange is your job as the builder, not the person's. The [components](/components) index
+lists every component under its job.
 
-- **The page:** The background of your app. Kookie never paints it, so your app sets its
-  colour. The [Colour](/foundations/color) chapter lists the values to use.
-- **A ground:** A region that holds other elements, such as a `Surface`. Its colour is close to
-  the page colour, and it casts no shadow, because it lies on the page rather than above it.
-- **A card:** An object that sits on the page or on a ground. A `Card` is opaque, so it hides
-  what is behind it. When the theme's `depth` is `elevated`, which is the default, a card casts a
-  shadow.
+## Components and patterns
 
-## Controls
+A component does one thing. A pattern coordinates several parts and makes the decisions its job
+always needs. `Shell`, `Composer` and `Field` are patterns, and the index marks each one.
 
-A control is an element that you interact with. All controls share the same states, the same
-size steps and the same way of setting loudness. There are four kinds.
+## Components that look alike
 
-- **Buttons:** A button performs an action. `emphasis` sets how loud the button is compared with
-  the actions near it, and `tone` sets what the action means, such as `destructive`.
-- **Fields:** A field holds what a person types or picks, such as a `TextField` or a `TextArea`.
-  Fields do not rank against each other, so they accept no `emphasis` or `tone`. A field is
-  set into its surface rather than raised above it, so it never casts a shadow.
-- **Marks:** A mark is a small control with no text inside it, such as a `Checkbox`, a `Radio`
-  or a `Switch`. A mark is exactly as tall as one line of the text beside it. It has no `label`
-  prop, so put the label next to it in a `Text`, or use a `Field`.
-- **Instruments:** An instrument shows a value on a track, such as a `Slider` or a `Progress`
-  bar. An instrument has no panel of its own, so it accepts no `backdrop`.
+Two components can look the same and do different jobs. Every component page has a "Use
+instead" section that names its look-alike and says when to use each.
 
-## Rows
-
-A row is one interactive line in a list, such as a `Row`, a `MenuItem` or an item in a
-`NavTree`.
-
-A row looks like a small button, but the options in a list do not outrank one another, so a row
-accepts no `emphasis`. A selected row gets a filled background instead.
-
-The height of a row depends on where it is. In a permanent column, such as a sidebar, a row is
-as tall as a `Button` at the same size. In a menu or a select, a row is shorter, because a list
-that opens for a moment needs less room around each line.
-
-## Type, layout and the frame
-
-Type components take their colour from the surface under them. On `Text`, `Heading` and
-`Blockquote`, `emphasis` changes the colour of the text. `Code` and `Kbd` add a subtle
-background of their own, and a `tone` changes both the text and that background.
-
-`Link` is interactive, but it belongs with type rather than with controls. A control is a box
-with padding and a tap target of its own, whereas a link is a group of words inside a sentence.
-It must wrap across lines and sit inline with the text around it, so it shows hover and focus
-without a box.
-
-Layout components render nothing that you can see. `Box` provides spacing, sizing and position.
-`Flex`, `Stack` and `Grid` are a `Box` with a fixed display and fewer props.
-
-`Shell` is the frame of an app. It arranges the header, the sidebars and the content, and you
-decide what goes in each one. The [Principles](/start/principles) chapter explains why the
-frame is a pattern that you assemble.
-
-```tsx
-<Stack gap="5">
-  <Card>
-    <Stack gap="3">
-      <Heading size="6">Notifications</Heading>
-      <Flex gap="3" align="center">
-        <Checkbox id="digest" defaultChecked />
-        <Text render={<label htmlFor="digest" />}>Send me a weekly digest</Text>
-      </Flex>
-      <Flex gap="3" justify="end">
-        <Button emphasis="quiet">Cancel</Button>
-        <Button emphasis="loud">Save</Button>
-      </Flex>
-    </Stack>
-  </Card>
-</Stack>
-```
-
-## Choose between components that look alike
-
-These pairs look similar but belong to different categories and do different jobs.
-
-- **Tabs or SegmentedControl:** A tab bar changes the content below it. A segmented control sets
-  a value in place.
-- **Dialog or AlertDialog:** A dialog holds a task that a person asked for. An alert interrupts
-  with a single question, and Kookie lays out its title, description and two buttons for you.
-- **Menu or Select:** A menu triggers an action. A select chooses a value to submit with a form.
-- **Link or Button:** A link goes to a new address. A button runs an action. If an action must
-  look like plain text, use a quiet `Button`.
-- **Card or Surface:** A card is an object. A surface is the ground that objects sit on.
-- **Popover or Dialog:** A popover leaves the rest of the page usable. A dialog dims the app and
-  keeps focus inside itself. Choose by whether people must still use the page behind it.
-- **Popover or Tooltip:** A popover opens on a press and can hold any content. A tooltip appears
-  on hover or focus and holds one short sentence. Touch users may never see a tooltip, so it
-  must only repeat what the control already says.
+- **Switch or Checkbox:** A switch takes effect at once. A checkbox waits for a submit.
+- **Tabs or SegmentedControl:** Tabs change the view. A segmented control sets a value.
+- **Menu or Select:** A menu runs an action. A select keeps the value you picked.
+- **Popover or Dialog:** A popover leaves the page usable. A dialog needs full attention.
+- **Link or Button:** A link goes somewhere. A button does something here.
