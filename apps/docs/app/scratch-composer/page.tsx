@@ -223,7 +223,7 @@ function SolidScenes() {
 function GlassScenes() {
   const many = useItems(["queued", "limit", "approval"]);
   return (
-    <Theme material="regular">
+    <Theme material="3">
       <BedSurface bed={PHOTO_BED} backdrop>
         <Stack gap="3" p="6">
           <Label n="5" title="Over a photo, everything glass">

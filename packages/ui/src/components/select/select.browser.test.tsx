@@ -398,7 +398,7 @@ describe("the trigger wears the field identity — a Select beside a TextField r
     // or this law compares two opaque boxes and finds them, correctly, identical.
     let field: HTMLElement | null = null;
     const host = render(
-      <Theme material="regular">
+      <Theme material="3">
         <Select>
           <SelectTrigger backdrop placeholder="Pick one" />
         </Select>
@@ -408,7 +408,7 @@ describe("the trigger wears the field identity — a Select beside a TextField r
     const trigger = host.querySelector<HTMLElement>(".kui-select-trigger")!;
     field = host.querySelector<HTMLElement>(".kui-field:not(.kui-select-trigger)");
     if (!field) throw new Error("field missing");
-    expect(trigger.getAttribute("data-material")).toBe("regular");
+    expect(trigger.getAttribute("data-material")).toBe("g3");
     // The chain must agree, but NOT its lens id: a displacement map is built for one box, so
     // two differently-sized panes reference different filters by construction (§10,
     // 2026-08-16). Compare what the stylesheet declares, and assert the lens separately —
@@ -570,7 +570,7 @@ describe("the panel is the floating family's — corner, cast, padding, floor", 
         .join(", ");
     const solid = castOf(computed(popup, "box-shadow"));
     const glass = render(
-      <Theme depth="flat" material="regular">
+      <Theme depth="flat" material="3">
         <Select defaultOpen>
           <SelectTrigger placeholder="p" />
           <SelectContent>
@@ -582,7 +582,7 @@ describe("the panel is the floating family's — corner, cast, padding, floor", 
     await settled();
     const popups = document.querySelectorAll<HTMLElement>(".kui-select-popup");
     const glassPopup = popups[popups.length - 1]!;
-    expect(glassPopup.getAttribute("data-material")).toBe("regular");
+    expect(glassPopup.getAttribute("data-material")).toBe("g3");
     expect(castOf(computed(glassPopup, "box-shadow"))).toBe(solid);
     expect(glass).toBeDefined();
   });

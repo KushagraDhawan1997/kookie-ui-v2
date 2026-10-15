@@ -56,7 +56,7 @@ import type { ComponentPreview } from "./types";
 
 /** A function, not a module const: the standalone route imports this module on the server for
     its slug (card.tsx's own note). */
-const glassMaterials = () => themeAxes.material.filter((m) => m !== "solid");
+const glassMaterials = () => themeAxes.material.filter((m) => m !== "9");
 
 type Size = "1" | "2" | "3" | "4";
 
@@ -496,7 +496,7 @@ function Nesting() {
       {/* Hosted in a glass card: the card spends the backdrop, so the field resolves solid, while
           the panel portals out over the page and is glass again. */}
       <Demo label="In a glass card — the field goes solid, and its panel is glass again">
-        <Theme material="regular">
+        <Theme material="3">
           <BedSurface bed={bed("country")} minHeight="240px">
             <Card size="3" backdrop style={{ maxWidth: 360 }}>
               <Stack gap="5">

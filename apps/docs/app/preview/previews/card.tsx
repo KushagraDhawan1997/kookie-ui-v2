@@ -24,7 +24,7 @@ import type { ComponentPreview } from "./types";
     evaluation (the build fails on it). Deferred into render, it only ever runs on the
     client. Same reason every section below is a component, not a module-scope element
     tree that maps over package data. */
-const glassMaterials = () => themeAxes.material.filter((m) => m !== "solid");
+const glassMaterials = () => themeAxes.material.filter((m) => m !== "9");
 
 /**
  * Per-size type steps for composed card content — AlertDialog's own mapping (title 4/5/6/7,
@@ -231,7 +231,7 @@ function Materials() {
     {BEDS.map((bed) => (
       <Demo key={bed.id} label={bed.name}>
         <BedSurface bed={bed}>
-          <Theme material="solid">
+          <Theme material="9">
             <Card size="2" style={{ width: "170px" }}>
               <Blurb title="Solid" body="Where light stops." />
             </Card>
@@ -260,7 +260,7 @@ function Permutations() {
     <Demo label="Size × material — over the pattern">
       <BedSurface bed={bed("pattern")} minHeight="520px">
         <Grid columns="repeat(4, minmax(0, max-content))" gapX="5" gapY="5">
-          {(["solid", ...GLASS] as const).map((m) =>
+          {(["9", ...GLASS] as const).map((m) =>
             SIZES.map((size) => (
               <Theme key={`${m}-${size}`} material={m}>
                 <Card size={size} style={{ width: "150px" }}>
@@ -276,7 +276,7 @@ function Permutations() {
         ground as over the pattern. Press these. */}
     <Demo label="Pressable × material — calm ground; press them">
       <BedSurface bed={BEDS[0]!}>
-        {(["solid", ...GLASS] as const).map((m) => (
+        {(["9", ...GLASS] as const).map((m) => (
           <Theme key={m} material={m}>
             <Card size="2" render={<button type="button" />} style={{ width: "170px", textAlign: "left" }}>
               <Blurb title={cap(m)} body="Pressable." bodySize="1" />
@@ -287,7 +287,7 @@ function Permutations() {
     </Demo>
     <Demo label="Pressable × material — over the pattern; press them">
       <BedSurface bed={bed("pattern")}>
-        {(["solid", ...GLASS] as const).map((m) => (
+        {(["9", ...GLASS] as const).map((m) => (
           <Theme key={m} material={m}>
             <Card size="2" render={<button type="button" />} style={{ width: "170px", textAlign: "left" }}>
               <Blurb title={cap(m)} body="Pressable." bodySize="1" />
@@ -377,7 +377,7 @@ function Nesting() {
         the demo above refuses. */}
     <Demo label="Content inside a glass card — one glass per stack, nothing pays twice">
       <BedSurface bed={bed("photo")}>
-        <Theme material="regular">
+        <Theme material="3">
           <Card size="3" style={{ width: "320px" }}>
             <Stack gap="4">
               <Stack gap="2">

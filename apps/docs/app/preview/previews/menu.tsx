@@ -52,7 +52,7 @@ import type { ComponentPreview } from "./types";
 
 /** A function, not a module const: the standalone route imports this module on the SERVER for
     its slug, and a module-scope read of client data fails the build (card.tsx's own note). */
-const glassMaterials = () => themeAxes.material.filter((m) => m !== "solid");
+const glassMaterials = () => themeAxes.material.filter((m) => m !== "9");
 
 type Size = "1" | "2" | "3" | "4";
 
@@ -570,7 +570,7 @@ function Nesting() {
           out of that scope and is glass again, because it floats over the page rather than
           over the card. That reversal is the mechanism working, not a leak. */}
       <Demo label="A glass card's menu — the panel leaves the card's scope and is glass again">
-        <Theme material="regular">
+        <Theme material="3">
           <BedSurface bed={bed("country")} minHeight="220px">
             <Card size="3" backdrop style={{ maxWidth: 380 }}>
               <Flex justify="space-between" align="center" gap="4">

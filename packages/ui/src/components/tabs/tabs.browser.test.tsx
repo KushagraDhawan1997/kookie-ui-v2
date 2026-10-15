@@ -525,7 +525,7 @@ describe("what Tabs deliberately is not (§10, §26)", () => {
   it("paints no pane — nothing here expresses the theme's material", () => {
     // A tab bar has no fill and no box: there is nothing to defocus, so glass has nothing to
     // do. Asserted under a glass theme, which is the only state where a mistake shows.
-    const root = bar("2", { material: "thin" });
+    const root = bar("2", { material: "2" });
     for (const el of [listOf(root), ...tabsOf(root), ruleOf(root)]) {
       expect(computed(el, "backdrop-filter")).toBe("none");
       expect(el.getAttribute("data-material")).toBeNull();

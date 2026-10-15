@@ -6,7 +6,8 @@ import * as React from "react";
 import { composeRender, type RenderElement } from "../system/render.ts";
 import { CardScopeReset } from "../system/nesting.tsx";
 import { ToneScopeContext } from "../system/tone-scope.ts";
-import { MATERIALS, SIZES, type Material, type Size } from "../system/axes.ts";
+import { MATERIALS, SIZES, glassStep, type Material, type Size } from "../system/axes.ts";
+import type { GlassStep } from "../tokens/config.ts";
 import { DEV } from "../system/dev.ts";
 
 /**
@@ -61,16 +62,16 @@ export const themeAxes = {
      seal with `--surface-edge` stood down, and conformance/flat re-declare that role. */
   /**
    * What the app is made of. One value covers the whole scope, so a dialog and a menu under one
-   * theme are the same glass. There is no per-component thickness and no ceiling to hit at
-   * `thick`.
+   * theme are the same glass. There is no per-component thickness and no ceiling to hit at the
+   * top of the scale.
    *
    * What makes a dialog read heavier than a menu is not its material. It is coverage and the
    * scrim. The same glass over 900 pixels of application hides far more than the same glass over
    * a 170-pixel menu, and a dialog also pushes the page back behind a scrim it already owns.
    *
-   * `solid` is the default, and it is a material rather than the absence of one: it is the level
-   * where light stops passing through. That is also why this is not a boolean. A `glass` flag
-   * would still need a thickness beside it, which is two props for one fact.
+   * `"9"`, solid, is the default, and it is a material rather than the absence of one: it is the
+   * top of the scale, where light stops passing through. That is also why this is not a boolean.
+   * A `glass` flag would still need a step beside it, which is two props for one fact.
    *
    * Where the glass shows is decided by placement. Mark a region with `<Box backdrop>`, or pass
    * `backdrop` on a single component. An unmarked control in ordinary flow renders solid and
@@ -94,9 +95,10 @@ export type ThemeProps = ThemeRefusals & RadixReflexRefusals & {
   /**
    * Sets the material for every component in this scope.
    *
-   * The values are `solid`, `thin`, `regular` and `thick`. The default is `solid`, which lets no
-   * light through. The other three are glass, from the clearest to the most frosted. One value
-   * applies to the whole scope, so a menu and a dialog in the same theme use the same glass.
+   * The values are `"1"` to `"9"`. `"1"` is clear glass, and each step adds one more layer of the
+   * same glass, so less of the content behind it shows through. `"9"` is solid and lets no light
+   * through, and it is the default. One value applies to the whole scope, so a menu and a dialog
+   * in the same theme use the same glass.
    *
    * Glass shows only where something sits over other content. Mark a region with
    * `<Box backdrop>`, or set `backdrop` on one component. Other controls stay solid.
@@ -346,7 +348,7 @@ export const themeDefaults: Resolved = {
      contact, drop, blast and the pool are what its material IS, so the resting default
      casts. `depth="flat"` survives as the opt-out. */
   depth: "elevated",
-  material: "solid",
+  material: "9",
 };
 
 /**
@@ -419,7 +421,7 @@ const PaneContext = React.createContext<"glass" | "solid" | null>(null);
  * it and a Theme that could set it would be re-introducing glass-on-glass by the back door.
  */
 export const ON_GLASS = "on-glass";
-export type SurfaceMaterial = Material | typeof ON_GLASS;
+export type SurfaceMaterial = GlassStep | "solid" | typeof ON_GLASS;
 
 /**
  * Marks a REGION where content passes behind the components in it (2026-08-17, Kushagra:
@@ -459,7 +461,8 @@ export function useMaterial(opts?: { backdrop?: boolean }): SurfaceMaterial {
   const { material } = React.use(ThemeContext);
   const pane = React.use(PaneContext);
   const region = React.use(BackdropContext);
-  if (pane === "glass") return material === "solid" ? "solid" : ON_GLASS;
+  const step = glassStep(material);
+  if (pane === "glass") return step === "solid" ? "solid" : ON_GLASS;
   // A SOLID pane is not an arm of its own (2026-08-19, Kushagra: "the whole point of a solid
   // surface is to be able to host glass"). Glass-on-glass is physics — the backdrop is spent,
   // so the glass arm above overrides the author. Solid-hosts-nothing was only ever an
@@ -469,7 +472,7 @@ export function useMaterial(opts?: { backdrop?: boolean }): SurfaceMaterial {
   // a card is exactly §10's case list. The inference survives as the DEFAULT because
   // GlassScope resets BackdropContext below: a region marked OUTSIDE the pane never leaks
   // through it, so an unmarked control on a solid card still resolves solid and pays nothing.
-  return (opts?.backdrop ?? region) ? material : "solid";
+  return (opts?.backdrop ?? region) ? step : "solid";
 }
 
 /** Marks a subtree as sitting on a pane. Every member that paints marks — a glass pane so its

@@ -48,6 +48,7 @@ import {
   until,
 } from "../../test/browser.tsx";
 import type { Size } from "../../system/axes.ts";
+import type { Material } from "../../system/axes.ts";
 
 /** Every axis off its default — a dropped attribute is visible (the §20 constant, Dialog's set
     verbatim: seven axes, contrast included, because that is what ENGINEERING §2.1 names). */
@@ -73,7 +74,7 @@ function openSheet(
   opts: {
     size?: Size;
     side?: SheetSide;
-    material?: "thin" | "regular" | "thick";
+    material?: Material;
     body?: React.ReactNode;
   } = {},
 ): Opened {
@@ -105,7 +106,7 @@ function openSheet(
 
 /** Mount an OPEN dialog and hand back its panel and scrim — the twin every family law compares
     against, so a family fact is an equality rather than a restated literal. */
-function openDialog(theme: ThemeProps, opts: { material?: "thin" | "regular" | "thick" } = {}) {
+function openDialog(theme: ThemeProps, opts: { material?: Material } = {}) {
   render(
     <Theme {...theme} {...(opts.material ? { material: opts.material } : {})}>
       <Dialog defaultOpen>
@@ -532,11 +533,11 @@ describe("it is an overlay, exactly as a dialog is", () => {
     // It matched a dialog's chain until 2026-09-18, when a Sheet joined the region scale (a pane
     // that holds paragraphs is a thicker slab of the same glass). The dialog stays as the
     // negative control: a sheet that fell back to the pane cell would agree with it again.
-    const sheet = openSheet({ appearance: "light" }, { material: "regular" });
-    const dialog = openDialog({ appearance: "light" }, { material: "regular" });
+    const sheet = openSheet({ appearance: "light" }, { material: "3" });
+    const dialog = openDialog({ appearance: "light" }, { material: "3" });
     const stripLens = (v: string) => v.replace(/url\("[^"]*"\)\s*/, "");
     expect(stripLens(computed(sheet.popup, "backdrop-filter")), "the region's filter chain").toBe(
-      filterOn(sheet.popup, "--material-regular-region-filter"),
+      filterOn(sheet.popup, "--material-g3-region-filter"),
     );
     // The two CHAINS agree since 2026-09-21 — saturation and brightness are one material's. So
     // "a region is not the pane cell" is read where the difference lives: its LENS reaches further
@@ -554,11 +555,11 @@ describe("it is an overlay, exactly as a dialog is", () => {
     // A SIDE sheet, opened for this comparison alone: the fixture's default is a bottom sheet
     // 112px tall, where BOTH families' lips cap at floor(112 × 0.28) = 31px, so the two lenses are
     // one lens there. A side sheet is tall and wide enough that neither lip is capped.
-    const side = openSheet({ appearance: "light" }, { material: "regular", side: "inline-end" });
+    const side = openSheet({ appearance: "light" }, { material: "3", side: "inline-end" });
     const rect = side.popup.getBoundingClientRect();
     expect(Math.min(rect.width, rect.height) * 0.28, "the side sheet still caps a region's lip").toBeGreaterThan(72);
     render(
-      <Theme appearance="light" material="regular">
+      <Theme appearance="light" material="3">
         <Card backdrop data-t="twin" style={{ inlineSize: `${rect.width}px`, blockSize: `${rect.height}px` }}>
           pane
         </Card>

@@ -5,15 +5,18 @@ component, such as a toolbar over a canvas or a menu over the page.
 ## Set one material for the whole app
 
 ```tsx
-<Theme material="regular">
+<Theme material="3">
   <App />
 </Theme>
 ```
 
-`material` accepts four values: `solid`, `thin`, `regular` and `thick`. The default is `solid`,
-which lets no light through. The other three are glass. Each step lets less of the content
-behind the glass through, so a thicker glass is more opaque. A menu or a popover also blurs the
-content behind it a little more at each step.
+`material` is a scale from `"1"` to `"9"`. The default is `"9"`, which is solid and lets no
+light through. Steps `"1"` to `"8"` are glass. `"1"` is clear, and each step adds one more
+layer of the same glass, so less of the content behind it shows through. A menu or a popover
+also blurs the content behind it a little more at each step.
+
+A menu, a select and a popover hold rows of text over the page, so their glass never becomes
+fully clear. At the lowest steps they keep enough tint for their text to stay readable.
 
 The value does not change how the glass bends the content at its edge. The bend comes from the
 shape of the component: a button is a small dome, a menu has a wider edge, and a card has a
@@ -36,7 +39,7 @@ Mark the region rather than each control. A `Box` with `backdrop` turns every co
 to glass:
 
 ```tsx
-<Theme material="regular">
+<Theme material="3">
   <Box className="editor-canvas">
     <Box backdrop p="2">
       <Flex gap="2" align="center">
@@ -137,11 +140,11 @@ Use glass where content passes behind a panel:
 Glass costs a background read for every panel on every repaint. Fixed chrome is the best case,
 because a glass panel that moves must read its background again on every frame. Don't mark a
 region that sits over a plain background, because the glass has nothing to show there and still
-costs the read. Set `material="solid"` on a nested Theme to remove the cost from one region.
+costs the read. Set `material="9"` on a nested Theme to remove the cost from one region.
 
 Two accessibility settings change the glass for you:
 
 - **Reduced transparency:** Every glass panel becomes solid.
-- **Higher contrast:** Every thickness becomes much more opaque, while thin, regular and thick
-  stay in the same order. The edge highlight and the bent edge stay the same, because they paint
+- **Higher contrast:** Every step becomes much more opaque, and the steps stay in the same
+  order. The edge highlight and the bent edge stay the same, because they paint
   inside the panel and cannot lower the contrast of its text.

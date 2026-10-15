@@ -93,7 +93,7 @@ export function generateLayoutCss(): string {
   // its children pile up invisibly on each other. The rule above STATED that as an accepted
   // caveat, and it was defensible while a nested Theme only ever re-scoped an axis on a region
   // that already had a width. `material` becoming a Theme property (2026-08-16) ended that:
-  // <Theme material="thin"> is now the ordinary way to put ONE pane behind glass, so nested
+  // <Theme material="2"> is now the ordinary way to put ONE pane behind glass, so nested
   // Themes sit in flow everywhere — and every glass specimen in the playground rendered zero
   // pixels wide from the commit that shipped it, which is how this was found.
   //

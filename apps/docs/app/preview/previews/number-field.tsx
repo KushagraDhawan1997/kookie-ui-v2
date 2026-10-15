@@ -37,7 +37,7 @@ import type { ComponentPreview } from "./types";
 
 /** The theme's glass thicknesses, derived from the axis. A function, not a module const, for
     TextField's reason: `themeAxes` is client data the server route cannot read at import. */
-const glassMaterials = () => themeAxes.material.filter((m) => m !== "solid");
+const glassMaterials = () => themeAxes.material.filter((m) => m !== "9");
 
 function Sizes() {
   return (
@@ -214,7 +214,7 @@ function Materials() {
       {BEDS.map((b) => (
         <Demo key={b.id} label={b.name}>
           <BedSurface bed={b}>
-            {(["solid", ...glassMaterials()] as const).map((m) => (
+            {(["9", ...glassMaterials()] as const).map((m) => (
               <Theme key={m} material={m}>
                 {/* 15rem, sized FROM the intrinsic width rather than under it: a default field
                     measures 226px, so the 12rem box this used to be left the increase stepper
@@ -240,7 +240,7 @@ function Permutations() {
       <Demo label="Size × material — over the pattern">
         <BedSurface bed={bed("pattern")} minHeight="520px">
           <Stack gap="5" style={{ width: "100%" }}>
-            {(["solid", ...glassMaterials()] as const).map((m) => (
+            {(["9", ...glassMaterials()] as const).map((m) => (
               <Theme key={m} material={m}>
                 <Stack gap="3">
                   <Text size="1" emphasis="quiet">{cap(m)}</Text>
@@ -306,7 +306,7 @@ function Permutations() {
       {/* State × material. State outranks glass: invalid and disabled take the edge back. */}
       <Demo label="State × material — a state takes the glass edge back">
         <BedSurface bed={bed("photo")}>
-          <Theme material="regular">
+          <Theme material="3">
             {(
               [
                 ["Rest", { defaultValue: 12 }],
@@ -353,7 +353,7 @@ function Nesting() {
           glass the steppers resolve on-glass inside the glass field, never a third veil. */}
       <Demo label="On a solid card and on a glass one — the steppers pay for no second veil">
         <BedSurface bed={bed("country")}>
-          {(["solid", "regular"] as const).map((m) => (
+          {(["9", "3"] as const).map((m) => (
             <Theme key={m} material={m}>
               <Card size="3" style={{ width: "18rem" }}>
                 <Stack gap="4">

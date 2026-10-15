@@ -459,7 +459,7 @@ describe("glass and the grip (§10, §26, 2026-08-24)", () => {
       // opaque source they had no veil to mix back down. The `< 1` assertion is what catches
       // that class of leak, and it is the half a token-name law would have missed.
       const host = render(
-        <Theme appearance={appearance} material="thin">
+        <Theme appearance={appearance} material="2">
           <Box backdrop>
             <SegmentedControl defaultValue="week" aria-label="Range">
               <SegmentedItem value="day">Day</SegmentedItem>
@@ -503,7 +503,7 @@ describe("glass and the grip (§10, §26, 2026-08-24)", () => {
          reading both halves is what makes that a claim rather than a coincidence: a repair
          that stood the label down while letting the grip drift fails here too. */
       const host = render(
-        <Theme appearance={appearance} material="thin">
+        <Theme appearance={appearance} material="2">
           <Box backdrop>
             <SegmentedControl disabled defaultValue="list">
               <SegmentedItem value="list">List</SegmentedItem>
@@ -516,7 +516,7 @@ describe("glass and the grip (§10, §26, 2026-08-24)", () => {
       // The premises, stated so a fixture that never went glass or never went dead fails as
       // itself rather than as the claim (the 2026-08-21 rule: ask what the fixture would look
       // like if the mechanism were absent).
-      expect(track.getAttribute("data-material")).toBe("thin");
+      expect(track.getAttribute("data-material")).toBe("g2");
       expect(track.getAttribute("data-disabled")).not.toBeNull();
       const solid = control({ disabled: true }, { appearance });
       expect(
@@ -541,7 +541,7 @@ describe("glass and the grip (§10, §26, 2026-08-24)", () => {
     // as the agreement with a glass Button's ring: the two resolved conics must be
     // byte-identical, so the track cannot drift from the family.
     const host = render(
-      <Theme material="regular">
+      <Theme material="3">
         <Box backdrop>
           <SegmentedControl defaultValue="list">
             <SegmentedItem value="list">List</SegmentedItem>
@@ -582,7 +582,7 @@ describe("glass and the grip (§10, §26, 2026-08-24)", () => {
      * as the only thing the two stacks can disagree about.
      */
     const host = render(
-      <Theme material="thick">
+      <Theme material="5">
         <Box backdrop>
           <SegmentedControl defaultValue="list">
             <SegmentedItem value="list">List</SegmentedItem>
@@ -596,8 +596,8 @@ describe("glass and the grip (§10, §26, 2026-08-24)", () => {
     const button = within(host, ".kui-button");
     // The premise: both really are panes at the same rung, or the comparison below is
     // between two things that agree for the wrong reason.
-    expect(track.getAttribute("data-material")).toBe("thick");
-    expect(button.getAttribute("data-material")).toBe("thick");
+    expect(track.getAttribute("data-material")).toBe("g5");
+    expect(button.getAttribute("data-material")).toBe("g5");
     // The calibration arm: the rim is a real, painted thing here — a repair that deleted the
     // grain from BOTH members would satisfy a bare equality.
     expect(computed(button, "background-image"), "the rim stopped painting at all").toContain(
@@ -620,7 +620,7 @@ describe("glass and the grip (§10, §26, 2026-08-24)", () => {
       // ink, because --color-thumb-label was minted against the near-white fill this thumb
       // no longer has.
       const host = render(
-        <Theme appearance={appearance} material="thin">
+        <Theme appearance={appearance} material="2">
           <Box backdrop>
             <SegmentedControl defaultValue="list">
               <SegmentedItem value="list">List</SegmentedItem>
@@ -631,7 +631,7 @@ describe("glass and the grip (§10, §26, 2026-08-24)", () => {
       );
       const track = within(host, ".kui-segmented");
       // The premise, stated so a broken fixture fails as itself rather than as the claim.
-      expect(track.getAttribute("data-material")).toBe("thin");
+      expect(track.getAttribute("data-material")).toBe("g2");
       const thumb = within(host, ".kui-segment-thumb");
       // --material-grip-fill, NOT the row wash (2026-08-24, second pass). It shipped as the
       // wash this morning, which is the HOVER value — so selected and hovered were one colour
@@ -659,7 +659,7 @@ describe("glass and the grip (§10, §26, 2026-08-24)", () => {
       // control. One vocabulary: whether the track is the glass or merely sits on it, the
       // grip is the pane's grip. The CAST stand-down is unchanged and asserted below.
       const host = render(
-        <Theme appearance={appearance} material="regular">
+        <Theme appearance={appearance} material="3">
           <Card backdrop>
             <SegmentedControl defaultValue="list">
               <SegmentedItem value="list">List</SegmentedItem>
@@ -688,7 +688,7 @@ describe("one glass per stack, structurally (§10, §26)", () => {
   it("on calm ground it resolves solid and pays nothing", () => {
     // Selectivity, 2026-08-17: a glass control with nothing behind it blurs nothing and still
     // pays a full readback. The theme is glass here and the placement is not.
-    const root = control({}, { material: "thin" });
+    const root = control({}, { material: "2" });
     expect(root.getAttribute("data-material")).toBeNull();
     expect(computed(root, "backdrop-filter")).toBe("none");
   });
@@ -697,7 +697,7 @@ describe("one glass per stack, structurally (§10, §26)", () => {
     // The pane is the track; the segments sit on a backdrop it has already spent. Measured as
     // the thing that costs: exactly one backdrop-filter in the whole control.
     const host = render(
-      <Theme material="thin">
+      <Theme material="2">
         <Box backdrop>
           <SegmentedControl defaultValue="list">
             <SegmentedItem value="list">List</SegmentedItem>
@@ -707,7 +707,7 @@ describe("one glass per stack, structurally (§10, §26)", () => {
       </Theme>,
     );
     const track = within(host, ".kui-segmented");
-    expect(track.getAttribute("data-material")).toBe("thin");
+    expect(track.getAttribute("data-material")).toBe("g2");
     expect(computed(track, "backdrop-filter")).not.toBe("none");
     for (const seg of [...track.querySelectorAll<HTMLElement>(".kui-segment")]) {
       expect(computed(seg, "backdrop-filter")).toBe("none");
@@ -722,7 +722,7 @@ describe("one glass per stack, structurally (§10, §26)", () => {
     // to put one there. A Button in a track is not an ordinary composition; the invariant is
     // not about this composition, it is about the fact that no call site has to know.
     const host = render(
-      <Theme material="thin">
+      <Theme material="2">
         <Box backdrop>
           <SegmentedControl defaultValue="list">
             <SegmentedItem value="list">List</SegmentedItem>

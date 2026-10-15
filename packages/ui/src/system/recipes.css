@@ -1065,7 +1065,7 @@
 
    Spelled "a material that is not on-glass" rather than by enumerating the three thicknesses,
    for two reasons: a flush on-glass member has no ring, so its border is the only edge it has
-   and must stay; and the enumerated spelling would put the string `[data-material="thin"]` in
+   and must stay; and the enumerated spelling would put the string `[data-material="g2"]` in
    this file BEFORE the material section, which is where the "material names no colour" law
    anchors — a rule that names a tone role must not be the thing that moves that anchor.
    `data-material` is absent on a solid control (button.tsx:207), so this is exactly the three
@@ -1413,9 +1413,14 @@
      exactly the TextField case — ties at (0,2,0) and loses on source order to the @supports
      block below. These three are declared only by the world scopes and inherited, so
      re-declaring them here wins everywhere with no contest at all. */
-  --kui-control-chrome-thin: initial;
-  --kui-control-chrome-regular: initial;
-  --kui-control-chrome-thick: initial;
+  --kui-control-chrome-g1: initial;
+  --kui-control-chrome-g2: initial;
+  --kui-control-chrome-g3: initial;
+  --kui-control-chrome-g4: initial;
+  --kui-control-chrome-g5: initial;
+  --kui-control-chrome-g6: initial;
+  --kui-control-chrome-g7: initial;
+  --kui-control-chrome-g8: initial;
   /* The lit-rung press variant and the pool joined the world 2026-08-17 and stand down
      with it — without these a dead glass field kept painting its inner pool. (The -medium
      pointer left this list when the token was deleted, 2026-08-19.) */
@@ -1501,9 +1506,7 @@
    the backdrop and shimmers). These rules sit after the ladder on purpose; cascade order is
    the override. */
 
-.kui-control[data-material="thin"],
-.kui-control[data-material="regular"],
-.kui-control[data-material="thick"] {
+.kui-control[data-material^="g"]{
   /* No backdrop-filter means no defense from a 30% veil, so the fallback is the rung's own
      fill nearly sealed — quiet honestly stays bare, exactly as it is without a material. */
   --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-opaque-alpha), transparent);
@@ -1516,7 +1519,7 @@
 }
 
 @supports (backdrop-filter: blur(1px)) {
-  .kui-control[data-material="thin"] {
+  .kui-control[data-material^="g"] {
     /* CONTROL-SCALE MATERIAL (lab 2026-08-14, ported 2026-08-17 — "control surfaces need
        their own parameters"): a 40px pane is not a 210px card. Half the blur, a leaner
        veil, and ONE alpha for every state: on glass, hover is LIGHT — the veil holds and
@@ -1524,10 +1527,10 @@
        laid an opaque pastel over the pane ("hover mode looks weird"). Loud and medium still
        answer hover: their SOURCE moves (the tone's own hover solid), carried in the veil at
        the same alpha. */
-    --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-thin-control-alpha), transparent);
-    --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-thin-control-alpha), transparent);
-    --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-thin-control-alpha), transparent);
-    --kui-ct-glass-filter: var(--material-thin-control-filter);
+    --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--kui-m-material-control-alpha), transparent);
+    --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--kui-m-material-control-alpha), transparent);
+    --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--kui-m-material-control-alpha), transparent);
+    --kui-ct-glass-filter: var(--kui-m-material-control-filter);
     backdrop-filter: var(--kui-lens, ) var(--kui-ct-glass-filter);
     /* A glass control TRANSMITS (§10's seam, extended to controls 2026-08-07): its cast is
        the control row faded per thickness, handed by the elevated scope — none in flat,
@@ -1539,10 +1542,10 @@
        glass PANE the inherited chrome rows resolve `none`, which invalidates this whole
        list and the computed shadow falls to none — exactly the pane's one-lift rule, by
        the same mechanism the flat no-op spelling documents. */
-    --kui-ct-cast-glass: var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-control-chrome-thin, 0 0 0 0 transparent);
-    --kui-ct-cast-glass-active: var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-control-chrome-active-thin, 0 0 0 0 transparent);
+    --kui-ct-cast-glass: var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-m-kui-control-chrome, 0 0 0 0 transparent);
+    --kui-ct-cast-glass-active: var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-m-kui-control-chrome-active, 0 0 0 0 transparent);
   }
-  .kui-control:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
+  .kui-control:where([data-material^="g"]) {
     /* AND THE BAND GOES, the way a pane's does (2026-09-11 audit). §10's lock says a member
        may vary WHERE a part is painted and never WHAT it is, and the ring is the glass's one
        edge — but `.kui-control` keeps the skeleton's `border: var(--border-width) solid
@@ -1578,50 +1581,14 @@
     --dress-mark-fill-active: var(--dress-mark-fill-active-solid);
     --disabled-fill: var(--disabled-fill-solid);
   }
-  .kui-control[data-material="regular"] {
-    /* Control-scale material — see the thin block. */
-    --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-regular-control-alpha), transparent);
-    --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-regular-control-alpha), transparent);
-    --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-regular-control-alpha), transparent);
-    --kui-ct-glass-filter: var(--material-regular-control-filter);
-    backdrop-filter: var(--kui-lens, ) var(--kui-ct-glass-filter);
-    /* A glass control TRANSMITS (§10's seam, extended to controls 2026-08-07): its cast is
-       the control row faded per thickness, handed by the elevated scope — none in flat,
-       none inside a pane (one lift). Declared as the GLASS value, not the cast itself: only
-       rungs that already cast consume it (quiet glass stays uncast), and the sealed
-       fallback and reduced-transparency stand it down — a sealed pane is not glass. */
-    --kui-ct-cast-glass: var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-control-chrome-regular, 0 0 0 0 transparent);
-    --kui-ct-cast-glass-active: var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-control-chrome-active-regular, 0 0 0 0 transparent);
-  }
-  .kui-control[data-material="thick"] {
-    /* Control-scale material — see the thin block. */
-    --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-thick-control-alpha), transparent);
-    --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-thick-control-alpha), transparent);
-    --kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-thick-control-alpha), transparent);
-    --kui-ct-glass-filter: var(--material-thick-control-filter);
-    backdrop-filter: var(--kui-lens, ) var(--kui-ct-glass-filter);
-    /* A glass control TRANSMITS (§10's seam, extended to controls 2026-08-07): its cast is
-       the control row faded per thickness, handed by the elevated scope — none in flat,
-       none inside a pane (one lift). Declared as the GLASS value, not the cast itself: only
-       rungs that already cast consume it (quiet glass stays uncast), and the sealed
-       fallback and reduced-transparency stand it down — a sealed pane is not glass. */
-    --kui-ct-cast-glass: var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-control-chrome-thick, 0 0 0 0 transparent);
-    --kui-ct-cast-glass-active: var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-control-chrome-active-thick, 0 0 0 0 transparent);
-  }
   /* Hover is LIGHT on glass (lab 2026-08-14): the same chain with only brightness moved.
      The lens stays prepended — the bend does not blink off under the pointer. Guarded like
      every other hover rule in this layer (audit 2026-08-18: a dead glass control held its
      fill and still brightened its filter under the pointer — a promise the control cannot
      keep, one property over from the guarded fill rule). */
   @media (hover: hover) {
-    .kui-control[data-material="thin"]:hover:not(:where([data-disabled], :disabled)) {
-      backdrop-filter: var(--kui-lens, ) var(--material-thin-control-filter-hover);
-    }
-    .kui-control[data-material="regular"]:hover:not(:where([data-disabled], :disabled)) {
-      backdrop-filter: var(--kui-lens, ) var(--material-regular-control-filter-hover);
-    }
-    .kui-control[data-material="thick"]:hover:not(:where([data-disabled], :disabled)) {
-      backdrop-filter: var(--kui-lens, ) var(--material-thick-control-filter-hover);
+    .kui-control[data-material^="g"]:hover:not(:where([data-disabled], :disabled)) {
+      backdrop-filter: var(--kui-lens, ) var(--kui-m-material-control-filter-hover);
     }
   }
 
@@ -1647,12 +1614,12 @@
      the member that joined the ring one file-section down. The edge hook comes along and is
      inert there — a track's border is stood down BY WIDTH (audit D2), so nothing consumes it
      — which is the same inertness the button carried in this list before its own pin. */
-  .kui-button:where([data-material="thin"]),
-  .kui-atom:where([data-material="thin"]),
-  .kui-segmented:where([data-material="thin"]),
-  .kui-toolbar-group:where([data-material="thin"]),
-  .kui-field:where([data-material="thin"]),
-  .kui-textarea:where([data-material="thin"]) {
+  .kui-button:where([data-material^="g"]),
+  .kui-atom:where([data-material^="g"]),
+  .kui-segmented:where([data-material^="g"]),
+  .kui-toolbar-group:where([data-material^="g"]),
+  .kui-field:where([data-material^="g"]),
+  .kui-textarea:where([data-material^="g"]) {
     /* The pane's own lighting, and the WORLD's catch under it. Two things want
        background-image on a glass button — the material's grain/bloom/sheen/edge and
        the elevated world's gradient — and the button used to be excluded from this
@@ -1661,41 +1628,7 @@
        Listing both is legal here where it is not for a shadow: `none` is a valid
        background-image layer, which is exactly why §10 keeps the rim out of the
        shadow list in the first place. */
-    background-image: var(--material-thin-rim-control, none),
-      var(--kui-ct-light, none);
-  }
-  .kui-button:where([data-material="regular"]),
-  .kui-atom:where([data-material="regular"]),
-  .kui-segmented:where([data-material="regular"]),
-  .kui-toolbar-group:where([data-material="regular"]),
-  .kui-field:where([data-material="regular"]),
-  .kui-textarea:where([data-material="regular"]) {
-    /* The pane's own lighting, and the WORLD's catch under it. Two things want
-       background-image on a glass button — the material's grain/bloom/sheen/edge and
-       the elevated world's gradient — and the button used to be excluded from this
-       rule entirely rather than composed, so a glass Button had no rim at all while
-       every glass button in the lab has one (found 2026-08-16, by measuring the two).
-       Listing both is legal here where it is not for a shadow: `none` is a valid
-       background-image layer, which is exactly why §10 keeps the rim out of the
-       shadow list in the first place. */
-    background-image: var(--material-regular-rim-control, none),
-      var(--kui-ct-light, none);
-  }
-  .kui-button:where([data-material="thick"]),
-  .kui-atom:where([data-material="thick"]),
-  .kui-segmented:where([data-material="thick"]),
-  .kui-toolbar-group:where([data-material="thick"]),
-  .kui-field:where([data-material="thick"]),
-  .kui-textarea:where([data-material="thick"]) {
-    /* The pane's own lighting, and the WORLD's catch under it. Two things want
-       background-image on a glass button — the material's grain/bloom/sheen/edge and
-       the elevated world's gradient — and the button used to be excluded from this
-       rule entirely rather than composed, so a glass Button had no rim at all while
-       every glass button in the lab has one (found 2026-08-16, by measuring the two).
-       Listing both is legal here where it is not for a shadow: `none` is a valid
-       background-image layer, which is exactly why §10 keeps the rim out of the
-       shadow list in the first place. */
-    background-image: var(--material-thick-rim-control, none),
+    background-image: var(--kui-m-material-rim-control, none),
       var(--kui-ct-light, none);
   }
   /* THE TRACKS TAKE THE POOL (§10, 2026-09-21, Kushagra, after the pool became a bevel: "it
@@ -1710,8 +1643,8 @@
      plane; a glass track is over content by construction — selectivity is what made it glass —
      so it takes the pool and the transmitted row together, like every glass control. Spelled
      through `--kui-ct-cast`, so the disabled and sealed stand-downs reach it. */
-  .kui-segmented:where([data-material="thin"], [data-material="regular"], [data-material="thick"]),
-  .kui-toolbar-group:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
+  .kui-segmented:where([data-material^="g"]),
+  .kui-toolbar-group:where([data-material^="g"]) {
     --kui-ct-cast: var(--kui-ct-cast-glass, none);
     box-shadow: var(--kui-ct-cast, none);
   }
@@ -1757,8 +1690,8 @@
      so the lever is `--material-ring-opacity`, the one the disabled and reduced-transparency
      arms already pull, and the invalid arm gains it (a button is never invalid, which is why
      that arm could stay out of it before). One lever, four families. */
-  .kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"]),
-  .kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
+  .kui-field:where([data-material^="g"]),
+  .kui-textarea:where([data-material^="g"]) {
     --kui-ct-glass-edge: transparent;
   }
 
@@ -1774,7 +1707,7 @@
      through the -src chain, so interaction keeps its designed step. :where() on the material
      keeps this at the material blocks' own specificity — later source order wins the tie,
      and the reduced-transparency arm below still outranks it the same way. */
-  .kui-control:where([data-material="thin"], [data-material="regular"], [data-material="thick"])[data-emphasis="loud"] {
+  .kui-control:where([data-material^="g"])[data-emphasis="loud"] {
     /* The RENDERED lab values, not the stylesheet's (2026-08-17, the extraction rule yet
        again: the lab's written 1.18/0.72 sat under live dials, and the screen showed
        c×1.6 at α0.8 (first derived as 1.455 against the wrong source chroma — measured
@@ -1786,31 +1719,19 @@
        about the neutral box, not about rank — a committed pigment is lit like the pane. */
     --kui-ct-light: var(--material-control-wash-loud, none);
   }
-  .kui-control:where([data-material="thin"], [data-material="regular"], [data-material="thick"])[data-emphasis="medium"] {
+  .kui-control:where([data-material^="g"])[data-emphasis="medium"] {
     --kui-ct-light: var(--material-control-wash-medium, none);
   }
   /* Loud's filter runs HOT (rendered lab: saturate 2.2, brightness 1.1) — per thickness so
      the blur stays the cell's. Restated for :hover below the hover-media block would tie at
      a lower specificity and lose; the rung's own filter must win in BOTH states, so the
      hover restatement carries the same value. */
-  .kui-control:where([data-material="thin"])[data-emphasis="loud"] {
-    backdrop-filter: var(--kui-lens, ) var(--material-thin-control-filter-loud);
-  }
-  .kui-control:where([data-material="regular"])[data-emphasis="loud"] {
-    backdrop-filter: var(--kui-lens, ) var(--material-regular-control-filter-loud);
-  }
-  .kui-control:where([data-material="thick"])[data-emphasis="loud"] {
-    backdrop-filter: var(--kui-lens, ) var(--material-thick-control-filter-loud);
+  .kui-control:where([data-material^="g"])[data-emphasis="loud"] {
+    backdrop-filter: var(--kui-lens, ) var(--kui-m-material-control-filter-loud);
   }
   @media (hover: hover) {
-    .kui-control:where([data-material="thin"])[data-emphasis="loud"]:hover {
-      backdrop-filter: var(--kui-lens, ) var(--material-thin-control-filter-loud);
-    }
-    .kui-control:where([data-material="regular"])[data-emphasis="loud"]:hover {
-      backdrop-filter: var(--kui-lens, ) var(--material-regular-control-filter-loud);
-    }
-    .kui-control:where([data-material="thick"])[data-emphasis="loud"]:hover {
-      backdrop-filter: var(--kui-lens, ) var(--material-thick-control-filter-loud);
+    .kui-control:where([data-material^="g"])[data-emphasis="loud"]:hover {
+      backdrop-filter: var(--kui-lens, ) var(--kui-m-material-control-filter-loud);
     }
   }
 }
@@ -1822,8 +1743,8 @@
    conic light masked to its own 1px annulus, per-thickness per-mode tokens, the fixed 165°
    light. Buttons only — a glass FIELD's edge is its translucent border (state arms need a
    border to stand down), and on-glass members are flush with their pane and take nothing. */
-.kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"]),
-.kui-atom:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
+.kui-button:where([data-material^="g"]),
+.kui-atom:where([data-material^="g"]) {
   position: relative;
   /* ONE LINE, NEVER TWO (§10, audit 2026-08-26). `bordered` is Button's emphasis half-step
      and §10 explicitly sanctions composing it with a material, so `<Button bordered backdrop>`
@@ -1881,10 +1802,10 @@
    family's own identity and not a hole in this fix. */
 .kui-segmented[data-material]::after,
 .kui-toolbar-group[data-material]::after,
-.kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after,
-.kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after,
-.kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after,
-.kui-atom:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::after {
+.kui-button:where([data-material^="g"])::after,
+.kui-field:where([data-material^="g"])::after,
+.kui-textarea:where([data-material^="g"])::after,
+.kui-atom:where([data-material^="g"])::after {
   content: "";
   position: absolute;
   /* The padding box — one border-width inside the control's own edge, which is what gives the
@@ -1906,29 +1827,13 @@
   pointer-events: none;
   opacity: var(--material-ring-opacity, 1);
 }
-.kui-segmented:where([data-material="thin"])::after,
-.kui-toolbar-group:where([data-material="thin"])::after,
-.kui-atom:where([data-material="thin"])::after,
-.kui-field:where([data-material="thin"])::after,
-.kui-textarea:where([data-material="thin"])::after,
-.kui-button:where([data-material="thin"])::after {
-  background: var(--material-thin-ring-control);
-}
-.kui-segmented:where([data-material="regular"])::after,
-.kui-toolbar-group:where([data-material="regular"])::after,
-.kui-atom:where([data-material="regular"])::after,
-.kui-field:where([data-material="regular"])::after,
-.kui-textarea:where([data-material="regular"])::after,
-.kui-button:where([data-material="regular"])::after {
-  background: var(--material-regular-ring-control);
-}
-.kui-segmented:where([data-material="thick"])::after,
-.kui-toolbar-group:where([data-material="thick"])::after,
-.kui-atom:where([data-material="thick"])::after,
-.kui-field:where([data-material="thick"])::after,
-.kui-textarea:where([data-material="thick"])::after,
-.kui-button:where([data-material="thick"])::after {
-  background: var(--material-thick-ring-control);
+.kui-segmented:where([data-material^="g"])::after,
+.kui-toolbar-group:where([data-material^="g"])::after,
+.kui-atom:where([data-material^="g"])::after,
+.kui-field:where([data-material^="g"])::after,
+.kui-textarea:where([data-material^="g"])::after,
+.kui-button:where([data-material^="g"])::after {
+  background: var(--kui-m-material-ring-control);
 }
 
 /* ── The GLINT at control scale (§10, 2026-08-24) — the pane's band, on the members that can
@@ -1944,11 +1849,11 @@
    judged short of parity twice in one day — so the whole family now takes the real band.
    On-glass members mint no mask (no bezel to light), so the layer stays dark there by
    construction. */
-.kui-button:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before,
-.kui-segmented:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before,
-.kui-toolbar-group:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before,
-.kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before,
-.kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"])::before {
+.kui-button:where([data-material^="g"])::before,
+.kui-segmented:where([data-material^="g"])::before,
+.kui-toolbar-group:where([data-material^="g"])::before,
+.kui-field:where([data-material^="g"])::before,
+.kui-textarea:where([data-material^="g"])::before {
   content: "";
   position: absolute;
   /* The padding box, in step with the ring above. See surfaces.css's glint. */
@@ -1964,30 +1869,16 @@
   mask-repeat: no-repeat;
   opacity: calc(var(--material-ring-opacity, 1) * var(--kui-glint-on, 0));
 }
-.kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"]),
-.kui-textarea:where([data-material="thin"], [data-material="regular"], [data-material="thick"]) {
+.kui-field:where([data-material^="g"]),
+.kui-textarea:where([data-material^="g"]) {
   position: relative;
 }
-.kui-button:where([data-material="thin"])::before,
-.kui-segmented:where([data-material="thin"])::before,
-.kui-toolbar-group:where([data-material="thin"])::before,
-.kui-field:where([data-material="thin"])::before,
-.kui-textarea:where([data-material="thin"])::before {
-  background: var(--material-thin-glint-control);
-}
-.kui-button:where([data-material="regular"])::before,
-.kui-segmented:where([data-material="regular"])::before,
-.kui-toolbar-group:where([data-material="regular"])::before,
-.kui-field:where([data-material="regular"])::before,
-.kui-textarea:where([data-material="regular"])::before {
-  background: var(--material-regular-glint-control);
-}
-.kui-button:where([data-material="thick"])::before,
-.kui-segmented:where([data-material="thick"])::before,
-.kui-toolbar-group:where([data-material="thick"])::before,
-.kui-field:where([data-material="thick"])::before,
-.kui-textarea:where([data-material="thick"])::before {
-  background: var(--material-thick-glint-control);
+.kui-button:where([data-material^="g"])::before,
+.kui-segmented:where([data-material^="g"])::before,
+.kui-toolbar-group:where([data-material^="g"])::before,
+.kui-field:where([data-material^="g"])::before,
+.kui-textarea:where([data-material^="g"])::before {
+  background: var(--kui-m-material-glint-control);
 }
 
 /* AN ON-GLASS TRACK GETS A FLAT HAIRLINE, NOT A LIP (2026-08-24, Kushagra: "on a card theres
@@ -2053,9 +1944,7 @@
      keyed on the thickness list when they meant "any glass state". `on-glass` carries no
      filter of its own (one glass per stack), so what this reaches for it is the FILL — which
      is exactly the part that was still translucent. */
-  .kui-control[data-material="thin"],
-  .kui-control[data-material="regular"],
-  .kui-control[data-material="thick"],
+  .kui-control[data-material^="g"],
   .kui-control[data-material="on-glass"] {
     --kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-opaque-alpha), transparent);
     --kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-opaque-alpha), transparent);
@@ -2102,25 +1991,13 @@
    live inside running text and never float), and only when it says `backdrop` over glass —
    a solid chip writes no attribute and never matches here. Same three-environment shape:
    fallback base, real recipe under @supports, reduced-transparency winning last. */
-.kui-atom[data-material="thin"],
-.kui-atom[data-material="regular"],
-.kui-atom[data-material="thick"] {
+.kui-atom[data-material^="g"]{
   --kui-atom-fill: color-mix(in srgb, var(--kui-atom-fill-src) var(--material-opaque-alpha), transparent);
 }
 @supports (backdrop-filter: blur(1px)) {
-  .kui-atom[data-material="thin"] {
-    --kui-atom-fill: color-mix(in srgb, var(--kui-atom-fill-src) var(--material-thin-control-alpha), transparent);
-    --kui-ct-glass-filter: var(--material-thin-control-filter);
-    backdrop-filter: var(--kui-lens, ) var(--kui-ct-glass-filter);
-  }
-  .kui-atom[data-material="regular"] {
-    --kui-atom-fill: color-mix(in srgb, var(--kui-atom-fill-src) var(--material-regular-control-alpha), transparent);
-    --kui-ct-glass-filter: var(--material-regular-control-filter);
-    backdrop-filter: var(--kui-lens, ) var(--kui-ct-glass-filter);
-  }
-  .kui-atom[data-material="thick"] {
-    --kui-atom-fill: color-mix(in srgb, var(--kui-atom-fill-src) var(--material-thick-control-alpha), transparent);
-    --kui-ct-glass-filter: var(--material-thick-control-filter);
+  .kui-atom[data-material^="g"] {
+    --kui-atom-fill: color-mix(in srgb, var(--kui-atom-fill-src) var(--kui-m-material-control-alpha), transparent);
+    --kui-ct-glass-filter: var(--kui-m-material-control-filter);
     backdrop-filter: var(--kui-lens, ) var(--kui-ct-glass-filter);
   }
 
@@ -2128,22 +2005,14 @@
      and why both sides are element-keyed. `:where()` on the family pair so the ancestor guard
      carries the weight: (0,2,1) against the base blocks' (0,2,0), which is the whole margin
      this needs. */
-  :root:not([data-lens="on"]) :where(.kui-control, .kui-atom)[data-material="thin"] {
-    --kui-ct-glass-filter: var(--material-thin-control-filter-frost);
-  }
-  :root:not([data-lens="on"]) :where(.kui-control, .kui-atom)[data-material="regular"] {
-    --kui-ct-glass-filter: var(--material-regular-control-filter-frost);
-  }
-  :root:not([data-lens="on"]) :where(.kui-control, .kui-atom)[data-material="thick"] {
-    --kui-ct-glass-filter: var(--material-thick-control-filter-frost);
+  :root:not([data-lens="on"]) :where(.kui-control, .kui-atom)[data-material^="g"] {
+    --kui-ct-glass-filter: var(--kui-m-material-control-filter-frost);
   }
 }
 /* Three conditions, one answer — see the surface arm in surfaces.css for why print and
    forced-colors want exactly the sealed pane this arm already describes. */
 @media (prefers-reduced-transparency: reduce), print, (forced-colors: active) {
-  .kui-atom[data-material="thin"],
-  .kui-atom[data-material="regular"],
-  .kui-atom[data-material="thick"],
+  .kui-atom[data-material^="g"],
   .kui-atom[data-material="on-glass"] {
     --kui-atom-fill: color-mix(in srgb, var(--kui-atom-fill-src) var(--material-opaque-alpha), transparent);
     backdrop-filter: none;

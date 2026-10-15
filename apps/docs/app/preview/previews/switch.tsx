@@ -51,7 +51,7 @@ import type { ComponentPreview } from "./types";
     for its slug, and `themeAxes` is a client module's data — unreadable during server module
     evaluation. Deferred into render, it only ever runs on the client. Same reason every
     section below is a component. */
-const glassMaterials = () => themeAxes.material.filter((m) => m !== "solid");
+const glassMaterials = () => themeAxes.material.filter((m) => m !== "9");
 
 /** The three index pairs where the shift can be READ against a real neighbour: a switch at n
     stands level with a checkbox at n + 1, which is the identity the family is built on. Size
@@ -259,7 +259,7 @@ function Materials() {
           Both panes sit on one bed at one size, because the claim is a difference. */}
       <Demo label="The same switch in a glass pane and in a solid one — the grip's lift is the whole difference">
         <BedSurface bed={bed("photo")}>
-          {(["solid", "regular"] as const).map((m) => (
+          {(["9", "3"] as const).map((m) => (
             <Theme key={m} material={m}>
               <Card size="3" style={{ width: "220px" }}>
                 <Stack gap="4">
@@ -282,7 +282,7 @@ function Materials() {
       {BEDS.map((b) => (
         <Demo key={b.id} label={b.name}>
           <BedSurface bed={b}>
-            {(["solid", ...GLASS] as const).map((m) => (
+            {(["9", ...GLASS] as const).map((m) => (
               <Theme key={m} material={m}>
                 <Card size="2" style={{ width: "170px" }}>
                   <Stack gap="3">
@@ -312,7 +312,7 @@ function Permutations() {
           loses its edge against the veil, a channel that disappears at the small indexes. */}
       <Demo label="Size × material — every rung, every index, over the pattern">
         <BedSurface bed={bed("pattern")} minHeight="460px">
-          {(["solid", ...GLASS] as const).map((m) => (
+          {(["9", ...GLASS] as const).map((m) => (
             <Theme key={m} material={m}>
               <Card size="2" style={{ width: "150px" }}>
                 <Stack gap="4">
@@ -333,7 +333,7 @@ function Permutations() {
           which side the thumb is on. */}
       <Demo label="Off, on and dead × material — over a saturated bed">
         <BedSurface bed={bed("swirl")} minHeight="300px">
-          {(["solid", ...GLASS] as const).map((m) => (
+          {(["9", ...GLASS] as const).map((m) => (
             <Theme key={m} material={m}>
               <Card size="2" style={{ width: "190px" }}>
                 <Stack gap="3">

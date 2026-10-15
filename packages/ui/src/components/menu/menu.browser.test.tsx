@@ -751,7 +751,7 @@ describe("the popup: smallest surface corner, floating cast in BOTH worlds, glas
       // transmitted row (which is none in flat, where this assertion has teeth).
       let glass: HTMLElement | null = null;
       render(
-        <Theme depth={depth} material="thin">
+        <Theme depth={depth} material="2">
           <Menu defaultOpen>
             <MenuTrigger render={<Button>Open</Button>} />
             <MenuContent ref={(n: HTMLDivElement | null) => void (glass = n)}>
@@ -1365,13 +1365,13 @@ describe("a focused row's ring survives the panel that scrolls it (§8)", () => 
      where the arm actually lost: the pane's wash rule (surfaces.css) ties the HC arm at
      (0,4,0) and wins on source order, so a glass menu under contrast="high" kept the wash
      under a label that had already flipped to --tone-contrast — a near-white word on a faint
-     wash, found by eye in the docs chrome (Theme material="thin"). The degenerate-fixture
+     wash, found by eye in the docs chrome (Theme material="2"). The degenerate-fixture
      rule verbatim: the input never held the case where the general claim and the special one
      answer differently. Falsified by deleting the glass HC arm in surfaces.css — the solid
      cells stay green and only the glass cells fail, which is the defect's own shape. */
   it("contrast=high moves the lit fill — both appearances, solid AND glass (§19)", () => {
     for (const appearance of APPEARANCES) {
-    for (const material of [undefined, "thin" as const]) {
+    for (const material of [undefined, "2" as const]) {
       const normal = openMenu(material ? { appearance, material } : { appearance });
       const high = openMenu(
         material ? { appearance, contrast: "high", material } : { appearance, contrast: "high" },
@@ -1747,7 +1747,7 @@ describe("a portalled panel is glass again — the escape the stacking rule need
     // placement to be glass at all. The panel portals out and expresses the theme's glass
     // regardless; without the prop the "card stays glass" half would assert nothing.
     const host = render(
-      <Theme material="regular">
+      <Theme material="3">
         <Card id="host" backdrop>
           <Menu defaultOpen>
             <MenuTrigger render={<Button>Open</Button>} />
@@ -1759,17 +1759,17 @@ describe("a portalled panel is glass again — the escape the stacking rule need
       </Theme>,
     );
     const card = host.querySelector<HTMLElement>("#host")!;
-    expect(card.dataset["material"], "the card is the negative control").toBe("regular");
+    expect(card.dataset["material"], "the card is the negative control").toBe("g3");
     if (!panel) throw new Error("the panel never mounted — the law below would assert nothing");
     const p = panel as HTMLElement;
-    expect(p.dataset["material"]).toBe("regular");
+    expect(p.dataset["material"]).toBe("g3");
     expect(computed(p, "backdrop-filter")).not.toBe("none");
   });
 
   it("but a card composed INSIDE that panel is solid — the rule still holds one level in", () => {
     let panel: HTMLElement | null = null;
     render(
-      <Theme material="regular">
+      <Theme material="3">
         <Menu defaultOpen>
           <MenuTrigger render={<Button>Open</Button>} />
           <MenuContent ref={(n: HTMLDivElement | null) => void (panel = n)}>
@@ -1780,7 +1780,7 @@ describe("a portalled panel is glass again — the escape the stacking rule need
     );
     if (!panel) throw new Error("the panel never mounted");
     const p = panel as HTMLElement;
-    expect(p.dataset["material"]).toBe("regular");
+    expect(p.dataset["material"]).toBe("g3");
     const inner = p.querySelector<HTMLElement>("#inner")!;
     // `on-glass` (2026-08-16): it must not filter — the panel already spent the backdrop —
     // and it must not seal either, or a card in a glass menu reads as a slab punched through
@@ -1822,7 +1822,7 @@ describe("reduced transparency SEALS a floating pane (§10 — audit 2026-08-18)
       features: [{ name: "prefers-reduced-transparency", value: "reduce" }],
     });
     try {
-      const { popup } = openMenu({ material: "regular" });
+      const { popup } = openMenu({ material: "3" });
       expect(computed(popup, "backdrop-filter")).toBe("none");
       const fill = computed(popup, "background-color");
       const alpha = fill.includes("/") ? parseFloat(fill.split("/")[1]!) : 1;

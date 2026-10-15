@@ -23,6 +23,7 @@ import { Radio, RadioGroup } from "../radio/radio.tsx";
 import { Checkbox } from "../checkbox/checkbox.tsx";
 import * as React from "react";
 import { Card } from "./card.tsx";
+import type { Material } from "../../system/axes.ts";
 
 /** Every token this file resolves is a colour, and the harness's tokenOn reads lengths — so
     the name stays, one line over the shared probe. */
@@ -119,7 +120,7 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
     // rightly refuses tone and this law is about the surface LAYER.
     for (const appearance of APPEARANCES) {
       const pane = (attrs: Record<string, string>) =>
-        mounted(<div className="kui-surface" data-material="regular" {...attrs} />, {
+        mounted(<div className="kui-surface" data-material="g3" {...attrs} />, {
           theme: { appearance },
           select: ".kui-surface",
         });
@@ -149,7 +150,7 @@ describe("one treatment, fixed identity (§11, LOG 2026-08-04)", () => {
     // ring is a pane with no edge at all, the failure mode this law keeps impossible.
     // `backdrop` because an in-flow card is solid by selectivity (lab port 2026-08-17).
     const solid = mounted(<Card backdrop>Body</Card>, {
-      theme: { material: "solid" },
+      theme: { material: "9" },
       select: ".kui-surface",
     });
     expect(computed(solid, "border-top-color"), "the solid slab regrew a hairline").toBe(
@@ -335,19 +336,19 @@ describe("material is the THEME's, and one glass per stack is structural (§10, 
   it("backdrop is the placement fact that opts into the theme's material — and the prop refusal stands", () => {
     // `backdrop` (lab port 2026-08-17) states a PLACEMENT — this card sits over content
     // the page makes hostile — and takes the theme's material exactly as Card used to.
-    const glass = mounted(<Card backdrop>B</Card>, { theme: { material: "thick" } });
-    expect(glass.dataset["material"]).toBe("thick");
+    const glass = mounted(<Card backdrop>B</Card>, { theme: { material: "5" } });
+    expect(glass.dataset["material"]).toBe("g5");
     // `saturate(`, the term every glass row carries: a lensed row has no `blur()` of its own
     // since 2026-09-21 (the blur is inside the lens, in front of the bend).
     expect(computed(glass, "backdrop-filter")).toContain("saturate(");
     // It is never a material CHOICE: over content in a solid app there is still no glass,
     // because the material is the theme's alone.
-    const solid = mounted(<Card backdrop>B</Card>, { theme: { material: "solid" } });
+    const solid = mounted(<Card backdrop>B</Card>, { theme: { material: "9" } });
     expect(solid.dataset["material"]).toBeUndefined();
     expect(computed(solid, "backdrop-filter")).toBe("none");
     // @ts-expect-error — material is the Theme's; a card that could override it would be a
     // second home for the app's own identity (§12).
-    void (<Card material="thin" />);
+    void (<Card material="2" />);
   });
 
   it("a nested Theme re-answers it, which is the ONLY per-subtree escape", () => {
@@ -356,14 +357,14 @@ describe("material is the THEME's, and one glass per stack is structural (§10, 
     // Both cards say `backdrop` (lab port 2026-08-17: in-flow cards are solid by
     // selectivity), so what differs between them is ONLY the nested Theme's re-answer.
     const host = render(
-      <Theme material="regular">
+      <Theme material="3">
         <Card id="outer" backdrop />
-        <Theme material="solid">
+        <Theme material="9">
           <Card id="inner" backdrop />
         </Theme>
       </Theme>,
     );
-    expect(host.querySelector<HTMLElement>("#outer")!.dataset["material"]).toBe("regular");
+    expect(host.querySelector<HTMLElement>("#outer")!.dataset["material"]).toBe("g3");
     expect(host.querySelector<HTMLElement>("#inner")!.dataset["material"]).toBeUndefined();
     expect(computed(host.querySelector("#inner")!, "backdrop-filter")).toBe("none");
   });
@@ -382,9 +383,9 @@ describe("material is the THEME's, and one glass per stack is structural (§10, 
           <Card id="l3" />
         </Card>
       </Card>,
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     );
-    expect(host.dataset["material"]).toBe("regular");
+    expect(host.dataset["material"]).toBe("g3");
     for (const id of ["#l2", "#l3"]) {
       const el = host.querySelector<HTMLElement>(id)!;
       // `on-glass`, not absent (2026-08-16). The nested pane must not FILTER — that is the
@@ -408,14 +409,14 @@ describe("material is the THEME's, and one glass per stack is structural (§10, 
     // this law could not tell "the scope stood it down" from "nobody opted in".
     const host = mounted(
       <Card id="outer">
-        <Theme material="thin">
+        <Theme material="2">
           <Card id="inner" backdrop />
         </Theme>
       </Card>,
-      { theme: { material: "solid" } },
+      { theme: { material: "9" } },
     );
     expect(host.dataset["material"]).toBeUndefined();
-    expect(host.querySelector<HTMLElement>("#inner")!.dataset["material"]).toBe("thin");
+    expect(host.querySelector<HTMLElement>("#inner")!.dataset["material"]).toBe("g2");
   });
 });
 
@@ -429,9 +430,9 @@ describe("material is backdrop defense, opt-in (§10)", () => {
     //
     // `backdrop` since the lab port (2026-08-17): an in-flow card is solid by selectivity, so a law
     // about the glass ladder must state the placement that expresses it.
-    const thin = mounted(<Card backdrop>B</Card>, { theme: { material: "thin" } });
-    const regular = mounted(<Card backdrop>B</Card>, { theme: { material: "regular" } });
-    const thick = mounted(<Card backdrop>B</Card>, { theme: { material: "thick" } });
+    const thin = mounted(<Card backdrop>B</Card>, { theme: { material: "2" } });
+    const regular = mounted(<Card backdrop>B</Card>, { theme: { material: "3" } });
+    const thick = mounted(<Card backdrop>B</Card>, { theme: { material: "5" } });
     const alpha = (el: HTMLElement) => Number(computed(el, "background-color").match(/\/\s*([\d.]+)\)/)?.[1] ?? 1);
     expect(alpha(thin)).toBeLessThan(alpha(regular));
     expect(alpha(regular)).toBeLessThan(alpha(thick));
@@ -442,9 +443,9 @@ describe("material is backdrop defense, opt-in (§10)", () => {
 
   it("a material fill is the shell's own seal made translucent — the modifier, applied (§10)", () => {
     // backdrop: selectivity (lab port 2026-08-17) — an in-flow card would be solid here.
-    const thin = mounted(<Card backdrop>B</Card>, { theme: { material: "thin" } });
+    const thin = mounted(<Card backdrop>B</Card>, { theme: { material: "2" } });
     expect(computed(thin, "background-color")).toBe(
-      colorOn(thin, "color-mix(in srgb, var(--color-surface) var(--material-thin-alpha), transparent)"),
+      colorOn(thin, "color-mix(in srgb, var(--color-surface) var(--material-g2-alpha), transparent)"),
     );
     expect(computed(thin, "background-color")).not.toMatch(/^rgb\(/);
   });
@@ -456,7 +457,7 @@ describe("material is backdrop defense, opt-in (§10)", () => {
       <Card backdrop>
         <Card data-testid="inner">B</Card>
       </Card>,
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     );
     const inner = outer.querySelector<HTMLElement>('[data-testid="inner"]')!;
     // It must not FILTER, and it must not inherit the outer pane's derived fill — the two
@@ -469,7 +470,7 @@ describe("material is backdrop defense, opt-in (§10)", () => {
     // Structural, not just visual: the outer card scopes its subtree and the inner one
     // resolves to the nesting-only value. Asserted as well as the paint, because the paint
     // alone would pass if the mechanism were replaced by something weaker.
-    expect(outer.dataset["material"]).toBe("regular");
+    expect(outer.dataset["material"]).toBe("g3");
     expect(inner.dataset["material"]).toBe("on-glass");
   });
 });
@@ -562,15 +563,15 @@ describe("the shell carries context without imposing any (§10, §13)", () => {
     const solid = mounted(<Card>B</Card>, { theme: { depth: "elevated" } });
     // backdrop: an in-flow card is solid by selectivity (lab port 2026-08-17).
     const glass = mounted(<Card backdrop>B</Card>, {
-      theme: { depth: "elevated", material: "thin" },
+      theme: { depth: "elevated", material: "2" },
     });
     const flatGlass = mounted(<Card backdrop>B</Card>, {
-      theme: { depth: "flat", material: "thin" },
+      theme: { depth: "flat", material: "2" },
     });
     const probe = document.createElement("div");
     // Pool + transmitted cast: the pane's own bottom shade rides in front of whatever the
     // world lets through (lab port 2026-08-17).
-    probe.style.boxShadow = "var(--material-pool-surface), var(--surface-chrome-thin)";
+    probe.style.boxShadow = "var(--material-pool-surface), var(--surface-chrome-g2)";
     glass.append(probe);
     expect(computed(glass, "box-shadow")).toBe(computed(probe, "box-shadow"));
     probe.remove();
@@ -582,7 +583,7 @@ describe("the shell carries context without imposing any (§10, §13)", () => {
     // no-op layers the flat scope declares. Derived from those pointers, not restated.
     const flatProbe = document.createElement("div");
     flatProbe.style.boxShadow =
-      "var(--kui-surface-pool, 0 0 0 0 transparent), var(--kui-surface-chrome-thin, 0 0 0 0 transparent)";
+      "var(--kui-surface-pool, 0 0 0 0 transparent), var(--kui-surface-chrome-g2, 0 0 0 0 transparent)";
     flatGlass.append(flatProbe);
     expect(computed(flatGlass, "box-shadow")).toBe(computed(flatProbe, "box-shadow"));
     flatProbe.remove();
@@ -653,11 +654,11 @@ describe("the boundary (§3, §13)", () => {
       <Card className="mine" style={{ maxWidth: "300px" }} backdrop>
         B
       </Card>,
-      { theme: { material: "thin" } },
+      { theme: { material: "2" } },
     );
     expect(el.className.split(" ").sort()).toEqual(["kui-card", "kui-surface", "mine"]);
     expect(computed(el, "max-width")).toBe("300px");
-    expect(el.dataset.material).toBe("thin");
+    expect(el.dataset.material).toBe("g2");
   });
 
   it("card-as-button: render a button and the surface notices (§10)", () => {
@@ -912,7 +913,7 @@ describe("the elevated world escapes both ways (§5, §10)", () => {
       // backdrop (lab port 2026-08-17): without the placement fact the card is solid by
       // selectivity and this law would be measuring the wrong stand-down entirely.
       const sealed = mounted(<Card backdrop>B</Card>, {
-        theme: { depth: "elevated", material: "thin" },
+        theme: { depth: "elevated", material: "2" },
         select: ".kui-surface",
       });
       expect(computed(sealed, "backdrop-filter")).toBe("none"); // the pane really is sealed
@@ -939,7 +940,7 @@ describe("the elevated world escapes both ways (§5, §10)", () => {
     // the path where the generated fallback (not an appearance scope) must resolve the rim.
     // backdrop on both cards: in-flow cards are solid by selectivity (lab port).
     const nested = render(
-      <Theme appearance="inherit" depth="elevated" material="regular">
+      <Theme appearance="inherit" depth="elevated" material="3">
         <Card id="lifted" backdrop />
         <Theme depth="flat">
           <Card id="rested" backdrop />
@@ -957,7 +958,7 @@ describe("the elevated world escapes both ways (§5, §10)", () => {
     // And it is the GLASS recipe, not the seal's matte one — the convergence must not have
     // been reached by every pane falling back to the solid lighting.
     const solid = mounted(<Card />, {
-      theme: { appearance: "inherit", depth: "elevated", material: "solid" },
+      theme: { appearance: "inherit", depth: "elevated", material: "9" },
       select: ".kui-surface",
     });
     expect(lifted).not.toBe(computed(solid, "background-image"));
@@ -977,7 +978,7 @@ describe("high contrast leans on the glass, it does not unmake it (§7, §10)", 
     it(`${appearance}: a glass pane keeps its light under contrast="high"`, () => {
       const pane = (contrast: "normal" | "high") =>
         mounted(<Card backdrop>Body</Card>, {
-          theme: { appearance, contrast, material: "regular" },
+          theme: { appearance, contrast, material: "3" },
           select: ".kui-surface",
         });
       const normal = pane("normal");
@@ -1024,7 +1025,7 @@ describe("reduced transparency takes the pane away, not the app's dress (§10, �
       // port 2026-08-17 — an in-flow card under a glass theme is otherwise solid and this
       // law compares a card with itself).
       const glass = mounted(<Card backdrop>Body</Card>, {
-        theme: { appearance, material: "thin" },
+        theme: { appearance, material: "2" },
         select: ".kui-surface",
       });
 
@@ -1070,7 +1071,7 @@ describe("the lens: refraction reaches a real pane (§10, 2026-08-16)", () => {
   it("a glass card mints a filter and references it; a solid card does not", () => {
     // backdrop: selectivity (lab port 2026-08-17) — an in-flow card resolves solid and
     // would honestly have no lens, which is not the absence this law is about.
-    const glass = mounted(<Card backdrop>G</Card>, { theme: { material: "regular" } });
+    const glass = mounted(<Card backdrop>G</Card>, { theme: { material: "3" } });
     const id = lens(glass);
     expect(id, "a glass pane has no lens").toBeTruthy();
     // The reference must RESOLVE — a url() pointing at nothing is the failure mode that
@@ -1083,7 +1084,7 @@ describe("the lens: refraction reaches a real pane (§10, 2026-08-16)", () => {
     // backdrop-filter carries no url() cannot fail: a solid card declares no backdrop-filter
     // at all, so the property is `none` however much work was wasted building a map for it.
     // Demonstrated — forcing the hook on for every card passed this law in its first form.
-    const solid = mounted(<Card>S</Card>, { theme: { material: "solid" } });
+    const solid = mounted(<Card>S</Card>, { theme: { material: "9" } });
     expect(lens(solid)).toBeUndefined();
     expect(solid.style.getPropertyValue("--kui-lens"), "a solid pane built a map it cannot use").toBe("");
   });
@@ -1115,7 +1116,7 @@ describe("the lens: refraction reaches a real pane (§10, 2026-08-16)", () => {
         </Card>
       );
     }
-    const card = mounted(<App />, { theme: { material: "regular" }, select: ".kui-card" });
+    const card = mounted(<App />, { theme: { material: "3" }, select: ".kui-card" });
     await new Promise((resolve) => setTimeout(resolve, 200));
     const before = card.style.getPropertyValue("--kui-lens");
     // THE PREMISE: a lens was really built, or "it did not change" is trivially true — the
@@ -1153,7 +1154,7 @@ describe("the lens: refraction reaches a real pane (§10, 2026-08-16)", () => {
      * is the half a structural read cannot make.
      */
     const big = mounted(<Card backdrop style={{ width: "600px", height: "420px" }} />, {
-      theme: { material: "regular" },
+      theme: { material: "3" },
     });
     // CALIBRATION: over the cap, or the stretch under test never happens and every assertion
     // below holds trivially — a pane at or under 320px generates its map 1:1.
@@ -1194,7 +1195,7 @@ describe("the lens: refraction reaches a real pane (§10, 2026-08-16)", () => {
     const strength = (el: HTMLElement) =>
       parseFloat(document.querySelector(lens(el)!)!.querySelector("feDisplacementMap")!.getAttribute("scale")!);
     const small = mounted(<Card backdrop style={{ width: "300px", height: "210px" }} />, {
-      theme: { material: "regular" },
+      theme: { material: "3" },
     });
     expect(
       strength(big),
@@ -1226,7 +1227,7 @@ describe("the lens: refraction reaches a real pane (§10, 2026-08-16)", () => {
       const [on, set] = React.useState(true);
       show = set;
       return (
-        <Theme material="thin">
+        <Theme material="2">
           <Box backdrop>{on ? <Card backdrop>hello</Card> : null}</Box>
         </Theme>
       );
@@ -1264,7 +1265,7 @@ describe("the lens: refraction reaches a real pane (§10, 2026-08-16)", () => {
       <Card backdrop>
         <Card>inner</Card>
       </Card>,
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     );
     const inner = outer.querySelector<HTMLElement>(".kui-card")!;
     expect(lens(outer)).toBeTruthy();
@@ -1285,7 +1286,7 @@ describe("convergence: over a calm bed, material is invisible (§10, 2026-08-16)
      Measured on the PAINTED pixel, not on declarations: the fill goes through a veil, a
      backdrop-filter and a brightness term before it reaches the screen, and each of those is
      a place the agreement can break with every declaration still looking right. */
-  const bed = (m: "solid" | (typeof GLASS_MATERIALS)[number]) => {
+  const bed = (m: Material) => {
     const host = render(
       <Theme material={m}>
         <div style={{ background: "var(--neutral-1)", padding: "24px" }}>
@@ -1303,7 +1304,7 @@ describe("convergence: over a calm bed, material is invisible (§10, 2026-08-16)
     // replaced it is selectivity: over calm ground an in-flow card does not become glass at
     // all — it resolves the solid look wholesale, so "material is invisible on a calm bed"
     // is enforced by the resolution, not by two recipes agreeing pixel for pixel.
-    const solid = bed("solid");
+    const solid = bed("9");
     expect(computed(solid, "background-image"), "the seal has no lighting").not.toBe("none");
     for (const m of GLASS_MATERIALS) {
       const el = bed(m);
@@ -1326,7 +1327,7 @@ describe("convergence: over a calm bed, material is invisible (§10, 2026-08-16)
     // ground; since the lab port (2026-08-17) the lighting differs too, by design — glass is
     // grain + bloom (radial) + sheen (linear), the solid slab is matte grain + one sheen,
     // no bloom. The bloom layer is the discriminator this law reads.
-    const overBed = (m: "solid" | (typeof GLASS_MATERIALS)[number]) => {
+    const overBed = (m: Material) => {
       const host = render(
         <Theme material={m}>
           <div style={{ background: "var(--neutral-1)", padding: "24px" }}>
@@ -1336,12 +1337,12 @@ describe("convergence: over a calm bed, material is invisible (§10, 2026-08-16)
       );
       return host.querySelector<HTMLElement>(".kui-surface")!;
     };
-    const solid = overBed("solid");
+    const solid = overBed("9");
     expect(computed(solid, "backdrop-filter")).toBe("none");
     expect(computed(solid, "background-image"), "the matte slab grew a bloom").not.toContain(
       "radial-gradient",
     );
-    const glass = overBed("thick");
+    const glass = overBed("5");
     expect(computed(glass, "backdrop-filter"), "glass stopped filtering").not.toBe("none");
     expect(computed(glass, "background-image"), "glass lost its bloom").toContain(
       "radial-gradient",
@@ -1424,7 +1425,7 @@ describe("the render escape stays inside the pane scope (§5, §10 — audit 202
     // its own lens, versus on-glass for the identical markup spelled with children). The
     // scope now wraps the composed result, and the two spellings must be one answer.
     const host = render(
-      <Theme material="regular">
+      <Theme material="3">
         <Box backdrop>
           <Card
             render={
@@ -1441,7 +1442,7 @@ describe("the render escape stays inside the pane scope (§5, §10 — audit 202
     expect(computed(viaRender, "backdrop-filter"), "a second filter inside the pane").toBe("none");
 
     const twin = render(
-      <Theme material="regular">
+      <Theme material="3">
         <Box backdrop>
           <Card>
             <article>
@@ -1468,7 +1469,7 @@ describe("contrast=high leaves a GLASS pane's light alone — only the veil move
     // takes the alphaHigh floor, asserted here as the painted fill's alpha rising.
     const at = (contrast: "normal" | "high") =>
       mounted(<Card backdrop>B</Card>, {
-        theme: { material: "regular", appearance, contrast },
+        theme: { material: "3", appearance, contrast },
         select: ".kui-surface",
       });
     const alphaOf = (v: string): number => {

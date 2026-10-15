@@ -69,7 +69,7 @@ describe("a control in a floating band states its backdrop (§10, §27, §45)", 
      prop mean something. */
   const render = (name: string) =>
     renderToStaticMarkup(
-      <Theme material="regular">{React.createElement(EXAMPLES[name]!)}</Theme>,
+      <Theme material="3">{React.createElement(EXAMPLES[name]!)}</Theme>,
     );
 
   it("at least one shipped example has a floating band — or this law reads nothing", () => {

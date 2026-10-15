@@ -184,7 +184,7 @@ function usePaneDress(
   // content if it floats, the ground if it does not". The first half is true and the second
   // half was never true of a MATERIAL. A grounded pane sits on the app's ground, which is a
   // flat colour, and §10's selectivity is exactly the rule that a surface expresses glass only
-  // where something PASSES behind it. Measured under `material="regular"` before the change: a
+  // where something PASSES behind it. Measured under `material="3"` before the change: a
   // `flush={false}` content pane resolved a 49% white veil, `blur(4px) saturate(2.07)` and its
   // own lens map — the largest box in the app bending a flat fill, re-minted on every resize.
   //

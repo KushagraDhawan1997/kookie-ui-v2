@@ -7,7 +7,7 @@
 // (ENGINEERING §2), and a shared type is a mechanism.
 
 import { tones, type ToneName } from "../tokens/color-config.ts";
-import { fontSize, fontWeight, space } from "../tokens/config.ts";
+import { fontSize, fontWeight, space, GLASS_STEPS, type GlassStep } from "../tokens/config.ts";
 
 /** §4 — an index, not a measurement. Closed, because a scale with an escape is not a scale.
     A value list too, because the laws walk the index and were each spelling it out.
@@ -34,11 +34,22 @@ export type Emphasis = (typeof RUNGS)[number];
 
 /** §10 — backdrop defense: three designed thicknesses, like the emphasis ladder. `solid` is
     not a member — it is the seal, the absence of any material (the default, always safe). */
-export const MATERIALS = ["solid", "thin", "regular", "thick"] as const;
-export type Material = (typeof MATERIALS)[number];
+/** The material SCALE (2026-10-15): "1" is clear glass, each step stacks one more sheet of
+    the same glass, and "9" is solid — the seal, where light stops. Text's ladder length. The
+    old names are gone, not aliased: `thin` was step 2, `regular` step 3, `thick` step 5. */
+export const MATERIALS = ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
+export type MaterialStep = (typeof MATERIALS)[number];
+export type Material = MaterialStep;
 
-/** The thicknesses that actually paint a veil — `solid` is the absence of one. */
-export const GLASS_MATERIALS = MATERIALS.filter((m) => m !== "solid");
+/** The steps that are glass — "9" is solid, the absence of a veil. */
+export const GLASS_MATERIALS = MATERIALS.filter((m): m is Exclude<MaterialStep, "9"> => m !== "9");
+
+/** What an element stamps for a Theme material: its glass step (`g1`-`g8`), or `solid`. The
+    stamp carries a prefix so one selector, `[data-material^="g"]`, reaches every step. */
+export function glassStep(material: Material): GlassStep | "solid" {
+  return material === "9" ? "solid" : (`g${material}` as GlassStep);
+}
+export { GLASS_STEPS };
 
 /** ENGINEERING §3 — the adornment wrapper's value set. The shared layer keys rules on both the
     attribute's PRESENCE (wrapper layout, icon box, hosted geometry) and its VALUE (the pill

@@ -50,6 +50,7 @@ import {
   until,
 } from "../../test/browser.tsx";
 import type { Size } from "../../system/axes.ts";
+import type { Material } from "../../system/axes.ts";
 
 /** Every axis off its default — a dropped attribute is visible (the §20 constant, Select's
     set verbatim: seven axes, contrast included, because that is what ENGINEERING §2.1 names). */
@@ -63,7 +64,7 @@ const HOSTILE: ThemeProps = {
 };
 
 /** Mount an OPEN dialog under a themed root; LOUD when the panel never mounts. */
-function openDialog(theme: ThemeProps, opts: { size?: Size; material?: "thin" | "regular" | "thick"; body?: React.ReactNode } = {}) {
+function openDialog(theme: ThemeProps, opts: { size?: Size; material?: Material; body?: React.ReactNode } = {}) {
   render(
     <Theme {...theme} {...(opts.material ? { material: opts.material } : {})}>
       <Dialog defaultOpen {...(opts.size ? { size: opts.size } : {})}>
@@ -434,12 +435,12 @@ describe("a dialog does not float", () => {
   it("still answers `material` — the panel is glass, the scrim is unchanged", () => {
     // Kushagra, 2026-08-10: no cast, but material must be respected. Membership delivers it —
     // the surface layer's own rules — and this asserts the panel actually reached them.
-    const { popup, backdrop } = openDialog({ appearance: "light" }, { material: "regular" });
+    const { popup, backdrop } = openDialog({ appearance: "light" }, { material: "3" });
     // The declared chain, with the lens stripped: a displacement map is built for one box, so
     // its filter id is per-pane and cannot be compared against a token (§10, 2026-08-16). The
     // lens is asserted as its own fact rather than folded into this one.
     expect(computed(popup, "backdrop-filter").replace(/url\("[^"]*"\)\s*/, "")).toBe(
-      filterOn(popup, "--material-regular-filter"),
+      filterOn(popup, "--material-g3-filter"),
     );
     expect(computed(popup, "backdrop-filter"), "a glass panel wears the lens").toMatch(/^url\(/);
     expect(alphaOf(computed(popup, "background-color"))).toBeLessThan(1);

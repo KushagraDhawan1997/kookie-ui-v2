@@ -44,7 +44,7 @@ import type { ComponentPreview } from "./types";
     module on the server for its slug, and `themeAxes` is a client module's data — unreadable
     during server module evaluation. card.tsx carries the same note and the same reason, which
     is also why every section below is a component rather than a module-scope element tree. */
-const glassMaterials = () => themeAxes.material.filter((m) => m !== "solid");
+const glassMaterials = () => themeAxes.material.filter((m) => m !== "9");
 
 /** The two pointer worlds. `auto` is an instruction about where to look, not a value anything
     resolves to — pinning is how a desktop judges the coarse world at all. */
@@ -176,7 +176,7 @@ function Materials() {
           an opaque step. */}
       <Demo label="The same slider in a glass pane and on solid ground — only the grip's lift differs">
         <BedSurface bed={bed("photo")}>
-          <Theme material="regular">
+          <Theme material="3">
             <Card size="3" style={{ width: "240px" }}>
               <Stack gap="3">
                 <Text size="2" weight="medium">In the pane</Text>
@@ -184,7 +184,7 @@ function Materials() {
               </Stack>
             </Card>
           </Theme>
-          <Theme material="solid">
+          <Theme material="9">
             <Card size="3" style={{ width: "240px" }}>
               <Stack gap="3">
                 <Text size="2" weight="medium">On solid ground</Text>
@@ -205,7 +205,7 @@ function Materials() {
       {BEDS.map((b) => (
         <Demo key={b.id} label={b.name}>
           <BedSurface bed={b}>
-            <Theme material="solid">
+            <Theme material="9">
               <Card size="2" style={{ width: "200px" }}>
                 <Stack gap="3">
                   <Text size="2" weight="medium">Solid</Text>
@@ -241,7 +241,7 @@ function Permutations() {
       <Demo label="Size × material, all in a pane — is the flat grip still findable at size 1?">
         <BedSurface bed={bed("pattern")} minHeight="520px">
           <Grid columns="repeat(4, minmax(0, max-content))" gapX="5" gapY="5">
-            {(["solid", ...GLASS] as const).map((m) =>
+            {(["9", ...GLASS] as const).map((m) =>
               SIZES.map((size) => (
                 <Theme key={`${m}-${size}`} material={m}>
                   <Card size="2" style={{ width: "190px" }}>
@@ -369,7 +369,7 @@ function Nesting() {
               <Slider size="3" defaultValue={55} aria-label="On the page" />
             </Stack>
           </Box>
-          <Theme material="solid">
+          <Theme material="9">
             <Card size="3" style={{ width: "220px" }}>
               <Stack gap="3">
                 <Text size="2" weight="medium">In a card</Text>
@@ -377,7 +377,7 @@ function Nesting() {
               </Stack>
             </Card>
           </Theme>
-          <Theme material="thick">
+          <Theme material="5">
             <Card size="3" style={{ width: "220px" }}>
               <Stack gap="3">
                 <Text size="2" weight="medium">In a glass card</Text>
@@ -484,7 +484,7 @@ function InUse() {
           this one against the solid card above it. */}
       <Demo label="A glass inspector over the image it edits">
         <BedSurface bed={bed("ink")} minHeight="320px">
-          <Theme material="regular">
+          <Theme material="3">
             <Card size="3" style={{ width: "260px" }}>
               <Stack gap="6">
                 <Stack gap="2">

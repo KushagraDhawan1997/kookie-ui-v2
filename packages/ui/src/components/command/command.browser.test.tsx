@@ -761,7 +761,7 @@ describe("the machine is the package's, the list is the app's (§44, §33)", () 
        than against a literal, because what is claimed is that this is the app's material and not
        some value this component invented. */
     render(
-      <Theme material="regular">
+      <Theme material="3">
         <Command items={FLAT} defaultOpen size="2">
           <CommandContent aria-label="Command palette">
             <CommandInput aria-label="Search commands" placeholder="Search…" />
@@ -776,7 +776,7 @@ describe("the machine is the package's, the list is the app's (§44, §33)", () 
     const field = within(popup, ".kui-command-search");
 
     const bar = render(
-      <Theme material="regular">
+      <Theme material="3">
         <Box backdrop>
           <Card backdrop size="2">
             Twin
@@ -1833,7 +1833,7 @@ describe("nothing above a pane may carry a FILTER (§10, §24 — 2026-09-05)", 
     const { popup, panel } = open({ size: "2" });
     const pane = panel()!;
     // A glass palette, or there is no backdrop to lose and the law is about nothing.
-    render(<Theme material="regular" />);
+    render(<Theme material="3" />);
     const filters: string[] = [];
     for (let el: HTMLElement | null = pane; el && el !== popup.parentElement; el = el.parentElement) {
       if (el !== pane) filters.push(computed(el, "filter"));
@@ -1846,7 +1846,7 @@ describe("nothing above a pane may carry a FILTER (§10, §24 — 2026-09-05)", 
 
   it("and the panes really are glass, or the clause above is about nothing", () => {
     render(
-      <Theme material="regular">
+      <Theme material="3">
         <Command items={FLAT} defaultOpen size="2">
           <CommandContent aria-label="Command palette">
             <CommandInput aria-label="Search commands" />

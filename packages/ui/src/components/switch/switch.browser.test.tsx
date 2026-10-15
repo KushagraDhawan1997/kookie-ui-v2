@@ -701,7 +701,7 @@ describe("the API's closed edges (§3)", () => {
     // @ts-expect-error — the ON state's family is an identity, not an axis (§11)
     void (<Switch tone="destructive" />);
     // @ts-expect-error — a 24px capsule of blur is a 24px capsule (§10)
-    void (<Switch material="thin" />);
+    void (<Switch material="2" />);
     // @ts-expect-error — no margin prop on any control (first non-negotiable)
     void (<Switch m="4" />);
   });
@@ -761,7 +761,7 @@ describe("a grip in a glass pane goes flat — one lift (§5, §10, 2026-08-24)"
       // side. The stand-down arrives through the --kui-grip-cast hook, set by the pane rule
       // in surfaces.css — the keycap's own mechanism.
       const host = render(
-        <Theme appearance={appearance} material="regular">
+        <Theme appearance={appearance} material="3">
           <Card backdrop>
             <Switch defaultChecked aria-label="In pane" />
           </Card>

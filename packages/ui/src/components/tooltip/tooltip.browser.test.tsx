@@ -252,7 +252,7 @@ describe("the box is one line of words (§32)", () => {
     // which it cannot see and which would make one label two sizes. And the material defends a
     // foreground against what passes behind a pane; a tooltip defends itself by inverting, so a
     // veil on it would be a second defence on one 28px box.
-    const { popup } = openTooltip({ material: "thick" });
+    const { popup } = openTooltip({ material: "5" });
     // The index is FIXED at the smallest surface step, not absent: without a stamp the surface
     // join never fires and the pane falls back to a card's un-indexed corner — measured, 64.52px
     // on a 30px chip. What is refused is the PROP, and that refusal is a compile error

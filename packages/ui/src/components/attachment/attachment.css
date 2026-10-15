@@ -10,7 +10,7 @@
 
 /* AN ATTACHMENT DOES NOT CAST (§5, §10). The plane criterion: a tile in a strip is content
    on the composer's surface, not a second surface above it. Stated at (0,2,0) because the
-   material's transmitted cast is written at `.kui-surface[data-material="thin"]` and a
+   material's transmitted cast is written at `.kui-surface[data-material="g2"]` and a
    one-class selector would lose on specificity. `0 0 0 0 transparent`, never `none`. */
 .kui-surface.kui-attachment {
   --kui-sf-cast: 0 0 0 0 transparent;

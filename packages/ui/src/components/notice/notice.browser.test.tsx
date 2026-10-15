@@ -232,10 +232,10 @@ describe("a notice does not cast, and it does answer the material (§5, §10)", 
      */
     for (const depth of DEPTHS) {
       const notice = mounted(<Notice backdrop>Approaching weekly usage limit</Notice>, {
-        theme: { depth, material: "regular" },
+        theme: { depth, material: "3" },
       });
       expect(notice.getAttribute("data-material"), "the fixture never reached the glass rules").toBe(
-        "regular",
+        "g3",
       );
       // The expected list, spelled through the WORLD's inheriting name rather than the pane's
       // own `--kui-sf-pool` — that one is registered `inherits: false`, so a child probe reads
@@ -252,7 +252,7 @@ describe("a notice does not cast, and it does answer the material (§5, §10)", 
     // pane that establishes a plane. Read as the difference against that pane's own pool
     // rather than against a literal — the transmitted rows are FADED per thickness, so a
     // hard-coded alpha is a law about one tuning of the shadow palette.
-    const card = mounted(<Card backdrop>Body</Card>, { theme: { depth: "elevated", material: "regular" } });
+    const card = mounted(<Card backdrop>Body</Card>, { theme: { depth: "elevated", material: "3" } });
     const bare = document.createElement("div");
     bare.style.boxShadow = "var(--kui-surface-pool, 0 0 0 0 transparent), 0 0 0 0 transparent";
     card.append(bare);
@@ -264,13 +264,13 @@ describe("a notice does not cast, and it does answer the material (§5, §10)", 
   });
 
   it("a glass theme reaches it once it says content passes behind", () => {
-    const solid = mounted(<Notice>x</Notice>, { theme: { material: "regular" } });
+    const solid = mounted(<Notice>x</Notice>, { theme: { material: "3" } });
     // In flow with nothing behind it, a notice resolves solid and pays nothing (selectivity).
     expect(solid.getAttribute("data-material")).toBeNull();
     expect(computed(solid, "backdrop-filter")).toBe("none");
 
-    const glass = mounted(<Notice backdrop>x</Notice>, { theme: { material: "regular" } });
-    expect(glass.getAttribute("data-material")).toBe("regular");
+    const glass = mounted(<Notice backdrop>x</Notice>, { theme: { material: "3" } });
+    expect(glass.getAttribute("data-material")).toBe("g3");
     // `saturate`: a lensed row carries no `blur()` since 2026-09-21 (it is inside the lens).
     expect(computed(glass, "backdrop-filter")).toContain("saturate");
   });
@@ -300,7 +300,7 @@ describe("a notice does not cast, and it does answer the material (§5, §10)", 
         </Box>
       );
     }
-    const notice = mounted(<App />, { theme: { material: "regular" }, select: ".kui-notice" });
+    const notice = mounted(<App />, { theme: { material: "3" }, select: ".kui-notice" });
     await new Promise((resolve) => setTimeout(resolve, 200));
     const before = notice.style.getPropertyValue("--kui-lens");
     // THE PREMISE: a lens was really built, or "it did not change" is trivially true — the
@@ -327,7 +327,7 @@ describe("a notice does not cast, and it does answer the material (§5, §10)", 
           x
         </Notice>
       </Box>,
-      { theme: { material: "regular" }, select: ".kui-notice" },
+      { theme: { material: "3" }, select: ".kui-notice" },
     );
     const action = within(el, "button");
     expect(computed(el, "backdrop-filter")).toContain("saturate");

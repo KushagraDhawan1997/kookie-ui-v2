@@ -40,9 +40,8 @@
  */
 import * as React from "react";
 
-import type { Material } from "./axes.ts";
 import { ON_GLASS, type SurfaceMaterial } from "../theme/theme.tsx";
-import { glint } from "../tokens/config.ts";
+import { glint, glassFloatingFrost, type GlassStep } from "../tokens/config.ts";
 
 /** Signed distance to a rounded-rect border: negative inside, positive outside. */
 function sdRoundedRect(x: number, y: number, w: number, h: number, r: number): number {
@@ -207,7 +206,7 @@ const CONCAVE = true;
  * rung, then this. A law holds the ceiling: never more than the scrim blurs. Keyed on
  * `kui-floating`, the class every anchored panel wears.
  */
-export const floatingFrost: Record<LensThickness, number> = { thin: 0.75, regular: 2, thick: 3 };
+export const floatingFrost: Record<LensThickness, number> = glassFloatingFrost;
 /**
  * The most of a box's short side a lip may take (2026-09-21). The old bound was half the box,
  * which is all the room there is — and at the bend this ladder now carries, a lip that fills
@@ -331,7 +330,7 @@ export type LensParams = {
 
 /** The rungs that bend. `solid` is not a member — it is the seal, the absence of a
     material — and neither is `on-glass`, which declares no backdrop-filter to prepend to. */
-export type LensThickness = Exclude<Material, "solid">;
+export type LensThickness = GlassStep;
 
 /**
  * THE LENS IS THE COMPONENT'S, NOT THE RUNG'S (§10, 2026-09-23, Kushagra: "Controls and components
@@ -351,7 +350,7 @@ export type LensThickness = Exclude<Material, "solid">;
  *     bend runs further in and settles into the flat body gradually.
  *   - region (shell panes, sheet, composer): the pane's curve on twice its lip.
  *
- * EVERY FAMILY CARRIES THE THICK RUNG'S GLASS — depth 1.83× the lip, index 1.7, a 9% split — which
+ * EVERY FAMILY CARRIES THE THICK RUNG'S GLASS — depth 1.83× the lip, index 1.7, a 3% split (9% until 2026-10-15, Kushagra: "this glass shouldnt split RGB as much") — which
  * is the lens that was judged ("The bending was good before, its way too less now"): a first cut of
  * this model on circles, at a lower depth, bent about a fifth as far and was reverted within the
  * hour. What held through every round, and why:
@@ -372,10 +371,10 @@ export type LensThickness = Exclude<Material, "solid">;
  */
 export type LensScale = "control" | "rows" | "pane" | "region";
 export const lensFamily: Record<LensScale, LensParams> = {
-  control: { bezel: 18, thickness: 32.95, ior: 1.7, fringe: 9, boost: 1.32, lipShare: 0.5 },
-  rows: { bezel: 30, thickness: 54.9, ior: 1.7, fringe: 9, boost: 1.32 },
-  pane: { bezel: 36, thickness: 65.9, ior: 1.7, fringe: 9, boost: 2.2, profile: 3 },
-  region: { bezel: 72, thickness: 131.8, ior: 1.7, fringe: 9, boost: 2.2, profile: 3 },
+  control: { bezel: 18, thickness: 32.95, ior: 1.7, fringe: 3, boost: 1.32, lipShare: 0.5 },
+  rows: { bezel: 30, thickness: 54.9, ior: 1.7, fringe: 3, boost: 1.32 },
+  pane: { bezel: 36, thickness: 65.9, ior: 1.7, fringe: 3, boost: 2.2, profile: 3 },
+  region: { bezel: 72, thickness: 131.8, ior: 1.7, fringe: 3, boost: 2.2, profile: 3 },
 };
 
 /**

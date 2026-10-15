@@ -22,6 +22,7 @@ import {
   probeIn,
   within,
 } from "../test/browser.tsx";
+import { glassStep, type Material } from "./axes.ts";
 import { Button } from "../components/button/button.tsx";
 import { Card } from "../components/card/card.tsx";
 import { Checkbox } from "../components/checkbox/checkbox.tsx";
@@ -186,19 +187,19 @@ describe("a dead pane does not lift, and glass does not give the lift back (§5,
       <Card backdrop render={disabled ? <button disabled /> : <button />}>
         Body
       </Card>,
-      { theme: { appearance, material: material as "thin", depth: "elevated" } },
+      { theme: { appearance, material: material as Material, depth: "elevated" } },
     );
   }
 
   for (const appearance of APPEARANCES) {
-    for (const material of GLASS_MATERIALS) {
+    for (const material of GLASS_MATERIALS.filter((s) => s !== "1")) { // step 1 is clear: no veil to measure
       it(`${appearance}/${material}: the transmitted cast and the pool both go`, () => {
         const dead = pane(appearance, material, true);
         const live = pane(appearance, material, false);
         // The premise: the fixture reached the glass rules at all. Without a stamped material
         // both subjects resolve `solid`, the (0,2,0) rules that defeat the stand-down never
         // match, and this law measures the one cell that was always right.
-        expect(dead.getAttribute("data-material"), "the fixture never went glass").toBe(material);
+        expect(dead.getAttribute("data-material"), "the fixture never went glass").toBe(glassStep(material));
         expect(computed(dead, "box-shadow"), "a dead glass pane still lifts").toBe(noCast(dead));
         // The calibration: the same glass, alive, DOES cast — so "no shadow" is a removal here
         // and not a world that casts nothing.
@@ -211,7 +212,7 @@ describe("a dead pane does not lift, and glass does not give the lift back (§5,
 });
 
 describe("the dead fill is a VEIL on glass, never a veil of a veil (§10, 2026-08-19's rule)", () => {
-  for (const material of GLASS_MATERIALS) {
+  for (const material of GLASS_MATERIALS.filter((s) => s !== "1")) { // step 1 is clear: no veil to measure
     it(`${material}: the dead pane's veil is the thickness the ladder was judged at`, () => {
       const dead = mounted(
         <Card backdrop render={<button disabled />}>
@@ -225,7 +226,7 @@ describe("the dead fill is a VEIL on glass, never a veil of a veil (§10, 2026-0
         </Card>,
         { theme: { appearance: "light", material, depth: "elevated" } },
       );
-      expect(dead.getAttribute("data-material"), "the fixture never went glass").toBe(material);
+      expect(dead.getAttribute("data-material"), "the fixture never went glass").toBe(glassStep(material));
       // The claim, stated as an AGREEMENT rather than against a recomputed number: the veil is
       // the pane's thickness whatever colour the pane is wearing. `color-mix(src <alpha>,
       // transparent)` assumes an opaque source, so an alpha source multiplies — the dead step
@@ -258,13 +259,13 @@ describe("the dead fill is a VEIL on glass, never a veil of a veil (§10, 2026-0
         <Card backdrop render={<button disabled />}>
           Body
         </Card>,
-        { theme: { appearance: "light", material: "regular", depth: "elevated" } },
+        { theme: { appearance: "light", material: "3", depth: "elevated" } },
       );
       const live = mounted(
         <Card backdrop render={<button />}>
           Body
         </Card>,
-        { theme: { appearance: "light", material: "regular", depth: "elevated" } },
+        { theme: { appearance: "light", material: "3", depth: "elevated" } },
       );
       // The premise: the setting really is on, so this is the sealed path and not the glass one.
       expect(computed(dead, "backdrop-filter"), "the setting never reached the pane").toBe("none");
@@ -296,7 +297,7 @@ describe("the dead fill is a VEIL on glass, never a veil of a veil (§10, 2026-0
       <Card backdrop>
         <Checkbox />
       </Card>,
-      { theme: { appearance: "light", material: "regular" } },
+      { theme: { appearance: "light", material: "3" } },
     );
     const mark = within(glass, ".kui-checkbox");
     // The premise, and it is the whole mechanism: this member asks for no material of its own,
@@ -353,7 +354,7 @@ describe("the dead fill is a VEIL on glass, never a veil of a veil (§10, 2026-0
 /* ── ON GLASS: a member's lighting is its own (§10, 2026-08-26 audit) ──────────────────────── */
 
 describe("an on-glass member states its lighting, it does not inherit the pane's (§10)", () => {
-  function nested(material: "thin" | "regular" | "thick") {
+  function nested(material: Material) {
     const host = mounted(
       <Card backdrop>
         <Notice>Approaching the weekly limit</Notice>
@@ -368,8 +369,8 @@ describe("an on-glass member states its lighting, it does not inherit the pane's
   }
 
   it("a thin and a thick pane light alike, and so do their members", () => {
-    const thin = nested("thin");
-    const thick = nested("thick");
+    const thin = nested("2");
+    const thick = nested("5");
     // RE-KEYED 2026-09-23. The calibration here demanded that the two ANCESTORS wear different
     // rims — true while the sheen rose with thickness (a 19.04% bloom and a 13.6% sheen against
     // 35.7% and 25.5%), and exactly what the veil model deleted: the rung moves the veil and
@@ -385,12 +386,12 @@ describe("an on-glass member states its lighting, it does not inherit the pane's
   });
 
   it("and that recipe is the SOLID rim — a member renders its solid appearance (§10 clause 6)", () => {
-    const { inner } = nested("regular");
+    const { inner } = nested("3");
     const solid = mounted(<Card>Body</Card>, { theme: { appearance: "light" } });
     expect(computed(inner, "background-image")).toBe(computed(solid, "background-image"));
     // …and the pane it sits in does NOT wear that recipe, or the line above is comparing a
     // world with one rim in it against itself.
-    const { pane } = nested("regular");
+    const { pane } = nested("3");
     expect(computed(pane, "background-image")).not.toBe(computed(solid, "background-image"));
   });
 });
@@ -445,7 +446,7 @@ describe("a tone-forward pane keeps its family through the glass (§10)", () => 
   });
 
   for (const appearance of APPEARANCES) {
-    for (const material of GLASS_MATERIALS) {
+    for (const material of GLASS_MATERIALS.filter((s) => s !== "1")) { // step 1 is clear: no veil to measure
       it(`${appearance}/${material}: the veil is the designed one, and it is still red`, () => {
         const notice = (tone: "destructive" | "neutral") =>
           mounted(
@@ -495,4 +496,41 @@ describe("a tone-forward pane keeps its family through the glass (§10)", () => 
       });
     }
   }
+});
+
+describe("a glass pane hands its missing border back as padding (§10, 2026-10-15)", () => {
+  /* Glass stands the pane's border down BY WIDTH so the ring is its one edge (2026-08-27), and
+     that moved every pane's contents one border-width nearer the edge than on solid — invisible
+     while material was three far-apart names, a visible jump once it became a slider: stepping
+     8 → 9 shifted the docs' theme popover and everything in it by a pixel. The band comes back
+     as padding, so a pane's contents sit where they do on solid at every step.
+
+     Read as the CONTENT's offset from the pane's outer edge, glass against solid, with the
+     border width asserted to differ — the calibration that says the two fixtures really are
+     the two cases, since two solid cards agree by construction. Falsified by deleting
+     `--kui-sf-band: var(--border-width)` from the glass pane rule: every step moves by 1px. */
+  const offset = (material: Material) => {
+    const card = mounted(
+      <Card backdrop size="3">
+        <span data-t="probe">x</span>
+      </Card>,
+      { theme: { appearance: "light", material } },
+    );
+    const probe = within(card, '[data-t="probe"]').getBoundingClientRect();
+    const box = card.getBoundingClientRect();
+    return { card, x: probe.left - box.left, y: probe.top - box.top, w: box.width, h: box.height };
+  };
+
+  it("every glass step puts the content exactly where solid does", () => {
+    const solid = offset("9");
+    expect(computed(solid.card, "border-top-width"), "the solid fixture lost its border").not.toBe("0px");
+    for (const step of GLASS_MATERIALS) {
+      const glass = offset(step);
+      expect(glass.card.getAttribute("data-material"), `${step} never went glass`).toBe(glassStep(step));
+      expect(computed(glass.card, "border-top-width"), `${step} kept its border band`).toBe("0px");
+      expect(glass.x, `${step}: the content moved sideways`).toBeCloseTo(solid.x, 2);
+      expect(glass.y, `${step}: the content moved down`).toBeCloseTo(solid.y, 2);
+      expect(glass.h, `${step}: the pane changed height`).toBeCloseTo(solid.h, 2);
+    }
+  });
 });

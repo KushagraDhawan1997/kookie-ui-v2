@@ -1123,7 +1123,7 @@ describe("a side drawer PUSHES the frame; it does not cover it (§27, 2026-09-09
    */
   it("no drawer infers a material: unmarked is solid, sheet included; one that asked is glass", async () => {
     await narrow();
-    const plain = mounted(fixture(), { theme: { material: "regular" } });
+    const plain = mounted(fixture(), { theme: { material: "3" } });
     await userEvent.click(within(plain, ".kui-shell-header button"));
     await expect.poll(() => within(plain, ".kui-shell-sidebar").dataset.state).toBe("open");
     expect(
@@ -1138,17 +1138,17 @@ describe("a side drawer PUSHES the frame; it does not cover it (§27, 2026-09-09
 
     const asked = mounted(
       fixture({ sidebar: { backdrop: true }, bottom: { backdrop: true } }),
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     );
     await userEvent.click(within(asked, ".kui-shell-header button"));
     await expect.poll(() => within(asked, ".kui-shell-sidebar").dataset.state).toBe("open");
     expect(within(asked, ".kui-shell-sidebar").dataset.material, "the app asked and got nothing").toBe(
-      "regular",
+      "g3",
     );
     expect(
       within(asked, ".kui-shell-bottom").dataset.material,
       "the app asked for a glass sheet and got nothing",
-    ).toBe("regular");
+    ).toBe("g3");
   });
 });
 
@@ -2553,7 +2553,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
           </ShellSidebar>
           <ShellContent>c</ShellContent>
         </Shell>,
-        { theme: { material: "regular" }, select: ".kui-shell" },
+        { theme: { material: "3" }, select: ".kui-shell" },
       );
     expect(
       within(shellOf(), ".kui-shell-sidebar").dataset.material,
@@ -2562,7 +2562,7 @@ describe("the derivation: what a non-flush pane BECOMES is read off the content 
     expect(
       within(shellOf(true), ".kui-shell-sidebar").dataset.material,
       "the pane stated a backdrop and still resolved solid — the theme's glass is unreachable",
-    ).toBe("regular");
+    ).toBe("g3");
   });
 
   it("a FLUSH pane standing between a floating one and the content is not buried by it", () => {
@@ -3954,7 +3954,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
         </Shell>
         <Card>beside it</Card>
       </Box>,
-      { theme: { material: "regular" }, select: "[data-kui-backdrop], div" },
+      { theme: { material: "3" }, select: "[data-kui-backdrop], div" },
     );
     const root = host.closest(".kui-theme") ?? host;
     return {
@@ -3974,7 +3974,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
   it("inside a marked backdrop region both express the theme's material, identically", () => {
     const { pane, card } = paneAndCardIn(true);
     expect(card.dataset.material, "the reference Card did not express the theme's glass").toBe(
-      "regular",
+      "g3",
     );
     expect(pane.dataset.material, "the pane and the Card disagree over a backdrop").toBe(
       card.dataset.material,
@@ -3996,7 +3996,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
         </ShellSidebar>
         <ShellContent>c</ShellContent>
       </Shell>,
-      { theme: { material: "regular" }, select: ".kui-shell" },
+      { theme: { material: "3" }, select: ".kui-shell" },
     );
     const pane = within(shell, ".kui-shell-sidebar");
     const filter = computed(pane, "backdrop-filter");
@@ -4049,7 +4049,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
         </Shell>
       );
     }
-    const shell = mounted(<App />, { theme: { material: "regular" }, select: ".kui-shell" });
+    const shell = mounted(<App />, { theme: { material: "3" }, select: ".kui-shell" });
     const panes = [".kui-shell-sidebar", ".kui-shell-bottom"].map((sel) => within(shell, sel));
     // Settled rather than polled: the direct measurement and the ResizeObserver's own initial
     // record both land, and a poll that stops at the first map returns before the second.
@@ -4083,9 +4083,9 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
         </ShellSidebar>
         <ShellContent>c</ShellContent>
       </Shell>,
-      { theme: { material: "regular" }, select: ".kui-shell" },
+      { theme: { material: "3" }, select: ".kui-shell" },
     );
-    expect(within(shell, ".kui-shell-sidebar").dataset.material).toBe("regular");
+    expect(within(shell, ".kui-shell-sidebar").dataset.material).toBe("g3");
     expect(within(shell, ".kui-card").dataset.material).toBe("on-glass");
   });
 
@@ -4112,13 +4112,13 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
           b
         </ShellBottom>
       </Shell>,
-      { theme: { material: "regular" }, select: ".kui-shell" },
+      { theme: { material: "3" }, select: ".kui-shell" },
     );
     for (const name of ["header", "rail", "sidebar", "inspector", "bottom"]) {
       expect(
         within(shell, `.kui-shell-${name}`).dataset.material,
         `${name} did not express the theme's material for a backdrop it stated`,
-      ).toBe("regular");
+      ).toBe("g3");
     }
   });
 
@@ -4141,12 +4141,12 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
             <ShellContent>c</ShellContent>
           </Shell>
         </Box>,
-        { theme: { material: "regular" }, select: ".kui-shell" },
+        { theme: { material: "3" }, select: ".kui-shell" },
       );
       expect(
         within(shell, ".kui-shell-sidebar").dataset.material,
         "the marked region never reached the panes, so the content's silence proves nothing",
-      ).toBe("regular");
+      ).toBe("g3");
       expect(
         within(shell, ".kui-shell-content").dataset.material,
         "the work area took glass from a region marked around the whole frame",
@@ -4164,9 +4164,9 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
           </ShellSidebar>
           <ShellContent flush={false}>c</ShellContent>
         </Shell>,
-        { theme: { material: "regular" }, select: ".kui-shell" },
+        { theme: { material: "3" }, select: ".kui-shell" },
       );
-      expect(within(shell, ".kui-shell-sidebar").dataset.material).toBe("regular");
+      expect(within(shell, ".kui-shell-sidebar").dataset.material).toBe("g3");
       expect(
         within(shell, ".kui-shell-content").dataset.material,
         "a grounded work area resolved glass over the app's flat ground",
@@ -4183,13 +4183,13 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
             <Card backdrop>over the canvas</Card>
           </ShellContent>
         </Shell>,
-        { theme: { material: "regular" }, select: ".kui-shell" },
+        { theme: { material: "3" }, select: ".kui-shell" },
       );
       expect(within(shell, ".kui-shell-content").dataset.material).toBeUndefined();
       expect(
         within(shell, ".kui-card").dataset.material,
         "a solid pane refused to host the glass composed inside it",
-      ).toBe("regular");
+      ).toBe("g3");
     });
   });
 
@@ -4233,12 +4233,12 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
           </ShellBottom>
           <ShellContent>c</ShellContent>
         </Shell>,
-        { theme: { material: "regular" }, select: ".kui-shell" },
+        { theme: { material: "3" }, select: ".kui-shell" },
       );
       expect(
         within(shell, ".kui-shell-bottom").dataset.material,
         "a sheet stated `backdrop` and got nothing",
-      ).toBe("regular");
+      ).toBe("g3");
       expect(
         within(shell, ".kui-shell-rail").dataset.material,
         "a pane IN THE FRAME took glass it never asked for — the control, and the whole point",
@@ -4257,7 +4257,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
           </ShellBottom>
           <ShellContent>c</ShellContent>
         </Shell>,
-        { theme: { material: "regular" }, select: ".kui-shell" },
+        { theme: { material: "3" }, select: ".kui-shell" },
       );
       expect(
         within(silent, ".kui-shell-bottom").dataset.material,
@@ -4292,7 +4292,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
           </ShellBottom>
           <ShellContent>c</ShellContent>
         </Shell>,
-        { theme: { material: "regular" }, select: ".kui-shell" },
+        { theme: { material: "3" }, select: ".kui-shell" },
       );
       const silent = mounted(
         <Shell contained style={{ height: 600 }}>
@@ -4301,7 +4301,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
           </ShellBottom>
           <ShellContent>c</ShellContent>
         </Shell>,
-        { theme: { material: "regular" }, select: ".kui-shell" },
+        { theme: { material: "3" }, select: ".kui-shell" },
       );
       const askedSheet = within(asked, ".kui-shell-bottom");
       const silentSheet = within(silent, ".kui-shell-bottom");
@@ -4310,7 +4310,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
       // to a drawer at this width, so the old inference would have fired here.
       await expect.poll(() => computed(askedSheet, "position"), { timeout: 1000 }).toBe("absolute");
       expect(askedSheet.dataset.material, "a stated backdrop did not reach a phone's sheet").toBe(
-        "regular",
+        "g3",
       );
       expect(
         silentSheet.dataset.material,
@@ -4323,7 +4323,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
       expect(
         askedSheet.dataset.material,
         "a stated backdrop stopped meaning glass on a wide window",
-      ).toBe("regular");
+      ).toBe("g3");
       expect(
         silentSheet.dataset.material,
         "an unmarked sheet found glass on a wide window",
@@ -4355,7 +4355,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
           </ShellBottom>
           <ShellContent>c</ShellContent>
         </Shell>,
-        { theme: { material: "regular" }, select: ".kui-shell" },
+        { theme: { material: "3" }, select: ".kui-shell" },
       );
       expect(
         within(shell, ".kui-shell-bottom").dataset.material,
@@ -4374,12 +4374,12 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
             <ShellContent>c</ShellContent>
           </Shell>
         </Box>,
-        { theme: { material: "regular" }, select: ".kui-shell" },
+        { theme: { material: "3" }, select: ".kui-shell" },
       );
       expect(
         within(inRegion, ".kui-shell-bottom").dataset.material,
         "an unset sheet ignored the region it was composed inside",
-      ).toBe("regular");
+      ).toBe("g3");
 
       const refusing = mounted(
         <Box backdrop>
@@ -4390,7 +4390,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
             <ShellContent>c</ShellContent>
           </Shell>
         </Box>,
-        { theme: { material: "regular" }, select: ".kui-shell" },
+        { theme: { material: "3" }, select: ".kui-shell" },
       );
       expect(
         within(refusing, ".kui-shell-bottom").dataset.material,
@@ -4413,10 +4413,10 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
           </ShellBottom>
           <ShellContent>c</ShellContent>
         </Shell>,
-        { theme: { material: "regular" }, select: ".kui-shell" },
+        { theme: { material: "3" }, select: ".kui-shell" },
       );
       // The premise: the pane really is glass, or `on-glass` below is a claim about nothing.
-      expect(within(shell, ".kui-shell-bottom").dataset.material).toBe("regular");
+      expect(within(shell, ".kui-shell-bottom").dataset.material).toBe("g3");
       expect(within(shell, ".kui-card").dataset.material).toBe("on-glass");
     });
 
@@ -4457,7 +4457,7 @@ describe("material reaches the panes as it reaches a Card (§10, §27)", () => {
           </ShellBottom>
           <ShellContent>c</ShellContent>
         </Shell>,
-        { theme: { material: "regular" }, select: ".kui-shell" },
+        { theme: { material: "3" }, select: ".kui-shell" },
       );
       // The reference is the SEAL a solid drawer paints in the same shell at the same size and
       // the same POSTURE: a translucent veil cannot be it, and reading against a literal would
@@ -4782,7 +4782,7 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
           <ShellScroll>content</ShellScroll>
         </ShellContent>
       </Shell>,
-      { theme: props?.backdrop ? { material: "regular" } : {}, select: ".kui-shell" },
+      { theme: props?.backdrop ? { material: "3" } : {}, select: ".kui-shell" },
     );
 
   /**
@@ -4958,7 +4958,7 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
 
     for (const pane of [pill, action]) {
       expect(pane.classList.contains("kui-surface"), "a pane of the bar is not a surface").toBe(true);
-      expect(pane.dataset.material, "a pane of the bar is not glass").toBe("regular");
+      expect(pane.dataset.material, "a pane of the bar is not glass").toBe("g3");
     }
     expect(
       computed(pill, "background-color"),
@@ -5325,7 +5325,7 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
     expect(
       within(glass, ".kui-shell-rail-list").dataset.material,
       "the pill is not glass here",
-    ).toBe("regular");
+    ).toBe("g3");
     expect(
       alpha(computed(within(glass, ".kui-shell-rail-thumb"), "background-color")),
       "an opaque grip on a glass bar",

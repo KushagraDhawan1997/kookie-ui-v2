@@ -42,7 +42,7 @@ Every legal value. A value outside these lists does not compile.
 - `size` — `1` · `2` · `3` · `4`
 - `tone` — `neutral` · `accent` · `destructive` · `blue` · `green` · `orange` · `amber` · `success` · `warning` · `info`
 - `emphasis` — `loud` · `medium` · `quiet`
-- `material` — `solid` · `thin` · `regular` · `thick`
+- `material` — `1` · `2` · `3` · `4` · `5` · `6` · `7` · `8` · `9`
 - `weight` — `regular` · `medium` · `semibold`
 - `typeSize` — `1` · `2` · `3` · `4` · `5` · `6` · `7` · `8` · `9`
 - `space` — `1` · `2` · `3` · `4` · `5` · `6` · `7` · `8` · `9` · `10` · `11` · `12`
@@ -61,7 +61,7 @@ The default is in brackets.
 - `size` — `1` · `2` · `3` · `4` (default `2`)
 - `pointer` — `fine` · `coarse` · `auto` (default `auto`)
 - `depth` — `flat` · `elevated` (default `elevated`)
-- `material` — `solid` · `thin` · `regular` · `thick` (default `solid`)
+- `material` — `1` · `2` · `3` · `4` · `5` · `6` · `7` · `8` · `9` (default `9`)
 
 ### Responsive tiers
 

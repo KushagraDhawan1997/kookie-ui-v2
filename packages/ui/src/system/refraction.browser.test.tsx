@@ -29,6 +29,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../components/popover/p
 import { Theme } from "../theme/theme.tsx";
 import { GLASS_MATERIALS, lensBlurOf, render, until } from "../test/browser.tsx";
 import { glint } from "../tokens/config.ts";
+import { glassStep } from "./axes.ts";
 import {
   __genPaths,
   bendAt,
@@ -339,7 +340,7 @@ describe("the seal stops the JavaScript, not only the CSS (§10)", () => {
       await rt(true);
       const before = filterCount();
       const host = render(
-        <Theme material="regular">
+        <Theme material="3">
           <Card backdrop style={{ width: 431, height: 293 }}>
             sealed
           </Card>
@@ -381,7 +382,7 @@ describe("the seal stops the JavaScript, not only the CSS (§10)", () => {
         features: [{ name: "prefers-contrast", value: "more" }],
       });
       const host = render(
-        <Theme material="regular">
+        <Theme material="3">
           <Card backdrop style={{ width: 433, height: 291 }}>
             contrast
           </Card>
@@ -416,7 +417,7 @@ describe("a mask is minted only where something samples it (§10, 2026-08-26)", 
    */
   it("the atom family mints none, and the families that paint one still do", async () => {
     const host = render(
-      <Theme material="regular">
+      <Theme material="3">
         <Chip backdrop>New</Chip>
         <Button backdrop>Go</Button>
         <Card backdrop style={{ width: 320, height: 200 }}>
@@ -433,7 +434,7 @@ describe("a mask is minted only where something samples it (§10, 2026-08-26)", 
     // is not really glass would satisfy this law with the gate deleted. Measured while writing
     // it: the first fixture put the chip INSIDE the glass Card and read `data-material:
     // "on-glass"`, glint 0, from code that had not been changed yet.
-    expect(chip.getAttribute("data-material"), "the chip is not glass — the fixture is the defect").toBe("regular");
+    expect(chip.getAttribute("data-material"), "the chip is not glass — the fixture is the defect").toBe("g3");
     expect(getComputedStyle(chip).backdropFilter, "the chip resolved no material chain").not.toBe("none");
 
     expect(await until(() => pane.style.getPropertyValue("--kui-glint") !== ""), "the pane never measured").toBe(true);
@@ -496,7 +497,7 @@ describe("the lens bends the corner the box paints, not a circle standing in for
        A Card at the card band would be the degenerate fixture: 5px of divergence is inside the
        tolerance any reading of a feathered band needs. */
     const root = render(
-      <Theme material="thick" appearance="dark">
+      <Theme material="5" appearance="dark">
         <Card size="4" backdrop style={{ inlineSize: "560px", blockSize: "160px" }}>
           pane
         </Card>
@@ -638,7 +639,7 @@ describe("a floating pane's lens blurs by the rung's frost, and nothing else blu
       expect(card.classList.contains("kui-floating")).toBe(false);
 
       expect(blurOf(card)).toBe(0);
-      expect(blurOf(popup)).toBeCloseTo(floatingFrost[material], 5);
+      expect(blurOf(popup)).toBeCloseTo((floatingFrost as Record<string, number>)[glassStep(material)]!, 5);
       // And the blur runs on the SOURCE, BEFORE the bend (the mirror pass, 2026-09-21): the chain
       // is `lens, then filter`, so a blur after the displacement erases the lip it paid for.
       const id = getComputedStyle(popup).backdropFilter.match(/url\("?#([^")]+)/)![1]!;
@@ -666,12 +667,12 @@ describe("a thin and a thick pane bend alike (§10)", () => {
     const box = { inlineSize: "20rem", blockSize: "12rem" };
     render(
       <>
-        <Theme material="thin">
+        <Theme material="2">
           <Card backdrop data-t="thin" style={box}>
             pane
           </Card>
         </Theme>
-        <Theme material="thick">
+        <Theme material="5">
           <Card backdrop data-t="thick" style={box}>
             pane
           </Card>
@@ -685,8 +686,8 @@ describe("a thin and a thick pane bend alike (§10)", () => {
     const lensId = (el: Element) => getComputedStyle(el).backdropFilter.match(/url\("?#([^")]+)/)?.[1];
     expect(await until(() => ["thin", "thick", "other"].every((t) => lensId(at(t)))), "a card never took its lens").toBe(true);
     // The premise: the two really are different rungs.
-    expect(at("thin").dataset["material"]).toBe("thin");
-    expect(at("thick").dataset["material"]).toBe("thick");
+    expect(at("thin").dataset["material"]).toBe("g2");
+    expect(at("thick").dataset["material"]).toBe("g5");
     expect(lensId(at("thin")), "the rung reached the lens").toBe(lensId(at("thick")));
     expect(lensId(at("other")), "every pane shares one filter — the instrument cannot tell lenses apart").not.toBe(
       lensId(at("thick")),

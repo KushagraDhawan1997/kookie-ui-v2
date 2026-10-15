@@ -602,13 +602,13 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
   });
 
   it("material re-derives the seal as glass, with no CSS of its own (§10)", () => {
-    const glass = mounted(<TextField backdrop />, { theme: { material: "regular" } });
+    const glass = mounted(<TextField backdrop />, { theme: { material: "3" } });
     // Derived, not restated: the radius is config's to move (2026-08-16).
     // The CONTROL cell's row under the lens (control-scale material, lab port 2026-08-17).
     // It named the row's `blur()` until 2026-09-21; the blur is inside the lens now, so the
     // chain is read whole against the token, lens stripped.
     expect(computed(glass, "backdrop-filter").replace(/url\("[^"]*"\)\s*/, "")).toBe(
-      probeIn(glass, (el) => (el.style.backdropFilter = "var(--material-regular-control-filter)"), (s) => s.backdropFilter),
+      probeIn(glass, (el) => (el.style.backdropFilter = "var(--material-g3-control-filter)"), (s) => s.backdropFilter),
     );
     // The veil is the field's OWN fill made translucent — the fill-modifier model, reached
     // through the shared control layer without text-field.css naming material once.
@@ -616,7 +616,7 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
       colorOn(glass, // The OPAQUE twin, not the alpha dress (2026-08-19): the veil multiplies an alpha
         // source, so the glass scopes re-point the sources to the same rung said opaquely —
         // a glass field's designed veil measured 4.1% before (audit 2026-08-18).
-        "color-mix(in srgb, var(--dress-field-fill-solid) var(--material-regular-control-alpha), transparent)"),
+        "color-mix(in srgb, var(--dress-field-fill-solid) var(--material-g3-control-alpha), transparent)"),
     );
     expect(computed(glass, "background-color")).not.toMatch(/^rgb\(/);
   });
@@ -628,17 +628,17 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     // world they cast the CONTROL row transmitted, fainter than a solid field's.
     // depth pinned FLAT here (lab port 2026-08-17: the default flipped to elevated, the
     // radius-flip precedent) — this arm is about a flat world's glass never floating.
-    const glass = mounted(<TextField backdrop />, { theme: { depth: "flat", material: "thin" } });
+    const glass = mounted(<TextField backdrop />, { theme: { depth: "flat", material: "2" } });
     // THE EDGE IS THE RING (2026-08-24, the glass lock — Kushagra: "the border is weird,
     // see how card does it, button does it"), AND SINCE 2026-09-02 IT IS ON THE SAME ANNULUS.
-    // This line first asserted the flat --material-thin-edge, which was the defect stated as
+    // This line first asserted the flat --material-g2-edge, which was the defect stated as
     // a guarantee. Then the ring arrived as a background layer clipped to the border band,
     // because a <textarea> renders no generated content and the family shares one spelling —
     // and that band IS the outer boundary, so the lip had the world on one side of it rather
     // than veil on both. TextArea grew a wrapper on 2026-08-25 and the constraint died with
     // it. Asserted as the AGREEMENT with a glass Button's own ring: the resolved conic a
     // Button's ::after paints must be the conic this field's ::after paints.
-    const glassBtn = mounted(<Button backdrop>b</Button>, { theme: { depth: "flat", material: "thin" } });
+    const glassBtn = mounted(<Button backdrop>b</Button>, { theme: { depth: "flat", material: "2" } });
     const ring = getComputedStyle(glassBtn, "::after").backgroundImage;
     expect(ring).toContain("gradient(");
     expect(getComputedStyle(glass, "::after").content, "the wrapper grew no annulus").not.toBe("none");
@@ -664,13 +664,13 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     expect(computed(glass, "box-shadow")).toBe(computed(noop, "box-shadow"));
     noop.remove();
 
-    const elevated = mounted(<TextField backdrop />, { theme: { depth: "elevated", material: "thin" } });
+    const elevated = mounted(<TextField backdrop />, { theme: { depth: "elevated", material: "2" } });
     const solid = mounted(<TextField />, { theme: { depth: "elevated" } });
     const probe = document.createElement("div");
     // The pool leads the transmitted row in the ONE list (lab port 2026-08-17). The field kept
     // the pool ALONE from 2026-08-17 to 2026-09-23 and casts again since: over content it is a
     // small pane, not a well. The solid twin below keeps this honest: it must not cast at all.
-    probe.style.boxShadow = "var(--material-pool-control), var(--control-chrome-thin)";
+    probe.style.boxShadow = "var(--material-pool-control), var(--control-chrome-g2)";
     elevated.append(probe);
     expect(computed(elevated, "box-shadow")).toBe(computed(probe, "box-shadow"));
     expect(computed(elevated, "box-shadow")).not.toBe("none");
@@ -682,9 +682,9 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     // The glass edge routes through one private name exactly so these two arms can stand it
     // down with one line each — without this, the brightest hairline in the field's world
     // would keep painting over the error signal.
-    const invalid = mounted(<TextField backdrop aria-invalid="true" />, { theme: { material: "thin" } });
+    const invalid = mounted(<TextField backdrop aria-invalid="true" />, { theme: { material: "2" } });
     expect(computed(invalid, "border-top-color")).toBe(colorOn(invalid, "var(--invalid-edge)"));
-    const disabled = mounted(<TextField backdrop disabled />, { theme: { material: "thin" } });
+    const disabled = mounted(<TextField backdrop disabled />, { theme: { material: "2" } });
     expect(computed(disabled, "border-top-color")).toBe(colorOn(disabled, "var(--disabled-border)"));
     // And the RING dies with the edge (2026-08-24): both arms stand --kui-ct-glass-ring down
     // beside --kui-ct-glass-edge, or the error border would paint UNDER a ring of light.
@@ -709,7 +709,7 @@ describe("the app's identities reach the field without it knowing (§5, §10)", 
     // what it wears in standard, on a more sealed veil; the STATE arms above keep their
     // ring stand-down, because a state is a signal and outranks dress at every contrast.
     const at = (contrast: "normal" | "high") =>
-      mounted(<TextField backdrop />, { theme: { material: "thin", contrast } });
+      mounted(<TextField backdrop />, { theme: { material: "2", contrast } });
     const normal = at("normal");
     const high = at("high");
     // The border is identical at both contrasts — in the border-area engine that is
@@ -836,7 +836,7 @@ describe("a control inside a glass control paints its OWN fill (§2, §10)", () 
   // press — unblurred, reading as one flat shape rather than a control inside a container.
   it("a Button in a material field does not inherit the field's veil", () => {
     const field = mounted(<TextField backdrop trailing={<Button size="1">Show</Button>} />, {
-      theme: { material: "regular" },
+      theme: { material: "3" },
     });
     const button = field.querySelector("button")!;
     // The claim is that it does not take the FIELD's veil, not that it is opaque: a hosted
@@ -849,7 +849,7 @@ describe("a control inside a glass control paints its OWN fill (§2, §10)", () 
 
   it("and it does not inherit the blur either — one glass per stack (§10)", () => {
     const field = mounted(<TextField backdrop trailing={<Button size="1">Show</Button>} />, {
-      theme: { material: "regular" },
+      theme: { material: "3" },
     });
     expect(computed(field.querySelector("button")!, "backdrop-filter")).toBe("none");
     // The negative control the CSS-only version could not have: the field itself must still be
@@ -864,9 +864,9 @@ describe("a control inside a glass control paints its OWN fill (§2, §10)", () 
     // stronger claim than "its computed fill differs", and the one that survives a rewrite of
     // the CSS: whatever the stylesheet does, the button is not asking to be glass.
     const field = mounted(<TextField backdrop trailing={<Button size="1">Show</Button>} />, {
-      theme: { material: "regular" },
+      theme: { material: "3" },
     });
-    expect(field.dataset["material"]).toBe("regular");
+    expect(field.dataset["material"]).toBe("g3");
     expect(field.querySelector("button")!.dataset["material"]).toBe("on-glass");
   });
 });
@@ -1022,7 +1022,7 @@ describe("a glass field's fill really does not move (§10)", () => {
     // The three fill SOURCES were pinned to one colour, and that was still not enough: a fill
     // modifier mixes the source toward transparent on a ramp of its own, so what moved was the
     // mix. In light at `regular` that ramp is 64% -> 72% -> 80% of the same white.
-    const glass = mounted(<TextField backdrop />, { theme: { material: "regular" } });
+    const glass = mounted(<TextField backdrop />, { theme: { material: "3" } });
     // THE PIN IS GONE (2026-08-17). Its reason was real and is now spent: the 2026-08-05 ramp
     // moved the MIX (64% -> 72% -> 80% of one colour), so a field lightened under a pointer
     // that only crossed it. Control-scale material replaced that ramp with ONE alpha and
@@ -1044,7 +1044,7 @@ describe("a glass field's fill really does not move (§10)", () => {
     expect(stateFill(button, "hover")).not.toBe(computed(button, "background-color"));
     // Including one that DOES derive a fill, which is the case the pin could actually reach.
     const glassButton = mounted(<Button emphasis="medium">Save</Button>, {
-      theme: { material: "regular" },
+      theme: { material: "3" },
     });
     expect(stateFill(glassButton, "hover")).not.toBe(computed(glassButton, "background-color"));
   });

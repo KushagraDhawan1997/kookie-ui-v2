@@ -61,7 +61,7 @@ import type { ComponentPreview } from "./types";
     module on the server for its slug, and `themeAxes` is a client module's data, unreadable
     during server module evaluation. card.tsx carries the same note and the same reason, which
     is also why every section below is a component rather than a module-scope element tree. */
-const glassMaterials = () => themeAxes.material.filter((m) => m !== "solid");
+const glassMaterials = () => themeAxes.material.filter((m) => m !== "9");
 
 /** Every radius level, same derivation and same reason. The default is `full` (2026-08-09), so
     a demo that pins a level is stating what the panel would otherwise be saying. */
@@ -386,7 +386,7 @@ function Materials() {
       {BEDS.map((b) => (
         <Demo key={b.id} label={b.name}>
           <BedSurface bed={b}>
-            <Theme material="solid">
+            <Theme material="9">
               <Stack gap="2" style={{ width: "190px" }}>
                 <Text size="1" emphasis="quiet">Solid</Text>
                 <TextArea backdrop rows={3} defaultValue={PARAGRAPH} aria-label={`Solid on ${b.name}`} />
@@ -418,7 +418,7 @@ function Permutations() {
       <Demo label="Size × material — over the pattern">
         <BedSurface bed={bed("pattern")} minHeight="auto">
           <Grid columns="repeat(4, minmax(0, 1fr))" gapX="5" gapY="5" align="flex-start" style={{ width: "100%" }}>
-            {(["solid", ...GLASS] as const).map((m) =>
+            {(["9", ...GLASS] as const).map((m) =>
               SIZES.map((size) => (
                 <Theme key={`${m}-${size}`} material={m}>
                   <Stack gap="2">
@@ -482,7 +482,7 @@ function Permutations() {
           dead box indistinguishable from a live one. */}
       <Demo label="Rest, invalid, disabled, read only — on glass, over a dark bed">
         <BedSurface bed={bed("bloom")} minHeight="auto">
-          <Theme material="regular">
+          <Theme material="3">
             <Grid columns="repeat(4, minmax(0, 1fr))" gapX="5" gapY="5" align="flex-start" style={{ width: "100%" }}>
               {(
                 [
@@ -604,7 +604,7 @@ function Nesting() {
           `backdrop`, so it is opaque, and that is correct — the card spent the backdrop. */}
       <Demo label="Inside a glass card — one glass per stack, so the area under it is solid">
         <BedSurface bed={bed("photo")}>
-          <Theme material="regular">
+          <Theme material="3">
             <Card size="3" style={{ width: "340px" }}>
               <Stack gap="4">
                 <Stack gap="2">

@@ -46,42 +46,40 @@ describe("the field family's glass has one spelling, and it is the family's own"
     }
   });
 
-  for (const thickness of GLASS_MATERIALS) {
-    it(`${thickness}: both members are on the annulus and on the band, beside the button`, () => {
-      // The rules name their members by hand, so this reads the SELECTOR LISTS. The claim is
-      // not "a field has a ring" (a browser law says that, better) — it is that the field and
-      // the textarea are on the SAME lists as the member whose geometry they are copying, so
-      // one of them cannot be forgotten the way the segmented track was left off the rim list
-      // in the 2026-08-26 audit.
-      for (const [what, rule] of [
-        ["lip", `::after`],
-        ["band", `::before`],
-      ] as const) {
-        const anchor = `.kui-button:where([data-material="${thickness}"])${rule}`;
-        const at = recipes.indexOf(anchor);
-        expect(at, `no button ${what} rule for ${thickness} — the anchor moved`).toBeGreaterThan(-1);
-        // The whole selector list this rule belongs to: back to the previous `}` and forward
-        // to the `{`. Brace-anchored rather than sliced by line, so a reformat cannot make it
-        // read a fragment (the `slice(indexOf)` failure this repo replaced its parsers over).
-        const open = recipes.indexOf("{", at);
-        const list = recipes.slice(recipes.lastIndexOf("}", at) + 1, open);
-        expect(list, `the field is not on the ${thickness} ${what} list`).toContain(
-          `.kui-field:where([data-material="${thickness}"])${rule}`,
-        );
-        expect(list, `the textarea is not on the ${thickness} ${what} list`).toContain(
-          `.kui-textarea:where([data-material="${thickness}"])${rule}`,
-        );
-      }
-    });
-  }
+  it("both members are on the annulus and on the band, beside the button", () => {
+    // The rules name their members by hand, so this reads the SELECTOR LISTS. The claim is
+    // not "a field has a ring" (a browser law says that, better) — it is that the field and
+    // the textarea are on the SAME lists as the member whose geometry they are copying, so
+    // one of them cannot be forgotten the way the segmented track was left off the rim list
+    // in the 2026-08-26 audit. One list per part since the material scale (2026-10-15): the
+    // glass rules select every step by the stamp's prefix.
+    const glass = '[data-material^="g"]';
+    for (const [what, rule] of [
+      ["lip", `::after`],
+      ["band", `::before`],
+    ] as const) {
+      const anchor = `.kui-button:where(${glass})${rule}`;
+      const at = recipes.indexOf(anchor);
+      expect(at, `no button ${what} rule — the anchor moved`).toBeGreaterThan(-1);
+      // The whole selector list this rule belongs to: back to the previous `}` and forward
+      // to the `{`. Brace-anchored rather than sliced by line, so a reformat cannot make it
+      // read a fragment (the `slice(indexOf)` failure this repo replaced its parsers over).
+      const open = recipes.indexOf("{", at);
+      const list = recipes.slice(recipes.lastIndexOf("}", at) + 1, open);
+      expect(list, `the field is not on the ${what} list`).toContain(`.kui-field:where(${glass})${rule}`);
+      expect(list, `the textarea is not on the ${what} list`).toContain(`.kui-textarea:where(${glass})${rule}`);
+    }
+  });
 
   it("the border stands transparent for the family, so the lip is never a second line", () => {
     // §10, 2026-08-07: one line, never two. The annulus paints inside the border box, so a
     // live border beside it is the doubled-edge defect — the reason the button pins its own
     // border transparent, said once for the family that used to get it from the fork.
-    const at = recipes.indexOf(`.kui-field:where([data-material="thin"], [data-material="regular"], [data-material="thick"]),`);
-    expect(at, "the family's glass block is gone").toBeGreaterThan(-1);
-    const body = recipes.slice(at, recipes.indexOf("}", at));
+    const lists = [...recipes.matchAll(/\.kui-field:where\(\[data-material\^="g"\]\),/g)].map((m) =>
+      recipes.slice(m.index, recipes.indexOf("}", m.index)),
+    );
+    const body = lists.find((b) => b.includes("--kui-ct-glass-edge")) ?? "";
+    expect(body, "the family's glass block is gone").not.toBe("");
     expect(body).toContain(".kui-textarea:where(");
     expect(body).toContain("--kui-ct-glass-edge: transparent;");
   });

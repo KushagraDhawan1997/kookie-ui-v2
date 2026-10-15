@@ -19,6 +19,7 @@
 import { describe, expect, it } from "vitest";
 
 import { APPEARANCES, GLASS_MATERIALS, asksForContrast, asksForSolidity, colorOn, computed, mounted, render, until } from "../test/browser.tsx";
+import { glassStep } from "./axes.ts";
 import { Card } from "../components/card/card.tsx";
 import { Button } from "../components/button/button.tsx";
 import { Row } from "../components/row/row.tsx";
@@ -97,7 +98,7 @@ describe("a glass pane's ring draws a boundary on the ground it sits on (§10)",
         // rgba(0, 0, 0, 0) and every parse below finds one stop. The first draft of this law
         // did exactly that and failed on correct code — read it where it is actually used,
         // as a background-image.
-        const ring = imageOn(card, `var(--material-${thickness}-ring)`);
+        const ring = imageOn(card, `var(--material-${glassStep(thickness)}-ring)`);
         // The resolved gradient string, with its colour stops read back out. Reading the
         // STOPS rather than the token name is the whole point: the old value was a perfectly
         // valid ring that happened to be the colour of the thing behind it.
@@ -128,8 +129,8 @@ describe("a glass pane's ring draws a boundary on the ground it sits on (§10)",
     //
     // Stated as the shared principle rather than as two numbers, so the values stay taste
     // and the direction stays law: whatever a mode's ground is, its states move away from it.
-    const light = mounted(<Card>pane</Card>, { theme: { appearance: "light", material: "regular" } });
-    const dark = mounted(<Card>pane</Card>, { theme: { appearance: "dark", material: "regular" } });
+    const light = mounted(<Card>pane</Card>, { theme: { appearance: "light", material: "3" } });
+    const dark = mounted(<Card>pane</Card>, { theme: { appearance: "dark", material: "3" } });
     const gripOf = (el: Element) => rgba(colorOn(el, "var(--material-grip-fill)"));
     const washOf = (el: Element) => rgba(colorOn(el, "var(--material-row-wash)"));
     expect(luma(gripOf(light)), "light's grip is not shade — a white grip on a light pane is invisible").toBeLessThan(0.2);
@@ -148,10 +149,10 @@ describe("a glass pane's ring draws a boundary on the ground it sits on (§10)",
     // light's ring white again fails here with its reason rather than only in the visibility
     // law above. A lip is bright where the light hits it and dark where it does not; which
     // half draws the edge depends on what is behind it.
-    const light = mounted(<Card>pane</Card>, { theme: { appearance: "light", material: "regular" } });
-    const dark = mounted(<Card>pane</Card>, { theme: { appearance: "dark", material: "regular" } });
+    const light = mounted(<Card>pane</Card>, { theme: { appearance: "light", material: "3" } });
+    const dark = mounted(<Card>pane</Card>, { theme: { appearance: "dark", material: "3" } });
     const stopsOf = (el: Element) =>
-      [...imageOn(el, "var(--material-regular-ring)").matchAll(/(?:rgba?|color)\([^)]*\)/g)]
+      [...imageOn(el, "var(--material-g3-ring)").matchAll(/(?:rgba?|color)\([^)]*\)/g)]
         .map((m) => rgba(m[0]))
         .filter((c) => c.a > 0.02);
     // Light must own at least one genuinely dark stop — that arc is its boundary…
@@ -193,7 +194,7 @@ describe("a glass pane's ring draws a boundary on the ground it sits on (§10)",
 describe("the glint band exists, wears the mode's ring, and stands down with it (§10)", () => {
   for (const appearance of APPEARANCES) {
     it(`${appearance}: a glass pane's ::before is the band — mask minted, conic lit`, () => {
-      const card = mounted(<Card backdrop>pane</Card>, { theme: { appearance, material: "regular" } });
+      const card = mounted(<Card backdrop>pane</Card>, { theme: { appearance, material: "3" } });
       // The hook ran: the element carries the mask it minted for this box…
       expect(card.style.getPropertyValue("--kui-glint"), "the hook never wrote a mask").toContain("data:image/png");
       const before = getComputedStyle(card, "::before");
@@ -214,9 +215,9 @@ describe("the glint band exists, wears the mode's ring, and stands down with it 
       // the day after, so neither the ring nor the band may carry them anywhere. The old
       // spelling asserted band ≠ ring, which held only WHILE the ring was spectral; with one
       // shared palette the two are identical by construction, so the law reads the stops.
-      const thick = mounted(<Card backdrop>pane</Card>, { theme: { appearance, material: "thick" } });
+      const thick = mounted(<Card backdrop>pane</Card>, { theme: { appearance, material: "5" } });
       const band = imageOn(thick, getComputedStyle(thick, "::before").backgroundImage);
-      const ring = imageOn(thick, "var(--material-thick-ring)");
+      const ring = imageOn(thick, "var(--material-g5-ring)");
       for (const [what, v] of [["band", band], ["ring", ring]] as const) {
         expect(v, `thick's ${what} carries a spectral stop — the fold returns`).not.toMatch(/rgba?\(\s*1[678]\d[,\s]+2[01]\d[,\s]+255/);
       }
@@ -245,7 +246,7 @@ describe("the glint band exists, wears the mode's ring, and stands down with it 
      * regenerating: fails on light for all three thicknesses, naming the darkening stop.
      */
     it(`${appearance}: the band only adds LIGHT — the pigment stays on the lip (2026-09-02)`, () => {
-      const card = mounted(<Card backdrop>pane</Card>, { theme: { appearance, material: "regular" } });
+      const card = mounted(<Card backdrop>pane</Card>, { theme: { appearance, material: "3" } });
       const stopsOf = (token: string) =>
         [...imageOn(card, `var(${token})`).matchAll(/(?:rgba?|color)\([^)]*\)/g)]
           .map((m) => rgba(m[0]))
@@ -254,7 +255,7 @@ describe("the glint band exists, wears the mode's ring, and stands down with it 
           // emitted value still shows which arc went quiet.
           .filter((c) => c.a > 0.02);
       for (const thickness of GLASS_MATERIALS) {
-        for (const token of [`--material-${thickness}-glint`, `--material-${thickness}-glint-control`]) {
+        for (const token of [`--material-${glassStep(thickness)}-glint`, `--material-${glassStep(thickness)}-glint-control`]) {
           const stops = stopsOf(token);
           expect(stops.length, `${token}: no live stops parsed`).toBeGreaterThan(0);
           const darkest = Math.min(...stops.map(luma));
@@ -264,7 +265,7 @@ describe("the glint band exists, wears the mode's ring, and stands down with it 
       // …and the vacuity guard, which is the other half of the model: in LIGHT the lip must
       // still own the pigment, or this law is satisfied by a package with no boundary at all.
       if (appearance === "light") {
-        const ring = stopsOf("--material-regular-ring");
+        const ring = stopsOf("--material-g3-ring");
         expect(
           ring.some((c) => luma(c) < 0.2),
           "light's ring lost its shade side — the band was cleaned by deleting the edge",
@@ -288,7 +289,7 @@ describe("the glint band exists, wears the mode's ring, and stands down with it 
       // the standard band, which is what catches any HC arm quietly touching the lever again.
       const at = (contrast: "normal" | "high") =>
         mounted(<Card backdrop>pane</Card>, {
-          theme: { appearance, material: "regular", contrast },
+          theme: { appearance, material: "3", contrast },
         });
       const normal = at("normal");
       const high = at("high");
@@ -319,7 +320,7 @@ describe("a dark glass control's ring is its own row, never dimmer than the pane
         </Button>
         <Card data-t="card" backdrop>pane</Card>
       </div>,
-      { theme: { appearance: "dark", material: "regular" } },
+      { theme: { appearance: "dark", material: "3" } },
     );
     const btn = root.querySelector('[data-t="btn"]')!;
     const card = root.querySelector('[data-t="card"]')!;
@@ -351,7 +352,7 @@ describe("a dark glass control's ring is its own row, never dimmer than the pane
         </Button>
         <Card data-t="card" backdrop>pane</Card>
       </div>,
-      { theme: { appearance: "light", material: "regular" } },
+      { theme: { appearance: "light", material: "3" } },
     );
     const btn = root.querySelector('[data-t="btn"]')!;
     const card = root.querySelector('[data-t="card"]')!;
@@ -375,10 +376,10 @@ describe("a glass textarea is a glass field — parity by construction (§10)", 
   for (const appearance of APPEARANCES) {
     it(`${appearance}: wrapper stack, ring and band all agree with TextField's`, () => {
       const ta = mounted(<TextArea aria-label="notes" backdrop />, {
-        theme: { appearance, material: "regular" },
+        theme: { appearance, material: "3" },
       });
       const tf = mounted(<TextField aria-label="name" backdrop />, {
-        theme: { appearance, material: "regular" },
+        theme: { appearance, material: "3" },
       });
       // The element stack (rim, light) is the family's, verbatim.
       expect(getComputedStyle(ta).backgroundImage, "the two members' stacks disagree").toBe(
@@ -415,13 +416,13 @@ describe("a glass textarea is a glass field — parity by construction (§10)", 
 
     it(`${appearance}: a disabled glass textarea stands the band down with the ring`, () => {
       const ta = mounted(<TextArea aria-label="notes" backdrop disabled />, {
-        theme: { appearance, material: "regular" },
+        theme: { appearance, material: "3" },
       });
       const live = mounted(<TextArea aria-label="live" backdrop />, {
-        theme: { appearance, material: "regular" },
+        theme: { appearance, material: "3" },
       });
       const tfDead = mounted(<TextField aria-label="name" backdrop disabled />, {
-        theme: { appearance, material: "regular" },
+        theme: { appearance, material: "3" },
       });
       // The stand-down is `--material-ring-opacity` since 2026-09-02 — one lever for every
       // family's lip and band, where the field used to own two private hooks. The LIVE
@@ -459,7 +460,7 @@ describe("a glass textarea is a glass field — parity by construction (§10)", 
 describe("high contrast raises the control veil's floor (§10)", () => {
   it("a glass button's fill is more opaque under contrast=high, never fully", () => {
     for (const appearance of APPEARANCES) {
-      for (const m of GLASS_MATERIALS) {
+      for (const m of GLASS_MATERIALS.filter((s) => s !== "1")) { // step 1 is clear: no veil to measure
         const veil = (contrast?: "high") => {
           const btn = mounted(
             <Button data-t="btn" backdrop>
@@ -525,14 +526,14 @@ describe("high contrast raises the control veil's floor (§10)", () => {
 describe("a glass pane's ring is its edge, and the seal takes the band back (§10, 2026-08-27)", () => {
   for (const appearance of APPEARANCES) {
     it(`${appearance}: glass reserves no band, so nothing paints outside the ring`, () => {
-      const card = mounted(<Card backdrop>pane</Card>, { theme: { appearance, material: "regular" } });
+      const card = mounted(<Card backdrop>pane</Card>, { theme: { appearance, material: "3" } });
       expect(
         parseFloat(computed(card, "border-top-width")),
         "a glass pane reserves a band outside its ring",
       ).toBe(0);
       // CALIBRATION: a SOLID pane still reserves one, or this law is measuring a system with
       // no borders in it at all rather than the one place they were removed.
-      const solid = mounted(<Card>pane</Card>, { theme: { appearance, material: "solid" } });
+      const solid = mounted(<Card>pane</Card>, { theme: { appearance, material: "9" } });
       expect(
         parseFloat(computed(solid, "border-top-width")),
         "no pane reserves a band — this law no longer distinguishes glass",
@@ -546,7 +547,7 @@ describe("a glass pane's ring is its edge, and the seal takes the band back (§1
       });
       try {
         const sealed = mounted(<Card backdrop>pane</Card>, {
-          theme: { appearance, material: "regular" },
+          theme: { appearance, material: "3" },
         });
         // The premise: the setting really reached the pane, so this is the sealed path.
         expect(computed(sealed, "backdrop-filter"), "the setting never reached the pane").toBe("none");
@@ -638,7 +639,7 @@ describe("the filter row forks on the lens, and the default is the defended one 
   }
 
   it("a control forks too, and the atom family rides the control's row", () => {
-    const btn = mounted(<Button backdrop>b</Button>, { theme: { material: "regular" } });
+    const btn = mounted(<Button backdrop>b</Button>, { theme: { material: "3" } });
     setStamp(false);
     const frost = getComputedStyle(btn).backdropFilter;
     setStamp(true);
@@ -664,8 +665,8 @@ describe("the filter row forks on the lens, and the default is the defended one 
 describe("the seal outranks the filter fork, in both branches (§10)", () => {
   for (const stamped of [false, true]) {
     it(`${stamped ? "stamped" : "unstamped"}: a sealed pane, control and atom carry no filter`, async () => {
-      const card = mounted(<Card backdrop>pane</Card>, { theme: { material: "regular" } });
-      const btn = mounted(<Button backdrop>b</Button>, { theme: { material: "regular" } });
+      const card = mounted(<Card backdrop>pane</Card>, { theme: { material: "3" } });
+      const btn = mounted(<Button backdrop>b</Button>, { theme: { material: "3" } });
       if (stamped) document.documentElement.setAttribute("data-lens", "on");
       else document.documentElement.removeAttribute("data-lens");
 
@@ -693,7 +694,7 @@ describe("the seal outranks the filter fork, in both branches (§10)", () => {
       <Card backdrop>
         <Button>on the pane</Button>
       </Card>,
-      { theme: { material: "regular" } },
+      { theme: { material: "3" } },
     );
     const inner = card.querySelector<HTMLElement>(".kui-button");
     expect(inner, "the fixture grew no hosted control").not.toBeNull();
@@ -750,10 +751,10 @@ describe("the glint's band holds its strength as the pane grows (§10)", () => {
 
   it("a full-window pane's lip is as strong as a small card's", async () => {
     const small = mounted(<Card backdrop style={{ width: 280, height: 180 }} />, {
-      theme: { material: "regular" },
+      theme: { material: "3" },
     });
     const large = mounted(<Card backdrop style={{ width: 1200, height: 800 }} />, {
-      theme: { material: "regular" },
+      theme: { material: "3" },
     });
     const a = await edgePeak(small);
     const b = await edgePeak(large);
@@ -820,7 +821,7 @@ describe("a glass track carries the pool, and a solid one carries nothing (§10)
           <SegmentedItem value="b">B</SegmentedItem>
         </SegmentedControl>
       </div>,
-      { theme: { appearance, material: "regular" } },
+      { theme: { appearance, material: "3" } },
     );
     const group = root.querySelector<HTMLElement>(".kui-toolbar-group")!;
     const seg = root.querySelector<HTMLElement>(".kui-segmented")!;
@@ -832,7 +833,7 @@ describe("a glass track carries the pool, and a solid one carries nothing (§10)
     it(`${appearance}: both tracks paint the field family's pool on glass, and no shadow when solid`, () => {
       const glass = tracks(true, appearance);
       // The premise: all three really are glass.
-      for (const el of Object.values(glass)) expect(el.dataset.material, `${el.className} is not glass`).toBe("regular");
+      for (const el of Object.values(glass)) expect(el.dataset.material, `${el.className} is not glass`).toBe("g3");
       const pool = computed(glass.field, "box-shadow");
       expect(pool, "the field family paints no pool to agree with").toContain("inset");
       expect(computed(glass.group, "box-shadow"), "a glass toolbar group has no matter").toBe(pool);
@@ -908,21 +909,21 @@ describe("a glass control casts, over content and nowhere else (§10)", () => {
 
   for (const appearance of APPEARANCES) {
     it(`${appearance}: every glass rung, field and track casts in an elevated world`, () => {
-      const glass = pick(mounted(members({ backdrop: true }), { theme: { appearance, material: "regular", depth: "elevated" } }));
+      const glass = pick(mounted(members({ backdrop: true }), { theme: { appearance, material: "3", depth: "elevated" } }));
       for (const [name, el] of Object.entries(glass)) {
-        expect(el.dataset.material, `${name} is not glass — the fixture proves nothing`).toBe("regular");
+        expect(el.dataset.material, `${name} is not glass — the fixture proves nothing`).toBe("g3");
         expect(drops(el).length, `a glass ${name} casts nothing: ${getComputedStyle(el).boxShadow}`).toBeGreaterThan(0);
       }
     });
 
     it(`${appearance}: a flat world casts nothing, and a control on a glass pane casts nothing`, () => {
-      const flat = pick(mounted(members({ backdrop: true }), { theme: { appearance, material: "regular", depth: "flat" } }));
+      const flat = pick(mounted(members({ backdrop: true }), { theme: { appearance, material: "3", depth: "flat" } }));
       for (const [name, el] of Object.entries(flat)) {
-        expect(el.dataset.material, `${name} is not glass`).toBe("regular");
+        expect(el.dataset.material, `${name} is not glass`).toBe("g3");
         expect(drops(el), `a glass ${name} casts in a flat world`).toEqual([]);
       }
       const onPane = pick(
-        mounted(<Card backdrop>{members({})}</Card>, { theme: { appearance, material: "regular", depth: "elevated" } }),
+        mounted(<Card backdrop>{members({})}</Card>, { theme: { appearance, material: "3", depth: "elevated" } }),
       );
       for (const [name, el] of Object.entries(onPane)) {
         expect(drops(el), `a ${name} on a glass pane casts — two lifts in one stack`).toEqual([]);
@@ -945,7 +946,7 @@ describe("a glass control casts, over content and nowhere else (§10)", () => {
 describe("a floating pane trims its lip per mode and leaves its mode's ground (§10)", () => {
   const panes = (appearance: (typeof APPEARANCES)[number]) => {
     render(
-      <Theme appearance={appearance} material="regular">
+      <Theme appearance={appearance} material="3">
         <Card backdrop data-t="card">
           pane
         </Card>

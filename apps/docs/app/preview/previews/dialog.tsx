@@ -71,7 +71,7 @@ const REGIONS = [
   { city: "Sydney", ms: 268 },
 ];
 
-const glassMaterials = () => themeAxes.material.filter((m) => m !== "solid");
+const glassMaterials = () => themeAxes.material.filter((m) => m !== "9");
 
 type Size = "1" | "2" | "3" | "4";
 
@@ -495,7 +495,7 @@ function Nesting() {
           filter. The fields inside must read as part of the pane, never as slabs punched
           through it. */}
       <Demo label="A glass panel's contents — one glass per stack, nothing pays twice">
-        <Theme material="regular">
+        <Theme material="3">
           <Flex gap="3" align="center">
             <Dialog size="3">
               <DialogTrigger render={<Button emphasis="medium">Glass panel</Button>} />

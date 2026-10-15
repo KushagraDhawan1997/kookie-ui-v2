@@ -47,7 +47,7 @@ import type { ComponentPreview } from "./types";
     its slug, and `themeAxes` is a client module's data — unreadable during server module
     evaluation. Deferred into render, it only ever runs on the client, which is the same reason
     every section below is a component rather than a module-scope element tree. */
-const glassMaterials = () => themeAxes.material.filter((m) => m !== "solid");
+const glassMaterials = () => themeAxes.material.filter((m) => m !== "9");
 
 function Sizes() {
   return (
@@ -316,7 +316,7 @@ function Materials() {
       {BEDS.map((b) => (
         <Demo key={b.id} label={b.name}>
           <BedSurface bed={b}>
-            <Theme material="solid">
+            <Theme material="9">
               <Box width="15rem">
                 <Stack gap="2">
                   <Text size="1" emphasis="quiet">Solid</Text>
@@ -369,7 +369,7 @@ function Permutations() {
       <Demo label="Size × material — over the pattern">
         <BedSurface bed={bed("pattern")} minHeight="520px">
           <Stack gap="5" style={{ width: "100%" }}>
-            {(["solid", ...glassMaterials()] as const).map((m) => (
+            {(["9", ...glassMaterials()] as const).map((m) => (
               <Theme key={m} material={m}>
                 <Stack gap="3">
                   <Text size="1" emphasis="quiet">{cap(m)}</Text>
@@ -451,7 +451,7 @@ function Permutations() {
           and the disabled one should still be the most receded box in the row. */}
       <Demo label="State × material — the glass edge is the field's, until a state needs it back">
         <BedSurface bed={bed("photo")}>
-          <Theme material="regular">
+          <Theme material="3">
             {(
               [
                 ["Rest", { placeholder: "Search" }],
@@ -574,7 +574,7 @@ function Nesting() {
           which is the thing to check in the right-hand card. */}
       <Demo label="On a solid card and on a glass one — the hosted button pays for no second veil">
         <BedSurface bed={bed("country")}>
-          {(["solid", "regular"] as const).map((m) => (
+          {(["9", "3"] as const).map((m) => (
             <Theme key={m} material={m}>
               <Card size="3" style={{ width: "18rem" }}>
                 <Stack gap="4">

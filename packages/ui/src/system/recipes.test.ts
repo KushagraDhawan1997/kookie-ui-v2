@@ -13,7 +13,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { GLASS_MATERIALS, RUNGS, SLOT_NAMES } from "./axes.ts";
+import { GLASS_STEPS, RUNGS, SLOT_NAMES, glassStep, type Material } from "./axes.ts";
 import { DEPTHS, themeAxes } from "../theme/theme.tsx";
 
 import { tones } from "../tokens/color-config.ts";
@@ -225,7 +225,7 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
     // that no second copy exists at all.
     const axisLists: [string, readonly string[]][] = [
       ["depth", DEPTHS],
-      ["material thickness", GLASS_MATERIALS],
+      ["material glass steps", GLASS_STEPS],
     ];
     for (const p of walkFiles(".", ".test.ts").concat(walkFiles(".", ".test.tsx"))) {
       // The two files that legitimately declare them, and nowhere else.
@@ -307,7 +307,7 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
          whether the shipped CSS implements the value at all, which the size joins do. */
       size: "data-size",
     };
-    const ABSENT = new Set(["appearance:inherit", "material:solid"]);
+    const ABSENT = new Set(["appearance:inherit", "material:9"]);
     // CODE, NOT PROSE (audit 2026-08-26). This read `raw()` where every other law in this file
     // reads `sheet()`, so both arms took a stylesheet's COMMENTS as evidence of what it does —
     // "a law a comment can satisfy is not a law", which is the sentence test/stylesheets.ts was
@@ -324,7 +324,10 @@ describe("the control contract is enforced, not remembered (§9; ENGINEERING §2
     for (const [axis, values] of Object.entries(themeAxes)) {
       const attr = ATTR[axis]!;
       for (const value of values as readonly string[]) {
-        const selector = `[${attr}="${value}"]`;
+        // A material STEP stamps its glass name (`glassStep`, axes.ts): "3" is `g3` on the
+        // element, because the glass rules select every step at once by the prefix.
+        const stamped = axis === "material" ? glassStep(value as Material) : value;
+        const selector = `[${attr}="${stamped}"]`;
         if (ABSENT.has(`${axis}:${value}`)) {
           expect(all, `${selector} exists, but ${axis}=${value} is documented as stamping nothing`).not.toContain(selector);
           continue;
@@ -763,7 +766,7 @@ describe("invalid is a state remap, and it belongs to every control (§8)", () =
 });
 
 describe("material on a control: backdrop defense, three environments (§10)", () => {
-  it("each material appears exactly eight times — three environments plus the pane parts", () => {
+  it("every glass step maps every name the glass rules read (§10, the material scale)", () => {
     // Three environments, not three designs — the same shape the surface layer wears — plus
     // the mentions for the glass PANE PARTS: two selectors in the field family's shared
     // origin rule, and three in the per-thickness edge/rim rule (2026-08-16, up from two).
@@ -781,11 +784,21 @@ describe("material on a control: backdrop defense, three environments (§10)", (
     // are one recipe at three strengths, so every arm that names one must name all three —
     // a merge that leaves one thickness reading another's tokens breaks the equality, while
     // a refactor that splits an arm for all three moves the counts together and passes.
-    const counts = GLASS_MATERIALS.map(
-      (m) => (recipes.match(new RegExp(`\\[data-material="${m}"\\]`, "g")) ?? []).length,
-    );
-    expect(counts[0], "no glass arms at all").toBeGreaterThan(0);
-    expect(new Set(counts).size, `the thicknesses diverged: ${GLASS_MATERIALS.join("/")} = ${counts.join("/")}`).toBe(1);
+    //
+    // ONE RULE SINCE 2026-10-15 (the material scale): the glass rules select every step at
+    // once by the stamp's prefix and read their rung through `--kui-m-*`, and each step's own
+    // block points those names at its row of generated tokens. Symmetry is now structural, so
+    // the claim moved to the indirection: every name a glass rule reads, every step maps.
+    const surfaces = sheet("system/surfaces.css");
+    const read = new Set([...(recipes + surfaces).matchAll(/var\((--kui-m-[\w-]+)/g)].map((m) => m[1]!));
+    expect(read.size, "no glass rule reads the indirection").toBeGreaterThan(10);
+    for (const step of GLASS_STEPS) {
+      const body = block(surfaces, `[data-material="${step}"] {`);
+      for (const name of read) {
+        expect(body, `${step} does not map ${name}`).toMatch(new RegExp(`${name}: var\\(--[\\w-]*${step}[\\w-]*\\);`));
+      }
+    }
+    expect(recipes, "a glass rule still names a step").not.toMatch(/\[data-material="g\d"\]/);
   });
 
   it("a pressed loud glass control consults the GLASS active chain first (2026-08-19)", () => {
@@ -796,12 +809,11 @@ describe("material on a control: backdrop defense, three environments (§10)", (
     expect(recipes).toContain(
       "--kui-ct-cast: var(--kui-ct-cast-glass-active, var(--kui-ct-cast-glass, var(--kui-control-chrome-active, none)));",
     );
-    // And every thickness declares the active glass value beside its resting one.
-    for (const m of GLASS_MATERIALS) {
-      expect(recipes).toContain(
-        `--kui-ct-cast-glass-active: var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-control-chrome-active-${m}, 0 0 0 0 transparent);`,
-      );
-    }
+    // And the glass rule declares the active glass value beside its resting one, read through
+    // the step's indirection.
+    expect(recipes).toContain(
+      "--kui-ct-cast-glass-active: var(--kui-control-pool, 0 0 0 0 transparent), var(--kui-m-kui-control-chrome-active, 0 0 0 0 transparent);",
+    );
   });
 
   it("a glass CONTROL is lit without the pane's wash, and keeps the world's catch under it", () => {
@@ -815,11 +827,9 @@ describe("material on a control: backdrop defense, three environments (§10)", (
     // button under the pane recipe measured pale blue with a halo. Grain and the edge catch
     // are the material; the wash is the pane's.
     const supports = from(recipes, "@supports (backdrop-filter");
-    for (const m of GLASS_MATERIALS) {
-      const body = block(supports, `.kui-button:where([data-material="${m}"])`);
-      expect(body, `a glass button has no ${m} lighting`).toContain(`var(--material-${m}-rim-control, none)`);
-      expect(body, "the world's catch was displaced by the lighting").toContain("var(--kui-ct-light, none)");
-    }
+    const body = block(supports, `.kui-button:where([data-material^="g"])`);
+    expect(body, "a glass button has no lighting").toContain("var(--kui-m-material-rim-control, none)");
+    expect(body, "the world's catch was displaced by the lighting").toContain("var(--kui-ct-light, none)");
   });
 
   it("the control recipe is the pane's minus the wash — same grain, same edge, no bloom", () => {
@@ -834,7 +844,7 @@ describe("material on a control: backdrop defense, three environments (§10)", (
         if (!line) throw new Error(`no ${name} in ${scope}`);
         return line.slice(line.indexOf(":") + 1).trim();
       };
-      for (const m of GLASS_MATERIALS) {
+      for (const m of GLASS_STEPS) {
         const pane = valueOf(`--material-${m}-rim`);
         const control = valueOf(`--material-${m}-rim-control`);
         expect(control, `${scope} ${m}: the control lost the grain`).toContain("feTurbulence");
@@ -869,25 +879,25 @@ describe("material on a control: backdrop defense, three environments (§10)", (
     // re-derives from the same source, in the recipe and in both opaque environments alike:
     // a missed one would flash the opaque page-designed fill over glass.
     const supports = from(recipes, "@supports (backdrop-filter");
-    for (const m of GLASS_MATERIALS) {
+    {
       // Named at the RULE, not by the first substring that happens to match (2026-08-17):
       // the pool arm is a `:where(thin, regular, thick)` list declared above the per-thickness
       // blocks, so a substring search found a body holding one unrelated declaration and this
       // law reported the veil missing for two of the three materials. A law that has to guess
       // which rule it meant is one rename away from measuring nothing.
-      const body = block(supports, `.kui-control[data-material="${m}"] {`);
+      const body = block(supports, `.kui-control[data-material^="g"] {`);
       // Control-scale material (2026-08-17): a control prices the ladder at its own box, so
       // the alpha is the CONTROL cell — and it is ONE alpha across rest/hover/active, because
       // on glass hover is light (the filter's hover variant), never a heavier veil. The
       // states still derive from the rung's own -src chain: tone rides in through the SOURCE.
       expect(body).toContain(
-        `--kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--material-${m}-control-alpha), transparent)`,
+        "--kui-ct-fill: color-mix(in srgb, var(--kui-ct-fill-src) var(--kui-m-material-control-alpha), transparent)",
       );
       expect(body).toContain(
-        `--kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--material-${m}-control-alpha), transparent)`,
+        "--kui-ct-fill-hover: color-mix(in srgb, var(--kui-ct-fill-src-hover) var(--kui-m-material-control-alpha), transparent)",
       );
       expect(body).toContain(
-        `--kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--material-${m}-control-alpha), transparent)`,
+        "--kui-ct-fill-active: color-mix(in srgb, var(--kui-ct-fill-src-active) var(--kui-m-material-control-alpha), transparent)",
       );
       // The lens is PREPENDED to the material's chain and never replaces it (§10,
       // 2026-08-16): `var(--kui-lens, )` is empty on every surface that is not glass and in
@@ -906,7 +916,7 @@ describe("material on a control: backdrop defense, three environments (§10)", (
       // So the law asserts the guarantee in two halves: the rung's own filter is what this
       // block names, and the property reads the lens seam plus that hook — never a rung's
       // filter directly, which would put the seal back in a fight it has to win.
-      expect(body).toContain(`--kui-ct-glass-filter: var(--material-${m}-control-filter)`);
+      expect(body).toContain("--kui-ct-glass-filter: var(--kui-m-material-control-filter)");
       expect(body).toContain("backdrop-filter: var(--kui-lens, ) var(--kui-ct-glass-filter)");
     }
     for (const env of [
@@ -932,7 +942,7 @@ describe("material on a control: backdrop defense, three environments (§10)", (
     // multiplies an alpha source (audit 2026-08-18). It renames no rung, changes no pairing
     // and picks no colour, so it is stripped before the assertion rather than allowed
     // through it: a material block naming any tone role in any OTHER shape still fails.
-    const materialBlock = from(recipes, '[data-material="thin"]').replace(
+    const materialBlock = from(recipes, '[data-material^="g"]').replace(
       /--([\w-]+): var\(--\1-solid\);/g,
       "",
     );

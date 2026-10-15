@@ -482,7 +482,7 @@ describe("a ground, not an object (§10, 2026-08-20)", () => {
     const held = (tree: Parameters<typeof mounted>[0]) =>
       mounted(tree, { select: "[data-testid='held']" });
     const onGround = held(
-      <Theme material="regular">
+      <Theme material="3">
         <Box backdrop>
           <Surface>
             <Card data-testid="held">Body</Card>
@@ -495,28 +495,28 @@ describe("a ground, not an object (§10, 2026-08-20)", () => {
     // THE NEGATIVE CONTROL: the same card with no ground under it IS glass, or "it is solid"
     // is a fact about the fixture rather than about the ground.
     const onPage = held(
-      <Theme material="regular">
+      <Theme material="3">
         <Box backdrop>
           <Card data-testid="held">Body</Card>
         </Box>
       </Theme>,
     );
-    expect(onPage.dataset["material"]).toBe("regular");
+    expect(onPage.dataset["material"]).toBe("g3");
     expect(computed(onPage, "backdrop-filter")).not.toBe("none");
     // And the escape is untouched: a member that states its OWN placement still gets the
     // theme's material, exactly as it does inside a solid pane (2026-08-19).
     const stated = held(
-      <Theme material="regular">
+      <Theme material="3">
         <Surface>
           <Card backdrop data-testid="held">Body</Card>
         </Surface>
       </Theme>,
     );
-    expect(stated.dataset["material"], "a ground vetoed an explicit statement").toBe("regular");
+    expect(stated.dataset["material"], "a ground vetoed an explicit statement").toBe("g3");
     // And the ground itself never filters.
     const ground = within(
       mounted(
-        <Theme material="regular">
+        <Theme material="3">
           <Box backdrop>
             <Surface>x</Surface>
           </Box>
@@ -535,7 +535,7 @@ describe("a ground, not an object (§10, 2026-08-20)", () => {
     // as it found it — the members are `on-glass`, never `solid`. The subject is a Button
     // rather than a Card only to keep the dev-time nested-card warning out of the run.
     const inside = mounted(
-      <Theme material="regular">
+      <Theme material="3">
         <Card backdrop>
           <Surface>
             <Button data-testid="held">Go</Button>
@@ -545,7 +545,7 @@ describe("a ground, not an object (§10, 2026-08-20)", () => {
       { select: "[data-testid='held']" },
     );
     const withoutGround = mounted(
-      <Theme material="regular">
+      <Theme material="3">
         <Card backdrop>
           <Button data-testid="held">Go</Button>
         </Card>

@@ -852,10 +852,42 @@ export const glint = {
  * transparent"); then thin came up a touch ("very very slightly increase the veil and blur on
  * thin").
  */
+/** THE GLASS STEPS (2026-10-15, Kushagra: "I'd like to see material's glass as a slider").
+    Theme `material` runs "1"-"9" like Text's ladder: "1" is clear, "9" is solid (the seal,
+    no glass at all), and the seven steps between are glass. Step n is n - 1 SHEETS of one
+    base glass stacked, so the veil is `1 - (1 - sheet)^(n - 1)` and no step is hand-picked.
+    The old names land on it: thin is step 2, regular 3, thick 5. */
+export const GLASS_STEPS = ["g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8"] as const;
+export type GlassStep = (typeof GLASS_STEPS)[number];
+/** Sheets of base glass at a step (step 1, clear, is zero sheets). */
+export const sheetsAt = (t: GlassStep): number => Number(t.slice(1)) - 1;
+/** A value judged at 0, 1, 2 and 4 sheets (clear, the old thin, regular, thick), read at any
+    sheet count: linear between the anchors, then on past 4 at the 2→4 slope — or, with a
+    `cap`, approaching it geometrically from that slope, so a quantity bounded by opaque keeps
+    rising at every step and never arrives. */
+export function bySheets(anchors: readonly [number, number, number, number], cap = Infinity): Record<GlassStep, number> {
+  const [a0, a1, a2, a4] = anchors;
+  const slope = (a4 - a2) / 2;
+  const past = (k: number) =>
+    cap === Infinity ? a4 + slope * (k - 4) : cap - (cap - a4) * Math.pow(1 - slope / (cap - a4), k - 4);
+  const at = (k: number) =>
+    k <= 1 ? a0 + (a1 - a0) * k : k <= 2 ? a1 + (a2 - a1) * (k - 1) : k <= 4 ? a2 + slope * (k - 2) : past(k);
+  return Object.fromEntries(GLASS_STEPS.map((t) => [t, Math.round(at(sheetsAt(t)) * 1000) / 1000])) as Record<GlassStep, number>;
+}
+/** The one base sheet's veil per mode, in percent — the old thin. */
+const sheet = { light: 6, dark: 10 } as const;
+const stacked = (mode: "light" | "dark") =>
+  Object.fromEntries(GLASS_STEPS.map((t) => [t, 100 * (1 - Math.pow(1 - sheet[mode] / 100, sheetsAt(t)))])) as Record<GlassStep, number>;
 export const veil = {
   rung: {
-    light: { thin: 6, regular: 12, thick: 22 },
-    dark: { thin: 10, regular: 20, thick: 36 },
+    light: stacked("light"),
+    dark: stacked("dark"),
+  },
+  /** The least veil a family may wear at any step, so step 0 can be clear on a button and never
+      leave a menu's words on raw content (Apple ships `.clear` only over media, with a dim). */
+  floor: {
+    light: { pane: 0, control: 0, region: 6, floating: 15 },
+    dark: { pane: 0, control: 0, region: 10, floating: 25 },
   },
   /** What an interactive pane's hover and press add to its rest, per mode (§8's +1/+2 steps,
       translated to the one ramp glass has). */
@@ -864,12 +896,12 @@ export const veil = {
       paragraphs over passing content; a floating pane holds rows of text over whatever it covers. */
   family: { pane: 1, control: 1.1, region: 1.5, floating: 3.5 },
 } as const;
-export type VeilRung = keyof typeof veil.rung.light;
+export type VeilRung = GlassStep;
 export type VeilFamily = keyof typeof veil.family;
 /** A family's veil at a rung, in percent: the rung's transmission raised to the family's layers. */
 export function veilAt(mode: "light" | "dark", rung: VeilRung, family: VeilFamily): number {
   const through = 1 - veil.rung[mode][rung] / 100;
-  return Math.round(100 * (1 - Math.pow(through, veil.family[family])));
+  return Math.max(veil.floor[mode][family], Math.round(100 * (1 - Math.pow(through, veil.family[family]))));
 }
 /**
  * The glass FILTER — one per mode, the same at every rung. Thick's saturation, with the grey pulled
@@ -889,10 +921,19 @@ export const glassFilter = {
  * would have shown a 6% veil over whatever passed behind with nothing defocusing it.
  */
 const glassFrost = {
-  pane: { thin: 8, regular: 16, thick: 24 },
-  control: { thin: 4, regular: 8, thick: 13.7 },
-  region: { thin: 12, regular: 20, thick: 28 },
+  pane: bySheets([4, 8, 16, 24]),
+  control: bySheets([2, 4, 8, 13.7]),
+  region: bySheets([8, 12, 20, 28]),
 } as const;
+/** A floating pane's blur in place of a scrim (refraction.tsx reads it). */
+export const glassFloatingFrost = bySheets([0.5, 0.75, 2, 3]);
+const high = (mode: "light" | "dark") => {
+  const [a, b, c] = mode === "light"
+    ? [bySheets([68, 72, 80, 86], 98), bySheets([74, 77, 84, 89], 98), bySheets([80, 82, 88, 92], 98)]
+    : [bySheets([72, 76, 84, 90], 98), bySheets([77, 80, 87, 92], 98), bySheets([82, 84, 90, 94], 98)];
+  const r = (v: number) => Math.round(v * 10) / 10;
+  return (t: GlassStep) => [r(a[t]), r(b[t]), r(c[t])] as const;
+};
 /** The rim's sheen — the same at every rung for the same reason as the filter (thick's, judged). */
 const glassSheen = { light: 12, dark: 4 } as const;
 function glassRow(mode: "light" | "dark", rung: VeilRung, alphaHigh: readonly [number, number, number]) {
@@ -1041,16 +1082,8 @@ export const material = {
      refraction.tsx since 2026-09-21, when the blur moved into the lens — THE MIRROR PASS above). Every one of those is a first cut
      for the bench. */
   // Built by `glassRow` from the veil model above. `alphaHigh` is contrast="high"'s floor, per rung.
-  light: {
-    thin: glassRow("light", "thin", [72, 77, 82]),
-    regular: glassRow("light", "regular", [80, 84, 88]),
-    thick: glassRow("light", "thick", [86, 89, 92]),
-  },
-  dark: {
-    thin: glassRow("dark", "thin", [76, 80, 84]),
-    regular: glassRow("dark", "regular", [84, 87, 90]),
-    thick: glassRow("dark", "thick", [90, 92, 94]),
-  },
+  light: Object.fromEntries(GLASS_STEPS.map((t) => [t, glassRow("light", t, high("light")(t))])) as Record<GlassStep, ReturnType<typeof glassRow>>,
+  dark: Object.fromEntries(GLASS_STEPS.map((t) => [t, glassRow("dark", t, high("dark")(t))])) as Record<GlassStep, ReturnType<typeof glassRow>>,
   /** How much of the app's shadow a pane lets survive (§10's transmission seam): glass
       passes light, so its cast is the surface row FADED — thin passes most, thick least.
       Mode-independent: transmission is a property of the pane, not of the night.
@@ -1060,7 +1093,7 @@ export const material = {
       that stood here were frost-era numbers: with near-clear glass they made a pane cast
       HALF its solid twin's shadow, so the two visibly disagreed on the one bed where the
       convergence rule says they must not. Near-clear stone passes most of the light. */
-  transmission: { thin: 0.6, regular: 0.8, thick: 0.9 },
+  transmission: bySheets([0.5, 0.6, 0.8, 0.9], 1),
 
   /* THE RING (lab, ported 2026-08-17): the pane's edge is a 1px conic LIGHT, not a pigment
      hairline — bright facing the light, cool flanks, faint on the shade side, a warm collect
@@ -1091,7 +1124,7 @@ export const material = {
        composites over the pane's own veil, so the dark arc reads whatever the backdrop is
        doing behind it. */
     light: { a: "rgb(255 255 255 / 0.95)", b: "rgb(0 0 0 / 0.07)", c: "rgb(0 0 0 / 0.15)", d: "rgb(10 5 0 / 0.11)", opacity: 1 },
-    dark: { a: "rgb(255 255 255 / 0.7)", b: "rgb(210 230 255 / 0.16)", c: "rgb(255 255 255 / 0.3)", d: "rgb(255 245 235 / 0.14)", opacity: 1 },
+    dark: { a: "rgb(255 255 255 / 0.28)", b: "rgb(210 230 255 / 0.08)", c: "rgb(255 255 255 / 0.08)", d: "rgb(255 245 235 / 0.08)", opacity: 1 },
   },
   /* The SPECTRAL FOLD IS GONE (2026-08-25, Kushagra — three verdicts in one day: rim-saturate
      off, "dont like this blue band", "text field isnt fixed still"). Thick's ring used to fold
@@ -1111,8 +1144,10 @@ export const material = {
      NO LONGER DOUBLE (2026-09-21): the pane's dark lip went to 0.7 in the mirror pass — a
      thick slab needs a lit rim, and its shade side catches light too (0.3) — and the controls
      were judged "good as they are" the same day. The law holds what is left of the rule: a
-     control's catch is never dimmer than the pane's. */
-  ringControlDark: { a: "rgb(255 255 255 / 0.72)", b: "rgb(210 230 255 / 0.22)", c: "rgb(255 255 255 / 0.08)", d: "rgb(255 245 235 / 0.2)" },
+     control's catch is never dimmer than the pane's. DIMMED 2026-10-15 ("how 'white' these are
+     from edges, on buttons too, and this is only true for dark mode"): the pane's catch 0.7 →
+     0.28 and its shade 0.3 → 0.08, the control's catch 0.72 → 0.42. */
+  ringControlDark: { a: "rgb(255 255 255 / 0.42)", b: "rgb(210 230 255 / 0.12)", c: "rgb(255 255 255 / 0.08)", d: "rgb(255 245 235 / 0.12)" },
 
   /* THE POOL IS A BEVEL since 2026-09-21 (the mirror pass, Kushagra: "glass doesn't feel
      'thick', it should feel thick"). Five layers, in list order: a crisp 1px catch on the top
@@ -1139,7 +1174,7 @@ export const material = {
     // way they do on the lab's 340px specimen, and the doubled edge is worse than the lost
     // seat. The GLASS pools stay: soft inner washes, not lines.
     light: { surface: "inset 0 2px 1px -1px rgb(255 255 255 / 0.95), inset 0 -2px 1px -1px rgb(255 255 255 / 0.6), inset 0 6px 10px -4px rgb(255 255 255 / 0.5), inset 0 0 18px 2px rgb(255 255 255 / 0.22)", control: "inset 0 2px 1px -1px rgb(255 255 255 / 0.95), inset 0 -2px 1px -1px rgb(255 255 255 / 0.6), inset 0 3px 5px -2px rgb(255 255 255 / 0.5), inset 0 0 8px 1px rgb(255 255 255 / 0.22)", solid: "0 0 0 0 transparent" },
-    dark: { surface: "inset 0 2px 1px -1px rgb(255 255 255 / 0.45), inset 0 -2px 1px -1px rgb(255 255 255 / 0.2), inset 0 6px 10px -4px rgb(255 255 255 / 0.1), inset 0 -16px 24px -14px rgb(0 0 0 / 0.4), inset 0 0 18px 2px rgb(255 255 255 / 0.06)", control: "inset 0 2px 1px -1px rgb(255 255 255 / 0.45), inset 0 -2px 1px -1px rgb(255 255 255 / 0.2), inset 0 3px 5px -2px rgb(255 255 255 / 0.1), inset 0 -8px 12px -8px rgb(0 0 0 / 0.4), inset 0 0 8px 1px rgb(255 255 255 / 0.06)", solid: "0 0 0 0 transparent" },
+    dark: { surface: "inset 0 2px 1px -1px rgb(255 255 255 / 0.3), inset 0 -2px 1px -1px rgb(255 255 255 / 0.12), inset 0 6px 10px -4px rgb(255 255 255 / 0.1), inset 0 -16px 24px -14px rgb(0 0 0 / 0.4), inset 0 0 18px 2px rgb(255 255 255 / 0.06)", control: "inset 0 2px 1px -1px rgb(255 255 255 / 0.45), inset 0 -2px 1px -1px rgb(255 255 255 / 0.2), inset 0 3px 5px -2px rgb(255 255 255 / 0.1), inset 0 -8px 12px -8px rgb(0 0 0 / 0.4), inset 0 0 8px 1px rgb(255 255 255 / 0.06)", solid: "0 0 0 0 transparent" },
   },
   /** §10 — the SOLID pane's own lighting (2026-08-17, measured off the lab's .l2-solid):
       matte per the lock — grain plus ONE sheen washing down to 55%, no bloom, no 1px top
@@ -1437,7 +1472,7 @@ export const glassInk = {
  */
 export const floatingDark = {
   base: 88,
-  alpha: { thin: veilAt("dark", "thin", "floating"), regular: veilAt("dark", "regular", "floating"), thick: veilAt("dark", "thick", "floating") },
+  alpha: Object.fromEntries(GLASS_STEPS.map((t) => [t, veilAt("dark", t, "floating")])) as Record<GlassStep, number>,
 } as const;
 /**
  * §10 — and light FLOATING panes DIM (2026-09-21, Kushagra: the glint a dialog shows is "still
@@ -1457,9 +1492,9 @@ export const floatingDark = {
  */
 export const floatingLight = {
   base: 92,
-  alpha: { thin: veilAt("light", "thin", "floating"), regular: veilAt("light", "regular", "floating"), thick: veilAt("light", "thick", "floating") },
+  alpha: Object.fromEntries(GLASS_STEPS.map((t) => [t, veilAt("light", t, "floating")])) as Record<GlassStep, number>,
 } as const;
-export const floatingTrim = { light: 1, dark: 0.6 } as const;
+export const floatingTrim = { light: 1, dark: 0.4 } as const;
 
 /**
  * §24 — the OVERLAY pane's width, one designed raw-px ladder on the size index (the switchW

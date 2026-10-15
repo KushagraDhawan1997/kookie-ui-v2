@@ -54,7 +54,7 @@ const sideLabel = (side: Side) => (side === "bottom" ? "Bottom" : side === "inli
 
 /** A function, not a module const: `themeAxes` is a client module's data and the server route
     imports this file for its slug (card.tsx's note). */
-const glassMaterials = () => themeAxes.material.filter((m) => m !== "solid");
+const glassMaterials = () => themeAxes.material.filter((m) => m !== "9");
 
 /** Enough rows that the list genuinely scrolls inside the cap. */
 const ACTIVITY = [

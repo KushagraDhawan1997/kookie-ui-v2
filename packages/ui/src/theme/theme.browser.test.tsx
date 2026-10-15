@@ -450,7 +450,7 @@ describe("only the outermost Theme is a query container (§2, narrowed 2026-08-1
      unconditionally, with the collapse written down beside it as an accepted caveat — and it
      WAS acceptable while a nested Theme only ever re-scoped an axis on a region that already
      had a width. `material` became a Theme property on 2026-08-16, which made
-     <Theme material="thin"> the ordinary way to put one pane behind glass; every glass
+     <Theme material="2"> the ordinary way to put one pane behind glass; every glass
      specimen in the playground then rendered zero pixels wide, stacked on its neighbours,
      from the commit that shipped it. Nothing failed: 1300 laws passed on both sides of the
      fix, because not one of them read a nested Theme's width or its containment.
@@ -462,7 +462,7 @@ describe("only the outermost Theme is a query container (§2, narrowed 2026-08-1
     render(<Theme><div style={{ display: "flex", width: "600px" }}>{child}</div></Theme>);
 
   it("a nested Theme in a flex row is as wide as its content, not 0px", () => {
-    const row = inRow(<Theme material="thin"><Card size="2">Glass</Card></Theme>);
+    const row = inRow(<Theme material="2"><Card size="2">Glass</Card></Theme>);
     const nested = row.querySelector<HTMLElement>(".kui-theme");
     if (!nested) throw new Error("the nested Theme never mounted");
     expect(nested.getBoundingClientRect().width, "the nested Theme collapsed").toBeGreaterThan(40);
@@ -499,7 +499,7 @@ describe("only the outermost Theme is a query container (§2, narrowed 2026-08-1
     // site states the over-content placement. A plain Card here would stamp nothing and
     // this law would be reading the selectivity rule, not whether the axis crossed.
     const row = inRow(
-      <Theme density="compact" radius="none" material="thick">
+      <Theme density="compact" radius="none" material="5">
         <Card size="2" backdrop>x</Card>
       </Theme>,
     );
@@ -509,7 +509,7 @@ describe("only the outermost Theme is a query container (§2, narrowed 2026-08-1
     // `material` is the one axis with no attribute on the Theme itself: it travels by React
     // context and each component stamps its own, so all 28 selectors stay element-keyed
     // (2026-08-16). Read where it actually lands, or this asserts the wrong element.
-    expect(row.querySelector(".kui-surface")?.getAttribute("data-material")).toBe("thick");
+    expect(row.querySelector(".kui-surface")?.getAttribute("data-material")).toBe("g5");
   });
 });
 
@@ -524,7 +524,7 @@ describe("a solid surface HOSTS glass — the pane scopes the region, never the 
 
   it("an explicit region inside a solid pane expresses the theme's material", () => {
     const host = render(
-      <Theme material="thin">
+      <Theme material="2">
         <Card>
           <Box backdrop>
             <Button>Zoom</Button>
@@ -533,7 +533,7 @@ describe("a solid surface HOSTS glass — the pane scopes the region, never the 
       </Theme>,
     );
     const button = host.querySelector("button")!;
-    expect(button.dataset.material, "the region was swallowed by the pane").toBe("thin");
+    expect(button.dataset.material, "the region was swallowed by the pane").toBe("g2");
     expect(computed(button, "backdrop-filter")).not.toBe("none");
   });
 
@@ -543,7 +543,7 @@ describe("a solid surface HOSTS glass — the pane scopes the region, never the 
     // mount pins it solid with its own prop. Without the reset, the button would read the
     // stale outer region and go glass on the solid card's calm face.
     const host = render(
-      <Theme material="thin">
+      <Theme material="2">
         <Box backdrop>
           <Card backdrop={false}>
             <Button>Label</Button>
@@ -562,13 +562,13 @@ describe("a solid surface HOSTS glass — the pane scopes the region, never the 
       return <div data-probe data-material={useMaterial({ backdrop: true })} />;
     }
     const host = render(
-      <Theme material="regular">
+      <Theme material="3">
         <Card>
           <Probe />
         </Card>
       </Theme>,
     );
-    expect(host.querySelector<HTMLElement>("[data-probe]")!.dataset.material).toBe("regular");
+    expect(host.querySelector<HTMLElement>("[data-probe]")!.dataset.material).toBe("g3");
   });
 
   it("a nested Theme inside a GLASS pane resolves solid — the reset closed the glass-on-glass escape", () => {
@@ -577,7 +577,7 @@ describe("a solid surface HOSTS glass — the pane scopes the region, never the 
     // full glass on glass — double blur, double readback (audit 2026-08-18). The member
     // must re-state its own placement to get glass back.
     const host = render(
-      <Theme material="thin">
+      <Theme material="2">
         <Box backdrop>
           <Card backdrop>
             <Theme>
@@ -592,7 +592,7 @@ describe("a solid surface HOSTS glass — the pane scopes the region, never the 
     // The control case that must keep working: WITHOUT the nested Theme, the same member is
     // the pane's on-glass content — proof the mount can see the scope at all.
     const control = render(
-      <Theme material="thin">
+      <Theme material="2">
         <Box backdrop>
           <Card backdrop>
             <Button>Label</Button>
