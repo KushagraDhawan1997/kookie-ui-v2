@@ -30,7 +30,7 @@ The site in `apps/docs` is the documentation. It has four parts.
 
 | route | what it holds |
 |---|---|
-| `/` | 21 guideline chapters: getting started, concepts, foundations and patterns |
+| `/` | 20 guideline chapters: getting started, patterns and foundations |
 | `/components` | the reference for 62 components, with generated props tables and the refusals |
 | `/builder` | a composition editor that exports React code and reviews the result |
 | `/preview` and `/matrix` | the judging surfaces: real screens, and the axis grid |
@@ -111,6 +111,16 @@ state both for a reader who did not make the decisions.
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md). The tests assert system laws, never snapshots, and a
 law reads the value the browser computes rather than the value a stylesheet declares.
+
+## Acknowledgements
+
+- [Base UI](https://base-ui.com) (MIT) provides the behaviour, keyboard handling and accessibility
+  of most components.
+- [shadcn/ui](https://ui.shadcn.com) (MIT) provides the Message Scroller behaviour, through the
+  `@shadcn/react` package. Many part names, such as those of `Dialog`, `Menu` and `Select`, follow
+  shadcn/ui's.
+- The glass lens follows the method in kube.io's "Liquid Glass in the Browser". The code is
+  written for Kookie.
 
 ## Licence
 

@@ -1,179 +1,74 @@
-A form is a set of labelled values and one action that saves them. Kookie makes a few decisions
-for you: fields all have the same weight, a checkbox's label is a separate element, and a field
-shows as invalid because of its state rather than a prop. The words, the order and the grouping
-are up to you.
+What do you need from the person, and how do they give it? A form asks for a few values and
+saves them with one action. `Field` connects each label, description and error to its control.
+You write the words, choose the order and decide what to leave out.
 
 ## Label every control with Field
 
-A label is ordinary text, so no control has a `label` prop. Instead, you place the label beside
-the control and wrap both in a `Field`, which connects them for screen readers. `Field` also
-connects a `FieldDescription` and a `FieldError` to the control, so a screen reader announces
-them when the control gets focus.
+Wrap each control and its label in a `Field`. The `Field` connects them for screen readers. It
+also connects a `FieldDescription` and a `FieldError`, so a screen reader reads them when the
+control gets focus.
 
-```tsx
-<Field>
-  <FieldLabel>Work email</FieldLabel>
-  <TextField type="email" />
-  <FieldDescription>Receipts and billing notices go here.</FieldDescription>
-</Field>
-```
+<Example name="forms.field" />
 
-Write the parts in this order: label, control, description, error. The label sits directly on
-the control it names, and everything else about that control goes underneath. `Field` sets the
-gap between the parts and passes its `size` to the label, the description, the error and the
-control, so you don't need to set any of them yourself.
+Write the parts in this order: label, control, description, error. `Field` sets the gaps and
+passes its `size` to every part. Outside a `Field`, point `htmlFor` at the control's `id`.
 
-Outside a `Field`, you have to make the connection yourself. Point `htmlFor` at the control's
-`id`, or put the control inside a `<label>`. Don't rely on position alone, because a screen reader
-can't see that a label sits next to a control.
+**A placeholder isn't a label.** It disappears when a person starts to type, and its muted
+colour is harder to read. Use a placeholder only for an example of the value.
 
-**A placeholder isn't a label.** It disappears as soon as a person starts typing, and its muted
-colour is harder to read. Use a placeholder for an example of the value, never for the name of
-the field.
+For checkboxes and radios, wrap each option in a `FieldItem`. It puts the control beside its
+label and connects the two.
 
-### Options in a group
+<Example name="forms.choices" />
 
-A checkbox or a radio sits beside its label rather than containing it. Wrap each option in a
-`FieldItem`, which lays out the control and its label side by side and connects them. A
-`FieldDescription` inside an item explains that one option.
+## Ask only for what you need
 
-```tsx
-<Field>
-  <FieldLabel>Delivery speed</FieldLabel>
-  <RadioGroup defaultValue="standard">
-    <Stack gap="4">
-      <FieldItem>
-        <Radio value="standard" />
-        <FieldLabel>Standard</FieldLabel>
-        <FieldDescription>Three to five business days.</FieldDescription>
-      </FieldItem>
-      <FieldItem>
-        <Radio value="express" />
-        <FieldLabel>Express</FieldLabel>
-        <FieldDescription>Next business day before noon.</FieldDescription>
-      </FieldItem>
-    </Stack>
-  </RadioGroup>
-</Field>
-```
+Fields have no `emphasis` or `tone`, because every field asks for the same thing: a value. Show
+what matters through the label, the order and what you leave out. Set `required` on a control
+that must have a value, and in a long form say so in the label too.
 
-## Fields all have the same weight
-
-`TextField` and `TextArea` have no `emphasis` or `tone` prop. Emphasis ranks one action above
-another, and fields don't compete like that: every field asks a person to fill it in.
-
-Show which fields matter through the label, the order of the form, and what you leave out. To
-make a field required, set `required` on the control, and in a long form say so in the label as
-well. Only the buttons at the end of the form rank against each other.
-
-## One button saves the form
-
-Give the form one loud button, for the action the form exists to do, and make every other button
-medium or quiet.
-
-```tsx
-<Card size="3">
-  <Stack gap="6">
-    <Stack gap="2">
-      <Heading size="6">New project</Heading>
-      <Text size="3" emphasis="medium">Anyone in the workspace can open it.</Text>
-    </Stack>
-
-    <Stack gap="5">
-      <Field size="3">
-        <FieldLabel>Project name</FieldLabel>
-        <TextField required />
-      </Field>
-      <Field size="3">
-        <FieldItem>
-          <Checkbox />
-          <FieldLabel>Keep it private for now</FieldLabel>
-        </FieldItem>
-      </Field>
-    </Stack>
-
-    <Flex justify="flex-end" gap="3">
-      <Button size="3">Cancel</Button>
-      <Button size="3" tone="accent" emphasis="loud">Create project</Button>
-    </Flex>
-  </Stack>
-</Card>
-```
-
-The example uses two gaps you set yourself: gap 5 between the rows of the form, and gap 6
-between the title, the form and the buttons. The smaller gap between each label and its field
-comes from `Field`.
-
-Put the buttons at the end of the form, aligned to the end edge. When there's only one button,
-you can make it full width.
-
-Label the button with what it does. "Create project" is clearer than "Submit", and once you've
-chosen a word, use it for the rest of the flow.
+To choose from a list, use a `Select`. It sets a value that the form submits, whereas a `Menu`
+runs an action and holds no value. Pass `items` to a `Select` whose option labels differ from
+their values.
 
 ## Group with space
 
-Put related rows closer together than unrelated ones, and keep the gap inside a group at least
-two steps smaller than the gap around it. When every gap in a form is the same, the form reads as
-one long column with no groups.
+Put related rows closer together than unrelated ones. This is Gestalt proximity, a measured
+effect. Make the gap inside a group at least two steps smaller than the gap around it, which is a
+judgment. Don't add a `Separator` or a `Card` where space already shows the group.
 
-Don't add a `Separator` or a `Card` where spacing already makes the group. A container and a gap
-both say "these belong together", so using both says it twice. Add a line only where distance
-can't do the job, such as a long settings list whose groups already sit a section apart and
-still need something to divide them.
+## One button saves the form
 
-## Show errors with state
+Give the form one loud button for the action it exists to do, and make the other buttons medium
+or quiet. Put the buttons at the end of the form. Label the main button with what it does:
+"Create project", not "Submit".
 
-Controls have no `invalid` prop. A field looks invalid because it is in an invalid state, which
-comes from one of two places:
+<Example name="forms.card" />
 
-- Inside a `Field`, the field's validation sets the state. Pass `invalid` to `Field` when your
-  own code decides, or use `validate` and `required` to let the field decide. The control picks
-  the state up automatically.
-- Outside a `Field`, set `aria-invalid` on the control.
+## When an error appears
 
-```tsx
-<Field invalid={Boolean(emailError)}>
-  <FieldLabel>Work email</FieldLabel>
-  <TextField type="email" />
-  <FieldError>{emailError}</FieldError>
-</Field>
-```
+By default, a `Field` checks its value when the form is submitted. After that, it checks again on
+every change, so the error goes away as soon as the value is correct. To check when the person
+leaves the field, set `validationMode="onBlur"` on the `Field`. Don't show an error while someone
+types the first characters. In one usability study, people completed a form faster when each
+field was checked after they left it than when it was checked while they typed.
 
-`FieldError` shows only while the field is invalid, and a screen reader announces it as soon as
-it appears. Leave it empty to show the browser's own validation message.
+Controls have no `invalid` prop. Inside a `Field`, pass `invalid` when your code decides, or use
+`validate` and `required` to let the field decide. Outside a `Field`, set `aria-invalid` on the
+control. The example below checks when you leave the field.
 
-An invalid state takes priority over a checkbox being ticked, so a ticked checkbox that's also
-invalid still looks invalid. A disabled state takes priority over both.
+<Example name="forms.error" />
 
-The system draws the red border and focus ring, and you write the words. Colour alone isn't
-enough (WCAG 1.4.1), so an invalid field always needs a message next to it.
+The system draws the red border. You write the message. WCAG 3.3.1 requires an error to be
+described in text, so every invalid field needs a `FieldError`. A screen reader reads the error
+as soon as it appears. Say what to do next, not only what is wrong.
 
-## Use TextArea for a paragraph
-
-Use `TextArea` when the value is prose that someone will read again, such as a description, a
-note or an address. `rows` sets how many lines tall it starts, and a person can drag the corner to
-make it taller.
-
-There's no `cols` prop. The layout around the text area sets its width, as it does for every
-other control.
-
-A chat input isn't a large `TextArea`. It needs a send button, room for attachments and a height
-that grows with the text, so use a `Composer` instead.
-
-## Helper text has to change a decision
+## Write helper text only when it changes a decision
 
 Write helper text only when it tells a person something the label can't: a consequence, a limit,
-a scope, or the reason a control is disabled. Delete any line that repeats what's already on
-screen.
+a scope or the reason a control is disabled.
 
-```tsx
-// Filler. The label already says this.
-<FieldDescription>Enter your work email address.</FieldDescription>
+<Example name="forms.helper-text" />
 
-// Useful. A scope that the label can't carry.
-<FieldDescription>Receipts and billing notices go here.</FieldDescription>
-```
-
-`FieldDescription` uses the muted colour at the same size as the label, which is enough to show
-that it's secondary. Don't shrink helper text to size 1, because the muted colour already makes
-it quieter at a size people can read.
+Keep helper text at the label's size. `FieldDescription` already uses the muted colour, so it
+reads as secondary without getting smaller.

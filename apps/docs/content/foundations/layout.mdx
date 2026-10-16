@@ -1,17 +1,17 @@
 In KookieUI, the space between two things is set by the container that holds them, not by the
 things themselves. Four layout components place content on the screen, one spacing scale supplies
-the distances, and a single theme setting, `density`, tightens or loosens that scale for your
-whole app.
+the distances, and one theme setting, `density`, tightens or loosens that scale for your whole
+app.
 
 ## Put spacing on the container
 
 Use `gap` on a container to set the distance between the items inside it. No control accepts a
 margin prop, so `<Button mt="4">` doesn't compile.
 
-A margin describes the relationship between two things rather than a property of one. The right
-distance below a button depends on what comes next, on the density of your theme and on what the
-group is for. A button can't know any of that, so a margin built into it would only be a guess,
-and every layout would have to undo the guess first.
+People see things that sit close together as one group. This is the Gestalt law of proximity
+(Wertheimer, 1923), a measured effect. So a distance is a fact about the group, and the group's
+container sets it. A button can't know what comes after it, so a margin built into it would only
+be a guess. The [Composition](/start/composition) chapter shows how to choose the gaps.
 
 When you need a one-off distance, wrap the component in a `Box`. The wrapper is visible in your
 file, whereas a margin hidden inside a control is not.
@@ -31,19 +31,14 @@ file, whereas a margin hidden inside a control is not.
 
 ## Choose a layout component
 
-`Box` accepts every layout prop: padding, margin and gap, width and height, position, overflow,
-the flex and grid container props, and the props for a flex or grid child such as `flexGrow` and
-`gridArea`. `Flex`, `Grid` and `Stack` are each a `Box` with a preset `display` and a shorter list
-of props, and none of them adds CSS of its own.
-
-The shorter lists catch mistakes. In plain CSS you can put any property on any element, and the
-browser quietly ignores the ones that don't apply. Here, `columns` on a `Flex` is a type error.
+`Box` accepts every layout prop: padding, margin, gap, size, position, overflow, and the flex and
+grid props. `Flex`, `Grid` and `Stack` are each a `Box` with a preset `display` and a shorter list
+of props. The shorter lists catch mistakes: `columns` on a `Flex` is a type error.
 
 - **`Stack`** places items in a column, one below the next.
 - **`Flex`** places items in a row or a column, with the direction and alignment you choose.
 - **`Grid`** places items in rows and columns at the same time.
-- **`Box`** accepts every prop, so use it when you need one the others leave out, such as a
-  `display` that switches from flex to grid at a certain width.
+- **`Box`** accepts every prop, so use it when you need one the others leave out.
 
 For a CSS property that has no prop, use `style`. It's applied last, so it wins.
 
@@ -64,124 +59,62 @@ For a CSS property that has no prop, use `style`. It's applied last, so it wins.
 </Stack>
 ```
 
-## Spacing tokens
+## Spacing tokens and density
 
-Spacing comes in two layers. The raw scale runs from `--space-1` to `--space-12`. Its steps are
-close together at the small end, where you can see the difference between 8, 12 and 16 pixels and
-use all three often. At the large end the steps grow much faster, because a difference of a few
-pixels between two page gutters is invisible.
+The raw scale runs from `--space-1` to `--space-12`. Its steps are close together at the small
+end and grow much faster at the large end. You can see the difference between 8 and 12 pixels,
+but not between 96 and 100, because the eye notices a change in size in proportion to the size.
 
 The layout scale, `--layout-space-1` to `--layout-space-12`, sits on top of the raw scale and
-changes with density. Every layout distance uses it: `gap` on `Flex`, `Stack` and `Grid`, the `p`
-and `m` props on any layout component, and the padding inside a card.
-
-So `gap="4"` means step 4 at the current density, rather than a fixed 12 pixels. At default
-density the two scales match. At compact density, step 4 of the layout scale points at step 3 of
-the raw scale.
+changes with density. `gap`, the `p` and `m` props, and the padding inside a card all use it. So
+`gap="4"` means step 4 at the current density, rather than a fixed 12 pixels.
 
 ```css
-/* The raw scale. Density never changes it. */
---space-4: calc(12px * var(--scale));
-
-/* The layout scale, which gap="4" and p="4" use. */
---layout-space-4: var(--space-4); /* default density */
---layout-space-4: var(--space-3); /* compact density */
+/* gap="4" and p="4" read the layout scale. */
+--layout-space-4: var(--space-4); /* default density: 12 pixels */
+--layout-space-4: var(--space-3); /* compact density: 8 pixels */
 ```
 
-Controls use the raw scale for their own insides. A button's padding and the gap between its
-icon and its label already have their own values for each density, so reading the layout scale
-as well would shrink them twice.
+`density` is a `Theme` setting: `compact`, `default` or `comfortable`. Set it for the whole app,
+or for one region with a nested `Theme`. Compact moves layout steps 2 to 8 down one step, and
+comfortable moves steps 1 to 8 up one. Steps 9 to 12 stay the same, so the space around a page
+doesn't shrink in a compact app. Density doesn't change text size.
 
-You can also pass a CSS length, such as `gap="13px"`. It goes through unchanged, and it stays
-visible in your file as an exception to the scale.
+Each density level is a hand-picked set of values, not a multiplier, so you can correct one value
+without moving the rest. This is a judgment.
 
-## Density
-
-`density` is a `Theme` setting with three values: `compact`, `default` and `comfortable`. You
-set it for the whole app, or for one region with a nested `Theme`, and every component inside
-follows it.
-
-Each density level is a list of chosen values rather than a multiplier. It sets every control
-height and control padding directly, and it points each of the twelve layout steps at a step of
-the raw scale. This means no distance ever comes out at an odd value such as 26.78 pixels, and
-correcting one value leaves the others where they are. This is a judgment: a multiplier would
-make every small correction an app-wide change.
-
-Density leaves two things alone:
-
-- **Large gutters.** Compact moves steps 2 to 8 down by one step, and comfortable moves steps 1
-  to 8 up by one, while steps 9 to 12 stay the same at every density. The space around a page
-  doesn't shrink in a compact app.
-- **Text size.** Density changes how much room there is, not how big the words are. Use `size`
-  on `Text` and `Heading` to change the words.
-
-```tsx
-<Theme density="compact">
-  <Stack gap="4">{/* every layout distance inside is one step tighter */}</Stack>
-</Theme>
-```
+Controls use the raw scale for their own padding, because their insides already change with
+density. You can also pass a CSS length, such as `gap="13px"`, and it stays visible in your file
+as an exception to the scale.
 
 ## Responsive values
 
 Any layout prop accepts one value for each container size, written as an object. `initial` is the
-base value, and `sm`, `md` and `lg` apply on top of it once the container is at least 30rem, 48rem
-or 64rem wide.
+base value, and `sm`, `md` and `lg` apply once the container is at least 30rem, 48rem or 64rem
+wide.
 
-These sizes measure the nearest container you've marked, not the window. That's why one `Grid`
-can work in a narrow sidebar and in a wide main column without two versions of it. To mark a
-container, add the `container` prop to a `Box`, `Flex`, `Stack` or `Grid`.
+These sizes measure the nearest container you've marked, not the window. To mark a container, add
+the `container` prop to a `Box`, `Flex`, `Stack` or `Grid`. The same `Grid` then works in a narrow
+sidebar and in a wide main column:
 
-A marked container can no longer size itself around its contents, so put `container` only on a
-box that the layout already gives a width, or give it a `width`, `flexGrow` or `flexBasis`
-yourself. A marked box left to fit its contents comes out zero pixels wide, and a development
-build warns you when that happens.
+<Example name="box.container" />
 
-```tsx
-<Box container>
-  <Flex direction={{ initial: "column", md: "row" }} gap={{ initial: "3", md: "5" }}>
-    <TextField placeholder="Search" />
-    <Button>Filter</Button>
-  </Flex>
-</Box>
-```
+A marked container can't size itself from its contents, so give it a width, or put it where the
+layout already sets one. A marked box left to fit its contents comes out zero pixels wide, and a
+development build warns you.
 
-The size of the window is a separate question. Use `useWindowClass()` to decide which shape your
-whole interface takes, such as a collapsed sidebar or a full one. The
-[Responsiveness](/foundations/responsiveness) chapter explains when to use each.
+To choose the shape of your whole interface, such as a sidebar or bottom tabs, use
+`useWindowClass()`. The [Responsiveness](/patterns/responsiveness) chapter explains when to use
+each.
 
 ## Reach the edge of a card with bleed
 
-A card has padding, so a picture that runs from edge to edge must cancel it. Use the value
-`bleed` on any margin prop, and it resolves to the negative of the padding of the nearest card,
-dialog or other surface around it.
+A card has padding, so a picture that runs from edge to edge must cancel it. Use the value `bleed`
+on any margin prop. It resolves to the negative of the padding of the nearest card, dialog or
+other surface, and the card clips the picture to its corners.
 
-`bleed` is a value rather than a separate prop, so it works with every margin prop you already
-know. `mt="bleed" mx="bleed"` pulls a box out to the top edge and both sides. The nearest surface
-wins, so a card inside a dialog bleeds to the edge of the card. Outside any surface, `bleed` is
-zero.
+<Example name="box.bleed" />
 
-On a padding prop, `bleed` does the reverse and adds the surface's padding back. This is useful
-inside a box that you have pulled to the edge, when the content in it must line up with the rest
-of the card again.
-
-```tsx
-<Card size="3">
-  <Stack gap="3">
-    <Box mt="bleed" mx="bleed">
-      <img src="/cover.jpg" alt="" />
-    </Box>
-    <Heading size="6">Northern route</Heading>
-    <Text size="3">Two days, one pass, and a ferry at the end.</Text>
-  </Stack>
-</Card>
-```
-
-The panes of a `Shell` are surfaces too, so `bleed` also lets an image or a canvas reach the edges
-of a pane. A `ShellScroll` placed directly in a pane doesn't need it, because it already reaches
-the edges and applies the padding inside itself.
-
-`gap` and the other props don't accept `bleed`, and CSS ignores the word if you pass it there.
-
-There is no card section, media slot or cover part for this. A component gets fixed parts only
-when something besides its appearance needs them, such as connecting a label to its control. A
-picture at the top of a card needs nothing like that, so a `Box` with `bleed` is enough.
+`mt="bleed" mx="bleed"` pulls a box out to the top edge and both sides. Outside any surface,
+`bleed` is zero. On a padding prop, `bleed` adds the surface's padding back, so content inside a
+pulled box can line up with the rest of the card. `gap` doesn't accept `bleed`.

@@ -76,7 +76,7 @@ export const chordMatches = (chord: Chord, e: KeyboardEvent, apple: boolean = is
   const otherMod = apple ? e.ctrlKey : e.metaKey;
   if (otherMod) return false;
   if (mod !== want.mod || e.shiftKey !== want.shift || e.altKey !== want.alt) return false;
-  return e.key.toLowerCase() === key;
+  return e.key?.toLowerCase() === key;
 };
 
 const GLYPH: Record<string, string> = {

@@ -11,94 +11,41 @@ component, such as a toolbar over a canvas or a menu over the page.
 ```
 
 `material` is a scale from `"1"` to `"9"`. The default is `"9"`, which is solid and lets no
-light through. Steps `"1"` to `"8"` are glass. `"1"` is clear, and each step adds one more
-layer of the same glass, so less of the content behind it shows through. A menu or a popover
-also blurs the content behind it a little more at each step.
-
-A menu, a select and a popover hold rows of text over the page, so their glass never becomes
-fully clear. At the lowest steps they keep enough tint for their text to stay readable.
-
-The value does not change how the glass bends the content at its edge. The bend comes from the
-shape of the component: a button is a small dome, a menu has a wider edge, and a card has a
-gentler edge.
-
-One value covers the whole app, but each kind of component uses it differently. A menu is
-more opaque than a card at every value, because it holds rows of text over the content it
-covers. A `Dialog` also feels heavier than a card, because it dims everything behind it.
+light through. Steps `"1"` to `"8"` are glass. `"1"` is clear, and each step lets less of the
+content behind it show through. A menu keeps more tint than a card at every step, because it
+holds rows of text.
 
 No component accepts a `material` prop. To change the material for one part of your app, nest
 a `<Theme material>` around that part, which is how every other Theme setting works as well.
 
+<Example name="materials.steps" />
+
 ## Mark where content passes behind
 
 The Theme sets which material to use, while `backdrop` tells the system where to use it. Glass
-over a plain background has nothing to show, but the browser still reads the background on
-every repaint, so a control in the ordinary page flow stays solid unless you mark it.
+costs rendering time even over a plain background, so a control in the ordinary page flow stays
+solid unless you mark it.
 
 Mark the region rather than each control. A `Box` with `backdrop` turns every control inside it
-to glass:
+to glass, as in the example above. Set `backdrop={false}` on a `Box` inside the region to make a
+smaller area plain again.
 
-```tsx
-<Theme material="3">
-  <Box className="editor-canvas">
-    <Box backdrop p="2">
-      <Flex gap="2" align="center">
-        <Button emphasis="quiet">Crop</Button>
-        <Button emphasis="quiet">Rotate</Button>
-        <Separator orientation="vertical" />
-        <TextField size="2" placeholder="Layer name" />
-        <Button emphasis="loud">Export</Button>
-      </Flex>
-    </Box>
-  </Box>
-</Theme>
-```
+You can also set `backdrop` on a single component, such as a `Card`, a `Button`, a `TextField`,
+a `Toolbar` or a `Shell` panel. `ShellContent` does not accept it, because nothing passes behind
+the work area of the app frame.
 
-Each control in this toolbar keeps its own emphasis and shows the artwork underneath. Set
-`backdrop={false}` on a `Box` inside the region to make a smaller area plain again. `backdrop`
-only says where a component sits. It never changes how thick the glass is.
-
-You can also set `backdrop` on a single component. The prop is available on:
-
-- **Surfaces:** `Card`, `Notice`, `Composer`, `Toolbar` and `ToolbarGroup`
-- **Controls:** `Button`, `Toggle`, `SegmentedControl`, `SelectTrigger` and `MessageScrollerButton`
-- **Fields:** `TextField`, `TextArea`, `NumberField` and `ComboboxInput`
-- **Small items:** `Chip`, `Avatar` and `Attachment`
-- **App frame panels:** `ShellHeader`, `ShellRail`, `ShellSidebar`, `ShellInspector` and
-  `ShellBottom`
-
-A sidebar that floats over a canvas is the clearest case for glass in an app. `ShellContent`
-does not accept `backdrop`, because the work area is the bottom layer of the frame and nothing
-passes behind it. To add a glass region inside the work area, place a `<Box backdrop>` or a
-`<Card backdrop>` there.
-
-## Panels that cover the page use glass automatically
-
-A `Menu`, a `Select` list, a `Popover`, a `Dialog` and every other panel that opens over the
-page always has content behind it, so it uses the theme's material without a prop. A `Shell`
-panel that opens as a drawer on a narrow window does the same.
-
-For every other component, the system picks the material in this order:
-
-1. If the component sits inside a glass panel, it uses the panel's transparency with no glass
-   effect of its own.
-2. If you set `backdrop` on the component, that value decides.
-3. If the component sits in a region marked with `backdrop`, it uses glass.
-4. Otherwise, it stays `solid`.
+A `Menu`, a `Select` list, a `Popover`, a `Dialog` and every other panel that opens over the page
+always has content behind it, so it uses the theme's material without a prop.
 
 ## Glass doesn't stack
 
 A component inside a glass panel does not become a second layer of glass. It paints its fill at
-the panel's transparency and adds no glass effect of its own, and the system applies this for
-you.
+the panel's transparency and adds no glass effect of its own. A panel looks like glass because
+it filters the content behind it. Inside another glass panel, that content is already filtered,
+so a second filter adds cost and makes the inner panel look like a sticker.
 
-The reason is physical. A panel looks like glass because it filters the content behind it.
-Inside another glass panel, that content has already been filtered once, so a second filter adds
-cost and makes the inner panel look like a sticker.
-
-A solid panel stops a marked region at its edge, so an unmarked control on an opaque card stays
-solid. You can still put glass inside a solid card when something inside it moves behind a
-control, such as a map or a feed. Mark that place explicitly:
+A solid panel stops a marked region at its edge. You can still put glass inside a solid card
+when something inside it moves behind a control, such as a map. Mark that place explicitly:
 
 ```tsx
 <Card>
@@ -110,10 +57,8 @@ control, such as a map or a feed. Mark that place explicitly:
 ```
 
 A nested `<Theme>` also resets the region. A menu opened from a glass card is glass again,
-because it paints over the page rather than inside the card.
-
-To give your own element the same material, read it with `useMaterial` and put it on an element
-with the surface class:
+because it paints over the page rather than inside the card. To give your own element the same
+material, read it with `useMaterial`:
 
 ```tsx
 const material = useMaterial({ backdrop: true });
@@ -122,29 +67,28 @@ return <div className="kui-surface" data-material={material} />;
 
 ## Glass keeps the component's colour
 
-Glass changes how a fill is painted rather than replacing it. The system takes the colour the
-component would paint and makes it translucent, so your `tone` and `emphasis` still apply. A loud button on
-glass is a translucent version of its solid fill, a medium button is a soft tint, and a quiet button has no fill at all. Each one keeps its own label colour.
+Glass makes the component's own fill translucent, so your `tone` and `emphasis` still apply. A
+loud button on glass is a translucent version of its solid fill, a medium button is a soft tint,
+and a quiet button has no fill.
 
 In Chromium browsers, the edge of a glass panel also bends the content behind it, like the edge
-of a thick lens. Other browsers show the translucent fill and the edge highlight without the bend.
+of a thick lens. Other browsers show the translucent fill without the bend.
 
 ## When to use glass
 
-Use glass where content passes behind a panel:
+Use glass for controls and panels that float over content:
 
 - a toolbar over a canvas
 - a panel over a hero image
 - a header that content scrolls under
 
-Glass costs a background read for every panel on every repaint. Fixed chrome is the best case,
-because a glass panel that moves must read its background again on every frame. Don't mark a
-region that sits over a plain background, because the glass has nothing to show there and still
-costs the read. Set `material="9"` on a nested Theme to remove the cost from one region.
+Keep the content itself solid. Don't mark a region that sits over a plain background, because
+the glass has nothing to show there and still costs rendering time. A glass panel that moves
+costs more than fixed chrome.
 
-Two accessibility settings change the glass for you:
+Three accessibility settings change the glass for you:
 
-- **Reduced transparency:** Every glass panel becomes solid.
-- **Higher contrast:** Every step becomes much more opaque, and the steps stay in the same
-  order. The edge highlight and the bent edge stay the same, because they paint
-  inside the panel and cannot lower the contrast of its text.
+- **Reduced transparency:** Every glass panel becomes solid, in browsers that report the
+  setting. Not every browser reports it.
+- **Forced colours:** Every glass panel becomes solid.
+- **Higher contrast:** Every step becomes more opaque, and the steps stay in the same order.

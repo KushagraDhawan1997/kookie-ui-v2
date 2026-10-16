@@ -57,7 +57,7 @@ export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
   // `preventDefault` because Chrome's own ⌘K focuses the address bar.
   React.useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() === "k" && (event.metaKey || event.ctrlKey)) {
+      if (event.key?.toLowerCase() === "k" && (event.metaKey || event.ctrlKey)) {
         event.preventDefault();
         setOpen((value) => !value);
       }
