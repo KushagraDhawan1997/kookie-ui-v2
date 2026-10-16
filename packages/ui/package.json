@@ -56,6 +56,7 @@
   },
   "scripts": {
     "build": "pnpm run tokens:check && tsdown && node scripts/build-css.mjs && pnpm run pack:check",
+    "dev": "node scripts/dev.mjs",
     "tokens": "node --disable-warning=ExperimentalWarning --experimental-strip-types src/tokens/generate.ts",
     "preview": "node --disable-warning=ExperimentalWarning --experimental-strip-types src/tokens/preview.ts",
     "preview:serve": "pnpm run preview && python3 -m http.server 4917",
