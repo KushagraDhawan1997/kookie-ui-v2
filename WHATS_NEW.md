@@ -1,0 +1,103 @@
+# What's new in Kookie UI
+
+## October 16
+
+**Reorganized docs.** Principles say why Kookie exists and what it takes from Apple. Start gains a Composition chapter, and Vocabulary is gone. Foundations are renamed Appearance, Interaction, Scale and Shape, and Responsiveness moves to Patterns.
+
+## October 15
+
+**Components filed by job.** The component index groups components by what a person is doing (Act, Choose, Enter, Read and more), and each page names the component to use instead.
+
+**Material scale 1 to 9.** Glass comes in nine stacked steps, and dark mode glass is quieter.
+
+**Flush work area.** The docs work area sits flush, like every other pane.
+
+**Work-in-progress notice.** The docs site says it is a work in progress.
+
+**K mark.** The K mark is the logo, favicon and Apple touch icon.
+
+## September 25
+
+**New package name.** The React package is `@kushagradhawan/kookie-ui-react`.
+
+## September 20
+
+**No motion.** Overlays, menus, tabs and controls appear at once. Nothing fades or travels.
+
+## September 19
+
+**Grey accent.** The default accent is grey.
+
+**Carousel, MessageScroller and Confirmation.** Three new components, plus the Conversation block.
+
+**Examples tab.** Every component page has an Examples tab.
+
+**Every block in the sidebar.** Blocks are listed in the docs sidebar, like components.
+
+**Nested panes.** A pane inside a pane has matching, concentric corners.
+
+**Lighter headings.** Headings and page titles use medium weight. Size sets rank.
+
+**Bigger display sizes.** Display steps 7 to 9 are 32, 44 and 64.
+
+**Plain-English docs.** Every chapter is rewritten in Simplified Technical English.
+
+## September 15
+
+**Builder sidebar.** The builder adds components from a sidebar tab and groups the inspector into sections.
+
+**New type.** The docs read in Inter, headings use Inter Tight, and the wordmark is PP Acma.
+
+## September 9
+
+**Tab bar on phones.** On a phone, the Shell's rail becomes a tab bar.
+
+## September 8
+
+**Collapsing toolbar.** A toolbar folds its extra controls into a menu when the row runs out of room.
+
+**Theme panel.** The docs have a Theme panel beside the appearance toggle.
+
+## September 5
+
+**Resizable sidebar.** The docs sidebar can be resized, and its chrome floats.
+
+## September 1
+
+**Live specimens.** Component pages have knobs that drive the example and rewrite its code.
+
+**Toggle, Avatar, Badge, Table and Accordion.** Five more components ship.
+
+## August 26
+
+**Tree and NavTree.** Two tree components ship, and the docs sidebar uses NavTree.
+
+## August 23
+
+**Composer.** The input half of a conversation ships.
+
+## August 20
+
+**Docs in Shell, with search.** The docs site runs on its own Shell, renders every page with Kookie components, and has search.
+
+**API tables from the types.** Prop tables are generated from the component types.
+
+## August 19
+
+**ScrollArea, SegmentedControl and Tabs.** Three more components ship.
+
+**Builder.** A composition editor at /builder lets you lay out blocks, edit them and export real components.
+
+## August 16
+
+**Shell.** The app frame ships: panes that float or sit flush, a rail, a sidebar, and pane edges you can drag.
+
+**Glass material.** Surfaces are built from one glass material with squircle corners, refraction and lit edges.
+
+## August 10
+
+**Hugeicons.** The docs use Hugeicons.
+
+## July 31
+
+**Kookie UI begins.** The repo starts on July 31, with color previews for any brand hue in light and dark.

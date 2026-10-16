@@ -20,7 +20,7 @@ import { Logo } from "./logo";
  * `SECTIONS`, so the footer cannot list a chapter that does not exist or miss one that does; a
  * hand-written list here would be the sidebar's contents in a second home, which is the fault
  * this repo spends most of its time removing. `Reference` is the one hand-written column,
- * because those three destinations are not chapters and there is no list to derive them from.
+ * because those four destinations are not chapters and there is no list to derive them from.
  *
  * IT SITS ON A GROUND (2026-09-06, Kushagra: "Can we wrap our footer in Surface?"), which is the
  * block's own mechanism used exactly as written: the block draws no pane and says a footer that
@@ -93,6 +93,7 @@ export function SiteFooter() {
             links: [
               { label: "All components", href: "/components" },
               { label: "Blocks", href: "/blocks" },
+              { label: "What's new", href: "/whats-new" },
               { label: "GitHub", href: "https://github.com/KushagraDhawan1997/kookie-ui-v2" },
             ],
           },
