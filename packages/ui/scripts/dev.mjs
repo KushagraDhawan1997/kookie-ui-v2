@@ -1,6 +1,7 @@
-// Watch build for local consumers. tsdown rebuilds the JS (and reruns build-css on success),
+// Watch build for local consumers. tsdown rebuilds the JS (then build-css and sync on success),
 // but it only watches files in the module graph, and no module imports the CSS. So a second
-// watcher reruns build-css when any .css under src changes. Token sources are not watched:
+// watcher reruns build-css and sync when any .css under src changes. sync.mjs copies the result
+// into each sibling project's installed copy. Token sources are not watched:
 // run `pnpm tokens` after editing them, and the regenerated tokens.css triggers a rebuild here.
 import { spawn } from "node:child_process";
 import { watch } from "node:fs";
@@ -10,7 +11,7 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const run = (cmd, args) => spawn(cmd, args, { cwd: root, stdio: "inherit" });
 
-const tsdown = run("pnpm", ["exec", "tsdown", "--watch", "src", "--on-success", "node scripts/build-css.mjs"]);
+const tsdown = run("pnpm", ["exec", "tsdown", "--watch", "src", "--on-success", "node scripts/build-css.mjs && node scripts/sync.mjs"]);
 
 let timer;
 let building = false;
@@ -21,7 +22,7 @@ const buildCss = () => {
     return;
   }
   building = true;
-  run("node", ["scripts/build-css.mjs"]).on("exit", () => {
+  run("sh", ["-c", "node scripts/build-css.mjs && node scripts/sync.mjs"]).on("exit", () => {
     building = false;
     if (queued) {
       queued = false;
