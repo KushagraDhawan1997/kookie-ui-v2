@@ -23,10 +23,32 @@ import CommandExample from "./command";
 import AccordionExample from "./accordion";
 import PageExample from "./page";
 import QuickstartExample from "./quickstart";
+import InteractionStatesExample from "./interaction.states";
+import DepthFlatAndElevatedExample from "./depth.flat-and-elevated";
+import MaterialsStepsExample from "./materials.steps";
+import ShapeLevelsExample from "./shape.levels";
+import TypographyRankExample from "./typography.rank";
+import ModalityUndoExample from "./modality.undo";
+import ResponsivenessContainerExample from "./responsiveness.container";
+import ResponsivenessPointerExample from "./responsiveness.pointer";
+import FormsFieldExample from "./forms.field";
+import FormsChoicesExample from "./forms.choices";
+import FormsCardExample from "./forms.card";
+import FormsErrorExample from "./forms.error";
+import FormsHelperTextExample from "./forms.helper-text";
+import ModalityAlertExample from "./modality.alert";
+import NavigationSegmentedExample from "./navigation.segmented";
+import FeedbackLoadingExample from "./feedback.loading";
+import FeedbackImportExample from "./feedback.import";
+import FeedbackToneExample from "./feedback.tone";
+import FeedbackNoticeExample from "./feedback.notice";
+import CompositionOneActionExample from "./composition.one-action";
+import CompositionGroupingExample from "./composition.grouping";
+import CompositionToneExample from "./composition.tone";
 import PrinciplesLookalikesExample from "./principles.lookalikes";
-import QuickstartContainersExample from "./quickstart.containers";
-import QuickstartGroupExample from "./quickstart.group";
-import QuickstartActionsExample from "./quickstart.actions";
+import QuickstartDialogExample from "./quickstart.dialog";
+import QuickstartEmailExample from "./quickstart.email";
+import QuickstartRoleExample from "./quickstart.role";
 import ToolbarExample from "./toolbar";
 /* VARIANTS (2026-09-05, Kushagra, against shadcn's page: "I can't learn that RTL is handled by
    looking at a gear icon"). A knob sweeps an AXIS — nobody sends a colleague to size 3 — and a
@@ -444,10 +466,32 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "accordion": AccordionExample,
   "page": PageExample,
   quickstart: QuickstartExample,
+  "interaction.states": InteractionStatesExample,
+  "depth.flat-and-elevated": DepthFlatAndElevatedExample,
+  "materials.steps": MaterialsStepsExample,
+  "shape.levels": ShapeLevelsExample,
+  "typography.rank": TypographyRankExample,
+  "modality.undo": ModalityUndoExample,
+  "responsiveness.container": ResponsivenessContainerExample,
+  "responsiveness.pointer": ResponsivenessPointerExample,
+  "forms.field": FormsFieldExample,
+  "forms.choices": FormsChoicesExample,
+  "forms.card": FormsCardExample,
+  "forms.error": FormsErrorExample,
+  "forms.helper-text": FormsHelperTextExample,
+  "modality.alert": ModalityAlertExample,
+  "navigation.segmented": NavigationSegmentedExample,
+  "feedback.loading": FeedbackLoadingExample,
+  "feedback.import": FeedbackImportExample,
+  "feedback.tone": FeedbackToneExample,
+  "feedback.notice": FeedbackNoticeExample,
+  "composition.one-action": CompositionOneActionExample,
+  "composition.grouping": CompositionGroupingExample,
+  "composition.tone": CompositionToneExample,
   "principles.lookalikes": PrinciplesLookalikesExample,
-  "quickstart.containers": QuickstartContainersExample,
-  "quickstart.group": QuickstartGroupExample,
-  "quickstart.actions": QuickstartActionsExample,
+  "quickstart.dialog": QuickstartDialogExample,
+  "quickstart.email": QuickstartEmailExample,
+  "quickstart.role": QuickstartRoleExample,
   "toolbar": ToolbarExample,
   attachment: AttachmentExample,
   "avatar": AvatarExample,

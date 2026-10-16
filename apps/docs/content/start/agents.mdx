@@ -1,11 +1,14 @@
-An AI agent will reach for a `variant`, a `color` or a margin prop, because most libraries have
-them. Kookie has none. The tools below teach the agent this library's own API. All of them are
-generated from the same source as the [component pages](/components).
+An AI agent will reach for a `variant`, a `color` or a margin prop on a button, because most
+libraries have them. Kookie components have none of these, and only the layout components accept
+margin. The tools below teach the agent this library's own API. All of them are generated from the
+same source as the [component pages](/components). The packages are not on npm yet, so the `npx`
+commands on this page don't work until they are published.
 
 ## Start with the type checker
 
-When an agent writes a prop Kookie does not accept, the error names the prop and says what to
-write instead. `variant` points to `tone` and `emphasis`, and `asChild` points to `render`. Each
+When an agent writes a prop Kookie does not accept, the type error names the prop, and for most
+props it says what to write instead. `variant` points to `tone` and `emphasis`, and `asChild`
+points to `render`. The lint rule below covers `color`. Each
 component's description also ships in its `.d.ts` file, so an agent can read it offline.
 
 ## Lint what the type checker can't see
@@ -49,34 +52,30 @@ For agents that support MCP, use the Kookie server:
 
 - **`list_components`:** Lists components by job. Ask for `Choose` to get every component that
   picks from options.
-- **`get_component`:** Returns one component's page, including its "Use instead" section.
+- **`get_component`:** Returns one component's page, including its "Use instead" section. Have
+  your agent read that section before it picks, because the most common mistake after a wrong
+  prop is the wrong component, such as `Tabs` where a `SegmentedControl` belongs.
 - **`get_tokens`:** Finds design tokens by name.
 - **`check_usage`:** Checks JSX and reports every refused prop, utility class and raw value.
 
-Add `?webmcp=1` to any page on this site to use the same tools from a browser agent. The
-packages are not on npm yet, so these commands work once they are published.
-
-## Pick by job, then check the look-alike
-
-Tell your agent to start from the job, not the component name. Then have it read the "Use
-instead" section, because the most common mistake after a wrong prop is the wrong component, such
-as `Tabs` where a `SegmentedControl` belongs.
+Add `?webmcp=1` to any page on this site to use the same tools from a browser agent.
 
 ## What your agent still needs to learn
 
 The tools stop props that don't exist. They don't stop two loud buttons or a heading at the wrong
-size. The [Composition](/patterns/composition) chapter covers these, and the [builder](/builder)
-checks them as you build.
+size. The [Composition](/start/composition) chapter covers these, and the [builder](/builder)
+checks them as you build. This card passes both: one loud button, and controls at the card's
+size.
 
 ```tsx
-<Card size="3">
-  <Flex direction="column" gap="5">
+<Card>
+  <Stack gap="5">
     <Heading size="6">Invite your team</Heading>
     <Text emphasis="medium">Everyone you add can see this project.</Text>
     <Flex gap="3" justify="flex-end">
       <Button emphasis="quiet">Not now</Button>
       <Button tone="accent" emphasis="loud">Send invites</Button>
     </Flex>
-  </Flex>
+  </Stack>
 </Card>
 ```

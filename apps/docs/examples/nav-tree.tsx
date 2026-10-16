@@ -6,14 +6,14 @@ const chapters: readonly TreeNode[] = [
     label: "Getting started",
     children: [
       { id: "/start/installation", label: "Installation", href: "#" },
-      { id: "/start/theming", label: "Theming", href: "#" },
+      { id: "/foundations/appearance", label: "Appearance", href: "#" },
     ],
   },
   {
     id: "patterns",
     label: "Patterns",
     children: [
-      { id: "/patterns/composition", label: "Composition", href: "#" },
+      { id: "/start/composition", label: "Composition", href: "#" },
       { id: "/patterns/forms", label: "Forms", href: "#" },
     ],
   },

@@ -17,7 +17,7 @@ import { AllComponentsIcon, GridIcon, HomeIcon, IdeaIcon, SearchIcon } from "../
 const TABS = [
   { label: "Start", href: "/", icon: HomeIcon, at: (p: string) => p === "/" || p.startsWith("/start") || p.startsWith("/concepts") },
   { label: "Foundations", href: "/foundations/color", icon: IdeaIcon, at: (p: string) => p.startsWith("/foundations") },
-  { label: "Patterns", href: "/patterns/composition", icon: GridIcon, at: (p: string) => p.startsWith("/patterns") },
+  { label: "Patterns", href: "/patterns/forms", icon: GridIcon, at: (p: string) => p.startsWith("/patterns") },
   { label: "Components", href: "/components", icon: AllComponentsIcon, at: (p: string) => p.startsWith("/components") },
 ] as const;
 

@@ -1,182 +1,74 @@
-Navigation answers two questions for the people who use your app: where can I go, and where am I
-now? `Shell` answers the first with a frame of named regions around your content. The second is
-answered by a few small decisions, and most of them concern what a screen reader announces as
-much as what the screen shows.
+Where can I go, and where am I now? Navigation answers both questions for the people who use
+your app. `Shell` answers the first with a frame of named panes around your content. Marking the
+open page answers the second, on the screen and for a screen reader.
 
 ## The app frame
 
-`Shell` is the frame of an app: a header across the top, navigation columns at the side, the
-work area in the middle, and optional panels for detail. Each of those regions is its own
-component, so you compose only the ones you need.
+<Example name="shell" />
 
-```tsx
-<Shell>
-  <ShellHeader>…</ShellHeader>
-  <ShellRail aria-label="Sections">…</ShellRail>
-  <ShellSidebar aria-label="Pages">…</ShellSidebar>
-  <ShellContent>…</ShellContent>
-  <ShellInspector>…</ShellInspector>
-</Shell>
-```
+A `Shell` holds a header, navigation columns, the work area and optional detail panes. Each pane
+is its own component, so you use only the panes you need.
 
-Each pane keeps its own open state, with the same `open`, `defaultOpen` and `onOpenChange` props
-that `Dialog` uses. One pane never closes another, and the frame never inspects its children. To
-open or close a pane from somewhere else, use a `ShellTrigger` with a `target`, such as
-`target="sidebar"`. The trigger finds the pane by that name and sets `aria-expanded` and
-`aria-controls` for you.
-
-By default, a `Shell` fills the window. On a narrow touch screen the page itself scrolls, which
-lets the browser hide its toolbars. If you place a `Shell` inside something else, such as a
-demo inside a card, set `contained` so that it fills its parent instead.
-
-### What each pane is for
-
-- **`ShellHeader`:** A row across the full width of the frame. If you want a sidebar that runs
-  the full height, leave out `ShellHeader` and put a header inside `ShellContent` instead.
+- **`ShellHeader`:** A row across the full width of the frame.
 - **`ShellRail`:** A narrow column of icons that switches between the main areas of the app.
 - **`ShellSidebar`:** A wider column that lists what is inside the area the rail selected.
 - **`ShellContent`:** The work area. It renders `<main>`, and it's the only pane you need.
-- **`ShellInspector`:** A detail column on the trailing side.
-- **`ShellBottom`:** A drawer along the bottom, for something like a terminal or a log.
+- **`ShellInspector`:** A detail column on the trailing side. It starts closed.
+- **`ShellBottom`:** A drawer along the bottom, for something like a log. It starts closed.
 
-The rail and the sidebar are independent, so you can use either one or both. VS Code and Slack
-use both, whereas most apps need only a sidebar. When a page has two navigation landmarks, give
-each one an `aria-label` so that a screen reader can tell them apart.
+Use a rail only when the app has several separate areas, as VS Code and Slack do. Otherwise a
+sidebar is enough. This is a judgment. When a page has two navigation landmarks, give each one an
+`aria-label` so that a screen reader can tell them apart.
 
-`ShellInspector` and `ShellBottom` start closed at every window size, because people open detail
-when they need it. `ShellSidebar`, `ShellInspector` and `ShellBottom` also accept `width`, and
-`resizable` adds a handle that people can drag or move with the arrow keys.
-
-### Padding inside a pane
-
-Every pane has padding, and the `size` on the `Shell` or on the pane sets how much. Don't add
-your own `p` to the first child of a pane, because that doubles the inset.
-
-A header's height follows from the same rule: it holds one row of controls at the pane's size,
-inside the pane's padding. Taller content makes the header taller, and shorter content is
-centred in it.
-
-Two things still reach the edges of a pane. A `ShellScroll`, which marks the part of a pane that
-scrolls, extends to the edges without help and pads its own contents, so a highlighted row can
-span the full column. For anything else, such as a picture across the top of the work area, set
-`m="bleed"` to cancel the pane's padding.
-
-```tsx
-<ShellContent>
-  <Box m="bleed">
-    <canvas />
-  </Box>
-</ShellContent>
-```
+Each pane opens and closes on its own. A `ShellTrigger` with `target` opens one from anywhere,
+and it sets `aria-expanded` and `aria-controls` for you. The [Shell](/components/shell) page
+covers padding, widths and resizing.
 
 ## How the frame responds to the window
 
-The window size decides the shape of the navigation. The stylesheet decides this, not a script,
-so the first paint is correct on the server and in the browser.
+CSS decides the shape of the frame, so the first paint is correct with no script.
 
-- **On a narrow window:** The sidebar starts closed and opens over the content with a scrim.
-  The rail becomes a tab bar along the bottom of the window. Set `presentation="rail"` on the
-  rail if it has too many items for a tab bar.
-- **On a wider window:** The rail and the sidebar sit in the layout beside the content.
+- **In a window 48rem wide or less:** The sidebar starts closed and opens over the content. The
+  rail becomes a tab bar along the bottom. Set `presentation="rail"` on the rail if it has too
+  many items for a tab bar.
+- **In a wider window:** The rail and the sidebar sit in the layout beside the content.
 
-A pane that nobody has touched follows these defaults. Once a person opens or closes it, that
-choice holds even when the window changes size. On a sidebar, inspector or bottom pane, set
-`presentation="fixed"` to keep it in the layout at every size, or `presentation="overlay"` for a
-drawer that always opens over the content.
-
-If your code needs to know the window size, call `useWindowClass()`. It returns `narrow`,
-`regular` or `wide`, and it returns `null` on the server and during the first paint, because it
-can't know the answer until the page has mounted. Use it for decisions after mount, such as
-which menu to open, and leave the layout of the first paint to CSS.
+When a person opens or closes a pane, that choice holds when the window changes size. Set
+`presentation="fixed"` on a sidebar, inspector or bottom pane to keep it in the layout at every
+size, or `presentation="overlay"` to always open it over the content. To change what your own
+code renders at each window size, see [Responsiveness](/patterns/responsiveness).
 
 ## Show where people are
 
-Set `current` on a `ShellNavItem` or a `ShellRailItem` for the page that is open. The row then
-gets a filled background, and it also gets `aria-current="page"`. The fill alone gives nothing
-to a person who can't see it, whereas the announcement works with a screen reader and in a
-high-contrast setting. In a `NavTree`, set `currentId` to the id of the open page to mark its
-row in the same way.
+Set `current` on the `ShellNavItem` or `ShellRailItem` for the open page. The row gets a filled
+background and `aria-current="page"`. The fill gives nothing to a person who can't see it, so
+`aria-current` makes a screen reader say which page is open. In a `NavTree`, set `currentId` to
+the id of the open page.
 
-The current row has a stronger fill than the lighter fill that shows when the pointer is over a
-row, so you can always tell the two apart. A row for a location never takes an emphasis of its
-own, because every location in a list is equally important.
-
-```tsx
-<Shell>
-  <ShellHeader>
-    <Flex align="center" gap="3">
-      <ShellTrigger target="sidebar" render={<Button emphasis="quiet" />}>
-        Menu
-      </ShellTrigger>
-      <Text size="2" weight="medium">Kookie Studio</Text>
-    </Flex>
-  </ShellHeader>
-
-  <ShellSidebar aria-label="Pages">
-    <ShellScroll>
-      <ShellNavGroup label="Workspace">
-        <ShellNavItem current render={<a href="/inbox" />}>Inbox</ShellNavItem>
-        <ShellNavItem render={<a href="/drafts" />}>Drafts</ShellNavItem>
-        <ShellNavItem render={<a href="/archive" />}>Archive</ShellNavItem>
-      </ShellNavGroup>
-    </ShellScroll>
-  </ShellSidebar>
-
-  <ShellContent>
-    <ShellScroll>
-      <Page title="Inbox">{children}</Page>
-    </ShellScroll>
-  </ShellContent>
-</Shell>
-```
-
-`ShellNavGroup` puts a heading over a group of rows and connects the two, so a screen reader
-announces the group by its name.
+The current row's fill is stronger than the fill under the pointer, so you can tell the two
+apart. `ShellNavGroup` puts a heading over a group of rows, and a screen reader announces the
+group by that heading.
 
 ## Page titles and toolbars
 
-`Page` gives a screen its large title and an optional `description` underneath. When the title
-scrolls out of view, a `ToolbarTitle` with no children in the same pane shows the title instead,
-so people still know which page they're on.
+`Page` gives a screen its large title. When the title scrolls out of view, a `ToolbarTitle` with
+no children in the same pane shows the title instead, so people still know where they are.
 
-`ShellPaneHeader` is the row that stays at the top of a pane while its content scrolls. Put a
-`Toolbar` in it to hold the pane's controls. A toolbar is one tab stop, and the arrow keys move
-between its `ToolbarButton`s, which is what keyboard users expect from a row of tools.
+`ShellPaneHeader` is the row at the top of a pane. Put a `Toolbar` in it for the pane's controls.
+A toolbar is one tab stop, and the arrow keys move between its `ToolbarButton`s.
 
-For deep structures, `NavTree` shows a hierarchy of sections that open and close, with each leaf
-as a link. `Breadcrumb` shows the path from the top of the app to the current page, and
-`BreadcrumbEllipsis` gathers the middle levels into a menu when the path is long.
+For deep structures, `NavTree` shows sections that open and close. `Breadcrumb` shows the path
+from the top of the app to the open page.
 
 ## Tabs or a segmented control
 
-Both show a row of choices, but they do different jobs. Use `Tabs` when the content under the
-row changes. Use a `SegmentedControl` when the choice sets a value, such as a grid or a list
-layout, and the content stays where it is.
+Use `Tabs` when the content under the row changes. Use a `SegmentedControl` when the choice sets
+a value, such as a grid or a list layout, and the content stays where it is.
 
-The difference is in what a screen reader hears, not only in what people see. A
-`SegmentedControl` is a real radio group: the arrow keys change its value, and a form submits
-that value. A tab bar is a tab list, and each tab controls a panel.
+A screen reader hears the difference. A `SegmentedControl` is a radio group: the arrow keys change
+its value, and a form submits that value. A tab bar is a tab list, and each tab controls a panel.
 
-```tsx
-<SegmentedControl defaultValue="grid" aria-label="Layout">
-  <SegmentedItem value="grid">Grid</SegmentedItem>
-  <SegmentedItem value="list">List</SegmentedItem>
-</SegmentedControl>
-```
+<Example name="navigation.segmented" />
 
-Formatting buttons such as bold and italic are neither of these, because both can be on at the
-same time. Use a `ToggleGroup` for them.
-
-## Menu or select
-
-The same test separates these two. A `Menu` holds actions: you choose one, it runs, and the
-panel closes. A `Select` holds values: the value you choose goes into a field that a form
-submits. A select renders a hidden input and announces itself as a combobox, which a styled menu
-can't do.
-
-This has two practical results:
-
-- **Placement:** A select opens so that the chosen option sits on top of the value it replaces,
-  so the list can extend both above and below the trigger.
-- **Labels:** Pass `items` to a `Select` whose option labels differ from their values. Otherwise
-  the trigger can't show the label before the list has opened once.
+Use a `ToggleGroup` for options that can all be on at once, such as bold and italic. A `Menu`
+runs actions and a `Select` sets a value, which the [Forms](/patterns/forms) page covers.

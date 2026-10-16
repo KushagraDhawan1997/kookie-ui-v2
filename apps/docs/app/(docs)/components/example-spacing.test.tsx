@@ -5,7 +5,7 @@
  * later mark's invisible target — which reaches past its painted box, out to the box a control
  * of that size would occupy — covers the earlier one's paint and wins the hit-test, so a click
  * on one checkbox toggles the next. The package holds it with a mounted law at exactly 12px in
- * all 24 cells. `foundations/size.mdx` teaches it, and `Radio`'s own JSDoc names `gap="5"`.
+ * all 24 cells. `foundations/scale.mdx` teaches it, and `Radio`'s own JSDoc names `gap="5"`.
  *
  * The canonical examples for Checkbox, Switch and Radio shipped at `gap="3"` — 8px at default
  * density and 4px at compact — so the three pages a person copies from taught the opposite of

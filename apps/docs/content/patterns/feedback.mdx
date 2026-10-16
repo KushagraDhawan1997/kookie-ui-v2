@@ -1,164 +1,78 @@
-While your app does work for someone, it has four things to tell them: the work has started,
-how much of it is done, how it ended, and what went wrong. Each of these has one right component
-or placement. The usual mistake is choosing the wrong one, rather than styling the right one
-badly.
+What should the person see while your app works, and after it finishes? Your app has four
+things to tell them: the work has started, how much of it is done, how it ended, and what went
+wrong.
 
 ## Four things to say
 
 | What you say | When | What to use |
 |---|---|---|
-| Busy | The work has started, and you can't say how long it will take | `Spinner`, or `loading` on the button that started it |
+| Busy | The work has started, and you can't say how long it will take | `loading` on the button that started it, or a `Spinner` |
 | Progress | You know what fraction is done | `Progress` with a `value` |
 | Outcome | The work has finished | Words where the action was, or `done` on the button |
 | Error | The work failed, or the input was wrong | The control's invalid state, plus a sentence |
 
+How long the work takes decides what to show. Work that finishes in under one second needs no
+indicator. From one second, show that the work is busy. From ten seconds, show a `Progress` with
+a real fraction. These are Nielsen's response-time limits, from usability research.
+
 ## Keep the label on a busy button
 
-Set `loading` on a `Button` while the action it started is running. A spinner replaces the
-leading icon in the same box, so nothing around it moves, and the label stays. A button that
-stops saying what it does is worse than one that changes width.
+Set `loading` on a `Button` while its action runs. A spinner replaces the leading icon in the
+same box, and the label stays, so nothing around it moves. The button keeps its focus, but a
+second press does nothing.
 
-```tsx
-<Button emphasis="loud" loading={saving}>Save changes</Button>
-```
+<Example name="feedback.loading" />
 
-A loading button keeps its focus and its place in the tab order, but a second press does
-nothing. It sets `aria-busy`, and the spinner inside it is hidden from screen readers because
-the button already carries that information.
-
-Use a standalone `Spinner` for an area that has nothing to show yet. It takes its colour from
-the surrounding text and its size from the icon size of the element that contains it, so it has
-no colour or size props.
+Use a standalone `Spinner` for an area that has nothing to show yet. It takes its colour from the
+text around it and its size from the icon size of its container.
 
 ## Show progress when you know the fraction
 
-`Progress` is a bar with a fill. Give it a number to show a fraction, or `value={null}` when you
-don't know how much is done, which shows a repeating sweep instead. The prop is required, so an
-unknown amount is always something you chose rather than something you forgot.
+Give `Progress` a number, or `value={null}` when you don't know how much is done. The prop is
+required, so an unknown amount is always your choice. Give every bar a name with `aria-label` or
+a connected heading, because a bare percentage tells a screen reader user nothing.
 
-`Progress` has no `size`. It fills the width of its container, so the `Box` or `Stack` around it
-decides how long it is.
+<Example name="feedback.import" />
 
-Give every bar a name with `aria-label` or a connected heading, because a bare percentage tells
-a screen-reader user nothing. Use a real fraction whenever you have one, since a sweep only says
-that something is still happening.
+The outcome appears where the bar was. A spinner and an unknown-progress sweep keep moving when a
+person asks for reduced motion, only slower, because an indicator that stops looks finished. See
+[Motion](/foundations/motion).
 
-The busy state, the progress and the outcome work together in one panel. The button says the
-work has started, the bar says how much is done, and the words say how it ended.
+## Put the outcome where the action happened
 
-```tsx
-<Card size="3">
-  <Stack gap="4">
-    <Heading size="6">Import files</Heading>
+- **Next to the control:** Put a `Text` in the matching tone beside it. Use the past tense of the
+  button's verb, so "Publish" leads to "Published", not "Success".
+- **On the button:** For an action with no other visible result, such as copy, set `done`. Also
+  change the label to "Copied", because a screen reader doesn't announce the tick.
 
-    {done ? (
-      <Text size="3" tone="success">Imported 24 files.</Text>
-    ) : (
-      <Stack gap="2">
-        <Progress value={uploading ? uploaded / 24 * 100 : null} aria-label="Importing files" />
-        <Text size="2" emphasis="medium">{uploaded} of 24 files</Text>
-      </Stack>
-    )}
+<Example name="button.done" />
 
-    <Flex justify="flex-end">
-      <Button emphasis="loud" loading={uploading} onClick={start}>Import</Button>
-    </Flex>
-  </Stack>
-</Card>
-```
+Kookie doesn't provide a `Toast`. A toast covers content, disappears before some people can read
+it, and is hard to reach with a keyboard. Put each report where it belongs instead: a result
+next to its control, a condition that stays true in a `Notice`, and an undo in a control that
+people can find again.
 
-The outcome appears in the place the bar occupied, rather than somewhere else on the screen.
+## Say it in words, not only in colour
 
-## Motion that carries a message
+Colour can't be the whole message (WCAG 1.4.1). Add an icon or words. For an error, write a
+sentence that says what to do next (WCAG 3.3.1). Choose the tone by its meaning: write `success`,
+not `green`. See [Color](/foundations/color).
 
-Every state change in Kookie is instant. A hover colour, a panel that opens and a focus ring all
-appear at once, with no animation. Only three things move: the `Spinner`'s rotation, the sweep
-of a `Progress` with no value, and the upload sweep of an `Attachment`. Their movement is the
-message, because it says that the work is still going.
-
-When someone asks their operating system for reduced motion, these three slow down rather than
-stop, because a spinner that has stopped looks finished. Apply the same rule to anything you
-build: movement that says "still working" keeps going, slowly.
-
-## Use a status tone for what it means
-
-Four tones carry a meaning: `success`, `warning`, `info` and `destructive`. Four others are
-colour as data: `blue`, `green`, `orange` and `amber`. Use the data tones where the colour
-itself is the information, such as a chart series or a project label.
-
-`success` and `green` currently look the same, and so do `warning` and `amber`, and `info` and
-`blue`. They are still separate, so that each meaning can change on its own. If you write
-`green` when you mean success, the screen looks right today and goes wrong the day either colour
-changes.
-
-```tsx
-// Looks right, but says "green"
-<Text size="2" tone="green">Deployed</Text>
-
-// Says "success"
-<Text size="2" tone="success">Deployed</Text>
-```
-
-Keep the number of data tones on one screen small. Three read as a legend, whereas four or more
-start to read as decoration.
-
-## Never rely on colour alone
-
-Colour can't be the whole message (WCAG 1.4.1, a measured limit). When a control shows a
-status, the system supplies the border, the focus ring and the text colour, and you write the
-sentence that goes with it.
-
-A red field with nothing next to it fails this rule, and so does a green dot with no label or a
-chart whose key is only colour. These fail worst for people who can't see the colour. In an
-error message, say what to do next, because that's the part colour can never say.
+<Example name="feedback.tone" />
 
 ## Use a Notice for a condition that stays true
 
-Use `Notice` for a condition that is true right now and that nobody just caused, such as a trial
-that ends soon. The notice stays for as long as the condition does. It takes space in the layout
-and never floats, so it can't cover the thing it's telling you about. A screen reader announces
-it politely, without interrupting.
+Use `Notice` for a condition that is true now and that nobody just caused, such as a trial that
+ends soon. It takes space in the layout and never floats, so it can't cover what it's about.
 
-```tsx
-<Notice
-  tone="warning"
-  action={<Button>Add a card</Button>}
-  onDismiss={() => setTrialNoticeSeen(true)}
->
-  Your trial ends in three days.
-</Notice>
-```
+<Example name="feedback.notice" />
 
-A notice rests at `tone="neutral"`, and the tone names the kind of message rather than how loud
-it is. Set `action` to one button that fixes the condition. Set `onDismiss` to show a close
-button, which only acknowledges the message. The notice keeps no state, so your app must remove
-it and remember the choice after a reload.
+Set `action` to one button that fixes the condition. Set `onDismiss` to show a close button. The
+notice keeps no state, so your app removes it and remembers the choice after a reload.
 
-When you need a yes or a no rather than an acknowledgement, use `Confirmation`. It shows your
-question with a quiet cancel button and a loud confirm button, which you label with
-`cancelLabel` and `confirmLabel`, and it stays until someone presses one of them.
+A notice is a polite status region. A screen reader reads a notice that appears after the page
+loads, without interrupting. A notice that is already on screen when the page loads is read in
+the normal reading order, like any other text.
 
-## There's no toast
-
-Kookie doesn't provide a `Toast`. If something needs someone's attention, it needs it before the
-action runs, and if it doesn't, it doesn't need a report afterwards.
-
-The two common reasons for a toast both have a better place. An undo belongs in an undo control
-that people can find again later. A confirmation that something was copied belongs on the button
-that did the copying: set `done` on it, and change its label from "Copy" to "Copied", because a
-screen reader doesn't announce the tick.
-
-Don't build a replacement from a `Card` pinned to a corner. It would cover content, and it would
-lack the announcement and the close behaviour that people expect.
-
-## Where to put an outcome
-
-Put the result where the action happened:
-
-- **Inline:** Put a `Text` in the matching tone next to or under the control. Use the past
-  tense of the button's verb, so a "Publish" button leads to "Published" rather than "Success".
-- **With a heading:** Use a `Card` that holds a `Heading` and a `Text`, and put the tone on the
-  words. A `Card` has no `tone`, and colouring it with `style` fixes a colour that the theme can
-  no longer change.
-- **As a decision:** Use an `AlertDialog` when the person must answer before anything else can
-  happen.
+When you need a yes or a no, use `Confirmation`. It stays until someone presses one of its two
+buttons, which you label with `cancelLabel` and `confirmLabel`.

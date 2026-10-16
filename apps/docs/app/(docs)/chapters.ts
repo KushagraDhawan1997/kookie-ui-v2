@@ -18,12 +18,11 @@ import type * as React from "react";
 import type { MDXComponents } from "mdx/types";
 
 import Installation from "../../content/start/installation.mdx";
-import Theming from "../../content/start/theming.mdx";
+import Theming from "../../content/foundations/appearance.mdx";
 import Quickstart from "../../content/start/quickstart.mdx";
 import Agents from "../../content/start/agents.mdx";
 import Principles from "../../content/start/principles.mdx";
-import Vocabulary from "../../content/start/vocabulary.mdx";
-import Composition from "../../content/patterns/composition.mdx";
+import Composition from "../../content/start/composition.mdx";
 import Forms from "../../content/patterns/forms.mdx";
 import Modality from "../../content/patterns/modality.mdx";
 import Navigation from "../../content/patterns/navigation.mdx";
@@ -31,13 +30,13 @@ import Feedback from "../../content/patterns/feedback.mdx";
 import Color from "../../content/foundations/color.mdx";
 import Typography from "../../content/foundations/typography.mdx";
 import LayoutChapter from "../../content/foundations/layout.mdx";
-import SizeChapter from "../../content/foundations/size.mdx";
-import Radius from "../../content/foundations/radius.mdx";
+import SizeChapter from "../../content/foundations/scale.mdx";
+import Radius from "../../content/foundations/shape.mdx";
 import Materials from "../../content/foundations/materials.mdx";
 import Depth from "../../content/foundations/depth.mdx";
 import Motion from "../../content/foundations/motion.mdx";
-import States from "../../content/foundations/states.mdx";
-import Responsiveness from "../../content/foundations/responsiveness.mdx";
+import States from "../../content/foundations/interaction.mdx";
+import Responsiveness from "../../content/patterns/responsiveness.mdx";
 
 export type SectionId = "start" | "foundations" | "patterns";
 
@@ -59,19 +58,19 @@ export const SECTIONS: readonly Section[] = [
     id: "start",
     title: "Getting started",
     blurb:
-      "Learn the principles and the words of the system. Then install it, set its theme and build your first screen.",
-  },
-  {
-    id: "foundations",
-    title: "Foundations",
-    blurb:
-      "These chapters explain the values that every component is built from, such as colour, type, layout, size, depth and states.",
+      "Read the principles, install the package and build your first screen.",
   },
   {
     id: "patterns",
     title: "Patterns",
     blurb:
       "Build the structures that repeat across an app, such as forms, dialogs, navigation and feedback.",
+  },
+  {
+    id: "foundations",
+    title: "Foundations",
+    blurb:
+      "The reference for the values every component is built from: theme, colour, type, layout, size, depth and states.",
   },
 ];
 
@@ -140,14 +139,15 @@ export const CHAPTERS: readonly Chapter[] = [
     Content: Principles,
   },
   {
-    slug: "start/vocabulary",
-    title: "Vocabulary",
+    slug: "start/composition",
+    title: "Composition",
     section: "start",
     blurb:
-      "Kookie groups its components by the job a person is doing. Start with the job to find the right component.",
-    spec: ["THESIS §2", "THESIS §3", "§9", "§10", "§11"],
-    source: "start/vocabulary.mdx",
-    Content: Vocabulary,
+      "Correct components do not add up to a good screen on their own. These are the rules for putting them together, and the builder checks most of them for you.",
+    spec: ["§15", "§11"],
+    source: "start/composition.mdx",
+    examples: ["composition.one-action", "composition.grouping", "composition.tone"],
+    Content: Composition,
   },
   {
     slug: "start/installation",
@@ -160,29 +160,14 @@ export const CHAPTERS: readonly Chapter[] = [
     Content: Installation,
   },
   {
-    slug: "start/theming",
-    title: "Theming",
-    section: "start",
-    blurb:
-      "A Theme sets eight values for your whole app, such as light or dark mode, corner radius, spacing and shadows. You can nest a Theme to change one region.",
-    spec: ["§5", "§12"],
-    source: "start/theming.mdx",
-    Content: Theming,
-  },
-  {
     slug: "start/quickstart",
     title: "Quickstart",
     section: "start",
     blurb:
-      "Build a publish dialog from an empty file. You will see how much of the screen you did not have to describe.",
+      "Build an invite dialog by answering one question at a time. Each answer picks the component.",
     spec: ["§3", "§15"],
     source: "start/quickstart.mdx",
-    examples: [
-      "quickstart.containers",
-      "quickstart.group",
-      "quickstart.actions",
-      "quickstart",
-    ],
+    examples: ["quickstart.dialog", "quickstart.email", "quickstart.role", "quickstart"],
     Content: Quickstart,
   },
   {
@@ -196,6 +181,16 @@ export const CHAPTERS: readonly Chapter[] = [
     Content: Agents,
   },
 
+  {
+    slug: "foundations/appearance",
+    title: "Appearance",
+    section: "foundations",
+    blurb:
+      "The person chooses light or dark and contrast. Your app sets its density, shape, material and depth. A Theme carries both.",
+    spec: ["§5", "§12"],
+    source: "foundations/appearance.mdx",
+    Content: Theming,
+  },
   {
     slug: "foundations/color",
     title: "Colour",
@@ -214,6 +209,7 @@ export const CHAPTERS: readonly Chapter[] = [
       "Text and Heading share one nine-step scale. The step you pick and the heading level you render are two separate choices.",
     spec: ["§15", "§17"],
     source: "foundations/typography.mdx",
+    examples: ["typography.rank"],
     Content: Typography,
   },
   {
@@ -224,26 +220,28 @@ export const CHAPTERS: readonly Chapter[] = [
       "A component never sets its own outer spacing. The container sets every distance, because only the container knows how its children relate.",
     spec: ["§3", "§12"],
     source: "foundations/layout.mdx",
+    examples: ["box.container", "box.bleed"],
     Content: LayoutChapter,
   },
   {
-    slug: "foundations/size",
-    title: "Size",
+    slug: "foundations/scale",
+    title: "Scale",
     section: "foundations",
     blurb:
       "Every size prop picks a step, not a measurement. The theme decides what each step is worth on a button, a card or a heading.",
     spec: ["§4", "§16"],
-    source: "foundations/size.mdx",
+    source: "foundations/scale.mdx",
     Content: SizeChapter,
   },
   {
-    slug: "foundations/radius",
-    title: "Radius",
+    slug: "foundations/shape",
+    title: "Shape",
     section: "foundations",
     blurb:
       "One word sets the corner radius for your whole app. Each kind of component then gets a corner that suits the size of its box.",
     spec: ["§6"],
-    source: "foundations/radius.mdx",
+    source: "foundations/shape.mdx",
+    examples: ["shape.levels"],
     Content: Radius,
   },
   {
@@ -254,6 +252,7 @@ export const CHAPTERS: readonly Chapter[] = [
       "Decide whether your app is made of solid panels or glass. One value applies to the whole app. It has an effect only where content can pass behind a surface.",
     spec: ["§10"],
     source: "foundations/materials.mdx",
+    examples: ["materials.steps"],
     Content: Materials,
   },
   {
@@ -264,6 +263,7 @@ export const CHAPTERS: readonly Chapter[] = [
       "No component picks its own shadow. Decide one time whether your app has a light source, and every surface uses that decision.",
     spec: ["§5", "§11"],
     source: "foundations/depth.mdx",
+    examples: ["depth.flat-and-elevated"],
     Content: Depth,
   },
   {
@@ -274,39 +274,21 @@ export const CHAPTERS: readonly Chapter[] = [
       "When you hover, press or open something, the change shows at once, with no animation. Only three busy indicators move, and they slow down if you ask your system for reduced motion.",
     spec: ["§8"],
     source: "foundations/motion.mdx",
+    examples: ["feedback.import"],
     Content: Motion,
   },
   {
-    slug: "foundations/states",
-    title: "States",
+    slug: "foundations/interaction",
+    title: "Interaction",
     section: "foundations",
     blurb:
       "Every control shares one set of states: hover, press, focus, disabled and invalid. CSS controls all of them, so no JavaScript runs when you point at a control.",
     spec: ["§8", "§9"],
-    source: "foundations/states.mdx",
+    source: "foundations/interaction.mdx",
+    examples: ["interaction.states"],
     Content: States,
   },
-  {
-    slug: "foundations/responsiveness",
-    title: "Responsiveness",
-    section: "foundations",
-    blurb:
-      "Adapt your interface to the person who uses it, not only to the width of the window. Touch and mouse need different target sizes. That is a different question from how a layout reflows.",
-    spec: ["§2", "§17", "§18"],
-    source: "foundations/responsiveness.mdx",
-    Content: Responsiveness,
-  },
 
-  {
-    slug: "patterns/composition",
-    title: "Composition",
-    section: "patterns",
-    blurb:
-      "Correct components do not add up to a good screen on their own. These are the rules for putting them together, and the builder checks most of them for you.",
-    spec: ["§15", "§11"],
-    source: "patterns/composition.mdx",
-    Content: Composition,
-  },
   {
     slug: "patterns/forms",
     title: "Forms",
@@ -315,6 +297,7 @@ export const CHAPTERS: readonly Chapter[] = [
       "A form is a set of labelled values and one action that saves them. Every label belongs to its field, and no field should be louder than the one beside it.",
     spec: ["§11", "§15"],
     source: "patterns/forms.mdx",
+    examples: ["forms.field", "forms.choices", "forms.card", "forms.error", "forms.helper-text"],
     Content: Forms,
   },
   {
@@ -325,6 +308,7 @@ export const CHAPTERS: readonly Chapter[] = [
       "Decide how much to interrupt the person who uses your app. The smallest interruption is a menu, which is open for a moment. The largest is an alert, which stops all work for one question.",
     spec: ["§24", "§25"],
     source: "patterns/modality.mdx",
+    examples: ["modality.undo", "modality.alert"],
     Content: Modality,
   },
   {
@@ -335,6 +319,7 @@ export const CHAPTERS: readonly Chapter[] = [
       "You build the app frame as a pattern, not as one component that you add. The size of the window decides its shape.",
     spec: ["§26", "§27", "§18"],
     source: "patterns/navigation.mdx",
+    examples: ["shell", "navigation.segmented"],
     Content: Navigation,
   },
   {
@@ -345,7 +330,19 @@ export const CHAPTERS: readonly Chapter[] = [
       "An interface tells you four things about its own work: it is busy, it has made progress, it finished, or it failed. This chapter shows the right way to show each one.",
     spec: ["§11", "§8"],
     source: "patterns/feedback.mdx",
+    examples: ["feedback.loading", "feedback.import", "button.done", "feedback.tone", "feedback.notice"],
     Content: Feedback,
+  },
+  {
+    slug: "patterns/responsiveness",
+    title: "Responsiveness",
+    section: "patterns",
+    blurb:
+      "Adapt your interface to the person who uses it, not only to the width of the window. Touch and mouse need different target sizes. That is a different question from how a layout reflows.",
+    spec: ["§2", "§17", "§18"],
+    source: "patterns/responsiveness.mdx",
+    examples: ["responsiveness.container", "responsiveness.pointer"],
+    Content: Responsiveness,
   },
 ];
 

@@ -1,87 +1,46 @@
-In this chapter you'll build a publish dialog one piece at a time, and each piece runs next to
-the code that makes it. By the end, you'll have a finished screen without writing a single
-colour, pixel value or breakpoint.
+On this page you'll build an invite dialog. Each step starts with a question, and the answer
+picks the component.
 
-## Start with the containers
+## Ask what job the screen does
 
-In this library, the container sets the space between its children, and no component adds space
-around itself. So the first thing to decide is which containers hold what.
+Inviting someone is a short task that needs the person's full attention, so it belongs in a
+`Dialog`. A `Popover` would leave the page usable around it, which suits a filter, not a form
+someone has to finish.
 
-<Example name="quickstart.containers" />
+<Example name="quickstart.dialog" />
 
-The two `Stack`s use different gaps. The outer one uses `gap="6"` to separate whole sections,
-while the inner one uses `gap="2"` to keep the heading close to the sentence under it. Keep
-related things closer together than unrelated ones, because a screen with the same gap
-everywhere reads as one long list.
+The dialog has one loud button, because it has one main action. Cancel is quiet, and the outer
+`Stack` sets every distance.
 
-Nothing in that file sets a margin, so every distance on the screen comes from a container you
-can see.
+## Ask for the email
 
-## Put each checkbox beside its label
+A `Field` connects the label, the description and any error to the control inside it. You write
+no `id` and no `htmlFor`.
 
-<Example name="quickstart.group" />
+<Example name="quickstart.email" />
 
-These are checkboxes rather than switches. A switch applies its change the moment you flip it,
-so a screen of switches needs no Save button. A checkbox holds a value until you submit it, and
-these two wait for the Publish button.
+## Ask for the role
 
-`Checkbox` has no `label` prop, because the label is ordinary text and `Text` already handles
-text size, weight and colour. Instead, `render={<label htmlFor="…" />}` makes the `Text` render
-as a real `<label>` element. The text keeps its size and colour, and clicking the words toggles
-the checkbox.
+There are three roles, and comparing them helps the person choose, so show them all with a
+`RadioGroup`. With many options, or no room to show them, a `Select` is right instead. Each
+component page's "Use instead" section gives this split.
 
-The outer `Stack` uses `gap="5"` because stacked checkboxes need at least 12 pixels between
-them. A checkbox's tap area is larger than the box you see, so with less space the tap areas
-overlap and a click on one row can toggle its neighbour. `gap="5"` is the smallest gap that stays
-at 12 pixels or more at every density.
+<Example name="quickstart.role" />
 
-## Rank the two buttons
+Each `FieldItem` names its own radio and description, so the options need no wiring either.
 
-<Example name="quickstart.actions" />
-
-Two props set a button's appearance, and each answers a different question:
-
-- **`emphasis`** sets how much attention the button asks for: `quiet`, `medium` or `loud`.
-- **`tone`** sets what the button means, such as `accent`, `neutral` or `destructive`.
-
-Because the two are separate, you can change one without the other. A quiet destructive button
-is as easy to write as a loud accent one, and there's no `variant` prop that tries to name every
-combination.
-
-A button is `medium` and `neutral` unless you say otherwise, so every loud button on a screen is
-one you chose. That makes it easy to keep one clear main action per screen.
-
-## Put the pieces together
-
-Replace the comment in the containers example with the options and the buttons, inside the outer
-`Stack`. Its `gap="6"` separates the three sections, so none of the pieces needs to know about
-the others.
+## Put it together
 
 <Example name="quickstart" />
 
-## What you didn't have to write
+## What you didn't write
 
-The finished file is about fifty lines long, and it contains none of these:
-
-- **Colours:** You chose a tone and an emphasis, and the theme calculated the colours. They
-  follow dark mode, respond to the high-contrast setting and stay correct if you change the
-  accent.
-- **Pixel sizes:** `size` picks a step, and that one number sets the height, padding, corner
-  radius, icon size and text size together.
-- **Breakpoints:** Tap areas grow on touch screens and small text grows on phones. Layouts
-  respond to the space they have rather than to the width of the window.
-- **Hover, focus or press styles:** CSS handles every state, so no JavaScript runs when someone
-  points at or presses a control.
-- **Accessibility wiring beyond `htmlFor`:** Roles, keyboard behaviour and screen reader
-  announcements come with the components.
+- **Colours, pixel sizes or breakpoints:** `emphasis` says which button is the main action, and
+  the theme works out the colour and size for each pointer and window size.
+- **Label wiring:** `Field` and `FieldItem` connect every label and description.
+- **Dialog behaviour:** focus, Escape, the scrim and the sheet in a narrow window come with `Dialog`.
 
 ## Where to go next
 
-Read [Vocabulary](/start/vocabulary) next. It tells you which component fits which situation.
-After that, [Colour](/foundations/color) and [Layout](/foundations/layout) are the chapters
-you'll return to most.
-
-You can also try the [builder](/builder), a live editor for these components. Every distance and
-setting in it comes from the same fixed choices you use in code, so anything you build there can
-be written as code. The builder exports the React code for your screen, and it checks the screen
-against the composition rules while you work.
+Read [Composition](/start/composition) and the pattern chapters, then browse the
+[components](/components) by job.

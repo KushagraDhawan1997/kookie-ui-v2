@@ -1,6 +1,5 @@
 Setting up takes three steps: adding the package, importing one stylesheet, and wrapping your
-app in a `Theme`. There's no config file or build plugin, because the package calculates every
-value ahead of time and ships it as a CSS custom property.
+app in a `Theme`. You need no config file or build plugin.
 
 ## Add the package
 
@@ -50,7 +49,7 @@ export default function App({ children }: { children: React.ReactNode }) {
 
 `Theme` holds eight settings that apply to everything inside it: appearance, radius, density,
 depth, material, size, contrast and pointer. Every setting has a default, so a bare `<Theme>`
-works. The [Theming](/start/theming) chapter explains each one.
+works. The [Appearance](/foundations/appearance) chapter explains each one.
 
 ## Set the page background
 
@@ -112,16 +111,13 @@ wrote instead of setting its own.
 
 The script reads the stored choice from the `kui-appearance` and `kui-contrast` keys. Store your
 own light, dark and contrast toggle under the same keys, or change the names in the script to
-match yours. Two more details are easy to get wrong.
+match yours.
 
-**Wrap only the storage read in `try`.** Reading `localStorage` throws in some browsers, for
-example in Safari when someone blocks all cookies. If the `try` wraps the whole function, an
-error also skips the two `setAttribute` calls, and a person whose operating system is set to
-dark gets a light page. `matchMedia` never throws, so keep the writes outside the `try`.
+**Keep the `try` around the storage read only.** Safari throws when someone blocks all cookies,
+and the page must still follow the system setting.
 
-**Write both attributes onto the same element.** High-contrast colours apply only when
-`data-appearance` and `data-contrast` are on the same element. If your script sets the
-appearance, it must set the contrast too.
+**Set both attributes on `<html>`.** High-contrast colours apply only when `data-appearance` and
+`data-contrast` are on the same element.
 
 ## Point the font tokens at your fonts
 
@@ -145,7 +141,7 @@ import { Button, Card, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 export function Smoke() {
   return (
-    <Card size="3">
+    <Card>
       <Stack gap="3">
         <Text>This card should have rounded corners and a soft shadow.</Text>
         <Button tone="accent" emphasis="loud">Everything is set up</Button>

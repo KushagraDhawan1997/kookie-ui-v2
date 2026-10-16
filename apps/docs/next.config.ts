@@ -27,7 +27,15 @@ const nextConfig: NextConfig = {
        below that used to land in `/concepts` was repointed at the same time rather than left to
        chain through these two — a redirect to a redirect is a round trip nobody needs. */
     { source: "/concepts/principles", destination: "/start/principles", permanent: true },
-    { source: "/concepts/vocabulary", destination: "/start/vocabulary", permanent: true },
+    { source: "/start/vocabulary", destination: "/components", permanent: true },
+    { source: "/patterns/composition", destination: "/start/composition", permanent: true },
+    { source: "/start/theming", destination: "/foundations/appearance", permanent: true },
+    { source: "/foundations/theming", destination: "/foundations/appearance", permanent: true },
+    { source: "/foundations/states", destination: "/foundations/interaction", permanent: true },
+    { source: "/foundations/size", destination: "/foundations/scale", permanent: true },
+    { source: "/foundations/radius", destination: "/foundations/shape", permanent: true },
+    { source: "/foundations/responsiveness", destination: "/patterns/responsiveness", permanent: true },
+    { source: "/concepts/vocabulary", destination: "/components", permanent: true },
     { source: "/philosophy", destination: "/start/principles", permanent: true },
     {
       source: "/philosophy/why-kookie-exists",
@@ -36,12 +44,12 @@ const nextConfig: NextConfig = {
     },
     {
       source: "/philosophy/component-families",
-      destination: "/start/vocabulary",
+      destination: "/components",
       permanent: true,
     },
     {
       source: "/concepts/component-families",
-      destination: "/start/vocabulary",
+      destination: "/components",
       permanent: true,
     },
     {
