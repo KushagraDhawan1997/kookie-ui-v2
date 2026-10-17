@@ -17,7 +17,9 @@
  * declarations for it and a hand-written `.d.mts` beside it would be a second home for every
  * signature below.
  */
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -94,6 +96,21 @@ describe("the block", () => {
   it("is byte-identical on a second run with the same rules", () => {
     const once = cli.spliceBlock("# My rules\n", cli.wrap("RULES"));
     expect(cli.spliceBlock(once, cli.wrap("RULES"))).toBe(once);
+  });
+});
+
+describe("the command line", () => {
+  it("runs when reached through the bin symlink npx uses", () => {
+    // Every other law calls `run` directly, so none of them could see that the entry check
+    // never matched behind `node_modules/.bin`: `init` exited 0 having printed and written
+    // nothing. This one spawns Node the way npx does, through a link to the file.
+    const root = scratch();
+    const link = join(root, "kookie-ui");
+    symlinkSync(fileURLToPath(new URL("../../agents/install.mjs", import.meta.url)), link);
+    const out = spawnSync(process.execPath, [link, "init", "--write"], { cwd: root, encoding: "utf8" });
+    expect(out.status).toBe(0);
+    expect(out.stdout).toContain("KookieUI rules");
+    expect(readFileSync(join(root, "AGENTS.md"), "utf8")).toContain("KookieUI, for coding agents");
   });
 });
 
