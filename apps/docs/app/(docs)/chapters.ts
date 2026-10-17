@@ -83,6 +83,13 @@ export type Chapter = {
       previous/next chain and as the page description. */
   blurb: string;
   /**
+   * The work that should send a coding agent to this chapter, as a noun phrase. Optional: a
+   * chapter that carries one is listed at the top of the package's AGENTS.md as "before you
+   * build this, read that", and a chapter without one is reachable from the directory below
+   * it. Kept to the chapters whose rules the types and the linter cannot check.
+   */
+  task?: string;
+  /**
    * The DECISIONS.md sections this chapter publishes. The docs are a re-voicing of an
    * existing canon rather than new thinking, so a chapter that cites nothing is either a
    * chapter about nothing or a decision that never made it into the spec — the coverage law
@@ -144,6 +151,7 @@ export const CHAPTERS: readonly Chapter[] = [
     section: "start",
     blurb:
       "Correct components do not add up to a good screen on their own. These are the rules for putting them together, and the builder checks most of them for you.",
+    task: "Any screen with more than one component",
     spec: ["§15", "§11"],
     source: "start/composition.mdx",
     examples: ["composition.one-action", "composition.grouping", "composition.tone"],
@@ -295,6 +303,7 @@ export const CHAPTERS: readonly Chapter[] = [
     section: "patterns",
     blurb:
       "A form is a set of labelled values and one action that saves them. Every label belongs to its field, and no field should be louder than the one beside it.",
+    task: "A form, a settings page, or any field with a label",
     spec: ["§11", "§15"],
     source: "patterns/forms.mdx",
     examples: ["forms.field", "forms.choices", "forms.card", "forms.error", "forms.helper-text"],
@@ -306,6 +315,7 @@ export const CHAPTERS: readonly Chapter[] = [
     section: "patterns",
     blurb:
       "Decide how much to interrupt the person who uses your app. The smallest interruption is a menu, which is open for a moment. The largest is an alert, which stops all work for one question.",
+    task: "A dialog, alert, popover, menu or sheet",
     spec: ["§24", "§25"],
     source: "patterns/modality.mdx",
     examples: ["modality.undo", "modality.alert"],
@@ -317,6 +327,7 @@ export const CHAPTERS: readonly Chapter[] = [
     section: "patterns",
     blurb:
       "You build the app frame as a pattern, not as one component that you add. The size of the window decides its shape.",
+    task: "The app frame, page titles and tabs between pages",
     spec: ["§26", "§27", "§18"],
     source: "patterns/navigation.mdx",
     examples: ["shell", "navigation.segmented"],
@@ -328,6 +339,7 @@ export const CHAPTERS: readonly Chapter[] = [
     section: "patterns",
     blurb:
       "An interface tells you four things about its own work: it is busy, it has made progress, it finished, or it failed. This chapter shows the right way to show each one.",
+    task: "Loading, progress, success, error and empty states",
     spec: ["§11", "§8"],
     source: "patterns/feedback.mdx",
     examples: ["feedback.loading", "feedback.import", "button.done", "feedback.tone", "feedback.notice"],
@@ -339,6 +351,7 @@ export const CHAPTERS: readonly Chapter[] = [
     section: "patterns",
     blurb:
       "Adapt your interface to the person who uses it, not only to the width of the window. Touch and mouse need different target sizes. That is a different question from how a layout reflows.",
+    task: "A layout that changes with space, or a touch target",
     spec: ["§2", "§17", "§18"],
     source: "patterns/responsiveness.mdx",
     examples: ["responsiveness.container", "responsiveness.pointer"],

@@ -1,0 +1,98 @@
+# Interaction
+
+Every control shares one set of states: resting, hover, press, focus and disabled. The system
+defines how each state looks, once, for every control. You choose a component's `tone` and
+`emphasis`, and the states follow from them.
+
+Each change is instant (see [Motion](/foundations/motion)). CSS handles every state, so no
+JavaScript runs when you point at, press or focus a control. An invalid field shows its border
+and its ring in the error colour, and the [Forms](/patterns/forms) chapter shows how to set it.
+```tsx
+import { Button, Flex, Stack, TextField } from "@kushagradhawan/kookie-ui-react";
+
+// Point at and press each button to see hover and press at three levels of loudness. Press Tab
+// to move the focus ring, and click in the field to see its ring while you type.
+export default function Example() {
+  return (
+    <Stack gap="4" style={{ minWidth: "18rem" }}>
+      <Flex gap="3" align="center" wrap="wrap">
+        <Button emphasis="loud">Save</Button>
+        <Button emphasis="medium">Preview</Button>
+        <Button emphasis="quiet">Cancel</Button>
+        <Button emphasis="loud" disabled>
+          Publish
+        </Button>
+      </Flex>
+      <TextField placeholder="Project name" aria-label="Project name" />
+    </Stack>
+  );
+}
+```
+## Hover and press change the fill
+
+Hover makes a small change to a control's fill, and press makes a larger one, at every level of
+loudness:
+
+- **Loud:** rests on the strong fill of its tone, then shifts on hover and shifts further on
+  press.
+- **Medium:** rests on a light grey fill, then moves darker on hover and press. In dark mode it
+  moves lighter.
+- **Quiet:** has no fill at rest. On hover it takes the medium button's resting fill, and on
+  press the medium button's hover fill.
+
+On a coloured loud fill, hover and press move away from the label colour, so the label stays at
+least as easy to read as it is at rest. A grey loud fill has only lightness to change, so it
+moves toward its label instead.
+
+The soft fills of medium and quiet controls use the same lightness on every hue, so a step looks
+about the same on blue as it does on yellow.
+
+## Hover only where the pointer can hover
+
+Hover styles apply only when the main pointer can hover, through the `(hover: hover)` media
+query. On a touch screen, a tap leaves a hover behind until your next tap, so without the query a
+button you tapped would stay in its hover colour. Press styles have no such condition.
+
+## The focus ring
+
+One focus ring shows keyboard focus on every control. It is an outline two pixels wide, with a
+two-pixel gap around the control. The outline follows the control's corners, including a pill,
+and it never changes the layout.
+
+The ring uses the accent colour whatever the control's tone, because it tells you only where
+focus is. A destructive button gets the same ring as any other.
+
+WCAG 2.4.7, at level AA, asks only that focus is visible. WCAG 2.4.13, at level AAA, asks for an
+indicator at least as large as a two-pixel outline, with 3:1 contrast between its focused and
+unfocused pixels. A test holds the ring's colour to an APCA contrast of Lc 45 or more against the
+page in both modes. The gap is a judgment: it keeps the ring clear of the control's own fill.
+
+## A field shows its ring while you type in it
+
+You enter a field rather than press it, so a field shows its ring whenever the text cursor is in
+it, not only when you arrive by keyboard. Native text inputs behave the same way.
+
+The ring goes on the field as a whole. A button inside the field, such as a clear button, gets
+its own ring when it has focus, so you see only one ring at a time.
+
+## Disabled
+
+A disabled control does four things:
+
+- Its text, fill and border change to the disabled colours.
+- It stops responding to hover and press.
+- The cursor is an ordinary arrow, not `not-allowed`, because native platforms do not use that
+  cursor on a disabled control.
+- It loses its shadow.
+
+Disabled never uses opacity. On a tinted surface, opacity lets the colour underneath show
+through and breaks the contrast the theme calculated.
+
+A `loading` Button is different. It blocks presses, but it keeps its normal colours and shows a
+busy cursor, because it is still the control you pressed.
+
+## Cards you can press
+
+A `Card` that you render as a button or a link behaves like a control. Its fill changes on hover
+and press, and it shows the same focus ring as a button. A disabled card looks like a disabled
+button, and it loses its shadow because it no longer sits above the page.

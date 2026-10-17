@@ -1,0 +1,121 @@
+# Modality
+
+How much should this interrupt the person? Pick the panel that interrupts the least and still
+does the job. From least to most:
+
+- **Inline.** Change the thing where it is: an error under its field, a switch that applies at
+  once, a row that expands. Nothing is covered, and nobody loses their place.
+- **A menu.** A `Menu` lists actions next to its trigger. It closes when you choose an item,
+  press Escape or press outside it.
+- **A popover.** A `Popover` holds content you write, such as filters or a date picker.
+  Nothing dims, focus isn't trapped, and the page stays live.
+- **A dialog or a sheet.** A `Dialog` dims the app and traps focus until it closes. A `Sheet`
+  does the same against the bottom or the side of the window. In a narrow window, a `Dialog`
+  also stands against the bottom edge at full width, like a sheet. There's no prop to turn
+  this off.
+- **An alert.** An `AlertDialog` covers the app and closes only when the person answers.
+  Escape counts as Cancel.
+
+`Tooltip` isn't on this list, because it holds nothing of its own. Screen readers never hear
+it, and touch screens have no hover. Never put information only in a tooltip.
+
+## Choosing between a popover and a dialog
+
+Ask whether the rest of the app must keep working while the panel is open. If it must, use a
+popover: filters over a list, a picker next to its field, or details about a row. If the panel
+is the task and the page behind it is only context, use a dialog. A dialog is also right when
+someone would lose work by leaving halfway. A small form usually belongs in a popover.
+
+## Ask only before what can't be undone
+
+Ask a person to confirm only an action that can't be undone. If you can offer undo, do that
+instead, and let the action run at once. People who see the same question often stop reading
+it and press the action anyway (Nielsen Norman Group research on confirmation dialogs).
+```tsx
+"use client";
+
+import * as React from "react";
+import { Button, Card, Flex, Text } from "@kushagradhawan/kookie-ui-react";
+
+// Archiving can be reversed, so it runs at once and offers undo instead of asking first.
+export default function Example() {
+  const [archived, setArchived] = React.useState(false);
+
+  return (
+    <Card style={{ maxWidth: "24rem" }}>
+      <Flex align="center" justify="space-between" gap="3">
+        <Text size="2" emphasis={archived ? "medium" : "loud"} render={<p role="status" />}>
+          {archived ? "Q3 report archived." : "Q3 report"}
+        </Text>
+        {archived ? (
+          <Button emphasis="quiet" onClick={() => setArchived(false)}>
+            Undo
+          </Button>
+        ) : (
+          <Button onClick={() => setArchived(true)}>Archive</Button>
+        )}
+      </Flex>
+    </Card>
+  );
+}
+```
+## Choosing between a dialog and an alert
+
+A dialog holds work that a person opened on purpose, such as a form or a picker. An alert stops
+a person with a question. If the panel needs any control besides its two buttons, such as a
+type-to-confirm field or a checkbox, use a `Dialog`.
+
+## Writing an alert
+
+An alert has four parts in this order: a title, a description, a cancel button and an action
+button. Put them directly inside `AlertDialogContent`, and the component lays them out.
+```tsx
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  Button,
+} from "@kushagradhawan/kookie-ui-react";
+
+export default function Example() {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger render={<Button tone="destructive" emphasis="quiet">Delete</Button>} />
+      <AlertDialogContent>
+        <AlertDialogTitle>Delete this project?</AlertDialogTitle>
+        <AlertDialogDescription>
+          Its documents and their history go with it. This cannot be undone.
+        </AlertDialogDescription>
+        <AlertDialogCancel>Keep it</AlertDialogCancel>
+        <AlertDialogAction tone="destructive">Delete project</AlertDialogAction>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+```
+Write the cancel button first. It then sits at the start of the row, flips in right-to-left
+languages, and gets focus when the alert opens. Label both buttons with what will happen:
+"Delete project", not "OK". "Keep it" can be clearer than "Cancel". Put the tone on the action
+button, never on the panel.
+
+An `AlertDialog` stays centred at every window size, because it asks a question rather than
+holding work.
+
+## Focus and closing
+
+A dialog, a sheet and an alert trap focus while they're open, and return focus to where it came
+from when they close.
+
+- **Dialog:** It closes on Escape, on a press outside it, and on any `DialogClose`.
+- **Alert:** It closes on Escape and on its two buttons. A press outside it does nothing, so an
+  accidental click can't answer the question.
+
+A dialog has no close button in its corner. Put a `DialogClose` in every dialog, usually in the
+row of actions, because a screen reader user on a touch screen needs a button to leave.
+
+The theme shows where a covering panel ends, with a shadow or a line. See
+[Depth](/foundations/depth).

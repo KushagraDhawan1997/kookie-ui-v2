@@ -1,0 +1,107 @@
+# Motion
+
+Kookie moves something only when the movement carries meaning. Today, only three busy
+indicators meet that test, so every other change of state shows at once.
+
+Instant change is a deliberate current choice, and it is a judgment. Motion will return as one
+designed system for every component, not as a prop on one component.
+
+## Every change of state shows at once
+
+When you hover, press or focus a control, the new state shows on the next frame. Nothing fades,
+and a control doesn't move or change size under the pointer. Only its colours change.
+
+The states you set behave the same way. A checkbox shows its tick at once, and a switch thumb
+appears at the other end of its track.
+
+A `Menu`, a `Select` list, a `Popover` and a `Tooltip` appear in their final position. A
+`Dialog`, an `AlertDialog` and a `Sheet` appear together with the dimmed background behind them.
+Closing a panel removes it at once. A tooltip waits a moment before it opens, so it stays hidden
+while your pointer passes over a control on its way somewhere else.
+
+A change that shows at once is never late, and nothing is caught halfway between two states.
+Apple gives the same advice for actions that people repeat often, such as hover and press. The
+cost is that a panel gives no cue about where it came from, so place a panel next to the control
+that opens it.
+
+## Elements you drag follow your pointer
+
+The handle of a `Slider` stays under your pointer while you drag it, and a `Sheet` follows your
+finger while you swipe it closed. This isn't animation, because the element moves only while you
+move it. The browser handles scrolling, and Kookie doesn't change it.
+
+## Three indicators move to show that work continues
+
+These components move without any change of state, because the movement is their message:
+
+- `Spinner`, which also shows inside a `Button` that has `loading`
+- `Progress` with `value={null}`
+- `Attachment`, while it works on a file and has no progress value
+
+Use one of these when you cannot say how much of the work is done. Once you know the fraction,
+give `Progress` a number, and the bar changes only when the number changes.
+```tsx
+"use client";
+
+import * as React from "react";
+import { Button, Card, Flex, Heading, Progress, Stack, Text } from "@kushagradhawan/kookie-ui-react";
+
+const TOTAL = 24;
+
+export default function Example() {
+  const [uploaded, setUploaded] = React.useState(0);
+  const [uploading, setUploading] = React.useState(false);
+  const done = uploaded === TOTAL;
+
+  React.useEffect(() => {
+    if (!uploading) return;
+    const timer = setInterval(() => {
+      setUploaded((n) => {
+        if (n + 1 >= TOTAL) setUploading(false);
+        return Math.min(n + 1, TOTAL);
+      });
+    }, 120);
+    return () => clearInterval(timer);
+  }, [uploading]);
+
+  const start = () => {
+    setUploaded(0);
+    setUploading(true);
+  };
+
+  return (
+    <Card size="3" style={{ maxWidth: "24rem" }}>
+      <Stack gap="4">
+        <Heading size="6">Import files</Heading>
+
+        {done ? (
+          <Text size="3" tone="success">Imported {TOTAL} files.</Text>
+        ) : (
+          <Stack gap="2">
+            <Progress value={uploading ? (uploaded / TOTAL) * 100 : null} aria-label="Importing files" />
+            <Text size="2" emphasis="medium">
+              {uploaded} of {TOTAL} files
+            </Text>
+          </Stack>
+        )}
+
+        <Flex justify="flex-end">
+          <Button emphasis="loud" loading={uploading} onClick={start}>
+            {done ? "Import again" : "Import"}
+          </Button>
+        </Flex>
+      </Stack>
+    </Card>
+  );
+}
+```
+## Reduced motion slows the indicators
+
+If a person turns on reduced motion in their operating system, the three indicators move more
+slowly. They don't stop, because a busy indicator that stops looks as if the work has finished.
+This is a judgment. WCAG allows it, because a loading indicator is essential to what it shows.
+
+## No component accepts an animation prop
+
+No component accepts a duration, an easing or an animation prop, so every screen in your app
+responds in the same way. To make a control stand out, use `emphasis` or `tone`.

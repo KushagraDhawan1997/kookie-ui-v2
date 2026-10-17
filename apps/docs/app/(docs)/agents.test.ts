@@ -19,7 +19,7 @@
  * and `EVERYWHERE` is their one home. A skill that quietly said something else would be the
  * worse half of a two-homes failure, because nothing else in CI reads a skill at all.
  */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -37,10 +37,15 @@ import { describe, expect, it } from "vitest";
 // sabotage of `objectOfLists` demonstrated (the entire theme-axis section vanished, suite green).
 import { componentAxes, themeAxes, themeDefaults, tiers } from "@kushagradhawan/kookie-ui-react";
 import { ENTRIES } from "./components/registry";
-import { facts, generatedText } from "../../scripts/generate-agents";
+import { CHAPTERS } from "./chapters";
+import { PAGES, markdownFor } from "./markdown";
+import { DOCS_DIR, docsFiles, facts, generatedText } from "../../scripts/generate-agents";
+
+const docs = { chapters: CHAPTERS, pages: PAGES, markdownFor };
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const artifactPath = join(here, "../../../../packages/ui/agents/AGENTS.md");
+const shippedDocs = join(here, "../../../../packages/ui/agents/docs");
 const skillPath = join(here, "../../../../.claude/skills/kookie-ui/SKILL.md");
 
 const artifact = () => readFileSync(artifactPath, "utf8");
@@ -83,7 +88,22 @@ function runAfter(text: string, anchor: string): string[] {
 
 describe("the generated rules file is current", () => {
   it("regenerating changes nothing", () => {
-    expect(generatedText()).toBe(artifact());
+    expect(generatedText(docs)).toBe(artifact());
+  });
+
+  it("ships every page's twin, and nothing that is not one", () => {
+    // Both directions. A page added to the site and not regenerated is a page the package does
+    // not carry; a page removed from the site and left on disk is advice from a version that
+    // no longer exists, read by an agent as current.
+    const expected = docsFiles(docs);
+    const onDisk = readdirSync(shippedDocs, { recursive: true, withFileTypes: true })
+      .filter((entry) => entry.isFile())
+      .map((entry) => join(entry.parentPath, entry.name).slice(shippedDocs.length + 1))
+      .sort();
+    expect(onDisk).toEqual([...expected.keys()].sort());
+    for (const [file, body] of expected) {
+      expect(readFileSync(join(shippedDocs, file), "utf8"), file).toBe(body);
+    }
   });
 
   it("carries the banner naming its sources", () => {
@@ -254,6 +274,47 @@ describe("every list in the rules file is the system's own", () => {
     // `llms.ts` states why: this repo has no site URL, and one written here would be wrong on
     // every deploy but the one it was written for.
     expect(artifact()).not.toMatch(/https?:\/\/(?!localhost)/);
+  });
+});
+
+describe("the index sends an agent to a page the package ships", () => {
+  /** The `- task: \`path\`` lines under the index heading, read back out of the markdown. */
+  const indexed = () => {
+    const text = artifact();
+    const section = text.slice(text.indexOf("## Before you build"), text.indexOf("## Every component"));
+    return [...section.matchAll(/^- (.+): `([^`]+)`$/gm)].map((m) => ({ task: m[1]!, file: m[2]! }));
+  };
+
+  it("lists every chapter that names a task, in reading order, and no other", () => {
+    const tasked = CHAPTERS.filter((chapter) => chapter.task);
+    // Vacuity: the patterns are the reason the index exists.
+    expect(tasked.length).toBeGreaterThanOrEqual(6);
+    expect(indexed()).toEqual(tasked.map((c) => ({ task: c.task, file: `${c.slug}.md` })));
+  });
+
+  it("every file it names is in the package", () => {
+    for (const { file } of indexed()) {
+      expect(existsSync(join(shippedDocs, file)), file).toBe(true);
+    }
+  });
+
+  it("covers every chapter and every component page", () => {
+    const files = docsFiles(docs);
+    for (const chapter of CHAPTERS) expect(files.has(`${chapter.slug}.md`), chapter.slug).toBe(true);
+    for (const entry of ENTRIES) {
+      expect(files.has(`components/${entry.slug}.md`), entry.slug).toBe(true);
+    }
+  });
+
+  it("names the folder the tarball really carries", () => {
+    // The path is a promise about the installed tree, so it is checked against the package's
+    // own name and its `files` list rather than restated.
+    const pkg = JSON.parse(
+      readFileSync(join(here, "../../../../packages/ui/package.json"), "utf8"),
+    ) as { name: string; files: string[] };
+    expect(DOCS_DIR).toBe(`node_modules/${pkg.name}/agents/docs`);
+    expect(pkg.files).toContain("agents");
+    expect(artifact()).toContain(`\`${DOCS_DIR}/\``);
   });
 });
 

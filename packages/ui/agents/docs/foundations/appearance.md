@@ -1,0 +1,88 @@
+# Appearance
+
+A `Theme` holds two kinds of value. Light or dark mode, contrast and transparency belong to the
+person who uses your app, and Kookie follows their system settings. Density, shape, material,
+depth and accent are your app's identity, and you set them once at the root.
+
+## Set the theme at the root
+
+Wrap your app in one `Theme`, and set only the values that you want to change. Every value has a
+default, so a bare `<Theme>` works.
+
+```tsx
+import { Theme } from "@kushagradhawan/kookie-ui-react";
+
+export function App({ children }: { children: React.ReactNode }) {
+  return (
+    <Theme
+      appearance="inherit" // use the mode that the script in <head> wrote on <html>
+      density="compact" // shorter controls and smaller gaps
+      radius="medium" // softer corners than the default pill shape
+      depth="flat" // no shadows anywhere
+    >
+      {children}
+    </Theme>
+  );
+}
+```
+
+## The person's choices
+
+These settings follow what the person asked their system for. Don't set them on the root to
+overrule that choice. Set them only to fix one region, or to build a control that lets the
+person change them.
+
+- **Light or dark mode:** The script in [Installation](/start/installation) reads the person's
+  setting and writes it on `<html>` before the first paint. Set `appearance="inherit"` on the
+  root theme so that it uses that value. Without the script, the theme shows light mode.
+- **Contrast:** If the person turns on increased contrast, borders, fills and tracks get
+  stronger. To force high contrast, write `data-contrast="high"` on `<html>`, beside
+  `data-appearance`. On a nested theme, set `contrast` together with `light` or `dark`, because
+  the high-contrast colours need both values on the same element.
+- **Reduced transparency:** If the person turns it on, every glass panel shows as solid. You
+  don't need to handle this.
+
+## Your app's identity
+
+These settings make your app look like your app. Set each one once, at the root.
+
+- **Density:** how much room the app gives its elements. See [Layout](/foundations/layout).
+- **Shape:** `radius` sets the corners for the whole app. See [Shape](/foundations/shape).
+- **Material:** `material` sets whether panels are solid or glass. See
+  [Materials](/foundations/materials).
+- **Depth:** `depth` sets whether cards and raised controls cast shadows. See
+  [Depth](/foundations/depth).
+- **Accent:** the colour of your main actions. It is part of the generated stylesheet rather
+  than a prop, so an app has one accent. See [Colour](/foundations/color).
+- **Size:** `size` sets the resting size step for every control in the scope. See
+  [Scale](/foundations/scale).
+
+`pointer` is neither kind of value. With `auto`, the theme reads what the person points with,
+and a finger gets larger controls than a mouse. Set `coarse` on a laptop to check the touch
+sizes. [Scale](/foundations/scale) gives the details.
+
+## Nest a Theme to change one region
+
+A `Theme` inside another `Theme` changes only the settings it names, and it inherits the rest.
+
+```tsx
+<Theme density="comfortable">
+  <Page />
+  {/* A dense region inside a roomy app. Nothing else changes. */}
+  <Theme density="compact">
+    <DataTable />
+  </Theme>
+</Theme>
+```
+
+Use a nested theme when one region must look different, for example:
+
+- a dark hero section on a light page
+- a compact inspector panel in a comfortable app
+- a glass panel over a photograph
+
+Menus and dialogs follow the theme of the place they open from. A menu that opens from a dark
+section is dark as well, even though it renders at the end of the page.
+
+A nested theme doesn't change responsive behaviour. To make a region respond to its own width,
+wrap it in `<Box container>`. The [Layout](/foundations/layout) chapter explains this.
