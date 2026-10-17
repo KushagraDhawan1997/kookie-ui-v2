@@ -1,10 +1,23 @@
-# Kookie UI v2
+# Kookie UI
 
-A React design system. Base UI primitives behind a Kookie-owned API, colour generated in OKLCH,
-token-only styling, and a CSS budget that CI enforces.
+Kookie UI is a design system. A component library gives you parts and leaves the decisions to
+you. Kookie UI is the decisions: the rules, the patterns and the reason for each one. The
+components are how those decisions reach your screen.
 
-This is a ground-up rebuild of [Kookie UI](https://github.com/KushagraDhawan1997/kookie-ui). v1
-is a fork of Radix Themes. v2 is its own system.
+Some design questions have measured answers. A fingertip needs a target of about 44 pixels, text
+needs enough contrast to read, and people group things that sit close together. Kookie UI applies
+these answers on every screen, and no prop can override them. Every other question is a judgment,
+such as a corner radius or the accent colour. Kookie UI makes each judgment once, in one place, so
+one change reaches every screen.
+
+The same idea decides what a component is. Components are sorted by what they do, not by how they
+look, so tabs and a segmented control are two components, although both are a row of segments.
+Patterns, such as an app frame, a form or a dialog, are part of the system too, because
+consistency is won or lost where components meet.
+
+The result is an app that stays consistent as it grows, because each decision is made in the
+system and not again in each file. Read the principles and the patterns at
+[ui.kookie.design](https://ui.kookie.design).
 
 **Pre-release.** `@kushagradhawan/kookie-ui-react` is not on npm yet. Build the workspace to use it.
 
