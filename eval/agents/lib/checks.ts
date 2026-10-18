@@ -52,6 +52,10 @@ const verdict = (problems: string[]): Result => (problems.length ? fail(problems
 // ---------------------------------------------------------------- shared facts
 
 const LAYOUT = new Set(["Flex", "Stack", "Grid"]);
+/** Components that are a group in their own right: a Field is a label, a control and its text. */
+const GROUPS = new Set(["Field", "FieldItem", "Fieldset", "Card"]);
+/** Controls that make a confirm panel more than a yes-or-no question (modality.md:65). */
+const PANEL_CONTROLS = new Set(["TextField", "TextArea", "Checkbox", "Switch", "Select", "Combobox", "NumberField", "RadioGroup"]);
 /** Controls that take `emphasis`. */
 const EMPHASIS_CONTROLS = new Set(["Button", "SplitButton", "ToolbarButton", "AlertDialogAction", "ComposerSend"]);
 /** composition.md:66 names the two that rest loud. */
@@ -66,6 +70,21 @@ function isLoud(el: El): boolean {
   const emphasis = attr(el, "emphasis");
   if (!emphasis) return DEFAULT_LOUD.has(el.tag);
   return emphasis.strings.includes("loud");
+}
+
+/**
+ * Which way a layout spaces its children. A Grid spaces both ways, so it competes with either.
+ * A per-tier direction is read at its base; one this cannot read is treated as both.
+ */
+function axisOf(el: El): "row" | "column" | "both" {
+  if (el.tag === "Grid") return "both";
+  if (el.tag === "Stack") return "column";
+  const direction = attr(el, "direction");
+  if (!direction) return "row";
+  const value = direction.kind === "string" ? direction.text : direction.object?.initial;
+  if (value === "column" || value === "column-reverse") return "column";
+  if (value === "row" || value === "row-reverse") return "row";
+  return "both";
 }
 
 function gapOf(el: El): number | undefined {
@@ -159,9 +178,10 @@ export const CHECKS: Check[] = [
       { page: "start/composition.md", line: 81, quote: "Make the gap inside a group at least two steps smaller than the gap around it." },
       {
         page: "start/composition.md",
-        line: 136,
+        line: 137,
         quote: "Two levels that both separate groups can sit one step apart: a section at gap 6 can hold groups at gap 5.",
       },
+      { page: "start/composition.md", line: 81, quote: "Compare only gaps that" },
     ],
     run(project) {
       const problems = new Map<string, string>();
@@ -173,7 +193,14 @@ export const CHECKS: Check[] = [
           if (!LAYOUT.has(inner.tag)) continue;
           const inside = gapOf(inner);
           if (inside === undefined) continue;
-          const separatesGroups = directElements(inner.children).some((c) => LAYOUT.has(c.tag) && gapOf(c) !== undefined);
+          // composition.md:81: compare only gaps that run the same way. A row's gap inside a
+          // column is not measured against the column's gap.
+          const outerAxis = axisOf(outer);
+          const innerAxis = axisOf(inner);
+          if (outerAxis !== "both" && innerAxis !== "both" && outerAxis !== innerAxis) continue;
+          const separatesGroups = directElements(inner.children).some(
+            (c) => (LAYOUT.has(c.tag) && gapOf(c) !== undefined) || GROUPS.has(c.tag),
+          );
           const need = separatesGroups ? 1 : 2;
           if (around - inside < need) {
             problems.set(
@@ -244,7 +271,7 @@ export const CHECKS: Check[] = [
   {
     id: "main-button-says-action",
     title: 'The main button says what it does, not "Submit"',
-    cites: [{ page: "patterns/forms.md", line: 85, quote: 'Label the main button with what it does: "Create project", not "Submit".' }],
+    cites: [{ page: "patterns/forms.md", line: 86, quote: 'Label the main button with what it does: "Create project", not "Submit".' }],
     run(project) {
       const loud = elementsOf(project, "Button", "SplitButton", "ToolbarButton").filter(isLoud);
       if (!loud.length) return na("no loud button");
@@ -253,14 +280,25 @@ export const CHECKS: Check[] = [
   },
   {
     id: "alert-for-irreversible",
-    title: "A permanent action asks first with an AlertDialog",
+    title: "A permanent action asks first: an AlertDialog, or a Dialog when the question needs a control",
     cites: [
+      {
+        page: "patterns/modality.md",
+        line: 65,
+        quote: "If the panel needs any control besides its two buttons, such as a",
+      },
       { page: "components/alert-dialog.md", line: 25, quote: "Use an alert dialog before an action that is hard to undo." },
       { page: "components/dialog.md", line: 22, quote: "To ask a yes-or-no question before a risky action, use `AlertDialog`." },
       { page: "patterns/modality.md", line: 31, quote: "Ask a person to confirm only an action that can't be undone." },
     ],
     run(project) {
-      if (!elementsOf(project, "AlertDialog").length) return fail(["no AlertDialog"]);
+      if (!elementsOf(project, "AlertDialog").length) {
+        // modality.md:65: a type-to-confirm field or a checkbox makes it a Dialog, not an alert.
+        const asking = elementsOf(project, "DialogContent").filter((content) =>
+          descendants(content).some((el) => PANEL_CONTROLS.has(el.tag)),
+        );
+        return asking.length ? pass([`${where(asking[0]!)} asks with a control, so a Dialog is right`]) : fail(["no AlertDialog"]);
+      }
       if (!elementsOf(project, "AlertDialogAction").length) return fail(["the AlertDialog has no AlertDialogAction"]);
       return pass();
     },
@@ -418,7 +456,7 @@ export const CHECKS: Check[] = [
       { page: "patterns/feedback.md", line: 161, quote: "Choose the tone by its meaning: write `success`, not `green`." },
       {
         page: "start/composition.md",
-        line: 191,
+        line: 192,
         quote: "`blue`, `green`, `orange` and `amber` are for colour as data, such as a chart series or a category.",
       },
     ],
