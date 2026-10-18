@@ -52,6 +52,10 @@ const verdict = (problems: string[]): Result => (problems.length ? fail(problems
 // ---------------------------------------------------------------- shared facts
 
 const LAYOUT = new Set(["Flex", "Stack", "Grid"]);
+/** Components that are a group in their own right: a Field is a label, a control and its text. */
+const GROUPS = new Set(["Field", "FieldItem", "Fieldset", "Card"]);
+/** Controls that make a confirm panel more than a yes-or-no question (modality.md:65). */
+const PANEL_CONTROLS = new Set(["TextField", "TextArea", "Checkbox", "Switch", "Select", "Combobox", "NumberField", "RadioGroup"]);
 /** Controls that take `emphasis`. */
 const EMPHASIS_CONTROLS = new Set(["Button", "SplitButton", "ToolbarButton", "AlertDialogAction", "ComposerSend"]);
 /** composition.md:66 names the two that rest loud. */
@@ -173,7 +177,9 @@ export const CHECKS: Check[] = [
           if (!LAYOUT.has(inner.tag)) continue;
           const inside = gapOf(inner);
           if (inside === undefined) continue;
-          const separatesGroups = directElements(inner.children).some((c) => LAYOUT.has(c.tag) && gapOf(c) !== undefined);
+          const separatesGroups = directElements(inner.children).some(
+            (c) => (LAYOUT.has(c.tag) && gapOf(c) !== undefined) || GROUPS.has(c.tag),
+          );
           const need = separatesGroups ? 1 : 2;
           if (around - inside < need) {
             problems.set(
@@ -253,14 +259,25 @@ export const CHECKS: Check[] = [
   },
   {
     id: "alert-for-irreversible",
-    title: "A permanent action asks first with an AlertDialog",
+    title: "A permanent action asks first: an AlertDialog, or a Dialog when the question needs a control",
     cites: [
+      {
+        page: "patterns/modality.md",
+        line: 65,
+        quote: "If the panel needs any control besides its two buttons, such as a",
+      },
       { page: "components/alert-dialog.md", line: 25, quote: "Use an alert dialog before an action that is hard to undo." },
       { page: "components/dialog.md", line: 22, quote: "To ask a yes-or-no question before a risky action, use `AlertDialog`." },
       { page: "patterns/modality.md", line: 31, quote: "Ask a person to confirm only an action that can't be undone." },
     ],
     run(project) {
-      if (!elementsOf(project, "AlertDialog").length) return fail(["no AlertDialog"]);
+      if (!elementsOf(project, "AlertDialog").length) {
+        // modality.md:65: a type-to-confirm field or a checkbox makes it a Dialog, not an alert.
+        const asking = elementsOf(project, "DialogContent").filter((content) =>
+          descendants(content).some((el) => PANEL_CONTROLS.has(el.tag)),
+        );
+        return asking.length ? pass([`${where(asking[0]!)} asks with a control, so a Dialog is right`]) : fail(["no AlertDialog"]);
+      }
       if (!elementsOf(project, "AlertDialogAction").length) return fail(["the AlertDialog has no AlertDialogAction"]);
       return pass();
     },

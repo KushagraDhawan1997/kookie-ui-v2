@@ -14,7 +14,7 @@ import { CHECKS, runChecks } from "../lib/checks.ts";
 import { FIXTURES_DIR } from "../lib/paths.ts";
 import { loadProject } from "../lib/tree.ts";
 
-const fixture = (id: string, kind: "good" | "bad") => {
+const fixture = (id: string, kind: string) => {
   const file = path.join(FIXTURES_DIR, id, `${kind}.tsx`);
   return loadProject([file], FIXTURES_DIR);
 };
@@ -77,5 +77,15 @@ test("no prompt names a component the rubric looks for", () => {
     for (const name of components) {
       assert.ok(!new RegExp(`\\b${name}\\b`).test(task.prompt), `${task.id} prompt names \`${name}\``);
     }
+  }
+});
+
+describe("cases the docs allow, found by the 2026-10-18 run", () => {
+  for (const [id, kind] of [["alert-for-irreversible", "good-dialog"], ["group-gap-steps", "good-fields"]] as const) {
+    test(`${id}: ${kind} passes`, () => {
+      const check = CHECKS.find((c) => c.id === id)!;
+      const result = check.run(fixture(id, kind));
+      assert.equal(result.status, "pass", result.notes.join("; "));
+    });
   }
 });
