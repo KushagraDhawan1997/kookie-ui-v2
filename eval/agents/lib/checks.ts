@@ -178,9 +178,10 @@ export const CHECKS: Check[] = [
       { page: "start/composition.md", line: 81, quote: "Make the gap inside a group at least two steps smaller than the gap around it." },
       {
         page: "start/composition.md",
-        line: 136,
+        line: 137,
         quote: "Two levels that both separate groups can sit one step apart: a section at gap 6 can hold groups at gap 5.",
       },
+      { page: "start/composition.md", line: 81, quote: "Compare only gaps that" },
     ],
     run(project) {
       const problems = new Map<string, string>();
@@ -192,8 +193,8 @@ export const CHECKS: Check[] = [
           if (!LAYOUT.has(inner.tag)) continue;
           const inside = gapOf(inner);
           if (inside === undefined) continue;
-          // Gestalt proximity compares distances that run the same way: a row's gap inside a
-          // column is not measured against the column's gap (Kushagra, 2026-10-18).
+          // composition.md:81: compare only gaps that run the same way. A row's gap inside a
+          // column is not measured against the column's gap.
           const outerAxis = axisOf(outer);
           const innerAxis = axisOf(inner);
           if (outerAxis !== "both" && innerAxis !== "both" && outerAxis !== innerAxis) continue;
@@ -270,7 +271,7 @@ export const CHECKS: Check[] = [
   {
     id: "main-button-says-action",
     title: 'The main button says what it does, not "Submit"',
-    cites: [{ page: "patterns/forms.md", line: 85, quote: 'Label the main button with what it does: "Create project", not "Submit".' }],
+    cites: [{ page: "patterns/forms.md", line: 86, quote: 'Label the main button with what it does: "Create project", not "Submit".' }],
     run(project) {
       const loud = elementsOf(project, "Button", "SplitButton", "ToolbarButton").filter(isLoud);
       if (!loud.length) return na("no loud button");
@@ -455,7 +456,7 @@ export const CHECKS: Check[] = [
       { page: "patterns/feedback.md", line: 161, quote: "Choose the tone by its meaning: write `success`, not `green`." },
       {
         page: "start/composition.md",
-        line: 191,
+        line: 192,
         quote: "`blue`, `green`, `orange` and `amber` are for colour as data, such as a chart series or a category.",
       },
     ],
