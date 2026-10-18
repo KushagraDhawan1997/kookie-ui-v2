@@ -72,6 +72,21 @@ function isLoud(el: El): boolean {
   return emphasis.strings.includes("loud");
 }
 
+/**
+ * Which way a layout spaces its children. A Grid spaces both ways, so it competes with either.
+ * A per-tier direction is read at its base; one this cannot read is treated as both.
+ */
+function axisOf(el: El): "row" | "column" | "both" {
+  if (el.tag === "Grid") return "both";
+  if (el.tag === "Stack") return "column";
+  const direction = attr(el, "direction");
+  if (!direction) return "row";
+  const value = direction.kind === "string" ? direction.text : direction.object?.initial;
+  if (value === "column" || value === "column-reverse") return "column";
+  if (value === "row" || value === "row-reverse") return "row";
+  return "both";
+}
+
 function gapOf(el: El): number | undefined {
   const gap = attr(el, "gap");
   if (!gap) return undefined;
@@ -177,6 +192,11 @@ export const CHECKS: Check[] = [
           if (!LAYOUT.has(inner.tag)) continue;
           const inside = gapOf(inner);
           if (inside === undefined) continue;
+          // Gestalt proximity compares distances that run the same way: a row's gap inside a
+          // column is not measured against the column's gap (Kushagra, 2026-10-18).
+          const outerAxis = axisOf(outer);
+          const innerAxis = axisOf(inner);
+          if (outerAxis !== "both" && innerAxis !== "both" && outerAxis !== innerAxis) continue;
           const separatesGroups = directElements(inner.children).some(
             (c) => (LAYOUT.has(c.tag) && gapOf(c) !== undefined) || GROUPS.has(c.tag),
           );
