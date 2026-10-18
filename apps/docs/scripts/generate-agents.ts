@@ -27,10 +27,24 @@
  * would be a fact that is wrong on every deploy but one. So the lookup section states the
  * SHAPE of the twin URL and lets the reader supply the host they are already on.
  *
+ * THE DOCS SHIP BESIDE IT (2026-10-17). Vercel's January 2026 eval put a coding agent at 53%
+ * with no docs and at 100% with version-matched docs inside the package plus an AGENTS.md index
+ * pointing at them; an optional skill and a docs-lookup server did close to nothing. Next.js
+ * ships the same shape (`node_modules/next/dist/docs/`). So every chapter and component page's
+ * markdown twin is written to `packages/ui/agents/docs/`, from the same `markdownFor` the site
+ * serves, and this file opens with an index of the chapters whose rules no type or lint rule
+ * can check. Blocks are left out: a block's page is source to copy, and it is copied from the
+ * site.
+ *
+ * WHY THE CLI LOADS THEM THROUGH VITE. `markdown.ts` reaches `chapters.ts`, which imports every
+ * chapter's `.mdx`, so Node cannot load it and an AST read would be a second implementation of
+ * the twin. The docs' own Vitest config already compiles that graph, so the CLI hands it to a
+ * Vite server and loads the real module. The laws run inside Vitest and import it directly.
+ *
  * Run:   pnpm --filter docs run agents
  * Check: pnpm --filter docs run agents:check   (writes nothing; fails on drift)
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
@@ -56,6 +70,8 @@ import ts from "typescript";
 import type { componentAxes as ComponentAxes, tiers as Tiers } from "@kushagradhawan/kookie-ui-react";
 import type * as RegistryModule from "../app/(docs)/components/registry";
 import type * as ExportsModule from "../app/package-exports";
+import type { PageRef } from "../app/(docs)/markdown";
+import type { Chapter } from "../app/(docs)/chapters";
 
 const load = <T,>(relative: string): Promise<T> =>
   import(new URL(relative, import.meta.url).href) as Promise<T>;
@@ -77,6 +93,29 @@ const indexPath = path.join(packageRoot, "index.ts");
 const themePath = path.join(packageRoot, "theme/theme.tsx");
 const markdownPath = path.join(here, "../app/(docs)/markdown.ts");
 const outPath = path.join(here, "../../../packages/ui/agents/AGENTS.md");
+const docsOutPath = path.join(here, "../../../packages/ui/agents/docs");
+
+/** Where a consumer's agent finds the shipped pages. One home, read by the index and the laws. */
+export const DOCS_DIR = "node_modules/@kushagradhawan/kookie-ui-react/agents/docs";
+
+/** What the docs half reads. The CLI loads it through Vite; the laws import it. */
+export type DocsSource = {
+  chapters: readonly Pick<Chapter, "slug" | "title" | "task">[];
+  pages: readonly PageRef[];
+  markdownFor: (pagePath: string) => string | null;
+};
+
+/** Every page that ships, as its path inside `agents/docs/` and its twin. */
+export function docsFiles(docs: DocsSource): Map<string, string> {
+  const files = new Map<string, string>();
+  for (const page of docs.pages) {
+    if (page.path.startsWith("/blocks/")) continue;
+    const body = docs.markdownFor(page.path);
+    if (body === null) throw new Error(`${page.path}: listed in PAGES and served no twin.`);
+    files.set(`${page.path.replace(/^\//, "")}.md`, body);
+  }
+  return files;
+}
 
 /**
  * Two of the four homes are IMPORTED and two are PARSED, and the split is not a preference.
@@ -183,20 +222,37 @@ export function facts() {
 
 const list = (values: readonly string[]) => values.map((value) => `\`${value}\``).join(" · ");
 
-export function generatedText(): string {
+export function generatedText(docs: DocsSource): string {
   const f = facts();
   const out: string[] = [];
 
   out.push(
     "<!-- GENERATED — do not edit. Source: packages/ui/src/index.ts, packages/ui/src/system/axes.ts,",
-    "     packages/ui/src/theme/theme.tsx, apps/docs/app/(docs)/components/registry.ts and",
-    "     apps/docs/app/(docs)/markdown.ts, via apps/docs/scripts/generate-agents.ts.",
+    "     packages/ui/src/theme/theme.tsx, apps/docs/app/(docs)/components/registry.ts,",
+    "     apps/docs/app/(docs)/markdown.ts and apps/docs/app/(docs)/chapters.ts, via",
+    "     apps/docs/scripts/generate-agents.ts, which also writes agents/docs/.",
     "     Regenerate with `pnpm --filter docs run agents`. A law regenerates and compares. -->",
     "",
     "# KookieUI, for coding agents",
     "",
-    "Rules for writing `@kushagradhawan/kookie-ui-react`. Read this before writing a component; it is short",
-    "because it only carries what a lookup cannot tell you.",
+    "Rules for writing `@kushagradhawan/kookie-ui-react`. Its API is not the one you remember from",
+    "Radix Themes, shadcn or MUI, so read this before you write a component.",
+    "",
+    "## Before you build, read the page",
+    "",
+    "The docs for the installed version ship in the package, at",
+    `\`${DOCS_DIR}/\`.`,
+    "Open the page for your task by its path before you write code. File search skips",
+    "`node_modules`, so use the path.",
+    "",
+  );
+  for (const chapter of docs.chapters) {
+    if (chapter.task) out.push(`- ${chapter.task}: \`${chapter.slug}.md\``);
+  }
+  out.push(
+    "",
+    "Every other page is in the same folder. A link to `/patterns/forms` inside a page is the",
+    "file `patterns/forms.md`.",
     "",
     "## Every component obeys these",
     "",
@@ -290,22 +346,21 @@ export function generatedText(): string {
     "",
     "## Looking one up",
     "",
-    "Every page of the KookieUI docs site is served a second time as plain markdown at the same",
-    "path with `.md` on the end. That twin carries the component's abstract, its generated prop",
-    "table, its examples and the reason behind every refusal above.",
+    "Read the local files first. They match the installed version and need no network.",
     "",
-    "- `<docs-site>/components/<name>.md` — one component",
-    "- `<docs-site>/llms.txt` — an index of every page",
-    "- `<docs-site>/llms-full.txt` — the whole site in one fetch",
+    `- \`${DOCS_DIR}/components/<name>.md\`: one component, with its props, its examples`,
+    "  and the reason behind every refusal above.",
+    "- `node_modules/@kushagradhawan/kookie-ui-react/dist/**/*.d.ts`: every exported symbol carries",
+    "  the reasoning on its declaration.",
     "",
-    "A PART IS DOCUMENTED ON ITS PARENT'S PAGE, so the slug is the ROOT component's export name",
-    "in kebab-case: `SegmentedControl` is `/components/segmented-control.md`, and `MenuItem`,",
-    "`ToolbarButton` and `DialogTitle` are on `/components/menu.md`, `/components/toolbar.md`",
-    "and `/components/dialog.md`. The roots are the names above with no parent listed beside",
+    "A PART IS DOCUMENTED ON ITS PARENT'S PAGE, so the file is the ROOT component's export name",
+    "in kebab-case: `SegmentedControl` is `components/segmented-control.md`, and `MenuItem`,",
+    "`ToolbarButton` and `DialogTitle` are in `components/menu.md`, `components/toolbar.md`",
+    "and `components/dialog.md`. The roots are the names above with no parent listed beside",
     "them; asking the MCP server resolves either kind.",
     "",
-    "The types are the other reference and they need no network: every exported symbol in",
-    "`node_modules/@kushagradhawan/kookie-ui-react/dist/**/*.d.ts` carries the reasoning on the declaration.",
+    "The docs site serves the same pages: add `.md` to any page's path. `<docs-site>/llms.txt`",
+    "lists every page, and `<docs-site>/llms-full.txt` holds the whole site in one fetch.",
     "",
   );
 
@@ -317,18 +372,70 @@ const invokedDirectly =
   process.argv[1] !== undefined &&
   path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
+/** The docs graph, loaded through the docs' own Vitest config so `.mdx` compiles as the site's. */
+async function loadDocs(): Promise<DocsSource> {
+  const { createViteServer } = await import("vitest/node");
+  const server = await createViteServer({
+    configFile: path.join(here, "../vitest.config.ts"),
+    root: path.join(here, ".."),
+    logLevel: "error",
+    appType: "custom",
+    server: { middlewareMode: true, hmr: false, ws: false },
+    optimizeDeps: { noDiscovery: true, include: [] },
+  });
+  try {
+    const markdown = (await server.ssrLoadModule("/app/(docs)/markdown.ts")) as {
+      PAGES: PageRef[];
+      markdownFor: DocsSource["markdownFor"];
+    };
+    const { CHAPTERS } = (await server.ssrLoadModule("/app/(docs)/chapters.ts")) as {
+      CHAPTERS: readonly Chapter[];
+    };
+    // Rendered while the server is open: a twin reads files lazily, and nothing after
+    // `close()` may reach back into the module graph.
+    const pages = markdown.PAGES;
+    const rendered = new Map(pages.map((page) => [page.path, markdown.markdownFor(page.path)]));
+    return { chapters: CHAPTERS, pages, markdownFor: (pagePath) => rendered.get(pagePath) ?? null };
+  } finally {
+    await server.close();
+  }
+}
+
+/** Every file under a directory, relative to it, `/`-separated. */
+function filesUnder(root: string): string[] {
+  if (!existsSync(root)) return [];
+  return readdirSync(root, { recursive: true, withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => path.relative(root, path.join(entry.parentPath, entry.name)).split(path.sep).join("/"))
+    .sort();
+}
+
 if (invokedDirectly) {
-  const text = generatedText();
+  const docs = await loadDocs();
+  const text = generatedText(docs);
+  const files = docsFiles(docs);
   if (process.argv.includes("--check")) {
-    if (readFileSync(outPath, "utf8") !== text) {
+    const stale = [...files].filter(
+      ([file, body]) =>
+        !existsSync(path.join(docsOutPath, file)) ||
+        readFileSync(path.join(docsOutPath, file), "utf8") !== body,
+    );
+    const extra = filesUnder(docsOutPath).filter((file) => !files.has(file));
+    if (readFileSync(outPath, "utf8") !== text || stale.length || extra.length) {
       console.error(
-        "packages/ui/agents/AGENTS.md is out of date. Run `pnpm --filter docs run agents` and commit the result.",
+        "packages/ui/agents is out of date. Run `pnpm --filter docs run agents` and commit the result.",
       );
       process.exit(1);
     }
-    console.log(`AGENTS.md is current (${facts().components.length} components).`);
+    console.log(`AGENTS.md and ${files.size} pages are current (${facts().components.length} components).`);
   } else {
     writeFileSync(outPath, text);
-    console.log(`Wrote packages/ui/agents/AGENTS.md (${text.length} bytes).`);
+    // Cleared first, so a page that left the site leaves the package.
+    rmSync(docsOutPath, { recursive: true, force: true });
+    for (const [file, body] of files) {
+      mkdirSync(path.dirname(path.join(docsOutPath, file)), { recursive: true });
+      writeFileSync(path.join(docsOutPath, file), body);
+    }
+    console.log(`Wrote packages/ui/agents/AGENTS.md (${text.length} bytes) and ${files.size} pages.`);
   }
 }

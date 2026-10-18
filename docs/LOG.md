@@ -8,6 +8,19 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-10-17 The package carries its docs, and AGENTS.md says which page to read
+
+Kushagra asked for Kookie UI to be ready for coding agents. Vercel's eval found that version-matched docs in the package plus an index in `AGENTS.md` took an agent from 53% to 100%, and that skills and a docs MCP added close to nothing. So the twins of every chapter and component page now ship in `agents/docs/`, and the rules file opens with six "before you build this, read that" lines. DECISIONS §57.
+
+**Turned down:**
+- A new MCP tool for patterns. The eval says lookup tools barely move the result, and §48 already has four.
+- Shipping the composition skill as a skill. Optional skills did nothing in the same eval. The Composition chapter's twin carries the same rules.
+- Shipping blocks. Their pages are code to copy, and the copy comes from the site.
+- Bundling `markdown.ts` with esbuild for the CLI. It pulls in `next/image` and the `.mdx` graph, and stubbing them would make a second pipeline. Vite with the docs' own config runs the real one.
+- Rewriting site links inside the shipped pages. One sentence in the index maps `/patterns/forms` to `patterns/forms.md`, and each page stays the page's own words.
+
+**Open:** the efficacy eval that §48 lists is designed (bare, full surface, index only) and has not run.
+
 ## 2026-10-15 The material is a scale, and the glass in dark got quieter
 
 Kushagra, after a deep dive on how Apple hands material to developers: Liquid Glass removed the per-view thickness knob (`.glassEffect(.regular | .clear)` and nothing finer), which is the stance this system already took by making material a Theme value. What he wanted instead of three names was a slider: *"Thin is good for clear but one step away ... I'd like to say material's glass as a slider."*

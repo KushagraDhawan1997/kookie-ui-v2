@@ -1,0 +1,278 @@
+# Navigation
+
+Where can I go, and where am I now? Navigation answers both questions for the people who use
+your app. `Shell` answers the first with a frame of named panes around your content. Marking the
+open page answers the second, on the screen and for a screen reader.
+
+## The app frame
+```tsx
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ChartLineData01Icon,
+  CreditCardIcon,
+  Folder01Icon,
+  GridViewIcon,
+  Home01Icon,
+  LayerIcon,
+  Notification02Icon,
+  PlugSocketIcon,
+  PlusSignIcon,
+  Rocket01Icon,
+  Settings02Icon,
+  ShapesIcon,
+  SidebarLeftIcon,
+  SwatchIcon,
+  UserMultiple02Icon,
+} from "@hugeicons/core-free-icons";
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  Heading,
+  Shell,
+  ShellContent,
+  ShellNavGroup,
+  ShellNavItem,
+  ShellPaneFooter,
+  ShellPaneHeader,
+  ShellScroll,
+  ShellSidebar,
+  ShellTrigger,
+  Stack,
+  Text,
+  Toolbar,
+  ToolbarButton,
+  iconStroke,
+} from "@kushagradhawan/kookie-ui-react";
+
+// Your logo and your appearance store, not the package's: KookieUI ships no mark, the same
+// way it ships no icon set, and which appearance a person chose is app state the app has to
+// persist. What the package owns is the `Theme` scope those two feed.
+import { AppearanceToggle } from "../app/appearance-toggle";
+import { Wordmark } from "../app/(docs)/wordmark";
+
+// The package ships no icon set, so the glyphs are yours. `iconStroke` is the weight the
+// system draws its own chevrons at, so your set matches them.
+const icon = (glyph: typeof Home01Icon) => (
+  <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />
+);
+
+// A pane's chrome floats over its scroller, so what should CLEAR the row pads by the reach
+// the pane publishes, and what should run behind it ignores it. Minus the viewport's own
+// re-pad, because a ShellScroll already insets by the pane's padding.
+const clearsFloatingChrome = {
+  paddingBlockStart: "calc(var(--kui-pane-inset-block-start) - var(--kui-sf-p))",
+  paddingBlockEnd: "calc(var(--kui-pane-inset-block-end) - var(--kui-sf-p))",
+};
+
+// Nothing here tells the fade how far to reach. A pane with a floating row hands its own
+// scroller that edge's published reach, so content dissolves for the whole distance it
+// spends behind the chrome with nothing said at the call site.
+
+export default function Example() {
+  return (
+    // A `contained` frame fills what it is given, so give it a box. An app frame writes neither:
+    // it is the window. `m="bleed"` undoes the surrounding
+    // pane's padding — an app frame reaches the edges of the thing it is in — and `flexGrow`
+    // is what makes it take the whole line when that thing is a centred row.
+    <Box m="bleed" style={{ flexGrow: 1, blockSize: "28rem" }}>
+      <Shell contained>
+        {/* Untouched, the sidebar rests open on a roomy window and closed on a narrow one.
+            Nothing here decides that — CSS does, at first paint, with no script. */}
+        <ShellSidebar aria-label="Sections">
+          {/* `float` lifts the row out of flow: the nav scrolls behind it, and the pane
+              publishes the row's reach for the scroller below to spend. The row itself
+              paints nothing, so its controls state their own backdrop. */}
+          <ShellPaneHeader float>
+            <Wordmark />
+            {/* Top-aligned, not centred: the mark is a display glyph and it defines the row,
+                so centring the button would sink it below the trigger in the pane next door.
+                Aligning to the start puts both at the same offset from their pane's padding. */}
+            <Button iconOnly backdrop aria-label="New" style={{ alignSelf: "start" }}>
+              {icon(PlusSignIcon)}
+            </Button>
+          </ShellPaneHeader>
+
+          {/* `fade` is what keeps the rows legible on their way behind the chrome. */}
+          <ShellScroll fade>
+            <Box style={clearsFloatingChrome}>
+              <ShellNavGroup label="Workspace">
+                <ShellNavItem current leading={icon(Home01Icon)}>
+                  Overview
+                </ShellNavItem>
+                <ShellNavItem leading={icon(Folder01Icon)}>Projects</ShellNavItem>
+                <ShellNavItem leading={icon(Rocket01Icon)} trailing={<Chip>3</Chip>}>
+                  Deploys
+                </ShellNavItem>
+                <ShellNavItem leading={icon(ChartLineData01Icon)}>Analytics</ShellNavItem>
+              </ShellNavGroup>
+              <ShellNavGroup label="Library">
+                <ShellNavItem leading={icon(ShapesIcon)}>Components</ShellNavItem>
+                <ShellNavItem leading={icon(GridViewIcon)}>Templates</ShellNavItem>
+                <ShellNavItem leading={icon(SwatchIcon)}>Assets</ShellNavItem>
+                <ShellNavItem leading={icon(LayerIcon)}>Versions</ShellNavItem>
+              </ShellNavGroup>
+              <ShellNavGroup label="Account">
+                <ShellNavItem leading={icon(UserMultiple02Icon)}>Members</ShellNavItem>
+                <ShellNavItem leading={icon(Notification02Icon)} trailing={<Chip>12</Chip>}>
+                  Notifications
+                </ShellNavItem>
+                <ShellNavItem leading={icon(PlugSocketIcon)}>Integrations</ShellNavItem>
+                <ShellNavItem leading={icon(CreditCardIcon)}>Billing</ShellNavItem>
+                <ShellNavItem leading={icon(Settings02Icon)}>Settings</ShellNavItem>
+              </ShellNavGroup>
+            </Box>
+          </ShellScroll>
+
+          {/* A TOOLBAR, like the header above it: the band states its index and the row is one
+              tab stop with the arrows moving inside it. A bare band hands its children the
+              PANE's index instead, so two rows in one pane would rest at different sizes. */}
+          <ShellPaneFooter float>
+            {/* `backdrop` on the ROW: the band floats, so nav rows pass behind everything in
+                it — one fact about the space rather than a prop per control. */}
+            <Toolbar backdrop>
+              {/* The avatar rides a button, and that is not decoration: the footer FLOATS, so
+                  nav rows pass under it, and an avatar's fallback wash is an alpha — rows read
+                  straight through the disc. The button is what states `backdrop`, and an
+                  account avatar is a target in every app that has one anyway. */}
+              <ToolbarButton iconOnly aria-label="Kushagra Dhawan">
+                <Avatar fallback="KD" />
+              </ToolbarButton>
+              <AppearanceToggle />
+            </Toolbar>
+          </ShellPaneFooter>
+        </ShellSidebar>
+
+        <ShellContent>
+          {/* The floating row holds CONTROLS and nothing else, and each states its own
+              backdrop: the band paints nothing, so what keeps a button legible over the
+              text passing behind it is the glass on the button itself. The page's own title
+              scrolls with the page, which is why it is in the column below rather than
+              here. */}
+          <ShellPaneHeader float>
+            {/* The one thing that crosses the frame: a button that drives a pane by name.
+                It is the route back once the sidebar closes or overlays. */}
+            <ShellTrigger
+              target="sidebar"
+              render={
+                <Button iconOnly backdrop aria-label="Toggle navigation" />
+              }
+            >
+              {icon(SidebarLeftIcon)}
+            </ShellTrigger>
+            <Button backdrop leading={icon(PlusSignIcon)}>
+              New project
+            </Button>
+          </ShellPaneHeader>
+
+          {/* The work area scrolls itself; the frame never does. */}
+          <ShellScroll fade>
+            <Stack gap="7" style={clearsFloatingChrome}>
+              <Heading size="6">Overview</Heading>
+              <Stack gap="5">
+                <Text>
+                  Two deploys finished this morning and one is still building. Nothing is
+                  waiting on you.
+                </Text>
+                <Text>
+                  Every pane places itself in one grid by name, so the shell never inspects
+                  its children and the order you write them in stays the order they are read
+                  in.
+                </Text>
+                <Text>
+                  A pane you have not touched rests on auto, and the window size decides what
+                  auto means — open here, an overlay on a phone, with no script involved.
+                </Text>
+                <Text>
+                  Set the size once on Shell and every pane takes it: the padding first, then
+                  the nav rows, the rail squares and the header row inside them.
+                </Text>
+                <Text>
+                  Scroll this column and the chrome stays where it is. The frame never moves;
+                  only the region you marked with ShellScroll does.
+                </Text>
+              </Stack>
+            </Stack>
+          </ShellScroll>
+        </ShellContent>
+      </Shell>
+    </Box>
+  );
+}
+```
+A `Shell` holds a header, navigation columns, the work area and optional detail panes. Each pane
+is its own component, so you use only the panes you need.
+
+- **`ShellHeader`:** A row across the full width of the frame.
+- **`ShellRail`:** A narrow column of icons that switches between the main areas of the app.
+- **`ShellSidebar`:** A wider column that lists what is inside the area the rail selected.
+- **`ShellContent`:** The work area. It renders `<main>`, and it's the only pane you need.
+- **`ShellInspector`:** A detail column on the trailing side. It starts closed.
+- **`ShellBottom`:** A drawer along the bottom, for something like a log. It starts closed.
+
+Use a rail only when the app has several separate areas, as VS Code and Slack do. Otherwise a
+sidebar is enough. This is a judgment. When a page has two navigation landmarks, give each one an
+`aria-label` so that a screen reader can tell them apart.
+
+Each pane opens and closes on its own. A `ShellTrigger` with `target` opens one from anywhere,
+and it sets `aria-expanded` and `aria-controls` for you. The [Shell](/components/shell) page
+covers padding, widths and resizing.
+
+## How the frame responds to the window
+
+CSS decides the shape of the frame, so the first paint is correct with no script.
+
+- **In a window 48rem wide or less:** The sidebar starts closed and opens over the content. The
+  rail becomes a tab bar along the bottom. Set `presentation="rail"` on the rail if it has too
+  many items for a tab bar.
+- **In a wider window:** The rail and the sidebar sit in the layout beside the content.
+
+When a person opens or closes a pane, that choice holds when the window changes size. Set
+`presentation="fixed"` on a sidebar, inspector or bottom pane to keep it in the layout at every
+size, or `presentation="overlay"` to always open it over the content. To change what your own
+code renders at each window size, see [Responsiveness](/patterns/responsiveness).
+
+## Show where people are
+
+Set `current` on the `ShellNavItem` or `ShellRailItem` for the open page. The row gets a filled
+background and `aria-current="page"`. The fill gives nothing to a person who can't see it, so
+`aria-current` makes a screen reader say which page is open. In a `NavTree`, set `currentId` to
+the id of the open page.
+
+The current row's fill is stronger than the fill under the pointer, so you can tell the two
+apart. `ShellNavGroup` puts a heading over a group of rows, and a screen reader announces the
+group by that heading.
+
+## Page titles and toolbars
+
+`Page` gives a screen its large title. When the title scrolls out of view, a `ToolbarTitle` with
+no children in the same pane shows the title instead, so people still know where they are.
+
+`ShellPaneHeader` is the row at the top of a pane. Put a `Toolbar` in it for the pane's controls.
+A toolbar is one tab stop, and the arrow keys move between its `ToolbarButton`s.
+
+For deep structures, `NavTree` shows sections that open and close. `Breadcrumb` shows the path
+from the top of the app to the open page.
+
+## Tabs or a segmented control
+
+Use `Tabs` when the content under the row changes. Use a `SegmentedControl` when the choice sets
+a value, such as a grid or a list layout, and the content stays where it is.
+
+A screen reader hears the difference. A `SegmentedControl` is a radio group: the arrow keys change
+its value, and a form submits that value. A tab bar is a tab list, and each tab controls a panel.
+```tsx
+import { SegmentedControl, SegmentedItem } from "@kushagradhawan/kookie-ui-react";
+
+export default function Example() {
+  return (
+    <SegmentedControl defaultValue="grid" aria-label="Layout">
+      <SegmentedItem value="grid">Grid</SegmentedItem>
+      <SegmentedItem value="list">List</SegmentedItem>
+    </SegmentedControl>
+  );
+}
+```
+Use a `ToggleGroup` for options that can all be on at once, such as bold and italic. A `Menu`
+runs actions and a `Select` sets a value, which the [Forms](/patterns/forms) page covers.

@@ -1,12 +1,30 @@
 <!-- GENERATED — do not edit. Source: packages/ui/src/index.ts, packages/ui/src/system/axes.ts,
-     packages/ui/src/theme/theme.tsx, apps/docs/app/(docs)/components/registry.ts and
-     apps/docs/app/(docs)/markdown.ts, via apps/docs/scripts/generate-agents.ts.
+     packages/ui/src/theme/theme.tsx, apps/docs/app/(docs)/components/registry.ts,
+     apps/docs/app/(docs)/markdown.ts and apps/docs/app/(docs)/chapters.ts, via
+     apps/docs/scripts/generate-agents.ts, which also writes agents/docs/.
      Regenerate with `pnpm --filter docs run agents`. A law regenerates and compares. -->
 
 # KookieUI, for coding agents
 
-Rules for writing `@kushagradhawan/kookie-ui-react`. Read this before writing a component; it is short
-because it only carries what a lookup cannot tell you.
+Rules for writing `@kushagradhawan/kookie-ui-react`. Its API is not the one you remember from
+Radix Themes, shadcn or MUI, so read this before you write a component.
+
+## Before you build, read the page
+
+The docs for the installed version ship in the package, at
+`node_modules/@kushagradhawan/kookie-ui-react/agents/docs/`.
+Open the page for your task by its path before you write code. File search skips
+`node_modules`, so use the path.
+
+- Any screen with more than one component: `start/composition.md`
+- A form, a settings page, or any field with a label: `patterns/forms.md`
+- A dialog, alert, popover, menu or sheet: `patterns/modality.md`
+- The app frame, page titles and tabs between pages: `patterns/navigation.md`
+- Loading, progress, success, error and empty states: `patterns/feedback.md`
+- A layout that changes with space, or a touch target: `patterns/responsiveness.md`
+
+Every other page is in the same folder. A link to `/patterns/forms` inside a page is the
+file `patterns/forms.md`.
 
 ## Every component obeys these
 
@@ -158,19 +176,18 @@ system wrong. The reason each one was refused is on the component's own page —
 
 ## Looking one up
 
-Every page of the KookieUI docs site is served a second time as plain markdown at the same
-path with `.md` on the end. That twin carries the component's abstract, its generated prop
-table, its examples and the reason behind every refusal above.
+Read the local files first. They match the installed version and need no network.
 
-- `<docs-site>/components/<name>.md` — one component
-- `<docs-site>/llms.txt` — an index of every page
-- `<docs-site>/llms-full.txt` — the whole site in one fetch
+- `node_modules/@kushagradhawan/kookie-ui-react/agents/docs/components/<name>.md`: one component, with its props, its examples
+  and the reason behind every refusal above.
+- `node_modules/@kushagradhawan/kookie-ui-react/dist/**/*.d.ts`: every exported symbol carries
+  the reasoning on its declaration.
 
-A PART IS DOCUMENTED ON ITS PARENT'S PAGE, so the slug is the ROOT component's export name
-in kebab-case: `SegmentedControl` is `/components/segmented-control.md`, and `MenuItem`,
-`ToolbarButton` and `DialogTitle` are on `/components/menu.md`, `/components/toolbar.md`
-and `/components/dialog.md`. The roots are the names above with no parent listed beside
+A PART IS DOCUMENTED ON ITS PARENT'S PAGE, so the file is the ROOT component's export name
+in kebab-case: `SegmentedControl` is `components/segmented-control.md`, and `MenuItem`,
+`ToolbarButton` and `DialogTitle` are in `components/menu.md`, `components/toolbar.md`
+and `components/dialog.md`. The roots are the names above with no parent listed beside
 them; asking the MCP server resolves either kind.
 
-The types are the other reference and they need no network: every exported symbol in
-`node_modules/@kushagradhawan/kookie-ui-react/dist/**/*.d.ts` carries the reasoning on the declaration.
+The docs site serves the same pages: add `.md` to any page's path. `<docs-site>/llms.txt`
+lists every page, and `<docs-site>/llms-full.txt` holds the whole site in one fetch.

@@ -1,0 +1,214 @@
+# Composition
+
+Kookie components keep a screen consistent: every distance comes from a spacing step, every
+colour from a tone, and every size from a size step. Consistency isn't the same as quality,
+though. You can still put nine components on one screen at nine different sizes, and nothing in
+the components will stop you.
+
+This page covers the rules for putting components together. Most of them are judgments, not
+measurements. The two exceptions are that colour never carries a message alone (WCAG 1.4.1) and
+that text people must read stays readable. The [builder](/builder) checks most of the rules
+while you work.
+
+## One obvious action per screen
+
+Give each screen one loud control, and make it the action the screen exists for. Set it with
+`tone="accent"` and `emphasis="loud"`, and leave every other control at medium or quiet.
+
+One control stands out only when the controls around it are quieter. This is the isolation
+effect. When two controls are loud, neither one stands out, and a person can't tell which is the
+main action. One per screen is Kookie's judgment.
+```tsx
+import type * as React from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
+import { Button, Flex, Grid, Stack, Text, iconStroke } from "@kushagradhawan/kookie-ui-react";
+
+export default function OneAction() {
+  return (
+    <Grid columns={{ initial: "1", sm: "2" }} gap="7">
+      <Verdict ok={false} why="Two loud controls compete, so neither stands out.">
+        <Flex gap="3">
+          <Button tone="accent" emphasis="loud">Save</Button>
+          <Button tone="accent" emphasis="loud">Publish</Button>
+        </Flex>
+      </Verdict>
+      <Verdict ok why="One main action. The other stays easy to find.">
+        <Flex gap="3">
+          <Button emphasis="medium">Save draft</Button>
+          <Button tone="accent" emphasis="loud">Publish</Button>
+        </Flex>
+      </Verdict>
+    </Grid>
+  );
+}
+
+// A large mark, then the thing being judged, then why.
+function Verdict({ ok, why, children }: { ok: boolean; why: string; children: React.ReactNode }) {
+  return (
+    <Stack gap="3">
+      <Text tone={ok ? "success" : "destructive"} render={<Flex />}>
+        <HugeiconsIcon
+          icon={ok ? Tick02Icon : Cancel01Icon}
+          size={28}
+          strokeWidth={iconStroke}
+          aria-label={ok ? "Right" : "Wrong"}
+        />
+      </Text>
+      {children}
+      <Text size="2" emphasis="medium">
+        {why}
+      </Text>
+    </Stack>
+  );
+}
+```
+`Button` defaults to medium, so a loud button is almost always one you asked for. The two
+exceptions are `AlertDialogAction` and the send button in a `Composer`, which default to loud
+because each is the only action in its component.
+
+Count loud controls across the whole screen, not inside the nearest card. A dialog counts as a
+screen of its own, because it covers the page. Two tab panels never compete either, because only
+one is visible at a time.
+
+## Let space do the grouping
+
+Put related things closer together than unrelated things. People see items that sit close
+together as a group before they read them. A shared border or fill also groups items, and it can
+override distance, but it adds lines and noise. So set the spacing first, and add a border only
+when spacing is not enough.
+
+Make the gap inside a group at least two steps smaller than the gap around it. When a screen uses
+the same gap from top to bottom, it shows no structure.
+```tsx
+import type * as React from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
+import { Flex, Grid, Heading, Stack, Text, iconStroke } from "@kushagradhawan/kookie-ui-react";
+
+export default function Grouping() {
+  return (
+    <Grid columns={{ initial: "1", sm: "2" }} gap="7">
+      <Verdict ok={false} why="One gap everywhere, so nothing reads as a group.">
+        <Stack gap="4">
+          <Heading size="6">Notifications</Heading>
+          <Text emphasis="medium">Choose what reaches you, and how.</Text>
+          <Heading size="6">Billing</Heading>
+          <Text emphasis="medium">Cards, invoices and the plan you are on.</Text>
+        </Stack>
+      </Verdict>
+      <Verdict ok why="Gap 2 inside each group, gap 6 between them.">
+        <Stack gap="6">
+          <Stack gap="2">
+            <Heading size="6">Notifications</Heading>
+            <Text emphasis="medium">Choose what reaches you, and how.</Text>
+          </Stack>
+          <Stack gap="2">
+            <Heading size="6">Billing</Heading>
+            <Text emphasis="medium">Cards, invoices and the plan you are on.</Text>
+          </Stack>
+        </Stack>
+      </Verdict>
+    </Grid>
+  );
+}
+
+// A large mark, then the thing being judged, then why.
+function Verdict({ ok, why, children }: { ok: boolean; why: string; children: React.ReactNode }) {
+  return (
+    <Stack gap="3">
+      <Text tone={ok ? "success" : "destructive"} render={<Flex />}>
+        <HugeiconsIcon
+          icon={ok ? Tick02Icon : Cancel01Icon}
+          size={28}
+          strokeWidth={iconStroke}
+          aria-label={ok ? "Right" : "Wrong"}
+        />
+      </Text>
+      {children}
+      <Text size="2" emphasis="medium">
+        {why}
+      </Text>
+    </Stack>
+  );
+}
+```
+Two levels that both separate groups can sit one step apart: a section at gap 6 can hold groups
+at gap 5.
+
+## Rank text by size
+
+To show that one piece of text ranks above another, move at least two steps on the type scale.
+A size 4 title over size 3 body text looks like an accident. [Typography](/foundations/typography#the-five-steps-for-a-screen)
+gives the five steps a screen uses.
+
+When something is less important, keep it at size 2 or 3 and use the muted colour with
+`emphasis="medium"`. Keep `emphasis="quiet"` for things a person can't use, such as a disabled
+option.
+
+## Use a tone for what it means
+
+Choose a tone because of what it means, not because a screen looks too grey.
+```tsx
+import type * as React from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Cancel01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
+import { Flex, Grid, Stack, Text, iconStroke } from "@kushagradhawan/kookie-ui-react";
+
+export default function Tone() {
+  return (
+    <Grid columns={{ initial: "1", sm: "2" }} gap="7">
+      <Verdict ok={false} why="Green chosen because it looks pleasant.">
+        <Text tone="green">Storage used</Text>
+      </Verdict>
+      <Verdict ok why="The tone that means success.">
+        <Text tone="success">Backup completed</Text>
+      </Verdict>
+    </Grid>
+  );
+}
+
+// A large mark, then the thing being judged, then why.
+function Verdict({ ok, why, children }: { ok: boolean; why: string; children: React.ReactNode }) {
+  return (
+    <Stack gap="3">
+      <Text tone={ok ? "success" : "destructive"} render={<Flex />}>
+        <HugeiconsIcon
+          icon={ok ? Tick02Icon : Cancel01Icon}
+          size={28}
+          strokeWidth={iconStroke}
+          aria-label={ok ? "Right" : "Wrong"}
+        />
+      </Text>
+      {children}
+      <Text size="2" emphasis="medium">
+        {why}
+      </Text>
+    </Stack>
+  );
+}
+```
+`success`, `warning`, `info` and `destructive` carry meanings. `blue`, `green`, `orange` and
+`amber` are for colour as data, such as a chart series or a category. Keep to three tones or
+fewer on one surface, which is a judgment. Never let colour carry the whole message: write the
+words too.
+
+## Same job, same size
+
+Controls that do the same job on one surface should be the same size. A size 3 button beside a
+size 2 button looks like two different kinds of control, and a person will look for a reason that
+isn't there.
+
+Match controls to the surface that holds them. [Scale](/foundations/scale) explains which
+components pass their size down.
+
+## Write the real words
+
+Build a layout with real content. Placeholder text hides the problems you most need to see, such
+as a heading that wraps onto three lines in a narrow column.
+
+## Run the reviewer
+
+Run the reviewer in the [builder](/builder) before you ship. It checks the rules on this page and
+offers a fix when one is safe. It can't tell you whether a screen is good, only when a screen
+breaks a rule.

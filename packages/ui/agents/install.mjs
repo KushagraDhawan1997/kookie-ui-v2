@@ -23,7 +23,7 @@
  * No dependencies, and Node builtins only: this runs through `npx` in a repo that has not
  * installed anything yet.
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -161,9 +161,22 @@ function run(argv, cwd, out) {
   return plan;
 }
 
+/**
+ * Compared by REAL path. `npx` runs this through `node_modules/.bin/kookie-ui`, a symlink, so
+ * `argv[1]` names the link while `import.meta.url` names the file it points at. A plain path
+ * comparison never matched there, and `init` printed nothing and wrote nothing (2026-10-17,
+ * found by the agent eval). macOS's `/var` → `/private/var` is the same failure.
+ */
+const realOrSelf = (file) => {
+  try {
+    return realpathSync(file);
+  } catch {
+    return path.resolve(file);
+  }
+};
 const invokedDirectly =
   process.argv[1] !== undefined &&
-  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+  realOrSelf(process.argv[1]) === realOrSelf(fileURLToPath(import.meta.url));
 
 if (invokedDirectly) {
   const argv = process.argv.slice(2);

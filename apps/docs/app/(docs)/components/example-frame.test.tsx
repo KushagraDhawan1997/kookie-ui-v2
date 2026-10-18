@@ -115,9 +115,14 @@ describe("the specimen frame agrees with what the example renders", () => {
     expect(paned.length).toBeLessThan(names.length);
   });
 
-  it("the source predicate and the rendered root say the same thing", () => {
-    const disagree = names.filter((n) => rootsOwnPane(readExampleSource(n)) !== rootIsPane(n));
-    expect(disagree, "the frame would wrap the wrong examples").toEqual([]);
+  // ONE TEST PER EXAMPLE (2026-10-17). This was one test rendering every example, and its time
+  // grows with the catalogue: 0.25s on a laptop, 1.7 to 5.8s on a shared CI runner, where it
+  // crossed the 5s limit on a PR that touched no example. The work is the same either way; split
+  // like this, no single test carries all of it, and a failure names the example.
+  it.each(names)("the source predicate and the rendered root say the same thing: %s", (n) => {
+    expect(rootsOwnPane(readExampleSource(n)), "the frame would wrap the wrong example").toBe(
+      rootIsPane(n),
+    );
   });
 
   it("the scanner sees a card whatever element it is rendered as", () => {

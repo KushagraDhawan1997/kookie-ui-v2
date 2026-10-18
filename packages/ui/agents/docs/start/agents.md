@@ -1,0 +1,85 @@
+# AI agents
+
+An AI agent will reach for a `variant`, a `color` or a margin prop on a button, because most
+libraries have them. Kookie components have none of these, and only the layout components accept
+margin. The tools below teach the agent this library's own API. All of them are generated from the
+same source as the [component pages](/components). The packages are not on npm yet, so the `npx`
+commands on this page don't work until they are published.
+
+## Start with the type checker
+
+When an agent writes a prop Kookie does not accept, the type error names the prop, and for most
+props it says what to write instead. `variant` points to `tone` and `emphasis`, and `asChild`
+points to `render`. The lint rule below covers `color`. Each
+component's description also ships in its `.d.ts` file, so an agent can read it offline.
+
+## Lint what the type checker can't see
+
+The ESLint plugin catches a `data-tone` attribute, a utility class, a raw colour or length in
+`style`, and a refused prop inside a spread. Every message says what to write instead.
+
+```js title="eslint.config.mjs"
+import tseslint from "typescript-eslint";
+import kookie from "@kushagradhawan/kookie-ui-react/eslint-plugin";
+
+export default [
+  { files: ["**/*.tsx"], languageOptions: { parser: tseslint.parser } },
+  ...kookie.configs.recommended,
+];
+```
+
+## Give your agent the rules
+
+The package ships every page of these docs as Markdown, at the version you installed. This command
+adds a block to `AGENTS.md`, `CLAUDE.md` or your Cursor and Copilot files. The block holds the rules
+and tells your agent which page to read before it builds a form, a dialog or an app frame. Without
+the write flag it only prints the plan. Run it again after each upgrade.
+
+```bash
+npx @kushagradhawan/kookie-ui-react init --write
+```
+
+## Let your agent look things up
+
+Add `.md` to any page's path to get it as Markdown. `/llms.txt` lists every page, and
+`/llms-full.txt` holds the whole site in one file.
+
+For agents that support MCP, use the Kookie server:
+
+```json title=".mcp.json"
+{
+  "mcpServers": {
+    "kookie-ui": { "command": "npx", "args": ["-y", "@kookie-ui/mcp"] }
+  }
+}
+```
+
+- **`list_components`:** Lists components by job. Ask for `Choose` to get every component that
+  picks from options.
+- **`get_component`:** Returns one component's page, including its "Use instead" section. Have
+  your agent read that section before it picks, because the most common mistake after a wrong
+  prop is the wrong component, such as `Tabs` where a `SegmentedControl` belongs.
+- **`get_tokens`:** Finds design tokens by name.
+- **`check_usage`:** Checks JSX and reports every refused prop, utility class and raw value.
+
+Add `?webmcp=1` to any page on this site to use the same tools from a browser agent.
+
+## What your agent still needs to learn
+
+The tools stop props that don't exist. They don't stop two loud buttons or a heading at the wrong
+size. The [Composition](/start/composition) chapter covers these, and the [builder](/builder)
+checks them as you build. This card passes both: one loud button, and controls at the card's
+size.
+
+```tsx
+<Card>
+  <Stack gap="5">
+    <Heading size="6">Invite your team</Heading>
+    <Text emphasis="medium">Everyone you add can see this project.</Text>
+    <Flex gap="3" justify="flex-end">
+      <Button emphasis="quiet">Not now</Button>
+      <Button tone="accent" emphasis="loud">Send invites</Button>
+    </Flex>
+  </Stack>
+</Card>
+```
