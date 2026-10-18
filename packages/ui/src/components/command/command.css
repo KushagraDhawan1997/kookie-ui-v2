@@ -173,6 +173,10 @@
    bundler put first, which is not a rule. Measured before the third class was added: the bar
    padded exactly what the results pane padded at every index, which is the join winning. */
 .kui-surface.kui-overlay.kui-command-search {
+  /* The field is part of the palette, so it is the same piece of glass as the results pane
+     under it: the rows lens, not a dialog's eased pane lens (2026-10-18, "the material used
+     by search results is the correct one"). */
+  --kui-material-scale: rows;
   /* THE INSET IS THE BAR'S OWN, re-pointed at the pane's own hook rather than written as a
      `padding` (2026-09-05). `--kui-sf-p` is what the surface layer reads for a pane's padding
      AND what `m="bleed"` subtracts (§3), so re-pointing it keeps one home for "this pane's

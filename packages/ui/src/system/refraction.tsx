@@ -1197,9 +1197,10 @@ export function useLens(material: SurfaceMaterial): (node: HTMLElement | null) =
         // Which piece of glass this is (see `lensFamily`). A region is read off the cascade (the
         // region rule in surfaces.css publishes it, registered non-inheriting so only the pane
         // that IS a region reads it); a control and a panel of rows are read off their classes.
+        const stated = cs.getPropertyValue("--kui-material-scale").trim();
         const scale: LensScale =
-          cs.getPropertyValue("--kui-material-scale").trim() === "region"
-            ? "region"
+          stated === "region" || stated === "rows"
+            ? stated
             : node.classList.contains("kui-control")
               ? "control"
               : node.classList.contains("kui-floating-rows")
