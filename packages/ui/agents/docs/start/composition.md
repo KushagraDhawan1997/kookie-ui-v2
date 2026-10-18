@@ -78,8 +78,9 @@ together as a group before they read them. A shared border or fill also groups i
 override distance, but it adds lines and noise. So set the spacing first, and add a border only
 when spacing is not enough.
 
-Make the gap inside a group at least two steps smaller than the gap around it. When a screen uses
-the same gap from top to bottom, it shows no structure.
+Make the gap inside a group at least two steps smaller than the gap around it. Compare only gaps that
+run the same way: a row's gap inside a column does not compete with the column's gap. When a screen
+uses the same gap from top to bottom, it shows no structure.
 ```tsx
 import type * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";

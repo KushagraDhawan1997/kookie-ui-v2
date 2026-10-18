@@ -77,7 +77,8 @@ their values.
 
 Put related rows closer together than unrelated ones. This is Gestalt proximity, a measured
 effect. Make the gap inside a group at least two steps smaller than the gap around it, which is a
-judgment. Don't add a `Separator` or a `Card` where space already shows the group.
+judgment. Compare only gaps that run the same way. Don't add a `Separator` or a `Card` where space
+already shows the group.
 
 ## One button saves the form
 
