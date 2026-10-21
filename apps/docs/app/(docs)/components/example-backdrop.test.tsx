@@ -24,7 +24,7 @@
  */
 import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import { Theme } from "@kushagradhawan/kookie-ui-react";
 
@@ -67,10 +67,25 @@ describe("a control in a floating band states its backdrop (§10, §27, §45)", 
      anything and every assertion below would pass against an example with no `backdrop`
      anywhere — the degenerate fixture this repo keeps finding. `regular` is what makes the
      prop mean something. */
-  const render = (name: string) =>
-    renderToStaticMarkup(
-      <Theme material="3">{React.createElement(EXAMPLES[name]!)}</Theme>,
-    );
+  /* RENDERED ONCE PER EXAMPLE (2026-10-21). The vacuity law below read every example twice
+     and the per-example laws a third time, all inside one 5s test for the first two: at 180
+     examples it timed out on a loaded machine, and on a CI runner even one pass over every
+     example takes over 5s. The markup is a pure function of the name, so it is rendered once,
+     up front, under a sweep's own timeout, and every law below reads it. */
+  const markup = new Map<string, string>();
+  const render = (name: string) => {
+    let html = markup.get(name);
+    if (html === undefined) {
+      html = renderToStaticMarkup(
+        <Theme material="3">{React.createElement(EXAMPLES[name]!)}</Theme>,
+      );
+      markup.set(name, html);
+    }
+    return html;
+  };
+  beforeAll(() => {
+    for (const name of names) render(name);
+  }, 60_000);
 
   it("at least one shipped example has a floating band — or this law reads nothing", () => {
     const withBands = names.filter((name) => floatingBands(render(name)).length > 0);

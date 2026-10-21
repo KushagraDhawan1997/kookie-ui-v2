@@ -35,7 +35,7 @@ A Notice has `role="status"`, so screen readers read its words when it appears w
 
 ## Not supported
 
-- A position, and a Banner component — Where a message sits depends on the layout around it, so the parent places the Notice. Put it in the layout above the region it describes, or let a `Shell` pin it.
+- A position, and a Banner component — Where a message sits depends on the layout around it, so the parent places the Notice. Put it in the layout above the region it describes. For a notice about the whole app, use `ShellNotice`, which the `Shell` places above its header.
 - A toast, or any Notice that disappears on its own — If an action deserves someone's attention, it deserves it before the action runs, not in a message that vanishes afterwards. Show confirmations on the button that did the work instead.
 - A title and description — A Notice is a short message, usually one sentence, so it has no fixed title or description parts. When a message needs a heading and paragraphs, use a `Card`.
 - More than one action — The `action` slot holds the one action that fixes the condition. Two competing actions would turn the Notice into a small form, which belongs in the page instead.

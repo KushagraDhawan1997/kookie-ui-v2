@@ -1,5 +1,9 @@
 # What's new in Kookie UI
 
+## October 21
+
+1. **ShellNotice.** A notice about the whole app sits in its own row above the Shell's header. The docs site's work-in-progress notice now uses it on every page, and stays dismissed after a reload.
+
 ## October 17
 
 1. **Docs ship in the package.** Every docs page is included as Markdown at the version you install, and the agent rules point your coding agent to the page to read before it builds a form, a dialog or an app frame.

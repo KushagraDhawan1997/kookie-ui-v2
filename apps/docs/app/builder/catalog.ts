@@ -1639,6 +1639,10 @@ export const EXCLUDED: { name: string; why: string }[] = [
     why: "A part of the Shell, which the builder excludes, and the one part that renders nothing at all on a wide window: it is the rail's bar-only posture, so it appears only on a narrow one. A tab bar on this canvas would be an invisible drop on every screen the editor is used at, holding links to routes a composed document does not have.",
   },
   {
+    name: "ShellNotice",
+    why: "A part of the Shell, which the builder excludes: the app frame is what this canvas composes inside, not something it places. This part places itself by grid area within that frame, so ShellNotice has no meaning on a canvas with no Shell to arrange it. A plain Notice is placeable.",
+  },
+  {
     name: "ShellHeader",
     why: "A part of the Shell, which the builder excludes: the app frame is what this canvas composes inside, not something it places. This part places itself by grid area within that frame, so ShellHeader has no meaning on a canvas with no Shell to arrange it.",
   },

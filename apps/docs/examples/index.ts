@@ -356,6 +356,7 @@ import SheetInlineStartExample from "./sheet.inline-start";
 import SheetControlledExample from "./sheet.controlled";
 import SheetLongContentExample from "./sheet.long-content";
 import SheetRtlExample from "./sheet.rtl";
+import ShellNoticeExample from "./shell.notice";
 import ShellHeaderExample from "./shell.header";
 import ShellRailExample from "./shell.rail";
 import ShellInspectorExample from "./shell.inspector";
@@ -795,6 +796,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "sheet.controlled": SheetControlledExample,
   "sheet.long-content": SheetLongContentExample,
   "sheet.rtl": SheetRtlExample,
+  "shell.notice": ShellNoticeExample,
   "shell.header": ShellHeaderExample,
   "shell.rail": ShellRailExample,
   "shell.inspector": ShellInspectorExample,

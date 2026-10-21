@@ -74,5 +74,11 @@ A notice is a polite status region. A screen reader reads a notice that appears 
 loads, without interrupting. A notice that is already on screen when the page loads is read in
 the normal reading order, like any other text.
 
+A notice about the whole app, such as planned maintenance, goes in a `ShellNotice`. The `Shell`
+places it in its own row above the header, across every column. Keep using a `Notice` above the
+region for anything about one part of the app. To remember a dismissal across reloads without the
+notice showing for a moment first, read the stored choice in a script before the page paints, the
+same way you set dark mode. See [Installation](/start/installation).
+
 When you need a yes or a no, use `Confirmation`. It stays until someone presses one of its two
 buttons, which you label with `cancelLabel` and `confirmLabel`.

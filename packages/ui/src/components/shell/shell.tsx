@@ -48,6 +48,7 @@ import { onPageScrollMediaChange, pageScrollQuery, usePageScrollMedia } from "..
 import type { Size } from "../../system/axes.ts";
 import { useLensRef } from "../../system/refraction.tsx";
 import { ScrollArea, type ScrollAreaProps } from "../scroll-area/scroll-area.tsx";
+import { Notice, type NoticeProps } from "../notice/notice.tsx";
 import { GlassScope, useMaterial, themeDefaults, type SurfaceMaterial } from "../../theme/theme.tsx";
 import { DEV } from "../../system/dev.ts";
 import { shellResize } from "../../tokens/config.ts";
@@ -737,6 +738,44 @@ export function Shell({ size: sizeProp, contained, className, style, children, r
         <div className="kui-shell-scrim" aria-hidden onClick={closeOverlays} />
       </div>
     </ShellContext.Provider>
+  );
+}
+
+/* ── The app-level notice ───────────────────────────────────────────────────────────────── */
+
+export type ShellNoticeProps = ComponentRefusals & NoticeProps & {
+  /**
+   * Joins the notice to the frame: square corners, edge to edge. With `flush={false}` it keeps
+   * the Notice's own corner and sits in from the frame's edges, like any pane pulled off the
+   * frame. The default is `true`.
+   */
+  flush?: boolean;
+};
+
+/** The Notice the Shell places — §29's "the Shell hosts the app-level one", which had no part
+    until a docs site needed it (2026-10-21, Kushagra: a persistent, dismissible notice at the
+    top of both docs sites).
+
+    NOT A BANNER, AND THE NAME IS THE ARGUMENT. §29 refused `Banner` because it names a position
+    and a component does not own its position. The SHELL does — it is the one part of the system
+    whose whole job is placement — so the app-level notice is a Notice with a grid area, not a
+    second component. Every Notice rule holds: it takes space, it never floats, at most one
+    resolving action, and dismissal is the app's state.
+
+    ITS OWN ROW, ABOVE THE HEADER, ACROSS EVERY COLUMN. It is about the whole app, so it sits
+    above everything that belongs to a part of it, and it is in the grid rather than above the
+    Shell because a window Shell is the window's height — a notice placed outside it would push
+    the frame a strip past the bottom of the screen. Removing it collapses the row, so the
+    frame takes the space back with nothing to re-measure. */
+export function ShellNotice({ flush = true, size: statedSize, className, ...props }: ShellNoticeProps) {
+  const size = usePaneSize(statedSize);
+  return (
+    <Notice
+      {...props}
+      size={size}
+      data-flush={flush ? "" : undefined}
+      className={cx("kui-shell-notice", className)}
+    />
   );
 }
 

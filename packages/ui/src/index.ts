@@ -103,6 +103,7 @@ export { Tree, NavTree, type TreeProps, type NavTreeProps, type TreeNode } from 
 export { ScrollArea, type ScrollAreaProps } from "./components/scroll-area/scroll-area.tsx";
 export {
   Shell,
+  ShellNotice,
   ShellHeader,
   ShellRail,
   ShellTabBar,
@@ -120,6 +121,7 @@ export {
   ShellNavItem,
   ShellTrigger,
   type ShellProps,
+  type ShellNoticeProps,
   type ShellHeaderProps,
   type ShellRailProps,
   type ShellSidebarProps,

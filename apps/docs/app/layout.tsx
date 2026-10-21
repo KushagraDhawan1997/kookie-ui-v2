@@ -9,6 +9,7 @@ import type { Metadata } from "next";
 import { TooltipProvider } from "@kushagradhawan/kookie-ui-react";
 
 import { appearanceScript } from "./appearance-script";
+import { wipNoticeScript } from "./(docs)/wip-notice-script";
 import { DevOutlineGate } from "./dev-outline";
 import { DocsTheme } from "./theme-store";
 
@@ -144,6 +145,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: appearanceScript }} />
+        <script dangerouslySetInnerHTML={{ __html: wipNoticeScript }} />
       </head>
       <body>
         {/* The docs run on the system's own glass (Kushagra, 2026-08-26 — "let's embrace
