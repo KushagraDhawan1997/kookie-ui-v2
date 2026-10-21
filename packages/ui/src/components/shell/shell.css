@@ -234,11 +234,16 @@
      shell, and in the documented 100dvh posture the whole app frame gained a scrollbar. */
   box-sizing: border-box;
   display: grid;
+  /* The NOTICE row sits above the header (2026-10-21, ShellNotice): about the whole app, so
+     above everything that belongs to a part of it. Absent, its `auto` track is zero and
+     nothing moves. A drawer's `grid-row: 1 / -1` covers it, which is what a drawer does to
+     everything else in the window. */
   grid-template-areas:
+    "notice notice notice notice"
     "header header header header"
     "rail sidebar content inspector"
     "bottom bottom bottom bottom";
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   grid-template-columns: auto auto minmax(0, 1fr) auto;
   block-size: 100%;
   position: relative;
@@ -353,6 +358,35 @@
    A FLOOR, not a height: something taller than the row grows the header rather than being
    clipped by it. The per-index arms live in the shell pane join (system/surfaces.css),
    because a component sheet may not name `data-size`; the size-2 rest is on the pane. */
+/* ── The app-level notice (ShellNotice) ────────────────────────────────────────────────────
+   A Notice with a grid area, and nothing else of the pane's: it does not pad, does not
+   scroll and stamps no `.kui-shell-pane`, because the strip is already a surface that pads
+   itself (§29's panel join). What `flush` changes is only how it SITS — the same split the
+   panes make. Flush, it is level with the frame: square, edge to edge, and its fill is the
+   boundary, so it draws no seam. Not flush, it keeps its corner and pays the gap like any
+   pane pulled off the frame.
+   `.kui-surface` IN THE SELECTOR for the notice's own reason (notice.css): the surface layer
+   prices the corner at (0,1,0)+, so the square must be at least as specific to win on rank. */
+.kui-shell-notice {
+  grid-area: notice;
+  min-inline-size: 0;
+}
+
+.kui-surface.kui-shell-notice[data-flush] {
+  border-radius: var(--radius-0);
+  border-width: 0;
+}
+
+.kui-shell-notice:not([data-flush]) {
+  margin: var(--shell-gap);
+}
+
+/* The all-cards frame splits the gap between its padding and every pane's margin (below), so
+   the notice takes the same half or it would sit one and a half gaps from the frame's edge. */
+.kui-shell:not(:has(> .kui-shell-pane[data-flush])) > .kui-shell-notice:not([data-flush]) {
+  margin: calc(var(--shell-gap) / 2);
+}
+
 .kui-shell-header {
   grid-area: header;
   box-sizing: content-box;

@@ -22,6 +22,7 @@ import {
   ShellInspector,
   ShellNavGroup,
   ShellNavItem,
+  ShellNotice,
   ShellPaneFooter,
   ShellPaneHeader,
   ShellRail,
@@ -251,6 +252,61 @@ describe("geometry: the header criterion and the columns (§27)", () => {
     const bottom = within(shell, ".kui-shell-bottom").getBoundingClientRect();
     expect(bottom.width).toBeCloseTo(shell.getBoundingClientRect().width, 0);
     expect(bottom.height).toBeCloseTo(parseFloat(tokenOn(shell, "--shell-bottom-h")), 1);
+  });
+});
+
+describe("the app-level notice: a Notice the Shell places (§27, §29)", () => {
+  /* Falsified 2026-10-21: with the `notice` row and area deleted the notice auto-places into
+     the header's cell and the first law fails; with the flush square deleted the corner law
+     fails. A law that the frame keeps its height was written and dropped: it survived the row
+     sabotage, because an implicit row shrinks the `1fr` track just the same. */
+  const withNotice = (flush = true) => (
+    <Shell contained style={{ height: 600 }}>
+      <ShellNotice flush={flush} tone="warning" onDismiss={() => {}}>
+        Maintenance on Sunday.
+      </ShellNotice>
+      <ShellHeader>header</ShellHeader>
+      <ShellSidebar aria-label="Primary">sidebar</ShellSidebar>
+      <ShellContent>content</ShellContent>
+    </Shell>
+  );
+
+  it("sits above the header across the whole frame, and the header starts under it", () => {
+    const shell = mounted(withNotice(), { theme: {} });
+    const notice = within(shell, ".kui-shell-notice").getBoundingClientRect();
+    const header = within(shell, ".kui-shell-header").getBoundingClientRect();
+    const root = shell.getBoundingClientRect();
+    expect(notice.top).toBeCloseTo(root.top, 0);
+    expect(notice.width).toBeCloseTo(root.width, 0);
+    expect(notice.height).toBeGreaterThan(0);
+    expect(header.top).toBeCloseTo(notice.bottom, 0);
+  });
+
+  it("is still a Notice: a polite status with its dismissal, and no position of its own", () => {
+    const shell = mounted(withNotice(), { theme: {} });
+    const notice = within(shell, ".kui-shell-notice");
+    expect(notice.getAttribute("role")).toBe("status");
+    expect(notice.querySelector("button")).not.toBeNull();
+    expect(computed(notice, "position")).toBe("static");
+  });
+
+  it("flush is square and edge to edge; pulled off the frame it keeps its corner and pays the gap", () => {
+    const flush = within(mounted(withNotice(), { theme: {} }), ".kui-shell-notice");
+    expect(parseFloat(computed(flush, "border-top-left-radius"))).toBe(0);
+    expect(parseFloat(computed(flush, "margin-top"))).toBe(0);
+    const shell = mounted(withNotice(false), { theme: {} });
+    const off = within(shell, ".kui-shell-notice");
+    expect(parseFloat(computed(off, "border-top-left-radius"))).toBeGreaterThan(0);
+    expect(computed(off, "margin-top")).toBe(computed(off, "margin-inline-start"));
+    expect(parseFloat(computed(off, "margin-top"))).toBeCloseTo(parseFloat(tokenOn(shell, "--shell-gap")), 1);
+  });
+
+  it("absent, the row is zero: the header is back at the top", () => {
+    const shell = mountShell();
+    expect(within(shell, ".kui-shell-header").getBoundingClientRect().top).toBeCloseTo(
+      shell.getBoundingClientRect().top,
+      0,
+    );
   });
 });
 
