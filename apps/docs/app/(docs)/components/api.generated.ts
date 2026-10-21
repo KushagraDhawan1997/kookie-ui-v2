@@ -4805,6 +4805,95 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "ShellNotice": {
+    "element": null,
+    "props": [
+      {
+        "name": "action",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "One action that fixes the condition, such as \"Get more usage\". Pass your own `<Button>`. Don't use a general label such as \"OK\"."
+      },
+      {
+        "name": "backdrop",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Set `backdrop` when content passes behind the notice, such as a scrolling region. The notice then uses the theme's material. In normal flow it stays solid. If you don't set it, the notice follows the nearest `<Box backdrop>`."
+      },
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": false,
+        "doc": "The message, usually one sentence. For several paragraphs, use a `Card`."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "optional": true,
+        "doc": "Adds a class to the notice. To add space around it, wrap it in a `<Box m>`."
+      },
+      {
+        "name": "dismissLabel",
+        "type": "string",
+        "optional": true,
+        "doc": "The accessible name of the dismiss button. The default is \"Dismiss\". Set it to translate the label."
+      },
+      {
+        "name": "flush",
+        "type": "boolean",
+        "optional": true,
+        "doc": "Joins the notice to the frame: square corners, edge to edge. With `flush={false}` it keeps the Notice's own corner and sits in from the frame's edges, like any pane pulled off the frame. The default is `true`."
+      },
+      {
+        "name": "icon",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "An icon shown before the message. The package has no icons, so bring one from your own icon set. The icon is hidden from assistive technology, so put the meaning in the words."
+      },
+      {
+        "name": "onDismiss",
+        "type": "() => void",
+        "optional": true,
+        "doc": "Called when the person presses the ✕ dismiss button. The button shows only when you set this callback. Dismissing hides the message but doesn't fix the condition. Your app must remove the notice and remember the choice, because the notice keeps no state of its own."
+      },
+      {
+        "name": "size",
+        "type": "Size",
+        "values": [
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "optional": true,
+        "doc": "Sets the size of the notice: the padding, the corner, the text and the dismiss button. If you don't set it, the notice uses the size of the nearest `Theme`, which is `2` by default. A `<Text>` that sets its own `size` keeps it."
+      },
+      {
+        "name": "style",
+        "type": "React.CSSProperties",
+        "optional": true,
+        "doc": ""
+      },
+      {
+        "name": "tone",
+        "type": "Tone",
+        "values": [
+          "neutral",
+          "accent",
+          "destructive",
+          "blue",
+          "green",
+          "orange",
+          "amber",
+          "success",
+          "warning",
+          "info"
+        ],
+        "optional": true,
+        "doc": "Sets the colour family, which tells the category of the message. The default is `neutral`. Use `warning`, `destructive`, `success` or `info` only when the colour adds a fact that the words don't already give."
+      }
+    ]
+  },
   "ShellPaneFooter": {
     "element": "div",
     "props": [

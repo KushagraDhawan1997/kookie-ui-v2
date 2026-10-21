@@ -95,6 +95,7 @@ import {
   SegmentedControl,
   SegmentedItem,
   Shell,
+  ShellNotice,
   ShellHeader,
   ShellRail,
   ShellSidebar,
@@ -1996,6 +1997,13 @@ function ShellSection() {
         </Box>
       </Demo>
 
+      {/* The app-level notice: its own row above the header, across every column. Flush, it
+          is square and edge to edge; pulled off the frame it keeps its corner and pays the
+          gap. Dismissing it collapses the row and the frame takes the height back. */}
+      <Demo label="ShellNotice — flush, and pulled off a floating frame">
+        <ShellNoticeDemo />
+      </Demo>
+
       {/* Flush: the app-chrome posture — panes tile, each seam one hairline. The sidebar is
           untouched (`auto`): open here, closed on a narrow window, resolved by CSS alone —
           drag the window across 48rem and nothing re-renders. */}
@@ -3521,3 +3529,71 @@ export const SECTIONS: { id: string; name: string; body: React.ReactNode; standa
   { id: "tooltip", name: "Tooltip", body: <TooltipSection /> },
   { id: "tree", name: "Tree", body: <TreeSection /> },
 ];
+
+/** Two frames with the app-level notice, one per posture. The dismissal is this demo's state,
+    as it is every app's (§29); a reset brings both back. */
+function ShellNoticeDemo() {
+  const [flushShown, setFlushShown] = React.useState(true);
+  const [floatShown, setFloatShown] = React.useState(true);
+  return (
+    <Stack gap="3">
+      <Box height="16rem">
+        <Shell contained>
+          {flushShown ? (
+            <ShellNotice
+              tone="warning"
+              action={<Button>Read the plan</Button>}
+              onDismiss={() => setFlushShown(false)}
+            >
+              Scheduled maintenance on Sunday from 02:00 to 03:00 UTC.
+            </ShellNotice>
+          ) : null}
+          <ShellHeader>
+            <Text size="2" weight="medium">
+              Kookie Studio
+            </Text>
+          </ShellHeader>
+          <ShellSidebar aria-label="Primary">
+            <ShellNavGroup label="Workspace">
+              <ShellNavItem current>Deploys</ShellNavItem>
+              <ShellNavItem>Members</ShellNavItem>
+            </ShellNavGroup>
+          </ShellSidebar>
+          <ShellContent>
+            <Heading size="6">Deploys</Heading>
+          </ShellContent>
+        </Shell>
+      </Box>
+      <Box height="16rem">
+        <Shell contained>
+          {floatShown ? (
+            <ShellNotice flush={false} tone="info" onDismiss={() => setFloatShown(false)}>
+              The team plan now includes audit logs.
+            </ShellNotice>
+          ) : null}
+          <ShellSidebar aria-label="Primary" flush={false}>
+            <ShellNavGroup label="Workspace">
+              <ShellNavItem current>Deploys</ShellNavItem>
+              <ShellNavItem>Members</ShellNavItem>
+            </ShellNavGroup>
+          </ShellSidebar>
+          <ShellContent>
+            <Heading size="6">Deploys</Heading>
+          </ShellContent>
+        </Shell>
+      </Box>
+      <Flex>
+        <Button
+          emphasis="quiet"
+          bordered
+          onClick={() => {
+            setFlushShown(true);
+            setFloatShown(true);
+          }}
+        >
+          Show both notices again
+        </Button>
+      </Flex>
+    </Stack>
+  );
+}

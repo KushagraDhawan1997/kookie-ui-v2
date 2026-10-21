@@ -257,6 +257,71 @@ export default function Example() {
 }
 ```
 
+### A notice for the whole app
+
+A `ShellNotice` is a `Notice` in its own row above the header, across every column. Use it for a condition about the whole app, such as planned maintenance. Your app stores the dismissal, and removing the notice gives the frame its height back.
+
+```tsx
+"use client";
+
+import * as React from "react";
+import {
+  Box,
+  Button,
+  Heading,
+  Shell,
+  ShellContent,
+  ShellHeader,
+  ShellNotice,
+  ShellNavGroup,
+  ShellNavItem,
+  ShellSidebar,
+  Text,
+} from "@kushagradhawan/kookie-ui-react";
+
+// ShellNotice puts a Notice in its own row above the header, across every column. The
+// dismissal is your state: store it wherever it must survive. Here it lasts for the session.
+export default function Example() {
+  const [dismissed, setDismissed] = React.useState(false);
+
+  return (
+    <Box m="bleed" flexGrow="1" height="24rem">
+      <Shell contained>
+        {dismissed ? null : (
+          <ShellNotice
+            tone="warning"
+            action={<Button>Read the plan</Button>}
+            onDismiss={() => setDismissed(true)}
+          >
+            Scheduled maintenance on Sunday from 02:00 to 03:00 UTC.
+          </ShellNotice>
+        )}
+        <ShellHeader>
+          <Text size="2" weight="medium">
+            Acme Studio
+          </Text>
+        </ShellHeader>
+        <ShellSidebar aria-label="Sections">
+          <ShellNavGroup label="Workspace">
+            <ShellNavItem current>Overview</ShellNavItem>
+            <ShellNavItem>Projects</ShellNavItem>
+          </ShellNavGroup>
+        </ShellSidebar>
+        <ShellContent>
+          {dismissed ? (
+            <Button emphasis="quiet" bordered onClick={() => setDismissed(false)}>
+              Show the notice again
+            </Button>
+          ) : (
+            <Heading size="6">Overview</Heading>
+          )}
+        </ShellContent>
+      </Shell>
+    </Box>
+  );
+}
+```
+
 ### A full-width header
 
 A `ShellHeader` runs across every column. The `ShellTrigger` in it toggles the sidebar, so people can bring the sidebar back after they close it.
@@ -755,6 +820,24 @@ Shell is the frame of an app, with a header, a rail, a sidebar, the content, an 
 It also takes every prop of a `<div>`.
 
 ### The panes
+
+#### ShellNotice
+
+A `Notice` about the whole app, in its own row above the header and across every column. It takes the `Notice` props, plus `flush`
+
+| Prop | Type | What it does |
+| --- | --- | --- |
+| `action?` | `React.ReactNode` | One action that fixes the condition, such as "Get more usage". |
+| `backdrop?` | `boolean` | Set `backdrop` when content passes behind the notice, such as a scrolling region. |
+| `children` | `React.ReactNode` | The message, usually one sentence. |
+| `className?` | `string` | Your classes, appended to the ones this component resolves rather than replacing them. |
+| `dismissLabel?` | `string` | The accessible name of the dismiss button. |
+| `flush?` | `boolean` | Joins the notice to the frame: square corners, edge to edge. |
+| `icon?` | `React.ReactNode` | An icon shown before the message. |
+| `onDismiss?` | `() => void` | Called when the person presses the ✕ dismiss button. |
+| `size?` | `"1" \| "2" \| "3" \| "4"` | Sets the size of the notice: the padding, the corner, the text and the dismiss button. |
+| `style?` | `React.CSSProperties` | Inline styles, merged last, so your value wins over anything the component resolved. |
+| `tone?` | `"neutral" \| "accent" \| "destructive" \| "blue" \| "green" \| "orange" \| "amber" \| "success" \| "warning" \| "info"` | Sets the colour family, which tells the category of the message. |
 
 #### ShellHeader
 

@@ -1452,7 +1452,7 @@ const DECLARED: Entry[] = [
     refusals: [
       {
         name: "A position, and a Banner component",
-        why: "Where a message sits depends on the layout around it, so the parent places the Notice. Put it in the layout above the region it describes, or let a `Shell` pin it.",
+        why: "Where a message sits depends on the layout around it, so the parent places the Notice. Put it in the layout above the region it describes. For a notice about the whole app, use `ShellNotice`, which the `Shell` places above its header.",
       },
       {
         name: "A toast, or any Notice that disappears on its own",
@@ -2112,6 +2112,7 @@ const DECLARED: Entry[] = [
   <ShellBottom aria-label="Console">…</ShellBottom>
 </Shell>`,
     variants: [
+      {"name":"notice","title":"A notice for the whole app","why":"A `ShellNotice` is a `Notice` in its own row above the header, across every column. Use it for a condition about the whole app, such as planned maintenance. Your app stores the dismissal, and removing the notice gives the frame its height back."},
       {"name":"header","title":"A full-width header","why":"A `ShellHeader` runs across every column. The `ShellTrigger` in it toggles the sidebar, so people can bring the sidebar back after they close it."},
       {"name":"rail","title":"A rail beside the sidebar","why":"A `ShellRail` holds icons for the app's top-level areas, and the sidebar lists the pages in the chosen area. Each `<nav>` has its own `aria-label`."},
       {"name":"inspector","title":"A details inspector","why":"A `ShellInspector` is a details column at the end of the frame. It is closed unless something opens it, so this example starts it open with `defaultOpen`, and a `ShellTrigger` in the content toggles it."},
@@ -2123,7 +2124,7 @@ const DECLARED: Entry[] = [
     ],
     topics: [
       { title: "The frame", symbols: ["Shell"] },
-      { title: "The panes", symbols: ["ShellHeader", "ShellSidebar", "ShellContent", "ShellInspector", "ShellBottom"] },
+      { title: "The panes", symbols: ["ShellNotice", "ShellHeader", "ShellSidebar", "ShellContent", "ShellInspector", "ShellBottom"] },
       {
         title: "The rail and the tab bar",
         symbols: ["ShellRail", "ShellRailList", "ShellRailItem", "ShellRailAction", "ShellTabBar"],
@@ -2164,6 +2165,7 @@ const DECLARED: Entry[] = [
       { part: "ShellNavGroup", blurb: "A group of navigation rows under a heading. Screen readers announce the heading as the name of the group" },
       { part: "ShellNavItem", blurb: "One navigation row, as tall as a Button at the same size. Set `current` on the row for the page that is open" },
       { part: "ShellInspector", blurb: "The details column at the end of the frame, rendered as an `<aside>`. It starts closed, unless you set `defaultOpen`" },
+      { part: "ShellNotice", blurb: "A `Notice` about the whole app, in its own row above the header and across every column. It takes the `Notice` props, plus `flush`" },
       { part: "ShellBottom", blurb: "A full-width pane below the columns for a console or a log, rendered as an `<aside>`. It starts closed, unless you set `defaultOpen`" },
       {
         part: "ShellTabBar",
