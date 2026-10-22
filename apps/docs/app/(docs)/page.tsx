@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Flex, Grid, Heading, Link as KookieLink, Page, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
+import { Hero } from "./hero";
 import { PageFrame } from "./page-frame";
 import { SECTIONS, chaptersIn } from "./chapters";
 import { ENTRIES } from "./components/registry";
@@ -91,7 +92,9 @@ export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 export default function Home() {
   return (
-    <PageFrame width="48rem">
+    <>
+      <Hero />
+      <PageFrame width="48rem">
       <Stack gap="10">
         {/* THE MASTHEAD: the title, then the deck.
 
@@ -260,6 +263,7 @@ export default function Home() {
         </Stack>
 
       </Stack>
-    </PageFrame>
+      </PageFrame>
+    </>
   );
 }
