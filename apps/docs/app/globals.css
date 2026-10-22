@@ -120,7 +120,7 @@ body {
 .kd-hero-stage {
   position: absolute;
   inset-inline: 0;
-  inset-block-start: var(--layout-space-11);
+  inset-block-start: var(--layout-space-7);
   display: grid;
   justify-items: center;
 }
@@ -169,20 +169,3 @@ body {
   }
 }
 
-/* On a phone the hero sits under the title and the intro, so the first screen says what the page
-   is; nothing floats over it there, so the window starts nearer its top (Kushagra, 2026-10-22). */
-@media (max-width: 48rem) {
-  .kd-hero[data-placement="top"] {
-    display: none;
-  }
-
-  .kd-hero[data-placement="inline"] .kd-hero-stage {
-    inset-block-start: var(--layout-space-7);
-  }
-}
-
-@media not all and (max-width: 48rem) {
-  .kd-hero[data-placement="inline"] {
-    display: none;
-  }
-}

@@ -256,21 +256,12 @@ function Builder() {
 }
 
 /**
- * The hero has two places. On a phone it sits under the title and the intro, so the first screen
- * says what the page is (Kushagra, 2026-10-22); on a wider window it runs to the pane's top edge.
- * The page renders both and CSS shows one per width.
+ * The hero sits under the title and the intro at every width, so the first screen says what the
+ * page is (Kushagra, 2026-10-22). It reaches the content pane's edges.
  */
-export function Hero({ placement = "top" }: { placement?: "top" | "inline" }) {
-  const inline = placement === "inline";
+export function Hero() {
   return (
-    <Box
-      {...(inline ? {} : { mt: "bleed" as const })}
-      mx="bleed"
-      className="kd-hero"
-      data-placement={placement}
-      aria-hidden
-      inert
-    >
+    <Box mx="bleed" my="10" className="kd-hero" aria-hidden inert>
       <div className="kd-hero-stage">
         <Builder />
       </div>
