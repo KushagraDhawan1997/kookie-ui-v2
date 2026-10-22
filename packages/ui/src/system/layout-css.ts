@@ -128,6 +128,22 @@ export function generateLayoutCss(): string {
   // position:fixed. A node law pins the spelling.
   lines.push(".kui-theme:not(.kui-theme *) {", "  isolation: isolate;", "}", "");
 
+  // No text inflation (2026-10-22). Safari on iPhone scales up the text inside any block it
+  // judges too small to read once that block lays out wider than the screen — a code sample
+  // that scrolls sideways renders much bigger than the prose beside it. The type ladder already
+  // answers the handheld case (§17); Safari's guess is not wanted on top. Every app was adding
+  // this to `html` itself (the docs, Kookie Flow, kushagradhawan.com), so the package ships it.
+  // `100%` turns the adjustment off and changes no stated size; the property inherits, so the
+  // DOM-outermost theme covers the app. Its own rule, because the frame rule above is held to
+  // `isolation` alone by a node law.
+  lines.push(
+    ".kui-theme:not(.kui-theme *) {",
+    "  -webkit-text-size-adjust: 100%;",
+    "  text-size-adjust: 100%;",
+    "}",
+    "",
+  );
+
   tierNames.forEach((_, i) => {
     lines.push(`@container (min-width: ${tiers[tierNames[i]!]}) {`, "  .kui-box {");
     for (const longhand of all) lines.push(`    ${longhand}: ${chain(longhand, i + 1)};`);

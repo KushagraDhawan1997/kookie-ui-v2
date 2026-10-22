@@ -1585,6 +1585,10 @@ For one day the split left a Theme prop called `device: desktop | handheld | aut
 - **Interaction adaptation, later** — dialog→sheet, popover→drawer, hover-reveal→tap (THESIS Part II's opt-out responsiveness). They split the same way the bands did: hover-reveal is a pointer fact; sheet/drawer follow the `narrow` window class (§18), not a band.
 - **Never: spacing** (gutters must not inflate on the smaller screen — §16's exclusion, reasserted per band by law) **and never: control geometry from the narrow band** (heights are the pointer axis's; width pushing a box would compose a height nobody designed).
 
+### The browser's own inflation is off (2026-10-22)
+
+Safari on iPhone enlarges the text of any block it judges too small once that block lays out wider than the screen, so a code sample that scrolls sideways rendered much bigger than the prose beside it (found on kushagradhawan.com). The handheld band is this system's answer to a held screen; a second, per-block guess from the browser on top of it is not wanted. The DOM-outermost Theme declares `-webkit-text-size-adjust: 100%` and `text-size-adjust: 100%`, which turns the adjustment off and changes no stated size; the property inherits, so the app is covered. It is its own rule beside the stacking frame, because the frame is held to `isolation` alone (§20). Every app had been adding it to `html` — the docs, Kookie Flow and the personal site — and the docs copy is deleted with this; the other two go with their next vendor update.
+
 ### Open
 
 - **The picks are judged; the NARROW THRESHOLD is not, and it is one of the two numbers in the system nobody has sat at (2026-08-23).** It is §18's narrow window boundary by derivation (one number, shared on purpose), so judging it is judging both at once.
