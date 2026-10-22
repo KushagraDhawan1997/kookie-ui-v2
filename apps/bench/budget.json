@@ -6,28 +6,61 @@
   },
   "table": {
     "domNodes": 14089,
-    "glassPanes": 0
+    "glassPanes": 0,
+    "mountMs": 792.5,
+    "rerenderMs": 355.9,
+    "interactionMs": 280,
+    "longFrames": 0,
+    "frameMs": 16.5,
+    "heapKB": 60246
   },
   "form": {
     "domNodes": 2944,
-    "glassPanes": 0
+    "glassPanes": 0,
+    "mountMs": 342.9,
+    "rerenderMs": 77.4,
+    "interactionMs": 32,
+    "longFrames": 0,
+    "frameMs": 16.5,
+    "heapKB": 16413
   },
   "menu": {
     "domNodes": 1360,
-    "glassPanes": 0
+    "glassPanes": 0,
+    "mountMs": 124.3,
+    "rerenderMs": 14.7,
+    "interactionMs": 152,
+    "heapKB": 5719
   },
   "dialogs": {
     "domNodes": 105,
     "glassPanes": 0,
     "nodesLeft": 0,
-    "listenersLeft": 0
+    "listenersLeft": 0,
+    "mountMs": 116.5,
+    "rerenderMs": 6.3,
+    "interactionMs": 80,
+    "heapKB": 5130,
+    "heapGrowthKB": 1977
   },
   "shell": {
     "domNodes": 1551,
-    "glassPanes": 0
+    "glassPanes": 0,
+    "mountMs": 175.9,
+    "rerenderMs": 14.6,
+    "interactionMs": 16,
+    "longFrames": 0,
+    "frameMs": 16.4,
+    "heapKB": 5690
   },
   "glass": {
     "domNodes": 1709,
-    "glassPanes": 62
+    "glassPanes": 62,
+    "mountMs": 252.6,
+    "rerenderMs": 84.9,
+    "interactionMs": 120,
+    "longFrames": 1,
+    "frameMs": 17.1,
+    "heapKB": 5977
   }
 }
