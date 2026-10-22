@@ -4,3 +4,8 @@ packages:
 
 allowBuilds:
   esbuild: true
+
+# Security floors for transitive dependencies, until their parents ship them (2026-10-22, `pnpm audit`).
+overrides:
+  source-map-js: ">=1.2.2"
+  "@modelcontextprotocol/server": ">=2.3.0"

@@ -22,7 +22,7 @@
     "@kushagradhawan/kookie-ui-react": "workspace:*",
     "@mcp-b/webmcp-polyfill": "5.1.0",
     "@shikijs/transformers": "^4.4.3",
-    "next": "^16.3.5",
+    "next": "^16.4.2",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },
@@ -30,7 +30,7 @@
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
     "@mdx-js/rollup": "^3.1.1",
-    "@next/mdx": "^16.3.5",
+    "@next/mdx": "^16.4.2",
     "@types/mdx": "^2.0.14",
     "@types/node": "^26.5.1",
     "@types/react": "^19.3.0",
