@@ -8,6 +8,14 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-10-22 iOS text inflation is turned off inline, because the stylesheet never reached an iPhone
+
+Safari on iPhone enlarged a wide code block on kushagradhawan.com. Three apps already set `-webkit-text-size-adjust: 100%` on `html`, and none of it worked: each app's minifier dropped the `-webkit-` form, which is the only one iPhone Safari reads, because the browser list had no iOS Safari in it. The live CSS on ui.kookie.design and flow.kookie.design shipped only `-moz-` and the unprefixed spelling.
+
+The first cut of this change put the rule in the package stylesheet on the outermost Theme. The package's own Lightning build kept the prefix, which looked like proof, but an app re-minifies the CSS it imports with its own targets, so the prefix would have been stripped again one build later. The check was on the wrong artifact. The rule is now an inline style on the outermost Theme, which no minifier touches. Rejected: requiring every app to carry an iOS browser list (a fix every consumer has to remember is the three copies again), and setting it on every Theme (the property inherits; the outermost is enough).
+
+---
+
 ## 2026-10-17 The package carries its docs, and AGENTS.md says which page to read
 
 Kushagra asked for Kookie UI to be ready for coding agents. Vercel's eval found that version-matched docs in the package plus an index in `AGENTS.md` took an agent from 53% to 100%, and that skills and a docs MCP added close to nothing. So the twins of every chapter and component page now ship in `agents/docs/`, and the rules file opens with six "before you build this, read that" lines. DECISIONS §57.

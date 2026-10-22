@@ -2317,22 +2317,6 @@ describe("the stacking frame (§20)", () => {
     expect(frame.body.trim()).toBe("isolation: isolate;");
   });
 
-  it("the DOM-outermost theme turns iOS text inflation off, in both spellings (2026-10-22)", () => {
-    // Safari on iPhone enlarges the text of any block wider than the screen — a sideways-
-    // scrolling code sample rendered much bigger than the prose around it. Every app was adding
-    // this to `html`; the package ships it on the root theme, where it inherits to the app.
-    // Both spellings, because the prefixed one is the one iOS Safari reads; `100%` and nothing
-    // else, because any other value would rescale text the type ladder already sized.
-    const roots = themeRules().filter((r) => r.selector === ".kui-theme:not(.kui-theme *)");
-    const body = roots.map((r) => r.body).join("\n");
-    expect(body).toMatch(/(?<![-\w])-webkit-text-size-adjust:\s*100%;/);
-    expect(body).toMatch(/(?<![-\w])text-size-adjust:\s*100%;/);
-    // And no other theme rule restates it, so a nested Theme cannot turn inflation back on.
-    for (const rule of themeRules().filter((r) => r.selector !== ".kui-theme:not(.kui-theme *)")) {
-      expect(rule.body, rule.selector).not.toMatch(/text-size-adjust/);
-    }
-  });
-
   it("no theme rule ever declares a backdrop-root or containing-block breaker", () => {
     // opacity < 1 makes the theme a backdrop root (glass inside it stops blurring the page —
     // measured 2026-08-08, opacity .99 was the sabotage control that killed the blur);
