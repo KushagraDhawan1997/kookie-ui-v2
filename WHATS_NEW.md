@@ -2,7 +2,7 @@
 
 ## October 22
 
-1. **Front-page hero.** The docs front page opens with a real builder on the line grid, edge to edge above the title.
+1. **Front-page hero.** The docs front page shows a real builder on a dot grid, under the title.
 
 ## October 21
 
