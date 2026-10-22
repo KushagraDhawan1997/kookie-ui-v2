@@ -1,0 +1,33 @@
+{
+  "comment": "Performance budget for the bench screens (apps/bench). Counts (bytes, DOM nodes, glass panes, what 100 open-close cycles leave behind) fail CI on any increase. Times are machine-dependent: they are copied in from a CI run and fail only past 1.5x + 5ms. Re-record on purpose, in the same commit as the change, with `pnpm --filter bench bench:update`.",
+  "size": {
+    "cssGzipBytes": 43243,
+    "jsGzipBytes": 187816
+  },
+  "table": {
+    "domNodes": 14089,
+    "glassPanes": 0
+  },
+  "form": {
+    "domNodes": 2944,
+    "glassPanes": 0
+  },
+  "menu": {
+    "domNodes": 1360,
+    "glassPanes": 0
+  },
+  "dialogs": {
+    "domNodes": 105,
+    "glassPanes": 0,
+    "nodesLeft": 0,
+    "listenersLeft": 0
+  },
+  "shell": {
+    "domNodes": 1551,
+    "glassPanes": 0
+  },
+  "glass": {
+    "domNodes": 1709,
+    "glassPanes": 62
+  }
+}
