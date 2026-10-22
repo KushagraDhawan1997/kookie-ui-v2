@@ -112,10 +112,8 @@ body {
   block-size: clamp(440px, 45vw, 560px);
   overflow: clip;
   background-color: var(--color-ground);
-  background-image:
-    linear-gradient(var(--color-border) var(--border-width), transparent var(--border-width)),
-    linear-gradient(90deg, var(--color-border) var(--border-width), transparent var(--border-width));
-  background-size: var(--layout-space-7) var(--layout-space-7);
+  background-image: radial-gradient(circle, var(--neutral-a7) var(--border-width), transparent calc(var(--border-width) * 1.5));
+  background-size: var(--layout-space-6) var(--layout-space-6);
   background-position: center;
 }
 
