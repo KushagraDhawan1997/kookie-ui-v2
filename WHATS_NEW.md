@@ -1,5 +1,9 @@
 # What's new in Kookie UI
 
+## October 22
+
+1. **Front-page hero.** The docs front page opens with a real builder on the line grid, edge to edge above the title.
+
 ## October 21
 
 1. **ShellNotice.** A notice about the whole app sits in its own row above the Shell's header. The docs site's work-in-progress notice now uses it on every page, and stays dismissed after a reload.

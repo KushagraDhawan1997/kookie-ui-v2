@@ -103,3 +103,70 @@ body {
   }
 }
 
+
+/* THE FRONT PAGE'S HERO (2026-10-22). The line grid of the Kookie UI film, run to the content
+   pane's top, left and right edges, with a real builder standing on it and cropped by the band's
+   bottom edge. The same figure is on kushagradhawan.com's Kookie UI page. Every length is a token. */
+.kd-hero {
+  position: relative;
+  block-size: clamp(440px, 45vw, 560px);
+  overflow: clip;
+  background-color: var(--color-ground);
+  background-image:
+    linear-gradient(var(--color-border) var(--border-width), transparent var(--border-width)),
+    linear-gradient(90deg, var(--color-border) var(--border-width), transparent var(--border-width));
+  background-size: var(--layout-space-7) var(--layout-space-7);
+  background-position: center;
+}
+
+.kd-hero-stage {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: var(--layout-space-11);
+  display: grid;
+  justify-items: center;
+}
+
+.kd-hero-window {
+  inline-size: calc(30 * var(--layout-space-7));
+  background-color: var(--color-ground);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: calc(var(--radius-7) * 0.876);
+  overflow: clip;
+}
+
+@supports (corner-shape: squircle) {
+  .kd-hero-window {
+    border-radius: calc(var(--radius-7) * 1.613);
+    corner-shape: squircle;
+  }
+}
+
+.kd-hero-shell {
+  block-size: calc(22 * var(--layout-space-7));
+}
+
+.kd-hero-canvas {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  padding-block-start: var(--layout-space-11);
+}
+
+.kd-hero-composition {
+  inline-size: calc(12 * var(--layout-space-7));
+}
+
+.kd-hero-selected {
+  outline: var(--border-width) solid var(--accent-solid);
+  outline-offset: var(--layout-space-2);
+}
+
+/* On a phone the window is wider than the screen, so it starts at the reading column's edge and
+   runs off the right, instead of off both edges. */
+@media (max-width: 48rem) {
+  .kd-hero-stage {
+    justify-items: start;
+    padding-inline-start: var(--layout-space-6);
+  }
+}
