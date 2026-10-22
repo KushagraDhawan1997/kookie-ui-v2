@@ -234,6 +234,11 @@
   isolation: isolate;
 }
 
+.kui-theme:not(.kui-theme *) {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 @container (min-width: 30rem) {
   .kui-box {
     padding-block-start: var(--kui-pt-sm, var(--kui-py-sm, var(--kui-p-sm, var(--kui-pt, var(--kui-py, var(--kui-p))))));
