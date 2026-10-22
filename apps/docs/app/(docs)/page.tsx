@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Flex, Grid, Heading, Link as KookieLink, Page, Stack, Text } from "@kushagradhawan/kookie-ui-react";
+import { Box, Flex, Grid, Heading, Link as KookieLink, Page, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 import { Hero } from "./hero";
 import { PageFrame } from "./page-frame";
@@ -93,31 +93,31 @@ export const metadata: Metadata = { alternates: { canonical: "/" } };
 export default function Home() {
   return (
     <>
-      <Hero />
-      <PageFrame width="48rem">
-      <Stack gap="10">
-        {/* THE MASTHEAD: the title, then the deck.
+      {/* THE MASTHEAD: the title, then the deck.
 
-            IT CARRIED THE MARK ABOVE THE TITLE FROM 2026-08-29 TO 2026-09-06, and it does not
-            any more (Kushagra: "remove this wordmark from main page"). The lockup argument was
-            sound as far as it went — the mark says the name in a drawn letter, the title says
-            it in words, so they are one unit — and what it never answered is whether the page
-            wants the name said twice at all. The sidebar's masthead is three inches away and
-            already carries the mark, and the footer signs the page off with the long form, so
-            the front door was the third of three.
+          IT CARRIED THE MARK ABOVE THE TITLE FROM 2026-08-29 TO 2026-09-06, and it does not
+          any more (Kushagra: "remove this wordmark from main page"). The lockup argument was
+          sound as far as it went — the mark says the name in a drawn letter, the title says
+          it in words, so they are one unit — and what it never answered is whether the page
+          wants the name said twice at all. The sidebar's masthead is three inches away and
+          already carries the mark, and the footer signs the page off with the long form, so
+          the front door was the third of three.
 
-            The mark stays a `Page` slot (§46) rather than being deleted with this call site:
-            an app's front door putting its own mark over its title is the ordinary case, and
-            this site is the one that happens not to want it. `Page` renders nothing when the
-            slot is not filled, so the removal is one prop and no arithmetic — the intervals
-            below are the title-to-deck `6` and the block's own `10`, both of which were
-            already about the title rather than about the mark. */}
+          The mark stays a `Page` slot (§46) rather than being deleted with this call site:
+          an app's front door putting its own mark over its title is the ordinary case, and
+          this site is the one that happens not to want it. `Page` renders nothing when the
+          slot is not filled, so the removal is one prop and no arithmetic — the intervals
+          below are the title-to-deck `6` and the block's own `10`, both of which were
+          already about the title rather than about the mark. */}
+      <Box style={{ maxInlineSize: "48rem", marginInline: "auto" }}>
         <Page
           title="Kookie User Interface"
           description="Kookie is a design system for React. It gives you components, the rules for how to use them, and tools that check your screens against those rules. It gives you one way to say what something means. You get fewer choices than you may be used to. Because of this, screens that you build months apart still look like one product."
         />
-        <Hero placement="inline" />
-
+      </Box>
+      <Hero />
+      <PageFrame width="48rem">
+      <Stack gap="10">
 
         {/* NO HEADING OVER THIS (2026-08-29, Kushagra: "Do I need 'Everything on this site'
             now?" — no). It read as a section label while the claims were the section above it;
