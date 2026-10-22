@@ -33,7 +33,7 @@ describe("the root README's counts match the registries they describe", () => {
   it("found the README at all", () => {
     // Without this, a moved or renamed file would make every match below return null, and a
     // law whose subject is absent reports nothing rather than failing.
-    expect(readme).toContain("# Kookie UI v2");
+    expect(readme).toContain("# Kookie UI\n");
     expect(readme.length).toBeGreaterThan(1000);
   });
 
