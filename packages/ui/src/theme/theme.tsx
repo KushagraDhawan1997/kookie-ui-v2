@@ -495,6 +495,21 @@ export function GlassScope({ material, children }: { material: SurfaceMaterial; 
 }
 
 /**
+ * NO TEXT INFLATION ON iOS (§17, 2026-10-22). Safari on iPhone enlarges the text of any block it
+ * judges too small once that block lays out wider than the screen, so a sideways-scrolling code
+ * sample renders bigger than the prose beside it. The handheld band already sizes type for a held
+ * screen; Safari's guess on top is not wanted. `100%` turns the adjustment off and changes no
+ * stated size, and the property inherits, so the outermost Theme covers the app.
+ *
+ * INLINE, NOT IN THE STYLESHEET, and that is the whole reason this lives here. iPhone Safari reads
+ * only the `-webkit-` spelling, and an app's own CSS minifier drops it whenever the app's browser
+ * list has no iOS Safari in it (Next.js's default list does not): ui.kookie.design and
+ * flow.kookie.design both served `html{-moz-text-size-adjust:100%;text-size-adjust:100%}`, so the
+ * rule never reached an iPhone. A style attribute is not minified, so the prefix ships.
+ */
+const NO_INFLATION = { WebkitTextSizeAdjust: "100%", textSizeAdjust: "100%" } as const satisfies React.CSSProperties;
+
+/**
  * Scopes the design tokens (§5). Nestable, and inherits every prop it is not given, which is
  * what makes a subtree theme cheap: a denser toolbar or an airier hero is a Theme on an element
  * that already exists, via `render`, not a new wrapper and not a per-component prop.
@@ -570,7 +585,12 @@ export function Theme({ children, className, style, render, ...props }: ThemePro
   // kui-theme makes the element a query container (§2): responsive props measure the nearest
   // ancestor Box OR Theme, so a tiered Box directly under a Theme has a slot to read.
   const themeClass = className ? `kui-theme ${className}` : "kui-theme";
-  const merged = { ...attrs, className: themeClass, style, ref: warnOnBodyMount };
+  const merged = {
+    ...attrs,
+    className: themeClass,
+    style: parent.rooted ? style : { ...NO_INFLATION, ...style },
+    ref: warnOnBodyMount,
+  };
 
   // The pane mark resets here, deliberately: a Theme is a new world, and the portal wrapper
   // IS a bare Theme (§20), which is what lets a menu opened from inside a glass card be glass
