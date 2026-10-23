@@ -8,6 +8,17 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-10-23 A closed menu let go of itself: a Base UI patch
+
+The bench's first run found a closed 300-item menu still holding 1,360 DOM nodes, against v1's 28. A raw Base UI menu with no Kookie code in it held 929, so the fault was upstream, and 1.9.0, the latest release, still has it. A heap snapshot traced three holders, each a closure that kept the popup reachable after it unmounted:
+
+- `useFloating` writes the positioner's context onto the floating tree node and the root's `dataRef` and never clears either, so `context.elements.floating` kept the whole popup.
+- Closures created in one render share one scope in V8. `useListNavigation`'s popup handlers and `MenuRoot`'s trigger props were memoized on dependencies that did not change when the popup went, so they kept the render scope in which the popup element was still a live variable.
+
+`patches/@base-ui__react@1.7.0.patch` clears the tree node and `dataRef` on unmount, and adds the dependencies that refresh those memos once the floating element is gone. The closed menu now holds 38 nodes; the bench's budget records it, so the regression fails CI if it comes back. Tried and dropped: re-rendering Kookie's trigger after a settled close (one of three holders, not enough alone), and syncing the store's floating element with a cleanup (the store was already clean). The patch should go upstream so it can be deleted.
+
+---
+
 ## 2026-10-23 A performance budget beside the CSS budget
 
 Kushagra asked for the benchmark v1 had just been given (kookie-ui #50) so the two libraries can be compared. `apps/bench` rebuilds v1's five screens from v2 components with the same metric names: a 500-row table, a 40-group form, a 300-item menu, overlays opened and closed 100 times, and a Shell frame. CI runs it after `pnpm run ci`. Counts (bytes, DOM nodes, leftovers after the cycles) fail on any increase; times are recorded from CI and fail past 1.5× plus 5ms, v1's rule verbatim.
