@@ -107,25 +107,50 @@ body {
 /* THE FRONT PAGE'S HERO (2026-10-22). The line grid of the Kookie UI film, run to the content
    pane's top, left and right edges, with a real builder standing on it and cropped by the band's
    bottom edge. The same figure is on kushagradhawan.com's Kookie UI page. Every length is a token. */
+/* A 12px line grid, the same as kushagradhawan.com's figures (Kushagra, 2026-10-23). Everything
+   sits on it: the band is 44 cells tall, a line runs through the centre so the centred window's
+   edges land on lines, and the window is 4 cells down. Hairlines close the band at the top and
+   the bottom, drawn over the window that runs off it. */
 .kd-hero {
   position: relative;
-  block-size: clamp(440px, 45vw, 560px);
+  block-size: calc(44 * var(--layout-space-4));
   overflow: clip;
   background-color: var(--color-ground);
-  background-image: radial-gradient(circle, var(--neutral-a7) var(--border-width), transparent calc(var(--border-width) * 1.5));
-  background-size: var(--layout-space-6) var(--layout-space-6);
-  background-position: center;
+  background-image:
+    linear-gradient(var(--color-border) var(--border-width), transparent var(--border-width)),
+    linear-gradient(90deg, var(--color-border) var(--border-width), transparent var(--border-width));
+  background-size: var(--layout-space-4) var(--layout-space-4);
+  background-position: calc(50% + var(--layout-space-4) / 2) 0;
+}
+
+.kd-hero::before,
+.kd-hero::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset-inline: 0;
+  block-size: var(--border-width);
+  background-color: var(--color-border);
+}
+
+.kd-hero::before {
+  inset-block-start: 0;
+}
+
+.kd-hero::after {
+  inset-block-end: 0;
 }
 
 .kd-hero-stage {
   position: absolute;
   inset-inline: 0;
-  inset-block-start: var(--layout-space-7);
+  inset-block-start: var(--layout-space-9);
   display: grid;
   justify-items: center;
 }
 
 .kd-hero-window {
+  box-sizing: border-box;
   inline-size: calc(30 * var(--layout-space-7));
   background-color: var(--color-ground);
   border: var(--border-width) solid var(--color-border);
@@ -166,6 +191,11 @@ body {
   .kd-hero-stage {
     justify-items: start;
     padding-inline-start: var(--layout-space-6);
+  }
+
+  /* The grid follows the window to the start, so its edge still lands on a line. */
+  .kd-hero {
+    background-position: var(--layout-space-6) 0;
   }
 }
 
