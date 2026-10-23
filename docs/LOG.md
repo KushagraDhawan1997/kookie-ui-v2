@@ -8,6 +8,16 @@ Write an entry when a choice was genuinely open and got closed: a reversal, a me
 
 ---
 
+## 2026-10-23 A performance budget beside the CSS budget
+
+Kushagra asked for the benchmark v1 had just been given (kookie-ui #50) so the two libraries can be compared. `apps/bench` rebuilds v1's five screens from v2 components with the same metric names: a 500-row table, a 40-group form, a 300-item menu, overlays opened and closed 100 times, and a Shell frame. CI runs it after `pnpm run ci`. Counts (bytes, DOM nodes, leftovers after the cycles) fail on any increase; times are recorded from CI and fail past 1.5× plus 5ms, v1's rule verbatim.
+
+**One screen v1 does not have.** `glass` is the Shell screen on material 3, because the cost v2 adds over v1 is the material: every floating band and card re-blurs what passes under it each frame. Two numbers carry it: `glassPanes`, the count of elements painting a backdrop filter (62 on that screen, 0 on the solid one), and `frameMs`, the mean frame while the screen scrolls. The difference between `shell` and `glass` is the price of the glass.
+
+**Found on the first run, not fixed here.** The menu screen ends at 1,360 DOM nodes after the menu closes, where v1's ends at 28. The document holds 13 elements at that point, so the rest are detached nodes still referenced after the popup unmounts. It does not grow: five open-close cycles leave the same 1,360, so it is the last-closed menu being held, not a leak per cycle. The budget records it as it stands.
+
+---
+
 ## 2026-10-22 iOS text inflation is turned off inline, because the stylesheet never reached an iPhone
 
 Safari on iPhone enlarged a wide code block on kushagradhawan.com. Three apps already set `-webkit-text-size-adjust: 100%` on `html`, and none of it worked: each app's minifier dropped the `-webkit-` form, which is the only one iPhone Safari reads, because the browser list had no iOS Safari in it. The live CSS on ui.kookie.design and flow.kookie.design shipped only `-moz-` and the unprefixed spelling.

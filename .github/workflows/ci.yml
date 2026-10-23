@@ -20,3 +20,8 @@ jobs:
       # answer (var-chain resolution, inherits:false, tier arbitration) never run.
       - run: pnpm --filter @kushagradhawan/kookie-ui-react exec playwright install --with-deps chromium
       - run: pnpm run ci
+      # The bench screens (apps/bench), measured in Chromium against apps/bench/budget.json —
+      # the same five screens and metric names as Kookie UI v1's bench, plus a glass Shell.
+      # Counts fail on any increase; times fail past their margin once recorded from CI.
+      - name: Performance budget
+        run: pnpm --filter bench bench
