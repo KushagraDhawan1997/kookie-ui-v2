@@ -117,8 +117,8 @@ body {
   overflow: clip;
   background-color: var(--color-ground);
   background-image:
-    linear-gradient(var(--color-border) var(--border-width), transparent var(--border-width)),
-    linear-gradient(90deg, var(--color-border) var(--border-width), transparent var(--border-width));
+    linear-gradient(var(--neutral-a3) var(--border-width), transparent var(--border-width)),
+    linear-gradient(90deg, var(--neutral-a3) var(--border-width), transparent var(--border-width));
   background-size: var(--layout-space-4) var(--layout-space-4);
   background-position: calc(50% + var(--layout-space-4) / 2) 0;
 }
