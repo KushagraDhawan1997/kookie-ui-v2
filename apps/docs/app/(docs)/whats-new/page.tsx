@@ -1,22 +1,9 @@
 import type { Metadata } from "next";
-import { Chip, Code, Page } from "@kushagradhawan/kookie-ui-react";
-import type * as React from "react";
+import { Page } from "@kushagradhawan/kookie-ui-react";
 
 import { ProseFlow } from "../../../mdx-components";
 import { PageFrame } from "../page-frame";
 import Content from "./whats-new.mdx";
-
-/** The three tiers each item starts with, written as inline code so the root file reads
-    the same on GitHub. Here they are a Chip; any other code span stays `<Code>`. */
-const TIERS = new Set(["Major", "Minor", "Quiet"]);
-
-function code({ children }: { children?: React.ReactNode }) {
-  return typeof children === "string" && TIERS.has(children) ? (
-    <Chip size="1">{children}</Chip>
-  ) : (
-    <Code>{children}</Code>
-  );
-}
 
 /**
  * The release notes, rendered from `WHATS_NEW.md` at the repo root.
@@ -42,7 +29,7 @@ export default function WhatsNewPage() {
     <PageFrame width="var(--kd-measure)">
       <Page title="What's new in Kookie UI" style={{ minWidth: 0 }}>
         <ProseFlow>
-          <Content components={{ code }} />
+          <Content />
         </ProseFlow>
       </Page>
     </PageFrame>
