@@ -166,6 +166,9 @@ overrides:
   source-map-js: '>=1.2.2'
   '@modelcontextprotocol/server': '>=2.3.0'
 
+patchedDependencies:
+  '@base-ui/react@1.7.0': e357e29704c8714d1fe159b1b9fac35f7c6d2429095df4c8eb269057caaa4d30
+
 importers:
 
   .:
@@ -331,7 +334,7 @@ importers:
     dependencies:
       '@base-ui/react':
         specifier: 1.7.0
-        version: 1.7.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+        version: 1.7.0(patch_hash=e357e29704c8714d1fe159b1b9fac35f7c6d2429095df4c8eb269057caaa4d30)(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@shadcn/react':
         specifier: 0.3.1
         version: 0.3.1(@types/react@19.3.0)(react@19.3.0)
@@ -3179,7 +3182,7 @@ snapshots:
 
   '@babel/runtime@7.29.7': {}
 
-  '@base-ui/react@1.7.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
+  '@base-ui/react@1.7.0(patch_hash=e357e29704c8714d1fe159b1b9fac35f7c6d2429095df4c8eb269057caaa4d30)(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
       '@babel/runtime': 7.29.7
       '@base-ui/utils': 0.3.2(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
