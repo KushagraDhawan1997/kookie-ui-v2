@@ -1,104 +1,155 @@
-Each item is marked Major, Minor or Quiet. Major is a new product or a change to what it is. Minor is a change you notice when you use it. Quiet is a small touch, or how the work is made.
+Each release groups its changes as Major, Minor or Quiet. Major is a new product or a change to what it is. Minor is a change you notice when you use it. Quiet is a small touch, or how the work is made.
 
 ## October 23
 
-1. `Quiet` **Performance budget.** Six heavy screens (a 500-row table, a long form, a 300-item menu, dialogs opened and closed 100 times, an app frame, and a glass frame) are measured in Chromium on every change, and CI fails when a count grows.
-2. `Quiet` **Line grid.** The front-page hero sits on a 12px line grid in place of the dot grid.
+### Quiet
+
+- **Performance budget.** Six heavy screens (a 500-row table, a long form, a 300-item menu, dialogs opened and closed 100 times, an app frame, and a glass frame) are measured in Chromium on every change, and CI fails when a count grows.
+- **Line grid.** The front-page hero sits on a 12px line grid in place of the dot grid.
 
 ## October 22
 
-1. `Minor` **Front-page hero.** The docs front page shows a real builder on a dot grid, under the title.
+### Minor
+
+- **Front-page hero.** The docs front page shows a real builder on a dot grid, under the title.
 
 ## October 21
 
-1. `Minor` **ShellNotice.** A notice about the whole app sits in its own row above the Shell's header. The docs site's work-in-progress notice now uses it on every page, and stays dismissed after a reload.
+### Minor
+
+- **ShellNotice.** A notice about the whole app sits in its own row above the Shell's header. The docs site's work-in-progress notice now uses it on every page, and stays dismissed after a reload.
 
 ## October 17
 
-1. `Minor` **Docs ship in the package.** Every docs page is included as Markdown at the version you install, and the agent rules point your coding agent to the page to read before it builds a form, a dialog or an app frame.
-2. `Quiet` **Agent tests.** Eight product tasks run with no docs, the full docs, and an index only. With the docs, agents took half the turns (13 against 27) and about half the time (59 s against 107 s).
+### Minor
+
+- **Docs ship in the package.** Every docs page is included as Markdown at the version you install, and the agent rules point your coding agent to the page to read before it builds a form, a dialog or an app frame.
+
+### Quiet
+
+- **Agent tests.** Eight product tasks run with no docs, the full docs, and an index only. With the docs, agents took half the turns (13 against 27) and about half the time (59 s against 107 s).
 
 ## October 16
 
-1. `Minor` **Reorganized docs.** Principles say why Kookie exists and what it takes from Apple. Start gains a Composition chapter, and Vocabulary is gone. Foundations are renamed Appearance, Interaction, Scale and Shape, and Responsiveness moves to Patterns.
+### Minor
+
+- **Reorganized docs.** Principles say why Kookie exists and what it takes from Apple. Start gains a Composition chapter, and Vocabulary is gone. Foundations are renamed Appearance, Interaction, Scale and Shape, and Responsiveness moves to Patterns.
 
 ## October 15
 
-1. `Minor` **Components filed by job.** The component index groups components by what a person is doing (Act, Choose, Enter, Read and more), and each page names the component to use instead.
-2. `Minor` **Material scale 1 to 9.** Glass comes in nine stacked steps, and dark mode glass is quieter.
-3. `Quiet` **Flush work area.** The docs work area sits flush, like every other pane.
-4. `Quiet` **Work-in-progress notice.** The docs site says it is a work in progress.
-5. `Quiet` **K mark.** The K mark is the logo, favicon and Apple touch icon.
+### Minor
+
+- **Components filed by job.** The component index groups components by what a person is doing (Act, Choose, Enter, Read and more), and each page names the component to use instead.
+- **Material scale 1 to 9.** Glass comes in nine stacked steps, and dark mode glass is quieter.
+
+### Quiet
+
+- **Flush work area.** The docs work area sits flush, like every other pane.
+- **Work-in-progress notice.** The docs site says it is a work in progress.
+- **K mark.** The K mark is the logo, favicon and Apple touch icon.
 
 ## September 25
 
-1. `Quiet` **New package name.** The React package is `@kushagradhawan/kookie-ui-react`.
+### Quiet
+
+- **New package name.** The React package is `@kushagradhawan/kookie-ui-react`.
 
 ## September 20
 
-1. `Minor` **No motion.** Overlays, menus, tabs and controls appear at once. Nothing fades or travels.
+### Minor
+
+- **No motion.** Overlays, menus, tabs and controls appear at once. Nothing fades or travels.
 
 ## September 19
 
-1. `Minor` **Grey accent.** The default accent is grey.
-2. `Minor` **Carousel, MessageScroller and Confirmation.** Three new components, plus the Conversation block.
-3. `Minor` **Examples tab.** Every component page has an Examples tab.
-4. `Quiet` **Every block in the sidebar.** Blocks are listed in the docs sidebar, like components.
-5. `Quiet` **Nested panes.** A pane inside a pane has matching, concentric corners.
-6. `Quiet` **Lighter headings.** Headings and page titles use medium weight. Size sets rank.
-7. `Quiet` **Bigger display sizes.** Display steps 7 to 9 are 32, 44 and 64.
-8. `Minor` **Plain-English docs.** Every chapter is rewritten in Simplified Technical English.
+### Minor
+
+- **Grey accent.** The default accent is grey.
+- **Carousel, MessageScroller and Confirmation.** Three new components, plus the Conversation block.
+- **Examples tab.** Every component page has an Examples tab.
+- **Plain-English docs.** Every chapter is rewritten in Simplified Technical English.
+
+### Quiet
+
+- **Every block in the sidebar.** Blocks are listed in the docs sidebar, like components.
+- **Nested panes.** A pane inside a pane has matching, concentric corners.
+- **Lighter headings.** Headings and page titles use medium weight. Size sets rank.
+- **Bigger display sizes.** Display steps 7 to 9 are 32, 44 and 64.
 
 ## September 15
 
-1. `Minor` **Builder sidebar.** The builder adds components from a sidebar tab and groups the inspector into sections.
-2. `Minor` **New type.** The docs read in Inter, headings use Inter Tight, and the wordmark is PP Acma.
+### Minor
+
+- **Builder sidebar.** The builder adds components from a sidebar tab and groups the inspector into sections.
+- **New type.** The docs read in Inter, headings use Inter Tight, and the wordmark is PP Acma.
 
 ## September 9
 
-1. `Minor` **Tab bar on phones.** On a phone, the Shell's rail becomes a tab bar.
+### Minor
+
+- **Tab bar on phones.** On a phone, the Shell's rail becomes a tab bar.
 
 ## September 8
 
-1. `Minor` **Collapsing toolbar.** A toolbar folds its extra controls into a menu when the row runs out of room.
-2. `Minor` **Theme panel.** The docs have a Theme panel beside the appearance toggle.
+### Minor
+
+- **Collapsing toolbar.** A toolbar folds its extra controls into a menu when the row runs out of room.
+- **Theme panel.** The docs have a Theme panel beside the appearance toggle.
 
 ## September 5
 
-1. `Quiet` **Resizable sidebar.** The docs sidebar can be resized, and its chrome floats.
+### Quiet
+
+- **Resizable sidebar.** The docs sidebar can be resized, and its chrome floats.
 
 ## September 1
 
-1. `Minor` **Live specimens.** Component pages have knobs that drive the example and rewrite its code.
-2. `Minor` **Toggle, Avatar, Badge, Table and Accordion.** Five more components ship.
+### Minor
+
+- **Live specimens.** Component pages have knobs that drive the example and rewrite its code.
+- **Toggle, Avatar, Badge, Table and Accordion.** Five more components ship.
 
 ## August 26
 
-1. `Minor` **Tree and NavTree.** Two tree components ship, and the docs sidebar uses NavTree.
+### Minor
+
+- **Tree and NavTree.** Two tree components ship, and the docs sidebar uses NavTree.
 
 ## August 23
 
-1. `Minor` **Composer.** The input half of a conversation ships.
+### Minor
+
+- **Composer.** The input half of a conversation ships.
 
 ## August 20
 
-1. `Minor` **Docs in Shell, with search.** The docs site runs on its own Shell, renders every page with Kookie components, and has search.
-2. `Minor` **API tables from the types.** Prop tables are generated from the component types.
+### Minor
+
+- **Docs in Shell, with search.** The docs site runs on its own Shell, renders every page with Kookie components, and has search.
+- **API tables from the types.** Prop tables are generated from the component types.
 
 ## August 19
 
-1. `Minor` **ScrollArea, SegmentedControl and Tabs.** Three more components ship.
-2. `Minor` **Builder.** A composition editor at /builder lets you lay out blocks, edit them and export real components.
+### Minor
+
+- **ScrollArea, SegmentedControl and Tabs.** Three more components ship.
+- **Builder.** A composition editor at /builder lets you lay out blocks, edit them and export real components.
 
 ## August 16
 
-1. `Minor` **Shell.** The app frame ships: panes that float or sit flush, a rail, a sidebar, and pane edges you can drag.
-2. `Minor` **Glass material.** Surfaces are built from one glass material with squircle corners, refraction and lit edges.
+### Minor
+
+- **Shell.** The app frame ships: panes that float or sit flush, a rail, a sidebar, and pane edges you can drag.
+- **Glass material.** Surfaces are built from one glass material with squircle corners, refraction and lit edges.
 
 ## August 10
 
-1. `Quiet` **Hugeicons.** The docs use Hugeicons.
+### Quiet
+
+- **Hugeicons.** The docs use Hugeicons.
 
 ## July 31
 
-1. `Major` **Kookie UI begins.** The repo starts on July 31, with color previews for any brand hue in light and dark.
+### Major
+
+- **Kookie UI begins.** The repo starts on July 31, with color previews for any brand hue in light and dark.
