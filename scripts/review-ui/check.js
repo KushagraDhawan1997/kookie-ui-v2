@@ -103,6 +103,10 @@
       id: "panel-close",
       run(scope, out) {
         if (!scope.matches(PANELS)) return;
+        // RULES.md 1 is about TITLED panels. A popover with no title (a picker, a menu-like
+        // panel) has no band to hold Close, so it isn't asked for one.
+        const titled = scope.hasAttribute("aria-labelledby") || own(scope, "h1, h2, h3, .kui-toolbar-title").length > 0;
+        if (!titled) return;
         const buttons = own(scope, "button, [role=button]");
         if (!buttons.some((b) => CLOSE_NAME.test(nameOf(b))))
           out(scope, "This panel has no Close button. Every titled panel has Close at the end of its band.");
@@ -253,11 +257,17 @@
       // Words sliced off by an edge. A window may bleed off a figure's band; a sentence may not.
       id: "clipped-text",
       run(scope, out) {
+        // Only a box that HIDES its overflow cuts words. A scroller shows the rest when you
+        // scroll, so text running past a scroll viewport's edge isn't cut (2026-11-03: four
+        // false hits on the Navigation chapter's scrolling panes).
+        const hides = (v) => v === "hidden" || v === "clip";
         const clippers = (el) => {
           const out = [];
           for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
             const s = getComputedStyle(a);
-            if (s.overflowX !== "visible" || s.overflowY !== "visible") out.push(a);
+            // Past a scroller, an edge further out clips the scroller, not these words.
+            if (/auto|scroll/.test(s.overflowX + s.overflowY)) break;
+            if (hides(s.overflowX) || hides(s.overflowY)) out.push(a);
             if (a === scope) break;
           }
           return out;
@@ -315,9 +325,11 @@
         for (const sep of own(scope, '.kui-separator, [role="separator"], hr'))
           if (sep.getAttribute("aria-orientation") !== "vertical" && sep.dataset.orientation !== "vertical" && !sep.parentElement.matches(".kui-toolbar, [role=toolbar]"))
             lists.add(sep.parentElement);
-        // Lines drawn as row borders make a list only when two or more rows draw them.
+        // Lines drawn as row borders make a list only when two or more ROWS draw them. Buttons
+        // draw a border too (a bordered button, a chip), and two side by side are not a list.
+        const rowish = ".kui-row, [role=option], [role=menuitem], [role=row]";
         const bordered = new Map();
-        for (const el of own(scope, ".kui-row, " + pressable))
+        for (const el of own(scope, rowish))
           if (lined(el)) bordered.set(el.parentElement, (bordered.get(el.parentElement) ?? 0) + 1);
         for (const [list, n] of bordered) if (n >= 2) lists.add(list);
         for (const list of lists)
@@ -368,11 +380,18 @@
   // Stamped so the runner can hover each and record whether it lights (probe.mjs).
   window.__kuiHoverCandidates = () => {
     const pressable = "a[href], button, [role=button], [role=option], [role=menuitem], [role=row][tabindex]";
+    // A flow reviews several screens on one page, so the last pass's stamps are cleared and
+    // every candidate numbered afresh; a stale "0" left on a hidden screen made the probe's
+    // selector match twice (the 2026-11-03 audit).
+    for (const el of document.querySelectorAll("[data-review-probe]")) {
+      delete el.dataset.reviewProbe;
+      delete el.dataset.reviewLit;
+    }
     const found = [];
     for (const sep of document.querySelectorAll('.kui-separator, [role="separator"], hr'))
       for (const c of sep.parentElement?.children ?? [])
         for (const t of [c, c.querySelector(`:scope > :is(${pressable})`)])
-          if (t && t.matches(pressable) && visible(t) && !t.closest(".kui-field") && !("reviewProbe" in t.dataset)) {
+          if (t && t.matches(pressable) && visible(t) && !t.closest(".kui-field") && !found.includes(t)) {
             t.dataset.reviewProbe = String(found.length);
             found.push(t);
           }
@@ -391,10 +410,13 @@
     const findings = [];
     skipped = deliberate();
     // A figure showing two windows side by side shows two screens. Each top-level pane in a
-    // figure stage becomes its own scope when there are two or more.
+    // figure stage becomes its own scope when there are two or more. A device frame (a laptop
+    // lid, a phone) is a screen of its own too, so a pair of phones is two screens, and so is a
+    // Theme: two Themes side by side are one thing shown twice, as on Depth and Materials.
+    const PANE = ".kui-surface:not(.kui-type):not(.kui-control), .kui-theme, .kd-device, .kd-band-phone";
     for (const stage of document.querySelectorAll(".kd-figure-stage, .kd-band-stage, .kd-hero-stage")) {
-      const panes = [...stage.querySelectorAll(".kui-surface:not(.kui-type):not(.kui-control)")].filter(
-        (el) => visible(el) && el.parentElement.closest(".kui-surface:not(.kui-type):not(.kui-control), " + SCOPES) === stage,
+      const panes = [...stage.querySelectorAll(PANE)].filter(
+        (el) => visible(el) && el.parentElement.closest(PANE + ", " + SCOPES) === stage,
       );
       if (panes.length >= 2) panes.forEach((el) => el.setAttribute("data-review-scope", ""));
     }

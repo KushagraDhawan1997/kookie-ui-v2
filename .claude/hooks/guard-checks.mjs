@@ -12,7 +12,17 @@ import { existsSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
 const root = join(import.meta.dirname, "../..");
-const PROTECTED = ["RULES.md", "scripts/review-ui/", "apps/docs/app/builder/review.ts", ".claude/hooks/"];
+// The rule list is protected with the checks: a rule's severity in rules.json decides whether
+// the check fails, so flipping one to "warning" turned the check off (the 2026-11-03 audit).
+const PROTECTED = [
+  "RULES.md",
+  "scripts/review-ui/",
+  "apps/docs/app/builder/review.ts",
+  "apps/docs/app/builder/rules.json",
+  "apps/docs/app/builder/rules.ts",
+  "apps/docs/app/builder/rules.test.ts",
+  ".claude/hooks/",
+];
 const input = JSON.parse(readFileSync(0, "utf8"));
 if (existsSync(join(root, ".claude/checks-unlocked"))) process.exit(0);
 
@@ -26,14 +36,30 @@ const { tool_name: tool, tool_input: args = {} } = input;
 if (["Edit", "Write", "MultiEdit", "NotebookEdit"].includes(tool)) found = hit(args.file_path ?? args.notebook_path ?? "");
 else if (tool === "Bash") {
   const cmd = args.command ?? "";
-  // Writes that name a protected path: in-place edits, redirects into it, moves, copies,
-  // deletes and scripts that open it. Running the check (`node scripts/review-ui/run.mjs`,
-  // `node --test …`) only reads it.
-  const writes = /(sed\s+-i|perl\s+-\S*i|\btee\b|\bmv\b|\bcp\b|\brm\b|\bpython3?\b|node\s+-e)/;
-  const rest = cmd.replace(/node\s+(--test\s+)?scripts\/review-ui\/\S+/g, "");
-  found = PROTECTED.find(
-    (p) => (rest.includes(p) && writes.test(rest)) || new RegExp(`>\\s*\\S*${p.replace(/[.\/]/g, "\\$&")}`).test(cmd),
-  );
+  // The unlock is Kushagra's switch; an agent never throws it.
+  if (/checks-unlocked/.test(cmd) && /(\btouch\b|>|\bcp\b|\bmv\b|\btee\b|\bln\b)/.test(cmd)) found = ".claude/checks-unlocked";
+  // A write is blocked when a protected path is what it writes to, so reading, diffing or
+  // copying a protected file somewhere else still works (the 2026-11-03 audit: `cp RULES.md
+  // /tmp` and `git diff … | tee` were blocked, and `git checkout -- RULES.md` got through).
+  // Running the check (`node scripts/review-ui/run.mjs`, `node --test …`) only reads it.
+  const named = (text) => PROTECTED.find((p) => text.includes(p));
+  for (const part of cmd.split(/&&|\|\||;|\n/)) {
+    const words = part.trim().split(/\s+/);
+    const verb = words[0] ?? "";
+    const args_ = words.slice(1).join(" ");
+    let target = null;
+    if (/^(sed|perl)$/.test(verb) && /\s-\S*i/.test(" " + args_)) target = named(args_);
+    else if (/^(rm|truncate|ed|ex)$/.test(verb)) target = named(args_);
+    else if (/^(cp|mv|install|ln)$/.test(verb)) target = named(words.at(-1) ?? "");
+    else if (verb === "git" && /^(checkout|restore|apply|stash|rm|mv)$/.test(words[1] ?? "")) target = named(args_);
+    else if (/^(python3?|ruby)$/.test(verb) || (verb === "node" && /^(-e|--eval|-p|--print)$/.test(words[1] ?? ""))) target = named(args_);
+    else if (verb === "awk" && /-i\s*inplace/.test(args_)) target = named(args_);
+    for (const m of part.matchAll(/(?:>>?|\btee\s+(?:-a\s+)?)\s*(\S+)/g)) target = target ?? named(m[1]);
+    if (target) {
+      found = target;
+      break;
+    }
+  }
 }
 
 if (found) {
