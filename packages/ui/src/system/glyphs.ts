@@ -33,6 +33,12 @@ export const GLYPH_VIEWBOX = "0 0 16 16";
     second, so it lands here. */
 export const CHEVRON_DOWN_PATH = "M4.5 6 L7.2 8.7 Q8 9.5 8.8 8.7 L11.5 6";
 
+/* The chevron that points the way you came, on the tick's grid, stroke and caps. It points to
+   the inline START, and a right-to-left page mirrors it in CSS; a link draws it mirrored,
+   pointing on. Navigator drew it alone until Shell's stacked sidebar needed the same Back
+   (2026-11-03), so it moved here by this file's rule. */
+export const CHEVRON_BACK_PATH = "M10 4 6 8l4 4";
+
 /** The dismissal ✕. A Notice's acknowledgement and an Attachment's remove — both mean "take
     this away", and both draw it at the same weight in the same box. It was written inline in
     `notice.tsx` while it had one consumer, which is this file's own rule (a path in two files

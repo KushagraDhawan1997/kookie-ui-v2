@@ -819,6 +819,120 @@ export default function Example() {
 }
 ```
 
+### A sidebar that collapses into a stack
+
+When the sidebar is the list people browse, `collapse="stack"` makes it the first screen on a narrow window. Picking a message shows the message, and `ShellBack` in its band goes back to the list. The open message lives in the example's state, as it would in your router's URL. Narrow the window to see it.
+
+```tsx
+"use client";
+
+import * as React from "react";
+import {
+  Box,
+  Flex,
+  Page,
+  Shell,
+  ShellBack,
+  ShellContent,
+  ShellNavGroup,
+  ShellNavItem,
+  ShellPaneHeader,
+  ShellScroll,
+  ShellSidebar,
+  Stack,
+  Text,
+  Toolbar,
+  ToolbarTitle,
+} from "@kushagradhawan/kookie-ui-react";
+
+/* Placeholder messages for a team inbox. Not real people. */
+const MESSAGES = [
+  {
+    id: "launch",
+    from: "Shruti Bhatia",
+    subject: "Launch plan",
+    body: [
+      "The press kit is final and the landing page is staged.",
+      "Two things are left before Thursday: the pricing table copy, and a last pass on the onboarding emails.",
+    ],
+  },
+  {
+    id: "invoice",
+    from: "Marco Rossi",
+    subject: "Invoice",
+    body: ["The October invoice is attached. Payment is due on 15 November."],
+  },
+  {
+    id: "review",
+    from: "Aiko Tanaka",
+    subject: "Review moved",
+    body: ["Friday's design review moves to 3pm, in the same room."],
+  },
+];
+
+// The sidebar is the list you browse, so on a narrow window it collapses into a stack: the list
+// first, then the message, with Back in the message's band. On a wide window both show. The
+// open message lives in this example's state, as it would live in your router's URL.
+export default function Example() {
+  const [openId, setOpenId] = React.useState<string | null>(null);
+  const message = MESSAGES.find((m) => m.id === openId);
+  return (
+    <Box m="bleed" flexGrow="1" height="30rem">
+      <Shell contained style={{ "--shell-sidebar-w": "13rem" } as React.CSSProperties}>
+        <ShellSidebar
+          aria-label="Inbox"
+          collapse="stack"
+          view={openId ? "content" : "sidebar"}
+          onViewChange={(view) => {
+            if (view === "sidebar") setOpenId(null);
+          }}
+        >
+          <ShellPaneHeader>
+            <Toolbar>
+              <ToolbarTitle>Inbox</ToolbarTitle>
+            </Toolbar>
+          </ShellPaneHeader>
+          <ShellScroll>
+            <ShellNavGroup>
+              {MESSAGES.map((m) => (
+                <ShellNavItem key={m.id} current={m.id === openId} onClick={() => setOpenId(m.id)}>
+                  {m.subject}
+                </ShellNavItem>
+              ))}
+            </ShellNavGroup>
+          </ShellScroll>
+        </ShellSidebar>
+        <ShellContent>
+          <ShellPaneHeader>
+            <Toolbar>
+              <Flex align="center">
+                <ShellBack aria-label="Back to Inbox" />
+                <ToolbarTitle />
+              </Flex>
+            </Toolbar>
+          </ShellPaneHeader>
+          <ShellScroll>
+            {message ? (
+              <Page title={message.subject} description={message.from}>
+                <Stack gap="3">
+                  {message.body.map((line) => (
+                    <Text key={line} size="3">
+                      {line}
+                    </Text>
+                  ))}
+                </Stack>
+              </Page>
+            ) : (
+              <Page title="Inbox" />
+            )}
+          </ShellScroll>
+        </ShellContent>
+      </Shell>
+    </Box>
+  );
+}
+```
+
 ## Topics
 
 Every symbol this component exports, grouped by the job it does. Each one carries the props it declares.
@@ -875,17 +989,21 @@ The wide navigation column, rendered as a `<nav>`. It is open on a wide window a
 | Prop | Type | What it does |
 | --- | --- | --- |
 | `backdrop?` | `boolean` | Set `backdrop` when content passes behind this pane, such as a canvas, a map or an image. |
+| `collapse?` | `"sheet" \| "stack"` | Sets what the sidebar becomes on a narrow window. |
 | `defaultOpen?` | `boolean` | Sets whether the pane starts open when you do not control it. |
+| `defaultView?` | `"sidebar" \| "content"` | Sets the side a stacked sidebar shows first, when you don't control `view`. |
 | `flush?` | `boolean` | Sets whether this pane joins the app frame. |
 | `maxWidth?` | `number` | Sets the largest width, in CSS pixels, that a resize can give the pane. |
 | `minWidth?` | `number` | Sets the smallest width, in CSS pixels, that a resize can give the pane. |
 | `onOpenChange?` | `(open: boolean) => void` | Called when the user opens or closes the pane: with a trigger, the Escape key or a press on the scrim. |
 | `onResize?` | `(width: number) => void` | Called once when the user ends a resize, with the pane's new width. |
+| `onViewChange?` | `(view: ShellStackView) => void` | Called when a stacked sidebar changes side: with `"content"` when a `ShellNavItem` in it is pressed, and with `"sidebar"` when `ShellBack` is pressed. |
 | `open?` | `boolean` | Controls whether the pane is open. |
 | `presentation?` | `"auto" \| "fixed" \| "overlay" \| "bar"` | Sets how the pane takes space when it is open. - `auto`, the default: in the layout on a wide window, and over the content on a narrow one. - `fixed`: always in the layout. - `overlay`: always over the content, with a scrim. |
 | `resizable?` | `boolean` | Lets the user drag the pane's edge to change its width. |
 | `resizeLabel?` | `string` | Sets the accessible name of the resize handle. |
 | `size?` | `"1" \| "2" \| "3" \| "4"` | Sets the size step of the pane: its padding, its rows and its buttons. |
+| `view?` | `"sidebar" \| "content"` | Sets which side a sidebar that collapses into a stack shows on a narrow window. |
 | `width?` | `number` | Sets the pane's width in CSS pixels. |
 
 It also takes every prop of a `<nav>`.
@@ -1073,3 +1191,11 @@ A button that opens, closes or toggles a pane by name, from anywhere in the fram
 | `target` | `"rail" \| "sidebar" \| "inspector" \| "bottom"` | Which pane this button drives. |
 
 It also takes every prop of a `<button>`.
+
+#### ShellBack
+
+Back, for the content's band when the sidebar collapses into a stack. It shows only on a narrow window while the content is showing
+
+| Prop | Type | What it does |
+| --- | --- | --- |
+| `aria-label?` | `string` | The accessible name. |

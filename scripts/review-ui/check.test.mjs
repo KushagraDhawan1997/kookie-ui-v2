@@ -111,8 +111,10 @@ const cases = {
     s.className = "kui-surface";
     s.textContent = "Pro";
     s.style.cssText = "background: rgb(255 255 255); block-size: 40px; backdrop-filter: none";
-    document.querySelector('[data-under-test] .kui-navigator-screen:not([hidden])')?.append(s) ??
-      document.querySelector('[data-under-test]').append(s);
+    const host =
+      document.querySelector('[data-under-test] .kui-navigator-screen:not([hidden])') ??
+      document.querySelector('[data-under-test]');
+    host.append(s);
   },
   // Two loud actions on one screen.
   "one-figure": () => {
@@ -313,6 +315,30 @@ const allowed = {
     pane.append(header, text);
     document.querySelector("[data-under-test]").append(pane);
   }).toString()})(4)`,
+  // Two bordered buttons side by side are a pair of controls, not a list with lines.
+  "hover-with-separators: two bordered buttons side by side": () => {
+    const row = document.createElement("div");
+    row.style.cssText = "display: flex; gap: 8px";
+    for (const name of ["Cancel", "Keep"]) {
+      const b = document.createElement("button");
+      b.className = "kui-control kui-button";
+      b.style.cssText = "border: 1px solid gray; background: transparent";
+      b.textContent = name;
+      row.append(b);
+    }
+    document.querySelector("[data-under-test]").append(row);
+  },
+  // Text past the edge of a scroller is there when you scroll; it isn't cut.
+  "clipped-text: text you can scroll to": () => {
+    const box = document.createElement("div");
+    box.style.cssText = "overflow: auto; block-size: 40px; inline-size: 200px";
+    const t = document.createElement("p");
+    t.className = "kui-type kui-text";
+    t.style.cssText = "margin: 0; padding-block-start: 60px";
+    t.textContent = "Two deploys finished this morning";
+    box.append(t);
+    document.querySelector("[data-under-test]").append(box);
+  },
   // A tree's rows step in by level.
   "text-axis: a tree's levels": () => {
     const tree = document.createElement("div");
