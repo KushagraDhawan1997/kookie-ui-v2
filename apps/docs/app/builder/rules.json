@@ -26,7 +26,7 @@
     "title": "Every control states its name",
     "severity": "error",
     "why": "A control the eye reads from its glyph is a control a screen reader cannot read at all. A mark refuses children on purpose, because its label is a sibling, so the accessible name has to be stated (WCAG 4.1.2).",
-    "rule": null,
+    "rule": 29,
     "checkedBy": [
       "builder",
       "screen"
