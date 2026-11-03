@@ -1899,8 +1899,13 @@ export function ShellSidebar({ collapse = "sheet", view: viewProp, defaultView, 
     latest.current.onViewChange?.(next);
     if (!latest.current.controlled) setOwn(next);
   }, []);
+  // On a phone the PAGE scrolls (§27), so each side keeps its own place: the list's scroll is
+  // kept when the content opens and given back on Back, and the content opens at its top
+  // (audit 2026-11-03).
+  const listScroll = React.useRef(0);
   const push = React.useCallback(() => {
     opener.current = typeof document === "undefined" ? null : (document.activeElement as HTMLElement | null);
+    listScroll.current = typeof window === "undefined" ? 0 : window.scrollY;
     setView("content");
   }, [setView]);
   const showSidebar = React.useCallback(() => setView("sidebar"), [setView]);
@@ -1924,6 +1929,7 @@ export function ShellSidebar({ collapse = "sheet", view: viewProp, defaultView, 
     previous.current = view;
     if (!stacked || windowClass !== "narrow" || before === view) return;
     const root = store.entries.get("sidebar")?.el?.closest(".kui-shell");
+    window.scrollTo(0, view === "content" ? 0 : listScroll.current);
     if (view === "content") {
       const content = root?.querySelector<HTMLElement>(":scope > .kui-shell-content");
       const target = content?.querySelector<HTMLElement>("h1") ?? content;
@@ -1952,18 +1958,13 @@ export type ShellBackProps = ComponentRefusals & {
  */
 export function ShellBack(props: ShellBackProps) {
   const ctx = useShellCtx("ShellBack");
-  const stack = React.useSyncExternalStore(
-    ctx.subscribe,
-    () => ctx.store.stack,
-    () => null,
-  );
-  if (!stack) return null;
-  // The wrapper is how CSS hides it: whether the window is narrow is the stylesheet's answer,
-  // so first paint is right with no script. `display: contents` when shown, so the button is the
-  // toolbar's own item.
+  // ALWAYS RENDERED, and the stylesheet decides (audit 2026-11-03): whether the window is narrow
+  // and the content is showing are both CSS's answers, so a server-rendered deep link paints
+  // Back before any script runs. The wrapper is how it hides; `display: contents` when shown, so
+  // the button is the toolbar's own item. The stack is read at the press, never at render.
   return (
     <span className="kui-shell-back">
-      <ToolbarButton iconOnly aria-label={props["aria-label"] ?? "Back"} onClick={stack.showSidebar}>
+      <ToolbarButton iconOnly aria-label={props["aria-label"] ?? "Back"} onClick={() => ctx.store.stack?.showSidebar()}>
         <svg className="kui-shell-back-glyph" viewBox={GLYPH_VIEWBOX} fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
           <path
             d={CHEVRON_BACK_PATH}

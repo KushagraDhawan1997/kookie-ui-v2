@@ -2300,6 +2300,10 @@
   .kui-shell:has(> .kui-shell-rail[data-presentation="auto"]:not([data-flush]))
     > .kui-shell-content[data-flush],
   .kui-shell:has(> .kui-shell-sidebar[data-presentation="auto"]:not([data-flush]))
+    > .kui-shell-content[data-flush],
+  /* A sidebar that collapses into a stack is never beside the content here either (audit
+     2026-11-03): it is the other screen. */
+  .kui-shell:has(> .kui-shell-sidebar[data-presentation="stack"]:not([data-flush]))
     > .kui-shell-content[data-flush] {
     --kui-shell-inset-inline-start: initial;
   }
@@ -2312,6 +2316,8 @@
      twice. Each selector carries the neighbour's `[data-flush]` so the restatement is scoped
      to exactly the arms above; a non-flush neighbour never zeroed anything to restore. */
   .kui-shell:has(> .kui-shell-sidebar[data-flush][data-presentation="auto"])
+    > .kui-shell-content:not([data-flush]),
+  .kui-shell:has(> .kui-shell-sidebar[data-flush][data-presentation="stack"])
     > .kui-shell-content:not([data-flush]),
   .kui-shell:has(> .kui-shell-rail[data-flush][data-presentation="auto"])
     > .kui-shell-content:not([data-flush]) {
