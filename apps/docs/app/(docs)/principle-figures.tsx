@@ -517,6 +517,27 @@ export function CompositionFigure() {
         <Theme size="2" className="kd-band-window kd-band-window-narrow">
           <Shell contained className="kd-band-shell" style={{ "--shell-inspector-w": "304px" } as React.CSSProperties}>
             <ShellContent>
+              {/* THE CANVAS PANE'S BAND (2026-11-03, Kushagra: "Ok fix it"). FIGURES.md gives every
+                  canvas pane a floating header, the Builder's: the screen's name and a few quiet
+                  tools on the material, so the one loud thing stays on the canvas. */}
+              <ShellPaneHeader float>
+                <Toolbar backdrop>
+                  <Flex align="center" gap="2">
+                    <ToolbarButton iconOnly aria-label="Layers">
+                      <PanelLeftIcon />
+                    </ToolbarButton>
+                    <ToolbarTitle>Pay</ToolbarTitle>
+                  </Flex>
+                  <ToolbarGroup>
+                    <ToolbarButton iconOnly aria-label="Undo">
+                      <UndoIcon />
+                    </ToolbarButton>
+                    <ToolbarButton iconOnly aria-label="Redo">
+                      <RedoIcon />
+                    </ToolbarButton>
+                  </ToolbarGroup>
+                </Toolbar>
+              </ShellPaneHeader>
               <div className="kd-band-canvas">
                 <Button size="2" emphasis="loud" className="kd-band-selected">
                   Continue
