@@ -2173,6 +2173,7 @@ const DECLARED: Entry[] = [
       {"name":"grounded","title":"Content as its own panel","why":"Only `ShellContent` has `flush={false}`. The work area becomes a separate panel set in from the frame, while the header and sidebar stay joined to it."},
       {"name":"resizable","title":"A resizable sidebar","why":"With `resizable`, people can drag the sidebar's edge or move it with the arrow keys. `minWidth` and `maxWidth` limit the width, and `onResize` reports the new width so you can store it."},
       {"name":"controlled","title":"Controlled","why":"The sidebar's `open` state lives in the example's own state, so a Switch in the content can show and hide it. `onOpenChange` fires only when a person opens or closes the pane."},
+      {"name":"collapse-stack","title":"A sidebar that collapses into a stack","why":"When the sidebar is the list people browse, `collapse=\"stack\"` makes it the first screen on a narrow window. Picking a message shows the message, and `ShellBack` in its band goes back to the list. The open message lives in the example's state, as it would in your router's URL. Narrow the window to see it."},
     ],
     topics: [
       { title: "The frame", symbols: ["Shell"] },
@@ -2183,7 +2184,7 @@ const DECLARED: Entry[] = [
       },
       { title: "Inside a pane", symbols: ["ShellScroll", "ShellPaneHeader", "ShellPaneFooter"] },
       { title: "Navigation rows", symbols: ["ShellNavGroup", "ShellNavItem"] },
-      { title: "Opening and closing a pane", symbols: ["ShellTrigger"] },
+      { title: "Opening and closing a pane", symbols: ["ShellTrigger", "ShellBack"] },
     ],
     refusals: [
       { name: "A `gap` prop", why: "The space around floating panes is one step of the theme's layout spacing, so it tightens and loosens with density. A custom number would fall out of step with the rest of the app." },
@@ -2225,6 +2226,7 @@ const DECLARED: Entry[] = [
           "A tab bar for an app without a rail. On a narrow window it shows three to five places along the bottom, and on a wide window it shows nothing, because the sidebar holds the navigation. It is optional: without it, the sidebar opens as a drawer at every width",
       },
       { part: "ShellTrigger", blurb: "A button that opens, closes or toggles a pane by name, from anywhere in the frame" },
+      { part: "ShellBack", blurb: "Back, for the content's band when the sidebar collapses into a stack. It shows only on a narrow window while the content is showing" },
     ],
   },
   {
