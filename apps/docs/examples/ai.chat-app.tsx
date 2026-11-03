@@ -53,7 +53,14 @@ const PLAN = [
 // makes opens in the inspector beside it, and gives way first when space runs out. A card in
 // the transcript opens it again after you close it.
 export default function Example() {
-  const [open, setOpen] = React.useState(true);
+  const [turns, setTurns] = React.useState(TURNS);
+  const [draft, setDraft] = React.useState("");
+  const send = () => {
+    const text = draft.trim();
+    if (!text) return;
+    setTurns((all) => [...all, { id: `q${all.length}`, from: "You", text }]);
+    setDraft("");
+  };
   return (
     <Box m="bleed" flexGrow="1" height="34rem">
       <Shell contained style={{ "--shell-inspector-w": "20rem" } as React.CSSProperties}>
@@ -61,7 +68,7 @@ export default function Example() {
           <MessageScroller>
             <ShellScroll aria-label="Conversation">
               <MessageScrollerContent>
-                {TURNS.map((turn) => (
+                {turns.map((turn) => (
                   <MessageScrollerItem key={turn.id} messageId={turn.id} scrollAnchor={turn.from === "You"}>
                     <Stack gap="1">
                       <Text size="2" emphasis="medium">
@@ -82,15 +89,16 @@ export default function Example() {
               </MessageScrollerContent>
             </ShellScroll>
           </MessageScroller>
-            <Composer onSubmit={() => {}}>
-              <ComposerInput aria-label="Message" placeholder="Message" />
-              <ComposerRow>
-                <span />
+          <Composer onSubmit={send}>
+            <ComposerInput aria-label="Message" placeholder="Message" value={draft} onChange={(event) => setDraft(event.target.value)} />
+            <ComposerRow>
+              <Flex flexGrow="1" justify="end">
                 <ComposerSend icons={{ ready: icon(ArrowUp02Icon) }} />
-              </ComposerRow>
-            </Composer>
+              </Flex>
+            </ComposerRow>
+          </Composer>
         </ShellContent>
-        <ShellInspector aria-label="Onboarding week" open={open} onOpenChange={setOpen}>
+        <ShellInspector aria-label="Onboarding week" defaultOpen>
           <ShellPaneHeader>
             <Toolbar>
               <ToolbarTitle>Onboarding week</ToolbarTitle>

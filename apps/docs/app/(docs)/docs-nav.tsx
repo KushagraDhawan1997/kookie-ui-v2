@@ -164,6 +164,7 @@ export const NAV_ICONS: Record<string, React.ComponentType> = {
   "/patterns/modality": WindowIcon,
   "/patterns/navigation": CompassIcon,
   "/patterns/feedback": MegaphoneIcon,
+  "/patterns/ai": AgentIcon,
   "/inputs/touch": TouchIcon,
   "/inputs/pointer": PointerIcon,
   "/inputs/keyboard": KeyboardInputIcon,

@@ -12,7 +12,8 @@ document or code, opens in the inspector beside it.
   `ShellScroll`, and the composer stays pinned below it.
 - **What the AI makes** opens in a `ShellInspector`. A card in the transcript opens it again
   after it's closed.
-- **When space runs out,** the inspector gives way first. The conversation never does.
+- **When space runs out,** the inspector gives way first: on a narrow window it opens over the
+  conversation and closes to give it back.
 
 ## The assistant
 
@@ -21,13 +22,15 @@ inspector.
 
 <Example name="ai.assistant" />
 
-- **Several chats** are tabs in the inspector's band.
+- **Several chats** are tabs in the inspector's band. The inspector is the `Tabs` root, so each
+  chat's transcript is its tab's panel.
 - **The transcript** fills the inspector's scroller, and the composer is pinned to its foot.
-- **When space runs out,** the chat gives way first. The work never does.
+- **When space runs out,** the chat gives way first: on a narrow window it opens over the work
+  and closes to give it back.
 
 ## Rules for both
 
 - **Label the AI.** Every reply says it came from the assistant, so no one mistakes it for a
   person.
-- **What the AI makes stays beside the conversation.** It opens in its own pane, never on top of
-  the chat.
+- **What the AI makes has its own pane.** It opens beside the conversation, never inside the
+  transcript.
