@@ -4,7 +4,8 @@
  * not mean bad"). One duration and one curve, stated here until a second consumer promotes
  * them to tokens. What changes moves, and what stays stays still (2026-11-03):
  *
- * - The screen does not move: it appears once the panel has taken its new height.
+ * - The screen and the panel's height change at once, without motion (2026-11-03, Kushagra:
+ *   "Remove motion on content", then "skip the dialog animation too").
  * - The band's title glides the way the stack went; Back fades where it appears; Close never moves.
  * - The curve decelerates hard (quick start, long settle), so a short move reads as arriving
  *   rather than drifting.
@@ -30,31 +31,10 @@
   min-block-size: 0;
 }
 
-/* While the box eases to a new height, what does not fit yet is clipped at its block edges, and
-   only those: the screen sliding in still shows its full width. The margin keeps a card's
-   shadow from being cut. */
-/* A screen arriving while the box resizes waits for it, held at its first frame. */
-.kui-navigator[data-await][data-direction] > .kui-navigator-level {
-  /* Most of the way, not all of it: on this curve the panel has all but landed at 60%. */
-  animation-delay: calc(0.6 * var(--kui-navigator-duration));
-}
-
-.kui-navigator[data-sizing] {
-  overflow-y: clip;
-  overflow-clip-margin: var(--layout-space-2);
-}
-
 .kui-navigator-level {
   display: flex;
   flex-direction: column;
   min-block-size: 0;
-}
-
-/* THE SCREEN DOES NOT MOVE (2026-11-03, Kushagra: "It seems to be moving as a block ... Remove
-   motion on content"). It is simply there, once the panel has its new height: held unseen while
-   the panel resizes, so it is never cut, then shown in one frame (no duration). */
-.kui-navigator[data-direction] > .kui-navigator-level {
-  animation: kui-navigator-in 0s linear both;
 }
 
 .kui-navigator:dir(rtl),
@@ -77,9 +57,6 @@
   .kui-navigator-bar:dir(rtl) {
     --kui-navigator-travel: calc(0 * var(--layout-space-7));
     --kui-navigator-blur: calc(0 * var(--space-1));
-  }
-  .kui-navigator[data-await][data-direction] > .kui-navigator-level {
-    animation-delay: 160ms;
   }
   .kui-navigator-bar[data-direction] .kui-navigator-back,
   .kui-navigator-bar[data-direction] .kui-navigator-title,

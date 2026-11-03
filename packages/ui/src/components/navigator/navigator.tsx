@@ -187,62 +187,10 @@ export function Navigator<T>({
     }
   }, [path.length]);
 
-  // THE PANEL FOLLOWS THE SCREEN'S HEIGHT, EASED (2026-11-03, Kushagra: "Yes" to the dialog
-  // easing to its new height). Screens differ in height, and a panel that snapped to the new one
-  // in a frame was the last jump in a flow whose band and content both ease. On each step the
-  // box runs from the height it had to the height it has, on the screen's own curve, and the
-  // screen waits for it (Kushagra: "Preferably, dialog resizes, then content fades in"); between
-  // steps it is free to follow its content. In a pane the scroller fills the pane, so nothing
-  // here changes size.
-  const box = React.useRef<HTMLDivElement>(null);
-  const height = React.useRef<number | null>(null);
-  const sizing = React.useRef<Animation | null>(null);
-  React.useLayoutEffect(() => {
-    const el = box.current;
-    if (!el || inPane) return;
-    const observer = new ResizeObserver(() => {
-      if (!sizing.current) height.current = el.getBoundingClientRect().height;
-    });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [inPane]);
-  React.useLayoutEffect(() => {
-    const el = box.current;
-    if (!el || inPane || step === 0) return;
-    // Mid-step, start from where the last one has got to.
-    const from = sizing.current ? el.getBoundingClientRect().height : height.current;
-    sizing.current?.cancel();
-    const to = el.getBoundingClientRect().height;
-    height.current = to;
-    sizing.current = null;
-    delete el.dataset.sizing;
-    delete el.dataset.await;
-    if (from === null || Math.abs(from - to) < 1) return;
-    const css = getComputedStyle(el);
-    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const run = el.animate([{ height: `${from}px` }, { height: `${to}px` }], {
-      duration: still ? 160 : milliseconds(css.getPropertyValue("--kui-navigator-duration")),
-      easing: css.getPropertyValue("--kui-navigator-ease").trim(),
-    });
-    sizing.current = run;
-    el.dataset.sizing = "";
-    // The panel takes its new size first, and the screen comes in after, so it is never cut.
-    el.dataset.await = "";
-    run.finished.then(
-      () => {
-        if (sizing.current !== run) return;
-        sizing.current = null;
-        delete el.dataset.sizing;
-      },
-      () => {},
-    );
-  }, [step, inPane]);
-
   const levels = [root, ...path.map((value) => screen(value))];
   const top = levels.length - 1;
   const screens = (
     <div
-      ref={box}
       className={className ? `kui-navigator ${className}` : "kui-navigator"}
       data-direction={direction ?? undefined}
       style={style}
@@ -260,8 +208,8 @@ export function Navigator<T>({
   );
   // ONE BAND FOR THE STACK (2026-11-03, Kushagra: "Why is that which is fixed per screen
   // animating?"). Outside a pane the band belongs to the navigator, not to each screen, so
-  // what stays the same across a step — Close, and Back after the first — stays still, and only
-  // the screen under it moves. In a pane the pane's own band does this job.
+  // what stays the same across a step — Close, and Back after the first — stays still. In a
+  // pane the pane's own band does this job.
   const outlet = inPane ? (
     screens
   ) : (
@@ -278,12 +226,6 @@ export function Navigator<T>({
       </OutletContext.Provider>
     </NavigatorContext.Provider>
   );
-}
-
-/** A CSS time as milliseconds. The bundler writes `320ms` as `.32s`, so the unit is read. */
-function milliseconds(time: string): number {
-  const value = time.trim();
-  return value.endsWith("ms") ? parseFloat(value) : parseFloat(value) * 1000;
 }
 
 const OutletContext = React.createContext<React.ReactNode>(null);
