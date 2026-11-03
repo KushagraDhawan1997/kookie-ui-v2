@@ -437,6 +437,39 @@ body {
   }
 }
 
+/* WHERE IT STOPS AT THE CONTENTS, ITS END IS A CORNER (2026-11-03, Kushagra: "have the exposed
+   right edge have corners"). The band runs to the pane's start edge, so that side stays square,
+   and its end, which stops short of the "On this page" column, is rounded like a Surface's. The
+   lines are the band's own border here, so they turn the corner; the two hairlines a full-bleed
+   band draws step aside. Once the contents column goes away, the band reaches the pane's end
+   edge too and both ends are square again. */
+.kd-figure > .kd-band {
+  border: var(--border-width) solid var(--color-border);
+  border-inline-start: 0;
+  border-start-end-radius: var(--radius-surface-2);
+  border-end-end-radius: var(--radius-surface-2);
+}
+
+.kd-figure > .kd-band::before,
+.kd-figure > .kd-band::after {
+  content: none;
+}
+
+@supports (corner-shape: squircle) {
+  .kd-figure > .kd-band {
+    border-start-end-radius: calc(var(--radius-surface-2) * 1.613);
+    border-end-end-radius: calc(var(--radius-surface-2) * 1.613);
+    corner-shape: squircle;
+  }
+}
+
+@media (max-width: 64rem) {
+  .kd-figure > .kd-band {
+    border-inline-end: 0;
+    border-radius: 0;
+  }
+}
+
 .kd-figure > .kd-band > .kd-band-stage:not(:has(> .kd-band-pair, > .kd-band-devices)) {
   padding-inline-start: calc(var(--kd-out) + var(--kui-sf-p));
 }
