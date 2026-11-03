@@ -133,6 +133,7 @@ export {
   ShellNavGroup,
   ShellNavItem,
   ShellTrigger,
+  ShellBack,
   type ShellProps,
   type ShellNoticeProps,
   type ShellHeaderProps,
@@ -150,6 +151,8 @@ export {
   type ShellNavGroupProps,
   type ShellNavItemProps,
   type ShellTriggerProps,
+  type ShellBackProps,
+  type ShellStackView,
   type ShellPaneTarget,
   type ShellPresentation,
 } from "./components/shell/shell.tsx";
