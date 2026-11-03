@@ -451,6 +451,7 @@ import ToolbarGroupsExample from "./toolbar.groups";
 import ToolbarSizesExample from "./toolbar.sizes";
 import ToolbarVerticalExample from "./toolbar.vertical";
 import ToolbarOverflowExample from "./toolbar.overflow";
+import ToolbarOverflowRankExample from "./toolbar.overflow-rank";
 import ToolbarWithMenuExample from "./toolbar.with-menu";
 import ToolbarDisabledExample from "./toolbar.disabled";
 import TooltipIconButtonsExample from "./tooltip.icon-buttons";
@@ -894,6 +895,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "toolbar.sizes": ToolbarSizesExample,
   "toolbar.vertical": ToolbarVerticalExample,
   "toolbar.overflow": ToolbarOverflowExample,
+  "toolbar.overflow-rank": ToolbarOverflowRankExample,
   "toolbar.with-menu": ToolbarWithMenuExample,
   "toolbar.disabled": ToolbarDisabledExample,
   "tooltip.icon-buttons": TooltipIconButtonsExample,
