@@ -445,7 +445,7 @@ export default function Example() {
 
 ### Overflow by rank
 
-Wrap a control in a `ToolbarOverflowItem` with a `rank` to choose when it leaves. The lowest rank moves into the menu first, so Publish, the action this band exists for, stays in the row longest.
+Wrap a control in a `ToolbarOverflowItem` with a `rank` to choose when it leaves. The lowest rank moves into the menu first, so Publish, the action the screen exists for, stays in the row longest.
 
 ```tsx
 import { HugeiconsIcon } from "@hugeicons/react";
