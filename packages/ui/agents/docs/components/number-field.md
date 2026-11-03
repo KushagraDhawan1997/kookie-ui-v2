@@ -262,7 +262,7 @@ export default function Example() {
 ```tsx
 "use client";
 
-import { Card, NumberField, NumberFieldGroup, Stack, Text } from "@kushagradhawan/kookie-ui-react";
+import { Box, Card, NumberField, NumberFieldGroup, Stack, Text } from "@kushagradhawan/kookie-ui-react";
 
 const TRANSFORM = [
   { label: "Position", unit: { style: "unit", unit: "centimeter", unitDisplay: "narrow" }, values: [12, 0, -4] },
@@ -275,29 +275,31 @@ const TRANSFORM = [
 // takes one step per drag. Each group is one thing to read, so its three fields share borders.
 export default function Example() {
   return (
-    <Card size="2" style={{ maxWidth: "20rem" }}>
-      <Stack gap="5">
-        {TRANSFORM.map((row) => (
-          <Stack key={row.label} gap="2">
-            <Text size="2" emphasis="medium">
-              {row.label}
-            </Text>
-            <NumberFieldGroup label={row.label}>
-              {(["X", "Y", "Z"] as const).map((axis, i) => (
-                <NumberField
-                  key={axis}
-                  scrub={axis}
-                  aria-label={axis}
-                  defaultValue={row.values[i]}
-                  step={row.label === "Scale" ? 0.1 : 1}
-                  {...(row.unit ? { format: row.unit } : {})}
-                />
-              ))}
-            </NumberFieldGroup>
-          </Stack>
-        ))}
-      </Stack>
-    </Card>
+    <Box maxWidth="20rem">
+      <Card size="2">
+        <Stack gap="5">
+          {TRANSFORM.map((row) => (
+            <Stack key={row.label} gap="3">
+              <Text size="2" emphasis="medium">
+                {row.label}
+              </Text>
+              <NumberFieldGroup label={row.label}>
+                {(["X", "Y", "Z"] as const).map((axis, i) => (
+                  <NumberField
+                    key={axis}
+                    scrub={axis}
+                    aria-label={axis}
+                    defaultValue={row.values[i]}
+                    step={row.label === "Scale" ? 0.1 : 1}
+                    {...(row.unit ? { format: row.unit } : {})}
+                  />
+                ))}
+              </NumberFieldGroup>
+            </Stack>
+          ))}
+        </Stack>
+      </Card>
+    </Box>
   );
 }
 ```
