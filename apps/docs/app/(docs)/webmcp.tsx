@@ -2,7 +2,7 @@
 
 import * as React from "react";
 
-import type { Host } from "./webmcp-register";
+import type { Host, WebTool } from "./webmcp-register";
 
 /**
  * THE MOUNT (§47). Everything this file does happens after paint, or does not happen.
@@ -39,8 +39,16 @@ type Polyfill = { initializeWebMCPPolyfill?: () => void; cleanupWebMCPPolyfill?:
     a capability that survives a reload is one a reader cannot get rid of by reloading. */
 const OPT_IN = "webmcp";
 
-export function WebMcp() {
+/**
+ * Offer a page's tools to an agent in the browser, and say whether a host took them. The docs
+ * pages offer their four through `WebMcp` below; the builder offers its own three through the
+ * same door (2026-11-03), so the opt-in, the native-first rule and the teardown live once.
+ * `load` runs only once a host exists, so a page's tools cost nothing on a visit without one.
+ */
+export function useWebMcpHost(load: (signal: AbortSignal) => Promise<readonly WebTool[]>): Host | null {
   const [host, setHost] = React.useState<Host | null>(null);
+  const loadRef = React.useRef(load);
+  loadRef.current = load;
 
   React.useEffect(() => {
     const controller = new AbortController();
@@ -76,28 +84,13 @@ export function WebMcp() {
         // It costs one chunk to find out, on a load the reader explicitly asked for.
       }
 
-      const [{ buildTools }, { registerTools }] = await Promise.all([
-        import("./agent-tools"),
+      const [{ registerTools }, tools] = await Promise.all([
         import("./webmcp-register"),
+        loadRef.current(controller.signal),
       ]);
       if (!live) return;
 
-      const registered = await registerTools(
-        scope,
-        buildTools({
-          /* The page fetching its own twin. Same origin, so no CORS and no configured base
-             URL — this repo has no site URL anywhere, and the one place that needs an origin
-             reads it off the request rather than from a constant (`llms.ts`). */
-          fetchText: async (path) => {
-            const response = await fetch(path, { signal: controller.signal });
-            if (!response.ok) throw new Error(String(response.status));
-            return response.text();
-          },
-          tokenNames,
-          resolveToken,
-        }),
-        { signal: controller.signal },
-      );
+      const registered = await registerTools(scope, tools, { signal: controller.signal });
       if (live) setHost(registered);
     })();
 
@@ -113,6 +106,28 @@ export function WebMcp() {
     };
   }, []);
 
+  return host;
+}
+
+/** The docs pages' four read-only tools. */
+async function docsTools(signal: AbortSignal): Promise<readonly WebTool[]> {
+  const { buildTools } = await import("./agent-tools");
+  return buildTools({
+          /* The page fetching its own twin. Same origin, so no CORS and no configured base
+             URL — this repo has no site URL anywhere, and the one place that needs an origin
+             reads it off the request rather than from a constant (`llms.ts`). */
+    fetchText: async (path) => {
+      const response = await fetch(path, { signal });
+      if (!response.ok) throw new Error(String(response.status));
+      return response.text();
+    },
+    tokenNames,
+    resolveToken,
+  });
+}
+
+export function WebMcp() {
+  const host = useWebMcpHost(docsTools);
   if (!host) return null;
 
   /* ONE SENTENCE, IN THE FOOTER'S OWN VOICE. It is inside the footer's `note`, which is already
