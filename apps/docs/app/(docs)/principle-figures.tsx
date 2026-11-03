@@ -1,6 +1,6 @@
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { BookmarkAdd01Icon, Cancel01Icon, FavouriteIcon, InformationCircleIcon, NoteEditIcon, Share08Icon, TextFontIcon, Tick02Icon } from "@hugeicons/core-free-icons";
+import { BookmarkAdd01Icon, Cancel01Icon, ComputerIcon, SmartPhone01Icon, FavouriteIcon, InformationCircleIcon, NoteEditIcon, Share08Icon, TextFontIcon, Tick02Icon } from "@hugeicons/core-free-icons";
 import {
   Badge,
   Box,
@@ -522,18 +522,15 @@ export function CompositionFigure() {
                   tools on the material, so the one loud thing stays on the canvas. */}
               <ShellPaneHeader float>
                 <Toolbar backdrop>
-                  <Flex align="center" gap="2">
-                    <ToolbarButton iconOnly aria-label="Layers">
-                      <PanelLeftIcon />
-                    </ToolbarButton>
-                    <ToolbarTitle>Pay</ToolbarTitle>
-                  </Flex>
+                  <ToolbarTitle>Pay</ToolbarTitle>
+                  {/* The Builder's own band (hero.tsx): the screen's name, and the width it is
+                      previewed at. No tool for a pane this figure doesn't draw. */}
                   <ToolbarGroup>
-                    <ToolbarButton iconOnly aria-label="Undo">
-                      <UndoIcon />
+                    <ToolbarButton iconOnly aria-label="Desktop">
+                      <HugeiconsIcon icon={ComputerIcon} strokeWidth={iconStroke} aria-hidden />
                     </ToolbarButton>
-                    <ToolbarButton iconOnly aria-label="Redo">
-                      <RedoIcon />
+                    <ToolbarButton iconOnly aria-label="Phone">
+                      <HugeiconsIcon icon={SmartPhone01Icon} strokeWidth={iconStroke} aria-hidden />
                     </ToolbarButton>
                   </ToolbarGroup>
                 </Toolbar>
