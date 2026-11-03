@@ -38,12 +38,12 @@ import { alternateLink, markdownRoute, prefersMarkdown } from "./app/(docs)/nego
  * which is what makes a new section fail CI rather than quietly lose its twin.
  *
  * Every path this site serves a twin for is two segments: a chapter carries its section
- * (`start/installation`), and components and blocks carry theirs. The dot exclusion keeps
+ * (`build/installation`), and components and blocks carry theirs. The dot exclusion keeps
  * `/components/button.md` out — middleware runs BEFORE `next.config.ts`'s rewrites, so the
  * twin's own URL arrives here first and must be left to the route it already has.
  */
 export const config = {
-  matcher: ["/((?:start|concepts|foundations|patterns|components|blocks)/[^/.]+)"],
+  matcher: ["/((?:start|build|concepts|foundations|patterns|inputs|components|blocks)/[^/.]+)"],
 };
 
 export function middleware(request: NextRequest): NextResponse {

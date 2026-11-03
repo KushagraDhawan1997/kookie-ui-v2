@@ -727,3 +727,58 @@ describe("a press outranks every rule that lights a row (audit 2026-09-01)", () 
     expect(pressed, "a held highlighted row paints its press, not its highlight").not.toBe(litFill);
   });
 });
+
+describe("a standing row's label breaks between words, never inside one (2026-11-02)", () => {
+  // Found in a settings figure: a Row whose trailing slot held a SegmentedControl, in a narrow
+  // window, broke its label "Mode" into "Mo / de". A label may wrap, but only at a space, and a
+  // control beside it does not squeeze it below its longest word.
+  it("keeps a one-word label on one line beside a wide trailing control", async () => {
+    const { SegmentedControl, SegmentedItem } = await import("../segmented-control/segmented-control.tsx");
+    const root = mounted(
+      <div style={{ inlineSize: "180px" }}>
+        <Row
+          render={<div />}
+          trailing={
+            <SegmentedControl defaultValue="a" aria-label="Mode">
+              <SegmentedItem value="a">System</SegmentedItem>
+              <SegmentedItem value="b">Light</SegmentedItem>
+              <SegmentedItem value="c">Dark</SegmentedItem>
+            </SegmentedControl>
+          }
+        >
+          Mode
+        </Row>
+      </div>,
+      { theme: {} },
+    );
+    const row = root.querySelector<HTMLElement>(".kui-row")!;
+    const text = [...row.childNodes].find((n) => n.nodeType === Node.TEXT_NODE && n.textContent?.trim() === "Mode")!;
+    const range = document.createRange();
+    range.selectNodeContents(text);
+    const lines = new Set([...range.getClientRects()].map((r) => Math.round(r.top)));
+    expect(lines.size, "the word broke across lines").toBe(1);
+  });
+});
+
+describe("a standing row's text sits on its container's axis; the fill hangs outside (2026-11-02)", () => {
+  // RULES.md 15. A row padded its words inward by its own inline padding, so its text sat one
+  // padding right of the edge a label or a divider uses. The row now reaches out by that padding.
+  it("in a card, the row's first glyph starts at the card's content edge", async () => {
+    const { Card } = await import("../card/card.tsx");
+    const root = mounted(
+      <Card>
+        <Row render={<div />}>Lisbon</Row>
+      </Card>,
+      { theme: {} },
+    );
+    const card = (root.matches(".kui-card") ? root : root.querySelector<HTMLElement>(".kui-card"))!;
+    const row = root.querySelector<HTMLElement>(".kui-row")!;
+    const cs = getComputedStyle(card);
+    const contentEdge =
+      card.getBoundingClientRect().left + parseFloat(cs.borderLeftWidth) + parseFloat(cs.paddingLeft);
+    const text = document.createRange();
+    text.selectNodeContents([...row.childNodes].find((n) => n.nodeType === Node.TEXT_NODE)!);
+    expect(Math.abs(text.getBoundingClientRect().left - contentEdge), "the text is off the axis").toBeLessThan(1);
+    expect(row.getBoundingClientRect().left, "the fill does not hang outside").toBeLessThan(contentEdge - 1);
+  });
+});

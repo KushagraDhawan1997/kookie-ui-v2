@@ -101,7 +101,7 @@ export default function Example() {
         Changelog <Badge aria-label="New entries" />
       </Text>
       <Text>
-        Billing <Badge tone="destructive" aria-label="Payment failed" />
+        Billing <Badge tone="destructive" aria-label="Payment failed">!</Badge>
       </Text>
     </Flex>
   );
@@ -226,7 +226,7 @@ export default function Example() {
       </Row>
       <Row trailing={<Badge tone="neutral">2</Badge>}>Drafts</Row>
       <Row>Sent</Row>
-      <Row trailing={<Badge tone="destructive" aria-label="Delivery failed" />}>Outbox</Row>
+      <Row trailing={<Badge tone="destructive" aria-label="Delivery failed">!</Badge>}>Outbox</Row>
     </Stack>
   );
 }

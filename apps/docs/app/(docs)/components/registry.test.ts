@@ -402,6 +402,7 @@ describe("every entry has a live specimen, and every specimen belongs to an entr
         (entry.variants ?? []).map((variant) => `${entry.slug}.${variant.name}`),
       ),
       ...CHAPTERS.flatMap((chapter) => chapter.examples ?? []),
+      ...PAIRS.flatMap((pair) => (pair.example ? [pair.example] : [])),
     ]);
     expect(Object.keys(EXAMPLES).filter((name) => !known.has(name))).toEqual([]);
   });

@@ -34,8 +34,10 @@ export type NoticeProps = ComponentRefusals & {
    */
   tone?: Tone;
   /**
-   * An icon shown before the message. The package has no icons, so bring one from your own
-   * icon set. The icon is hidden from assistive technology, so put the meaning in the words.
+   * An icon shown before the message. A `warning`, `destructive`, `info` or `success` notice
+   * shows its tone's mark by default, so the category never rests on colour alone. Pass your
+   * own icon to replace it, or `null` to show none. The icon is hidden from assistive
+   * technology, so put the meaning in the words.
    */
   icon?: React.ReactNode;
   /**
@@ -69,6 +71,49 @@ export type NoticeProps = ComponentRefusals & {
     so the painted weight is `iconStroke × 16 / iconGrid`; the literal stopped being this
     glyph's weight when the stroke was derived (2026-08-23), and a reader copying it into the
     next package glyph would hand-write a heavier line than everything around it. */
+/** The status marks a `Notice` shows by default. One component draws them, so they live here
+    until a second one does (glyphs.ts's rule) (2026-11-01, Kushagra: "Yes" to the icon
+    audit's question). A tone is a colour, and colour alone is WCAG 1.4.1's own failure, so each
+    status tone also gets a SHAPE: a triangle says take care, a circle says this is a fact about
+    the state, and the mark inside says which. Same grid, same stroke and caps as the tick. The
+    dot of each mark is a zero-length stroke, which a round cap draws as a dot the stroke's
+    width. */
+const STATUS_RING_PATH = "M14 8A6 6 0 1 1 2 8A6 6 0 1 1 14 8Z";
+const WARNING_PATH = "M7.13 3.02a1 1 0 0 1 1.74 0l5.2 9.5a1 1 0 0 1-.87 1.48H2.8a1 1 0 0 1-.87-1.48ZM8 6.75v2.75M8 11.75v.01";
+const ERROR_MARK_PATH = "M8 5v3.5M8 10.75v.01";
+const INFO_MARK_PATH = "M8 7.5v3.5M8 5.25v.01";
+const SUCCESS_MARK_PATH = "M5.5 8.25 7.25 10 10.75 6.25";
+
+/** The mark a status tone shows when the caller passes no `icon`. Neutral and the data
+    families have no status, so they show nothing. */
+function toneGlyph(tone: Tone): React.ReactNode {
+  const paths =
+    tone === "warning"
+      ? [WARNING_PATH]
+      : tone === "destructive"
+        ? [STATUS_RING_PATH, ERROR_MARK_PATH]
+        : tone === "info"
+          ? [STATUS_RING_PATH, INFO_MARK_PATH]
+          : tone === "success"
+            ? [STATUS_RING_PATH, SUCCESS_MARK_PATH]
+            : null;
+  if (!paths) return null;
+  return (
+    <svg viewBox={GLYPH_VIEWBOX} fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      {paths.map((d) => (
+        <path
+          key={d}
+          d={d}
+          stroke="currentColor"
+          strokeWidth={glyphStroke}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      ))}
+    </svg>
+  );
+}
+
 function dismissGlyph() {
   return (
     <svg viewBox={GLYPH_VIEWBOX} fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
@@ -143,6 +188,9 @@ export function Notice({
   // displacement map on every keystroke or hover anywhere above the notice. Card and Shell
   // were found with the identical defect (2026-08-26).
   const lensRef = useLensRef<HTMLElement>(material, ref as React.Ref<HTMLElement>);
+  // `undefined` means the caller said nothing, so a status tone draws its mark; `null` is an
+  // explicit "no icon".
+  const shown = icon === undefined ? toneGlyph(tone) : icon;
   const strip = (
     <div
       {...props}
@@ -160,9 +208,9 @@ export function Notice({
       data-material={material === "solid" ? undefined : material}
       style={style}
     >
-      {icon ? (
+      {shown ? (
         <span className="kui-notice-icon" aria-hidden>
-          {icon}
+          {shown}
         </span>
       ) : null}
       {/* The message is the SYSTEM's type, which is why the index reaches it (§15, §29). A

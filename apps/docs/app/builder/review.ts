@@ -46,6 +46,7 @@ import {
   type BuilderNode,
   type PropValue,
 } from "./model";
+import { RULE_ENTRIES } from "./rules";
 
 export type Severity = "error" | "warning";
 
@@ -213,13 +214,20 @@ const label = (n: BuilderNode): string => (n.text?.trim() ? `“${n.text.trim().
 /** The type family's own size prop rides `typeSize`; a control's rides `size`. */
 const TYPE_TYPES = new Set(["Text", "Heading", "Blockquote", "Code", "Kbd"]);
 
+/** One rule's words, from the shared list (`rules.json`, 2026-11-02). The screen check
+    (`scripts/review-ui`) reads the same list, so a rule both of them enforce has one title,
+    one severity and one reason, and a law (`rules.test.ts`) keeps the list and both
+    checkers in step. Only the detection lives here. */
+type RuleWords = Pick<Rule, "id" | "title" | "severity" | "why">;
+const meta = (id: string): RuleWords => {
+  const entry = RULE_ENTRIES.find((r) => r.id === id);
+  if (!entry?.checkedBy.includes("builder")) throw new Error(`rules.json has no builder rule "${id}"`);
+  return { id: entry.id, title: entry.title, severity: entry.severity, why: entry.why };
+};
+
 export const RULES: Rule[] = [
   {
-    id: "one-figure",
-    title: "One focal action per screen",
-    severity: "warning",
-    why:
-      "Boldness is spent exactly once. Two loud actions on one screen means neither is the point. Make the second one medium and the composition still says which is which. A dialog or a menu is its own screen, and two tab panels are never on screen together.",
+    ...meta("one-figure"),
     run: ({ all }) => {
       // `at` is the DOCUMENT-ORDER index, captured here. Sorting by `all.indexOf(copy)`
       // looked equivalent and was dead: these are spread COPIES, so indexOf answered -1 for
@@ -263,11 +271,7 @@ export const RULES: Rule[] = [
     },
   },
   {
-    id: "size-1-retired",
-    title: "size 1 is retired from composed surfaces",
-    severity: "warning",
-    why:
-      "12px is for genuinely marginal text. The muted and faint ink roles already say \"this matters less\" at a readable size, so shrinking the text as well says it twice and costs legibility.",
+    ...meta("size-1-retired"),
     run: ({ all }) =>
       all
         .filter(({ node }) => TYPE_TYPES.has(node.type) && str(node.props.size) === "1")
@@ -285,11 +289,7 @@ export const RULES: Rule[] = [
         })),
   },
   {
-    id: "accessible-name",
-    title: "Every control states its name",
-    severity: "error",
-    why:
-      "A control the eye reads from its glyph is a control a screen reader cannot read at all. A mark refuses children on purpose, because its label is a sibling, so the accessible name has to be stated (WCAG 4.1.2).",
+    ...meta("accessible-name"),
     run: ({ all }) => {
       const needsName = (n: BuilderNode): boolean => {
         if (str(n.props["aria-label"])?.trim()) return false;
@@ -318,11 +318,7 @@ export const RULES: Rule[] = [
     },
   },
   {
-    id: "empty-container",
-    title: "An empty container draws nothing",
-    severity: "warning",
-    why:
-      "A layout with nothing in it still takes its padding and its place in the rhythm. It reads as a mistake to the eye and as noise in the exported code. Fill it or cut it.",
+    ...meta("empty-container"),
     run: ({ all }) =>
       all
         // An empty document is a legitimate state, and the canvas cannot be cut.
@@ -335,11 +331,7 @@ export const RULES: Rule[] = [
         })),
   },
   {
-    id: "empty-compound",
-    title: "A compound with no parts is a broken control",
-    severity: "error",
-    why:
-      "An empty layout is untidy. An empty compound is broken. A choice control with no choices, a tab that leads nowhere and a dialog with no content each render as a control the eye can see and nobody can use.",
+    ...meta("empty-compound"),
     run: ({ all }) =>
       all
         .filter(
@@ -356,11 +348,7 @@ export const RULES: Rule[] = [
         })),
   },
   {
-    id: "single-child-layout",
-    title: "A layout around one thing is not a layout",
-    severity: "warning",
-    why:
-      "A gap needs two things to sit between, so a layout holding one child and saying nothing but `gap` sets a distance nothing uses. A layout that also aligns, justifies or pads is doing real work with one child, such as right-aligning a lone Save button, and is left alone.",
+    ...meta("single-child-layout"),
     run: ({ all }) =>
       all
         // A canvas holding one root is the most ordinary document there is, and "unwrap it"
@@ -380,11 +368,7 @@ export const RULES: Rule[] = [
         })),
   },
   {
-    id: "flat-rhythm",
-    title: "Distance is relationship",
-    severity: "warning",
-    why:
-      "Things that belong together sit closer than things that do not. The gap inside a group has to be at least two steps under the gap around it, or the eye reads one undifferentiated column. Only distances on the same axis compete, because no eye measures a row's internal gap against the column rhythm around it. And only a group counts against the rhythm it sits in: a section at gap 6 holding groups at gap 5 is two distances between groups, which is the house interval rather than a fault.",
+    ...meta("flat-rhythm"),
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node } of all) {
@@ -432,11 +416,7 @@ export const RULES: Rule[] = [
     },
   },
   {
-    id: "heading-space",
-    title: "Space around a heading is asymmetric",
-    severity: "warning",
-    why:
-      "A heading belongs to what follows it: generous above, tight below, roughly three to four times one against the other. The common failure is one uniform gap, which leaves the heading floating between two blocks and belonging to neither.",
+    ...meta("heading-space"),
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node } of all) {
@@ -486,11 +466,7 @@ export const RULES: Rule[] = [
     },
   },
   {
-    id: "mixed-control-sizes",
-    title: "Same role, same treatment",
-    severity: "warning",
-    why:
-      "Controls sitting in one row do one job, so they take one size. Two sizes for one job is a difference the reader has to work out. The reference is what most of the row says: matching the majority to whichever control happens to be first is how a fix makes a row worse.",
+    ...meta("mixed-control-sizes"),
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node } of all) {
@@ -522,11 +498,7 @@ export const RULES: Rule[] = [
     },
   },
   {
-    id: "control-scale",
-    title: "A control matches the surface it sits on",
-    severity: "warning",
-    why:
-      "A size-3 dialog holds size-3 fields and buttons. A control two steps under its container reads as a mistake rather than as modesty.",
+    ...meta("control-scale"),
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node, parents } of all) {
@@ -550,11 +522,7 @@ export const RULES: Rule[] = [
     },
   },
   {
-    id: "tone-as-decoration",
-    title: "Tone is vocabulary, not decoration",
-    severity: "warning",
-    why:
-      "The ten families are colour as data, and `destructive`, `success` and `warning` each mean something. Four or more of them on one surface is a palette being enjoyed rather than a meaning being said. Three reads as a legend: a status set, or a three-series key.",
+    ...meta("tone-as-decoration"),
     run: ({ all }) => {
       const bySurface = new Map<string, { tones: Set<string>; node: BuilderNode }>();
       for (const { node, parents } of all) {
@@ -575,11 +543,7 @@ export const RULES: Rule[] = [
     },
   },
   {
-    id: "heading-ladder",
-    title: "A heading outranks its body",
-    severity: "warning",
-    why:
-      "Page 8, section 7, card title 6, body 3, label and meta 2. A heading at or below body size is a label wearing a heading's element.",
+    ...meta("heading-ladder"),
     run: ({ all }) =>
       all
         .filter(({ node }) => node.type === "Heading" && Number(str(node.props.size) ?? "6") <= 3)
@@ -592,11 +556,7 @@ export const RULES: Rule[] = [
         })),
   },
   {
-    id: "eyebrow",
-    title: "No eyebrows",
-    severity: "warning",
-    why:
-      "A title carries its own subject. A small label above it is two elements doing one element's job.",
+    ...meta("eyebrow"),
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node } of all) {
@@ -636,11 +596,7 @@ export const RULES: Rule[] = [
     },
   },
   {
-    id: "filler-text",
-    title: "The palette's own words are still in it",
-    severity: "warning",
-    why:
-      "The words are yours. A node still carrying the text the palette gave it is a node nobody has written yet, and that is what an unfinished export looks like to whoever reads it.",
+    ...meta("filler-text"),
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node } of all) {
@@ -657,11 +613,7 @@ export const RULES: Rule[] = [
     },
   },
   {
-    id: "zero-width-container",
-    title: "A measured Box needs something to measure",
-    severity: "error",
-    why:
-      "Containment makes a Box's contents stop contributing to its own width, so a `container` Box that is a row-flex item with nothing sizing it renders zero pixels wide and draws nothing at all. This is the defect that made containment opt-in.",
+    ...meta("zero-width-container"),
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node, parents } of all) {
@@ -682,11 +634,7 @@ export const RULES: Rule[] = [
     },
   },
   {
-    id: "nested-card",
-    title: "A card does not go inside a card",
-    severity: "error",
-    why:
-      "A Card is an object with its own plane: opaque and lifted in an elevated theme. Two of them stacked is an object standing on an object, which describes a relationship this system does not have. For a quiet region inside one card, use a `Surface`. For several objects on one ground, put the cards in a `Surface`. The grammar prevents this when you drop a node, but a document pasted or edited elsewhere can still arrive holding one.",
+    ...meta("nested-card"),
     run: ({ all }) =>
       all
         .filter(({ node, parents }) => node.type === "Card" && parents.some((p) => p.type === "Card"))
@@ -701,11 +649,7 @@ export const RULES: Rule[] = [
         })),
   },
   {
-    id: "orphan-part",
-    title: "A part needs its compound",
-    severity: "error",
-    why:
-      "The parts of a compound carry wiring as well as appearance: a title that is nobody's accessible name, or a row outside the list it belongs to. The grammar prevents this when you drop a node, but a document edited elsewhere can still arrive holding one.",
+    ...meta("orphan-part"),
     run: ({ all }) =>
       all
         .filter(({ node, parents }) => {
@@ -733,11 +677,7 @@ export const RULES: Rule[] = [
      alone can decide them. Each `why` names its source. */
 
   {
-    id: "placeholder-as-label",
-    title: "A placeholder is not a label",
-    severity: "warning",
-    why:
-      "Placeholder text disappears the moment someone types, so it cannot be the only thing that says what a field is for. It also reads as a value already filled in. Put the field in a Field with a FieldLabel (NN/g, WCAG 3.3.2).",
+    ...meta("placeholder-as-label"),
     run: ({ all }) =>
       all
         .filter(({ node, parents }) => {
@@ -756,11 +696,7 @@ export const RULES: Rule[] = [
         })),
   },
   {
-    id: "instructions-in-placeholder",
-    title: "Instructions do not go in a placeholder",
-    severity: "warning",
-    why:
-      "A format hint in a placeholder is gone as soon as typing starts, which is exactly when it is needed. Say the format in a FieldDescription, which stays (NN/g, GOV.UK).",
+    ...meta("instructions-in-placeholder"),
     run: ({ all }) =>
       all
         .filter(({ node, parents }) => {
@@ -772,11 +708,7 @@ export const RULES: Rule[] = [
         .map(({ node }) => ({ nodeId: node.id, message: `“${str(node.props.placeholder)}” is an instruction in a placeholder.` })),
   },
   {
-    id: "label-in-name",
-    title: "The spoken name contains the visible words",
-    severity: "error",
-    why:
-      "Someone using voice control says what they see. A button reading “Save” whose accessible name is “Store document” cannot be pressed by saying “Save”. The visible text must appear in the name, and usually the name should simply be the text (WCAG 2.5.3).",
+    ...meta("label-in-name"),
     run: ({ all }) =>
       all
         .filter(({ node }) => {
@@ -794,33 +726,21 @@ export const RULES: Rule[] = [
         })),
   },
   {
-    id: "empty-heading",
-    title: "A heading has words",
-    severity: "error",
-    why:
-      "An empty heading still puts an entry in the page outline, so a screen reader announces a heading with nothing in it and the outline has a hole (axe empty-heading).",
+    ...meta("empty-heading"),
     run: ({ all }) =>
       all
         .filter(({ node }) => ["Heading", "DialogTitle", "SheetTitle", "AlertDialogTitle", "PopoverTitle"].includes(node.type) && !node.text?.trim())
         .map(({ node }) => ({ nodeId: node.id, message: `${node.type} is empty.` })),
   },
   {
-    id: "single-radio",
-    title: "One radio cannot be turned off",
-    severity: "warning",
-    why:
-      "A radio is one answer among several. A group of one can be chosen and never unchosen, so it is a yes-or-no question asked with the wrong control. Use a Checkbox (GOV.UK).",
+    ...meta("single-radio"),
     run: ({ all }) =>
       all
         .filter(({ node }) => node.type === "RadioGroup" && walk(node.children ?? []).filter((e) => e.node.type === "Radio").length === 1)
         .map(({ node }) => ({ nodeId: node.id, message: "This RadioGroup holds a single Radio." })),
   },
   {
-    id: "radios-in-a-row",
-    title: "Radios sit in a row only when there are two",
-    severity: "warning",
-    why:
-      "Options in a row are read as one line and their labels run together. Two short options, like Yes and No, can share a row. Three or more stack, one option per line (GOV.UK).",
+    ...meta("radios-in-a-row"),
     run: ({ all }) =>
       all
         .filter(({ node, parents }) => {
@@ -838,11 +758,7 @@ export const RULES: Rule[] = [
         })),
   },
   {
-    id: "switch-in-a-form",
-    title: "A switch acts at once, so it does not wait for Save",
-    severity: "warning",
-    why:
-      "A switch says the change has already happened. Beside a Save button it says two opposite things, and people either leave without saving or wonder whether flipping it did anything. In a form that is submitted, use a Checkbox (NN/g).",
+    ...meta("switch-in-a-form"),
     run: ({ all }) => {
       const scopes = new Set([...SURFACES, "SheetContent", "PopoverContent"]);
       const out: RawFinding[] = [];
@@ -860,11 +776,7 @@ export const RULES: Rule[] = [
     },
   },
   {
-    id: "tabs-without-panels",
-    title: "Every tab has its panel",
-    severity: "error",
-    why:
-      "A tab is a promise that something is behind it. A tab with no panel of its value opens onto nothing, and a panel no tab names can never be reached (axe aria-required-children).",
+    ...meta("tabs-without-panels"),
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node } of all) {
@@ -885,22 +797,14 @@ export const RULES: Rule[] = [
     },
   },
   {
-    id: "single-tab",
-    title: "One tab switches to nothing",
-    severity: "warning",
-    why:
-      "Tabs exist to choose between views. A tab list with one tab is a heading dressed as a control, with nothing to switch to (NN/g).",
+    ...meta("single-tab"),
     run: ({ all }) =>
       all
         .filter(({ node }) => node.type === "TabsList" && (node.children ?? []).filter((c) => c.type === "TabsTab").length === 1)
         .map(({ node }) => ({ nodeId: node.id, message: "This tab list holds one tab." })),
   },
   {
-    id: "too-many-choices",
-    title: "A long flat list is slow to choose from",
-    severity: "warning",
-    why:
-      "The time to choose grows with the number of options (Hick's law). Past about seven tabs, five segments or nine menu items with no grouping, people scan instead of choosing. Group the menu, or move the options into a Select.",
+    ...meta("too-many-choices"),
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node } of all) {
@@ -916,11 +820,7 @@ export const RULES: Rule[] = [
     },
   },
   {
-    id: "table-headers",
-    title: "A table says what its columns are",
-    severity: "error",
-    why:
-      "A screen reader reads each cell with its column's header. A table with no header row, or a header cell with no words, leaves every value without its meaning (axe empty-table-header, WAI tables).",
+    ...meta("table-headers"),
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node } of all) {
@@ -934,11 +834,7 @@ export const RULES: Rule[] = [
     },
   },
   {
-    id: "breadcrumb-current-linked",
-    title: "The last crumb is where you are",
-    severity: "warning",
-    why:
-      "The last item in a breadcrumb is the current page. As a link it offers to take you where you already are. Make it a BreadcrumbPage (NN/g).",
+    ...meta("breadcrumb-current-linked"),
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node } of all) {
@@ -951,11 +847,7 @@ export const RULES: Rule[] = [
     },
   },
   {
-    id: "vague-action",
-    title: "An action says what it does",
-    severity: "warning",
-    why:
-      "“OK”, “Yes” and “Submit” make the reader go back and reread the question to know what they are agreeing to. “Delete project” can be pressed without rereading anything. A link that says “click here” or “learn more” means nothing out of context, and screen reader users often hear links out of context (Carbon, NN/g, WCAG 2.4.4).",
+    ...meta("vague-action"),
     run: ({ all }) =>
       all
         .filter(({ node }) => {
@@ -967,11 +859,7 @@ export const RULES: Rule[] = [
         .map(({ node }) => ({ nodeId: node.id, message: `${label(node)} does not say what happens.` })),
   },
   {
-    id: "long-action",
-    title: "An action is a verb and its object",
-    severity: "warning",
-    why:
-      "A button is read in a glance. Past three or four words it becomes a sentence, which belongs in the text beside it. A button is also not a sentence, so it ends without a period (Carbon).",
+    ...meta("long-action"),
     run: ({ all }) =>
       all
         .filter(({ node }) => {
@@ -982,11 +870,7 @@ export const RULES: Rule[] = [
         .map(({ node }) => ({ nodeId: node.id, message: `${label(node)} is a sentence, not an action.` })),
   },
   {
-    id: "way-back-as-loud",
-    title: "The way back is quieter than the way forward",
-    severity: "warning",
-    why:
-      "Cancel, Back and Close are escape routes, not goals. When they carry the same weight as Save or Continue, the reader has to read both labels to find the one that finishes the task (LukeW, primary and secondary actions).",
+    ...meta("way-back-as-loud"),
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node } of all) {
@@ -1009,11 +893,7 @@ export const RULES: Rule[] = [
     },
   },
   {
-    id: "reset-beside-submit",
-    title: "No reset beside submit",
-    severity: "warning",
-    why:
-      "A Reset or Clear button next to Submit is the easiest way to lose everything just typed, and almost nobody needs it. Leave it out (NN/g).",
+    ...meta("reset-beside-submit"),
     run: ({ all }) => {
       const out: RawFinding[] = [];
       for (const { node } of all) {
@@ -1028,11 +908,7 @@ export const RULES: Rule[] = [
     },
   },
   {
-    id: "negative-option",
-    title: "An option is stated in the positive",
-    severity: "warning",
-    why:
-      "“Don't send me emails”, left unticked, means send me emails, and the reader has to work that out. Say the positive, “Send me emails”, and let the tick carry the no (NN/g).",
+    ...meta("negative-option"),
     run: ({ all }) =>
       all
         .filter(({ node, parents }) => {
@@ -1044,11 +920,7 @@ export const RULES: Rule[] = [
         .map(({ node }) => ({ nodeId: node.id, message: `${label(node)} is phrased as a negative.` })),
   },
   {
-    id: "generic-error",
-    title: "An error says how to fix it",
-    severity: "warning",
-    why:
-      "“Invalid” tells someone they are wrong and not what to do about it. Say what went wrong and what to enter instead, such as “Enter an email address in the correct format, like name@example.com” (GOV.UK).",
+    ...meta("generic-error"),
     run: ({ all }) =>
       all
         .filter(
@@ -1059,11 +931,7 @@ export const RULES: Rule[] = [
         .map(({ node }) => ({ nodeId: node.id, message: `${label(node)} does not say how to fix it.` })),
   },
   {
-    id: "picture-without-alt",
-    title: "A picture of a person says who it is",
-    severity: "warning",
-    why:
-      "An avatar with a photo and no alternative text is announced as an unnamed image, or not at all, so the person in it is invisible to a screen reader (axe image-alt).",
+    ...meta("picture-without-alt"),
     run: ({ all }) =>
       all
         .filter(({ node }) => node.type === "Avatar" && !!str(node.props.src)?.trim() && !str(node.props.alt)?.trim())

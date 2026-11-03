@@ -114,8 +114,18 @@ from when they close.
 - **Alert:** It closes on Escape and on its two buttons. A press outside it does nothing, so an
   accidental click can't answer the question.
 
-A dialog has no close button in its corner. Put a `DialogClose` in every dialog, usually in the
-row of actions, because a screen reader user on a touch screen needs a button to leave.
+Every dialog, sheet and titled popover has a Close button at the trailing edge of its top band,
+even when it also has Cancel. A person should never have to hunt for the way out, and a screen
+reader user on a touch screen needs a button to leave. The band is a real `Toolbar`: Back at the
+leading edge when there is one, the title, then Close, and it sits one step closer to the panel's
+edge than the content does.
+
+## Flows inside a panel
+
+When a panel holds several screens in a row, such as choosing a plan and then paying, put the
+main action at the bottom of every screen at full width, including the first. It stays in the
+same place as a person moves through, so it's easy to find and easy to press. Any note sits above
+the button, never beside it.
 
 The theme shows where a covering panel ends, with a shadow or a line. See
 [Depth](/foundations/depth).

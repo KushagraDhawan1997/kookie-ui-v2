@@ -6,9 +6,11 @@ import { propDescription, propSummary, propType } from "./components/prop-descri
 import { blockLang, readBlockSource } from "./blocks/source";
 import { readChapterSource } from "./toc";
 import { readExampleSource } from "./example";
+import { iconSizesMarkdown } from "./icon-sizes";
 import { humanLabel } from "./label";
-import { RULES } from "../builder/review";
+import { RULE_ENTRIES, checkedBy } from "../builder/rules";
 import { FIGURE_CAPTIONS } from "./color-figures";
+import { PRINCIPLE_FIGURES } from "./principle-figures";
 import type { Entry } from "./components/registry";
 
 /**
@@ -117,18 +119,24 @@ const fence = (code: string, lang = "tsx"): string => `\`\`\`${lang}\n${code.tri
 function chapterMarkdown(chapter: { title: string; source: string }): string {
   const source = readChapterSource(chapter.source)
     .replace(/^\s*<ReviewRules\s*\/>\s*$/m, () =>
-      RULES.map(
-        (rule) => `### ${rule.title}\n\n\`${rule.id}\` · ${rule.severity}\n\n${rule.why}`,
+      RULE_ENTRIES.map(
+        (rule) =>
+          `### ${rule.title}\n\n\`${rule.id}\`, ${rule.severity}, checked by the ${checkedBy(rule.checkedBy)}\n\n${rule.why}`,
       ).join("\n\n"),
     )
     .replace(/^\s*<Example\s+name="([^"]+)"[^>]*\/>\s*$/gm, (_match, name: string) =>
       fence(readExampleSource(String(name))),
     )
-    // A figure draws the palette, so the twin carries what it asks the reader to look at.
-    .replace(/^\s*<(\w+)\s*\/>\s*$/gm, (match, name: string) =>
+    .replace(/^[ \t]*<IconSizes[ \t]*\/>[ \t]*$/m, () => iconSizesMarkdown())
+    // A figure is a picture, so the twin carries what it asks the reader to look at. Spaces
+    // only around the tag, never `\s`: that eats the blank lines and glues the sentence to the
+    // paragraphs on either side.
+    .replace(/^[ \t]*<(\w+)[ \t]*\/>[ \t]*$/gm, (match, name: string) =>
       name in FIGURE_CAPTIONS
         ? `*Figure, in light and dark.* ${FIGURE_CAPTIONS[name as keyof typeof FIGURE_CAPTIONS]}`
-        : match,
+        : name in PRINCIPLE_FIGURES
+          ? `*Figure.* ${PRINCIPLE_FIGURES[name as keyof typeof PRINCIPLE_FIGURES]}`
+          : match,
     );
   return `# ${chapter.title}\n\n${source.trim()}\n`;
 }

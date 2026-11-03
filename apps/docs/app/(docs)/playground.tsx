@@ -46,7 +46,7 @@ import { SpecimenView } from "../../blocks/specimen";
 const PANEL_SIZE = "2" as const;
 import { plainText, type CodeLine, type HighlightedCode } from "../../blocks/highlight";
 import { bed } from "../preview/beds";
-import { SettingsIcon } from "../icons";
+import { PropsIcon } from "../icons";
 import { humanLabel } from "./label";
 import { CONTROLLED } from "./controlled-examples";
 import { sentinel, slotKey, type Control, type ControlValues } from "./controls";
@@ -199,7 +199,7 @@ export function Playground({
                  this trigger and the copy button beside it cannot disagree. */
               render={
                 <ToolbarButton iconOnly aria-label="Props" backdrop>
-                  <SettingsIcon />
+                  <PropsIcon />
                 </ToolbarButton>
               }
             />

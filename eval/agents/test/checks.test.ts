@@ -64,7 +64,7 @@ test("every task names real checks, and every check is scored somewhere", () => 
     }
   }
   for (const id of ids) assert.ok(used.has(id), `${id} is scored by no task`);
-  assert.equal(TASKS.length, 8);
+  assert.equal(TASKS.length, 10);
 });
 
 test("no prompt names a component the rubric looks for", () => {

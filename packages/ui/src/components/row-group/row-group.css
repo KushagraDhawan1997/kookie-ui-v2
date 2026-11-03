@@ -1,0 +1,34 @@
+/* RowGroup (2026-11-02): a small label, a card of rows, an optional note.
+ *
+ * The label and the note sit at the rows' TEXT edge, not the card's, so the eye reads one
+ * column of words from the label down through the rows to the note. The label belongs to the
+ * card under it, so it sits closer to it than the group sits to anything else (the caller's gap
+ * between groups is larger). */
+.kui-row-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--layout-space-2);
+  min-inline-size: 0;
+}
+
+/* From the group's edge: the card's hairline and its padding, which is where the rows' text
+   sits now that a row's fill hangs outside its text. */
+.kui-row-group-label,
+.kui-row-group-note {
+  padding-inline: calc(var(--border-width) + var(--kui-rg-pad, var(--surface-p-2)));
+}
+
+.kui-row-group > .kui-row-group-rows {
+  display: flex;
+  flex-direction: column;
+  /* The rows bring their own air top and bottom (below), so the card adds only one step. */
+  padding-block: var(--layout-space-1);
+}
+
+/* The divider starts on the text axis, the card's content edge, and runs to the card's own edge,
+   so it reads as a break between items that the card's edge closes. */
+.kui-row-group-rows > .kui-row-group-divider {
+  inline-size: auto;
+  align-self: stretch;
+  margin-inline-end: calc(-1 * var(--kui-sf-p));
+}

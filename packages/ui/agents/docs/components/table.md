@@ -291,13 +291,16 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Download01Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
-  iconStroke,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
 const files = [
@@ -322,9 +325,16 @@ export default function Example() {
             <TableCell>{name}</TableCell>
             <TableCell align="end">{size}</TableCell>
             <TableCell align="end">
-              <Button emphasis="quiet" iconOnly aria-label={`Download ${name}`}>
-                <HugeiconsIcon icon={Download01Icon} strokeWidth={iconStroke} aria-hidden />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button emphasis="quiet" iconOnly aria-label={`Download ${name}`}>
+                      <HugeiconsIcon icon={Download01Icon} strokeWidth={iconStroke} aria-hidden />
+                    </Button>
+                  }
+                />
+                <TooltipContent>Download</TooltipContent>
+              </Tooltip>
             </TableCell>
           </TableRow>
         ))}

@@ -14,6 +14,8 @@
  */
 import * as React from "react";
 
+import { NoPageScope } from "./page.tsx";
+
 import { Theme, useThemeRooted } from "../theme/theme.tsx";
 import { DEV } from "./dev.ts";
 import { ListInkContext } from "./list-context.ts";
@@ -177,8 +179,11 @@ export function PortalScope({ children }: { children: React.ReactNode }) {
           (2026-08-16): what crosses into a panel is what the app said, never what the thing
           behind it happened to be doing. This is the only context in the package whose value is
           a claim about the DOM ancestry rather than about the app, so it is the only one that
-          has to be said here. */}
-      <ListInkContext.Provider value={null}>{children}</ListInkContext.Provider>
+          has to be said here. The pane's page scope is the second (2026-11-02): a panel over a
+          pane is not in that pane, so a title inside it must not take over the pane's band. */}
+      <ListInkContext.Provider value={null}>
+        <NoPageScope>{children}</NoPageScope>
+      </ListInkContext.Provider>
     </div>
   );
   return rooted ? <Theme render={scope} /> : scope;

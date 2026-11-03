@@ -43,15 +43,18 @@ Screen readers announce the row as a toolbar. Give it an `aria-label` that says 
 
 ```tsx
 import {
+  Flex,
   Toolbar,
   ToolbarButton,
   ToolbarGroup,
   ToolbarTitle,
-  Flex,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from "@kushagradhawan/kookie-ui-react";
 import type { Size } from "@kushagradhawan/kookie-ui-react";
 
-import { CopyIcon, LockIcon, MoreIcon, PanelLeftIcon, SearchIcon } from "../app/icons";
+import { DuplicateIcon, LockIcon, MoreIcon, PanelLeftIcon, SearchIcon } from "../app/icons";
 
 /* Three, which is the component's own default. A band rests one step above the app's index,
    and an app resting at 2 puts its toolbar at 3. */
@@ -68,30 +71,65 @@ export default function Example({
        canvas looks like. */
     <Toolbar size={size} backdrop={backdrop} aria-label="Note tools">
       <Flex align="center" gap="2">
-        <ToolbarButton iconOnly aria-label="Toggle navigation">
-          <PanelLeftIcon />
-        </ToolbarButton>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <ToolbarButton iconOnly aria-label="Toggle navigation">
+                <PanelLeftIcon />
+              </ToolbarButton>
+            }
+          />
+          <TooltipContent>Toggle navigation</TooltipContent>
+        </Tooltip>
         <ToolbarTitle>Nature Walks</ToolbarTitle>
       </Flex>
       <Flex align="center" gap="2">
         <ToolbarGroup>
-          <ToolbarButton iconOnly aria-label="Lock note">
-            <LockIcon />
-          </ToolbarButton>
-          <ToolbarButton iconOnly aria-label="Duplicate note">
-            <CopyIcon />
-          </ToolbarButton>
-          <ToolbarButton iconOnly aria-label="More">
-            <MoreIcon />
-          </ToolbarButton>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <ToolbarButton iconOnly aria-label="Lock note">
+                  <LockIcon />
+                </ToolbarButton>
+              }
+            />
+            <TooltipContent>Lock note</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <ToolbarButton iconOnly aria-label="Duplicate note">
+                  <DuplicateIcon />
+                </ToolbarButton>
+              }
+            />
+            <TooltipContent>Duplicate note</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <ToolbarButton iconOnly aria-label="More">
+                  <MoreIcon />
+                </ToolbarButton>
+              }
+            />
+            <TooltipContent>More</TooltipContent>
+          </Tooltip>
         </ToolbarGroup>
         {/* No rule after the capsule. The group already draws the boundary — a hairline
             beside it says the same thing twice. A `ToolbarSeparator` earns its place BETWEEN
             loose controls, or inside a group, which is where the declaration above this
             specimen shows one. */}
-        <ToolbarButton iconOnly aria-label="Search">
-          <SearchIcon />
-        </ToolbarButton>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <ToolbarButton iconOnly aria-label="Search">
+                <SearchIcon />
+              </ToolbarButton>
+            }
+          />
+          <TooltipContent>Search</TooltipContent>
+        </Tooltip>
       </Flex>
     </Toolbar>
   );
@@ -118,6 +156,9 @@ import {
   ToolbarGroup,
   ToolbarSeparator,
   ToolbarTitle,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
   iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
@@ -130,23 +171,58 @@ export default function Example() {
     <Toolbar aria-label="Editor tools" style={{ minWidth: "30rem" }}>
       <ToolbarTitle>Release notes</ToolbarTitle>
       <Flex align="center" gap="2">
-        <ToolbarButton iconOnly aria-label="Undo">
-          {icon(Undo02Icon)}
-        </ToolbarButton>
-        <ToolbarButton iconOnly aria-label="Redo">
-          {icon(Redo02Icon)}
-        </ToolbarButton>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <ToolbarButton iconOnly aria-label="Undo">
+                {icon(Undo02Icon)}
+              </ToolbarButton>
+            }
+          />
+          <TooltipContent>Undo</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <ToolbarButton iconOnly aria-label="Redo">
+                {icon(Redo02Icon)}
+              </ToolbarButton>
+            }
+          />
+          <TooltipContent>Redo</TooltipContent>
+        </Tooltip>
         <ToolbarSeparator />
         <ToolbarGroup>
-          <ToolbarButton iconOnly aria-label="Bold">
-            {icon(TextBoldIcon)}
-          </ToolbarButton>
-          <ToolbarButton iconOnly aria-label="Italic">
-            {icon(TextItalicIcon)}
-          </ToolbarButton>
-          <ToolbarButton iconOnly aria-label="Underline">
-            {icon(TextUnderlineIcon)}
-          </ToolbarButton>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <ToolbarButton iconOnly aria-label="Bold">
+                  {icon(TextBoldIcon)}
+                </ToolbarButton>
+              }
+            />
+            <TooltipContent>Bold</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <ToolbarButton iconOnly aria-label="Italic">
+                  {icon(TextItalicIcon)}
+                </ToolbarButton>
+              }
+            />
+            <TooltipContent>Italic</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <ToolbarButton iconOnly aria-label="Underline">
+                  {icon(TextUnderlineIcon)}
+                </ToolbarButton>
+              }
+            />
+            <TooltipContent>Underline</TooltipContent>
+          </Tooltip>
         </ToolbarGroup>
       </Flex>
     </Toolbar>
@@ -161,7 +237,17 @@ export default function Example() {
 ```tsx
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Share08Icon, SidebarLeftIcon } from "@hugeicons/core-free-icons";
-import { Flex, Stack, Toolbar, ToolbarButton, ToolbarTitle, iconStroke } from "@kushagradhawan/kookie-ui-react";
+import {
+  Flex,
+  Stack,
+  Toolbar,
+  ToolbarButton,
+  ToolbarTitle,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  iconStroke,
+} from "@kushagradhawan/kookie-ui-react";
 
 const SIZES = ["1", "2", "3", "4"] as const;
 
@@ -171,9 +257,16 @@ export default function Example() {
       {SIZES.map((size) => (
         <Toolbar key={size} size={size} aria-label={`Project tools, size ${size}`}>
           <Flex align="center" gap="2">
-            <ToolbarButton iconOnly aria-label="Show sidebar">
-              <HugeiconsIcon icon={SidebarLeftIcon} strokeWidth={iconStroke} aria-hidden />
-            </ToolbarButton>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <ToolbarButton iconOnly aria-label="Show sidebar">
+                    <HugeiconsIcon icon={SidebarLeftIcon} strokeWidth={iconStroke} aria-hidden />
+                  </ToolbarButton>
+                }
+              />
+              <TooltipContent>Show sidebar</TooltipContent>
+            </Tooltip>
             <ToolbarTitle>Q3 planning</ToolbarTitle>
           </Flex>
           <ToolbarButton leading={<HugeiconsIcon icon={Share08Icon} strokeWidth={iconStroke} aria-hidden />}>
@@ -196,9 +289,17 @@ import {
   Comment01Icon,
   Image01Icon,
   Link01Icon,
-  TextBoldIcon,
+  TextFontIcon,
 } from "@hugeicons/core-free-icons";
-import { Toolbar, ToolbarButton, ToolbarSeparator, iconStroke } from "@kushagradhawan/kookie-ui-react";
+import {
+  Toolbar,
+  ToolbarButton,
+  ToolbarSeparator,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  iconStroke,
+} from "@kushagradhawan/kookie-ui-react";
 
 const icon = (glyph: typeof Image01Icon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />
@@ -207,19 +308,47 @@ const icon = (glyph: typeof Image01Icon) => (
 export default function Example() {
   return (
     <Toolbar orientation="vertical" aria-label="Insert">
-      <ToolbarButton iconOnly aria-label="Format text">
-        {icon(TextBoldIcon)}
-      </ToolbarButton>
-      <ToolbarButton iconOnly aria-label="Insert image">
-        {icon(Image01Icon)}
-      </ToolbarButton>
-      <ToolbarButton iconOnly aria-label="Insert link">
-        {icon(Link01Icon)}
-      </ToolbarButton>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <ToolbarButton iconOnly aria-label="Format text">
+              {icon(TextFontIcon)}
+            </ToolbarButton>
+          }
+        />
+        <TooltipContent>Format text</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <ToolbarButton iconOnly aria-label="Insert image">
+              {icon(Image01Icon)}
+            </ToolbarButton>
+          }
+        />
+        <TooltipContent>Insert image</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <ToolbarButton iconOnly aria-label="Insert link">
+              {icon(Link01Icon)}
+            </ToolbarButton>
+          }
+        />
+        <TooltipContent>Insert link</TooltipContent>
+      </Tooltip>
       <ToolbarSeparator />
-      <ToolbarButton iconOnly aria-label="Add comment">
-        {icon(Comment01Icon)}
-      </ToolbarButton>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <ToolbarButton iconOnly aria-label="Add comment">
+              {icon(Comment01Icon)}
+            </ToolbarButton>
+          }
+        />
+        <TooltipContent>Add comment</TooltipContent>
+      </Tooltip>
     </Toolbar>
   );
 }
@@ -232,7 +361,7 @@ Put controls in a `ToolbarOverflow` when the row can get too narrow. The control
 ```tsx
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Copy01Icon,
+  CopyPlusIcon,
   Delete02Icon,
   Download01Icon,
   LockIcon,
@@ -243,6 +372,9 @@ import {
   ToolbarButton,
   ToolbarOverflow,
   ToolbarTitle,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
   iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
@@ -255,21 +387,56 @@ export default function Example() {
     <Toolbar aria-label="File tools" style={{ width: "18rem" }}>
       <ToolbarTitle>Annual report.pdf</ToolbarTitle>
       <ToolbarOverflow label="More file actions">
-        <ToolbarButton iconOnly aria-label="Share">
-          {icon(Share08Icon)}
-        </ToolbarButton>
-        <ToolbarButton iconOnly aria-label="Download">
-          {icon(Download01Icon)}
-        </ToolbarButton>
-        <ToolbarButton iconOnly aria-label="Duplicate">
-          {icon(Copy01Icon)}
-        </ToolbarButton>
-        <ToolbarButton iconOnly aria-label="Lock">
-          {icon(LockIcon)}
-        </ToolbarButton>
-        <ToolbarButton iconOnly tone="destructive" aria-label="Delete">
-          {icon(Delete02Icon)}
-        </ToolbarButton>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <ToolbarButton iconOnly aria-label="Share">
+                {icon(Share08Icon)}
+              </ToolbarButton>
+            }
+          />
+          <TooltipContent>Share</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <ToolbarButton iconOnly aria-label="Download">
+                {icon(Download01Icon)}
+              </ToolbarButton>
+            }
+          />
+          <TooltipContent>Download</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <ToolbarButton iconOnly aria-label="Duplicate">
+                {icon(CopyPlusIcon)}
+              </ToolbarButton>
+            }
+          />
+          <TooltipContent>Duplicate</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <ToolbarButton iconOnly aria-label="Lock">
+                {icon(LockIcon)}
+              </ToolbarButton>
+            }
+          />
+          <TooltipContent>Lock</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <ToolbarButton iconOnly tone="destructive" aria-label="Delete">
+                {icon(Delete02Icon)}
+              </ToolbarButton>
+            }
+          />
+          <TooltipContent>Delete</TooltipContent>
+        </Tooltip>
       </ToolbarOverflow>
     </Toolbar>
   );
@@ -333,8 +500,18 @@ Set `disabled` on one `ToolbarButton` to turn it off. Set `disabled` on a `Toolb
 
 ```tsx
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Copy01Icon, Delete02Icon, Download01Icon, Undo02Icon } from "@hugeicons/core-free-icons";
-import { Flex, Toolbar, ToolbarButton, ToolbarGroup, ToolbarTitle, iconStroke } from "@kushagradhawan/kookie-ui-react";
+import { CopyPlusIcon, Delete02Icon, Download01Icon, Undo02Icon } from "@hugeicons/core-free-icons";
+import {
+  Flex,
+  Toolbar,
+  ToolbarButton,
+  ToolbarGroup,
+  ToolbarTitle,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  iconStroke,
+} from "@kushagradhawan/kookie-ui-react";
 
 const icon = (glyph: typeof Undo02Icon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />
@@ -345,19 +522,47 @@ export default function Example() {
     <Toolbar aria-label="Selection tools" style={{ minWidth: "26rem" }}>
       <ToolbarTitle>No files selected</ToolbarTitle>
       <Flex align="center" gap="2">
-        <ToolbarButton iconOnly disabled aria-label="Undo">
-          {icon(Undo02Icon)}
-        </ToolbarButton>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <ToolbarButton iconOnly disabled aria-label="Undo">
+                {icon(Undo02Icon)}
+              </ToolbarButton>
+            }
+          />
+          <TooltipContent>Undo</TooltipContent>
+        </Tooltip>
         <ToolbarGroup disabled>
-          <ToolbarButton iconOnly aria-label="Download">
-            {icon(Download01Icon)}
-          </ToolbarButton>
-          <ToolbarButton iconOnly aria-label="Duplicate">
-            {icon(Copy01Icon)}
-          </ToolbarButton>
-          <ToolbarButton iconOnly aria-label="Delete">
-            {icon(Delete02Icon)}
-          </ToolbarButton>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <ToolbarButton iconOnly aria-label="Download">
+                  {icon(Download01Icon)}
+                </ToolbarButton>
+              }
+            />
+            <TooltipContent>Download</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <ToolbarButton iconOnly aria-label="Duplicate">
+                  {icon(CopyPlusIcon)}
+                </ToolbarButton>
+              }
+            />
+            <TooltipContent>Duplicate</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <ToolbarButton iconOnly aria-label="Delete">
+                  {icon(Delete02Icon)}
+                </ToolbarButton>
+              }
+            />
+            <TooltipContent>Delete</TooltipContent>
+          </Tooltip>
         </ToolbarGroup>
       </Flex>
     </Toolbar>

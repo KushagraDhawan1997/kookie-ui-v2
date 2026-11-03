@@ -5,9 +5,10 @@ description: Gestalt and classic design principles, stated as checkable rules in
 
 # Composition
 
-DECISIONS §15 ("Composition: the house style") is the authority; this skill is its operational
-checklist, widened with the classical principles the house style is an instance of. Where they
-disagree, §15 and the LOG win. The persistent memories `ui-information-design` and the taste
+`RULES.md` at the repo root is the authority: every settled rule, numbered, with what enforces
+it. Read it first. This skill is the longer version with the reasons, widened with the classical
+principles the house style is an instance of. Where they disagree, `RULES.md` wins and the
+disagreement is a bug to report. The persistent memories `ui-information-design` and the taste
 rules recorded there apply on top.
 
 The system's guarantee is that every VALUE is right (tokens, ladders, solved contrasts). None
@@ -70,7 +71,7 @@ from live RELATIVE to its local ground (the alpha rule). Decorative contrast —
 bordered box, a tinted panel with no semantic — is noise.
 
 **Balance.** Weight distributes deliberately: action rows sit at the end and align right;
-a lone primary may go full-width (the sign-in stack); an icon action balances a header's
+a lone primary goes full width (the sign-in stack, and every screen of a flow); an icon action balances a header's
 title. A heavy element in a corner with nothing answering it tips the surface.
 
 **Harmony & unity.** One accent per app — the ten tones are data vocabulary (destructive,
@@ -98,7 +99,9 @@ unearned icon.
 ## The pass
 
 Run on every composed surface, in this order, then screenshot and judge pixels — structure
-passing is necessary, not sufficient:
+passing is necessary, not sufficient. Before step 1, check the panel and flow rules in
+`RULES.md` (Close in the band, a real Toolbar, the band inset, full-width flow actions, glass all
+the way down); they are the ones these principles do not name.
 
 1. Name each element's one-word job; cut the ones without one.
 2. Delete definitional captions; verify no eyebrows.

@@ -1,8 +1,10 @@
 /**
- * The eight tasks. Each prompt is written the way a product person would ask: it says what the
+ * The ten tasks. Each prompt is written the way a product person would ask: it says what the
  * screen does and never names a Kookie component or prop. The rubric checks are what the shipped
  * docs say that screen should be built with.
  */
+
+import type { ScreenSteps } from "./lib/screen.ts";
 
 /** Checks every task is scored on. */
 export const UNIVERSAL_CHECKS = ["one-loud-per-screen", "group-gap-steps", "no-card-in-card"] as const;
@@ -13,6 +15,8 @@ export type Task = {
   prompt: string;
   /** Rubric checks for this task, on top of the universal ones. */
   checks: string[];
+  /** How the screen check reaches the screen: buttons to press, a button that walks a flow. */
+  screen?: ScreenSteps;
 };
 
 export const TASKS: Task[] = [
@@ -64,6 +68,7 @@ export const TASKS: Task[] = [
     prompt:
       "Build a team members screen with an Invite teammates button. The button opens a panel over the page where the person types an email address, picks a role (Member or Admin), and sends the invite, or backs out without sending.",
     checks: ["field-labels", "form-panel-not-alert", "dialog-has-title", "dialog-has-close", "main-button-says-action"],
+    screen: { press: ["Invite teammates"] },
   },
   {
     id: "08-view-switch",
@@ -71,6 +76,23 @@ export const TASKS: Task[] = [
     prompt:
       "Build a screen with a list of files. Let the person switch how the same files are shown: as a list of rows, or as a grid of tiles.",
     checks: ["segmented-for-layout", "segmented-named"],
+  },
+  // The two below exist for the screen check (2 Nov 2026): both are where agents broke settled
+  // composition rules with every prop legal. Their rubric is mostly RULES.md, read off the page.
+  {
+    id: "09-plan-flow",
+    title: "Upgrade plan flow in a panel",
+    prompt:
+      "Build a screen with an Upgrade button. It opens a panel over the page where the person upgrades their plan in steps: choose a plan (Free, Pro or Team), then the number of editors, then review and pay. They can go back a step without losing what they entered, and leave the panel at any point.",
+    checks: ["dialog-has-title", "dialog-has-close"],
+    screen: { press: ["Upgrade"], next: "Continue" },
+  },
+  {
+    id: "10-notes-list",
+    title: "Folders and notes list",
+    prompt:
+      "Build a notes app screen: a column of folders, each with how many notes it holds, beside a list of the notes in the chosen folder. Each note shows its title, when it was edited and its first line. One folder and one note are chosen.",
+    checks: [],
   },
 ];
 

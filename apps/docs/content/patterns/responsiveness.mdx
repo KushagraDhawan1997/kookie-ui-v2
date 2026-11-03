@@ -4,8 +4,8 @@ the same width, and a touchscreen laptop can be used with a finger or a trackpad
 measures the space with container queries and follows the pointer, and it never asks for a device
 name.
 
-How should this screen change when the room or the input changes? Ask three questions, in this
-order.
+How should this screen change when the room changes? Ask two questions, in this order. How the
+person points is covered in [Pointer](/inputs/pointer) and [Touch](/inputs/touch).
 
 ## How much room does this component have?
 
@@ -19,20 +19,6 @@ Ask this question first, because most layout changes depend on the room inside o
 on the window. Mark only a box that gets its width from the layout, such as a sidebar with a set
 width, a column that grows or a grid cell. A marked box can't size itself around its contents.
 The [Layout](/foundations/layout) page lists the three container sizes and their rules.
-
-## How is the person pointing?
-
-The `pointer` setting on a `Theme` asks the browser for the primary input device: `fine` for a
-mouse or trackpad, `coarse` for a finger. The answer doesn't change while someone uses the
-device, so a touchscreen laptop reports `fine` even when a person taps the screen. Set
-`pointer="coarse"` yourself if your audience taps laptops often.
-
-<Example name="responsiveness.pointer" />
-
-On a coarse pointer, controls, icons and body text get larger, while the space between components
-stays the same. A size 2 control is 44 pixels tall, and nothing goes below 24 pixels (WCAG 2.2,
-success criterion 2.5.8). Rows in a menu are the exception: at size 2 they're 40 pixels tall. The
-[Scale](/foundations/scale) page lists every value.
 
 ## Which shape should the app take?
 

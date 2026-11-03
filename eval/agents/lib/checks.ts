@@ -142,13 +142,13 @@ export const CHECKS: Check[] = [
     id: "one-loud-per-screen",
     title: "At most one loud control on a screen",
     cites: [
-      { page: "start/composition.md", line: 15, quote: "Give each screen one loud control, and make it the action the screen exists for." },
-      { page: "start/composition.md", line: 70, quote: "Count loud controls across the whole screen, not inside the nearest card." },
-      { page: "start/composition.md", line: 70, quote: "A dialog counts as a screen of its own, because it covers the page." },
-      { page: "start/composition.md", line: 71, quote: "Two tab panels never compete either, because only one is visible at a time." },
+      { page: "start/composition.md", line: 17, quote: "Give each screen one loud control, and make it the action the screen exists for." },
+      { page: "start/composition.md", line: 30, quote: "Count loud controls across the whole screen, not inside the nearest card." },
+      { page: "start/composition.md", line: 30, quote: "A dialog counts as a screen of its own, because it covers the page." },
+      { page: "start/composition.md", line: 31, quote: "Two tab panels never compete either, because only one is visible at a time." },
       {
         page: "start/composition.md",
-        line: 66,
+        line: 26,
         quote:
           "The two exceptions are `AlertDialogAction` and the send button in a `Composer`, which default to loud because each is the only action in its component.",
       },
@@ -175,13 +175,13 @@ export const CHECKS: Check[] = [
     id: "group-gap-steps",
     title: "The gap inside a group is at least two steps smaller than the gap around it",
     cites: [
-      { page: "start/composition.md", line: 81, quote: "Make the gap inside a group at least two steps smaller than the gap around it." },
+      { page: "start/composition.md", line: 41, quote: "Make the gap inside a group at least two steps smaller than the gap around it." },
       {
         page: "start/composition.md",
-        line: 137,
+        line: 47,
         quote: "Two levels that both separate groups can sit one step apart: a section at gap 6 can hold groups at gap 5.",
       },
-      { page: "start/composition.md", line: 81, quote: "Compare only gaps that" },
+      { page: "start/composition.md", line: 41, quote: "Compare only gaps that" },
     ],
     run(project) {
       const problems = new Map<string, string>();
@@ -433,7 +433,7 @@ export const CHECKS: Check[] = [
   {
     id: "nav-marks-current",
     title: "The navigation marks the open page with current",
-    cites: [{ page: "patterns/navigation.md", line: 238, quote: "Set `current` on the `ShellNavItem` or `ShellRailItem` for the open page." }],
+    cites: [{ page: "patterns/navigation.md", line: 255, quote: "Set `current` on the `ShellNavItem` or `ShellRailItem` for the open page." }],
     run(project) {
       const items = elementsOf(project, "ShellNavItem", "ShellRailItem");
       if (items.some((el) => has(el, "current"))) return pass();
@@ -453,10 +453,10 @@ export const CHECKS: Check[] = [
     id: "tone-by-meaning",
     title: "A status message takes a meaning tone, not a colour",
     cites: [
-      { page: "patterns/feedback.md", line: 161, quote: "Choose the tone by its meaning: write `success`, not `green`." },
+      { page: "patterns/feedback.md", line: 175, quote: "Choose the tone by its meaning: write `success`, not `green`." },
       {
         page: "start/composition.md",
-        line: 192,
+        line: 68,
         quote: "`blue`, `green`, `orange` and `amber` are for colour as data, such as a chart series or a category.",
       },
     ],
@@ -614,7 +614,7 @@ export const CHECKS: Check[] = [
         page: "patterns/modality.md",
         line: 117,
         quote:
-          "Put a `DialogClose` in every dialog, usually in the row of actions, because a screen reader user on a touch screen needs a button to leave.",
+          "Every dialog, sheet and titled popover has a Close button at the trailing edge of its top band,",
       },
     ],
     run(project) {
@@ -631,7 +631,7 @@ export const CHECKS: Check[] = [
     cites: [
       {
         page: "patterns/navigation.md",
-        line: 260,
+        line: 277,
         quote: "Use a `SegmentedControl` when the choice sets a value, such as a grid or a list layout, and the content stays where it is.",
       },
       {

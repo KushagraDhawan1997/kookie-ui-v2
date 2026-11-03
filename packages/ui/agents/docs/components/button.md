@@ -151,13 +151,13 @@ Put an icon before the label with `leading`, or after it with `trailing`. The bu
 
 ```tsx
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, ArrowDown01Icon, Download01Icon } from "@hugeicons/core-free-icons";
+import { PlusSignIcon, ArrowDown01Icon, Download01Icon } from "@hugeicons/core-free-icons";
 import { Button, Flex, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (
     <Flex gap="3" align="center" wrap="wrap">
-      <Button emphasis="loud" leading={<HugeiconsIcon icon={Add01Icon} strokeWidth={iconStroke} aria-hidden />}>
+      <Button emphasis="loud" leading={<HugeiconsIcon icon={PlusSignIcon} strokeWidth={iconStroke} aria-hidden />}>
         New project
       </Button>
       <Button leading={<HugeiconsIcon icon={Download01Icon} strokeWidth={iconStroke} aria-hidden />}>
@@ -180,24 +180,59 @@ Set `iconOnly` and put the icon in `children`. TypeScript requires an `aria-labe
 
 ```tsx
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Delete02Icon, Edit02Icon, Settings01Icon, Share01Icon } from "@hugeicons/core-free-icons";
-import { Button, Flex, iconStroke } from "@kushagradhawan/kookie-ui-react";
+import { Delete02Icon, Edit02Icon, Settings02Icon, Share08Icon } from "@hugeicons/core-free-icons";
+import {
+  Button,
+  Flex,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  iconStroke,
+} from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (
     <Flex gap="2" align="center">
-      <Button iconOnly emphasis="quiet" aria-label="Edit file">
-        <HugeiconsIcon icon={Edit02Icon} strokeWidth={iconStroke} aria-hidden />
-      </Button>
-      <Button iconOnly emphasis="quiet" aria-label="Share file">
-        <HugeiconsIcon icon={Share01Icon} strokeWidth={iconStroke} aria-hidden />
-      </Button>
-      <Button iconOnly aria-label="File settings">
-        <HugeiconsIcon icon={Settings01Icon} strokeWidth={iconStroke} aria-hidden />
-      </Button>
-      <Button iconOnly tone="destructive" aria-label="Delete file">
-        <HugeiconsIcon icon={Delete02Icon} strokeWidth={iconStroke} aria-hidden />
-      </Button>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button iconOnly emphasis="quiet" aria-label="Edit file">
+              <HugeiconsIcon icon={Edit02Icon} strokeWidth={iconStroke} aria-hidden />
+            </Button>
+          }
+        />
+        <TooltipContent>Edit file</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button iconOnly emphasis="quiet" aria-label="Share file">
+              <HugeiconsIcon icon={Share08Icon} strokeWidth={iconStroke} aria-hidden />
+            </Button>
+          }
+        />
+        <TooltipContent>Share file</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button iconOnly aria-label="File settings">
+              <HugeiconsIcon icon={Settings02Icon} strokeWidth={iconStroke} aria-hidden />
+            </Button>
+          }
+        />
+        <TooltipContent>File settings</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button iconOnly tone="destructive" aria-label="Delete file">
+              <HugeiconsIcon icon={Delete02Icon} strokeWidth={iconStroke} aria-hidden />
+            </Button>
+          }
+        />
+        <TooltipContent>Delete file</TooltipContent>
+      </Tooltip>
     </Flex>
   );
 }
@@ -240,7 +275,14 @@ Set `done` once the action succeeds, and the icon changes to a tick. Your app ho
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Copy01Icon } from "@hugeicons/core-free-icons";
-import { Button, Flex, iconStroke } from "@kushagradhawan/kookie-ui-react";
+import {
+  Button,
+  Flex,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  iconStroke,
+} from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   const [copied, setCopied] = React.useState(false);
@@ -261,9 +303,16 @@ export default function Example() {
       <Button done={copied} onClick={copy} leading={<HugeiconsIcon icon={Copy01Icon} strokeWidth={iconStroke} aria-hidden />}>
         {copied ? "Copied" : "Copy API key"}
       </Button>
-      <Button iconOnly emphasis="quiet" done={copied} onClick={copy} aria-label={copied ? "Copied" : "Copy API key"}>
-        <HugeiconsIcon icon={Copy01Icon} strokeWidth={iconStroke} aria-hidden />
-      </Button>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button iconOnly emphasis="quiet" done={copied} onClick={copy} aria-label={copied ? "Copied" : "Copy API key"}>
+              <HugeiconsIcon icon={Copy01Icon} strokeWidth={iconStroke} aria-hidden />
+            </Button>
+          }
+        />
+        <TooltipContent>{copied ? "Copied" : "Copy API key"}</TooltipContent>
+      </Tooltip>
     </Flex>
   );
 }

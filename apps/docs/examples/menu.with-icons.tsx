@@ -1,7 +1,8 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Archive01Icon,
-  Copy01Icon,
+  CopyPlusIcon,
+  FolderTransferIcon,
   Delete02Icon,
   Link01Icon,
   PencilEdit02Icon,
@@ -17,12 +18,12 @@ import {
   iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
-const icon = (glyph: typeof Copy01Icon) => (
+const icon = (glyph: typeof CopyPlusIcon) => (
   <HugeiconsIcon icon={glyph} strokeWidth={iconStroke} aria-hidden />
 );
 
-// Put an icon in `leading` and a shortcut in `trailing`. A row without an icon
-// still lines up, because the leading column is always kept.
+// Put an icon in `leading` and a shortcut in `trailing`. Give every row an icon, because a
+// row without one reads as a different kind of row.
 export default function Example() {
   return (
     <Menu>
@@ -31,11 +32,11 @@ export default function Example() {
         <MenuItem leading={icon(PencilEdit02Icon)} trailing={<Kbd>⌘R</Kbd>}>
           Rename
         </MenuItem>
-        <MenuItem leading={icon(Copy01Icon)} trailing={<Kbd>⌘D</Kbd>}>
+        <MenuItem leading={icon(CopyPlusIcon)} trailing={<Kbd>⌘D</Kbd>}>
           Duplicate
         </MenuItem>
         <MenuItem leading={icon(Link01Icon)}>Copy link</MenuItem>
-        <MenuItem>Move to folder…</MenuItem>
+        <MenuItem leading={icon(FolderTransferIcon)}>Move to folder…</MenuItem>
         <Separator />
         <MenuItem leading={icon(Archive01Icon)}>Archive</MenuItem>
         <MenuItem leading={icon(Delete02Icon)} tone="destructive">

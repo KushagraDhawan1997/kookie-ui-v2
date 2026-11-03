@@ -2,7 +2,13 @@ You tell a component what a colour means, and the theme works out the value. Tha
 changes with light and dark mode, with the contrast setting, and with the surface underneath,
 so you never write a hex value and never have to remember a palette.
 
+<ColourFigure />
+
 ## Name the meaning, and let the theme choose the colour
+
+A hex value stays the same in dark mode, ignores the high-contrast setting and survives a change
+of brand colour. `tone="destructive"` avoids all three problems, because the theme produces the
+value for the current mode and setting.
 
 ```tsx
 // Wrong: a fixed value.
@@ -11,10 +17,6 @@ so you never write a hex value and never have to remember a palette.
 // Right: a meaning.
 <Text tone="destructive">Payment failed</Text>
 ```
-
-A hex value stays the same in dark mode, ignores the high-contrast setting and survives a change
-of brand colour. `tone="destructive"` avoids all three problems, because the theme produces the
-value for the current mode and setting.
 
 There's no `color` or `variant` prop. If you must set a colour yourself, use `style`, where it
 stays easy to spot in a review.

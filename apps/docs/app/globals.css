@@ -104,27 +104,30 @@ body {
 }
 
 
-/* THE FRONT PAGE'S HERO (2026-10-22). The line grid of the Kookie UI film, run to the content
-   pane's top, left and right edges, with a real builder standing on it and cropped by the band's
-   bottom edge. The same figure is on kushagradhawan.com's Kookie UI page. Every length is a token. */
-/* A 12px line grid, the same as kushagradhawan.com's figures (Kushagra, 2026-10-23). Everything
-   sits on it: the band is 44 cells tall, a line runs through the centre so the centred window's
-   edges land on lines, and the window is 4 cells down. Hairlines close the band at the top and
-   the bottom, drawn over the window that runs off it. */
-.kd-hero {
+/* THE FRONT PAGE'S HERO (2026-10-22). A real builder in a laptop lid, run to the content pane's
+   top, left and right edges and cropped by the band's bottom edge. The same figure is on
+   kushagradhawan.com's Kookie UI page. The art direction is kushagradhawan-v3/FIGURES.md. Every
+   length is a token. The band is 44 steps of 12px tall and the device is 4 steps down.
+   Hairlines close the band at the top and the bottom, drawn over the device that runs off it. */
+/* A CHAPTER'S FIGURE stands on the same ground (`kd-band`, 2026-11-02): the selectors below are
+   shared, so the hero and every chapter figure keep one ground, one band and one window. */
+/* NO GRID BEHIND A FIGURE (2026-11-02, Kushagra: "How about a gradient"). The device frames say
+   "this is a picture" on their own, so the ground is a grey wash: the plain surface at the top
+   deepening to a soft neutral at the bottom, from the theme's own steps so it turns over with the
+   mode. */
+.kd-hero,
+.kd-band {
   position: relative;
   block-size: calc(44 * var(--layout-space-4));
   overflow: clip;
-  background-color: var(--color-ground);
-  background-image:
-    linear-gradient(var(--neutral-a3) var(--border-width), transparent var(--border-width)),
-    linear-gradient(90deg, var(--neutral-a3) var(--border-width), transparent var(--border-width));
-  background-size: var(--layout-space-4) var(--layout-space-4);
-  background-position: calc(50% + var(--layout-space-4) / 2) 0;
+  background-color: var(--color-surface);
+  background-image: linear-gradient(to bottom, var(--color-surface), var(--neutral-6));
 }
 
 .kd-hero::before,
-.kd-hero::after {
+.kd-hero::after,
+.kd-band::before,
+.kd-band::after {
   content: "";
   position: absolute;
   z-index: 1;
@@ -133,15 +136,18 @@ body {
   background-color: var(--color-border);
 }
 
-.kd-hero::before {
+.kd-hero::before,
+.kd-band::before {
   inset-block-start: 0;
 }
 
-.kd-hero::after {
+.kd-hero::after,
+.kd-band::after {
   inset-block-end: 0;
 }
 
-.kd-hero-stage {
+.kd-hero-stage,
+.kd-band-stage {
   position: absolute;
   inset-inline: 0;
   inset-block-start: var(--layout-space-9);
@@ -149,7 +155,8 @@ body {
   justify-items: center;
 }
 
-.kd-hero-window {
+.kd-hero-window,
+.kd-band-window {
   box-sizing: border-box;
   inline-size: calc(30 * var(--layout-space-7));
   background-color: var(--color-ground);
@@ -159,13 +166,15 @@ body {
 }
 
 @supports (corner-shape: squircle) {
-  .kd-hero-window {
+  .kd-hero-window,
+  .kd-band-window {
     border-radius: calc(var(--radius-7) * 1.613);
     corner-shape: squircle;
   }
 }
 
-.kd-hero-shell {
+.kd-hero-shell,
+.kd-band-shell {
   block-size: calc(22 * var(--layout-space-7));
 }
 
@@ -192,10 +201,357 @@ body {
     justify-items: start;
     padding-inline-start: var(--layout-space-6);
   }
+}
 
-  /* The grid follows the window to the start, so its edge still lands on a line. */
-  .kd-hero {
-    background-position: var(--layout-space-6) 0;
+/* A CHAPTER'S FIGURE (2026-11-02). The reading column is narrower than the 960px window at every
+   width, so the window always takes the hero's phone arrangement: it starts two steps in from the
+   column's edge and runs off the right. The band is a container, so a figure scales by the width
+   it is given rather than by the viewport. */
+.kd-band {
+  container-type: inline-size;
+}
+
+.kd-band-stage {
+  justify-items: start;
+  padding-inline-start: var(--layout-space-6);
+}
+
+/* The canvas of a figure's window. The subject sits at the middle of the window's visible height,
+   which the band cuts at about 15 of the 32px steps (2026-11-02). */
+.kd-band-canvas {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  padding-block-start: calc(6.5 * var(--layout-space-7));
+}
+
+/* A window's work column, held to the visible part of a window that runs off the band. */
+.kd-band-column {
+  inline-size: calc(13 * var(--layout-space-7));
+}
+
+/* Two devices at one scale, so a touch control and a mouse control compare at their real sizes.
+   The row is drawn at three quarters so both fit the column. The window is 36 cells and the gap
+   4, and three quarters of each is a whole number of cells, so both devices start on a line. A
+   narrower column shows the whole row smaller. */
+.kd-band-devices {
+  display: flex;
+  align-items: start;
+  justify-content: center;
+  gap: calc(4 * var(--layout-space-4));
+  zoom: 0.75;
+}
+
+@container (max-width: 43rem) {
+  .kd-band-devices {
+    zoom: 0.5;
   }
 }
 
+@container (max-width: 33rem) {
+  .kd-band-devices {
+    zoom: 0.34;
+  }
+}
+
+.kd-band-desktop {
+  flex: none;
+  inline-size: calc(36 * var(--layout-space-4));
+}
+
+/* The phone is a device, because what changes on it is touch, not only width: a white bezel with
+   the window's gray outline, side buttons, round phone corners and the home indicator inside the
+   screen. The screen's corner is the frame's minus the bezel, so the two are concentric. */
+.kd-band-phone {
+  position: relative;
+  flex: none;
+  box-sizing: border-box;
+  padding: var(--layout-space-4);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: calc(var(--radius-7) * 1.75 + var(--layout-space-4));
+}
+
+/* The side buttons: two volume keys on the left, the side key on the right. */
+.kd-band-phone::before,
+.kd-band-phone::after {
+  content: "";
+  position: absolute;
+  box-sizing: border-box;
+  inline-size: var(--space-2);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+}
+
+.kd-band-phone::before {
+  inset-inline-start: calc(-1 * var(--space-2) - var(--border-width));
+  inset-block-start: calc(13 * var(--layout-space-7) / 2);
+  block-size: calc(2 * var(--layout-space-7));
+  border-inline-end: 0;
+  border-radius: var(--space-1) 0 0 var(--space-1);
+}
+
+.kd-band-phone::after {
+  inset-inline-end: calc(-1 * var(--space-2) - var(--border-width));
+  inset-block-start: calc(15 * var(--layout-space-7) / 2);
+  block-size: calc(3 * var(--layout-space-7));
+  border-inline-start: 0;
+  border-radius: 0 var(--space-1) var(--space-1) 0;
+}
+
+/* A phone's screen, 390 by 844. The app stops above the home indicator, as it does on a phone. */
+.kd-band-phone-screen {
+  position: relative;
+  box-sizing: content-box;
+  inline-size: calc(32.5 * var(--layout-space-4));
+  block-size: calc(211 / 3 * var(--layout-space-4));
+  padding-block-end: calc(var(--space-6) - var(--space-2));
+  border: var(--border-width) solid var(--color-border);
+  border-radius: calc(var(--radius-7) * 1.75);
+  background-color: var(--color-ground);
+  overflow: clip;
+}
+
+.kd-band-home-indicator {
+  position: absolute;
+  inset-block-end: var(--space-2);
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  inline-size: calc(11 * var(--layout-space-4));
+  block-size: var(--space-1);
+  border-radius: var(--space-1);
+  background-color: var(--neutral-12);
+}
+
+/* A measure: a purple outline on an element, a white square at each corner like a design tool's
+   selection handles, and a purple chip with the size read from the element. The one raw colour
+   in this file, because the measure is the figures' own ink and not the theme's. */
+.kd-band {
+  --kd-measure-ink: #9b4dff;
+}
+
+.kd-measure {
+  position: absolute;
+  z-index: 3;
+  box-sizing: border-box;
+  pointer-events: none;
+  border: var(--border-width) solid var(--kd-measure-ink);
+}
+
+.kd-measure > i {
+  position: absolute;
+  box-sizing: border-box;
+  inline-size: 7px;
+  block-size: 7px;
+  background-color: white;
+  border: var(--border-width) solid var(--kd-measure-ink);
+}
+
+.kd-measure-chip {
+  position: absolute;
+  z-index: 3;
+  translate: -100% -50%;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background-color: var(--kd-measure-ink);
+  color: white;
+  font: 500 11px/16px var(--font-body);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* A narrower window, for a figure whose whole subject fits the reading column (2026-11-02, the
+   Composition figure): 17 of the 32px steps, so with its laptop rim it sits inside the column with
+   room on both sides instead of running off. */
+.kd-band-window.kd-band-window-narrow {
+  inline-size: calc(17 * var(--layout-space-7));
+}
+
+
+/* The selected element's outline, in the measures' ink. */
+.kd-band-selected {
+  outline: var(--border-width) solid var(--kd-measure-ink);
+  outline-offset: var(--layout-space-1);
+}
+
+/* A calendar event fills its day's column and starts its title at the leading edge. */
+.kd-band-event {
+  inline-size: 100%;
+  justify-content: start;
+}
+
+/* A figure is inert, so a figure that is about focus draws the ring with the ring's own tokens. */
+.kd-band-focused {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* A form on a canvas sits nearer the top than a single control, so the whole card shows. */
+.kd-band-canvas.kd-band-canvas-form {
+  padding-block-start: var(--layout-space-7);
+}
+
+.kd-band-form {
+  inline-size: calc(11 * var(--layout-space-7));
+}
+
+/* One line of a list row that is cut with an ellipsis rather than wrapped. */
+.kd-band-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A photo that fills a window's work area, under the floating bands. */
+.kd-band-photo {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  object-position: 50% 75%;
+}
+
+/* A figure in the reading column is not edge to edge, so the band is a box: the same border and
+   corner as the examples' Surface, in place of the two hairlines an edge-to-edge band draws
+   (2026-11-02, Kushagra: "Since these figures arent edge to edge, no rounded corners look
+   weird"). The window inside is clipped by the corner. */
+.kd-figure > .kd-band {
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-surface-2);
+}
+
+.kd-figure > .kd-band::before,
+.kd-figure > .kd-band::after {
+  content: none;
+}
+
+@supports (corner-shape: squircle) {
+  .kd-figure > .kd-band {
+    border-radius: calc(var(--radius-surface-2) * 1.613);
+    corner-shape: squircle;
+  }
+}
+
+/* A do-and-don't pair: two phones at one scale, centred, each under its mark, cut by the band's
+   bottom like every other figure. */
+.kd-band-pair {
+  display: flex;
+  justify-content: center;
+  gap: calc(4 * var(--layout-space-4));
+  inline-size: 100%;
+  zoom: 0.65;
+}
+
+.kd-band-stage:has(> .kd-band-pair) {
+  padding-inline-start: 0;
+}
+
+@container (max-width: 33rem) {
+  .kd-band-pair {
+    zoom: 0.4;
+  }
+}
+
+/* A post's cover photo, cropped to a landscape frame with the card's corner. */
+.kd-band-cover {
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: var(--radius-surface-1);
+}
+
+/* A LAPTOP LID FOR A DESKTOP WINDOW (2026-11-02, a trial on the front page; Kushagra: "Needs to
+   look like a laptop"). The phone's bezel carried over, thinner: a surface-coloured rim with the
+   window's hairline outside it, and a camera centred in the top rim. The base is
+   below the band's cut, so only the lid shows.
+
+   CONCENTRIC FOR A SQUIRCLE. For two round corners, the outer radius is the inner one plus the
+   gap. A squircle's curve sits closer to its corner, about 0.22 of its radius on the diagonal
+   against a circle's 0.41, so the same gap needs (sqrt 2 - 1) / 0.225, about 1.84 times the
+   gap added to the radius to stay even all the way round. The gap counts the window's hairline. */
+/* The rim: one step at the sides and the bottom, three at the top where the camera sits, as on a
+   laptop lid (Kushagra, 2026-11-02: 8px at the sides, then "try 24" at the top). */
+.kd-hero-stage,
+.kd-band-stage,
+.kd-device {
+  --kd-device-rim: var(--layout-space-3);
+  --kd-device-top: var(--layout-space-6);
+}
+
+/* With a deeper top rim the top corners have two gaps, so they take an elliptical radius: the
+   horizontal half from the side gap, the vertical half from the top gap. */
+.kd-device {
+  --kd-device-gap: calc(var(--kd-device-rim) + var(--border-width));
+  --kd-device-gap-top: calc(var(--kd-device-top) + var(--border-width));
+  --kd-device-k: 1;
+  --kd-device-inner: calc(var(--radius-7) * 0.876);
+  position: relative;
+  box-sizing: border-box;
+  padding: var(--kd-device-top) var(--kd-device-rim) var(--kd-device-rim);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius:
+    calc(var(--kd-device-inner) + var(--kd-device-gap) * var(--kd-device-k))
+    calc(var(--kd-device-inner) + var(--kd-device-gap) * var(--kd-device-k))
+    calc(var(--kd-device-inner) + var(--kd-device-gap) * var(--kd-device-k))
+    calc(var(--kd-device-inner) + var(--kd-device-gap) * var(--kd-device-k)) /
+    calc(var(--kd-device-inner) + var(--kd-device-gap-top) * var(--kd-device-k))
+    calc(var(--kd-device-inner) + var(--kd-device-gap-top) * var(--kd-device-k))
+    calc(var(--kd-device-inner) + var(--kd-device-gap) * var(--kd-device-k))
+    calc(var(--kd-device-inner) + var(--kd-device-gap) * var(--kd-device-k));
+}
+
+@supports (corner-shape: squircle) {
+  .kd-device {
+    --kd-device-k: 1.84;
+    --kd-device-inner: calc(var(--radius-7) * 1.613);
+    corner-shape: squircle;
+  }
+}
+
+/* The camera: a dot centred in the top rim, in the hairline's colour like the phone's side
+   buttons. */
+.kd-device::before {
+  --kd-camera: calc(var(--kd-device-rim) * 0.75);
+  content: "";
+  position: absolute;
+  inset-block-start: calc((var(--kd-device-top) - var(--kd-camera)) / 2);
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  inline-size: var(--kd-camera);
+  block-size: var(--kd-camera);
+  border-radius: 50%;
+  background-color: var(--color-border);
+}
+
+
+
+/* A chapter figure's laptop sits centred in the band when it fits the column (Kushagra,
+   2026-11-02: "center them too, they seem offset to left"). A full 960 window still starts at
+   the column's edge and runs off the right, so its sidebar stays in view. Two devices in a row
+   are centred the same way. */
+.kd-band-stage:has(> .kd-device > .kd-band-window-narrow),
+.kd-band-stage:has(> .kd-band-devices) {
+  justify-items: center;
+  padding-inline-start: 0;
+}
+
+/* A cover photo that runs to the top and both sides of its pane, under the floating band. */
+.kd-band-cover-bleed {
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+
+/* A group drawn around in the measures' ink, so a reader sees what the spacing groups (2026-11-02,
+   the Grouping figure). An outline, so it moves nothing. */
+.kd-band-group-outline {
+  outline: var(--border-width) dashed var(--kd-measure-ink);
+  outline-offset: var(--layout-space-2);
+  border-radius: var(--space-2);
+}

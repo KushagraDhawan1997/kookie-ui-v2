@@ -675,7 +675,7 @@ function Workspace() {
 
           <Flex justify="space-between" align="center" gap="4">
             <Text size="2" emphasis="quiet">
-              4 of 12 members · 8 seats left
+              4 of 12 members, 8 seats left
             </Text>
             <Button size="2" emphasis="quiet" bordered>
               Load more

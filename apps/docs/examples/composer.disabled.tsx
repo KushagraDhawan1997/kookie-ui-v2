@@ -6,6 +6,9 @@ import {
   ComposerInput,
   ComposerRow,
   ComposerSend,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
   iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
@@ -25,9 +28,16 @@ export default function Example() {
         disabled
       />
       <ComposerRow>
-        <Button iconOnly aria-label="Add attachment" disabled>
-          {icon(Attachment01Icon)}
-        </Button>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button iconOnly aria-label="Add attachment" disabled>
+                {icon(Attachment01Icon)}
+              </Button>
+            }
+          />
+          <TooltipContent>Add attachment</TooltipContent>
+        </Tooltip>
         <ComposerSend disabled icons={{ ready: icon(ArrowUp02Icon) }} />
       </ComposerRow>
     </Composer>

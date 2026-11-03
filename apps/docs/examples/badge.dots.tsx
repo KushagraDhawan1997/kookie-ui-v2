@@ -9,7 +9,7 @@ export default function Example() {
         Changelog <Badge aria-label="New entries" />
       </Text>
       <Text>
-        Billing <Badge tone="destructive" aria-label="Payment failed" />
+        Billing <Badge tone="destructive" aria-label="Payment failed">!</Badge>
       </Text>
     </Flex>
   );

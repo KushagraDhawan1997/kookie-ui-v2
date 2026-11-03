@@ -74,20 +74,48 @@ Icon-only buttons make a compact set of formatting actions. Give each button an 
 ```tsx
 import { HugeiconsIcon } from "@hugeicons/react";
 import { TextBoldIcon, TextItalicIcon, TextUnderlineIcon } from "@hugeicons/core-free-icons";
-import { Button, ButtonGroup, iconStroke } from "@kushagradhawan/kookie-ui-react";
+import {
+  Button,
+  ButtonGroup,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  iconStroke,
+} from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   return (
     <ButtonGroup aria-label="Text style">
-      <Button iconOnly aria-label="Bold">
-        <HugeiconsIcon icon={TextBoldIcon} strokeWidth={iconStroke} aria-hidden />
-      </Button>
-      <Button iconOnly aria-label="Italic">
-        <HugeiconsIcon icon={TextItalicIcon} strokeWidth={iconStroke} aria-hidden />
-      </Button>
-      <Button iconOnly aria-label="Underline">
-        <HugeiconsIcon icon={TextUnderlineIcon} strokeWidth={iconStroke} aria-hidden />
-      </Button>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button iconOnly aria-label="Bold">
+              <HugeiconsIcon icon={TextBoldIcon} strokeWidth={iconStroke} aria-hidden />
+            </Button>
+          }
+        />
+        <TooltipContent>Bold</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button iconOnly aria-label="Italic">
+              <HugeiconsIcon icon={TextItalicIcon} strokeWidth={iconStroke} aria-hidden />
+            </Button>
+          }
+        />
+        <TooltipContent>Italic</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button iconOnly aria-label="Underline">
+              <HugeiconsIcon icon={TextUnderlineIcon} strokeWidth={iconStroke} aria-hidden />
+            </Button>
+          }
+        />
+        <TooltipContent>Underline</TooltipContent>
+      </Tooltip>
     </ButtonGroup>
   );
 }
@@ -99,7 +127,7 @@ Quiet buttons with `bordered` make a lighter group that suits secondary actions.
 
 ```tsx
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Copy01Icon, Download01Icon, Share01Icon } from "@hugeicons/core-free-icons";
+import { CopyPlusIcon, Download01Icon, Share08Icon } from "@hugeicons/core-free-icons";
 import { Button, ButtonGroup, iconStroke } from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
@@ -115,14 +143,14 @@ export default function Example() {
       <Button
         emphasis="quiet"
         bordered
-        leading={<HugeiconsIcon icon={Copy01Icon} strokeWidth={iconStroke} aria-hidden />}
+        leading={<HugeiconsIcon icon={CopyPlusIcon} strokeWidth={iconStroke} aria-hidden />}
       >
         Duplicate
       </Button>
       <Button
         emphasis="quiet"
         bordered
-        leading={<HugeiconsIcon icon={Share01Icon} strokeWidth={iconStroke} aria-hidden />}
+        leading={<HugeiconsIcon icon={Share08Icon} strokeWidth={iconStroke} aria-hidden />}
       >
         Share
       </Button>
@@ -141,7 +169,16 @@ The button that has nowhere to go is disabled. A disabled button keeps its place
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
-import { Button, ButtonGroup, Flex, Text, iconStroke } from "@kushagradhawan/kookie-ui-react";
+import {
+  Button,
+  ButtonGroup,
+  Flex,
+  Text,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  iconStroke,
+} from "@kushagradhawan/kookie-ui-react";
 
 const PAGES = 3;
 
@@ -154,22 +191,36 @@ export default function Example() {
         Page {page} of {PAGES}
       </Text>
       <ButtonGroup aria-label="Pages">
-        <Button
-          iconOnly
-          aria-label="Previous page"
-          disabled={page === 1}
-          onClick={() => setPage((p) => p - 1)}
-        >
-          <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={iconStroke} aria-hidden />
-        </Button>
-        <Button
-          iconOnly
-          aria-label="Next page"
-          disabled={page === PAGES}
-          onClick={() => setPage((p) => p + 1)}
-        >
-          <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={iconStroke} aria-hidden />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                iconOnly
+                aria-label="Previous page"
+                disabled={page === 1}
+                onClick={() => setPage((p) => p - 1)}
+              >
+                <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={iconStroke} aria-hidden />
+              </Button>
+            }
+          />
+          <TooltipContent>Previous page</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button
+                iconOnly
+                aria-label="Next page"
+                disabled={page === PAGES}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={iconStroke} aria-hidden />
+              </Button>
+            }
+          />
+          <TooltipContent>Next page</TooltipContent>
+        </Tooltip>
       </ButtonGroup>
     </Flex>
   );

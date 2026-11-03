@@ -10,7 +10,7 @@ import {
 } from "@kushagradhawan/kookie-ui-react";
 
 import { InlineCode } from "../inline-code";
-import { RULES } from "../builder/review";
+import { RULE_ENTRIES, checkedBy } from "../builder/rules";
 
 /**
  * The house style's rules, rendered FROM THE LINTER (2026-08-21).
@@ -33,8 +33,9 @@ import { RULES } from "../builder/review";
  * to see what exists, and looking up one rule's reason. Severity becomes a column you can
  * compare, and the id sits under the title where a finding's reader will look for it.
  *
- * It renders on the server: `RULES` carries `run` and `apply` functions, and none of them are
- * called here — only `id`, `title`, `severity` and `why` are read, which are data.
+ * ONE LIST SINCE 2026-11-02: the rows come from `rules.json`, which the builder and the screen
+ * check (`scripts/review-ui`) both read, so the table covers every rule either one enforces and
+ * says which. `rules.test.ts` keeps the list and both checkers in step.
  */
 export function ReviewRules() {
   return (
@@ -43,11 +44,12 @@ export function ReviewRules() {
         <TableRow>
           <TableHead>Rule</TableHead>
           <TableHead>Severity</TableHead>
+          <TableHead>Checked by</TableHead>
           <TableHead>Why</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {RULES.map((rule) => (
+        {RULE_ENTRIES.map((rule) => (
           <TableRow key={rule.id}>
             <TableCell>
               <Text weight="medium" render={<div />}>
@@ -56,6 +58,7 @@ export function ReviewRules() {
               <Code>{rule.id}</Code>
             </TableCell>
             <TableCell>{rule.severity}</TableCell>
+            <TableCell>{checkedBy(rule.checkedBy)}</TableCell>
             <TableCell>
               <InlineCode text={rule.why} />
             </TableCell>

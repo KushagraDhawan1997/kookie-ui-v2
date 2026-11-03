@@ -13,6 +13,9 @@
 
 export type SearchEntry = {
   title: string;
+  /** What kind of place the result is, shown as a glyph before the title so a chapter, one of
+      its sections and a component can be told apart before the words are read. */
+  kind: "page" | "heading" | "component";
   /** Where it sits, shown under the title so two similarly-named results can be told apart. */
   context: string;
   href: string;

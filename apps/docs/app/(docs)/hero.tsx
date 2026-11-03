@@ -10,7 +10,7 @@ import {
   SmartPhone01Icon,
   SourceCodeIcon,
   Undo02Icon,
-  ViewIcon,
+  SquareDashedIcon,
 } from "@hugeicons/core-free-icons";
 import {
   Box,
@@ -46,6 +46,7 @@ import {
   iconStroke,
   type TreeNode,
 } from "@kushagradhawan/kookie-ui-react";
+import { ButtonIcon, CardIcon, FieldIcon, FileIcon, FlexIcon, HeadingIcon, TextFieldIcon, TextIcon } from "../icons";
 
 /**
  * THE FRONT PAGE'S HERO (2026-10-22, Kushagra: "Just like we added hero in flow docs"). A real
@@ -67,23 +68,25 @@ const PhoneIcon = glyph(SmartPhone01Icon);
 const PlayGlyphIcon = glyph(PlayIcon);
 const UndoIcon = glyph(Undo02Icon);
 const RedoIcon = glyph(Redo02Icon);
-const EyeIcon = glyph(ViewIcon);
+const OutlinesIcon = glyph(SquareDashedIcon);
 const CodeIcon = glyph(SourceCodeIcon);
 
 const LAYERS: readonly TreeNode[] = [
   {
     id: "page",
     label: "Page",
+    leading: <FileIcon />,
     children: [
       {
         id: "card",
         label: "Card",
+        leading: <CardIcon />,
         children: [
-          { id: "heading", label: "Heading" },
-          { id: "intro", label: "Text" },
-          { id: "email", label: "Field", children: [{ id: "email-label", label: "FieldLabel" }, { id: "email-input", label: "TextField" }] },
-          { id: "password", label: "Field", children: [{ id: "password-input", label: "TextField" }] },
-          { id: "actions", label: "Flex", children: [{ id: "cancel", label: "Button" }, { id: "submit", label: "Button" }] },
+          { id: "heading", label: "Heading", leading: <HeadingIcon /> },
+          { id: "intro", label: "Text", leading: <TextIcon /> },
+          { id: "email", label: "Field", leading: <FieldIcon />, children: [{ id: "email-label", label: "FieldLabel", leading: <TextIcon /> }, { id: "email-input", label: "TextField", leading: <TextFieldIcon /> }] },
+          { id: "password", label: "Field", leading: <FieldIcon />, children: [{ id: "password-input", label: "TextField", leading: <TextFieldIcon /> }] },
+          { id: "actions", label: "Flex", leading: <FlexIcon />, children: [{ id: "cancel", label: "Button", leading: <ButtonIcon /> }, { id: "submit", label: "Button", leading: <ButtonIcon /> }] },
         ],
       },
     ],
@@ -190,7 +193,7 @@ function Builder() {
               </ToolbarGroup>
               <Flex align="center" gap="2">
                 <ToolbarButton iconOnly aria-label="Show outlines">
-                  <EyeIcon />
+                  <OutlinesIcon />
                 </ToolbarButton>
                 <ToolbarButton>100%</ToolbarButton>
               </Flex>
@@ -263,7 +266,9 @@ export function Hero() {
   return (
     <Box mx="bleed" my="10" className="kd-hero" aria-hidden inert>
       <div className="kd-hero-stage">
-        <Builder />
+        <div className="kd-device">
+          <Builder />
+        </div>
       </div>
     </Box>
   );

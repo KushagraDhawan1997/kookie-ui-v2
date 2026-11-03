@@ -113,7 +113,7 @@ export default function Example() {
     <Flex gap="5" align="center">
       <Avatar size="5" fallback="SB" badge={<Badge>4</Badge>} />
       <Avatar size="5" fallback="SB" badge={<Badge tone="success" aria-label="Online" />} />
-      <Avatar size="5" fallback="SB" badge={<Badge tone="destructive" aria-label="Needs attention" />} />
+      <Avatar size="5" fallback="SB" badge={<Badge tone="destructive" aria-label="Needs attention">!</Badge>} />
     </Flex>
   );
 }
@@ -135,7 +135,7 @@ export default function Example() {
       <Stack gap="1">
         <Text weight="medium">Shruti Bhatia</Text>
         <Text size="2" emphasis="medium">
-          Product designer · Owner
+          Product designer, Owner
         </Text>
       </Stack>
     </Flex>

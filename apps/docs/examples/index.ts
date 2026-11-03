@@ -22,6 +22,9 @@ import AttachmentExample from "./attachment";
 import CommandExample from "./command";
 import AccordionExample from "./accordion";
 import PageExample from "./page";
+import NavigatorExample from "./navigator";
+import RowGroupExample from "./row-group";
+import NavigatorInAPaneExample from "./navigator.in-a-pane";
 import QuickstartExample from "./quickstart";
 import InteractionStatesExample from "./interaction.states";
 import DepthFlatAndElevatedExample from "./depth.flat-and-elevated";
@@ -45,7 +48,7 @@ import FeedbackNoticeExample from "./feedback.notice";
 import CompositionOneActionExample from "./composition.one-action";
 import CompositionGroupingExample from "./composition.grouping";
 import CompositionToneExample from "./composition.tone";
-import PrinciplesLookalikesExample from "./principles.lookalikes";
+import InsteadTabsSegmentedExample from "./instead.tabs-segmented";
 import QuickstartDialogExample from "./quickstart.dialog";
 import QuickstartEmailExample from "./quickstart.email";
 import QuickstartRoleExample from "./quickstart.role";
@@ -466,6 +469,9 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "alert-dialog": AlertDialogExample,
   "accordion": AccordionExample,
   "page": PageExample,
+  "navigator": NavigatorExample,
+  "row-group": RowGroupExample,
+  "navigator.in-a-pane": NavigatorInAPaneExample,
   quickstart: QuickstartExample,
   "interaction.states": InteractionStatesExample,
   "depth.flat-and-elevated": DepthFlatAndElevatedExample,
@@ -489,7 +495,7 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "composition.one-action": CompositionOneActionExample,
   "composition.grouping": CompositionGroupingExample,
   "composition.tone": CompositionToneExample,
-  "principles.lookalikes": PrinciplesLookalikesExample,
+  "instead.tabs-segmented": InsteadTabsSegmentedExample,
   "quickstart.dialog": QuickstartDialogExample,
   "quickstart.email": QuickstartEmailExample,
   "quickstart.role": QuickstartRoleExample,

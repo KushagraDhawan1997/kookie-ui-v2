@@ -74,6 +74,13 @@ export function PageScope({ children }: { children: React.ReactNode }) {
   return <PageScopeContext.Provider value={store}>{children}</PageScopeContext.Provider>;
 }
 
+/** Cuts the pane's scope off below a portal: a panel floating over a pane is not in it, so a
+    title inside it must not claim the pane's band (2026-11-02, a Navigator in a popover opened
+    from a docs page took over that page's title). */
+export function NoPageScope({ children }: { children: React.ReactNode }) {
+  return <PageScopeContext.Provider value={null}>{children}</PageScopeContext.Provider>;
+}
+
 export function usePageScope(): PageStore | null {
   return React.use(PageScopeContext);
 }

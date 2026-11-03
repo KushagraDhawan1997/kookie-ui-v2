@@ -190,7 +190,7 @@ describe("what a real client's Accept header means", () => {
 describe("a negotiated request lands on the twin's own bytes", () => {
   /** One of each kind of page, because `markdownFor` branches on the kind and a law that only
       tried a component would be a law about one arm. */
-  const SUBJECTS = ["/start/installation", "/components/button", `${PAGES.at(-1)!.path}`];
+  const SUBJECTS = ["/build/installation", "/components/button", `${PAGES.at(-1)!.path}`];
 
   const ask = (path: string, accept: string) =>
     middleware(

@@ -106,6 +106,13 @@ type ShellCtx = {
     on a phone. */
 const WorkAreaContext = React.createContext(false);
 
+/** Whether this is inside the work area (ShellContent) rather than a side pane. Internal: a
+    Navigator draws a page's large title in the work area and keeps a side pane's title in its
+    band. */
+export function useInWorkArea(): boolean {
+  return React.use(WorkAreaContext);
+}
+
 
 const ShellContext = React.createContext<ShellCtx | null>(null);
 
@@ -2162,8 +2169,8 @@ export type ShellRailItemProps = ComponentRefusals & Omit<React.ComponentPropsWi
    */
   render?: RenderElement;
   /**
-   * Sets the item's name. In the rail, screen readers announce it, because the item shows only an
-   * icon. In the tab bar, it also shows under the icon.
+   * Sets the item's name. It shows under the icon, in the rail and in the tab bar, and screen
+   * readers announce it. Keep it to one short word.
    */
   label?: string;
   /**
@@ -2279,7 +2286,7 @@ export function ShellRailList({ className, children, ...props }: ShellRailListPr
 
 export type ShellRailActionProps = ComponentRefusals & Omit<React.ComponentPropsWithoutRef<"button">, "color"> & {
   /**
-   * Sets the button's name. Screen readers announce it, and the tab bar shows it under the icon.
+   * Sets the button's name. It shows under the icon in the rail and the tab bar, and screen readers announce it.
    */
   label: string;
   /**

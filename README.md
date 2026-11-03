@@ -43,8 +43,8 @@ The site in `apps/docs` is the documentation. It has four parts.
 
 | route | what it holds |
 |---|---|
-| `/` | 20 guideline chapters: getting started, patterns and foundations |
-| `/components` | the reference for 62 components, with generated props tables and the refusals |
+| `/` | 25 guideline chapters: getting started, patterns and foundations |
+| `/components` | the reference for 64 components, with generated props tables and the refusals |
 | `/builder` | a composition editor that exports React code and reviews the result |
 | `/preview` and `/matrix` | the judging surfaces: real screens, and the axis grid |
 | any path + `.md`, or `Accept: text/markdown` | the same page as markdown, for an agent |
@@ -77,7 +77,7 @@ The library is built so that a coding agent learns it from the package rather th
   every refused prop, attribute, utility class and raw value in a piece of JSX.
 - Every docs page is served as markdown at its path plus `.md`, and `/llms.txt` lists them all.
 
-The [AI agents](apps/docs/content/start/agents.mdx) chapter explains each one.
+The [AI agents](apps/docs/content/build/agents.mdx) chapter explains each one.
 
 ## Repository layout
 

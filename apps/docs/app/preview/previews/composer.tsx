@@ -283,7 +283,7 @@ function Permutations() {
                   <Text size="2" emphasis="quiet">{cap(m)}</Text>
                   {SIZES.map((size) => (
                     <Composer key={size} size={size} backdrop>
-                      <ComposerInput aria-label={`${m}, size ${size}`} defaultValue={`${cap(m)} · size ${size}`} />
+                      <ComposerInput aria-label={`${m}, size ${size}`} defaultValue={`${cap(m)}, size ${size}`} />
                       <Row />
                     </Composer>
                   ))}

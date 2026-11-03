@@ -5,6 +5,9 @@ your app. `Shell` answers the first with a frame of named panes around your cont
 open page answers the second, on the screen and for a screen reader.
 
 ## The app frame
+
+A `Shell` holds a header, navigation columns, the work area and optional detail panes. Each pane
+is its own component, so you use only the panes you need.
 ```tsx
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -43,6 +46,9 @@ import {
   Text,
   Toolbar,
   ToolbarButton,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
   iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
@@ -89,9 +95,16 @@ export default function Example() {
             {/* Top-aligned, not centred: the mark is a display glyph and it defines the row,
                 so centring the button would sink it below the trigger in the pane next door.
                 Aligning to the start puts both at the same offset from their pane's padding. */}
-            <Button iconOnly backdrop aria-label="New" style={{ alignSelf: "start" }}>
-              {icon(PlusSignIcon)}
-            </Button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button iconOnly backdrop aria-label="New" style={{ alignSelf: "start" }}>
+                    {icon(PlusSignIcon)}
+                  </Button>
+                }
+              />
+              <TooltipContent>New</TooltipContent>
+            </Tooltip>
           </ShellPaneHeader>
 
           {/* `fade` is what keeps the rows legible on their way behind the chrome. */}
@@ -136,9 +149,16 @@ export default function Example() {
                   nav rows pass under it, and an avatar's fallback wash is an alpha — rows read
                   straight through the disc. The button is what states `backdrop`, and an
                   account avatar is a target in every app that has one anyway. */}
-              <ToolbarButton iconOnly aria-label="Kushagra Dhawan">
-                <Avatar fallback="KD" />
-              </ToolbarButton>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <ToolbarButton iconOnly aria-label="Kushagra Dhawan">
+                      <Avatar fallback="KD" />
+                    </ToolbarButton>
+                  }
+                />
+                <TooltipContent>Kushagra Dhawan</TooltipContent>
+              </Tooltip>
               <AppearanceToggle />
             </Toolbar>
           </ShellPaneFooter>
@@ -201,9 +221,6 @@ export default function Example() {
   );
 }
 ```
-A `Shell` holds a header, navigation columns, the work area and optional detail panes. Each pane
-is its own component, so you use only the panes you need.
-
 - **`ShellHeader`:** A row across the full width of the frame.
 - **`ShellRail`:** A narrow column of icons that switches between the main areas of the app.
 - **`ShellSidebar`:** A wider column that lists what is inside the area the rail selected.
@@ -259,6 +276,8 @@ from the top of the app to the open page.
 
 Use `Tabs` when the content under the row changes. Use a `SegmentedControl` when the choice sets
 a value, such as a grid or a list layout, and the content stays where it is.
+
+*Figure.* A billing screen with tabs that switch the view below them, and a segmented control that sets the date range in place.
 
 A screen reader hears the difference. A `SegmentedControl` is a radio group: the arrow keys change
 its value, and a form submits that value. A tab bar is a tab list, and each tab controls a panel.

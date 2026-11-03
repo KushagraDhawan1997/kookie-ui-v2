@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Home01Icon, LayerIcon, Search01Icon } from "@hugeicons/core-free-icons";
+import { Home01Icon, Image01Icon, LayoutBottomIcon, LayoutTopIcon, Search01Icon } from "@hugeicons/core-free-icons";
 import {
   Box,
   Heading,
@@ -36,11 +36,11 @@ export default function Example() {
         </ShellRail>
         <ShellSidebar aria-label="Layers" flush={false}>
           <ShellNavGroup label="Layers">
-            <ShellNavItem current leading={icon(LayerIcon)}>
+            <ShellNavItem current leading={icon(LayoutTopIcon)}>
               Header
             </ShellNavItem>
-            <ShellNavItem leading={icon(LayerIcon)}>Hero image</ShellNavItem>
-            <ShellNavItem leading={icon(LayerIcon)}>Footer</ShellNavItem>
+            <ShellNavItem leading={icon(Image01Icon)}>Hero image</ShellNavItem>
+            <ShellNavItem leading={icon(LayoutBottomIcon)}>Footer</ShellNavItem>
           </ShellNavGroup>
         </ShellSidebar>
         <ShellContent>

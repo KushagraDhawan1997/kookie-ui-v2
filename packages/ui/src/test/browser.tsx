@@ -60,6 +60,8 @@ import composerCss from "../components/composer/composer.css?raw";
 import noticeCss from "../components/notice/notice.css?raw";
 import numberFieldCss from "../components/number-field/number-field.css?raw";
 import pageCss from "../components/page/page.css?raw";
+import navigatorCss from "../components/navigator/navigator.css?raw";
+import rowGroupCss from "../components/row-group/row-group.css?raw";
 import popoverCss from "../components/popover/popover.css?raw";
 import selectCss from "../components/select/select.css?raw";
 import progressCss from "../components/progress/progress.css?raw";
@@ -127,6 +129,8 @@ export function installStyles(): void {
     noticeCss,
     numberFieldCss,
     pageCss,
+    navigatorCss,
+    rowGroupCss,
     scrollAreaCss,
     segmentedControlCss,
     selectCss,

@@ -84,6 +84,10 @@ const pressable = (
   return false;
 };
 
+/** Whether rows here sit between dividers, where a hover fill would read as a second box. A
+    RowGroup provides it. */
+export const RowDividedContext = React.createContext(false);
+
 /**
  * One row in a list (§21) — the row family's standalone member.
  *
@@ -124,6 +128,7 @@ export function Row({
   ref,
   ...props
 }: RowProps) {
+  const divided = React.use(RowDividedContext);
   const size = useSize(sizeProp);
   const inert = render !== undefined && !pressable(render, props);
   const merged = {
@@ -148,8 +153,11 @@ export function Row({
     // asked — not its value — because a controlled `false` still means "I am the cursor here".
     // An INERT render target answers neither (2026-08-26, audit — see `pressable` above): the
     // pointer is not a cursor over something that cannot be pressed.
+    // Rows separated by dividers answer no hover (2026-11-02, Kushagra: "I have a bad feeling
+    // about hover states and separators being together, dont show hover state then"): a fill
+    // that stops at a hairline reads as a second box. A RowGroup says so for its rows.
     ...(highlighted === undefined
-      ? inert
+      ? inert || divided
         ? {}
         : { "data-hover-lit": "" }
       : highlighted

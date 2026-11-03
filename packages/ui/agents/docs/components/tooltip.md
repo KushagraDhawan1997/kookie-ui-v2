@@ -166,7 +166,7 @@ export default function Example() {
 
 ```tsx
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Copy01Icon, Delete02Icon, Download01Icon, Share08Icon } from "@hugeicons/core-free-icons";
+import { CopyPlusIcon, Delete02Icon, Download01Icon, Share08Icon } from "@hugeicons/core-free-icons";
 import {
   Button,
   Flex,
@@ -180,7 +180,7 @@ import {
 const ACTIONS = [
   { label: "Share", side: "top", glyph: Share08Icon },
   { label: "Download", side: "right", glyph: Download01Icon },
-  { label: "Duplicate", side: "bottom", glyph: Copy01Icon },
+  { label: "Duplicate", side: "bottom", glyph: CopyPlusIcon },
   { label: "Delete", side: "left", glyph: Delete02Icon },
 ] as const;
 

@@ -39,3 +39,7 @@ apps/docs/next-env.d.ts
 *.ttf
 *.eot
 .vitest/
+.claude/.ui-reviewed
+
+# The unlock for the checks hook (scripts/review-ui/, RULES.md) is a local switch, never shared.
+.claude/checks-unlocked

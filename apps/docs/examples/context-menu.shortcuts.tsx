@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ClipboardIcon, Copy01Icon, Scissor01Icon } from "@hugeicons/core-free-icons";
+import { ClipboardIcon, Copy01Icon, Scissor01Icon, TextSelectionIcon } from "@hugeicons/core-free-icons";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -37,7 +37,9 @@ export default function Example() {
         <MenuItem leading={icon(ClipboardIcon)} trailing={<Kbd>⌘V</Kbd>}>
           Paste
         </MenuItem>
-        <MenuItem trailing={<Kbd>⌘A</Kbd>}>Select all</MenuItem>
+        <MenuItem leading={icon(TextSelectionIcon)} trailing={<Kbd>⌘A</Kbd>}>
+          Select all
+        </MenuItem>
       </ContextMenuContent>
     </ContextMenu>
   );

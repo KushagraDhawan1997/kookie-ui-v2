@@ -11,6 +11,9 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
   iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
@@ -28,9 +31,16 @@ export default function Example() {
       <ComposerInput aria-label="Message" placeholder="Draft a release note…" />
       <ComposerRow>
         <Flex gap="2">
-          <Button iconOnly aria-label="Add attachment">
-            {icon(Attachment01Icon)}
-          </Button>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button iconOnly aria-label="Add attachment">
+                  {icon(Attachment01Icon)}
+                </Button>
+              }
+            />
+            <TooltipContent>Add attachment</TooltipContent>
+          </Tooltip>
           <Select defaultValue="opus" items={MODELS}>
             <SelectTrigger aria-label="Model" />
             <SelectContent>

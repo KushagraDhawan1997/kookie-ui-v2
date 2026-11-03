@@ -14,6 +14,9 @@ import {
   Toolbar,
   ToolbarButton,
   ToolbarTitle,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
   iconStroke,
 } from "@kushagradhawan/kookie-ui-react";
 
@@ -37,14 +40,28 @@ export default function Example() {
           <ShellPaneHeader>
             <Toolbar>
               <Flex align="center" gap="2">
-                <ToolbarButton iconOnly aria-label="Back to projects">
-                  {icon(ArrowLeft01Icon)}
-                </ToolbarButton>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <ToolbarButton iconOnly aria-label="Back to projects">
+                        {icon(ArrowLeft01Icon)}
+                      </ToolbarButton>
+                    }
+                  />
+                  <TooltipContent>Back to projects</TooltipContent>
+                </Tooltip>
                 <ToolbarTitle />
               </Flex>
-              <ToolbarButton iconOnly aria-label="Share report">
-                {icon(Share08Icon)}
-              </ToolbarButton>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <ToolbarButton iconOnly aria-label="Share report">
+                      {icon(Share08Icon)}
+                    </ToolbarButton>
+                  }
+                />
+                <TooltipContent>Share report</TooltipContent>
+              </Tooltip>
             </Toolbar>
           </ShellPaneHeader>
           <ShellScroll>

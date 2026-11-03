@@ -1,4 +1,4 @@
-import { CHAPTERS } from "./chapters";
+import { CHAPTERS, SECTIONS } from "./chapters";
 import { ENTRIES } from "./components/registry";
 import { chapterToc } from "./toc";
 import type { SearchEntry } from "./search";
@@ -27,7 +27,8 @@ export function buildSearchIndex(): SearchEntry[] {
     const headings = chapterToc(chapter.source);
     entries.push({
       title: chapter.title,
-      context: chapter.section === "start" ? "Getting started" : capitalize(chapter.section),
+      kind: "page",
+      context: SECTIONS.find((s) => s.id === chapter.section)?.title ?? capitalize(chapter.section),
       href: `/${chapter.slug}`,
       haystack: `${chapter.title} ${chapter.blurb} ${headings.map((h) => h.title).join(" ")}`.toLowerCase(),
     });
@@ -36,6 +37,7 @@ export function buildSearchIndex(): SearchEntry[] {
     for (const heading of headings) {
       entries.push({
         title: heading.title,
+        kind: "heading",
         context: chapter.title,
         href: `/${chapter.slug}#${heading.id}`,
         haystack: `${heading.title} ${chapter.title}`.toLowerCase(),
@@ -46,6 +48,7 @@ export function buildSearchIndex(): SearchEntry[] {
   for (const entry of ENTRIES) {
     entries.push({
       title: humanLabel(entry.name),
+      kind: "component",
       context: `${entry.job} ${entry.level === "pattern" ? "pattern" : "component"}`,
       href: `/components/${entry.slug}`,
       // The refusals are in the haystack deliberately: "no margin prop" and "why can't I set

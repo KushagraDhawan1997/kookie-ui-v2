@@ -1,0 +1,25 @@
+A finger is wider and less precise than a mouse pointer, and it covers what it touches. Under a
+touch pointer, Kookie makes every control large enough to hit without you changing any code.
+
+<FitFigure />
+
+## Make targets big enough to hit
+
+At size 2, a control is 44 pixels tall under a touch pointer, and no target goes below 24
+pixels, the WCAG 2.2 minimum. Body text and icons grow with the controls, while the space between
+components stays the same. The [Scale](/foundations/scale) page lists every value.
+
+A checkbox, a radio button or a switch draws a small box, so its tappable area extends past what
+you see, out to the height of a button of the same size. Leave at least 12 pixels between two of
+them in a list, so a tap on one never lands on the next.
+
+## Keep text fields from zooming
+
+Text in a field is at least 16 pixels under a touch pointer, because Safari on iPhone and iPad
+zooms the page when someone taps a field with smaller text. The label and the box keep their
+sizes.
+
+## Don't depend on hover
+
+A finger can't hover, so nothing should appear only on hover. Kookie applies hover styles only
+where the main pointer can hover, so a button you tapped does not stay in its hover colour.

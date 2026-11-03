@@ -17,11 +17,13 @@ Open the page for your task by its path before you write code. File search skips
 `node_modules`, so use the path.
 
 - Any screen with more than one component: `start/composition.md`
+- A button, a menu row or a navigation item with an icon: `foundations/icons.md`
 - A form, a settings page, or any field with a label: `patterns/forms.md`
 - A dialog, alert, popover, menu or sheet: `patterns/modality.md`
 - The app frame, page titles and tabs between pages: `patterns/navigation.md`
 - Loading, progress, success, error and empty states: `patterns/feedback.md`
 - A layout that changes with space, or a touch target: `patterns/responsiveness.md`
+- A screen people use on a phone or tablet: `inputs/touch.md`
 
 Every other page is in the same folder. A link to `/patterns/forms` inside a page is the
 file `patterns/forms.md`.
@@ -94,17 +96,17 @@ answer how much room the component has, not how wide the window is.
 <Flex direction={{ initial: "column", md: "row" }} gap="4" />
 ```
 
-## The components (177)
+## The components (183)
 
 This list is closed. There are no deep imports — every symbol comes from
 `@kushagradhawan/kookie-ui-react`. If what you want is not here, it is not there, and the answer is
 composition rather than a wrapper that re-implements it.
 
-`Accordion` · `AccordionItem` · `AccordionTrigger` · `AccordionPanel` · `AlertDialog` · `AlertDialogTrigger` · `AlertDialogContent` · `AlertDialogTitle` · `AlertDialogDescription` · `AlertDialogCancel` · `AlertDialogAction` · `Avatar` · `AvatarGroup` · `Attachment` · `Badge` · `Chip` · `Breadcrumb` · `BreadcrumbItem` · `BreadcrumbLink` · `BreadcrumbPage` · `BreadcrumbEllipsis` · `Blockquote` · `Box` · `Button` · `Card` · `Carousel` · `CarouselRail` · `CarouselItem` · `CarouselPrevious` · `CarouselNext` · `Checkbox` · `Code` · `CodeBlock` · `Field` · `FieldItem` · `FieldLabel` · `FieldDescription` · `FieldError` · `Combobox` · `ComboboxInput` · `ComboboxContent` · `ComboboxList` · `ComboboxCollection` · `ComboboxItem` · `ComboboxGroup` · `ComboboxLabel` · `ComboboxEmpty` · `Command` · `CommandTrigger` · `CommandContent` · `CommandInput` · `CommandList` · `CommandGroup` · `CommandGroupLabel` · `CommandCollection` · `CommandItem` · `CommandEmpty` · `Dialog` · `DialogTrigger` · `DialogContent` · `DialogTitle` · `DialogDescription` · `DialogClose` · `Heading` · `Kbd` · `Link` · `List` · `ListItem` · `ContextMenu` · `ContextMenuTrigger` · `ContextMenuContent` · `Menu` · `MenuTrigger` · `MenuContent` · `MenuItem` · `MenuGroup` · `MenuLabel` · `MenuCheckboxItem` · `MenuRadioGroup` · `MenuRadioItem` · `MenuSub` · `MenuSubTrigger` · `MenuSubContent` · `Select` · `SelectTrigger` · `SelectContent` · `SelectItem` · `SelectGroup` · `SelectLabel` · `Composer` · `ComposerInput` · `ComposerRow` · `ComposerSend` · `Confirmation` · `Notice` · `NumberField` · `Page` · `Toolbar` · `ToolbarGroup` · `ToolbarButton` · `ToolbarOverflow` · `ToolbarSeparator` · `ToolbarTitle` · `Popover` · `PopoverTrigger` · `PopoverContent` · `PopoverTitle` · `PopoverDescription` · `PopoverClose` · `Progress` · `MessageScroller` · `MessageScrollerContent` · `MessageScrollerItem` · `MessageScrollerButton` · `Radio` · `RadioGroup` · `Separator` · `Sheet` · `SheetTrigger` · `SheetContent` · `SheetTitle` · `SheetDescription` · `SheetClose` · `SegmentedControl` · `SegmentedItem` · `Row` · `Tree` · `NavTree` · `ScrollArea` · `Shell` · `ShellNotice` · `ShellHeader` · `ShellRail` · `ShellTabBar` · `ShellSidebar` · `ShellContent` · `ShellInspector` · `ShellBottom` · `ShellScroll` · `ShellPaneHeader` · `ShellPaneFooter` · `ShellRailAction` · `ShellRailItem` · `ShellRailList` · `ShellNavGroup` · `ShellNavItem` · `ShellTrigger` · `Slider` · `Switch` · `Table` · `TableHeader` · `TableBody` · `TableRow` · `TableHead` · `TableCell` · `TableCaption` · `Tabs` · `TabsList` · `TabsTab` · `TabsPanel` · `Toggle` · `ToggleGroup` · `ButtonGroup` · `SplitButton` · `Tooltip` · `TooltipProvider` · `TooltipTrigger` · `TooltipContent` · `Text` · `TextArea` · `TextField` · `Spinner` · `Surface` · `Flex` · `Grid` · `Stack` · `Theme`
+`Accordion` · `AccordionItem` · `AccordionTrigger` · `AccordionPanel` · `AlertDialog` · `AlertDialogTrigger` · `AlertDialogContent` · `AlertDialogTitle` · `AlertDialogDescription` · `AlertDialogCancel` · `AlertDialogAction` · `Avatar` · `AvatarGroup` · `Attachment` · `Badge` · `Chip` · `Breadcrumb` · `BreadcrumbItem` · `BreadcrumbLink` · `BreadcrumbPage` · `BreadcrumbEllipsis` · `Blockquote` · `Box` · `Button` · `Card` · `Carousel` · `CarouselRail` · `CarouselItem` · `CarouselPrevious` · `CarouselNext` · `Checkbox` · `Code` · `CodeBlock` · `Field` · `FieldItem` · `FieldLabel` · `FieldDescription` · `FieldError` · `Combobox` · `ComboboxInput` · `ComboboxContent` · `ComboboxList` · `ComboboxCollection` · `ComboboxItem` · `ComboboxGroup` · `ComboboxLabel` · `ComboboxEmpty` · `Command` · `CommandTrigger` · `CommandContent` · `CommandInput` · `CommandList` · `CommandGroup` · `CommandGroupLabel` · `CommandCollection` · `CommandItem` · `CommandEmpty` · `Dialog` · `DialogTrigger` · `DialogContent` · `DialogTitle` · `DialogDescription` · `DialogClose` · `Heading` · `Kbd` · `Link` · `List` · `ListItem` · `ContextMenu` · `ContextMenuTrigger` · `ContextMenuContent` · `Menu` · `MenuTrigger` · `MenuContent` · `MenuItem` · `MenuGroup` · `MenuLabel` · `MenuCheckboxItem` · `MenuRadioGroup` · `MenuRadioItem` · `MenuSub` · `MenuSubTrigger` · `MenuSubContent` · `Select` · `SelectTrigger` · `SelectContent` · `SelectItem` · `SelectGroup` · `SelectLabel` · `Composer` · `ComposerInput` · `ComposerRow` · `ComposerSend` · `Confirmation` · `Notice` · `NumberField` · `Page` · `RowGroup` · `Navigator` · `NavigatorBack` · `NavigatorLink` · `NavigatorOutlet` · `NavigatorScreen` · `Toolbar` · `ToolbarGroup` · `ToolbarButton` · `ToolbarOverflow` · `ToolbarSeparator` · `ToolbarTitle` · `Popover` · `PopoverTrigger` · `PopoverContent` · `PopoverTitle` · `PopoverDescription` · `PopoverClose` · `Progress` · `MessageScroller` · `MessageScrollerContent` · `MessageScrollerItem` · `MessageScrollerButton` · `Radio` · `RadioGroup` · `Separator` · `Sheet` · `SheetTrigger` · `SheetContent` · `SheetTitle` · `SheetDescription` · `SheetClose` · `SegmentedControl` · `SegmentedItem` · `Row` · `Tree` · `NavTree` · `ScrollArea` · `Shell` · `ShellNotice` · `ShellHeader` · `ShellRail` · `ShellTabBar` · `ShellSidebar` · `ShellContent` · `ShellInspector` · `ShellBottom` · `ShellScroll` · `ShellPaneHeader` · `ShellPaneFooter` · `ShellRailAction` · `ShellRailItem` · `ShellRailList` · `ShellNavGroup` · `ShellNavItem` · `ShellTrigger` · `Slider` · `Switch` · `Table` · `TableHeader` · `TableBody` · `TableRow` · `TableHead` · `TableCell` · `TableCaption` · `Tabs` · `TabsList` · `TabsTab` · `TabsPanel` · `Toggle` · `ToggleGroup` · `ButtonGroup` · `SplitButton` · `Tooltip` · `TooltipProvider` · `TooltipTrigger` · `TooltipContent` · `Text` · `TextArea` · `TextField` · `Spinner` · `Surface` · `Flex` · `Grid` · `Stack` · `Theme`
 
 Also exported, and not components:
 
-`useToolbarOverflow` · `useMessageScroller` · `useMessageScrollerScrollable` · `useMessageScrollerVisibility` · `useTheme` · `useMaterial` · `themeDefaults` · `themeAxes` · `useWindowClass` · `windowClassQueries` · `componentAxes` · `iconStroke` · `iconGrid` · `tiers` · `tierNames`
+`useNavigator` · `useToolbarOverflow` · `useMessageScroller` · `useMessageScrollerScrollable` · `useMessageScrollerVisibility` · `useTheme` · `useMaterial` · `themeDefaults` · `themeAxes` · `useWindowClass` · `windowClassQueries` · `componentAxes` · `iconStroke` · `iconGrid` · `iconSize` · `tiers` · `tierNames`
 
 ## What each component refuses
 
@@ -142,6 +144,7 @@ system wrong. The reason each one was refused is on the component's own page —
 - **List** — A custom marker; `render`; A `gap` or density prop; A description list
 - **Menu** — `emphasis` on rows; A Shortcut part; `MenuSeparator`; An `inset` prop; `modal` and `openOnHover`; An arrow, a backdrop, a scroll viewport and collision settings
 - **MessageScroller** — `size`; A viewport of its own; A default label for the jump button
+- **Navigator** — A Navigator inside a Page; A Navigator inside another Navigator in the same region; Escape to go back; A disabled Back on the root; A URL; A Navigator in a Card inside a Shell pane
 - **NavTree** — `role="tree"`; Selection; Arrow-key navigation; An `indent` prop
 - **Notice** — A position, and a Banner component; A toast, or any Notice that disappears on its own; A title and description; More than one action; Remembering its own dismissal; A shadow; Built-in icons; A ✕ on a Confirmation
 - **NumberField** — `leading` and `trailing`; `emphasis` and `tone`; `render`; The browser's number input; Dragging or scrolling to change the value
@@ -151,6 +154,7 @@ system wrong. The reason each one was refused is on the component's own page —
 - **Radio** — `tone` and `emphasis`; `readOnly`
 - **RadioGroup** — Visual props; `readOnly`
 - **Row** — `emphasis`; A keyboard model; A `selected` prop; A List component; The shorter height of a menu row
+- **RowGroup** — Its own row props; A divider style; A header action
 - **ScrollArea** — `size`; `tone` and `emphasis`; `material`; `render`; `orientation`
 - **SegmentedControl** — `tone` and `emphasis`; Selecting more than one option; `nativeButton` and `render`; `readOnly`
 - **Select** — `readOnly`; A Separator inside the panel; `emphasis` and `tone` on the trigger; A `SelectValue` part; `render` and `children` on the trigger; Scroll arrows; `multiple`

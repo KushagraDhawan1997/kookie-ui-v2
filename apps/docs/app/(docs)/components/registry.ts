@@ -1552,6 +1552,58 @@ const DECLARED: Entry[] = [
     ],
   },
   {
+    slug: "navigator",
+    name: "Navigator",
+    job: "Go",
+    level: "pattern",
+    spec: "§46",
+    declaration: `<Navigator
+  root={<NavigatorScreen title="Settings">…</NavigatorScreen>}
+  screen={(v) => <NavigatorScreen title={v}>…</NavigatorScreen>}
+/>`,
+    topics: [
+      { title: "Holding the screens", symbols: ["Navigator", "NavigatorScreen"] },
+      { title: "Going deeper and back", symbols: ["NavigatorLink", "NavigatorBack"] },
+      { title: "In a frame", symbols: ["NavigatorOutlet"] },
+    ],
+    variants: [
+      {"name":"in-a-pane","title":"In a pane","why":"Put the Navigator straight in a `Shell` pane and it draws the pane's header, with Back and the title together, and the scroller for the screens. In a side pane the screen's title stays in the header. In the main content area each screen is a page, with a large title that moves into the header as you scroll."},
+    ],
+    abstract: "Navigator is a stack of screens: any screen can open another on top of it, and Back returns to the one below.",
+    overview: ["Use a Navigator when people go deeper into something and come back, such as from settings to notifications to email. It can hold any number of levels. The first screen is the root, and it never closes.","The screens above the root are a list of values that you can control with `path` and `onPathChange`. `screen` turns each value into its screen. Because the path is data, your app can keep it in the URL or open several levels deep at once.","A Navigator has no box of its own, so it is the page system for whatever holds it. In a `Shell` pane each screen is a `Page`, with a large title that moves into the pane's header as it scrolls away. In a dialog, a sheet or a titled popover, each screen shows one row with Back, the panel's own title and Close. A popover closes on any press outside it, so keep a flow of several steps in a dialog or a sheet. Don't put a Navigator inside a `Page`.","Open a screen with a `NavigatorLink`, or call `push` from `useNavigator`. Back closes the top screen and isn't shown on the root. The screens underneath stay open but hidden, so a list keeps its scroll position and a field keeps what you typed.","When a screen opens, focus moves to its title. When you go back, focus returns to the control that opened it. Escape closes whatever holds the Navigator, such as a dialog, and never goes back one screen."],
+    refusals: [
+      { name: "A Navigator inside a Page", why: "A Navigator is the page system for its region, so inside a Page it would put a second page title on the screen. Put the Navigator in a dialog or a sheet instead." },
+      { name: "A Navigator inside another Navigator in the same region", why: "Two navigators in one region would show two bars with two Back buttons." },
+      { name: "Escape to go back", why: "Escape closes the dialog or sheet that holds the Navigator. Going back is the Back button." },
+      { name: "A disabled Back on the root", why: "There is nowhere to go back to, so the button isn't shown." },
+      { name: "A URL", why: "Kookie has no router. Keep the path in your URL yourself with `path` and `onPathChange`." },
+      { name: "A Navigator in a Card inside a Shell pane", why: "In a pane the Navigator takes the pane's header and title, even from inside a Card. Put it straight in the pane, or in a dialog or a sheet." },
+    ],
+    parts: [
+      { part: "NavigatorScreen", blurb: "One screen, with its `title`. In a pane it is a Page, and elsewhere it shows a row with Back and a small heading" },
+      { part: "NavigatorLink", blurb: "A row that opens the next screen when pressed. It pushes its `value` onto the path and shows a chevron" },
+      { part: "NavigatorBack", blurb: "The Back button for a toolbar. It names the screen it returns to and isn't shown on the root" },
+      { part: "NavigatorOutlet", blurb: "Where the screens go when you pass a frame, such as a pane's header and scroller, as the navigator's children" },
+    ],
+  },
+  {
+    slug: "row-group",
+    name: "RowGroup",
+    job: "Arrange",
+    level: "pattern",
+    spec: "§21",
+    declaration: `<RowGroup label="Notifications" note="We only email you about your projects.">
+  <Row render={<label />} trailing={<Switch />}>Email</Row>
+</RowGroup>`,
+    abstract: "RowGroup is a grouped list: a small label, a card of rows with a divider between each, and an optional note.",
+    overview: ["Use a RowGroup for a list of settings, or for a section of an inspector. It shows a small label, a card holding the rows with a divider between each pair, and an optional note under the card. The label also names the group for screen readers.","The rows are ordinary `Row`s. For a setting that turns on and off, render the Row as a `label` with a `Switch` in `trailing`, so a press anywhere on the row toggles it. For a row that goes somewhere, render it as a link, or use a `NavigatorLink` inside a `Navigator`.","The dividers start where the rows' text starts, so they separate the items without cutting across the card. Use the note for a consequence or a limit, not to repeat the label."],
+    refusals: [
+      { name: "Its own row props", why: "The rows are `Row`s with their own props, so there is one way to write a row inside a group and outside one." },
+      { name: "A divider style", why: "The dividers are the system's one hairline. A thicker or full-width divider would read as a break between groups, which is what the space between two RowGroups is for." },
+      { name: "A header action", why: "An action that belongs to the whole group goes in a row of its own, or in the toolbar above the page." },
+    ],
+  },
+  {
     slug: "page",
     name: "Page",
     job: "Go",
@@ -2775,7 +2827,7 @@ export type Job = (typeof JOBS)[number]["job"];
  * between them needs the split in one sentence. `a` and `b` are export names; `useA` says when
  * the first is right, `useB` when the second is.
  */
-export const PAIRS: { a: string; b: string; useA: string; useB: string }[] = [
+export const PAIRS: { a: string; b: string; useA: string; useB: string; example?: string }[] = [
   {
     a: "Switch",
     b: "Checkbox",
@@ -2793,6 +2845,7 @@ export const PAIRS: { a: string; b: string; useA: string; useB: string }[] = [
     b: "SegmentedControl",
     useA: "each option is a different view, with its own content.",
     useB: "the options filter or change one view that stays on screen.",
+    example: "instead.tabs-segmented",
   },
   {
     a: "Tabs",
@@ -2869,12 +2922,12 @@ export const PAIRS: { a: string; b: string; useA: string; useB: string }[] = [
 ];
 
 /** Every pair this component is in, from its side: the other name, and when to use the other. */
-export function alternativesFor(name: string): { name: string; when: string }[] {
+export function alternativesFor(name: string): { name: string; when: string; example?: string | undefined }[] {
   return PAIRS.flatMap((pair) =>
     pair.a === name
-      ? [{ name: pair.b, when: pair.useB }]
+      ? [{ name: pair.b, when: pair.useB, example: pair.example }]
       : pair.b === name
-        ? [{ name: pair.a, when: pair.useA }]
+        ? [{ name: pair.a, when: pair.useA, example: pair.example }]
         : [],
   );
 }

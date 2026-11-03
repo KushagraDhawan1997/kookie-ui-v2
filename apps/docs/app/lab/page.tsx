@@ -56,7 +56,7 @@ function CardBody({ tall, muted }: { tall: boolean; muted: string }) {
             has more weight to explain.
           </Text>
           <Text render={<div />} size="2" emphasis="quiet" className={muted}>
-            Updated 2 days ago · 4 members
+            Updated 2 days ago, 4 members
           </Text>
           <Flex gap="2" style={{ paddingBlockStart: 4 }}>
             <Button size="2" tone="accent" emphasis="loud">
@@ -134,7 +134,7 @@ function Panel({ appearance, knobs }: { appearance: "light" | "dark"; knobs: Kno
               <Stack key={`${bed.className}-${r.key}`} gap="0">
                 <Flex p="6" style={{ paddingBlockEnd: 8 }}>
                   <Text size="2" emphasis="quiet">
-                    {bed.label} · {r.label}
+                    {bed.label}, {r.label}
                   </Text>
                 </Flex>
                 <div className={`lab-strip ${bed.className}`}>

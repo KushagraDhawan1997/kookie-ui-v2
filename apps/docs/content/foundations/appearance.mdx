@@ -2,6 +2,8 @@ A `Theme` holds two kinds of value. Light or dark mode, contrast and transparenc
 person who uses your app, and Kookie follows their system settings. Density, shape, material,
 depth and accent are your app's identity, and you set them once at the root.
 
+<AppearanceFigure />
+
 ## Set the theme at the root
 
 Wrap your app in one `Theme`, and set only the values that you want to change. Every value has a
@@ -30,7 +32,7 @@ These settings follow what the person asked their system for. Don't set them on 
 overrule that choice. Set them only to fix one region, or to build a control that lets the
 person change them.
 
-- **Light or dark mode:** The script in [Installation](/start/installation) reads the person's
+- **Light or dark mode:** The script in [Installation](/build/installation) reads the person's
   setting and writes it on `<html>` before the first paint. Set `appearance="inherit"` on the
   root theme so that it uses that value. Without the script, the theme shows light mode.
 - **Contrast:** If the person turns on increased contrast, borders, fills and tracks get

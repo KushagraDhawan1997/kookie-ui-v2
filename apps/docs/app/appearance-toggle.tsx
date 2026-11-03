@@ -81,7 +81,7 @@ export function AppearanceToggle() {
           onValueChange={(value) => setAppearance(value as AppearanceChoice)}
         >
           {CHOICES.map((c) => (
-            <MenuRadioItem key={c} value={c} closeOnClick>
+            <MenuRadioItem key={c} value={c} closeOnClick trailing={<RowMark choice={c} />}>
               {LABELS[c]}
             </MenuRadioItem>
           ))}
@@ -89,4 +89,12 @@ export function AppearanceToggle() {
       </MenuContent>
     </Menu>
   );
+}
+
+/* The trigger's sun, moon or screen, beside its word in the menu (2026-11-01, the icon audit),
+   so the shape on the button is learned from the row that sets it. Trailing, because a radio
+   row's leading slot is its tick. */
+function RowMark({ choice }: { choice: AppearanceChoice }) {
+  const Mark = MARKS[choice];
+  return <Mark />;
 }

@@ -33,6 +33,8 @@
  */
 import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
+
+import { HostCloseContext, HostTitleContext } from "../../system/host-title.ts";
 import { Drawer as BaseDrawer } from "@base-ui/react/drawer";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
@@ -378,7 +380,11 @@ function SheetPopup({
         * family name is owed when this ships.
         */}
       <BaseDrawer.Content className="kui-sheet-body kui-dialog-body">
-        <GlassScope material={material}>{children}</GlassScope>
+        <HostTitleContext.Provider value={SheetTitle}>
+          <HostCloseContext.Provider value={SheetClose as React.ComponentType<{ render: React.ReactElement }>}>
+            <GlassScope material={material}>{children}</GlassScope>
+          </HostCloseContext.Provider>
+        </HostTitleContext.Provider>
       </BaseDrawer.Content>
     </BaseDrawer.Popup>
   );

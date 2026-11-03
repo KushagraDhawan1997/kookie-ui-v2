@@ -9,7 +9,7 @@ export default function Example() {
       <Stack gap="1">
         <Text weight="medium">Shruti Bhatia</Text>
         <Text size="2" emphasis="medium">
-          Product designer · Owner
+          Product designer, Owner
         </Text>
       </Stack>
     </Flex>

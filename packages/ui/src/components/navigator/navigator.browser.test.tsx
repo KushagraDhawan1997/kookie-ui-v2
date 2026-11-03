@@ -1,0 +1,129 @@
+/**
+ * Navigator's laws, mounted (2026-11-02).
+ *
+ * What a reader would otherwise take on trust: the stack goes as deep as the path says, the
+ * screens underneath stay mounted but hidden, Back is absent at the root and names where it
+ * goes, a pushed screen's title takes focus, and in a pane only the top screen claims the band.
+ */
+import * as React from "react";
+import { describe, expect, it } from "vitest";
+
+import { mounted, until } from "../../test/browser.tsx";
+import { Shell, ShellContent, ShellPaneHeader, ShellScroll } from "../shell/shell.tsx";
+import { Toolbar, ToolbarTitle } from "../toolbar/toolbar.tsx";
+import {
+  Navigator,
+  NavigatorBack,
+  NavigatorLink,
+  NavigatorOutlet,
+  NavigatorScreen,
+} from "./navigator.tsx";
+
+const LEVELS = ["Settings", "Notifications", "Email", "Digest"];
+
+function screen(title: string) {
+  const next = LEVELS[LEVELS.indexOf(title) + 1];
+  return (
+    <NavigatorScreen title={title}>
+      {next ? <NavigatorLink value={next}>{next}</NavigatorLink> : <span data-end>{title}</span>}
+      <input data-draft aria-label={`${title} draft`} />
+    </NavigatorScreen>
+  );
+}
+
+const visibleLevels = (root: Element) =>
+  [...root.querySelectorAll(".kui-navigator > .kui-navigator-level")].filter(
+    (el) => getComputedStyle(el).display !== "none",
+  );
+
+describe("a stack of screens, any depth", () => {
+  it("opens the path it is given, and shows only the top screen", async () => {
+    const root = mounted(
+      <Navigator defaultPath={["Notifications", "Email", "Digest"]} root={screen("Settings")} screen={screen} />,
+      { theme: {} },
+    );
+    await until(() => root.querySelectorAll(".kui-navigator-level").length === 4);
+    expect(visibleLevels(root)).toHaveLength(1);
+    expect(visibleLevels(root)[0]!.querySelector("h2")!.textContent).toBe("Digest");
+  });
+
+  it("keeps what was typed on a screen underneath", async () => {
+    const root = mounted(<Navigator root={screen("Settings")} screen={screen} />, { theme: {} });
+    const draft = root.querySelector<HTMLInputElement>("[data-draft]")!;
+    draft.value = "kept";
+    root.querySelector<HTMLButtonElement>(".kui-navigator-level button")!.click();
+    await until(() => visibleLevels(root)[0]?.querySelector("h2")?.textContent === "Notifications");
+    visibleLevels(root)[0]!.querySelector<HTMLButtonElement>(".kui-navigator-bar button")!.click();
+    await until(() => visibleLevels(root)[0]?.querySelector("h2")?.textContent === "Settings");
+    expect(visibleLevels(root)[0]!.querySelector<HTMLInputElement>("[data-draft]")!.value).toBe("kept");
+  });
+});
+
+describe("Back", () => {
+  it("is absent at the root and names the screen it returns to", async () => {
+    const root = mounted(<Navigator root={screen("Settings")} screen={screen} />, { theme: {} });
+    expect(root.querySelector(".kui-navigator-bar button")).toBeNull();
+    root.querySelector<HTMLButtonElement>(".kui-navigator-level button")!.click();
+    await until(() => visibleLevels(root)[0]?.querySelector(".kui-navigator-bar button") != null);
+    expect(
+      visibleLevels(root)[0]!.querySelector(".kui-navigator-bar button")!.getAttribute("aria-label"),
+    ).toBe("Back to Settings");
+  });
+
+  it("moves focus to the new title on push", async () => {
+    const root = mounted(<Navigator root={screen("Settings")} screen={screen} />, { theme: {} });
+    root.querySelector<HTMLButtonElement>(".kui-navigator-level button")!.click();
+    await until(() => document.activeElement?.textContent === "Notifications");
+    expect(document.activeElement!.tagName).toBe("H2");
+  });
+});
+
+describe("in a pane, the band speaks for the top screen only", () => {
+  it("the band's title follows the top screen, and Back sits in the band", async () => {
+    const root = mounted(
+      <Shell contained style={{ blockSize: "400px" }}>
+        <ShellContent>
+          <Navigator root={screen("Settings")} screen={screen}>
+            <ShellPaneHeader>
+              <Toolbar>
+                <NavigatorBack />
+                <ToolbarTitle />
+              </Toolbar>
+            </ShellPaneHeader>
+            <ShellScroll>
+              <NavigatorOutlet />
+            </ShellScroll>
+          </Navigator>
+        </ShellContent>
+      </Shell>,
+      { theme: {} },
+    );
+    expect(root.querySelector("[aria-label^='Back']")).toBeNull();
+    visibleLevels(root)[0]!.querySelector<HTMLButtonElement>("button")!.click();
+    await until(() => root.querySelector("[aria-label='Back to Settings']") != null);
+    // One large title on screen, and it is the top screen's.
+    const titles = [...root.querySelectorAll("h1")].filter((h) => h.offsetParent !== null);
+    expect(titles.map((h) => h.textContent)).toEqual(["Notifications"]);
+  });
+});
+
+describe("in a pane with no frame passed, the navigator draws the band itself (2026-11-02)", () => {
+  it("puts Back and the title together at the start of the band", async () => {
+    const { ShellInspector } = await import("../shell/shell.tsx");
+    const root = mounted(
+      <Shell contained style={{ blockSize: "400px", inlineSize: "900px" }}>
+        <ShellContent>work</ShellContent>
+        <ShellInspector aria-label="Settings" defaultOpen presentation="fixed">
+          <Navigator root={screen("Settings")} screen={screen} />
+        </ShellInspector>
+      </Shell>,
+      { theme: {} },
+    );
+    await until(() => root.querySelector(".kui-pane-header .kui-toolbar-title")?.textContent === "Settings");
+    root.querySelector<HTMLButtonElement>(".kui-shell-scroll button")!.click();
+    await until(() => root.querySelector("[aria-label='Back to Settings']") != null);
+    const back = root.querySelector<HTMLElement>("[aria-label='Back to Settings']")!.getBoundingClientRect();
+    const title = root.querySelector<HTMLElement>(".kui-pane-header .kui-toolbar-title")!.getBoundingClientRect();
+    expect(title.left - back.right, "the title split away from Back").toBeLessThan(40);
+  });
+});

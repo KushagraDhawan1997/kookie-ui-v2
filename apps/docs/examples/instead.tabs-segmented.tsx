@@ -8,7 +8,7 @@ import {
   TabsTab,
 } from "@kushagradhawan/kookie-ui-react";
 
-export default function Lookalikes() {
+export default function TabsOrSegmented() {
   return (
     <Stack gap="7">
       <Flex justify="center">

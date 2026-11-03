@@ -1,0 +1,114 @@
+/* Navigator (2026-11-02): a stack of screens. It paints nothing; the host is the region.
+ *
+ * MOTION, the first foundation since 2026-09-20 (Kushagra: "small, but deliberate. Simple does
+ * not mean bad"). One duration and one curve, stated here until a second consumer promotes
+ * them to tokens. Only the SCREEN moves: the band and its title change at once, because a title
+ * that slides reads as a second thing arriving.
+ *
+ * - Push: the new screen comes in from the inline end, a short distance, and fades up. It does
+ *   not travel the whole width — a full-width slide is a phone's gesture made visible, and on a
+ *   desktop pane it reads as the content leaving.
+ * - Pop: the screen you return to comes in from the inline start, the same distance.
+ * - The curve decelerates hard (quick start, long settle), which is what makes a short travel
+ *   read as arriving rather than drifting.
+ * - Reduced motion: a short fade, never nothing, because the change still needs a sign.
+ *
+ * The animation runs when a level becomes RENDERED: a pushed screen mounts, and a revealed one
+ * leaves `display: none` when its Activity turns visible, and CSS starts an animation on both.
+ * The first paint has no direction, so the root never animates in. */
+.kui-navigator {
+  --kui-navigator-duration: 320ms;
+  --kui-navigator-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --kui-navigator-travel: var(--layout-space-7);
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+}
+
+.kui-navigator-level {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+}
+
+.kui-navigator[data-direction="push"] > .kui-navigator-level {
+  animation: kui-navigator-in var(--kui-navigator-duration) var(--kui-navigator-ease) both;
+  --kui-navigator-from: var(--kui-navigator-travel);
+}
+
+.kui-navigator[data-direction="pop"] > .kui-navigator-level {
+  animation: kui-navigator-in var(--kui-navigator-duration) var(--kui-navigator-ease) both;
+  --kui-navigator-from: calc(-1 * var(--kui-navigator-travel));
+}
+
+.kui-navigator:dir(rtl) {
+  --kui-navigator-travel: calc(-1 * var(--layout-space-7));
+}
+
+@keyframes kui-navigator-in {
+  from {
+    opacity: 0;
+    translate: var(--kui-navigator-from) 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kui-navigator,
+  .kui-navigator:dir(rtl) {
+    --kui-navigator-travel: calc(0 * var(--layout-space-7));
+  }
+  .kui-navigator > .kui-navigator-level {
+    animation-duration: 160ms;
+  }
+}
+
+/* A screen outside a pane: the band, holding Back, the title and Close, then the body. The band
+   sits closer to the panel's edges than the content, by one step, and the body starts a
+   section's distance under it. */
+.kui-navigator-screen {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+}
+
+/* One step closer to the panel's edge than the content, never a fixed distance: a fixed 12 or
+   16 sat the buttons inside a large panel's corner curve (2026-11-02, "too close to the
+   edge"). Stated against the panel's own padding, the band moves with the panel's size. */
+.kui-navigator-bar {
+  margin-block-start: calc(-1 * var(--layout-space-2));
+  margin-inline: calc(-1 * var(--layout-space-2));
+  margin-block-end: var(--layout-space-6);
+}
+
+.kui-navigator-back-glyph,
+.kui-navigator-link-glyph {
+  inline-size: 1em;
+  block-size: 1em;
+}
+
+.kui-navigator-link-glyph {
+  scale: -1 1;
+}
+
+.kui-navigator-back-glyph:dir(rtl) {
+  scale: -1 1;
+}
+
+.kui-navigator-link-glyph:dir(rtl) {
+  scale: 1 1;
+}
+
+/* THE TITLE IN THE BAND (2026-11-02) is the band's `ToolbarTitle`, between Back and Close, so
+   the toolbar states its distance from Back. Its trailing margin takes the row's free space, so
+   it stays beside Back at the leading edge and Close goes to the far end, instead of the three
+   reading leading / centre / trailing. */
+.kui-navigator-bar .kui-toolbar > .kui-toolbar-title {
+  margin-inline-end: auto;
+  min-inline-size: 0;
+}
+
+/* With no Back before it, the title lines up with the content under it rather than with the
+   band's edge, which sits one step further out. */
+.kui-navigator-bar .kui-toolbar > .kui-toolbar-title:first-child {
+  padding-inline-start: var(--layout-space-2);
+}

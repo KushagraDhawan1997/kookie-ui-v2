@@ -28,6 +28,8 @@ export default function Example() {
   );
 }
 ```
+*Figure.* A sign-in form with the email field focused. The ring shows where the typing goes.
+
 ## Hover and press change the fill
 
 Hover makes a small change to a control's fill, and press makes a larger one, at every level of
@@ -46,12 +48,6 @@ moves toward its label instead.
 
 The soft fills of medium and quiet controls use the same lightness on every hue, so a step looks
 about the same on blue as it does on yellow.
-
-## Hover only where the pointer can hover
-
-Hover styles apply only when the main pointer can hover, through the `(hover: hover)` media
-query. On a touch screen, a tap leaves a hover behind until your next tap, so without the query a
-button you tapped would stay in its hover colour. Press styles have no such condition.
 
 ## The focus ring
 

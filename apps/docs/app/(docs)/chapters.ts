@@ -17,10 +17,10 @@
 import type * as React from "react";
 import type { MDXComponents } from "mdx/types";
 
-import Installation from "../../content/start/installation.mdx";
+import Installation from "../../content/build/installation.mdx";
 import Theming from "../../content/foundations/appearance.mdx";
-import Quickstart from "../../content/start/quickstart.mdx";
-import Agents from "../../content/start/agents.mdx";
+import Quickstart from "../../content/build/quickstart.mdx";
+import Agents from "../../content/build/agents.mdx";
 import Principles from "../../content/start/principles.mdx";
 import Composition from "../../content/start/composition.mdx";
 import Forms from "../../content/patterns/forms.mdx";
@@ -29,6 +29,7 @@ import Navigation from "../../content/patterns/navigation.mdx";
 import Feedback from "../../content/patterns/feedback.mdx";
 import Color from "../../content/foundations/color.mdx";
 import Typography from "../../content/foundations/typography.mdx";
+import Icons from "../../content/foundations/icons.mdx";
 import LayoutChapter from "../../content/foundations/layout.mdx";
 import SizeChapter from "../../content/foundations/scale.mdx";
 import Radius from "../../content/foundations/shape.mdx";
@@ -37,8 +38,12 @@ import Depth from "../../content/foundations/depth.mdx";
 import Motion from "../../content/foundations/motion.mdx";
 import States from "../../content/foundations/interaction.mdx";
 import Responsiveness from "../../content/patterns/responsiveness.mdx";
+import Touch from "../../content/inputs/touch.mdx";
+import Pointer from "../../content/inputs/pointer.mdx";
+import Keyboard from "../../content/inputs/keyboard.mdx";
+import Gestures from "../../content/inputs/gestures.mdx";
 
-export type SectionId = "start" | "foundations" | "patterns";
+export type SectionId = "start" | "build" | "foundations" | "patterns" | "inputs";
 
 export type Section = {
   id: SectionId;
@@ -58,7 +63,12 @@ export const SECTIONS: readonly Section[] = [
     id: "start",
     title: "Getting started",
     blurb:
-      "Read the principles, install the package and build your first screen.",
+      "Read the principles Kookie is built on, and the rules for putting components together.",
+  },
+  {
+    id: "build",
+    title: "Build",
+    blurb: "Install the package, build your first screen, and set up the tools your AI agent uses.",
   },
   {
     id: "patterns",
@@ -71,6 +81,11 @@ export const SECTIONS: readonly Section[] = [
     title: "Foundations",
     blurb:
       "The reference for the values every component is built from: theme, colour, type, layout, size, depth and states.",
+  },
+  {
+    id: "inputs",
+    title: "Inputs",
+    blurb: "How people reach your app, by touch, pointer, keyboard and gesture, and what Kookie does for each.",
   },
 ];
 
@@ -132,7 +147,7 @@ export const CHAPTERS: readonly Chapter[] = [
     title: "Principles",
     section: "start",
     blurb:
-      "Kookie applies measured limits for you and makes each design judgment in one place, so your screens stay consistent as your app grows.",
+      "Six principles decide every answer Kookie gives, from target sizes to which component fits a job.",
     spec: [
       "THESIS §1",
       "THESIS §2",
@@ -142,7 +157,6 @@ export const CHAPTERS: readonly Chapter[] = [
       "THESIS §6",
     ],
     source: "start/principles.mdx",
-    examples: ["principles.lookalikes"],
     Content: Principles,
   },
   {
@@ -158,34 +172,34 @@ export const CHAPTERS: readonly Chapter[] = [
     Content: Composition,
   },
   {
-    slug: "start/installation",
+    slug: "build/installation",
     title: "Installation",
-    section: "start",
+    section: "build",
     blurb:
       "Add the package to your app, import one stylesheet, and wrap your app in a Theme. You also add a small script so dark mode is correct on the first paint.",
     spec: ["§5", "§13"],
-    source: "start/installation.mdx",
+    source: "build/installation.mdx",
     Content: Installation,
   },
   {
-    slug: "start/quickstart",
+    slug: "build/quickstart",
     title: "Quickstart",
-    section: "start",
+    section: "build",
     blurb:
       "Build an invite dialog by answering one question at a time. Each answer picks the component.",
     spec: ["§3", "§15"],
-    source: "start/quickstart.mdx",
+    source: "build/quickstart.mdx",
     examples: ["quickstart.dialog", "quickstart.email", "quickstart.role", "quickstart"],
     Content: Quickstart,
   },
   {
-    slug: "start/agents",
+    slug: "build/agents",
     title: "AI agents",
-    section: "start",
+    section: "build",
     blurb:
       "An AI agent writes good code with this library when it knows which props and values the library does not accept. Turn on the tools that tell it, then check its output against the composition rules.",
     spec: ["§47", "§48"],
-    source: "start/agents.mdx",
+    source: "build/agents.mdx",
     Content: Agents,
   },
 
@@ -219,6 +233,17 @@ export const CHAPTERS: readonly Chapter[] = [
     source: "foundations/typography.mdx",
     examples: ["typography.rank"],
     Content: Typography,
+  },
+  {
+    slug: "foundations/icons",
+    title: "Icons",
+    section: "foundations",
+    blurb:
+      "Use an icon when it does a job better than a word, give every icon-only button a name, and size icons with the control.",
+    task: "A button, a menu row or a navigation item with an icon",
+    spec: ["§4", "§8"],
+    source: "foundations/icons.mdx",
+    Content: Icons,
   },
   {
     slug: "foundations/layout",
@@ -354,8 +379,51 @@ export const CHAPTERS: readonly Chapter[] = [
     task: "A layout that changes with space, or a touch target",
     spec: ["§2", "§17", "§18"],
     source: "patterns/responsiveness.mdx",
-    examples: ["responsiveness.container", "responsiveness.pointer"],
+    examples: ["responsiveness.container"],
     Content: Responsiveness,
+  },
+
+  {
+    slug: "inputs/touch",
+    title: "Touch",
+    section: "inputs",
+    blurb:
+      "Make targets big enough for a finger, keep text fields from zooming the page, and never depend on hover.",
+    task: "A screen people use on a phone or tablet",
+    spec: ["§4", "§16", "§17"],
+    source: "inputs/touch.mdx",
+    Content: Touch,
+  },
+  {
+    slug: "inputs/pointer",
+    title: "Pointer",
+    section: "inputs",
+    blurb:
+      "Kookie tells a mouse from a finger, applies hover only where a pointer can hover, and keeps the cursor honest.",
+    spec: ["§4", "§17"],
+    source: "inputs/pointer.mdx",
+    examples: ["responsiveness.pointer"],
+    Content: Pointer,
+  },
+  {
+    slug: "inputs/keyboard",
+    title: "Keyboard",
+    section: "inputs",
+    blurb:
+      "Show where focus is, move with Tab and the arrow keys, back out with Escape, and step values with the keyboard.",
+    spec: ["§8", "§9"],
+    source: "inputs/keyboard.mdx",
+    Content: Keyboard,
+  },
+  {
+    slug: "inputs/gestures",
+    title: "Gestures",
+    section: "inputs",
+    blurb:
+      "Give every gesture a visible control that does the same thing, and avoid adding gestures of your own.",
+    spec: ["§27", "§42"],
+    source: "inputs/gestures.mdx",
+    Content: Gestures,
   },
 ];
 

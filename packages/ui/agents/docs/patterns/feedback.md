@@ -6,16 +6,16 @@ wrong.
 
 ## Four things to say
 
+How long the work takes decides what to show. Work that finishes in under one second needs no
+indicator. From one second, show that the work is busy. From ten seconds, show a `Progress` with
+a real fraction. These are Nielsen's response-time limits, from usability research.
+
 | What you say | When | What to use |
 |---|---|---|
 | Busy | The work has started, and you can't say how long it will take | `loading` on the button that started it, or a `Spinner` |
 | Progress | You know what fraction is done | `Progress` with a `value` |
 | Outcome | The work has finished | Words where the action was, or `done` on the button |
 | Error | The work failed, or the input was wrong | The control's invalid state, plus a sentence |
-
-How long the work takes decides what to show. Work that finishes in under one second needs no
-indicator. From one second, show that the work is busy. From ten seconds, show a `Progress` with
-a real fraction. These are Nielsen's response-time limits, from usability research.
 
 ## Keep the label on a busy button
 
@@ -122,7 +122,14 @@ person asks for reduced motion, only slower, because an indicator that stops loo
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Copy01Icon } from "@hugeicons/core-free-icons";
-import { Button, Flex, iconStroke } from "@kushagradhawan/kookie-ui-react";
+import {
+  Button,
+  Flex,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  iconStroke,
+} from "@kushagradhawan/kookie-ui-react";
 
 export default function Example() {
   const [copied, setCopied] = React.useState(false);
@@ -143,9 +150,16 @@ export default function Example() {
       <Button done={copied} onClick={copy} leading={<HugeiconsIcon icon={Copy01Icon} strokeWidth={iconStroke} aria-hidden />}>
         {copied ? "Copied" : "Copy API key"}
       </Button>
-      <Button iconOnly emphasis="quiet" done={copied} onClick={copy} aria-label={copied ? "Copied" : "Copy API key"}>
-        <HugeiconsIcon icon={Copy01Icon} strokeWidth={iconStroke} aria-hidden />
-      </Button>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <Button iconOnly emphasis="quiet" done={copied} onClick={copy} aria-label={copied ? "Copied" : "Copy API key"}>
+              <HugeiconsIcon icon={Copy01Icon} strokeWidth={iconStroke} aria-hidden />
+            </Button>
+          }
+        />
+        <TooltipContent>{copied ? "Copied" : "Copy API key"}</TooltipContent>
+      </Tooltip>
     </Flex>
   );
 }
@@ -243,7 +257,7 @@ A notice about the whole app, such as planned maintenance, goes in a `ShellNotic
 places it in its own row above the header, across every column. Keep using a `Notice` above the
 region for anything about one part of the app. To remember a dismissal across reloads without the
 notice showing for a moment first, read the stored choice in a script before the page paints, the
-same way you set dark mode. See [Installation](/start/installation).
+same way you set dark mode. See [Installation](/build/installation).
 
 When you need a yes or a no, use `Confirmation`. It stays until someone presses one of its two
 buttons, which you label with `cancelLabel` and `confirmLabel`.
