@@ -11,6 +11,7 @@ import { describe, expect, it } from "vitest";
 import { mounted, until } from "../../test/browser.tsx";
 import { Shell, ShellContent, ShellPaneHeader, ShellScroll } from "../shell/shell.tsx";
 import { Toolbar, ToolbarTitle } from "../toolbar/toolbar.tsx";
+import { Dialog, DialogContent } from "../dialog/dialog.tsx";
 import {
   Navigator,
   NavigatorBack,
@@ -125,5 +126,43 @@ describe("in a pane with no frame passed, the navigator draws the band itself (2
     const back = root.querySelector<HTMLElement>("[aria-label='Back to Settings']")!.getBoundingClientRect();
     const title = root.querySelector<HTMLElement>(".kui-pane-header .kui-toolbar-title")!.getBoundingClientRect();
     expect(title.left - back.right, "the title split away from Back").toBeLessThan(40);
+  });
+});
+
+describe("in a dialog, only the top screen names the panel (2026-11-03)", () => {
+  it("push and pop move the dialog's name, and no id is shared with a hidden screen", async () => {
+    mounted(
+      <Dialog defaultOpen>
+        <DialogContent>
+          <Navigator root={screen("Settings")} screen={screen} />
+        </DialogContent>
+      </Dialog>,
+      { theme: {} },
+    );
+    expect(await until(() => document.querySelector('[role="dialog"]') !== null)).toBe(true);
+    const dialog = document.querySelector<HTMLElement>('[role="dialog"]')!;
+    const labelledBy = () => dialog.getAttribute("aria-labelledby") ?? "";
+    const name = () => document.getElementById(labelledBy())?.textContent;
+    const shared = () => dialog.querySelectorAll(`[id="${labelledBy()}"]`).length;
+    // The panel's title part stamps an id; a hidden screen's plain heading carries none, so one
+    // titled heading means only the top screen holds the panel's title.
+    const titles = () => dialog.querySelectorAll("h2[id]").length;
+    // A hidden screen's button is not on screen; `checkVisibility` says so where `offsetParent`
+    // cannot, inside a fixed-position panel.
+    const visible = (label: string) =>
+      [...dialog.querySelectorAll<HTMLElement>(`[aria-label="${label}"], button`)].find(
+        (b) => (b.getAttribute("aria-label") === label || b.textContent === label) && b.checkVisibility(),
+      );
+    expect(await until(() => name() === "Settings")).toBe(true);
+
+    visible("Notifications")!.click();
+    expect(await until(() => name() === "Notifications")).toBe(true);
+    expect(shared()).toBe(1);
+    expect(titles()).toBe(1);
+
+    visible("Back to Settings")!.click();
+    expect(await until(() => name() === "Settings")).toBe(true);
+    expect(shared()).toBe(1);
+    expect(titles()).toBe(1);
   });
 });

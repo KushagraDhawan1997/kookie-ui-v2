@@ -101,8 +101,9 @@
 /* THE TITLE IN THE BAND (2026-11-02) is the band's `ToolbarTitle`, between Back and Close, so
    the toolbar states its distance from Back. Its trailing margin takes the row's free space, so
    it stays beside Back at the leading edge and Close goes to the far end, instead of the three
-   reading leading / centre / trailing. */
-.kui-navigator-bar .kui-toolbar > .kui-toolbar-title {
+   reading leading / centre / trailing. `:not(:last-child)` matches the toolbar's own title-gap
+   rule, which loads later and would otherwise win. */
+.kui-navigator-bar .kui-toolbar > .kui-toolbar-title:not(:last-child) {
   margin-inline-end: auto;
   min-inline-size: 0;
 }
