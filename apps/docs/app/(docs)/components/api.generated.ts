@@ -6538,6 +6538,12 @@ export const API: Record<string, ApiEntry> = {
         "doc": "The id of the title, so that you can point `aria-labelledby` at it."
       },
       {
+        "name": "render",
+        "type": "React.ReactElement<{ className?: string; id?: string; style?: React.CSSProperties; children?: React.ReactNode }>",
+        "optional": true,
+        "doc": "The element the title IS, when it must be more than words: a panel's own title part, so one heading both names the panel and sits in the row. It keeps its own element and type step, and takes the row's title spacing."
+      },
+      {
         "name": "style",
         "type": "React.CSSProperties",
         "optional": true,

@@ -5465,3 +5465,38 @@ describe("a rail meets a narrow window as a tab bar (§27, 2026-09-09)", () => {
     ).toBeCloseTo(content.getBoundingClientRect().left, 0);
   });
 });
+
+describe("a sidebar that collapses into a stack (2026-11-03)", () => {
+  // Falsified: with ShellTrigger's stacked arm removed, the press does nothing on a narrow
+  // window and the trigger says collapsed while the list fills the screen.
+  it("on a narrow window, the sidebar trigger goes to the list and says whether the list shows", async () => {
+    await narrow();
+    const shell = mounted(
+      <Shell contained style={{ blockSize: "600px" }}>
+        <ShellSidebar aria-label="Inbox" collapse="stack">
+          <ShellNavItem>Launch plan</ShellNavItem>
+        </ShellSidebar>
+        <ShellContent>
+          <ShellTrigger target="sidebar" aria-label="Inbox list">
+            List
+          </ShellTrigger>
+          <p>Message</p>
+        </ShellContent>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const sidebar = within(shell, ".kui-shell-sidebar");
+    const trigger = within(shell, '[aria-label="Inbox list"]');
+    expect(await until(() => trigger.getAttribute("aria-expanded") === "true")).toBe(true);
+
+    within(shell, ".kui-shell-nav-item").click();
+    expect(await until(() => sidebar.dataset.view === "content")).toBe(true);
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(onScreen(sidebar)).toBe(false);
+
+    trigger.click();
+    expect(await until(() => sidebar.dataset.view === "sidebar")).toBe(true);
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    expect(onScreen(sidebar)).toBe(true);
+  });
+});

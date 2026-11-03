@@ -742,6 +742,7 @@ The title at the start of the row. Give it words to show a fixed title. With no 
 | `children?` | `React.ReactNode` | The title text. |
 | `className?` | `string` | Your classes, appended to the ones this component resolves rather than replacing them. |
 | `id?` | `string` | The id of the title, so that you can point `aria-labelledby` at it. |
+| `render?` | `React.ReactElement<{ className?: string; id?: string; style?: React.CSSProperties; children?: React.ReactNode }>` | The element the title IS, when it must be more than words: a panel's own title part, so one heading both names the panel and sits in the row. |
 | `style?` | `React.CSSProperties` | Inline styles, merged last, so your value wins over anything the component resolved. |
 
 ### When the row runs out of room

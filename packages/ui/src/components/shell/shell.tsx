@@ -2681,23 +2681,34 @@ export function ShellTrigger({
     [ctx.store, target],
   );
   const entry = React.useSyncExternalStore(ctx.subscribe, getSnapshot, () => undefined);
+  const stack = React.useSyncExternalStore(ctx.subscribe, () => ctx.store.stack, () => null);
+  const windowClass = useWindowClass();
+  // A SIDEBAR THAT COLLAPSES INTO A STACK, ON A NARROW WINDOW (2026-11-03, Kushagra: "A"). The
+  // stack decides which side shows there, so the pane's open state means nothing and a toggle
+  // would change nothing. The trigger means "go to the sidebar" instead, the same as ShellBack,
+  // and says expanded exactly when the sidebar is the side showing.
+  const stacked = target === "sidebar" && stack !== null && windowClass === "narrow";
 
   const handleClick = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       onClick?.(event);
       if (event.defaultPrevented) return;
+      if (stacked) {
+        ctx.store.stack?.showSidebar();
+        return;
+      }
       const current = ctx.store.entries.get(target);
       if (!current) return;
       if (action === "toggle") current.toggle();
       else if (action === "open") current.open();
       else current.close();
     },
-    [onClick, ctx.store, target, action],
+    [onClick, ctx.store, target, action, stacked],
   );
 
   const merged = {
     ...props,
-    "aria-expanded": entry?.expanded,
+    "aria-expanded": stacked && stack ? stack.view === "sidebar" : entry?.expanded,
     "aria-controls": entry?.id,
     onClick: handleClick,
     className,
