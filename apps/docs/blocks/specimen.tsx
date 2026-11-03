@@ -247,7 +247,7 @@ export function SpecimenView({
 
   const stage = (
     <Flex
-      className={bleed ? "kd-figure-stage kd-figure-stage-picture" : "kd-figure-stage"}
+      className="kd-figure-stage"
       {...(fill
         ? { direction: "column" as const, justify: "center" as const, align: "stretch" as const }
         : { align: "center" as const, justify: "center" as const })}

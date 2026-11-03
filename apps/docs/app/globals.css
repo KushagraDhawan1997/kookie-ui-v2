@@ -645,9 +645,13 @@ body {
   border-radius: var(--space-2);
 }
 
-/* A stage that paints the picture itself (see `stagePicture` in example.tsx) takes the subject's
-   own copy of it away, or the subject's box would show a second, differently cropped picture
-   over the first. The example's source still paints it, which is what a reader copies. */
-.kd-figure-stage-picture > * {
+/* An example whose picture the figure paints (see `stagePicture` in example.tsx) loses its own
+   copy, or its box would show a second, differently cropped picture over the first. The example's
+   source still paints it, which is what a reader copies. The wrapper takes no box of its own. */
+.kd-example-picture {
+  display: contents;
+}
+
+.kd-example-picture > * {
   background-image: none !important;
 }

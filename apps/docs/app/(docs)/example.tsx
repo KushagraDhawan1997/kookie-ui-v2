@@ -97,8 +97,16 @@ export async function Example({ name, quiet }: ExampleProps) {
     // writing the file.
     throw new Error(`No example named "${name}". Add examples/${name}.tsx and register it.`);
   }
-  const specimen = <Component />;
   const source = readExampleSource(name);
+  // A picture the figure paints for the example comes off the example's own box (see
+  // `stagePicture`); the wrapper takes no box of its own.
+  const specimen = stagePicture(source) ? (
+    <div className="kd-example-picture">
+      <Component />
+    </div>
+  ) : (
+    <Component />
+  );
 
   /* ONE FIGURE, AND NOW ONE SURFACE (2026-08-29, Kushagra: "the preview and the code should
      belong to same surface, inside one surface").
