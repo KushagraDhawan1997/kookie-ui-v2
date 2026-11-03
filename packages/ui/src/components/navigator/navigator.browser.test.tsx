@@ -32,6 +32,11 @@ function screen(title: string) {
   );
 }
 
+/** The band and the screens are siblings, so the test holds both in one box. */
+const mountedNav = (ui: React.ReactElement) => mounted(<div>{ui}</div>, { theme: {} });
+/** The title the band shows: one band for the stack, outside the screens (2026-11-03). */
+const bandTitle = (root: Element) => root.querySelector(".kui-navigator-bar h2")?.textContent;
+
 const visibleLevels = (root: Element) =>
   [...root.querySelectorAll(".kui-navigator > .kui-navigator-level")].filter(
     (el) => getComputedStyle(el).display !== "none",
@@ -39,40 +44,38 @@ const visibleLevels = (root: Element) =>
 
 describe("a stack of screens, any depth", () => {
   it("opens the path it is given, and shows only the top screen", async () => {
-    const root = mounted(
+    const root = mountedNav(
       <Navigator defaultPath={["Notifications", "Email", "Digest"]} root={screen("Settings")} screen={screen} />,
-      { theme: {} },
     );
     await until(() => root.querySelectorAll(".kui-navigator-level").length === 4);
     expect(visibleLevels(root)).toHaveLength(1);
-    expect(visibleLevels(root)[0]!.querySelector("h2")!.textContent).toBe("Digest");
+    expect(visibleLevels(root)[0]!.querySelector("[data-end]")!.textContent).toBe("Digest");
+    expect(bandTitle(root)).toBe("Digest");
   });
 
   it("keeps what was typed on a screen underneath", async () => {
-    const root = mounted(<Navigator root={screen("Settings")} screen={screen} />, { theme: {} });
+    const root = mountedNav(<Navigator root={screen("Settings")} screen={screen} />);
     const draft = root.querySelector<HTMLInputElement>("[data-draft]")!;
     draft.value = "kept";
     root.querySelector<HTMLButtonElement>(".kui-navigator-level button")!.click();
-    await until(() => visibleLevels(root)[0]?.querySelector("h2")?.textContent === "Notifications");
-    visibleLevels(root)[0]!.querySelector<HTMLButtonElement>(".kui-navigator-bar button")!.click();
-    await until(() => visibleLevels(root)[0]?.querySelector("h2")?.textContent === "Settings");
+    await until(() => bandTitle(root) === "Notifications");
+    root.querySelector<HTMLButtonElement>(".kui-navigator-bar button")!.click();
+    await until(() => bandTitle(root) === "Settings");
     expect(visibleLevels(root)[0]!.querySelector<HTMLInputElement>("[data-draft]")!.value).toBe("kept");
   });
 });
 
 describe("Back", () => {
   it("is absent at the root and names the screen it returns to", async () => {
-    const root = mounted(<Navigator root={screen("Settings")} screen={screen} />, { theme: {} });
+    const root = mountedNav(<Navigator root={screen("Settings")} screen={screen} />);
     expect(root.querySelector(".kui-navigator-bar button")).toBeNull();
     root.querySelector<HTMLButtonElement>(".kui-navigator-level button")!.click();
-    await until(() => visibleLevels(root)[0]?.querySelector(".kui-navigator-bar button") != null);
-    expect(
-      visibleLevels(root)[0]!.querySelector(".kui-navigator-bar button")!.getAttribute("aria-label"),
-    ).toBe("Back to Settings");
+    await until(() => root.querySelector(".kui-navigator-bar button") != null);
+    expect(root.querySelector(".kui-navigator-bar button")!.getAttribute("aria-label")).toBe("Back to Settings");
   });
 
   it("moves focus to the new title on push", async () => {
-    const root = mounted(<Navigator root={screen("Settings")} screen={screen} />, { theme: {} });
+    const root = mountedNav(<Navigator root={screen("Settings")} screen={screen} />);
     root.querySelector<HTMLButtonElement>(".kui-navigator-level button")!.click();
     await until(() => document.activeElement?.textContent === "Notifications");
     expect(document.activeElement!.tagName).toBe("H2");

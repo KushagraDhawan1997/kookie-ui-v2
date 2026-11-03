@@ -34,7 +34,7 @@
 import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
-import { HostCloseContext, HostTitleContext } from "../../system/host-title.ts";
+import { HostCloseContext, HostTitleContext, type HostTitleProps } from "../../system/host-title.ts";
 import { Drawer as BaseDrawer } from "@base-ui/react/drawer";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
@@ -380,7 +380,7 @@ function SheetPopup({
         * family name is owed when this ships.
         */}
       <BaseDrawer.Content className="kui-sheet-body kui-dialog-body">
-        <HostTitleContext.Provider value={SheetTitle}>
+        <HostTitleContext.Provider value={SheetHostTitle}>
           <HostCloseContext.Provider value={SheetClose as React.ComponentType<{ render: React.ReactElement }>}>
             <GlassScope material={material}>{children}</GlassScope>
           </HostCloseContext.Provider>
@@ -435,4 +435,17 @@ export function SheetDescription({ children, ...props }: SheetDescriptionProps) 
       {children}
     </BaseDrawer.Description>
   );
+}
+
+/** The title a Navigator in this panel asks for: the panel's own, or a copy at its step. */
+function SheetHostTitle({ children, decorative, className }: HostTitleProps) {
+  const size = React.use(SheetContext).size;
+  if (decorative) {
+    return (
+      <Heading size={OWNED_TITLE_STEP[size]} {...(className === undefined ? {} : { className })} aria-hidden>
+        {children}
+      </Heading>
+    );
+  }
+  return <SheetTitle {...(className === undefined ? {} : { className })}>{children}</SheetTitle>;
 }

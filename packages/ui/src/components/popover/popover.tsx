@@ -3,7 +3,7 @@
 import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
-import { HostCloseContext, HostTitleContext } from "../../system/host-title.ts";
+import { HostCloseContext, HostTitleContext, type HostTitleProps } from "../../system/host-title.ts";
 
 import { Popover as BasePopover } from "@base-ui/react/popover";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
@@ -278,7 +278,7 @@ function PopoverPopup({
           stated rather than copied. */}
       <ScrollArea>
         <FloatingBody>
-          <HostTitleContext.Provider value={PopoverTitle}>
+          <HostTitleContext.Provider value={PopoverHostTitle}>
           <HostCloseContext.Provider value={PopoverClose as React.ComponentType<{ render: React.ReactElement }>}>
             <GlassScope material={material}>{children}</GlassScope>
           </HostCloseContext.Provider>
@@ -373,4 +373,17 @@ export function PopoverClose({ render, nativeButton, ref, ...props }: PopoverClo
       {...(ref !== undefined ? { ref } : {})}
     />
   );
+}
+
+/** The title a Navigator in this panel asks for: the panel's own, or a copy at its step. */
+function PopoverHostTitle({ children, decorative, className }: HostTitleProps) {
+  const size = React.use(PopoverSizeContext);
+  if (decorative) {
+    return (
+      <Heading size={OWNED_TITLE_STEP[size]} {...(className === undefined ? {} : { className })} aria-hidden>
+        {children}
+      </Heading>
+    );
+  }
+  return <PopoverTitle {...(className === undefined ? {} : { className })}>{children}</PopoverTitle>;
 }

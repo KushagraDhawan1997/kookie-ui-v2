@@ -27,7 +27,7 @@
 import type { ComponentRefusals } from "../../system/refused.ts";
 import * as React from "react";
 
-import { HostCloseContext, HostTitleContext } from "../../system/host-title.ts";
+import { HostCloseContext, HostTitleContext, type HostTitleProps } from "../../system/host-title.ts";
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { DirectionProvider } from "@base-ui/react/direction-provider";
 
@@ -325,7 +325,7 @@ function DialogPopup({
         * Motion was removed 2026-09-20; docs/archive/motion-v1.md records it.
         */}
       <div className="kui-dialog-body" role="presentation">
-        <HostTitleContext.Provider value={DialogTitle}>
+        <HostTitleContext.Provider value={DialogHostTitle}>
           <HostCloseContext.Provider value={DialogClose as React.ComponentType<{ render: React.ReactElement }>}>
             <GlassScope material={material}>{children}</GlassScope>
           </HostCloseContext.Provider>
@@ -414,4 +414,17 @@ export function DialogDescription({ children, ...props }: DialogDescriptionProps
       {children}
     </BaseDialog.Description>
   );
+}
+
+/** The title a Navigator in this panel asks for: the panel's own, or a copy at its step. */
+function DialogHostTitle({ children, decorative, className }: HostTitleProps) {
+  const size = React.use(DialogSizeContext);
+  if (decorative) {
+    return (
+      <Heading size={OWNED_TITLE_STEP[size]} {...(className === undefined ? {} : { className })} aria-hidden>
+        {children}
+      </Heading>
+    );
+  }
+  return <DialogTitle {...(className === undefined ? {} : { className })}>{children}</DialogTitle>;
 }

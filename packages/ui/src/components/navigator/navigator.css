@@ -2,27 +2,46 @@
  *
  * MOTION, the first foundation since 2026-09-20 (Kushagra: "small, but deliberate. Simple does
  * not mean bad"). One duration and one curve, stated here until a second consumer promotes
- * them to tokens. Only the SCREEN moves: the band and its title change at once, because a title
- * that slides reads as a second thing arriving.
+ * them to tokens. What changes moves, and what stays stays still (2026-11-03):
  *
- * - Push: the new screen comes in from the inline end, a short distance, and fades up. It does
- *   not travel the whole width — a full-width slide is a phone's gesture made visible, and on a
- *   desktop pane it reads as the content leaving.
- * - Pop: the screen you return to comes in from the inline start, the same distance.
- * - The curve decelerates hard (quick start, long settle), which is what makes a short travel
- *   read as arriving rather than drifting.
+ * - The screen does not move: it appears once the panel has taken its new height.
+ * - The band's title glides the way the stack went; Back fades where it appears; Close never moves.
+ * - The curve decelerates hard (quick start, long settle), so a short move reads as arriving
+ *   rather than drifting.
  * - Reduced motion: a short fade, never nothing, because the change still needs a sign.
  *
  * The animation runs when a level becomes RENDERED: a pushed screen mounts, and a revealed one
  * leaves `display: none` when its Activity turns visible, and CSS starts an animation on both.
  * The first paint has no direction, so the root never animates in. */
-.kui-navigator {
-  --kui-navigator-duration: 320ms;
-  --kui-navigator-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+.kui-navigator,
+.kui-navigator-bar {
+  /* Retuned 2026-11-03 (Kushagra: "better easing, faster animations, and use of blur"): a
+     shorter step on a curve that leaves fast and lands soft, and what arrives or leaves comes
+     into focus from a blur rather than only from transparent. */
+  --kui-navigator-duration: 240ms;
+  --kui-navigator-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --kui-navigator-blur: calc(1.5 * var(--space-1));
   --kui-navigator-travel: var(--layout-space-7);
+}
+
+.kui-navigator {
   display: flex;
   flex-direction: column;
   min-block-size: 0;
+}
+
+/* While the box eases to a new height, what does not fit yet is clipped at its block edges, and
+   only those: the screen sliding in still shows its full width. The margin keeps a card's
+   shadow from being cut. */
+/* A screen arriving while the box resizes waits for it, held at its first frame. */
+.kui-navigator[data-await][data-direction] > .kui-navigator-level {
+  /* Most of the way, not all of it: on this curve the panel has all but landed at 60%. */
+  animation-delay: calc(0.6 * var(--kui-navigator-duration));
+}
+
+.kui-navigator[data-sizing] {
+  overflow-y: clip;
+  overflow-clip-margin: var(--layout-space-2);
 }
 
 .kui-navigator-level {
@@ -31,17 +50,15 @@
   min-block-size: 0;
 }
 
-.kui-navigator[data-direction="push"] > .kui-navigator-level {
-  animation: kui-navigator-in var(--kui-navigator-duration) var(--kui-navigator-ease) both;
-  --kui-navigator-from: var(--kui-navigator-travel);
+/* THE SCREEN DOES NOT MOVE (2026-11-03, Kushagra: "It seems to be moving as a block ... Remove
+   motion on content"). It is simply there, once the panel has its new height: held unseen while
+   the panel resizes, so it is never cut, then shown in one frame (no duration). */
+.kui-navigator[data-direction] > .kui-navigator-level {
+  animation: kui-navigator-in 0s linear both;
 }
 
-.kui-navigator[data-direction="pop"] > .kui-navigator-level {
-  animation: kui-navigator-in var(--kui-navigator-duration) var(--kui-navigator-ease) both;
-  --kui-navigator-from: calc(-1 * var(--kui-navigator-travel));
-}
-
-.kui-navigator:dir(rtl) {
+.kui-navigator:dir(rtl),
+.kui-navigator-bar:dir(rtl) {
   --kui-navigator-travel: calc(-1 * var(--layout-space-7));
 }
 
@@ -49,15 +66,25 @@
   from {
     opacity: 0;
     translate: var(--kui-navigator-from) 0;
+    filter: blur(var(--kui-navigator-blur));
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .kui-navigator,
-  .kui-navigator:dir(rtl) {
+  .kui-navigator:dir(rtl),
+  .kui-navigator-bar,
+  .kui-navigator-bar:dir(rtl) {
     --kui-navigator-travel: calc(0 * var(--layout-space-7));
+    --kui-navigator-blur: calc(0 * var(--space-1));
   }
-  .kui-navigator > .kui-navigator-level {
+  .kui-navigator[data-await][data-direction] > .kui-navigator-level {
+    animation-delay: 160ms;
+  }
+  .kui-navigator-bar[data-direction] .kui-navigator-back,
+  .kui-navigator-bar[data-direction] .kui-navigator-title,
+  .kui-navigator-leaving .kui-navigator-title-leaving,
+  .kui-navigator-leaving .kui-navigator-back-leaving {
     animation-duration: 160ms;
   }
 }
@@ -75,6 +102,7 @@
    16 sat the buttons inside a large panel's corner curve (2026-11-02, "too close to the
    edge"). Stated against the panel's own padding, the band moves with the panel's size. */
 .kui-navigator-bar {
+  position: relative;
   margin-block-start: calc(-1 * var(--layout-space-2));
   margin-inline: calc(-1 * var(--layout-space-2));
   margin-block-end: var(--layout-space-6);
@@ -99,13 +127,70 @@
 }
 
 /* THE TITLE IN THE BAND (2026-11-02) is the band's `ToolbarTitle`, between Back and Close, so
-   the toolbar states its distance from Back. Its trailing margin takes the row's free space, so
-   it stays beside Back at the leading edge and Close goes to the far end, instead of the three
-   reading leading / centre / trailing. `:not(:last-child)` matches the toolbar's own title-gap
-   rule, which loads later and would otherwise win. */
-.kui-navigator-bar .kui-toolbar > .kui-toolbar-title:not(:last-child) {
-  margin-inline-end: auto;
+   the toolbar states its distance from Back. It takes the row's free space, so it stays beside
+   Back at the leading edge and Close goes to the far end, instead of the three reading leading /
+   centre / trailing. */
+.kui-navigator-bar .kui-toolbar > .kui-toolbar-title {
+  flex: 1 1 auto;
   min-inline-size: 0;
+}
+
+/* THE BAND'S MOTION (2026-11-03): only what changed moves, with the screen's one keyframe.
+   Back fades in where it appears. The new title comes in a short way behind where the stack
+   went, and the old one, drawn once more where it was, carries on that way while it fades
+   (the same keyframe, reversed). Close is the panel's, and never moves. */
+.kui-navigator-bar[data-direction] .kui-navigator-back {
+  animation: kui-navigator-in var(--kui-navigator-duration) var(--kui-navigator-ease) both;
+  --kui-navigator-from: calc(0 * var(--kui-navigator-travel));
+}
+
+.kui-navigator-bar[data-direction] .kui-navigator-title {
+  animation: kui-navigator-in var(--kui-navigator-duration) var(--kui-navigator-ease) both;
+}
+
+.kui-navigator-bar[data-direction="push"] {
+  --kui-navigator-from: calc(-0.5 * var(--kui-navigator-travel));
+  --kui-navigator-to: var(--kui-navigator-travel);
+}
+
+.kui-navigator-bar[data-direction="pop"] {
+  --kui-navigator-from: calc(0.5 * var(--kui-navigator-travel));
+  --kui-navigator-to: calc(-1 * var(--kui-navigator-travel));
+}
+
+/* The row that is leaving, laid over the band in the band's own geometry. */
+.kui-navigator-leaving {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  pointer-events: none;
+}
+
+.kui-navigator-leaving .kui-toolbar > * {
+  pointer-events: none;
+}
+
+/* Leaving is quicker than arriving, and it leaves at speed: half the time, on the arriving curve
+   mirrored, which played in reverse is the arriving curve's own quick start. Two titles never
+   sit on top of each other for long. */
+.kui-navigator-leaving {
+  --kui-navigator-leave: calc(var(--kui-navigator-duration) / 2);
+  --kui-navigator-leave-ease: cubic-bezier(1, 0, 0.68, 0.28);
+}
+
+.kui-navigator-leaving .kui-navigator-title-leaving {
+  animation: kui-navigator-in var(--kui-navigator-leave) var(--kui-navigator-leave-ease) reverse both;
+  --kui-navigator-from: var(--kui-navigator-to);
+}
+
+.kui-navigator-leaving .kui-navigator-back-leaving {
+  animation: kui-navigator-in var(--kui-navigator-leave) var(--kui-navigator-leave-ease) reverse both;
+  --kui-navigator-from: calc(0 * var(--kui-navigator-travel));
+}
+
+/* Back is staying: it holds its room in the leaving row and the live one shows through. */
+.kui-navigator-leaving .kui-navigator-back-held {
+  visibility: hidden;
 }
 
 /* With no Back before it, the title lines up with the content under it rather than with the

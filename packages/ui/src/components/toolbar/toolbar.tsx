@@ -562,6 +562,12 @@ export type ToolbarTitleProps = ComponentRefusals & {
   style?: React.CSSProperties;
   /** The id of the title, so that you can point `aria-labelledby` at it. */
   id?: string;
+  /**
+   * The element the title IS, when it must be more than words: a panel's own title part, so one
+   * heading both names the panel and sits in the row. It keeps its own element and type step,
+   * and takes the row's title spacing.
+   */
+  render?: React.ReactElement<{ className?: string; id?: string; style?: React.CSSProperties; children?: React.ReactNode }>;
 };
 
 /**
@@ -572,7 +578,7 @@ export type ToolbarTitleProps = ComponentRefusals & {
  * says those instead. Its type step is the row's `size`, one step above the body the system
  * owns, so a title and a message can never drift apart.
  */
-export function ToolbarTitle({ className, children, style, id }: ToolbarTitleProps) {
+export function ToolbarTitle({ className, children, style, id, render }: ToolbarTitleProps) {
   const size = useSize();
   const store = usePageScope();
   const pageTitle = usePageTitle(store);
@@ -580,6 +586,19 @@ export function ToolbarTitle({ className, children, style, id }: ToolbarTitlePro
   const mirroring = children === undefined || children === null;
   const words = mirroring ? pageTitle : children;
   if (words === null || words === undefined) return null;
+  const cls = className ? `kui-toolbar-title ${className}` : "kui-toolbar-title";
+  // ONE ELEMENT, NOT A HEADING IN A SPAN (2026-11-03): the row's title wrapping a panel's
+  // heading was a block inside phrasing content, which HTML forbids. Rendered AS the heading,
+  // the element is the heading's, at its own step, and the row only adds its spacing.
+  if (render) {
+    const own = render.props.className;
+    return React.cloneElement(render, {
+      className: own ? `${cls} ${own}` : cls,
+      ...(style === undefined ? {} : { style }),
+      ...(id === undefined ? {} : { id }),
+      children: words,
+    });
+  }
   return (
     <Text
       // The step the SYSTEM owns for a size it also owns (§15, §25): a band's title is one
@@ -588,7 +607,7 @@ export function ToolbarTitle({ className, children, style, id }: ToolbarTitlePro
       // what a title has over a message — derived, so the two ladders cannot drift.
       size={BAND_TITLE_STEP[size]}
       weight="medium"
-      className={className ? `kui-toolbar-title ${className}` : "kui-toolbar-title"}
+      className={cls}
       {...(style === undefined ? {} : { style })}
       {...(id === undefined ? {} : { id })}
       {...(mirroring ? { "data-mirror": "", ref: mirrorRef } : {})}

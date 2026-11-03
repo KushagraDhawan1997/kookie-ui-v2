@@ -63,6 +63,8 @@ type NavigatorState = NavigatorApi<unknown> & {
   openers: React.MutableRefObject<(HTMLElement | null)[]>;
   /** The direction of the last change, which the stylesheet reads to move the new screen. */
   direction: "push" | "pop" | null;
+  /** Counts path changes, so the band can tell one arrival from the next. */
+  step: number;
 };
 
 const NavigatorContext = React.createContext<NavigatorState | null>(null);
@@ -113,11 +115,13 @@ export function Navigator<T>({
   // The direction comes from the path itself, so a path the app sets (a controlled `path`)
   // animates and moves focus the same way as one changed by push and pop. Equal length with a
   // new top value is a new screen arriving, so it reads as a push.
-  const [seen, setSeen] = React.useState<{ path: readonly T[]; direction: "push" | "pop" | null }>({
+  const [seen, setSeen] = React.useState<{ path: readonly T[]; direction: "push" | "pop" | null; step: number }>({
     path,
     direction: null,
+    step: 0,
   });
   let direction = seen.direction;
+  let step = seen.step;
   // Compared by content, not identity: a controlled `path` may be a new array every render.
   if (seen.path.length !== path.length || seen.path.some((value, i) => !Object.is(value, path[i]))) {
     const before = seen.path;
@@ -127,7 +131,8 @@ export function Navigator<T>({
         : path.length > before.length || !Object.is(path[path.length - 1], before[before.length - 1])
           ? "push"
           : seen.direction;
-    setSeen({ path, direction });
+    step = seen.step + 1;
+    setSeen({ path, direction, step });
   }
   const titles = React.useRef<(string | undefined)[]>([]);
   const openers = React.useRef<(HTMLElement | null)[]>([]);
@@ -165,8 +170,9 @@ export function Navigator<T>({
         setVersion((v) => v + 1);
       },
       direction,
+      step,
     }),
-    [path, change, version, direction],
+    [path, change, version, direction, step],
   );
 
   // On pop, focus goes back to the control that opened the screen that just closed.
@@ -181,10 +187,62 @@ export function Navigator<T>({
     }
   }, [path.length]);
 
+  // THE PANEL FOLLOWS THE SCREEN'S HEIGHT, EASED (2026-11-03, Kushagra: "Yes" to the dialog
+  // easing to its new height). Screens differ in height, and a panel that snapped to the new one
+  // in a frame was the last jump in a flow whose band and content both ease. On each step the
+  // box runs from the height it had to the height it has, on the screen's own curve, and the
+  // screen waits for it (Kushagra: "Preferably, dialog resizes, then content fades in"); between
+  // steps it is free to follow its content. In a pane the scroller fills the pane, so nothing
+  // here changes size.
+  const box = React.useRef<HTMLDivElement>(null);
+  const height = React.useRef<number | null>(null);
+  const sizing = React.useRef<Animation | null>(null);
+  React.useLayoutEffect(() => {
+    const el = box.current;
+    if (!el || inPane) return;
+    const observer = new ResizeObserver(() => {
+      if (!sizing.current) height.current = el.getBoundingClientRect().height;
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [inPane]);
+  React.useLayoutEffect(() => {
+    const el = box.current;
+    if (!el || inPane || step === 0) return;
+    // Mid-step, start from where the last one has got to.
+    const from = sizing.current ? el.getBoundingClientRect().height : height.current;
+    sizing.current?.cancel();
+    const to = el.getBoundingClientRect().height;
+    height.current = to;
+    sizing.current = null;
+    delete el.dataset.sizing;
+    delete el.dataset.await;
+    if (from === null || Math.abs(from - to) < 1) return;
+    const css = getComputedStyle(el);
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const run = el.animate([{ height: `${from}px` }, { height: `${to}px` }], {
+      duration: still ? 160 : milliseconds(css.getPropertyValue("--kui-navigator-duration")),
+      easing: css.getPropertyValue("--kui-navigator-ease").trim(),
+    });
+    sizing.current = run;
+    el.dataset.sizing = "";
+    // The panel takes its new size first, and the screen comes in after, so it is never cut.
+    el.dataset.await = "";
+    run.finished.then(
+      () => {
+        if (sizing.current !== run) return;
+        sizing.current = null;
+        delete el.dataset.sizing;
+      },
+      () => {},
+    );
+  }, [step, inPane]);
+
   const levels = [root, ...path.map((value) => screen(value))];
   const top = levels.length - 1;
-  const outlet = (
+  const screens = (
     <div
+      ref={box}
       className={className ? `kui-navigator ${className}` : "kui-navigator"}
       data-direction={direction ?? undefined}
       style={style}
@@ -200,6 +258,18 @@ export function Navigator<T>({
       ))}
     </div>
   );
+  // ONE BAND FOR THE STACK (2026-11-03, Kushagra: "Why is that which is fixed per screen
+  // animating?"). Outside a pane the band belongs to the navigator, not to each screen, so
+  // what stays the same across a step — Close, and Back after the first — stays still, and only
+  // the screen under it moves. In a pane the pane's own band does this job.
+  const outlet = inPane ? (
+    screens
+  ) : (
+    <>
+      <NavigatorBar />
+      {screens}
+    </>
+  );
 
   return (
     <NavigatorContext.Provider value={api}>
@@ -208,6 +278,12 @@ export function Navigator<T>({
       </OutletContext.Provider>
     </NavigatorContext.Provider>
   );
+}
+
+/** A CSS time as milliseconds. The bundler writes `320ms` as `.32s`, so the unit is read. */
+function milliseconds(time: string): number {
+  const value = time.trim();
+  return value.endsWith("ms") ? parseFloat(value) : parseFloat(value) * 1000;
 }
 
 const OutletContext = React.createContext<React.ReactNode>(null);
@@ -324,30 +400,28 @@ export type NavigatorScreenProps = ComponentRefusals & {
 
 /**
  * One screen in a navigator. The host decides how its title shows: inside a shell pane the
- * screen is a `Page`, and the pane's band carries Back and the collapsed title. Anywhere else it
- * draws its own header row: Back, and a small heading that names the region.
+ * screen is a `Page`, and the pane's band carries Back and the collapsed title. Anywhere else the
+ * navigator's band carries Back and this title, and the screen is only its content.
  */
 export function NavigatorScreen({ title, children, className }: NavigatorScreenProps) {
   const state = useNavigatorState();
   const depth = React.use(LevelContext);
   const inPane = usePageScope() !== null;
   const inWorkArea = useInWorkArea();
-  // In a dialog, popover or sheet the screen's title IS the panel's title, at its step.
-  const HostTitle = React.use(HostTitleContext);
-  const HostClose = React.use(HostCloseContext);
   const heading = React.useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
+  // Before paint, so the band never draws a step without its title.
+  React.useLayoutEffect(() => {
     state.setTitle(depth, title);
   }, [state, depth, title]);
 
   // A pushed screen's title takes focus, so a keyboard and a screen reader start at its top.
+  // Outside a pane the title is in the navigator's band, which moves focus itself.
   React.useEffect(() => {
-    if (depth === 0 || state.direction !== "push") return;
+    if (depth === 0 || state.direction !== "push" || !inPane) return;
     // A side pane's title is in the pane's band, outside the screen, so the screen itself takes
     // focus there; the control that opened it has just been hidden with the level below.
-    const target =
-      heading.current?.querySelector<HTMLElement>(".kui-navigator-bar .kui-toolbar-title > *, h1") ?? heading.current;
+    const target = heading.current?.querySelector<HTMLElement>("h1") ?? heading.current;
     if (target) {
       target.tabIndex = -1;
       target.focus({ preventScroll: true });
@@ -376,32 +450,67 @@ export function NavigatorScreen({ title, children, className }: NavigatorScreenP
     );
   }
 
-  const back = state.canGoBack ? (
-    <ToolbarButton
-      iconOnly
-      aria-label={(() => {
-        const previous = state.titles.current[depth - 1];
-        return previous ? `Back to ${previous}` : "Back";
-      })()}
-      onClick={state.pop}
-    >
-      {backGlyph()}
-    </ToolbarButton>
-  ) : null;
-  // The title is the band's ToolbarTitle, like every band's (RULES.md 2), so it takes the
-  // toolbar's settled distance from Back. What it says is the panel's own title part, so it
-  // keeps the panel's title step and still names the panel for a screen reader.
-  // ONLY THE TOP SCREEN NAMES THE PANEL (2026-11-03, kookie-ui's own fix, c5b7e4ca). Screens
-  // underneath stay mounted, so if each wrapped its title in the panel's title part they would
-  // share its id, and after a push the dialog would keep the root screen's name.
-  const isTop = depth === state.path.length;
-  const title_ = HostTitle && isTop ? (
-    <HostTitle>{title}</HostTitle>
-  ) : (
-    <Heading size="5" render={<h2 />}>
-      {title}
-    </Heading>
+  return (
+    <div ref={heading} className={cls}>
+      {children}
+    </div>
   );
+}
+
+/**
+ * THE BAND OUTSIDE A PANE: Back, the title, and the panel's Close, in one Toolbar
+ * (2026-11-02, Kushagra: "toolbar sits at a padding closer to the edges").
+ *
+ * IT MOTIONS WHAT CHANGED, AND ONLY THAT (2026-11-03, Kushagra: "The X and Back button dont
+ * have a place to appear, so they fade in, and the title translates/glides to right, fades out
+ * as it does, and new one comes in"). Close never moves. Back fades in on the first push and out
+ * on the last pop. The title that is leaving is drawn once more over the band, where it was, and
+ * glides the way the stack went while it fades; the new one fades in at its place.
+ */
+function NavigatorBar() {
+  const state = useNavigatorState();
+  const HostTitle = React.use(HostTitleContext);
+  const HostClose = React.use(HostCloseContext);
+  const bar = React.useRef<HTMLDivElement>(null);
+  const depth = state.path.length;
+  const title = state.titles.current[depth];
+
+  // What the band shows, and what it showed before, so a change can draw the old one leaving.
+  // Held until the new screen has said its title, which it does before paint.
+  const [shown, setShown] = React.useState({ depth, title, step: 0 });
+  const [left, setLeft] = React.useState<{ depth: number; title: string; step: number } | null>(null);
+  if (title !== undefined && (title !== shown.title || depth !== shown.depth)) {
+    if (shown.title !== undefined && state.direction) setLeft({ depth: shown.depth, title: shown.title, step: state.step });
+    setShown({ depth, title, step: state.step });
+  }
+
+  // A pushed screen's title takes focus, so a keyboard and a screen reader start at its top.
+  React.useEffect(() => {
+    if (shown.step === 0 || state.direction !== "push") return;
+    const target = bar.current?.querySelector<HTMLElement>(":scope > .kui-toolbar > .kui-toolbar-title");
+    if (target) {
+      target.tabIndex = -1;
+      target.focus({ preventScroll: true });
+    }
+    // Only on arrival: a later re-render must not pull focus back to the title.
+  }, [shown.step]);
+
+  const previous = depth > 0 ? state.titles.current[depth - 1] : undefined;
+  const back =
+    depth > 0 ? (
+      <ToolbarButton
+        key="back"
+        className="kui-navigator-back"
+        iconOnly
+        aria-label={previous ? `Back to ${previous}` : "Back"}
+        onClick={state.pop}
+      >
+        {backGlyph()}
+      </ToolbarButton>
+    ) : null;
+  // The title IS the panel's own title part, so it keeps the panel's step and names the panel.
+  const words = shown.title ?? "";
+  const heading = HostTitle ? <HostTitle /> : <Heading size="5" render={<h2 />} />;
   const close = HostClose ? (
     <HostClose
       render={
@@ -413,24 +522,41 @@ export function NavigatorScreen({ title, children, className }: NavigatorScreenP
   ) : null;
 
   return (
-    <div ref={heading} className={cls}>
-      {/* THE BAND, a pane's band in a panel (2026-11-02, Kushagra: "we don't have proper
-          toolbar ... toolbar sits at a padding closer to the edges"). The same Toolbar every
-          band in the system uses, with Back leading and the panel's close trailing, sitting
-          closer to the panel's edges than the content does. A root screen in a bare host has
-          neither, and draws no band. */}
-      {/* ONE ROW, the title in it (2026-11-02, Kushagra): Back, the panel's title at the panel's
-          own step, and Close. A band holding only Close read as floating over a title one row
-          down, and it was not clear which of the two the X belonged to. A 40px band row holds
-          the 24px title's line, so nothing about the title shrinks. */}
-      <div className="kui-navigator-bar">
-        <Toolbar backdrop aria-label="Navigation">
-          {back}
-          <ToolbarTitle>{title_}</ToolbarTitle>
-          {close}
-        </Toolbar>
-      </div>
-      <div className="kui-navigator-body">{children}</div>
+    <div
+      ref={bar}
+      className="kui-navigator-bar"
+      data-direction={state.direction ?? undefined}
+    >
+      <Toolbar backdrop aria-label="Navigation">
+        {back}
+        <ToolbarTitle key={`title:${shown.step}`} className="kui-navigator-title" render={heading}>
+          {words}
+        </ToolbarTitle>
+        {close}
+      </Toolbar>
+      {left ? (
+        // The title leaving, drawn where it was: the same row with a Back in it or not, so it
+        // starts from its own place before it glides. Back leaving goes with it on the last pop.
+        <div key={left.step} className="kui-navigator-leaving" aria-hidden inert>
+          <Toolbar aria-label="Leaving">
+            {left.depth > 0 ? (
+              <ToolbarButton
+                iconOnly
+                aria-label="Back"
+                className={depth === 0 ? "kui-navigator-back-leaving" : "kui-navigator-back-held"}
+              >
+                {backGlyph()}
+              </ToolbarButton>
+            ) : null}
+            <ToolbarTitle
+              className="kui-navigator-title-leaving"
+              render={HostTitle ? <HostTitle decorative /> : <Heading size="5" render={<h2 />} />}
+            >
+              {left.title}
+            </ToolbarTitle>
+          </Toolbar>
+        </div>
+      ) : null}
     </div>
   );
 }

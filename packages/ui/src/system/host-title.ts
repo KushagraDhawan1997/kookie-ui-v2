@@ -11,7 +11,15 @@ import * as React from "react";
  * title is the panel's title, at the panel's step. Outside a panel there is no part, and the
  * caller draws its own.
  */
-export const HostTitleContext = React.createContext<React.ComponentType<{ children: React.ReactNode }> | null>(null);
+export const HostTitleContext = React.createContext<React.ComponentType<HostTitleProps> | null>(null);
+
+export type HostTitleProps = {
+  children?: React.ReactNode;
+  className?: string;
+  /** A copy at the title's step that names nothing: the title a Navigator's band draws leaving,
+      while the live one names the panel. */
+  decorative?: boolean;
+};
 
 /** The panel's own close part, so a Navigator's band can place a close button that really
     closes the panel. Absent outside a panel. */
