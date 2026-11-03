@@ -841,6 +841,14 @@ function PostEditor({ actions }: { actions: React.ReactNode }) {
                 The prize fight in room 4 is smaller than you expect, and the sheep in the field
                 behind the ring are the best part.
               </Text>
+              <Text size="3">
+                Go early. By eleven the school groups arrive, and the bench in front of it is never
+                free again.
+              </Text>
+              <Text size="3">
+                The café on the ground floor does a good flat white. Take it to the balcony over
+                the round room.
+              </Text>
             </Stack>
           </Stack>
         </ShellScroll>
@@ -925,9 +933,29 @@ function EventDetails({ inside, between, title = "6", outlined }: { inside: "1" 
       </Stack>
       <Stack gap={inside} className={group}>
         <Text size="2" emphasis="medium">
+          About
+        </Text>
+        <Text size="3">
+          An open session for every level, with a model, an easel each and quiet music.
+        </Text>
+      </Stack>
+      <Stack gap={inside} className={group}>
+        <Text size="2" emphasis="medium">
           Notes
         </Text>
         <Text size="3">Bring a pencil and an A3 pad. The model sits for twenty minutes at a time.</Text>
+      </Stack>
+      <Stack gap={inside} className={group}>
+        <Text size="2" emphasis="medium">
+          Price
+        </Text>
+        <Text size="3">£12, paid at the door</Text>
+      </Stack>
+      <Stack gap={inside} className={group}>
+        <Text size="2" emphasis="medium">
+          Going
+        </Text>
+        <Text size="3">Ana, Sam and 9 others</Text>
       </Stack>
     </Stack>
   );

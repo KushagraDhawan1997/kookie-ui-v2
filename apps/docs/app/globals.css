@@ -118,7 +118,7 @@ body {
 .kd-hero,
 .kd-band {
   position: relative;
-  block-size: calc(44 * var(--layout-space-4));
+  block-size: calc(56 * var(--layout-space-4));
   overflow: clip;
   /* DOTS THAT COME UP WITH THE GROUND (2026-11-03, a trial: Kushagra asked for dots, then "the
      opposite direction"). A 12px dot grid on the soft neutral, under a wash of the surface that runs
@@ -159,7 +159,7 @@ body {
 .kd-band-stage {
   position: absolute;
   inset-inline: 0;
-  inset-block-start: var(--layout-space-9);
+  inset-block-start: calc(8 * var(--layout-space-4));
   display: grid;
   justify-items: center;
 }
@@ -248,7 +248,13 @@ body {
   align-items: start;
   justify-content: center;
   gap: calc(4 * var(--layout-space-4));
-  zoom: 0.75;
+  /* Small enough that the whole phone shows, top to bottom (2026-11-03, Kushagra: "Keep mobiles
+     to standard device frame height"). */
+  zoom: 0.55;
+}
+
+.kd-band-stage:has(> .kd-band-devices) {
+  inset-block-start: var(--layout-space-9);
 }
 
 @container (max-width: 43rem) {
@@ -263,9 +269,10 @@ body {
   }
 }
 
+/* A desktop window beside a phone is wider than it is tall, as FIGURES.md asks: 800 by 704. */
 .kd-band-desktop {
   flex: none;
-  inline-size: calc(36 * var(--layout-space-4));
+  inline-size: calc(25 * var(--layout-space-7));
 }
 
 /* The phone is a device, because what changes on it is touch, not only width: a white bezel with
@@ -319,6 +326,12 @@ body {
   border-radius: calc(var(--radius-7) * 1.75);
   background-color: var(--color-ground);
   overflow: clip;
+}
+
+/* An app in a phone fills the phone's screen. The shell's 704px is a desktop window's height,
+   and in a phone it cut the content off two thirds of the way down (2026-11-03). */
+.kd-band-phone-screen .kd-band-shell {
+  block-size: 100%;
 }
 
 .kd-band-home-indicator {
@@ -536,18 +549,21 @@ body {
   }
 }
 
-/* A do-and-don't pair: two phones at one scale, centred, each under its mark, cut by the band's
-   bottom like every other figure. */
+/* A do-and-don't pair: two phones at one scale, centred, each under its mark. The whole phone
+   shows, top to bottom, with the same air above and below (2026-11-03, Kushagra: "Keep mobiles to
+   standard device frame height ... try fitting entire device"): a phone cut by the band read as a
+   strip of unknown length. */
 .kd-band-pair {
   display: flex;
   justify-content: center;
   gap: calc(4 * var(--layout-space-4));
   inline-size: 100%;
-  zoom: 0.65;
+  zoom: 0.58;
 }
 
 .kd-band-stage:has(> .kd-band-pair) {
   padding-inline-start: 0;
+  inset-block-start: var(--layout-space-9);
 }
 
 @container (max-width: 33rem) {
