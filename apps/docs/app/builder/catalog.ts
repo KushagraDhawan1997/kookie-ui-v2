@@ -1812,7 +1812,7 @@ export const sanitizeNode = (n: BuilderNode, parentType?: string): BuilderNode |
   if (!entry) return null;
   const props: BuilderNode["props"] = {};
   for (const [k, v] of Object.entries(n.props ?? {})) {
-    if (k in entry.props) props[k] = v;
+    if (Object.hasOwn(entry.props, k)) props[k] = v;
   }
   const children = n.children
     ?.map((c) => sanitizeNode(c, n.type))
