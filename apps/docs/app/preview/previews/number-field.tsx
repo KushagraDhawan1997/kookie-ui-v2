@@ -23,6 +23,7 @@ import {
   Grid,
   Heading,
   NumberField,
+  NumberFieldGroup,
   Separator,
   Stack,
   Text,
@@ -60,6 +61,25 @@ function Sizes() {
                   what every real form does with a field. */}
               <Stack flexGrow="1" flexBasis="0" minWidth="10rem" maxWidth="16rem">
                 <NumberField size={size} defaultValue={12} aria-label={`Seats, size ${size}`} />
+              </Stack>
+              <Text size="1" emphasis="quiet">Size {size}</Text>
+            </Flex>
+          ))}
+        </Stack>
+      </Demo>
+
+      {/* The creative core (2026-11-03): a scrub label in place of the steppers, and three fields
+          joined as one value. Every index, so the join and the label's square read at each. */}
+      <Demo label="Scrub, in a NumberFieldGroup — drag a letter, at every index">
+        <Stack gap="4">
+          {SIZES.map((size) => (
+            <Flex key={size} gap="3" align="center">
+              <Stack flexGrow="1" flexBasis="0" maxWidth="20rem">
+                <NumberFieldGroup label={`Position, size ${size}`} size={size}>
+                  <NumberField scrub="X" aria-label="X" defaultValue={12} />
+                  <NumberField scrub="Y" aria-label="Y" defaultValue={0} />
+                  <NumberField scrub="Z" aria-label="Z" defaultValue={-4} />
+                </NumberFieldGroup>
               </Stack>
               <Text size="1" emphasis="quiet">Size {size}</Text>
             </Flex>

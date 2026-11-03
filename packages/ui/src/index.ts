@@ -62,7 +62,7 @@ export {
   type ConfirmationProps,
   type NoticeProps,
 } from "./components/notice/notice.tsx";
-export { NumberField, type NumberFieldProps } from "./components/number-field/number-field.tsx";
+export { NumberField, NumberFieldGroup, type NumberFieldProps, type NumberFieldGroupProps } from "./components/number-field/number-field.tsx";
 export { Page, type PageProps } from "./components/page/page.tsx";
 export { RowGroup, type RowGroupProps } from "./components/row-group/row-group.tsx";
 export {

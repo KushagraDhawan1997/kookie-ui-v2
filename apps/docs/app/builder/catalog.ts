@@ -1653,6 +1653,10 @@ export const EXCLUDED: { name: string; why: string }[] = [
     why: "The builder composes what goes INSIDE an app frame; the Shell is that frame. It claims the whole window, owns landmarks the canvas already provides, and its panes place themselves by grid area rather than by a drop — so a Shell on this canvas would be an app inside an app. Its parts are excluded for the same reason: none of them means anything outside the frame that arranges them.",
   },
   {
+    name: "NumberFieldGroup",
+    why: "It joins NumberFields that edit one value, and the builder places one field at a time. Compose the fields in a Grid on the canvas instead.",
+  },
+  {
     name: "ToolbarOverflow",
     why: "It measures the room a row has left and moves what does not fit into a menu, so what it draws depends on the width the app is being used at. On this canvas that makes its contents appear and disappear as the width handle moves, and the exported JSX would describe a row whose visible controls are not the ones the document states. The row itself is placeable; deciding what collapses is a runtime question.",
   },

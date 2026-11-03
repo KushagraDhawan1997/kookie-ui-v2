@@ -1525,9 +1525,17 @@ const DECLARED: Entry[] = [
       {"name":"controlled","title":"Controlled","why":"Pass `value` and `onValueChange` when other parts of the screen depend on the number, here a monthly price. The value is `null` when the field is empty, so check for it."},
       {"name":"states","title":"Read-only, disabled and invalid","why":"A read-only value can still be selected and is still sent with the form. A disabled field takes no input. An invalid field shows the error from the `Field` around it."},
       {"name":"in-a-form","title":"In a form","why":"Set `name`, and a hidden input sends the number when the form submits. `required` stops the form from submitting while the field is empty."},
+      {"name":"scrub","title":"Scrub and group, for an inspector","why":"`scrub` puts a short label at the start that people drag sideways to change the value, in place of the two buttons. `NumberFieldGroup` joins fields that edit one value, such as a position's X, Y and Z, and names them as one group."},
     ],
     abstract: "NumberField is a field for entering a number, with buttons on each side that decrease and increase it.",
     overview: ["Use a NumberField when the value is a number, such as a count of seats, an amount of money or a timeout. It shows the value between a decrease button and an increase button. Use a `Slider` when an approximate value in a range is enough, and a `TextField` when the value only looks like a number, such as a postcode.","It matches a `TextField` in height, border, focus ring and material, so the two line up in one form. Set `min` and `max` to keep the value in a range, and `step` to set how far each press or arrow key moves it. A button becomes disabled when the value reaches a limit, and both are disabled in a read-only field.","Pass `format` to show the value as a currency, a percentage or a unit. The field formats the number and reads typed text in the user's locale, so someone in Germany can type `1.234,5`, and `locale` sets a different one. Put a unit in `format` rather than beside the field, so screen readers announce it as part of the value.","The value is a number, or `null` when the field is empty, which is different from zero. Use `value` and `onValueChange` to keep it in your own state, or `defaultValue` to let the field keep it. Set `name`, and a hidden input sends the number with the form.","Put it in a `Field` to give it a label, a description and an error message. Inside a `Field` it uses that field's size, and a `size` set on the NumberField itself still wins.","The arrow keys change the value by `step`, Alt with an arrow key uses `smallStep`, and Shift with an arrow key uses `largeStep`. The two buttons aren't in the tab order, because the keyboard already changes the value from the field itself. Set `decrementLabel` and `incrementLabel` to name the buttons in your app's language."],
+    topics: [
+      { title: "One number", symbols: ["NumberField"] },
+      { title: "Numbers that go together", symbols: ["NumberFieldGroup"] },
+    ],
+    parts: [
+      { part: "NumberFieldGroup", blurb: "Number fields that edit one value, such as X, Y and Z, joined edge to edge in equal columns under one accessible name" },
+    ],
     refusals: [
       {
         name: "`leading` and `trailing`",
