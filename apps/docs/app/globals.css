@@ -477,6 +477,47 @@ body {
   }
 }
 
+/* A TABLET WHEN THE LAPTOP DOESN'T FIT (2026-11-03, Kushagra: "switch to a tablet or something when
+   things are tight? Not as a default, but as an out"). A band too narrow for the whole lid would
+   crop the window, and a figure's subject is often at its end (Composition's panel). The same app
+   moves into a tablet instead: a window up to 768px, an even rim all round with the camera in the top,
+   and the rounder corners a tablet has, centred in the band. Only a lone laptop does this; a pair
+   of devices keeps its own row. */
+@container (max-width: calc(30 * 32px + 4 * 24px)) {
+  .kd-figure .kd-band-stage > .kd-device {
+    --kd-device-rim: var(--layout-space-5);
+    --kd-device-top: var(--layout-space-5);
+  }
+
+  /* A tablet's 768, or less on a narrower band, so the whole tablet always shows with a step of
+     ground on either side. */
+  .kd-figure .kd-band-stage > .kd-device > .kd-band-window {
+    inline-size: min(768px, calc(100cqi - 2 * (var(--layout-space-5) + var(--border-width)) - 2 * var(--layout-space-7)));
+  }
+
+  .kd-figure .kd-band-stage > .kd-device::before {
+    --kd-camera: var(--layout-space-2);
+  }
+
+  .kd-figure > .kd-band > .kd-band-stage:has(> .kd-device) {
+    justify-items: center;
+    padding-inline-start: 0;
+  }
+}
+
+/* On a phone even the tablet won't fit at a width its app can work in, so it keeps a 600px window,
+   starts a step in from the band's edge and runs off the end, the way a laptop does on a phone. */
+@container (max-width: calc(600px + 2 * 16px + 2 * 32px)) {
+  .kd-figure .kd-band-stage > .kd-device > .kd-band-window {
+    inline-size: 600px;
+  }
+
+  .kd-figure > .kd-band > .kd-band-stage:has(> .kd-device) {
+    justify-items: start;
+    padding-inline-start: var(--layout-space-6);
+  }
+}
+
 /* A band wide enough for the whole laptop centres it (Kushagra, 2026-11-02: "center them too,
    they seem offset to left"): the lid, 960 plus its rim, and a step either side. */
 @container (min-width: calc(30 * 32px + 4 * 24px)) {
