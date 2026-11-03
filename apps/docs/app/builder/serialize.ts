@@ -65,7 +65,7 @@ export const effectiveProps = (n: BuilderNode): [string, PropValue][] => {
     out.push([key, v]);
   }
   for (const key of Object.keys(n.props)) {
-    if (!(key in entry.props)) {
+    if (!Object.hasOwn(entry.props, key)) {
       throw new Error(`"${key}" is not a prop the builder knows on ${n.type} — refusing to export it.`);
     }
   }

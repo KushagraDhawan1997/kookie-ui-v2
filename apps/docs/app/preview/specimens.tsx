@@ -113,6 +113,7 @@ import {
   ToolbarButton,
   ToolbarGroup,
   ToolbarOverflow,
+  ToolbarOverflowItem,
   ToolbarSeparator,
   ToolbarTitle,
   ShellContent,
@@ -3308,9 +3309,11 @@ function ToolbarSection() {
                     <ToolbarButton iconOnly aria-label="Copy">
                       <CopyIcon />
                     </ToolbarButton>
-                    <ToolbarButton iconOnly aria-label="Search">
-                      <SearchIcon />
-                    </ToolbarButton>
+                    <ToolbarOverflowItem rank={1}>
+                      <ToolbarButton iconOnly aria-label="Search">
+                        <SearchIcon />
+                      </ToolbarButton>
+                    </ToolbarOverflowItem>
                   </ToolbarOverflow>
                 </Toolbar>
               </Card>

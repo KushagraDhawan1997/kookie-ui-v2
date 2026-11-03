@@ -6398,6 +6398,23 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "ToolbarOverflowItem": {
+    "element": null,
+    "props": [
+      {
+        "name": "children",
+        "type": "React.ReactNode",
+        "optional": true,
+        "doc": "The control."
+      },
+      {
+        "name": "rank",
+        "type": "number",
+        "optional": true,
+        "doc": "How long this control stays in the row as it narrows. Higher stays longer. The default is `0`. Controls of equal rank move into the menu from the end of the cluster."
+      }
+    ]
+  },
   "ToolbarOverflow": {
     "element": "div",
     "props": [

@@ -44,8 +44,7 @@ import {
 } from "@kushagradhawan/kookie-ui-react";
 
 import { EmptyState } from "../../blocks/empty-state";
-import { ChapterIcon, SearchIcon, SectionIcon } from "../icons";
-import { NAV_ICONS } from "./docs-nav";
+import { AllComponentsIcon, ChapterIcon, SearchIcon, SectionIcon } from "../icons";
 import { searchEntries, type SearchEntry } from "./search";
 
 export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
@@ -165,12 +164,10 @@ export function DocsSearch({ index }: { index: readonly SearchEntry[] }) {
 
 /* WHAT KIND OF PLACE A RESULT IS (2026-11-01, the icon audit). Chapters, their sections and
    components came back as identical rows, so the glyph is the quick filter and the title
-   confirms. A component reuses its sidebar glyph, so the two are learned together. */
+   confirms. Every component wears one glyph for "component" since the sidebar dropped the
+   per-component glyphs (2026-11-03). */
 function HitIcon({ entry }: { entry: SearchEntry }) {
   if (entry.kind === "heading") return <SectionIcon />;
-  if (entry.kind === "component") {
-    const Icon = NAV_ICONS[entry.href];
-    if (Icon) return <Icon />;
-  }
+  if (entry.kind === "component") return <AllComponentsIcon />;
   return <ChapterIcon />;
 }
