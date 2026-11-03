@@ -2,6 +2,22 @@
 
 Each day groups its changes as Major, Minor or Quiet. Major is a new product or a change to what it is. Minor is a change you notice when you use it. Quiet is a small touch, or how the work is made.
 
+## November 3
+
+### Minor
+
+- **RowGroup and Navigator.** RowGroup joins rows into one list, and Navigator moves between screens inside a pane.
+- **Stacked sidebar.** On a narrow screen, the Shell's sidebar collapses into a sheet or a stack.
+- **Scrub and NumberFieldGroup.** Dragging a NumberField's label changes its value, and NumberFieldGroup joins fields into one control.
+- **Toolbar overflow by rank.** A toolbar cluster moves its lowest-ranked items into the menu first.
+- **Agents build screens.** An agent can build a screen in the builder through WebMCP.
+- **Device figures and new chapters.** Figures sit in laptop and phone frames on a grey gradient, at full width. The new Build and Inputs chapters replace the old /start/ pages, which redirect.
+
+### Quiet
+
+- **Composition rules.** RULES.md lists the rules, and a screen check tests a screen against them.
+- **Icons on chapter rows only.** The docs sidebar shows icons on chapter rows and nowhere else.
+
 ## October 25
 
 ### Quiet
