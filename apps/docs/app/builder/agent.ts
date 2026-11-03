@@ -19,7 +19,7 @@
 
 import { componentAxes } from "@kushagradhawan/kookie-ui-react";
 
-import { CATALOG, canContain, slotsFor, type PropSchema } from "./catalog";
+import { CATALOG, canContain, canSit, slotsFor, type PropSchema } from "./catalog";
 import { CANVAS_TYPE, canvasChildren, canvasNode, withStableIds, type BuilderDoc, type BuilderNode, type PropValue } from "./model";
 import { legalValue, reviewDocument } from "./review";
 import { serializeDocument } from "./serialize";
@@ -83,6 +83,7 @@ function catalog(input: Record<string, unknown>): string {
   const name = typeof input.name === "string" ? input.name.trim() : "";
   if (name) {
     const type = Object.keys(CATALOG).find((key) => key.toLowerCase() === name.toLowerCase());
+    // `Object.keys` is own keys already, so `constructor` finds nothing here.
     return type ? describeEntry(type) : `No component named "${name}" in the builder's catalog.`;
   }
   return [
@@ -97,11 +98,26 @@ function catalog(input: Record<string, unknown>): string {
 
 type Incoming = { type?: unknown; props?: unknown; text?: unknown; slot?: unknown; children?: unknown };
 
+/** Own keys only (audit 2026-11-03): `CATALOG` and every `props` map are plain objects, so `in`
+    answered yes for `constructor`, `toString` and `__proto__`. */
+const own = (object: object, key: string): boolean => Object.hasOwn(object, key);
+
+/** Deeper than any screen a person builds, and shallow enough that recursion cannot overflow. */
+const MAX_DEPTH = 40;
+
 const legal = (type: string, key: string, value: PropValue): boolean => {
+  const schema = CATALOG[type]!.props[key]!;
   if (value !== null && typeof value === "object") {
-    const schema = CATALOG[type]?.props[key];
-    if (!schema || !("responsive" in schema) || !schema.responsive) return false;
+    if (!("responsive" in schema) || !schema.responsive) return false;
     return Object.values(value).every((tier) => legalValue(type, key, tier));
+  }
+  if (schema.kind === "number") {
+    return (
+      typeof value === "number" &&
+      Number.isFinite(value) &&
+      (schema.min === undefined || value >= schema.min) &&
+      (schema.max === undefined || value <= schema.max)
+    );
   }
   return legalValue(type, key, value);
 };
@@ -109,44 +125,72 @@ const legal = (type: string, key: string, value: PropValue): boolean => {
 /** An agent's tree, checked against the catalog. Returns the nodes, or every error found. */
 export function validate(nodes: unknown): { roots: BuilderNode[] } | { errors: string[] } {
   const errors: string[] = [];
-  const walk = (raw: Incoming, path: string, parent: string, chain: string[]): BuilderNode | null => {
+  const walk = (raw: Incoming, path: string, parent: string, chain: string[], seated: boolean): BuilderNode | null => {
     const type = typeof raw.type === "string" ? raw.type : "";
     const at = `${path} (${type || "no type"})`;
-    if (!CATALOG[type]) {
+    if (!own(CATALOG, type)) {
       errors.push(`${at}: not a builder component. Call ${BUILDER_TOOL_NAMES.catalog} for the list.`);
       return null;
     }
-    const entry = CATALOG[type];
-    if (!canContain(parent, type, chain)) errors.push(`${at}: a ${parent} cannot hold a ${type}.`);
+    if (chain.length > MAX_DEPTH) {
+      errors.push(`${at}: nested deeper than ${MAX_DEPTH} levels.`);
+      return null;
+    }
+    const entry = CATALOG[type]!;
+    // A seated child is judged by the seat's own rule; everything else by the grammar.
+    if (!seated && !canContain(parent, type, chain)) errors.push(`${at}: a ${parent} cannot hold a ${type}.`);
     const props: Record<string, PropValue> = {};
-    for (const [key, value] of Object.entries((raw.props as Record<string, PropValue>) ?? {})) {
-      if (!(key in entry.props)) errors.push(`${at}: ${type} has no prop "${key}".`);
+    const rawProps = raw.props && typeof raw.props === "object" ? (raw.props as Record<string, PropValue>) : {};
+    for (const [key, value] of Object.entries(rawProps)) {
+      if (!own(entry.props, key)) errors.push(`${at}: ${type} has no prop "${key}".`);
       else if (!legal(type, key, value)) errors.push(`${at}: ${JSON.stringify(value)} is not a value of ${type}.${key} (${valuesOf(entry.props[key]!)}).`);
       else props[key] = value;
     }
     const node: BuilderNode = { id: "", type, props };
     if (raw.text !== undefined) {
       if (entry.children !== "text") errors.push(`${at}: ${type} takes no text.`);
-      else if (typeof raw.text === "string") node.text = raw.text;
-    }
-    if (raw.slot !== undefined) {
-      if (raw.slot !== "leading" && raw.slot !== "trailing") errors.push(`${at}: slot is "leading" or "trailing".`);
-      else if (!slotsFor(parent).includes(raw.slot)) errors.push(`${at}: a ${parent} has no ${raw.slot} slot.`);
-      else node.slot = raw.slot;
+      else if (typeof raw.text !== "string") errors.push(`${at}: text must be a string.`);
+      else node.text = raw.text;
     }
     if (raw.children !== undefined) {
-      if (!Array.isArray(raw.children)) errors.push(`${at}: children must be a list.`);
-      else if (entry.children === "none" || entry.children === "text") errors.push(`${at}: ${type} takes no child components.`);
-      else
-        node.children = raw.children
-          .map((child, i) => walk((child ?? {}) as Incoming, `${path}.${i}`, type, [...chain, type]))
-          .filter((child): child is BuilderNode => child !== null);
+      if (!Array.isArray(raw.children)) {
+        errors.push(`${at}: children must be a list.`);
+        return node;
+      }
+      const seats = new Set<string>();
+      const flow: unknown[] = [];
+      const children: BuilderNode[] = [];
+      raw.children.forEach((child, i) => {
+        const c = (child ?? {}) as Incoming;
+        const childPath = `${path}.${i}`;
+        if (c.slot === undefined) {
+          flow.push(c);
+          const built = walk(c, childPath, type, [...chain, type], false);
+          if (built) children.push(built);
+          return;
+        }
+        // A slot holds one node of the kinds a seat accepts (audit 2026-11-03), checked here
+        // rather than left to the reducer's quiet repair.
+        if (c.slot !== "leading" && c.slot !== "trailing") errors.push(`${childPath}: slot is "leading" or "trailing".`);
+        else if (!slotsFor(type).includes(c.slot)) errors.push(`${childPath}: a ${type} has no ${c.slot} slot.`);
+        else if (typeof c.type !== "string" || !canSit(type, c.type)) errors.push(`${childPath}: a ${String(c.type)} cannot sit in a ${type}'s ${c.slot} slot.`);
+        else if (seats.has(c.slot)) errors.push(`${childPath}: a ${type}'s ${c.slot} slot already holds a node.`);
+        else {
+          seats.add(c.slot);
+          const built = walk(c, childPath, type, [...chain, type], true);
+          if (built) children.push({ ...built, slot: c.slot });
+        }
+      });
+      if (flow.length && (entry.children === "none" || entry.children === "text")) errors.push(`${at}: ${type} takes no child components, only slotted ones.`);
+      // A part that renders its one child as its own element draws only the first (audit).
+      if (entry.renderChild && flow.length > 1) errors.push(`${at}: ${type} holds exactly one child.`);
+      node.children = children;
     }
     return node;
   };
   if (!Array.isArray(nodes)) return { errors: ["`nodes` must be a list of components."] };
   const roots = nodes
-    .map((raw, i) => walk((raw ?? {}) as Incoming, `nodes.${i}`, CANVAS_TYPE, [CANVAS_TYPE]))
+    .map((raw, i) => walk((raw ?? {}) as Incoming, `nodes.${i}`, CANVAS_TYPE, [CANVAS_TYPE], false))
     .filter((n): n is BuilderNode => n !== null);
   return errors.length ? { errors } : { roots };
 }
@@ -240,7 +284,13 @@ export function builderTools(env: BuilderAgentEnv): BuilderTool[] {
         required: ["nodes"],
       },
       annotations: { readOnlyHint: false },
-      execute: async (input) => write(env, input),
+      execute: async (input) => {
+        try {
+          return write(env, input);
+        } catch (error) {
+          return `Nothing changed. ${(error as Error).message}`;
+        }
+      },
     },
   ];
 }
