@@ -1812,6 +1812,22 @@
   min-height: auto;
 }
 
+/* ── Back, for a sidebar that collapses into a stack (2026-11-03) ──────────────────────────
+   Hidden at every width; the narrow block shows it while the content of a stacked shell is
+   showing. Navigator's chevron, mirrored the same way on a right-to-left page. */
+.kui-shell-back {
+  display: none;
+}
+
+.kui-shell-back-glyph {
+  inline-size: 1em;
+  block-size: 1em;
+}
+
+.kui-shell-back-glyph:dir(rtl) {
+  scale: -1 1;
+}
+
 /* ── The narrow window (§18's boundary — config's `narrowMedia`, law-pinned) ───────────────
    Auto resolves here: the nav columns rest closed, and an open pane presents as an overlay.
    ONE media block so the boundary literal exists once in this file. */
@@ -2234,7 +2250,7 @@
      that OVERLAYS here (it parks rather than leaving), and kept for every other reason a pane
      is not on screen. */
   .kui-surface.kui-shell-rail[data-state="auto"]:not([data-presentation="auto"]):not([data-presentation="bar"]),
-  .kui-surface.kui-shell-sidebar[data-state="auto"]:not([data-presentation="auto"]):not([data-presentation="bar"]) {
+  .kui-surface.kui-shell-sidebar[data-state="auto"]:not([data-presentation="auto"]):not([data-presentation="bar"]):not([data-presentation="stack"]) {
     display: none;
   }
 
@@ -2284,6 +2300,10 @@
   .kui-shell:has(> .kui-shell-rail[data-presentation="auto"]:not([data-flush]))
     > .kui-shell-content[data-flush],
   .kui-shell:has(> .kui-shell-sidebar[data-presentation="auto"]:not([data-flush]))
+    > .kui-shell-content[data-flush],
+  /* A sidebar that collapses into a stack is never beside the content here either (audit
+     2026-11-03): it is the other screen. */
+  .kui-shell:has(> .kui-shell-sidebar[data-presentation="stack"]:not([data-flush]))
     > .kui-shell-content[data-flush] {
     --kui-shell-inset-inline-start: initial;
   }
@@ -2296,6 +2316,8 @@
      twice. Each selector carries the neighbour's `[data-flush]` so the restatement is scoped
      to exactly the arms above; a non-flush neighbour never zeroed anything to restore. */
   .kui-shell:has(> .kui-shell-sidebar[data-flush][data-presentation="auto"])
+    > .kui-shell-content:not([data-flush]),
+  .kui-shell:has(> .kui-shell-sidebar[data-flush][data-presentation="stack"])
     > .kui-shell-content:not([data-flush]),
   .kui-shell:has(> .kui-shell-rail[data-flush][data-presentation="auto"])
     > .kui-shell-content:not([data-flush]) {
@@ -2338,6 +2360,27 @@
     > .kui-shell-scrim {
     opacity: 1;
     visibility: visible;
+  }
+
+  /* THE SIDEBAR THAT COLLAPSES INTO A STACK (2026-11-03). On a narrow window it is not a drawer
+     but a screen: while it shows, it takes the content's columns and the content leaves; while
+     the content shows, the sidebar leaves. Nothing overlays, so there is no scrim and no push.
+     The open state is the wide window's answer and does not apply here, so the shown side
+     out-ranks `[data-state="closed"]` (0,3,0) by one attribute. */
+  .kui-surface.kui-shell-sidebar[data-presentation="stack"][data-view="sidebar"] {
+    display: flex;
+    grid-column: sidebar-start / content-end;
+    inline-size: auto;
+  }
+  .kui-surface.kui-shell-sidebar[data-presentation="stack"][data-view="content"] {
+    display: none;
+  }
+  .kui-shell:has(> .kui-shell-sidebar[data-presentation="stack"][data-view="sidebar"]) > .kui-shell-content {
+    display: none;
+  }
+  /* Back appears only where it has somewhere to go: the content of a stacked shell, showing. */
+  .kui-shell:has(> .kui-shell-sidebar[data-presentation="stack"][data-view="content"]) > .kui-shell-content .kui-shell-back {
+    display: contents;
   }
 }
 

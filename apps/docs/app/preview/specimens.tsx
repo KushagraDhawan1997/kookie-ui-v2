@@ -120,6 +120,7 @@ import {
   ShellInspector,
   ShellBottom,
   ShellTrigger,
+  ShellBack,
   Slider,
   Spinner,
   Surface,
@@ -2009,6 +2010,31 @@ function ShellSection() {
           gap. Dismissing it collapses the row and the frame takes the height back. */}
       <Demo label="ShellNotice — flush, and pulled off a floating frame">
         <ShellNoticeDemo />
+      </Demo>
+
+      {/* The sidebar that collapses into a stack (2026-11-03): beside the content here, and on a
+          narrow window the list first, then the message, with ShellBack in its band. */}
+      <Demo label="ShellSidebar collapse=stack, with ShellBack — narrow the window">
+        <Box height="20rem">
+          <Shell contained>
+            <ShellSidebar aria-label="Inbox" collapse="stack">
+              <ShellScroll>
+                <ShellNavGroup label="Inbox">
+                  <ShellNavItem>Launch checklist</ShellNavItem>
+                  <ShellNavItem>October invoice</ShellNavItem>
+                </ShellNavGroup>
+              </ShellScroll>
+            </ShellSidebar>
+            <ShellContent>
+              <ShellPaneHeader>
+                <Toolbar>
+                  <ShellBack aria-label="Back to Inbox" />
+                </Toolbar>
+              </ShellPaneHeader>
+              <Text size="3">The open message.</Text>
+            </ShellContent>
+          </Shell>
+        </Box>
       </Demo>
 
       {/* Flush: the app-chrome posture — panes tile, each seam one hairline. The sidebar is

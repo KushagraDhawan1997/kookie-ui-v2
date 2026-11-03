@@ -154,6 +154,8 @@ describe("the closed unions", () => {
       // the physical pair are refused in the component rather than absent by oversight.
       "SheetSide",
       "ShellPaneTarget",
+      // Which side a sidebar that collapses into a stack shows, `sidebar` or `content` (2026-11-03).
+      "ShellStackView",
       "ShellPresentation",
       // The rail's own four postures (§27, 2026-09-09) — `auto`, `bar`, `rail`, `overlay`.
       // A pane's presentation and a rail's are different vocabularies for the same reason the

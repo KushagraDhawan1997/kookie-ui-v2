@@ -4740,6 +4740,17 @@ export const API: Record<string, ApiEntry> = {
       }
     ]
   },
+  "ShellBack": {
+    "element": null,
+    "props": [
+      {
+        "name": "aria-label",
+        "type": "string",
+        "optional": true,
+        "doc": "The accessible name. The default is `Back`."
+      }
+    ]
+  },
   "ShellBottom": {
     "element": "aside",
     "props": [
@@ -5322,10 +5333,30 @@ export const API: Record<string, ApiEntry> = {
         "doc": "Set `backdrop` when content passes behind this pane, such as a canvas, a map or an image. The pane then uses the theme's material. Without it, the pane stays solid. If you leave it unset, the pane follows the nearest `<Box backdrop>` region. A pane that opens as an overlay always uses the theme's material. This prop does not change that."
       },
       {
+        "name": "collapse",
+        "type": "\"sheet\" | \"stack\"",
+        "values": [
+          "sheet",
+          "stack"
+        ],
+        "optional": true,
+        "doc": "Sets what the sidebar becomes on a narrow window. The default is `sheet`. - `sheet`: a drawer over the content, opened with a `ShellTrigger`. Use it when the sidebar is the app's navigation, which a person opens when they need it. - `stack`: the first screen. Picking an item shows the content, and `ShellBack` in the content's band goes back to the sidebar. Use it when the sidebar is the list a person browses, such as a mailbox or a list of settings. A wide window shows the sidebar beside the content either way."
+      },
+      {
         "name": "defaultOpen",
         "type": "boolean",
         "optional": true,
         "doc": "Sets whether the pane starts open when you do not control it. If you set neither this nor `open`, the window size decides whether the pane is open. The first toggle then sets the state."
+      },
+      {
+        "name": "defaultView",
+        "type": "ShellStackView",
+        "values": [
+          "sidebar",
+          "content"
+        ],
+        "optional": true,
+        "doc": "Sets the side a stacked sidebar shows first, when you don't control `view`. The default is `sidebar`."
       },
       {
         "name": "flush",
@@ -5356,6 +5387,12 @@ export const API: Record<string, ApiEntry> = {
         "type": "(width: number) => void",
         "optional": true,
         "doc": "Called once when the user ends a resize, with the pane's new width. Save the width if you want it to stay after a reload. If you set `width`, the pane keeps the dragged width until you change `width`."
+      },
+      {
+        "name": "onViewChange",
+        "type": "(view: ShellStackView) => void",
+        "optional": true,
+        "doc": "Called when a stacked sidebar changes side: with `\"content\"` when a `ShellNavItem` in it is pressed, and with `\"sidebar\"` when `ShellBack` is pressed."
       },
       {
         "name": "open",
@@ -5398,6 +5435,16 @@ export const API: Record<string, ApiEntry> = {
         ],
         "optional": true,
         "doc": "Sets the size step of the pane: its padding, its rows and its buttons. It does not set the width. The default is the shell's `size`."
+      },
+      {
+        "name": "view",
+        "type": "ShellStackView",
+        "values": [
+          "sidebar",
+          "content"
+        ],
+        "optional": true,
+        "doc": "Sets which side a sidebar that collapses into a stack shows on a narrow window. Use it with `onViewChange` when your router owns the selection: `\"content\"` while an item is open, `\"sidebar\"` when none is. The browser's Back then works through your URLs."
       },
       {
         "name": "width",

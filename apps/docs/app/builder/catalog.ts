@@ -1697,6 +1697,10 @@ export const EXCLUDED: { name: string; why: string }[] = [
     why: "A part of the Shell, which the builder excludes: the app frame is what this canvas composes inside, not something it places. This part places itself by grid area within that frame, so ShellTrigger has no meaning on a canvas with no Shell to arrange it.",
   },
   {
+    name: "ShellBack",
+    why: "A part of the Shell, which the builder excludes: it goes back from the content to a sidebar that collapses into a stack, so it has no meaning on a canvas with no Shell around it.",
+  },
+  {
     name: "ShellScroll",
     why: "A part of the Shell, and the one that marks which region of a pane scrolls. It only means anything inside a pane that has given it a bounded column to grow into, which is a frame this canvas composes inside rather than places.",
   },
