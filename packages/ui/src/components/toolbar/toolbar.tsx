@@ -234,6 +234,8 @@ export type ToolbarOverflowItemProps = ComponentRefusals & {
  * rank, "yes"). As the row narrows, the lowest rank moves into the `⋯` menu first, so the
  * action the screen exists for is the last to go. It draws nothing of its own; the control
  * inside it still answers whether it is in the row or the menu.
+ * Wrap one control in each: two inside one child share that child's seat, and the last to
+ * report sets its rank.
  */
 export function ToolbarOverflowItem({ rank = 0, children }: ToolbarOverflowItemProps) {
   const seat = React.use(OverflowSeat);
@@ -297,12 +299,17 @@ export function ToolbarOverflow({
   const [tick, setTick] = React.useState(0);
 
   /* A different set of children is a different set of widths. Measured lengths keyed by index
-     would otherwise survive a navigation that changed what the band holds. */
-  const previousCount = React.useRef(count);
-  if (previousCount.current !== count) {
-    previousCount.current = count;
+     would otherwise survive a navigation that changed what the band holds. KEYED BY THE
+     CHILDREN'S KEYS, not their count (2026-11-03 audit): a reorder kept the count, so index 1
+     kept the old child's width and rank. And everything comes back into the row to be measured
+     again, since a child still in the menu has no width and the effect waits for one. */
+  const keys = items.map((item) => (React.isValidElement(item) ? String(item.key) : "")).join("\u0000");
+  const previousKeys = React.useRef(keys);
+  if (previousKeys.current !== keys) {
+    previousKeys.current = keys;
     widths.current = [];
     ranks.current = [];
+    if (hiddenKey !== "") setHiddenKey("");
   }
 
   React.useLayoutEffect(() => {
@@ -417,7 +424,18 @@ export function ToolbarOverflow({
             }
           />
           <MenuContent align="end">
-            <InOverflow.Provider value>{items.filter((_, i) => hidden.has(i))}</InOverflow.Provider>
+            {/* Each item in the menu keeps its seat's reporter, so a rank that changes while the
+                menu is open still reaches the row, and an inner overflow's items never report to
+                this one's seats. */}
+            <InOverflow.Provider value>
+              {items.map((item, i) =>
+                hidden.has(i) ? (
+                  <OverflowSeat.Provider key={i} value={reporters[i] ?? null}>
+                    {item}
+                  </OverflowSeat.Provider>
+                ) : null,
+              )}
+            </InOverflow.Provider>
           </MenuContent>
         </Menu>
       ) : null}
