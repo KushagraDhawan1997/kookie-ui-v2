@@ -8,7 +8,7 @@ import type { Size } from "../../system/axes.ts";
 import { GLYPH_VIEWBOX } from "../../system/glyphs.ts";
 import { useMergedRefs } from "../../system/render.ts";
 import { useLensRef } from "../../system/refraction.tsx";
-import { useSize } from "../../system/size.ts";
+import { SizeScopeContext, useSize } from "../../system/size.ts";
 import { GlassScope, useMaterial } from "../../theme/theme.tsx";
 import { glyphStroke } from "../../tokens/config.ts";
 
@@ -167,6 +167,13 @@ export type NumberFieldProps = ComponentRefusals &
      * `<Box backdrop>`.
      */
     backdrop?: boolean;
+    /**
+     * Turns the field into a creative tool's field: a short label at the start, such as `X` or an
+     * icon, that a person drags sideways to change the value. The steppers go, and the arrow keys
+     * and typing still work. Use it in an inspector, where fields sit in tight columns. The label
+     * is not the field's accessible name, so give the field a `FieldLabel` or an `aria-label`.
+     */
+    scrub?: React.ReactNode;
     /** The accessible name of the decrease button. The default is "Decrease". Set it to translate the name. */
     decrementLabel?: string;
     /** The accessible name of the increase button. The default is "Increase". Set it to translate the name. */
@@ -187,6 +194,21 @@ function minusGlyph() {
   return (
     <svg viewBox={GLYPH_VIEWBOX} fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
       <path d="M4.25 8h7.5" stroke="currentColor" strokeWidth={glyphStroke} strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** ↔, the cursor while a scrub drags: the two chevrons of the steppers' directions. */
+function scrubGlyph() {
+  return (
+    <svg viewBox={GLYPH_VIEWBOX} fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <path
+        d="M2.5 8h11M5 5.5 2.5 8 5 10.5M11 5.5l2.5 2.5-2.5 2.5"
+        stroke="currentColor"
+        strokeWidth={glyphStroke}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -242,12 +264,12 @@ function plusGlyph() {
  *   each other. Validity is state: `aria-invalid`, or `data-invalid` from a `Field`.
  * - **No `render` escape**, TextField's refusal verbatim — there are two elements and neither
  *   can move.
- * - **No scrubbing, yet.** Base UI's ScrubArea (drag a label to change the value) and wheel
- *   scrubbing are deferred, not refused: both are a pointer gesture with a cursor of their own
- *   and nothing in this system has designed one.
+ * - **No wheel scrubbing.** A wheel over a field in a scrolling panel would change the value
+ *   instead of scrolling the panel. Dragging the `scrub` label is the gesture (2026-11-03).
  */
 export function NumberField({
   size: sizeProp,
+  scrub,
   backdrop,
   decrementLabel = "Decrease",
   incrementLabel = "Increase",
@@ -308,6 +330,7 @@ export function NumberField({
       className={className ? `kui-control kui-field kui-number-field ${className}` : "kui-control kui-field kui-number-field"}
       style={style}
       data-size={size}
+      data-scrub={scrub === undefined ? undefined : ""}
       // Fixed identity, not API — TextField's reason: the tone indirection needs a family.
       data-tone="neutral"
       data-bordered
@@ -344,58 +367,113 @@ export function NumberField({
           sequential focus is unmoved either way), and every rule that dresses a zone keys on its
           `data-step` ATTRIBUTE rather than on a position. */}
       <BaseNumberField.Input ref={setInput} className="kui-field-input kui-number-field-input" {...inputProps} />
-      <GlassScope material={material}>
-        {/* A ZONE, NOT A HOSTED BUTTON (2026-09-13, Kushagra: "the button being used as is is
-            wrong… the right layout is ( - | 12 | + ) so that the ( - | button is the entire
-            button area, with hover and click spanning entire left and right block").
+      {scrub === undefined ? (
+        <GlassScope material={material}>
+          {/* A ZONE, NOT A HOSTED BUTTON (2026-09-13, Kushagra: "the button being used as is is
+              wrong… the right layout is ( - | 12 | + ) so that the ( - | button is the entire
+              button area, with hover and click spanning entire left and right block").
 
-            Measured before the change, at size 2: a 20 x 20 button inset 4px on every side of a
-            256 x 28 field, so a press 3px inside the field's own edge landed on the FIELD. The
-            hosted-control rule (§4) put it there and was right to — that rule exists for a
-            control a CALL SITE hosts in a field, where the field's box is the container and the
-            button is a guest that must not touch its walls. These two are not guests: the
-            component places them, they are the only way to work it with a pointer, and what
-            they divide is the field's own box. So the field is three zones edge to edge, and the
-            hit area is the block rather than a square floating inside it.
+              Measured before the change, at size 2: a 20 x 20 button inset 4px on every side of a
+              256 x 28 field, so a press 3px inside the field's own edge landed on the FIELD. The
+              hosted-control rule (§4) put it there and was right to — that rule exists for a
+              control a CALL SITE hosts in a field, where the field's box is the container and the
+              button is a guest that must not touch its walls. These two are not guests: the
+              component places them, they are the only way to work it with a pointer, and what
+              they divide is the field's own box. So the field is three zones edge to edge, and the
+              hit area is the block rather than a square floating inside it.
 
-            These wear `kui-control` and NOT `kui-button`, so the fill states, the disabled remap
-            and the cursor all arrive by membership. That is the segmented control's own
-            arrangement, which is the component this most resembles — segments in a track. */}
-        <BaseNumberField.Decrement
-          // A render FUNCTION rather than an element: the disabled state lives in Base UI's
-          // state (the bound, and read-only), and the zone goes NATIVELY disabled from it, which
-          // is what lets the shared remap and the `:disabled` cursor reach it. A zone is never a
-          // tab stop, so nothing is lost to the keyboard. It is a direct child of the field, so
-          // the shared disabled arm must not read it as the field's own state — that arm
-          // excludes a child that is itself a control (recipes.css, 2026-09-20).
-          render={(props, state) => (
-            <button
-              type="button"
-              {...(props as React.ComponentPropsWithoutRef<"button">)}
-              className="kui-control kui-number-field-step"
-              data-step="decrement"
-              aria-label={decrementLabel}
-              disabled={state.disabled || state.readOnly}
-            >
-              {minusGlyph()}
-            </button>
-          )}
-        />
-        <BaseNumberField.Increment
-          render={(props, state) => (
-            <button
-              type="button"
-              {...(props as React.ComponentPropsWithoutRef<"button">)}
-              className="kui-control kui-number-field-step"
-              data-step="increment"
-              aria-label={incrementLabel}
-              disabled={state.disabled || state.readOnly}
-            >
-              {plusGlyph()}
-            </button>
-          )}
-        />
-      </GlassScope>
+              These wear `kui-control` and NOT `kui-button`, so the fill states, the disabled remap
+              and the cursor all arrive by membership. That is the segmented control's own
+              arrangement, which is the component this most resembles — segments in a track. */}
+          <BaseNumberField.Decrement
+            // A render FUNCTION rather than an element: the disabled state lives in Base UI's
+            // state (the bound, and read-only), and the zone goes NATIVELY disabled from it, which
+            // is what lets the shared remap and the `:disabled` cursor reach it. A zone is never a
+            // tab stop, so nothing is lost to the keyboard. It is a direct child of the field, so
+            // the shared disabled arm must not read it as the field's own state — that arm
+            // excludes a child that is itself a control (recipes.css, 2026-09-20).
+            render={(props, state) => (
+              <button
+                type="button"
+                {...(props as React.ComponentPropsWithoutRef<"button">)}
+                className="kui-control kui-number-field-step"
+                data-step="decrement"
+                aria-label={decrementLabel}
+                disabled={state.disabled || state.readOnly}
+              >
+                {minusGlyph()}
+              </button>
+            )}
+          />
+          <BaseNumberField.Increment
+            render={(props, state) => (
+              <button
+                type="button"
+                {...(props as React.ComponentPropsWithoutRef<"button">)}
+                className="kui-control kui-number-field-step"
+                data-step="increment"
+                aria-label={incrementLabel}
+                disabled={state.disabled || state.readOnly}
+              >
+                {plusGlyph()}
+              </button>
+            )}
+          />
+        </GlassScope>
+      ) : (
+        /* THE SCRUB ZONE (2026-11-03, the creative core). The label a person drags, at the start
+           where the decrease zone sits in a stepper field, so the field is still zones edge to
+           edge. It replaces the steppers: an inspector's columns have no room for both, and
+           every creative tool that scrubs drops them. Base UI locks the pointer while dragging,
+           so the cursor is drawn here; Safari, which skips the lock, keeps the native one.
+           PREVIEW WHILE DRAGGING, COMMIT ON RELEASE: `onValueChange` runs on every step of the
+           drag, `onValueCommitted` once when it ends, so an app's undo history takes one step
+           per gesture. */
+        <BaseNumberField.ScrubArea className="kui-number-field-scrub">
+          <span aria-hidden className="kui-number-field-scrub-label">
+            {scrub}
+          </span>
+          <BaseNumberField.ScrubAreaCursor className="kui-number-field-scrub-cursor">
+            {scrubGlyph()}
+          </BaseNumberField.ScrubAreaCursor>
+        </BaseNumberField.ScrubArea>
+      )}
     </BaseNumberField.Root>
+  );
+}
+
+export type NumberFieldGroupProps = ComponentRefusals &
+  Omit<React.ComponentPropsWithoutRef<"div">, "color" | "role"> & {
+    /**
+     * The group's accessible name, such as `Position`. Screen readers say it before each field's
+     * own name, so the fields can be named `X`, `Y` and `Z`. Put a visible label beside the group
+     * yourself, or wrap it in a `Field` with a `FieldLabel`.
+     */
+    label: string;
+    /** The size step of every field in the group. The default comes from the enclosing `Field`, then the theme. */
+    size?: Size;
+    ref?: React.Ref<HTMLDivElement>;
+  };
+
+/**
+ * Number fields that edit one value together, such as a position's X, Y and Z, joined edge to
+ * edge in equal columns (2026-11-03, the creative core; Womp's Design System calls them paired
+ * inputs). One group, one name, one size: a vec3 is one thing to read, so the three fields
+ * share their borders the way a `ButtonGroup` shares a button's, and each keeps its own focus
+ * ring and its own value.
+ */
+export function NumberFieldGroup({ label, size: sizeProp, className, children, ref, ...props }: NumberFieldGroupProps) {
+  const size = useSize(sizeProp);
+  return (
+    <div
+      {...props}
+      ref={ref}
+      role="group"
+      aria-label={label}
+      data-size={size}
+      className={className ? `kui-number-field-group ${className}` : "kui-number-field-group"}
+    >
+      <SizeScopeContext.Provider value={size}>{children}</SizeScopeContext.Provider>
+    </div>
   );
 }

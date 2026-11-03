@@ -185,3 +185,79 @@
 .kui-number-field > .kui-number-field-step:disabled {
   cursor: default;
 }
+
+/* ── Scrub (2026-11-03, the creative core) ────────────────────────────────────────────────
+   The label a person drags, a zone at the start like the decrease zone it replaces: the field's
+   height square, muted ink, and the sideways cursor. The number reads from the start, next to
+   its label, the way every inspector writes it. */
+.kui-number-field > .kui-number-field-scrub {
+  order: -1;
+  align-self: stretch;
+  flex: none;
+  inline-size: var(--kui-ct-h);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  cursor: ew-resize;
+  user-select: none;
+  touch-action: none;
+}
+
+/* The value takes the room the label leaves, down to nothing: in a group's equal columns the
+   input's own intrinsic width (the platform's 20 characters) would push the field out of its
+   cell. */
+.kui-number-field[data-scrub] > .kui-number-field-input {
+  text-align: start;
+  padding-inline-start: 0;
+  flex: 1 1 0%;
+  min-inline-size: 0;
+}
+
+.kui-number-field-scrub-label {
+  display: inline-flex;
+  align-items: center;
+}
+
+.kui-number-field-scrub-label > svg,
+.kui-number-field-scrub-cursor > svg {
+  inline-size: 1em;
+  block-size: 1em;
+}
+
+.kui-number-field-scrub-cursor {
+  display: inline-flex;
+  color: var(--color-text);
+  pointer-events: none;
+}
+
+/* ── A group of fields (2026-11-03, the creative core) ────────────────────────────────────
+   ButtonGroup's join on a field: equal columns, one shared border between neighbours, and the
+   inner corners square. A focused field rises above its neighbours so its ring is whole. */
+.kui-number-field-group {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+}
+
+.kui-number-field-group > .kui-number-field {
+  min-inline-size: 0;
+}
+
+/* `of-type`, because Base UI writes each field's hidden form input as the field's next sibling,
+   so no field is ever the group's last child. */
+.kui-number-field-group > .kui-number-field:not(:last-of-type) {
+  border-start-end-radius: var(--radius-0);
+  border-end-end-radius: var(--radius-0);
+}
+
+.kui-number-field-group > .kui-number-field:not(:first-of-type) {
+  border-start-start-radius: var(--radius-0);
+  border-end-start-radius: var(--radius-0);
+  margin-inline-start: calc(-1 * var(--border-width));
+}
+
+.kui-number-field-group > .kui-number-field:focus-within {
+  position: relative;
+  z-index: 1;
+}
