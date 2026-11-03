@@ -368,6 +368,8 @@ import ShellFloatingExample from "./shell.floating";
 import ShellGroundedExample from "./shell.grounded";
 import ShellResizableExample from "./shell.resizable";
 import ShellControlledExample from "./shell.controlled";
+import AiChatAppExample from "./ai.chat-app";
+import AiAssistantExample from "./ai.assistant";
 import SliderRangeExample from "./slider.range";
 import SliderControlledExample from "./slider.controlled";
 import SliderStepsExample from "./slider.steps";
@@ -811,6 +813,8 @@ export const EXAMPLES: Record<string, React.ComponentType> = {
   "shell.grounded": ShellGroundedExample,
   "shell.resizable": ShellResizableExample,
   "shell.controlled": ShellControlledExample,
+  "ai.chat-app": AiChatAppExample,
+  "ai.assistant": AiAssistantExample,
   "slider.range": SliderRangeExample,
   "slider.controlled": SliderControlledExample,
   "slider.steps": SliderStepsExample,
