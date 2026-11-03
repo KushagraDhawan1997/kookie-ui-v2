@@ -3,6 +3,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ComputerIcon,
   PlayIcon,
+  PlusSignIcon,
   Redo02Icon,
   Search01Icon,
   SidebarLeftIcon,
@@ -60,6 +61,7 @@ const glyph = (icon: typeof Search01Icon) =>
   };
 
 const SearchIcon = glyph(Search01Icon);
+const AddIcon = glyph(PlusSignIcon);
 const SidebarLeftGlyph = glyph(SidebarLeftIcon);
 const SidebarRightGlyph = glyph(SidebarRightIcon);
 const DesktopIcon = glyph(ComputerIcon);
@@ -99,18 +101,20 @@ const PANE_WIDTHS = { "--shell-sidebar-w": "232px", "--shell-inspector-w": "272p
  *  panes sit flush with the window edge. */
 function Builder() {
   return (
-    <Theme size="1" className="kd-hero-window">
-      <Shell contained size="1" className="kd-hero-shell" style={PANE_WIDTHS}>
+    <Theme size="2" className="kd-hero-window">
+      <Shell contained size="2" className="kd-hero-shell" style={PANE_WIDTHS}>
         <ShellSidebar aria-label="Layers" defaultOpen presentation="fixed" flush>
           <ShellPaneHeader>
             <Toolbar backdrop>
-              <SegmentedControl defaultValue="layers" aria-label="Panel">
-                <SegmentedItem value="layers">Layers</SegmentedItem>
-                <SegmentedItem value="add">Add</SegmentedItem>
-              </SegmentedControl>
-              <ToolbarButton iconOnly aria-label="Search">
-                <SearchIcon />
-              </ToolbarButton>
+              <ToolbarTitle>Layers</ToolbarTitle>
+              <Flex align="center" gap="2">
+                <ToolbarButton iconOnly aria-label="Search layers">
+                  <SearchIcon />
+                </ToolbarButton>
+                <ToolbarButton iconOnly emphasis="loud" aria-label="Add a component">
+                  <AddIcon />
+                </ToolbarButton>
+              </Flex>
             </Toolbar>
           </ShellPaneHeader>
           <ShellScroll fade>
