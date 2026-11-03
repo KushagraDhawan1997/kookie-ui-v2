@@ -1,6 +1,6 @@
 import * as React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { BookmarkAdd01Icon, Cancel01Icon, ComputerIcon, SmartPhone01Icon, FavouriteIcon, InformationCircleIcon, NoteEditIcon, Share08Icon, TextFontIcon, Tick02Icon } from "@hugeicons/core-free-icons";
+import { BookmarkAdd01Icon, Cancel01Icon, ComputerIcon, PlayIcon, Redo02Icon, SidebarLeftIcon, SidebarRightIcon, SmartPhone01Icon, SquareDashedIcon, Undo02Icon, FavouriteIcon, InformationCircleIcon, NoteEditIcon, Share08Icon, TextFontIcon, Tick02Icon } from "@hugeicons/core-free-icons";
 import {
   Badge,
   Box,
@@ -27,6 +27,7 @@ import {
   ShellContent,
   ShellInspector,
   ShellNavItem,
+  ShellPaneFooter,
   ShellPaneHeader,
   ShellScroll,
   ShellSidebar,
@@ -41,6 +42,8 @@ import {
   Toolbar,
   ToolbarButton,
   ToolbarGroup,
+  ToolbarOverflow,
+  ToolbarOverflowItem,
   ToolbarTitle,
 } from "@kushagradhawan/kookie-ui-react";
 
@@ -287,22 +290,40 @@ export function CompositionFigure() {
         <Theme size="2" className="kd-band-window">
           <Shell contained className="kd-band-shell" style={{ "--shell-inspector-w": "304px" } as React.CSSProperties}>
             <ShellContent>
-              {/* THE CANVAS PANE'S BAND (2026-11-03, Kushagra: "Ok fix it"). FIGURES.md gives every
-                  canvas pane a floating header, the Builder's: the screen's name and a few quiet
-                  tools on the material, so the one loud thing stays on the canvas. */}
+              {/* THE CANVAS PANE'S BANDS ARE THE BUILDER'S (2026-11-03, Kushagra: "Definitely match!").
+                  The same tools as the front page's hero (hero.tsx), in the same places: Layers and
+                  the screen's name, the preview widths, Preview, Export and the inspector above;
+                  undo, outlines and zoom below. This canvas is narrower than the hero's, so the
+                  header's tools shed into ⋯ by rank and Export, the band's action, stays. */}
               <ShellPaneHeader float>
                 <Toolbar backdrop>
-                  <ToolbarTitle>Pay</ToolbarTitle>
-                  {/* The Builder's own band (hero.tsx): the screen's name, and the width it is
-                      previewed at. No tool for a pane this figure doesn't draw. */}
-                  <ToolbarGroup>
-                    <ToolbarButton iconOnly aria-label="Desktop">
-                      <HugeiconsIcon icon={ComputerIcon} strokeWidth={iconStroke} aria-hidden />
+                  <Flex align="center" gap="2">
+                    <ToolbarButton iconOnly aria-label="Layers">
+                      <HugeiconsIcon icon={SidebarLeftIcon} strokeWidth={iconStroke} aria-hidden />
                     </ToolbarButton>
-                    <ToolbarButton iconOnly aria-label="Phone">
-                      <HugeiconsIcon icon={SmartPhone01Icon} strokeWidth={iconStroke} aria-hidden />
+                    <ToolbarTitle>Pay</ToolbarTitle>
+                  </Flex>
+                  <ToolbarOverflow label="More tools">
+                    <ToolbarGroup>
+                      <ToolbarButton iconOnly aria-label="Desktop">
+                        <HugeiconsIcon icon={ComputerIcon} strokeWidth={iconStroke} aria-hidden />
+                      </ToolbarButton>
+                      <ToolbarButton iconOnly aria-label="Phone">
+                        <HugeiconsIcon icon={SmartPhone01Icon} strokeWidth={iconStroke} aria-hidden />
+                      </ToolbarButton>
+                    </ToolbarGroup>
+                    <ToolbarButton iconOnly aria-label="Preview">
+                      <HugeiconsIcon icon={PlayIcon} strokeWidth={iconStroke} aria-hidden />
                     </ToolbarButton>
-                  </ToolbarGroup>
+                    {/* Medium here, where the hero's is loud: this chapter's figure shows one loud
+                        thing, and it is the Continue on the canvas (RULES.md 8). */}
+                    <ToolbarOverflowItem rank={1}>
+                      <ToolbarButton>Export</ToolbarButton>
+                    </ToolbarOverflowItem>
+                    <ToolbarButton iconOnly aria-label="Inspector">
+                      <HugeiconsIcon icon={SidebarRightIcon} strokeWidth={iconStroke} aria-hidden />
+                    </ToolbarButton>
+                  </ToolbarOverflow>
                 </Toolbar>
               </ShellPaneHeader>
               <div className="kd-band-canvas">
@@ -310,6 +331,24 @@ export function CompositionFigure() {
                   Continue
                 </Button>
               </div>
+              <ShellPaneFooter float>
+                <Toolbar backdrop>
+                  <ToolbarGroup>
+                    <ToolbarButton iconOnly aria-label="Undo">
+                      <HugeiconsIcon icon={Undo02Icon} strokeWidth={iconStroke} aria-hidden />
+                    </ToolbarButton>
+                    <ToolbarButton iconOnly aria-label="Redo">
+                      <HugeiconsIcon icon={Redo02Icon} strokeWidth={iconStroke} aria-hidden />
+                    </ToolbarButton>
+                  </ToolbarGroup>
+                  <Flex align="center" gap="2">
+                    <ToolbarButton iconOnly aria-label="Show outlines">
+                      <HugeiconsIcon icon={SquareDashedIcon} strokeWidth={iconStroke} aria-hidden />
+                    </ToolbarButton>
+                    <ToolbarButton>100%</ToolbarButton>
+                  </Flex>
+                </Toolbar>
+              </ShellPaneFooter>
             </ShellContent>
             <ShellInspector aria-label="Properties" defaultOpen presentation="fixed" flush>
               <ShellPaneHeader>
