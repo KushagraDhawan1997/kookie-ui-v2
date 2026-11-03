@@ -391,7 +391,11 @@ export function NavigatorScreen({ title, children, className }: NavigatorScreenP
   // The title is the band's ToolbarTitle, like every band's (RULES.md 2), so it takes the
   // toolbar's settled distance from Back. What it says is the panel's own title part, so it
   // keeps the panel's title step and still names the panel for a screen reader.
-  const title_ = HostTitle ? (
+  // ONLY THE TOP SCREEN NAMES THE PANEL (2026-11-03, kookie-ui's own fix, c5b7e4ca). Screens
+  // underneath stay mounted, so if each wrapped its title in the panel's title part they would
+  // share its id, and after a push the dialog would keep the root screen's name.
+  const isTop = depth === state.path.length;
+  const title_ = HostTitle && isTop ? (
     <HostTitle>{title}</HostTitle>
   ) : (
     <Heading size="5" render={<h2 />}>
