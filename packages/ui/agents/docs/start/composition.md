@@ -12,7 +12,7 @@ while you work.
 
 *Figure.* A builder's property panel for a selected button: content and appearance in two groups spaced apart, the labels at the controls' size, and one size throughout.
 
-## One obvious action per screen
+## One obvious action per pane
 
 Give each pane one loud control, and make it the action the pane exists for. Set it with
 `tone="accent"` and `emphasis="loud"`, and leave every other control at medium or quiet.
