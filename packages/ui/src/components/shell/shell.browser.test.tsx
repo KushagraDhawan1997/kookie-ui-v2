@@ -5500,3 +5500,30 @@ describe("a sidebar that collapses into a stack (2026-11-03)", () => {
     expect(onScreen(sidebar)).toBe(true);
   });
 });
+
+describe("a stacked sidebar moves with the frame (2026-11-03)", () => {
+  // Falsified: with the stacked arm of the push removed, the list stays put while the header
+  // beside it slides.
+  it("on a narrow window, an open inspector pushes a stacked sidebar like the rest of the frame", async () => {
+    await narrow();
+    const shell = mounted(
+      <Shell contained style={{ blockSize: "600px" }}>
+        <ShellSidebar aria-label="Inbox" collapse="stack">
+          <ShellNavItem>Launch plan</ShellNavItem>
+        </ShellSidebar>
+        <ShellContent>
+          <p>Message</p>
+        </ShellContent>
+        <ShellInspector aria-label="Details" defaultOpen>
+          <p>Details</p>
+        </ShellInspector>
+      </Shell>,
+      { theme: {}, select: ".kui-shell" },
+    );
+    const sidebar = within(shell, ".kui-shell-sidebar");
+    const content = within(shell, ".kui-shell-content");
+    // The content is pushed (that is the existing law); the list moves by exactly as much.
+    expect(await until(() => getComputedStyle(content).translate !== "none")).toBe(true);
+    expect(getComputedStyle(sidebar).translate).toBe(getComputedStyle(content).translate);
+  });
+});

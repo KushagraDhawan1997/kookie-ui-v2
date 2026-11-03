@@ -2378,6 +2378,16 @@
   .kui-shell:has(> .kui-shell-sidebar[data-presentation="stack"][data-view="sidebar"]) > .kui-shell-content {
     display: none;
   }
+  /* A stacked sidebar is a screen here, not a drawer, so a drawer's push moves it with the rest
+     of the frame (2026-11-03, Kushagra: "Yes"). The push rule above leaves every sidebar out,
+     which is right for a drawer and left the list standing still under a sliding header. */
+  .kui-shell:has(> :where(.kui-shell-rail, .kui-shell-inspector)[data-state="open"][data-presentation="auto"])
+    > .kui-shell-sidebar[data-presentation="stack"],
+  .kui-shell:has(> :where(.kui-shell-rail, .kui-shell-inspector)[data-state="open"][data-presentation="overlay"])
+    > .kui-shell-sidebar[data-presentation="stack"] {
+    translate: var(--kui-shell-push-x) var(--kui-shell-push-y);
+  }
+
   /* Back appears only where it has somewhere to go: the content of a stacked shell, showing. */
   .kui-shell:has(> .kui-shell-sidebar[data-presentation="stack"][data-view="content"]) > .kui-shell-content .kui-shell-back {
     display: contents;
